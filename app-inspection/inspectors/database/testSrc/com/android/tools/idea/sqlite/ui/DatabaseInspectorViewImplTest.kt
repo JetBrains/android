@@ -462,8 +462,8 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
   fun testUpdateKeepConnectionOpenButton() {
     // Prepare
     val button =
-      TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" } as
-        JButton
+      TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" }
+        as JButton
 
     // Assert
     assertEquals(StudioIcons.DatabaseInspector.KEEP_DATABASES_OPEN, button.icon)
@@ -488,8 +488,8 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     val fileDatabaseId2 =
       SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file2")))
     val keepConnectionsOpenButton =
-      TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" } as
-        JButton
+      TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" }
+        as JButton
 
     // Act
     view.updateDatabases(
@@ -519,8 +519,8 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
     // Prepare
     val liveDatabaseId = SqliteDatabaseId.fromLiveDatabase("", 0)
     val keepConnectionsOpenButton =
-      TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" } as
-        JButton
+      TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" }
+        as JButton
 
     // Act
     view.updateDatabases(
@@ -545,8 +545,8 @@ class DatabaseInspectorViewImplTest : HeavyPlatformTestCase() {
       SqliteDatabaseId.fromFileDatabase(DatabaseFileData(MockVirtualFile("file2")))
     val liveDatabaseId = SqliteDatabaseId.fromLiveDatabase("", 0)
     val keepConnectionsOpenButton =
-      TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" } as
-        JButton
+      TreeWalker(view.component).descendants().find { it.name == "keep-connections-open-button" }
+        as JButton
 
     // Act
     view.updateDatabases(

@@ -101,6 +101,7 @@ object InspectorPainter {
 
     /**
      * Paint a thumb for horizontal slider.
+     *
      * @param x bottom position of the scrubber
      * @param y bottom position of the scrubber
      */
@@ -143,6 +144,7 @@ object InspectorPainter {
 
   /**
    * Diamond shape displayed at the start and the end of an animation for each animation curve.
+   *
    * @param x coordinate of the center of the diamond
    * @param y coordinate of the center of the diamond
    * @param colorIndex index of the color from [GRAPH_COLORS]

@@ -34,7 +34,7 @@ import org.jetbrains.uast.visitor.UastVisitor
  *
  * Matches if:
  * * [Confidence.MEDIUM] Method contains the "cause" expression on it.(i.e. call to previousFrame's
- * method, or a throw expression).
+ *   method, or a throw expression).
  * * [Confidence.LOW] the crash line is within the method.
  */
 class MethodMatcher : CrashMatcher {
@@ -67,8 +67,7 @@ class MethodMatcher : CrashMatcher {
 
   private fun findMatch(cls: UClass, crash: CrashFrame): Match? {
     val match: Match? =
-      cls
-        .methods
+      cls.methods
         .asSequence()
         .mapNotNull { method ->
           ProgressManager.checkCanceled()

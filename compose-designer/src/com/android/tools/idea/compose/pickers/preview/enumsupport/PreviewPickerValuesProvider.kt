@@ -79,7 +79,8 @@ private fun createDeviceEnumProvider(module: Module): EnumValuesProvider = {
   val devicesEnumValueBuilder = DeviceEnumValueBuilder()
   getGroupedDevices(module).forEach { (group, devices) ->
     when (group) {
-      DeviceGroup.NEXUS, DeviceGroup.NEXUS_XL -> devices.forEach(devicesEnumValueBuilder::addPhone)
+      DeviceGroup.NEXUS,
+      DeviceGroup.NEXUS_XL -> devices.forEach(devicesEnumValueBuilder::addPhone)
       DeviceGroup.NEXUS_TABLET -> devices.forEach(devicesEnumValueBuilder::addTablet)
       DeviceGroup.OTHER, // Group other with generic to guarantee all devices are available
       DeviceGroup.GENERIC -> devices.forEach(devicesEnumValueBuilder::addGeneric)
@@ -103,8 +104,7 @@ private fun createUiModeEnumProvider(module: Module): EnumValuesProvider =
     val configurationClass =
       findClass(module, SdkConstants.CLASS_CONFIGURATION) ?: return@uiModeProvider emptyList()
     val uiModeValueParams =
-      configurationClass
-        .fields
+      configurationClass.fields
         .filter { it.name.startsWith("UI_MODE_TYPE_") && !it.name.endsWith("MASK") }
         .mapNotNull { uiMode ->
           (runReadAction { uiMode.computeConstantValue() } as? Int)?.let {
@@ -112,8 +112,7 @@ private fun createUiModeEnumProvider(module: Module): EnumValuesProvider =
               if (UiMode.VR.resolvedValue == it.toString()) {
                 UiMode.VR.display
               } else {
-                uiMode
-                  .name
+                uiMode.name
                   .substringAfter("UI_MODE_TYPE_")
                   .replace('_', ' ')
                   .toLowerCaseAsciiOnly()
@@ -161,7 +160,8 @@ private fun createApiLevelEnumProvider(module: Module): EnumValuesProvider = {
   val minTargetSdk =
     StudioAndroidModuleInfo.getInstance(module)?.minSdkVersion?.apiLevel
       ?: AndroidVersion.VersionCodes.BASE
-  configurationManager?.targets
+  configurationManager
+    ?.targets
     ?.filter { ConfigurationManager.isLayoutLibTarget(it) && it.version.apiLevel >= minTargetSdk }
     ?.map { target ->
       EnumValue.item(
@@ -177,8 +177,8 @@ private fun createGroupEnumProvider(
   containingFile: VirtualFile
 ): EnumValuesProvider = {
   runBlocking {
-    AnnotationFilePreviewElementFinder.findPreviewMethods(module.project, containingFile)
-  }
+      AnnotationFilePreviewElementFinder.findPreviewMethods(module.project, containingFile)
+    }
     .mapNotNull { previewElement -> previewElement.displaySettings.group }
     .distinct()
     .map { group -> EnumValue.Companion.item(group) }

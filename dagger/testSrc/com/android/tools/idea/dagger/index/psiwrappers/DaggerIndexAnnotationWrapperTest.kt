@@ -59,9 +59,9 @@ class DaggerIndexAnnotationWrapperTest {
 
       @Annotation
       class Foo {}
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("Annotati|on").parentOfType<KtAnnotationEntry>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -82,9 +82,9 @@ class DaggerIndexAnnotationWrapperTest {
 
       @com.qualified.Annotation
       class Foo {}
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("Annotati|on").parentOfType<KtAnnotationEntry>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -105,9 +105,9 @@ class DaggerIndexAnnotationWrapperTest {
 
       @Bar
       class Foo {}
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("@Ba|r").parentOfType<KtAnnotationEntry>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -126,9 +126,9 @@ class DaggerIndexAnnotationWrapperTest {
 
       @Annotation(modules = [Module1::class])
       interface Foo {}
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("Annota|tion").parentOfType<KtAnnotationEntry>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -147,9 +147,9 @@ class DaggerIndexAnnotationWrapperTest {
 
       @Annotation(modules = [Module1::class, Module2::class])
       interface Foo {}
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("Annota|tion").parentOfType<KtAnnotationEntry>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -168,9 +168,9 @@ class DaggerIndexAnnotationWrapperTest {
 
       @Annotation(modules = [])
       interface Foo {}
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("Annota|tion").parentOfType<KtAnnotationEntry>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -189,9 +189,9 @@ class DaggerIndexAnnotationWrapperTest {
 
       @Annotation(notModules = [Module1::class, Module2::class])
       interface Foo {}
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("Annota|tion").parentOfType<KtAnnotationEntry>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -212,9 +212,9 @@ class DaggerIndexAnnotationWrapperTest {
 
       @Annotation
       class Foo {}
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val element = myFixture.moveCaret("Annota|tion").parentOfType<PsiAnnotation>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
@@ -235,9 +235,9 @@ class DaggerIndexAnnotationWrapperTest {
 
       @com.qualified.Annotation
       class Foo {}
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val element = myFixture.moveCaret("Annota|tion").parentOfType<PsiAnnotation>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
@@ -256,9 +256,9 @@ class DaggerIndexAnnotationWrapperTest {
 
       @Annotation(modules = Module1.class)
       interface Foo {}
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val element = myFixture.moveCaret("Annota|tion").parentOfType<PsiAnnotation>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
@@ -277,9 +277,9 @@ class DaggerIndexAnnotationWrapperTest {
 
       @Annotation(modules = { Module1.class })
       interface Foo {}
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val element = myFixture.moveCaret("Annota|tion").parentOfType<PsiAnnotation>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
@@ -298,9 +298,9 @@ class DaggerIndexAnnotationWrapperTest {
 
       @Annotation(modules = { Module1.class, Module2.class })
       interface Foo {}
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val element = myFixture.moveCaret("Annota|tion").parentOfType<PsiAnnotation>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
@@ -319,9 +319,9 @@ class DaggerIndexAnnotationWrapperTest {
 
       @Annotation(modules = { })
       interface Foo {}
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val element = myFixture.moveCaret("Annota|tion").parentOfType<PsiAnnotation>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
@@ -340,9 +340,9 @@ class DaggerIndexAnnotationWrapperTest {
 
       @Annotation(notModules = { Module1.class, Module2.class })
       interface Foo {}
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val element = myFixture.moveCaret("Annota|tion").parentOfType<PsiAnnotation>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)

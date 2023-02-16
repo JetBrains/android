@@ -72,7 +72,8 @@ internal val COMPOSE_SCREEN_VIEW_PROVIDER =
             .build()
         }
         .withShapePolicy {
-          (if (COMPOSE_PREVIEW_ELEMENT_INSTANCE.getData(manager.model.dataContext)
+          (if (
+              COMPOSE_PREVIEW_ELEMENT_INSTANCE.getData(manager.model.dataContext)
                 ?.displaySettings
                 ?.showDecoration == true
             )

@@ -249,7 +249,8 @@ internal class PreviewIssueNotificationActionTest {
           Re-enable
           Do not disable automatically
           View Details
-        """.trimIndent(),
+        """
+            .trimIndent(),
           popup.linksDescription()
         )
       } finally {
@@ -299,7 +300,8 @@ internal class PreviewIssueNotificationActionTest {
       assertEquals(
         """
         Build & Refresh (SHORTCUT)
-        View Problems""".trimIndent(),
+        View Problems"""
+          .trimIndent(),
         popup.linksDescription()
       )
     }
@@ -315,7 +317,8 @@ internal class PreviewIssueNotificationActionTest {
       assertEquals(
         """
         Build & Refresh (SHORTCUT)
-        View Problems""".trimIndent(),
+        View Problems"""
+          .trimIndent(),
         popup.linksDescription()
       )
     }
@@ -335,9 +338,9 @@ internal class PreviewIssueNotificationActionTest {
     var popupRequested = 0
     val action =
       PreviewIssueNotificationAction { _, _ ->
-        popupRequested++
-        fakePopup
-      }
+          popupRequested++
+          fakePopup
+        }
         .also { Disposer.register(projectRule.testRootDisposable, it) }
     val event =
       object : TestActionEvent(context) {

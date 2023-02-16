@@ -80,7 +80,8 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         @Preview
         fun Preview1() {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
@@ -103,7 +104,8 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         @Preview
         fun Preview1() {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
@@ -127,7 +129,8 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         @MyAnnotation
         fun Preview1() {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
@@ -150,7 +153,8 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
         @MyNotPreviewAnnotation
         fun Preview1() {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val functionIdentifier = file.findFunctionIdentifier("Preview1")
@@ -183,7 +187,8 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
           fun NestedPreview() {
           }
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val notPreview = file.findFunctionIdentifier("NotAPreview")

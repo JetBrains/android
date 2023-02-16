@@ -47,7 +47,8 @@ import org.jetbrains.uast.toUElement
  */
 class DeviceSpecInjectionContributor : LanguageInjectionContributor {
   override fun getInjection(context: PsiElement): Injection? {
-    if (!StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.get() ||
+    if (
+      !StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.get() ||
         context.containingFile.fileType != KotlinFileType.INSTANCE ||
         context !is KtStringTemplateExpression ||
         !context.isInPreviewAnnotation()
@@ -57,8 +58,8 @@ class DeviceSpecInjectionContributor : LanguageInjectionContributor {
 
     val valueArgument = context.parentOfType<KtValueArgument>() ?: return null
 
-    if (!valueArgument.isForDeviceParameter() ||
-        valueArgument.getFirstStringExpression() !== context
+    if (
+      !valueArgument.isForDeviceParameter() || valueArgument.getFirstStringExpression() !== context
     ) {
       return null
     }

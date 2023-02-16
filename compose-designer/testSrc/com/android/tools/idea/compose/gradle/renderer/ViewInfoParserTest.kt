@@ -60,11 +60,10 @@ class ViewInfoParserTest {
           ProjectRootManager.getInstance(project).contentRoots[0]
         )!!
       val ktFile = PsiManager.getInstance(project).findFile(file) as KtFile
-      ktFile
-          .declarations
-          .filterIsInstance<KtNamedFunction>()
-          .single { it.isTopLevel && it.name == "TwoElementsPreview" }
-          .nameIdentifier!!
+      ktFile.declarations
+        .filterIsInstance<KtNamedFunction>()
+        .single { it.isTopLevel && it.name == "TwoElementsPreview" }
+        .nameIdentifier!!
         .getLineNumber() + 1 // Starts at 0, as opposed to 1 for ViewInfo
     }
 
@@ -80,12 +79,12 @@ class ViewInfoParserTest {
 
         val viewInfos =
           ReadAction.compute<List<ComposeViewInfo>, Throwable> {
-            parseViewInfo(
-              rootViewInfo = renderResult.rootViews.single(),
-              lineNumberMapper = remapInline(module),
-              logger = LOG
-            )
-          }
+              parseViewInfo(
+                rootViewInfo = renderResult.rootViews.single(),
+                lineNumberMapper = remapInline(module),
+                logger = LOG
+              )
+            }
             .flatMap { it.allChildren() }
 
         val previewViewInfos =

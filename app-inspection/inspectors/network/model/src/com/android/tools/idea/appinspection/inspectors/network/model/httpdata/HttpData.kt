@@ -87,7 +87,7 @@ data class HttpData(
 
     /**
      * @return MIME type related information from Content-Type because Content-Type may contain
-     * other information such as charset or boundary.
+     *   other information such as charset or boundary.
      *
      * Examples: "text/html; charset=utf-8" => "text/html" "text/html" => "text/html"
      */

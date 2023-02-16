@@ -181,37 +181,44 @@ fun defaultCreateInformationPopup(
 private fun DataContext.createFastPreviewFailedActionLink(
   previewStatusNotification: PreviewStatus,
 ): AnActionLink? =
-  previewStatusNotification.takeIf { it is PreviewStatus.FastPreviewFailed }?.let {
-    actionLink(
-      text = message("fast.preview.disabled.notification.show.details.action.title"),
-      action = ShowEventLogAction(),
-      delegateDataContext = this
-    )
-  }
+  previewStatusNotification
+    .takeIf { it is PreviewStatus.FastPreviewFailed }
+    ?.let {
+      actionLink(
+        text = message("fast.preview.disabled.notification.show.details.action.title"),
+        action = ShowEventLogAction(),
+        delegateDataContext = this
+      )
+    }
 
 private fun DataContext.createDisableFastPreviewActionLink(isAutoDisabled: Boolean): AnActionLink? =
-  isAutoDisabled.takeIf { it }?.let {
-    actionLink(
-      text = message("fast.preview.disabled.notification.stop.autodisable.action.title"),
-      action = ReEnableFastPreview(false),
-      delegateDataContext = this
-    )
-  }
+  isAutoDisabled
+    .takeIf { it }
+    ?.let {
+      actionLink(
+        text = message("fast.preview.disabled.notification.stop.autodisable.action.title"),
+        action = ReEnableFastPreview(false),
+        delegateDataContext = this
+      )
+    }
 
 private fun DataContext.createReenableFastPreviewActionLink(
   isAutoDisabled: Boolean,
 ): AnActionLink? =
-  isAutoDisabled.takeIf { it }?.let {
-    actionLink(
-      text = message("fast.preview.disabled.notification.reenable.action.title"),
-      action = ReEnableFastPreview(),
-      delegateDataContext = this
-    )
-  }
+  isAutoDisabled
+    .takeIf { it }
+    ?.let {
+      actionLink(
+        text = message("fast.preview.disabled.notification.reenable.action.title"),
+        action = ReEnableFastPreview(),
+        delegateDataContext = this
+      )
+    }
 
 private fun DataContext.createErrorsActionLink(it: PreviewStatus): AnActionLink? =
   when (it) {
-    is PreviewStatus.SyntaxError, PreviewStatus.RenderIssues ->
+    is PreviewStatus.SyntaxError,
+    PreviewStatus.RenderIssues ->
       actionLink(message("action.view.problems"), ShowProblemsPanel(), this)
     else -> null
   }
@@ -265,8 +272,8 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
 
     @JvmStatic
     fun getInstance(): ForceCompileAndRefreshActionForNotification =
-      ActionManager.getInstance().getAction(ACTION_ID) as
-        ForceCompileAndRefreshActionForNotification
+      ActionManager.getInstance().getAction(ACTION_ID)
+        as ForceCompileAndRefreshActionForNotification
   }
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -308,8 +315,7 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
     }
 
   private fun requestBuildForSurface(surface: DesignSurface<*>) =
-    surface
-      .models
+    surface.models
       .map { it.virtualFile }
       .distinct()
       .also { surface.project.requestBuild(it) }

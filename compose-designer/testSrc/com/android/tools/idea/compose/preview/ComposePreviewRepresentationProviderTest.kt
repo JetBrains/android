@@ -59,7 +59,8 @@ class ComposePreviewRepresentationProviderTest {
         @Preview(name = "preview2", apiLevel = 12, group = "groupA", showBackground = true)
         fun Preview2() {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     val composableFile =
       fixture.addFileToProjectAndInvalidate(
@@ -77,7 +78,8 @@ class ComposePreviewRepresentationProviderTest {
         @Composable
         fun Composable2() {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     val kotlinFile =
       fixture.addFileToProjectAndInvalidate(
@@ -90,7 +92,8 @@ class ComposePreviewRepresentationProviderTest {
 
         fun helloMethod() {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     val kotlinWithNoComposable =
       fixture.addFileToProjectAndInvalidate(
@@ -99,7 +102,8 @@ class ComposePreviewRepresentationProviderTest {
         """
         fun aKotlinMethod() {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     runBlocking {
       assertTrue(previewProvider.accept(project, previewFile))

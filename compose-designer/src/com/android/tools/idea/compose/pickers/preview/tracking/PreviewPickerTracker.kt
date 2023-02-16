@@ -66,17 +66,20 @@ internal open class PreviewPickerTracker : BaseComposePickerTracker() {
         when (pickerModification.propertyName) {
           PARAMETER_NAME -> PreviewPickerParameter.NAME
           PARAMETER_GROUP -> PreviewPickerParameter.GROUP
-          PARAMETER_WIDTH_DP, PARAMETER_WIDTH -> PreviewPickerParameter.WIDTH
-          PARAMETER_HEIGHT_DP, PARAMETER_HEIGHT -> PreviewPickerParameter.HEIGHT
+          PARAMETER_WIDTH_DP,
+          PARAMETER_WIDTH -> PreviewPickerParameter.WIDTH
+          PARAMETER_HEIGHT_DP,
+          PARAMETER_HEIGHT -> PreviewPickerParameter.HEIGHT
           PARAMETER_API_LEVEL -> PreviewPickerParameter.API_LEVEL
           PARAMETER_FONT_SCALE -> PreviewPickerParameter.FONT_SCALE
-          PARAMETER_SHOW_DECORATION, PARAMETER_SHOW_SYSTEM_UI ->
-            PreviewPickerParameter.SHOW_SYSTEM_UI
+          PARAMETER_SHOW_DECORATION,
+          PARAMETER_SHOW_SYSTEM_UI -> PreviewPickerParameter.SHOW_SYSTEM_UI
           PARAMETER_SHOW_BACKGROUND -> PreviewPickerParameter.SHOW_BACKGROUND
           PARAMETER_BACKGROUND_COLOR -> PreviewPickerParameter.BACKGROUND_COLOR
           PARAMETER_UI_MODE -> PreviewPickerParameter.UI_MODE
           PARAMETER_LOCALE -> PreviewPickerParameter.LOCALE
-          PARAMETER_DEVICE, PARAMETER_HARDWARE_DEVICE -> PreviewPickerParameter.DEVICE
+          PARAMETER_DEVICE,
+          PARAMETER_HARDWARE_DEVICE -> PreviewPickerParameter.DEVICE
           PARAMETER_HARDWARE_WIDTH -> PreviewPickerParameter.DEVICE_WIDTH
           PARAMETER_HARDWARE_HEIGHT -> PreviewPickerParameter.DEVICE_HEIGHT
           PARAMETER_HARDWARE_DIM_UNIT -> PreviewPickerParameter.DEVICE_DIM_UNIT
@@ -96,7 +99,8 @@ internal open class PreviewPickerTracker : BaseComposePickerTracker() {
             if (devices.isEmpty()) null else group
           }
         return@run when (resultingGroup) {
-          DeviceGroup.NEXUS, DeviceGroup.NEXUS_XL -> DeviceType.PHONE
+          DeviceGroup.NEXUS,
+          DeviceGroup.NEXUS_XL -> DeviceType.PHONE
           DeviceGroup.NEXUS_TABLET -> DeviceType.TABLET
           DeviceGroup.WEAR -> DeviceType.WEAR
           DeviceGroup.DESKTOP -> DeviceType.DESKTOP

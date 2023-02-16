@@ -377,14 +377,17 @@ class HttpDataComponentFactory(
       if (contentType.isFormData) {
         val contentToParse = payload.toStringUtf8()
         val parsedContent =
-          contentToParse.trim { it <= ' ' }.split('&').associate { s ->
-            val splits = s.split('=', limit = 2)
-            if (splits.size > 1) {
-              splits[0] to splits[1]
-            } else {
-              splits[0] to ""
+          contentToParse
+            .trim { it <= ' ' }
+            .split('&')
+            .associate { s ->
+              val splits = s.split('=', limit = 2)
+              if (splits.size > 1) {
+                splits[0] to splits[1]
+              } else {
+                splits[0] to ""
+              }
             }
-          }
         return createStyledMapComponent(parsedContent)
       }
       val contentTypeFromMime = ContentType.fromMimeType(contentType.mimeType)

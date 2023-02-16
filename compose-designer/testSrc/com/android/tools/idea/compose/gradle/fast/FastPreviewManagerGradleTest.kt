@@ -114,9 +114,9 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
   fun setUp() {
     FastPreviewConfiguration.getInstance().isEnabled = true
     val mainFile =
-      projectRule.project.guessProjectDir()!!.findFileByRelativePath(
-        SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path
-      )!!
+      projectRule.project
+        .guessProjectDir()!!
+        .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
     psiMainFile = runReadAction { PsiManager.getInstance(projectRule.project).findFile(mainFile)!! }
     fastPreviewManager =
       if (useEmbeddedCompiler) FastPreviewManager.getInstance(projectRule.project)
@@ -248,9 +248,9 @@ class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
     val module = ModuleUtilCore.findModuleForPsiElement(psiMainFile)!!
     val psiSecondFile = runReadAction {
       val vFile =
-        projectRule.project.guessProjectDir()!!.findFileByRelativePath(
-          "app/src/main/java/google/simpleapplication/OtherPreviews.kt"
-        )!!
+        projectRule.project
+          .guessProjectDir()!!
+          .findFileByRelativePath("app/src/main/java/google/simpleapplication/OtherPreviews.kt")!!
       PsiManager.getInstance(projectRule.project).findFile(vFile)!!
     }
     runBlocking {

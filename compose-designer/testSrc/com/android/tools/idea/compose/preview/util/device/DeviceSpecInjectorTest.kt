@@ -85,7 +85,8 @@ internal class DeviceSpecInjectorTest {
         @Preview(device = "id:device$caret name")
         @Composable
         fun myFun() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
     runReadAction { injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id) }
   }
@@ -115,7 +116,8 @@ internal class DeviceSpecInjectorTest {
         @Preview(device = "spec:width=1080px," + "height=" + heightPx)
         @Composable
         fun preview1() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
     val injectedElementsAndTexts = runReadAction {
       injectionFixture.getAllInjections().map { Pair(it.first.text, it.second.text) }
@@ -150,7 +152,8 @@ internal class DeviceSpecInjectorTest {
         @Preview(device = "spec$caret:width=1080px," + "height=" + heightPx)
         @Composable
         fun preview1() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
     runReadAction { injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id) }
 
@@ -166,7 +169,8 @@ internal class DeviceSpecInjectorTest {
         @Preview(device = "spec:width=1080px," + "height$caret=" + heightPx)
         @Composable
         fun preview1() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
     runReadAction {
       assertFails { injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id) }
@@ -186,7 +190,8 @@ internal class DeviceSpecInjectorTest {
         @Preview($parameterName = "id:device$caret name")
         @Composable
         fun myFun() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
     runReadAction {
       assertFails { injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id) }

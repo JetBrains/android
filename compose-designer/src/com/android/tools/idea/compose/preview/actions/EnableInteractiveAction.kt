@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
  * Action that controls when to enable the Interactive mode.
  *
  * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated
- * information.
+ *   information.
  */
 internal class EnableInteractiveAction(private val dataContextProvider: () -> DataContext) :
   AnActionButton(

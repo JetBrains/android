@@ -92,7 +92,8 @@ class GlanceIssueNotificationActionTest {
     run {
       val popup = createInformationPopup(projectRule.project, dataContext)
       Assert.assertTrue(
-        popup!!.popupComponent
+        popup!!
+          .popupComponent
           .getDescendant(JLabel::class.java) { it.text.contains("The preview is updating...") }
           .isVisible
       )
@@ -103,7 +104,8 @@ class GlanceIssueNotificationActionTest {
     run {
       val popup = createInformationPopup(projectRule.project, dataContext)
       Assert.assertTrue(
-        popup!!.popupComponent
+        popup!!
+          .popupComponent
           .getDescendant(JLabel::class.java) { it.text.contains("The preview is out of date") }
           .isVisible
       )
@@ -114,7 +116,8 @@ class GlanceIssueNotificationActionTest {
     run {
       val popup = createInformationPopup(projectRule.project, dataContext)
       Assert.assertTrue(
-        popup!!.popupComponent
+        popup!!
+          .popupComponent
           .getDescendant(JLabel::class.java) {
             it.text.contains("The project needs to be compiled")
           }
@@ -127,7 +130,8 @@ class GlanceIssueNotificationActionTest {
     run {
       val popup = createInformationPopup(projectRule.project, dataContext)
       Assert.assertTrue(
-        popup!!.popupComponent
+        popup!!
+          .popupComponent
           .getDescendant(JLabel::class.java) {
             it.text.contains(
               "The preview will not update while your project contains syntax errors"
@@ -142,7 +146,8 @@ class GlanceIssueNotificationActionTest {
     run {
       val popup = createInformationPopup(projectRule.project, dataContext)
       Assert.assertTrue(
-        popup!!.popupComponent
+        popup!!
+          .popupComponent
           .getDescendant(JLabel::class.java) {
             it.text.contains("Some problems were found while rendering the preview")
           }
@@ -155,7 +160,8 @@ class GlanceIssueNotificationActionTest {
     run {
       val popup = createInformationPopup(projectRule.project, dataContext)
       Assert.assertTrue(
-        popup!!.popupComponent
+        popup!!
+          .popupComponent
           .getDescendant(JLabel::class.java) { it.text.contains("The preview is up to date") }
           .isVisible
       )

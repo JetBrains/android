@@ -121,7 +121,8 @@ class DaggerIndexTest {
         @Inject
         public Foo() {}
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertThat(DaggerIndex.getValues("com.example.Foo", projectRule.project.projectScope()))
@@ -155,7 +156,8 @@ class DaggerIndexTest {
         @Inject
         public Foo(Bar bar) {}
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     configureByText(
@@ -169,7 +171,8 @@ class DaggerIndexTest {
         @Inject
         public Bar() {}
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     configureByText(
@@ -186,7 +189,8 @@ class DaggerIndexTest {
           return new Bar();
         }
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertThat(DaggerIndex.getValues("Bar", projectRule.project.projectScope()))
@@ -241,13 +245,15 @@ class DaggerIndexTestNotRequiringIndex {
     // Files need to be added to the project (not just configured as in other test cases) to ensure
     // the references between files work.
     myFixture.openFileInEditor(
-      myFixture.addFileToProject(
+      myFixture
+        .addFileToProject(
           "/src/com/example/Foo.kt",
           // language=kotlin
           """
       package com.example
       class Foo
-      """.trimIndent()
+      """
+            .trimIndent()
         )
         .virtualFile
     )
@@ -266,7 +272,8 @@ class DaggerIndexTestNotRequiringIndex {
       .inOrder()
 
     myFixture.openFileInEditor(
-      myFixture.addFileToProject(
+      myFixture
+        .addFileToProject(
           "/src/com/example/FooAlias1.kt",
           // language=kotlin
           """
@@ -274,7 +281,8 @@ class DaggerIndexTestNotRequiringIndex {
       typealias FooAlias1 = com.example.Foo
 
       val fooAlias1: FooAlias1 = FooAlias()
-      """.trimIndent()
+      """
+            .trimIndent()
         )
         .virtualFile
     )
@@ -294,7 +302,8 @@ class DaggerIndexTestNotRequiringIndex {
       .inOrder()
 
     myFixture.openFileInEditor(
-      myFixture.addFileToProject(
+      myFixture
+        .addFileToProject(
           "/src/com/example/FooAlias2.kt",
           // language=kotlin
           """
@@ -302,7 +311,8 @@ class DaggerIndexTestNotRequiringIndex {
       typealias FooAlias2 = com.example.Foo
 
       val fooAlias2: FooAlias2 = FooAlias()
-      """.trimIndent()
+      """
+            .trimIndent()
         )
         .virtualFile
     )
@@ -338,7 +348,8 @@ class DaggerIndexTestNotRequiringIndex {
 
     // Same short name as above, but different package
     myFixture.openFileInEditor(
-      myFixture.addFileToProject(
+      myFixture
+        .addFileToProject(
           "/src/com/other/FooAlias2.kt",
           // language=kotlin
           """
@@ -346,7 +357,8 @@ class DaggerIndexTestNotRequiringIndex {
       typealias FooAlias2 = com.example.Foo
 
       val fooAlias2: FooAlias2 = FooAlias()
-      """.trimIndent()
+      """
+            .trimIndent()
         )
         .virtualFile
     )

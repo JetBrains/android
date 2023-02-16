@@ -88,13 +88,14 @@ import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * @param downloadDatabase allows to download a database from the device (works for file-based
- * databases (i.e. not in-memory))
+ *   databases (i.e. not in-memory))
  * @param deleteDatabase allows to delete files downloaded using [downloadDatabase]
  * @param acquireDatabaseLock Takes a databaseId; returns lockId or null if it was not possible to
- * secure a lock. Locking means preventing any thread (including application threads) from modifying
- * the database while the lock is in place. This allows for getting a consistent snapshot of the
- * data (e.g. when exporting a large table, we are fetching the data from the device by chunks, and
- * locking guarantees that the table won't change while we are in the process of fetching the data).
+ *   secure a lock. Locking means preventing any thread (including application threads) from
+ *   modifying the database while the lock is in place. This allows for getting a consistent
+ *   snapshot of the data (e.g. when exporting a large table, we are fetching the data from the
+ *   device by chunks, and locking guarantees that the table won't change while we are in the
+ *   process of fetching the data).
  * @param releaseDatabaseLock takes a lockId acquired through [acquireDatabaseLock]
  */
 @UiThread
@@ -264,28 +265,30 @@ class ExportToFileController(
         // TODO(161081452): skip temporary files (write directly to zip stream)
         val dstDir = findOrCreateDir(dstPath.parent)
         val tmpDir = Files.createTempDirectory(dstDir, ".tmp")
-        Closeable { FileUtil.delete(tmpDir) }.use {
-          val tmpFileToEntryName: List<TempExportedData> =
-            tableNames.mapIndexed { ix, name ->
-              val path =
-                tmpDir
-                  .toAbsolutePath()
-                  .resolve(".$ix.tmp") // using indexes for file names to avoid file naming issues
-              doExport(ExportTableRequest(database, name, format, path))
-              TempExportedData(path, "$name.csv")
-            }
+        Closeable { FileUtil.delete(tmpDir) }
+          .use {
+            val tmpFileToEntryName: List<TempExportedData> =
+              tableNames.mapIndexed { ix, name ->
+                val path =
+                  tmpDir
+                    .toAbsolutePath()
+                    .resolve(".$ix.tmp") // using indexes for file names to avoid file naming issues
+                doExport(ExportTableRequest(database, name, format, path))
+                TempExportedData(path, "$name.csv")
+              }
 
-          createZipFile(
-            dstPath,
-            tmpFileToEntryName
-          ) // TODO(161081452): write directly to zip file or move outside of database lock
-        }
+            createZipFile(
+              dstPath,
+              tmpFileToEntryName
+            ) // TODO(161081452): write directly to zip file or move outside of database lock
+          }
       }
     }
 
   /**
    * Exports the whole database to a single sqlite3 db file (binary format). Downloads the database
    * from the device if needed.
+   *
    * @param database file-based database (i.e. not in-memory)
    */
   private suspend fun exportDatabaseToSqliteBinary(database: SqliteDatabaseId, dstPath: Path) =
@@ -317,6 +320,7 @@ class ExportToFileController(
   /**
    * Executes a [task] on a local (offline) copy of the database. Downloads the database from the
    * device if needed.
+   *
    * @param database file-based database (i.e. not in-memory)
    */
   private suspend fun executeTaskOnLocalDatabaseCopy(
@@ -332,15 +336,16 @@ class ExportToFileController(
         }
         is LiveSqliteDatabaseId -> {
           downloadDatabase(database).let { files ->
-            Closeable { files.forEach { projectScope.launch { deleteDatabase(it) } } }.use {
-              files.let {
-                if (it.size != 1)
-                  throw IllegalStateException(
-                    "Unexpected number of downloaded database files: ${it.size}"
-                  )
-                task(it.single().mainFile.toNioPath())
+            Closeable { files.forEach { projectScope.launch { deleteDatabase(it) } } }
+              .use {
+                files.let {
+                  if (it.size != 1)
+                    throw IllegalStateException(
+                      "Unexpected number of downloaded database files: ${it.size}"
+                    )
+                  task(it.single().mainFile.toNioPath())
+                }
               }
-            }
           }
         }
       }

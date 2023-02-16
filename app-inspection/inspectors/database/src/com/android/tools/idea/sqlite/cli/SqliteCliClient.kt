@@ -158,6 +158,7 @@ class SqliteCliClientImpl(private val sqlite3: Path, private val dispatcher: Cor
 
 /**
  * Executor consuming std/err output streams as the process is being executed.
+ *
  * @return exitCode of the process
  */
 private object ProcessExecutor {

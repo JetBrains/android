@@ -119,11 +119,11 @@ private fun findDaemonPath(version: String): String {
  *
  * The protocol is as follows:
  * - The daemon will wait for the compiler parameters that will be passed verbatim ot the kolinc
- * compiler. The daemon will take parameters, one per line, until the string "done" is sent in a
- * separate line.
+ *   compiler. The daemon will take parameters, one per line, until the string "done" is sent in a
+ *   separate line.
  * - The daemon will then send all the compiler output back to Studio via stdout. Once the
- * compilation is done the daemon will print "RESULT <exit_code>" to stout and will start waiting
- * for a new command line.
+ *   compilation is done the daemon will print "RESULT <exit_code>" to stout and will start waiting
+ *   for a new command line.
  *
  * @param scope the [CoroutineScope] to be used by the coroutines in the daemon.
  * @param log [Logger] used to log the debug output of the daemon.
@@ -148,7 +148,7 @@ internal class OutOfProcessCompilerDaemonClientImpl(
         // major version, e.g. 1.1
         "${version.substringBefore(".")}.0.0-fallback" // Find the fallback artifact for the same
         // major version, e.g. 1
-        )
+      )
       .asSequence()
       .map {
         log.debug("Looking for kotlin daemon version '${version}'")

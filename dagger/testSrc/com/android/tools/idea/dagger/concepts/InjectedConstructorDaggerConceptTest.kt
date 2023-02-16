@@ -77,9 +77,9 @@ class InjectedConstructorDaggerConceptTest {
 
       class Foo constructor(arg1: Bar, arg2: Baz, arg3: Baz) {
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("construct|or").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -99,9 +99,9 @@ class InjectedConstructorDaggerConceptTest {
 
       class Foo @Inject constructor(arg1: Bar, arg2: Baz, arg3: Baz) {
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("construct|or").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -132,9 +132,9 @@ class InjectedConstructorDaggerConceptTest {
 
       class Foo @Inject constructor(arg1: Bar, arg2: Baz, arg3: Baz) {
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("construct|or").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -156,9 +156,9 @@ class InjectedConstructorDaggerConceptTest {
         @Inject
         fun someFunction(arg1: Bar, arg2: Baz, arg3: Baz)
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("someFunc|tion").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -178,9 +178,9 @@ class InjectedConstructorDaggerConceptTest {
 
       @Inject
       fun someFunction(arg1: Bar, arg2: Baz, arg3: Baz)
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("someFunc|tion").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -211,7 +211,8 @@ class InjectedConstructorDaggerConceptTest {
       class ClassWithoutInjectedConstructor constructor() {
       }
 
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val constructor1Element =
@@ -283,7 +284,8 @@ class InjectedConstructorDaggerConceptTest {
         public ClassWithoutInjectedConstructor() {}
       }
 
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val constructor1Element =
@@ -356,12 +358,15 @@ class InjectedConstructorDaggerConceptTest {
       class ClassWithoutInjectedConstructor constructor(bar: Bar) {
       }
 
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val barPsiType = myFixture.moveCaret("class Ba|r").parentOfType<KtClass>()!!.toPsiType()!!
     val otherPsiType =
-      myFixture.moveCaret("ClassWithoutInjectedConstructor cons|tructor").parentOfType<KtClass>()!!
+      myFixture
+        .moveCaret("ClassWithoutInjectedConstructor cons|tructor")
+        .parentOfType<KtClass>()!!
         .toPsiType()!!
 
     val parameter1Element =
@@ -431,7 +436,8 @@ class InjectedConstructorDaggerConceptTest {
         public ClassWithoutInjectedConstructor(Bar bar) {}
       }
 
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val barPsiType = toPsiType(myFixture.moveCaret("class Ba|r").parentOfType<PsiClass>()!!)!!

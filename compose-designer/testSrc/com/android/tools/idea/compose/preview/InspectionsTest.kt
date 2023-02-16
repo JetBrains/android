@@ -82,7 +82,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
       @Preview(name = "preview2", apiLevel = 12)
       fun Preview2() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
     assertEquals(
@@ -159,7 +160,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
       @Composable
       fun MultiPreviewWithProviderAndNoDefault(@PreviewParameter(IntProvider::class) a: Int, b: String) { // ERROR, no default in second parameter
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
     val inspections =
@@ -175,7 +177,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
       """5: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter.
         |15: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter.
         |34: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter.
-        |54: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter.""".trimMargin(),
+        |54: Composable functions with non-default parameters are not supported in Preview unless they are annotated with @PreviewParameter."""
+        .trimMargin(),
       inspections
     )
   }
@@ -213,7 +216,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
       fun MultiPreviewWithMultipleProviders(@PreviewParameter(IntProvider::class) a: Int,
                                             @PreviewParameter(IntProvider::class) b: Int) { // ERROR, only one PreviewParameter is supported
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
     val inspections =
@@ -228,7 +232,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
     assertEquals(
       """12: Multiple @PreviewParameter are not allowed.
         |21: Multiple @PreviewParameter are not allowed.
-      """.trimMargin(),
+      """
+        .trimMargin(),
       inspections
     )
   }
@@ -316,7 +321,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
         fun ClassMethodPreview() {
         }
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
     val inspections =
@@ -335,7 +341,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
                     |51: Preview must be a top level declarations or in a top level class with a default constructor.
                     |53: Preview must be a top level declarations or in a top level class with a default constructor.
                     |68: Preview must be a top level declarations or in a top level class with a default constructor.
-                    |70: Preview must be a top level declarations or in a top level class with a default constructor.""".trimMargin(),
+                    |70: Preview must be a top level declarations or in a top level class with a default constructor."""
+        .trimMargin(),
       inspections
     )
   }
@@ -372,7 +379,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
       @Preview(name = "Preview 2", widthDp = goodWidth)
       fun Preview2() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
     val inspections =
@@ -384,7 +392,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
     assertEquals(
       """7: Preview width is limited to 2,000. Setting a higher number will not increase the preview width.
         |15: Preview width is limited to 2,000. Setting a higher number will not increase the preview width.
-      """.trimMargin(),
+      """
+        .trimMargin(),
       inspections
     )
   }
@@ -421,7 +430,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
       @Preview(name = "Preview 2", heightDp = goodHeight)
       fun Preview2() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
     val inspections =
@@ -433,7 +443,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
     assertEquals(
       """7: Preview height is limited to 2,000. Setting a higher number will not increase the preview height.
         |15: Preview height is limited to 2,000. Setting a higher number will not increase the preview height.
-      """.trimMargin(),
+      """
+        .trimMargin(),
       inspections
     )
   }
@@ -453,7 +464,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
       @Preview(name = "Preview 1", heightDp = 2001, widthDp = 2001)
       fun Preview1() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
     val inspections =
@@ -507,7 +519,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
       @Preview(name = "Preview 2", fontScale = -2f) // error
       fun Preview2() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
     val inspections =
@@ -519,7 +532,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
     assertEquals(
       """7: Preview fontScale value must be greater than zero.
         |21: Preview fontScale value must be greater than zero.
-      """.trimMargin(),
+      """
+        .trimMargin(),
       inspections
     )
   }
@@ -567,13 +581,15 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
       @Preview(name = "Preview 4", apiLevel = 30)
       fun Preview4() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
     val inspections =
-      fixture.doHighlighting(HighlightSeverity.ERROR).sortedByDescending { -it.startOffset }.map {
-        it.descriptionWithLineNumber()
-      }
+      fixture
+        .doHighlighting(HighlightSeverity.ERROR)
+        .sortedByDescending { -it.startOffset }
+        .map { it.descriptionWithLineNumber() }
 
     val apiLevelErrorMessagePrefix = "Preview apiLevel must be set to an integer between "
     assertEquals(3, inspections.size)
@@ -603,7 +619,8 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
       @$PREVIEW_TOOLING_PACKAGE.Preview(name = "preview2")
       fun Preview2() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
     assertEquals(

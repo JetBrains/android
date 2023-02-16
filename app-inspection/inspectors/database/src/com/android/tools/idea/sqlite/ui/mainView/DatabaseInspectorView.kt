@@ -44,9 +44,10 @@ interface DatabaseInspectorView {
   /**
    * Updates the UI for an existing database, by adding and removing tables from its schema and
    * columns from its tables.
+   *
    * @param viewDatabase The database that needs to be updated.
    * @param diffOperations List of operations to perform the diff of [viewDatabase]'s schema in the
-   * view.
+   *   view.
    */
   fun updateDatabaseSchema(viewDatabase: ViewDatabase, diffOperations: List<SchemaDiffOperation>)
 

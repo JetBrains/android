@@ -27,7 +27,6 @@ interface AppInsightsProjectLevelController<IssueT : Issue, out StateT : AppInsi
    * This flow represents the App Insights state of a host Android app module.
    *
    * The state includes:
-   *
    * * Active and available [FirebaseConnection]s of a project.
    * * Active and available issues of the app(crashes).
    * * Active and available filters used to fetch the above issues.

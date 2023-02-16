@@ -77,8 +77,8 @@ class ComposeDocumentationProviderTest {
     )
 
     val previewImage =
-      composeDocProvider.getLocalImageForElementAsync(previewMethod).get(5, TimeUnit.SECONDS) as
-        BufferedImage
+      composeDocProvider.getLocalImageForElementAsync(previewMethod).get(5, TimeUnit.SECONDS)
+        as BufferedImage
     ImageDiffUtil.assertImageSimilar(
       Paths.get(
         "${projectRule.fixture.testDataPath}/${SIMPLE_COMPOSE_PROJECT_PATH}/defaultDocRender.png"

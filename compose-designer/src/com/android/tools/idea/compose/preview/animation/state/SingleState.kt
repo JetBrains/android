@@ -21,6 +21,7 @@ import com.android.tools.idea.compose.preview.animation.actions.SwapAction
 
 /**
  * [AnimationState] to control animations like AnimatedVisibility.
+ *
  * @param tracker usage tracker for animation tooling
  * @param callback when state has changed
  */
@@ -33,9 +34,9 @@ class SingleState(private val tracker: ComposeAnimationEventTracker, callback: (
   override val extraActions =
     listOf(
       SwapAction(tracker) {
-        enumState.states.firstOrNull { it != enumState.currentState }?.let {
-          enumState.currentState = it
-        }
+        enumState.states
+          .firstOrNull { it != enumState.currentState }
+          ?.let { enumState.currentState = it }
         stateCallback()
       },
       enumState

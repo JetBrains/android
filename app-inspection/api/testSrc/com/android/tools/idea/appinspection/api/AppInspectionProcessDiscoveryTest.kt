@@ -256,8 +256,7 @@ class AppInspectionProcessDiscoveryTest {
 
     // Launch process in stream 1
     val fakeDevice1 =
-      FakeTransportService.FAKE_DEVICE
-        .toBuilder()
+      FakeTransportService.FAKE_DEVICE.toBuilder()
         .setDeviceId(1)
         .setModel("fakeModel1")
         .setManufacturer("fakeMan2")
@@ -268,8 +267,7 @@ class AppInspectionProcessDiscoveryTest {
 
     // Launch process with same pid in stream 2
     val fakeDevice2 =
-      FakeTransportService.FAKE_DEVICE
-        .toBuilder()
+      FakeTransportService.FAKE_DEVICE.toBuilder()
         .setDeviceId(2)
         .setModel("fakeModel2")
         .setManufacturer("fakeMan2")
@@ -296,8 +294,7 @@ class AppInspectionProcessDiscoveryTest {
 
     // Launch process in stream 1
     val fakeDevice1 =
-      FakeTransportService.FAKE_DEVICE
-        .toBuilder()
+      FakeTransportService.FAKE_DEVICE.toBuilder()
         .setDeviceId(1)
         .setModel("fakeModel")
         .setManufacturer("fakeMan")
@@ -309,8 +306,7 @@ class AppInspectionProcessDiscoveryTest {
 
     // Launch process with same pid in stream 2
     val fakeDevice2 =
-      FakeTransportService.FAKE_DEVICE
-        .toBuilder()
+      FakeTransportService.FAKE_DEVICE.toBuilder()
         .setDeviceId(2)
         .setModel("fakeModel")
         .setManufacturer("fakeMan")
@@ -340,8 +336,7 @@ class AppInspectionProcessDiscoveryTest {
 
     // Launch process on a device with Api Level < O
     val oldDevice =
-      FakeTransportService.FAKE_DEVICE
-        .toBuilder()
+      FakeTransportService.FAKE_DEVICE.toBuilder()
         .setDeviceId(1)
         .setModel("fakeModel")
         .setManufacturer("fakeMan")
@@ -354,8 +349,7 @@ class AppInspectionProcessDiscoveryTest {
 
     // Launch process on another device with Api level >= O
     val newDevice =
-      FakeTransportService.FAKE_DEVICE
-        .toBuilder()
+      FakeTransportService.FAKE_DEVICE.toBuilder()
         .setDeviceId(2)
         .setModel("fakeModel")
         .setManufacturer("fakeMan")
@@ -446,8 +440,7 @@ class AppInspectionProcessDiscoveryTest {
     val debuggableProcess = FakeTransportService.FAKE_PROCESS.toBuilder().setPid(100).build()
     launchFakeProcess(FakeTransportService.FAKE_DEVICE, debuggableProcess)
     val profileableProcess =
-      FakeTransportService.FAKE_PROCESS
-        .toBuilder()
+      FakeTransportService.FAKE_PROCESS.toBuilder()
         .setPid(200)
         .setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE)
         .build()
@@ -475,8 +468,7 @@ class AppInspectionProcessDiscoveryTest {
 
     // Launch stream 1
     val fakeDevice1 =
-      FakeTransportService.FAKE_DEVICE
-        .toBuilder()
+      FakeTransportService.FAKE_DEVICE.toBuilder()
         .setDeviceId(1)
         .setModel("fakeModel1")
         .setManufacturer("fakeMan2")
@@ -485,8 +477,7 @@ class AppInspectionProcessDiscoveryTest {
 
     // Launch process with same pid in stream 2
     val fakeDevice2 =
-      FakeTransportService.FAKE_DEVICE
-        .toBuilder()
+      FakeTransportService.FAKE_DEVICE.toBuilder()
         .setDeviceId(2)
         .setModel("fakeModel2")
         .setManufacturer("fakeMan2")
@@ -525,8 +516,7 @@ class AppInspectionProcessDiscoveryTest {
 
       // Launch stream 1
       val fakeDevice1 =
-        FakeTransportService.FAKE_DEVICE
-          .toBuilder()
+        FakeTransportService.FAKE_DEVICE.toBuilder()
           .setDeviceId(1)
           .setModel("fakeModel1")
           .setManufacturer("fakeMan2")
@@ -534,8 +524,7 @@ class AppInspectionProcessDiscoveryTest {
       launchFakeDevice(fakeDevice1)
       launchFakeProcess(
         fakeDevice1,
-        FakeTransportService.FAKE_PROCESS
-          .toBuilder()
+        FakeTransportService.FAKE_PROCESS.toBuilder()
           .apply {
             deviceId = 1
             name = "name1"
@@ -545,8 +534,7 @@ class AppInspectionProcessDiscoveryTest {
 
       // Launch process with same pid in stream 2
       val fakeDevice2 =
-        FakeTransportService.FAKE_DEVICE
-          .toBuilder()
+        FakeTransportService.FAKE_DEVICE.toBuilder()
           .setDeviceId(2)
           .setModel("fakeModel2")
           .setManufacturer("fakeMan2")
@@ -554,8 +542,7 @@ class AppInspectionProcessDiscoveryTest {
       launchFakeDevice(fakeDevice2)
       launchFakeProcess(
         fakeDevice2,
-        FakeTransportService.FAKE_PROCESS
-          .toBuilder()
+        FakeTransportService.FAKE_PROCESS.toBuilder()
           .apply {
             name = "name2"
             deviceId = 2

@@ -64,9 +64,9 @@ class DaggerIndexAnnotatedWrapperTest {
 
       @Annotation
       class Foo {}
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("Fo|o").parentOfType<KtClass>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -97,9 +97,9 @@ class DaggerIndexAnnotatedWrapperTest {
 
       @com.qualified.Annotation
       class Foo {}
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("Fo|o").parentOfType<KtClass>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -129,9 +129,9 @@ class DaggerIndexAnnotatedWrapperTest {
 
       @Bar
       class Foo {}
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("Fo|o").parentOfType<KtClass>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -158,9 +158,9 @@ class DaggerIndexAnnotatedWrapperTest {
       @com.qualified1.Annotation
       @com.qualified2.Annotation
       class Foo {}
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("Fo|o").parentOfType<KtClass>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -196,9 +196,9 @@ class DaggerIndexAnnotatedWrapperTest {
 
       @Annotation
       class Foo {}
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val element = myFixture.moveCaret("Fo|o").parentOfType<PsiClass>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
@@ -229,9 +229,9 @@ class DaggerIndexAnnotatedWrapperTest {
 
       @com.qualified.Annotation
       class Foo {}
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val element = myFixture.moveCaret("Fo|o").parentOfType<PsiClass>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
@@ -265,9 +265,9 @@ class DaggerIndexAnnotatedWrapperTest {
       @com.qualified1.Annotation
       @com.qualified2.Annotation
       class Foo {}
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val element = myFixture.moveCaret("Fo|o").parentOfType<PsiClass>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)

@@ -29,7 +29,7 @@ import icons.StudioIcons.Compose.Toolbar.ANIMATION_INSPECTOR
  * details.
  *
  * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated
- * information.
+ *   information.
  */
 internal class AnimationInspectorAction(private val dataContextProvider: () -> DataContext) :
   AnActionButton(
@@ -39,8 +39,8 @@ internal class AnimationInspectorAction(private val dataContextProvider: () -> D
   ) {
 
   private fun getPreviewElement() =
-    dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) as?
-      ComposePreviewElementInstance
+    dataContextProvider().getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
+      as? ComposePreviewElementInstance
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)

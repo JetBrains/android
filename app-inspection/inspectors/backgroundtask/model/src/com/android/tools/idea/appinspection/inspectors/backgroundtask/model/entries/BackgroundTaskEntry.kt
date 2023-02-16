@@ -48,9 +48,11 @@ fun createBackgroundTaskEntry(event: EventWrapper): BackgroundTaskEntry =
         MetadataCase.JOB_STARTED,
         MetadataCase.JOB_STOPPED,
         MetadataCase.JOB_FINISHED -> JobEntry(id)
-        MetadataCase.ALARM_SET, MetadataCase.ALARM_CANCELLED, MetadataCase.ALARM_FIRED ->
-          AlarmEntry(id)
-        MetadataCase.WAKE_LOCK_ACQUIRED, MetadataCase.WAKE_LOCK_RELEASED -> WakeLockEntry(id)
+        MetadataCase.ALARM_SET,
+        MetadataCase.ALARM_CANCELLED,
+        MetadataCase.ALARM_FIRED -> AlarmEntry(id)
+        MetadataCase.WAKE_LOCK_ACQUIRED,
+        MetadataCase.WAKE_LOCK_RELEASED -> WakeLockEntry(id)
         else -> throw RuntimeException()
       }
     }

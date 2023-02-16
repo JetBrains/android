@@ -214,7 +214,8 @@ class RuleDetailsView(private val usageTracker: NetworkInspectorTracker) : JPane
     val urlWarningLabel = createWarningLabel("URL is malformed", "urlWarningLabel")
     val urlTextField =
       createTextField(rule.criteria.host, "www.google.com", "urlTextField") { text ->
-        if (!validateHostInput("${(protocolComboBox.selectedItem as Protocol).name}://$text", text)
+        if (
+          !validateHostInput("${(protocolComboBox.selectedItem as Protocol).name}://$text", text)
         ) {
           urlWarningLabel.isVisible = true
           return@createTextField

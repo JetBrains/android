@@ -166,8 +166,7 @@ private fun KtAnnotated.getQualifierInfoFromKtAnnotated(): QualifierInfo? {
     val qualifier = qualifiers.single()
     val qualifierFqName = qualifier.fqName?.asString() ?: return null
     val qualifierAttributes =
-      qualifier
-        .allValueArguments
+      qualifier.allValueArguments
         .map {
           it.key.asString() to
             (serializeAttrValueToString(it.value) ?: return@getQualifierInfoFromKtAnnotated null)

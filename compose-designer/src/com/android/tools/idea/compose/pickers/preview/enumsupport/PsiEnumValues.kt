@@ -43,11 +43,11 @@ internal const val UI_MODE_NIGHT_MASK = 0x30
  *
  * @param isNight When true, `UI_MODE_NIGHT_YES` is used, `UI_MODE_NIGHT_NO` for false
  * @param uiModeType The specific ui mode being used, identified by the `TYPE` prefix, e.g:
- * `UI_MODE_TYPE_NORMAL`
+ *   `UI_MODE_TYPE_NORMAL`
  * @param display Display name seen in the dropdown menu
  * @param uiModeTypeResolvedValue String of the actual value of the referenced field, used to know
- * which option is currently selected, will be mixed with the resolved value of the selected night
- * mode
+ *   which option is currently selected, will be mixed with the resolved value of the selected night
+ *   mode
  */
 internal class UiModeWithNightMaskEnumValue(
   isNight: Boolean,

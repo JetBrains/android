@@ -140,8 +140,7 @@ class ThreadsViewTest {
         .descendantStream()
         .filter { c -> c is JTable }
         .findFirst()
-        .get() as
-        JTable
+        .get() as JTable
     table.setUI(HeadlessTableUI())
     // Normally, when ThreadsView changes size, it updates the size of its table which in turn
     // fires an event that updates the preferred size of its columns. This requires multiple layout

@@ -96,9 +96,9 @@ class AppInspectorTabLaunchSupportTest {
    *
    * The 4 library inspectors are: 1) not applicable - inspector tab shouldn't be included in result
    * 2) incompatible inspector - an info tab should be created with an appropriate error message 3)
-   * compatible inspector - a mutable tab created and inspector jar set to the resolved one 4)
-   * compatible inspector but failed to resolve its jar - an info tab should be created with an
-   * appropriate error message
+   *    compatible inspector - a mutable tab created and inspector jar set to the resolved one 4)
+   *    compatible inspector but failed to resolve its jar - an info tab should be created with an
+   *    appropriate error message
    */
   @Test
   fun getApplicableTabProviders() =
@@ -137,8 +137,7 @@ class AppInspectorTabLaunchSupportTest {
           getLibraryVersionsResponse = { getLibraryVersionsCommand ->
             AppInspection.GetLibraryCompatibilityInfoResponse.newBuilder()
               .addAllResponses(
-                getLibraryVersionsCommand
-                  .targetLibrariesList
+                getLibraryVersionsCommand.targetLibrariesList
                   .map { compatibility ->
                     if (compatibility.coordinate.version == "INCOMPATIBLE") {
                       AppInspection.LibraryCompatibilityInfo.newBuilder()

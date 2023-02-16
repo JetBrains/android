@@ -59,9 +59,9 @@ class DaggerIndexFieldWrapperTest {
       class Foo {
         lateinit var bar: Baz
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("b|ar").parentOfType<KtProperty>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -84,9 +84,9 @@ class DaggerIndexFieldWrapperTest {
       class Foo {
         val bar = resultOfSomeFunction()
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("b|ar").parentOfType<KtProperty>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -110,9 +110,9 @@ class DaggerIndexFieldWrapperTest {
         @Annotation3(true)
         val bar: Baz
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("b|ar").parentOfType<KtProperty>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -137,9 +137,9 @@ class DaggerIndexFieldWrapperTest {
       public class Foo {
         private Baz bar;
       }
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val element = myFixture.moveCaret("b|ar").parentOfType<PsiField>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
@@ -165,9 +165,9 @@ class DaggerIndexFieldWrapperTest {
         @Annotation3(true)
         private Baz bar;
       }
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val element = myFixture.moveCaret("b|ar").parentOfType<PsiField>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)

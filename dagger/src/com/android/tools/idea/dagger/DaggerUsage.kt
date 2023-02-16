@@ -138,8 +138,7 @@ class DaggerCustomUsageSearcher : CustomUsageSearcher() {
       if (usages.isNotEmpty()) {
         usages.forEach { processor.process(UsageWithAnalyticsTracking(it, element)) }
         val calculationTime = System.currentTimeMillis() - startTimeMs
-        element
-          .project
+        element.project
           .service<DaggerAnalyticsTracker>()
           .trackFindUsagesNodeWasDisplayed(getTypeForMetrics(element), calculationTime)
       }

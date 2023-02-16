@@ -287,8 +287,7 @@ class TreeDropDownActionTest {
 
   private val lastPopup: TreeDropDownPopup<SimpleValue, GroupAware.Empty>
     get() =
-      popupRule
-        .fakePopupFactory
+      popupRule.fakePopupFactory
         .getChildPopups(mock())
         .filterIsInstance<FakeComponentPopup>()
         .map { it.contentPanel }

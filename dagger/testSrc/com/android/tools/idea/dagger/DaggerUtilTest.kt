@@ -87,13 +87,12 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           $qualifier
           val injectedField:${fieldType}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
-    return getDaggerProvidersFor(
-      myFixture.moveCaret("injectedF|ield").parentOfType<KtProperty>()!!
-    ) as
-      Collection<PsiNamedElement>
+    return getDaggerProvidersFor(myFixture.moveCaret("injectedF|ield").parentOfType<KtProperty>()!!)
+      as Collection<PsiNamedElement>
   }
 
   private fun getProvidersForInjectedField(
@@ -111,12 +110,11 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           $qualifier
           ${fieldType} injectedField;
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
-    return getDaggerProvidersFor(
-      myFixture.moveCaret("injected|Field").parentOfType<PsiField>()!!
-    ) as
-      Collection<PsiNamedElement>
+    return getDaggerProvidersFor(myFixture.moveCaret("injected|Field").parentOfType<PsiField>()!!)
+      as Collection<PsiNamedElement>
   }
 
   fun testIsConsumerForInjectField() {
@@ -130,7 +128,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           @Inject String injectedString;
           String notInjectedString;
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertThat(myFixture.moveCaret("injected|String").parentOfType<PsiField>().isDaggerConsumer)
@@ -150,7 +149,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           @Inject val injectedString:String
           val notInjectedString:String
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertThat(myFixture.moveCaret("injected|String").parentOfType<KtProperty>().isDaggerConsumer)
@@ -172,7 +172,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           @Inject public MyClass(String consumer) {}
           public MyClass(int notConsumer) {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertThat(myFixture.moveCaret("consum|er").parentOfType<PsiParameter>().isDaggerConsumer)
@@ -190,7 +191,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           @ViewModelInject public MyViewClass(String consumer) {}
           public MyViewClass(int notConsumer) {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertThat(myFixture.moveCaret("consum|er").parentOfType<PsiParameter>().isDaggerConsumer)
@@ -205,7 +207,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         import androidx.hilt.lifecycle.ViewModelInject
 
         class MyViewClassKt @ViewModelInject constructor(consumer: String)
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertThat(myFixture.moveCaret("consum|er").parentOfType<KtParameter>().isDaggerConsumer)
@@ -221,7 +224,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           @WorkerInject public MyWorkerClass(String consumer) {}
           public MyWorkerClass(int notConsumer) {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertThat(myFixture.moveCaret("consum|er").parentOfType<PsiParameter>().isDaggerConsumer)
@@ -240,7 +244,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         class MyClass @Inject constructor(consumer:String) {
           constructor(notConsumer: Int)
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertThat(myFixture.moveCaret("consum|er").parentOfType<KtParameter>().isDaggerConsumer)
@@ -271,7 +276,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
               this.id = id;
           }
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
     assertThat(
         myFixture.moveCaret("String reposi|tory,").parentOfType<PsiParameter>().isDaggerConsumer
@@ -302,7 +308,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
               //Do Nothing
           }
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     assertThat(
@@ -338,7 +345,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           @Provides String provider() {}
           String notProvider() {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertThat(myFixture.moveCaret("provide|r").parentOfType<PsiMethod>().isDaggerProvider).isTrue()
@@ -359,7 +367,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           @Provides fun provider() {}
           fun notProvider() {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertThat(myFixture.moveCaret("provide|r").parentOfType<KtFunction>().isDaggerProvider)
@@ -379,7 +388,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           @Inject public MyClass() {}
           public MyClass(String s) {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertThat(myFixture.moveCaret("public MyCl|ass()").parentOfType<PsiMethod>().isDaggerProvider)
@@ -398,7 +408,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         import javax.inject.Inject
 
         class MyClass @Inject constructor()
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertThat(myFixture.moveCaret("construc|tor").parentOfType<KtFunction>().isDaggerProvider)
@@ -413,7 +424,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         class MyClass(s: String) {
           @Inject constructor()
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertThat(myFixture.moveCaret("construc|tor").parentOfType<KtFunction>().isDaggerProvider)
@@ -431,7 +443,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           @Binds abstract String bindsMethod() {}
           abstract String notBindsMethod() {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertThat(myFixture.moveCaret("bindsMet|hod").parentOfType<PsiMethod>().isDaggerProvider)
@@ -451,7 +464,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           @Binds abstract fun bindsMethod() {}
           fun notBindsMethod() {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertThat(myFixture.moveCaret("bindsMet|hod").parentOfType<KtFunction>().isDaggerProvider)
@@ -472,7 +486,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           Foo create(String id);
           void createNothing();
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertThat(myFixture.moveCaret("FooFac|toryJava").parentOfType<PsiClass>().isDaggerProvider)
@@ -486,7 +501,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           Foo create(String id);
           void createNothing();
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
     assertThat(myFixture.moveCaret("NotFooFactor|yJava").parentOfType<PsiClass>().isDaggerProvider)
       .isFalse()
@@ -512,7 +528,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           // Is not a factory method (NotFactory is not annotated with @AssistedFactory)
           fun create(): Foo
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     assertThat(
@@ -543,7 +560,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           Foo create(String id);
           void createNothing();
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertThat(
@@ -568,7 +586,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
       public interface NotFactory {
           Foo create(String id);
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
     assertThat(
         myFixture
@@ -599,7 +618,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           // Is not a factory method (NotFactory is not annotated with @AssistedFactory)
           fun create(): Foo
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     assertThat(
@@ -641,7 +661,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
               this.id = "id";
           }
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     assertThat(
@@ -675,7 +696,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
               //Do Nothing
           }
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     assertThat(
@@ -706,7 +728,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           FooJava create(String id);
           void createNothing();
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
     myFixture.configureByText(
       JavaFileType.INSTANCE,
@@ -718,7 +741,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
       public class FooJava {
           @AssistedInject public FooJava(@Assisted String id) {}
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
     val methodList =
       getDaggerAssistedFactoryMethodsForAssistedInjectedConstructor(
@@ -748,7 +772,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           // Is not a factory method (returns null)
           fun createNothing(id: String)
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
     myFixture.configureByText(
       // language=kotlin
@@ -760,7 +785,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
       class Foo @AssistedInject constructor(
           @Assisted val id: String
       )
-    """.trimIndent()
+    """
+        .trimIndent()
     )
     val methodList =
       getDaggerAssistedFactoryMethodsForAssistedInjectedConstructor(
@@ -788,7 +814,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         class MyClass {
           @Provides String provider() {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val provider = myFixture.moveCaret("provide|r").parentOfType<PsiMethod>()
@@ -817,7 +844,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         class MyClass {
           @Provides fun provider():String {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val provider =
@@ -851,7 +879,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         abstract class MyClass {
           @Binds abstract String bindsMethod() {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val provider = myFixture.moveCaret("bindsMet|hod").parentOfType<PsiMethod>()
@@ -880,7 +909,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           @Binds abstract fun bindsMethod():String {}
           fun notBindsMethod():String {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val provider =
@@ -912,7 +942,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         public class MyClassWithInjectedConstructor {
           @Inject public MyClassWithInjectedConstructor() {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val provider =
@@ -937,7 +968,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         import javax.inject.Inject
 
         class MyClassWithInjectedConstructor @Inject constructor()
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val provider =
@@ -972,7 +1004,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         class MyClass {
           @Provides String provider() {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val provider = myFixture.moveCaret("provide|r").parentOfType<PsiMethod>()
@@ -985,7 +1018,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         import javax.inject.Inject
 
         class MyClass @Inject constructor(consumer:String)
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val providers =
@@ -1004,7 +1038,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
 
       @Qualifier
       public @interface MyQualifier {}
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     // JAVA providers.
@@ -1021,7 +1056,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           @Provides @MyQualifier String providerWithQualifier() {}
           @Provides String provider() {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Kotlin providers.
@@ -1038,7 +1074,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           @Provides @MyQualifier fun providerWithQualifier_kotlin():String {}
           @Provides fun provider_kotlin():String {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val providersForJavaConsumer =
@@ -1059,7 +1096,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
       package test;
 
       public enum MyEnum { ONE, TWO }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.addClass(
@@ -1078,7 +1116,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         Class[] classArrayAttr();
         int intAttr();
     }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     val javaQualifier =
@@ -1091,7 +1130,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         classArrayAttr = {String.class},
         intAttr = 1
       )
-    """.trimIndent()
+    """
+        .trimIndent()
 
     val kotlinQualifier =
       """
@@ -1103,7 +1143,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         classArrayAttr = [String::class],
         intAttr = 1
       )
-    """.trimIndent()
+    """
+        .trimIndent()
 
     // JAVA providers.
     myFixture.configureByText(
@@ -1119,7 +1160,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           @Provides $javaQualifier String providerWithQualifier() {}
           @Provides String provider() {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Kotlin providers.
@@ -1136,7 +1178,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           @Provides $kotlinQualifier fun providerWithQualifier_kotlin():String {}
           @Provides fun provider_kotlin():String {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val providersForJavaConsumer =
@@ -1152,7 +1195,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
 
   fun testDaggerComponentMethodsForProvider() {
     val classFile =
-      myFixture.addClass(
+      myFixture
+        .addClass(
           // language=JAVA
           """
       package test;
@@ -1162,7 +1206,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
       public class MyClass {
         @Inject public MyClass() {}
       }
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
@@ -1176,11 +1221,13 @@ abstract class DaggerUtilTest : DaggerTestCase() {
 
       @Qualifier
       public @interface MyQualifier {}
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     val moduleFile =
-      myFixture.addClass(
+      myFixture
+        .addClass(
           // language=JAVA
           """
         package test;
@@ -1190,7 +1237,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         class MyModule {
           @Provides @MyQualifier MyClass providerWithQualifier() {}
         }
-      """.trimIndent()
+      """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
@@ -1206,7 +1254,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         @MyQualifier MyClass getMyClassWithQualifier();
         MyClass getMyClass();
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.configureFromExistingVirtualFile(classFile)
@@ -1227,7 +1276,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
 
   fun testGetComponentsForModule() {
     val moduleFile =
-      myFixture.addClass(
+      myFixture
+        .addClass(
           // language=JAVA
           """
         package test;
@@ -1235,13 +1285,15 @@ abstract class DaggerUtilTest : DaggerTestCase() {
 
         @Module
         class MyModule {}
-      """.trimIndent()
+      """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
 
     val kotlinModuleFile =
-      myFixture.configureByText(
+      myFixture
+        .configureByText(
           "text/MyModuleKt.kt",
           // language=kotlin
           """
@@ -1250,7 +1302,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
 
         @Module
         class MyModuleKt
-      """.trimIndent()
+      """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
@@ -1264,7 +1317,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
 
       @Component(modules = { MyModule.class, MyModuleKt.class })
       public interface MyComponent {}
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     // Kotlin Component
@@ -1277,7 +1331,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
 
       @Component(modules = [MyModule::class, MyModuleKt::class])
       interface MyComponentKt
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     // Kotlin Subcomponent
@@ -1290,7 +1345,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
 
       @Subcomponent(modules = [MyModule::class, MyModuleKt::class])
       interface MySubcomponentKt
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     // Java Module
@@ -1302,7 +1358,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
 
         @Module(includes = { MyModule.class, MyModuleKt.class })
         class MyModule2 {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.configureFromExistingVirtualFile(moduleFile)
@@ -1325,7 +1382,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
   fun testGetDependantComponentsForComponent() {
     // Java Component
     val componentFile =
-      myFixture.addClass(
+      myFixture
+        .addClass(
           // language=JAVA
           """
       package test;
@@ -1333,14 +1391,16 @@ abstract class DaggerUtilTest : DaggerTestCase() {
 
       @Component
       public interface MyComponent {}
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
 
     // Kotlin Component
     val kotlinComponentFile =
-      myFixture.addFileToProject(
+      myFixture
+        .addFileToProject(
           "test/MyComponentKt.kt",
           // language=kotlin
           """
@@ -1349,7 +1409,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
 
       @Component
       interface MyComponentKt
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
@@ -1364,7 +1425,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
 
       @Component(dependencies = [MyComponent::class, MyComponentKt::class])
       interface MyDependantComponent
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.configureFromExistingVirtualFile(componentFile)
@@ -1399,7 +1461,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         class MyModule2 {
           @BindsInstance String bindsString();
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val bindsString = myFixture.moveCaret("bindsSt|ring").parentOfType<PsiMethod>()!!
@@ -1418,7 +1481,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         interface Component {
           String stringBuilder(@BindsInstance String string) {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val string = myFixture.moveCaret("@BindsInstance String st|ring").parentOfType<PsiParameter>()!!
@@ -1445,7 +1509,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
               fun create(@BindsInstance stringKt: String): AppComponent
           }
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val bindsStringKt = myFixture.moveCaret("bindsSt|ringKt").parentOfType<KtFunction>()!!
@@ -1463,7 +1528,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
 
       public class MyClass{}
 
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.configureByText(
@@ -1478,7 +1544,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         class MyClass {
           @Provides fun aliasProvider():alias {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val providers = getProvidersForInjectedField("test.MyClass")
@@ -1498,7 +1565,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           @Provides fun primitiveArrayProvider():IntArray {}
           @Provides fun arrayProvider():Array<Int> {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     var providers = getProvidersForInjectedField("int[]")
@@ -1521,7 +1589,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           @BindsInstance abstract fun bindsMethod():String {}
           fun builder(@BindsInstance str:String) {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Consumer in JAVA.
@@ -1550,7 +1619,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         class MyModule2 {
           @BindsInstance String bindsString();
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Java Component
@@ -1566,7 +1636,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         interface Component {
           String stringBuilder(@BindsInstance String string) {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Consumer in JAVA.
@@ -1594,7 +1665,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           @Provides Integer provider() {}
           @Provides int provider2() {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
     // Kotlin provider.
     myFixture.configureByText(
@@ -1609,7 +1681,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           @Provides fun provider():Int? {}
           @Provides fun provider2():Int {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Consumer in JAVA.
@@ -1635,7 +1708,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
           @dagger.Provides fun provider():Int? {}
           @Provider2 fun provider2():Int {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Consumer in JAVA.
@@ -1654,7 +1728,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         class MyModule {
           @Provides String providesString();
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val providers = getProvidersForInjectedField_kotlin("dagger.Lazy<String>")
@@ -1677,7 +1752,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         class MyModule {
           @Provides String providesString();
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val providers = getProvidersForInjectedField_kotlin("javax.inject.Provider<String>")
@@ -1720,7 +1796,8 @@ class DaggerCrossModuleTest : UsefulTestCase() {
 
       annotation class Module
       annotation class Provides
-      """.trimIndent()
+      """
+        .trimIndent()
     )
     moduleA = moduleAFixture.module
     moduleDependsOnModuleA = moduleDependsOnModuleAFixture.module
@@ -1756,7 +1833,8 @@ class DaggerCrossModuleTest : UsefulTestCase() {
 
   fun test() {
     val fileInModuleThatDependsOnModuleA =
-      myFixture.addFileToProject(
+      myFixture
+        .addFileToProject(
           "DaggerCrossModuleTest_moduleDependsOnModuleA/src/test2/MyModule2.java",
           // language=JAVA
           """
@@ -1768,12 +1846,14 @@ class DaggerCrossModuleTest : UsefulTestCase() {
       public class MyModule2 {
         @Provides String stringProvider() {}
       }
-      """.trimIndent()
+      """
+            .trimIndent()
         )
         .virtualFile
 
     val fileInModuleA =
-      myFixture.addFileToProject(
+      myFixture
+        .addFileToProject(
           "DaggerCrossModuleTest_moduleA/src/test/MyModule1.java",
           // language=JAVA
           """
@@ -1785,7 +1865,8 @@ class DaggerCrossModuleTest : UsefulTestCase() {
       public class MyModule1 {
         @Provides Integer intProvider(String consumer) {}
       }
-      """.trimIndent()
+      """
+            .trimIndent()
         )
         .virtualFile
 

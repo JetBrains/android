@@ -79,9 +79,9 @@ class ProvidesMethodDaggerConceptTest {
       interface HeaterModule {
         fun provideHeater(electricHeater: ElectricHeater) : Heater {}
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("provide|Heater").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -104,9 +104,9 @@ class ProvidesMethodDaggerConceptTest {
         @Provides
         fun provideHeater(electricHeater: ElectricHeater) : Heater {}
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("provide|Heater").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -127,9 +127,9 @@ class ProvidesMethodDaggerConceptTest {
 
       @Provides
       fun provideHeater(electricHeater: ElectricHeater) : Heater {}
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("provide|Heater").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -154,9 +154,9 @@ class ProvidesMethodDaggerConceptTest {
         @Provides
         fun provideHeater(electricHeater: ElectricHeater, electricHeater2: ElectricHeater) : Heater {}
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("provide|Heater").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -198,9 +198,9 @@ class ProvidesMethodDaggerConceptTest {
         @Provides
         fun provideHeater(electricHeater: ElectricHeater, electricHeater2: ElectricHeater) : Heater {}
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("provide|Heater").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -225,9 +225,9 @@ class ProvidesMethodDaggerConceptTest {
         @Provides
         fun provideHeater(electricHeater: ElectricHeater, electricHeater2: ElectricHeater) : Heater {}
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("provide|Heater").parentOfType<KtFunction>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -264,7 +264,8 @@ class ProvidesMethodDaggerConceptTest {
 
         fun dontProvideHeater(electricHeater: ElectricHeater) : Heater {}
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val heaterPsiType =
@@ -336,7 +337,8 @@ class ProvidesMethodDaggerConceptTest {
 
         Heater dontProvideHeater(ElectricHeater electricHeater) {}
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val heaterPsiType =
@@ -414,7 +416,8 @@ class ProvidesMethodDaggerConceptTest {
 
         fun dontProvideHeater(electricHeater: ElectricHeater) : Heater {}
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val electricHeaterPsiType =
@@ -498,7 +501,8 @@ class ProvidesMethodDaggerConceptTest {
 
         Heater dontProvideHeater(ElectricHeater electricHeater) {}
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val electricHeaterPsiType =

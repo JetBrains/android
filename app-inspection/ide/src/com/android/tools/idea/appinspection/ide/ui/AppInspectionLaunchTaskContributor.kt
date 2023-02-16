@@ -74,8 +74,7 @@ class AppInspectionLaunchTaskContributor : AndroidLaunchTaskContributor {
         val disposable = Disposer.newDisposable()
         Disposer.register(project, disposable)
 
-        project
-          .messageBus
+        project.messageBus
           .connect(disposable)
           .subscribe(
             ExecutionManager.EXECUTION_TOPIC,

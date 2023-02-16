@@ -73,15 +73,17 @@ private fun toGlancePreviewElements(
     .flatMap { method ->
       val uClass = method.uastParent as UClass
       val methodFqn = "${uClass.qualifiedName}.${method.name}"
-      method.uAnnotations.filter { it.isGlancePreview(surfaceName) }.map {
-        val displaySettings = PreviewDisplaySettings(method.name, null, false, false, null)
-        GlancePreviewElement(
-          displaySettings,
-          it.toSmartPsiPointer(),
-          method.uastBody.toSmartPsiPointer(),
-          methodFqn
-        )
-      }
+      method.uAnnotations
+        .filter { it.isGlancePreview(surfaceName) }
+        .map {
+          val displaySettings = PreviewDisplaySettings(method.name, null, false, false, null)
+          GlancePreviewElement(
+            displaySettings,
+            it.toSmartPsiPointer(),
+            method.uastBody.toSmartPsiPointer(),
+            methodFqn
+          )
+        }
     }
     .asSequence()
 

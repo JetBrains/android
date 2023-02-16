@@ -59,7 +59,8 @@ class ComposePreviewElementFlowTest {
         @Preview
         fun Preview1() {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
 
@@ -82,7 +83,8 @@ class ComposePreviewElementFlowTest {
           """
             OtherFileKt.Preview1
             OtherFileKt.Preview2
-          """.trimIndent(),
+          """
+            .trimIndent(),
           flow.value.map { it.composableMethodFqn }.sorted().joinToString("\n")
         )
 
@@ -107,7 +109,8 @@ class ComposePreviewElementFlowTest {
             fun Preview2() {
             }
 
-          """.trimIndent()
+          """
+            .trimIndent()
         )
       }
     }

@@ -27,7 +27,8 @@ class WakeLockEntryTest {
       """
         android.os.PowerManager${'$'}WakeLock.acquire(PowerManager.java:2386)
         android.com.java.profilertester.taskcategory.WakeLockTask.execute(BackgroundTaskCategory.java:83)
-      """.trimIndent()
+      """
+        .trimIndent()
 
     val wakeLockAcquiredEvent =
       BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder()

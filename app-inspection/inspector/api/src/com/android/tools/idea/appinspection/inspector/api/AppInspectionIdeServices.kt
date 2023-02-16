@@ -39,11 +39,11 @@ interface AppInspectionIdeServices {
    * across all inspectors.
    *
    * @param content Content text for this notification, which can contain html. If an `<a
-   * href=.../>` tag is present and the user clicks on it, the [hyperlinkClicked] parameter will be
-   * triggered.
+   *   href=.../>` tag is present and the user clicks on it, the [hyperlinkClicked] parameter will
+   *   be triggered.
    * @param title A title to show for this notification, which can be empty
    * @param hyperlinkClicked If the notification contains a hyperlink, this callback will be fired
-   * if the user clicks it.
+   *   if the user clicks it.
    */
   @UiThread
   fun showNotification(

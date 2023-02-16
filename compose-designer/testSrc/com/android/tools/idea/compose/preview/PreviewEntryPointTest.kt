@@ -83,7 +83,8 @@ class PreviewEntryPointTest(
       @Preview
       fun NotAComposable() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
     assertEquals(
@@ -124,7 +125,8 @@ class PreviewEntryPointTest(
       @MyEmptyAnnotation
       fun NotUsed() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     fixture.configureByText("Test.kt", fileContent)
     assertEquals(

@@ -100,8 +100,8 @@ class DaggerAnnotatedElementsSearch(private val project: Project) {
     }
 
     AnnotatedElementsSearcher().execute(
-        AnnotatedElementsSearch.Parameters(annotationClass, scope, javaClassToSearch)
-      ) {
+      AnnotatedElementsSearch.Parameters(annotationClass, scope, javaClassToSearch)
+    ) {
       javaProcessor(it)
       true
     }
@@ -250,7 +250,8 @@ private fun KtTypeReference.equalsToPsiType(unboxedPsiType: PsiType): Boolean {
   if (notNullableTypeElement !is KtUserType) return false
   val shortName = notNullableTypeElement.referencedName ?: return false
   if (unboxedPsiType is PsiClassType) {
-    if (shortName != unboxedPsiType.name &&
+    if (
+      shortName != unboxedPsiType.name &&
         containingKtFile.findImportByAlias(shortName)?.importedFqName?.shortName()?.asString() !=
           unboxedPsiType.name
     ) {

@@ -47,8 +47,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         handler,
         handler.findUsagesOptions,
         false
-      ) as
-        UsageViewImpl
+      ) as UsageViewImpl
 
     return usageView.usages
   }
@@ -66,7 +65,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyModule {
           @Provides String provider() {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.configureByText(
@@ -80,7 +80,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyClass {
           @Inject String ${caret}injectedString;
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val trackerService = TestDaggerAnalyticsTracker()
@@ -97,15 +98,15 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     MyModule (1)
       |      provider() (1)
       |       8@Provides String provider() {}
-      """.trimMargin()
+      """
+          .trimMargin()
       )
 
     assertThat(trackerService.calledMethods).hasSize(1)
     assertThat(trackerService.calledMethods.last())
       .startsWith("trackFindUsagesNodeWasDisplayed owner: CONSUMER time:")
     assertThat(
-        trackerService
-          .calledMethods
+        trackerService.calledMethods
           .last()
           .removePrefix("trackFindUsagesNodeWasDisplayed owner: CONSUMER time: ")
           .toInt()
@@ -119,8 +120,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     assertThat(trackerService.calledMethods.last())
       .startsWith("trackFindUsagesNodeWasDisplayed owner: CONSUMER time: ")
     assertThat(
-        trackerService
-          .calledMethods
+        trackerService.calledMethods
           .last()
           .removePrefix("trackFindUsagesNodeWasDisplayed owner: CONSUMER time: ")
           .toInt()
@@ -151,7 +151,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
           @BindsInstance fun bindsMethod():String {}
           fun builder(@BindsInstance str:String) {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.configureByText(
@@ -165,7 +166,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyClass {
           @Inject String ${caret}injectedString;
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
@@ -182,7 +184,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |        12fun builder(@BindsInstance str:String) {}
       |       9@Provides fun provider():String {}
       |       11@BindsInstance fun bindsMethod():String {}
-      """.trimMargin()
+      """
+          .trimMargin()
       )
   }
 
@@ -197,7 +200,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         public class MyProvider {
           @Inject public MyProvider() {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.configureByText(
@@ -211,7 +215,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyClass {
           @Inject MyProvider ${caret}injectedString;
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
@@ -225,7 +230,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     MyProvider (1)
       |      MyProvider() (1)
       |       6@Inject public MyProvider() {}
-      """.trimMargin()
+      """
+          .trimMargin()
       )
   }
 
@@ -237,7 +243,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         import javax.inject.Inject
 
         class MyProvider @Inject constructor()
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.configureByText(
@@ -249,7 +256,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyClass {
           @Inject MyProvider ${caret}injectedString;
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
@@ -263,7 +271,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     MyProvider.kt (1)
       |      MyProvider (1)
       |       3class MyProvider @Inject constructor()
-      """.trimMargin()
+      """
+          .trimMargin()
       )
   }
 
@@ -280,7 +289,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         abstract class MyModule {
           @Binds abstract String bindsMethod(String s) {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.configureByText(
@@ -294,7 +304,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyClass {
           @Inject String ${caret}injectedString;
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
@@ -308,7 +319,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     MyModule (1)
       |      bindsMethod(String) (1)
       |       8@Binds abstract String bindsMethod(String s) {}
-      """.trimMargin()
+      """
+          .trimMargin()
       )
   }
 
@@ -327,7 +339,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
           @Binds abstract fun bindsMethod(s: String):String {}
           @Binds abstract fun bindsMethodInt(i: Int):Int {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.configureByText(
@@ -341,7 +354,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyClass {
           @Inject String ${caret}injectedString;
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
@@ -355,7 +369,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     MyClass.kt (1)
       |      MyModule (1)
       |       8@Binds abstract fun bindsMethod(s: String):String {}
-      """.trimMargin()
+      """
+          .trimMargin()
       )
   }
 
@@ -374,7 +389,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
           @Binds abstract fun bindsMethod(s: String):String {}
           @Binds abstract fun bindsMethodInt(i: Int):Int {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // JAVA consumer
@@ -389,7 +405,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyClass {
           @Inject MyClass(String ${caret}str) {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     var presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
@@ -403,7 +420,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     MyClass.kt (1)
       |      MyModule (1)
       |       8@Binds abstract fun bindsMethod(s: String):String {}
-      """.trimMargin()
+      """
+          .trimMargin()
       )
 
     // kotlin consumer
@@ -414,7 +432,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         import javax.inject.Inject
 
         class MyClass @Inject constructor(${caret}strKotlin: String)
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
@@ -428,13 +447,15 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     MyClass.kt (1)
       |      MyModule (1)
       |       8@Binds abstract fun bindsMethod(s: String):String {}
-      """.trimMargin()
+      """
+          .trimMargin()
       )
   }
 
   fun testDaggerConsumer() {
     // Dagger provider.
-    myFixture.loadNewFile(
+    myFixture
+      .loadNewFile(
         "example/MyProvider.java",
         // language=JAVA
         """
@@ -445,7 +466,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         public class MyProvider {
           @Inject public MyProvider() {}
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
       .containingFile
 
@@ -464,7 +486,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyModule {
           @Provides String provider(MyProvider consumer) {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Dagger consumer as param of @Inject-annotated constructor.
@@ -478,7 +501,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         public class MyClass {
           @Inject public MyClass(MyProvider consumer) {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Dagger consumer as @Inject-annotated field.
@@ -492,7 +516,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         public class MyClassWithInjectedField {
           @Inject MyProvider consumer;
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Dagger consumer as @Inject-annotated field in Kotlin.
@@ -507,7 +532,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyClassWithInjectedFieldKt {
           @Inject val consumer:MyProvider
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val presentation = myFixture.getUsageViewTreeTextRepresentation(provider)
@@ -528,13 +554,15 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     MyModule (1)
       |      provider(MyProvider) (1)
       |       8@Provides String provider(MyProvider consumer) {}
-      """.trimMargin()
+      """
+          .trimMargin()
       )
   }
 
   fun testDaggerComponentMethods() {
     val classFile =
-      myFixture.addFileToProject(
+      myFixture
+        .addFileToProject(
           "test/MyClass.java",
           // language=JAVA
           """
@@ -545,12 +573,14 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       public class MyClass {
         @Inject public MyClass() {}
       }
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .virtualFile
 
     val componentFile =
-      myFixture.addFileToProject(
+      myFixture
+        .addFileToProject(
           "test/MyComponent.java",
           // language=JAVA
           """
@@ -561,7 +591,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       public interface MyComponent {
         MyClass getMyClass();
       }
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .virtualFile
 
@@ -579,7 +610,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     MyClass (1)
       |      MyClass() (1)
       |       6@Inject public MyClass() {}
-      """.trimMargin()
+      """
+          .trimMargin()
       )
 
     myFixture.configureFromExistingVirtualFile(classFile)
@@ -596,13 +628,15 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     MyComponent (1)
       |      getMyClass() (1)
       |       6MyClass getMyClass();
-      """.trimMargin()
+      """
+          .trimMargin()
       )
   }
 
   fun testEntryPointMethodsForProvider() {
     val classFile =
-      myFixture.addClass(
+      myFixture
+        .addClass(
           // language=JAVA
           """
       package test;
@@ -612,13 +646,15 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       public class MyClass {
         @Inject public MyClass() {}
       }
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
 
     val entryPointFile =
-      myFixture.addClass(
+      myFixture
+        .addClass(
           // language=JAVA
           """
       package test;
@@ -628,7 +664,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       public interface MyEntryPoint {
         MyClass getMyClassInEntryPoint();
       }
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
@@ -648,7 +685,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     MyClass (1)
       |      MyClass() (1)
       |       6@Inject public MyClass() {}
-      """.trimMargin()
+      """
+          .trimMargin()
       )
 
     myFixture.configureFromExistingVirtualFile(classFile)
@@ -665,13 +703,15 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     MyEntryPoint (1)
       |      getMyClassInEntryPoint() (1)
       |       6MyClass getMyClassInEntryPoint();
-      """.trimMargin()
+      """
+          .trimMargin()
       )
   }
 
   fun testUsagesForModules() {
     val moduleFile =
-      myFixture.addClass(
+      myFixture
+        .addClass(
           // language=JAVA
           """
         package test;
@@ -679,7 +719,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
         @Module
         class MyModule {}
-      """.trimIndent()
+      """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
@@ -693,7 +734,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Component(modules = { MyModule.class })
       public interface MyComponent {}
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     // Kotlin Component
@@ -706,7 +748,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Component(modules = [MyModule::class])
       interface MyComponentKt
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     // Java Module
@@ -718,7 +761,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
         @Module(includes = { MyModule.class })
         class MyModule2 {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.configureFromExistingVirtualFile(moduleFile)
@@ -740,14 +784,16 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |    test (1)
       |     MyModule2.java (1)
       |      5class MyModule2 {}
-      """.trimMargin()
+      """
+          .trimMargin()
       )
   }
 
   fun testDependantComponentsForComponent() {
     // Java Component
     val componentFile =
-      myFixture.addClass(
+      myFixture
+        .addClass(
           // language=JAVA
           """
       package test;
@@ -755,7 +801,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Component
       public interface MyComponent {}
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
@@ -770,7 +817,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Component(dependencies = [MyComponent::class])
       interface MyDependantComponent
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.configureFromExistingVirtualFile(componentFile)
@@ -785,14 +833,16 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |    test (1)
       |     MyDependantComponent.kt (1)
       |      5interface MyDependantComponent
-      """.trimMargin()
+      """
+          .trimMargin()
       )
   }
 
   fun testParentsForSubcomponent() {
     // Java Subcomponent
     val subcomponentFile =
-      myFixture.addClass(
+      myFixture
+        .addClass(
           // language=JAVA
           """
       package test;
@@ -800,7 +850,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Subcomponent
       public interface MySubcomponent {}
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
@@ -814,7 +865,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
         @Module(subcomponents = { MySubcomponent.class })
         class MyModule { }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Java Component
@@ -826,7 +878,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Component(modules = { MyModule.class })
       public interface MyComponent {}
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     // Kotlin Component
@@ -839,7 +892,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Component(modules = [ MyModule::class])
       interface MyComponentKt
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     // Java Subcomponent
@@ -851,7 +905,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Subcomponent(modules = { MyModule.class })
       public interface MyParentSubcomponent {}
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.configureFromExistingVirtualFile(subcomponentFile)
@@ -870,7 +925,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |      5public interface MyComponent {}
       |     MyParentSubcomponent.java (1)
       |      5public interface MyParentSubcomponent {}
-      """.trimMargin()
+      """
+          .trimMargin()
       )
   }
 
@@ -884,7 +940,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Subcomponent
       public interface MySubcomponent {}
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.addClass(
@@ -896,12 +953,14 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
         @Module(subcomponents = { MySubcomponent.class })
         class MyModule { }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Java parent Subcomponent
     val file =
-      myFixture.addClass(
+      myFixture
+        .addClass(
           // language=JAVA
           """
       package test;
@@ -909,7 +968,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Subcomponent(modules = { MyModule.class })
       public interface MyParentSubcomponent {}
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
@@ -926,7 +986,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |    test (1)
       |     MySubcomponent.java (1)
       |      5public interface MySubcomponent {}
-      """.trimMargin()
+      """
+          .trimMargin()
       )
   }
 
@@ -943,7 +1004,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         @Subcomponent.Builder
           interface Builder {}
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     // Kotlin Subcomponent
@@ -956,7 +1018,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Subcomponent
       interface MySubcomponent2
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.addClass(
@@ -968,12 +1031,14 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
         @Module(subcomponents = { MySubcomponent.class, MySubcomponent2.class })
         class MyModule { }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Java Component
     val file =
-      myFixture.addClass(
+      myFixture
+        .addClass(
           // language=JAVA
           """
       package test;
@@ -981,7 +1046,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Component(modules = { MyModule.class })
       public interface MyComponent {}
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
@@ -1000,7 +1066,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |      5interface MySubcomponent2
       |     MySubcomponent.java (1)
       |      5public interface MySubcomponent {
-      """.trimMargin()
+      """
+          .trimMargin()
       )
 
     assertThat(presentation)
@@ -1011,13 +1078,15 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |    test (1)
       |     MyModule.java (1)
       |      6class MyModule { }
-      """.trimMargin()
+      """
+          .trimMargin()
       )
   }
 
   fun testObjectClassInKotlin() {
     val moduleFile =
-      myFixture.addFileToProject(
+      myFixture
+        .addFileToProject(
           "test/MyModule.kt",
           // language=kotlin
           """
@@ -1026,7 +1095,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
         @Module
         object MyModule
-      """.trimIndent()
+      """
+            .trimIndent()
         )
         .virtualFile
 
@@ -1038,7 +1108,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Component(modules = { MyModule.class })
       public interface MyComponent {}
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.configureFromExistingVirtualFile(moduleFile)
@@ -1053,7 +1124,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |    test (1)
       |     MyComponent.java (1)
       |      5public interface MyComponent {}
-      """.trimMargin()
+      """
+          .trimMargin()
       )
   }
 
@@ -1070,7 +1142,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyModule {
           @Provides String provider() {}
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.configureByText(
@@ -1082,7 +1155,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         class MyClass {
           @Inject val injected<caret>String:String
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
@@ -1096,7 +1170,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
           |     MyModule (1)
           |      provider() (1)
           |       8@Provides String provider() {}
-          """.trimMargin()
+          """
+          .trimMargin()
       )
   }
 
@@ -1111,7 +1186,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Subcomponent
       interface MySubcomponent
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.loadNewFile(
@@ -1128,7 +1204,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Component(modules = [ MyModule::class])
       interface MyComponen<caret>t
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
@@ -1140,7 +1217,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
           |    test (1)
           |     MySubcomponent.kt (1)
           |      6interface MySubcomponent
-      """.trimMargin()
+      """
+          .trimMargin()
       )
   }
 
@@ -1155,7 +1233,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Component(modules = [MyModule::class])
       interface MyComponent
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.loadNewFile(
@@ -1168,7 +1247,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
 
       @Module
       class MyModu<caret>le
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
@@ -1180,7 +1260,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |    test (1)
       |     MyComponent.kt (1)
       |      6interface MyComponent
-      """.trimMargin()
+      """
+          .trimMargin()
       )
   }
 
@@ -1196,7 +1277,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
           // Is a factory method
           fun create(id: String): Foo
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
     myFixture.configureByText(
       // language=kotlin
@@ -1208,7 +1290,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       class Foo @AssistedInject con<caret>structor(
           @Assisted val id: String
       )
-    """.trimIndent()
+    """
+        .trimIndent()
     )
     val presentation = myFixture.getUsageViewTreeTextRepresentation(myFixture.elementAtCaret)
     assertThat(presentation)
@@ -1220,7 +1303,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     FooFactory.kt (1)
       |      FooFactory (1)
       |       6fun create(id: String): Foo
-      """.trimMargin()
+      """
+          .trimMargin()
       )
   }
 
@@ -1235,7 +1319,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       class Foo @AssistedInject constructor(
           @Assisted val id: String
       )
-    """.trimIndent()
+    """
+        .trimIndent()
     )
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
@@ -1248,7 +1333,8 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
           // Is a factory method
           fun cre<caret>ate(id: String): Foo
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     val trackerService = TestDaggerAnalyticsTracker()
@@ -1264,15 +1350,15 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |     Foo.kt (1)
       |      Foo (1)
       |       4class Foo @AssistedInject constructor(
-      """.trimMargin()
+      """
+          .trimMargin()
       )
 
     assertThat(trackerService.calledMethods).hasSize(1)
     assertThat(trackerService.calledMethods.last())
       .startsWith("trackFindUsagesNodeWasDisplayed owner: ASSISTED_FACTORY_METHOD time: ")
     assertThat(
-        trackerService
-          .calledMethods
+        trackerService.calledMethods
           .last()
           .removePrefix("trackFindUsagesNodeWasDisplayed owner: ASSISTED_FACTORY_METHOD time: ")
           .toInt()

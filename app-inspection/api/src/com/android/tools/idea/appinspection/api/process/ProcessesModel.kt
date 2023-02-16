@@ -39,7 +39,7 @@ import org.jetbrains.annotations.TestOnly
  * resumed.
  *
  * @param acceptProcess A filter which affects which processes are added to the model. If not
- * specified, all processes are accepted.
+ *   specified, all processes are accepted.
  */
 class ProcessesModel(
   private val executor: Executor,

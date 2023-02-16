@@ -63,7 +63,8 @@ open class InspectorTests {
         "src/main/Test.kt",
         """
       fun main() {}
-    """.trimIndent()
+    """
+          .trimIndent()
       )
     invokeAndWaitIfNeeded { psiFilePointer = SmartPointerManager.createPointer(psiFile) }
     StudioFlags.COMPOSE_ANIMATION_PREVIEW_ANIMATE_X_AS_STATE.override(true)

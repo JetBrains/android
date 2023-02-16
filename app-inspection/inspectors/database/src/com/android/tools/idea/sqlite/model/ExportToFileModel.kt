@@ -63,8 +63,9 @@ sealed class ExportRequest(
 
 /**
  * All the information needed to show a dialog asking a user to specify an [ExportRequest].
+ *
  * @param actionOrigin Represents the UI area where the export dialog was launched from. Captured
- * for analytics purposes.
+ *   for analytics purposes.
  */
 sealed class ExportDialogParams(
   open val srcDatabase: SqliteDatabaseId,

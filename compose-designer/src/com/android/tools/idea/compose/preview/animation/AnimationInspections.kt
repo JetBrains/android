@@ -147,7 +147,8 @@ abstract class FunctionLabelInspection : AbstractKotlinInspection() {
 
           // Finally, verify the functions has the `label` parameter set, otherwise show a
           // weak warning.
-          if (expression.valueArguments.any {
+          if (
+            expression.valueArguments.any {
               resolvedExpression.getParameterForArgument(it)?.name?.asString() == LABEL_PARAMETER
             }
           ) {
@@ -189,7 +190,8 @@ class TransitionPropertiesLabelInspection : AbstractKotlinInspection() {
           if (!resolvedExpression.valueArguments.keys.any { it.name.toString() == LABEL_PARAMETER })
             return
           // First, check we're visiting an extension method of Transition<T>
-          if ((resolvedExpression.extensionReceiver?.type as? SimpleType)?.fqName?.asString() !=
+          if (
+            (resolvedExpression.extensionReceiver?.type as? SimpleType)?.fqName?.asString() !=
               TRANSITION_FQN
           )
             return
@@ -200,7 +202,8 @@ class TransitionPropertiesLabelInspection : AbstractKotlinInspection() {
           // androidx.compose.animation.core).
           val animateCall = resolvedExpression.resultingDescriptor.fqNameOrNull() ?: return
           val shortName = animateCall.shortNameOrSpecial()
-          if (shortName.isSpecial ||
+          if (
+            shortName.isSpecial ||
               !shortName.asString().startsWith(ANIMATE_PREFIX) ||
               !animateCall.parent().asString().startsWith(COMPOSE_ANIMATION_PACKAGE_PREFIX)
           ) {
@@ -209,7 +212,8 @@ class TransitionPropertiesLabelInspection : AbstractKotlinInspection() {
 
           // Finally, verify the animate call has the `label` parameter set, otherwise show a weak
           // warning.
-          if (expression.valueArguments.any {
+          if (
+            expression.valueArguments.any {
               resolvedExpression.getParameterForArgument(it)?.name?.asString() == LABEL_PARAMETER
             }
           ) {

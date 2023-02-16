@@ -46,7 +46,8 @@ class GlancePreviewElementFinderTest {
         package androidx.glance.preview
 
         annotation class GlancePreview(surface: String)
-        """.trimIndent()
+        """
+        .trimIndent()
     )
     sourceFileBoth =
       fixture.addFileToProjectAndInvalidate(
@@ -68,7 +69,8 @@ class GlancePreviewElementFinderTest {
         fun Foo3() { }
 
         fun Foo4() { }
-        """.trimIndent()
+        """
+          .trimIndent()
       )
 
     sourceFileTiles =
@@ -82,7 +84,8 @@ class GlancePreviewElementFinderTest {
 
         @GlancePreview("Tile")
         fun Foo21() { }
-        """.trimIndent()
+        """
+          .trimIndent()
       )
 
     sourceFileAppWidgets =
@@ -96,7 +99,8 @@ class GlancePreviewElementFinderTest {
 
         @GlancePreview("AppWidget")
         fun Foo31() { }
-        """.trimIndent()
+        """
+          .trimIndent()
       )
 
     sourceFileNone =
@@ -109,7 +113,8 @@ class GlancePreviewElementFinderTest {
         import androidx.glance.preview.GlancePreview
 
         fun Foo41() { }
-        """.trimIndent()
+        """
+          .trimIndent()
       )
   }
 

@@ -83,17 +83,14 @@ class AllTabPanelTest {
   @Test
   fun `add and remove cards`() {
     val cardOne =
-      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("One")) {}.apply {
-        setDuration(111)
-      }
+      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("One")) {}
+        .apply { setDuration(111) }
     val cardTwo =
-      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Two")) {}.apply {
-        setDuration(222)
-      }
+      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Two")) {}
+        .apply { setDuration(222) }
     val cardThree =
-      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Three")) {}.apply {
-        setDuration(333)
-      }
+      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Three")) {}
+        .apply { setDuration(333) }
 
     val panel = AllTabPanel().apply { setSize(1000, 800) }
 
@@ -168,17 +165,14 @@ class AllTabPanelTest {
   @Test
   fun `preview ui`() {
     val cardOne =
-      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("One")) {}.apply {
-        setDuration(111)
-      }
+      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("One")) {}
+        .apply { setDuration(111) }
     val cardTwo =
-      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Two")) {}.apply {
-        setDuration(222)
-      }
+      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Two")) {}
+        .apply { setDuration(222) }
     val cardThree =
-      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Three")) {}.apply {
-        setDuration(333)
-      }
+      AnimationCard(TestUtils.testPreviewState(), surface, ElementState("Three")) {}
+        .apply { setDuration(333) }
 
     val panel =
       AllTabPanel().apply {
@@ -246,9 +240,8 @@ class AllTabPanelTest {
       }
     for (i in 0..10) {
       panel.addCard(
-        AnimationCard(TestUtils.testPreviewState(), surface, ElementState("card $i")) {}.apply {
-          setDuration(i * 10)
-        }
+        AnimationCard(TestUtils.testPreviewState(), surface, ElementState("card $i")) {}
+          .apply { setDuration(i * 10) }
       )
     }
 
@@ -280,9 +273,8 @@ class AllTabPanelTest {
       }
     for (i in 0..10) {
       panel.addCard(
-        AnimationCard(TestUtils.testPreviewState(), surface, ElementState("card $i")) {}.apply {
-          setDuration(i * 10)
-        }
+        AnimationCard(TestUtils.testPreviewState(), surface, ElementState("card $i")) {}
+          .apply { setDuration(i * 10) }
       )
     }
 
@@ -298,6 +290,8 @@ class AllTabPanelTest {
   }
 
   private fun JPanel.getNumberOfCards() =
-    ((this.components[0] as JBScrollPane).viewport.components[0] as JBSplitter).firstComponent
-      .components.count()
+    ((this.components[0] as JBScrollPane).viewport.components[0] as JBSplitter)
+      .firstComponent
+      .components
+      .count()
 }

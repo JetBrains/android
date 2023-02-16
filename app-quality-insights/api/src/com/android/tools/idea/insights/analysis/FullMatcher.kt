@@ -29,7 +29,7 @@ import org.jetbrains.uast.toUElement
  *
  * Matches only if all of the following is true for the given line:
  * * Contains the "cause" expression on it.(i.e. call to previousFrame's method, or a throw
- * expression).
+ *   expression).
  * * Is within the class and method specified in the crash frame.
  */
 class FullMatcher : CrashMatcher {
@@ -46,17 +46,19 @@ class FullMatcher : CrashMatcher {
     val elementsOnLine = file.elementsInRange(range)
     for (element in elementsOnLine) {
       val el = findMatchingCause(element.toUElement() ?: continue, crash.cause, range) ?: continue
-      generateSequence(el) { it.uastParent }.filterIsInstance<UMethod>().forEach { parent ->
-        val className = parent.getContainingUClass()?.qualifiedName
-        if (className != null) {
-          if (crash.frame.matches(className, parent.name)) {
-            val target = el.sourcePsi?.navigationElement
-            if (target != null) {
-              return Match(target, Confidence.HIGH, this::class.simpleName!!)
+      generateSequence(el) { it.uastParent }
+        .filterIsInstance<UMethod>()
+        .forEach { parent ->
+          val className = parent.getContainingUClass()?.qualifiedName
+          if (className != null) {
+            if (crash.frame.matches(className, parent.name)) {
+              val target = el.sourcePsi?.navigationElement
+              if (target != null) {
+                return Match(target, Confidence.HIGH, this::class.simpleName!!)
+              }
             }
           }
         }
-      }
     }
 
     return null

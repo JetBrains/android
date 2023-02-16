@@ -68,9 +68,11 @@ fun parseViewInfo(
     // the
     // name mangling.
     val viewInfoField =
-      viewObj::class.java.declaredMethods.single { it.name.contains("getViewInfos") }.also {
-        it.isAccessible = true
-      }
+      viewObj::class
+        .java
+        .declaredMethods
+        .single { it.name.contains("getViewInfos") }
+        .also { it.isAccessible = true }
     val composeViewInfos = viewInfoField.invoke(viewObj) as List<*>
     return parseBounds(composeViewInfos, lineNumberMapper, logger)
   } catch (e: Exception) {

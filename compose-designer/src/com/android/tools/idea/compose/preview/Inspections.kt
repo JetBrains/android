@@ -88,7 +88,7 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
    *
    * @param holder A [ProblemsHolder] user to report problems
    * @param annotationClass The annotation class that was annotated with `@Preview` or with a
-   * MultiPreview
+   *   MultiPreview
    * @param previewAnnotation The `@Preview` or MultiPreview annotation
    * @param isMultiPreview true when [previewAnnotation] is a MultiPreview
    */
@@ -223,8 +223,7 @@ class PreviewMultipleParameterProvidersInspection : BasePreviewAnnotationInspect
   ) {
     // Find the second PreviewParameter annotation if any
     val secondPreviewParameter =
-      function
-        .valueParameters
+      function.valueParameters
         .mapNotNull {
           it.annotationEntries.firstOrNull { annotation ->
             annotation.fqNameMatches(COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN)
@@ -402,8 +401,7 @@ class PreviewFontScaleMustBeGreaterThanZero : BasePreviewAnnotationInspection() 
       val argumentExpression = it.getArgumentExpression() ?: return
       val fontScale =
         (ConstantExpressionEvaluator.getConstant(argumentExpression, argumentExpression.analyze())
-          ?.getValue(TypeUtils.DONT_CARE) as?
-          Float)
+          ?.getValue(TypeUtils.DONT_CARE) as? Float)
           ?: return
 
       if (fontScale <= 0) {
@@ -460,8 +458,7 @@ class PreviewApiLevelMustBeValid : BasePreviewAnnotationInspection() {
       val argumentExpression = it.getArgumentExpression() ?: return
       val apiLevel =
         (ConstantExpressionEvaluator.getConstant(argumentExpression, argumentExpression.analyze())
-          ?.getValue(TypeUtils.DONT_CARE) as?
-          Int)
+          ?.getValue(TypeUtils.DONT_CARE) as? Int)
           ?: return
 
       if (apiLevel < min || apiLevel > max) {
@@ -511,8 +508,7 @@ private fun KtValueArgument.exceedsLimit(limit: Int): Boolean {
   val argumentExpression = getArgumentExpression() ?: return false
   val dimension =
     (ConstantExpressionEvaluator.getConstant(argumentExpression, argumentExpression.analyze())
-      ?.getValue(TypeUtils.DONT_CARE) as?
-      Int)
+      ?.getValue(TypeUtils.DONT_CARE) as? Int)
       ?: return false
   return dimension > limit
 }

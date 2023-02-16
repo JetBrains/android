@@ -44,8 +44,7 @@ class SelectProcessActionTest {
     isEmulator: Boolean = true
   ): Common.Stream {
     val device =
-      FakeTransportService.FAKE_DEVICE
-        .toBuilder()
+      FakeTransportService.FAKE_DEVICE.toBuilder()
         .setSerial(serial)
         .setManufacturer(FAKE_MANUFACTURER_NAME)
         .setIsEmulator(isEmulator)
@@ -60,8 +59,7 @@ class SelectProcessActionTest {
   ): ProcessDescriptor {
     return TransportProcessDescriptor(
       this,
-      FakeTransportService.FAKE_PROCESS
-        .toBuilder()
+      FakeTransportService.FAKE_PROCESS.toBuilder()
         .setName(name ?: FakeTransportService.FAKE_PROCESS_NAME)
         .setPid(pid)
         .build()

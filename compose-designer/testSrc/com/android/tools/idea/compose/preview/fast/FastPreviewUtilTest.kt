@@ -54,7 +54,8 @@ class FastPreviewUtilTest {
       fun testB() {
         testA()
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
   }
 
@@ -89,8 +90,8 @@ class FastPreviewUtilTest {
                   testFile.module!!,
                   setOf(testFile),
                   testPreviewManager
-                ) is
-                  CompilationResult.CompilationAborted
+                )
+                  is CompilationResult.CompilationAborted
               )
             } catch (_: CancellationException) {}
             launchedCompileRequests.incrementAndGet()

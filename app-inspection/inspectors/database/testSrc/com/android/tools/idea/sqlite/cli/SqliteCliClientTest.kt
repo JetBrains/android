@@ -161,7 +161,8 @@ class SqliteCliClientTest : LightPlatformTestCase() {
     )
 
     // populate the table with values
-    client.runSqliteCliCommand(
+    client
+      .runSqliteCliCommand(
         SqliteCliArgs.builder()
           .database(databaseFile)
           .apply { values.forEach { raw("insert into '$table1' values ($it);") } }
@@ -196,7 +197,8 @@ class SqliteCliClientTest : LightPlatformTestCase() {
    */
   fun testExportToCsv() = runBlocking {
     // create table
-    client.runSqliteCliCommand(
+    client
+      .runSqliteCliCommand(
         SqliteCliArgs.builder()
           .database(databaseFile)
           .raw("create table '$table1' ('$column1' int, '$column2' text, '$column3' int);")
@@ -208,7 +210,8 @@ class SqliteCliClientTest : LightPlatformTestCase() {
       }
 
     // populate table
-    client.runSqliteCliCommand(
+    client
+      .runSqliteCliCommand(
         SqliteCliArgs.builder()
           .database(databaseFile)
           .raw("insert into '$table1' values (1,2,3);")
@@ -223,7 +226,8 @@ class SqliteCliClientTest : LightPlatformTestCase() {
 
     // export to csv file - no headers, separator=|
     val outputFile1 = tempDirTestFixture.createFile(outputFile1).toNioPath().also { it.delete() }
-    client.runSqliteCliCommand(
+    client
+      .runSqliteCliCommand(
         SqliteCliArgs.builder()
           .database(databaseFile)
           .modeCsv()
@@ -239,7 +243,8 @@ class SqliteCliClientTest : LightPlatformTestCase() {
 
     // export to csv file - with headers, separator=;
     val outputFile2 = tempDirTestFixture.createFile(outputFile2).toNioPath().also { it.delete() }
-    client.runSqliteCliCommand(
+    client
+      .runSqliteCliCommand(
         SqliteCliArgs.builder()
           .database(databaseFile)
           .modeCsv()
@@ -280,7 +285,8 @@ class SqliteCliClientTest : LightPlatformTestCase() {
    */
   fun testCloneDatabaseExportToSql() = runBlocking {
     // create tables
-    client.runSqliteCliCommand(
+    client
+      .runSqliteCliCommand(
         SqliteCliArgs.builder()
           .database(databaseFile)
           .raw("create table '$table1' ('$column1' int, '$column2' text, '$column3' float);")
@@ -294,7 +300,8 @@ class SqliteCliClientTest : LightPlatformTestCase() {
       }
 
     // populate tables
-    client.runSqliteCliCommand(
+    client
+      .runSqliteCliCommand(
         SqliteCliArgs.builder()
           .database(databaseFile)
           .raw("insert into '$table1' values (1,2,3);")
@@ -309,9 +316,8 @@ class SqliteCliClientTest : LightPlatformTestCase() {
       }
 
     // query table list
-    client.runSqliteCliCommand(
-        SqliteCliArgs.builder().database(databaseFile).queryTableList().build()
-      )
+    client
+      .runSqliteCliCommand(SqliteCliArgs.builder().database(databaseFile).queryTableList().build())
       .also {
         assertThat(it.exitCode).isEqualTo(0)
         assertThat(it.errOutput).isEmpty()
@@ -319,9 +325,8 @@ class SqliteCliClientTest : LightPlatformTestCase() {
       }
 
     // query view list
-    client.runSqliteCliCommand(
-        SqliteCliArgs.builder().database(databaseFile).queryViewList().build()
-      )
+    client
+      .runSqliteCliCommand(SqliteCliArgs.builder().database(databaseFile).queryViewList().build())
       .also {
         assertThat(it.exitCode).isEqualTo(0)
         assertThat(it.errOutput).isEmpty()
@@ -329,9 +334,8 @@ class SqliteCliClientTest : LightPlatformTestCase() {
       }
 
     // dump table
-    client.runSqliteCliCommand(
-        SqliteCliArgs.builder().database(databaseFile).dumpTable(table1).build()
-      )
+    client
+      .runSqliteCliCommand(SqliteCliArgs.builder().database(databaseFile).dumpTable(table1).build())
       .also {
         assertThat(it.exitCode).isEqualTo(0)
         assertThat(it.errOutput).isEmpty()
@@ -384,7 +388,8 @@ class SqliteCliClientTest : LightPlatformTestCase() {
     // clone the database
     val databaseClone = tempDirTestFixture.createFile(dbClonePath).toNioPath().also { it.delete() }
 
-    client.runSqliteCliCommand(
+    client
+      .runSqliteCliCommand(
         SqliteCliArgs.builder()
           .database(databaseFile)
           .raw(".clone '${databaseClone.toAbsolutePath()}'")

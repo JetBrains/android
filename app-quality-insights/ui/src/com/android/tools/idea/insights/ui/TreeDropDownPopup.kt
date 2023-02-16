@@ -82,8 +82,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
     selection.items.associate { it.value to secondaryGroupSupplier(it.value) }
 
   private val secondaryToPrimaryGroups =
-    selection
-      .items
+    selection.items
       .asSequence()
       .flatMap { value ->
         val groups = secondaryGroupSupplier(value.value)
@@ -150,7 +149,8 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
           updateTreeNodes { it.lowercase().contains(searchText) }
           val toExpand = mutableListOf<TreePath>()
           root.children().asSequence().forEach { child ->
-            if (child.children().asSequence().any {
+            if (
+              child.children().asSequence().any {
                 getNodeText(it as CheckedTreeNode).lowercase().contains(searchText)
               }
             ) {
@@ -208,8 +208,7 @@ class TreeDropDownPopup<T, U : GroupAware<U>>(
   }
 
   private fun selectedSecondaryToPrimary(): Map<U, Set<WithCount<T>>> =
-    selection
-      .selected
+    selection.selected
       .asSequence()
       .flatMap { value ->
         val groups = secondaryGroupSupplier(value.value)

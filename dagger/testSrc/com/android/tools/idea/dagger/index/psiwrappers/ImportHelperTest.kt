@@ -51,9 +51,9 @@ class ImportHelperTest {
         // language=kotlin
         """
       package com.example
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
 
@@ -72,9 +72,9 @@ class ImportHelperTest {
         """
       package com.example
       import javax.inject.*
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
 
@@ -93,9 +93,9 @@ class ImportHelperTest {
         """
       package com.example
       import javax.inject.Inject
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
 
@@ -114,9 +114,9 @@ class ImportHelperTest {
         """
       package com.example
       import javax.inject.Inject as OtherInject
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
 
@@ -137,9 +137,9 @@ class ImportHelperTest {
       import javax.inject.*
       import javax.inject.Inject
       import javax.inject.Inject as OtherInject
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
 
@@ -157,9 +157,9 @@ class ImportHelperTest {
         // language=kotlin
         """
       package com.example
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
 
@@ -178,9 +178,9 @@ class ImportHelperTest {
       import javax.import.*
       import com.other.Foo
       import java.util.List
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
 
@@ -199,9 +199,9 @@ class ImportHelperTest {
       import javax.import.*
       import com.other.Foo as Bar
       import java.util.List as MyList
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val importHelper = KotlinImportHelper(psiFile)
 
@@ -216,9 +216,9 @@ class ImportHelperTest {
         // language=java
         """
       package com.example;
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val importHelper = JavaImportHelper(psiFile)
 
@@ -237,9 +237,9 @@ class ImportHelperTest {
         """
       package com.example;
       import javax.inject.*;
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val importHelper = JavaImportHelper(psiFile)
 
@@ -258,9 +258,9 @@ class ImportHelperTest {
         """
       package com.example;
       import javax.inject.Inject;
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val importHelper = JavaImportHelper(psiFile)
 
@@ -280,9 +280,9 @@ class ImportHelperTest {
       package com.example;
       import javax.inject.*
       import javax.inject.Inject;
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val importHelper = JavaImportHelper(psiFile)
 

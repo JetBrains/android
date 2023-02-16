@@ -54,10 +54,12 @@ suspend fun ComposePreviewRepresentation.waitForRender(
   sceneViewPeerPanels: Set<SceneViewPeerPanel>
 ) =
   withTimeout(timeout = 30.seconds) {
-    while (isActive &&
-      sceneViewPeerPanels.any {
-        (it.sceneView.sceneManager as? LayoutlibSceneManager)?.renderResult == null
-      }) {
+    while (
+      isActive &&
+        sceneViewPeerPanels.any {
+          (it.sceneView.sceneManager as? LayoutlibSceneManager)?.renderResult == null
+        }
+    ) {
       delay(250)
     }
   }

@@ -75,7 +75,8 @@ internal fun createInformationPopup(project: Project, dataContext: DataContext):
           dataContext
         ),
         when (it) {
-          is PreviewStatus.SyntaxError, PreviewStatus.RenderIssues ->
+          is PreviewStatus.SyntaxError,
+          PreviewStatus.RenderIssues ->
             actionLink(message("action.view.problems"), ShowProblemsPanel(), dataContext)
           else -> null
         }

@@ -115,7 +115,8 @@ class ComposePreviewRepresentationTest {
         @Preview(name = "preview2", apiLevel = 12, group = "groupA", showBackground = true)
         fun Preview2() {
         }
-      """.trimIndent()
+      """
+            .trimIndent()
         )
       }
 
@@ -154,7 +155,8 @@ class ComposePreviewRepresentationTest {
         modelRenderedLatch.await()
 
         while (preview.status().isRefreshing || DumbService.getInstance(project).isDumb) kotlinx
-          .coroutines.delay(250)
+          .coroutines
+          .delay(250)
       }
 
       mainSurface.models.forEach { assertContains(navigationHandler.defaultNavigationMap, it) }
@@ -169,9 +171,9 @@ class ComposePreviewRepresentationTest {
       assertFalse(debugStatus.toString(), status.isOutOfDate)
       // Ensure the only warning message is the missing Android SDK message
       assertTrue(
-        debugStatus.renderResult.flatMap { it.logger.messages }.none {
-          !it.html.contains("No Android SDK found.")
-        }
+        debugStatus.renderResult
+          .flatMap { it.logger.messages }
+          .none { !it.html.contains("No Android SDK found.") }
       )
       preview.onDeactivate()
     }

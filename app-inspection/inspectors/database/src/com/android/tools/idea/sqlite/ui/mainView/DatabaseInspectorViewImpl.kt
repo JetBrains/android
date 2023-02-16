@@ -259,7 +259,9 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
       ToolWindowDefinition.DEFAULT_SIDE_WIDTH,
       ToolWindowDefinition.DEFAULT_BUTTON_SIZE,
       ToolWindowDefinition.ALLOW_BASICS
-    ) { SchemaPanelToolContent() }
+    ) {
+      SchemaPanelToolContent()
+    }
   }
 
   inner class SchemaPanelToolContent : ToolContent<SqliteViewContext> {

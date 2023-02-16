@@ -86,7 +86,7 @@ internal fun AnimationClock.getAnimatedVisibilityState(animation: ComposeAnimati
  * reflection.
  *
  * @param clock Instance of `PreviewAnimationClock` that animations in the inspector are subscribed
- * to.
+ *   to.
  */
 class AnimationClock(val clock: Any) {
 
@@ -141,7 +141,9 @@ class AnimationClock(val clock: Any) {
   fun findClockFunction(functionName: String): Method = findClockFunctionIfExists(functionName)!!
 
   private fun findClockFunctionIfExists(functionName: String): Method? =
-    clock::class.java.methods
+    clock::class
+      .java
+      .methods
       .firstOrNull() {
         // Convert something like `setClockTime-zrx7VqY` into `setClockTime` in order to handle
         // methods that use inline classes.

@@ -59,7 +59,8 @@ class DaggerRelatedItemLineMarkerProviderV2Test {
       package com.example
 
       class Fo<caret>o
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val tooltip = DaggerRelatedItemLineMarkerProviderV2.tooltipProvider(myFixture.elementAtCaret)
@@ -77,7 +78,8 @@ class DaggerRelatedItemLineMarkerProviderV2Test {
       class Foo constructor() {
         val property: Int = 0
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertThat(myFixture.moveCaret("cla|ss Foo constructor").canReceiveLineMarker()).isFalse()
@@ -124,7 +126,8 @@ class DaggerRelatedItemLineMarkerProviderV2Test {
 
         private int property = 0;
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     assertThat(myFixture.moveCaret("cla|ss Foo").canReceiveLineMarker()).isFalse()

@@ -120,6 +120,7 @@ internal class ComposeAdapterLightVirtualFile(
  * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the
  * dimension is [UNDEFINED_DIMENSION], the value is converted to `wrap_content`. Otherwise, the
  * value is returned concatenated with `dp`.
+ *
  * @param dimension the dimension in dp or [UNDEFINED_DIMENSION]
  * @param defaultValue the value to be used when the given dimension is [UNDEFINED_DIMENSION]
  */
@@ -138,7 +139,7 @@ private fun KtClass.hasDefaultConstructor() =
  * which can be either:
  * 1. Top-level functions
  * 2. Non-nested functions defined in top-level classes that have a default (no parameter)
- * constructor
+ *    constructor
  */
 internal fun KtNamedFunction.isValidPreviewLocation(): Boolean {
   if (isTopLevel) {
@@ -204,9 +205,9 @@ private fun Device.hasRoundFrame(): Boolean =
 private fun Device.withoutRoundScreenFrame(): Device =
   if (hasRoundFrame()) {
     Device.Builder(this).build().also { newDevice ->
-      newDevice.allStates.filter { it.hardware.screen.screenRound == ScreenRound.ROUND }.onEach {
-        it.hardware.screen.screenRound = ScreenRound.NOTROUND
-      }
+      newDevice.allStates
+        .filter { it.hardware.screen.screenRound == ScreenRound.ROUND }
+        .onEach { it.hardware.screen.screenRound = ScreenRound.NOTROUND }
     }
   } else this
 
@@ -229,7 +230,8 @@ private fun PreviewConfiguration.applyTo(
   @AndroidDpCoordinate customSize: Dimension? = null
 ) {
   fun updateRenderConfigurationTargetIfChanged(newTarget: CompatibilityRenderTarget) {
-    if ((renderConfiguration.target as? CompatibilityRenderTarget)?.hashString() !=
+    if (
+      (renderConfiguration.target as? CompatibilityRenderTarget)?.hashString() !=
         newTarget.hashString()
     ) {
       renderConfiguration.target = newTarget
@@ -603,12 +605,11 @@ class ParametrizedComposePreviewElementTemplate(
             val parameterProviderClass =
               classLoader.loadClass(previewParameter.providerClassFqn).kotlin
             val parameterProviderSizeMethod =
-              parameterProviderClass.functions.single { "getCount" == it.name }.also {
-                it.isAccessible = true
-              }
+              parameterProviderClass.functions
+                .single { "getCount" == it.name }
+                .also { it.isAccessible = true }
             val parameterProvider =
-              parameterProviderClass
-                .constructors
+              parameterProviderClass.constructors
                 .single { it.parameters.isEmpty() } // Find the default constructor
                 .also { it.isAccessible = true }
                 .call()

@@ -148,7 +148,8 @@ class ComposePreviewViewImplTest {
           </application>
 
       </manifest>
-    """.trimIndent()
+    """
+          .trimIndent()
       )
     SourceProviderManager.replaceForTest(
       projectRule.module.androidFacet!!,
@@ -157,9 +158,13 @@ class ComposePreviewViewImplTest {
     )
 
     val psiMainFile =
-      fixture.addFileToProject("src/main/Test.kt", """
+      fixture.addFileToProject(
+        "src/main/Test.kt",
+        """
       fun main() {}
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
 
     val navigationHandler = ComposePreviewNavigationHandler()
     val interactionHandler = NopInteractionHandler
@@ -258,7 +263,8 @@ class ComposePreviewViewImplTest {
       No preview found.
       Add preview by annotating Composables with @Preview
       [Using the Compose preview]
-    """.trimIndent(),
+    """
+        .trimIndent(),
       (fakeUi.findComponent<InstructionsPanel> { it.isShowing })!!.toDisplayText()
     )
   }
@@ -282,7 +288,8 @@ class ComposePreviewViewImplTest {
       """
       A successful build is needed before the preview can be displayed
       [Build & Refresh... (shortcut)]
-    """.trimIndent(),
+    """
+        .trimIndent(),
       instructionsText
     )
   }
@@ -354,7 +361,8 @@ class ComposePreviewViewImplTest {
       """
       Refresh was cancelled and needs to be completed before the preview can be displayed
       [Build & Refresh... (Ctrl+Shift+F5)]
-    """.trimIndent(),
+    """
+        .trimIndent(),
       (fakeUi.findComponent<InstructionsPanel> { it.isShowing })!!.toDisplayText()
     )
   }

@@ -114,7 +114,8 @@ internal data class ProvidesMethodIndexValue(
   companion object {
     private val identifyProvidesMethodKotlin =
       DaggerElementIdentifier<KtFunction> { psiElement ->
-        if (psiElement !is KtConstructor<*> &&
+        if (
+          psiElement !is KtConstructor<*> &&
             psiElement.hasAnnotation(PROVIDES) &&
             psiElement.containingClassOrObject?.hasAnnotation(MODULE) == true
         ) {
@@ -126,7 +127,8 @@ internal data class ProvidesMethodIndexValue(
 
     private val identifyProvidesMethodJava =
       DaggerElementIdentifier<PsiMethod> { psiElement ->
-        if (!psiElement.isConstructor &&
+        if (
+          !psiElement.isConstructor &&
             psiElement.hasAnnotation(PROVIDES) &&
             psiElement.containingClass?.hasAnnotation(MODULE) == true
         ) {
@@ -176,7 +178,8 @@ internal data class ProvidesMethodParameterIndexValue(
     private val identifyProvidesMethodParameterKotlin =
       DaggerElementIdentifier<KtParameter> { psiElement ->
         val parent = psiElement.parentOfType<KtFunction>() ?: return@DaggerElementIdentifier null
-        if (parent !is KtConstructor<*> &&
+        if (
+          parent !is KtConstructor<*> &&
             parent.hasAnnotation(PROVIDES) &&
             parent.containingClassOrObject?.hasAnnotation(MODULE) == true
         ) {
@@ -189,7 +192,8 @@ internal data class ProvidesMethodParameterIndexValue(
     private val identifyProvidesMethodParameterJava =
       DaggerElementIdentifier<PsiParameter> { psiElement ->
         val parent = psiElement.parentOfType<PsiMethod>() ?: return@DaggerElementIdentifier null
-        if (!parent.isConstructor &&
+        if (
+          !parent.isConstructor &&
             parent.hasAnnotation(PROVIDES) &&
             parent.containingClass?.hasAnnotation(MODULE) == true
         ) {
@@ -211,9 +215,9 @@ internal data class ProvidesMethodParameterIndexValue(
       JavaPsiFacade.getInstance(project).findClass(classFqName, scope) ?: return emptyList()
     if (!psiClass.hasAnnotation(MODULE)) return emptyList()
 
-    return psiClass.methods.filter { it.name == methodSimpleName }.flatMap {
-      it.parameterList.parameters.filter { p -> p.name == parameterName }
-    }
+    return psiClass.methods
+      .filter { it.name == methodSimpleName }
+      .flatMap { it.parameterList.parameters.filter { p -> p.name == parameterName } }
   }
 
   override val daggerElementIdentifiers = identifiers

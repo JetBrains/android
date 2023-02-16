@@ -35,10 +35,12 @@ internal fun createDeviceEnumSupport(
 ) =
   EnumSupportWithConstantData(enumSupportValuesProvider, property.name) { stringValue ->
     val trimmedValue = stringValue.trim()
-    Device.values().firstOrNull { it.resolvedValue == trimmedValue }?.let {
-      // First try to parse to a pre-defined device
-      return@EnumSupportWithConstantData it
-    }
+    Device.values()
+      .firstOrNull { it.resolvedValue == trimmedValue }
+      ?.let {
+        // First try to parse to a pre-defined device
+        return@EnumSupportWithConstantData it
+      }
 
     trimmedValue.nullize()?.let {
       val isDeviceSpec =

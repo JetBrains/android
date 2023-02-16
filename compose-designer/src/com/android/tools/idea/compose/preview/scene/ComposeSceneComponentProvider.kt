@@ -98,7 +98,8 @@ class ComposeSceneComponentProvider : SceneManager.SceneComponentHierarchyProvid
     val viewInfo = component.viewInfo ?: return listOf()
 
     if (LOG.isDebugEnabled) {
-      component.model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
+      component.model.dataContext
+        .getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
         ?.displaySettings
         ?.name
         ?.let { LOG.debug(" ${it} component=${component} model=${component.model}") }

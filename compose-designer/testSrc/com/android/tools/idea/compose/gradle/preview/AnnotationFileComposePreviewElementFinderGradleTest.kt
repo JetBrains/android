@@ -92,7 +92,8 @@ class AnnotationFileComposePreviewElementFinderGradleTest {
           fun MyNewTestFun() {
           }
 
-        """.trimIndent()
+        """
+            .trimIndent()
         )
       }
       PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()

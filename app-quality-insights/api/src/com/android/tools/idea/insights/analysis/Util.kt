@@ -56,7 +56,8 @@ private fun findMatchingThrow(
         if (exception !is UCallExpression) {
           return false
         }
-        if (exception.kind == UastCallKind.CONSTRUCTOR_CALL &&
+        if (
+          exception.kind == UastCallKind.CONSTRUCTOR_CALL &&
             (exception.classReference?.resolve() as? PsiClass)?.qualifiedName == cause.exceptionType
         ) {
           foundChild.set(node)

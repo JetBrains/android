@@ -152,7 +152,9 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
       primaryKeys.joinToString(
         separator = ", ",
         postfix = if (primaryKeys.isNotEmpty() && columns.isNotEmpty()) ", " else " "
-      ) { "${AndroidSqlLexer.getValidName(it)} INTEGER NOT NULL" }
+      ) {
+        "${AndroidSqlLexer.getValidName(it)} INTEGER NOT NULL"
+      }
     columnsString += columns.joinToString(separator = ", ") { AndroidSqlLexer.getValidName(it) }
 
     val primaryKeysNames =
@@ -170,14 +172,18 @@ class SqliteTestUtil(private val tempDirTestFixture: TempDirTestFixture) {
       primaryKeys.joinToString(
         separator = ", ",
         postfix = if (primaryKeys.isNotEmpty() && columns.isNotEmpty()) ", " else ""
-      ) { AndroidSqlLexer.getValidName(it) }
+      ) {
+        AndroidSqlLexer.getValidName(it)
+      }
     colsNames += columns.joinToString(separator = ", ") { AndroidSqlLexer.getValidName(it) }
 
     var colsValues =
       primaryKeys.joinToString(
         separator = ", ",
         postfix = if (primaryKeys.isNotEmpty() && columns.isNotEmpty()) ", " else ""
-      ) { "?" }
+      ) {
+        "?"
+      }
     colsValues += columns.joinToString(separator = ", ") { "?" }
 
     val insertStatement =

@@ -30,7 +30,8 @@ private fun createBooleanValidator(): EditingValidation =
     if (editedValue == null || editedValue.isBlank()) return@validator EDITOR_NO_ERROR
 
     when (editedValue.trim()) {
-      SdkConstants.VALUE_TRUE, SdkConstants.VALUE_FALSE -> return@validator EDITOR_NO_ERROR
+      SdkConstants.VALUE_TRUE,
+      SdkConstants.VALUE_FALSE -> return@validator EDITOR_NO_ERROR
       else ->
         return@validator Pair(
           EditingErrorCategory.ERROR,

@@ -62,9 +62,8 @@ class SwitchSurfaceLayoutManagerActionTest {
 
     enabled = true
     val multiChoiceAction =
-      SwitchSurfaceLayoutManagerAction(switcher, option) { enabled }.apply {
-        templatePresentation.isMultiChoice = true
-      }
+      SwitchSurfaceLayoutManagerAction(switcher, option) { enabled }
+        .apply { templatePresentation.isMultiChoice = true }
     // It should always be multi-choice no matter it is enabled or not.
     multiChoiceAction.update(TestActionEvent(presentation))
     assertTrue(Utils.isMultiChoiceGroup(multiChoiceAction))

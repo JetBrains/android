@@ -181,12 +181,8 @@ class BackgroundTaskInspectorComponentInteractionTest {
 
     withContext(uiDispatcher) {
       val toolbar =
-        TreeWalker(entriesView)
-          .descendantStream()
-          .filter { it is ActionToolbar }
-          .findFirst()
-          .get() as
-          ActionToolbarImpl
+        TreeWalker(entriesView).descendantStream().filter { it is ActionToolbar }.findFirst().get()
+          as ActionToolbarImpl
 
       val cancelAction = toolbar.actions[0] as AnAction
       val event: AnActionEvent = TestActionEvent()
@@ -216,12 +212,8 @@ class BackgroundTaskInspectorComponentInteractionTest {
     withContext(uiDispatcher) {
       selectionModel.selectedEntry = client.getEntry(workInfo.id)
       val tree =
-        TreeWalker(tableView.component)
-          .descendantStream()
-          .filter { it is JTree }
-          .findFirst()
-          .get() as
-          JTree
+        TreeWalker(tableView.component).descendantStream().filter { it is JTree }.findFirst().get()
+          as JTree
       val path = tree.selectionModel.selectionPath
       val headerPath = path.parentPath
       tree.selectionModel.selectionPath = headerPath
@@ -237,8 +229,8 @@ class BackgroundTaskInspectorComponentInteractionTest {
     withContext(uiDispatcher) {
       selectionModel.selectedEntry = client.getEntry(workInfo.id)
       val toolbar =
-        TreeWalker(tab.component).descendantStream().filter { it is ActionToolbar }.toList()[1] as
-          ActionToolbarImpl
+        TreeWalker(tab.component).descendantStream().filter { it is ActionToolbar }.toList()[1]
+          as ActionToolbarImpl
       val graphViewAction = toolbar.actions[1] as AnAction
       assertThat(graphViewAction.templateText).isEqualTo("Show Graph View")
       val event: AnActionEvent = Mockito.mock(AnActionEvent::class.java)
@@ -254,8 +246,8 @@ class BackgroundTaskInspectorComponentInteractionTest {
     withContext(uiDispatcher) {
       selectionModel.selectedEntry = client.getEntry(workInfo.id)
       val toolbar =
-        TreeWalker(tab.component).descendantStream().filter { it is ActionToolbar }.toList()[1] as
-          ActionToolbarImpl
+        TreeWalker(tab.component).descendantStream().filter { it is ActionToolbar }.toList()[1]
+          as ActionToolbarImpl
       val graphViewAction = toolbar.actions[1] as AnAction
       val event: AnActionEvent = Mockito.mock(AnActionEvent::class.java)
       graphViewAction.actionPerformed(event)
@@ -275,8 +267,8 @@ class BackgroundTaskInspectorComponentInteractionTest {
     withContext(uiDispatcher) {
       selectionModel.selectedEntry = client.getEntry(workInfo.id)
       val toolbar =
-        TreeWalker(tab.component).descendantStream().filter { it is ActionToolbar }.toList()[1] as
-          ActionToolbarImpl
+        TreeWalker(tab.component).descendantStream().filter { it is ActionToolbar }.toList()[1]
+          as ActionToolbarImpl
       val graphViewAction = toolbar.actions[1] as AnAction
       val event: AnActionEvent = Mockito.mock(AnActionEvent::class.java)
       graphViewAction.actionPerformed(event)
@@ -302,8 +294,7 @@ class BackgroundTaskInspectorComponentInteractionTest {
           .descendantStream()
           .filter { (it as? ActionLink)?.text == "Show in graph" }
           .findFirst()
-          .get() as
-          ActionLink
+          .get() as ActionLink
       assertThat(entriesView.contentMode).isEqualTo(BackgroundTaskEntriesView.Mode.TABLE)
       val scrollPosition = 10
       detailsView.getFirstChildIsInstance<JBScrollPane>().verticalScrollBar.value = scrollPosition
@@ -328,8 +319,7 @@ class BackgroundTaskInspectorComponentInteractionTest {
           .descendantStream()
           .filter { (it as? ActionLink)?.text == "Show in table" }
           .findFirst()
-          .get() as
-          ActionLink
+          .get() as ActionLink
       assertThat(entriesView.contentMode).isEqualTo(BackgroundTaskEntriesView.Mode.GRAPH)
       showInGraphLabel.doClick()
       assertThat(entriesView.contentMode).isEqualTo(BackgroundTaskEntriesView.Mode.TABLE)

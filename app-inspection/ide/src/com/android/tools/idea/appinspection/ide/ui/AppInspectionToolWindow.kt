@@ -140,8 +140,7 @@ class AppInspectionToolWindow(toolWindow: ToolWindow, private val project: Proje
 
   init {
     Disposer.register(this, appInspectionView)
-    project
-      .messageBus
+    project.messageBus
       .connect(this)
       .subscribe(
         ToolWindowManagerListener.TOPIC,

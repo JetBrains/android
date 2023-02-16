@@ -138,7 +138,8 @@ class PreviewNavigationTest {
             MainActivity.kt:50
             MainActivity.kt:49
             MainActivity.kt:48
-          """.trimIndent(),
+          """
+              .trimIndent(),
             findComponentHits(module, rootView, 0, 0)
               .filter { it.fileName == "MainActivity.kt" }
               .joinToString("\n") { "${it.fileName}:${it.lineNumber}" }
@@ -153,7 +154,8 @@ class PreviewNavigationTest {
             MainActivity.kt:51
             MainActivity.kt:49
             MainActivity.kt:48
-          """.trimIndent(),
+          """
+              .trimIndent(),
             findComponentHits(module, rootView, 0, bounds.bottom - bounds.bottom / 4)
               .filter { it.fileName == "MainActivity.kt" }
               .joinToString("\n") { "${it.fileName}:${it.lineNumber}" }
@@ -179,10 +181,8 @@ class PreviewNavigationTest {
         val rootView = renderResult!!.rootViews.single()!!
         ReadAction.run<Throwable> {
           val descriptor =
-            findNavigatableComponentHit(module, rootView, 0, 0) {
-              it.fileName == "MainActivity.kt"
-            } as
-              OpenFileDescriptor
+            findNavigatableComponentHit(module, rootView, 0, 0) { it.fileName == "MainActivity.kt" }
+              as OpenFileDescriptor
           assertEquals("MainActivity.kt", descriptor.file.name)
           // TODO(b/156744111)
           // assertEquals(46, descriptor.line)
@@ -231,9 +231,9 @@ class PreviewNavigationTest {
   @Test
   fun testPreviewNavigation_nameLabelInteraction() {
     val mainFile =
-      project.guessProjectDir()!!.findFileByRelativePath(
-        SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path
-      )!!
+      project
+        .guessProjectDir()!!
+        .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
     val psiMainFile = runReadAction { PsiManager.getInstance(project).findFile(mainFile)!! }
 
     // Create a preview representation with an associated fakeUi
@@ -275,9 +275,9 @@ class PreviewNavigationTest {
   @Test
   fun testPreviewNavigation_imageInteraction() {
     val mainFile =
-      project.guessProjectDir()!!.findFileByRelativePath(
-        SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path
-      )!!
+      project
+        .guessProjectDir()!!
+        .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
     val psiMainFile = runReadAction { PsiManager.getInstance(project).findFile(mainFile)!! }
 
     // Create a preview representation with an associated fakeUi

@@ -154,7 +154,8 @@ class ExportToFileUiTest : LightPlatformTestCase() {
         nodePath: TreePath,
         tree: Tree,
         exportButton: CommonButton,
-        popUpMenuProvider: () -> List<DefaultActionGroup>) -> Unit,
+        popUpMenuProvider: () -> List<DefaultActionGroup>
+      ) -> Unit,
     expectedParams: ExportDialogParams
   ) {
     // Set up an ActionManager capturing pop-up menus
@@ -189,9 +190,9 @@ class ExportToFileUiTest : LightPlatformTestCase() {
         it.name == EXPORT_BUTTON_COMPONENT_NAME
       }
     val nodePath =
-      (0 until tree.rowCount).map { tree.getPathForRow(it) }.single {
-        treeNodePredicate((it.lastPathComponent as DefaultMutableTreeNode).userObject)
-      }
+      (0 until tree.rowCount)
+        .map { tree.getPathForRow(it) }
+        .single { treeNodePredicate((it.lastPathComponent as DefaultMutableTreeNode).userObject) }
     val popupMenuProvider: () -> List<DefaultActionGroup> = {
       testActionManager.popUpMenuActionGroupList.map { it as DefaultActionGroup }
     }

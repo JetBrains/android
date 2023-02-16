@@ -27,7 +27,8 @@ data class ComposeViewInfo(
   override fun toString(): String =
     """${sourceLocation}
       |   bounds=(top=${bounds.top}, left=${bounds.left}, bottom=${bounds.bottom}, right=${bounds.right})
-      |   childCount=${children.size}""".trimMargin()
+      |   childCount=${children.size}"""
+      .trimMargin()
 
   fun allChildren(): List<ComposeViewInfo> = listOf(this) + children.flatMap { it.allChildren() }
 }

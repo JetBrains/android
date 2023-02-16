@@ -30,8 +30,7 @@ class TestNetworkInspectorUsageTracker : Disposable {
   }
 
   fun verifyLatestEvent(consumer: (NetworkInspectorEvent) -> Unit) {
-    tracker
-      .usages
+    tracker.usages
       .asSequence()
       .map { it.studioEvent }
       .filter { it.kind == AndroidStudioEvent.EventKind.APP_INSPECTION }

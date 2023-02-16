@@ -43,6 +43,7 @@ class ComponentCurve(
   companion object {
     /**
      * Create a [ComponentCurve] for the [AnimatedProperty]
+     *
      * @param componentId Id of component for the [property]
      * @param rowMinY minimum y position from there row starts
      * @param positionProxy is [PositionProxy] for the slider
@@ -163,8 +164,8 @@ class ComponentCurve(
    * * animation curve itself
    * * (optional) dashed lines - links to the next curve diamonds
    *
-   * @params colorIndex index of the color from [GRAPH_COLORS]
-   * @rowHeight total row height including all labels, offset, etc
+   * @params colorIndex index of the color from [GRAPH_COLORS] @rowHeight total row height including
+   *   all labels, offset, etc
    */
   override fun paint(g: Graphics2D) {
     //                 ___        ___         ___

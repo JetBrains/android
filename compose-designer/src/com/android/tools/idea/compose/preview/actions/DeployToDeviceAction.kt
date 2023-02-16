@@ -39,7 +39,7 @@ import org.jetbrains.kotlin.idea.base.util.module
  * Action to run a Compose Preview on a device/emulator.
  *
  * @param dataContextProvider returns the [DataContext] containing the Compose Preview associated
- * information.
+ *   information.
  */
 internal class DeployToDeviceAction(private val dataContextProvider: () -> DataContext) :
   AnAction(message("action.run.title"), message("action.run.description"), RUN_ON_DEVICE) {

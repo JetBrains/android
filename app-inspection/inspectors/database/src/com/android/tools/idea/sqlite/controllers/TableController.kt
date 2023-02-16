@@ -59,8 +59,8 @@ import kotlin.math.min
  * Controller responsible for displaying data from a SQLite table.
  *
  * @param tableSupplier returns a [SqliteTable] instance representing the table or view associated
- * with the controller, or `null` if the controller not associated with a specific table, e.g. in
- * the case of custom queries.
+ *   with the controller, or `null` if the controller not associated with a specific table, e.g. in
+ *   the case of custom queries.
  */
 @UiThread
 class TableController(
@@ -146,8 +146,7 @@ class TableController(
    */
   private fun fetchAndDisplayTableData(): ListenableFuture<Unit> {
     val fetchTableDataFuture =
-      resultSet
-        .columns
+      resultSet.columns
         .transformAsync(edtExecutor) { columns ->
           if (Disposer.isDisposed(this)) throw ProcessCanceledException()
           if (columns != currentCols) {
@@ -184,12 +183,12 @@ class TableController(
     view.setFetchPreviousRowsButtonState(false)
     view.setFetchNextRowsButtonState(false)
 
-    return fetchAndDisplayRows().transformAsync(taskExecutor) { resultSet.totalRowCount }.transform(
-        edtExecutor
-      ) { rowCount ->
-      view.setFetchPreviousRowsButtonState(rowOffset > 0)
-      view.setFetchNextRowsButtonState(rowOffset + rowBatchSize < rowCount)
-    }
+    return fetchAndDisplayRows()
+      .transformAsync(taskExecutor) { resultSet.totalRowCount }
+      .transform(edtExecutor) { rowCount ->
+        view.setFetchPreviousRowsButtonState(rowOffset > 0)
+        view.setFetchNextRowsButtonState(rowOffset + rowBatchSize < rowCount)
+      }
   }
 
   private fun updateDataAndButtonsWithLoadingScreens(): ListenableFuture<Unit> {

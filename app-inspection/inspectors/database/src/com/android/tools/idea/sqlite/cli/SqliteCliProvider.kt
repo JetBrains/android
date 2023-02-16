@@ -38,6 +38,7 @@ interface SqliteCliProvider {
   /**
    * Searches for `sqlite3` CLI tool (part of platform-tools). Respects overriding the path through
    * [SQLITE3_PATH_PROPERTY] system property and [SQLITE3_PATH_ENV] environment variable.
+   *
    * @return path to the tool if able to find it. Otherwise `null`.
    */
   fun getSqliteCli(): Path?

@@ -178,7 +178,7 @@ internal object PreviewAnnotationCheck {
    * The issues that the returned [CheckResult] may report:
    * - [Repeated]: There should only be one of each parameter
    * - [BadType]: A parameter has a value that does not correspond to the expected type (a float
-   * instead of an integer for example)
+   *   instead of an integer for example)
    * - [Unknown]: Unknown/unsupported parameter found
    * - [Missing]: An expected parameter is missing.
    *

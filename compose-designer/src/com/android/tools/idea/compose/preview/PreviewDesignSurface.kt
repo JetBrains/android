@@ -146,7 +146,9 @@ private fun createPreviewDesignSurfaceBuilder(
           surface,
           sceneComponentProvider,
           ComposeSceneUpdateListener(),
-        ) { RealTimeSessionClock() }
+        ) {
+          RealTimeSessionClock()
+        }
         .also {
           it.setListenResourceChange(false) // don't re-render on resource changes
           it.setUpdateAndRenderWhenActivated(false) // don't re-render on activation

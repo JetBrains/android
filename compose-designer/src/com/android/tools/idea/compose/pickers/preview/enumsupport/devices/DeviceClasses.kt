@@ -47,32 +47,28 @@ internal const val CHIN_SIZE_PX_FOR_ROUND_CHIN = 30
 /** Default device configuration for Phones */
 internal val ReferencePhoneConfig: DeviceConfig by
   lazy(LazyThreadSafetyMode.NONE) {
-    PREDEFINED_WINDOW_SIZES_DEFINITIONS
-      .first { it.id == DEVICE_CLASS_PHONE_ID }
+    PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_PHONE_ID }
       .toDeviceConfigWithDpDimensions()
   }
 
 /** Default device configuration for Foldables */
 internal val ReferenceFoldableConfig: DeviceConfig by
   lazy(LazyThreadSafetyMode.NONE) {
-    PREDEFINED_WINDOW_SIZES_DEFINITIONS
-      .first { it.id == DEVICE_CLASS_FOLDABLE_ID }
+    PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_FOLDABLE_ID }
       .toDeviceConfigWithDpDimensions()
   }
 
 /** Default device configuration for Tablets */
 internal val ReferenceTabletConfig: DeviceConfig by
   lazy(LazyThreadSafetyMode.NONE) {
-    PREDEFINED_WINDOW_SIZES_DEFINITIONS
-      .first { it.id == DEVICE_CLASS_TABLET_ID }
+    PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_TABLET_ID }
       .toDeviceConfigWithDpDimensions()
   }
 
 /** Default device configuration for Desktops */
 internal val ReferenceDesktopConfig: DeviceConfig by
   lazy(LazyThreadSafetyMode.NONE) {
-    PREDEFINED_WINDOW_SIZES_DEFINITIONS
-      .first { it.id == DEVICE_CLASS_DESKTOP_ID }
+    PREDEFINED_WINDOW_SIZES_DEFINITIONS.first { it.id == DEVICE_CLASS_DESKTOP_ID }
       .toDeviceConfigWithDpDimensions()
   }
 
@@ -260,7 +256,8 @@ internal class DeviceEnumValueBuilder {
   }
 
   private fun addDefaultsIfMissing() {
-    if (!deviceEnumValues.contains(DeviceClass.Canonical) ||
+    if (
+      !deviceEnumValues.contains(DeviceClass.Canonical) ||
         deviceEnumValues[DeviceClass.Canonical]?.isEmpty() == true
     ) {
       addCanonical(
@@ -288,7 +285,8 @@ internal class DeviceEnumValueBuilder {
         PreviewPickerValue.DEVICE_REF_DESKTOP
       )
     }
-    if (!deviceEnumValues.contains(DeviceClass.Wear) ||
+    if (
+      !deviceEnumValues.contains(DeviceClass.Wear) ||
         deviceEnumValues[DeviceClass.Wear]?.isEmpty() == true
     ) {
       addWearDevice(isRound = false, chinSizePx = 0, displayName = "Square")
@@ -299,14 +297,16 @@ internal class DeviceEnumValueBuilder {
         displayName = "Round Chin"
       )
     }
-    if (!deviceEnumValues.contains(DeviceClass.Tv) ||
+    if (
+      !deviceEnumValues.contains(DeviceClass.Tv) ||
         deviceEnumValues[DeviceClass.Tv]?.isEmpty() == true
     ) {
       addTvDevice(widthPx = 3840, heightPx = 2160, diagonalIn = 55.0)
       addTvDevice(widthPx = 1920, heightPx = 1080, diagonalIn = 55.0)
       addTvDevice(widthPx = 1280, heightPx = 720, diagonalIn = 55.0)
     }
-    if (!deviceEnumValues.contains(DeviceClass.Auto) ||
+    if (
+      !deviceEnumValues.contains(DeviceClass.Auto) ||
         deviceEnumValues[DeviceClass.Auto]?.isEmpty() == true
     ) {
       addAutoDevice(widthPx = 1024, heightPx = 768, diagonalIn = 8.4)

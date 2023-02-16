@@ -145,7 +145,8 @@ object RecipeUtils {
             tagName: String,
             attributes: Attributes
           ) {
-            if (tagName == SdkConstants.TAG_USES_PERMISSION ||
+            if (
+              tagName == SdkConstants.TAG_USES_PERMISSION ||
                 tagName == SdkConstants.TAG_USES_PERMISSION_SDK_23 ||
                 tagName == SdkConstants.TAG_USES_PERMISSION_SDK_M
             ) {

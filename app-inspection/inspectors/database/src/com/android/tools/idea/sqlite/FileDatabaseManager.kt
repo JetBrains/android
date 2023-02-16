@@ -36,6 +36,7 @@ import kotlinx.coroutines.Job
 interface FileDatabaseManager {
   /**
    * Downloads a local copy of the database passed as argument, from the device.
+   *
    * @throws IOException if the device corresponding to [processDescriptor] is not found
    * @throws FileNotFoundException if the database file is not found.
    */

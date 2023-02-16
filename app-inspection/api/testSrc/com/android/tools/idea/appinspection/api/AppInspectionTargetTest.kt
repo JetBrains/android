@@ -358,8 +358,7 @@ class AppInspectionTargetTest {
 
       // Verify response.
       val responses =
-        appInspectionRule
-          .apiServices
+        appInspectionRule.apiServices
           .attachToProcess(process, TEST_PROJECT)
           .getLibraryVersions(targets)
       assertThat(responses)

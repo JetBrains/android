@@ -38,13 +38,14 @@ import kotlinx.coroutines.launch
 
 /**
  * Class used to receive asynchronous events from the on-device inspector.
+ *
  * @param messenger Communication channel with the on-device inspector.
  * @param onErrorEventListener Function called when a ErrorOccurred event is received.
  * @param onDatabaseAddedListener Function called when a DatabaseOpened event is received.
  * @param taskExecutor to parse responses from on-device inspector
  * @param errorsSideChannel side channel to error logging
  * @param scope the coroutine scoped used to send messages to inspector. The job in this scope must
- * be created using SupervisorJob, to avoid the parent Job from failing when child Jobs fail.
+ *   be created using SupervisorJob, to avoid the parent Job from failing when child Jobs fail.
  */
 class DatabaseInspectorClient
 constructor(
@@ -135,7 +136,8 @@ constructor(
   }
 
   override fun acquireDatabaseLock(databaseId: Int): ListenableFuture<Int?> {
-    return dbMessenger.sendCommandAsync(
+    return dbMessenger
+      .sendCommandAsync(
         Command.newBuilder()
           .setAcquireDatabaseLock(AcquireDatabaseLockCommand.newBuilder().setDatabaseId(databaseId))
       )
@@ -149,7 +151,8 @@ constructor(
   }
 
   override fun releaseDatabaseLock(lockId: Int): ListenableFuture<Unit> {
-    return dbMessenger.sendCommandAsync(
+    return dbMessenger
+      .sendCommandAsync(
         Command.newBuilder()
           .setReleaseDatabaseLock(ReleaseDatabaseLockCommand.newBuilder().setLockId(lockId))
       )

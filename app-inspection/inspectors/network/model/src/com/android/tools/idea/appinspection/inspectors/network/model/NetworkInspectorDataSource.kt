@@ -140,10 +140,10 @@ private fun CoroutineScope.processEvents(commandChannel: ReceiveChannel<Intentio
       val min = TimeUnit.MICROSECONDS.toNanos(command.range.min.toLong())
       val max = TimeUnit.MICROSECONDS.toNanos(command.range.max.toLong())
       val results =
-        httpMap.values.filter { data -> intersectsRange(min, max, data) }.flatten().sortedBy { event
-          ->
-          event.timestamp
-        }
+        httpMap.values
+          .filter { data -> intersectsRange(min, max, data) }
+          .flatten()
+          .sortedBy { event -> event.timestamp }
       command.deferred.complete(results)
     }
   }
@@ -152,7 +152,8 @@ private fun CoroutineScope.processEvents(commandChannel: ReceiveChannel<Intentio
 private fun intersectsRange(min: Long, max: Long, data: List<Event>): Boolean {
   val firstEventTimestamp = data.firstOrNull()?.timestamp ?: return false
   val lastEventTimestamp = data.last().timestamp
-  if (firstEventTimestamp in min..max ||
+  if (
+    firstEventTimestamp in min..max ||
       lastEventTimestamp in min..max ||
       (firstEventTimestamp < min && lastEventTimestamp > max)
   ) {
@@ -192,8 +193,7 @@ class NetworkInspectorDataSourceImpl(
       }
     }
     connectionEventFlow =
-      messenger
-        .eventFlow
+      messenger.eventFlow
         .map { data -> Event.parseFrom(data) }
         .onEach { data -> channel.send(Intention.InsertData(data)) }
         .mapNotNull { if (it.hasHttpConnectionEvent()) it.httpConnectionEvent else null }

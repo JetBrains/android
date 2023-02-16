@@ -71,9 +71,9 @@ class ProjectBuildStatusManagerTest {
   @Test
   fun testProjectStatusManagerStates() {
     val mainFile =
-      projectRule.project.guessProjectDir()!!.findFileByRelativePath(
-        SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path
-      )!!
+      projectRule.project
+        .guessProjectDir()!!
+        .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
     WriteAction.run<Throwable> { projectRule.fixture.openFileInEditor(mainFile) }
 
     val onReadyCalled = CountDownLatch(1)
@@ -110,10 +110,9 @@ class ProjectBuildStatusManagerTest {
     // Modifying a separate file should make both status managers out of date
     val documentManager = PsiDocumentManager.getInstance(projectRule.project)
     WriteCommandAction.runWriteCommandAction(project) {
-      documentManager.getDocument(projectRule.fixture.file)!!.insertString(
-        0,
-        "\n\nfun method() {}\n\n"
-      )
+      documentManager
+        .getDocument(projectRule.fixture.file)!!
+        .insertString(0, "\n\nfun method() {}\n\n")
       documentManager.commitAllDocuments()
     }
     FileDocumentManager.getInstance().saveAllDocuments()
@@ -130,9 +129,9 @@ class ProjectBuildStatusManagerTest {
   @Test
   fun testProjectStatusManagerStatesFailureModes() {
     val mainFile =
-      projectRule.project.guessProjectDir()!!.findFileByRelativePath(
-        SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path
-      )!!
+      projectRule.project
+        .guessProjectDir()!!
+        .findFileByRelativePath(SimpleComposeAppPaths.APP_MAIN_ACTIVITY.path)!!
 
     val documentManager = PsiDocumentManager.getInstance(projectRule.project)
 

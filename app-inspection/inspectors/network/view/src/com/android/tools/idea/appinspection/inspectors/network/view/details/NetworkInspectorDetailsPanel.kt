@@ -65,8 +65,8 @@ class NetworkInspectorDetailsPanel(
       cardLayout.show(cardLayoutView, model.detailContent.name)
     }
     model.aspect.addDependency(aspectObserver).onChange(
-        NetworkInspectorAspect.SELECTED_CONNECTION
-      ) {
+      NetworkInspectorAspect.SELECTED_CONNECTION
+    ) {
       usageTracker.trackConnectionDetailsSelected()
       model.selectedConnection?.let { setHttpData(it) }
       repaint()

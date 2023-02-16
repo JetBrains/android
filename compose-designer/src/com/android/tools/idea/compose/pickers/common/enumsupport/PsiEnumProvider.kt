@@ -82,14 +82,15 @@ class PsiEnumProvider(private val enumSupportValuesProvider: EnumSupportValuesPr
             return@uiMode uiMode
           }
         }
-      PARAMETER_GROUP, PARAMETER_LOCALE, PARAMETER_API_LEVEL ->
-        EnumSupportWithConstantData(enumSupportValuesProvider, property.name)
+      PARAMETER_GROUP,
+      PARAMETER_LOCALE,
+      PARAMETER_API_LEVEL -> EnumSupportWithConstantData(enumSupportValuesProvider, property.name)
       PARAMETER_FONT_SCALE ->
         object : EnumSupport {
           override val values: List<EnumValue> = FontScale.values().toList()
         }
-      PARAMETER_DEVICE, PARAMETER_HARDWARE_DEVICE ->
-        createDeviceEnumSupport(enumSupportValuesProvider, property)
+      PARAMETER_DEVICE,
+      PARAMETER_HARDWARE_DEVICE -> createDeviceEnumSupport(enumSupportValuesProvider, property)
       PARAMETER_HARDWARE_DIM_UNIT -> DimensionUnitEnumSupport
       PARAMETER_HARDWARE_DENSITY -> DensityEnumSupport
       PARAMETER_HARDWARE_ORIENTATION -> OrientationEnumSupport

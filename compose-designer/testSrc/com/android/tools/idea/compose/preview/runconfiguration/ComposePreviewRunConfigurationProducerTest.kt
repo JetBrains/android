@@ -55,7 +55,8 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
         @Preview
         fun Preview1() {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     composableFunction = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first()
   }
@@ -117,7 +118,8 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
         @Preview
         fun Preview1(@PreviewParameter(Names::class) name: String) {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val composableWithParameterProvider =
@@ -152,7 +154,8 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
         @Preview
         fun Preview1() {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val composableLibraryModule =
@@ -183,7 +186,8 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
         @MyAnnotation
         fun Preview1() {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val composableWithMultipreview =
@@ -217,7 +221,8 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
           fun NestedPreview() {
           }
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val notPreview =
@@ -308,9 +313,9 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
 
   private fun newComposePreviewRunConfiguration(): ComposePreviewRunConfiguration {
     val templateConfiguration =
-      ComposePreviewRunConfigurationType().configurationFactories[0].createTemplateConfiguration(
-        project
-      )
+      ComposePreviewRunConfigurationType()
+        .configurationFactories[0]
+        .createTemplateConfiguration(project)
     // Create the configuration with the RunManager to make sure that BeforeRunTasks are loaded
     val runConfiguration =
       RunManager.getInstance(project)

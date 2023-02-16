@@ -66,7 +66,8 @@ class SpringPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
 
     val hasGenericType =
       when (element.text) {
-        DECLARATION_SPRING_SPEC, DECLARATION_SPRING -> true
+        DECLARATION_SPRING_SPEC,
+        DECLARATION_SPRING -> true
         DECLARATION_FLOAT_SPEC -> false
         else -> return null
       }
@@ -86,8 +87,8 @@ class SpringPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
     if (hasGenericType) {
       val uCallElement = callElement.toUElementOfType<UCallExpression>() ?: return null
       val resolvedType =
-        (uCallElement.getExpressionType() as? PsiClassType)?.parameters?.firstOrNull() as?
-          PsiClassType
+        (uCallElement.getExpressionType() as? PsiClassType)?.parameters?.firstOrNull()
+          as? PsiClassType
           ?: return null
       val qualifiedName =
         (resolvedType as? PsiClassReferenceType)?.reference?.qualifiedName ?: return null

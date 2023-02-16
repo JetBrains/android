@@ -274,10 +274,12 @@ class ComposePreviewRepresentationGradleTest {
         TwoElementsPreview
         NavigatablePreview
         OnlyATextNavigation
-      """.trimIndent(),
-      fakeUi.findAllComponents<SceneViewPeerPanel>().filter { it.isShowing }.joinToString("\n") {
-        it.displayName
-      }
+      """
+        .trimIndent(),
+      fakeUi
+        .findAllComponents<SceneViewPeerPanel>()
+        .filter { it.isShowing }
+        .joinToString("\n") { it.displayName }
     )
 
     val output = fakeUi.render()
@@ -322,10 +324,12 @@ class ComposePreviewRepresentationGradleTest {
         DefaultPreview
         TwoElementsPreview
         OnlyATextNavigation
-      """.trimIndent(),
-      fakeUi.findAllComponents<SceneViewPeerPanel>().filter { it.isShowing }.joinToString("\n") {
-        it.displayName
-      }
+      """
+        .trimIndent(),
+      fakeUi
+        .findAllComponents<SceneViewPeerPanel>()
+        .filter { it.isShowing }
+        .joinToString("\n") { it.displayName }
     )
   }
 
@@ -409,7 +413,8 @@ class ComposePreviewRepresentationGradleTest {
         NavigatablePreview
         OnlyATextNavigation
         TwoElementsPreview
-      """.trimIndent(),
+      """
+          .trimIndent(),
         fakeUi
           .findAllComponents<SceneViewPeerPanel>()
           .filter { it.isShowing }
@@ -453,7 +458,8 @@ class ComposePreviewRepresentationGradleTest {
         NavigatablePreview
         OnlyATextNavigation
         TwoElementsPreview
-      """.trimIndent(),
+      """
+          .trimIndent(),
         fakeUi
           .findAllComponents<SceneViewPeerPanel>()
           .filter { it.isShowing }
@@ -616,7 +622,8 @@ class ComposePreviewRepresentationGradleTest {
       """
         refreshCancelled (compilationCompleted=true)
         compilationSucceeded (compilationDurationMs=>0, compiledFiles=1, refreshTime=>0)
-      """.trimIndent(),
+      """
+        .trimIndent(),
       testTracker.logOutput()
     )
   }
@@ -629,8 +636,7 @@ class ComposePreviewRepresentationGradleTest {
       // Mark the file as invalid so the fast preview triggers a compilation when the problems
       // dissapear
       PsiCodeFileChangeDetectorService.getInstance(project).markFileAsOutOfDate(psiMainFile)
-      project
-        .messageBus
+      project.messageBus
         .syncPublisher(ProblemListener.TOPIC)
         .problemsDisappeared(psiMainFile.virtualFile)
     }

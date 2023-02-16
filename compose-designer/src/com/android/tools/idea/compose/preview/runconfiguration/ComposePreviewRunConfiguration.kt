@@ -40,6 +40,7 @@ private const val COMPOSABLE_FQN_ATR_NAME = "composable-fqn"
 
 /**
  * A run configuration to launch the Compose tooling PreviewActivity to a device/emulator passing a
+ *
  * @Composable via intent parameter.
  */
 open class ComposePreviewRunConfiguration(

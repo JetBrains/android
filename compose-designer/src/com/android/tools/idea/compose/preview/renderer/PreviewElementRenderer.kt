@@ -46,7 +46,9 @@ fun createRenderTaskFuture(
     ComposeAdapterLightVirtualFile(
       "singlePreviewElement.xml",
       previewElement.toPreviewXml().buildString()
-    ) { previewElement.previewElementDefinitionPsi?.virtualFile },
+    ) {
+      previewElement.previewElementDefinitionPsi?.virtualFile
+    },
     privateClassLoader,
     classesToPreload,
     previewElement::applyTo
@@ -70,7 +72,8 @@ fun renderPreviewElementForResult(
     CompletableFuture.supplyAsync({ renderTaskFuture.get() }, executor)
       .thenCompose { it?.render() ?: CompletableFuture.completedFuture(null as RenderResult?) }
       .thenApply {
-        if (it != null &&
+        if (
+          it != null &&
             it.renderResult.isSuccess &&
             it.logger.brokenClasses.isEmpty() &&
             !it.logger.hasErrors()

@@ -22,6 +22,7 @@ import com.android.tools.idea.compose.preview.animation.actions.ToolbarLabel
 
 /**
  * [AnimationState] to control comboBoxes for animations like updateTransition.
+ *
  * @param tracker usage tracker for animation tooling
  * @param callback when state has changed
  */

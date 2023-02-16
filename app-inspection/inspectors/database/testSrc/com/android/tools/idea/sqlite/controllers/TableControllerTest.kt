@@ -282,8 +282,7 @@ class TableControllerTest : LightPlatformTestCase() {
     orderVerifier
       .verify(tableView)
       .showTableColumns(
-        sqliteResultSet
-          ._columns
+        sqliteResultSet._columns
           .filter { it.name != sqliteTable.rowIdName?.stringName }
           .toViewColumns()
       )
@@ -1814,8 +1813,7 @@ class TableControllerTest : LightPlatformTestCase() {
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Act
-    tableView
-      .listeners
+    tableView.listeners
       .first()
       .updateCellInvoked(0, targetCol.toResultSetCol().toViewColumn(), newValue)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -1919,8 +1917,7 @@ class TableControllerTest : LightPlatformTestCase() {
       }!!
     tableProvider.table = updatedTargetTable
 
-    tableView
-      .listeners
+    tableView.listeners
       .first()
       .updateCellInvoked(0, targetCol.toResultSetCol().toViewColumn(), newValue)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -2300,8 +2297,7 @@ class TableControllerTest : LightPlatformTestCase() {
     )
     tableProvider.table = null
 
-    tableView
-      .listeners
+    tableView.listeners
       .first()
       .updateCellInvoked(
         0,
@@ -2517,8 +2513,7 @@ class TableControllerTest : LightPlatformTestCase() {
     val newValue = SqliteValue.StringValue("new value")
 
     // Act
-    tableView
-      .listeners
+    tableView.listeners
       .first()
       .updateCellInvoked(1, targetCol.toResultSetCol().toViewColumn(), newValue)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -2883,8 +2878,7 @@ class TableControllerTest : LightPlatformTestCase() {
     pumpEventsAndWaitForFuture(tableController.setUp())
 
     // Act
-    tableView
-      .listeners
+    tableView.listeners
       .first()
       .updateCellInvoked(0, targetCol.toResultSetCol().toViewColumn(), newValue)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()

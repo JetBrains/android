@@ -75,9 +75,9 @@ class InjectedFieldDaggerConceptTest {
       class CoffeeMaker() {
         @Inject lateinit var heater: Heater
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("hea|ter").parentOfType<KtProperty>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -101,9 +101,9 @@ class InjectedFieldDaggerConceptTest {
       class CoffeeMaker() {
         lateinit var heater: Heater
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("hea|ter").parentOfType<KtProperty>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -125,9 +125,9 @@ class InjectedFieldDaggerConceptTest {
       class CoffeeMaker() {
         @Inject lateinit var heater: Heater
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("hea|ter").parentOfType<KtProperty>()!!
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
@@ -159,7 +159,8 @@ class InjectedFieldDaggerConceptTest {
         @Inject lateinit var heater: Heater
         lateinit var notInjectedHeater: Heater
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val heaterPsiType =
@@ -227,7 +228,8 @@ class InjectedFieldDaggerConceptTest {
 
         public Heater notInjectedHeater;
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val heaterPsiType =

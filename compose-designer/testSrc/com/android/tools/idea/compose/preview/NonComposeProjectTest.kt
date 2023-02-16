@@ -39,7 +39,8 @@ class NonComposeProjectTest {
         """
         fun testMethod() {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val previewProvider = ComposePreviewRepresentationProvider {

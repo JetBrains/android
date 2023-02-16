@@ -66,7 +66,8 @@ class ParametrizedPreviewTest {
         The project must compile correctly for the test to pass.
 
         ${gradleInvocationResult.buildError}
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     }
 

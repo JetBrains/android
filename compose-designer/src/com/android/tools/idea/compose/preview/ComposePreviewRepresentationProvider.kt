@@ -67,7 +67,9 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
         ComposeViewControlAction(
             layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
             layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS
-          ) { !isAnyPreviewRefreshing(it.dataContext) }
+          ) {
+            !isAnyPreviewRefreshing(it.dataContext)
+          }
           .visibleOnlyInComposeStaticPreview(),
         StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
       )

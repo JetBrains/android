@@ -93,9 +93,7 @@ internal class ComposeNewPreviewNotificationManager(private val project: Project
   }
 
   init {
-    StartupManager.getInstance(project).runAfterOpened {
-      projectOpened(project)
-    }
+    StartupManager.getInstance(project).runAfterOpened { projectOpened(project) }
   }
 
   private fun projectOpened(project: Project) {

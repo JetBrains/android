@@ -97,140 +97,148 @@ class AppInsightsIssuesTableView<IssueT : Issue, StateT : AppInsightsState<Issue
     component = loadingPanel
 
     scope.launch {
-      controller.state.map { it.issues }.distinctUntilChanged().collect { issues ->
-        when (issues) {
-          is LoadingState.Loading -> {
-            loadingPanel.startLoading()
-            model.items = emptyList()
-          }
-          is LoadingState.Ready -> {
-            if (issues.value.value.items.isEmpty()) {
+      controller.state
+        .map { it.issues }
+        .distinctUntilChanged()
+        .collect { issues ->
+          when (issues) {
+            is LoadingState.Loading -> {
+              loadingPanel.startLoading()
+              model.items = emptyList()
+            }
+            is LoadingState.Ready -> {
+              if (issues.value.value.items.isEmpty()) {
+                table.tableEmptyText.apply {
+                  clear()
+                  appendText("No issues", EMPTY_STATE_TITLE_FORMAT)
+                  appendSecondaryText(
+                    "You don't have any issues yet. Keep up the good work!",
+                    EMPTY_STATE_TEXT_FORMAT,
+                    null
+                  )
+                }
+              }
+              if (model.items != issues.value.value.items) {
+                suppressListener(table) { model.items = issues.value.value.items }
+              }
+              if (table.selectedObject != issues.value.value.selected) {
+                LOGGER.info(
+                  "Changed selection from issue ${table.selectedObject?.issueDetails?.id} to ${issues.value.value.selected?.issueDetails?.id}"
+                )
+                // when selection changes it fires multiple events:
+                // 1. clear current selection fires selected item as null
+                // 2. new selection is set as requested
+                // This causes multiple round trips and updates the model to null, then to the
+                // actual
+                // value.
+                // To avoid this we suppress the change listener since as the model change was the
+                // source of this event,
+                // and we don't need to fire an issue change event.
+                suppressListener(table) {
+                  table.selection = listOfNotNull(issues.value.value.selected)
+                }
+                table.scrollRectToVisible(table.getCellRect(table.selectedRow, 0, true))
+              } else {
+                LOGGER.info("Issue not changed: ${table.selectedObject?.issueDetails?.id}.")
+              }
+              loadingPanel.stopLoading()
+            }
+            is LoadingState.NetworkFailure -> {
               table.tableEmptyText.apply {
                 clear()
-                appendText("No issues", EMPTY_STATE_TITLE_FORMAT)
-                appendSecondaryText(
-                  "You don't have any issues yet. Keep up the good work!",
-                  EMPTY_STATE_TEXT_FORMAT,
-                  null
-                )
-              }
-            }
-            if (model.items != issues.value.value.items) {
-              suppressListener(table) { model.items = issues.value.value.items }
-            }
-            if (table.selectedObject != issues.value.value.selected) {
-              LOGGER.info(
-                "Changed selection from issue ${table.selectedObject?.issueDetails?.id} to ${issues.value.value.selected?.issueDetails?.id}"
-              )
-              // when selection changes it fires multiple events:
-              // 1. clear current selection fires selected item as null
-              // 2. new selection is set as requested
-              // This causes multiple round trips and updates the model to null, then to the actual
-              // value.
-              // To avoid this we suppress the change listener since as the model change was the
-              // source of this event,
-              // and we don't need to fire an issue change event.
-              suppressListener(table) {
-                table.selection = listOfNotNull(issues.value.value.selected)
-              }
-              table.scrollRectToVisible(table.getCellRect(table.selectedRow, 0, true))
-            } else {
-              LOGGER.info("Issue not changed: ${table.selectedObject?.issueDetails?.id}.")
-            }
-            loadingPanel.stopLoading()
-          }
-          is LoadingState.NetworkFailure -> {
-            table.tableEmptyText.apply {
-              clear()
-              appendText("Request failed", EMPTY_STATE_TITLE_FORMAT)
-              appendLine("You can ", EMPTY_STATE_TEXT_FORMAT, null)
-              appendText(
-                "retry",
-                EMPTY_STATE_LINK_FORMAT,
-              ) { controller.refresh() }
-              appendText(
-                " the request",
-                EMPTY_STATE_TEXT_FORMAT,
-              )
-              if (StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get()) {
-                appendText(" or, if you currently don't", EMPTY_STATE_TEXT_FORMAT)
-                appendLine("have a network connection, enter ", EMPTY_STATE_TEXT_FORMAT, null)
+                appendText("Request failed", EMPTY_STATE_TITLE_FORMAT)
+                appendLine("You can ", EMPTY_STATE_TEXT_FORMAT, null)
                 appendText(
-                  "Offline Mode",
+                  "retry",
                   EMPTY_STATE_LINK_FORMAT,
-                ) { controller.enterOfflineMode() }
-              }
-              appendText(".", EMPTY_STATE_TEXT_FORMAT)
-            }
-            model.items = emptyList()
-            loadingPanel.stopLoading()
-          }
-          is LoadingState.Failure -> {
-            when (val cause = issues.cause) {
-              is NoTypesSelectedException -> {
-                table.tableEmptyText.apply {
-                  clear()
-                  appendText("No types selected", EMPTY_STATE_TITLE_FORMAT)
-                  appendSecondaryText(
-                    "No event types are selected. Enable a type above to see issues.",
-                    EMPTY_STATE_TEXT_FORMAT,
-                    null
-                  )
+                ) {
+                  controller.refresh()
                 }
-              }
-              is NoVersionsSelectedException -> {
-                table.tableEmptyText.apply {
-                  clear()
-                  appendText("No versions selected", EMPTY_STATE_TITLE_FORMAT)
-                  appendSecondaryText(
-                    "No versions are selected. Enable a version above to see issues.",
-                    EMPTY_STATE_TEXT_FORMAT,
-                    null
-                  )
-                }
-              }
-              is NoDevicesSelectedException -> {
-                table.tableEmptyText.apply {
-                  clear()
-                  appendText("No devices selected", EMPTY_STATE_TITLE_FORMAT)
-                  appendSecondaryText(
-                    "No devices are selected. Enable a device above to see issues.",
-                    EMPTY_STATE_TEXT_FORMAT,
-                    null
-                  )
-                }
-              }
-              is NoOperatingSystemsSelectedException -> {
-                table.tableEmptyText.apply {
-                  clear()
+                appendText(
+                  " the request",
+                  EMPTY_STATE_TEXT_FORMAT,
+                )
+                if (StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get()) {
+                  appendText(" or, if you currently don't", EMPTY_STATE_TEXT_FORMAT)
+                  appendLine("have a network connection, enter ", EMPTY_STATE_TEXT_FORMAT, null)
                   appendText(
-                    "No operating systems selected",
-                    SimpleTextAttributes.REGULAR_ATTRIBUTES
-                  )
-                  appendSecondaryText(
-                    "No operating systems are selected. Enable an operating system above to see issues.",
-                    SimpleTextAttributes(SimpleTextAttributes.STYLE_SMALLER, null),
-                    null
-                  )
+                    "Offline Mode",
+                    EMPTY_STATE_LINK_FORMAT,
+                  ) {
+                    controller.enterOfflineMode()
+                  }
                 }
+                appendText(".", EMPTY_STATE_TEXT_FORMAT)
               }
-              else -> {
-                if (!handleException(issues)) {
+              model.items = emptyList()
+              loadingPanel.stopLoading()
+            }
+            is LoadingState.Failure -> {
+              when (val cause = issues.cause) {
+                is NoTypesSelectedException -> {
                   table.tableEmptyText.apply {
                     clear()
-                    appendText(
-                      issues.message ?: "An unknown failure occurred",
-                      EMPTY_STATE_TITLE_FORMAT
+                    appendText("No types selected", EMPTY_STATE_TITLE_FORMAT)
+                    appendSecondaryText(
+                      "No event types are selected. Enable a type above to see issues.",
+                      EMPTY_STATE_TEXT_FORMAT,
+                      null
                     )
                   }
                 }
+                is NoVersionsSelectedException -> {
+                  table.tableEmptyText.apply {
+                    clear()
+                    appendText("No versions selected", EMPTY_STATE_TITLE_FORMAT)
+                    appendSecondaryText(
+                      "No versions are selected. Enable a version above to see issues.",
+                      EMPTY_STATE_TEXT_FORMAT,
+                      null
+                    )
+                  }
+                }
+                is NoDevicesSelectedException -> {
+                  table.tableEmptyText.apply {
+                    clear()
+                    appendText("No devices selected", EMPTY_STATE_TITLE_FORMAT)
+                    appendSecondaryText(
+                      "No devices are selected. Enable a device above to see issues.",
+                      EMPTY_STATE_TEXT_FORMAT,
+                      null
+                    )
+                  }
+                }
+                is NoOperatingSystemsSelectedException -> {
+                  table.tableEmptyText.apply {
+                    clear()
+                    appendText(
+                      "No operating systems selected",
+                      SimpleTextAttributes.REGULAR_ATTRIBUTES
+                    )
+                    appendSecondaryText(
+                      "No operating systems are selected. Enable an operating system above to see issues.",
+                      SimpleTextAttributes(SimpleTextAttributes.STYLE_SMALLER, null),
+                      null
+                    )
+                  }
+                }
+                else -> {
+                  if (!handleException(issues)) {
+                    table.tableEmptyText.apply {
+                      clear()
+                      appendText(
+                        issues.message ?: "An unknown failure occurred",
+                        EMPTY_STATE_TITLE_FORMAT
+                      )
+                    }
+                  }
+                }
               }
+              model.items = emptyList()
+              loadingPanel.stopLoading()
             }
-            model.items = emptyList()
-            loadingPanel.stopLoading()
           }
         }
-      }
       LOGGER.info("Collection terminated on table view.")
     }
   }

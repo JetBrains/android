@@ -88,7 +88,7 @@ typealias ComposeAnimationEventTracker =
  * [AnimationPreview] therefore allows a detailed inspection of Compose animations.
  *
  * @param psiFilePointer a pointer to a [PsiFile] for current Preview in which Animation Preview is
- * opened.
+ *   opened.
  */
 class AnimationPreview(
   val surface: DesignSurface<LayoutlibSceneManager>,
@@ -129,18 +129,19 @@ class AnimationPreview(
       val component = tabbedPane.selectedInfo?.component ?: return
       // If single supported animation tab is selected.
       // We assume here only supported animations could be opened.
-      animations.find { it is SupportedAnimationManager && it.tabComponent == component }?.let { tab
-        ->
-        if (tab !is SupportedAnimationManager) return@let
-        if (newSelection == oldSelection) return
-        // Swing components cannot be placed into different containers, so we add the shared
-        // timeline to the active tab on tab change.
-        tab.addTimeline()
-        selectedAnimation = tab
-        tab.loadProperties()
-        createTimelineElements(listOf(tab))
-        return@selectionChanged
-      }
+      animations
+        .find { it is SupportedAnimationManager && it.tabComponent == component }
+        ?.let { tab ->
+          if (tab !is SupportedAnimationManager) return@let
+          if (newSelection == oldSelection) return
+          // Swing components cannot be placed into different containers, so we add the shared
+          // timeline to the active tab on tab change.
+          tab.addTimeline()
+          selectedAnimation = tab
+          tab.loadProperties()
+          createTimelineElements(listOf(tab))
+          return@selectionChanged
+        }
       // If coordination tab is selected.
       if (component is AllTabPanel) {
         coordinationTab.addTimeline(timeline)
@@ -278,6 +279,7 @@ class AnimationPreview(
 
   /**
    * Set clock time
+   *
    * @param newValue new clock time in milliseconds.
    * @param longTimeout set true to use a long timeout.
    * @param makeCopy set true to create a copy of the animation list while loading properties.
@@ -285,7 +287,8 @@ class AnimationPreview(
   private fun setClockTime(newValue: Int, longTimeout: Boolean = false, makeCopy: Boolean = false) {
     animationClock?.apply {
       val clockTimeMs = newValue.toLong()
-      if (!executeOnRenderThread(longTimeout) {
+      if (
+        !executeOnRenderThread(longTimeout) {
           if (coordinationIsSupported())
             setClockTimes(
               animationsMap.mapValues {
@@ -323,9 +326,11 @@ class AnimationPreview(
 
   private fun updateTimelineMaximum() {
     val timelineMax =
-      animations.mapNotNull { it.timelineMaximumMs }.maxOrNull()?.toLong()?.let {
-        max(it, maxDurationPerIteration)
-      }
+      animations
+        .mapNotNull { it.timelineMaximumMs }
+        .maxOrNull()
+        ?.toLong()
+        ?.let { max(it, maxDurationPerIteration) }
         ?: maxDurationPerIteration
     clockControl.updateMaxDuration(max(timelineMax, MINIMUM_TIMELINE_DURATION_MS))
     updateTimelineElements()
@@ -341,7 +346,8 @@ class AnimationPreview(
   private fun updateMaxDuration(longTimeout: Boolean = false) {
     val clock = animationClock ?: return
 
-    if (!executeOnRenderThread(longTimeout) {
+    if (
+      !executeOnRenderThread(longTimeout) {
         maxDurationPerIteration = clock.getMaxDurationMsPerIteration()
       }
     )
@@ -471,10 +477,14 @@ class AnimationPreview(
   fun ComposeAnimation.getCurrentState(): Any? {
     return when (type) {
       ComposeAnimationType.TRANSITION_ANIMATION ->
-        animationObject::class.java.methods.singleOrNull { it.name == "getCurrentState" }?.let {
-          it.isAccessible = true
-          it.invoke(animationObject)
-        }
+        animationObject::class
+          .java
+          .methods
+          .singleOrNull { it.name == "getCurrentState" }
+          ?.let {
+            it.isAccessible = true
+            it.invoke(animationObject)
+          }
           ?: states.firstOrNull()
       else -> states.firstOrNull()
     }
@@ -669,7 +679,8 @@ class AnimationPreview(
         val startState = stateComboBox.getState(0)
         val toState = stateComboBox.getState(1)
 
-        if (!executeOnRenderThread(longTimeout) {
+        if (
+          !executeOnRenderThread(longTimeout) {
             startState ?: return@executeOnRenderThread
             toState ?: return@executeOnRenderThread
             updateFromAndToStates(animation, startState, toState)
@@ -686,7 +697,8 @@ class AnimationPreview(
      */
     fun updateAnimatedVisibility(longTimeout: Boolean = false) {
       animationClock?.apply {
-        if (!executeOnRenderThread(longTimeout) {
+        if (
+          !executeOnRenderThread(longTimeout) {
             val state = stateComboBox.getState(0) ?: return@executeOnRenderThread
             updateAnimatedVisibilityState(animation, state)
           }
@@ -723,17 +735,16 @@ class AnimationPreview(
 
       fun getTransitions() {
         val composeTransitions =
-          clock.getTransitionsFunction?.invoke(clock.clock, animation, clockTimeMsStep) as
-            List<TransitionInfo>
+          clock.getTransitionsFunction?.invoke(clock.clock, animation, clockTimeMsStep)
+            as List<TransitionInfo>
         for ((index, composeTransition) in composeTransitions.withIndex()) {
           val builder =
             AnimatedProperty.Builder()
               .setStartTimeMs(composeTransition.startTimeMillis.toInt())
               .setEndTimeMs(composeTransition.endTimeMillis.toInt())
-          composeTransition.values.mapValues { ComposeUnit.parseNumberUnit(it.value) }.forEach {
-            (ms, unit) ->
-            unit?.let { builder.add(ms.toInt(), unit) }
-          }
+          composeTransition.values
+            .mapValues { ComposeUnit.parseNumberUnit(it.value) }
+            .forEach { (ms, unit) -> unit?.let { builder.add(ms.toInt(), unit) } }
           builders[index] = builder
         }
       }
@@ -756,9 +767,11 @@ class AnimationPreview(
         LOG.warn("Failed to load the Compose Animation properties", e)
       }
 
-      builders.mapValues { it.value.build() }.let {
-        return Transition(it)
-      }
+      builders
+        .mapValues { it.value.build() }
+        .let {
+          return Transition(it)
+        }
     }
 
     override fun loadProperties() {

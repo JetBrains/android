@@ -154,7 +154,7 @@ class ExportToFileDialogViewImpl(val project: Project, val params: ExportDialogP
   private fun setUpSaveLocationValidation(locationTextField: JTextField) {
     /**
      * @return a [ValidationInfo] object describing the issue with the path in [locationTextField]
-     * if an issue exists. `null` otherwise.
+     *   if an issue exists. `null` otherwise.
      */
     fun getValidationError(): ValidationInfo? {
       val path = parseSaveLocationTextFieldPath()
@@ -328,7 +328,8 @@ class ExportToFileDialogViewImpl(val project: Project, val params: ExportDialogP
     val format = selectedFormat()
 
     // validate params
-    if (dstPath == null ||
+    if (
+      dstPath == null ||
         !IOUtils.isValidDestinationFilePath(dstPath) ||
         IOUtils.endsWithSeparatorChar(saveLocationTextField.text) ||
         !showConfirmOverwriteDialog(project, dstPath)

@@ -147,10 +147,8 @@ constructor(
   private val model: DatabaseInspectorModel = DatabaseInspectorModelImpl(),
   private val createController:
     (
-      DatabaseInspectorModel,
-      DatabaseRepository,
-      FileDatabaseManager,
-      OfflineModeManager) -> DatabaseInspectorController =
+      DatabaseInspectorModel, DatabaseRepository, FileDatabaseManager, OfflineModeManager
+    ) -> DatabaseInspectorController =
     { myModel, myRepository, myFileDatabaseManager, myOfflineModeManager ->
       DatabaseInspectorControllerImpl(
           project,
@@ -188,8 +186,7 @@ constructor(
     DatabaseInspectorAnalyticsTracker.getInstance(project)
 
   private val controller: DatabaseInspectorController by
-    lazy @UiThread
-    {
+    lazy @UiThread {
       ApplicationManager.getApplication().assertIsDispatchThread()
       createController(model, databaseRepository, fileDatabaseManager, offlineModeManager)
     }

@@ -28,7 +28,8 @@ class LocalHTMLTest : TestCase() {
       <img src="/folder/image2.png" />
       </body>
       </html>
-    """.trimIndent()
+    """
+      .trimIndent()
 
   fun testFindLocalImage() {
     val localImage = UIUtils.findLocalImage(html)
@@ -48,7 +49,8 @@ class LocalHTMLTest : TestCase() {
       <img src="file:/test/folder/image2.png" />
       </body>
       </html>
-    """.trimIndent(),
+    """
+        .trimIndent(),
       processed
     )
   }

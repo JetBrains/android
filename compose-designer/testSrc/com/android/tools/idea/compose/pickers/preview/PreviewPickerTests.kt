@@ -119,7 +119,8 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
       @Preview(nameFromConst)
       fun PreviewWithNameFromConst() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     val file = fixture.configureByText("Test.kt", fileContent)
     val previews =
@@ -175,7 +176,8 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
       @Preview(name = "Test")
       fun PreviewNoParameters() {
       }
-      """.trimIndent()
+      """
+        .trimIndent()
 
     assertUpdatingModelUpdatesPsiCorrectly(annotationWithParameters)
 
@@ -189,7 +191,8 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
       @Preview
       fun PreviewNoParameters() {
       }
-      """.trimIndent()
+      """
+        .trimIndent()
 
     assertUpdatingModelUpdatesPsiCorrectly(emptyAnnotation)
   }
@@ -207,7 +210,8 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
       @Preview(name = "Test", fontScale = 1.2f, backgroundColor = 4294901760)
       fun PreviewWithParemeters() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     val model = getFirstModel(fileContent)
     assertNotNull(model.properties["", "backgroundColor"].colorButton)
@@ -234,7 +238,8 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
       @Preview(name = "Test")
       fun PreviewNoParameters() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
 
     Sdks.addLatestAndroidSdk(fixture.projectDisposable, module)
     val model = getFirstModel(fileContent)
@@ -278,7 +283,8 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
       @Preview
       fun PreviewNoParameters() {
       }
-      """.trimIndent()
+      """
+        .trimIndent()
 
     val model = getFirstModel(fileContent)
     val preview =
@@ -319,7 +325,8 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
       @Preview
       fun PreviewNoParameters() {
       }
-      """.trimIndent()
+      """
+        .trimIndent()
 
     val model = getFirstModel(fileContent)
     val preview =
@@ -359,7 +366,8 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
       @Preview(fontScale = 1.0f, name = "MyPreview", apiLevel = 1)
       fun PreviewWithParameters() {
       }
-      """.trimIndent()
+      """
+        .trimIndent()
 
     val model = getFirstModel(fileContent)
 
@@ -448,8 +456,8 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
 
     val deviceProperty =
       model.properties[
-        "",
-        "Device"] // Which parameter doesn't matter in this context, but best to test with Device
+          "",
+          "Device"] // Which parameter doesn't matter in this context, but best to test with Device
     val deviceOptions =
       DeviceEnumValueBuilder()
         .addGenericById(
@@ -727,7 +735,8 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
       @Preview(name = "Test")
       fun PreviewNoParameters() {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     val testTracker = TestTracker()
     val model = runBlocking { getFirstModel(fileContent, testTracker) }
     return Pair(testTracker, model)

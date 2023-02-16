@@ -144,6 +144,7 @@ val PREVIEW_NOTIFICATION_GROUP_ID = "Compose Preview Notification"
 
 /**
  * [NlModel] associated preview data
+ *
  * @param project the [Project] used by the current view.
  * @param composePreviewManager [ComposePreviewManager] of the Preview.
  * @param previewElement the [ComposePreviewElement] associated to this model
@@ -182,8 +183,9 @@ fun LayoutlibSceneManager.changeRequiresReinflate(
  * Sets up the given [sceneManager] with the right values to work on the Compose Preview. Currently,
  * this will configure if the preview elements will be displayed with "full device size" or simply
  * containing the previewed components (shrink mode).
+ *
  * @param showDecorations when true, the rendered content will be shown with the full device size
- * specified in the device configuration and with the frame decorations.
+ *   specified in the device configuration and with the frame decorations.
  * @param isInteractive whether the scene displays an interactive preview.
  */
 @VisibleForTesting
@@ -314,8 +316,7 @@ class ComposePreviewRepresentation(
 
   init {
     val project = psiFile.project
-    project
-      .messageBus
+    project.messageBus
       .connect(this)
       .subscribe(
         PowerSaveMode.TOPIC,
@@ -410,7 +411,8 @@ class ComposePreviewRepresentation(
     val startUpStart = System.currentTimeMillis()
     forceRefresh(quickRefresh)?.invokeOnCompletion {
       surface.sceneManagers.forEach { it.resetInteractiveEventsCounter() }
-      if (!isFromAnimationInspection
+      if (
+        !isFromAnimationInspection
       ) { // Currently it will re-create classloader and will be slower that switch from static
         InteractivePreviewUsageTracker.getInstance(surface)
           .logStartupTime((System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
@@ -470,7 +472,8 @@ class ComposePreviewRepresentation(
 
   override var animationInspectionPreviewElementInstance: ComposePreviewElementInstance?
     set(value) {
-      if ((!animationInspection.get() && value != null) ||
+      if (
+        (!animationInspection.get() && value != null) ||
           (animationInspection.get() && value == null)
       ) {
         if (value != null) {
@@ -861,14 +864,14 @@ class ComposePreviewRepresentation(
               LOG,
               this@ComposePreviewRepresentation
             ) {
-              project
-                .messageBus
+              project.messageBus
                 .connect(disposable)
                 .subscribe(
                   ProblemListener.TOPIC,
                   object : ProblemListener {
                     override fun problemsDisappeared(file: VirtualFile) {
-                      if (file != psiFilePointer.virtualFile ||
+                      if (
+                        file != psiFilePointer.virtualFile ||
                           !FastPreviewManager.getInstance(project).isEnabled
                       )
                         return
@@ -889,7 +892,8 @@ class ComposePreviewRepresentation(
               return@collect
             }
 
-            if (!PreviewPowerSaveManager.isInPowerSaveMode &&
+            if (
+              !PreviewPowerSaveManager.isInPowerSaveMode &&
                 interactiveMode.isStoppingOrDisabled() &&
                 !animationInspection.get()
             )
@@ -918,7 +922,8 @@ class ComposePreviewRepresentation(
       resumeInteractivePreview()
     }
 
-    if (FastPreviewManager.getInstance(project).isEnabled &&
+    if (
+      FastPreviewManager.getInstance(project).isEnabled &&
         psiCodeFileChangeDetectorService.outOfDateFiles.any { it is KtFile }
     ) {
       launch { requestFastPreviewRefreshAndTrack() }
@@ -1249,8 +1254,7 @@ class ComposePreviewRepresentation(
   override fun getState(): PreviewRepresentationState {
     val selectedGroupName = previewElementProvider.groupNameFilter.name ?: ""
     val selectedLayoutName =
-      PREVIEW_LAYOUT_MANAGER_OPTIONS
-        .find {
+      PREVIEW_LAYOUT_MANAGER_OPTIONS.find {
           (surface.sceneViewLayoutManager as LayoutManagerSwitcher).isLayoutManagerSelected(
             it.layoutManager
           )
@@ -1268,9 +1272,12 @@ class ComposePreviewRepresentation(
         availableGroups.find { it.name == selectedGroupName }?.let { groupFilter = it }
       }
 
-      PREVIEW_LAYOUT_MANAGER_OPTIONS.find { it.displayName == previewLayoutName }?.let {
-        (surface.sceneViewLayoutManager as LayoutManagerSwitcher).setLayoutManager(it.layoutManager)
-      }
+      PREVIEW_LAYOUT_MANAGER_OPTIONS.find { it.displayName == previewLayoutName }
+        ?.let {
+          (surface.sceneViewLayoutManager as LayoutManagerSwitcher).setLayoutManager(
+            it.layoutManager
+          )
+        }
     }
   }
 
@@ -1316,8 +1323,7 @@ class ComposePreviewRepresentation(
           IllegalStateException("Preview File does not have a valid module")
         )
     val outOfDateFiles =
-      psiCodeFileChangeDetectorService
-        .outOfDateFiles
+      psiCodeFileChangeDetectorService.outOfDateFiles
         .filterIsInstance<KtFile>()
         .filter { modifiedFile ->
           if (modifiedFile.isEquivalentTo(previewFile)) return@filter true

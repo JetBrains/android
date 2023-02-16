@@ -174,7 +174,8 @@ class NetworkInspectorView(
       var selectedComponent: Component? = null
       connectionsTab.addChangeListener {
         when (connectionsTab.selectedComponent) {
-          connectionScrollPane, threadsViewScrollPane ->
+          connectionScrollPane,
+          threadsViewScrollPane ->
             // Switching tabs between connection view and threads view does not open or close
             // details panel.
             if (selectedComponent == rulesView.component) {
@@ -183,7 +184,8 @@ class NetworkInspectorView(
                 else NetworkInspectorModel.DetailContent.CONNECTION
             }
           rulesView.component ->
-            if (selectedComponent == connectionScrollPane ||
+            if (
+              selectedComponent == connectionScrollPane ||
                 selectedComponent == threadsViewScrollPane
             ) {
               model.detailContent =
@@ -235,7 +237,8 @@ class NetworkInspectorView(
           val cardLayout = connectionsPanel.layout as CardLayout
           if (data.isEmpty()) {
             val detailedNetworkUsage = model.networkUsage
-            if (hasTrafficUsage(detailedNetworkUsage.rxSeries, model.timeline.selectionRange) ||
+            if (
+              hasTrafficUsage(detailedNetworkUsage.rxSeries, model.timeline.selectionRange) ||
                 hasTrafficUsage(detailedNetworkUsage.txSeries, model.timeline.selectionRange)
             ) {
               cardLayout.show(connectionsPanel, CARD_INFO)

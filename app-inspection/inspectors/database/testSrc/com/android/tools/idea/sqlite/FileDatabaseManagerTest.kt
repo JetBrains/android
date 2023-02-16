@@ -52,14 +52,14 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
     processDescriptor = StubProcessDescriptor()
 
     liveDatabaseId =
-      SqliteDatabaseId.fromLiveDatabase("/data/user/0/com.example.package/databases/db-file", 0) as
-        SqliteDatabaseId.LiveSqliteDatabaseId
+      SqliteDatabaseId.fromLiveDatabase("/data/user/0/com.example.package/databases/db-file", 0)
+        as SqliteDatabaseId.LiveSqliteDatabaseId
 
     val virtualFile = mock<VirtualFile>()
     whenever(virtualFile.path).thenReturn("/data/data/com.example.package/databases/db-file")
     fileDatabaseId =
-      SqliteDatabaseId.fromFileDatabase(DatabaseFileData(virtualFile)) as
-        SqliteDatabaseId.FileSqliteDatabaseId
+      SqliteDatabaseId.fromFileDatabase(DatabaseFileData(virtualFile))
+        as SqliteDatabaseId.FileSqliteDatabaseId
 
     deviceFileDownloaderService = mock()
 

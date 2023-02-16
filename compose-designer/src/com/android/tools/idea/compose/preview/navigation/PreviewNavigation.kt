@@ -101,9 +101,8 @@ fun findComponentHits(
     // Sort by the hit depth. Elements lower in the hierarchy, are at the top. If they are the same
     // level, order by line number
     .sortedWith(
-      compareByDescending<Pair<Int, ComposeViewInfo>> { it.first }.thenByDescending {
-        it.second.sourceLocation.lineNumber
-      }
+      compareByDescending<Pair<Int, ComposeViewInfo>> { it.first }
+        .thenByDescending { it.second.sourceLocation.lineNumber }
     )
     .map { it.second.sourceLocation }
 }
@@ -124,9 +123,9 @@ fun findNavigatableComponentHit(
 
   if (LOG.isDebugEnabled) {
     LOG.debug("${hits.size} hits found in")
-    hits.filter { it.toNavigatable(module) != null }.forEach {
-      LOG.debug("  Navigatable hit: ${it}")
-    }
+    hits
+      .filter { it.toNavigatable(module) != null }
+      .forEach { LOG.debug("  Navigatable hit: ${it}") }
   }
 
   return hits.mapNotNull { runReadAction { it.toNavigatable(module) } }.firstOrNull()

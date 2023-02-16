@@ -147,8 +147,10 @@ private constructor(
         libraryDefaultValues.mapValues { entry ->
           when (entry.key) {
             PARAMETER_API_LEVEL -> entry.value?.apiToReadable() ?: defaultApiLevel
-            PARAMETER_WIDTH, PARAMETER_WIDTH_DP, PARAMETER_HEIGHT, PARAMETER_HEIGHT_DP ->
-              entry.value?.sizeToReadable()
+            PARAMETER_WIDTH,
+            PARAMETER_WIDTH_DP,
+            PARAMETER_HEIGHT,
+            PARAMETER_HEIGHT_DP -> entry.value?.sizeToReadable()
             PARAMETER_BACKGROUND_COLOR ->
               null // We ignore background color, as the default value is set by Studio
             PARAMETER_UI_MODE ->
@@ -192,8 +194,7 @@ private class PreviewPropertiesProvider(private val defaultValues: Map<String, S
   ): Collection<PsiPropertyItem> {
     val properties = mutableListOf<PsiPropertyItem>()
     ReadAction.run<Throwable> {
-      resolvedCall
-        .valueArguments
+      resolvedCall.valueArguments
         .toList()
         .sortedBy { (descriptor, _) -> descriptor.index }
         .forEach { (descriptor, resolved) ->
@@ -221,7 +222,10 @@ private class PreviewPropertiesProvider(private val defaultValues: Map<String, S
                 argumentExpression,
                 defaultValue
               )
-            PARAMETER_WIDTH, PARAMETER_WIDTH_DP, PARAMETER_HEIGHT, PARAMETER_HEIGHT_DP ->
+            PARAMETER_WIDTH,
+            PARAMETER_WIDTH_DP,
+            PARAMETER_HEIGHT,
+            PARAMETER_HEIGHT_DP ->
               PsiCallParameterPropertyItem(
                 project,
                 model,
@@ -254,7 +258,8 @@ private class PreviewPropertiesProvider(private val defaultValues: Map<String, S
                 )
                 .also { properties.addAll(it.innerProperties) }
             }
-            PARAMETER_UI_MODE, PARAMETER_WALLPAPER ->
+            PARAMETER_UI_MODE,
+            PARAMETER_WALLPAPER ->
               ClassPsiCallParameter(
                 project,
                 model,
@@ -263,7 +268,8 @@ private class PreviewPropertiesProvider(private val defaultValues: Map<String, S
                 argumentExpression,
                 defaultValue
               )
-            PARAMETER_SHOW_SYSTEM_UI, PARAMETER_SHOW_BACKGROUND ->
+            PARAMETER_SHOW_SYSTEM_UI,
+            PARAMETER_SHOW_BACKGROUND ->
               BooleanPsiCallParameter(
                 project,
                 model,

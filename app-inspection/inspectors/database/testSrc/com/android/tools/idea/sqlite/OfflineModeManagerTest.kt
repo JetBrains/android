@@ -49,8 +49,8 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
   private val liveDb2 =
     SqliteDatabaseId.fromLiveDatabase("db2", 2) as SqliteDatabaseId.LiveSqliteDatabaseId
   private val inMemoryDb =
-    SqliteDatabaseId.fromLiveDatabase(":memory: { 123 }", 3) as
-      SqliteDatabaseId.LiveSqliteDatabaseId
+    SqliteDatabaseId.fromLiveDatabase(":memory: { 123 }", 3)
+      as SqliteDatabaseId.LiveSqliteDatabaseId
 
   private lateinit var trackerService: FakeDatabaseInspectorAnalyticsTracker
 
@@ -83,7 +83,8 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
         listOf(liveDb1, liveDb2, inMemoryDb),
         processDescriptor,
         null
-      ) { _, _ -> }
+      ) { _, _ ->
+      }
     val results = runDispatching { flow.toList(mutableListOf()) }
 
     // Assert
@@ -201,7 +202,9 @@ class OfflineModeManagerTest : LightPlatformTestCase() {
         listOf(liveDb1, liveDb2, inMemoryDb),
         processDescriptor,
         null
-      ) { s, _ -> errorMessage = s }
+      ) { s, _ ->
+        errorMessage = s
+      }
     val results = runDispatching { flow.toList(mutableListOf()) }
 
     // Assert

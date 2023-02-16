@@ -244,8 +244,8 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
     ReadAction.compute<String?, Throwable> {
       if (element?.isValid != true) return@compute null
       val docProvider =
-        DocumentationManager.getProviderFromElement(element, originalElement) as?
-          CompositeDocumentationProvider
+        DocumentationManager.getProviderFromElement(element, originalElement)
+          as? CompositeDocumentationProvider
           ?: return@compute null
       val providers =
         docProvider.allProviders.asSequence().filter { it !is ComposeDocumentationProvider }

@@ -62,7 +62,8 @@ class LiveDatabaseConnection(
       when (sqliteStatement.statementType) {
         SqliteStatementType.SELECT ->
           PagedLiveSqliteResultSet(sqliteStatement, messenger, id, taskExecutor)
-        SqliteStatementType.EXPLAIN, SqliteStatementType.PRAGMA_QUERY ->
+        SqliteStatementType.EXPLAIN,
+        SqliteStatementType.PRAGMA_QUERY ->
           LazyLiveSqliteResultSet(sqliteStatement, messenger, id, taskExecutor)
         else ->
           throw IllegalArgumentException(
