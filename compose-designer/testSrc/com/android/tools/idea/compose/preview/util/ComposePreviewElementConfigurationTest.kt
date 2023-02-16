@@ -109,7 +109,7 @@ private val deviceProvider: (Configuration) -> Collection<Device> = {
 }
 
 /** Tests checking [ComposePreviewElement] being applied to a [Configuration]. */
-class ComposePreviewElementConfigurationTest() {
+class ComposePreviewElementConfigurationTest {
   @get:Rule
   val projectRule =
     ComposeProjectRule(
@@ -118,21 +118,6 @@ class ComposePreviewElementConfigurationTest() {
     )
   private val fixture
     get() = projectRule.fixture
-
-  private fun assertDeviceMatches(expectedDevice: Device?, deviceSpec: String) {
-    val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
-    Configuration.create(configManager, null, FolderConfiguration.createDefault()).also {
-      val previewConfiguration =
-        PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, deviceSpec)
-      previewConfiguration.applyConfigurationForTest(
-        it,
-        highestApiTarget = { null },
-        devicesProvider = deviceProvider,
-        defaultDeviceProvider = { defaultDevice }
-      )
-      assertEquals(expectedDevice, it.device)
-    }
-  }
 
   @Test
   fun `set device by id and name successfully`() {
@@ -251,6 +236,18 @@ class ComposePreviewElementConfigurationTest() {
       }
   }
 
+  @Test
+  fun testWallpaperConfiguration() {
+    assertWallpaperUpdate(null, null)
+    assertWallpaperUpdate(null, -25)
+    assertWallpaperUpdate(null, 167)
+    assertWallpaperUpdate(null, -1)
+    assertWallpaperUpdate(Wallpaper.RED.resourcePath, 0)
+    assertWallpaperUpdate(Wallpaper.GREEN.resourcePath, 1)
+    assertWallpaperUpdate(Wallpaper.BLUE.resourcePath, 2)
+    assertWallpaperUpdate(Wallpaper.YELLOW.resourcePath, 3)
+  }
+
   private fun assertWallpaperUpdate(expectedWallpaperPath: String?, wallpaperParameterValue: Int?) {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
     Configuration.create(configManager, null, FolderConfiguration.createDefault()).also {
@@ -276,15 +273,18 @@ class ComposePreviewElementConfigurationTest() {
     }
   }
 
-  @Test
-  fun testWallpaperConfiguration() {
-    assertWallpaperUpdate(null, null)
-    assertWallpaperUpdate(null, -25)
-    assertWallpaperUpdate(null, 167)
-    assertWallpaperUpdate(null, -1)
-    assertWallpaperUpdate(Wallpaper.RED.resourcePath, 0)
-    assertWallpaperUpdate(Wallpaper.GREEN.resourcePath, 1)
-    assertWallpaperUpdate(Wallpaper.BLUE.resourcePath, 2)
-    assertWallpaperUpdate(Wallpaper.YELLOW.resourcePath, 3)
+  private fun assertDeviceMatches(expectedDevice: Device?, deviceSpec: String) {
+    val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
+    Configuration.create(configManager, null, FolderConfiguration.createDefault()).also {
+      val previewConfiguration =
+        PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, deviceSpec)
+      previewConfiguration.applyConfigurationForTest(
+        it,
+        highestApiTarget = { null },
+        devicesProvider = deviceProvider,
+        defaultDeviceProvider = { defaultDevice }
+      )
+      assertEquals(expectedDevice, it.device)
+    }
   }
 }
