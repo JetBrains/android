@@ -53,7 +53,7 @@ import kotlin.system.measureTimeMillis
 abstract class AbstractGradleSyncMemoryUsageTestCase : IdeaTestSuiteBase() {
 
   abstract val projectName: String
-  abstract val memoryLimitMb: Int
+  abstract val memoryLimitMb: Int?
 
   @get:Rule
   val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
@@ -143,7 +143,7 @@ abstract class AbstractGradleSyncMemoryUsageTestCase : IdeaTestSuiteBase() {
 
   private fun setJvmArgs() {
     GradleProperties(TEST_DATA.resolve(DIRECTORY).resolve(SdkConstants.FN_GRADLE_PROPERTIES).toFile()).apply {
-      setJvmArgs(jvmArgs.orEmpty().replace("-Xmx60g", "-Xmx${memoryLimitMb}m"))
+      setJvmArgs(jvmArgs.orEmpty().replace("-Xmx60g", if (memoryLimitMb == null) "" else "-Xmx${memoryLimitMb}m"))
       setJvmArgs("$jvmArgs -agentpath:${File(memoryAgentPath).absolutePath}")
       save()
     }
