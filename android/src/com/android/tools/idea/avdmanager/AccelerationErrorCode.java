@@ -31,7 +31,9 @@ import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.Soluti
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.UPDATE_PLATFORM_TOOLS;
 import static com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode.UPDATE_SYSTEM_IMAGES;
 
+import com.android.SdkConstants;
 import com.android.annotations.NonNull;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.SystemInfo;
 
 /**
@@ -140,7 +142,9 @@ public enum AccelerationErrorCode {
                       (SystemInfo.isWindows && CpuVendor.isAMD() ? DEV_OBSOLETE_WIN_AMD :
                        DEV_OBSOLETE_WIN_INTEL);
       case 15: return HYPER_V_ENABLED;
-      default: return UNKNOWN_ERROR;
+      default:
+        Logger.getInstance(AccelerationErrorCode.class).warn(SdkConstants.FN_EMULATOR_CHECK + " terminated with code " + code);
+        return UNKNOWN_ERROR;
     }
   }
 }

@@ -79,8 +79,8 @@ import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilderF
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.streaming.EmulatorSettings;
 import com.android.tools.idea.sdk.IdeAvdManagers;
+import com.android.tools.idea.streaming.EmulatorSettings;
 import com.android.utils.ILogger;
 import com.android.utils.PathUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -275,11 +275,11 @@ public class AvdManagerConnection {
   private boolean initIfNecessary() {
     if (myAvdManager == null) {
       if (mySdkHandler == null) {
-        IJ_LOG.warn("No Android SDK Found");
+        IJ_LOG.warn("No Android SDK found");
         return false;
       }
       if (myAvdHomeFolder == null) {
-        IJ_LOG.warn("No AVD Home Folder");
+        IJ_LOG.warn("No AVD home folder");
         return false;
       }
       try {
@@ -889,12 +889,13 @@ public class AvdManagerConnection {
       CapturingAnsiEscapesAwareProcessHandler process = new CapturingAnsiEscapesAwareProcessHandler(commandLine);
       ProcessOutput output = process.runProcess();
       exitValue = output.getExitCode();
+      if (exitValue != 0) {
+        return AccelerationErrorCode.fromExitCode(exitValue);
+      }
     }
     catch (ExecutionException e) {
-      exitValue = AccelerationErrorCode.UNKNOWN_ERROR.getErrorCode();
-    }
-    if (exitValue != 0) {
-      return AccelerationErrorCode.fromExitCode(exitValue);
+      IJ_LOG.warn(e);
+      return AccelerationErrorCode.UNKNOWN_ERROR;
     }
     if (!hasPlatformToolsForQEMU2Installed()) {
       return AccelerationErrorCode.PLATFORM_TOOLS_UPDATE_ADVISED;
