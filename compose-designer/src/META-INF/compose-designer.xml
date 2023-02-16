@@ -134,6 +134,14 @@
                      key="inspection.transition.properties.no.label.parameter.set.name"
                      level="WARNING"/>
 
+    <localInspection implementationClass="com.android.tools.idea.compose.preview.animation.InfinitePropertiesLabelInspection"
+                     language="kotlin"
+                     enabledByDefault="true"
+                     bundle="com.android.tools.idea.compose.preview.ComposePreviewBundle"
+                     groupKey="inspection.group.name"
+                     key="inspection.infinite.transition.properties.no.label.parameter.set.name"
+                     level="WARNING"/>
+
     <localInspection implementationClass="com.android.tools.idea.compose.annotator.PreviewPickerAnnotationInspection"
                      language="kotlin"
                      enabledByDefault="true"

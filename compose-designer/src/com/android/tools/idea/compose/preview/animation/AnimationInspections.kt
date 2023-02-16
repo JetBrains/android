@@ -28,6 +28,7 @@ import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtVisitorVoid
@@ -48,7 +49,10 @@ private const val REMEMBER_INFINITE_TRANSITION_FQN =
   "$COMPOSE_ANIMATION_PACKAGE_PREFIX.core.rememberInfiniteTransition"
 private const val CROSSFADE_FQN = "$COMPOSE_ANIMATION_PACKAGE_PREFIX.Crossfade"
 private const val TRANSITION_FQN = "$COMPOSE_ANIMATION_PACKAGE_PREFIX.core.Transition"
+private const val INFINITE_TRANSITION_FQN =
+  "$COMPOSE_ANIMATION_PACKAGE_PREFIX.core.InfiniteTransition"
 private const val ANIMATE_PREFIX = "animate" // e.g. animateColor, animateFloat, animateValue
+private val ANIMATE_INFINITE = listOf("animateFloat", "animateColor", "animateValue")
 
 /**
  * Inspection to verify that the `label` parameter is set for `updateTransition` calls that create
@@ -168,13 +172,58 @@ abstract class FunctionLabelInspection : AbstractKotlinInspection() {
     }
 }
 
+class InfinitePropertiesLabelInspection : ExtensionLabelInspection() {
+
+  override val fqNameCheck: (String) -> Boolean = { it == INFINITE_TRANSITION_FQN }
+
+  override val animationType: String
+    get() = message("inspection.animation.type.infinite.transition.property")
+
+  override val shortFqNameCheck: (FqName) -> Boolean
+    get() = { it ->
+      // Now, check that we're visiting a method named animate* (e.g. animateFloat,
+      // animateValue, animateColor) defined on a compose
+      // animation (sub-)package (e.g. androidx.compose.animation,
+      // androidx.compose.animation.core).
+      val shortName = it.shortNameOrSpecial()
+      !shortName.isSpecial &&
+        ANIMATE_INFINITE.contains(shortName.toString()) &&
+        it.parent().asString().startsWith(COMPOSE_ANIMATION_PACKAGE_PREFIX)
+    }
+}
+
+class TransitionPropertiesLabelInspection : ExtensionLabelInspection() {
+
+  override val fqNameCheck: (String) -> Boolean = { it == TRANSITION_FQN }
+
+  override val animationType: String
+    get() = message("inspection.animation.type.transition.property")
+
+  override val shortFqNameCheck: (FqName) -> Boolean
+    get() = { it ->
+      // Now, check that we're visiting a method named animate* (e.g. animateFloat,
+      // animateValue, animateColor) defined on a compose
+      // animation (sub-)package (e.g. androidx.compose.animation,
+      // androidx.compose.animation.core).
+      val shortName = it.shortNameOrSpecial()
+      !shortName.isSpecial &&
+        shortName.asString().startsWith(ANIMATE_PREFIX) &&
+        it.parent().asString().startsWith(COMPOSE_ANIMATION_PACKAGE_PREFIX)
+    }
+}
+
 /**
  * Inspection to verify that the `label` parameter is set for `animate*` (e.g. animateFloat,
  * animateColor) calls that create Compose transition properties. This parameter is used by the
  * animation tooling to identify the transition property when inspecting animations in the Animation
  * Preview. Otherwise, a default name will be used (e.g. FloatProperty, ColorProperty).
  */
-class TransitionPropertiesLabelInspection : AbstractKotlinInspection() {
+abstract class ExtensionLabelInspection : AbstractKotlinInspection() {
+
+  abstract val fqNameCheck: (String) -> Boolean
+  abstract val shortFqNameCheck: (FqName) -> Boolean
+  abstract val animationType: String
+
   override fun buildVisitor(
     holder: ProblemsHolder,
     isOnTheFly: Boolean,
@@ -190,25 +239,17 @@ class TransitionPropertiesLabelInspection : AbstractKotlinInspection() {
           if (!resolvedExpression.valueArguments.keys.any { it.name.toString() == LABEL_PARAMETER })
             return
           // First, check we're visiting an extension method of Transition<T>
-          if (
-            (resolvedExpression.extensionReceiver?.type as? SimpleType)?.fqName?.asString() !=
-              TRANSITION_FQN
-          )
-            return
+          val fqExtensionName =
+            (resolvedExpression.extensionReceiver?.type as? SimpleType)?.fqName?.asString()
+              ?: return
+          if (!fqNameCheck(fqExtensionName)) return
 
           // Now, check that we're visiting a method named animate* (e.g. animateFloat,
           // animateValue, animateColor) defined on a compose
           // animation (sub-)package (e.g. androidx.compose.animation,
           // androidx.compose.animation.core).
           val animateCall = resolvedExpression.resultingDescriptor.fqNameOrNull() ?: return
-          val shortName = animateCall.shortNameOrSpecial()
-          if (
-            shortName.isSpecial ||
-              !shortName.asString().startsWith(ANIMATE_PREFIX) ||
-              !animateCall.parent().asString().startsWith(COMPOSE_ANIMATION_PACKAGE_PREFIX)
-          ) {
-            return
-          }
+          if (!shortFqNameCheck(animateCall)) return
 
           // Finally, verify the animate call has the `label` parameter set, otherwise show a weak
           // warning.
@@ -222,7 +263,7 @@ class TransitionPropertiesLabelInspection : AbstractKotlinInspection() {
           }
           holder.registerProblem(
             expression,
-            message("inspection.transition.properties.no.label.parameter.set.description"),
+            message("inspection.animation.no.label.parameter.set.description", animationType),
             ProblemHighlightType.WEAK_WARNING,
             AddLabelFieldQuickFix(expression)
           )
