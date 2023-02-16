@@ -717,6 +717,10 @@
                         order="first" />
 
     <iconMapper mappingFile="StudioIntUiIconMappings.json"/>
+
+    <projectService
+        serviceInterface="com.android.tools.idea.sdk.sources.SdkSourcePositionFinder"
+        serviceImplementation="com.android.tools.idea.sdk.sources.SdkSourcePositionFinderImpl"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij.properties">

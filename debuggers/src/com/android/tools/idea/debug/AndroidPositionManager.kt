@@ -16,49 +16,39 @@
 package com.android.tools.idea.debug
 
 import com.android.SdkConstants
-import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.repository.meta.DetailsTypes
-import com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider
 import com.android.tools.idea.execution.common.AndroidSessionInfo
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.sdk.SdkInstallListener
+import com.android.tools.idea.sdk.sources.SdkSourcePositionFinder
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.base.Joiner
-import com.google.common.base.Suppliers
 import com.intellij.debugger.NoDataException
 import com.intellij.debugger.SourcePosition
 import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.debugger.engine.PositionManagerImpl
-import com.intellij.debugger.impl.DebuggerUtilsEx
 import com.intellij.debugger.impl.PrioritizedTask
 import com.intellij.debugger.requests.ClassPrepareRequestor
 import com.intellij.ide.highlighter.JavaClassFileType
 import com.intellij.ide.highlighter.JavaFileType
-import com.intellij.lang.java.JavaLanguage
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiFileFactory
-import com.intellij.psi.PsiManager
 import com.intellij.xdebugger.XDebugSessionListener
 import com.sun.jdi.Location
 import com.sun.jdi.ReferenceType
 import com.sun.jdi.request.ClassPrepareRequest
-import org.intellij.lang.annotations.Language
-import java.io.IOException
 import java.lang.ref.WeakReference
-import java.util.Locale
-import java.util.function.Supplier
 
 /**
  * AndroidPositionManager provides android java specific position manager augmentations on top of
@@ -75,10 +65,21 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
 
   private val myAndroidVersion: AndroidVersion? = myDebugProcess.processHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)
 
-  private var mySourceFolder: Supplier<VirtualFile?> = Suppliers.memoize { createSourcePackageForApiLevel(false) }
-  private var myGeneratedPsiFile: PsiFile? = null
-
-  private var debugSessionListenerRegistered = false
+  init {
+    val disposable = myDebugProcess.getDisposable()
+    if (disposable == null) {
+      thisLogger().warn("Cannot subscribe to OnDownloadedCallback")
+    }
+    else {
+      myDebugProcess.project.messageBus.connect(disposable)
+        .subscribe(SdkInstallListener.TOPIC, SdkInstallListener { installed, uninstalled ->
+          val path = DetailsTypes.getSourcesPath(myAndroidVersion ?: return@SdkInstallListener)
+          if (installed.find { it.path == path } != null || uninstalled.find { it.path == path } != null) {
+            refreshDebugSession()
+          }
+        })
+    }
+  }
 
   @Throws(NoDataException::class)
   override fun getAllClasses(position: SourcePosition): List<ReferenceType> {
@@ -120,99 +121,12 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
 
     // Since we have an Android SDK file, return the SDK source if it's available.
     // Otherwise, return a generated file with a comment indicating that sources are unavailable.
-    return getSourceFileForApiLevel(project, file, location) ?: getGeneratedFileSourcePosition(project)
+    return SdkSourcePositionFinder.getInstance(project).getSourcePosition(myAndroidVersion.apiLevel, file, location.lineNumber())
   }
 
   // This override only exists for the purpose of changing visibility for invocation via tests.
   @VisibleForTesting
   public override fun getPsiFileByLocation(project: Project, location: Location): PsiFile? = super.getPsiFileByLocation(project, location)
-
-  private fun getSourceFileForApiLevel(project: Project, file: PsiFile, location: Location): SourcePosition? {
-    val relPath = getRelPathForJavaSource(project, file)
-    if (relPath == null) {
-      LOG.debug("getApiSpecificPsi returned null because relPath is null for file: " + file.name)
-      return null
-    }
-
-    val sourceFolder = mySourceFolder.get() ?: return null
-    val vfile = sourceFolder.findFileByRelativePath(relPath)
-    if (vfile == null) {
-      LOG.debug("getSourceForApiLevel returned null because $relPath is not present in $sourceFolder")
-      return null
-    }
-
-    val apiSpecificSourceFile = PsiManager.getInstance(project).findFile(vfile) ?: return null
-
-    val lineNumber = DebuggerUtilsEx.getLineNumber(location, true)
-    return SourcePosition.createFromLine(apiSpecificSourceFile, lineNumber)
-  }
-
-  private fun getGeneratedFileSourcePosition(project: Project): SourcePosition? {
-    // This method should only be called for files that are in the Android SDK, and so we should always be able to generate a PsiFile.
-    if (myGeneratedPsiFile == null) myGeneratedPsiFile = createGeneratedPsiFile()
-    val generatedPsiFile = myGeneratedPsiFile ?: return null
-
-    // If we don't already have one, create a new listener that will close the generated files after the debugging session completes.
-    // Since this method is always called on DebuggerManagerThreadImpl, there's no concern around locking here.
-    if (!debugSessionListenerRegistered) {
-      debugSessionListenerRegistered = true
-      val xDebugSession = myDebugProcess.session.xDebugSession
-      if (xDebugSession != null) {
-        xDebugSession.addSessionListener(MyXDebugSessionListener(generatedPsiFile.virtualFile, project))
-      }
-      else {
-        LOG.debug("xDebugSession unavailable.")
-      }
-    }
-    return SourcePosition.createFromLine(generatedPsiFile, -1)
-  }
-
-  private fun createGeneratedPsiFile(): PsiFile? {
-    if (myAndroidVersion == null) return null
-
-    val apiLevel = myAndroidVersion.apiLevel
-    val fileContent = String.format(Locale.getDefault(), GENERATED_FILE_CONTENTS_FORMAT, apiLevel)
-    val generatedPsiFile = PsiFileFactory.getInstance(myDebugProcess.project)
-      .createFileFromText(GENERATED_FILE_NAME, JavaLanguage.INSTANCE, fileContent, true, true)
-
-    val generatedVirtualFile = generatedPsiFile.virtualFile
-    try {
-      generatedVirtualFile.isWritable = false
-    }
-    catch (e: IOException) {
-      // Swallow. This isn't expected; but if it happens and the user can for some reason edit this file, it won't make any difference.
-      LOG.info("Unable to set generated file not writable.", e)
-    }
-
-    // Add data indicating that we want to put up a banner offering to download sources.
-    val attachSourcesCallback = AttachSourcesCallback(myAndroidVersion)
-    generatedVirtualFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, attachSourcesCallback)
-
-    return generatedPsiFile
-  }
-
-  private fun createSourcePackageForApiLevel(refreshIfNeeded: Boolean): VirtualFile? {
-    if (myAndroidVersion == null) return null
-
-    val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-    val sdkManager = sdkHandler.getSdkManager(StudioLoggerProgressIndicator(AndroidPositionManager::class.java))
-
-    for (sourcePackage in sdkManager.packages.getLocalPackagesForPrefix(SdkConstants.FD_ANDROID_SOURCES)) {
-      val typeDetails = sourcePackage.typeDetails
-      if (typeDetails !is DetailsTypes.ApiDetailsType) {
-        LOG.warn("Unable to get type details for source package @ " + sourcePackage.location)
-        continue
-      }
-      if (myAndroidVersion == typeDetails.androidVersion) {
-        val sourceFolder = VfsUtil.findFile(sourcePackage.location, refreshIfNeeded)
-        if (sourceFolder?.isValid == true) {
-          return sourceFolder
-        }
-      }
-    }
-
-    return null
-  }
 
   /**
    * Listener that's responsible for closing the generated "no sources available" file when a debug session completes.
@@ -231,15 +145,6 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
   }
 
   companion object {
-    @Language("JAVA")
-    private val GENERATED_FILE_CONTENTS_FORMAT = Joiner.on(System.lineSeparator()).join(
-      "/*********************************************************************",
-      " * The Android SDK of the device under debug has API level %d.",
-      " * Android SDK source code for this API level cannot be found.",
-      " ********************************************************************/"
-    )
-
-    private const val GENERATED_FILE_NAME = "Unavailable Source"
     private val LOG = Logger.getInstance(AndroidPositionManager::class.java)
 
     @VisibleForTesting
@@ -278,35 +183,34 @@ class AndroidPositionManager(private val myDebugProcess: DebugProcessImpl) : Pos
       if (endsWith(SdkConstants.DOT_CLASS)) substring(0, length - SdkConstants.DOT_CLASS.length) + SdkConstants.DOT_JAVA else this
   }
 
-  inner class AttachSourcesCallback(override val missingSourceVersion: AndroidVersion) :
-    AttachAndroidSdkSourcesNotificationProvider.AttachAndroidSdkSourcesCallback {
+  private fun refreshDebugSession() {
+    DumbService.getInstance(myDebugProcess.project).smartInvokeLater {
+      myDebugProcess.managerThread.invoke(PrioritizedTask.Priority.HIGH) {
+        // Clear the cache on the containing CompoundPositionManager.
+        myDebugProcess.positionManager.clearCache()
 
-    @UiThread
-    override fun refreshAfterDownload() {
-      val application = ApplicationManager.getApplication()
+        // After the cache is cleared, close the generated PsiFile instance if it's open and schedule a refresh of the debug session.
+        ApplicationManager.getApplication().invokeLater(
+          { myDebugProcess.session.refresh(true) },
+          { myDebugProcess.session.isStopped })
+      }
+    }
 
-      // Refresh this PositionManager's source file location. Since refreshIfNeeded is true, this needs to be on the EDT.
-      application.assertIsDispatchThread()
-      mySourceFolder = Suppliers.ofInstance(createSourcePackageForApiLevel(true))
+  }
 
-      // If the above call caused a refresh, we may now be in dumb mode. Ensure that the following refresh logic doesn't happen until the
-      // index is updated.
-      DumbService.getInstance(myDebugProcess.project).smartInvokeLater {
-        myDebugProcess.managerThread.invoke(PrioritizedTask.Priority.HIGH) {
-          // Clear the cache on the containing CompoundPositionManager.
-          myDebugProcess.positionManager.clearCache()
-
-          // After the cache is cleared, close the generated PsiFile instance if it's open and schedule a refresh of the debug session.
-          application.invokeLater(
-            {
-              myGeneratedPsiFile?.virtualFile?.let {
-                if (it.isValid) FileEditorManager.getInstance(myDebugProcess.project).closeFile(it)
-              }
-
-              myDebugProcess.session.refresh(true)
-            },
-            { myDebugProcess.session.isStopped })
-        }
+  // TODO(b/269626310): Remove when DebugProcessImpl exposes a disposable
+  //   https://github.com/JetBrains/intellij-community/pull/2326
+  private fun DebugProcessImpl.getDisposable(): Disposable? {
+    return when {
+      ApplicationManager.getApplication().isUnitTestMode -> project
+      else -> try {
+        val field = DebugProcessImpl::class.java.getDeclaredField("myDisposable")
+        field.isAccessible = true
+        field.get(this) as Disposable
+      }
+      catch (e: Exception) {
+        thisLogger().warn("Could not get DebugProcessImpl.disposable")
+        null
       }
     }
   }

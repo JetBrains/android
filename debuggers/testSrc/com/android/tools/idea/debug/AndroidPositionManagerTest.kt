@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.debug
 
-import com.android.SdkConstants
-import com.android.repository.api.LocalPackage
-import com.android.repository.api.RepoPackage
+import com.android.repository.api.UpdatablePackage
+import com.android.repository.testframework.FakePackage.FakeRemotePackage
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.argumentCaptor
@@ -25,10 +24,9 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.debug.AndroidPositionManager.Companion.changeClassExtensionToJava
 import com.android.tools.idea.debug.AndroidPositionManager.MyXDebugSessionListener
-import com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider
 import com.android.tools.idea.execution.common.AndroidSessionInfo
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator
-import com.android.tools.idea.sdk.AndroidSdks
+import com.android.tools.idea.sdk.SdkInstallListener
+import com.android.tools.idea.sdk.sources.SdkSourcePositionFinder
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.withSdk
 import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.NoDataException
@@ -51,7 +49,10 @@ import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.testFramework.LightVirtualFile
+import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.RuleChain
+import com.intellij.testFramework.registerServiceInstance
+import com.intellij.testFramework.unregisterService
 import com.intellij.xdebugger.XDebugSession
 import com.sun.jdi.Location
 import com.sun.jdi.ReferenceType
@@ -65,20 +66,23 @@ import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers
 import org.mockito.Mockito.RETURNS_DEFAULTS
+import org.mockito.Mockito.anyInt
+import org.mockito.Mockito.eq
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import org.mockito.Mockito.withSettings
-import org.mockito.junit.MockitoJUnit
 import java.util.concurrent.Semaphore
 import kotlin.test.assertFailsWith
 
 class AndroidPositionManagerTest {
-  @get:Rule
-  val myAndroidProjectRule = withSdk()
+  private val myAndroidProjectRule = withSdk()
+  private val disposableRule = DisposableRule()
 
   @get:Rule
-  val myMockitoRule = MockitoJUnit.rule()
+  val rule = RuleChain(myAndroidProjectRule, disposableRule)
+
+  private val project get() = myAndroidProjectRule.project
 
   private val mockDebugProcessImpl: DebugProcessImpl = mock()
   private val mockDebuggerSession: DebuggerSession = mock()
@@ -87,34 +91,36 @@ class AndroidPositionManagerTest {
   private val mockCompoundPositionManager: CompoundPositionManager = mock()
   private val mockDebuggerManagerThreadImpl: DebuggerManagerThreadImpl = mock()
 
+  private val mockSdkSourcePositionFinder: SdkSourcePositionFinder = mock()
+
   private val targetDeviceAndroidVersion: AndroidVersion = AndroidVersion(30)
+  private val installedPackage = UpdatablePackage(FakeRemotePackage("sources;android-${targetDeviceAndroidVersion.apiLevel}"))
 
   private lateinit var myPositionManager: AndroidPositionManager
-
-  private var myOriginalLocalPackages: Collection<LocalPackage>? = null
 
   @Before
   fun setUp() {
     whenever(mockDebugProcessImpl.session).thenReturn(mockDebuggerSession)
     whenever(mockDebugProcessImpl.positionManager).thenReturn(mockCompoundPositionManager)
     whenever(mockDebugProcessImpl.managerThread).thenReturn(mockDebuggerManagerThreadImpl)
-    whenever(mockDebugProcessImpl.project).thenReturn(myAndroidProjectRule.project)
-    whenever(mockDebugProcessImpl.searchScope).thenReturn(GlobalSearchScope.allScope(myAndroidProjectRule.project))
+    whenever(mockDebugProcessImpl.project).thenReturn(project)
+    whenever(mockDebugProcessImpl.searchScope).thenReturn(GlobalSearchScope.allScope(project))
     whenever(mockDebugProcessImpl.processHandler).thenReturn(mockProcessHandler)
     whenever(mockDebuggerSession.xDebugSession).thenReturn(mockXDebugSession)
 
     whenever(mockProcessHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).thenAnswer { targetDeviceAndroidVersion }
 
+    project.registerServiceInstance(SdkSourcePositionFinder::class.java, mockSdkSourcePositionFinder)
     myPositionManager = AndroidPositionManager(mockDebugProcessImpl)
   }
 
   @After
   fun tearDown() {
-    restoreLocalTargetSdkPackages()
+    project.unregisterService(SdkSourcePositionFinder::class.java)
 
     // Invoke an action when not in dumb mode, to ensure anything queued up during the test completes before the next run.
     val semaphore = Semaphore(0)
-    DumbService.getInstance(myAndroidProjectRule.project).smartInvokeLater {
+    DumbService.getInstance(project).smartInvokeLater {
       // Similarly, invoke an action on the event thread to ensure everything finishes out appropriately.
       ApplicationManager.getApplication().invokeAndWait {}
       semaphore.release()
@@ -125,6 +131,7 @@ class AndroidPositionManagerTest {
   /**
    * Create a SourcePosition from a one-based line number.
    */
+  @Suppress("SameParameterValue")
   private fun createSourcePositionForOneBasedLineNumber(psiFile: PsiFile, line: Int): SourcePosition {
     assert(line > 0)
     // SourcePositions are zero-based. Therefore, we need to adjust the line number accordingly.
@@ -153,6 +160,7 @@ class Foo {
 
   @Test
   fun testDesugaringSupport_InterfaceWithStaticInitializer() {
+    @Suppress("UnnecessaryModifier", "StringOperationCanBeSimplified")
     @Language("JAVA") val text = """package p1.p2;
 
 interface Foo {
@@ -213,7 +221,7 @@ interface Foo {
   private fun runTestDesugaringSupportWhenDesugaringIsRequired(position: SourcePosition, isDesugaringRequired: Boolean) {
     // Mock the VirtualMachine proxy to manage tested types.
     val vmProxy: VirtualMachineProxyImpl = mock()
-    whenever(mockDebugProcessImpl!!.virtualMachineProxy).thenReturn(vmProxy)
+    whenever(mockDebugProcessImpl.virtualMachineProxy).thenReturn(vmProxy)
     val typesMap = mockReferenceTypes(vmProxy, TOP_CLASS_NAME, INNER_CLASS_NAME, SYNTHESIZED_CLASS_NAME)
 
     // Mock the RequestManager for the class prepare requests.
@@ -221,7 +229,7 @@ interface Foo {
     whenever(mockDebugProcessImpl.requestsManager).thenReturn(mockRequestManager)
 
     // Attach current project to the mocked debug process.
-    whenever(mockDebugProcessImpl.project).thenReturn(myAndroidProjectRule.project)
+    whenever(mockDebugProcessImpl.project).thenReturn(project)
 
     // Mock locationsOfLine to reflect which class contains the source position.
     val topClass = typesMap[TOP_CLASS_NAME]!!
@@ -332,7 +340,7 @@ class Foo {
 
     runReadAction {
       // Ensure that the super class is actually finding this class.
-      assertThat(myPositionManager.getPsiFileByLocation(myAndroidProjectRule.project, location)).isSameAs(file)
+      assertThat(myPositionManager.getPsiFileByLocation(project, location)).isSameAs(file)
 
       // Now that it's found, NoDataException should be thrown since it's not in the Android SDK.
       assertFailsWith<NoDataException> { myPositionManager.getSourcePosition(location) }
@@ -340,70 +348,22 @@ class Foo {
   }
 
   @Test
-  fun sourcePosition_targetSourcesAvailable() {
-    val sourcePosition = runReadAction { myPositionManager.getSourcePosition(androidSdkClassLocation) }
-    assertThat(sourcePosition).isNotNull()
-
-    val file = sourcePosition!!.file
-    assertThat(file.fileType).isEqualTo(JavaFileType.INSTANCE)
-    assertThat(file.virtualFile.path).contains("/android-${targetDeviceAndroidVersion.apiLevel}/")
-  }
-
-  @Test
-  fun sourcePosition_targetSourcesNotAvailable() {
-    removeLocalTargetSdkPackages()
+  fun sourcePosition_locationIsAnAndroidFile() {
+    val position = SourcePosition.createFromLine(mock(), 1)
+    whenever(mockSdkSourcePositionFinder.getSourcePosition(eq(targetDeviceAndroidVersion.apiLevel), any(), anyInt())).thenReturn(position)
 
     val sourcePosition = runReadAction { myPositionManager.getSourcePosition(androidSdkClassLocation) }
-    assertThat(sourcePosition).isNotNull()
 
-    val file = sourcePosition!!.file
-    assertThat(file.fileType).isEqualTo(JavaFileType.INSTANCE)
-    assertThat(file.virtualFile.path).doesNotContain("/android-${targetDeviceAndroidVersion.apiLevel}/")
-    assertThat(file.virtualFile).isInstanceOf(LightVirtualFile::class.java)
-    val fileContent = (file.virtualFile as LightVirtualFile).content.toString()
-    assertThat(fileContent).contains("device under debug has API level ${targetDeviceAndroidVersion.apiLevel}.")
-    assertThat(file.name).isEqualTo("Unavailable Source")
-
-    val callback = file.virtualFile.getUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY)!!
-    assertThat(callback.missingSourceVersion).isEqualTo(targetDeviceAndroidVersion)
-  }
-
-  @Test
-  fun refreshAfterDownload_sameLocationReturnsSourceFile() {
-    removeLocalTargetSdkPackages()
-
-    val sourceFileOriginal = runReadAction { myPositionManager.getSourcePosition(androidSdkClassLocation) }!!.file
-    assertThat(sourceFileOriginal.name).isEqualTo("Unavailable Source")
-    val callback = sourceFileOriginal.virtualFile.getUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY)!!
-
-    // Mimic source download by restoring the original packages
-    restoreLocalTargetSdkPackages()
-
-    // Refresh is expected to update AndroidPositionManager's source folder internally, so that it can now find appropriate sources.
-    ApplicationManager.getApplication().invokeAndWait { callback.refreshAfterDownload() }
-
-    val sourceFileUpdated = runReadAction { myPositionManager.getSourcePosition(androidSdkClassLocation) }!!.file
-    assertThat(sourceFileUpdated.fileType).isEqualTo(JavaFileType.INSTANCE)
-    assertThat(sourceFileUpdated.virtualFile.path).contains("/android-${targetDeviceAndroidVersion.apiLevel}/")
+    assertThat(sourcePosition).isSameAs(position)
   }
 
   @Test
   fun refreshAfterDownload_containingPositionManagerIsCleared() {
-    removeLocalTargetSdkPackages()
-
-    val sourceFileOriginal = runReadAction { myPositionManager.getSourcePosition(androidSdkClassLocation) }!!.file
-    assertThat(sourceFileOriginal.name).isEqualTo("Unavailable Source")
-    val callback = sourceFileOriginal.virtualFile.getUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY)!!
-
-    // Mimic source download by restoring the original packages
-    restoreLocalTargetSdkPackages()
-
-    // Refresh is expected to update AndroidPositionManager's source folder internally, so that it can now find appropriate sources.
-    ApplicationManager.getApplication().invokeAndWait { callback.refreshAfterDownload() }
+    project.messageBus.syncPublisher(SdkInstallListener.TOPIC).installCompleted(listOf(installedPackage), emptyList())
 
     // Wait for the dumb service to complete if necessary, since the task captured below requires not being in dumb mode.
     val semaphore = Semaphore(0)
-    DumbService.getInstance(myAndroidProjectRule.project).smartInvokeLater { semaphore.release() }
+    DumbService.getInstance(project).smartInvokeLater { semaphore.release() }
     semaphore.acquire()
 
     // A task will have been put onto the mock debugger manager thread. Get it and invoke it.
@@ -418,21 +378,11 @@ class Foo {
 
   @Test
   fun refreshAfterDownload_debugSessionRefreshed() {
-    removeLocalTargetSdkPackages()
-
-    val sourceFileOriginal = runReadAction { myPositionManager.getSourcePosition(androidSdkClassLocation) }!!.file
-    assertThat(sourceFileOriginal.name).isEqualTo("Unavailable Source")
-    val callback = sourceFileOriginal.virtualFile.getUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY)!!
-
-    // Mimic source download by restoring the original packages
-    restoreLocalTargetSdkPackages()
-
-    // Refresh is expected to update AndroidPositionManager's source folder internally, so that it can now find appropriate sources.
-    ApplicationManager.getApplication().invokeAndWait { callback.refreshAfterDownload() }
+    project.messageBus.syncPublisher(SdkInstallListener.TOPIC).installCompleted(listOf(installedPackage), emptyList())
 
     // Wait for the dumb service to complete if necessary, since the task captured below requires not being in dumb mode.
     val semaphore = Semaphore(0)
-    DumbService.getInstance(myAndroidProjectRule.project).smartInvokeLater { semaphore.release() }
+    DumbService.getInstance(project).smartInvokeLater { semaphore.release() }
     semaphore.acquire()
 
     // A task will have been put onto the mock debugger manager thread. Get it and invoke it.
@@ -450,24 +400,14 @@ class Foo {
 
   @Test
   fun refreshAfterDownload_sessionEnded_debugSessionNotRefreshed() {
-    removeLocalTargetSdkPackages()
-
-    val sourceFileOriginal = runReadAction { myPositionManager.getSourcePosition(androidSdkClassLocation) }!!.file
-    assertThat(sourceFileOriginal.name).isEqualTo("Unavailable Source")
-    val callback = sourceFileOriginal.virtualFile.getUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY)!!
-
-    // Mimic source download by restoring the original packages
-    restoreLocalTargetSdkPackages()
-
     // Mark the debug session as stopped.
     whenever(mockDebuggerSession.isStopped).thenReturn(true)
 
-    // Refresh is expected to update AndroidPositionManager's source folder internally, so that it can now find appropriate sources.
-    ApplicationManager.getApplication().invokeAndWait { callback.refreshAfterDownload() }
+    project.messageBus.syncPublisher(SdkInstallListener.TOPIC).installCompleted(listOf(installedPackage), emptyList())
 
     // Wait for the dumb service to complete if necessary, since the task captured below requires not being in dumb mode.
     val semaphore = Semaphore(0)
-    DumbService.getInstance(myAndroidProjectRule.project).smartInvokeLater { semaphore.release() }
+    DumbService.getInstance(project).smartInvokeLater { semaphore.release() }
     semaphore.acquire()
 
     // A task will have been put onto the mock debugger manager thread. Get it and invoke it.
@@ -481,37 +421,6 @@ class Foo {
 
     // The session should not have been refreshed, since it has stopped.
     verify(mockDebuggerSession, never()).refresh(true)
-  }
-
-  private fun removeLocalTargetSdkPackages() {
-    val packagesToRemove = setOf(
-      "${SdkConstants.FD_ANDROID_SOURCES}${RepoPackage.PATH_SEPARATOR}android-${targetDeviceAndroidVersion.apiLevel}",
-      "${SdkConstants.FD_PLATFORMS}${RepoPackage.PATH_SEPARATOR}android-${targetDeviceAndroidVersion.apiLevel}"
-    )
-
-    val packages = AndroidSdks.getInstance().tryToChooseSdkHandler()
-      .getSdkManager(StudioLoggerProgressIndicator(AndroidPositionManager::class.java))
-      .packages
-    val localPackages = packages.localPackages.values
-
-    if (myOriginalLocalPackages == null) {
-      // This won't get reset at the end of each test automatically. Store original list to restore it later.
-      myOriginalLocalPackages = localPackages
-    }
-
-    val updatedPackages = localPackages.filter { !packagesToRemove.contains(it.path) }
-    packages.setLocalPkgInfos(updatedPackages)
-  }
-
-  private fun restoreLocalTargetSdkPackages() {
-    if (myOriginalLocalPackages != null) {
-      val packages = AndroidSdks.getInstance().tryToChooseSdkHandler()
-        .getSdkManager(StudioLoggerProgressIndicator(AndroidPositionManager::class.java))
-        .packages
-      packages.setLocalPkgInfos(myOriginalLocalPackages!!)
-
-      myOriginalLocalPackages = null
-    }
   }
 
   @Test
@@ -530,10 +439,10 @@ class Foo {
     // The case where the file is a java file is covered by above test cases; but the java class file case is not, due to difficulties in
     // mocking super class logic. Instead, we can test resolution here directly.
     val viewClass = runReadAction {
-      PositionManagerImpl.findClass(myAndroidProjectRule.project, "android.view.View", mockDebugProcessImpl.searchScope, true)
+      PositionManagerImpl.findClass(project, "android.view.View", mockDebugProcessImpl.searchScope, true)
     }
     assertThat(viewClass).isNotNull()
-    assertThat(AndroidPositionManager.getRelPathForJavaSource(myAndroidProjectRule.project, viewClass!!.containingFile))
+    assertThat(AndroidPositionManager.getRelPathForJavaSource(project, viewClass!!.containingFile))
       .isEqualTo("android/view/View.java")
   }
 
@@ -542,7 +451,7 @@ class Foo {
     val file: PsiFile = mock()
     whenever(file.fileType).thenReturn(UnknownFileType.INSTANCE)
 
-    assertThat(AndroidPositionManager.getRelPathForJavaSource(myAndroidProjectRule.project, file)).isNull()
+    assertThat(AndroidPositionManager.getRelPathForJavaSource(project, file)).isNull()
   }
 
   @Test
@@ -550,10 +459,10 @@ class Foo {
     val mockVirtualFile: VirtualFile = mock()
 
     val mockFileEditorManager: FileEditorManager = mock()
-    val componentStack = ComponentStack(myAndroidProjectRule.project)
+    val componentStack = ComponentStack(project)
     componentStack.registerComponentInstance(FileEditorManager::class.java, mockFileEditorManager)
 
-    val listener = MyXDebugSessionListener(mockVirtualFile, myAndroidProjectRule.project)
+    val listener = MyXDebugSessionListener(mockVirtualFile, project)
 
     listener.sessionStopped()
 
@@ -592,7 +501,7 @@ class Foo {
     }
 
     private val androidSdkClassLocation: Location
-      private get() {
+      get() {
         val type: ReferenceType = mock()
         whenever(type.name()).thenReturn("android.view.View")
         whenever(type.sourceName()).thenReturn("View.java")

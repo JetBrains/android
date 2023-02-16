@@ -23,7 +23,6 @@ import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils
 import com.android.tools.idea.wizard.model.ModelWizardDialog
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.collect.ImmutableList
 import com.intellij.codeEditor.JavaEditorFileSwapper
 import com.intellij.ide.highlighter.JavaClassFileType
 import com.intellij.openapi.fileEditor.FileEditor
@@ -59,8 +58,8 @@ open class AttachAndroidSdkSourcesNotificationProvider(private val myProject: Pr
 
     // AndroidPositionManager is responsible for detecting that a specific SDK is needed during a debugging session, and will set the
     // REQUIRED_SOURCES_KEY when necessary.
-    val missingDebugSourcesInfo = file.getUserData(REQUIRED_SOURCES_KEY) ?: return null
-    return createPanel(fileEditor, missingDebugSourcesInfo.missingSourceVersion, missingDebugSourcesInfo::refreshAfterDownload)
+    val missingApiLevel = file.getUserData(REQUIRED_SOURCES_KEY) ?: return null
+    return createPanel(fileEditor, AndroidVersion(missingApiLevel), null)
   }
 
   private fun createNotificationPanelForClassFiles(file: VirtualFile, fileEditor: FileEditor): EditorNotificationPanel? {
@@ -91,14 +90,14 @@ open class AttachAndroidSdkSourcesNotificationProvider(private val myProject: Pr
   private fun createPanel(
     fileEditor: FileEditor,
     requestedSourceVersion: AndroidVersion,
-    refreshAfterDownload: Runnable
+    refreshAfterDownload: Runnable?
   ): MyEditorNotificationPanel {
     val panel = MyEditorNotificationPanel(fileEditor)
     panel.text = "Android SDK sources for API ${requestedSourceVersion.apiString} not found."
     panel.createAndAddLink("Download") {
       val sourcesPath = DetailsTypes.getSourcesPath(requestedSourceVersion)
       if (createSdkDownloadDialog(listOf(sourcesPath))?.showAndGet() == true) {
-        refreshAfterDownload.run()
+        refreshAfterDownload?.run()
       }
     }
     return panel
@@ -154,17 +153,6 @@ open class AttachAndroidSdkSourcesNotificationProvider(private val myProject: Pr
     private val KEY = Key.create<EditorNotificationPanel?>("add sdk sources to class")
 
     @JvmField
-    val REQUIRED_SOURCES_KEY = Key.create<AttachAndroidSdkSourcesCallback>("sources to download")
-  }
-
-  /**
-   * Callback used to represent sources that are missing during a debug session. This allows {@link
-   * AttachAndroidSdkSourcesNotificationProvider} to display and refresh without having to know anything about the debug session itself.
-   */
-  interface AttachAndroidSdkSourcesCallback {
-    val missingSourceVersion: AndroidVersion
-
-    @UiThread
-    fun refreshAfterDownload()
+    val REQUIRED_SOURCES_KEY = Key.create<Int>("sources to download")
   }
 }
