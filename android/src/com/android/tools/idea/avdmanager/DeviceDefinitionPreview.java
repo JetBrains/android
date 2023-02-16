@@ -91,7 +91,14 @@ public class DeviceDefinitionPreview extends JPanel implements DeviceDefinitionL
   public static Icon getIcon(@Nullable AvdDeviceData deviceData) {
     Icon icon = StudioIcons.Avd.DEVICE_MOBILE_LARGE;
     if (deviceData != null) {
-      if (deviceData.isTv().get()) {
+      if (deviceData.isAutomotive().get()) {
+        icon = StudioIcons.Avd.DEVICE_CAR_LARGE;
+      }
+      // TODO(256106470): Uncomment the following 3 lines when DEVICE_DESKTOP_LARGE becomes available.
+      //else if (deviceData.isDesktop().get()) {
+      //  icon = StudioIcons.Avd.DEVICE_DESKTOP_LARGE;
+      //}
+      else if (deviceData.isTv().get()) {
         icon = StudioIcons.Avd.DEVICE_TV_LARGE;
       }
       else if (deviceData.isWear().get()) {
