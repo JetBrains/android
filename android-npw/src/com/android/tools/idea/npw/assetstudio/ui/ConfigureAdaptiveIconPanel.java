@@ -20,6 +20,7 @@ import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.toUpperCam
 import static com.android.tools.idea.npw.assetstudio.LauncherIconGenerator.DEFAULT_FOREGROUND_COLOR;
 
 import com.android.resources.Density;
+import com.android.resources.ResourceFolderType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
@@ -59,6 +60,7 @@ import com.android.tools.idea.observable.ui.SliderValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
 import com.android.tools.idea.rendering.DrawableRenderer;
+import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.PersistentStateComponent;
@@ -291,6 +293,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
   private BoolProperty myGenerateRoundIcon;
   private BoolProperty myGeneratePlayStoreIcon;
   private AbstractProperty<Shape> myLegacyIconShape;
+  @NotNull private final IdeResourceNameValidator myNameValidator = IdeResourceNameValidator.forFilename(ResourceFolderType.DRAWABLE);
 
   /**
    * Initializes a panel which can generate Android launcher icons. The supported types passed in
@@ -647,8 +650,12 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     // Validate foreground and background layer names when the panel is active.
     myValidatorPanel.registerTest(nameIsNotEmptyExpression(isActive, myForegroundLayerName),
                                   "Foreground layer name must be set");
+    myValidatorPanel.registerValidator(
+        myForegroundLayerName, name -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(name.trim())));
     myValidatorPanel.registerTest(nameIsNotEmptyExpression(isActive, myBackgroundLayerName),
                                   "Background layer name must be set");
+    myValidatorPanel.registerValidator(
+        myBackgroundLayerName, name -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(name.trim())));
     myValidatorPanel.registerTest(namesAreDistinctExpression(isActive, myOutputName, myForegroundLayerName),
                                   "Foreground layer must have a name distinct from the icon name");
     myValidatorPanel.registerTest(namesAreDistinctExpression(isActive, myOutputName, myBackgroundLayerName),
