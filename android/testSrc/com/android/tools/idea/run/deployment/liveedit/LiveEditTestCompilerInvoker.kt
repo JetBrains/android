@@ -17,8 +17,10 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.intellij.openapi.application.runReadAction
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import junit.framework.Assert
+import org.jetbrains.kotlin.idea.util.psi.patternMatching.matches
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 
@@ -46,7 +48,11 @@ internal fun compile(inputs: List<LiveEditCompilerInput>, useInliner: Boolean = 
  * Look for the first named function with a given name.
  */
 internal fun findFunction(file: PsiFile?, name: String): KtNamedFunction {
+  return findFirst(file) { it.name?.contains(name) ?: false }
+}
+
+internal inline fun <reified T : PsiElement> findFirst(file: PsiFile?, crossinline match: (T) -> Boolean) : T {
   return runReadAction {
-    file!!.collectDescendantsOfType<KtNamedFunction>().first { it.name?.contains(name) ?: false }
+    file!!.collectDescendantsOfType<T>().first { match(it) }
   }
 }
