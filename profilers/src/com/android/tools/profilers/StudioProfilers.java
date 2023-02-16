@@ -907,14 +907,13 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       .setKind(Event.Kind.PROCESS)
       .setStreamId(streamId)
       .setPid(pid)
-      .setFromTimestamp(timestamp)
-      .setToTimestamp(timestamp + 1)  // Any detectable process should last more than 1 nanosecond.
+      .setToTimestamp(timestamp)
       .build();
     GetEventGroupsResponse response = myClient.getTransportClient().getEventGroups(request);
     if (response.getGroupsCount() == 1) {
-      EventGroup group = response.getGroups(0);
-      if (group.getEventsCount() >= 1) {
-        return group.getEvents(0).getProcess().getProcessStarted().getProcess();
+      Common.Event processEvent = StreamQueryUtils.getHighestExposureEventForLastProcess(response.getGroups(0));
+      if (processEvent != null) {
+        return processEvent.getProcess().getProcessStarted().getProcess();
       }
     }
     if (pid != 0) {

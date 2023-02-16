@@ -210,7 +210,7 @@ public final class StudioProfilersTest {
   }
 
   @Test
-  public void testDebuggableProcessNotReportedAsProfileable() {
+  public void testDebuggableProcessReportedAsDebuggable() {
     Assume.assumeTrue(myNewEventPipeline);
 
     Common.Device device = FAKE_DEVICE;
@@ -233,6 +233,34 @@ public final class StudioProfilersTest {
     assertThat(myProfilers.getDeviceProcessMap().get(device)).hasSize(1);
     assertThat(myProfilers.getDeviceProcessMap().get(device).get(0).getExposureLevel()).
       isEqualTo(Common.Process.ExposureLevel.DEBUGGABLE);
+  }
+
+  @Test
+  public void testDebuggableProcessPresentedAsDebuggable() {
+    Assume.assumeTrue(myNewEventPipeline);
+    myProfilers.setPreferredProcess(null, FAKE_PROCESS.getName(), null);
+
+    Common.Device device = FAKE_DEVICE;
+    myTransportService.addDevice(device);
+
+    Common.Process debuggableEvent = FAKE_PROCESS.toBuilder()
+      .setStartTimestampNs(5)
+      .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
+      .build();
+    myTransportService.addProcess(device, debuggableEvent);
+
+    Common.Process profileableEvent = debuggableEvent.toBuilder()
+      .setStartTimestampNs(10)
+      .setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE)
+      .build();
+    myTransportService.addProcess(device, profileableEvent);
+
+    myTimer.setCurrentTimeNs(20);
+    myProfilers.setProcess(device, null);  // Will start a new session on the preferred process
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);  // Wait for the session to auto start and select.
+
+    assertThat(myProfilers.getSession().getPid()).isEqualTo(FAKE_PROCESS.getPid());
+    assertThat(myProfilers.getSelectedSessionSupportLevel()).isEqualTo(SupportLevel.DEBUGGABLE);
   }
 
   @Test
