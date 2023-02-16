@@ -16,6 +16,7 @@
 package com.android.tools.idea.editors.strings.table
 
 import com.android.ide.common.resources.Locale
+import com.android.ide.common.resources.configuration.LocaleQualifier
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.editors.strings.StringResource
@@ -125,4 +126,21 @@ class StringResourceTableModelTest {
       }
     }
   }
+
+  @Test
+  fun columnName() {
+    locales.add(Locale.create(LocaleQualifier("en")))
+
+    assertThat(model.getColumnName(4)).isEqualTo("English (en)")
+  }
+
+  @Test
+  fun columnName_unknownRegion() {
+    // The region "a00" is invalid, and so Locale.getLocaleLabel() will throw an AssertionError for this instance.
+    // This test case ensures we still show a reasonable value for the column name, even if the user has created a malformed locale.
+    locales.add(Locale.create(LocaleQualifier("b+es-a00", "es", "a00", null)))
+
+    assertThat(model.getColumnName(4)).isEqualTo("es-a00")
+  }
+
 }

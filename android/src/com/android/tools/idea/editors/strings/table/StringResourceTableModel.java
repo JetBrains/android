@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.strings.model.StringResourceRepository;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.concurrency.SameThreadExecutor;
 import java.util.Collections;
@@ -200,7 +201,17 @@ public class StringResourceTableModel extends AbstractTableModel {
       case DEFAULT_VALUE_COLUMN:
         return "Default Value";
       default:
-        return Locale.getLocaleLabel(getLocale(column), false);
+        Locale locale = getLocale(column);
+        String columnName;
+        try {
+          columnName = Locale.getLocaleLabel(locale, false);
+        } catch (AssertionError e) {
+          // Locale code is littered with asserts, including some assuming that a locale has valid values. While we would hope that's the
+          // case, we don't want the editor to just error out if someone puts in a bad resource folder name.
+          columnName = locale.toString();
+          Logger.getInstance(StringResourceTableModel.class).warn("Failed to get label for locale '" + columnName + "'", e);
+        }
+        return columnName;
     }
   }
 
