@@ -42,6 +42,7 @@ import java.awt.event.KeyEvent
 import javax.swing.JComboBox
 import javax.swing.JComponent
 import javax.swing.JEditorPane
+import javax.swing.JPanel
 import javax.swing.JTree
 import javax.swing.text.AttributeSet
 import javax.swing.text.ElementIterator
@@ -151,6 +152,11 @@ class DependenciesFixture(
 
   fun findConfigurationCombo(): JComboBoxFixture =
     EditorComboBoxFixture(robot(), robot().finder().findByName(container, "configuration", JComboBox::class.java, true))
+
+  fun findVersionCombo(): JComboBoxFixture {
+    val panel = robot().finder().findByName(container, "version", JPanel::class.java)
+    return EditorComboBoxFixture(robot(), robot().finder().findByType(panel, JComboBox::class.java, true))
+  }
 
   fun clickAddLibraryDependency(): AddLibraryDependencyDialogFixture {
     clickToolButton("Add Dependency")

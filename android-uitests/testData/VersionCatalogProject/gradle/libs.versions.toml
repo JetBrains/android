@@ -2,8 +2,7 @@
 agp = "7.4.1"
 kotlin = "1.7.21"
 material = "1.5.0"
-material2 = "1.7.0"
-appcompat = "1.4.1"
+appcompat = "1.3.0"
 constraintlayout = "2.1.3"
 junit = "4.13.2"
 testchangeversion = "1.0.0"
@@ -12,7 +11,7 @@ testchangeversion = "1.0.0"
 junit = """\u006au\u006ei\u0074:\u006au\u006ei\u0074:\u0034.\u00313\u002e2"""
 core = 'androidx.core:core-ktx:1.8.0'
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
-material = { module = "com.google.android.material:material", version.ref = "material2"}
+material = { module = "com.google.android.material:material", version.ref = "material"}
 constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout"}
 junittest = { module = "junit:junit", version.ref = "junit"}
 navfragment = { module = "androidx.navigation:navigation-fragment", version = "2.5.2"}
