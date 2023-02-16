@@ -28,6 +28,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
@@ -105,7 +106,7 @@ internal fun defaultCreateInformationPopup(
       // the Editor is not directly related to the popup.
       DataManager.registerDataProvider(newPopup.popupComponent) { dataId ->
         if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId)) {
-          { id: String -> dataContext.getData(id) }
+          DataProvider { dataContext.getData(it) }
         }
         else {
           dataContext.getData(dataId)
