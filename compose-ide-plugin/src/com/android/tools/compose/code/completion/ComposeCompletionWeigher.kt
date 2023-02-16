@@ -22,6 +22,7 @@ import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionWeigher
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtBlockExpression
@@ -80,6 +81,12 @@ private val PROMOTED_NON_COMPOSABLES_IN_STATEMENTS = setOf(
 private val PROMOTED_NON_COMPOSABLES_IN_ARGUMENTS = setOf(
   "androidx.compose.material.MaterialTheme",
   "androidx.compose.material3.MaterialTheme",
+  "androidx.compose.material.icons.Icons.Default",
+  "androidx.compose.material.icons.Icons.Filled",
+  "androidx.compose.material.icons.Icons.Outlined",
+  "androidx.compose.material.icons.Icons.Rounded",
+  "androidx.compose.material.icons.Icons.Sharp",
+  "androidx.compose.material.icons.Icons.TwoTone",
 )
 
 private fun LookupElement.isPromotedInStatement(): Boolean {
@@ -104,7 +111,7 @@ private fun CompletionParameters.isForStatement() =
 
 /** Checks if this completion is for a value argument, where Compose views are usually not called. */
 private fun CompletionParameters.isForValueArgument() =
-  position is LeafPsiElement && position.node.elementType == KtTokens.IDENTIFIER && position.parent?.parent is KtValueArgument
+  position is LeafPsiElement && position.node.elementType == KtTokens.IDENTIFIER && position.parentOfType<KtValueArgument>() != null
 
 /** Checks if the given completions parameters are in a Kotlin file in a Compose-enabled module. */
 private fun CompletionParameters.isInComposeEnabledModuleAndFile() =

@@ -198,6 +198,65 @@ class ComposeCompletionWeigherTest {
   }
 
   @Test
+  fun testLookupElementOrder_valueArgumentWithDotExpression() {
+    // This test applies to any value argument being filled in with a dot expression, as in "icon = Icons.<caret>". Using Icons specifically
+    // just because they can fulfill that scenario, and the autocomplete list would be in a different order if the weighing code didn't run.
+    myFixture.addFileToProject(
+      "src/androidx/compose/material/icons/Icons.kt",
+      // language=kotlin
+      """
+      package androidx.compose.material.icons
+
+      object Icons {
+        final val Default = Filled
+        object Filled
+        object Outlined
+        object Rounded
+        object Sharp
+        object TwoTone
+      }
+      """)
+
+    // Given:
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.material.icons.Icons
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      fun HomeScreen() {
+        HomeScreenElement(icon = Icons.<caret>)
+      }
+
+      @Composable
+      fun HomeScreenElement(icon: Any) {}
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.completeBasic()
+
+    // Then:
+    val renderedLookupElements = myFixture.renderedLookupElements
+
+    // There should be at least one more suggestion that's not one of the Icons object, but we don't really care what it is as long as it's
+    // ranked lower than the Icons entries.
+    Truth.assertThat(renderedLookupElements.size).isAtLeast(7)
+    Truth.assertThat(renderedLookupElements.toList().subList(0, 6)).containsExactly(
+      "Defaultnull Icons.Filled",
+      "Filled (androidx.compose.material.icons.Icons)",
+      "Outlined (androidx.compose.material.icons.Icons)",
+      "Rounded (androidx.compose.material.icons.Icons)",
+      "Sharp (androidx.compose.material.icons.Icons)",
+      "TwoTone (androidx.compose.material.icons.Icons)"
+    ).inOrder()
+  }
+
+  @Test
   fun testLookupElementOrder_namedArgument() {
     myFixture.addFileToProject(
       "src/com/example/MyViews.kt",
