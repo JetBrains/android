@@ -13,109 +13,105 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanager.virtualtab;
+package com.android.tools.idea.devicemanager.virtualtab
 
-import com.android.sdklib.internal.avd.AvdInfo;
-import com.android.tools.idea.avdmanager.AvdManagerConnection;
-import com.android.tools.idea.devicemanager.CountDownLatchAssert;
-import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback;
-import com.android.tools.idea.devicemanager.Key;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import java.awt.Component;
-import java.util.concurrent.CountDownLatch;
-import javax.swing.AbstractButton;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-import org.mockito.Mockito;
+import com.android.sdklib.internal.avd.AvdInfo
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.avdmanager.AvdManagerConnection
+import com.android.tools.idea.devicemanager.CountDownLatchAssert
+import com.android.tools.idea.devicemanager.CountDownLatchFutureCallback
+import com.android.tools.idea.devicemanager.Key
+import com.google.common.util.concurrent.FutureCallback
+import com.google.common.util.concurrent.Futures.immediateFuture
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.junit.runners.JUnit4
+import org.mockito.Mockito.never
+import org.mockito.Mockito.verify
+import java.awt.Component
+import java.util.concurrent.CountDownLatch
 
-@RunWith(JUnit4.class)
-public final class WipeDataItemTest {
-  private final @NotNull AvdInfo myAvd;
-  private final @NotNull AvdManagerConnection myConnection;
-  private final @NotNull VirtualDeviceTable myTable;
-  private final @NotNull VirtualDevicePopUpMenuButtonTableCellEditor myEditor;
+@RunWith(JUnit4::class)
+class WipeDataItemTest {
 
-  public WipeDataItemTest() {
-    myAvd = Mockito.mock(AvdInfo.class);
-    myConnection = Mockito.mock(AvdManagerConnection.class);
-    myTable = Mockito.mock(VirtualDeviceTable.class);
+  private val myAvd: AvdInfo
+  private val myConnection: AvdManagerConnection
+  private val myTable: VirtualDeviceTable
+  private val myEditor: VirtualDevicePopUpMenuButtonTableCellEditor
 
-    VirtualDevicePanel panel = Mockito.mock(VirtualDevicePanel.class);
-    Mockito.when(panel.getTable()).thenReturn(myTable);
-
-    myEditor = Mockito.mock(VirtualDevicePopUpMenuButtonTableCellEditor.class);
-    Mockito.when(myEditor.getPanel()).thenReturn(panel);
+  init {
+    myAvd = mock()
+    myConnection = mock()
+    myTable = mock()
+    val panel = mock<VirtualDevicePanel>()
+    whenever(panel.table).thenReturn(myTable)
+    myEditor = mock()
+    whenever(myEditor.panel).thenReturn(panel)
   }
 
   @Test
-  public void wipeDataItemDeviceIsOnline() {
+  fun wipeDataItemDeviceIsOnline() {
     // Arrange
-    Mockito.when(myEditor.getDevice()).thenReturn(TestVirtualDevices.onlinePixel5Api31(myAvd));
+    whenever(myEditor.device).thenReturn(TestVirtualDevices.onlinePixel5Api31(myAvd))
 
-    AbstractButton item = new WipeDataItem(myEditor,
-                                           WipeDataItemTest::showCannotWipeARunningAvdDialog,
-                                           (device, component) -> false,
-                                           () -> myConnection,
-                                           WipeDataItem::newSetSelectedDeviceFutureCallback);
+    val item = WipeDataItem(myEditor,
+                            { component -> showCannotWipeARunningAvdDialog(component) },
+                            { device, component -> false },
+                            { myConnection },
+                            { table -> WipeDataItem.newSetSelectedDeviceFutureCallback(table) })
 
     // Act
-    item.doClick();
+    item.doClick()
 
     // Assert
-    Mockito.verify(myTable, Mockito.never()).setSelectedDevice(TestVirtualDevices.PIXEL_5_API_31_KEY);
+    verify(myTable, never()).setSelectedDevice(TestVirtualDevices.PIXEL_5_API_31_KEY)
   }
 
   @Test
-  public void wipeDataItemNotWipe() {
+  fun wipeDataItemNotWipe() {
     // Arrange
-    Mockito.when(myEditor.getDevice()).thenReturn(TestVirtualDevices.pixel5Api31(myAvd));
+    whenever(myEditor.device).thenReturn(TestVirtualDevices.pixel5Api31(myAvd))
 
-    AbstractButton item = new WipeDataItem(myEditor,
-                                           WipeDataItemTest::showCannotWipeARunningAvdDialog,
-                                           (device, component) -> false,
-                                           () -> myConnection,
-                                           WipeDataItem::newSetSelectedDeviceFutureCallback);
+    val item = WipeDataItem(myEditor,
+                            { component -> showCannotWipeARunningAvdDialog(component) },
+                            { device, component -> false },
+                            { myConnection },
+                            { table -> WipeDataItem.newSetSelectedDeviceFutureCallback(table) })
 
     // Act
-    item.doClick();
+    item.doClick()
 
     // Assert
-    Mockito.verify(myTable, Mockito.never()).setSelectedDevice(TestVirtualDevices.PIXEL_5_API_31_KEY);
+    verify(myTable, never()).setSelectedDevice(TestVirtualDevices.PIXEL_5_API_31_KEY)
   }
 
   @Test
-  public void wipeDataItem() throws Exception {
+  fun wipeDataItem() {
     // Arrange
-    Mockito.when(myEditor.getDevice()).thenReturn(TestVirtualDevices.pixel5Api31(myAvd));
-    Mockito.when(myConnection.wipeUserDataAsync(myAvd)).thenReturn(Futures.immediateFuture(true));
+    whenever(myEditor.device).thenReturn(TestVirtualDevices.pixel5Api31(myAvd))
+    whenever(myConnection.wipeUserDataAsync(myAvd)).thenReturn(immediateFuture(true))
+    whenever(myTable.reloadDevice(TestVirtualDevices.PIXEL_5_API_31_KEY)).thenReturn(immediateFuture(TestVirtualDevices.PIXEL_5_API_31_KEY))
 
-    Mockito.when(myTable.reloadDevice(TestVirtualDevices.PIXEL_5_API_31_KEY))
-      .thenReturn(Futures.immediateFuture(TestVirtualDevices.PIXEL_5_API_31_KEY));
-
-    CountDownLatch latch = new CountDownLatch(1);
-
-    AbstractButton item = new WipeDataItem(myEditor,
-                                           WipeDataItemTest::showCannotWipeARunningAvdDialog,
-                                           (device, component) -> true,
-                                           () -> myConnection,
-                                           table -> newSetSelectedDeviceFutureCallback(table, latch));
+    val latch = CountDownLatch(1)
+    val item = WipeDataItem(myEditor,
+                            { component -> showCannotWipeARunningAvdDialog(component) },
+                            { device, component -> true },
+                            { myConnection },
+                            { table -> newSetSelectedDeviceFutureCallback(table, latch) })
 
     // Act
-    item.doClick();
+    item.doClick()
 
     // Assert
-    CountDownLatchAssert.await(latch);
-    Mockito.verify(myTable).setSelectedDevice(TestVirtualDevices.PIXEL_5_API_31_KEY);
+    CountDownLatchAssert.await(latch)
+    verify(myTable).setSelectedDevice(TestVirtualDevices.PIXEL_5_API_31_KEY)
   }
 
-  private static @NotNull FutureCallback<Key> newSetSelectedDeviceFutureCallback(@NotNull VirtualDeviceTable table,
-                                                                                          @NotNull CountDownLatch latch) {
-    return new CountDownLatchFutureCallback<>(WipeDataItem.newSetSelectedDeviceFutureCallback(table), latch);
-  }
+  companion object {
+    private fun newSetSelectedDeviceFutureCallback(table: VirtualDeviceTable, latch: CountDownLatch): FutureCallback<Key> =
+      CountDownLatchFutureCallback(WipeDataItem.newSetSelectedDeviceFutureCallback(table), latch)
 
-  private static void showCannotWipeARunningAvdDialog(@NotNull Component component) {
+    private fun showCannotWipeARunningAvdDialog(component: Component) {}
   }
 }
