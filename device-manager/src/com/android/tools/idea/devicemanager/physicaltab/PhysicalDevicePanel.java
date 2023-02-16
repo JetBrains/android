@@ -176,7 +176,8 @@ public final class PhysicalDevicePanel extends DevicePanel {
 
   @Override
   protected @NotNull DetailsPanel newDetailsPanel() {
-    return myNewPhysicalDeviceDetailsPanel.apply(getTable().getSelectedDevice().orElseThrow(AssertionError::new), myProject);
+    var panel = getTable().getSelectedDevice().map(device -> myNewPhysicalDeviceDetailsPanel.apply(device, myProject));
+    return panel.orElseGet(super::newDetailsPanel);
   }
 
   @Nullable

@@ -28,6 +28,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBDimension;
 import java.awt.Dimension;
+import java.util.Optional;
 import javax.swing.AbstractButton;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -103,10 +104,12 @@ public final class VirtualDevicePanel extends DevicePanel {
 
   @Override
   protected @NotNull DetailsPanel newDetailsPanel() {
-    return new VirtualDeviceDetailsPanel(((VirtualDeviceTable)myTable).getSelectedDevice().orElseThrow(AssertionError::new), myProject);
+    Optional<DetailsPanel> panel = getTable().getSelectedDevice().map(device -> new VirtualDeviceDetailsPanel(device, myProject));
+    return panel.orElseGet(super::newDetailsPanel);
   }
 
-  @NotNull VirtualDeviceTable getTable() {
+  @NotNull
+  VirtualDeviceTable getTable() {
     return (VirtualDeviceTable)myTable;
   }
 
