@@ -40,7 +40,6 @@ import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.StudioAndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,7 +74,7 @@ public class SdksCleanupUtil {
   @Nullable
   private static IAndroidTarget getTarget(@NotNull Sdk sdk) {
     AndroidSdkAdditionalData additionalData = AndroidSdkAdditionalData.from(sdk);
-    AndroidSdkData sdkData = StudioAndroidSdkData.getSdkData(sdk);
+    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
     if (additionalData == null || sdkData == null) {
       return null;
     }

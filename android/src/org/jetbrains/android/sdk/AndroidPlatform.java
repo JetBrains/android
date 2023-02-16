@@ -66,7 +66,7 @@ public class AndroidPlatform {
     if (!AndroidSdks.getInstance().isAndroidSdk(sdk)) {
       return null;
     }
-    AndroidSdkData sdkData = StudioAndroidSdkData.getSdkData(sdk);
+    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
     if (sdkData != null) {
       SdkAdditionalData data = sdk.getSdkAdditionalData();
       if (data instanceof AndroidSdkAdditionalData) {

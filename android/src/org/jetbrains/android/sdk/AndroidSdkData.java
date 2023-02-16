@@ -27,6 +27,7 @@ import com.android.tools.idea.sdk.AndroidSdkPath;
 import com.android.tools.idea.sdk.IdeDeviceManagers;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.projectRoots.Sdk;
 import java.lang.ref.SoftReference;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -80,6 +81,15 @@ public class AndroidSdkData {
   @Nullable
   public static AndroidSdkData getSdkData(@NotNull String sdkPath) {
     return getSdkData(FilePaths.stringToFile(sdkPath));
+  }
+
+  @Nullable
+  public static AndroidSdkData getSdkData(@NotNull Sdk sdk) {
+    String sdkHomePath = sdk.getHomePath();
+    if (sdkHomePath != null) {
+      return getSdkData(sdk.getHomePath());
+    }
+    return null;
   }
 
   private AndroidSdkData(@NotNull File localSdk) {

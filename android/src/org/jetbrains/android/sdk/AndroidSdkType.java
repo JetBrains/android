@@ -3,7 +3,7 @@ package org.jetbrains.android.sdk;
 
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static org.jetbrains.android.sdk.StudioAndroidSdkData.getSdkData;
+import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.getTargetPresentableName;
 
 import com.android.sdklib.AndroidVersion;

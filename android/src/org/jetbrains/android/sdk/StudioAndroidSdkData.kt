@@ -69,10 +69,7 @@ class StudioAndroidSdkData {
     fun getSdkHolder(facet: AndroidFacet) = ModuleSdkDataHolder.getInstance(facet).sdkHandler
 
     @JvmStatic
-    fun getSdkData(sdk: Sdk) = sdk.homePath?.let { AndroidSdkData.getSdkData(it) }
-
-    @JvmStatic
-    fun getSdkData(project: Project) = ProjectRootManager.getInstance(project).projectSdk?.let { getSdkData(it) }
+    fun getSdkData(project: Project) = ProjectRootManager.getInstance(project).projectSdk?.let { AndroidSdkData.getSdkData(it) }
 
     @JvmStatic
     fun getSdkData(module: Module) = getSdkData(module.project)
