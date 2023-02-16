@@ -101,14 +101,12 @@ final class VirtualDevicePopUpMenuButtonTableCellEditor extends PopUpMenuButtonT
       return;
     }
 
-    switch (myDevice.getType()) {
-      case PHONE, WEAR_OS -> {
-        items.add(newPairDeviceItem());
-        newViewPairedDevicesItem(EventKind.VIRTUAL_UNPAIR_DEVICE_ACTION).ifPresent(items::add);
-      }
-      default -> {
-      }
+    if (!getDevice().isPairable()) {
+      return;
     }
+
+    items.add(newPairDeviceItem());
+    newViewPairedDevicesItem(EventKind.VIRTUAL_UNPAIR_DEVICE_ACTION).ifPresent(items::add);
   }
 
   private @NotNull JComponent newPairDeviceItem() {
