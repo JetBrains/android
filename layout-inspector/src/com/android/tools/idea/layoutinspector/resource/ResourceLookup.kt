@@ -155,6 +155,7 @@ class ResourceLookup(private val project: Project) {
   /**
    * Find the lambda source location.
    */
+  @Slow
   fun findLambdaLocation(
     packageName: String,
     fileName: String,
