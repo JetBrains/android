@@ -15,7 +15,20 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_AREAS;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_COUNT;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_DEFAULTS;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_RANGES;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_SUB_TYPE;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_HINGE_TYPE;
+import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_POSTURE_LISTS;
 import static com.android.sdklib.internal.avd.AvdManager.AVD_INI_RESIZABLE_CONFIG;
+import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_HEIGHT;
+import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_WIDTH;
+import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_X_OFFSET;
+import static com.android.sdklib.internal.avd.HardwareProperties.HW_LCD_FOLDED_Y_OFFSET;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.repository.Revision;
@@ -129,6 +142,20 @@ public class AvdManagerConnectionTest extends AndroidTestCase {
       null,
       hardwareProperties,
       false);
+    assertThat(hardwareProperties.get(HW_LCD_FOLDED_WIDTH)).isEqualTo("884");
+    assertThat(hardwareProperties.get(HW_LCD_FOLDED_HEIGHT)).isEqualTo("2208");
+    assertThat(hardwareProperties.get(HW_LCD_FOLDED_X_OFFSET)).isEqualTo("0");
+    assertThat(hardwareProperties.get(HW_LCD_FOLDED_Y_OFFSET)).isEqualTo("0");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE)).isEqualTo("yes");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_COUNT)).isEqualTo("1");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_TYPE)).isEqualTo("1");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_SUB_TYPE)).isEqualTo("1");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_RANGES)).isEqualTo("0-180");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_DEFAULTS)).isEqualTo("180");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_AREAS)).isEqualTo("884-0-1-2208");
+    assertThat(hardwareProperties.get(AVD_INI_POSTURE_LISTS)).isEqualTo("1,2,3");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
+    assertThat(hardwareProperties.get(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS)).isEqualTo("0-30, 30-150, 150-180");
     assertThat(hardwareProperties.get(AVD_INI_RESIZABLE_CONFIG)).
       isEqualTo("phone-0-1080-2340-420, foldable-1-1768-2208-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160");
   }

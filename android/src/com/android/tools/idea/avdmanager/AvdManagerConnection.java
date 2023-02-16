@@ -1014,6 +1014,15 @@ public class AvdManagerConnection {
       hardwareProperties.put(AVD_INI_ROLL_PERCENTAGES_POSTURE_DEFINITIONS, "58.55-76.45, 76.45-94.35, 94.35-100");
     }
     if (device.getId().equals("resizable")) {
+      hardwareProperties.put(AVD_INI_HINGE, "yes");
+      hardwareProperties.put(AVD_INI_HINGE_COUNT, "1");
+      hardwareProperties.put(AVD_INI_HINGE_TYPE, "1");
+      hardwareProperties.put(AVD_INI_HINGE_SUB_TYPE, "1");
+      hardwareProperties.put(AVD_INI_HINGE_RANGES, "0-180");
+      hardwareProperties.put(AVD_INI_HINGE_DEFAULTS, "180");
+      hardwareProperties.put(AVD_INI_HINGE_AREAS, "884-0-1-2208");
+      hardwareProperties.put(AVD_INI_POSTURE_LISTS, "1,2,3");
+      hardwareProperties.put(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS, "0-30, 30-150, 150-180");
       hardwareProperties.put(AVD_INI_RESIZABLE_CONFIG, "phone-0-1080-2340-420, foldable-1-1768-2208-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160");
     }
     if (currentInfo != null && !avdName.equals(currentInfo.getName()) && removePrevious) {
