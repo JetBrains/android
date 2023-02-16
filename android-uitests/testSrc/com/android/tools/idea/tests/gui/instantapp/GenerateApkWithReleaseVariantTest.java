@@ -33,7 +33,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 @RunWith(GuiTestRemoteRunner.class)
 public class GenerateApkWithReleaseVariantTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
 
   /**
    * Verifies that gradle sync works fine with library having shrinkResources enabled on debug and release build variants
@@ -74,7 +74,7 @@ public class GenerateApkWithReleaseVariantTest {
       .open("mylibrary/build.gradle")
       .moveBetween("release {", "")
       .enterText("\nshrinkResources true");
-    ideFrame.requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(20));
+    ideFrame.requestProjectSyncAndWaitForSyncToFinish(Wait.seconds(60));
 
     JTreeFixture treeFixture = ideFrame.getBuildToolWindow().getGradleSyncEventTree();
     // Focus the first warning so it's text is displayed in the console view

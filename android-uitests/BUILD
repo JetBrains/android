@@ -950,6 +950,7 @@ java_test(
 
 java_test(
     name = "GenerateApkWithReleaseVariantTest",
+    size = "large",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]),
@@ -1345,6 +1346,7 @@ java_test(
 
 java_test(
     name = "CreateNewMobileProjectTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ],

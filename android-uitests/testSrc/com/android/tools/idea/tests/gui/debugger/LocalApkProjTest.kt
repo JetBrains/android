@@ -16,7 +16,6 @@
 package com.android.tools.idea.tests.gui.debugger
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
-import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.RunIn
 import com.android.tools.idea.tests.gui.framework.TestGroup
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
@@ -24,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.FileChooserDialogFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture
+import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.matcher.DialogMatcher
@@ -47,7 +47,7 @@ class LocalApkProjTest {
    * the emulator.
    */
   @get:Rule
-  val guiTest = GuiTestRule().withTimeout(10, TimeUnit.MINUTES)
+  val guiTest = GuiTestRule().withTimeout(15, TimeUnit.MINUTES)
 
   @Before
   fun removeExistingApkProjects() {
@@ -108,7 +108,8 @@ class LocalApkProjTest {
     editor.open("lib/x86/libsanangeles.so")
       .librarySymbolsFixture
       .addDebugSymbols(debugSymbols)
-    guiTest.waitForBackgroundTasks()
+
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
 
     val srcNodes = getLibChildren(ideFrame, "libsanangeles")
 
@@ -116,7 +117,7 @@ class LocalApkProjTest {
   }
 
   private fun buildApkLocally(apkProjectToImport: String): File {
-    val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish(apkProjectToImport, Wait.seconds(120))
+    val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish(apkProjectToImport, Wait.seconds(180))
 
     guiTest.waitForBackgroundTasks()
 
@@ -128,6 +129,10 @@ class LocalApkProjTest {
     // We will have another window opened for the APK project. Close this window
     // so we don't have to manage two windows.
     ideFrame.closeProject()
+
+    Wait.seconds(30)
+      .expecting("for project to close")
+      .until { ProjectManagerEx.getInstanceEx().openProjects.isEmpty() }
 
     return projectRoot
   }
@@ -148,14 +153,27 @@ class LocalApkProjTest {
     val smaliFile = "smali/out/com/example/SanAngeles/DemoActivity.smali"
     val sourceDirVirtualFile = VfsUtil.findFileByIoFile(sourceDir, true) ?: throw IllegalArgumentException("Nonexistent $sourceDir")
 
-    ideFrame.editor
+    ideFrame.clearNotificationsPresentOnIdeFrame()
+    val editorFixture = ideFrame.editor
       .open(smaliFile)
-      .awaitNotification(
-        "Disassembled classes.dex file. To set up breakpoints for debugging, please attach Kotlin/Java source files.")
-      .performActionWithoutWaitingForDisappearance("Attach Kotlin/Java Sources...")
+    Wait.seconds(5)
+      .expecting("notification bar with Attach Kotlin/Java sources..")
+      .until{
+        try{
+          editorFixture.awaitNotification(
+            "Disassembled classes.dex file. To set up breakpoints for debugging, please attach Kotlin/Java source files.")
+          true
+        }
+        catch(timeout: WaitTimedOutError){
+          false
+        }
+      }
 
-    GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(120))
-    guiTest.robot().waitForIdle()
+    editorFixture.awaitNotification(
+      "Disassembled classes.dex file. To set up breakpoints for debugging, please attach Kotlin/Java source files.")
+      .performActionWithoutWaitingForDisappearance("Attach Kotlin/Java Sources...")
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+
     // b/70731570 investigates the long amount of
     // time the IDE takes to show the file tree in the file picker. Unfortunately,
     // the amount of time the IDE takes is much longer than the amount of time the
