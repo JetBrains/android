@@ -78,15 +78,15 @@ class ScreenRecorderAction : DumbAwareAction(
     val params = event.getData(SCREEN_RECORDER_PARAMETERS_KEY) ?: return
     val project = event.project ?: return
     val serialNumber = params.serialNumber
-    val dialog = ScreenRecorderOptionsDialog(project, serialNumber.isEmulator(), params.apiLevel)
+    val dialog = ScreenRecorderOptionsDialog(project, serialNumber.isEmulator(), params.featureLevel)
     if (dialog.showAndGet()) {
       startRecordingAsync(params, dialog.useEmulatorRecording, project)
     }
   }
 
   private fun isScreenRecordingSupported(params: Parameters, project: Project): Boolean {
-    return params.apiLevel >= 19 &&
-           ScreenRecordingSupportedCache.getInstance(project).isScreenRecordingSupported(params.serialNumber, params.apiLevel)
+    return params.featureLevel >= 19 &&
+           ScreenRecordingSupportedCache.getInstance(project).isScreenRecordingSupported(params.serialNumber, params.featureLevel)
   }
 
   @UiThread
@@ -105,7 +105,7 @@ class ScreenRecorderAction : DumbAwareAction(
     coroutineScope.launch(exceptionHandler) {
       val showTouchEnabled = isShowTouchEnabled(adbSession, serialNumber)
       val size = getDeviceScreenSize(adbSession, serialNumber)
-      val timeLimitSec = if (emulatorRecordingFile != null || params.apiLevel >= 34) MAX_RECORDING_DURATION_MINUTES * 60 else 0
+      val timeLimitSec = if (emulatorRecordingFile != null || params.featureLevel >= 34) MAX_RECORDING_DURATION_MINUTES * 60 else 0
       val options: ScreenRecorderOptions = ScreenRecorderPersistentOptions.getInstance().toScreenRecorderOptions(size, timeLimitSec)
       if (options.showTouches != showTouchEnabled) {
         setShowTouch(adbSession, serialNumber, options.showTouches)
@@ -226,7 +226,7 @@ class ScreenRecorderAction : DumbAwareAction(
   data class Parameters(
     val deviceName: String,
     val serialNumber: String,
-    val apiLevel: Int,
+    val featureLevel: Int,
     val avdId: String?,
     val recordingLifetimeDisposable: Disposable,
   )
