@@ -91,14 +91,12 @@ class AnimationInspectionsTest {
     )
 
     fixture.addFileToProjectAndInvalidate(
-      "src/androidx/compose/animation/TransitionProperties.kt",
+      "src/androidx/compose/animation/Transition.kt",
       // language=kotlin
       """
       package androidx.compose.animation
 
       fun Transition.animateColor(transitionSpec: () -> Unit, label: String = "ColorAnimation") {}
-
-      fun animateColorAsState(transitionSpec: () -> Unit, label: String = "ColorState") {}
       """.trimIndent()
     )
     fixture.addFileToProjectAndInvalidate(
@@ -108,6 +106,18 @@ class AnimationInspectionsTest {
       package androidx.compose.animation.core
 
       fun animateFloatAsState(targetValue: Float, label: String = "FloatAnimation") {}
+      // In previous versions of compose label didn't existed.
+      fun animateIntAsState(targetValue: Int) {}
+
+      """.trimIndent()
+    )
+    fixture.addFileToProjectAndInvalidate(
+      "src/androidx/compose/animation/SingleValueAnimation.kt",
+      // language=kotlin
+      """
+      package androidx.compose.animation
+
+      fun animateColorAsState(targetValue: Any, label: String = "ColorAnimation") {}
       """.trimIndent()
     )
     fixture.addFileToProjectAndInvalidate(
@@ -350,6 +360,42 @@ class AnimationInspectionsTest {
   }
 
   @Test
+  fun animateIntAsStateLabelNotSet() {
+    // language=kotlin
+    val fileContent =
+      """
+      import androidx.compose.animation.core.animateIntAsState
+
+      fun MyComposable() {
+        animateIntAsState(10)
+      }
+    """.trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    // It's expected there is no warning as animateIntAsState doesn't have a label parameter.
+    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+  }
+
+  @Test
+  fun animateColorAsStateLabelNotSet() {
+    // language=kotlin
+    val fileContent =
+      """
+      import androidx.compose.animation.animateColorAsState
+
+      fun MyComposable() {
+        animateColorAsState(10f)
+      }
+    """.trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    assertEquals(
+      ANIMATE_AS_STATE_LABEL_NOT_SET_MESSAGE,
+      fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).single().description
+    )
+  }
+
+  @Test
   fun animateAsStateLabelSetExplicitly() {
     // language=kotlin
     val fileContent =
@@ -358,6 +404,22 @@ class AnimationInspectionsTest {
 
       fun MyComposable() {
         animateFloatAsState(targetValue = 10f, label = "Label")
+      }
+    """.trimIndent()
+
+    fixture.configureByText("Test.kt", fileContent)
+    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
+  }
+
+  @Test
+  fun animateColorAsStateLabelSetExplicitly() {
+    // language=kotlin
+    val fileContent =
+      """
+       import androidx.compose.animation.animateColorAsState
+
+      fun MyComposable() {
+        animateColorAsState(targetValue = 10f, label = "Label")
       }
     """.trimIndent()
 
@@ -715,25 +777,6 @@ class AnimationInspectionsTest {
     fixture.configureByText("Test.kt", fileContent)
     // The animateColor method is not defined in one of the Compose animation packages, so we don't
     // show a warning.
-    assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
-  }
-
-  @Test
-  fun testAnimateColorAsStateAnimationPackage() {
-    // language=kotlin
-    val fileContent =
-      """
-      import androidx.compose.animation.animateColorAsState
-
-      fun MyComposable() {
-        animateColorAsState(transitionSpec = {})
-      }
-    """.trimIndent()
-
-    fixture.configureByText("Test.kt", fileContent)
-    // The animateColorAsState method is defined in one of the Compose animation packages, but it's
-    // not a Transition extension function so
-    // we don't show a warning.
     assertTrue(fixture.doHighlighting(HighlightSeverity.WEAK_WARNING).isEmpty())
   }
 

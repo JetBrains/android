@@ -41,6 +41,8 @@ private const val COMPOSE_ANIMATION_PACKAGE_PREFIX = "androidx.compose.animation
 private const val UPDATE_TRANSITION_FQN = "$COMPOSE_ANIMATION_PACKAGE_PREFIX.core.updateTransition"
 private const val ANIMATED_CONTENT_FQN = "$COMPOSE_ANIMATION_PACKAGE_PREFIX.AnimatedContent"
 private const val ANIMATE_AS_STATE_FQN_PREFIX = "$COMPOSE_ANIMATION_PACKAGE_PREFIX.core.animate"
+private const val ANIMATE_COLOR_AS_STATE_FQN =
+  "$COMPOSE_ANIMATION_PACKAGE_PREFIX.animateColorAsState"
 private const val ANIMATE_AS_STATE_FQN_SUFFIX = "AsState"
 private const val REMEMBER_INFINITE_TRANSITION_FQN =
   "$COMPOSE_ANIMATION_PACKAGE_PREFIX.core.rememberInfiniteTransition"
@@ -82,7 +84,8 @@ class AnimatedContentLabelInspection : FunctionLabelInspection() {
 class AnimateAsStateLabelInspection : FunctionLabelInspection() {
 
   override val fqNameCheck: (String) -> Boolean = {
-    it.startsWith(ANIMATE_AS_STATE_FQN_PREFIX) && it.endsWith(ANIMATE_AS_STATE_FQN_SUFFIX)
+    it.startsWith(ANIMATE_AS_STATE_FQN_PREFIX) && it.endsWith(ANIMATE_AS_STATE_FQN_SUFFIX) ||
+      it == ANIMATE_COLOR_AS_STATE_FQN
   }
 
   override val animationType: String
@@ -134,6 +137,10 @@ abstract class FunctionLabelInspection : AbstractKotlinInspection() {
         override fun visitCallExpression(expression: KtCallExpression) {
           super.visitCallExpression(expression)
           val resolvedExpression = expression.resolveToCall() ?: return
+          // For compatibility between versions and with existence of different methods overrides,
+          // we need to check if resolved expression actually can have "label" argument.
+          if (!resolvedExpression.valueArguments.keys.any { it.name.toString() == LABEL_PARAMETER })
+            return
           // First, check we're analyzing the right call
           val fqName = resolvedExpression.resultingDescriptor.fqNameOrNull()?.asString() ?: return
           if (!fqNameCheck(fqName)) return
@@ -177,6 +184,10 @@ class TransitionPropertiesLabelInspection : AbstractKotlinInspection() {
         override fun visitCallExpression(expression: KtCallExpression) {
           super.visitCallExpression(expression)
           val resolvedExpression = expression.resolveToCall() ?: return
+          // For compatibility between versions and with existence of different methods overrides,
+          // we need to check if resolved expression actually can have "label" argument.
+          if (!resolvedExpression.valueArguments.keys.any { it.name.toString() == LABEL_PARAMETER })
+            return
           // First, check we're visiting an extension method of Transition<T>
           if ((resolvedExpression.extensionReceiver?.type as? SimpleType)?.fqName?.asString() !=
               TRANSITION_FQN
