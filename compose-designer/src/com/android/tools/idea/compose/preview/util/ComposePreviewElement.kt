@@ -219,11 +219,6 @@ private fun Device.withoutRoundScreenFrame(): Device =
  * specified in the [PreviewConfiguration.deviceSpec] is not available or does not exist in the
  * devices returned by [devicesProvider].
  *
- * If [useDeviceFrame] is false, the device frame configuration will be not used. For example, if
- * the frame is round, this will be ignored and a regular square frame will be applied. This can be
- * used when the `@Preview` element is not displaying the device decorations so the device frame
- * sizes and ratios would not match.
- *
  * If [customSize] is not null, the dimensions will be forced in the resulting configuration.
  */
 private fun PreviewConfiguration.applyTo(
@@ -231,8 +226,7 @@ private fun PreviewConfiguration.applyTo(
   highestApiTarget: (Configuration) -> IAndroidTarget?,
   devicesProvider: (Configuration) -> Collection<Device>,
   defaultDeviceProvider: (Configuration) -> Device?,
-  @AndroidDpCoordinate customSize: Dimension? = null,
-  useDeviceFrame: Boolean = false
+  @AndroidDpCoordinate customSize: Dimension? = null
 ) {
   fun updateRenderConfigurationTargetIfChanged(newTarget: CompatibilityRenderTarget) {
     if ((renderConfiguration.target as? CompatibilityRenderTarget)?.hashString() !=
@@ -321,8 +315,7 @@ fun ComposePreviewElement.applyTo(renderConfiguration: Configuration) {
     { it.configurationManager.highestApiTarget },
     { it.configurationManager.devices },
     { it.configurationManager.getDefaultPreviewDevice() },
-    getCustomDeviceSize(),
-    this.displaySettings.showDecoration
+    getCustomDeviceSize()
   )
 }
 
@@ -331,17 +324,9 @@ fun PreviewConfiguration.applyConfigurationForTest(
   renderConfiguration: Configuration,
   highestApiTarget: (Configuration) -> IAndroidTarget?,
   devicesProvider: (Configuration) -> Collection<Device>,
-  defaultDeviceProvider: (Configuration) -> Device?,
-  useDeviceFrame: Boolean = false
+  defaultDeviceProvider: (Configuration) -> Device?
 ) {
-  applyTo(
-    renderConfiguration,
-    highestApiTarget,
-    devicesProvider,
-    defaultDeviceProvider,
-    null,
-    useDeviceFrame
-  )
+  applyTo(renderConfiguration, highestApiTarget, devicesProvider, defaultDeviceProvider, null)
 }
 
 @TestOnly
