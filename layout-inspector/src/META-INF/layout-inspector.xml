@@ -19,6 +19,17 @@
     <action id="Android.RunLayoutInspector" class="com.android.tools.idea.layoutinspector.ShowLayoutInspectorAction">
       <add-to-group group-id="AndroidToolsGroup" />
     </action>
+
+    <action
+        id="com.android.tools.idea.layoutinspector.toggle.layout.inspector.action"
+        class="com.android.tools.idea.layoutinspector.runningdevices.ToggleLayoutInspectorAction"
+        text="Toggle Layout Inspector"
+        description="Toggles Layout Inspection on and off for this device."
+        icon="AllIcons.Actions.Find" >
+      <add-to-group group-id="StreamingToolbarSecondary" anchor="last"/>
+    </action>
+
+
   </actions>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -41,6 +52,9 @@
     <applicationService serviceImplementation="com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings"/>
 
     <projectService serviceImplementation="com.android.tools.idea.layoutinspector.LayoutInspectorProjectService" />
+    <projectService
+        serviceInterface="com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager"
+        serviceImplementation="com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerImpl" />
   </extensions>
 
   <extensions defaultExtensionNs="com.android.run">

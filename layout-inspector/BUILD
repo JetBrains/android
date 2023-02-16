@@ -59,6 +59,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
+        "//tools/adt/idea/streaming:intellij.android.streaming[module]",
     ],
 )
 
@@ -125,6 +126,7 @@ iml_module(
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
+        "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
     ],
 )
 

@@ -725,6 +725,9 @@
     <option name="history" path="ActionManager" hit="Test History" />
     <option name="test" path="ActionManager" hit="Test History" />
     <option name="tilt" path="ActionManager" hit="Tilt" />
+    <option name="inspector" path="ActionManager" hit="Toggle Layout Inspector" />
+    <option name="layout" path="ActionManager" hit="Toggle Layout Inspector" />
+    <option name="toggle" path="ActionManager" hit="Toggle Layout Inspector" />
     <option name="formatting" path="ActionManager" hit="Toggle Logcat Formatting" />
     <option name="logcat" path="ActionManager" hit="Toggle Logcat Formatting" />
     <option name="toggle" path="ActionManager" hit="Toggle Logcat Formatting" />
@@ -750,6 +753,15 @@
     <option name="toggle" path="ActionManager" hit="Toggle using soft wraps in current editor" />
     <option name="using" path="ActionManager" hit="Toggle using soft wraps in current editor" />
     <option name="wraps" path="ActionManager" hit="Toggle using soft wraps in current editor" />
+    <option name="and" path="ActionManager" hit="Toggles Layout Inspection on and off for this device." />
+    <option name="device" path="ActionManager" hit="Toggles Layout Inspection on and off for this device." />
+    <option name="for" path="ActionManager" hit="Toggles Layout Inspection on and off for this device." />
+    <option name="inspection" path="ActionManager" hit="Toggles Layout Inspection on and off for this device." />
+    <option name="layout" path="ActionManager" hit="Toggles Layout Inspection on and off for this device." />
+    <option name="off" path="ActionManager" hit="Toggles Layout Inspection on and off for this device." />
+    <option name="on" path="ActionManager" hit="Toggles Layout Inspection on and off for this device." />
+    <option name="this" path="ActionManager" hit="Toggles Layout Inspection on and off for this device." />
+    <option name="toggles" path="ActionManager" hit="Toggles Layout Inspection on and off for this device." />
     <option name="resource" path="ActionManager" hit="Trace Resource Updates" />
     <option name="trace" path="ActionManager" hit="Trace Resource Updates" />
     <option name="updates" path="ActionManager" hit="Trace Resource Updates" />
