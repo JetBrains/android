@@ -55,7 +55,6 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
-        "//tools/base/annotations:studio.android.sdktools.android-annotations[module, test]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
@@ -70,6 +69,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.extensions[module, test]",
         "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
+        "//tools/adt/idea/streaming:intellij.android.streaming.testUtil[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/.idea/libraries:emulator-proto[test]",
         "//tools/adt/idea/.idea/libraries:ffmpeg[test]",
@@ -131,4 +131,27 @@ iml_test(
     tags_linux = ["block-network"],
     tags_windows = ["block-network"],
     test_class = "com.android.tools.idea.streaming.device.ScreenSharingAgentTestSuite",
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.streaming.testUtil",
+    iml_files = ["intellij.android.streaming.testUtil.iml"],
+    test_friends = ["//tools/adt/idea/streaming:intellij.android.streaming"],
+    test_srcs = ["testUtil"],
+    test_tags = ["manual"],  # testUtil is TEST scoped but contains no runnable tests
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
+        "//tools/adt/idea/.idea/libraries:studio-proto[test]",
+        "//tools/adt/idea/.idea/libraries:emulator-proto[test]",
+        "//tools/base/annotations:studio.android.sdktools.android-annotations[module, test]",
+        "//tools/base/common:studio.android.sdktools.common[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
+    ],
 )
