@@ -37,6 +37,7 @@ enum class UnsupportedPsiEvent {
   IMPORT_DIRECTIVES,
   CONSTRUCTORS,
   FIELD_CHANGES,
+  NON_KOTLIN,
 }
 
 fun isImportChanges(target: PsiElement?) : Boolean {

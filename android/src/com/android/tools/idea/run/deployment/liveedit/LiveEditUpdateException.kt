@@ -29,6 +29,7 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
     // Sorted lexicographically for readability and consistency
     ANALYSIS_ERROR("Resolution Analysis Error", "%", true),
     COMPILATION_ERROR("Compilation Error", "%", true),
+    NON_KOTLIN("Modified non-Kotlin source not supported", "%", false),
     NON_PRIVATE_INLINE_FUNCTION("Modified function is a non-private inline function", "%", true),
     UNABLE_TO_INLINE("Unable to inline function", "%", true),
     UNABLE_TO_LOCATE_COMPOSE_GROUP("Unable to locate Compose Invalid Group", "%", false),
@@ -56,6 +57,9 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
 
     fun internalError(details: String, cause: Throwable? = null) =
       LiveEditUpdateException(Error.INTERNAL_ERROR, details, null, cause)
+
+    fun nonKotlin(file: PsiFile) =
+      LiveEditUpdateException(Error.NON_KOTLIN, source = file, cause = null)
 
     fun unsupportedUnrecoverableSourceModification(type: String, file: PsiFile) =
       LiveEditUpdateException(Error.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE, type, file, null)

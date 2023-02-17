@@ -33,12 +33,12 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
  * innermost to outermost. This will be used to determine which compose groups to invalidate on the given change.
  */
 data class EditEvent(val file: PsiFile,
-                     val origin: KtElement,
+                     val origin: KtElement? = null,
                      val parentGroup: List<KtFunction> = emptyList(),
                      var unsupportedPsiEvents: ArrayList<UnsupportedPsiEvent> = ArrayList()) {
 
   constructor(file: PsiFile,
-              origin: KtElement,
+              origin: KtElement?,
               parentGroup: List<KtFunction> = emptyList(),
               unsupportedPsiEvent: UnsupportedPsiEvent) : this(file, origin, parentGroup) {
               unsupportedPsiEvents.add(unsupportedPsiEvent)
@@ -68,7 +68,13 @@ class PsiListener(val onPsiChanged: (EditEvent) -> Unit) : PsiTreeChangeListener
     // While this works "ok" for the most part, we need to figure out a better way to detect
     // the change is actually a function change somehow.
 
-    if (psiEvent.file == null || psiEvent.file !is KtFile) {
+    if (psiEvent.file == null) {
+      return
+    }
+
+    if (psiEvent.file !is KtFile) {
+      val event = EditEvent(psiEvent.file!!, origin = null, unsupportedPsiEvent = UnsupportedPsiEvent.NON_KOTLIN)
+      handleEvent(event)
       return
     }
 
@@ -121,14 +127,15 @@ class PsiListener(val onPsiChanged: (EditEvent) -> Unit) : PsiTreeChangeListener
     // sometimes contains event origins that is not valid or no longer exist in any file. In automatic mode this might not be a big
     // issue but in automatic mode, a single failing event can get merged into the big edit event which causes the single compiler
     // invocation to crash.
-    if (!event.origin.isValid || event.origin.containingFile == null) {
-      return
-    }
+    if (event.origin != null) {
+      if (!event.origin.isValid || event.origin.containingFile == null) {
+        return
+      }
 
-    if (isConstructor(event.origin)) {
-      event.unsupportedPsiEvents.add(UnsupportedPsiEvent.CONSTRUCTORS)
+      if (isConstructor(event.origin)) {
+        event.unsupportedPsiEvents.add(UnsupportedPsiEvent.CONSTRUCTORS)
+      }
     }
-
     onPsiChanged(event)
   }
 
