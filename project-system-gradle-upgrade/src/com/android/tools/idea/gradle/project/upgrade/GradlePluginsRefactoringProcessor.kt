@@ -206,6 +206,16 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
         VERSION_7_3_3, VERSION_7_4, VERSION_7_5, VERSION_FOR_DEV -> Version.parse("2.40.1")
       }
 
+    fun `com-google-protobuf-protobuf-gradle-plugin-compatibility-info`(compatibleGradleVersion: CompatibleGradleVersion): Version =
+      when (compatibleGradleVersion) {
+        VERSION_4_4, VERSION_4_6, VERSION_MIN, VERSION_4_10_1, VERSION_5_1_1, VERSION_5_4_1 -> Version.parse("0.8.8")
+        VERSION_5_6_4 -> Version.parse("0.8.11")
+        VERSION_6_1_1, VERSION_6_5, -> Version.parse("0.8.12")
+        VERSION_6_7_1 -> Version.parse("0.8.13")
+        VERSION_7_0_2, VERSION_7_2, VERSION_7_3_3, VERSION_7_4, VERSION_7_5 -> Version.parse("0.8.16")
+        VERSION_FOR_DEV -> Version.parse("0.9.0")
+      }
+
     /**
      * This table contains both the artifact names and the plugin names of the well known plugins, as each of them can be used to
      * declare that a project uses a given plugin or set of plugins (one through a `classpath` configuration, the other through the
@@ -239,6 +249,9 @@ class GradlePluginsRefactoringProcessor : AgpUpgradeComponentRefactoringProcesso
 
       "com.google.dagger:hilt-android-gradle-plugin" to ::`com-google-dagger-hilt-android-gradle-plugin-compatibility-info`,
       "dagger.hilt.android.plugin" to ::`com-google-dagger-hilt-android-gradle-plugin-compatibility-info`,
+
+      "com.google.protobuf:protobuf-gradle-plugin" to ::`com-google-protobuf-protobuf-gradle-plugin-compatibility-info`,
+      "com.google.protobuf" to  ::`com-google-protobuf-protobuf-gradle-plugin-compatibility-info`,
     )
   }
 }
