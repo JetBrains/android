@@ -22,7 +22,6 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.AndroidSdkPath;
 import com.android.tools.idea.sdk.IdeDeviceManagers;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
@@ -80,7 +79,7 @@ public class AndroidSdkData {
 
   @Nullable
   public static AndroidSdkData getSdkData(@NotNull String sdkPath) {
-    return getSdkData(FilePaths.stringToFile(sdkPath));
+    return getSdkData(new File(sdkPath));
   }
 
   @Nullable
