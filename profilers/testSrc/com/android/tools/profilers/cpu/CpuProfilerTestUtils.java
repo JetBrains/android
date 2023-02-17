@@ -15,7 +15,6 @@
  */
 package com.android.tools.profilers.cpu;
 
-import static com.android.tools.profilers.cpu.FakeCpuService.FAKE_STOPPING_DURATION_MS;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.testutils.TestUtils;
@@ -46,6 +45,8 @@ public class CpuProfilerTestUtils {
 
   private static final String CPU_TRACES_DIR = "tools/adt/idea/profilers/testData/cputraces/";
   public static final String ATRACE_DATA_FILE = CPU_TRACES_DIR + "atrace.ctrace";
+  public static final long FAKE_TRACE_ID = 6L;
+  public static final int FAKE_STOPPING_DURATION_MS = 123;
 
   private CpuProfilerTestUtils() {
   }
@@ -83,7 +84,7 @@ public class CpuProfilerTestUtils {
 
   public static CompletableFuture<CpuCapture> getCaptureFuture(File traceFile, TraceType profilerType) {
     CpuCaptureParser parser = new CpuCaptureParser(new FakeIdeProfilerServices());
-    return parser.parse(traceFile, FakeCpuService.FAKE_TRACE_ID, profilerType, 0, "");
+    return parser.parse(traceFile, FAKE_TRACE_ID, profilerType, 0, "");
   }
 
   public static CompletableFuture<CpuCapture> getCaptureFuture(File traceFile,
@@ -91,7 +92,7 @@ public class CpuProfilerTestUtils {
                                                                int processIdHint,
                                                                String processNameHint) {
     CpuCaptureParser parser = new CpuCaptureParser(new FakeIdeProfilerServices());
-    return parser.parse(traceFile, FakeCpuService.FAKE_TRACE_ID, profilerType, processIdHint, processNameHint);
+    return parser.parse(traceFile, FAKE_TRACE_ID, profilerType, processIdHint, processNameHint);
   }
 
   public static CpuCapture getCapture(File traceFile, TraceType profilerType) throws ExecutionException, InterruptedException {

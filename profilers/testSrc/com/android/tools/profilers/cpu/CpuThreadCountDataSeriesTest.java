@@ -35,8 +35,7 @@ import org.junit.Test;
 public class CpuThreadCountDataSeriesTest {
   private final FakeTransportService myTransportService = new FakeTransportService(new FakeTimer(), false);
   @Rule
-  public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("CpuThreadCountDataSeriesTest", new FakeCpuService(), myTransportService);
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuThreadCountDataSeriesTest", myTransportService);
   private DataSeries<Long> myDataSeries;
 
   @Before

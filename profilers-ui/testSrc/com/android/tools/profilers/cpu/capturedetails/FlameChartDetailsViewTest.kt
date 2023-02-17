@@ -33,8 +33,8 @@ import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCaptureParser
+import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
-import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
@@ -80,7 +80,7 @@ class FlameChartDetailsViewTest {
     val parser = CpuCaptureParser(FakeIdeProfilerServices())
 
     val traceFile = resolveWorkspacePath(CpuProfilerUITestUtils.ATRACE_PID1_PATH).toFile()
-    val atraceCapture = parser.parse(traceFile, FakeCpuService.FAKE_TRACE_ID, TraceType.ATRACE, 1, null).get()
+    val atraceCapture = parser.parse(traceFile, CpuProfilerTestUtils.FAKE_TRACE_ID, TraceType.ATRACE, 1, null).get()
 
     val flameChart = CaptureDetails.Type.FLAME_CHART.build(ClockType.GLOBAL, Range(Double.MIN_VALUE, Double.MAX_VALUE),
                                                            listOf(atraceCapture.getCaptureNode(atraceCapture.mainThreadId)!!),

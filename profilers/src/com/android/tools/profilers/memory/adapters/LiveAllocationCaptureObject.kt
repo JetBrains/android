@@ -109,7 +109,6 @@ class LiveAllocationCaptureObject(private val client: ProfilerClient,
   }
 
   override fun getSession() = session
-  override fun getClient() = client.memoryClient
   override fun getName() = "Live Allocation"
   override fun getExportableExtension() = null
   override fun saveToFile(outputStream: OutputStream) = throw UnsupportedOperationException()

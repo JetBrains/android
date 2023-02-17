@@ -104,11 +104,6 @@ public final class StudioFlags {
   //region Profiler
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
-  public static final Flag<Boolean> PROFILER_UNIFIED_PIPELINE = Flag.create(
-    PROFILER, "unified.pipeline", "Enables new event pipeline to be used for core components.",
-    "Toggles usage of gRPC apis to fetch data from perfd and the datastore.",
-    true);
-
   public static final Flag<Boolean> PROFILER_ENERGY_PROFILER_ENABLED = Flag.create(
     PROFILER, "energy", "Enable Energy profiling",
     "Enable the new energy profiler. It monitors battery usage of the selected app.", true);

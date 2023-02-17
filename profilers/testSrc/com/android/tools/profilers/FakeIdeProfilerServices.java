@@ -20,7 +20,6 @@ import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.idea.codenavigation.FakeNavSource;
 import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.profiler.proto.Memory;
-import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.analytics.FeatureTracker;
 import com.android.tools.profilers.cpu.FakeTracePreProcessor;
 import com.android.tools.profilers.cpu.TracePreProcessor;
@@ -109,11 +108,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
    * Whether long trace files should be parsed.
    */
   private boolean myShouldProceedYesNoDialog = false;
-
-  /**
-   * Whether the new pipeline is used or the old one for devices / processes / sessions.
-   */
-  private boolean myEventsPipelineEnabled = false;
 
   /**
    * Whether custom event visualization should be visible
@@ -268,11 +262,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isUnifiedPipelineEnabled() {
-        return myEventsPipelineEnabled;
-      }
-
-      @Override
       public boolean isComposeTracingNavigateToSourceEnabled() {
         return myComposeTracingNavigateToSourceEnabled;
       }
@@ -401,10 +390,6 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
     return myTraceProcessorService;
   }
 
-  public void setTraceProcessorService(@NotNull TraceProcessorService service) {
-    myTraceProcessorService = service;
-  }
-
   @Nullable
   public Notification getNotification() {
     return myNotification;
@@ -422,21 +407,9 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
     myIsJankDetectionUiEnabled = enabled;
   }
 
-  public void enableEventsPipeline(boolean enabled) {
-    myEventsPipelineEnabled = enabled;
-  }
-
   public void enableCustomEventVisualization(boolean enabled) { myCustomEventVisualizationEnabled = enabled; }
-
-  public void enableProfileableBuilds(boolean enabled) {
-    myProfileablsBuildsEnabled = enabled;
-  }
 
   public void setSystemTracePowerProfilerDisplayMode(PowerProfilerDisplayMode mode) {
     mySystemTracePowerProfilerDisplayMode = mode;
-  }
-
-  public void enableComposeTracingNavigateToSource(boolean enabled) {
-    myComposeTracingNavigateToSourceEnabled = enabled;
   }
 }

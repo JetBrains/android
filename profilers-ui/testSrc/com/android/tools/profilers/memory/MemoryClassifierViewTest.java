@@ -102,7 +102,6 @@ public class MemoryClassifierViewTest {
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);
     FakeIdeProfilerServices fakeIdeProfilerServices = new FakeIdeProfilerServices();
-    fakeIdeProfilerServices.enableEventsPipeline(true);
     myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
     ProfilerClient profilerClient = new ProfilerClient(myGrpcChannel.getChannel());
     myProfilers = new StudioProfilers(profilerClient, fakeIdeProfilerServices, myTimer);

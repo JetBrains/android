@@ -89,7 +89,6 @@ class CpuCaptureStageViewTest {
 
   @Before
   fun setUp() {
-    services.enableEventsPipeline(true)
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
     profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())

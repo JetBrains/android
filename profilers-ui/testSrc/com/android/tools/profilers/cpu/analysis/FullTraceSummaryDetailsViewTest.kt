@@ -17,12 +17,10 @@ package com.android.tools.profilers.cpu.analysis
 
 import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.adtui.model.Range
-import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
@@ -45,10 +43,9 @@ class FullTraceSummaryDetailsViewTest {
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
-  private val profilerService = FakeProfilerService(timer)
 
   @get:Rule
-  var grpcServer = FakeGrpcServer.createFakeGrpcServer("FullTraceSummaryDetailsViewTest", transportService, profilerService)
+  var grpcServer = FakeGrpcServer.createFakeGrpcServer("FullTraceSummaryDetailsViewTest", transportService)
 
   private lateinit var profilersView: StudioProfilersView
 

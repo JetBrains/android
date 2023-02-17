@@ -51,9 +51,7 @@ class CpuCaptureSessionArtifactTest {
   @Before
   fun setUp() {
     ApplicationManager.getApplication().registerServiceInstance(TransportService::class.java, TransportServiceTestImpl(transportService))
-    val ideProfilerServices = FakeIdeProfilerServices().also {
-      it.enableEventsPipeline(true)
-    }
+    val ideProfilerServices = FakeIdeProfilerServices()
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
     sessionsManager = profilers.sessionsManager
     sessionsManager.beginSession(FakeTransportService.FAKE_DEVICE.deviceId, FakeTransportService.FAKE_DEVICE,

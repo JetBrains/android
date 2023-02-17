@@ -21,16 +21,12 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.FakeCpuService
-import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.CaptureDurationData
 import com.android.tools.profilers.memory.CaptureEntry
 import com.android.tools.profilers.memory.ClassGrouping
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader
-import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.memory.MemoryClassifierView
 import com.android.tools.profilers.memory.MemoryObjectTreeNode
@@ -62,12 +58,7 @@ class MemoryClassifierViewFindSuperSetNodeTest {
   private lateinit var view: MemoryClassifierView
 
   @get:Rule
-  val grpcChannel = FakeGrpcChannel(javaClass.simpleName,
-                                    FakeCpuService(),
-                                    FakeTransportService(timer),
-                                    FakeProfilerService(timer),
-                                    FakeMemoryService(),
-                                    FakeEventService())
+  val grpcChannel = FakeGrpcChannel(javaClass.simpleName, FakeTransportService(timer))
 
   @Before
   fun init() {

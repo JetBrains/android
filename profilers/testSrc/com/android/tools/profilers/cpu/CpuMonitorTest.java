@@ -23,7 +23,6 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
@@ -33,8 +32,7 @@ import org.junit.Test;
 public class CpuMonitorTest {
   private final FakeTimer myTimer = new FakeTimer();
   @Rule
-  public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("CpuMonitorTestChannel", new FakeCpuService(), new FakeTransportService(myTimer), new FakeProfilerService(myTimer));
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuMonitorTestChannel", new FakeTransportService(myTimer));
 
   @Test
   public void testName() {

@@ -25,7 +25,6 @@ import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader
-import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -35,15 +34,12 @@ import org.junit.Test
 class NativeAllocationSampleCaptureObjectTest {
 
   private val timer = FakeTimer()
-  private val service = FakeMemoryService()
-  private val transportService = FakeTransportService(
-    timer)
-
+  private val transportService = FakeTransportService(timer)
   private val ideProfilerServices = FakeIdeProfilerServices()
 
   @Rule
   @JvmField
-  var grpcChannel = FakeGrpcChannel("NativeAllocationSampleCaptureObjectTest", transportService, service)
+  var grpcChannel = FakeGrpcChannel("NativeAllocationSampleCaptureObjectTest", transportService)
 
   private var stage: MainMemoryProfilerStage? = null
 

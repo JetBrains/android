@@ -75,7 +75,6 @@ public class EventMonitorViewTest {
 
   @Before
   public void setUp() {
-    myProfilerServices.enableEventsPipeline(true);
     myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myProfilerServices, myTimer);
     myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
     myTimer.tick(TimeUnit.SECONDS.toNanos(1));

@@ -18,7 +18,6 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.cpu.systemtrace.AtraceParser
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -33,8 +32,7 @@ class LazyDataSeriesTest {
 
   @Rule
   @JvmField
-  var myGrpcChannel = FakeGrpcChannel("CpuProfilerStageTestChannel", FakeCpuService(), FakeTransportService(timer),
-                                      FakeProfilerService(timer))
+  var myGrpcChannel = FakeGrpcChannel("CpuProfilerStageTestChannel", FakeTransportService(timer))
 
   @Before
   fun setup() {

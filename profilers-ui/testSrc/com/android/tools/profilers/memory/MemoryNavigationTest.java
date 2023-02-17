@@ -29,7 +29,6 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
@@ -51,9 +50,7 @@ import org.junit.Test;
 
 public class MemoryNavigationTest {
   private final FakeTimer myTimer = new FakeTimer();
-  @Rule public final FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("MemoryNavigationTestGrpc", new FakeTransportService(myTimer), new FakeProfilerService(myTimer),
-                        new FakeMemoryService());
+  @Rule public final FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryNavigationTestGrpc", new FakeTransportService(myTimer));
   @Rule public final ApplicationRule myApplicationRule = new ApplicationRule();
 
   private MainMemoryProfilerStage myStage;

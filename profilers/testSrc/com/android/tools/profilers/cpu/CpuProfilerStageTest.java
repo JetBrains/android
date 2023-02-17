@@ -74,8 +74,6 @@ public final class CpuProfilerStageTest extends AspectObserver {
 
   public CpuProfilerStageTest() {
     myServices = new FakeIdeProfilerServices();
-    // This test file assumes always using Transport Pipeline.
-    myServices.enableEventsPipeline(true);
   }
 
   @Before
@@ -595,7 +593,7 @@ public final class CpuProfilerStageTest extends AspectObserver {
     assertThat(metadataConfig.getProfilingBufferSizeInMb()).isEqualTo(15);
     assertThat(metadataConfig.getTraceType()).isEqualTo(TraceType.ART);
     assertThat(metadata.getParsingTimeMs()).isGreaterThan(0L);
-    assertThat(metadata.getStoppingTimeMs()).isEqualTo(FakeCpuService.FAKE_STOPPING_DURATION_MS);
+    assertThat(metadata.getStoppingTimeMs()).isEqualTo(CpuProfilerTestUtils.FAKE_STOPPING_DURATION_MS);
     assertThat(metadata.getRecordDurationMs()).isGreaterThan(0L);
     assertThat(metadata.getCaptureDurationMs()).isGreaterThan(0L);
     assertThat(metadata.getTraceFileSizeBytes()).isGreaterThan(0);

@@ -18,7 +18,6 @@ package com.android.tools.profilers.memory;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_ID;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS;
-import static com.android.tools.profiler.proto.Common.SessionMetaData.SessionType.MEMORY_CAPTURE;
 import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_CLASS;
 import static com.android.tools.profilers.memory.ClassGrouping.ARRANGE_BY_PACKAGE;
 import static com.android.tools.profilers.memory.MemoryProfilerTestUtils.findChildClassSetNodeWithClassName;
@@ -35,8 +34,10 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.model.formatter.TimeFormatter;
 import com.android.tools.adtui.stdui.ContextMenuItem;
 import com.android.tools.idea.protobuf.ByteString;
+import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
+import com.android.tools.idea.transport.faketransport.TransportServiceTestImpl;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
@@ -44,9 +45,7 @@ import com.android.tools.profiler.proto.Memory.TrackStatus.Status;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
-import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.NullMonitorStage;
-import com.android.tools.profilers.ProfilerAspect;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.RecordingOptionsModel;
@@ -54,7 +53,6 @@ import com.android.tools.profilers.RecordingOptionsView;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.SupportLevel;
-import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
@@ -69,18 +67,18 @@ import com.android.tools.profilers.sessions.SessionsManager;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.MoreExecutors;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.ApplicationRule;
+import com.intellij.testFramework.ServiceContainerUtil;
 import icons.StudioIcons;
 import java.awt.Component;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -92,17 +90,15 @@ import javax.swing.JTree;
 import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBase {
   @NotNull private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
-  @NotNull private final FakeMemoryService myService = new FakeMemoryService(myTransportService);
   @Rule
   public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("MemoryProfilerStageViewTestChannel", myTransportService, myService, new FakeProfilerService(myTimer),
-                        new FakeCpuService(), new FakeEventService());
+    new FakeGrpcChannel("MemoryProfilerStageViewTestChannel", myTransportService, new FakeEventService());
   @Rule public final ApplicationRule myApplicationRule = new ApplicationRule();
 
   private StudioProfilersView myProfilersView;
@@ -115,7 +111,13 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
   @Override
   protected void onProfilersCreated(StudioProfilers profilers) {
     myProfilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
-    myIdeProfilerServices.enableEventsPipeline(true); // need to be here before `myStage` is initialized
+  }
+
+  @Before
+  public void setup() {
+    super.setupBase();
+    ServiceContainerUtil.registerServiceInstance(ApplicationManager.getApplication(), TransportService.class,
+                                                 new TransportServiceTestImpl(myTransportService));
   }
 
   @Test
@@ -333,8 +335,6 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     final int endTime = 5;
     long deltaUs = TimeUnit.SECONDS.toMicros(endTime - startTime);
     long startTimeNs = TimeUnit.SECONDS.toNanos(startTime);
-    long endTimeNs = TimeUnit.SECONDS.toNanos(endTime);
-
     assertThat(myStage.isTrackingAllocations()).isFalse();
 
     MainMemoryProfilerStageView stageView = (MainMemoryProfilerStageView)myProfilersView.getStageView();
@@ -433,7 +433,6 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     assertThat(tooltipComponent.getParent().getComponent(0)).isEqualTo(tooltipComponent);
   }
 
-  @Ignore("b/136292864")
   @Test
   public void testLoadHeapDumpFromFile() throws Exception {
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
@@ -449,144 +448,31 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
     // Import heap dump from file
     assertThat(sessionsManager.importSessionFromFile(file)).isTrue();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    assertThat(myProfilers.getStage()).isInstanceOf(MemoryCaptureStage.class);
+
     Common.Session session = sessionsManager.getSelectedSession();
     long dumpTime = session.getStartTimestamp();
     Transport.BytesRequest request = Transport.BytesRequest.newBuilder()
       .setStreamId(session.getStreamId())
       .setId(Long.toString(dumpTime))
       .build();
-    assertThat(myProfilers.getStage()).isInstanceOf(MainMemoryProfilerStage.class);
     Transport.BytesResponse response = myProfilers.getClient().getTransportClient().getBytes(request);
-
     assertThat(response.getContents()).isEqualTo(ByteString.copyFrom(data, Charset.defaultCharset()));
   }
 
-  /**
-   * The following is a regression test against implementation where 'myRangeSelectionComponent' in MemoryProfilerStageView is a null
-   * pointer when profiler is importing a heap dump file. (Regression bug: b/117796712)
-   */
-  @Ignore("Scenario no longer possible or relevant for separate heap dump stage. Also b/136292864")
-  @Test
-  public void testLoadHeapDumpFromFileFinishLoading() throws Exception {
-    // Make sure the second loading runs after the first due to b/151245410
-    testFirstLoadsCaptureThenStartSecond(
-      () -> {
-        try {
-          SessionsManager sessionsManager = myProfilers.getSessionsManager();
-          // Create a temp file
-          String data = "random_string_~!@#$%^&*()_+";
-          File file = FileUtil.createTempFile("fake_heap_dump", ".hprof", false);
-          PrintWriter printWriter = new PrintWriter(file);
-          printWriter.write(data);
-          printWriter.close();
-          // Import heap dump from file
-          assertThat(sessionsManager.importSessionFromFile(file)).isTrue();
-          assertThat(sessionsManager.getSelectedSessionMetaData().getType()).isEqualTo(MEMORY_CAPTURE);
-          assertThat(myProfilers.getStage()).isInstanceOf(MainMemoryProfilerStage.class);
-          MainMemoryProfilerStage stage = (MainMemoryProfilerStage)myProfilers.getStage();
-          assertThat(stage.isMemoryCaptureOnly()).isTrue();
-        }
-        catch (IOException e) {
-          throw new RuntimeException("IO");
-        }
-      },
-      () -> {
-        MainMemoryProfilerStage stage = (MainMemoryProfilerStage)myProfilers.getStage();
-        // Create a FakeCaptureObject and then call selectCaptureDuration().
-        // selectCaptureDuration() would indirectly fire CURRENT_LOADING_CAPTURE aspect which will
-        // trigger captureObjectChanged().
-        // Because isDoneLoading() returns true by default in the FakeCaptureObject,
-        // captureObjectChanged() will call captureObjectFinishedLoading()
-        // which would execute the logic that had a null pointer exception as reported by b/117796712.
-        FakeCaptureObject captureObj =
-          new FakeCaptureObject.Builder().setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
-        FakeInstanceObject instanceObject = new FakeInstanceObject.Builder(captureObj, 1, "SAMPLE_CLASS1").setHeapId(0).build();
-        captureObj.addInstanceObjects(ImmutableSet.of(instanceObject));
-        stage.selectCaptureDuration(
-          new CaptureDurationData<>(1, false, false, new CaptureEntry<CaptureObject>(new Object(), () -> captureObj)),
-          null);
-      }
-    );
-  }
-
-  @Ignore("b/136292864")
-  @Test
-  public void testLoadHeapDumpFromFileFinishLoadingLegacy() throws Exception {
-    // Make sure the second loading runs after the first due to b/151245410
-    testFirstLoadsCaptureThenStartSecond(
-      () -> {
-        try {
-          SessionsManager sessionsManager = myProfilers.getSessionsManager();
-          // Create a temp file
-          String data = "random_string_~!@#$%^&*()_+";
-          File file = FileUtil.createTempFile("fake_heap_dump", ".hprof", false);
-          PrintWriter printWriter = new PrintWriter(file);
-          printWriter.write(data);
-          printWriter.close();
-          // Import heap dump from file
-          assertThat(sessionsManager.importSessionFromFile(file)).isTrue();
-          assertThat(sessionsManager.getSelectedSessionMetaData().getType()).isEqualTo(MEMORY_CAPTURE);
-          assertThat(myProfilers.getStage()).isInstanceOf(MainMemoryProfilerStage.class);
-          MainMemoryProfilerStage stage = (MainMemoryProfilerStage)myProfilers.getStage();
-          assertThat(stage.isMemoryCaptureOnly()).isTrue();
-        }
-        catch (IOException e) {
-          throw new RuntimeException(e.getMessage());
-        }
-      },
-      () -> {
-        MainMemoryProfilerStage stage = (MainMemoryProfilerStage)myProfilers.getStage();
-        // Create a FakeCaptureObject and then call selectCaptureDuration().
-        // selectCaptureDuration() would indirectly fire CURRENT_LOADING_CAPTURE aspect which will trigger captureObjectChanged().
-        // Because isDoneLoading() returns true by default in the FakeCaptureObject, captureObjectChanged() will call captureObjectFinishedLoading()
-        // which would execute the logic that had a null pointer exception as reported by b/117796712.
-        FakeCaptureObject captureObj = new FakeCaptureObject.Builder()
-          .setHeapIdToNameMap(ImmutableMap.of(0, "default", 1, "app")).build();
-        FakeInstanceObject instanceObject =
-          new FakeInstanceObject.Builder(captureObj, 1, "SAMPLE_CLASS1").setHeapId(0).build();
-        captureObj.addInstanceObjects(ImmutableSet.of(instanceObject));
-        CaptureEntry<CaptureObject> entry = new CaptureEntry<>(new Object(), () -> captureObj);
-        stage.selectCaptureDuration(new CaptureDurationData<>(1, false, false, entry),
-                                    null);
-      }
-    );
-  }
-
-  private void testFirstLoadsCaptureThenStartSecond(Runnable first, Runnable second) throws InterruptedException {
-    CountDownLatch firstFinished = new CountDownLatch(1);
-    CountDownLatch secondStarted = new CountDownLatch(1);
-    myProfilers.addDependency(myAspectObserver)
-      .onChange(ProfilerAspect.STAGE, () -> {
-        myProfilers.removeDependencies(myAspectObserver);
-        MainMemoryProfilerStage stage = (MainMemoryProfilerStage)myProfilers.getStage();
-        stage.getCaptureSelection().getAspect().addDependency(myAspectObserver)
-          .onChange(CaptureSelectionAspect.CURRENT_LOADED_CAPTURE, () -> {
-            try {
-              assertThat(firstFinished.await(120, TimeUnit.SECONDS)).isTrue();
-            }
-            catch (InterruptedException e) {
-              throw new RuntimeException(e.getMessage());
-            }
-            stage.getAspect().removeDependencies(myAspectObserver);
-            second.run();
-            secondStarted.countDown();
-          });
-      });
-    first.run();
-    firstFinished.countDown();
-    assertThat(secondStarted.await(120, TimeUnit.SECONDS)).isTrue();
-  }
-
-  @Ignore("b/136292864")
   @Test
   public void testLoadLegacyAllocationRecordsFromFile() throws Exception {
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
 
-    // Create and import a temp allocation records file
+    // Create a temp file
     File file = FileUtil.createTempFile("fake_allocation_records", ".alloc", true);
-    assertThat(sessionsManager.importSessionFromFile(file)).isTrue();
 
+    // Import allocation records from file
+    assertThat(sessionsManager.importSessionFromFile(file)).isTrue();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     assertThat(myProfilers.getStage()).isInstanceOf(MainMemoryProfilerStage.class);
+
     MainMemoryProfilerStage stage = (MainMemoryProfilerStage)myProfilers.getStage();
     assertThat(stage.getCaptureSelection().getSelectedCapture()).isInstanceOf(LegacyAllocationCaptureObject.class);
   }

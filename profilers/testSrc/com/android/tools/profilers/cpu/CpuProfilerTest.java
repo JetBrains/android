@@ -31,12 +31,8 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.energy.FakeEnergyService;
-import com.android.tools.profilers.event.FakeEventService;
-import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.sessions.SessionsManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.testFramework.ApplicationRule;
@@ -56,14 +52,9 @@ public final class CpuProfilerTest {
 
   private final FakeTimer myTimer = new FakeTimer();
   private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
-  private final FakeProfilerService myProfilerService = new FakeProfilerService(myTimer);
-
-  private final FakeCpuService myCpuService = new FakeCpuService();
 
   @Rule
-  public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("CpuProfilerTest", myTransportService, myProfilerService, new FakeMemoryService(), myCpuService,
-                        new FakeEventService(), new FakeEnergyService());
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("CpuProfilerTest", myTransportService);
 
   @Rule public final ExpectedException myExpectedException = ExpectedException.none();
   @Rule public final ApplicationRule myApplicationRule = new ApplicationRule();
@@ -77,7 +68,6 @@ public final class CpuProfilerTest {
     ServiceContainerUtil.registerServiceInstance(ApplicationManager.getApplication(), TransportService.class,
                                                  new TransportServiceTestImpl(myTransportService));
     FakeIdeProfilerServices ideServices = new FakeIdeProfilerServices();
-    ideServices.enableEventsPipeline(true);
     myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), ideServices, myTimer);
   }
 

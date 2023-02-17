@@ -24,12 +24,9 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.cpu.FakeCpuService
-import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject
 import com.android.tools.profilers.memory.adapters.classifiers.AllHeapSet
@@ -47,13 +44,10 @@ class CapturePanelTest {
   private lateinit var ideProfilerServices: FakeIdeProfilerServices
   private val myTimer = FakeTimer()
   private val transportService = FakeTransportService(myTimer)
-  private val service = FakeMemoryService(transportService)
 
   @Rule
   @JvmField
-  val grpcChannel = FakeGrpcChannel("MemoryProfilerStageViewTestChannel", transportService, service,
-                                    FakeProfilerService(myTimer),
-                                    FakeCpuService(), FakeEventService())
+  val grpcChannel = FakeGrpcChannel("MemoryProfilerStageViewTestChannel", transportService)
 
   @get:Rule
   val applicationRule = ApplicationRule()

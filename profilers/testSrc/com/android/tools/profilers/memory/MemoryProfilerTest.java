@@ -61,7 +61,6 @@ public final class MemoryProfilerTest {
   @Before
   public void setUp() {
     FakeIdeProfilerServices ideProfilerServices = new FakeIdeProfilerServices();
-    ideProfilerServices.enableEventsPipeline(true);
     myStudioProfiler = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), ideProfilerServices, myTimer);
   }
 

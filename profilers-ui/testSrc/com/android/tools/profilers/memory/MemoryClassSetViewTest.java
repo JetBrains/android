@@ -34,7 +34,6 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
@@ -71,10 +70,8 @@ public class MemoryClassSetViewTest {
   private static final String MOCK_CLASS_NAME = "MockClass";
 
   private final FakeTimer myTimer = new FakeTimer();
-  @NotNull private final FakeMemoryService myMemoryService = new FakeMemoryService();
   @NotNull private final FakeIdeProfilerComponents myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
-  @Rule public final FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("MemoryInstanceViewTestGrpc", new FakeTransportService(myTimer), new FakeProfilerService(myTimer), myMemoryService);
+  @Rule public final FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryInstanceViewTestGrpc", new FakeTransportService(myTimer));
   @Rule public final ApplicationRule myApplicationRule = new ApplicationRule();
 
   private MainMemoryProfilerStage myStage;

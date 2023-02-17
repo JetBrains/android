@@ -30,13 +30,11 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.RecordingOptionsView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.memory.FakeMemoryService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
@@ -62,22 +60,14 @@ private const val TOOLTIP_TRACE_DATA_FILE = "tools/adt/idea/profilers-ui/testDat
 class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
   private val myTimer = FakeTimer()
   private val myComponents = FakeIdeProfilerComponents()
-  private val myIdeServices = FakeIdeProfilerServices().apply {
-    enableEventsPipeline(true)
-  }
-
-  private val myCpuService = FakeCpuService()
-
+  private val myIdeServices = FakeIdeProfilerServices()
   private val myTransportService = if (isTestingProfileable) {
     FakeTransportService(myTimer, true, AndroidVersion.VersionCodes.S, Common.Process.ExposureLevel.PROFILEABLE)
   }
   else FakeTransportService(myTimer)
 
   @get:Rule
-  val myGrpcChannel = FakeGrpcChannel(
-    "CpuCaptureViewTestChannel", myCpuService, myTransportService, FakeProfilerService(myTimer),
-    FakeMemoryService(), FakeEventService()
-  )
+  val myGrpcChannel = FakeGrpcChannel("CpuCaptureViewTestChannel", myTransportService, FakeEventService())
 
   @get:Rule
   val myEdtRule = EdtRule()

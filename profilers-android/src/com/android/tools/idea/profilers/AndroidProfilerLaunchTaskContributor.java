@@ -25,7 +25,6 @@ import com.android.ddmlib.SyncException;
 import com.android.ddmlib.TimeoutException;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.devices.Abi;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker;
 import com.android.tools.idea.profilers.profilingconfig.CpuProfilerConfigConverter;
@@ -44,7 +43,6 @@ import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.util.StudioPathManager;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.CpuProfiler;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
@@ -283,28 +281,19 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
     Trace.TraceConfiguration configuration = configurationBuilder.build();
 
     try {
-      if (StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
-        Commands.Command startCommand = Commands.Command.newBuilder()
-          .setStreamId(profilerDevice.getDeviceId())
-          .setType(Commands.Command.CommandType.START_TRACE)
-          .setStartTrace(Trace.StartTrace.newBuilder()
-                           .setProfilerType(Trace.ProfilerType.CPU)
-                           .setConfiguration(configuration)
-                           .build())
-          .build();
-        // TODO handle async error statuses.
-        // TODO(b/150503095)
-        Transport.ExecuteResponse response = client.getTransportClient().execute(Transport.ExecuteRequest.newBuilder()
-                                                                                   .setCommand(startCommand)
-                                                                                   .build());
-      }
-      else {
-        CpuProfiler.StartupProfilingRequest.Builder requestBuilder = CpuProfiler.StartupProfilingRequest.newBuilder()
-          .setDeviceId(profilerDevice.getDeviceId())
-          .setConfiguration(configuration);
-        // TODO(b/150503095)
-        CpuProfiler.StartupProfilingResponse response = client.getCpuClient().startStartupProfiling(requestBuilder.build());
-      }
+      Commands.Command startCommand = Commands.Command.newBuilder()
+        .setStreamId(profilerDevice.getDeviceId())
+        .setType(Commands.Command.CommandType.START_TRACE)
+        .setStartTrace(Trace.StartTrace.newBuilder()
+                         .setProfilerType(Trace.ProfilerType.CPU)
+                         .setConfiguration(configuration)
+                         .build())
+        .build();
+      // TODO handle async error statuses.
+      // TODO(b/150503095)
+      Transport.ExecuteResponse response = client.getTransportClient().execute(Transport.ExecuteRequest.newBuilder()
+                                                                                 .setCommand(startCommand)
+                                                                                 .build());
     }
     catch (StatusRuntimeException exception) {
       getLogger().error(exception);

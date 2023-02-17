@@ -32,10 +32,9 @@ class StageViewTest {
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
-  private val profilerService = FakeProfilerService(timer)
 
   @get:Rule
-  var grpcServer = FakeGrpcServer.createFakeGrpcServer("StageViewTest", transportService, profilerService)
+  var grpcServer = FakeGrpcServer.createFakeGrpcServer("StageViewTest", transportService)
 
   @Test
   fun testSelectionTimeLabel() {

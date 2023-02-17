@@ -465,11 +465,6 @@ public class CpuProfilerStage extends StreamingStage {
     return myCaptureParser;
   }
 
-  @NotNull
-  private CpuServiceGrpc.CpuServiceBlockingStub getCpuClient() {
-    return getStudioProfilers().getClient().getCpuClient();
-  }
-
   /**
    * Returns the trace ID of a capture whose range overlaps with a given range. If multiple captures overlap with it,
    * the first trace ID found is returned.

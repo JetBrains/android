@@ -47,7 +47,6 @@ class CpuProfilerContextMenuInstallerTest {
 
   @Before
   fun setUp() {
-    ideServices.enableEventsPipeline(true)
     val profilers = StudioProfilers(ProfilerClient(myGrpcChannel.channel), ideServices, timer)
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
 

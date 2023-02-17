@@ -59,7 +59,6 @@ class EnergyMonitorTest {
   fun setUp() {
     val services = FakeIdeProfilerServices().apply {
       enableEnergyProfiler(true)
-      enableEventsPipeline(true)
     }
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     monitor = EnergyMonitor(profilers)

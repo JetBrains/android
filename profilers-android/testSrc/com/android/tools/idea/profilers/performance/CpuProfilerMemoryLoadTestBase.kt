@@ -21,16 +21,12 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuCaptureStage
 import com.android.tools.profilers.cpu.CpuCaptureStageView
-import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.cpu.config.ImportedConfiguration
-import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.memory.FakeMemoryService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
@@ -50,14 +46,10 @@ open class CpuProfilerMemoryLoadTestBase {
   val myTimer = FakeTimer()
   val myComponents = FakeIdeProfilerComponents()
   var myIdeServices = FakeIdeProfilerServices()
-  val myCpuService = FakeCpuService()
   var myProfilersView: StudioProfilersView? = null
 
   @get:Rule
-  val myGrpcChannel = FakeGrpcChannel(
-    "CpuProfilerMemoryLoadTestBase", myCpuService, FakeTransportService(myTimer), FakeProfilerService(myTimer),
-    FakeMemoryService(), FakeEventService()
-  )
+  val myGrpcChannel = FakeGrpcChannel("CpuProfilerMemoryLoadTestBase", FakeTransportService(myTimer))
 
   /**
    * For initializing [com.intellij.ide.HelpTooltip].

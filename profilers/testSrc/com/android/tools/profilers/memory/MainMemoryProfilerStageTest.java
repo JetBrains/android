@@ -37,14 +37,11 @@ import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo;
 import com.android.tools.profiler.proto.Memory.TrackStatus.Status;
-import com.android.tools.profiler.proto.MemoryProfiler.MemoryData;
 import com.android.tools.profiler.proto.Trace;
 import com.android.tools.profilers.FakeFeatureTracker;
-import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.cpu.FakeCpuService;
 import com.android.tools.profilers.event.FakeEventService;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject;
@@ -78,7 +75,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     ArrayUtil.EMPTY_STRING_ARRAY, ArrayUtil.EMPTY_STRING_ARRAY, ArrayUtil.EMPTY_STRING_ARRAY, new int[0][], new short[0][][]
   );
 
-  @NotNull private final FakeMemoryService myService = new FakeMemoryService();
   @NotNull private final FakeTransportService myTransportService;
 
   @Rule
@@ -87,14 +83,11 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
   public MainMemoryProfilerStageTest(int featureLevel) {
     super();
     myTransportService = new FakeTransportService(myTimer, true, featureLevel);
-    myGrpcChannel = new FakeGrpcChannel("MemoryProfilerStageTestChannel", myService, myTransportService, new FakeProfilerService(myTimer),
-                                        new FakeCpuService(), new FakeEventService());
+    myGrpcChannel = new FakeGrpcChannel("MemoryProfilerStageTestChannel", myTransportService, new FakeEventService());
   }
 
   @Override
-  protected void onProfilersCreated(StudioProfilers profilers) {
-    myIdeProfilerServices.enableEventsPipeline(true);
-  }
+  protected void onProfilersCreated(StudioProfilers profilers) {}
 
   @Override
   protected FakeGrpcChannel getGrpcChannel() {
@@ -127,7 +120,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Starting a tracking session
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
-    long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
     MemoryProfilerTestUtils
       .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     assertThat(myStage.isTrackingAllocations()).isEqualTo(true);
@@ -238,7 +230,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     assertThat(myStage.isTrackingAllocations()).isFalse();
 
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
-    long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
     MemoryProfilerTestUtils
       .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     assertThat(myStage.isTrackingAllocations()).isTrue();
@@ -589,7 +580,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
     assumePreO(false);
     long time = TimeUnit.MICROSECONDS.toNanos(2);
     AllocationsInfo liveAllocInfo = AllocationsInfo.newBuilder().setStartTime(0).setEndTime(Long.MAX_VALUE).setLegacy(false).build();
-    MemoryData memoryData = MemoryData.getDefaultInstance();
     myTransportService.addEventToStream(
       FAKE_DEVICE_ID, ProfilersTestData.generateMemoryAllocationInfoData(0, FAKE_PROCESS.getPid(), liveAllocInfo).build());
     myTransportService.addEventToStream(
@@ -652,7 +642,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Start+Stop a capture session (allocation tracking)
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
-    long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
     MemoryProfilerTestUtils
       .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     MemoryProfilerTestUtils
@@ -677,7 +666,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
     // Start+Stop a capture session (allocation tracking)
     long infoStart = TimeUnit.MICROSECONDS.toNanos(5);
-    long infoEnd = TimeUnit.MICROSECONDS.toNanos(10);
     MemoryProfilerTestUtils
       .startTrackingHelper(myStage, myTransportService, myTimer, infoStart, Status.SUCCESS, true);
     myTransportService.addFile(Long.toString(infoStart), ByteString.copyFrom(FAKE_ALLOC_BUFFER));
@@ -838,8 +826,6 @@ public final class MainMemoryProfilerStageTest extends MemoryProfilerTestBase {
 
   @Test
   public void selectingHeapDumpGoesToSeparateStage() {
-    myIdeProfilerServices.enableEventsPipeline(true);
-
     HeapDumpInfo info = HeapDumpInfo.newBuilder().build();
 
     myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(),

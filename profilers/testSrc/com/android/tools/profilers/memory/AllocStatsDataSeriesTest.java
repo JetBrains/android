@@ -28,11 +28,8 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory.MemoryAllocStatsData;
 import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.cpu.FakeCpuService;
-import com.android.tools.profilers.event.FakeEventService;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -41,18 +38,10 @@ import org.junit.Test;
 
 public final class AllocStatsDataSeriesTest {
   private final FakeTimer myTimer = new FakeTimer();
-  private final FakeMemoryService myService = new FakeMemoryService();
   private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
   @NotNull private final FakeIdeProfilerServices myIdeProfilerServices = new FakeIdeProfilerServices();
 
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("AllocStatsDataSeriesTest", myTransportService, myService,
-                                                                   new FakeProfilerService(myTimer),
-                                                                   new FakeEventService(),
-                                                                   new FakeCpuService());
-
-  public AllocStatsDataSeriesTest() {
-    myIdeProfilerServices.enableEventsPipeline(true);
-  }
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("AllocStatsDataSeriesTest", myTransportService);
 
   @Test
   public void testGetDataForXRange() {

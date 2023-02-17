@@ -25,7 +25,6 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
@@ -54,10 +53,9 @@ class CpuThreadSummaryDetailsViewTest {
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
-  private val profilerService = FakeProfilerService(timer)
 
   @get:Rule
-  var grpcServer = FakeGrpcServer.createFakeGrpcServer("CpuThreadSummaryDetailsViewTest", transportService, profilerService)
+  var grpcServer = FakeGrpcServer.createFakeGrpcServer("CpuThreadSummaryDetailsViewTest", transportService)
 
   private lateinit var profilersView: StudioProfilersView
 

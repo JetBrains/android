@@ -396,11 +396,6 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
-    public boolean isUnifiedPipelineEnabled() {
-      return StudioFlags.PROFILER_UNIFIED_PIPELINE.get();
-    }
-
-    @Override
     public boolean isCustomEventVisualizationEnabled() {
       return StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get();
     }

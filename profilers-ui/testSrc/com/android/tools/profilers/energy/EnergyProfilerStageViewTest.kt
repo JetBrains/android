@@ -22,7 +22,6 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
 import com.android.tools.profilers.StudioProfilers
@@ -40,11 +39,9 @@ import java.util.concurrent.TimeUnit
 class EnergyProfilerStageViewTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, true)
-  private val energyService = FakeEnergyService()
 
   @get:Rule
-  var grpcChannel = FakeGrpcChannel(EnergyProfilerStageViewTest::class.java.simpleName, transportService, energyService,
-                                    FakeProfilerService(timer))
+  var grpcChannel = FakeGrpcChannel(EnergyProfilerStageViewTest::class.java.simpleName, transportService)
   @get:Rule
   val edtRule = EdtRule()
   @get:Rule

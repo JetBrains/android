@@ -24,25 +24,19 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.memory.FakeMemoryService
 import com.google.common.truth.Truth
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 class CpuUsageViewTest {
-  private val cpuService = FakeCpuService()
   private val timer = FakeTimer()
 
   @Rule
   @JvmField
-  var grpcChannel = FakeGrpcChannel("CpuUsageNormalModeViewTest", cpuService,
-                                    FakeTransportService(timer), FakeProfilerService(timer),
-                                    FakeMemoryService(), FakeEventService())
+  var grpcChannel = FakeGrpcChannel("CpuUsageNormalModeViewTest", FakeTransportService(timer))
 
   private lateinit var stage: CpuProfilerStage
   private lateinit var ideServices: FakeIdeProfilerServices

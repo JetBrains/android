@@ -112,7 +112,6 @@ public class StudioProfilersViewTest {
 
   @Before
   public void setUp() {
-    myProfilerServices.enableEventsPipeline(true);
     myProfilerServices.enableEnergyProfiler(true);
     myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myProfilerServices, myTimer);
     myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);

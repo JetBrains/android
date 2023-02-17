@@ -23,7 +23,6 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
 import com.android.tools.profilers.StudioProfilers
@@ -44,10 +43,9 @@ class CustomEventMonitorViewTest {
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
-  private val profilerService = FakeProfilerService(timer)
 
   @get:Rule
-  var grpcServer = FakeGrpcServer.createFakeGrpcServer("CustomEventMonitorViewTest", transportService, profilerService)
+  var grpcServer = FakeGrpcServer.createFakeGrpcServer("CustomEventMonitorViewTest", transportService)
 
   @Before
   fun setUp() {

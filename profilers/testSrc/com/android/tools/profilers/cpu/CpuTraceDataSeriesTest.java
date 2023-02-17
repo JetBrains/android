@@ -45,7 +45,6 @@ public class CpuTraceDataSeriesTest {
   @Before
   public void setUp() {
     FakeIdeProfilerServices ideProfilerServices = new FakeIdeProfilerServices();
-    ideProfilerServices.enableEventsPipeline(true);
     StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), ideProfilerServices, myTimer);
     // One second must be enough for new devices (and processes) to be picked up
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);

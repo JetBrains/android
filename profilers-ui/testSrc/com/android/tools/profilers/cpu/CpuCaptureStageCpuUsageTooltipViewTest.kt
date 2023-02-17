@@ -21,7 +21,6 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
@@ -36,12 +35,10 @@ import java.util.concurrent.TimeUnit
 class CpuCaptureStageCpuUsageTooltipViewTest {
   private val timer = FakeTimer()
 
-  private val myIdeServices = FakeIdeProfilerServices().apply {
-    enableEventsPipeline(true)
-  }
+  private val myIdeServices = FakeIdeProfilerServices()
 
   @get:Rule
-  val grpcChannel = FakeGrpcChannel("CaptureCpuUsageTooltipTest", FakeTransportService(timer), FakeProfilerService(timer))
+  val grpcChannel = FakeGrpcChannel("CaptureCpuUsageTooltipTest", FakeTransportService(timer))
 
   /**
    * For initializing [com.intellij.ide.HelpTooltip].

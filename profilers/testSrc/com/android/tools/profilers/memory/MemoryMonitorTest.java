@@ -19,24 +19,18 @@ import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.NullMonitorStage;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
-import com.android.tools.profilers.cpu.FakeCpuService;
-import com.android.tools.profilers.event.FakeEventService;
 import com.google.common.truth.Truth;
 import org.junit.Rule;
 import org.junit.Test;
 
 public class MemoryMonitorTest {
   private final FakeTimer myTimer = new FakeTimer();
-  private final FakeMemoryService myMemoryService = new FakeMemoryService();
 
   @Rule
-  public FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("MemoryMonitorTestChannel", myMemoryService, new FakeTransportService(myTimer), new FakeProfilerService(myTimer),
-                        new FakeEventService(), new FakeCpuService());
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryMonitorTestChannel", new FakeTransportService(myTimer));
 
   @Test
   public void testName() {
