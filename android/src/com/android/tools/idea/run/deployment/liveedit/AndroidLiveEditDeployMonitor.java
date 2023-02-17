@@ -393,13 +393,13 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     event.setCompileDurationMs(TimeUnit.NANOSECONDS.toMillis(compileFinish - start));
     LOGGER.info("LiveEdit compile completed in %dms", event.getCompileDurationMs());
 
-    Optional<LiveUpdateDeployer.UpdateLiveEditError> error = editableDeviceIterator()
+    List<LiveUpdateDeployer.UpdateLiveEditError> errors = editableDeviceIterator()
       .map(device -> pushUpdatesToDevice(applicationId, device, finalCompiled).errors)
       .flatMap(List::stream)
-      .findFirst();
+      .toList();
 
-    if (error.isPresent()) {
-      event.setStatus(errorToStatus(error.get()));
+    if (!errors.isEmpty()) {
+      event.setStatus(errorToStatus(errors.get(0)));
     } else {
       event.setStatus(LiveEditEvent.Status.SUCCESS);
     }
