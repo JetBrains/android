@@ -60,7 +60,7 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
   )
 
   override fun canRunWithMultipleDevices(executorId: String) = false
-  override fun getRunner(environment: ExecutionEnvironment, state: RunProfileState): (ProgressIndicator) -> RunContentDescriptor {
+  override fun run(environment: ExecutionEnvironment, state: RunProfileState, indicator: ProgressIndicator): RunContentDescriptor {
     val executor = state as AndroidConfigurationExecutor
 
     if (!isProfilerExecutor(environment.executor.id)) {
@@ -70,9 +70,9 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
     val swapInfo = environment.getUserData(SwapInfo.SWAP_INFO_KEY)
 
     return when (swapInfo?.type) {
-      SwapInfo.SwapType.APPLY_CHANGES -> executor::applyChanges
-      SwapInfo.SwapType.APPLY_CODE_CHANGES -> executor::applyCodeChanges
-      else -> executor::run
+      SwapInfo.SwapType.APPLY_CHANGES -> executor.applyChanges(indicator)
+      SwapInfo.SwapType.APPLY_CODE_CHANGES -> executor.applyCodeChanges(indicator)
+      else -> executor.run(indicator)
     }
   }
 

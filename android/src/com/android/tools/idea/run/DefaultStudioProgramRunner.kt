@@ -70,26 +70,23 @@ class DefaultStudioProgramRunner : AndroidConfigurationProgramRunner {
     composePreviewRunConfigurationId
   )
 
-  override fun getRunner(environment: ExecutionEnvironment, state: RunProfileState): (ProgressIndicator) -> RunContentDescriptor {
+  override fun run(environment: ExecutionEnvironment, state: RunProfileState, indicator: ProgressIndicator): RunContentDescriptor {
     val executor = state as AndroidConfigurationExecutor
 
     val swapInfo = environment.getUserData(SwapInfo.SWAP_INFO_KEY)
 
-    val runner: (ProgressIndicator) -> RunContentDescriptor =
-      if (swapInfo != null) {
-        when (swapInfo.type) {
-          SwapInfo.SwapType.APPLY_CHANGES -> executor::applyChanges
-          SwapInfo.SwapType.APPLY_CODE_CHANGES -> executor::applyCodeChanges
-        }
+    return if (swapInfo != null) {
+      when (swapInfo.type) {
+        SwapInfo.SwapType.APPLY_CHANGES -> executor.applyChanges(indicator)
+        SwapInfo.SwapType.APPLY_CODE_CHANGES -> executor.applyCodeChanges(indicator)
       }
-      else {
-        when (environment.executor.id) {
-          DefaultRunExecutor.EXECUTOR_ID -> executor::run
-          DefaultDebugExecutor.EXECUTOR_ID -> executor::debug
-          else -> throw RuntimeException("Unsupported executor")
-        }
+    } else {
+      when (environment.executor.id) {
+        DefaultRunExecutor.EXECUTOR_ID -> executor.run(indicator)
+        DefaultDebugExecutor.EXECUTOR_ID -> executor.debug(indicator)
+        else -> throw RuntimeException("Unsupported executor")
       }
-    return runner
+    }
   }
 
   override fun execute(environment: ExecutionEnvironment, state: RunProfileState): Promise<RunContentDescriptor?> {
