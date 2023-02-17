@@ -89,21 +89,20 @@ internal class GlancePreviewRepresentation<T : MethodPreviewElement>(
   private val lifecycleManager =
     PreviewLifecycleManager(
       project,
-      this,
-      this,
-      {
+      parentScope = this,
+      onInitActivate = {
         initializeFlows()
         onInit()
       },
-      {
+      onResumeActivate = {
         initializeFlows()
         surface.activate()
       },
-      {
+      onDeactivate = {
         LOG.debug("onDeactivate")
         surface.deactivateIssueModel()
       },
-      {
+      onDelayedDeactivate = {
         LOG.debug("Delayed surface deactivation")
         surface.deactivate()
       }

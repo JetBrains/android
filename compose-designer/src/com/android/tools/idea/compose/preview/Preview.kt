@@ -639,11 +639,10 @@ class ComposePreviewRepresentation(
   private val lifecycleManager =
     PreviewLifecycleManager(
       project,
-      this,
-      this,
-      { activate(false) },
-      { activate(true) },
-      {
+      parentScope = this,
+      onInitActivate = { activate(false) },
+      onResumeActivate = { activate(true) },
+      onDeactivate = {
         log.debug("onDeactivate")
         if (interactiveMode.isStartingOrReady()) {
           pauseInteractivePreview()
@@ -652,7 +651,7 @@ class ComposePreviewRepresentation(
         // publish the issue update event.
         surface.deactivateIssueModel()
       },
-      {
+      onDelayedDeactivate = {
         stopInteractivePreview()
         log.debug("Delayed surface deactivation")
         surface.deactivate()
