@@ -467,6 +467,7 @@ filegroup(
         "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
         "//tools/data-binding:compilerCommon.antlr.shaded",
         "//tools/vendor/google/firebase/src/proto:firebase_java_proto",
+        "//tools/vendor/google/ml/sml/aida:aida_artifacts",
         "//tools/vendor/google/url-assistant/src/proto:urlassistant_proto",
         "//tools/adt/idea/build-attribution/proto:build-analysis-results-proto",
         "//tools/base/common:version",
