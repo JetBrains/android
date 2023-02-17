@@ -31,11 +31,22 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
-import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import java.util.concurrent.atomic.AtomicBoolean
+
+private fun isInKotlinAnnotation(element: PsiElement): Boolean {
+  var current: PsiElement? = element.parent
+  while (current != null) {
+    if (current is KtAnnotationEntry) return true
+    current = current.parent
+  }
+
+  return false
+}
 
 /**
  * A [PsiTreeChangeListener] that filters out changes to elements like comments and calls [onCodeChange] when a file has been modified.
@@ -45,7 +56,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 private class CodePsiTreeChangeAdapter(
   private val fileFilter: (PsiFile) -> Boolean,
   private val onCodeChange: (PsiFile) -> Unit
-): PsiTreeChangeListener {
+) : PsiTreeChangeListener {
   override fun beforeChildAddition(event: PsiTreeChangeEvent) = handleEvent(event)
   override fun beforeChildRemoval(event: PsiTreeChangeEvent) = handleEvent(event)
   override fun beforeChildReplacement(event: PsiTreeChangeEvent) = handleEvent(event)
@@ -59,7 +70,18 @@ private class CodePsiTreeChangeAdapter(
   override fun childMoved(event: PsiTreeChangeEvent) = handleEvent(event)
   override fun propertyChanged(event: PsiTreeChangeEvent) = handleEvent(event)
 
-  private fun isCodeEvent(element: PsiElement): Boolean {
+  /**
+   * Detect whether an element is or is contained within a code block.
+   *
+   * We consider it to be in a code block if it's within:
+   *  - A class
+   *  - A top level method
+   *  - A top level expression (like top level properties)
+   *
+   * We intentionally ignore changes in comments and annotations since we do not consider them
+   * to affect the code.
+   */
+  private fun isCodeElement(element: PsiElement): Boolean {
     var current: PsiElement? = element
     while (current != null) {
       when (current) {
@@ -70,7 +92,8 @@ private class CodePsiTreeChangeAdapter(
         is KtFunction -> return true
         is PsiClass -> return true
         is KtClass -> return true
-        is KtObjectDeclaration -> return true
+        // Detect changes in expressions unless they are within an annotation
+        is KtExpression -> return !isInKotlinAnnotation(element)
       }
 
       current = current.parent
@@ -87,7 +110,7 @@ private class CodePsiTreeChangeAdapter(
 
     val element = psiEvent.newChild ?: psiEvent.child ?: psiEvent.newParent ?: psiEvent.parent ?: return
 
-    if (isCodeEvent(element)) onCodeChange(file)
+    if (isCodeElement(element)) onCodeChange(file)
   }
 }
 
@@ -106,7 +129,7 @@ class PsiCodeFileChangeDetectorService private constructor(psiManager: PsiManage
     get() = fileUpdatesFlow.value
 
   @Suppress("unused")
-  constructor(project: Project): this(PsiManager.getInstance(project))
+  constructor(project: Project) : this(PsiManager.getInstance(project))
 
   init {
     psiManager.addPsiTreeChangeListener(
@@ -121,7 +144,7 @@ class PsiCodeFileChangeDetectorService private constructor(psiManager: PsiManage
    */
   private fun onCodeChange(file: PsiFile) {
     if (isDisposed.get()) return
-     _fileUpdatesFlow.value += file
+    _fileUpdatesFlow.value += file
   }
 
   private fun markAllAsUpToDate() {

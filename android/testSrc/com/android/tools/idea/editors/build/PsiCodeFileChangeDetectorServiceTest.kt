@@ -34,11 +34,21 @@ class PsiCodeFileChangeDetectorServiceTest {
     psiCodeFileChangeDetectorService = PsiCodeFileChangeDetectorService.getInstance(projectRule.project)
 
     kotlinFile = fixture.addFileToProject(
+      "src/a/declarations.kt",
+      //language=kotlin
+      """
+        package a
+
+        annotation class Annotation(value: String)
+      """.trimIndent())
+
+    kotlinFile = fixture.addFileToProject(
       "src/a/test.kt",
       //language=kotlin
       """
         package a
 
+        @Annotation(value = "AnnotationContent")
         fun test() {
           // INSERT CODE
 
@@ -46,6 +56,16 @@ class PsiCodeFileChangeDetectorServiceTest {
            * LONG COMMENT
            */
         }
+
+        // Method to simulate a top level theme declaration
+        private fun lightColorSchema(primary: Int, secondary: Int): Int {
+          primary + secondary
+        }
+
+        private val LightColorScheme = lightColorScheme(
+            primary = 1,
+            secondary = 2,
+        )
       """.trimIndent())
     secondKotlinFile = fixture.addFileToProject(
       "src/b/otherFile.kt",
@@ -157,6 +177,28 @@ class PsiCodeFileChangeDetectorServiceTest {
       fixture.openFileInEditor(javaFile.virtualFile)
       fixture.editor.executeAndSave {
         replaceText("// INSERT METHOD", "// INSERT METHOD MORE COMMENT")
+      }
+    }
+    assertTrue(psiCodeFileChangeDetectorService.outOfDateFiles.isEmpty())
+  }
+
+  @Test
+  fun `kotlin declaration change`() {
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      fixture.openFileInEditor(kotlinFile.virtualFile)
+      fixture.editor.executeAndSave {
+        replaceText("primary = 1", "primary = 2")
+      }
+    }
+    assertEquals("test.kt",  psiCodeFileChangeDetectorService.outOfDateFiles.map { it.name }.sorted().joinToString("\n"))
+  }
+
+  @Test
+  fun `kotlin annotation does not invalidate the file`() {
+    WriteCommandAction.runWriteCommandAction(projectRule.project) {
+      fixture.openFileInEditor(kotlinFile.virtualFile)
+      fixture.editor.executeAndSave {
+        replaceText("AnnotationContent", "AnnotationContent2")
       }
     }
     assertTrue(psiCodeFileChangeDetectorService.outOfDateFiles.isEmpty())
