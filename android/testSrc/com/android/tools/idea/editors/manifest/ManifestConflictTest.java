@@ -22,6 +22,8 @@ import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.google.common.collect.ImmutableList;
 
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -50,6 +52,31 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
     assertEquals(0, getErrorHtml().length);
   }
 
+  public void testDynamicFeatureExternalDependencyAttributeConflictNotInXml() throws Exception{
+    // Load a project with a dynamic feature within an app module and two libraries: lib, lib2.
+    // dynamic feature depends on lib2 to bring a node with an attribute that conflicts with the app's merged manifest node.
+    // Since the conflicted node does not belong to primary manifest, we expect manifest merger to not return the error position in the
+    // error message, and therefore we expect no link generated in the ManifestPanel's error message.
+    // See b/269085620 for details. This is a temporary behavior until we fix the way we compute dynamic feature's set of dependency manifests.
+    loadProject(MANIFEST_CONFLICT_DYN_FEATURE_ATTR_CONFLICT_NOT_IN_XML);
+    var dynFeatureModule = ModuleManager.getInstance(myAndroidFacet.getMainModule().getProject())
+      .findModuleByName("testDynamicFeatureExternalDependencyAttributeConflictNotInXml.app.dynamicfeature");
+    String[] errors = getErrorHtml(dynFeatureModule);
+    assertEquals(1, errors.length);
+    assertEmpty(grabHTMLLinks(errors[0]));
+  }
+
+  public void testDynamicFeatureExternalDependencyAttributeConflictInXml() throws Exception{
+    // Load a project with dynamic feature within an app and a node with conflicting attribute.
+    loadProject(MANIFEST_CONFLICT_DYN_FEATURE_ATTR_CONFLICT_IN_XML);
+    var dynFeatureModule = ModuleManager.getInstance(myAndroidFacet.getMainModule().getProject())
+      .findModuleByName("testDynamicFeatureExternalDependencyAttributeConflictInXml.app.dynamicfeature");
+    String[] errors = getErrorHtml(dynFeatureModule);
+    assertEquals(1, errors.length);
+    clickLink(errors[0], 0);
+    assertEquals(0, getErrorHtml().length);
+  }
+
   private void clickLink(String errorHtml, int i) {
     List<String> link = grabHTMLLinks(errorHtml);
     myHtmlLinkManager.handleUrl(link.get(i), myAndroidFacet.getModule(), null, null, false, null);
@@ -66,7 +93,11 @@ public class ManifestConflictTest extends AndroidGradleTestCase {
   }
 
   private String[] getErrorHtml() throws Exception {
-    MergedManifestSnapshot manifest = MergedManifestManager.getMergedManifest(myAndroidFacet.getMainModule()).get();
+    return getErrorHtml(myAndroidFacet.getMainModule());
+  }
+
+  private String[] getErrorHtml(Module module) throws Exception {
+    MergedManifestSnapshot manifest = MergedManifestManager.getMergedManifest(module).get();
     ImmutableList<MergingReport.Record> records = manifest.getLoggingRecords();
     String[] errors = new String[records.size()];
     for (int c = 0; c < records.size(); c++) {

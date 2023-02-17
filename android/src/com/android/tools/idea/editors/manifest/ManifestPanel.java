@@ -71,8 +71,11 @@ import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
@@ -141,7 +144,8 @@ import org.w3c.dom.NodeList;
 public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   private static final String SUGGESTION_MARKER = "Suggestion: ";
-  private static final Pattern ADD_SUGGESTION_FORMAT = Pattern.compile(".*? 'tools:([\\w:]+)=\"([\\w:]+)\"' to \\<(\\w+)\\> element at [^:]+:(\\d+):(\\d+)-[\\d:]+ to override\\.", Pattern.DOTALL);
+  private static final Pattern ADD_SUGGESTION_FORMAT = Pattern.compile(".*? 'tools:([\\w:]+)=\"([\\w:]+)\"' to \\<(\\w+)\\> element at (.+) to override\\.", Pattern.DOTALL);
+  private static final Pattern FILE_POSITION_FORMAT = Pattern.compile("[^:]+:(\\d+):(\\d+)-[\\d:]+", Pattern.DOTALL);
   private static final Pattern NAV_FILE_PATTERN = Pattern.compile(".*/res/.*navigation(-[^/]*)?/[^/]*$");
 
   /**
@@ -784,10 +788,16 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     final String attributeName = matcher.group(1);
     final String attributeValue = matcher.group(2);
     String tagName = matcher.group(3);
-    int line = Integer.parseInt(matcher.group(4));
-    int col = Integer.parseInt(matcher.group(5));
-    final XmlFile mainManifest = ManifestUtils.getMainManifest(facet);
-
+    String filePosition = matcher.group(4);
+    Matcher filePosMatcher = FILE_POSITION_FORMAT.matcher(filePosition);
+    if (position.getPosition().equals(SourcePosition.UNKNOWN) || !filePosMatcher.matches()) {
+      Logger.getInstance(ManifestPanel.class).info("Unknown source position for " + tagName + " tag in file " + position.getFile());
+      sb.add(message);
+      return sb.getHtml();
+    }
+    int line = Integer.parseInt(filePosMatcher.group(1));
+    int col = Integer.parseInt(filePosMatcher.group(2));
+    var mainManifest = getMainManifestFile(facet, position.getFile().getSourceFile());
     Element element = getElementAt(mainManifest, line, col);
     if (element != null && tagName.equals(element.getTagName())) {
       final Element xmlTag = element;
@@ -798,6 +808,30 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
       sb.add(message);
     }
     return sb.getHtml();
+  }
+
+  /**
+   * First attempt to get an XmlFile from the file where we detected the error during manifest merger but fallback to the main manifest
+   * if we fail.
+   *
+   * This file is usually the main manifest file of this facet but not always. In case when we have a dynamic feature withina module,
+   * the module's main manifest differ from the file where the manifest merger error is detected.
+   *
+   * @param facet Android Facet
+   * @param manifestErrorSourceFile A file where we detected an error during manifest merger.
+   *
+   */
+  private static XmlFile getMainManifestFile(AndroidFacet facet, File manifestErrorSourceFile) {
+    if (manifestErrorSourceFile != null) {
+      VirtualFile manifestFile = VfsUtil.findFileByIoFile(manifestErrorSourceFile, true);
+      if (manifestFile != null) {
+        PsiFile psiFile = PsiManager.getInstance(facet.getModule().getProject()).findFile(manifestFile);
+        if (psiFile instanceof XmlFile) {
+          return (XmlFile) psiFile;
+        }
+      }
+    }
+    return ManifestUtils.getMainManifest(facet);
   }
 
   @Nullable
