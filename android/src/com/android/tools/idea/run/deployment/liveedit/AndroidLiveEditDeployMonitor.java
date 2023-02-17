@@ -375,7 +375,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
       }
       updateEditableStatus(recoverable ?
                            LiveEditStatus.createPausedStatus(errorMessage(e)) :
-                           LiveEditStatus.createErrorStatus(errorMessage(e)));
+                           LiveEditStatus.createRerunnableErrorStatus(errorMessage(e)));
       return true;
     }
 
