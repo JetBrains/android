@@ -22,7 +22,7 @@ import com.android.sdklib.devices.DeviceParser;
 import com.android.sdklib.devices.DeviceWriter;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.sdk.IdeDeviceManagers;
+import com.android.tools.idea.sdk.DeviceManagers;
 import com.android.utils.ILogger;
 import com.android.tools.idea.log.LogWrapper;
 import com.google.common.base.Predicate;
@@ -91,7 +91,7 @@ public class DeviceManagerConnection {
         IJ_LOG.error("No installed SDK found!");
         return false;
       }
-      ourDeviceManager = IdeDeviceManagers.getDeviceManager(AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, mySdkPath));
+      ourDeviceManager = DeviceManagers.getDeviceManager(AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, mySdkPath));
     }
     return true;
   }

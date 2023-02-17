@@ -32,9 +32,9 @@ internal class DeviceManagerCache(val logger: ILogger) {
 }
 
 /**
- * The [DeviceManagerCache] instance used within Studio.
+ * The [DeviceManagerCache] wrapper.
  */
-object IdeDeviceManagers {
+object DeviceManagers {
   private val logger =
     LogWrapper(DeviceManager::class.java).alwaysLogAsDebug(true).allowVerbose(false)
   internal val cache = DeviceManagerCache(logger)

@@ -23,7 +23,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.AndroidSdkPath;
-import com.android.tools.idea.sdk.IdeDeviceManagers;
+import com.android.tools.idea.sdk.DeviceManagers;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -93,7 +93,7 @@ public class AndroidSdkData {
 
   private AndroidSdkData(@NotNull File localSdk) {
     mySdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, localSdk.toPath());
-    myDeviceManager = IdeDeviceManagers.getDeviceManager(mySdkHandler);
+    myDeviceManager = DeviceManagers.getDeviceManager(mySdkHandler);
   }
 
   @NotNull

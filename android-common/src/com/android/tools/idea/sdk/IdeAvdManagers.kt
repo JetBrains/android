@@ -75,7 +75,7 @@ internal class AvdManagerCacheImpl(
  */
 object IdeAvdManagers : AvdManagerCache {
   private val logger = LogWrapper(AvdManager::class.java)
-  private val impl = AvdManagerCacheImpl(logger, IdeDeviceManagers.cache)
+  private val impl = AvdManagerCacheImpl(logger, DeviceManagers.cache)
 
   // We don't use "by AvdManagerCacheImpl" because Kotlin doesn't preserve @Throws on the resulting
   // delegate methods.
