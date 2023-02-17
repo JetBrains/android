@@ -31,6 +31,7 @@ import org.jetbrains.android.dom.LookupClass;
 import org.jetbrains.android.dom.LookupPrefix;
 import org.jetbrains.android.dom.manifest.*;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NonNls;
@@ -89,7 +90,7 @@ public class ConstantFieldConverter extends Converter<String> implements CustomR
     if (module == null) {
       return null;
     }
-    final AndroidPlatform platform = AndroidPlatform.getInstance(module);
+    final AndroidPlatform platform = AndroidPlatforms.getInstance(module);
 
     if (platform == null) {
       return null;

@@ -63,6 +63,7 @@ import java.util.concurrent.Future;
 import java.util.function.Function;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -468,7 +469,7 @@ public final class ResourceRepositoryManager implements Disposable {
   @Slow
   @Nullable
   public ResourceRepository getFrameworkResources(@NotNull Set<String> languages) {
-    AndroidPlatform androidPlatform = AndroidPlatform.getInstance(myFacet.getModule());
+    AndroidPlatform androidPlatform = AndroidPlatforms.getInstance(myFacet.getModule());
     if (androidPlatform == null) {
       return null;
     }

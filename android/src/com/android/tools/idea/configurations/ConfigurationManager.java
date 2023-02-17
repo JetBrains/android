@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.Contract;
@@ -210,7 +211,7 @@ public class ConfigurationManager implements Disposable {
   @Slow
   @NotNull
   public ImmutableList<Device> getDevices() {
-    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
+    AndroidPlatform platform = AndroidPlatforms.getInstance(myModule);
     if (platform == null) {
       return ImmutableList.of();
     }
@@ -235,7 +236,7 @@ public class ConfigurationManager implements Disposable {
 
   @Nullable
   public Device createDeviceForAvd(@NotNull AvdInfo avd) {
-    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
+    AndroidPlatform platform = AndroidPlatforms.getInstance(myModule);
     if (platform == null) {
       return null;
     }
@@ -261,7 +262,7 @@ public class ConfigurationManager implements Disposable {
    */
   @NotNull
   public IAndroidTarget[] getTargets() {
-    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
+    AndroidPlatform platform = AndroidPlatforms.getInstance(myModule);
     if (platform != null) {
       final AndroidSdkData sdkData = platform.getSdkData();
 
@@ -391,7 +392,7 @@ public class ConfigurationManager implements Disposable {
 
   @Nullable
   public IAndroidTarget getProjectTarget() {
-    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
+    AndroidPlatform platform = AndroidPlatforms.getInstance(myModule);
     return platform != null ? platform.getTarget() : null;
   }
 

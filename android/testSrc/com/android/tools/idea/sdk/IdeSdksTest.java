@@ -76,6 +76,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 
@@ -194,7 +195,7 @@ public class IdeSdksTest extends PlatformTestCase {
     assertEquals(platformTargets.size(), sdks.size());
 
     for (Sdk sdk : sdks) {
-      AndroidPlatform androidPlatform = AndroidPlatform.getInstance(sdk);
+      AndroidPlatform androidPlatform = AndroidPlatforms.getInstance(sdk);
       assertNotNull(androidPlatform);
       IAndroidTarget target = androidPlatform.getTarget();
       platformTargets.remove(target);

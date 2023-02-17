@@ -27,6 +27,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -117,7 +118,7 @@ public class DeviceSelectionUtils {
     final Project project = facet.getModule().getProject();
     String value = PropertiesComponent.getInstance(project).getValue(ANDROID_TARGET_DEVICES_PROPERTY);
     String[] selectedSerials = value != null ? deserialize(value) : null;
-    AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
+    AndroidPlatform platform = AndroidPlatforms.getInstance(facet.getModule());
     if (platform == null) {
       LOG.error("Android platform not set for module: " + facet.getModule().getName());
       return DeviceChooser.EMPTY_DEVICE_ARRAY;

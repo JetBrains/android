@@ -40,6 +40,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.sdk.AndroidPlatform
+import org.jetbrains.android.sdk.getInstance
 import org.jetbrains.android.uipreview.getLibraryDependenciesJars
 
 /** Command received from the daemon to indicate the result is available. */
@@ -81,7 +82,7 @@ private fun defaultModuleCompileClassPathLocator(module: Module): List<String> =
 private fun defaultModuleDependenciesCompileClassPathLocator(module: Module): List<String> {
   val libraryDeps = module.getLibraryDependenciesJars().map { it.toString() }
 
-  val bootclassPath = AndroidPlatform.getInstance(module)?.target?.bootClasspath ?: listOf()
+  val bootclassPath = getInstance(module)?.target?.bootClasspath ?: listOf()
   // The Compose plugin is included as part of the fat daemon jar so no need to specify it
 
   return (libraryDeps + bootclassPath)

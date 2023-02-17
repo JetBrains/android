@@ -62,6 +62,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
@@ -128,7 +129,7 @@ final public class RenderService implements Disposable {
       return null;
     }
     Project project = module.getProject();
-    AndroidPlatform platform = AndroidPlatform.getInstance(module);
+    AndroidPlatform platform = AndroidPlatforms.getInstance(module);
     if (platform != null) {
       try {
         return AndroidTargetData.get(platform.getSdkData(), target).getLayoutLibrary(project);

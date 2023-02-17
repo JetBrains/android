@@ -82,6 +82,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
@@ -495,7 +496,7 @@ public class IdeSdks {
 
   @NotNull
   private static IAndroidTarget getTarget(@NotNull Sdk sdk) {
-    AndroidPlatform androidPlatform = AndroidPlatform.getInstance(sdk);
+    AndroidPlatform androidPlatform = AndroidPlatforms.getInstance(sdk);
     assert androidPlatform != null;
     return androidPlatform.getTarget();
   }
@@ -784,7 +785,7 @@ public class IdeSdks {
   public List<Sdk> getEligibleAndroidSdks() {
     List<Sdk> sdks = new ArrayList<>();
     for (Sdk sdk : myAndroidSdks.getAllAndroidSdks()) {
-      if (sdk.getName().startsWith(SDK_NAME_PREFIX) && AndroidPlatform.getInstance(sdk) != null) {
+      if (sdk.getName().startsWith(SDK_NAME_PREFIX) && AndroidPlatforms.getInstance(sdk) != null) {
         sdks.add(sdk);
       }
     }

@@ -30,6 +30,7 @@ import java.util.Collection;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -88,6 +89,6 @@ public class FrameworkResourceManager extends ResourceManager {
 
   @Nullable
   private AndroidPlatform getPlatform() {
-    return AndroidPlatform.getInstance(myModule);
+    return AndroidPlatforms.getInstance(myModule);
   }
 }

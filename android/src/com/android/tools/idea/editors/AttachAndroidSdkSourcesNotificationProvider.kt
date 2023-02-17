@@ -36,8 +36,8 @@ import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.EditorNotifications
-import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.android.sdk.AndroidSdkUtils
+import org.jetbrains.android.sdk.getInstance
 
 /**
  * Notifies users that the Android SDK file they opened doesn't have a source file associated with it, and provides a link to download the
@@ -75,7 +75,7 @@ open class AttachAndroidSdkSourcesNotificationProvider(private val myProject: Pr
     // If we have sources, no need to display the panel.
     if (sdk.rootProvider.getFiles(OrderRootType.SOURCES).isNotEmpty()) return null
 
-    val apiVersion = AndroidPlatform.getInstance(sdk)?.apiVersion ?: return null
+    val apiVersion = getInstance(sdk)?.apiVersion ?: return null
     val refresh = Runnable { AndroidSdkUtils.updateSdkSourceRoot(sdk) }
 
     return if (StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.get()) {

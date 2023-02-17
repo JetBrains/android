@@ -50,7 +50,7 @@ public class AndroidSdkNotConfiguredNotificationProvider extends EditorNotificat
     }
     if (!AndroidModel.isRequired(facet)
         && (IdeResourcesUtil.isResourceFile(file, facet) || file.equals(AndroidRootUtil.getPrimaryManifestFile(facet)))) {
-      final AndroidPlatform platform = AndroidPlatform.getInstance(module);
+      final AndroidPlatform platform = AndroidPlatforms.getInstance(module);
 
       if (platform == null) {
         return new MySdkNotConfiguredNotificationPanel(fileEditor, module);

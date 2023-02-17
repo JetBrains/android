@@ -33,6 +33,6 @@ public class AndroidPlatformTest extends AndroidTestCase {
   }
 
   public void testDisposedModule() {
-    assertNull(AndroidPlatform.getInstance(myDisposedModule));
+    assertNull(AndroidPlatforms.getInstance(myDisposedModule));
   }
 }

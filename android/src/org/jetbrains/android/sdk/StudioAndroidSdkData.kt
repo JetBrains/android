@@ -38,7 +38,7 @@ class StudioAndroidSdkData {
     init {
       myFacet = facet
       Disposer.register(facet, this)
-      val platform = AndroidPlatform.getInstance(facet.module)
+      val platform = getInstance(facet.module)
       sdkData = platform?.sdkData
       sdkHandler = sdkData?.sdkHandler ?: AndroidSdkHandler.getInstance(AndroidLocationsSingleton, null)
     }

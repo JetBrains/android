@@ -60,6 +60,7 @@ import java.util.Optional;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -174,7 +175,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         return errors;
     }
 
-    if (AndroidPlatform.getInstance(module) == null) {
+    if (AndroidPlatforms.getInstance(module) == null) {
       errors.add(ValidationError.fatal(AndroidBundle.message("select.platform.error")));
     }
     errors.addAll(getDeployTargetContext().getCurrentDeployTargetState().validate(facet));

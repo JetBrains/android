@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -217,7 +218,7 @@ public class ResourceResolverCache {
 
     AndroidTargetData targetData = getCachedTargetData(apiLevel);
     if (targetData == null) {
-      AndroidPlatform platform = AndroidPlatform.getInstance(myManager.getModule());
+      AndroidPlatform platform = AndroidPlatforms.getInstance(myManager.getModule());
       if (platform == null) {
         return null;
       }

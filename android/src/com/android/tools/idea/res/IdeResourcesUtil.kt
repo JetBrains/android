@@ -151,6 +151,7 @@ import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.sdk.AndroidPlatform
+import org.jetbrains.android.sdk.getInstance
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.Contract
@@ -2212,9 +2213,7 @@ fun createFileResource(
   }
   if (ResourceType.LAYOUT.getName() == resourceType) {
     val module = ModuleUtilCore.findModuleForPsiElement(resSubdir)
-    val platform = if (module != null) AndroidPlatform.getInstance(
-      module)
-    else null
+    val platform = if (module != null) getInstance(module) else null
     val apiLevel = platform?.apiLevel ?: -1
     val value = if (apiLevel == -1 || apiLevel >= 8) "match_parent" else "fill_parent"
     properties.setProperty(LAYOUT_WIDTH_PROPERTY, value)

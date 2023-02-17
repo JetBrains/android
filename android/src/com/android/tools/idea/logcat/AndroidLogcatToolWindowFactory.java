@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Optional;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -230,7 +231,7 @@ public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAw
     }
 
     final AndroidFacet facet = facets.get(0);
-    AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
+    AndroidPlatform platform = AndroidPlatforms.getInstance(facet.getModule());
     if (platform == null) {
       console.clear();
       final Module module = facet.getModule();

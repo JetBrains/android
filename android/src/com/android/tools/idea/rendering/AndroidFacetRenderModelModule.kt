@@ -24,6 +24,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.openapi.module.Module
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.AndroidPlatform
+import org.jetbrains.android.sdk.getInstance
 
 /** Studio-specific [RenderModelModule] constructed from [AndroidFacet]. */
 class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderModelModule {
@@ -36,7 +37,7 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
   override val info: AndroidModuleInfo
     get() = StudioAndroidModuleInfo.getInstance(facet)
   override val androidPlatform: AndroidPlatform?
-    get() = AndroidPlatform.getInstance(ideaModule)
+    get() = getInstance(ideaModule)
   override val resourceIdManager: ResourceIdManager
     get() = ResourceIdManager.get(ideaModule)
 

@@ -34,6 +34,7 @@ import com.intellij.util.Processor;
 import org.jetbrains.android.augment.AndroidInternalRClass;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,7 +65,7 @@ public class AndroidInternalRClassFinder extends PsiElementFinder {
   private void processInternalRClasses(@NotNull Project project, @NotNull GlobalSearchScope scope, Processor<PsiClass> processor) {
     for (Module module : ModuleManager.getInstance(project).getModules()) {
       Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-      AndroidPlatform platform = sdk == null ? null : AndroidPlatform.getInstance(sdk);
+      AndroidPlatform platform = sdk == null ? null : AndroidPlatforms.getInstance(sdk);
       PsiClass internalRClass = platform == null ? null : getOrCreateInternalRClass(project, sdk, platform);
       if (internalRClass != null && scope.contains(internalRClass.getContainingFile().getViewProvider().getVirtualFile())) {
         if (!processor.process(internalRClass)) {

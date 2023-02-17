@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -712,7 +713,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
   }
 
   private String stripSdkHome(@NotNull String html) {
-    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
+    AndroidPlatform platform = AndroidPlatforms.getInstance(myModule);
     assertNotNull(platform);
     String location = platform.getSdkData().getLocation().toString();
     location = FileUtil.toSystemIndependentName(location);

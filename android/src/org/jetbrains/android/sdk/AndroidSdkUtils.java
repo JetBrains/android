@@ -136,7 +136,7 @@ public final class AndroidSdkUtils {
    * Reload SDK information and update the source root of the SDK.
    */
   public static void updateSdkSourceRoot(@NotNull Sdk sdk) {
-    AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
+    AndroidPlatform platform = AndroidPlatforms.getInstance(sdk);
     if (platform != null) {
       IAndroidTarget target = platform.getTarget();
       SdkModificator sdkModificator = sdk.getSdkModificator();
@@ -259,7 +259,7 @@ public final class AndroidSdkUtils {
   public static AndroidSdkData getFirstAndroidModuleSdkData(Project project) {
     List<AndroidFacet> facets = ProjectFacetManager.getInstance(project).getFacets(AndroidFacet.ID);
     for (AndroidFacet facet : facets) {
-      AndroidPlatform androidPlatform = AndroidPlatform.getInstance(facet.getModule());
+      AndroidPlatform androidPlatform = AndroidPlatforms.getInstance(facet.getModule());
       if (androidPlatform != null) {
         return androidPlatform.getSdkData();
       }
@@ -271,7 +271,7 @@ public final class AndroidSdkUtils {
   public static AndroidSdkData getProjectSdkData(Project project) {
     Sdk projectSdk = ProjectRootManager.getInstance(project).getProjectSdk();
     if (projectSdk != null) {
-      AndroidPlatform platform = AndroidPlatform.getInstance(projectSdk);
+      AndroidPlatform platform = AndroidPlatforms.getInstance(projectSdk);
       return platform != null ? platform.getSdkData() : null;
     }
     return null;

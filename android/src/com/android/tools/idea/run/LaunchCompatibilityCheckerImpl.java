@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -125,7 +126,7 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
   public static @Nullable LaunchCompatibilityChecker create(@NotNull AndroidFacet facet,
                                                             @Nullable ExecutionEnvironment env,
                                                             @Nullable AndroidRunConfigurationBase androidRunConfigurationBase) {
-    AndroidPlatform platform = AndroidPlatform.getInstance(facet.getModule());
+    AndroidPlatform platform = AndroidPlatforms.getInstance(facet.getModule());
     if (platform == null) {
       return null;
     }
