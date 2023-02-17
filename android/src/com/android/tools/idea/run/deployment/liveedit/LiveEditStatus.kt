@@ -90,7 +90,10 @@ open class LiveEditStatus(
       return LiveEditStatus(
         null,
         message("le.status.error.recompose.title"),
-        String.format("Error encountered during recomposition:<br>%s", message),
+        String.format(
+          "Application encountered unexpected exception during recomposition and is reverted to last successful composition state:<br>%s",
+          if (message.length > 120) message.substring(0, 120) + "..." else message
+        ),
         UNRECOVERABLE_ERROR,
         redeployMode = RedeployMode.RERUN,
         actionId = SHOW_LOGCAT_ACTION_ID
