@@ -1350,6 +1350,7 @@ public class Configuration implements Disposable, ModificationTracker {
       .toString();
   }
 
+  @NotNull
   public Module getModule() {
     return myManager.getModule();
   }

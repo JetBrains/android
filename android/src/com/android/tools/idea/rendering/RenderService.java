@@ -166,8 +166,8 @@ public class RenderService implements Disposable {
   }
 
   @Nullable
-  public static LayoutLibrary getLayoutLibrary(@Nullable final Module module, @Nullable IAndroidTarget target) {
-    if (module == null || target == null) {
+  public static LayoutLibrary getLayoutLibrary(@NotNull Module module, @Nullable IAndroidTarget target) {
+    if (target == null) {
       return null;
     }
     Project project = module.getProject();
