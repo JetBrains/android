@@ -31,6 +31,7 @@ import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.util.Disposer
 
 
 /**
@@ -95,7 +96,7 @@ class ReattachingConnectDebuggerTask(private val base: ConnectDebuggerTaskBase,
           ApplicationManager.getApplication().invokeLater {
             // Make sure the Android session is still active. b/156897049.
             val descriptor = RunContentManager.getInstance(base.myProject).findContentDescriptor(launchInfo.executor, status.processHandler)
-            if (descriptor != null && descriptor.component != null) {
+            if (descriptor != null && !Disposer.isDisposed(descriptor)) {
               base.launchDebugger(launchInfo, client, status, printer)
             }
           }
