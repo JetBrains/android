@@ -38,6 +38,10 @@ iml_module(
     name = "intellij.android.logcat.tests",
     iml_files = ["intellij.android.logcat.tests.iml"],
     test_class = "com.android.tools.idea.LogcatTestSuite",
+    test_data = [
+        "//prebuilts/studio/sdk:platforms/latest",
+        "//prebuilts/studio/sdk:sources",
+    ],
     test_friends = ["//tools/adt/idea/logcat:intellij.android.logcat"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

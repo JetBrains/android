@@ -17,6 +17,7 @@ package com.android.tools.idea.logcat.hyperlinks
 
 import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.google.common.truth.Truth.assertThat
+import com.intellij.execution.filters.CompositeFilter
 import com.intellij.execution.filters.Filter
 import com.intellij.execution.filters.Filter.Result
 import com.intellij.execution.filters.HyperlinkInfo
@@ -62,7 +63,8 @@ class EditorHyperlinkDetectorTest {
 
     val hyperlinkDetector = EditorHyperlinkDetector(project, editor)
 
-    assertThat(hyperlinkDetector.hyperlinkFilters.filters.map { it::class }).containsExactlyElementsIn(expectedFilters.map { it::class })
+    val filter = hyperlinkDetector.filter.delegate as CompositeFilter
+    assertThat(filter.filters.map { it::class }).containsExactlyElementsIn(expectedFilters.map { it::class })
   }
 
   /**
@@ -75,7 +77,7 @@ class EditorHyperlinkDetectorTest {
     editor.document.setText("http://www.google.com")
     val hyperlinkSupport = EditorHyperlinkSupport.get(editor)
 
-    EditorHyperlinkDetector(project, editor).detectHyperlinks(0, editor.document.lineCount - 1)
+    EditorHyperlinkDetector(project, editor).detectHyperlinks(0, editor.document.lineCount - 1, sdk = null)
 
     hyperlinkSupport.waitForPendingFilters(/* timeoutMs= */ 5000)
     assertThat(hyperlinkSupport.findAllHyperlinksOnLine(0).map {
@@ -88,15 +90,25 @@ class EditorHyperlinkDetectorTest {
     editor.document.setText("Foo Bar")
     val hyperlinkSupport = EditorHyperlinkSupport.get(editor)
     val editorHyperlinkDetector = EditorHyperlinkDetector(project, editor)
-    editorHyperlinkDetector.hyperlinkFilters.addFilter(TestFilter("Foo"))
-    editorHyperlinkDetector.hyperlinkFilters.addFilter(TestFilter("Bar"))
+    val filters = (editorHyperlinkDetector.filter.delegate as CompositeFilter)
+    filters.addFilter(TestFilter("Foo"))
+    filters.addFilter(TestFilter("Bar"))
 
-    editorHyperlinkDetector.detectHyperlinks(0, editor.document.lineCount - 1)
+    editorHyperlinkDetector.detectHyperlinks(0, editor.document.lineCount - 1, sdk = null)
 
     hyperlinkSupport.waitForPendingFilters(/* timeoutMs= */ 5000)
     assertThat(hyperlinkSupport.findAllHyperlinksOnLine(0).map {
       editor.document.text.substring(it.startOffset, it.endOffset)
     }).containsExactly("Foo", "Bar")
+  }
+
+  @Test
+  fun detectHyperlinks_passesSdk() {
+    val editorHyperlinkDetector = EditorHyperlinkDetector(project, editor)
+
+    editorHyperlinkDetector.detectHyperlinks(0, editor.document.lineCount - 1, sdk = 23)
+
+    assertThat(editorHyperlinkDetector.filter.apiLevel).isEqualTo(23)
   }
 
   private class TestFilter(private val text: String) : Filter {

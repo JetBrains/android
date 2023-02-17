@@ -106,6 +106,8 @@ import com.intellij.util.ConcurrencyUtil
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.any
+import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.awt.BorderLayout
@@ -429,8 +431,8 @@ class LogcatMainPanelTest {
     logcatMainPanel.messageProcessor.appendMessages(listOf(logcatMessage()))
 
     logcatMainPanel.messageProcessor.onIdle {
-      verify(mockHyperlinkDetector).detectHyperlinks(eq(0), eq(1))
-      verify(mockHyperlinkDetector).detectHyperlinks(eq(1), eq(2))
+      verify(mockHyperlinkDetector).detectHyperlinks(eq(0), eq(1), any())
+      verify(mockHyperlinkDetector).detectHyperlinks(eq(1), eq(2), any())
     }
   }
 
@@ -450,7 +452,7 @@ class LogcatMainPanelTest {
     logcatMainPanel.messageProcessor.appendMessages(listOf(logcatMessage(message = longMessage)))
 
     logcatMainPanel.messageProcessor.onIdle {
-      verify(mockHyperlinkDetector, times(2)).detectHyperlinks(eq(0), eq(1))
+      verify(mockHyperlinkDetector, times(2)).detectHyperlinks(eq(0), eq(1), any())
     }
   }
 

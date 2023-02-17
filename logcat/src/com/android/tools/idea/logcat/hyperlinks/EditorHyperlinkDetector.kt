@@ -26,15 +26,19 @@ import org.jetbrains.annotations.VisibleForTesting
 /**
  * A [HyperlinkDetector] that adds hyperlinks to an [Editor]
  */
-internal class EditorHyperlinkDetector(project: Project, editor: Editor) : HyperlinkDetector {
+internal class EditorHyperlinkDetector(private val project: Project, editor: Editor) : HyperlinkDetector {
   private val editorHyperlinkSupport = EditorHyperlinkSupport.get(editor)
 
   @VisibleForTesting
-  internal val hyperlinkFilters =
-    CompositeFilter(project, ConsoleViewUtil.computeConsoleFilters(project, /* consoleView= */ null, GlobalSearchScope.allScope(project)))
+  val filter = SdkSourceRedirectFilter(project, createFilters())
+
+  override fun detectHyperlinks(startLine: Int, endLine: Int, sdk: Int?) {
+    filter.apiLevel = sdk
+    editorHyperlinkSupport.highlightHyperlinks(filter, startLine, endLine)
+  }
+
+  private fun createFilters() =
+    CompositeFilter(project, ConsoleViewUtil.computeConsoleFilters(project, null, GlobalSearchScope.allScope(project)))
       .apply { setForceUseAllFilters(true) }
 
-  override fun detectHyperlinks(startLine: Int, endLine: Int) {
-    editorHyperlinkSupport.highlightHyperlinks(hyperlinkFilters, startLine, endLine)
-  }
 }
