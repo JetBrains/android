@@ -1485,11 +1485,12 @@ class AndroidLintTest : AbstractAndroidLintTest() {
 
   fun testMergeObsoleteFolders() { // Force minSdkVersion to v14:
     deleteManifest()
-    addMinSdkManifest(14)
+    addMinSdkManifest(26)
 
     val mainFile = myFixture.copyFileToProject("$globalTestDir/values-strings.xml", "res/values/strings.xml")
     val v8strings = myFixture.copyFileToProject("$globalTestDir/values-v8-strings.xml", "res/values-v8/strings.xml")
     val v10strings = myFixture.copyFileToProject("$globalTestDir/values-v10-strings.xml", "res/values-v10/strings.xml")
+    val mipmap = myFixture.copyFileToProject("$globalTestDir/mipmap-anydpi-v26-ic_launcher.xml", "res/mipmap-anydpi-v26/ic_launcher.xml")
 
     myFixture.copyFileToProject("$globalTestDir/layout-v11-activity_main.xml", "res/layout-v11/activity_main.xml")
     myFixture.copyFileToProject("$globalTestDir/layout-activity_main.xml", "res/layout/activity_main.xml")
@@ -1497,9 +1498,12 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     myFixture.configureFromExistingVirtualFile(mainFile)
 
     val inspection = AndroidLintObsoleteSdkIntInspection()
-    val actionLabel = "Merge resources from -v8 and -v10 into values"
-    doGlobalInspectionWithFix(inspection, actionLabel)
+    val actionLabel1 = "Merge resources from -v8 and -v10 into values"
+    val actionLabel2 = "Merge resources from -anydpi-v26 into mipmap-anydpi"
+    doGlobalInspectionWithFixes(inspection, actionLabel1, actionLabel2)
     myFixture.checkResultByFile("$globalTestDir/values-strings_after.xml")
+    myFixture.checkResultByFile("res/mipmap-anydpi/ic_launcher.xml", "$globalTestDir/mipmap-anydpi-v26-ic_launcher.xml", true)
+
     // check that the other folders don't exist
     assertFalse(v8strings.isValid)
     assertFalse(v10strings.isValid)
@@ -1723,7 +1727,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     return doGlobalInspectionTest(inspection, globalTestDir, AnalysisScope(myModule))
   }
 
-  private fun doGlobalInspectionWithFix(inspection: GlobalInspectionTool, actionLabel: String) {
+  private fun doGlobalInspectionWithFixes(inspection: GlobalInspectionTool, vararg actionLabels: String) {
     val map = doGlobalInspectionTest(inspection)
     // Ensure family names are unique; if not quickfixes get collapsed. Set.add only returns true if it wasn't already in the set.
     for (refEntity in map.keys()) {
@@ -1732,7 +1736,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
         if (fixes != null) {
           for (fix in fixes) {
             val name = fix.name
-            if (actionLabel == name) {
+            if (actionLabels.contains(name)) {
               if (fix.startInWriteAction()) {
                 WriteCommandAction.runWriteCommandAction(project) { fix.applyFix(project, descriptor) }
               } else {
