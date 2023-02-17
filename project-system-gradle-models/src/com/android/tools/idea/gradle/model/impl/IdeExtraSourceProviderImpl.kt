@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.model
+package com.android.tools.idea.gradle.model.impl
 
-interface IdeProductFlavorContainer: IdeSourceProviderContainer {
-  /**
-   * The Product Flavor itself.
-   *
-   * @return the product flavor
-   */
-  val productFlavor: IdeProductFlavor
-}
+import com.android.tools.idea.gradle.model.IdeExtraSourceProvider
+import java.io.Serializable
+
+data class IdeExtraSourceProviderImpl(
+  override val artifactName: String,
+  override val sourceProvider: IdeSourceProviderImpl?
+) : IdeExtraSourceProvider, Serializable

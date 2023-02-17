@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.model
+package com.android.tools.idea.gradle.model.impl
 
-interface IdeProductFlavorContainer: IdeSourceProviderContainer {
-  /**
-   * The Product Flavor itself.
-   *
-   * @return the product flavor
-   */
-  val productFlavor: IdeProductFlavor
-}
+import com.android.tools.idea.gradle.model.IdeMultiVariantData
+import java.io.Serializable
+
+data class IdeMultiVariantDataImpl(
+  override val defaultConfig: IdeProductFlavorImpl,
+  override val buildTypes: Collection<IdeBuildTypeContainerImpl>,
+  override val productFlavors: Collection<IdeProductFlavorContainerImpl>
+): IdeMultiVariantData, Serializable

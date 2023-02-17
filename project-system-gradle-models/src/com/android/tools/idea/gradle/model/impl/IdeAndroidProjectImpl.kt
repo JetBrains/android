@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.model.impl
 
 import com.android.tools.idea.gradle.model.IdeAndroidProject
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
+import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import java.io.File
 import java.io.Serializable
 
@@ -24,9 +25,8 @@ data class IdeAndroidProjectImpl(
   override val agpVersion: String,
   override val projectPath: IdeProjectPathImpl,
   override val projectType: IdeAndroidProjectType,
-  override val defaultConfig: IdeProductFlavorContainerImpl,
-  override val buildTypes: Collection<IdeBuildTypeContainerImpl>,
-  override val productFlavors: Collection<IdeProductFlavorContainerImpl>,
+  override val defaultSourceProvider: IdeSourceProviderContainerImpl,
+  override val multiVariantData: IdeMultiVariantDataImpl?,
   override val basicVariants: Collection<IdeBasicVariantImpl>,
   override val flavorDimensions: Collection<String>,
   override val compileTarget: String,

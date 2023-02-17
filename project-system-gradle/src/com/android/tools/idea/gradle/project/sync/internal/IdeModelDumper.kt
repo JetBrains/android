@@ -42,6 +42,7 @@ import com.android.tools.idea.gradle.model.IdeProductFlavor
 import com.android.tools.idea.gradle.model.IdeProductFlavorContainer
 import com.android.tools.idea.gradle.model.IdeSigningConfig
 import com.android.tools.idea.gradle.model.IdeSourceProvider
+import com.android.tools.idea.gradle.model.IdeExtraSourceProvider
 import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeTestedTargetVariant
@@ -237,22 +238,33 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       ideAndroidModel.dependenciesInfo?.let { dump(it) }
       ideAndroidModel.lintChecksJars?.forEach { prop("lintChecksJars") { it.path.toPrintablePath() } }
 
-      head("DefaultConfig")
-      nest {
-        dump(ideAndroidModel.defaultConfig)
+      ideAndroidModel.multiVariantData?.defaultConfig?.let { defaultConfig ->
+        head("DefaultConfig")
+        nest {
+          head("ProductFlavor")
+          nest {
+            dump(defaultConfig)
+          }
+          dump(ideAndroidModel.defaultSourceProvider)
+        }
+      } ?: run {
+        head("DefaultSourceProvider")
+        nest {
+          dump(ideAndroidModel.defaultSourceProvider)
+        }
       }
-      if (ideAndroidModel.buildTypes.isNotEmpty()) {
+      ideAndroidModel.multiVariantData?.buildTypes?.takeIf { it.isNotEmpty() }?.let { buildTypes ->
         head("BuildTypes")
         nest {
-          ideAndroidModel.buildTypes.forEach {
+          buildTypes.forEach {
             dump(it)
           }
         }
       }
-      if (ideAndroidModel.productFlavors.isNotEmpty()) {
+      ideAndroidModel.multiVariantData?.productFlavors?.takeIf { it.isNotEmpty() }?.let { productFlavors ->
         head("ProductFlavors")
         nest {
-          ideAndroidModel.productFlavors.forEach {
+          productFlavors.forEach {
             dump(it)
           }
         }
@@ -571,6 +583,19 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       }
     }
 
+    private fun dump(ideSourceProviderContainer: IdeSourceProviderContainer) {
+      head("SourceProvider")
+      nest {
+        dump(ideSourceProviderContainer.sourceProvider)
+      }
+      head("ExtraSourceProviders")
+      nest {
+        ideSourceProviderContainer.extraSourceProviders.forEach {
+          dump(it)
+        }
+      }
+    }
+
     private fun dump(ideSourceProvider: IdeSourceProvider?) {
       if (ideSourceProvider == null) return
       prop("Name") { ideSourceProvider.name }
@@ -595,7 +620,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
       ideSourceProvider.baselineProfileDirectories.forEach { prop("BaselineProfileDirectories") { it.path.toPrintablePath() } }
     }
 
-    private fun dump(extraSourceProvider: IdeSourceProviderContainer) {
+    private fun dump(extraSourceProvider: IdeExtraSourceProvider) {
       head("ExtraSourceProvider")
       nest {
         prop("ArtifactName") { extraSourceProvider.artifactName }

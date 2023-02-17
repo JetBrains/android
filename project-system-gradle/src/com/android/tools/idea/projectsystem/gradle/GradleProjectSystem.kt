@@ -417,13 +417,11 @@ fun createSourceProvidersFromModel(model: GradleAndroidModel): SourceProviders {
     currentTestFixturesSourceProviders = model.testFixturesSourceProviders.map { it.toIdeaSourceProvider() },
     currentAndSomeFrequentlyUsedInactiveSourceProviders = model.allSourceProviders.map { it.toIdeaSourceProvider() },
     mainAndFlavorSourceProviders =
-    run {
+    listOf(model.defaultSourceProvider.toIdeaSourceProvider()) + model.androidProject.multiVariantData?.let { multiVariantData ->
       val flavorNames = model.selectedVariant.productFlavors.toSet()
-      listOf(model.defaultSourceProvider.toIdeaSourceProvider()) +
-      model.androidProject.productFlavors
-        .filter { it.productFlavor.name in flavorNames }
+      multiVariantData.productFlavors.filter { it.productFlavor.name in flavorNames }
         .mapNotNull { it.sourceProvider?.toIdeaSourceProvider() }
-    },
+    }.orEmpty(),
     generatedSources = model.selectedVariant.mainArtifact.toGeneratedIdeaSourceProvider(),
     generatedUnitTestSources = model.selectedVariant.unitTestArtifact?.toGeneratedIdeaSourceProvider() ?: emptySourceProvider(
       ScopeType.UNIT_TEST),

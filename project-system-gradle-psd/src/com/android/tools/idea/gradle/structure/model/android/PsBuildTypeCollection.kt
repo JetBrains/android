@@ -24,7 +24,7 @@ class PsBuildTypeCollection internal constructor(parent: PsAndroidModule)
   override fun getKeys(from: PsAndroidModule): Set<String> {
     val result = mutableSetOf<String>()
     result.addAll(from.parsedModel?.android()?.buildTypes()?.map { it.name() }.orEmpty())
-    result.addAll(from.resolvedModel?.androidProject?.buildTypes?.map { it.buildType.name }.orEmpty())
+    result.addAll(from.resolvedModel?.androidProject?.multiVariantData?.buildTypes?.map { it.buildType.name }.orEmpty())
     return result
   }
 
@@ -33,7 +33,7 @@ class PsBuildTypeCollection internal constructor(parent: PsAndroidModule)
 
   override fun update(key: String, model: PsBuildType) {
     model.init(
-      parent.resolvedModel?.androidProject?.buildTypes?.map { it.buildType }?.firstOrNull { it.name == key },
+      parent.resolvedModel?.androidProject?.multiVariantData?.buildTypes?.map { it.buildType }?.firstOrNull { it.name == key },
       parent.parsedModel?.android()?.buildTypes()?.firstOrNull { it.name() == key }
     )
   }

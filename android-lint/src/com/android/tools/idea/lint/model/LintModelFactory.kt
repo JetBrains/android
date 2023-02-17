@@ -30,13 +30,14 @@ import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.model.IdeBuildType
 import com.android.tools.idea.gradle.model.IdeClassField
+import com.android.tools.idea.gradle.model.IdeExtraSourceProvider
 import com.android.tools.idea.gradle.model.IdeJavaArtifact
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
 import com.android.tools.idea.gradle.model.IdeLibrary
 import com.android.tools.idea.gradle.model.IdeLintOptions
 import com.android.tools.idea.gradle.model.IdeModuleLibrary
+import com.android.tools.idea.gradle.model.IdeMultiVariantData
 import com.android.tools.idea.gradle.model.IdeSourceProvider
-import com.android.tools.idea.gradle.model.IdeSourceProviderContainer
 import com.android.tools.idea.gradle.model.IdeUnknownLibrary
 import com.android.tools.idea.gradle.model.IdeVariant
 import com.android.tools.lint.model.DefaultLintModelAndroidArtifact
@@ -104,6 +105,7 @@ class LintModelFactory : LintModelModuleLoader {
   fun create(
     project: IdeAndroidProject,
     variants: Collection<IdeVariant>,
+    multiVariantData: IdeMultiVariantData,
     dir: File,
     deep: Boolean = true
   ): LintModelModule {
@@ -132,7 +134,7 @@ class LintModelFactory : LintModelModuleLoader {
         )
 
       for (variant in variants) {
-        variantList.add(getVariant(module, project, variant))
+        variantList.add(getVariant(module, project, variant, multiVariantData))
       }
 
       module
@@ -141,6 +143,7 @@ class LintModelFactory : LintModelModuleLoader {
         loader = this,
         project = project,
         projectVariants = variants,
+        multiVariantData = multiVariantData,
         dir = dir,
         agpVersion = agpVersion
       )
@@ -292,17 +295,21 @@ class LintModelFactory : LintModelModuleLoader {
     )
   }
 
-  private fun getBuildType(project: IdeAndroidProject, variant: IdeVariant): IdeBuildType {
+  private fun getBuildType(
+    multiVariantData: IdeMultiVariantData,
+    variant: IdeVariant
+  ): IdeBuildType {
     val buildTypeName = variant.buildType
-    return project.buildTypes.first { it.buildType.name == buildTypeName }.buildType
+    return multiVariantData.buildTypes.first { it.buildType.name == buildTypeName }.buildType
   }
 
   private fun getVariant(
     module: LintModelModule,
     project: IdeAndroidProject,
-    variant: IdeVariant
+    variant: IdeVariant,
+    multiVariantData: IdeMultiVariantData
   ): LintModelVariant {
-    val buildType = getBuildType(project, variant)
+    val buildType = getBuildType(multiVariantData, variant)
     return DefaultLintModelVariant(
       module = module,
       name = variant.name,
@@ -356,9 +363,9 @@ class LintModelFactory : LintModelModuleLoader {
     val providers = mutableListOf<LintModelSourceProvider>()
 
     // if we have variant, than the main sourceset is present
-    providers.add(getSourceProvider(project.defaultConfig.sourceProvider!!))
+    providers.add(getSourceProvider(project.defaultSourceProvider.sourceProvider!!))
 
-    for (flavorContainer in project.productFlavors) {
+    for (flavorContainer in project.multiVariantData?.productFlavors.orEmpty()) {
       if (variant.productFlavors.contains(flavorContainer.productFlavor.name)) {
         providers.add(getSourceProvider(flavorContainer.sourceProvider!!))
       }
@@ -370,7 +377,7 @@ class LintModelFactory : LintModelModuleLoader {
     }
 
     var debugVariant = false
-    for (buildTypeContainer in project.buildTypes) {
+    for (buildTypeContainer in project.multiVariantData?.buildTypes.orEmpty()) {
       if (variant.buildType == buildTypeContainer.buildType.name) {
         debugVariant = buildTypeContainer.buildType.isDebuggable
         providers.add(
@@ -388,52 +395,54 @@ class LintModelFactory : LintModelModuleLoader {
     return providers
   }
 
-  private fun IdeSourceProviderContainer.isTest(): Boolean {
+  private fun IdeExtraSourceProvider.isTest(): Boolean {
     return isUnitTest() || isInstrumentationTest()
   }
 
-  private fun IdeSourceProviderContainer.isTestFixtures(): Boolean {
+  private fun IdeExtraSourceProvider.isTestFixtures(): Boolean {
     return AndroidProject.ARTIFACT_TEST_FIXTURES == artifactName
   }
 
-  private fun IdeSourceProviderContainer.isUnitTest(): Boolean {
+  private fun IdeExtraSourceProvider.isUnitTest(): Boolean {
     return AndroidProject.ARTIFACT_UNIT_TEST == artifactName
   }
 
-  private fun IdeSourceProviderContainer.isInstrumentationTest(): Boolean {
+  private fun IdeExtraSourceProvider.isInstrumentationTest(): Boolean {
     return AndroidProject.ARTIFACT_ANDROID_TEST == artifactName
   }
 
   private fun computeExtraSourceProviders(
     project: IdeAndroidProject,
     variant: IdeVariant,
-    filter: (IdeSourceProviderContainer) -> Boolean
+    filter: (IdeExtraSourceProvider) -> Boolean
   ): List<LintModelSourceProvider> {
     val providers = mutableListOf<LintModelSourceProvider>()
 
-    project.defaultConfig.extraSourceProviders
+    project.defaultSourceProvider.extraSourceProviders
       .filter { filter(it) }
       .forEach { extra -> getSourceProvider(extra)?.let { providers.add(it) } }
 
-    for (flavorContainer in project.productFlavors) {
-      if (variant.productFlavors.contains(flavorContainer.productFlavor.name)) {
-        flavorContainer.extraSourceProviders
-          .filter { filter(it) }
-          .forEach { extra -> getSourceProvider(extra)?.let { providers.add(it) } }
+    project.multiVariantData?.let { multiVariantData ->
+      for (flavorContainer in multiVariantData.productFlavors) {
+        if (variant.productFlavors.contains(flavorContainer.productFlavor.name)) {
+          flavorContainer.extraSourceProviders
+            .filter { filter(it) }
+            .forEach { extra -> getSourceProvider(extra)?.let { providers.add(it) } }
+        }
       }
-    }
 
-    for (buildTypeContainer in project.buildTypes) {
-      if (variant.buildType == buildTypeContainer.buildType.name) {
-        buildTypeContainer.extraSourceProviders
-          .filter { filter(it) }
-          .forEach { extra ->
-            getSourceProvider(
-                providerContainer = extra,
-                debugOnly = buildTypeContainer.buildType.isDebuggable
-              )
-              ?.let { providers.add(it) }
-          }
+      for (buildTypeContainer in multiVariantData.buildTypes) {
+        if (variant.buildType == buildTypeContainer.buildType.name) {
+          buildTypeContainer.extraSourceProviders
+            .filter { filter(it) }
+            .forEach { extra ->
+              getSourceProvider(
+                  providerContainer = extra,
+                  debugOnly = buildTypeContainer.buildType.isDebuggable
+                )
+                ?.let { providers.add(it) }
+            }
+        }
       }
     }
 
@@ -473,7 +482,8 @@ class LintModelFactory : LintModelModuleLoader {
           getSourceProvider(
             it,
             debugOnly =
-              project.buildTypes
+              project.multiVariantData!!
+                .buildTypes
                 .first { it.buildType.name == variant.buildType }
                 .buildType
                 .isDebuggable
@@ -485,7 +495,7 @@ class LintModelFactory : LintModelModuleLoader {
   }
 
   private fun getSourceProvider(
-    providerContainer: IdeSourceProviderContainer,
+    providerContainer: IdeExtraSourceProvider,
     debugOnly: Boolean = false
   ): LintModelSourceProvider? {
     val provider = providerContainer.sourceProvider ?: return null
@@ -544,7 +554,7 @@ class LintModelFactory : LintModelModuleLoader {
   }
 
   private fun isNeverShrinking(project: IdeAndroidProject): Boolean {
-    return project.buildTypes.none { it.buildType.isMinifyEnabled }
+    return project.multiVariantData!!.buildTypes.none { it.buildType.isMinifyEnabled }
   }
 
   private fun useSupportLibraryVectorDrawables(variant: IdeVariant): Boolean {
@@ -628,6 +638,7 @@ class LintModelFactory : LintModelModuleLoader {
     override val loader: LintModelModuleLoader,
     private val project: IdeAndroidProject,
     private val projectVariants: Collection<IdeVariant>,
+    private val multiVariantData: IdeMultiVariantData,
     override val dir: File,
     override val agpVersion: AgpVersion?
   ) : LintModelModule {
@@ -673,9 +684,8 @@ class LintModelFactory : LintModelModuleLoader {
               // (Not just using findVariant since that searches linearly
               // through variant list to match by name)
               variantMap[variant.name]
-                ?: LazyLintModelVariant(this, project, variant, libraryResolver).also {
-                  variantMap[it.name] = it
-                }
+                ?: LazyLintModelVariant(this, project, variant, multiVariantData, libraryResolver)
+                  .also { variantMap[it.name] = it }
             }
             .also { _variants = it }
 
@@ -687,7 +697,7 @@ class LintModelFactory : LintModelModuleLoader {
         ?: run {
           val buildVariant = projectVariants.firstOrNull { it.name == name }
           buildVariant
-            ?.let { LazyLintModelVariant(this, project, it, libraryResolver) }
+            ?.let { LazyLintModelVariant(this, project, it, multiVariantData, libraryResolver) }
             ?.also { variantMap[name] = it }
         }
 
@@ -700,9 +710,10 @@ class LintModelFactory : LintModelModuleLoader {
     override val module: LintModelModule,
     private val project: IdeAndroidProject,
     private val variant: IdeVariant,
+    private val multiVariantData: IdeMultiVariantData,
     override val libraryResolver: LintModelLibraryResolver
   ) : LintModelVariant {
-    private val buildType = getBuildType(project, variant)
+    private val buildType = getBuildType(multiVariantData, variant)
 
     override val name: String
       get() = variant.name

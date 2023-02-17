@@ -15,25 +15,11 @@
  */
 package com.android.tools.idea.gradle.model
 
-interface IdeBuildTypeContainer {
+interface IdeBuildTypeContainer: IdeSourceProviderContainer {
   /**
    * The Build Type itself.
    *
    * @return the build type
    */
   val buildType: IdeBuildType
-
-  /**
-   * The associated sources of the build type.
-   *
-   * @return the build type source provider.
-   */
-  val sourceProvider: IdeSourceProvider?
-
-  /**
-   * Returns a list of ArtifactMetaData/SourceProvider association.
-   *
-   * @return a list of ArtifactMetaData/SourceProvider association.
-   */
-  val extraSourceProviders: Collection<IdeSourceProviderContainer>
 }

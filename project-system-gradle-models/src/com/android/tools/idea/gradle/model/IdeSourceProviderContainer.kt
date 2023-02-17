@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,7 @@
 package com.android.tools.idea.gradle.model
 
 interface IdeSourceProviderContainer {
-  /**
-   * Returns the name matching `IdeArtifactMetaData.getName`
-   */
-  val artifactName: String
 
-  /**
-   * Returns the source provider
-   */
   val sourceProvider: IdeSourceProvider?
-
+  val extraSourceProviders: Collection<IdeExtraSourceProvider>
 }

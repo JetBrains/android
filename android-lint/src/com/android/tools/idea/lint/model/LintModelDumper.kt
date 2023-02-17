@@ -54,6 +54,7 @@ fun ProjectDumper.dumpLintModels(project: Project) {
                 .create(
                   androidModuleModel.androidProject,
                   androidModuleModel.variants,
+                  androidModuleModel.androidProject.multiVariantData!!,
                   androidModuleModel.rootDirPath,
                   deep = true
                 )
