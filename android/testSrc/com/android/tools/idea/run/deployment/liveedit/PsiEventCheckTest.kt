@@ -16,9 +16,9 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.ibm.icu.impl.Assert
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
+import junit.framework.Assert
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.junit.Before
 import org.junit.Rule
@@ -39,11 +39,29 @@ class PsiEventCheckTest {
   }
 
   @Test
+  fun supportedPsiChange() {
+    var file = projectRule.fixture.addFileToProject("Color.kt", "function foo : String { return \"yellow\" }")
+    var literal = findFirst<KtLiteralStringTemplateEntry>(file) { it.text.equals("yellow")}
+    runReadAction {
+      Assert.assertFalse(isClassFieldChanges (literal))
+    }
+  }
+
+  @Test
   fun checkTopLevelField() {
     var file = projectRule.fixture.addFileToProject("Color.kt", "val x = Exception(\"yellow\")")
     var literal = findFirst<KtLiteralStringTemplateEntry>(file) { it.text.equals("yellow")}
     runReadAction {
-      Assert.assrt(isClassFieldChanges (literal))
+      Assert.assertTrue(isClassFieldChanges (literal))
+    }
+  }
+
+  @Test
+  fun checkObjectDeclaration() {
+    var file = projectRule.fixture.addFileToProject("Color.kt", "class X { object Yellow : Exception(\"yellow\") }")
+    var literal = findFirst<KtLiteralStringTemplateEntry>(file) { it.text.equals("yellow")}
+    runReadAction {
+      Assert.assertTrue(isClassFieldChanges (literal))
     }
   }
 
@@ -52,7 +70,7 @@ class PsiEventCheckTest {
     var file = projectRule.fixture.addFileToProject("Color.kt", "class X { val x = Exception(\"yellow\") }")
     var literal = findFirst<KtLiteralStringTemplateEntry>(file) { it.text.equals("yellow")}
     runReadAction {
-      Assert.assrt(isClassFieldChanges (literal))
+      Assert.assertTrue(isClassFieldChanges (literal))
     }
   }
 
@@ -61,7 +79,7 @@ class PsiEventCheckTest {
     var file = projectRule.fixture.addFileToProject("Color.kt", "fun X() { val x = Exception(\"yellow\") }")
     var literal = findFirst<KtLiteralStringTemplateEntry>(file) { it.text.equals("yellow")}
     runReadAction {
-      Assert.assrt(!isClassFieldChanges (literal))
+      Assert.assertTrue(!isClassFieldChanges (literal))
     }
   }
 }
