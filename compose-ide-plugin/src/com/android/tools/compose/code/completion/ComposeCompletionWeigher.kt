@@ -81,12 +81,11 @@ private val PROMOTED_NON_COMPOSABLES_IN_STATEMENTS = setOf(
 private val PROMOTED_NON_COMPOSABLES_IN_ARGUMENTS = setOf(
   "androidx.compose.material.MaterialTheme",
   "androidx.compose.material3.MaterialTheme",
-  "androidx.compose.material.icons.Icons.Default",
-  "androidx.compose.material.icons.Icons.Filled",
-  "androidx.compose.material.icons.Icons.Outlined",
-  "androidx.compose.material.icons.Icons.Rounded",
-  "androidx.compose.material.icons.Icons.Sharp",
-  "androidx.compose.material.icons.Icons.TwoTone",
+)
+
+/** Set of fully-qualified name prefixes of non-Composable functions that should be promoted in a value argument. */
+private val PROMOTED_NON_COMPOSABLE_PREFIXES_IN_ARGUMENTS = setOf(
+  "androidx.compose.material.icons.",
 )
 
 private fun LookupElement.isPromotedInStatement(): Boolean {
@@ -95,8 +94,9 @@ private fun LookupElement.isPromotedInStatement(): Boolean {
 }
 
 private fun LookupElement.isPromotedInArgument(): Boolean {
-  val fqName = (psiElement as? KtNamedDeclaration)?.fqName?.asString()
-  return fqName != null && PROMOTED_NON_COMPOSABLES_IN_ARGUMENTS.contains(fqName)
+  val fqName = (psiElement as? KtNamedDeclaration)?.fqName?.asString() ?: return false
+  return PROMOTED_NON_COMPOSABLES_IN_ARGUMENTS.contains(fqName) ||
+         PROMOTED_NON_COMPOSABLE_PREFIXES_IN_ARGUMENTS.any { fqName.startsWith(it) }
 }
 
 /** Checks if the proposed completion would insert a composable function. */

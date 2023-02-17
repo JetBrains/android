@@ -15,6 +15,7 @@
  */
 package com.android.tools.compose.code.completion
 
+import com.android.ide.common.vectordrawable.VdPreview
 import com.android.tools.compose.ComposeSettings
 import com.android.tools.compose.code.getComposableFunctionRenderParts
 import com.android.tools.compose.code.isComposableFunctionParameter
@@ -22,6 +23,7 @@ import com.android.tools.compose.isComposableFunction
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
+import com.intellij.codeInsight.completion.CompletionResult
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.daemon.impl.quickfix.EmptyExpression
@@ -33,15 +35,18 @@ import com.intellij.codeInsight.template.TemplateEditingAdapter
 import com.intellij.codeInsight.template.TemplateManager
 import com.intellij.codeInsight.template.impl.ConstantNode
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.asSafely
 import icons.StudioIcons
+import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.builtins.isFunctionType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.idea.completion.LookupElementFactory
 import org.jetbrains.kotlin.idea.completion.handlers.KotlinCallableInsertHandler
 import org.jetbrains.kotlin.idea.core.completion.DescriptorBasedDeclarationLookupObject
@@ -51,11 +56,15 @@ import org.jetbrains.kotlin.idea.util.CallTypeAndReceiver
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.psiUtil.getNextSiblingIgnoringWhitespace
 import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
 import org.jetbrains.kotlin.resolve.calls.results.argumentValueType
 import org.jetbrains.kotlin.types.typeUtil.isUnit
+import java.io.BufferedReader
+import javax.swing.Icon
+import javax.swing.ImageIcon
 
 private val COMPOSABLE_FUNCTION_ICON = StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION
 
@@ -107,16 +116,28 @@ class ComposeCompletionContributor : CompletionContributor() {
     }
 
     resultSet.runRemainingContributors(parameters) { completionResult ->
-      val lookupElement = completionResult.lookupElement
-      val psi = lookupElement.psiElement
-      val newResult = when {
-        psi == null || !psi.isComposableFunction() -> completionResult
-        lookupElement.isForSpecialLambdaLookupElement() -> null
-        else -> completionResult.withLookupElement(ComposeLookupElement(lookupElement))
-      }
-
-      newResult?.let(resultSet::passResult)
+      transformCompletionResult(completionResult)?.let(resultSet::passResult)
     }
+  }
+
+  private fun transformCompletionResult(completionResult: CompletionResult): CompletionResult? {
+    val lookupElement = completionResult.lookupElement
+
+    // If there's no PsiElement, just leave the result alone.
+    val psi = lookupElement.psiElement ?: return completionResult
+
+    // For @Composable functions: remove the "special" lookup element (docs below), but otherwise apply @Composable function decoration.
+    if (psi.isComposableFunction()) {
+      return if (lookupElement.isForSpecialLambdaLookupElement()) null
+      else completionResult.withLookupElement(ComposableFunctionLookupElement(lookupElement))
+    }
+
+    // Decorate Compose material icons with the actual icons.
+    if (ComposeMaterialIconLookupElement.appliesTo(lookupElement))
+      return completionResult.withLookupElement(ComposeMaterialIconLookupElement(lookupElement))
+
+    // No transformation needed.
+    return completionResult
   }
 
   /**
@@ -134,7 +155,7 @@ class ComposeCompletionContributor : CompletionContributor() {
 /**
  * Wraps original Kotlin [LookupElement]s for composable functions to make them stand out more.
  */
-private class ComposeLookupElement(original: LookupElement) : LookupElementDecorator<LookupElement>(original) {
+private class ComposableFunctionLookupElement(original: LookupElement) : LookupElementDecorator<LookupElement>(original) {
   /**
    * Set of [CallType]s that should be handled by the [ComposeInsertHandler].
    */
@@ -174,6 +195,84 @@ private class ComposeLookupElement(original: LookupElement) : LookupElementDecor
     presentation.clearTail()
     parameters?.let { presentation.appendTailTextItalic(it, /* grayed = */ false) }
     tail?.let { presentation.appendTailText(" $it", /* grayed = */ true) }
+  }
+}
+
+/** Lookup element that decorates a Compose material icon property with the actual icon it represents. */
+@VisibleForTesting
+internal class ComposeMaterialIconLookupElement(private val original: LookupElement)
+  : LookupElementDecorator<LookupElement>(original) {
+  override fun renderElement(presentation: LookupElementPresentation) {
+    super.renderElement(presentation)
+
+    val resourcePath = original.psiElement?.kotlinFqName?.asString()?.resourcePathFromFqName() ?: return
+    val icon = getIcon(resourcePath)
+
+    if (icon != null) presentation.icon = icon
+    else Logger.getInstance(ComposeMaterialIconLookupElement::class.java).error("Missing icon for ${original.psiElement?.kotlinFqName}")
+  }
+
+  companion object {
+    /**
+     * Map of known Compose material icon packages.
+     *
+     * The key is the package name.
+     *
+     * The value identifies where to find the package in Android Studio resources. The first string in each pair represents part of a
+     * directory name, and the second part represents a prefix on the file name.
+     */
+    private val resourcePathMap = mapOf(
+      "androidx.compose.material.icons.filled" to Pair("", "baseline"),
+      "androidx.compose.material.icons.rounded" to Pair("round", "round"),
+      "androidx.compose.material.icons.sharp" to Pair("sharp", "sharp"),
+      "androidx.compose.material.icons.twotone" to Pair("twotone", "twotone"),
+      "androidx.compose.material.icons.outlined" to Pair("outlined", "outline"),
+    )
+
+    /** Whether ComposeMaterialIconLookupElement can apply to the given [LookupElement]. */
+    fun appliesTo(lookupElement: LookupElement): Boolean {
+      val psiElement = lookupElement.psiElement ?: return false
+      if (psiElement !is KtProperty) return false
+      val fqName = psiElement.kotlinFqName?.asString() ?: return false
+
+      if (!fqName.startsWith("androidx.compose.material.icons") ||
+          psiElement.typeReference?.text?.endsWith("ImageVector") != true) return false
+
+      return resourcePathMap.containsKey(fqName.substringBeforeLast('.'))
+    }
+
+    /**
+     * Converts the fully-qualified name of a Compose material icon property to an Android Studio resource path.
+     *
+     * eg: "androidx.compose.material.icons.filled.AccountBox" ->
+     *        "images/material/icons/materialicons/account_box/baseline_account_box_24.xml"
+     */
+    @VisibleForTesting
+    internal fun String.resourcePathFromFqName(): String? {
+      val (directorySuffix, filePrefix) = resourcePathMap[substringBeforeLast('.')] ?: return null
+      val iconName = substringAfterLast('.').withIndex().joinToString("") { (i, ch) ->
+        when {
+          i == 0 -> ch.lowercaseChar().toString()
+          ch.isUpperCase() -> "_${ch.lowercaseChar()}"
+          else -> ch.toString()
+        }
+      }
+
+      return "images/material/icons/materialicons${directorySuffix}/${iconName}/${filePrefix}_${iconName}_24.xml"
+    }
+
+    /** Returns an [Icon] given an Android Studio resource path. */
+    @VisibleForTesting
+    internal fun getIcon(resourcePath: String): Icon? {
+      return ComposeMaterialIconLookupElement::class.java.classLoader.getResourceAsStream(resourcePath)?.use { inputStream ->
+        val content = inputStream.bufferedReader().use(BufferedReader::readText)
+        val errorLog = StringBuilder()
+        val bufferedImage = VdPreview.getPreviewFromVectorXml(VdPreview.TargetSize.createFromMaxDimension(16), content, errorLog)
+        if (errorLog.isNotEmpty()) Logger.getInstance(ComposeMaterialIconLookupElement::class.java).error(errorLog.toString())
+
+        ImageIcon(bufferedImage)
+      }
+    }
   }
 }
 
