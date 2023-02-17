@@ -22,9 +22,9 @@ import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.DebugSessionStarter
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestExecutionOption
-import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfiguration
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME
+import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
@@ -64,29 +64,21 @@ class DefaultConnectDebuggerTask<S : AndroidDebuggerState>(
 }
 
 @JvmOverloads
+@Throws(ExecutionException::class)
 fun getBaseDebuggerTask(
   androidDebuggerContext: AndroidDebuggerContext,
   facet: AndroidFacet,
-  applicationIdProvider: ApplicationIdProvider,
   executionEnvironment: ExecutionEnvironment,
   timeoutSeconds: Int = 15
-): ConnectDebuggerTask? {
+): ConnectDebuggerTask {
   val logger = Logger.getInstance("getBaseDebuggerTask")
-  val debugger = androidDebuggerContext.getAndroidDebugger()
-  if (debugger == null) {
-    logger.error("Unable to determine debugger to use for this launch")
-    return null
-  }
+  val debugger = androidDebuggerContext.androidDebugger ?: throw ExecutionException("Unable to determine debugger to use for this launch")
   logger.info("Using debugger: " + debugger.id)
 
   val androidDebuggerState = androidDebuggerContext.getAndroidDebuggerState<AndroidDebuggerState>()
+                             ?: throw ExecutionException("Unable to determine androidDebuggerState to use for this launch")
 
-  if (androidDebuggerState == null) {
-    logger.error("Unable to determine androidDebuggerState to use for this launch")
-    return null
-  }
-
-  return getBaseDebuggerTask(debugger, androidDebuggerState, executionEnvironment, facet, applicationIdProvider, timeoutSeconds)
+  return getBaseDebuggerTask(debugger, androidDebuggerState, executionEnvironment, facet, timeoutSeconds)
 }
 
 @JvmOverloads
@@ -95,7 +87,6 @@ fun <S : AndroidDebuggerState> getBaseDebuggerTask(
   androidDebuggerState: S,
   executionEnvironment: ExecutionEnvironment,
   facet: AndroidFacet,
-  applicationIdProvider: ApplicationIdProvider,
   timeoutSeconds: Int = 15
 ): ConnectDebuggerTask {
   val executionType = AndroidModel.get(facet)?.testExecutionOption ?: TestExecutionOption.HOST

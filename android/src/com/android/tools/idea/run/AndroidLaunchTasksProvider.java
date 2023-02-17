@@ -215,11 +215,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     return ImmutableList.copyOf(tasks);
   }
 
-  @Override
-  public String getLaunchTypeDisplayName() {
-    return getDeployType().asDisplayName();
-  }
-
 
   private boolean isApplyCodeChangesFallbackToRun() {
     return DeploymentConfiguration.getInstance().APPLY_CODE_CHANGES_FALLBACK_TO_RUN;
@@ -250,13 +245,13 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
   @Nullable
   @Override
-  public ConnectDebuggerTask getConnectDebuggerTask() {
+  public ConnectDebuggerTask getConnectDebuggerTask() throws ExecutionException {
     if (!myLaunchOptions.isDebug()) {
       return null;
     }
     AndroidDebuggerContext androidDebuggerContext = myRunConfig.getAndroidDebuggerContext();
 
-    return DefaultConnectDebuggerTaskKt.getBaseDebuggerTask(androidDebuggerContext, myFacet, myApplicationIdProvider, myEnv);
+    return DefaultConnectDebuggerTaskKt.getBaseDebuggerTask(androidDebuggerContext, myFacet, myEnv, 15);
   }
 
   private boolean shouldDeployAsInstant() {
