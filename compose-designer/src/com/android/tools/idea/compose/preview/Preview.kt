@@ -46,7 +46,7 @@ import com.android.tools.idea.concurrency.wrapCompletableDeferredCollection
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
-import com.android.tools.idea.editors.documentChangeFlow
+import com.android.tools.idea.editors.build.outOfDateKtFiles
 import com.android.tools.idea.editors.fast.CompilationResult
 import com.android.tools.idea.editors.fast.FastPreviewManager
 import com.android.tools.idea.editors.fast.requestFastPreviewRefreshAndTrack
@@ -126,7 +126,9 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -875,29 +877,25 @@ class ComposePreviewRepresentation(
         }
       }
 
-      launch(workerThread) {
-        psiFileChangeFlow(psiFilePointer.project, this@ComposePreviewRepresentation)
-          // filter only for the file we care about
-          .filter { it.language == KotlinLanguage.INSTANCE }
-          .collect {
-            // Invalidate the preview to detect for changes in any annotation. We do not refresh. If
-            // the change is in
-            // the preview file currently opened, the document change flow will detect the
-            // modification and trigger a refresh
-            // if needed.
-            invalidate()
-          }
-      }
-
       // Flow handling file changes and syntax error changes.
       launch(workerThread) {
-        val psiFile = psiFilePointer.element ?: return@launch
         merge(
-            documentChangeFlow(psiFile, this@ComposePreviewRepresentation, log).debounce {
-              // The debounce timer is smaller when running with Fast Preview so the changes are
-              // more responsive to typing.
-              if (FastPreviewManager.getInstance(project).isAvailable) 250L else 1000L
-            },
+            psiFileChangeFlow(psiFilePointer.project, this@ComposePreviewRepresentation)
+              // filter only for the file we care about
+              .filter { it.language == KotlinLanguage.INSTANCE }
+              .onEach {
+                // Invalidate the preview to detect for changes in any annotation even in other
+                // files as long as they are Kotlin.
+                // We do not refresh at this point. If the change is in the preview file currently
+                // opened, the change flow below will
+                // detect the modification and trigger a refresh if needed.
+                invalidate()
+              }
+              .debounce {
+                // The debounce timer is smaller when running with Fast Preview so the changes are
+                // more responsive to typing.
+                if (FastPreviewManager.getInstance(project).isAvailable) 250L else 1000L
+              },
             disposableCallbackFlow<Unit>(
               "SyntaxErrorFlow",
               log,
@@ -909,11 +907,25 @@ class ComposePreviewRepresentation(
                   ProblemListener.TOPIC,
                   object : ProblemListener {
                     override fun problemsDisappeared(file: VirtualFile) {
+                      // We listen for problems disappearing so we know when we need to re-trigger a
+                      // Fast Preview compile.
+                      // We can safely ignore this events if:
+                      //  - No files are out of date or it's not a relevant file
+                      //  - Fast Preview is not active, we do not need to detect files having
+                      // problems removed.
                       if (
-                        file != psiFilePointer.virtualFile ||
-                          !FastPreviewManager.getInstance(project).isEnabled
+                        psiCodeFileChangeDetectorService.outOfDateFiles.isEmpty() ||
+                          !FastPreviewManager.getInstance(project).isAvailable
                       )
                         return
+
+                      // We only care about this in Kotlin files when they are out of date.
+                      val relevantFile =
+                        psiCodeFileChangeDetectorService.outOfDateKtFiles
+                          .map { it.virtualFile }
+                          .any { it == file }
+                      if (!relevantFile) return
+
                       trySend(Unit)
                     }
                   }
@@ -922,13 +934,18 @@ class ComposePreviewRepresentation(
           )
           .conflate()
           .collect {
-            if (FastPreviewManager.getInstance(project).isEnabled) {
+            // If Fast Preview is enabled and there are Kotlin files out of date,
+            // trigger a compilation. Otherwise, we will just refresh normally.
+            if (
+              FastPreviewManager.getInstance(project).isAvailable &&
+                psiCodeFileChangeDetectorService.outOfDateKtFiles.isNotEmpty()
+            ) {
               try {
                 requestFastPreviewRefreshAndTrack()
+                return@collect
               } catch (_: Throwable) {
                 // Ignore any cancellation exceptions
               }
-              return@collect
             }
 
             if (
@@ -961,11 +978,14 @@ class ComposePreviewRepresentation(
       resumeInteractivePreview()
     }
 
-    if (
-      FastPreviewManager.getInstance(project).isEnabled &&
-        psiCodeFileChangeDetectorService.outOfDateFiles.any { it is KtFile }
-    ) {
-      launch { requestFastPreviewRefreshAndTrack() }
+    val anyKtFilesOutOfDate = psiCodeFileChangeDetectorService.outOfDateFiles.any { it is KtFile }
+    if (anyKtFilesOutOfDate) {
+      // If any files are out of date, we force a refresh when re-activating. This allows us to
+      // compile the changes if Fast Preview is enabled OR to refresh the preview elements in case
+      // the annotations have changed.
+      if (FastPreviewManager.getInstance(project).isAvailable)
+        launch { requestFastPreviewRefreshAndTrack() }
+      else requestRefresh()
     }
   }
 

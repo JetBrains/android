@@ -175,3 +175,6 @@ class PsiCodeFileChangeDetectorService private constructor(psiManager: PsiManage
     fun getInstance(project: Project): PsiCodeFileChangeDetectorService = project.getService(PsiCodeFileChangeDetectorService::class.java)
   }
 }
+
+val PsiCodeFileChangeDetectorService.outOfDateKtFiles: Set<PsiFile>
+  get() = outOfDateFiles.filter { it.language == KotlinLanguage.INSTANCE }.toSet()
