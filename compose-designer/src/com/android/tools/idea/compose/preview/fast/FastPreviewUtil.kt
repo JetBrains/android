@@ -30,7 +30,7 @@ import java.io.File
 import java.time.Duration
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
@@ -108,7 +108,7 @@ internal suspend fun requestFastPreviewRefreshAndTrack(
   files: Set<PsiFile>,
   currentStatus: ComposePreviewManager.Status,
   launcher: UniqueTaskCoroutineLauncher,
-  trackedForceRefresh: () -> Job?
+  trackedForceRefresh: () -> Deferred<Unit>
 ): CompilationResult = coroutineScope {
   // We delay the reporting of compilationSucceded until we have the amount of time the refresh
   // took. Either refreshSucceeded or
@@ -169,7 +169,7 @@ internal suspend fun requestFastPreviewRefreshAndTrack(
     CompletableDeferred<CompilationResult>(CompilationResult.CompilationError())
 
   launcher.launch {
-    var refreshJob: Job? = null
+    var refreshResult: Deferred<Unit>? = null
     try {
       if (!currentStatus.hasSyntaxErrors) {
         val result =
@@ -177,8 +177,8 @@ internal suspend fun requestFastPreviewRefreshAndTrack(
         deferredCompilationResult.complete(result)
         if (result is CompilationResult.Success) {
           val refreshStartMs = System.currentTimeMillis()
-          refreshJob = trackedForceRefresh()
-          refreshJob?.invokeOnCompletion { throwable ->
+          refreshResult = trackedForceRefresh()
+          refreshResult.invokeOnCompletion { throwable ->
             when (throwable) {
               null -> requestTracker.refreshSucceeded(System.currentTimeMillis() - refreshStartMs)
               is CancellationException ->
@@ -186,7 +186,7 @@ internal suspend fun requestFastPreviewRefreshAndTrack(
               else -> requestTracker.refreshFailed()
             }
           }
-          refreshJob?.join()
+          refreshResult.join()
         } else {
           if (result is CompilationResult.CompilationAborted) {
             requestTracker.refreshCancelled(compilationCompleted = false)
@@ -208,7 +208,7 @@ internal suspend fun requestFastPreviewRefreshAndTrack(
       // Use NonCancellable to make sure to wait until the cancellation is completed.
       withContext(NonCancellable) {
         deferredCompilationResult.complete(CompilationResult.CompilationAborted())
-        refreshJob?.cancelAndJoin()
+        refreshResult?.cancelAndJoin()
         throw e
       }
     }

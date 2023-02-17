@@ -80,7 +80,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
@@ -529,13 +528,23 @@ class ComposePreviewRepresentationGradleTest {
   }
 
   @Test
-  fun `refresh returns null if ComposePreviewRepresentation is disposed`() {
-    var refreshJob = runBlocking { composePreviewRepresentation.forceRefresh(true) }
-    assertNotNull(refreshJob)
+  fun `refresh returns completed exceptionally if ComposePreviewRepresentation is disposed`() {
+    var refreshDeferred = runBlocking {
+      val completableDeferred = CompletableDeferred<Unit>()
+      composePreviewRepresentation.requestRefresh(true, completableDeferred = completableDeferred)
+      completableDeferred
+    }
+    assertNotNull(refreshDeferred)
 
     runInEdtAndWait { Disposer.dispose(composePreviewRepresentation) }
-    refreshJob = runBlocking { composePreviewRepresentation.forceRefresh(true) }
-    assertNull(refreshJob)
+    refreshDeferred = runBlocking {
+      val completableDeferred = CompletableDeferred<Unit>()
+      composePreviewRepresentation.requestRefresh(true, completableDeferred = completableDeferred)
+      completableDeferred
+    }
+    // Verify that is completed exceptionally
+    assertTrue(refreshDeferred.isCompleted)
+    assertNotNull(refreshDeferred.getCompletionExceptionOrNull())
   }
 
   @Test

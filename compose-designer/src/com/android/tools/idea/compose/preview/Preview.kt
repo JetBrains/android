@@ -37,10 +37,12 @@ import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
+import com.android.tools.idea.concurrency.conflateLatest
 import com.android.tools.idea.concurrency.disposableCallbackFlow
 import com.android.tools.idea.concurrency.launchWithProgress
 import com.android.tools.idea.concurrency.psiFileChangeFlow
 import com.android.tools.idea.concurrency.smartModeFlow
+import com.android.tools.idea.concurrency.wrapCompletableDeferredCollection
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.build.PsiCodeFileChangeDetectorService
@@ -264,6 +266,8 @@ class ComposePreviewRepresentation(
   }
 
   private val log = Logger.getInstance(ComposePreviewRepresentation::class.java)
+  private val isDisposed = AtomicBoolean(false)
+
   private val project = psiFile.project
   private val module = runReadAction { psiFile.module }
   private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
@@ -403,7 +407,7 @@ class ComposePreviewRepresentation(
     previewElementProvider.instanceFilter = instance
     sceneComponentProvider.enabled = false
     val startUpStart = System.currentTimeMillis()
-    forceRefresh(quickRefresh)?.invokeOnCompletion {
+    forceRefresh(quickRefresh).invokeOnCompletion {
       surface.sceneManagers.forEach { it.resetInteractiveEventsCounter() }
       if (
         !isFromAnimationInspection
@@ -431,7 +435,7 @@ class ComposePreviewRepresentation(
     onInteractivePreviewStop()
     requestVisibilityAndNotificationsUpdate()
     onStaticPreviewStart()
-    forceRefresh()?.invokeOnCompletion {
+    forceRefresh().invokeOnCompletion {
       interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
     }
   }
@@ -498,7 +502,7 @@ class ComposePreviewRepresentation(
           onAnimationInspectionStop()
           onStaticPreviewStart()
         }
-        forceRefresh()?.invokeOnCompletion {
+        forceRefresh().invokeOnCompletion {
           interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
           ActivityTracker.getInstance().inc()
         }
@@ -662,7 +666,8 @@ class ComposePreviewRepresentation(
 
   private data class RefreshRequest(
     val quickRefresh: Boolean,
-    val requestSource: Throwable?,
+    val requestSources: List<Throwable>,
+    val completableDeferred: CompletableDeferred<Unit>? = null,
     val requestId: String = UUID.randomUUID().toString().substring(0, 5)
   )
 
@@ -673,7 +678,7 @@ class ComposePreviewRepresentation(
    */
   private fun onInit() {
     log.debug("onInit")
-    if (Disposer.isDisposed(this)) {
+    if (isDisposed.get()) {
       log.info("Preview was closed before the initialization completed.")
     }
     val psiFile = psiFilePointer.element
@@ -796,12 +801,49 @@ class ComposePreviewRepresentation(
 
       // Flow to collate and process requestRefresh requests.
       launch(workerThread) {
-        refreshFlow.conflate().collect {
-          refreshFlow
-            .resetReplayCache() // Do not keep re-playing after we have received the element.
-          log.debug("refreshFlow, request=$it")
-          refresh(it)?.join()
-        }
+        refreshFlow
+          .conflateLatest { accumulator, value ->
+            val completableDeferred =
+              if (accumulator.completableDeferred == null && value.completableDeferred == null) null
+              else
+                wrapCompletableDeferredCollection(
+                  listOfNotNull(accumulator.completableDeferred, value.completableDeferred)
+                )
+
+            // Create a new request source grouping the existing ones.
+            RefreshRequest(
+                // Quick refresh is only allowed if both the request in the buffer and the new one
+                // had requested it.
+                accumulator.quickRefresh && value.quickRefresh,
+                requestSources = accumulator.requestSources + value.requestSources,
+                completableDeferred = completableDeferred,
+                // We keep the request id from the one in the buffer (the first to arrive).
+                requestId = accumulator.requestId
+              )
+              .also { log.debug("${value.requestId} bundled into ${accumulator.requestId}") }
+          }
+          .collect { refreshRequest ->
+            log.debug("refreshFlow, request=$refreshRequest")
+            refreshFlow
+              .resetReplayCache() // Do not keep re-playing after we have received the element.
+
+            val refreshJob = refresh(refreshRequest)
+            // Link refreshJob and the completableDeferred so when one is cancelled the other one
+            // is too.
+            refreshRequest.completableDeferred?.let { completableDeferred ->
+              refreshJob.invokeOnCompletion { throwable ->
+                if (throwable != null) {
+                  completableDeferred.completeExceptionally(throwable)
+                } else completableDeferred.complete(Unit)
+              }
+
+              completableDeferred.invokeOnCompletion {
+                // If the deferred is cancelled, cancel the refresh Job too
+                if (it is CancellationException) refreshJob.cancel(it)
+              }
+            }
+            refreshJob.join()
+          }
       }
 
       // Flow to collate and process refreshNotificationsAndVisibilityFlow requests.
@@ -972,6 +1014,7 @@ class ComposePreviewRepresentation(
   }
 
   override fun dispose() {
+    isDisposed.set(true)
     if (interactiveMode == ComposePreviewManager.InteractiveMode.READY) {
       logInteractiveSessionMetrics()
     }
@@ -1114,8 +1157,21 @@ class ComposePreviewRepresentation(
     }
   }
 
-  internal fun requestRefresh(quickRefresh: Boolean = false) {
-    val refreshRequest = RefreshRequest(quickRefresh = quickRefresh, requestSource = Throwable())
+  internal fun requestRefresh(
+    quickRefresh: Boolean = false,
+    completableDeferred: CompletableDeferred<Unit>? = null
+  ) {
+    if (isDisposed.get()) {
+      completableDeferred?.completeExceptionally(IllegalStateException("Already disposed"))
+      return
+    }
+
+    val refreshRequest =
+      RefreshRequest(
+        quickRefresh = quickRefresh,
+        requestSources = listOf(Throwable()),
+        completableDeferred = completableDeferred
+      )
     launch(workerThread) { refreshFlow.emit(refreshRequest) }
   }
 
@@ -1129,10 +1185,10 @@ class ComposePreviewRepresentation(
    * render those elements. The refresh will only happen if the Preview elements have changed from
    * the last render.
    */
-  private fun refresh(refreshRequest: RefreshRequest): Job? {
+  private fun refresh(refreshRequest: RefreshRequest): Job {
     val requestLogger = LoggerWithFixedInfo(log, mapOf("requestId" to refreshRequest.requestId))
     requestLogger.debug("Refresh triggered. quickRefresh: ${refreshRequest.quickRefresh}")
-    val refreshTrigger: Throwable? = refreshRequest.requestSource
+    val refreshTriggers: List<Throwable> = refreshRequest.requestSources
     val startTime = System.nanoTime()
     // Start a progress indicator so users are aware that a long task is running. Stop it by calling
     // processFinish() if returning early.
@@ -1146,13 +1202,17 @@ class ComposePreviewRepresentation(
       )
     if (!Disposer.tryRegister(this, refreshProgressIndicator)) {
       refreshProgressIndicator.processFinish()
-      return null
+      return CompletableDeferred<Unit>().also {
+        it.completeExceptionally(IllegalStateException("Already disposed"))
+      }
     }
     // This is not launched in the activation scope to avoid cancelling the refresh mid-way when the
     // user changes tabs.
     val refreshJob =
       launchWithProgress(refreshProgressIndicator, uiThread) {
-        requestLogger.debug("Refresh triggered (inside launchWithProgress scope)", refreshTrigger)
+        refreshTriggers.forEach {
+          requestLogger.debug("Refresh triggered (inside launchWithProgress scope)", it)
+        }
 
         if (DumbService.isDumb(project)) {
           requestLogger.debug("Project is in dumb mode, not able to refresh")
@@ -1288,9 +1348,18 @@ class ComposePreviewRepresentation(
     invalidated.set(true)
   }
 
-  internal fun forceRefresh(quickRefresh: Boolean = false): Job? {
+  /**
+   * Same as [requestRefresh] but does a previous [invalidate] to ensure the preview definitions are
+   * re-loaded from the files.
+   *
+   * The return [Deferred] will complete when the refresh finalizes.
+   */
+  private fun forceRefresh(quickRefresh: Boolean = false): Deferred<Unit> {
+    val completableDeferred = CompletableDeferred<Unit>()
     invalidate()
-    return refresh(RefreshRequest(quickRefresh = quickRefresh, requestSource = Throwable()))
+    requestRefresh(quickRefresh, completableDeferred)
+
+    return completableDeferred
   }
 
   override fun registerShortcuts(applicableTo: JComponent) {
