@@ -100,4 +100,6 @@ internal class TestComposePreviewView(
       if (nextRefreshListener == null) nextRefreshListener = CompletableDeferred()
       nextRefreshListener!!
     }
+
+  override fun onLayoutlibNativeCrash(onLayoutlibReEnable: () -> Unit) {}
 }

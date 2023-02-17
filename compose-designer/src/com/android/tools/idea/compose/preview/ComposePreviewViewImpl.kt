@@ -25,6 +25,7 @@ import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.GuiInputHandler
+import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.notifications.NotificationPanel
@@ -32,7 +33,6 @@ import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.projectsystem.requestBuild
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.intellij.ide.plugins.newui.VerticalLayout
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
@@ -45,6 +45,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBSplitter
+import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Point
@@ -102,6 +103,13 @@ interface ComposePreviewView {
 
   /** Called when a refresh has completed. */
   fun onRefreshCompleted()
+
+  /**
+   * Called when a Layoutlib native crash is detected. It will show a notification to the user
+   * allowing to re-enable the disabled Layoutlib. If the user chooses to re-enable layoutlib,
+   * [onLayoutlibReEnable] will be called.
+   */
+  fun onLayoutlibNativeCrash(onLayoutlibReEnable: () -> Unit)
 }
 
 fun interface ComposePreviewViewProvider {
@@ -230,7 +238,7 @@ internal class ComposePreviewViewImpl(
           JPanel(VerticalLayout(0)).apply {
             isOpaque = false
             isFocusable = false
-            add(notificationPanel, VerticalLayout.FILL_HORIZONTAL)
+            add(notificationPanel, VerticalLayout.FILL)
           }
 
         val content = JPanel(BorderLayout())
@@ -312,6 +320,10 @@ internal class ComposePreviewViewImpl(
 
   override fun onRefreshCompleted() {
     updateVisibilityAndNotifications()
+  }
+
+  override fun onLayoutlibNativeCrash(onLayoutlibReEnable: () -> Unit) {
+    workbench.handleLayoutlibNativeCrash(onLayoutlibReEnable)
   }
 
   /**

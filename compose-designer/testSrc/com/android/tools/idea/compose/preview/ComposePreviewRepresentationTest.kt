@@ -67,6 +67,8 @@ internal class TestComposePreviewView(override val mainSurface: NlDesignSurface)
   override fun onRefreshCancelledByTheUser() {}
 
   override fun onRefreshCompleted() {}
+
+  override fun onLayoutlibNativeCrash(onLayoutlibReEnable: () -> Unit) {}
 }
 
 class ComposePreviewRepresentationTest {
