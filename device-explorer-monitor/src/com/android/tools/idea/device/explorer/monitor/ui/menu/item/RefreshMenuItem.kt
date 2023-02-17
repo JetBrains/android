@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
-import com.android.tools.idea.device.explorer.monitor.ProcessTreeNode
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
 import icons.StudioIcons
 import javax.swing.Icon
 
 class RefreshMenuItem(listener: DeviceMonitorActionsListener) : TreeMenuItem(listener) {
-  override fun getText(nodes: List<ProcessTreeNode>): String {
+  override fun getText(numOfNodes: Int): String {
     return "Refresh"
   }
 
@@ -46,7 +45,7 @@ class RefreshMenuItem(listener: DeviceMonitorActionsListener) : TreeMenuItem(lis
       return true
     }
 
-  override fun run(nodes: List<ProcessTreeNode>) {
-    listener.refreshNodes(nodes)
+  override fun run() {
+    listener.refreshNodes()
   }
 }

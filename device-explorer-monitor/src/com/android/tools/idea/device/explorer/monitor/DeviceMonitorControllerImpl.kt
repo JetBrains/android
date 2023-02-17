@@ -94,21 +94,21 @@ class DeviceMonitorControllerImpl(
       }
     }
 
-    override fun killNodesInvoked(nodes: List<ProcessTreeNode>) {
+    override fun killNodesInvoked(rows: IntArray) {
       uiThreadScope.launch {
-        model.killNodesInvoked(nodes)
+        model.killNodesInvoked(rows)
       }
     }
 
-    override fun forceStopNodesInvoked(nodes: List<ProcessTreeNode>) {
+    override fun forceStopNodesInvoked(rows: IntArray) {
       uiThreadScope.launch {
-        model.forceStopNodesInvoked(nodes)
+        model.forceStopNodesInvoked(rows)
       }
     }
 
-    override fun debugNodes(nodes: List<ProcessTreeNode>) {
+    override fun debugNodes(rows: IntArray) {
       uiThreadScope.launch {
-        model.debugNodesInvoked(project, nodes)
+        model.debugNodesInvoked(project, rows)
       }
     }
   }

@@ -15,11 +15,8 @@
  */
 package com.android.tools.idea.device.explorer.monitor.ui;
 
-import com.intellij.ui.LoadingNode;
-import com.intellij.ui.treeStructure.Tree;
-import javax.swing.JComponent;
+import com.intellij.ui.components.JBScrollPane;
 import javax.swing.JPanel;
-import javax.swing.tree.DefaultTreeModel;
 import org.jetbrains.annotations.NotNull;
 
 public class DeviceMonitorPanel {
@@ -27,28 +24,11 @@ public class DeviceMonitorPanel {
   static final int TEXT_RENDERER_VERT_PADDING = 4;
   private JPanel mainComponent;
   private JPanel toolbar;
-  private JComponent processTreePane;
-  private Tree tree;
-
-  private void createUIComponents() {
-    DefaultTreeModel treeModel = new DefaultTreeModel(new LoadingNode());
-    tree = new Tree(treeModel) {
-      @Override
-      protected boolean shouldShowBusyIconIfNeeded() {
-        // By default, setPaintBusy(true) is skipped if the tree component does not have the focus.
-        // By overriding this method, we ensure setPaintBusy(true) is never skipped.
-        return true;
-      }
-    };
-    tree.setShowsRootHandles(true);
-    tree.setRootVisible(true);
-    tree.getEmptyText().setText("No debuggable process on device");
-    processTreePane = new ProcessListTreeBuilder().build(tree);
-  }
+  private JBScrollPane processTablePane;
 
   @NotNull
-  public Tree getTree() {
-    return tree;
+  public JBScrollPane getProcessTablePane() {
+    return processTablePane;
   }
 
   @NotNull

@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.device.explorer.monitor.ui
 
-import com.android.tools.idea.device.explorer.monitor.ProcessTreeNode
-
 interface DeviceMonitorActionsListener {
-  val selectedNodes: List<ProcessTreeNode>?
-  fun refreshNodes(treeNodes: List<ProcessTreeNode>)
-  fun killNodes(treeNodes: List<ProcessTreeNode>)
-  fun forceStopNodes(treeNodes: List<ProcessTreeNode>)
-  fun debugNodes(treeNodes: List<ProcessTreeNode>)
+  val numOfSelectedNodes: Int
+  fun refreshNodes()
+  fun killNodes()
+  fun forceStopNodes()
+  fun debugNodes()
 }

@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
-import com.android.tools.idea.device.explorer.monitor.ProcessTreeNode
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
 import icons.StudioIcons
 import javax.swing.Icon
 
 class KillMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : TreeMenuItem(listener) {
-  override fun getText(nodes: List<ProcessTreeNode>): String {
-    return "Kill process"
+  override fun getText(numOfNodes: Int): String {
+    return if (listener.numOfSelectedNodes > 1) "Kill processes" else "Kill process"
   }
 
   override val icon: Icon
@@ -38,17 +37,15 @@ class KillMenuItem(listener: DeviceMonitorActionsListener, private val context: 
 
   override val isVisible: Boolean
     get() {
-      return if (context == MenuContext.Toolbar) true else super.isVisible
+      return if (context == MenuContext.Popup) listener.numOfSelectedNodes > 0 else true
     }
 
   override val isEnabled: Boolean
     get() {
-      return if (context == MenuContext.Toolbar) {
-        listener.selectedNodes?.isNotEmpty() ?: false
-      } else super.isEnabled
+      return listener.numOfSelectedNodes > 0
     }
 
-  override fun run(nodes: List<ProcessTreeNode>) {
-    listener.killNodes(nodes)
+  override fun run() {
+    listener.killNodes()
   }
 }

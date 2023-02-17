@@ -18,20 +18,16 @@ package com.android.tools.idea.device.explorer.monitor.mocks
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModel
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorView
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorViewListener
-import com.android.tools.idea.device.explorer.monitor.ProcessTreeNode
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorViewImpl
+import com.android.tools.idea.device.explorer.monitor.ui.ProcessListTableBuilder
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.DebugMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.ForceStopMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.MenuContext
 import javax.swing.JComponent
 
 class MockDeviceMonitorView(model: DeviceMonitorModel): DeviceMonitorView {
-  private val viewImpl = DeviceMonitorViewImpl(model)
-  val mockModelListener = MockModelListener()
-
-  init {
-    model.addListener(mockModelListener)
-  }
+  private val table = ProcessListTableBuilder().build(model.tableModel)
+  private val viewImpl = DeviceMonitorViewImpl(model, table)
 
   override fun addListener(listener: DeviceMonitorViewListener) {
     viewImpl.addListener(listener)
@@ -48,13 +44,19 @@ class MockDeviceMonitorView(model: DeviceMonitorModel): DeviceMonitorView {
   override val panelComponent: JComponent
     get() = viewImpl.panelComponent
 
-  fun killNodes(processList: List<ProcessTreeNode>) {
+  fun killNodes() {
+    if (table.model.rowCount > 0) {
+      table.setRowSelectionInterval(0, 0)
+    }
     val menuItem = ForceStopMenuItem(viewImpl, MenuContext.Popup)
-    menuItem.run(processList)
+    menuItem.run()
   }
 
-  fun debugNodes(processList: List<ProcessTreeNode>) {
+  fun debugNodes() {
+    if (table.model.rowCount > 0) {
+      table.setRowSelectionInterval(0, 0)
+    }
     val menuItem = DebugMenuItem(viewImpl, MenuContext.Popup)
-    menuItem.run(processList)
+    menuItem.run()
   }
 }

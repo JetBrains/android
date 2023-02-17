@@ -15,13 +15,12 @@
  */
 package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
-import com.android.tools.idea.device.explorer.monitor.ProcessTreeNode
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
 import com.intellij.icons.AllIcons
 import javax.swing.Icon
 
 class DebugMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : TreeMenuItem(listener) {
-  override fun getText(nodes: List<ProcessTreeNode>): String {
+  override fun getText(numOfNodes: Int): String {
     return "Attach debugger"
   }
 
@@ -38,17 +37,15 @@ class DebugMenuItem(listener: DeviceMonitorActionsListener, private val context:
 
   override val isVisible: Boolean
     get() {
-      return if (context == MenuContext.Toolbar) true else super.isVisible
+      return if (context == MenuContext.Popup) listener.numOfSelectedNodes > 0 else true
     }
 
   override val isEnabled: Boolean
     get() {
-      return if (context == MenuContext.Toolbar) {
-        listener.selectedNodes?.isNotEmpty() ?: false
-      } else super.isEnabled
+      return listener.numOfSelectedNodes > 0
     }
 
-  override fun run(nodes: List<ProcessTreeNode>) {
-    listener.debugNodes(nodes)
+  override fun run() {
+    listener.debugNodes()
   }
 }
