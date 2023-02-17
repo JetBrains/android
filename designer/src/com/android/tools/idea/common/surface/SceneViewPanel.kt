@@ -35,6 +35,7 @@ import com.android.tools.idea.uibuilder.surface.layout.scaledContentSize
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.launch
 import java.awt.BorderLayout
 import java.awt.Dimension
@@ -308,10 +309,10 @@ class SceneViewPeerPanel(val sceneView: SceneView,
           }
         }
 
-        // Hide the toolbar when the mouse exits the bounds of sceneViewTopPanel.
         e?.locationOnScreen?.let {
           SwingUtilities.convertPointFromScreen(it, this@setUpTopPanelMouseListeners)
-          if (!containsExcludingBorder(it)) {
+          // Hide the toolbar when the mouse exits the bounds of sceneViewTopPanel or the containing design surface.
+          if (!containsExcludingBorder(it) || !designSurfaceContains(e.locationOnScreen)) {
             hideToolbar()
           }
           else {
@@ -324,6 +325,22 @@ class SceneViewPeerPanel(val sceneView: SceneView,
             }
           }
         } ?: hideToolbar()
+      }
+
+      private fun JPanel.designSurfaceContains(p: Point): Boolean {
+        var component = parent
+        var designSurface: DesignSurfaceScrollPane? = null
+        while (component != null) {
+          if (component is DesignSurfaceScrollPane) {
+            designSurface = component
+            break
+          }
+          component = component.parent
+        }
+        if (designSurface == null) return false
+        SwingUtilities.convertPointFromScreen(p, designSurface)
+        // Consider the scrollbar width exiting from the right
+        return p.x in 0 until (designSurface.width - UIUtil.getScrollBarWidth()) && p.y in 0 until designSurface.height
       }
 
       private fun JPanel.containsExcludingBorder(p: Point): Boolean {
