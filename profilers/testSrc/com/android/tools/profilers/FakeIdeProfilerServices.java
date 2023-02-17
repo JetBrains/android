@@ -270,6 +270,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       public boolean isComposeTracingNavigateToSourceEnabled() {
         return myComposeTracingNavigateToSourceEnabled;
       }
+
+      @Override
+      public boolean isTaskBasedUxEnabled() {
+        return false;
+      }
     };
   }
 

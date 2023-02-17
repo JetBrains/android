@@ -171,6 +171,9 @@ public final class StudioFlags {
     PROFILER, "perfetto.sdk.tracing.compose.navigation", "Navigate-to-source action for Compose Tracing",
     "Enables navigate-to-source action in Profiler for Compose Tracing slices",
     true);
+
+  public static final Flag<Boolean> PROFILER_TASK_BASED_UX = Flag.create(PROFILER, "task.based.ux", "Task-based UX",
+    "Enables a simpler profilers UX, with tabs for specific tasks which an app developer usually performs (e.g. Reduce jank)", false);
   //endregion
 
   //region ML
