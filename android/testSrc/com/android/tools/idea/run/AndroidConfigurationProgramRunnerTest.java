@@ -21,7 +21,6 @@ import static org.mockito.Mockito.mock;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner;
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorRunProfileState;
@@ -96,7 +95,7 @@ public class AndroidConfigurationProgramRunnerTest {
         .getFactory());
     FakeExecutionTarget target = new FakeExecutionTarget();
     AndroidConfigurationProgramRunner runner =
-      new AndroidConfigurationProgramRunner(GradleSyncState::getInstance, (project, profileState) -> target) {
+      new AndroidConfigurationProgramRunner((project, profileState) -> target) {
         @NotNull
         @Override
         protected List<String> getSupportedConfigurationTypeIds() {
@@ -131,7 +130,7 @@ public class AndroidConfigurationProgramRunnerTest {
       RunManager.getInstance(projectRule.getProject()).createConfiguration("app", AndroidRunConfigurationType.getInstance().getFactory());
     FakeExecutionTarget target = new FakeExecutionTarget();
     AndroidConfigurationProgramRunner runner =
-      new AndroidConfigurationProgramRunner(GradleSyncState::getInstance, (project, profileState) -> target) {
+      new AndroidConfigurationProgramRunner((project, profileState) -> target) {
         @NotNull
         @Override
         protected List<String> getSupportedConfigurationTypeIds() {
@@ -181,7 +180,7 @@ public class AndroidConfigurationProgramRunnerTest {
       new AndroidRunConfiguration(projectRule.getProject(), AndroidRunConfigurationType.getInstance().getFactory());
     FakeExecutionTarget target = new FakeExecutionTarget();
     AndroidConfigurationProgramRunner runner =
-      new AndroidConfigurationProgramRunner(GradleSyncState::getInstance, (project, profileState) -> target) {
+      new AndroidConfigurationProgramRunner((project, profileState) -> target) {
         @NotNull
         @Override
         protected RunContentDescriptor run(@NotNull ExecutionEnvironment environment,

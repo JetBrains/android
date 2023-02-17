@@ -18,6 +18,7 @@ package com.android.tools.idea.profilers
 import com.android.ide.common.repository.AgpVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.profilers.analytics.StudioFeatureTracker
 import com.android.tools.idea.run.AndroidRunConfigurationType
@@ -31,6 +32,7 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigura
 import com.google.wireless.android.sdk.stats.RunWithProfilingMetadata
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.RunnerAndConfigurationSettings
+import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -41,6 +43,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.components.JBLabel
+import com.intellij.util.ThreeState
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.resolvedPromise
 import java.awt.BorderLayout
@@ -51,7 +54,17 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
   override fun getRunnerId() = "ProfilerProgramRunner"
 
   override fun canRun(executorId: String, profile: RunProfile): Boolean {
-    return super.canRun(executorId, profile) && isProfilerExecutor(executorId)
+    if (!super.canRun(executorId, profile)) {
+      return false
+    }
+    if (!isProfilerExecutor(executorId)) {
+      return false
+    }
+    if (profile !is RunConfiguration) {
+      return false
+    }
+    val syncState = GradleSyncState.getInstance(profile.project)
+    return !syncState.isSyncInProgress && syncState.isSyncNeeded() == ThreeState.NO
   }
 
   override val supportedConfigurationTypeIds = listOf(

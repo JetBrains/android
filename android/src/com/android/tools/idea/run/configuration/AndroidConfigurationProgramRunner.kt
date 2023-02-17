@@ -18,7 +18,6 @@ package com.android.tools.idea.run.configuration
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.AndroidSessionInfo
-import com.android.tools.idea.gradle.project.sync.GradleSyncState
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.stats.RunStats
 import com.intellij.execution.ExecutionException
@@ -36,23 +35,19 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
-import com.intellij.util.ThreeState
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.catchError
 
 /**
- * Class required by platform to determine which execution buttons are available for a given configuration. See [canRun] method.
+ * Class required by platform to determine if execution button is available for a given configuration. See [canRun] method.
  *
- * Actual execution for a configuration, after build, happens in [AndroidConfigurationExecutor].
+ * Actual execution for a configuration, after build, happens in [run] method.
  */
 abstract class AndroidConfigurationProgramRunner internal constructor(
-  private val getGradleSyncState: (Project) -> GradleSyncState,
   private val getAndroidTarget: (Project, RunConfiguration) -> AndroidExecutionTarget?
 ) : AsyncProgramRunner<RunnerSettings>() {
-  constructor() : this(
-    { project -> GradleSyncState.getInstance(project) },
-    { project, profile -> getAvailableAndroidTarget(project, profile) })
+  constructor() : this({ project, profile -> getAvailableAndroidTarget(project, profile) })
 
   companion object {
     private fun getAvailableAndroidTarget(project: Project, profile: RunConfiguration): AndroidExecutionTarget? {
@@ -81,11 +76,10 @@ abstract class AndroidConfigurationProgramRunner internal constructor(
       return false
     }
     val target = getAndroidTarget(profile.project, profile) ?: return false
-    if (target.availableDeviceCount > 1 && !canRunWithMultipleDevices(executorId)) {
-      return false
+    if (target.availableDeviceCount > 1) {
+      return canRunWithMultipleDevices(executorId)
     }
-    val syncState = getGradleSyncState(profile.project)
-    return !syncState.isSyncInProgress && syncState.isSyncNeeded() == ThreeState.NO
+    return true
   }
 
   @Throws(ExecutionException::class)
