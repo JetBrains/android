@@ -110,7 +110,7 @@ fun RecipeExecutor.generateCommonModule(
 
   if (!isLibraryProject) {
     when(iconsGenerationStyle) {
-      IconsGenerationStyle.ALL -> copyIcons(resOut)
+      IconsGenerationStyle.ALL -> copyIcons(resOut, minApi.api)
       IconsGenerationStyle.MIPMAP_ONLY -> copyMipmapFolder(resOut)
       IconsGenerationStyle.MIPMAP_SQUARE_ONLY -> copyMipmapFile(resOut, "ic_launcher.webp")
       IconsGenerationStyle.NONE -> Unit
