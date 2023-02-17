@@ -1075,7 +1075,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> WINDOWS_UCRT_CHECK_ENABLED = Flag.create(
     SYSTEM_HEALTH, "windows.ucrt.check.enabled", "Enable Universal C Runtime system health check",
     "If enabled, a notification will be shown if the Universal C Runtime in Windows is not installed",
-    false);
+    true);
 
   public static final Flag<Boolean> ANTIVIRUS_NOTIFICATION_ENABLED = Flag.create(
     SYSTEM_HEALTH, "antivirus.notification.enabled", "Enable antivirus system health check",
