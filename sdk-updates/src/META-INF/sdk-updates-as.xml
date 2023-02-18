@@ -13,11 +13,6 @@
 <!-- limitations under the License. -->
 <idea-plugin>
   <actions>
-    <group id="Android.SdkUpdates.NavBarToolBar">
-      <reference id="Android.RunAndroidSdkManager"/>
-      <add-to-group group-id="Android.NavBarToolBar" anchor="after" relative-to-action="Android.DeviceManager" />
-      <add-to-group group-id="Android.MainToolbarRight" anchor="last" />
-    </group>
     <action id="WelcomeScreen.RunAndroidSdkManager" class="com.android.tools.idea.updater.configure.RunSdkConfigAction"
             icon="StudioIcons.Shell.Toolbar.SDK_MANAGER">
       <add-to-group group-id="WelcomeScreen.QuickStart" relative-to-action="WelcomeScreen.ImportProject" anchor="after"/>
