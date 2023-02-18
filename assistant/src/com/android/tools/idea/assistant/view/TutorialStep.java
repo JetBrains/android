@@ -157,9 +157,12 @@ public class TutorialStep extends JPanel {
           JEditorPane section = new JEditorPane() {
             // Set the section to be as small as possible: this will make long lines wrap properly instead of forcing the panel to extend
             // as long as the line. When a line can't be wrapped (e.g. a long word or an image), the horizontal scrollbar should appear.
+            // Don't override the height. If this is done the scroll pane will change its height as needed when scrolling down and more
+            // JEditorPane's come into view. This causes unwanted behavior when trying to refresh a TutorialCard to a particular vertical
+            // location because it may not exist (until it's later viewed).
             @Override
             public Dimension getPreferredSize() {
-              return getMinimumSize();
+              return (new Dimension(1, (int)super.getPreferredSize().getHeight()));
             }
           };
           final DefaultCaret caret = new DefaultCaret();

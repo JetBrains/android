@@ -72,6 +72,14 @@ public abstract class AssistActionStateManager {
     project.getMessageBus().syncPublisher(StatefulButtonNotifier.BUTTON_STATE_TOPIC).stateUpdated();
   }
 
+
+  /**
+   * Refresh the currently visible TutorialCard and set the view to the desired step within the view.
+   */
+  public void refreshTutorialCardView(@NotNull Project project, int stepNumberToStartAt) {
+    project.getMessageBus().syncPublisher(TutorialCardRefreshNotifier.TUTORIAL_CARD_TOPIC).stateUpdated(stepNumberToStartAt);
+  }
+
   public static List<Module> getAndroidModules(@NotNull Project project) {
     return Lists.newArrayList(ModuleManager.getInstance(project).getModules())
       .stream()
