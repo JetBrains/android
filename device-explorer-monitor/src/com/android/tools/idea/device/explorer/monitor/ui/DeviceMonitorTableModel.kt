@@ -16,6 +16,8 @@
 package com.android.tools.idea.device.explorer.monitor.ui
 
 import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
+import com.android.tools.idea.device.explorer.monitor.processes.isPidOnly
+import com.android.tools.idea.device.explorer.monitor.processes.safeProcessName
 import javax.swing.table.AbstractTableModel
 import javax.swing.table.TableColumn
 
@@ -35,21 +37,87 @@ class DeviceMonitorTableModel : AbstractTableModel() {
   fun getValueForRow(rowIndex: Int): ProcessInfo = rows[rowIndex]
 
   fun clearProcesses() {
-    if (rows.size > 0) {
+    val rowsToDelete = rows.size
+    if (rowsToDelete > 0) {
       rows.clear()
-      fireTableDataChanged()
+      fireTableRowsDeleted(0, rowsToDelete - 1)
     }
   }
 
-  fun updateProcessRows(processRows: List<ProcessInfo>) {
-    rows.clear()
-    rows.addAll(processRows)
-    fireTableDataChanged()
+  fun updateProcessRows(newRows: List<ProcessInfo>) {
+    if (newRows.isEmpty()) {
+      clearProcesses()
+    } else if (rows.isEmpty()) {
+      rows.addAll(newRows.sortedWith(ProcessInfoNameComparator))
+      fireTableRowsInserted(0, rows.size - 1)
+    } else {
+      val newSortedRows = newRows.sortedWith(ProcessInfoNameComparator)
+      var currentRowIndex = 0
+      var newRowIndex = 0
+
+      while (currentRowIndex < rows.size && newRowIndex < newSortedRows.size) {
+        val oldProcessInfo = rows[currentRowIndex]
+        val newProcessInfo = newSortedRows[newRowIndex]
+
+        // Update ProcessInfo if process name are the same
+        if (ProcessInfoNameComparator.compare(oldProcessInfo, newProcessInfo) == 0) {
+          // Compare data to make sure we have the updated version
+          if (oldProcessInfo != newProcessInfo) {
+            rows[currentRowIndex] = newSortedRows[newRowIndex]
+            fireTableRowsUpdated(currentRowIndex, currentRowIndex)
+          }
+          currentRowIndex++
+          newRowIndex++
+
+          // Remove old ProcessInfo since the old one comes before the next new ProcessInfo
+        } else if (ProcessInfoNameComparator.compare(oldProcessInfo, newProcessInfo) < 0) {
+          rows.removeAt(currentRowIndex)
+          fireTableRowsDeleted(currentRowIndex, currentRowIndex)
+
+          // Add new ProcessInfo since it comes before the old ProcessInfo
+        } else {
+          rows.add(currentRowIndex, newProcessInfo)
+          fireTableRowsInserted(currentRowIndex, currentRowIndex)
+          currentRowIndex++
+          newRowIndex++
+        }
+      }
+
+      while (currentRowIndex < rows.size) {
+        rows.removeAt(currentRowIndex)
+        fireTableRowsDeleted(currentRowIndex, currentRowIndex)
+      }
+
+      while (newRowIndex < newSortedRows.size) {
+        rows.add(newSortedRows[newRowIndex])
+        fireTableRowsInserted(newRowIndex, newRowIndex)
+        newRowIndex++
+      }
+    }
   }
 
-  fun updateColumns(list: List<TableColumn>) {
+  fun removeOldColumnsAndAddColumns(list: List<TableColumn>) {
     columns.clear()
     columns.addAll(list)
     fireTableStructureChanged()
+  }
+
+  object ProcessInfoNameComparator : Comparator<ProcessInfo?> by nullsFirst(ProcessInfoNonNullComparator()) {
+    private class ProcessInfoNonNullComparator : Comparator<ProcessInfo> {
+      override fun compare(o1: ProcessInfo, o2: ProcessInfo): Int {
+        return if (o1.isPidOnly && o2.isPidOnly) {
+          o1.pid.compareTo(o2.pid)
+        }
+        else if (o1.isPidOnly) {
+          1
+        }
+        else if (o2.isPidOnly) {
+          -1
+        }
+        else {
+          o1.safeProcessName.compareTo(o2.safeProcessName)
+        }
+      }
+    }
   }
 }

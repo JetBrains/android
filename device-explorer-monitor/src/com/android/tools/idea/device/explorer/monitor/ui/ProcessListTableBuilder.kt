@@ -51,7 +51,7 @@ class ProcessListTableBuilder {
     val tableSpeedSearch = TableSpeedSearch(table)
 
     val columns = getListOfColumns(tableSpeedSearch)
-    tableModel.updateColumns(columns)
+    tableModel.removeOldColumnsAndAddColumns(columns)
     table.columnModel = DefaultTableColumnModel().apply {
       for (column in columns) {
         addColumn(column)
