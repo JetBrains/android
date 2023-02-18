@@ -130,7 +130,7 @@ fun androidConfig(
   else {
     """${renderIf(explicitApplicationId) { "applicationId \"${applicationId}\"" }}
     ${toAndroidFieldVersion("minSdk", minApi, gradlePluginVersion)}
-    ${toAndroidFieldVersion("targetSdk", targetApi, gradlePluginVersion)}
+    ${renderIf(!isLibraryProject) { toAndroidFieldVersion("targetSdk", targetApi, gradlePluginVersion) }}
     ${renderIf(!isLibraryProject) { "versionCode 1" }}
     ${renderIf(!isLibraryProject) { "versionName \"1.0\"" }}
     """
