@@ -17,7 +17,6 @@ package com.android.tools.idea.sqlite.settings
 
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle
 import com.android.tools.idea.sqlite.localization.DatabaseInspectorBundle.message
-import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
@@ -28,7 +27,6 @@ import com.intellij.openapi.options.SearchableConfigurable
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.util.xmlb.XmlSerializerUtil
 import java.awt.BorderLayout
-import javax.swing.JComponent
 import javax.swing.JPanel
 
 class DatabaseInspectorConfigurableProvider : ConfigurableProvider() {

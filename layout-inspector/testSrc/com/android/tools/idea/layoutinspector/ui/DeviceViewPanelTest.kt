@@ -184,15 +184,11 @@ class DeviceViewPanelWithFullInspectorTest {
 
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
-      AndroidCoroutineScope(projectRule.testRootDisposable),
-      deviceModel,
-      inspectorRule.processes,
       {},
       {},
       {},
       inspectorRule.inspector,
       settings,
-      InspectorClientSettings(projectRule.project),
       projectRule.fixture.testRootDisposable
     )
     val banner = InspectorBannerService.getInstance(inspectorRule.project) ?: error("no banner")
@@ -255,15 +251,11 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        AndroidCoroutineScope(projectRule.testRootDisposable),
-        deviceModel,
-        inspectorRule.processes,
         {},
         {},
         {},
         inspectorRule.inspector,
         settings,
-        InspectorClientSettings(projectRule.project),
         projectRule.fixture.testRootDisposable)
     )
 
@@ -283,15 +275,11 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        AndroidCoroutineScope(projectRule.testRootDisposable),
-        deviceModel,
-        inspectorRule.processes,
         {},
         {},
         {},
         inspectorRule.inspector,
         settings,
-        clientSettings,
         projectRule.fixture.testRootDisposable))
 
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
@@ -312,15 +300,11 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        AndroidCoroutineScope(projectRule.testRootDisposable),
-        deviceModel,
-        inspectorRule.processes,
         {},
         {},
         {},
         inspectorRule.inspector,
         settings,
-        InspectorClientSettings(projectRule.project),
         projectRule.fixture.testRootDisposable
       )
     )
@@ -347,15 +331,11 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        AndroidCoroutineScope(projectRule.testRootDisposable),
-        deviceModel,
-        inspectorRule.processes,
         {},
         {},
         {},
         inspectorRule.inspector,
         settings,
-        clientSettings,
         projectRule.fixture.testRootDisposable
       )
     )
@@ -382,15 +362,11 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        AndroidCoroutineScope(projectRule.testRootDisposable),
-        deviceModel,
-        inspectorRule.processes,
         {},
         {},
         {},
         inspectorRule.inspector,
         settings,
-        clientSettings,
         projectRule.fixture.testRootDisposable
       )
     )
@@ -420,15 +396,11 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        AndroidCoroutineScope(projectRule.testRootDisposable),
-        deviceModel,
-        inspectorRule.processes,
         {},
         {},
         {},
         inspectorRule.inspector,
         settings,
-        clientSettings,
         projectRule.fixture.testRootDisposable
       )
     )
@@ -461,15 +433,11 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        AndroidCoroutineScope(projectRule.testRootDisposable),
-        deviceModel,
-        inspectorRule.processes,
         {},
         {},
         {},
         inspectorRule.inspector,
         settings,
-        InspectorClientSettings(projectRule.project),
         projectRule.fixture.testRootDisposable
       )
     )
@@ -510,15 +478,11 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        AndroidCoroutineScope(projectRule.testRootDisposable),
-        deviceModel,
-        inspectorRule.processes,
         {},
         {},
         {},
         inspectorRule.inspector,
         settings,
-        clientSettings,
         projectRule.fixture.testRootDisposable
       )
     )
@@ -552,15 +516,11 @@ class DeviceViewPanelWithFullInspectorTest {
     }
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
-      AndroidCoroutineScope(projectRule.testRootDisposable),
-      deviceModel,
-      inspectorRule.processes,
       {},
       {},
       {},
       inspectorRule.inspector,
       settings,
-      InspectorClientSettings(projectRule.project),
       projectRule.fixture.testRootDisposable
     )
     val loadingPane = flatten(panel).filterIsInstance<JBLoadingPanel>().first()
@@ -593,15 +553,11 @@ class DeviceViewPanelWithFullInspectorTest {
     }
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
-      AndroidCoroutineScope(projectRule.testRootDisposable),
-      deviceModel,
-      inspectorRule.processes,
       {},
       {},
       {},
       inspectorRule.inspector,
       settings,
-      InspectorClientSettings(projectRule.project),
       projectRule.fixture.testRootDisposable,
     )
 
@@ -642,15 +598,11 @@ class DeviceViewPanelWithFullInspectorTest {
   fun testSelectProcessDropDown() {
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
-      AndroidCoroutineScope(projectRule.testRootDisposable),
-      deviceModel,
-      inspectorRule.processes,
       {},
       {},
       {},
       inspectorRule.inspector,
       settings,
-      InspectorClientSettings(projectRule.project),
       projectRule.fixture.testRootDisposable
     )
 
@@ -727,15 +679,11 @@ class DeviceViewPanelWithFullInspectorTest {
     model.resourceLookup.updateConfiguration(FolderConfiguration(), 1f, context, stringTable, MODERN_PROCESS)
     inspectorRule.inspector.treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(
-      AndroidCoroutineScope(projectRule.testRootDisposable),
-      deviceModel,
-      inspectorRule.processes,
       {},
       {},
       {},
       inspectorRule.inspector,
       FakeRenderSettings(),
-      InspectorClientSettings(projectRule.project),
       projectRule.fixture.testRootDisposable
     )
     delegateDataProvider(panel)
@@ -823,28 +771,37 @@ class DeviceViewPanelTest {
   fun testZoomOnConnect() {
     val viewSettings = EditorRenderSettings()
     val model = InspectorModel(projectRule.project)
-    val processes = ProcessesModel(TestProcessDiscovery())
+    val processModel = ProcessesModel(TestProcessDiscovery())
+    val deviceModel = DeviceModel(disposableRule.disposable, processModel)
+    val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
     val launcher = InspectorClientLauncher(
-      processes,
+      processModel,
       listOf(),
       projectRule.project,
-      AndroidCoroutineScope(disposableRule.disposable),
+      coroutineScope,
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor()
     )
+    val clientSettings = InspectorClientSettings(projectRule.project)
     val treeSettings = FakeTreeSettings()
-    val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
+    val inspector = LayoutInspector(
+      coroutineScope,
+      processModel,
+      deviceModel,
+      null,
+      clientSettings,
+      launcher,
+      model,
+      treeSettings,
+      MoreExecutors.directExecutor()
+    )
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(
-      AndroidCoroutineScope(disposableRule.disposable),
-      DeviceModel(disposableRule.disposable, processes),
-      processes,
       {},
       {},
       {},
       inspector,
       viewSettings,
-      InspectorClientSettings(projectRule.project),
       disposableRule.disposable
     )
 
@@ -882,28 +839,37 @@ class DeviceViewPanelTest {
   fun testZoomOnConnectWithFiltering() {
     val viewSettings = EditorRenderSettings()
     val model = InspectorModel(projectRule.project)
-    val processes = ProcessesModel(TestProcessDiscovery())
+    val processModel = ProcessesModel(TestProcessDiscovery())
+    val deviceModel = DeviceModel(disposableRule.disposable, processModel)
+    val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
     val launcher = InspectorClientLauncher(
-      processes,
+      processModel,
       listOf(),
       projectRule.project,
-      AndroidCoroutineScope(disposableRule.disposable),
+      coroutineScope,
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor()
     )
+    val clientSettings = InspectorClientSettings(projectRule.project)
     val treeSettings = FakeTreeSettings()
-    val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
+    val inspector = LayoutInspector(
+      coroutineScope,
+      processModel,
+      deviceModel,
+      null,
+      clientSettings,
+      launcher,
+      model,
+      treeSettings,
+      MoreExecutors.directExecutor()
+    )
     treeSettings.hideSystemNodes = true
     val panel = DeviceViewPanel(
-      AndroidCoroutineScope(disposableRule.disposable),
-      DeviceModel(disposableRule.disposable, processes),
-      processes,
       {},
       {},
       {},
       inspector,
       viewSettings,
-      InspectorClientSettings(projectRule.project),
       disposableRule.disposable
     )
 
@@ -928,28 +894,37 @@ class DeviceViewPanelTest {
   fun testZoomOnConnectWithFilteringAndScreenSizeFromAppContext() {
     val viewSettings = EditorRenderSettings()
     val model = InspectorModel(projectRule.project)
-    val processes = ProcessesModel(TestProcessDiscovery())
+    val processModel = ProcessesModel(TestProcessDiscovery())
+    val deviceModel = DeviceModel(disposableRule.disposable, processModel)
+    val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
     val launcher = InspectorClientLauncher(
-      processes,
+      processModel,
       listOf(),
       projectRule.project,
-      AndroidCoroutineScope(disposableRule.disposable),
+      coroutineScope,
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor()
     )
+    val clientSettings = InspectorClientSettings(projectRule.project)
     val treeSettings = FakeTreeSettings()
-    val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
+    val inspector = LayoutInspector(
+      coroutineScope,
+      processModel,
+      deviceModel,
+      null,
+      clientSettings,
+      launcher,
+      model,
+      treeSettings,
+      MoreExecutors.directExecutor()
+    )
     treeSettings.hideSystemNodes = true
     val panel = DeviceViewPanel(
-      AndroidCoroutineScope(disposableRule.disposable),
-      DeviceModel(disposableRule.disposable, processes),
-      processes,
       {},
       {},
       {},
       inspector,
       viewSettings,
-      InspectorClientSettings(projectRule.project),
       disposableRule.disposable
     )
 
@@ -975,28 +950,37 @@ class DeviceViewPanelTest {
   fun testDrawNewWindow() {
     val viewSettings = EditorRenderSettings()
     val model = InspectorModel(projectRule.project)
-    val processes = ProcessesModel(TestProcessDiscovery())
+    val processModel = ProcessesModel(TestProcessDiscovery())
+    val deviceModel = DeviceModel(disposableRule.disposable, processModel)
+    val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
     val launcher = InspectorClientLauncher(
-      processes,
+      processModel,
       listOf(),
       projectRule.project,
-      AndroidCoroutineScope(disposableRule.disposable),
+      coroutineScope,
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor()
     )
+    val clientSettings = InspectorClientSettings(projectRule.project)
     val treeSettings = FakeTreeSettings()
-    val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
+    val inspector = LayoutInspector(
+      coroutineScope,
+      processModel,
+      deviceModel,
+      null,
+      clientSettings,
+      launcher,
+      model,
+      treeSettings,
+      MoreExecutors.directExecutor()
+    )
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(
-      AndroidCoroutineScope(disposableRule.disposable),
-      DeviceModel(disposableRule.disposable, processes),
-      processes,
       {},
       {},
       {},
       inspector,
       viewSettings,
-      InspectorClientSettings(projectRule.project),
       disposableRule.disposable,
       MoreExecutors.directExecutor()
     )
@@ -1031,26 +1015,35 @@ class DeviceViewPanelTest {
   fun testNewWindowDoesntResetZoom() {
     val viewSettings = EditorRenderSettings()
     val model = InspectorModel(projectRule.project)
-    val processes = ProcessesModel(TestProcessDiscovery())
+    val processModel = ProcessesModel(TestProcessDiscovery())
+    val deviceModel = DeviceModel(disposableRule.disposable, processModel)
+    val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
     val launcher: InspectorClientLauncher = mock()
     val client: InspectorClient = mock()
     whenever(client.isConnected).thenReturn(true)
     whenever(client.stats).thenReturn(mock())
     whenever(launcher.activeClient).thenReturn(client)
 
+    val clientSettings = InspectorClientSettings(projectRule.project)
     val treeSettings = FakeTreeSettings()
-    val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
+    val inspector = LayoutInspector(
+      coroutineScope,
+      processModel,
+      deviceModel,
+      null,
+      clientSettings,
+      launcher,
+      model,
+      treeSettings,
+      MoreExecutors.directExecutor()
+    )
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(
-      AndroidCoroutineScope(disposableRule.disposable),
-      DeviceModel(disposableRule.disposable, processes),
-      processes,
       {},
       {},
       {},
       inspector,
       viewSettings,
-      InspectorClientSettings(projectRule.project),
       disposableRule.disposable,
       MoreExecutors.directExecutor()
     )
@@ -1087,29 +1080,38 @@ class DeviceViewPanelTest {
   @Test
   fun testFocusableActionButtons() {
     val model = model { view(1, 0, 0, 1200, 1600, qualifiedName = "RelativeLayout") }
-    val processes = ProcessesModel(TestProcessDiscovery())
+    val processModel = ProcessesModel(TestProcessDiscovery())
+    val deviceModel = DeviceModel(disposableRule.disposable, processModel)
+    val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
     val launcher = InspectorClientLauncher(
-      processes,
+      processModel,
       listOf(),
       projectRule.project,
-      AndroidCoroutineScope(disposableRule.disposable),
+      coroutineScope,
       disposableRule.disposable,
       executor = MoreExecutors.directExecutor()
     )
+    val clientSettings = InspectorClientSettings(projectRule.project)
     val treeSettings = FakeTreeSettings()
-    val inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
+    val inspector = LayoutInspector(
+      coroutineScope,
+      processModel,
+      deviceModel,
+      null,
+      clientSettings,
+      launcher,
+      model,
+      treeSettings,
+      MoreExecutors.directExecutor()
+    )
     treeSettings.hideSystemNodes = false
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
-      AndroidCoroutineScope(disposableRule.disposable),
-      DeviceModel(disposableRule.disposable, processes),
-      processes,
       {},
       {},
       {},
       inspector,
       settings,
-      InspectorClientSettings(projectRule.project),
       disposableRule.disposable,
     )
     val toolbar = getToolbar(panel)
@@ -1167,10 +1169,12 @@ class DeviceViewPanelTest {
     }
 
     val launcher: InspectorClientLauncher = mock()
+    val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
     val client: InspectorClient = mock()
     whenever(client.capabilities).thenReturn(setOf(InspectorClient.Capability.SUPPORTS_SKP))
     whenever(client.stats).thenReturn(mock())
     whenever(launcher.activeClient).thenReturn(client)
+    val clientSettings = InspectorClientSettings(projectRule.project)
     val treeSettings = FakeTreeSettings()
     treeSettings.hideSystemNodes = false
 
@@ -1178,9 +1182,9 @@ class DeviceViewPanelTest {
     val processes: ProcessesModel?
     val deviceModel: DeviceModel?
     if (fromSnapshot) {
-      inspector = LayoutInspector(client, model, treeSettings)
-      processes = null
       deviceModel = null
+      processes = null
+      inspector = LayoutInspector(coroutineScope, clientSettings, client, model, treeSettings)
     }
     else {
       val fakeProcess = createFakeStream().createFakeProcess()
@@ -1193,20 +1197,26 @@ class DeviceViewPanelTest {
       processes.selectedProcess = fakeProcess
       latch.await()
 
-      inspector = LayoutInspector(launcher, model, treeSettings, MoreExecutors.directExecutor())
       deviceModel = DeviceModel(disposableRule.disposable, processes)
+      inspector = LayoutInspector(
+        coroutineScope,
+        processes,
+        deviceModel,
+        null,
+        clientSettings,
+        launcher,
+        model,
+        treeSettings,
+        MoreExecutors.directExecutor()
+      )
     }
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
-      AndroidCoroutineScope(disposableRule.disposable),
-      deviceModel,
-      processes,
       {},
       {},
       {},
       inspector,
       settings,
-      InspectorClientSettings(projectRule.project),
       disposableRule.disposable,
     )
 
@@ -1284,15 +1294,11 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        AndroidCoroutineScope(projectRule.testRootDisposable),
-        DeviceModel(projectRule.testRootDisposable, inspectorRule.processes),
-        inspectorRule.processes,
         {},
         {},
         {},
         inspectorRule.inspector,
         settings,
-        InspectorClientSettings(projectRule.project),
         projectRule.fixture.testRootDisposable,
       )
     )
@@ -1311,15 +1317,11 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        AndroidCoroutineScope(projectRule.testRootDisposable),
-        DeviceModel(projectRule.testRootDisposable, inspectorRule.processes),
-        inspectorRule.processes,
         {},
         {},
         {},
         inspectorRule.inspector,
         settings,
-        InspectorClientSettings(projectRule.project),
         projectRule.fixture.testRootDisposable,
       )
     )
@@ -1520,15 +1522,11 @@ class DeviceViewPanelWithNoClientsTest {
     inspectorRule.launchSynchronously = false
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
-      AndroidCoroutineScope(disposableRule.disposable),
-      DeviceModel(disposableRule.disposable, inspectorRule.processes),
-      inspectorRule.processes,
       {},
       {},
       {},
       inspectorRule.inspector,
       settings,
-      InspectorClientSettings(projectRule.project),
       projectRule.fixture.testRootDisposable,
     )
     val loadingPane = flatten(panel).filterIsInstance<JBLoadingPanel>().first()
@@ -1552,17 +1550,12 @@ class DeviceViewPanelWithNoClientsTest {
   fun testNotDebuggablePane() {
     inspectorRule.startLaunch(4)
     inspectorRule.launchSynchronously = false
-    val deviceModel = DeviceModel(disposableRule.disposable, inspectorRule.processes)
     val panel = DeviceViewPanel(
-      AndroidCoroutineScope(disposableRule.disposable),
-      deviceModel,
-      inspectorRule.processes,
       {},
       {},
       {},
       inspectorRule.inspector,
       EditorRenderSettings(),
-      InspectorClientSettings(projectRule.project),
       projectRule.fixture.testRootDisposable,
     )
 
@@ -1573,7 +1566,7 @@ class DeviceViewPanelWithNoClientsTest {
     assertThat(deviceViewContentPanel.showNavigateToDebuggableProcess).isFalse()
 
     // connect device
-    deviceModel.setSelectedDevice(MODERN_DEVICE)
+    inspectorRule.inspector.deviceModel?.setSelectedDevice(MODERN_DEVICE)
 
     // remains false, because the device is connected but no foreground process showed up yet
     assertThat(deviceViewContentPanel.showProcessNotDebuggableText).isFalse()

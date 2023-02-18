@@ -89,8 +89,8 @@ public class AccelerationErrorSolution {
     UPDATE_PLATFORM_TOOLS("Update Platform Tools"),
     UPDATE_SYSTEM_IMAGES("Update System Images"),
     INSTALL_KVM("Install KVM"),
-    INSTALL_HAXM("Install Haxm"),
-    REINSTALL_HAXM("Reinstall Haxm"),
+    INSTALL_HAXM("Install HAXM"),
+    REINSTALL_HAXM("Reinstall HAXM"),
     TURNOFF_HYPER_V("Turn off Hyper-V"),
     INSTALL_GVM("Install Android Emulator Hypervisor Driver"),
     REINSTALL_GVM("Reinstall Android Emulator Hypervisor Driver");

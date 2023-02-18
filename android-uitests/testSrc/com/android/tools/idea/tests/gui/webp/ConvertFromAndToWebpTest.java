@@ -115,6 +115,7 @@ public class ConvertFromAndToWebpTest {
     guiTest.ideFrame()
       .getProjectView()
       .selectAndroidPane()
+      .expand(30)
       .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test.png")
       .invokeContextualMenuPath("Convert to WebP...");
 
@@ -161,6 +162,7 @@ public class ConvertFromAndToWebpTest {
     guiTest.ideFrame()
       .getProjectView()
       .selectAndroidPane()
+      .expand(30)
       .clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_test.png")
       .invokeContextualMenuPath("Convert to WebP...");
 

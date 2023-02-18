@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.dsl.api;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
+import com.intellij.openapi.vfs.VirtualFile;
 
 /**
  * Version Catalog Model covers one version catalog.
@@ -23,7 +24,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
  *
  * Effective model of GradleVersionCatalogModel is a list of maps. VersionCatalogModel -> ExtModel -> name-value properties.
  */
-public interface GradleVersionCatalogModel {
+public interface GradleVersionCatalogModel extends GradleFileModel {
 
   ExtModel libraries();
 
@@ -34,8 +35,6 @@ public interface GradleVersionCatalogModel {
   ExtModel bundles();
 
   String catalogName();
-
-  String fileName();
 
   boolean isDefault();
 }

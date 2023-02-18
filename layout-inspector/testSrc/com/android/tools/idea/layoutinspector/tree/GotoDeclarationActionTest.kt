@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.tree
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils.resolveWorkspacePath
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.metrics.statistics.SessionStatistics
@@ -26,6 +27,7 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
@@ -124,7 +126,9 @@ class GotoDeclarationActionTest {
   private fun createEvent(model: InspectorModel, stats: SessionStatistics, fromShortcut: Boolean = false): AnActionEvent {
     val client: InspectorClient = mock()
     whenever(client.stats).thenReturn(stats)
-    val inspector = LayoutInspector(client, model, mock())
+    val coroutineScope = AndroidCoroutineScope(projectRule.testRootDisposable)
+    val clientSettings = InspectorClientSettings(projectRule.project)
+    val inspector = LayoutInspector(coroutineScope, clientSettings, client, model, mock())
     val dataContext: DataContext = mock()
     whenever(dataContext.getData(LAYOUT_INSPECTOR_DATA_KEY)).thenReturn(inspector)
     val actionManager: ActionManager = mock()

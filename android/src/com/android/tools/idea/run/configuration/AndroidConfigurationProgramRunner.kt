@@ -113,9 +113,15 @@ abstract class AndroidConfigurationProgramRunner internal constructor(
       }
 
       override fun onCancel() {
-        super.onCancel()
         promise.setResult(null)
         stats.abort()
+        super.onCancel()
+      }
+
+      override fun onThrowable(error: Throwable) {
+        promise.setError(error)
+        stats.fail()
+        super.onThrowable(error)
       }
     })
 

@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.template
 import com.android.tools.adtui.util.FormScalingUtil
 import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.adtui.device.FormFactor
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.npw.COMPOSE_MIN_AGP_VERSION
 import com.android.tools.idea.npw.hasComposeMinAgpVersion
 import com.android.tools.idea.npw.model.RenderTemplateModel
@@ -136,7 +136,7 @@ abstract class ChooseGalleryItemStep(
     val sdkInfo = androidSdkInfo.valueOrNull
     val facet = renderModel.androidFacet
 
-    fun AndroidFacet.getModuleInfo() = AndroidModuleInfo.getInstance(this)
+    fun AndroidFacet.getModuleInfo() = StudioAndroidModuleInfo.getInstance(this)
 
     val moduleApiLevel = sdkInfo?.minApiLevel ?: facet?.getModuleInfo()?.minSdkVersion?.featureLevel ?: Integer.MAX_VALUE
 

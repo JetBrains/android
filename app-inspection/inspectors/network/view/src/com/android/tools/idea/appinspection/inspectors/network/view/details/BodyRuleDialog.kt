@@ -23,7 +23,6 @@ import com.intellij.ui.TitledSeparator
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextArea
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.ItemEvent
@@ -31,41 +30,38 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JSeparator
 import javax.swing.event.DocumentEvent
+import org.jetbrains.annotations.VisibleForTesting
 
 const val REPLACE_ENTIRE_BODY_TEXT = "Replace entire body"
 
-/**
- * A dialog box that allows adding and editing body rules.
- */
+/** A dialog box that allows adding and editing body rules. */
 class BodyRuleDialog(
   transformation: RuleData.TransformationRuleData?,
   private val saveAction: (RuleData.TransformationRuleData) -> Unit
 ) : DialogWrapper(false) {
 
-  @VisibleForTesting
-  val findTextArea = JBTextArea(15, 25)
+  @VisibleForTesting val findTextArea = JBTextArea(15, 25)
+
+  @VisibleForTesting val replaceTextArea = JBTextArea(15, 25)
+
+  @VisibleForTesting val regexCheckBox = JBCheckBox()
 
   @VisibleForTesting
-  val replaceTextArea = JBTextArea(15, 25)
-
-  @VisibleForTesting
-  val regexCheckBox = JBCheckBox()
-
-  @VisibleForTesting
-  val replaceEntireBodyCheckBox = JBCheckBox(REPLACE_ENTIRE_BODY_TEXT).apply {
-    val changeAction: (e: ItemEvent) -> Unit = {
-      findTextArea.isEnabled = !isSelected
-      findTextArea.isOpaque = !isSelected
-      if (isSelected) {
-        regexCheckBox.isSelected = false
-        findTextArea.text = ""
+  val replaceEntireBodyCheckBox =
+    JBCheckBox(REPLACE_ENTIRE_BODY_TEXT).apply {
+      val changeAction: (e: ItemEvent) -> Unit = {
+        findTextArea.isEnabled = !isSelected
+        findTextArea.isOpaque = !isSelected
+        if (isSelected) {
+          regexCheckBox.isSelected = false
+          findTextArea.text = ""
+        }
+        regexCheckBox.isEnabled = !isSelected
+        updateIsOKActionEnabled(this)
       }
-      regexCheckBox.isEnabled = !isSelected
-      updateIsOKActionEnabled(this)
+      addItemListener(changeAction)
+      changeAction(ItemEvent(this, 0, null, ItemEvent.ITEM_STATE_CHANGED))
     }
-    addItemListener(changeAction)
-    changeAction(ItemEvent(this, 0, null, ItemEvent.ITEM_STATE_CHANGED))
-  }
 
   init {
     title = "Body Rule"
@@ -91,30 +87,41 @@ class BodyRuleDialog(
     }
   }
 
-  override fun createCenterPanel() = JPanel(TabularLayout("*,5px,Fit,5px,*", "20px,*,Fit")).apply {
-    findTextArea.document.addDocumentListener(object : DocumentAdapter() {
-      override fun textChanged(e: DocumentEvent) {
-        updateIsOKActionEnabled(replaceEntireBodyCheckBox)
-      }
-    })
+  override fun createCenterPanel() =
+    JPanel(TabularLayout("*,5px,Fit,5px,*", "20px,*,Fit")).apply {
+      findTextArea.document.addDocumentListener(
+        object : DocumentAdapter() {
+          override fun textChanged(e: DocumentEvent) {
+            updateIsOKActionEnabled(replaceEntireBodyCheckBox)
+          }
+        }
+      )
 
-    add(createTitledPanel("Find by", findTextArea), TabularLayout.Constraint(1, 0))
-    add(JSeparator(), TabularLayout.Constraint(1, 2))
-    add(createTitledPanel("Replace with", replaceTextArea), TabularLayout.Constraint(1, 4))
-    add(JPanel(BorderLayout()).apply {
-      add(replaceEntireBodyCheckBox, BorderLayout.WEST)
-      add(regexCheckBox.withRegexLabel(), BorderLayout.EAST)
-    }, TabularLayout.Constraint(2, 0))
-    minimumSize = Dimension(800, preferredSize.height)
-  }
+      add(createTitledPanel("Find by", findTextArea), TabularLayout.Constraint(1, 0))
+      add(JSeparator(), TabularLayout.Constraint(1, 2))
+      add(createTitledPanel("Replace with", replaceTextArea), TabularLayout.Constraint(1, 4))
+      add(
+        JPanel(BorderLayout()).apply {
+          add(replaceEntireBodyCheckBox, BorderLayout.WEST)
+          add(regexCheckBox.withRegexLabel(), BorderLayout.EAST)
+        },
+        TabularLayout.Constraint(2, 0)
+      )
+      minimumSize = Dimension(800, preferredSize.height)
+    }
 
   override fun doOKAction() {
     super.doOKAction()
     if (replaceEntireBodyCheckBox.isSelected) {
       saveAction(RuleData.BodyReplacedRuleData(replaceTextArea.text))
-    }
-    else {
-      saveAction(RuleData.BodyModifiedRuleData(findTextArea.text, regexCheckBox.isSelected, replaceTextArea.text))
+    } else {
+      saveAction(
+        RuleData.BodyModifiedRuleData(
+          findTextArea.text,
+          regexCheckBox.isSelected,
+          replaceTextArea.text
+        )
+      )
     }
   }
 
@@ -123,11 +130,13 @@ class BodyRuleDialog(
     val headingPanel = TitledSeparator(titleName)
     headingPanel.minimumSize = Dimension(0, 34)
     panel.add(headingPanel, TabularLayout.Constraint(0, 0))
-    val scroll = JBScrollPane(body).apply {
-      // Set JBScrollPane transparent to render an inactive JBTextArea with correct background color.
-      isOpaque = false
-      viewport.isOpaque = false
-    }
+    val scroll =
+      JBScrollPane(body).apply {
+        // Set JBScrollPane transparent to render an inactive JBTextArea with correct background
+        // color.
+        isOpaque = false
+        viewport.isOpaque = false
+      }
     panel.add(scroll, TabularLayout.Constraint(2, 0))
     return panel
   }

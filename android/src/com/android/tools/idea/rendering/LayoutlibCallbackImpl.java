@@ -831,7 +831,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
         // This section might access system properties or access disk but it does not leak information back to Layoutlib so it can be
         // executed in safe mode.
         AndroidModuleInfo info = myRenderModule.getInfo();
-        return info == null ? null : info.getPackage();
+        return info == null ? null : info.getPackageName();
       });
     }
     catch (Exception e) {

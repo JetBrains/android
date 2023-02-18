@@ -20,11 +20,12 @@ import junit.framework.TestCase
 class UtilsTest : TestCase() {
   fun testGetRowIdIsNullIfIntPrimaryKeyExists() {
     // Prepare
-    val columns = listOf(
-      SqliteColumn("col1", SqliteAffinity.INTEGER, true, true),
-      SqliteColumn("col2", SqliteAffinity.INTEGER, true, false),
-      SqliteColumn("rowid", SqliteAffinity.INTEGER, false, false)
-    )
+    val columns =
+      listOf(
+        SqliteColumn("col1", SqliteAffinity.INTEGER, true, true),
+        SqliteColumn("col2", SqliteAffinity.INTEGER, true, false),
+        SqliteColumn("rowid", SqliteAffinity.INTEGER, false, false)
+      )
 
     // Act
     val rowIdName = getRowIdName(columns)
@@ -35,11 +36,12 @@ class UtilsTest : TestCase() {
 
   fun testGetRowIdIs_rowid_() {
     // Prepare
-    val columns = listOf(
-      SqliteColumn("col1", SqliteAffinity.INTEGER, true, false),
-      SqliteColumn("col2", SqliteAffinity.INTEGER, true, false),
-      SqliteColumn("rowid", SqliteAffinity.INTEGER, false, false)
-    )
+    val columns =
+      listOf(
+        SqliteColumn("col1", SqliteAffinity.INTEGER, true, false),
+        SqliteColumn("col2", SqliteAffinity.INTEGER, true, false),
+        SqliteColumn("rowid", SqliteAffinity.INTEGER, false, false)
+      )
 
     // Act
     val rowIdName = getRowIdName(columns)
@@ -50,11 +52,12 @@ class UtilsTest : TestCase() {
 
   fun testGetRowIdIsRowid() {
     // Prepare
-    val columns = listOf(
-      SqliteColumn("col1", SqliteAffinity.INTEGER, true, false),
-      SqliteColumn("col2", SqliteAffinity.INTEGER, true, false),
-      SqliteColumn("_rowid_", SqliteAffinity.INTEGER, false, false)
-    )
+    val columns =
+      listOf(
+        SqliteColumn("col1", SqliteAffinity.INTEGER, true, false),
+        SqliteColumn("col2", SqliteAffinity.INTEGER, true, false),
+        SqliteColumn("_rowid_", SqliteAffinity.INTEGER, false, false)
+      )
 
     // Act
     val rowIdName = getRowIdName(columns)
@@ -65,12 +68,13 @@ class UtilsTest : TestCase() {
 
   fun testGetRowIdIsOid() {
     // Prepare
-    val columns = listOf(
-      SqliteColumn("col1", SqliteAffinity.INTEGER, true, false),
-      SqliteColumn("col2", SqliteAffinity.INTEGER, true, false),
-      SqliteColumn("_rowid_", SqliteAffinity.INTEGER, false, false),
-      SqliteColumn("rowid", SqliteAffinity.INTEGER, false, false)
-    )
+    val columns =
+      listOf(
+        SqliteColumn("col1", SqliteAffinity.INTEGER, true, false),
+        SqliteColumn("col2", SqliteAffinity.INTEGER, true, false),
+        SqliteColumn("_rowid_", SqliteAffinity.INTEGER, false, false),
+        SqliteColumn("rowid", SqliteAffinity.INTEGER, false, false)
+      )
 
     // Act
     val rowIdName = getRowIdName(columns)
@@ -81,13 +85,14 @@ class UtilsTest : TestCase() {
 
   fun testGetRowIdIsNull() {
     // Prepare
-    val columns = listOf(
-      SqliteColumn("col1", SqliteAffinity.INTEGER, true, false),
-      SqliteColumn("col2", SqliteAffinity.INTEGER, true, false),
-      SqliteColumn("_rowid_", SqliteAffinity.INTEGER, false, false),
-      SqliteColumn("rowid", SqliteAffinity.INTEGER, false, false),
-      SqliteColumn("oid", SqliteAffinity.INTEGER, false, false)
-    )
+    val columns =
+      listOf(
+        SqliteColumn("col1", SqliteAffinity.INTEGER, true, false),
+        SqliteColumn("col2", SqliteAffinity.INTEGER, true, false),
+        SqliteColumn("_rowid_", SqliteAffinity.INTEGER, false, false),
+        SqliteColumn("rowid", SqliteAffinity.INTEGER, false, false),
+        SqliteColumn("oid", SqliteAffinity.INTEGER, false, false)
+      )
 
     // Act
     val rowIdName = getRowIdName(columns)

@@ -276,7 +276,7 @@ internal class LogcatFilterParser(
   private fun LogcatFilterExpression.toFilter(): LogcatFilter {
     return when (this) {
       is LogcatFilterLiteralExpression -> this.literalToFilter()
-      is LogcatFilterParenExpression -> expression!!.toFilter()
+      is LogcatFilterParenExpression -> expression?.toFilter() ?: EmptyFilter
       is LogcatFilterAndExpression -> AndLogcatFilter(flattenAndExpression(this).map { it.toFilter() })
       is LogcatFilterOrExpression -> OrLogcatFilter(flattenOrExpression(this).map { it.toFilter() })
       else -> throw ParseException("Unexpected element: ${this::class.simpleName}", -1) // Should not happen

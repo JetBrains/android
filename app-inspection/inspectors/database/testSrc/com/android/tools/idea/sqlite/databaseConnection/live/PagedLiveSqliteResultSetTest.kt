@@ -45,7 +45,11 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
   class FakeMessenger(val originalQuery: String, val response: ByteArray) : AppInspectorMessenger {
     override suspend fun sendRawCommand(rawData: ByteArray): ByteArray {
       val parsed = SqliteInspectorProtocol.Command.parseFrom(rawData)
-      assertNotSame("In paged version of ResultSet we should never run the original query ", originalQuery, parsed.query.query)
+      assertNotSame(
+        "In paged version of ResultSet we should never run the original query ",
+        originalQuery,
+        parsed.query.query
+      )
       return response
     }
 
@@ -55,62 +59,67 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
       get() = throw NotImplementedError()
   }
 
-  fun testColumnsReturnCorrectListOfColumns() = runBlocking<Unit> {
-    // Prepare
-    val columnNames = listOf("col1", "col2")
+  fun testColumnsReturnCorrectListOfColumns() =
+    runBlocking<Unit> {
+      // Prepare
+      val columnNames = listOf("col1", "col2")
 
-    val cursor = SqliteInspectorProtocol.Response.newBuilder()
-      .setQuery(SqliteInspectorProtocol.QueryResponse.newBuilder().addAllColumnNames(columnNames))
-      .build()
+      val cursor =
+        SqliteInspectorProtocol.Response.newBuilder()
+          .setQuery(
+            SqliteInspectorProtocol.QueryResponse.newBuilder().addAllColumnNames(columnNames)
+          )
+          .build()
 
-    val statement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
-    val mockMessenger = FakeMessenger(statement.sqliteStatementText, cursor.toByteArray())
-    val resultSet = createPagedLiveSqliteResultSet(statement, mockMessenger)
+      val statement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
+      val mockMessenger = FakeMessenger(statement.sqliteStatementText, cursor.toByteArray())
+      val resultSet = createPagedLiveSqliteResultSet(statement, mockMessenger)
 
-    // Act
-    val columnsFromResultSet = pumpEventsAndWaitForFuture(resultSet.columns)
+      // Act
+      val columnsFromResultSet = pumpEventsAndWaitForFuture(resultSet.columns)
 
-    // Assert
-    assertEquals(
-      listOf(ResultSetSqliteColumn("col1"), ResultSetSqliteColumn("col2")),
-      columnsFromResultSet
-    )
-  }
+      // Assert
+      assertEquals(
+        listOf(ResultSetSqliteColumn("col1"), ResultSetSqliteColumn("col2")),
+        columnsFromResultSet
+      )
+    }
 
-  fun testRowCountReturnsCorrectNumberOfRows() = runBlocking<Unit> {
-    // Prepare
-    val rowCountCellValue = SqliteInspectorProtocol.CellValue.newBuilder()
-      .setLongValue(12345)
-      .build()
+  fun testRowCountReturnsCorrectNumberOfRows() =
+    runBlocking<Unit> {
+      // Prepare
+      val rowCountCellValue =
+        SqliteInspectorProtocol.CellValue.newBuilder().setLongValue(12345).build()
 
-    val row = SqliteInspectorProtocol.Row.newBuilder()
-      .addValues(rowCountCellValue)
-      .build()
+      val row = SqliteInspectorProtocol.Row.newBuilder().addValues(rowCountCellValue).build()
 
-    val columnNames = listOf("COUNT(*)")
+      val columnNames = listOf("COUNT(*)")
 
-    val cursor = SqliteInspectorProtocol.Response.newBuilder()
-      .setQuery(SqliteInspectorProtocol.QueryResponse.newBuilder().addAllColumnNames(columnNames).addRows(row))
-      .build()
+      val cursor =
+        SqliteInspectorProtocol.Response.newBuilder()
+          .setQuery(
+            SqliteInspectorProtocol.QueryResponse.newBuilder()
+              .addAllColumnNames(columnNames)
+              .addRows(row)
+          )
+          .build()
 
-    val statement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
-    val mockMessenger = FakeMessenger(statement.sqliteStatementText, cursor.toByteArray())
-    val resultSet = createPagedLiveSqliteResultSet(statement, mockMessenger)
+      val statement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
+      val mockMessenger = FakeMessenger(statement.sqliteStatementText, cursor.toByteArray())
+      val resultSet = createPagedLiveSqliteResultSet(statement, mockMessenger)
 
-    // Act
-    val rowCount = pumpEventsAndWaitForFuture(resultSet.totalRowCount)
+      // Act
+      val rowCount = pumpEventsAndWaitForFuture(resultSet.totalRowCount)
 
-    // Assert
-    assertEquals(12345, rowCount)
-  }
+      // Assert
+      assertEquals(12345, rowCount)
+    }
 
   fun testRowCountFailsIfDisposed() {
     // Prepare
     val statement = SqliteStatement(SqliteStatementType.SELECT, "SELECT COUNT(*) FROM (query)")
     val mockMessenger = FakeMessenger(statement.sqliteStatementText, ByteArray(0))
-    val resultSet = createPagedLiveSqliteResultSet(
-      statement, mockMessenger
-    )
+    val resultSet = createPagedLiveSqliteResultSet(statement, mockMessenger)
     Disposer.register(project, resultSet)
 
     // Act / Assert
@@ -120,21 +129,26 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
 
   fun testGetRowBatchReturnsCorrectListOfRows() {
     // Prepare
-    val cellValueString = SqliteInspectorProtocol.CellValue.newBuilder()
-      .setStringValue("a string")
-      .build()
+    val cellValueString =
+      SqliteInspectorProtocol.CellValue.newBuilder().setStringValue("a string").build()
 
-    val row = SqliteInspectorProtocol.Row.newBuilder()
-      .addValues(cellValueString)
-      .addValues(cellValueString)
-      .addValues(cellValueString)
-      .build()
+    val row =
+      SqliteInspectorProtocol.Row.newBuilder()
+        .addValues(cellValueString)
+        .addValues(cellValueString)
+        .addValues(cellValueString)
+        .build()
 
     val columnNames = listOf("column1", "column2", "column3")
 
-    val cursor = SqliteInspectorProtocol.Response.newBuilder()
-      .setQuery(SqliteInspectorProtocol.QueryResponse.newBuilder().addAllColumnNames(columnNames).addRows(row))
-      .build()
+    val cursor =
+      SqliteInspectorProtocol.Response.newBuilder()
+        .setQuery(
+          SqliteInspectorProtocol.QueryResponse.newBuilder()
+            .addAllColumnNames(columnNames)
+            .addRows(row)
+        )
+        .build()
 
     val statement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
     val mockMessenger = FakeMessenger(statement.sqliteStatementText, cursor.toByteArray())
@@ -147,7 +161,10 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
     // Assert
     assertSize(1, rowsFromResultSet)
     assertEquals("column1", rowsFromResultSet.first().values.first().columnName)
-    assertEquals(SqliteValue.StringValue("a string"), rowsFromResultSet.first().values.first().value)
+    assertEquals(
+      SqliteValue.StringValue("a string"),
+      rowsFromResultSet.first().values.first().value
+    )
   }
 
   fun testGetRowBatchFailsIfDisposed() {
@@ -168,9 +185,10 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
     // Prepare
     val row = SqliteInspectorProtocol.Row.newBuilder().build()
 
-    val cursor = SqliteInspectorProtocol.Response.newBuilder()
-      .setQuery(SqliteInspectorProtocol.QueryResponse.newBuilder().addRows(row))
-      .build()
+    val cursor =
+      SqliteInspectorProtocol.Response.newBuilder()
+        .setQuery(SqliteInspectorProtocol.QueryResponse.newBuilder().addRows(row))
+        .build()
 
     val statement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
     val mockMessenger = FakeMessenger(statement.sqliteStatementText, cursor.toByteArray())
@@ -186,33 +204,38 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
     // Prepare
     val row = SqliteInspectorProtocol.Row.newBuilder().build()
 
-    val cursor = SqliteInspectorProtocol.Response.newBuilder()
-      .setQuery(SqliteInspectorProtocol.QueryResponse.newBuilder().addRows(row))
-      .build()
+    val cursor =
+      SqliteInspectorProtocol.Response.newBuilder()
+        .setQuery(SqliteInspectorProtocol.QueryResponse.newBuilder().addRows(row))
+        .build()
 
     val statement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
     val mockMessenger = FakeMessenger(statement.sqliteStatementText, cursor.toByteArray())
     val resultSet = createPagedLiveSqliteResultSet(statement, mockMessenger)
 
     // Act / Assert
-    assertThrows(IllegalArgumentException::class.java) {
-      resultSet.getRowBatch(0, 0)
-    }
+    assertThrows(IllegalArgumentException::class.java) { resultSet.getRowBatch(0, 0) }
   }
 
   fun testThrowsRecoverableErrorOnErrorOccurredResponse() {
     // Prepare
-    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
-      SqliteInspectorProtocol.ErrorContent.newBuilder()
-        .setMessage("errorMessage")
-        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().setIsRecoverable(true).build())
-        .setStackTrace("stackTrace")
+    val errorOccurredEvent =
+      SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder()
+        .setContent(
+          SqliteInspectorProtocol.ErrorContent.newBuilder()
+            .setMessage("errorMessage")
+            .setRecoverability(
+              SqliteInspectorProtocol.ErrorRecoverability.newBuilder()
+                .setIsRecoverable(true)
+                .build()
+            )
+            .setStackTrace("stackTrace")
+            .build()
+        )
         .build()
-    ).build()
 
-    val cursor = SqliteInspectorProtocol.Response.newBuilder()
-      .setErrorOccurred(errorOccurredEvent)
-      .build()
+    val cursor =
+      SqliteInspectorProtocol.Response.newBuilder().setErrorOccurred(errorOccurredEvent).build()
 
     val statement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
     val mockMessenger = FakeMessenger(statement.sqliteStatementText, cursor.toByteArray())
@@ -232,17 +255,23 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
 
   fun testThrowsNonRecoverableErrorOnErrorOccurredResponse() {
     // Prepare
-    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
-      SqliteInspectorProtocol.ErrorContent.newBuilder()
-        .setMessage("errorMessage")
-        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().setIsRecoverable(false).build())
-        .setStackTrace("stackTrace")
+    val errorOccurredEvent =
+      SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder()
+        .setContent(
+          SqliteInspectorProtocol.ErrorContent.newBuilder()
+            .setMessage("errorMessage")
+            .setRecoverability(
+              SqliteInspectorProtocol.ErrorRecoverability.newBuilder()
+                .setIsRecoverable(false)
+                .build()
+            )
+            .setStackTrace("stackTrace")
+            .build()
+        )
         .build()
-    ).build()
 
-    val cursor = SqliteInspectorProtocol.Response.newBuilder()
-      .setErrorOccurred(errorOccurredEvent)
-      .build()
+    val cursor =
+      SqliteInspectorProtocol.Response.newBuilder().setErrorOccurred(errorOccurredEvent).build()
 
     val statement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
     val mockMessenger = FakeMessenger(statement.sqliteStatementText, cursor.toByteArray())
@@ -256,23 +285,28 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
     assertEquals(error1.cause, error2.cause)
     assertEquals(error1.cause, error3.cause)
     assertInstanceOf(error1.cause, LiveInspectorException::class.java)
-    assertEquals("An error has occurred which requires you to restart your app: errorMessage", error1.cause!!.message)
+    assertEquals(
+      "An error has occurred which requires you to restart your app: errorMessage",
+      error1.cause!!.message
+    )
     assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
   }
 
   fun testThrowsUnknownRecoverableErrorOnErrorOccurredResponse() {
     // Prepare
-    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
-      SqliteInspectorProtocol.ErrorContent.newBuilder()
-        .setMessage("errorMessage")
-        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().build())
-        .setStackTrace("stackTrace")
+    val errorOccurredEvent =
+      SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder()
+        .setContent(
+          SqliteInspectorProtocol.ErrorContent.newBuilder()
+            .setMessage("errorMessage")
+            .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().build())
+            .setStackTrace("stackTrace")
+            .build()
+        )
         .build()
-    ).build()
 
-    val cursor = SqliteInspectorProtocol.Response.newBuilder()
-      .setErrorOccurred(errorOccurredEvent)
-      .build()
+    val cursor =
+      SqliteInspectorProtocol.Response.newBuilder().setErrorOccurred(errorOccurredEvent).build()
 
     val statement = SqliteStatement(SqliteStatementType.SELECT, "SELECT")
     val mockMessenger = FakeMessenger(statement.sqliteStatementText, cursor.toByteArray())
@@ -286,7 +320,10 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
     assertEquals(error1.cause, error2.cause)
     assertEquals(error1.cause, error3.cause)
     assertInstanceOf(error1.cause, LiveInspectorException::class.java)
-    assertEquals("An error has occurred which might require you to restart your app: errorMessage", error1.cause!!.message)
+    assertEquals(
+      "An error has occurred which might require you to restart your app: errorMessage",
+      error1.cause!!.message
+    )
     assertEquals("stackTrace", (error1.cause as LiveInspectorException).onDeviceStackTrace)
   }
 
@@ -294,12 +331,13 @@ class PagedLiveSqliteResultSetTest : LightPlatformTestCase() {
     statement: SqliteStatement,
     messenger: AppInspectorMessenger
   ): LiveSqliteResultSet {
-    val liveSqliteResultSet = PagedLiveSqliteResultSet(
-      statement,
-      DatabaseInspectorMessenger(messenger, scope, taskExecutor),
-      0,
-      taskExecutor
-    )
+    val liveSqliteResultSet =
+      PagedLiveSqliteResultSet(
+        statement,
+        DatabaseInspectorMessenger(messenger, scope, taskExecutor),
+        0,
+        taskExecutor
+      )
     Disposer.register(testRootDisposable, liveSqliteResultSet)
     return liveSqliteResultSet
   }

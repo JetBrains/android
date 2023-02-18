@@ -125,7 +125,7 @@ class ResourceActionsTest {
   }
 
   private fun deleteXmlTag(property: NlPropertyItem) {
-    val tag = property.components.first().backend.getTagPointer().element!!
+    val tag = property.components.first().backend.tag!!
     WriteCommandAction.writeCommandAction(projectRule.project).run<Throwable> {
       tag.delete()
     }

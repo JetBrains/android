@@ -90,7 +90,7 @@ private sealed class WarningType(val triggerNotification: Boolean){
 
 
 private fun BuildAttributionReportUiData.isBuildAnalyzerSpecialBuild(): Boolean =
-  confCachingData == ConfigurationCacheCompatibilityTestFlow ||
+  confCachingData is ConfigurationCacheCompatibilityTestFlow ||
   jetifierData.checkJetifierBuild
 
 private fun BuildAttributionReportUiData.warningTypes(): Set<WarningType> {

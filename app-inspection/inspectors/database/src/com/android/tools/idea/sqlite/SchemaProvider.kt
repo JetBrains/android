@@ -18,9 +18,7 @@ package com.android.tools.idea.sqlite
 import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.model.SqliteSchema
 
-/**
- * Returns a [SqliteSchema] for a given [SqliteDatabaseId].
- */
+/** Returns a [SqliteSchema] for a given [SqliteDatabaseId]. */
 interface SchemaProvider {
   fun getSchema(databaseId: SqliteDatabaseId): SqliteSchema?
 }

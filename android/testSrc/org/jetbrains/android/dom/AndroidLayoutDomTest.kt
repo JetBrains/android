@@ -17,6 +17,7 @@ import com.intellij.codeInsight.TargetElementUtil
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.documentation.DocumentationManager
 import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.codeInsight.intention.IntentionActionDelegate
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.codeInspection.LocalInspectionTool
@@ -1653,15 +1654,12 @@ class AndroidLayoutDomTest : AndroidDomTestCase("dom/layout") {
     val actions = ArrayList<IntentionAction>()
 
     for (info in infos) {
-      val ranges = info.quickFixActionRanges
-
-      if (ranges != null) {
-        for (pair in ranges) {
-          val action = pair.getFirst().action
-          if (action is CreateValueResourceQuickFix) {
-            actions.add(action)
-          }
+      info.findRegisteredQuickFix { desc, _ ->
+        if (IntentionActionDelegate.unwrap(desc.action) is CreateValueResourceQuickFix) {
+          actions.add(desc.action)
         }
+
+        null
       }
     }
     assertThat(actions).hasSize(1)

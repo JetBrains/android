@@ -95,7 +95,7 @@ class SnapshotActionTest {
     val client: InspectorClient = mock()
     val process: ProcessDescriptor = mock()
     whenever(inspector.currentClient).thenReturn(client)
-    whenever(inspector.layoutInspectorModel).thenReturn(model)
+    whenever(inspector.inspectorModel).thenReturn(model)
     whenever(model.project).thenReturn(projectRule.project)
     whenever(client.process).thenReturn(process)
     whenever(process.name).thenReturn("process.name")

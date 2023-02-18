@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.run;
 
-import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import org.jetbrains.android.dom.manifest.AndroidManifestUtils;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 

@@ -134,7 +134,7 @@ maven_repository(
         "@maven//:androidx.appcompat.appcompat_1.0.2",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
         "@maven//:androidx.appcompat.appcompat_1.4.1",
-        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.1.0-beta04",
+        "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.1.1",
         "@maven//:androidx.compose.compiler.compiler_1.3.2",
         "@maven//:androidx.compose.compose-bom_2022.10.00",
         "@maven//:androidx.compose.foundation.foundation-layout_1.3.0",
@@ -180,11 +180,14 @@ maven_repository(
         "@maven//:androidx.slice.slice-builders_1.0.0",
         "@maven//:androidx.test.espresso.espresso-core_3.4.0",
         "@maven//:androidx.test.ext.junit_1.1.3",
+        "@maven//:androidx.wear.compose.compose-foundation_1.0.0",
         "@maven//:androidx.wear.compose.compose-material_1.0.0",
         "@maven//:androidx.wear.tiles.tiles-material_1.1.0",
         "@maven//:androidx.wear.tiles.tiles_1.1.0",
         "@maven//:androidx.wear.watchface.watchface-complications-data-source-ktx_1.1.1",
         "@maven//:androidx.wear.wear_1.2.0",
+        "@maven//:com.android.application.com.android.application.gradle.plugin_7.2.0",
+        "@maven//:com.android.application.com.android.application.gradle.plugin_7.4.1",
         "@maven//:com.android.support.appcompat-v7_25.4.0",
         "@maven//:com.android.support.appcompat-v7_28.0.0",
         "@maven//:com.android.support.constraint.constraint-layout_1.0.2",
@@ -234,6 +237,7 @@ maven_repository(
         "@maven//:com.google.prefab.cli_2.0.0",
         "@maven//:com.google.protobuf.protobuf-bom_3.17.2",
         "@maven//:com.linkedin.testbutler.test-butler-app_1.3.1",
+        "@maven//:com.squareup.okio.okio-jvm_3.0.0",
         "@maven//:com.sun.activation.javax.activation_1.2.0",
         "@maven//:commons-codec.commons-codec_1.9",
         "@maven//:commons-lang.commons-lang_2.4",
@@ -946,6 +950,7 @@ java_test(
 
 java_test(
     name = "GenerateApkWithReleaseVariantTest",
+    size = "large",
     data = COMMON_DATA + glob([
         "testData/SimpleApplication/**",
     ]),
@@ -1231,6 +1236,21 @@ java_test(
 )
 
 java_test(
+    name = "GradleVersionCatalogTest",
+    size = "enormous",
+    timeout = "long",
+    data = COMMON_DATA + glob([
+        "testData/VersionCatalogProject/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.GradleVersionCatalogTest"],
+    tags = COMMON_TAGS + [
+        "qa_smoke",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
     name = "LaunchApkViewerTest",
     size = "large",
     data = COMMON_DATA + glob([
@@ -1326,6 +1346,7 @@ java_test(
 
 java_test(
     name = "CreateNewMobileProjectTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ],
@@ -1493,6 +1514,7 @@ java_test(
     tags = COMMON_TAGS + [
         "no_mac",
         "no_windows",
+        "very_flaky",  # b/269167918
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
     runtime_deps = [":intellij.android.guiTests_testlib"],
@@ -1557,6 +1579,8 @@ java_test(
 
 java_test(
     name = "NavGraphSanityTest",
+    size = "enormous",
+    timeout = "long",
     data = COMMON_DATA + [
         # TODO: Remove the dependency on support-annotations once Bazel no longer requires support-annotations to build Android apps.
         "//prebuilts/studio/layoutlib:build.prop",
@@ -1991,7 +2015,38 @@ java_test(
 )
 
 java_test(
+    name = "VerifyNpwPhoneAndTabletCppTemplatesTest",
+    size = "large",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.VerifyNpwPhoneAndTabletCppTemplatesTest"],
+    tags = COMMON_TAGS + [
+        "qa_fast",
+        "no_windows",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
+    name = "VerifyNpwPhoneAndTabletNavigationTemplatesTest",
+    size = "large",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+    ],
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.npw.VerifyNpwPhoneAndTabletNavigationTemplatesTest"],
+    tags = COMMON_TAGS + [
+        "qa_fast",
+        "no_windows",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
     name = "VerifyNpwWearOSTemplatesTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ],
@@ -2006,6 +2061,7 @@ java_test(
 
 java_test(
     name = "VerifyNpwAutomotiveTemplatesTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib:build.prop",
         "//prebuilts/studio/layoutlib/data/fonts",
@@ -2025,6 +2081,7 @@ java_test(
 
 java_test(
     name = "VerifyNpwAndroidTVTemplatesTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ],
@@ -2109,6 +2166,7 @@ java_test(
 
 java_test(
     name = "JavaLibsDepTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ],
@@ -2125,6 +2183,7 @@ java_test(
 
 java_test(
     name = "AndroidLibsDepTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ],
@@ -2207,6 +2266,7 @@ java_test(
 
 java_test(
     name = "ChangeLibModSettingsTest",
+    size = "large",
     data = COMMON_DATA + [
         "//prebuilts/studio/layoutlib/data:framework_res.jar",
     ] + glob([
@@ -2516,6 +2576,7 @@ java_test(
 
 java_test(
     name = "ConvertFrom9PatchTest",
+    size = "large",
     data = COMMON_DATA + glob([
         "testData/ConvertFrom9Patch/**",
     ]),

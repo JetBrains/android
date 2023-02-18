@@ -46,79 +46,89 @@ import javax.swing.border.EmptyBorder
 /**
  * Action triggered when [RunSqliteStatementGutterIconRenderer] is clicked.
  *
- * The action runs the SQLite statement on the open database.
- * If multiple database are open a dialog is shown to allow the user to select the database of interest.
+ * The action runs the SQLite statement on the open database. If multiple database are open a dialog
+ * is shown to allow the user to select the database of interest.
  *
- * To handle SQLite statements with named parameters a dialog is shown to assign a value to the parameters.
- * All named parameters are replaced with positional parameters.
+ * To handle SQLite statements with named parameters a dialog is shown to assign a value to the
+ * parameters. All named parameters are replaced with positional parameters.
  */
 class RunSqliteStatementGutterIconAction(
   private val project: Project,
   private val element: PsiElement,
   private val viewFactory: DatabaseInspectorViewsFactory,
-  private val databaseInspectorProjectService: DatabaseInspectorProjectService = DatabaseInspectorProjectService.getInstance(project)
+  private val databaseInspectorProjectService: DatabaseInspectorProjectService =
+    DatabaseInspectorProjectService.getInstance(project)
 ) : AnAction() {
   override fun actionPerformed(actionEvent: AnActionEvent) {
     val openDatabases = databaseInspectorProjectService.getOpenDatabases()
 
     if (openDatabases.isEmpty()) return
 
-    val injectedPsiFile = InjectedLanguageManager.getInstance(project).getInjectedPsiFiles(element)
-                            .orEmpty()
-                            .firstOrNull { it.first.language == AndroidSqlLanguage.INSTANCE }?.first ?: return
+    val injectedPsiFile =
+      InjectedLanguageManager.getInstance(project)
+        .getInjectedPsiFiles(element)
+        .orEmpty()
+        .firstOrNull { it.first.language == AndroidSqlLanguage.INSTANCE }
+        ?.first
+        ?: return
 
     if (openDatabases.size == 1) {
       runSqliteStatement(openDatabases.first(), injectedPsiFile)
-    }
-    else if (openDatabases.size > 1) {
-      val popupChooserBuilder = JBPopupFactory.getInstance().createPopupChooserBuilder(openDatabases.toList())
-      val popup = popupChooserBuilder
-        .setTitle("Choose database")
-        .setMovable(true)
-        .setRenderer(SqliteQueryListCellRenderer())
-        .withHintUpdateSupply()
-        .setResizable(true)
-        .setItemChosenCallback {
-          runSqliteStatement(it, injectedPsiFile)
-        }
-        .createPopup()
+    } else if (openDatabases.size > 1) {
+      val popupChooserBuilder =
+        JBPopupFactory.getInstance().createPopupChooserBuilder(openDatabases.toList())
+      val popup =
+        popupChooserBuilder
+          .setTitle("Choose database")
+          .setMovable(true)
+          .setRenderer(SqliteQueryListCellRenderer())
+          .withHintUpdateSupply()
+          .setResizable(true)
+          .setItemChosenCallback { runSqliteStatement(it, injectedPsiFile) }
+          .createPopup()
 
       if (actionEvent.inputEvent is MouseEvent) {
         val point = RelativePoint(actionEvent.inputEvent as MouseEvent)
         popup.show(point)
-      }
-      else {
+      } else {
         popup.showInFocusCenter()
       }
     }
   }
 
   private fun runSqliteStatement(databaseId: SqliteDatabaseId, sqliteStatementPsi: PsiElement) {
-    val connectivityState = when (databaseId) {
-      is SqliteDatabaseId.FileSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_OFFLINE
-      is SqliteDatabaseId.LiveSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE
-    }
+    val connectivityState =
+      when (databaseId) {
+        is SqliteDatabaseId.FileSqliteDatabaseId ->
+          AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_OFFLINE
+        is SqliteDatabaseId.LiveSqliteDatabaseId ->
+          AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE
+      }
 
-    DatabaseInspectorAnalyticsTracker.getInstance(project).trackStatementExecuted(
-      connectivityState,
-      AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT
-    )
+    DatabaseInspectorAnalyticsTracker.getInstance(project)
+      .trackStatementExecuted(
+        connectivityState,
+        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.GUTTER_STATEMENT_CONTEXT
+      )
 
     if (!needsBinding(sqliteStatementPsi)) {
       val (sqliteStatement, _) = replaceNamedParametersWithPositionalParameters(sqliteStatementPsi)
-      databaseInspectorProjectService.runSqliteStatement(databaseId, createSqliteStatement(project, sqliteStatement))
+      databaseInspectorProjectService.runSqliteStatement(
+        databaseId,
+        createSqliteStatement(project, sqliteStatement)
+      )
       databaseInspectorProjectService.getIdeServices()?.showToolWindow()
-    }
-    else {
+    } else {
       val view = viewFactory.createParametersBindingView(project, sqliteStatementPsi.text)
       ParametersBindingController(view, sqliteStatementPsi) {
         databaseInspectorProjectService.runSqliteStatement(databaseId, it)
         databaseInspectorProjectService.getIdeServices()?.showToolWindow()
-      }.also {
-        it.setUp()
-        it.show()
-        Disposer.register(project, it)
       }
+        .also {
+          it.setUp()
+          it.show()
+          Disposer.register(project, it)
+        }
     }
   }
 
@@ -135,12 +145,15 @@ class RunSqliteStatementGutterIconAction(
 
     override fun getIcon(): Icon = AllIcons.RunConfigurations.TestState.Run
 
-    override fun getListCellRendererComponent(list: JList<*>,
-                                              value: Any?,
-                                              index: Int,
-                                              isSelected: Boolean,
-                                              cellHasFocus: Boolean): Component {
-      val component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
+    override fun getListCellRendererComponent(
+      list: JList<*>,
+      value: Any?,
+      index: Int,
+      isSelected: Boolean,
+      cellHasFocus: Boolean
+    ): Component {
+      val component =
+        super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
       if (value is SqliteDatabaseId) {
         text = value.name
       }

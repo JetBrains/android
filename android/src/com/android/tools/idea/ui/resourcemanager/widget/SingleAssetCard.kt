@@ -23,6 +23,7 @@ import com.intellij.ui.RoundedLineBorder
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
@@ -88,7 +89,7 @@ private val PRIMARY_FONT get() = StartupUiUtil.getLabelFont().deriveFont(mapOf(T
 
 private val SECONDARY_FONT_SIZE get() = JBUI.scaleFontSize(12f).toFloat()
 
-private val SECONDARY_FONT_COLOR get() = JBColor(UIUtil.getInactiveTextColor().darker(), UIUtil.getInactiveTextColor())
+private val SECONDARY_FONT_COLOR get() = JBColor(NamedColorUtil.getInactiveTextColor().darker(), NamedColorUtil.getInactiveTextColor())
 
 private const val DEFAULT_WIDTH = 120
 

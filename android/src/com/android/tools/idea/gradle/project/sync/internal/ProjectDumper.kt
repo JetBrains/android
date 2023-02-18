@@ -151,18 +151,18 @@ class ProjectDumper(
 
   fun String.replaceKnownPatterns(): String =
     this
-      .let {
-        if (it.contains(gradleVersionPattern)) {
-          it.replace(SdkConstants.GRADLE_LATEST_VERSION, "<GRADLE_VERSION>")
-        }
-        else it
-      }
       .replace(ANDROID_GRADLE_PLUGIN_VERSION, "<AGP_VERSION>")
       .replace(ANDROID_TOOLS_BASE_VERSION, "<ANDROID_TOOLS_BASE_VERSION>")
       .let {
         kotlinVersionPattern.find(it)?.let { match ->
           it.replace(match.groupValues[1], "<KOTLIN_VERSION>")
         } ?: it
+      }
+      .let {
+        if (it.contains(gradleVersionPattern)) {
+          it.replace(SdkConstants.GRADLE_LATEST_VERSION, "<GRADLE_VERSION>")
+        }
+        else it
       }
       .removeAndroidVersionsFromPath()
 
@@ -196,12 +196,6 @@ class ProjectDumper(
         else it
       }
       .replace(FileUtils.toSystemIndependentPath(userM2.absolutePath), "<USER_M2>", ignoreCase = false)
-      .let {
-        if (it.contains(gradleVersionPattern)) {
-          it.replaceGradleVersion()
-        }
-        else it
-      }
       .replace(gradleLongHashPattern, gradleLongHashStub)
       .replace(gradleHashPattern, gradleHashStub)
       .replace(gradleDistPattern, "/$gradleDistStub/")
@@ -212,6 +206,12 @@ class ProjectDumper(
         kotlinVersionPattern.find(it)?.let { match ->
           it.replace(match.groupValues[1], "<KOTLIN_VERSION>")
         } ?: it
+      }
+      .let {
+        if (it.contains(gradleVersionPattern)) {
+          it.replaceGradleVersion()
+        }
+        else it
       }
       .removeAndroidVersionsFromPath()
 

@@ -17,7 +17,6 @@ package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
 import com.android.tools.idea.protobuf.ByteString
 
-
 const val FAKE_RESPONSE_CODE = 302
 const val FAKE_RESPONSE_DESCRIPTION = "Found"
 const val FAKE_CONTENT_TYPE = "image/jpeg"
@@ -40,12 +39,11 @@ fun fakeStackTrace(id: Long): String {
             com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java)
             com.example.android.displayingbitmaps.util.AsyncTask$2.call(AsyncTask.java:$id)
             """.trimIndent()
-
 }
 
 fun fakeResponseFields(id: Long, contentType: String? = FAKE_CONTENT_TYPE): String {
   return "status line = HTTP/1.1 $FAKE_RESPONSE_CODE $FAKE_RESPONSE_DESCRIPTION" +
-         "\nContent-Type = $contentType;\nconnId = $id\n Content-Length = ${fakeContentSize(id)}\n"
+    "\nContent-Type = $contentType;\nconnId = $id\n Content-Length = ${fakeContentSize(id)}\n"
 }
 
 fun createFakeHttpData(
@@ -63,7 +61,20 @@ fun createFakeHttpData(
   requestPayload: ByteString = FAKE_REQUEST,
   responseFields: String = fakeResponseFields(id),
   responsePayload: ByteString = FAKE_RESPONSE
-) = HttpData.createHttpData(
-  id, requestStartTimeUs, requestCompleteTimeUs, responseStartTimeUs, responseCompleteTimeUs, connectionEndTimeUs, threads,
-  url, method, trace, requestFields, requestPayload, responseFields, responsePayload
-)
+) =
+  HttpData.createHttpData(
+    id,
+    requestStartTimeUs,
+    requestCompleteTimeUs,
+    responseStartTimeUs,
+    responseCompleteTimeUs,
+    connectionEndTimeUs,
+    threads,
+    url,
+    method,
+    trace,
+    requestFields,
+    requestPayload,
+    responseFields,
+    responsePayload
+  )

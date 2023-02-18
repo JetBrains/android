@@ -18,10 +18,8 @@ package com.android.tools.idea.logcat;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
-import com.android.tools.idea.AndroidEnvironmentUtils;
 import com.android.tools.idea.adb.AdbService;
 import com.android.tools.idea.ddms.DevicePanel;
-import com.android.tools.idea.run.ShowLogcatListener;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -32,7 +30,6 @@ import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.options.colors.ColorSettingsPages;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -40,7 +37,6 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentManager;
@@ -60,30 +56,9 @@ import org.jetbrains.annotations.Nullable;
 public class AndroidLogcatToolWindowFactory implements ToolWindowFactory, DumbAware {
   public static final Key<DevicePanel> DEVICES_PANEL_KEY = Key.create("DevicePanel");
 
-  public AndroidLogcatToolWindowFactory() {
-    if (!LogcatExperimentalSettings.getInstance().getLogcatV2Enabled()) {
-      ColorSettingsPages.getInstance().registerPage(new AndroidLogcatColorPage());
-    }
-  }
-
-  @Override
-  public void init(@NotNull ToolWindow toolWindow) {
-    Project project = ((ToolWindowEx)toolWindow).getProject();
-    project.getMessageBus().connect(project)
-      .subscribe(ShowLogcatListener.TOPIC, new ShowLogcatListener() {
-        @Override
-        public void showLogcat(@NotNull ShowLogcatListener.DeviceInfo deviceInfo, @Nullable String applicationId) { }
-
-        @Override
-        public void showLogcat(@NotNull IDevice device, @Nullable String applicationId) {
-           AndroidLogcatToolWindowFactory.this.showLogcat(toolWindow, device, applicationId);
-        }
-      });
-  }
-
   @Override
   public boolean isApplicable(@NotNull Project project) {
-    return !LogcatExperimentalSettings.getInstance().getLogcatV2Enabled() && AndroidEnvironmentUtils.isAndroidEnvironment(project);
+    return false;
   }
 
   @Override

@@ -19,23 +19,19 @@ import com.intellij.psi.PsiClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 
 /** A [DaggerIndexPsiWrapper] representing a class. */
-interface DaggerIndexClassWrapper : DaggerIndexPsiWrapper {
+interface DaggerIndexClassWrapper : DaggerIndexAnnotatedWrapper {
   /** Fully-qualified name of the class. Eg: "com.example.Foo" */
   fun getFqName(): String
-  /** Gets whether the class might be annotated with the given annotation. */
-  fun getIsAnnotatedWith(fqName: String): Boolean
 }
 
-internal class KtClassOrObjectWrapper(private val ktClassOrObject: KtClassOrObject,
-                                      private val importHelper: KotlinImportHelper) : DaggerIndexClassWrapper {
+internal class KtClassOrObjectWrapper(
+  private val ktClassOrObject: KtClassOrObject,
+  importHelper: KotlinImportHelper
+) : DaggerIndexAnnotatedKotlinWrapper(ktClassOrObject, importHelper), DaggerIndexClassWrapper {
   override fun getFqName(): String = ktClassOrObject.fqName!!.asString()
-
-  override fun getIsAnnotatedWith(fqName: String) = ktClassOrObject.getIsAnnotatedWith(fqName, importHelper)
 }
 
-internal class PsiClassWrapper(private val psiClass: PsiClass,
-                               private val importHelper: JavaImportHelper) : DaggerIndexClassWrapper {
+internal class PsiClassWrapper(private val psiClass: PsiClass, importHelper: JavaImportHelper) :
+  DaggerIndexAnnotatedJavaWrapper(psiClass, importHelper), DaggerIndexClassWrapper {
   override fun getFqName(): String = psiClass.qualifiedName!!
-
-  override fun getIsAnnotatedWith(fqName: String) = psiClass.getIsAnnotatedWith(fqName, importHelper)
 }

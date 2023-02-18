@@ -407,7 +407,12 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @Override
   public String getAppId() {
     try {
-      return getApplicationIdProvider().getPackageName();
+      final ApplicationIdProvider provider = getApplicationIdProvider();
+      if (provider == null) {
+        // Provider could be null if module set to null.
+        return null;
+      }
+      return provider.getPackageName();
     }
     catch (ApkProvisionException e) {
       Logger.getInstance(AndroidRunConfiguration.class).error(e);

@@ -23,8 +23,8 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.glance.preview.mvvm.PreviewRepresentationView
-import com.android.tools.idea.glance.preview.mvvm.PreviewView
+import com.android.tools.idea.preview.mvvm.PreviewRepresentationView
+import com.android.tools.idea.preview.mvvm.PreviewView
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider

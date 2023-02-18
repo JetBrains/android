@@ -88,7 +88,7 @@ public class InNonMlFolderNotificationProvider extends EditorNotifications.Provi
       return null;
     }
 
-    EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor);
+    EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning);
     panel.setText("This TensorFlow Lite model is not in a configured ml-model directory, so ML Model Binding is disabled. To use " +
                   "ML Model Binding consider moving the file.");
     panel.createActionLabel("Move File", () -> {

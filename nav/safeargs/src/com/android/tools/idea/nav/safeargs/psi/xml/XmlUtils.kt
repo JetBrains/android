@@ -21,7 +21,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.XmlRecursiveElementWalkingVisitor
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
-import com.intellij.util.PlatformIcons
+import com.intellij.ui.IconManager
+import com.intellij.ui.PlatformIcons
 import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.resolve.source.PsiSourceElement
 import org.jetbrains.kotlin.resolve.source.getPsi
@@ -86,6 +87,6 @@ class XmlSourceElement(override val psi: PsiElement) : PsiSourceElement
 
 internal fun SourceElement.withFunctionIcon(name: String, containingClassName: String): SourceElement {
   return (this.getPsi() as? SafeArgsXmlTag)?.let {
-    XmlSourceElement(SafeArgsXmlTag(it.getOriginal(), PlatformIcons.FUNCTION_ICON, name, containingClassName))
+    XmlSourceElement(SafeArgsXmlTag(it.getOriginal(), IconManager.getInstance().getPlatformIcon(PlatformIcons.Function), name, containingClassName))
   } ?: this
 }

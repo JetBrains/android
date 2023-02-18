@@ -25,7 +25,11 @@ open class OpenOfflineModeManager(
   private val project: Project,
   private val fileDatabaseManager: FileDatabaseManager,
   private val uiDispatcher: CoroutineContext,
-  private val offlineModeManager: OfflineModeManager = OfflineModeManagerImpl(
-    project, fileDatabaseManager, uiDispatcher, isFileDownloadAllowed = { true }
-  )
+  private val offlineModeManager: OfflineModeManager =
+    OfflineModeManagerImpl(
+      project,
+      fileDatabaseManager,
+      uiDispatcher,
+      isFileDownloadAllowed = { true }
+    )
 ) : OfflineModeManager by offlineModeManager

@@ -52,7 +52,7 @@ object GotoDeclarationAction : AnAction("Go To Declaration") {
   }
 
   private fun findNavigatable(event: AnActionEvent): Navigatable? =
-    LayoutInspector.get(event)?.layoutInspectorModel?.let { findNavigatable(it) }
+    LayoutInspector.get(event)?.inspectorModel?.let { findNavigatable(it) }
 
   @Slow
   fun findNavigatable(model: InspectorModel): Navigatable? {

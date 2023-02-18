@@ -30,13 +30,16 @@ import com.intellij.openapi.project.Project
 import javax.swing.JPanel
 
 /**
- * A dummy provider, of which we plan to create multiple instances of, to test that an app inspection view can own multiple tabs.
+ * A dummy provider, of which we plan to create multiple instances of, to test that an app
+ * inspection view can own multiple tabs.
  */
 open class StubTestAppInspectorTabProvider(
   override val inspectorId: String,
-  override val inspectorLaunchParams: AppInspectorLaunchParams = FrameworkInspectorLaunchParams(TEST_JAR)
+  override val inspectorLaunchParams: AppInspectorLaunchParams =
+    FrameworkInspectorLaunchParams(TEST_JAR)
 ) : SingleAppInspectorTabProvider() {
-  override val displayName get() = inspectorId
+  override val displayName
+    get() = inspectorId
 
   override fun createTab(
     project: Project,
@@ -54,4 +57,4 @@ open class StubTestAppInspectorTabProvider(
 /**
  * A test JPanel used in verifying whether the rendered tab is indeed created by the stub provider.
  */
-class TestAppInspectorTabComponent: JPanel()
+class TestAppInspectorTabComponent : JPanel()

@@ -23,19 +23,15 @@ import java.util.concurrent.Executor
  * disconnected.
  */
 interface ProcessDiscovery {
-  /**
-   * Returns a list of connected devices aware by the discovery layer.
-   */
+  /** Returns a list of connected devices aware by the discovery layer. */
   val devices: List<DeviceDescriptor>
 
   /**
-   * Adds a [ProcessListener] to this notifier. The [listener] will receive future connections
-   * when they come online, triggered via the passed in [executor].
+   * Adds a [ProcessListener] to this notifier. The [listener] will receive future connections when
+   * they come online, triggered via the passed in [executor].
    */
   fun addProcessListener(executor: Executor, listener: ProcessListener)
 
-  /**
-   * Removes a [ProcessListener] previously registered with [addProcessListener].
-   */
+  /** Removes a [ProcessListener] previously registered with [addProcessListener]. */
   fun removeProcessListener(listener: ProcessListener)
 }

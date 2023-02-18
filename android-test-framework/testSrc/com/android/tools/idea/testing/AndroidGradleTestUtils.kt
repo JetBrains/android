@@ -17,6 +17,7 @@ package com.android.tools.idea.testing
 
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.SyncIssue
+import com.android.builder.model.v2.ide.AndroidGradlePluginProjectFlags
 import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.ARTIFACT_NAME_TEST_FIXTURES
@@ -350,6 +351,8 @@ interface AndroidProjectStubBuilder {
   fun androidModuleDependencies(variant: String): List<AndroidModuleDependency>?
   fun androidLibraryDependencies(variant: String): List<AndroidLibraryDependency>?
   fun applicationId(variant: String): String
+
+  val testApplicationId: String
   fun mainArtifact(variant: String): IdeAndroidArtifactCoreImpl
   fun androidTestArtifact(variant: String, applicationId: String?): IdeAndroidArtifactCoreImpl?
   fun unitTestArtifact(variant: String): IdeJavaArtifactCoreImpl?
@@ -402,6 +405,7 @@ data class AndroidProjectBuilder(
   val dependenciesInfo: AndroidProjectStubBuilder.() -> IdeDependenciesInfoImpl = { buildDependenciesInfo() },
   val supportsBundleTask: AndroidProjectStubBuilder.() -> Boolean = { true },
   val applicationIdFor: AndroidProjectStubBuilder.(variant: String) -> String = { "applicationId" },
+  val testApplicationId: AndroidProjectStubBuilder.() -> String = { "testApplicationId" },
   val productFlavorsStub: AndroidProjectStubBuilder.(dimension: String) -> List<IdeProductFlavorImpl> = { dimension -> emptyList() },
   val productFlavorSourceProviderStub: AndroidProjectStubBuilder.(flavor: String) -> IdeSourceProviderImpl =
     { flavor -> sourceProvider(flavor) },
@@ -554,6 +558,7 @@ data class AndroidProjectBuilder(
         override val dependenciesInfo: IdeDependenciesInfoImpl = dependenciesInfo()
         override val supportsBundleTask: Boolean = supportsBundleTask()
         override fun applicationId(variant: String): String = applicationIdFor(variant)
+        override val testApplicationId: String get() = testApplicationId()
         override fun productFlavors(dimension: String): List<IdeProductFlavorImpl> = productFlavorsStub(dimension)
         override fun productFlavorSourceProvider(flavor: String): IdeSourceProviderImpl = productFlavorSourceProviderStub(flavor)
         override fun productFlavorContainers(dimension: String): List<IdeProductFlavorContainerImpl> = productFlavorContainersStub(
@@ -688,6 +693,7 @@ fun AndroidProjectStubBuilder.buildAgpProjectFlagsStub(): IdeAndroidGradlePlugin
     usesCompose = false,
     mlModelBindingEnabled = mlModelBindingEnabled,
     unifiedTestPlatformEnabled = true,
+    useAndroidX = AndroidGradlePluginProjectFlags.BooleanFlag.USE_ANDROID_X.legacyDefault,
   )
 
 fun AndroidProjectStubBuilder.buildDefaultConfigStub() = IdeProductFlavorContainerImpl(
@@ -702,7 +708,7 @@ fun AndroidProjectStubBuilder.buildDefaultConfigStub() = IdeProductFlavorContain
     minSdkVersion = IdeApiVersionImpl(minSdk, null, "$minSdk"),
     targetSdkVersion = IdeApiVersionImpl(targetSdk, null, "$targetSdk"),
     maxSdkVersion = null,
-    testApplicationId = null,
+    testApplicationId = testApplicationId,
     testInstrumentationRunner = "android.test.InstrumentationTestRunner",
     testHandleProfiling = null,
     testFunctionalTest = null,
@@ -1035,11 +1041,12 @@ fun AndroidProjectStubBuilder.buildVariantStubs(): List<IdeVariantCoreImpl> {
         val buildType = it.buildType
         val flavorNames = flavors.map { it.name }
         val variant = (flavorNames + buildType.name).combineAsCamelCase()
+        val mainArtifact = mainArtifact(variant)
         val testApplicationId = flavors.firstNotNullOfOrNull { it.testApplicationId } ?: defaultConfig.productFlavor.testApplicationId
         IdeVariantCoreImpl(
           variant,
           variant,
-          mainArtifact(variant),
+          mainArtifact,
           unitTestArtifact(variant),
           androidTestArtifact(variant, applicationId = testApplicationId),
           testFixturesArtifact(variant),
@@ -1516,7 +1523,7 @@ private fun setupTestProjectFromAndroidModelCore(
   val externalProjectData = InternalExternalProjectInfo(GradleConstants.SYSTEM_ID, rootProjectBasePath.path, projectDataNode)
   (ExternalProjectsManager.getInstance(project) as ExternalProjectsManagerImpl).updateExternalProjectData(externalProjectData)
 
-  ProjectDataManager.getInstance().importData(projectDataNode, project, true)
+  ProjectDataManager.getInstance().importData(projectDataNode, project)
   PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
 
   // Effectively getTestRootDisposable(), which is not the project itself but its earlyDisposable.
@@ -2021,7 +2028,6 @@ interface GradleIntegrationTest : IntegrationTestEnvironment {
   /**
    * The base testData directory to be used in tests.
    */
-  @JvmDefault
   fun resolveTestDataPath(testDataPath: @SystemIndependent String): File {
     val testDataDirectory = getWorkspaceRoot().resolve(toSystemDependentName(getTestDataDirectoryWorkspaceRelativePath()))
     return testDataDirectory.resolve(toSystemDependentName(testDataPath)).toFile()
@@ -2217,7 +2223,7 @@ private fun <T> openPreparedProject(
       }
       finally {
         runInEdtAndWait {
-          if(!project.isDisposed) {
+          if (!project.isDisposed) {
             PlatformTestUtil.saveProject(project, true)
             ProjectUtil.closeAndDispose(project)
             PlatformTestUtil.dispatchAllEventsInIdeEventQueue()

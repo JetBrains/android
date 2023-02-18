@@ -21,6 +21,7 @@ import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import com.intellij.openapi.vfs.VirtualFile;
 
 public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implements GradleVersionCatalogModel {
   private String catalogName;
@@ -63,11 +64,6 @@ public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implement
   @Override
   public String catalogName() {
     return catalogName;
-  }
-
-  @Override
-  public String fileName() {
-    return catalogFile.getFile().getName();
   }
 
   @Override

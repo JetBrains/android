@@ -27,11 +27,10 @@ import java.util.zip.GZIPInputStream
 
 const val APPLICATION_FORM_MIME_TYPE = "application/x-www-form-urlencoded"
 
-
 /**
- * Data of http url connection. Each [HttpData] object matches a http connection with a unique id, and it includes both request data
- * and response data. Request data is filled immediately when the connection starts. Response data may start empty but  filled when
- * connection completes.
+ * Data of http url connection. Each [HttpData] object matches a http connection with a unique id,
+ * and it includes both request data and response data. Request data is filled immediately when the
+ * connection starts. Response data may start empty but filled when connection completes.
  */
 data class HttpData(
   val id: Long,
@@ -64,21 +63,19 @@ data class HttpData(
     get() {
       if (this::unzippedResponsePayload.isInitialized) {
         return unzippedResponsePayload
-      }
-      else {
+      } else {
         if (responseHeader.getField("content-encoding").lowercase().contains("gzip")) {
           try {
-            GZIPInputStream(ByteArrayInputStream(rawResponsePayload.toByteArray())).use { inputStream ->
+            GZIPInputStream(ByteArrayInputStream(rawResponsePayload.toByteArray())).use {
+              inputStream ->
               unzippedResponsePayload = ByteString.copyFrom(inputStream.readBytes())
             }
-          }
-          catch (ignored: IOException) {
+          } catch (ignored: IOException) {
             // If we got here, it means we failed to unzip data that was supposedly zipped. Just
             // fallback and return the content directly.
             unzippedResponsePayload = rawResponsePayload
           }
-        }
-        else {
+        } else {
           unzippedResponsePayload = rawResponsePayload
         }
         return unzippedResponsePayload
@@ -92,10 +89,7 @@ data class HttpData(
      * @return MIME type related information from Content-Type because Content-Type may contain
      * other information such as charset or boundary.
      *
-     *
-     * Examples:
-     * "text/html; charset=utf-8" => "text/html"
-     * "text/html" => "text/html"
+     * Examples: "text/html; charset=utf-8" => "text/html" "text/html" => "text/html"
      */
     val mimeType = contentType.split(';').first()
 
@@ -122,21 +116,31 @@ data class HttpData(
       responsePayload: ByteString = ByteString.EMPTY
     ): HttpData {
       assert(threads.isNotEmpty()) { "HttpData must be initialized with at least one thread" }
-      return HttpData(id, requestStartTimeUs, requestCompleteTimeUs, responseStartTimeUs, responseCompleteTimeUs, connectionEndTimeUs,
-                      threads.distinctBy { it.id }, url, method, trace, requestFields, requestPayload, responseFields, responsePayload)
+      return HttpData(
+        id,
+        requestStartTimeUs,
+        requestCompleteTimeUs,
+        responseStartTimeUs,
+        responseCompleteTimeUs,
+        connectionEndTimeUs,
+        threads.distinctBy { it.id },
+        url,
+        method,
+        trace,
+        requestFields,
+        requestPayload,
+        responseFields,
+        responsePayload
+      )
     }
 
     /**
      * Return the name of the URL, which is the final complete word in the path portion of the URL.
-     * The query is included as it can be useful to disambiguate requests. Additionally,
-     * the returned value is URL decoded, so that, say, "Hello%2520World" -> "Hello World".
+     * The query is included as it can be useful to disambiguate requests. Additionally, the
+     * returned value is URL decoded, so that, say, "Hello%2520World" -> "Hello World".
      *
-     *
-     * For example,
-     * "www.example.com/demo/" -> "demo"
-     * "www.example.com/test.png" -> "test.png"
-     * "www.example.com/test.png?res=2" -> "test.png?res=2"
-     * "www.example.com/" -> "www.example.com"
+     * For example, "www.example.com/demo/" -> "demo" "www.example.com/test.png" -> "test.png"
+     * "www.example.com/test.png?res=2" -> "test.png?res=2" "www.example.com/" -> "www.example.com"
      */
     fun getUrlName(url: String): String {
       return try {
@@ -148,19 +152,16 @@ data class HttpData(
           val lastComponent = lastComponent(uri.path)
           val fullname = uri.query?.let { "$lastComponent?${uri.query}" } ?: lastComponent
           decodeUrlName(fullname)
-        }
-        else {
+        } else {
           uri.host
         }
-      }
-      catch (ignored: UnsupportedEncodingException) {
+      } catch (ignored: UnsupportedEncodingException) {
         // If here, it most likely means the url we are tracking is invalid in some way (formatting
         // or encoding). We try to recover gracefully by employing a simpler, less sophisticated
         // approach - return all text after the last slash. Keep in mind that this fallback
         // case should rarely, if ever, be used in practice.
         lastComponent(url)
-      }
-      catch (ignored: IllegalArgumentException) {
+      } catch (ignored: IllegalArgumentException) {
         lastComponent(url)
       }
     }
@@ -168,7 +169,8 @@ data class HttpData(
     private fun lastComponent(url: String) = url.trimEnd('/').substringAfterLast('/')
 
     private fun decodeUrlName(name: String): String {
-      // URL might be encoded an arbitrarily deep number of times. Keep decoding until we peel away the final layer.
+      // URL might be encoded an arbitrarily deep number of times. Keep decoding until we peel away
+      // the final layer.
       // Usually this is only expected to loop once or twice.
       // See more: http://stackoverflow.com/questions/3617784/plus-signs-being-replaced-for-252520
       var currentName = name
@@ -176,15 +178,14 @@ data class HttpData(
       do {
         lastName = currentName
         currentName = URLUtil.decode(currentName)
-      }
-      while (currentName != lastName)
+      } while (currentName != lastName)
       return currentName
     }
   }
 }
 
 /**
- * Thread information fetched from the JVM, as opposed to from native code.
- * See also: https://docs.oracle.com/javase/7/docs/api/java/lang/Thread.html
- **/
+ * Thread information fetched from the JVM, as opposed to from native code. See also:
+ * https://docs.oracle.com/javase/7/docs/api/java/lang/Thread.html
+ */
 data class JavaThread(val id: Long, val name: String)

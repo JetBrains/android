@@ -16,7 +16,8 @@
 package com.android.tools.idea.appinspection.inspectors.network.model
 
 enum class NetworkTrafficLabel(private val label: String, private val tooltipLabel: String) {
-  BYTES_RECEIVED("Receiving", "Received"), BYTES_SENT("Sending", "Sent");
+  BYTES_RECEIVED("Receiving", "Received"),
+  BYTES_SENT("Sending", "Sent");
 
   fun getLabel(tooltip: Boolean): String {
     return if (tooltip) tooltipLabel else label

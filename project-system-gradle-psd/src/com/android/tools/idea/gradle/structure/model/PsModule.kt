@@ -24,15 +24,12 @@ import com.android.tools.idea.gradle.structure.model.meta.ParsedValue
 import com.android.tools.idea.gradle.repositories.search.ArtifactRepository
 import com.android.tools.idea.gradle.repositories.search.GoogleRepository
 import com.android.tools.idea.gradle.repositories.search.JCenterRepository
-import com.android.tools.idea.gradle.repositories.search.LocalMavenRepository
 import com.android.tools.idea.gradle.repositories.search.LocalMavenRepository.Companion.maybeCreateLocalMavenRepository
 import com.android.tools.idea.gradle.repositories.search.MavenCentralRepository
+import com.android.tools.idea.gradle.structure.model.android.DependencyResultLocation
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.Result
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.util.EventDispatcher
-import com.intellij.util.Url
-import com.intellij.util.Urls
 import icons.StudioIcons.Shell.Filetree.ANDROID_MODULE
 import java.io.File
 import java.util.EventListener
@@ -207,6 +204,11 @@ abstract class PsModule protected constructor(
       }
       isModified = true
     }
+  }
+
+  fun findScopeByDependencyLocation(dependencyLocation: DependencyResultLocation): PsVariablesScope? {
+    if (dependencyLocation.matchLocation(parsedModel)) return variables
+    return parent.findScopeByDependencyLocation(dependencyLocation)
   }
 
   fun getArtifactRepositories(): Collection<ArtifactRepository> {

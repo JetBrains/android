@@ -63,6 +63,7 @@ import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -97,7 +98,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
-import org.jetbrains.android.sdk.CompatibilityRenderTarget;
 import org.jetbrains.android.uipreview.ClassLoaderPreloaderKt;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
@@ -192,9 +192,8 @@ public class RenderTask {
    * @param privateClassLoader if true, this task should have its own ModuleClassLoader, if false it can use a shared one for the module
    * @param onNewModuleClassLoader
    */
-  RenderTask(@NotNull RenderModelModule module,
+  RenderTask(@NotNull RenderContext renderContext,
              @NotNull ModuleClassLoaderManager classLoaderManager,
-             @NotNull Configuration configuration,
              @NotNull RenderLogger logger,
              @NotNull LayoutLibrary layoutLib,
              @NotNull Object credential,
@@ -214,7 +213,7 @@ public class RenderTask {
              @NotNull RenderAsyncActionExecutor.RenderingPriority priority,
              float minDownscalingFactor) throws NoDeviceException {
     myImagePool = imagePool;
-    myContext = new RenderContext(module, configuration);
+    myContext = renderContext;
     myClassLoaderManager = classLoaderManager;
     this.isSecurityManagerEnabled = isSecurityManagerEnabled;
     this.reportOutOfDateUserClasses = reportOutOfDateUserClasses;
@@ -227,21 +226,21 @@ public class RenderTask {
     myLogger = logger;
     myCredential = credential;
     myCrashReporter = crashReporter;
-    Device device = configuration.getDevice();
+    Device device = renderContext.getConfiguration().getDevice();
     if (device == null) {
       throw new NoDeviceException();
     }
     myHardwareConfigHelper = new HardwareConfigHelper(device);
 
-    ScreenOrientation orientation = configuration.getFullConfig().getScreenOrientationQualifier() != null ?
-                                    configuration.getFullConfig().getScreenOrientationQualifier().getValue() :
+    ScreenOrientation orientation = renderContext.getConfiguration().getFullConfig().getScreenOrientationQualifier() != null ?
+                                    renderContext.getConfiguration().getFullConfig().getScreenOrientationQualifier().getValue() :
                                     ScreenOrientation.PORTRAIT;
     myHardwareConfigHelper.setOrientation(orientation);
     myLayoutLib = layoutLib;
-    LocalResourceRepository appResources = module.getResourceRepositoryManager().getAppResources();
+    LocalResourceRepository appResources = renderContext.getModule().getResourceRepositoryManager().getAppResources();
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
     WeakReference<RenderTask> xmlFileProvider = new WeakReference<>(this);
-    ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(module.getIdeaModule(), () -> {
+    ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(renderContext.getModule().getIdeaModule(), () -> {
       RenderTask task = xmlFileProvider.get();
       return task != null ? task.getXmlFile() : null;
     });
@@ -265,16 +264,16 @@ public class RenderTask {
         new LayoutlibCallbackImpl(
           this,
           myLayoutLib,
-          module,
+          renderContext.getModule(),
           myLogger,
           myCredential,
           actionBarHandler,
           parserFactory,
           myModuleClassLoader);
-      if (module.getResourceIdManager().getFinalIdsUsed()) {
+      if (renderContext.getModule().getResourceIdManager().getFinalIdsUsed()) {
         myLayoutlibCallback.loadAndParseRClass();
       }
-      myLocale = configuration.getLocale();
+      myLocale = renderContext.getConfiguration().getLocale();
       myMinDownscalingFactor = minDownscalingFactor;
       myDefaultQuality = quality;
       // Some devices need more memory to avoid the blur when rendering. These are special cases.

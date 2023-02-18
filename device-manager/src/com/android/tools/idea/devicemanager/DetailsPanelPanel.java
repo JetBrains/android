@@ -19,8 +19,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.Splitter;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.JBSplitter;
 import com.intellij.ui.components.JBPanel;
+import com.intellij.util.ui.JBUI.Borders;
 import java.awt.BorderLayout;
 import java.util.Optional;
 import javax.swing.JComponent;
@@ -61,6 +63,7 @@ final class DetailsPanelPanel extends JBPanel<DetailsPanelPanel> implements Disp
     remove(myScrollPane);
 
     mySplitter = new JBSplitter(true);
+    mySplitter.getDivider().setBorder(Borders.customLineTop(JBColor.border()));
     mySplitter.setFirstComponent(myScrollPane);
     mySplitter.setSecondComponent(detailsPanel);
 
@@ -80,12 +83,14 @@ final class DetailsPanelPanel extends JBPanel<DetailsPanelPanel> implements Disp
     revalidate();
   }
 
+  @NotNull
   @VisibleForTesting
-  @NotNull Optional<Object> getDetailsPanel() {
+  Optional<Object> getDetailsPanel() {
     return Optional.ofNullable(myDetailsPanel);
   }
 
-  @NotNull Optional<Splitter> getSplitter() {
+  @NotNull
+  Optional<Splitter> getSplitter() {
     return Optional.ofNullable(mySplitter);
   }
 }

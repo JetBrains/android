@@ -16,6 +16,7 @@
 package com.android.tools.idea.adb.wireless
 
 import com.intellij.openapi.ui.OnePixelDivider
+import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
 import javax.swing.UIManager
@@ -60,8 +61,8 @@ object UIColors {
   val PAIRING_HINT_LABEL: Color = UIUtil.getLabelForeground()
 
   @JvmField
-  val ERROR_TEXT: Color = UIUtil.getInactiveTextColor()
+  val ERROR_TEXT: Color = NamedColorUtil.getInactiveTextColor()
 
   @JvmField
-  val LIGHT_LABEL: Color = UIUtil.getInactiveTextColor()
+  val LIGHT_LABEL: Color = NamedColorUtil.getInactiveTextColor()
 }

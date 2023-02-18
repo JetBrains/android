@@ -64,6 +64,10 @@ interface BuildAttributionUiManager : Disposable {
     fun getInstance(project: Project): BuildAttributionUiManager {
       return project.getService(BuildAttributionUiManager::class.java)
     }
+
+    fun getInstanceIfCreated(project: Project): BuildAttributionUiManager? {
+      return project.getServiceIfCreated(BuildAttributionUiManager::class.java)
+    }
   }
 }
 

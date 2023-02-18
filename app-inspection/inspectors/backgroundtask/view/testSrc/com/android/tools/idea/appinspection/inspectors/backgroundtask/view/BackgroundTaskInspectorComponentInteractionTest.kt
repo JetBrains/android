@@ -42,6 +42,13 @@ import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.components.ActionLink
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.concurrency.EdtExecutorService
+import javax.swing.JComponent
+import javax.swing.JLabel
+import javax.swing.JPanel
+import javax.swing.JTree
+import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.TreePath
+import kotlin.streams.toList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExecutorCoroutineDispatcher
 import kotlinx.coroutines.SupervisorJob
@@ -54,18 +61,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
-import javax.swing.JComponent
-import javax.swing.JLabel
-import javax.swing.JPanel
-import javax.swing.JTree
-import javax.swing.tree.DefaultMutableTreeNode
-import javax.swing.tree.TreePath
-import kotlin.streams.toList
 
 class BackgroundTaskInspectorComponentInteractionTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var scope: CoroutineScope
   private lateinit var workMessenger: BackgroundTaskViewTestUtils.FakeAppInspectorMessenger
@@ -83,13 +82,24 @@ class BackgroundTaskInspectorComponentInteractionTest {
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher() + SupervisorJob())
     uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
     withContext(uiDispatcher) {
-      val backgroundTaskInspectorMessenger = BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)
+      val backgroundTaskInspectorMessenger =
+        BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)
       workMessenger = BackgroundTaskViewTestUtils.FakeAppInspectorMessenger(scope)
-      client = BackgroundTaskInspectorClient(backgroundTaskInspectorMessenger,
-                                             WmiMessengerTarget.Resolved(workMessenger),
-                                             scope, StubBackgroundTaskInspectorTracker())
-      tab = BackgroundTaskInspectorTab(client, AppInspectionIdeServicesAdapter(), IntellijUiComponentsProvider(projectRule.project), scope,
-                                       uiDispatcher)
+      client =
+        BackgroundTaskInspectorClient(
+          backgroundTaskInspectorMessenger,
+          WmiMessengerTarget.Resolved(workMessenger),
+          scope,
+          StubBackgroundTaskInspectorTracker()
+        )
+      tab =
+        BackgroundTaskInspectorTab(
+          client,
+          AppInspectionIdeServicesAdapter(),
+          IntellijUiComponentsProvider(projectRule.project),
+          scope,
+          uiDispatcher
+        )
       tab.isDetailsViewVisible = true
       detailsView = tab.component.secondComponent as EntryDetailsView
       tab.isDetailsViewVisible = false
@@ -107,18 +117,9 @@ class BackgroundTaskInspectorComponentInteractionTest {
 
   @Test
   fun filterTableContentsWithTag() = runBlocking {
-    val workInfo1 = WorkInfo.newBuilder()
-      .setId("id1")
-      .addAllTags(listOf("tag1"))
-      .build()
-    val workInfo2 = WorkInfo.newBuilder()
-      .setId("id2")
-      .addAllTags(listOf("tag1"))
-      .build()
-    val workInfo3 = WorkInfo.newBuilder()
-      .setId("id3")
-      .addAllTags(listOf("tag2"))
-      .build()
+    val workInfo1 = WorkInfo.newBuilder().setId("id1").addAllTags(listOf("tag1")).build()
+    val workInfo2 = WorkInfo.newBuilder().setId("id2").addAllTags(listOf("tag1")).build()
+    val workInfo3 = WorkInfo.newBuilder().setId("id3").addAllTags(listOf("tag2")).build()
     client.sendWorkAddedEvent(workInfo1)
     client.sendWorkAddedEvent(workInfo2)
     client.sendWorkAddedEvent(workInfo3)
@@ -132,41 +133,60 @@ class BackgroundTaskInspectorComponentInteractionTest {
       assertThat(tag2Filter.templateText).isEqualTo("tag2")
       val event: AnActionEvent = Mockito.mock(AnActionEvent::class.java)
 
-      val tree = TreeWalker(entriesView).descendantStream().filter { it is JTree }.findFirst().get() as JTree
+      val tree =
+        TreeWalker(entriesView).descendantStream().filter { it is JTree }.findFirst().get() as JTree
       val root = tree.model.root
-      val works = (root as DefaultMutableTreeNode).children().asSequence().first { (it as DefaultMutableTreeNode).userObject == "Workers" }
-      assertThat(tree.getExpandedDescendants(TreePath(root)).toList().map { it.toString() }).contains("[, Workers]")
+      val works =
+        (root as DefaultMutableTreeNode).children().asSequence().first {
+          (it as DefaultMutableTreeNode).userObject == "Workers"
+        }
+      assertThat(tree.getExpandedDescendants(TreePath(root)).toList().map { it.toString() })
+        .contains("[, Workers]")
       tag1Filter.setSelected(event, true)
       assertThat(works.childCount).isEqualTo(2)
       // Workers node should keep being expanded.
-      assertThat(tree.getExpandedDescendants(TreePath(root)).toList().map { it.toString() }).contains("[, Workers]")
+      assertThat(tree.getExpandedDescendants(TreePath(root)).toList().map { it.toString() })
+        .contains("[, Workers]")
       tag2Filter.setSelected(event, true)
       assertThat(works.childCount).isEqualTo(1)
-      assertThat(tree.getExpandedDescendants(TreePath(root)).toList().map { it.toString() }).contains("[, Workers]")
+      assertThat(tree.getExpandedDescendants(TreePath(root)).toList().map { it.toString() })
+        .contains("[, Workers]")
       val allTagsFilter = filterActionList[0]
       allTagsFilter.setSelected(event, true)
       assertThat(works.childCount).isEqualTo(3)
-      assertThat(tree.getExpandedDescendants(TreePath(root)).toList().map { it.toString() }).contains("[, Workers]")
+      assertThat(tree.getExpandedDescendants(TreePath(root)).toList().map { it.toString() })
+        .contains("[, Workers]")
     }
   }
 
   @Test
   fun cancelSelectedWork() = runBlocking {
-    val works = WorkInfo.State.values()
-      .filter { state -> state != WorkInfo.State.UNSPECIFIED && state != WorkInfo.State.UNRECOGNIZED }
-      .map { state ->
-        WorkInfo.newBuilder().apply {
-          id = "id$state"
-          this.state = state
-        }.build()
-      }
-      .toList()
+    val works =
+      WorkInfo.State.values()
+        .filter { state ->
+          state != WorkInfo.State.UNSPECIFIED && state != WorkInfo.State.UNRECOGNIZED
+        }
+        .map { state ->
+          WorkInfo.newBuilder()
+            .apply {
+              id = "id$state"
+              this.state = state
+            }
+            .build()
+        }
+        .toList()
 
-    val cancellableStates = setOf(WorkInfo.State.ENQUEUED, WorkInfo.State.RUNNING, WorkInfo.State.BLOCKED)
+    val cancellableStates =
+      setOf(WorkInfo.State.ENQUEUED, WorkInfo.State.RUNNING, WorkInfo.State.BLOCKED)
 
     withContext(uiDispatcher) {
       val toolbar =
-        TreeWalker(entriesView).descendantStream().filter { it is ActionToolbar }.findFirst().get() as ActionToolbarImpl
+        TreeWalker(entriesView)
+          .descendantStream()
+          .filter { it is ActionToolbar }
+          .findFirst()
+          .get() as
+          ActionToolbarImpl
 
       val cancelAction = toolbar.actions[0] as AnAction
       val event: AnActionEvent = TestActionEvent()
@@ -195,11 +215,13 @@ class BackgroundTaskInspectorComponentInteractionTest {
     client.sendWorkAddedEvent(workInfo)
     withContext(uiDispatcher) {
       selectionModel.selectedEntry = client.getEntry(workInfo.id)
-      val tree = TreeWalker(tableView.component)
-        .descendantStream()
-        .filter { it is JTree }
-        .findFirst()
-        .get() as JTree
+      val tree =
+        TreeWalker(tableView.component)
+          .descendantStream()
+          .filter { it is JTree }
+          .findFirst()
+          .get() as
+          JTree
       val path = tree.selectionModel.selectionPath
       val headerPath = path.parentPath
       tree.selectionModel.selectionPath = headerPath
@@ -214,10 +236,9 @@ class BackgroundTaskInspectorComponentInteractionTest {
     client.sendWorkAddedEvent(workInfo)
     withContext(uiDispatcher) {
       selectionModel.selectedEntry = client.getEntry(workInfo.id)
-      val toolbar = TreeWalker(tab.component)
-        .descendantStream()
-        .filter { it is ActionToolbar }
-        .toList()[1] as ActionToolbarImpl
+      val toolbar =
+        TreeWalker(tab.component).descendantStream().filter { it is ActionToolbar }.toList()[1] as
+          ActionToolbarImpl
       val graphViewAction = toolbar.actions[1] as AnAction
       assertThat(graphViewAction.templateText).isEqualTo("Show Graph View")
       val event: AnActionEvent = Mockito.mock(AnActionEvent::class.java)
@@ -232,10 +253,9 @@ class BackgroundTaskInspectorComponentInteractionTest {
     client.sendWorkAddedEvent(workInfo)
     withContext(uiDispatcher) {
       selectionModel.selectedEntry = client.getEntry(workInfo.id)
-      val toolbar = TreeWalker(tab.component)
-        .descendantStream()
-        .filter { it is ActionToolbar }
-        .toList()[1] as ActionToolbarImpl
+      val toolbar =
+        TreeWalker(tab.component).descendantStream().filter { it is ActionToolbar }.toList()[1] as
+          ActionToolbarImpl
       val graphViewAction = toolbar.actions[1] as AnAction
       val event: AnActionEvent = Mockito.mock(AnActionEvent::class.java)
       graphViewAction.actionPerformed(event)
@@ -254,10 +274,9 @@ class BackgroundTaskInspectorComponentInteractionTest {
 
     withContext(uiDispatcher) {
       selectionModel.selectedEntry = client.getEntry(workInfo.id)
-      val toolbar = TreeWalker(tab.component)
-        .descendantStream()
-        .filter { it is ActionToolbar }
-        .toList()[1] as ActionToolbarImpl
+      val toolbar =
+        TreeWalker(tab.component).descendantStream().filter { it is ActionToolbar }.toList()[1] as
+          ActionToolbarImpl
       val graphViewAction = toolbar.actions[1] as AnAction
       val event: AnActionEvent = Mockito.mock(AnActionEvent::class.java)
       graphViewAction.actionPerformed(event)
@@ -278,17 +297,20 @@ class BackgroundTaskInspectorComponentInteractionTest {
     withContext(uiDispatcher) {
       selectionModel.selectedEntry = client.getEntry(workInfo.id)
       val workContinuationPanel = detailsView.getCategoryPanel("WorkContinuation") as JPanel
-      val showInGraphLabel = TreeWalker(workContinuationPanel)
-        .descendantStream()
-        .filter { (it as? ActionLink)?.text == "Show in graph" }
-        .findFirst()
-        .get() as ActionLink
+      val showInGraphLabel =
+        TreeWalker(workContinuationPanel)
+          .descendantStream()
+          .filter { (it as? ActionLink)?.text == "Show in graph" }
+          .findFirst()
+          .get() as
+          ActionLink
       assertThat(entriesView.contentMode).isEqualTo(BackgroundTaskEntriesView.Mode.TABLE)
       val scrollPosition = 10
       detailsView.getFirstChildIsInstance<JBScrollPane>().verticalScrollBar.value = scrollPosition
       showInGraphLabel.doClick()
       assertThat(entriesView.contentMode).isEqualTo(BackgroundTaskEntriesView.Mode.GRAPH)
-      assertThat(detailsView.getFirstChildIsInstance<JBScrollPane>().verticalScrollBar.value).isEqualTo(scrollPosition)
+      assertThat(detailsView.getFirstChildIsInstance<JBScrollPane>().verticalScrollBar.value)
+        .isEqualTo(scrollPosition)
     }
   }
 
@@ -301,11 +323,13 @@ class BackgroundTaskInspectorComponentInteractionTest {
       selectionModel.selectedEntry = client.getEntry(workInfo.id)
       entriesView.contentMode = BackgroundTaskEntriesView.Mode.GRAPH
       val workContinuationPanel = detailsView.getCategoryPanel("WorkContinuation") as JPanel
-      val showInGraphLabel = TreeWalker(workContinuationPanel)
-        .descendantStream()
-        .filter { (it as? ActionLink)?.text == "Show in table" }
-        .findFirst()
-        .get() as ActionLink
+      val showInGraphLabel =
+        TreeWalker(workContinuationPanel)
+          .descendantStream()
+          .filter { (it as? ActionLink)?.text == "Show in table" }
+          .findFirst()
+          .get() as
+          ActionLink
       assertThat(entriesView.contentMode).isEqualTo(BackgroundTaskEntriesView.Mode.GRAPH)
       showInGraphLabel.doClick()
       assertThat(entriesView.contentMode).isEqualTo(BackgroundTaskEntriesView.Mode.TABLE)

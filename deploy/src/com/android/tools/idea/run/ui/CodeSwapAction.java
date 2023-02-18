@@ -21,6 +21,7 @@ import com.android.tools.idea.run.util.SwapInfo;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationType;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
@@ -51,6 +52,12 @@ public class CodeSwapAction extends BaseAction {
     super(ID, DISPLAY_NAME, ACCELERATOR_NAME, SwapInfo.SwapType.APPLY_CODE_CHANGES, APPLY_CODE_SWAP, SHORTCUT, DESC);
   }
 
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
+  }
+
   @Override
   public void update(@NotNull AnActionEvent e) {
     super.update(e);
@@ -61,7 +68,11 @@ public class CodeSwapAction extends BaseAction {
     }
 
     // Disable the button for any test project that is not an Instrumented Test.
-    RunnerAndConfigurationSettings runConfig = RunManager.getInstance(project).getSelectedConfiguration();
+    RunManager runManager = RunManager.getInstanceIfCreated(project);
+    if (runManager == null) {
+      return;
+    }
+    RunnerAndConfigurationSettings runConfig = runManager.getSelectedConfiguration();
     if (runConfig != null) {
       ConfigurationType type = runConfig.getType();
       String id = type.getId();

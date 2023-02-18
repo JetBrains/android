@@ -32,9 +32,15 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
   private var previousTag: String? = null
   private var previousPid: Int? = null
 
-  fun formatMessages(formattingOptions: FormattingOptions, textAccumulator: TextAccumulator, messages: List<LogcatMessage>) {
+  fun formatMessages(
+    formattingOptions: FormattingOptions,
+    textAccumulator: TextAccumulator,
+    messages: List<LogcatMessage>,
+    softWrapWidth: Int? = null,
+  ) {
     // Replace each newline with a newline followed by the indentation of the message portion
-    val newline = "\n".padEnd(formattingOptions.getHeaderWidth() + 1)
+    val headerWidth = formattingOptions.getHeaderWidth()
+    val newline = "\n".padEnd(headerWidth + 1)
     for (message in messages) {
       if (message.header === SYSTEM_HEADER) {
         textAccumulator.accumulate(message.message + '\n')
@@ -57,10 +63,13 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
 
       formattingOptions.levelFormat.format(header.logLevel, textAccumulator, logcatColors)
 
+      val messageText = when {
+        softWrapWidth == null || softWrapWidth <= headerWidth -> message.message
+        else -> wordWrap(message.message, softWrapWidth - headerWidth)
+      }
       textAccumulator.accumulate(
-        text = "${message.message.replace("\n", newline)}\n",
+        text = "${messageText.replace("\n", newline)}\n",
         textAttributesKey = logcatColors.getMessageKey(header.logLevel))
-
       val end = textAccumulator.getTextLength()
       textAccumulator.addMessageRange(start, end - 1, message)
 
@@ -70,14 +79,14 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
   }
 }
 
-private fun getTagFilterHint(tag: String,  formattingOptions: FormattingOptions): Tag? {
+private fun getTagFilterHint(tag: String, formattingOptions: FormattingOptions): Tag? {
   return when {
     formattingOptions.tagFormat.enabled -> Tag(tag, min(tag.length, formattingOptions.tagFormat.maxLength))
     else -> null
   }
 }
 
-private fun getAppNameFilterHint(appName: String,  formattingOptions: FormattingOptions): AppName? {
+private fun getAppNameFilterHint(appName: String, formattingOptions: FormattingOptions): AppName? {
   return when {
     appName == "?" -> null
     formattingOptions.appNameFormat.enabled -> AppName(appName, min(appName.length, formattingOptions.appNameFormat.maxLength))

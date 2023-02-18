@@ -64,7 +64,7 @@ public class MissingDependenciesNotificationProvider extends EditorNotifications
 
     if (MlUtils.isModelFileInMlModelsFolder(module, file)
         && !MlUtils.getMissingRequiredDependencies(module).isEmpty()) {
-      EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor);
+      EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning);
       panel.setText("ML Model Binding dependencies not found.");
       panel.createActionLabel("Add Now", () -> {
         List<GradleCoordinate> depsToAdd = MlUtils.getMissingRequiredDependencies(module);

@@ -26,6 +26,7 @@ import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.ColorUtil
 import com.intellij.util.ui.HTMLEditorKitBuilder
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.UIUtil
 import org.intellij.lang.annotations.Language
@@ -68,7 +69,7 @@ class NoFacetView(val project: Project)
     return JEditorPane().apply {
       contentType = UIUtil.HTML_MIME
       background = UIUtil.getPanelBackground()
-      foreground = UIUtil.getInactiveTextColor()
+      foreground = NamedColorUtil.getInactiveTextColor()
       editorKit = HTMLEditorKitBuilder().withGapsBetweenParagraphs().build().also {
         it.styleSheet.addRule(" a { color: #$linkColor; } p { line-height: $EMPTY_TEXT_LINE_HEIGHT; }")
       }

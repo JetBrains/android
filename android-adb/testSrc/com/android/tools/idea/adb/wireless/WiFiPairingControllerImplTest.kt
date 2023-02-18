@@ -374,7 +374,7 @@ class WiFiPairingControllerImplTest : LightPlatform4TestCase() {
         // Note: FakeUi keyboard does not emulate focus, so we need to focus each
         //       custom component individually
         fakeUi.keyboard.setFocus(fakeUi.getComponent<JTextField> { c -> c.name == "PairingCode-Digit-${index}" })
-        fakeUi.keyboard.type(ch.toInt())
+        fakeUi.keyboard.type(ch.code)
       }
 
       // Click the "pair" button

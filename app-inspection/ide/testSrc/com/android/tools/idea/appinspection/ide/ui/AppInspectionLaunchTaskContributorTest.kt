@@ -31,27 +31,34 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ExecutionManager
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder
+import kotlin.random.Random
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
-import kotlin.random.Random
-
 
 class AppInspectionLaunchTaskContributorTest {
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun testRecentProcess() {
     val project = projectRule.project
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
-    fun env() = ExecutionEnvironmentBuilder.create(DefaultRunExecutor.getRunExecutorInstance(), AndroidRunConfiguration(projectRule.project,
-                                                                                                                        AndroidRunConfigurationType.getInstance().factory)).build().apply { executionId = Random.nextLong() }
+    fun env() =
+      ExecutionEnvironmentBuilder.create(
+          DefaultRunExecutor.getRunExecutorInstance(),
+          AndroidRunConfiguration(
+            projectRule.project,
+            AndroidRunConfigurationType.getInstance().factory
+          )
+        )
+        .build()
+        .apply { executionId = Random.nextLong() }
 
-    val applicationIdProvider: ApplicationIdProvider = object : ApplicationIdProvider {
-      override fun getPackageName(): String = "com.example.p1"
-      override fun getTestPackageName(): String? = null
-    }
+    val applicationIdProvider: ApplicationIdProvider =
+      object : ApplicationIdProvider {
+        override fun getPackageName(): String = "com.example.p1"
+        override fun getTestPackageName(): String? = null
+      }
 
     val launchOptions = LaunchOptions.builder().setClearLogcatBeforeStart(false).build()
 
@@ -61,15 +68,29 @@ class AppInspectionLaunchTaskContributorTest {
 
     run { // Start process "p1"
       val env = env()
-      val launchTaskProvider = AndroidLaunchTasksProvider(env.runProfile as AndroidRunConfigurationBase, env, androidFacet,
-                                                          applicationIdProvider, mock(), launchOptions)
+      val launchTaskProvider =
+        AndroidLaunchTasksProvider(
+          env.runProfile as AndroidRunConfigurationBase,
+          env,
+          androidFacet,
+          applicationIdProvider,
+          mock(),
+          launchOptions
+        )
 
-      val task1 = launchTaskProvider.getTasks(device).filterIsInstance(AppInspectionLaunchTask::class.java).single()
+      val task1 =
+        launchTaskProvider
+          .getTasks(device)
+          .filterIsInstance(AppInspectionLaunchTask::class.java)
+          .single()
 
       val launchContext1 = LaunchContext(env, device, mock(), handler1, mock())
       task1.run(launchContext1)
       handler1.startNotify()
-      project.messageBus.syncPublisher(ExecutionManager.EXECUTION_TOPIC).processStarted(DefaultRunExecutor.EXECUTOR_ID, env, handler1)
+      project
+        .messageBus
+        .syncPublisher(ExecutionManager.EXECUTION_TOPIC)
+        .processStarted(DefaultRunExecutor.EXECUTOR_ID, env, handler1)
 
       // Make sure that the process p1 is recorded as the recent process:
       assertThat(RecentProcess.get(project)!!.device).isSameAs(device)
@@ -79,20 +100,34 @@ class AppInspectionLaunchTaskContributorTest {
     // Start process "p2"
     run {
       val env = env()
-      val applicationIdProvider: ApplicationIdProvider = object : ApplicationIdProvider {
-        override fun getPackageName(): String = "com.example.p2"
-        override fun getTestPackageName(): String? = null
-      }
-      val launchTaskProvider2 = AndroidLaunchTasksProvider(env.runProfile as AndroidRunConfigurationBase, env, androidFacet,
-                                                           applicationIdProvider, mock(), launchOptions)
-      val task2 = launchTaskProvider2.getTasks(device).filterIsInstance(AppInspectionLaunchTask::class.java).single()
+      val applicationIdProvider: ApplicationIdProvider =
+        object : ApplicationIdProvider {
+          override fun getPackageName(): String = "com.example.p2"
+          override fun getTestPackageName(): String? = null
+        }
+      val launchTaskProvider2 =
+        AndroidLaunchTasksProvider(
+          env.runProfile as AndroidRunConfigurationBase,
+          env,
+          androidFacet,
+          applicationIdProvider,
+          mock(),
+          launchOptions
+        )
+      val task2 =
+        launchTaskProvider2
+          .getTasks(device)
+          .filterIsInstance(AppInspectionLaunchTask::class.java)
+          .single()
 
       val handler2 = AndroidProcessHandler(project, "com.example.p2")
       val launchContext2 = LaunchContext(env, device, mock(), handler2, mock())
       task2.run(launchContext2)
       handler2.startNotify()
-      project.messageBus.syncPublisher(ExecutionManager.EXECUTION_TOPIC).processStarted(DefaultRunExecutor.EXECUTOR_ID, env, handler2)
-
+      project
+        .messageBus
+        .syncPublisher(ExecutionManager.EXECUTION_TOPIC)
+        .processStarted(DefaultRunExecutor.EXECUTOR_ID, env, handler2)
 
       // Make sure that the process p2 is now recorded as the recent process:
       assertThat(RecentProcess.get(project)!!.device).isSameAs(device)

@@ -36,6 +36,12 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import java.awt.BorderLayout
+import java.awt.Dimension
+import java.util.concurrent.TimeUnit
+import javax.swing.JComponent
+import javax.swing.JPanel
+import javax.swing.LayoutFocusTraversalPolicy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
@@ -44,21 +50,24 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol
-import java.awt.BorderLayout
-import java.awt.Dimension
-import java.util.concurrent.TimeUnit
-import javax.swing.JComponent
-import javax.swing.JPanel
-import javax.swing.LayoutFocusTraversalPolicy
 
-private fun createSpeedEvent(time: Long, sent: Long, received: Long): NetworkInspectorProtocol.Event {
-  return NetworkInspectorProtocol.Event.newBuilder().apply {
-    timestamp = TimeUnit.SECONDS.toNanos(time)
-    speedEvent = NetworkInspectorProtocol.SpeedEvent.newBuilder().apply {
-      txSpeed = sent
-      rxSpeed = received
-    }.build()
-  }.build()
+private fun createSpeedEvent(
+  time: Long,
+  sent: Long,
+  received: Long
+): NetworkInspectorProtocol.Event {
+  return NetworkInspectorProtocol.Event.newBuilder()
+    .apply {
+      timestamp = TimeUnit.SECONDS.toNanos(time)
+      speedEvent =
+        NetworkInspectorProtocol.SpeedEvent.newBuilder()
+          .apply {
+            txSpeed = sent
+            rxSpeed = received
+          }
+          .build()
+    }
+    .build()
 }
 
 private val VIEW_RANGE = Range(0.0, TimeUnit.SECONDS.toMicros(60).toDouble())
@@ -72,36 +81,37 @@ class NetworkInspectorViewTest {
   private lateinit var scope: CoroutineScope
   private val timer = FakeTimer()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
-  @get:Rule
-  val applicationRule = ApplicationRule()
+  @get:Rule val applicationRule = ApplicationRule()
 
-  @get:Rule
-  val disposableRule = DisposableRule()
+  @get:Rule val disposableRule = DisposableRule()
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   @Before
   fun setUp() {
     val codeNavigationProvider = FakeCodeNavigationProvider()
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     val services = TestNetworkInspectorServices(codeNavigationProvider, timer)
-    model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(
-      speedEventList = listOf(
-        createSpeedEvent(0, 0, 0),
-        createSpeedEvent(10, 1, 1),
-        createSpeedEvent(20, 0, 0),
-        createSpeedEvent(30, 1, 1),
-        createSpeedEvent(34, 1, 1),
-        createSpeedEvent(38, 1, 1),
-        createSpeedEvent(40, 1, 1),
-        createSpeedEvent(50, 1, 1)
+    model =
+      NetworkInspectorModel(
+        services,
+        FakeNetworkInspectorDataSource(
+          speedEventList =
+            listOf(
+              createSpeedEvent(0, 0, 0),
+              createSpeedEvent(10, 1, 1),
+              createSpeedEvent(20, 0, 0),
+              createSpeedEvent(30, 1, 1),
+              createSpeedEvent(34, 1, 1),
+              createSpeedEvent(38, 1, 1),
+              createSpeedEvent(40, 1, 1),
+              createSpeedEvent(50, 1, 1)
+            )
+        ),
+        scope
       )
-    ), scope)
-
 
     val parentPanel = JPanel(BorderLayout())
     parentPanel.background = DEFAULT_BACKGROUND
@@ -114,7 +124,16 @@ class NetworkInspectorViewTest {
     val component = TooltipLayeredPane(splitter)
     val stagePanel = JPanel(BorderLayout())
     parentPanel.add(stagePanel, BorderLayout.CENTER)
-    inspectorView = NetworkInspectorView(projectRule.project, model, FakeUiComponentsProvider(), component, services, scope)
+    inspectorView =
+      NetworkInspectorView(
+        projectRule.project,
+        model,
+        FakeUiComponentsProvider(),
+        component,
+        services,
+        scope,
+        disposableRule.disposable
+      )
     stagePanel.add(inspectorView.component)
     component.size = Dimension(1000, 800)
     fakeUi = FakeUi(component)
@@ -129,7 +148,7 @@ class NetworkInspectorViewTest {
   @Test
   fun connectionsViewIsVisibleAtStart() {
     if (SystemInfoRt.isWindows) {
-      return  // b/163140665
+      return // b/163140665
     }
     val connectionsView = inspectorView.connectionsView
     val connectionsViewWalker = TreeWalker(connectionsView.component)
@@ -146,11 +165,26 @@ class NetworkInspectorViewTest {
     val start = fakeUi.getPosition(lineChart)
     fakeUi.mouse.drag(start.x, start.y, (9000000 * microSecondToX).toInt(), 0)
     assertThat(infoPanel.isVisible).isFalse()
-    fakeUi.mouse.drag((start.x + 10000000 * microSecondToX).toInt(), start.y, (5000000 * microSecondToX).toInt(), 0)
+    fakeUi.mouse.drag(
+      (start.x + 10000000 * microSecondToX).toInt(),
+      start.y,
+      (5000000 * microSecondToX).toInt(),
+      0
+    )
     assertThat(infoPanel.isVisible).isTrue()
-    fakeUi.mouse.drag((start.x + 20000000 * microSecondToX).toInt(), start.y, (5000000 * microSecondToX).toInt(), 0)
+    fakeUi.mouse.drag(
+      (start.x + 20000000 * microSecondToX).toInt(),
+      start.y,
+      (5000000 * microSecondToX).toInt(),
+      0
+    )
     assertThat(infoPanel.isVisible).isFalse()
-    fakeUi.mouse.drag((start.x + 35000000 * microSecondToX).toInt(), start.y, (2500000 * microSecondToX).toInt(), 0)
+    fakeUi.mouse.drag(
+      (start.x + 35000000 * microSecondToX).toInt(),
+      start.y,
+      (2500000 * microSecondToX).toInt(),
+      0
+    )
     assertThat(infoPanel.isVisible).isTrue()
     fakeUi.mouse.drag(start.x, start.y, (40000000 * microSecondToX).toInt(), 0)
     assertThat(infoPanel.isVisible).isTrue()

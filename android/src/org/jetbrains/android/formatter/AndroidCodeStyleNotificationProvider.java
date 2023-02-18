@@ -84,7 +84,7 @@ public class AndroidCodeStyleNotificationProvider extends EditorNotifications.Pr
   public class MyPanel extends EditorNotificationPanel {
 
     MyPanel(@NotNull FileEditor fileEditor) {
-      super(fileEditor);
+      super(fileEditor, Status.Info);
 
       setText("You can format your XML resources in the 'standard' Android way. " +
               "Choose 'Set from... | Android' in the XML code style settings.");

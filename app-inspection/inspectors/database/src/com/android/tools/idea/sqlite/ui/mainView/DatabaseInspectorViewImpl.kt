@@ -56,16 +56,15 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 @UiThread
-class DatabaseInspectorViewImpl(
-  project: Project,
-  parentDisposable: Disposable
-) : DatabaseInspectorView {
+class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) :
+  DatabaseInspectorView {
   val listeners = mutableListOf<DatabaseInspectorView.Listener>()
 
   private val centerPanel = JPanel(BorderLayout())
   private val leftPanelView = LeftPanelView(this)
   private val viewContext = SqliteViewContext(leftPanelView.component)
-  private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Database Inspector", null, parentDisposable)
+  private val workBench: WorkBench<SqliteViewContext> =
+    WorkBench(project, "Database Inspector", null, parentDisposable)
   private val tabs = BorderedTabs(project, IdeFocusManager.getInstance(project), project)
 
   override val component: JComponent = workBench
@@ -78,21 +77,26 @@ class DatabaseInspectorViewImpl(
   init {
     workBench.init(centerPanel, viewContext, listOf(createToolWindowDefinition()), false)
 
-    addEmptyStatePanel(DatabaseInspectorBundle.message("waiting.for.connection"), databaseInspectorHelpUrl)
+    addEmptyStatePanel(
+      DatabaseInspectorBundle.message("waiting.for.connection"),
+      databaseInspectorHelpUrl
+    )
 
     tabs.name = "right-panel-tabs-panel"
     tabs.apply {
       isTabDraggingEnabled = true
       setUiDecorator { UiDecorator.UiDecoration(null, JBUI.insets(5, 10, 5, 10)) }
-      addTabMouseListener(object : MouseAdapter() {
-        override fun mousePressed(e: MouseEvent) {
-          if (UIUtil.isCloseClick(e)) {
-            val targetTabInfo = findInfo(e)
-            val tabId = targetTabInfo?.`object` as? TabId ?: return
-            listeners.forEach { it.closeTabActionInvoked(tabId) }
+      addTabMouseListener(
+        object : MouseAdapter() {
+          override fun mousePressed(e: MouseEvent) {
+            if (UIUtil.isCloseClick(e)) {
+              val targetTabInfo = findInfo(e)
+              val tabId = targetTabInfo?.`object` as? TabId ?: return
+              listeners.forEach { it.closeTabActionInvoked(tabId) }
+            }
           }
         }
-      })
+      )
     }
   }
 
@@ -108,18 +112,29 @@ class DatabaseInspectorViewImpl(
     for (databaseDiffOperation in databaseDiffOperations) {
       when (databaseDiffOperation) {
         is DatabaseDiffOperation.AddDatabase -> {
-          leftPanelView.addDatabaseSchema(databaseDiffOperation.viewDatabase, databaseDiffOperation.schema, databaseDiffOperation.index)
+          leftPanelView.addDatabaseSchema(
+            databaseDiffOperation.viewDatabase,
+            databaseDiffOperation.schema,
+            databaseDiffOperation.index
+          )
         }
-        is DatabaseDiffOperation.RemoveDatabase -> leftPanelView.removeDatabaseSchema(databaseDiffOperation.viewDatabase)
+        is DatabaseDiffOperation.RemoveDatabase ->
+          leftPanelView.removeDatabaseSchema(databaseDiffOperation.viewDatabase)
       }
     }
 
     if (openTabs.isEmpty() || leftPanelView.databasesCount == 0) {
-      addEmptyStatePanel(DatabaseInspectorBundle.message("default.empty.state.message"), databaseInspectorHelpUrl)
+      addEmptyStatePanel(
+        DatabaseInspectorBundle.message("default.empty.state.message"),
+        databaseInspectorHelpUrl
+      )
     }
   }
 
-  override fun updateDatabaseSchema(viewDatabase: ViewDatabase, diffOperations: List<SchemaDiffOperation>) {
+  override fun updateDatabaseSchema(
+    viewDatabase: ViewDatabase,
+    diffOperations: List<SchemaDiffOperation>
+  ) {
     leftPanelView.updateDatabase(viewDatabase, diffOperations)
   }
 
@@ -143,7 +158,10 @@ class DatabaseInspectorViewImpl(
     tabs.removeTab(tab)
 
     if (openTabs.isEmpty()) {
-      addEmptyStatePanel(DatabaseInspectorBundle.message("default.empty.state.message"), databaseInspectorHelpUrl)
+      addEmptyStatePanel(
+        DatabaseInspectorBundle.message("default.empty.state.message"),
+        databaseInspectorHelpUrl
+      )
     }
   }
 
@@ -156,16 +174,16 @@ class DatabaseInspectorViewImpl(
   }
 
   override fun showEnterOfflineModePanel(filesDownloaded: Int, totalFilesToDownload: Int) {
-    val enterOfflineModePanel = EmptyStatePanel(
-      reason = LabelData(
-        TextChunk("Moving to offline mode"),
-        NewLineChunk,
-        TextChunk("($filesDownloaded/$totalFilesToDownload) databases downloaded..."),
-      ),
-      actionData = ActionData("Cancel") {
-        listeners.forEach { it.cancelOfflineModeInvoked() }
-      }
-    )
+    val enterOfflineModePanel =
+      EmptyStatePanel(
+        reason =
+          LabelData(
+            TextChunk("Moving to offline mode"),
+            NewLineChunk,
+            TextChunk("($filesDownloaded/$totalFilesToDownload) databases downloaded..."),
+          ),
+        actionData = ActionData("Cancel") { listeners.forEach { it.cancelOfflineModeInvoked() } }
+      )
     enterOfflineModePanel.name = "right-panel-offline-mode"
 
     resetCenterPanelAndAddView(enterOfflineModePanel)
@@ -179,8 +197,7 @@ class DatabaseInspectorViewImpl(
     leftPanelView.updateKeepConnectionOpenButton(keepOpen)
   }
 
-  override fun reportSyncProgress(message: String) {
-  }
+  override fun reportSyncProgress(message: String) {}
 
   private fun addEmptyStatePanel(text: String, url: String) {
     val emptyStatePanel = EmptyStatePanel(text, UrlData("Learn more", url))
@@ -189,25 +206,34 @@ class DatabaseInspectorViewImpl(
     resetCenterPanelAndAddView(emptyStatePanel)
   }
 
-  private fun createTab(tabId: TabId, tabName: String, tabIcon: Icon, tabContent: JComponent): TabInfo {
+  private fun createTab(
+    tabId: TabId,
+    tabName: String,
+    tabIcon: Icon,
+    tabContent: JComponent
+  ): TabInfo {
     val tab = TabInfo(tabContent)
     tab.`object` = tabId
 
     val tabActionGroup = DefaultActionGroup()
-    tabActionGroup.add(object : AnAction(
-      DatabaseInspectorBundle.message("action.close.tab"),
-      DatabaseInspectorBundle.message("action.close.tab.desc"),
-      AllIcons.Actions.Close) {
-      override fun actionPerformed(e: AnActionEvent) {
-        listeners.forEach { it.closeTabActionInvoked(tabId) }
-      }
+    tabActionGroup.add(
+      object :
+        AnAction(
+          DatabaseInspectorBundle.message("action.close.tab"),
+          DatabaseInspectorBundle.message("action.close.tab.desc"),
+          AllIcons.Actions.Close
+        ) {
+        override fun actionPerformed(e: AnActionEvent) {
+          listeners.forEach { it.closeTabActionInvoked(tabId) }
+        }
 
-      override fun update(e: AnActionEvent) {
-        e.presentation.hoveredIcon = AllIcons.Actions.CloseHovered
-        e.presentation.isVisible = true
-        e.presentation.text = UIBundle.message("tabbed.pane.close.tab.action.name")
+        override fun update(e: AnActionEvent) {
+          e.presentation.hoveredIcon = AllIcons.Actions.CloseHovered
+          e.presentation.isVisible = true
+          e.presentation.text = UIBundle.message("tabbed.pane.close.tab.action.name")
+        }
       }
-    })
+    )
     tab.setTabLabelActions(tabActionGroup, ActionPlaces.EDITOR_TAB)
     tab.icon = tabIcon
     tab.text = tabName
@@ -239,9 +265,7 @@ class DatabaseInspectorViewImpl(
   inner class SchemaPanelToolContent : ToolContent<SqliteViewContext> {
     private lateinit var component: JComponent
 
-    /**
-     * Initialize the UI from the passed in [SqliteViewContext]
-     */
+    /** Initialize the UI from the passed in [SqliteViewContext] */
     override fun setToolContext(toolContext: SqliteViewContext?) {
       component = toolContext?.component ?: JPanel()
     }
@@ -250,8 +274,7 @@ class DatabaseInspectorViewImpl(
       return component
     }
 
-    override fun dispose() {
-    }
+    override fun dispose() {}
 
     override fun getAdditionalActions(): List<AnAction> {
       return listOf(leftPanelView.createCollapseTreeAction())
@@ -262,13 +285,11 @@ class DatabaseInspectorViewImpl(
 
   /**
    * Extends [JBTabsImpl] by using a [JBEditorTabsBorder], which adds a tab border to all the tabs.
-   * The [JBTabsBorder] used by [JBTabsImpl] does not add a border to the first tab, if there is only one tab.
+   * The [JBTabsBorder] used by [JBTabsImpl] does not add a border to the first tab, if there is
+   * only one tab.
    */
-  private class BorderedTabs(
-    project: Project,
-    focusManager: IdeFocusManager,
-    parent: Disposable
-  ) : JBTabsImpl(project, focusManager, parent) {
+  private class BorderedTabs(project: Project, focusManager: IdeFocusManager, parent: Disposable) :
+    JBTabsImpl(project, focusManager, parent) {
     override fun createTabBorder() = JBEditorTabsBorder(this)
   }
 }

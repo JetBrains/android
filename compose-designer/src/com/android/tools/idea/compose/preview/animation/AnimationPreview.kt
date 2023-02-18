@@ -276,7 +276,13 @@ class AnimationPreview(
     createTimelineElements(selectedAnimation?.let { listOf(it) } ?: animations, elementsCreated)
   }
 
-  private fun setClockTime(newValue: Int, longTimeout: Boolean = false) {
+  /**
+   * Set clock time
+   * @param newValue new clock time in milliseconds.
+   * @param longTimeout set true to use a long timeout.
+   * @param makeCopy set true to create a copy of the animation list while loading properties.
+   */
+  private fun setClockTime(newValue: Int, longTimeout: Boolean = false, makeCopy: Boolean = false) {
     animationClock?.apply {
       val clockTimeMs = newValue.toLong()
       if (!executeOnRenderThread(longTimeout) {
@@ -294,7 +300,8 @@ class AnimationPreview(
         return
 
       // Load all properties.
-      animations.forEach { it.loadProperties() }
+      // Make a copy of the list to prevent ConcurrentModificationException
+      (if (makeCopy) animations.toList() else animations).forEach { it.loadProperties() }
     }
   }
 
@@ -305,7 +312,7 @@ class AnimationPreview(
 
   private fun resetTimelineAndUpdateWindowSize(longTimeout: Boolean) {
     // Set the timeline to 0
-    setClockTime(0, longTimeout)
+    setClockTime(0, longTimeout, makeCopy = true)
     updateMaxDuration(longTimeout)
     // Update the cached value manually to prevent the timeline to set the clock time to 0 using the
     // short timeout.

@@ -19,6 +19,7 @@ import com.android.tools.adtui.TabularLayout;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.ex.ComboBoxAction;
@@ -146,7 +147,7 @@ public class ListBoxChooserDialog<T> extends DialogWrapper {
 
     @Override
     @NotNull
-    protected DefaultActionGroup createPopupActionGroup(final JComponent button) {
+    protected DefaultActionGroup createPopupActionGroup(@NotNull JComponent button, @NotNull DataContext context) {
       final DefaultActionGroup allActionsGroup = new DefaultActionGroup();
       for (T option : myOptions) {
         SelectTargetAction action = new SelectTargetAction(option);

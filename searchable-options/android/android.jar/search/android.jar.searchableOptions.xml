@@ -133,6 +133,16 @@
     <option name="profile" path="ActionManager" hit="Choose and profile configuration" />
     <option name="clean" path="ActionManager" hit="Clean Project" />
     <option name="project" path="ActionManager" hit="Clean Project" />
+    <option name="clear" path="ActionManager" hit="Clear Logcat" />
+    <option name="logcat" path="ActionManager" hit="Clear Logcat" />
+    <option name="and" path="ActionManager" hit="Clear the Logcat panel and logcat buffer on the device" />
+    <option name="buffer" path="ActionManager" hit="Clear the Logcat panel and logcat buffer on the device" />
+    <option name="clear" path="ActionManager" hit="Clear the Logcat panel and logcat buffer on the device" />
+    <option name="device" path="ActionManager" hit="Clear the Logcat panel and logcat buffer on the device" />
+    <option name="logcat" path="ActionManager" hit="Clear the Logcat panel and logcat buffer on the device" />
+    <option name="on" path="ActionManager" hit="Clear the Logcat panel and logcat buffer on the device" />
+    <option name="panel" path="ActionManager" hit="Clear the Logcat panel and logcat buffer on the device" />
+    <option name="the" path="ActionManager" hit="Clear the Logcat panel and logcat buffer on the device" />
     <option name="and" path="ActionManager" hit="Collect Logs and Diagnostic Data" />
     <option name="collect" path="ActionManager" hit="Collect Logs and Diagnostic Data" />
     <option name="data" path="ActionManager" hit="Collect Logs and Diagnostic Data" />
@@ -480,6 +490,8 @@
     <option name="using" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
     <option name="wi" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
     <option name="palm" path="ActionManager" hit="Palm" />
+    <option name="logcat" path="ActionManager" hit="Pause Logcat" />
+    <option name="pause" path="ActionManager" hit="Pause Logcat" />
     <option name="phone" path="ActionManager" hit="Phone" />
     <option name="power" path="ActionManager" hit="Power" />
     <option name="menu" path="ActionManager" hit="Power + Volume Up (Power Menu)" />
@@ -600,6 +612,11 @@
     <option name="where" path="ActionManager" hit="Replaces attributes by Android style reference where possible" />
     <option name="manager" path="ActionManager" hit="Resource Manager" />
     <option name="resource" path="ActionManager" hit="Resource Manager" />
+    <option name="logcat" path="ActionManager" hit="Restart Logcat" />
+    <option name="restart" path="ActionManager" hit="Restart Logcat" />
+    <option name="logcat" path="ActionManager" hit="Restart Logcat monitoring" />
+    <option name="monitoring" path="ActionManager" hit="Restart Logcat monitoring" />
+    <option name="restart" path="ActionManager" hit="Restart Logcat monitoring" />
     <option name="left" path="ActionManager" hit="Rotate Left" />
     <option name="rotate" path="ActionManager" hit="Rotate Left" />
     <option name="right" path="ActionManager" hit="Rotate Right" />
@@ -679,6 +696,8 @@
     <option name="the" path="ActionManager" hit="Simulate the Tilt gesture for the device" />
     <option name="tilt" path="ActionManager" hit="Simulate the Tilt gesture for the device" />
     <option name="snapshots" path="ActionManager" hit="Snapshots" />
+    <option name="soft" path="ActionManager" hit="Soft-Wrap" />
+    <option name="wrap" path="ActionManager" hit="Soft-Wrap" />
     <option name="style" path="ActionManager" hit="Style..." />
     <option name="feedback" path="ActionManager" hit="Submit Feedback" />
     <option name="submit" path="ActionManager" hit="Submit Feedback" />
@@ -718,6 +737,13 @@
     <option name="literals" path="ActionManager" hit="Toggle literals decorations in the editor" />
     <option name="the" path="ActionManager" hit="Toggle literals decorations in the editor" />
     <option name="toggle" path="ActionManager" hit="Toggle literals decorations in the editor" />
+    <option name="current" path="ActionManager" hit="Toggle using soft wraps in current editor" />
+    <option name="editor" path="ActionManager" hit="Toggle using soft wraps in current editor" />
+    <option name="in" path="ActionManager" hit="Toggle using soft wraps in current editor" />
+    <option name="soft" path="ActionManager" hit="Toggle using soft wraps in current editor" />
+    <option name="toggle" path="ActionManager" hit="Toggle using soft wraps in current editor" />
+    <option name="using" path="ActionManager" hit="Toggle using soft wraps in current editor" />
+    <option name="wraps" path="ActionManager" hit="Toggle using soft wraps in current editor" />
     <option name="resource" path="ActionManager" hit="Trace Resource Updates" />
     <option name="trace" path="ActionManager" hit="Trace Resource Updates" />
     <option name="updates" path="ActionManager" hit="Trace Resource Updates" />
@@ -759,6 +785,34 @@
     <option name="references" hit="String References" />
     <option name="string" hit="String References" />
   </configurable>
+  <configurable id="reference.settingsdialog.IDE.editor.colors.Android Logcat" configurable_name="Android Logcat">
+    <option name="android" hit="Android Logcat" />
+    <option name="logcat" hit="Android Logcat" />
+    <option name="assert" hit="Assert indicator" />
+    <option name="indicator" hit="Assert indicator" />
+    <option name="assert" hit="Assert message" />
+    <option name="message" hit="Assert message" />
+    <option name="debug" hit="Debug indicator" />
+    <option name="indicator" hit="Debug indicator" />
+    <option name="debug" hit="Debug message" />
+    <option name="message" hit="Debug message" />
+    <option name="error" hit="Error indicator" />
+    <option name="indicator" hit="Error indicator" />
+    <option name="error" hit="Error message" />
+    <option name="message" hit="Error message" />
+    <option name="indicator" hit="Info indicator" />
+    <option name="info" hit="Info indicator" />
+    <option name="info" hit="Info message" />
+    <option name="message" hit="Info message" />
+    <option name="indicator" hit="Verbose indicator" />
+    <option name="verbose" hit="Verbose indicator" />
+    <option name="message" hit="Verbose message" />
+    <option name="verbose" hit="Verbose message" />
+    <option name="indicator" hit="Warn indicator" />
+    <option name="warn" hit="Warn indicator" />
+    <option name="message" hit="Warn message" />
+    <option name="warn" hit="Warn message" />
+  </configurable>
   <configurable id="reference.settingsdialog.IDE.editor.colors.Live Edit of Compose Literals" configurable_name="Live Edit of Compose Literals">
     <option name="compose" hit="Live Edit of Compose Literals" />
     <option name="edit" hit="Live Edit of Compose Literals" />
@@ -767,6 +821,17 @@
     <option name="of" hit="Live Edit of Compose Literals" />
     <option name="decorations" hit="Literals decorations" />
     <option name="literals" hit="Literals decorations" />
+  </configurable>
+  <configurable id="reference.settingsdialog.IDE.editor.colors.Logcat Filter" configurable_name="Logcat Filter">
+    <option name="filter" hit="Logcat Filter" />
+    <option name="logcat" hit="Logcat Filter" />
+    <option name="key" hit="Key" />
+    <option name="regex" hit="Regex value" />
+    <option name="value" hit="Regex value" />
+    <option name="string" hit="String value" />
+    <option name="value" hit="String value" />
+    <option name="text" hit="Text" />
+    <option name="value" hit="Value" />
   </configurable>
   <configurable id="project.propDebugger" configurable_name="Debugger">
     <option name="" hit=" Existing ADB server port:" />
@@ -894,7 +959,7 @@
     <option name="using" hit="Run Android Instrumented Tests using Gradle." />
     <option name="testing" hit="Testing" />
   </configurable>
-  <configurable id="live.edit.configurable" configurable_name="Live Edit">
+  <configurable id="live.edit.configurable" configurable_name="Compose Live Edit">
     <option name="" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
     <option name="a" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
     <option name="and" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
@@ -961,8 +1026,9 @@
     <option name="updates" hit=" Updates literals used in composables in the emulators and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly. Learn more." />
     <option name="used" hit=" Updates literals used in composables in the emulators and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly. Learn more." />
     <option name="work" hit=" Updates literals used in composables in the emulators and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly. Learn more." />
-    <option name="edit" hit="Live Edit" />
-    <option name="live" hit="Live Edit" />
+    <option name="compose" hit="Compose Live Edit" />
+    <option name="edit" hit="Compose Live Edit" />
+    <option name="live" hit="Compose Live Edit" />
     <option name="edit" hit="Live Edit of literals" />
     <option name="literals" hit="Live Edit of literals" />
     <option name="live" hit="Live Edit of literals" />
@@ -1394,11 +1460,6 @@
     <option name="enable" hit="Enable @Preview picker" />
     <option name="picker" hit="Enable @Preview picker" />
     <option name="preview" hit="Enable @Preview picker" />
-    <option name="enable" hit="Enable new Logcat tool window" />
-    <option name="logcat" hit="Enable new Logcat tool window" />
-    <option name="new" hit="Enable new Logcat tool window" />
-    <option name="tool" hit="Enable new Logcat tool window" />
-    <option name="window" hit="Enable new Logcat tool window" />
     <option name="enable" hit="Enable parallel Gradle Sync" />
     <option name="gradle" hit="Enable parallel Gradle Sync" />
     <option name="parallel" hit="Enable parallel Gradle Sync" />
@@ -1409,9 +1470,6 @@
     <option name="jetpack" hit="Jetpack Compose" />
     <option name="editor" hit="Layout Editor" />
     <option name="layout" hit="Layout Editor" />
-    <option name="learn" hit="Learn more" />
-    <option name="more" hit="Learn more" />
-    <option name="logcat" hit="Logcat" />
     <option name="during" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
     <option name="generated" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
     <option name="gradle" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />

@@ -19,9 +19,9 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.android.tools.idea.sqlite.ui.sqliteEvaluator.SqliteEvaluatorView
 import com.android.tools.idea.sqlite.ui.tableView.TableView
 import com.intellij.openapi.project.Project
-import org.mockito.Mockito.mock
 import java.util.ArrayList
 import javax.swing.JComponent
+import org.mockito.Mockito.mock
 
 open class FakeSqliteEvaluatorView : SqliteEvaluatorView {
   override val project: Project = mock(Project::class.java)
@@ -30,23 +30,27 @@ open class FakeSqliteEvaluatorView : SqliteEvaluatorView {
 
   val listeners = ArrayList<SqliteEvaluatorView.Listener>()
 
-  override fun addListener(listener: SqliteEvaluatorView.Listener) { listeners.add(listener) }
+  override fun addListener(listener: SqliteEvaluatorView.Listener) {
+    listeners.add(listener)
+  }
 
-  override fun removeListener(listener: SqliteEvaluatorView.Listener) { listeners.remove(listener) }
+  override fun removeListener(listener: SqliteEvaluatorView.Listener) {
+    listeners.remove(listener)
+  }
 
-  override fun showSqliteStatement(sqliteStatement: String) {  }
+  override fun showSqliteStatement(sqliteStatement: String) {}
 
-  override fun setDatabases(databaseIds: List<SqliteDatabaseId>, selected: SqliteDatabaseId?) { }
+  override fun setDatabases(databaseIds: List<SqliteDatabaseId>, selected: SqliteDatabaseId?) {}
 
-  override fun schemaChanged(databaseId: SqliteDatabaseId) { }
+  override fun schemaChanged(databaseId: SqliteDatabaseId) {}
 
-  override fun setRunSqliteStatementEnabled(enabled: Boolean) { }
+  override fun setRunSqliteStatementEnabled(enabled: Boolean) {}
 
-  override fun reportError(message: String, t: Throwable?) { }
+  override fun reportError(message: String, t: Throwable?) {}
 
-  override fun setQueryHistory(queries: List<String>) { }
+  override fun setQueryHistory(queries: List<String>) {}
 
-  override fun showMessagePanel(message: String) { }
+  override fun showMessagePanel(message: String) {}
 
-  override fun showTableView() { }
+  override fun showTableView() {}
 }

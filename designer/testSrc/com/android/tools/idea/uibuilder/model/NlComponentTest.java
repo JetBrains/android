@@ -161,7 +161,7 @@ public final class NlComponentTest extends LayoutTestCase {
   }
 
   private void deleteXmlTag(@NotNull NlComponent component) {
-    XmlTag tag = component.getBackend().getTagPointer().getElement();
+    XmlTag tag = component.getBackend().getTag();
     WriteCommandAction.writeCommandAction(getProject()).run(() -> tag.delete());
     UIUtil.dispatchAllInvocationEvents();
   }

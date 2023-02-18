@@ -64,8 +64,8 @@ fun AppInspectionClientProvider(
   AppInspectionInspectorClient(
     process = params.process,
     isInstantlyAutoConnected = params.isInstantlyAutoConnected,
-    model = inspector.layoutInspectorModel,
-    metrics = LayoutInspectorSessionMetrics(inspector.layoutInspectorModel.project, params.process),
+    model = inspector.inspectorModel,
+    metrics = LayoutInspectorSessionMetrics(inspector.inspectorModel.project, params.process),
     treeSettings = inspector.treeSettings,
     inspectorClientSettings = getClientSettings(),
     coroutineScope = AndroidCoroutineScope(getDisposable()),

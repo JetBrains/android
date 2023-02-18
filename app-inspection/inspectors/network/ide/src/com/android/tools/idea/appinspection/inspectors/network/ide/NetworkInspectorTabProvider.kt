@@ -36,23 +36,24 @@ import com.android.tools.idea.flags.StudioFlags.ENABLE_NETWORK_MANAGER_INSPECTOR
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import icons.StudioIcons
-import kotlinx.coroutines.launch
 import javax.swing.Icon
+import kotlinx.coroutines.launch
 
-/**
- * The number of updates per second our simulated object models receive.
- */
+/** The number of updates per second our simulated object models receive. */
 private const val UPDATES_PER_SECOND = 60
 
 class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
   override val inspectorId = "studio.network.inspection"
   override val displayName = "Network Inspector"
   override val icon: Icon = StudioIcons.Shell.Menu.NETWORK_INSPECTOR
-  override val inspectorLaunchParams = FrameworkInspectorLaunchParams(
-    AppInspectorJar("network-inspector.jar",
-                    developmentDirectory = "bazel-bin/tools/base/app-inspection/inspectors/network",
-                    releaseDirectory = "plugins/android/resources/app-inspection/")
-  )
+  override val inspectorLaunchParams =
+    FrameworkInspectorLaunchParams(
+      AppInspectorJar(
+        "network-inspector.jar",
+        developmentDirectory = "bazel-bin/tools/base/app-inspection/inspectors/network",
+        releaseDirectory = "plugins/android/resources/app-inspection/"
+      )
+    )
 
   override fun isApplicable(): Boolean {
     return ENABLE_NETWORK_MANAGER_INSPECTOR_TAB.get()
@@ -74,15 +75,24 @@ class NetworkInspectorTabProvider : SingleAppInspectorTabProvider() {
 
     return object : SingleAppInspectorTab(messenger) {
       private val client = NetworkInspectorClientImpl(messenger)
-      private val services = NetworkInspectorServicesImpl(
-        codeNavigationProvider,
-        client,
-        FpsTimer(UPDATES_PER_SECOND),
-        AndroidDispatchers.workerThread,
-        AndroidDispatchers.uiThread,
-        IdeNetworkInspectorTracker(project)
-      )
-      private val networkInspectorTab = NetworkInspectorTab(project, componentsProvider, dataSource, services, scope, parentDisposable)
+      private val services =
+        NetworkInspectorServicesImpl(
+          codeNavigationProvider,
+          client,
+          FpsTimer(UPDATES_PER_SECOND),
+          AndroidDispatchers.workerThread,
+          AndroidDispatchers.uiThread,
+          IdeNetworkInspectorTracker(project)
+        )
+      private val networkInspectorTab =
+        NetworkInspectorTab(
+          project,
+          componentsProvider,
+          dataSource,
+          services,
+          scope,
+          parentDisposable
+        )
       override val component = networkInspectorTab.component
 
       init {

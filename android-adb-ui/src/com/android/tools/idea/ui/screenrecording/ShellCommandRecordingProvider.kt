@@ -54,6 +54,15 @@ internal class ShellCommandRecordingProvider(
     job = null
   }
 
+  override suspend fun cancelRecording() {
+    try {
+      stopRecording()
+    }
+    catch (_: Exception) {
+    }
+    adbSession.deviceServices.shellAsText(deviceSelector, "rm $remotePath", commandTimeout = CMD_TIMEOUT)
+  }
+
   override suspend fun pullRecording(target: Path) {
     adbSession.deviceServices.sync(deviceSelector).use { sync ->
       try {

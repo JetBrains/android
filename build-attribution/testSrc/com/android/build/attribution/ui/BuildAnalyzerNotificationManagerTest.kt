@@ -146,7 +146,8 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
   fun testBalloonNotShownOnReportWithConfigCacheWarningOnly() {
     val buildSessionId = UUID.randomUUID().toString()
     val result = constructEmptyBuildResultsObject(buildSessionId, Projects.getBaseDirPath(project)).copy(
-      configurationCachingCompatibilityAnalyzerResult = NoIncompatiblePlugins(emptyList())
+      //TODO (b/243175483): should we start showing warning for stable?
+      configurationCachingCompatibilityAnalyzerResult = NoIncompatiblePlugins(emptyList(), false)
     )
     setNewReportData(result)
 
@@ -156,7 +157,7 @@ class BuildAnalyzerNotificationManagerTest : AndroidTestCase() {
   fun testBalloonNotShownOnConfigCacheTrialBuild() {
     val buildSessionId = UUID.randomUUID().toString()
     val result = constructEmptyBuildResultsObject(buildSessionId, Projects.getBaseDirPath(project)).copy(
-      configurationCachingCompatibilityAnalyzerResult = ConfigurationCacheCompatibilityTestFlow
+      configurationCachingCompatibilityAnalyzerResult = ConfigurationCacheCompatibilityTestFlow(false)
     )
     setNewReportData(result)
 

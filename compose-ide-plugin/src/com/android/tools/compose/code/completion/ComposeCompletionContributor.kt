@@ -74,7 +74,7 @@ private fun ValueParameterDescriptor.isLambdaWithNoParameters() =
  * true iff the last parameter is required, and a lambda type with no parameters.
  */
 private fun ValueParameterDescriptor.isRequiredLambdaWithNoParameters() =
-  !hasDefaultValue() && isLambdaWithNoParameters()
+  !hasDefaultValue() && isLambdaWithNoParameters() && varargElementType == null
 
 
 private fun InsertionContext.getParent(): PsiElement? = file.findElementAt(startOffset)?.parent
@@ -201,7 +201,7 @@ private class ComposeInsertHandler(
 
     val templateManager = TemplateManager.getInstance(project)
     val allParameters = descriptor.valueParameters
-    val requiredParameters = allParameters.filter { !it.declaresDefaultValue() }
+    val requiredParameters = allParameters.filter { !it.declaresDefaultValue() && it.varargElementType == null }
     val insertLambda = allParameters.lastOrNull()?.isComposableFunctionParameter() == true
                        || allParameters.lastOrNull()?.isRequiredLambdaWithNoParameters() == true
     val inParens = if (insertLambda) requiredParameters.dropLast(1) else requiredParameters
@@ -229,11 +229,6 @@ private class ComposeInsertHandler(
         }
 
         !insertLambda -> addTextSegment("()")
-        requiredParameters.size < allParameters.size -> {
-          addTextSegment("(")
-          addVariable(EmptyExpression(), true)
-          addTextSegment(")")
-        }
       }
 
       if (insertLambda && !isNextElementOpenCurlyBrace()) {

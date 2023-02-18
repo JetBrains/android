@@ -16,9 +16,6 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.flags.ifEnabled
-import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.actions.SetScreenViewProviderAction
-import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.editor.ToolbarActionGroups
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
@@ -29,8 +26,6 @@ import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
 import com.android.tools.idea.compose.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.compose.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeStaticPreview
-import com.android.tools.idea.compose.preview.scene.COMPOSE_BLUEPRINT_SCREEN_VIEW_PROVIDER
-import com.android.tools.idea.compose.preview.scene.COMPOSE_SCREEN_VIEW_PROVIDER
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
 import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
@@ -45,23 +40,18 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresen
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationProvider
 import com.android.tools.idea.uibuilder.editor.multirepresentation.TextEditorWithMultiRepresentationPreview
-import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.IconLoader
 import com.intellij.psi.PsiFile
-import com.intellij.util.ui.JBUI
-import icons.StudioIcons
 import org.jetbrains.android.uipreview.AndroidEditorSettings
 
 /** [ToolbarActionGroups] that includes the actions that can be applied to Compose Previews. */
@@ -80,56 +70,10 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
           ) { !isAnyPreviewRefreshing(it.dataContext) }
           .visibleOnlyInComposeStaticPreview(),
         StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
-        if (surface is NlDesignSurface)
-          ViewModesDropDownAction(surface).visibleOnlyInComposeStaticPreview()
-        else null
       )
     )
 
   override fun getNorthEastGroup(): ActionGroup = ComposeNotificationGroup(surface)
-
-  /** [DropDownAction] to toggle through the available viewing modes for the Compose preview. */
-  private class ViewModesDropDownAction(private val surface: NlDesignSurface) :
-    DropDownAction(
-      message("action.scene.mode.title"),
-      message("action.scene.mode.description"),
-      // TODO(b/160021437): Modify tittle/description to avoid using internal terms: 'Design
-      // Surface'
-      StudioIcons.LayoutEditor.Toolbar.VIEW_MODE
-    ) {
-
-    private val disabledIcon =
-      IconLoader.getDisabledIcon(StudioIcons.LayoutEditor.Toolbar.VIEW_MODE)
-
-    init {
-      templatePresentation.isHideGroupIfEmpty = true
-      val blueprintEnabled = StudioFlags.COMPOSE_BLUEPRINT_MODE.get()
-      if (blueprintEnabled) {
-        addAction(SetScreenViewProviderAction(COMPOSE_SCREEN_VIEW_PROVIDER, surface))
-        addAction(SetScreenViewProviderAction(COMPOSE_BLUEPRINT_SCREEN_VIEW_PROVIDER, surface))
-      }
-    }
-
-    override fun createCustomComponent(presentation: Presentation, place: String) =
-      ActionButtonWithToolTipDescription(this, presentation, place).apply {
-        border = JBUI.Borders.empty(1, 2)
-      }
-
-    override fun update(e: AnActionEvent) {
-      super.update(e)
-      val shouldEnableAction = !isAnyPreviewRefreshing(e.dataContext)
-      e.presentation.isEnabled = shouldEnableAction
-      // Since this is an ActionGroup, IntelliJ will set the button icon to enabled even though it
-      // is disabled. Only when clicking on the
-      // button the icon will be disabled (and gets re-enabled when releasing the mouse), since the
-      // action itself is disabled and not popup
-      // will show up. Since we want users to know immediately that this action is disabled, we
-      // explicitly set the icon style when the
-      // action is disabled.
-      e.presentation.icon =
-        if (shouldEnableAction) StudioIcons.LayoutEditor.Toolbar.VIEW_MODE else disabledIcon
-    }
-  }
 }
 
 /** A [PreviewRepresentationProvider] coupled with [ComposePreviewRepresentation]. */
@@ -155,7 +99,8 @@ class ComposePreviewRepresentationProvider(
    * [PreviewRepresentation] of them.
    */
   override suspend fun accept(project: Project, psiFile: PsiFile): Boolean =
-    psiFile.virtualFile.isKotlinFileType() && (psiFile.getModuleSystem()?.usesCompose ?: false)
+    psiFile.virtualFile.isKotlinFileType() &&
+      (runReadAction { psiFile.getModuleSystem()?.usesCompose ?: false })
 
   /** Creates a [ComposePreviewRepresentation] for the input [psiFile]. */
   override fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {

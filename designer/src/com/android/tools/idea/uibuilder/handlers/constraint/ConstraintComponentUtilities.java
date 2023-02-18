@@ -118,6 +118,7 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.handlers.constraint.targets.ConstraintAnchorTarget;
@@ -1041,7 +1042,7 @@ public final class ConstraintComponentUtilities {
     // Horizontal attributes
     // cleanup needs to be sdk range specific
     //
-    AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(component.getModel().getFacet());
+    AndroidModuleInfo moduleInfo = StudioAndroidModuleInfo.getInstance(component.getModel().getFacet());
     boolean remove_left_right = moduleInfo.getMinSdkVersion().isGreaterOrEqualThan(17);
 
     margin = transaction.getAttribute(ANDROID_URI, ATTR_LAYOUT_MARGIN_LEFT);

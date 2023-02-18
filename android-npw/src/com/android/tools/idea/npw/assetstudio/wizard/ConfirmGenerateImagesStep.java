@@ -60,7 +60,7 @@ import com.intellij.ui.GuiUtils;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.NamedColorUtil;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
@@ -167,7 +167,7 @@ public final class ConfirmGenerateImagesStep extends ModelWizardStep<GenerateIco
     DefaultTreeModel emptyModel = new DefaultTreeModel(null);
     myOutputPreviewTree.setModel(emptyModel);
     myOutputPreviewTree.setCellRenderer(new ProposedFileTreeCellRenderer());
-    myOutputPreviewTree.setBorder(BorderFactory.createLineBorder(UIUtil.getBoundsColor()));
+    myOutputPreviewTree.setBorder(BorderFactory.createLineBorder(NamedColorUtil.getBoundsColor()));
     // Tell the tree to ask the TreeCellRenderer for an individual height for each cell.
     myOutputPreviewTree.setRowHeight(-1);
     myOutputPreviewTree.getEmptyText().setText("No resource folder defined in project");

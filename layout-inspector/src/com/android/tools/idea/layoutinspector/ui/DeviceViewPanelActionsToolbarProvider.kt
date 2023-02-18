@@ -92,7 +92,7 @@ object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescripti
             return@scheduleAtFixedRate
           }
           // Don't rotate or start the rotation timeout if we haven't received an SKP yet.
-          val inspectorModel = inspector?.layoutInspectorModel
+          val inspectorModel = inspector?.inspectorModel
           // Wait until we have an actual SKP (not pending)
           if (inspectorModel?.pictureType != AndroidWindow.ImageType.SKP) {
             return@scheduleAtFixedRate
@@ -114,7 +114,7 @@ object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescripti
     val model = event.getData(DEVICE_VIEW_MODEL_KEY)
     val inspector = LayoutInspector.get(event)
     val client = inspector?.currentClient
-    val inspectorModel = inspector?.layoutInspectorModel
+    val inspectorModel = inspector?.inspectorModel
     event.presentation.icon = if (model?.isRotated == true) RESET_VIEW else MODE_3D
     if (model != null && model.overlay == null &&
         client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) == true &&

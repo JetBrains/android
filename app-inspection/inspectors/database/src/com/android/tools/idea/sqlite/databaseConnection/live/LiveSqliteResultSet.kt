@@ -39,27 +39,40 @@ abstract class LiveSqliteResultSet(
 ) : SqliteResultSet {
 
   /**
-   * @param responseSizeByteLimitHint - best effort limit of a single response expressed in bytes
+   * @param responseSizeByteLimitHint
+   * - best effort limit of a single response expressed in bytes
    */
-  protected fun sendQueryCommand(sqliteStatement: SqliteStatement, responseSizeByteLimitHint: Long? = null
+  protected fun sendQueryCommand(
+    sqliteStatement: SqliteStatement,
+    responseSizeByteLimitHint: Long? = null
   ): ListenableFuture<SqliteInspectorProtocol.Response> {
     val queryCommand = buildQueryCommand(sqliteStatement, connectionId, responseSizeByteLimitHint)
     return messenger.sendCommandAsync(queryCommand).cancelOnDispose(this)
   }
 
   /**
-   * @param rowBatchSize - limit of a batch size expressed as the number of rows cap
+   * @param rowBatchSize
+   * - limit of a batch size expressed as the number of rows cap
    */
-  final override fun getRowBatch(rowOffset: Int, rowBatchSize: Int): ListenableFuture<List<SqliteRow>> =
-    getRowBatch(rowOffset, rowBatchSize, null)
+  final override fun getRowBatch(
+    rowOffset: Int,
+    rowBatchSize: Int
+  ): ListenableFuture<List<SqliteRow>> = getRowBatch(rowOffset, rowBatchSize, null)
 
   /**
-   * @param rowBatchSize - limit of a batch size expressed as the number of rows cap
-   * @param responseSizeByteLimitHint - best effort limit of a batch size expressed in bytes - only introduced in [LiveSqliteResultSet]
-   * (as opposed to [SqliteResultSet]) as other implementations use the local file system, where we don't need to be so careful with the
-   * response size. Memory on the device (subclasses of [LiveSqliteResultSet]) is much more restricted.
+   * @param rowBatchSize
+   * - limit of a batch size expressed as the number of rows cap
+   * @param responseSizeByteLimitHint
+   * - best effort limit of a batch size expressed in bytes - only introduced in
+   * [LiveSqliteResultSet] (as opposed to [SqliteResultSet]) as other implementations use the local
+   * file system, where we don't need to be so careful with the response size. Memory on the device
+   * (subclasses of [LiveSqliteResultSet]) is much more restricted.
    */
-  abstract fun getRowBatch(rowOffset: Int, rowBatchSize: Int, responseSizeByteLimitHint: Long? = null): ListenableFuture<List<SqliteRow>>
+  abstract fun getRowBatch(
+    rowOffset: Int,
+    rowBatchSize: Int,
+    responseSizeByteLimitHint: Long? = null
+  ): ListenableFuture<List<SqliteRow>>
 
-  override fun dispose() { }
+  override fun dispose() {}
 }

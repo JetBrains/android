@@ -146,6 +146,11 @@ fun <PropertyT : Any> ParsedValue<PropertyT>.renderTo(
         value.value.renderAnyTo(textRenderer, knownValues.toMap())
       value is ParsedValue.Set.Parsed && value.dslText === DslText.Literal && value.value is List<*> ->
         value.value.renderAnyTo(textRenderer, knownValues.toMap())
+      value is ParsedValue.NotSet -> {
+        val text = "/*not specified*/"
+        textRenderer.append(text, commentAttributes)
+        true
+      }
       else -> {
         val formattedText = value.getText(formatValue)
         textRenderer.append(formattedText, regularAttributes)

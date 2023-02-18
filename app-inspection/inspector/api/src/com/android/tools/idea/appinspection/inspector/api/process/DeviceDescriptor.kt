@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspector.api.process
 
-/**
- * Basic information about a device.
- */
+/** Basic information about a device. */
 interface DeviceDescriptor {
   /** The manufacturer of the device. */
   val manufacturer: String

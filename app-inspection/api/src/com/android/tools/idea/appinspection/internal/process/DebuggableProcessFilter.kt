@@ -38,8 +38,7 @@ fun IDevice.isPackageDebuggable(packageName: String): Boolean {
   val receiver = SingleDebuggableProcessReceiver()
   try {
     executeShellCommand("dumpsys package $packageName", receiver)
-  }
-  catch (ex: Exception) {
+  } catch (ex: Exception) {
     Logger.getInstance(TransportDeviceManager::class.java).warn(ex)
   }
   return receiver.packageName == packageName && receiver.isDebuggable
@@ -60,8 +59,7 @@ private class SingleDebuggableProcessReceiver : MultiLineReceiver() {
       if (packageName.isEmpty()) {
         val packageResult = packageRegex.matchEntire(line)
         packageResult?.let { packageName = it.groupValues[1] }
-      }
-      else {
+      } else {
         val result = flagsRegex.matchEntire(line)
         result?.let {
           val flags = it.groupValues[1].split(' ')

@@ -35,7 +35,7 @@ import com.intellij.openapi.module.Module
 import org.jetbrains.android.facet.AndroidRootUtil
 import java.io.File
 
-private const val minRev = "1.1.0-beta04"
+private const val minRev = "1.1.1"
 private const val exampleBenchmarkName = "ExampleStartupBenchmark"
 
 fun RecipeExecutor.generateMacrobenchmarkModule(

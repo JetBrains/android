@@ -23,6 +23,7 @@ import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model
@@ -96,7 +97,18 @@ class Toggle3dActionTest {
     whenever(device.apiLevel).thenReturn(29)
     val launcher: InspectorClientLauncher = mock()
     whenever(launcher.activeClient).thenReturn(client)
-    inspector = LayoutInspector(launcher, inspectorModel, mock(), MoreExecutors.directExecutor())
+    val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
+    inspector = LayoutInspector(
+      coroutineScope,
+      mock(),
+      mock(),
+      null,
+      mock(),
+      launcher,
+      inspectorModel,
+      mock(),
+      MoreExecutors.directExecutor()
+    )
     viewModel = RenderModel(inspectorModel, inspector.treeSettings)
     val process: ProcessDescriptor = mock()
     whenever(process.device).thenReturn(device)

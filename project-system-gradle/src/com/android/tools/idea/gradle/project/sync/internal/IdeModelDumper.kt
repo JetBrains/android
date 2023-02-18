@@ -56,7 +56,7 @@ import com.android.tools.idea.gradle.project.model.GradleModuleModel
 import com.android.tools.idea.gradle.project.model.NdkModuleModel
 import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.findCompositeBuildMapModel
 import com.android.tools.idea.projectsystem.gradle.resolveIn
@@ -119,9 +119,9 @@ fun ProjectDumper.dumpAndroidIdeModel(
             if (!module.isHolderModule()) return@let
             head("CurrentVariantReportedVersions")
             nest {
-              AndroidModuleInfo.getInstance(module)?.minSdkVersion?.dump("minSdk")
-              AndroidModuleInfo.getInstance(module)?.runtimeMinSdkVersion?.get()?.dump("runtimeMinSdk")
-              AndroidModuleInfo.getInstance(module)?.targetSdkVersion?.dump("targetSdk")
+              StudioAndroidModuleInfo.getInstance(module)?.minSdkVersion?.dump("minSdk")
+              StudioAndroidModuleInfo.getInstance(module)?.runtimeMinSdkVersion?.get()?.dump("runtimeMinSdk")
+              StudioAndroidModuleInfo.getInstance(module)?.targetSdkVersion?.dump("targetSdk")
             }
             dump(it.androidProject)
             // Dump all the fetched Ide variants.
@@ -720,6 +720,7 @@ private fun ideModelDumper(projectDumper: ProjectDumper) = with(projectDumper) {
         prop("ApplicationRClassConstantIds") { agpFlags.applicationRClassConstantIds.toString() }
         prop("AestRClassConstantIds") { agpFlags.testRClassConstantIds.toString() }
         prop("TransitiveRClasses") { agpFlags.transitiveRClasses.toString() }
+        prop("UseAndroidX") { agpFlags.useAndroidX.toString() }
         prop("UsesCompose") { agpFlags.usesCompose.toString() }
         prop("MlModelBindingEnabled") { agpFlags.mlModelBindingEnabled.toString() }
       }

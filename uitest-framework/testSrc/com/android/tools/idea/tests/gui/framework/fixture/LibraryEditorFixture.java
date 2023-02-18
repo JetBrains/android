@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture;
 
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.ui.HyperlinkLabel;
 import org.fest.swing.core.GenericTypeMatcher;
@@ -62,21 +63,23 @@ public class LibraryEditorFixture extends EditorFixture {
         "addDebugSymbolsButton",
         JButton.class,
         true);
-    new JButtonFixture(robot, addButton).click();
+    JButtonFixture jButtonFixture = new JButtonFixture(robot, addButton);
 
-    FileChooserDialogFixture debugSymbolsDialog =
-      FileChooserDialogFixture.findDialog(
-        robot,
-        new GenericTypeMatcher<JDialog>(JDialog.class) {
-          @Override
-          protected boolean isMatching(@NotNull JDialog component) {
-            return "Debug Symbols".equals(component.getTitle());
-         }
-        });
+    Wait.seconds(5)
+      .expecting("add button is enabled")
+      .until(jButtonFixture::isEnabled);
 
-    debugSymbolsDialog.select(VfsUtil.findFileByIoFile(debugSymbols, true));
-    debugSymbolsDialog.clickOk();
-    debugSymbolsDialog.waitUntilNotShowing();
+    jButtonFixture.click();
+
+    Wait.seconds(20)
+      .expecting("file chooser dialog to open")
+      .until(() -> FileChooserDialogFixture.findDialog(robot, "Debug Symbols").isEnabled());
+
+    FileChooserDialogFixture.findDialog(robot, "Debug Symbols")
+        .select(VfsUtil.findFileByIoFile(debugSymbols, true))
+        .clickOk()
+        .waitUntilNotShowing();
+
     return this;
   }
 

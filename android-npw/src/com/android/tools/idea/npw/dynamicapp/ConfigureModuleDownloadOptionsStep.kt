@@ -36,11 +36,11 @@ import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.ContextHelpLabel
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.LabelPosition
 import com.intellij.ui.dsl.builder.RightGap
 import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
-import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import org.jetbrains.android.util.AndroidBundle
 import java.util.Optional
 import javax.swing.DefaultComboBoxModel
@@ -71,7 +71,7 @@ class ConfigureModuleDownloadOptionsStep(
 
     row {
       cell(featureTitle)
-        .horizontalAlign(HorizontalAlign.FILL)
+        .align(AlignX.FILL)
         .label(contextLabel(
           "Module title (this may be visible to users)",
           "The platform uses this title to identify the module to users when," +
@@ -86,7 +86,7 @@ class ConfigureModuleDownloadOptionsStep(
     }
 
     row {
-      cell(downloadConditionsForm.myRootPanel).horizontalAlign(HorizontalAlign.FILL)
+      cell(downloadConditionsForm.myRootPanel).align(AlignX.FILL)
     }
 
     row {

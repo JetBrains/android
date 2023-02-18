@@ -42,7 +42,6 @@ interface IdeProfilerServices {
   /**
    * Compute expensive intermediate value on "pool", then resume it on "main"
    */
-  @JvmDefault
   fun <R> runAsync(supplier: Supplier<R>, consumer: Consumer<R>) {
     CompletableFuture
       .supplyAsync(supplier, poolExecutor)

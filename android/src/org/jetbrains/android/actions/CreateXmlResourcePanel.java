@@ -99,4 +99,7 @@ public interface CreateXmlResourcePanel {
   JComponent getPreferredFocusedComponent();
 
   JComponent getPanel();
+
+  /** Sets whether the resource value field is enabled (editable). */
+  void setAllowValueEditing(boolean enabled);
 }

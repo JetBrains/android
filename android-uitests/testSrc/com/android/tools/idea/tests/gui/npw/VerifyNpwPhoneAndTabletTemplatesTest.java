@@ -21,37 +21,36 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.tools.adtui.device.FormFactor;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
-import com.android.tools.idea.tests.gui.framework.fixture.MessagesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ChooseAndroidProjectStepFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
-import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-import javax.swing.JDialog;
 
 import org.fest.swing.timing.Wait;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+/**
+ * Test following scenarios for NPW => Phone and Tablet tab
+ * 1. Expected templates are displayed
+ * 2. Correct default template is present
+ * 3. For all expected templates (Except C++ and Navigation templates)
+ * 3.a. Verify Gradle sync is successful
+ * 3.b. Build -> Make Project is successful
+ */
+
+
 @RunWith(GuiTestRemoteRunner.class)
 public class VerifyNpwPhoneAndTabletTemplatesTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(20, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
 
   private List<String> expectedTemplates = List.of("No Activity", "Empty Activity", "Basic Views Activity",
                                                    "Bottom Navigation Views Activity", "Empty Views Activity", "Navigation Drawer Views Activity",
                                                    "Responsive Views Activity", "Game Activity (C++)", "Native C++");
 
   private String defaultActivity = "Empty Activity";
-  private List<String> material3Templates = List.of("Empty Activity", "Basic Views Activity");
-  private List<String> failedBuildTemplates = new ArrayList<String>();
-  private List<String> dependencyMissingTemplates = new ArrayList<String>();
-  private List<String> failedGradleSyncTemplates = new ArrayList<String>();
   FormFactor selectMobileTab = FormFactor.MOBILE;
 
   @Test
@@ -78,88 +77,41 @@ public class VerifyNpwPhoneAndTabletTemplatesTest {
       .wizard();
 
     String actualActivityName = newProjectWizard.getActivityName(defaultActivity);
-    newProjectWizard.clickCancel(); //Close New Project dialog
     System.out.println("\nObserved default activity " + actualActivityName);
     assertThat((actualActivityName).contains(defaultActivity)).isTrue(); //Verify expected default template
+
+    newProjectWizard.clickFinishAndWaitForSyncToFinish(Wait.seconds(420));
+    GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)));
+    guiTest.ideFrame().clearNotificationsPresentOnIdeFrame();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    assertThat(guiTest.ideFrame().invokeProjectMake(Wait.seconds(180)).isBuildSuccessful()).isTrue();
+    validateGradleFile(); //Validate Gradle file contains Material 3 dependencies
+    validateMainActivity(); //Validate MainActivity has @Composable
   }
 
   @Test
-  public void testTemplateBuild() throws InterruptedException {
-    for (String templateName : expectedTemplates) {
-      if (!templateName.toLowerCase(Locale.ROOT).contains("c++")) {
-        System.out.println("\nValidating Build > Make Project for: " + templateName);
+  public void  testNoActivityTemplate() {
+    boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, selectMobileTab, expectedTemplates.get(0));
+    assertThat(buildProjectStatus).isTrue();
+  }
 
-        NewProjectWizardFixture newProjectWizard = guiTest
-          .welcomeFrame()
-          .createNewProject()
-          .getChooseAndroidProjectStep()
-          .selectTab(selectMobileTab)
-          .chooseActivity(templateName)
-          .wizard()
-          .clickNext()
-          .getConfigureNewAndroidProjectStep()
-          .wizard();
+  @Test
+  public void  testBasicViewsActivityTemplate() {
+    boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, selectMobileTab, expectedTemplates.get(2));
+    assertThat(buildProjectStatus).isTrue();
+    validateThemeFile("app/src/main/res/values/themes.xml");
+  }
 
-        if (templateName.toLowerCase(Locale.ROOT).contains("c++")) {
-          newProjectWizard.clickNext();
-          guiTest.robot().waitForIdle();
-        }
-        newProjectWizard.clickFinish(Wait.seconds(15), Wait.seconds(240));
-        guiTest.robot().waitForIdle();
-        boolean isGradleSyncSuccessful = guiTest.ideFrame().waitForGradleSyncToFinish(Wait.seconds(200));
+  @Test
+  public void  testEmptyViewsActivityTemplate() {
+    boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, selectMobileTab, expectedTemplates.get(4));
+    assertThat(buildProjectStatus).isTrue();
+  }
 
-        if (!isGradleSyncSuccessful) {
-          failedGradleSyncTemplates.add(templateName);
-          GuiTests.takeScreenshot(guiTest.robot(), "Gradle_sync_error_for_"+templateName);
-        }
-
-        GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(TimeUnit.MINUTES.toSeconds(5)));
-
-        guiTest.ideFrame().focus();
-        guiTest.robot().waitForIdle();
-        guiTest.waitForBackgroundTasks();
-
-        //Some templates have missing dependencies. Hence catching those for reporting purpose.
-        int initialPopups = guiTest.robot().finder().findAll(Matchers.byTitle(JDialog.class, "Add Project Dependency").andIsShowing()).size();
-        if(initialPopups > 0) {
-          System.out.println("\nDependency missing for: " + templateName);
-          MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickCancel();
-          MessagesFixture.findByTitle(guiTest.robot(), "Failed to Add Dependency").clickOk();
-          dependencyMissingTemplates.add(templateName);
-        }
-
-        boolean buildSuccessful = guiTest.ideFrame().invokeProjectMake(Wait.seconds(180)).isBuildSuccessful();
-
-        if (!buildSuccessful) {
-          failedBuildTemplates.add(templateName);
-          GuiTests.takeScreenshot(guiTest.robot(), "Build_make_error_for_"+templateName);
-        }
-
-        if(material3Templates.contains(templateName)) {
-          System.out.println("\nValidating Material3 content for: " + templateName);
-          if(templateName.equals("Basic Views Activity")) {
-            validateThemeFile("app/src/main/res/values/themes.xml");
-          }else {
-            validateGradleFile(); //Validate Gradle file contains Material 3 dependencies
-            validateMainActivity(); //Validate MainActivity has @Composable
-          }
-        }
-        guiTest.ideFrame().closeProject();
-      }
-    }
-
-    if(!dependencyMissingTemplates.isEmpty()){
-      System.out.println("\n*** Dependency is missing for: " + Arrays.toString(dependencyMissingTemplates.toArray()) + " ***");
-    }
-
-    if(!failedGradleSyncTemplates.isEmpty()){
-      System.out.println("\n\n*** Gradle sync is failing for: " + Arrays.toString(failedGradleSyncTemplates.toArray()) + " ***");
-    }
-
-    if(!failedBuildTemplates.isEmpty()){
-      System.out.println("\n*** Make Project failed for: " + Arrays.toString(failedBuildTemplates.toArray()) + " ***");
-    }
-    assertThat(failedBuildTemplates.isEmpty()).isTrue();
+  @Test
+  public void  testResponsiveViewsActivityTemplate() {
+    boolean buildProjectStatus = NewProjectTestUtil.createNewProject(guiTest, selectMobileTab, expectedTemplates.get(6));
+    assertThat(buildProjectStatus).isTrue();
   }
 
   private void validateMainActivity() {

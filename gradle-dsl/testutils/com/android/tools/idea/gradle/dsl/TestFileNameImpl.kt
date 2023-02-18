@@ -22,7 +22,6 @@ import org.jetbrains.annotations.SystemIndependent
 import java.io.File
 
 interface TestFileName {
-  @JvmDefault
   fun toFile(basePath: @SystemIndependent String, extension: String): File = File(FileUtil.toSystemDependentName(basePath) + extension)
 }
 @TestDataPath("\$CONTENT_ROOT/../testData/parser")

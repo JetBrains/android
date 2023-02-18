@@ -17,6 +17,7 @@ package com.android.tools.idea.glance.preview
 
 import com.android.tools.idea.annotations.findAnnotatedMethodsValues
 import com.android.tools.idea.annotations.hasAnnotations
+import com.android.tools.idea.preview.FilePreviewElementFinder
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
@@ -111,7 +112,7 @@ open class GlancePreviewElementFinder(private val surfaceName: String) :
       methodsToElements
     )
 
-  override fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean {
+  override suspend fun hasPreviewElements(project: Project, vFile: VirtualFile): Boolean {
     return hasAnnotations(
       project,
       vFile,

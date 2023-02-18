@@ -455,6 +455,11 @@ public class CreateXmlResourcePanelImpl implements CreateXmlResourcePanel,
     return myPanel;
   }
 
+  @Override
+  public void setAllowValueEditing(boolean enabled) {
+    myValueField.setEnabled(enabled);
+  }
+
   private void setChangeFileNameVisible(boolean isVisible) {
     myFileNameLabel.setVisible(isVisible);
     myFileNameCombo.setVisible(isVisible);

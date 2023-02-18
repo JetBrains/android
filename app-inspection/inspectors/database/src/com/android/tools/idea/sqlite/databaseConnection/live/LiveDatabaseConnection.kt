@@ -30,9 +30,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import java.util.concurrent.Executor
 
-/**
- * Implementation of [DatabaseConnection] based on the AppInspection pipeline.
- */
+/** Implementation of [DatabaseConnection] based on the AppInspection pipeline. */
 class LiveDatabaseConnection(
   parentDisposable: Disposable,
   private val messenger: DatabaseInspectorMessenger,
@@ -50,9 +48,8 @@ class LiveDatabaseConnection(
   }
 
   override fun readSchema(): ListenableFuture<SqliteSchema> {
-    val commands = Command.newBuilder()
-      .setGetSchema(GetSchemaCommand.newBuilder().setDatabaseId(id))
-      .build()
+    val commands =
+      Command.newBuilder().setGetSchema(GetSchemaCommand.newBuilder().setDatabaseId(id)).build()
     val responseFuture = messenger.sendCommandAsync(commands)
 
     return responseFuture.transform(taskExecutor) { response ->
@@ -61,13 +58,17 @@ class LiveDatabaseConnection(
   }
 
   override fun query(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> {
-    val resultSet = when (sqliteStatement.statementType) {
-      SqliteStatementType.SELECT -> PagedLiveSqliteResultSet(sqliteStatement, messenger, id, taskExecutor)
-      SqliteStatementType.EXPLAIN, SqliteStatementType.PRAGMA_QUERY -> LazyLiveSqliteResultSet(sqliteStatement, messenger, id, taskExecutor)
-      else -> throw IllegalArgumentException(
-        "SqliteStatement must be of type SELECT, EXPLAIN or PRAGMA, but is ${sqliteStatement.statementType}"
-      )
-    }
+    val resultSet =
+      when (sqliteStatement.statementType) {
+        SqliteStatementType.SELECT ->
+          PagedLiveSqliteResultSet(sqliteStatement, messenger, id, taskExecutor)
+        SqliteStatementType.EXPLAIN, SqliteStatementType.PRAGMA_QUERY ->
+          LazyLiveSqliteResultSet(sqliteStatement, messenger, id, taskExecutor)
+        else ->
+          throw IllegalArgumentException(
+            "SqliteStatement must be of type SELECT, EXPLAIN or PRAGMA, but is ${sqliteStatement.statementType}"
+          )
+      }
     Disposer.register(this, resultSet)
     return Futures.immediateFuture(resultSet)
   }

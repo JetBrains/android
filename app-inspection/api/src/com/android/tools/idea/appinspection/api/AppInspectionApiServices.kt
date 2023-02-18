@@ -36,43 +36,41 @@ import kotlinx.coroutines.asExecutor
 typealias JarCopierCreator = (DeviceDescriptor) -> AppInspectionJarCopier?
 
 /**
- * The API surface that is exposed to the AppInspection IDE/UI module. It provides a set of tools that allows the frontend to discover
- * potentially interesting processes and launch inspectors on them.
+ * The API surface that is exposed to the AppInspection IDE/UI module. It provides a set of tools
+ * that allows the frontend to discover potentially interesting processes and launch inspectors on
+ * them.
  *
- * It provides the following main utilities:
- * 1) Subscription to listening of processes in the transport pipeline via [processDiscovery].
- * 2) A set of functions to support IDE use cases, for example disposing clients of a particular project, and launching an inspector.
+ * It provides the following main utilities: 1) Subscription to listening of processes in the
+ * transport pipeline via [processDiscovery]. 2) A set of functions to support IDE use cases, for
+ * example disposing clients of a particular project, and launching an inspector.
  */
 interface AppInspectionApiServices {
-  /**
-   * Allows for the subscription of listeners to receive and track processes.
-   */
+  /** Allows for the subscription of listeners to receive and track processes. */
   val processDiscovery: ProcessDiscovery
 
-  /**
-   * Disposes all of the currently active inspector clients in [project].
-   */
+  /** Disposes all of the currently active inspector clients in [project]. */
   suspend fun disposeClients(project: String)
 
   /**
-   * Attaches to a running app if not already attached. This has the side effect of setting up transport and app inspection services in the
-   * app's process space, and readying the pipeline for communication.
+   * Attaches to a running app if not already attached. This has the side effect of setting up
+   * transport and app inspection services in the app's process space, and readying the pipeline for
+   * communication.
    *
-   * Returns an [AppInspectionTarget] which can be used to communicate with the process level service and launch inspectors.
+   * Returns an [AppInspectionTarget] which can be used to communicate with the process level
+   * service and launch inspectors.
    */
   suspend fun attachToProcess(process: ProcessDescriptor, projectName: String): AppInspectionTarget
 
   /**
-   * Launches an inspector for an app on the device. All launch information are captured in [params].
+   * Launches an inspector for an app on the device. All launch information are captured in [params]
+   * .
    *
-   * This has the side effect of setting up transport and app inspection services in the app's process space, similar to calling
-   * [attachToProcess].
+   * This has the side effect of setting up transport and app inspection services in the app's
+   * process space, similar to calling [attachToProcess].
    */
   suspend fun launchInspector(params: LaunchParameters): AppInspectorMessenger
 
-  /**
-   * Stops all inspectors running on [process].
-   */
+  /** Stops all inspectors running on [process]. */
   suspend fun stopInspectors(process: ProcessDescriptor)
 
   companion object {
@@ -92,16 +90,21 @@ interface AppInspectionApiServices {
 }
 
 /**
- * Given a [process] and a coordinate describing a library, check and return the LibraryCompatbilityInfo with the version being used.
+ * Given a [process] and a coordinate describing a library, check and return the
+ * LibraryCompatbilityInfo with the version being used.
  *
- * For example, "androidx.compose.ui:ui" might return the version "1.0.0-beta02", for example, or a status error if the version is missing.
+ * For example, "androidx.compose.ui:ui" might return the version "1.0.0-beta02", for example, or a
+ * status error if the version is missing.
  */
-suspend fun AppInspectionApiServices.checkVersion(project: String,
-                                                  process: ProcessDescriptor,
-                                                  groupId: String,
-                                                  artifactId: String,
-                                                  expectedClassNames: List<String> = emptyList() ): LibraryCompatbilityInfo? {
-  val coordinateAnyVersion = ArtifactCoordinate(groupId, artifactId, "0.0.0", ArtifactCoordinate.Type.AAR)
+suspend fun AppInspectionApiServices.checkVersion(
+  project: String,
+  process: ProcessDescriptor,
+  groupId: String,
+  artifactId: String,
+  expectedClassNames: List<String> = emptyList()
+): LibraryCompatbilityInfo? {
+  val coordinateAnyVersion =
+    ArtifactCoordinate(groupId, artifactId, "0.0.0", ArtifactCoordinate.Type.AAR)
   return attachToProcess(process, project)
     .getLibraryVersions(listOf(LibraryCompatibility(coordinateAnyVersion, expectedClassNames)))
     .singleOrNull()

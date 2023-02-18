@@ -79,29 +79,9 @@ public class ActionBarHandler extends ActionBarCallback {
     return false;
   }
 
-  // TODO: Handle this per file instead.
-  /** Flag which controls whether we should be showing the menu */
-  private static boolean ourShowMenu = false;
-
-  public static boolean isShowingMenu(@SuppressWarnings("UnusedParameters") @Nullable EditorDesignSurface surface) {
-    return ourShowMenu;
-  }
-
-  public static boolean showMenu(boolean showMenu, @Nullable EditorDesignSurface surface, boolean repaint) {
-    if (showMenu != ourShowMenu) {
-      //noinspection AssignmentToStaticFieldFromInstanceMethod
-      ourShowMenu = showMenu;
-      if (surface != null && repaint) {
-        surface.forceRefresh();
-      }
-      return true;
-    }
-    return false;
-  }
-
   @Override
   public boolean isOverflowPopupNeeded() {
-    return ourShowMenu || myRenderTask.getContext().getFolderType() == ResourceFolderType.MENU;
+    return myRenderTask.getContext().getFolderType() == ResourceFolderType.MENU;
   }
 
   private void updateMenusInBackground(@NotNull Project project, @NotNull String fqn, @NotNull ResourceNamespace namespace) {

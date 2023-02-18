@@ -89,6 +89,10 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Process
 
   fun setFilter(filter: String)
 
+  fun isSoftWrapEnabled(): Boolean
+
+  fun setSoftWrapEnabled(state: Boolean)
+
   companion object {
     val LOGCAT_PRESENTER_ACTION = DataKey.create<LogcatPresenter>("LogcatPresenter")
   }

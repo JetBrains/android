@@ -37,8 +37,8 @@ open class LiveEditStatus(
   override val description: String,
   private val mergePriority: Priority,
   /** When true, the refresh icon will be displayed next to the notification chip. */
-  override val hasRefreshIcon: Boolean = false,
   override val presentation: ComposeStatus.Presentation? = null,
+  val redeployMode: RedeployMode = RedeployMode.NONE,
   val actionId: String? = null,
 ) : ComposeStatus {
   companion object {
@@ -53,6 +53,12 @@ open class LiveEditStatus(
       UNRECOVERABLE_ERROR(5),
     }
 
+    enum class RedeployMode {
+      NONE,
+      REFRESH,
+      RERUN,
+    }
+
     val GradleSync = createErrorStatus(message("le.status.error.gradle_sync.description"))
 
     // A LiveEdit error that is not recoverable.
@@ -62,8 +68,19 @@ open class LiveEditStatus(
         ColoredIconGenerator.generateColoredIcon(AllIcons.General.InspectionsError, JBColor.RED),
         "Error",
         message,
+        UNRECOVERABLE_ERROR
+      )
+    }
+
+    // A LiveEdit error that can be resolved by rerunning.
+    @JvmStatic
+    fun createRerunnableErrorStatus(message: String): LiveEditStatus {
+      return LiveEditStatus(
+        null,
+        message("le.status.out_of_date.title"),
+        message,
         UNRECOVERABLE_ERROR,
-        hasRefreshIcon = true
+        redeployMode = RedeployMode.RERUN
       )
     }
 
@@ -71,10 +88,12 @@ open class LiveEditStatus(
     @JvmStatic
     fun createRecomposeErrorStatus(message: String): LiveEditStatus {
       return LiveEditStatus(
-        AllIcons.General.Warning,
+        null,
         message("le.status.error.recompose.title"),
-        message,
+        String.format("Error encountered during recomposition:<br>%s", message),
         UNRECOVERABLE_ERROR,
+        redeployMode = RedeployMode.RERUN,
+        actionId = SHOW_LOGCAT_ACTION_ID
       )
     }
 
@@ -103,39 +122,20 @@ open class LiveEditStatus(
 
   object UnrecoverableError :
     LiveEditStatus(
-      AllIcons.General.Error,
+      null,
       "Error",
       "Live Edit encountered an unrecoverable error.",
       UNRECOVERABLE_ERROR,
-      hasRefreshIcon = true
+      redeployMode = RedeployMode.RERUN
     )
 
   object DebuggerAttached :
     LiveEditStatus(
-      AllIcons.General.Warning,
+      null,
       message("le.status.error.debugger_attached.title"),
       message("le.status.error.debugger_attached.description"),
       UNRECOVERABLE_ERROR,
-      hasRefreshIcon = true
-    )
-
-  object RecomposeNeeded :
-    LiveEditStatus(
-      AllIcons.General.Warning,
-      message("le.status.recompose_needed.title"),
-      message("le.status.recompose_needed.description"),
-      UNRECOVERABLE_ERROR,
-      actionId = "Run",
-      hasRefreshIcon = true
-    )
-
-  object RecomposeError :
-    LiveEditStatus(
-      AllIcons.General.Warning,
-      message("le.status.error.recompose.title"),
-      message("le.status.error.recompose.description"),
-      RECOVERABLE_ERROR,
-      actionId = SHOW_LOGCAT_ACTION_ID
+      redeployMode = RedeployMode.RERUN
     )
 
   object OutOfDate :
@@ -144,8 +144,8 @@ open class LiveEditStatus(
       message("le.status.out_of_date.title"),
       message("le.status.out_of_date.description"),
       REFRESH_NEEDED,
-      actionId = MANUAL_LIVE_EDIT_ACTION_ID,
-      hasRefreshIcon = true
+      redeployMode = RedeployMode.REFRESH,
+      actionId = MANUAL_LIVE_EDIT_ACTION_ID
     )
 
   object Loading :
@@ -174,10 +174,11 @@ open class LiveEditStatus(
 
   object SyncNeeded :
     LiveEditStatus(
-      ColoredIconGenerator.generateColoredIcon(AllIcons.General.InspectionsError, JBColor.RED),
+      null,
       message("le.status.error.gradle_sync.title"),
       message("le.status.error.gradle_sync.description"),
-      UNRECOVERABLE_ERROR
+      UNRECOVERABLE_ERROR,
+      redeployMode = RedeployMode.RERUN
     )
 
   fun unrecoverable(): Boolean {

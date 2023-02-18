@@ -33,7 +33,7 @@ class IntellijDataViewerTest : HeavyPlatformTestCase() {
 
   fun testCanCreatePrettyEditorViewer() {
     val jsonText = """{product: "Studio", version: 3.14}"""
-    val viewer = IntellijDataViewer.createPrettyViewerIfPossible(project, jsonText.toByteArray(), JsonFileType.INSTANCE)
+    val viewer = IntellijDataViewer.createPrettyViewerIfPossible(project, jsonText.toByteArray(), JsonFileType.INSTANCE, true)
 
     assertThat(viewer.style).isEqualTo(DataViewer.Style.PRETTY)
     assertThat(viewer.component.preferredSize.height).isGreaterThan(0)
@@ -42,7 +42,7 @@ class IntellijDataViewerTest : HeavyPlatformTestCase() {
 
   fun testPlainTextCreatesPlainEditorViewerInsteadOfPrettyEditorViewer() {
     val sampleText = "ASDF ".repeat(100)
-    val viewer = IntellijDataViewer.createPrettyViewerIfPossible(project, sampleText.toByteArray(), PlainTextFileType.INSTANCE)
+    val viewer = IntellijDataViewer.createPrettyViewerIfPossible(project, sampleText.toByteArray(), PlainTextFileType.INSTANCE, false)
 
     assertThat(viewer.style).isEqualTo(DataViewer.Style.RAW)
     assertThat(viewer.component.preferredSize.height).isGreaterThan(0)
@@ -58,7 +58,7 @@ class IntellijDataViewerTest : HeavyPlatformTestCase() {
 
   fun testHandlesTextWithWindowsNewlines() {
     val textWithWindowsNewlines = "Content\r\nWith\r\nWindows\r\nNewlines"
-    val viewer = IntellijDataViewer.createPrettyViewerIfPossible(project, textWithWindowsNewlines.toByteArray(), PlainTextFileType.INSTANCE)
+    val viewer = IntellijDataViewer.createPrettyViewerIfPossible(project, textWithWindowsNewlines.toByteArray(), PlainTextFileType.INSTANCE, false)
 
     // At one point, windows newlines would have caused an exception, returning an invalid viewer
     assertThat(viewer.style).isNotEqualTo(DataViewer.Style.INVALID)

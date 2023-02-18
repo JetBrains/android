@@ -36,8 +36,6 @@ import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeModelAdapter
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.event.MouseAdapter
@@ -53,42 +51,58 @@ import javax.swing.event.TreeModelEvent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 
 @VisibleForTesting
-val CLASS_NAME_COMPARATOR = Comparator<DefaultMutableTreeNode> { o1, o2 ->
-  (o1.userObject as BackgroundTaskEntry).className.compareTo((o2.userObject as BackgroundTaskEntry).className)
-}
-
-@VisibleForTesting
-val STATUS_COMPARATOR = Comparator<DefaultMutableTreeNode> { o1, o2 ->
-  val left = o1.userObject as BackgroundTaskEntry
-  val right = o2.userObject as BackgroundTaskEntry
-  assert(left.javaClass == right.javaClass)
-  when (left) {
-    is AlarmEntry -> AlarmEntry.State.valueOf(left.status).compareTo(AlarmEntry.State.valueOf(right.status))
-    is JobEntry -> JobEntry.State.valueOf(left.status).compareTo(JobEntry.State.valueOf(right.status))
-    is WakeLockEntry -> WakeLockEntry.State.valueOf(left.status).compareTo(WakeLockEntry.State.valueOf(right.status))
-    is WorkEntry -> WorkManagerInspectorProtocol.WorkInfo.State.valueOf(left.status).compareTo(
-      WorkManagerInspectorProtocol.WorkInfo.State.valueOf(right.status))
-    else -> 0
+val CLASS_NAME_COMPARATOR =
+  Comparator<DefaultMutableTreeNode> { o1, o2 ->
+    (o1.userObject as BackgroundTaskEntry).className.compareTo(
+      (o2.userObject as BackgroundTaskEntry).className
+    )
   }
-}
 
 @VisibleForTesting
-val START_TIME_COMPARATOR = Comparator<DefaultMutableTreeNode> { o1, o2 ->
-  ((o1.userObject as BackgroundTaskEntry).startTimeMs - (o2.userObject as BackgroundTaskEntry).startTimeMs).toInt()
-}
+val STATUS_COMPARATOR =
+  Comparator<DefaultMutableTreeNode> { o1, o2 ->
+    val left = o1.userObject as BackgroundTaskEntry
+    val right = o2.userObject as BackgroundTaskEntry
+    assert(left.javaClass == right.javaClass)
+    when (left) {
+      is AlarmEntry ->
+        AlarmEntry.State.valueOf(left.status).compareTo(AlarmEntry.State.valueOf(right.status))
+      is JobEntry ->
+        JobEntry.State.valueOf(left.status).compareTo(JobEntry.State.valueOf(right.status))
+      is WakeLockEntry ->
+        WakeLockEntry.State.valueOf(left.status)
+          .compareTo(WakeLockEntry.State.valueOf(right.status))
+      is WorkEntry ->
+        WorkManagerInspectorProtocol.WorkInfo.State.valueOf(left.status)
+          .compareTo(WorkManagerInspectorProtocol.WorkInfo.State.valueOf(right.status))
+      else -> 0
+    }
+  }
+
+@VisibleForTesting
+val START_TIME_COMPARATOR =
+  Comparator<DefaultMutableTreeNode> { o1, o2 ->
+    ((o1.userObject as BackgroundTaskEntry).startTimeMs -
+        (o2.userObject as BackgroundTaskEntry).startTimeMs)
+      .toInt()
+  }
 
 val TABLE_COLUMN_HEADER_BORDER = JBUI.Borders.empty(3, 10, 3, 0)
 
 /**
  * A [JBScrollPane] that consists of a tree table with basic information of all background tasks.
  */
-class BackgroundTaskTreeTableView(tab: BackgroundTaskInspectorTab,
-                                  client: BackgroundTaskInspectorClient,
-                                  selectionModel: EntrySelectionModel,
-                                  scope: CoroutineScope,
-                                  uiDispatcher: CoroutineDispatcher) {
+class BackgroundTaskTreeTableView(
+  tab: BackgroundTaskInspectorTab,
+  client: BackgroundTaskInspectorClient,
+  selectionModel: EntrySelectionModel,
+  scope: CoroutineScope,
+  uiDispatcher: CoroutineDispatcher
+) {
   val component: JComponent
   val treeModel = BackgroundTaskTreeModel(client, scope, uiDispatcher)
   val expandedPaths = mutableSetOf<TreePath>()
@@ -100,45 +114,52 @@ class BackgroundTaskTreeTableView(tab: BackgroundTaskInspectorTab,
     tree.rowHeight = 0
     tree.selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
 
-    treeModel.addTreeModelListener(object : TreeModelAdapter() {
-      override fun treeStructureChanged(event: TreeModelEvent) {
-        super.treeStructureChanged(event)
-        tree.expandPath(event.treePath)
+    treeModel.addTreeModelListener(
+      object : TreeModelAdapter() {
+        override fun treeStructureChanged(event: TreeModelEvent) {
+          super.treeStructureChanged(event)
+          tree.expandPath(event.treePath)
+        }
       }
-    })
+    )
 
-    tree.addTreeExpansionListener(object : TreeExpansionListener {
-      override fun treeExpanded(event: TreeExpansionEvent) {
-        expandedPaths.add(event.path)
+    tree.addTreeExpansionListener(
+      object : TreeExpansionListener {
+        override fun treeExpanded(event: TreeExpansionEvent) {
+          expandedPaths.add(event.path)
+        }
+
+        override fun treeCollapsed(event: TreeExpansionEvent) {
+          expandedPaths.remove(event.path)
+        }
       }
+    )
 
-      override fun treeCollapsed(event: TreeExpansionEvent) {
-        expandedPaths.remove(event.path)
-      }
-    })
+    treeModel.addOnFilteredListener { restoreExpandedPaths(tree) }
 
-    treeModel.addOnFilteredListener {
-      restoreExpandedPaths(tree)
-    }
-
-    tree.addMouseListener(object : MouseAdapter() {
-      override fun mouseClicked(e: MouseEvent) {
-        val tree = e.source as JTree
-        val row = tree.getClosestRowForLocation(e.x, e.y)
-        val bounds = tree.getRowBounds(row)
-        val tableBounds = Rectangle(0, bounds.y, bounds.width + bounds.x, bounds.height)
-        if (tableBounds.contains(e.point)) {
-          val path = tree.getPathForRow(row)
-          if ((path.lastPathComponent as? DefaultMutableTreeNode)?.userObject is BackgroundTaskEntry) {
-            tab.isDetailsViewVisible = true
+    tree.addMouseListener(
+      object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent) {
+          val tree = e.source as JTree
+          val row = tree.getClosestRowForLocation(e.x, e.y)
+          val bounds = tree.getRowBounds(row)
+          val tableBounds = Rectangle(0, bounds.y, bounds.width + bounds.x, bounds.height)
+          if (tableBounds.contains(e.point)) {
+            val path = tree.getPathForRow(row)
+            if ((path.lastPathComponent as? DefaultMutableTreeNode)?.userObject is
+                BackgroundTaskEntry
+            ) {
+              tab.isDetailsViewVisible = true
+            }
           }
         }
       }
-    })
+    )
 
     tree.addTreeSelectionListener { event ->
       if (event.isAddedPath) {
-        val node = event.path.lastPathComponent as? DefaultMutableTreeNode ?: return@addTreeSelectionListener
+        val node =
+          event.path.lastPathComponent as? DefaultMutableTreeNode ?: return@addTreeSelectionListener
         val entry = node.userObject as? BackgroundTaskEntry ?: return@addTreeSelectionListener
         selectionModel.selectedEntry = entry
         when (entry) {
@@ -146,17 +167,18 @@ class BackgroundTaskTreeTableView(tab: BackgroundTaskInspectorTab,
           is JobEntry -> {
             if (entry.targetWorkId == null) {
               client.tracker.trackJobSelected()
-            }
-            else {
+            } else {
               client.tracker.trackJobUnderWorkSelected()
             }
           }
-          is WorkEntry -> client.tracker.trackWorkSelected(AppInspectionEvent.BackgroundTaskInspectorEvent.Context.TABLE_CONTEXT)
+          is WorkEntry ->
+            client.tracker.trackWorkSelected(
+              AppInspectionEvent.BackgroundTaskInspectorEvent.Context.TABLE_CONTEXT
+            )
           // TODO(b/196583048): distinguish between standalone wake locks and wake lock under job.
           is WakeLockEntry -> client.tracker.trackWakeLockSelected()
         }
-      }
-      else {
+      } else {
         val entry = selectionModel.selectedEntry ?: return@addTreeSelectionListener
         val node = treeModel.getTreeNode(entry.id) ?: return@addTreeSelectionListener
         val treePath = TreePath(node.path)
@@ -169,25 +191,23 @@ class BackgroundTaskTreeTableView(tab: BackgroundTaskInspectorTab,
 
     selectionModel.registerEntrySelectionListener { entry ->
       if (entry == null) {
-        with(tree.selectionPath) {
-          tree.removeSelectionPath(this)
-        }
-      }
-      else {
+        with(tree.selectionPath) { tree.removeSelectionPath(this) }
+      } else {
         val node = treeModel.getTreeNode(entry.id) ?: return@registerEntrySelectionListener
         tree.selectionModel.selectionPath = TreePath(node.path)
         tree.scrollPathToVisible(tree.selectionModel.selectionPath)
       }
     }
 
-    val builder = ColumnTreeBuilder(tree)
-      .setShowVerticalLines(true)
-      .setBorder(BorderFactory.createEmptyBorder())
-      .setTreeSorter { comparator, _ ->
-        if (comparator != null) {
-          treeModel.sort(comparator)
+    val builder =
+      ColumnTreeBuilder(tree)
+        .setShowVerticalLines(true)
+        .setBorder(BorderFactory.createEmptyBorder())
+        .setTreeSorter { comparator, _ ->
+          if (comparator != null) {
+            treeModel.sort(comparator)
+          }
         }
-      }
 
     builder.setHeaderRowCellRenderer { _, value, _, _, _, _, _ ->
       JLabel((value as DefaultMutableTreeNode).userObject as String).apply {
@@ -200,25 +220,28 @@ class BackgroundTaskTreeTableView(tab: BackgroundTaskInspectorTab,
         .setName("Class")
         .setHeaderAlignment(SwingConstants.LEFT)
         .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
-        .setRenderer(object : ColoredTreeCellRenderer() {
-          override fun customizeCellRenderer(tree: JTree,
-                                             value: Any?,
-                                             selected: Boolean,
-                                             expanded: Boolean,
-                                             leaf: Boolean,
-                                             row: Int,
-                                             hasFocus: Boolean) {
-            when (val data = (value as DefaultMutableTreeNode).userObject) {
-              is BackgroundTaskEntry -> {
-                append(data.className)
-              }
-              is String -> {
-                // The main use case here is to show the empty state message.
-                append(data)
+        .setRenderer(
+          object : ColoredTreeCellRenderer() {
+            override fun customizeCellRenderer(
+              tree: JTree,
+              value: Any?,
+              selected: Boolean,
+              expanded: Boolean,
+              leaf: Boolean,
+              row: Int,
+              hasFocus: Boolean
+            ) {
+              when (val data = (value as DefaultMutableTreeNode).userObject) {
+                is BackgroundTaskEntry -> {
+                  append(data.className)
+                }
+                is String -> {
+                  // The main use case here is to show the empty state message.
+                  append(data)
+                }
               }
             }
           }
-        }
         )
         .setComparator(CLASS_NAME_COMPARATOR)
     )
@@ -227,23 +250,29 @@ class BackgroundTaskTreeTableView(tab: BackgroundTaskInspectorTab,
         .setName("Status")
         .setHeaderAlignment(SwingConstants.LEFT)
         .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
-        .setRenderer(object : ColoredTreeCellRenderer() {
-          override fun customizeCellRenderer(tree: JTree,
-                                             value: Any?,
-                                             selected: Boolean,
-                                             expanded: Boolean,
-                                             leaf: Boolean,
-                                             row: Int,
-                                             hasFocus: Boolean) {
-            when (val data = (value as DefaultMutableTreeNode).userObject) {
-              is BackgroundTaskEntry -> {
-                append(data.status.capitalizedName())
-                val stateIcon = data.icon()
-                icon = if (selected && stateIcon != null) ColoredIconGenerator.generateWhiteIcon(stateIcon) else stateIcon
+        .setRenderer(
+          object : ColoredTreeCellRenderer() {
+            override fun customizeCellRenderer(
+              tree: JTree,
+              value: Any?,
+              selected: Boolean,
+              expanded: Boolean,
+              leaf: Boolean,
+              row: Int,
+              hasFocus: Boolean
+            ) {
+              when (val data = (value as DefaultMutableTreeNode).userObject) {
+                is BackgroundTaskEntry -> {
+                  append(data.status.capitalizedName())
+                  val stateIcon = data.icon()
+                  icon =
+                    if (selected && stateIcon != null)
+                      ColoredIconGenerator.generateWhiteIcon(stateIcon)
+                    else stateIcon
+                }
               }
             }
           }
-        }
         )
         .setComparator(STATUS_COMPARATOR)
     )
@@ -252,21 +281,24 @@ class BackgroundTaskTreeTableView(tab: BackgroundTaskInspectorTab,
         .setName("Start")
         .setHeaderAlignment(SwingConstants.LEFT)
         .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
-        .setRenderer(object : ColoredTreeCellRenderer() {
-          override fun customizeCellRenderer(tree: JTree,
-                                             value: Any?,
-                                             selected: Boolean,
-                                             expanded: Boolean,
-                                             leaf: Boolean,
-                                             row: Int,
-                                             hasFocus: Boolean) {
-            when (val data = (value as DefaultMutableTreeNode).userObject) {
-              is BackgroundTaskEntry -> {
-                append(data.startTimeMs.toFormattedTimeString())
+        .setRenderer(
+          object : ColoredTreeCellRenderer() {
+            override fun customizeCellRenderer(
+              tree: JTree,
+              value: Any?,
+              selected: Boolean,
+              expanded: Boolean,
+              leaf: Boolean,
+              row: Int,
+              hasFocus: Boolean
+            ) {
+              when (val data = (value as DefaultMutableTreeNode).userObject) {
+                is BackgroundTaskEntry -> {
+                  append(data.startTimeMs.toFormattedTimeString())
+                }
               }
             }
           }
-        }
         )
         .setComparator(START_TIME_COMPARATOR)
     )
@@ -275,22 +307,25 @@ class BackgroundTaskTreeTableView(tab: BackgroundTaskInspectorTab,
         .setName("Retries")
         .setHeaderAlignment(SwingConstants.LEFT)
         .setHeaderBorder(TABLE_COLUMN_HEADER_BORDER)
-        .setRenderer(object : ColoredTreeCellRenderer() {
-          override fun customizeCellRenderer(tree: JTree,
-                                             value: Any?,
-                                             selected: Boolean,
-                                             expanded: Boolean,
-                                             leaf: Boolean,
-                                             row: Int,
-                                             hasFocus: Boolean) {
-            when (val data = (value as DefaultMutableTreeNode).userObject) {
-              is WorkEntry, is JobEntry -> {
-                append((data as BackgroundTaskEntry).retries.toString())
+        .setRenderer(
+          object : ColoredTreeCellRenderer() {
+            override fun customizeCellRenderer(
+              tree: JTree,
+              value: Any?,
+              selected: Boolean,
+              expanded: Boolean,
+              leaf: Boolean,
+              row: Int,
+              hasFocus: Boolean
+            ) {
+              when (val data = (value as DefaultMutableTreeNode).userObject) {
+                is WorkEntry, is JobEntry -> {
+                  append((data as BackgroundTaskEntry).retries.toString())
+                }
+                else -> append("-")
               }
-              else -> append("-")
             }
           }
-        }
         )
         .setComparator(START_TIME_COMPARATOR)
     )

@@ -44,8 +44,10 @@ import org.junit.rules.RuleChain
 class AppInspectionToolWindowManagerListenerTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
-  private val grpcServerRule = FakeGrpcServer.createFakeGrpcServer("AppInspectionViewTest", transportService)
-  private val appInspectionServiceRule = AppInspectionServiceRule(timer, transportService, grpcServerRule)
+  private val grpcServerRule =
+    FakeGrpcServer.createFakeGrpcServer("AppInspectionViewTest", transportService)
+  private val appInspectionServiceRule =
+    AppInspectionServiceRule(timer, transportService, grpcServerRule)
   private val projectRule = AndroidProjectRule.inMemory().initAndroid(false)
 
   private class FakeToolWindow(
@@ -55,7 +57,8 @@ class AppInspectionToolWindowManagerListenerTest {
     inspectionView: AppInspectionView
   ) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
 
-    val listener = AppInspectionToolWindowManagerListener(project, ideServices, this, inspectionView)
+    val listener =
+      AppInspectionToolWindowManagerListener(project, ideServices, this, inspectionView)
 
     var shouldBeAvailable = true
     var visible = false
@@ -76,38 +79,48 @@ class AppInspectionToolWindowManagerListenerTest {
       return visible
     }
   }
-  private val ideServices = object : AppInspectionIdeServicesAdapter() {
-    var notificationText: String? = null
+  private val ideServices =
+    object : AppInspectionIdeServicesAdapter() {
+      var notificationText: String? = null
 
-    override fun showNotification(content: String,
-                                  title: String,
-                                  severity: AppInspectionIdeServices.Severity,
-                                  hyperlinkClicked: () -> Unit) {
-      notificationText = content
+      override fun showNotification(
+        content: String,
+        title: String,
+        severity: AppInspectionIdeServices.Severity,
+        hyperlinkClicked: () -> Unit
+      ) {
+        notificationText = content
+      }
     }
-  }
 
   @get:Rule
-  val ruleChain = RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!.around(projectRule)!!
+  val ruleChain =
+    RuleChain.outerRule(grpcServerRule).around(appInspectionServiceRule)!!.around(projectRule)!!
   @Test
   fun testShowBubbleWhenInspectionIsAndIsNotRunning() = runBlocking {
-    transportService.setCommandHandler(Commands.Command.CommandType.APP_INSPECTION, TestAppInspectorCommandHandler(timer))
+    transportService.setCommandHandler(
+      Commands.Command.CommandType.APP_INSPECTION,
+      TestAppInspectorCommandHandler(timer)
+    )
     val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
-    val inspectionView = withContext(uiDispatcher) {
-      AppInspectionView(
-        projectRule.project, appInspectionServiceRule.apiServices, ideServices,
-        appInspectionServiceRule.scope, uiDispatcher
-      ) {
-        it.name == FakeTransportService.FAKE_PROCESS_NAME
+    val inspectionView =
+      withContext(uiDispatcher) {
+        AppInspectionView(
+          projectRule.project,
+          appInspectionServiceRule.apiServices,
+          ideServices,
+          appInspectionServiceRule.scope,
+          uiDispatcher
+        ) { it.name == FakeTransportService.FAKE_PROCESS_NAME }
       }
-    }
     Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
     lateinit var toolWindow: ToolWindow
-    val toolWindowManager = object : ToolWindowHeadlessManagerImpl(projectRule.project) {
-      override fun getToolWindow(id: String?): ToolWindow {
-        return toolWindow
+    val toolWindowManager =
+      object : ToolWindowHeadlessManagerImpl(projectRule.project) {
+        override fun getToolWindow(id: String?): ToolWindow {
+          return toolWindow
+        }
       }
-    }
     toolWindow = FakeToolWindow(projectRule.project, toolWindowManager, ideServices, inspectionView)
     projectRule.project.registerServiceInstance(ToolWindowManager::class.java, toolWindowManager)
     // bubble isn't shown when inspection not running
@@ -122,6 +135,7 @@ class AppInspectionToolWindowManagerListenerTest {
     // Check bubble is shown.
     toolWindow.show()
     toolWindow.hide()
-    assertThat(ideServices.notificationText).isEqualTo(AppInspectionBundle.message("inspection.is.running"))
+    assertThat(ideServices.notificationText)
+      .isEqualTo(AppInspectionBundle.message("inspection.is.running"))
   }
 }

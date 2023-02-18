@@ -30,9 +30,9 @@ import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
-import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.JComboBox
@@ -51,30 +51,30 @@ class ConfigureAndroidModuleStep(
   override fun createMainPanel(): DialogPanel = panel {
     if (!model.isLibrary) {
       row("Application/Library name") {
-        cell(appName).horizontalAlign(HorizontalAlign.FILL)
+        cell(appName).align(AlignX.FILL)
       }
     }
 
     row(contextLabel("Module name", message("android.wizard.module.help.name"))) {
-      cell(moduleName).horizontalAlign(HorizontalAlign.FILL)
+      cell(moduleName).align(AlignX.FILL)
     }
 
     row("Package name") {
-      cell(packageName).horizontalAlign(HorizontalAlign.FILL)
+      cell(packageName).align(AlignX.FILL)
     }
 
     row("Language") {
-      cell(languageCombo).horizontalAlign(HorizontalAlign.FILL)
+      cell(languageCombo).align(AlignX.FILL)
     }
 
     if (model.isLibrary) {
       row("Bytecode Level") {
-        cell(bytecodeCombo).horizontalAlign(HorizontalAlign.FILL)
+        cell(bytecodeCombo).align(AlignX.FILL)
       }
     }
 
     row("Minimum SDK") {
-      cell(apiLevelCombo).horizontalAlign(HorizontalAlign.FILL)
+      cell(apiLevelCombo).align(AlignX.FILL)
     }
 
     if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get()  || model.useGradleKts.get()) {

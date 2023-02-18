@@ -25,6 +25,8 @@ import com.android.tools.property.panel.api.LinkPropertyItem
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.editor.colors.EditorColors
 import com.intellij.openapi.editor.colors.EditorColorsManager
 import com.intellij.openapi.ui.popup.Balloon
@@ -35,8 +37,6 @@ import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.util.application.executeOnPooledThread
-import org.jetbrains.kotlin.idea.util.application.invokeLater
-import org.jetbrains.kotlin.idea.util.application.runReadAction
 import java.util.concurrent.Future
 import java.util.concurrent.TimeUnit
 

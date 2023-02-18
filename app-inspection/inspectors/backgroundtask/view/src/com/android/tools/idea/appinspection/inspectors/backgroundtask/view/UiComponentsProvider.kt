@@ -19,9 +19,7 @@ import com.android.tools.idea.codenavigation.CodeNavigator
 import com.android.tools.inspectors.common.api.stacktrace.StackTraceModel
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView
 
-/**
- * Provides custom UI components needed in Background Task Inspector.
- */
+/** Provides custom UI components needed in Background Task Inspector. */
 interface UiComponentsProvider {
   val codeNavigator: CodeNavigator
 

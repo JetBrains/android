@@ -29,7 +29,9 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.RightAlignedToolbarAction
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.keymap.KeymapManager
 import com.intellij.openapi.keymap.KeymapUtil
@@ -83,21 +85,33 @@ internal fun defaultCreateInformationPopup(
       AnActionLink("${action.templateText}${if (shortcut != null) " (${KeymapUtil.getShortcutText(shortcut)})" else ""}", action)
     }
 
+    val configureLiveEditAction = ConfigureLiveEditAction()
     return@let InformationPopupImpl(
       null,
       status.description,
-      listOfNotNull(ToggleLiveEditStatusAction()),
+      emptyList(),
       listOfNotNull(
         link,
-        AnActionLink("View Docs", BrowserHelpAction("Live Edit Docs", "https://developer.android.com/jetpack/compose/tooling/studio#iterative-code-dev"))
+        AnActionLink("View Docs", BrowserHelpAction("Live Edit Docs", "https://developer.android.com/jetpack/compose/tooling/studio#live-edit")),
+        object: AnActionLink("Configure Live Edit", configureLiveEditAction) {
+        }.apply {
+          setDropDownLinkIcon()
+          configureLiveEditAction.parentComponent = this
+        }
       )
     ).also { newPopup ->
       // Register the data provider of the popup to be the same as the one used in the toolbar.
       // This allows for actions within the popup to query for things like the Editor even when
       // the Editor is not directly related to the popup.
       DataManager.registerDataProvider(newPopup.popupComponent) { dataId ->
-        dataContext.getData(dataId)
+        if (PlatformCoreDataKeys.BGT_DATA_PROVIDER.`is`(dataId)) {
+          { id: String -> dataContext.getData(id) }
+        }
+        else {
+          dataContext.getData(dataId)
+        }
       }
+      configureLiveEditAction.parentDisposable = newPopup
     }
   }
 }
@@ -112,7 +126,7 @@ interface DeviceGetter {
 }
 
 /**
- * Action that reports the current state of the Compose Preview.
+ * Action that reports the current state of Live Edit.
  *
  * This action reports:
  * - State of Live Edit or preview out of date if Live Edit is disabled
@@ -148,11 +162,10 @@ class LiveEditIssueNotificationAction(
 }
 
 /**
- * [DefaultActionGroup] that shows the notification chip and the
- * [ForceCompileAndRefreshActionForNotification] button when applicable.
+ * [DefaultActionGroup] that shows the notification chip and the [RedeployAction] button when applicable.
  */
 class LiveEditNotificationGroup :
   DefaultActionGroup(
     "Live Edit Notification Actions",
-    listOf(LiveEditIssueNotificationAction(), ForceCompileAndRefreshActionForNotification())
+    listOf(LiveEditIssueNotificationAction(), RedeployAction(), Separator.getInstance()),
   ), RightAlignedToolbarAction

@@ -27,6 +27,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectionArtifactN
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo.Status
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.appinspection.internal.AppInspectionTarget
@@ -112,7 +113,8 @@ class ComposeLayoutInspectorClientTest {
     whenever(apiServices.launchInspector(any())).thenReturn(messenger)
     val target = mock<AppInspectionTarget>()
     whenever(messenger.sendRawCommand(any())).thenReturn(UnknownCommandResponse.getDefaultInstance().toByteArray())
-    whenever(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatbilityInfo(mock(), mock(), "1.3.0", "")))
+    whenever(target.getLibraryVersions(any()))
+      .thenReturn(listOf(LibraryCompatbilityInfo(mock(), Status.COMPATIBLE, "1.3.0", "")))
     whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
 
     checkLaunch(apiServices, "", AttachErrorCode.UNKNOWN_ERROR_CODE, expectClient = true)
@@ -128,7 +130,7 @@ class ComposeLayoutInspectorClientTest {
     }
     ApplicationManager.getApplication().registerServiceInstance(InspectorArtifactService::class.java, artifactService)
     val target = mock<AppInspectionTarget>()
-    whenever(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatbilityInfo(mock(), mock(), "1.3.0-SNAPSHOT", "")))
+    whenever(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatbilityInfo(mock(), Status.COMPATIBLE, "1.3.0-SNAPSHOT", "")))
     val apiServices = mock<AppInspectionApiServices>()
     whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
 
@@ -146,7 +148,8 @@ class ComposeLayoutInspectorClientTest {
     }
     ApplicationManager.getApplication().registerServiceInstance(InspectorArtifactService::class.java, artifactService)
     val target = mock<AppInspectionTarget>()
-    whenever(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatbilityInfo(mock(), mock(), "1.3.0", "")))
+    whenever(target.getLibraryVersions(any()))
+      .thenReturn(listOf(LibraryCompatbilityInfo(mock(), Status.COMPATIBLE, "1.3.0", "")))
     val apiServices = mock<AppInspectionApiServices>()
     whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
 
@@ -158,7 +161,7 @@ class ComposeLayoutInspectorClientTest {
   fun inspectorArtifactVersionMissing_showBanner() = runBlocking {
     val target = mock<AppInspectionTarget>()
     whenever(target.getLibraryVersions(any()))
-      .thenReturn(listOf(LibraryCompatbilityInfo(mock(), LibraryCompatbilityInfo.Status.VERSION_MISSING, "", "error")))
+      .thenReturn(listOf(LibraryCompatbilityInfo(mock(), Status.VERSION_MISSING, "", "error")))
     val apiServices = mock<AppInspectionApiServices>()
     whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
 
@@ -170,7 +173,7 @@ class ComposeLayoutInspectorClientTest {
   fun inspectorArtifactProguarded_showBanner() = runBlocking {
     val target = mock<AppInspectionTarget>()
     whenever(target.getLibraryVersions(any()))
-      .thenReturn(listOf(LibraryCompatbilityInfo(mock(), LibraryCompatbilityInfo.Status.APP_PROGUARDED, "", "error")))
+      .thenReturn(listOf(LibraryCompatbilityInfo(mock(), Status.APP_PROGUARDED, "", "error")))
     val apiServices = mock<AppInspectionApiServices>()
     whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
 
@@ -182,11 +185,11 @@ class ComposeLayoutInspectorClientTest {
   fun inspectorArtifactIncompatible_showBanner() = runBlocking {
     val target = mock<AppInspectionTarget>()
     whenever(target.getLibraryVersions(any()))
-      .thenReturn(listOf(LibraryCompatbilityInfo(mock(), LibraryCompatbilityInfo.Status.INCOMPATIBLE, "", "error")))
+      .thenReturn(listOf(LibraryCompatbilityInfo(mock(), Status.INCOMPATIBLE, "garbage version", "error")))
     val apiServices = mock<AppInspectionApiServices>()
     whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
 
-    checkLaunch(apiServices, LayoutInspectorBundle.message(INCOMPATIBLE_LIBRARY_MESSAGE_KEY, MINIMUM_COMPOSE_COORDINATE.toString()),
+    checkLaunch(apiServices, LayoutInspectorBundle.message(INCOMPATIBLE_LIBRARY_MESSAGE_KEY),
                 AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION)
   }
 
@@ -201,7 +204,8 @@ class ComposeLayoutInspectorClientTest {
     }
     ApplicationManager.getApplication().registerServiceInstance(InspectorArtifactService::class.java, artifactService)
     val target = mock<AppInspectionTarget>()
-    whenever(target.getLibraryVersions(any())).thenReturn(listOf(LibraryCompatbilityInfo(mock(), mock(), "1.3.0", "")))
+    whenever(target.getLibraryVersions(any()))
+      .thenReturn(listOf(LibraryCompatbilityInfo(mock(), Status.COMPATIBLE, "1.3.0", "")))
     val apiServices = mock<AppInspectionApiServices>()
     whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
 
@@ -260,7 +264,7 @@ class ComposeLayoutInspectorClientTest {
   fun inspectorArtifactLibraryMissing_showNoBanner() = runBlocking {
     val target = mock<AppInspectionTarget>()
     whenever(target.getLibraryVersions(any()))
-      .thenReturn(listOf(LibraryCompatbilityInfo(mock(), LibraryCompatbilityInfo.Status.LIBRARY_MISSING, "", "error")))
+      .thenReturn(listOf(LibraryCompatbilityInfo(mock(), Status.LIBRARY_MISSING, "", "error")))
     val apiServices = mock<AppInspectionApiServices>()
     whenever(apiServices.attachToProcess(processDescriptor, projectRule.project.name)).thenReturn(target)
 
@@ -295,7 +299,7 @@ class ComposeLayoutInspectorClientTest {
   }
 
   private fun comp(version: String): List<LibraryCompatbilityInfo> =
-    listOf(LibraryCompatbilityInfo(MINIMUM_COMPOSE_COORDINATE, LibraryCompatbilityInfo.Status.COMPATIBLE, version, ""))
+    listOf(LibraryCompatbilityInfo(MINIMUM_COMPOSE_COORDINATE, Status.COMPATIBLE, version, ""))
 
 
   @Test

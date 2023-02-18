@@ -44,6 +44,11 @@ class PropertyEditorFixture(
     comboBoxFixture.selectItem(text)
   }
 
+  fun selectItemWithIndex(index: Int) {
+    val comboBoxFixture = createComboBoxFixture()
+    comboBoxFixture.selectItem(index)
+  }
+
   fun selectItemWithKeyboard(text: String, andTab: Boolean = false) {
     val comboBoxFixture = createComboBoxFixture()
     comboBoxFixture.focus()

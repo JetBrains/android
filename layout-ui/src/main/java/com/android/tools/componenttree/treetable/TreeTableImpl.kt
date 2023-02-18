@@ -123,7 +123,7 @@ class TreeTableImpl(
       }
     }
     if (installTreeSearch) {
-      TreeSpeedSearch(tree) { model.toSearchString(it.lastPathComponent) }
+      TreeSpeedSearch(tree, false) { model.toSearchString(it.lastPathComponent) }
     }
     initialized = true
     updateUI()

@@ -17,7 +17,7 @@
 package org.jetbrains.kotlin.android.inspection
 
 import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.util.androidFacet
 import com.android.tools.idea.util.toIoFile
@@ -74,7 +74,7 @@ class IllegalIdentifierInspection : AbstractKotlinInspection() {
                     }
 
                     val facet = AndroidFacet.getInstance(element)
-                    if (facet != null && !facet.isDisposed && AndroidModuleInfo.getInstance(facet).minSdkVersion.apiLevel >= 30) {
+                    if (facet != null && !facet.isDisposed && StudioAndroidModuleInfo.getInstance(facet).minSdkVersion.apiLevel >= 30) {
                         // As of Android 30 this is no longer a limitation.
                         return
                     }

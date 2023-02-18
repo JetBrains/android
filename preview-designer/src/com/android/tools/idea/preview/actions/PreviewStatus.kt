@@ -38,9 +38,9 @@ sealed class PreviewStatus(
   override val icon: Icon?,
   override val title: String,
   override val description: String,
+  override val presentation: ComposeStatus.Presentation? = null,
   /** When true, the refresh icon will be displayed next to the notification chip. */
-  override val hasRefreshIcon: Boolean = false,
-  override val presentation: ComposeStatus.Presentation? = null
+  val hasRefreshIcon: Boolean = false
 ) : ComposeStatus {
   /**
    * The Preview found a syntax error and paused the updates.
@@ -49,6 +49,7 @@ sealed class PreviewStatus(
     AllIcons.General.InspectionsPause,
     message("notification.syntax.errors.title"),
     message("notification.syntax.errors.description"),
+    null,
     false)
 
   /**
@@ -58,8 +59,8 @@ sealed class PreviewStatus(
     AllIcons.General.Error,
     message("notification.needs.build.broken.title"),
     message("notification.needs.build.broken.description"),
-    true,
-    ComposeStatus.Presentation.Error)
+    ComposeStatus.Presentation.Error,
+    true)
 
   /**
    * The Preview is refreshing.
@@ -77,8 +78,8 @@ sealed class PreviewStatus(
     AllIcons.General.Warning,
     message("notification.preview.out.of.date.title"),
     message("notification.preview.out.of.date.description"),
-    true,
-    ComposeStatus.Presentation.Warning)
+    ComposeStatus.Presentation.Warning,
+    true)
 
   /**
    * The Preview is compiling.
@@ -95,8 +96,8 @@ sealed class PreviewStatus(
     AllIcons.General.Warning,
     message("notification.preview.render.issues.title"),
     message("notification.preview.render.issues.description"),
-    true,
-    ComposeStatus.Presentation.Warning)
+    ComposeStatus.Presentation.Warning,
+    true)
 
   /**
    * The Preview has failed to compile a fast change.
@@ -105,8 +106,8 @@ sealed class PreviewStatus(
     AllIcons.General.InspectionsPause,
     message("notification.preview.fast.disabled.reason.compiler.error.title"),
     message("notification.preview.fast.disabled.reason.compiler.error.description"),
-    true,
-    ComposeStatus.Presentation.Error)
+    ComposeStatus.Presentation.Error,
+    true)
 
   /**
    * The Preview is fully up to date.

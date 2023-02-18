@@ -78,7 +78,7 @@ class MockUiData(
   override var issues = criticalPathTasks.tasks.flatMap { it.issues }.groupBy { it.type }.map { (k, v) -> createIssuesGroup(k, v) }
   override var configurationTime = Mockito.mock(ConfigurationUiData::class.java)
   override var annotationProcessors = mockAnnotationProcessorsData()
-  override var confCachingData: ConfigurationCachingCompatibilityProjectResult = NoIncompatiblePlugins(emptyList())
+  override var confCachingData: ConfigurationCachingCompatibilityProjectResult = NoIncompatiblePlugins(emptyList(), true)
   override var jetifierData: JetifierUsageAnalyzerResult = JetifierUsageAnalyzerResult(JetifierUsedCheckRequired)
   override var downloadsData: DownloadsAnalyzer.Result = DownloadsAnalyzer.ActiveResult(repositoryResults = emptyList())
   override val showTaskCategoryInfo = createTaskCategoryInfo
@@ -127,8 +127,8 @@ class MockUiData(
     override val entries: List<CriticalPathPluginUiData> = tasksList
       .groupBy { it.pluginName }
       .map { createPluginData(it.key, it.value) }
-    override val warningCount: Int = entries.sumBy { it.warningCount }
-    override val infoCount: Int = entries.sumBy { it.infoCount }
+    override val warningCount: Int = entries.sumOf { it.warningCount }
+    override val infoCount: Int = entries.sumOf { it.infoCount }
   }
 
   fun createTaskCategoryData(taskCategory: TaskCategory, tasks: List<TaskUiData>) = object : CriticalPathTaskCategoryUiData {

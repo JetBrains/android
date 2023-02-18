@@ -24,17 +24,20 @@ internal abstract class ImportHelperBase {
   /**
    * Returns the set of names that might be used to refer to an annotation in code.
    *
-   * When an annotation is written, its name can take a few different forms based upon what import statements exist. For example, the
-   * annotation "com.example.Annotation" could show up as both `@Annotation` or `@com.example.Annotation`. In addition to those common
-   * cases, annotations may exist in the same package (and therefore referenced by simple name even though they're not imported), or they
-   * could be imported with an alias.
+   * When an annotation is written, its name can take a few different forms based upon what import
+   * statements exist. For example, the annotation "com.example.Annotation" could show up as both
+   * `@Annotation` or `@com.example.Annotation`. In addition to those common cases, annotations may
+   * exist in the same package (and therefore referenced by simple name even though they're not
+   * imported), or they could be imported with an alias.
    *
-   * Note that this doesn't mean that any reference using one of these names actually resolves to the given fully-qualified name. We don't
-   * have enough information at indexing time to do that resolution, so these names just represent a list of what might end up matching.
+   * Note that this doesn't mean that any reference using one of these names actually resolves to
+   * the given fully-qualified name. We don't have enough information at indexing time to do that
+   * resolution, so these names just represent a list of what might end up matching.
    *
-   * This method doesn't handle a corner case around annotations that are defined as inner classes; there are a few potential names that
-   * might be skipped in that case. That's ok, since this is only used for Dagger annotations, and none are defined in that manner.
-   * */
+   * This method doesn't handle a corner case around annotations that are defined as inner classes;
+   * there are a few potential names that might be skipped in that case. That's ok, since this is
+   * only used for Dagger annotations, and none are defined in that manner.
+   */
   fun getPossibleAnnotationText(fqName: String): Set<String> {
     return possibleAnnotations.getOrPut(fqName) { buildPossibleAnnotationText(fqName) }
   }
@@ -45,11 +48,12 @@ internal abstract class ImportHelperBase {
 /** Utility class used to compute and cache information related to imports in a Kotlin file. */
 internal class KotlinImportHelper(private val ktFile: KtFile) : ImportHelperBase() {
   /** Map of import alias to simple name of the type being imported. */
-  val aliasMap: Map<String, String> by lazy(LazyThreadSafetyMode.NONE) {
-    ktFile.importDirectives.filter { it.aliasName?.isNotEmpty() == true && it.importedFqName != null }.associate {
-      it.aliasName!! to it.importedFqName!!.asString().substringAfterLast(".")
+  val aliasMap: Map<String, String> by
+    lazy(LazyThreadSafetyMode.NONE) {
+      ktFile.importDirectives
+        .filter { it.aliasName?.isNotEmpty() == true && it.importedFqName != null }
+        .associate { it.aliasName!! to it.importedFqName!!.asString().substringAfterLast(".") }
     }
-  }
 
   override fun buildPossibleAnnotationText(fqName: String): Set<String> {
     val desiredSimpleName = fqName.substringAfterLast(".")
@@ -70,8 +74,7 @@ internal class KotlinImportHelper(private val ktFile: KtFile) : ImportHelperBase
         // If the fqName matches, then either the simple name or the alias can be used.
         fqName -> {
           val aliasName = import.aliasName
-          if (aliasName.isNullOrEmpty()) result.add(desiredSimpleName)
-          else result.add(aliasName)
+          if (aliasName.isNullOrEmpty()) result.add(desiredSimpleName) else result.add(aliasName)
         }
       }
     }
@@ -81,10 +84,11 @@ internal class KotlinImportHelper(private val ktFile: KtFile) : ImportHelperBase
 }
 
 /** Utility class used to compute and cache information related to imports in a Java file. */
-internal class JavaImportHelper(private val psiJavaFile: PsiJavaFile): ImportHelperBase()  {
+internal class JavaImportHelper(private val psiJavaFile: PsiJavaFile) : ImportHelperBase() {
   override fun buildPossibleAnnotationText(fqName: String): Set<String> {
     val desiredSimpleName = fqName.substringAfterLast(".")
-    return if (isSimpleNameAllowed(fqName, desiredSimpleName)) setOf(fqName, desiredSimpleName) else setOf(fqName)
+    return if (isSimpleNameAllowed(fqName, desiredSimpleName)) setOf(fqName, desiredSimpleName)
+    else setOf(fqName)
   }
 
   private fun isSimpleNameAllowed(fqName: String, desiredSimpleName: String): Boolean {

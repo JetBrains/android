@@ -49,6 +49,7 @@ import com.android.tools.idea.preview.xml.XmlSerializable
 import com.android.tools.idea.projectsystem.isTestFile
 import com.android.tools.idea.projectsystem.isUnitTestFile
 import com.android.tools.idea.uibuilder.model.updateConfigurationScreenSize
+import com.android.tools.sdk.CompatibilityRenderTarget
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
@@ -70,11 +71,11 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jetbrains.android.sdk.CompatibilityRenderTarget
 import org.jetbrains.android.uipreview.ModuleRenderContext
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
 import org.jetbrains.annotations.TestOnly
@@ -765,6 +766,8 @@ suspend fun previewElementFlowForFile(
         PsiManager.getInstance(psiFilePointer.project)
           .areElementsEquivalent(psiFilePointer.element, it)
       }
+      // do not generate events if there has not been modifications to the file since the last time
+      .distinctUntilChangedBy { it.modificationStamp }
       // debounce to avoid many equality comparisons of the set
       .debounce(250)
       .collect { state.update { previewProvider.previewElements().toSet() } }

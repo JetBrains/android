@@ -138,16 +138,14 @@ internal class AndroidExtraModelProviderWorker(
             }
             // We cannot request V2 models.
             // Check if we have android projects that cannot be requested using V2, but can be requested using V1.
-            controller.findModel(gradleProject, GradlePluginModel::class.java)?.also {
-              val legacyV1AgpVersionModel = controller.findModel(gradleProject, LegacyV1AgpVersionModel::class.java)
-              // LegacyV1AgpVersionModel is always available if `com.android.base` plugin is applied.
-              if (legacyV1AgpVersionModel != null)
-                return BasicV1AndroidModuleGradleProject(
-                  gradleProject,
-                  buildName,
-                  legacyV1AgpVersionModel
-                )
-            }
+            val legacyV1AgpVersionModel = controller.findModel(gradleProject, LegacyV1AgpVersionModel::class.java)
+            // LegacyV1AgpVersionModel is always available if `com.android.base` plugin is applied.
+            if (legacyV1AgpVersionModel != null)
+              return BasicV1AndroidModuleGradleProject(
+                gradleProject,
+                buildName,
+                legacyV1AgpVersionModel
+              )
 
             return BasicNonAndroidIncompleteGradleModule(gradleProject, buildName) // Check here tha Version does not return anything.
           },

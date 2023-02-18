@@ -51,21 +51,20 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
 
     processDescriptor = StubProcessDescriptor()
 
-    liveDatabaseId = SqliteDatabaseId.fromLiveDatabase(
-      "/data/user/0/com.example.package/databases/db-file", 0
-    ) as SqliteDatabaseId.LiveSqliteDatabaseId
+    liveDatabaseId =
+      SqliteDatabaseId.fromLiveDatabase("/data/user/0/com.example.package/databases/db-file", 0) as
+        SqliteDatabaseId.LiveSqliteDatabaseId
 
     val virtualFile = mock<VirtualFile>()
     whenever(virtualFile.path).thenReturn("/data/data/com.example.package/databases/db-file")
-    fileDatabaseId = SqliteDatabaseId.fromFileDatabase(DatabaseFileData(virtualFile)) as SqliteDatabaseId.FileSqliteDatabaseId
+    fileDatabaseId =
+      SqliteDatabaseId.fromFileDatabase(DatabaseFileData(virtualFile)) as
+        SqliteDatabaseId.FileSqliteDatabaseId
 
     deviceFileDownloaderService = mock()
 
-    fileDatabaseManager = FileDatabaseManagerImpl(
-      project,
-      edtDispatcher,
-      deviceFileDownloaderService
-    )
+    fileDatabaseManager =
+      FileDatabaseManagerImpl(project, edtDispatcher, deviceFileDownloaderService)
   }
 
   fun testOpenOfflineDatabases() = runBlocking {
@@ -74,28 +73,34 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
     val file2 = MockVirtualFile("f2")
     val file3 = MockVirtualFile("f3")
 
-    whenever(deviceFileDownloaderService.downloadFiles(any(), any(), any(), any())).thenReturn(
-      mapOf(
-        "/data/data/com.example.package/databases/db-file" to file1,
-        "/data/data/com.example.package/databases/db-file-shm" to file2,
-        "/data/data/com.example.package/databases/db-file-wal" to file3
+    whenever(deviceFileDownloaderService.downloadFiles(any(), any(), any(), any()))
+      .thenReturn(
+        mapOf(
+          "/data/data/com.example.package/databases/db-file" to file1,
+          "/data/data/com.example.package/databases/db-file-shm" to file2,
+          "/data/data/com.example.package/databases/db-file-wal" to file3
+        )
       )
-    )
 
     // Act
-    val offlineDatabaseData = runDispatching { fileDatabaseManager.loadDatabaseFileData("processName", processDescriptor, liveDatabaseId) }
+    val offlineDatabaseData = runDispatching {
+      fileDatabaseManager.loadDatabaseFileData("processName", processDescriptor, liveDatabaseId)
+    }
 
     // Assert
-    verify(deviceFileDownloaderService).downloadFiles(
-      eq("serial"),
-      eq(listOf(
-        "/data/data/com.example.package/databases/db-file",
-        "/data/data/com.example.package/databases/db-file-shm",
-        "/data/data/com.example.package/databases/db-file-wal"
-      )),
-      any(DownloadProgress::class.java),
-      eq(IdeFileService("database-inspector").cacheRoot)
-    )
+    verify(deviceFileDownloaderService)
+      .downloadFiles(
+        eq("serial"),
+        eq(
+          listOf(
+            "/data/data/com.example.package/databases/db-file",
+            "/data/data/com.example.package/databases/db-file-shm",
+            "/data/data/com.example.package/databases/db-file-wal"
+          )
+        ),
+        any(DownloadProgress::class.java),
+        eq(IdeFileService("database-inspector").cacheRoot)
+      )
 
     assertEquals(DatabaseFileData(file1, listOf(file2, file3)), offlineDatabaseData)
   }
@@ -105,21 +110,20 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
     val file2 = mock<VirtualFile>()
     val file3 = mock<VirtualFile>()
 
-    whenever(deviceFileDownloaderService.downloadFiles(any(), any(), any(), any())).thenReturn(
-      mapOf(
-        "/data/data/com.example.package/databases/db-file-shm" to file2,
-        "/data/data/com.example.package/databases/db-file-wal" to file3
+    whenever(deviceFileDownloaderService.downloadFiles(any(), any(), any(), any()))
+      .thenReturn(
+        mapOf(
+          "/data/data/com.example.package/databases/db-file-shm" to file2,
+          "/data/data/com.example.package/databases/db-file-wal" to file3
+        )
       )
-    )
 
     // Act
     runDispatching {
       try {
         fileDatabaseManager.loadDatabaseFileData("processName", processDescriptor, liveDatabaseId)
         fail()
-      }
-      catch (e: FileDatabaseException) { }
-      catch (e: Throwable) {
+      } catch (e: FileDatabaseException) {} catch (e: Throwable) {
         fail("Expected IOException, but got Throwable")
       }
     }
@@ -135,9 +139,7 @@ class FileDatabaseManagerTest : LightPlatformTestCase() {
       try {
         fileDatabaseManager.loadDatabaseFileData("processName", processDescriptor, liveDatabaseId)
         fail()
-      }
-      catch (e: FileDatabaseException) { }
-      catch (e: Throwable) {
+      } catch (e: FileDatabaseException) {} catch (e: Throwable) {
         fail("Expected IOException, but got Throwable")
       }
     }

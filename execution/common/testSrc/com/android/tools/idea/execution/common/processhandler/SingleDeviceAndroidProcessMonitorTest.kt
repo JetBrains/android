@@ -131,7 +131,9 @@ class SingleDeviceAndroidProcessMonitorTest {
       finishAndroidProcessCallback,
       listenerExecutor = MoreExecutors.directExecutor(),
       stateUpdaterExecutor = mockScheduledExecutor,
-    )
+    ).apply {
+      start()
+    }
   }
 
   private fun updateMonitorState() {

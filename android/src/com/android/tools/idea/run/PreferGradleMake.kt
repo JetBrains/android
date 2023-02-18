@@ -19,6 +19,5 @@ import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 
 // Gradle-aware Make marker interface
 interface PreferGradleMake {
-  @JvmDefault
   val testCompileMode: TestCompileType get() = TestCompileType.NONE
 }

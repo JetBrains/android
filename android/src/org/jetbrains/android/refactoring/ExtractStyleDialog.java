@@ -32,7 +32,6 @@ import com.intellij.ui.*;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.util.PlatformIcons;
-import com.intellij.util.containers.Convertor;
 import com.intellij.util.ui.tree.TreeUtil;
 import org.jetbrains.android.actions.CreateXmlResourceDialog;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -47,6 +46,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 class ExtractStyleDialog extends DialogWrapper {
 
@@ -127,9 +127,9 @@ class ExtractStyleDialog extends DialogWrapper {
     myTree = new CheckboxTree(renderer, myRootNode) {
       @Override
       protected void installSpeedSearch() {
-        new TreeSpeedSearch(this, new Convertor<TreePath, String>() {
+        new TreeSpeedSearch(this, false, new Function<TreePath, String>() {
           @Override
-          public String convert(TreePath path) {
+          public String apply(TreePath path) {
             Object object = path.getLastPathComponent();
             if (object instanceof CheckedTreeNode) {
               XmlAttribute attribute = (XmlAttribute)((CheckedTreeNode)object).getUserObject();

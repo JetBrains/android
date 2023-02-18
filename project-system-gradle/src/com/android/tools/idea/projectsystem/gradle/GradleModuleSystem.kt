@@ -460,6 +460,8 @@ class GradleModuleSystem(
 
   override val testRClassConstantIds: Boolean get() = readFromAgpFlags { it.testRClassConstantIds } ?: true
 
+  override val useAndroidX: Boolean? get() = readFromAgpFlags { it.useAndroidX }
+
   override val submodules: Collection<Module>
     get() = moduleHierarchyProvider.submodules
 }

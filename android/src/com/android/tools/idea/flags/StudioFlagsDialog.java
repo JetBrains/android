@@ -56,6 +56,7 @@ import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.NamedColorUtil;
 import com.intellij.util.ui.StartupUiUtil;
 import com.intellij.util.ui.UIUtil;
 import java.awt.BorderLayout;
@@ -216,7 +217,7 @@ public final class StudioFlagsDialog extends DialogWrapper {
           description.setWrapStyleWord(true);
           description.setEditable(false);
           description.setOpaque(false);
-          description.setForeground(UIUtil.getInactiveTextColor());
+          description.setForeground(NamedColorUtil.getInactiveTextColor());
 
           FlagEditor<?> flagEditor = createFlagEditor(flag);
 

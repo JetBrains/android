@@ -27,9 +27,6 @@ import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ide.plugins.newui.VerticalLayout
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import java.awt.Color
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -45,17 +42,20 @@ import javax.swing.KeyStroke
 import javax.swing.SwingConstants
 import javax.swing.border.EmptyBorder
 import kotlin.math.max
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 const val MIN_GAP_BETWEEN_LABELS = 50
 
-/**
- * Graph Panel which shows dependencies among selected chaining works.
- */
-class WorkDependencyGraphView(private val tab: BackgroundTaskInspectorTab,
-                              private val client: BackgroundTaskInspectorClient,
-                              private val selectionModel: EntrySelectionModel,
-                              private val scope: CoroutineScope,
-                              private val uiDispatcher: CoroutineDispatcher) : JPanel() {
+/** Graph Panel which shows dependencies among selected chaining works. */
+class WorkDependencyGraphView(
+  private val tab: BackgroundTaskInspectorTab,
+  private val client: BackgroundTaskInspectorClient,
+  private val selectionModel: EntrySelectionModel,
+  private val scope: CoroutineScope,
+  private val uiDispatcher: CoroutineDispatcher
+) : JPanel() {
 
   private var works = listOf<WorkInfo>()
   private var labelMap = mapOf<String, JLabel>()
@@ -75,39 +75,39 @@ class WorkDependencyGraphView(private val tab: BackgroundTaskInspectorTab,
   private fun registerDirectionKeyStroke(keyCode: Int, name: String, deltaRow: Int, deltaCol: Int) {
     val inputMap = getInputMap(WHEN_FOCUSED)
     inputMap.put(KeyStroke.getKeyStroke(keyCode, 0), name)
-    actionMap.put(name, object : AbstractAction() {
-      override fun actionPerformed(e: ActionEvent) {
-        // Find the selected label in the graph.
-        val selectedWork = selectionModel.selectedWork ?: return
-        val selectedLabel = labelMap[selectedWork.id] ?: return
-        var col = -1
-        var row = components.indexOfFirst { rowPanel ->
-          col = (rowPanel as JPanel).components.indexOfFirst {
-            it == selectedLabel
-          }
-          col != -1
-        }
-        if (row == -1) {
-          return
-        }
-        row += deltaRow
-        col += deltaCol
-
-        // Select the next work.
-        if (row in 0 until componentCount) {
-          val rowPanel = getComponent(row) as JPanel
-          if (col in 0 until rowPanel.componentCount) {
-            val label = rowPanel.getComponent(col)
-            val id = labelMap.entries.firstOrNull {
-              it.value == label
-            }?.key ?: return
-            val workEntry = client.getEntry(id) as? WorkEntry ?: return
-            selectionModel.selectedEntry = workEntry
+    actionMap.put(
+      name,
+      object : AbstractAction() {
+        override fun actionPerformed(e: ActionEvent) {
+          // Find the selected label in the graph.
+          val selectedWork = selectionModel.selectedWork ?: return
+          val selectedLabel = labelMap[selectedWork.id] ?: return
+          var col = -1
+          var row =
+            components.indexOfFirst { rowPanel ->
+              col = (rowPanel as JPanel).components.indexOfFirst { it == selectedLabel }
+              col != -1
+            }
+          if (row == -1) {
             return
+          }
+          row += deltaRow
+          col += deltaCol
+
+          // Select the next work.
+          if (row in 0 until componentCount) {
+            val rowPanel = getComponent(row) as JPanel
+            if (col in 0 until rowPanel.componentCount) {
+              val label = rowPanel.getComponent(col)
+              val id = labelMap.entries.firstOrNull { it.value == label }?.key ?: return
+              val workEntry = client.getEntry(id) as? WorkEntry ?: return
+              selectionModel.selectedEntry = workEntry
+              return
+            }
           }
         }
       }
-    })
+    )
   }
 
   private fun updateWorks() {
@@ -140,11 +140,18 @@ class WorkDependencyGraphView(private val tab: BackgroundTaskInspectorTab,
     for (depth in 0..maxDepth) {
       val worksWithDepth = works.filter { depthMap[it.id] == depth }
 
-      // Set a proper gap between labels so that works with different depths have the same total width.
-      val gap = (maxWidth - worksWithDepth.sumBy { labelMap[it.id]!!.preferredSize.width }) / ((worksWithDepth.size + 1))
-      val panelWithDepth = JPanel(TabularLayout("${gap}px" + ",Fit,${gap}px".repeat(worksWithDepth.size)))
+      // Set a proper gap between labels so that works with different depths have the same total
+      // width.
+      val gap =
+        (maxWidth - worksWithDepth.sumOf { labelMap[it.id]!!.preferredSize.width }) /
+          ((worksWithDepth.size + 1))
+      val panelWithDepth =
+        JPanel(TabularLayout("${gap}px" + ",Fit,${gap}px".repeat(worksWithDepth.size)))
       for (index in worksWithDepth.indices) {
-        panelWithDepth.add(labelMap[worksWithDepth[index].id]!!, TabularLayout.Constraint(0, 1 + index * 2))
+        panelWithDepth.add(
+          labelMap[worksWithDepth[index].id]!!,
+          TabularLayout.Constraint(0, 1 + index * 2)
+        )
       }
       add(panelWithDepth)
     }
@@ -154,7 +161,8 @@ class WorkDependencyGraphView(private val tab: BackgroundTaskInspectorTab,
   }
 
   private fun estimateWidth(works: List<WorkInfo>): Int {
-    return MIN_GAP_BETWEEN_LABELS * (works.size + 1) + works.sumBy { labelMap[it.id]!!.preferredSize.width }
+    return MIN_GAP_BETWEEN_LABELS * (works.size + 1) +
+      works.sumOf { labelMap[it.id]!!.preferredSize.width }
   }
 
   private fun createLabel(work: WorkInfo): JLabel {
@@ -164,31 +172,47 @@ class WorkDependencyGraphView(private val tab: BackgroundTaskInspectorTab,
     label.isOpaque = true
 
     val defaultBorder = EmptyBorder(JBUI.scale(6), JBUI.scale(10), JBUI.scale(6), JBUI.scale(10))
-    label.border = if (work == selectionModel.selectedWork) {
-      BorderFactory.createCompoundBorder(
-        BorderFactory.createMatteBorder(JBUI.scale(2), JBUI.scale(2), JBUI.scale(2), JBUI.scale(2), SELECTED_WORK_BORDER_COLOR),
-        defaultBorder
-      )
-    }
-    else {
-      BorderFactory.createCompoundBorder(
-        BorderFactory.createMatteBorder(JBUI.scale(1), JBUI.scale(1), JBUI.scale(1), JBUI.scale(1), DEFAULT_WORK_BORDER_COLOR),
+    label.border =
+      if (work == selectionModel.selectedWork) {
         BorderFactory.createCompoundBorder(
-          EmptyBorder(JBUI.scale(1), JBUI.scale(1), JBUI.scale(1), JBUI.scale(1)),
+          BorderFactory.createMatteBorder(
+            JBUI.scale(2),
+            JBUI.scale(2),
+            JBUI.scale(2),
+            JBUI.scale(2),
+            SELECTED_WORK_BORDER_COLOR
+          ),
           defaultBorder
-        ),
-      )
-    }
+        )
+      } else {
+        BorderFactory.createCompoundBorder(
+          BorderFactory.createMatteBorder(
+            JBUI.scale(1),
+            JBUI.scale(1),
+            JBUI.scale(1),
+            JBUI.scale(1),
+            DEFAULT_WORK_BORDER_COLOR
+          ),
+          BorderFactory.createCompoundBorder(
+            EmptyBorder(JBUI.scale(1), JBUI.scale(1), JBUI.scale(1), JBUI.scale(1)),
+            defaultBorder
+          ),
+        )
+      }
 
-    label.addMouseListener(object : MouseAdapter() {
-      override fun mousePressed(e: MouseEvent?) {
-        client.getEntry(work.id)?.let { nonNullEntry ->
-          tab.isDetailsViewVisible = true
-          client.tracker.trackWorkSelected(AppInspectionEvent.BackgroundTaskInspectorEvent.Context.GRAPH_CONTEXT)
-          selectionModel.selectedEntry = nonNullEntry
+    label.addMouseListener(
+      object : MouseAdapter() {
+        override fun mousePressed(e: MouseEvent?) {
+          client.getEntry(work.id)?.let { nonNullEntry ->
+            tab.isDetailsViewVisible = true
+            client.tracker.trackWorkSelected(
+              AppInspectionEvent.BackgroundTaskInspectorEvent.Context.GRAPH_CONTEXT
+            )
+            selectionModel.selectedEntry = nonNullEntry
+          }
         }
       }
-    })
+    )
     return label
   }
 

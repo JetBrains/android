@@ -150,7 +150,7 @@ class InspectorPropertiesViewTest {
 
     // Check that the Recomposition section is omitted if the recomposition numbers are reset
     treeSettings.showRecompositions = true
-    val model = propertiesModel.layoutInspector!!.layoutInspectorModel
+    val model = propertiesModel.layoutInspector!!.inspectorModel
     model.maxRecomposition.reset()
     inspector = FakeInspectorPanel()
     tab.attachToInspector(inspector)
@@ -221,7 +221,7 @@ class InspectorPropertiesViewTest {
     val settings = FakeTreeSettings()
     val client: InspectorClient = mock()
     whenever(client.stats).thenReturn(mock())
-    val layoutInspector = LayoutInspector(client, model, settings)
+    val layoutInspector = LayoutInspector(mock(), mock(), client, model, settings)
     propertiesModel.layoutInspector = layoutInspector
     customize(propertiesModel)
     return propertiesView
@@ -239,7 +239,7 @@ class InspectorPropertiesViewTest {
   }
 
   private fun showRecompositions(propertiesModel: InspectorPropertiesModel) {
-    val model = propertiesModel.layoutInspector!!.layoutInspectorModel
+    val model = propertiesModel.layoutInspector!!.inspectorModel
     model.maxRecomposition.count = 7
     model.maxRecomposition.skips = 14
     val settings = propertiesModel.layoutInspector!!.treeSettings

@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.android.inspection
 
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.intellij.codeInspection.*
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElementVisitor
@@ -30,7 +30,7 @@ import org.jetbrains.kotlin.psi.psiUtil.addTypeArgument
 class TypeParameterFindViewByIdInspection : AbstractKotlinInspection(), CleanupLocalInspectionTool {
     override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean, session: LocalInspectionToolSession): PsiElementVisitor {
         val compileSdk = AndroidFacet.getInstance(session.file)
-                ?.let { facet -> AndroidModuleInfo.getInstance(facet) }
+                ?.let { facet -> StudioAndroidModuleInfo.getInstance(facet) }
                 ?.buildSdkVersion
                 ?.apiLevel
 

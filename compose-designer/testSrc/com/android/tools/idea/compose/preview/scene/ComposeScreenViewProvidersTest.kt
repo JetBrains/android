@@ -78,9 +78,9 @@ class ComposeScreenViewProvidersTest {
       }
     }
 
-    // When showDecorations is true, the scene view should always use a the device shape. In this
+    // When showDecorations is true, the scene view should always use the device shape. In this
     // case, round.
-    listOf(COMPOSE_SCREEN_VIEW_PROVIDER, COMPOSE_BLUEPRINT_SCREEN_VIEW_PROVIDER).forEach {
+    listOf(COMPOSE_SCREEN_VIEW_PROVIDER).forEach {
       val sceneView = it.createPrimarySceneView(surface, surface.sceneManager!!)
       assertTrue(sceneView.screenShape is Ellipse2D)
     }
@@ -92,7 +92,7 @@ class ComposeScreenViewProvidersTest {
         displayName = "displayName",
         showDecorations = false
       )
-    listOf(COMPOSE_SCREEN_VIEW_PROVIDER, COMPOSE_BLUEPRINT_SCREEN_VIEW_PROVIDER).forEach {
+    listOf(COMPOSE_SCREEN_VIEW_PROVIDER).forEach {
       val sceneView = it.createPrimarySceneView(surface, surface.sceneManager!!)
       assertTrue(sceneView.screenShape is Rectangle)
     }

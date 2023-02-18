@@ -49,7 +49,7 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
   object AgpVersionNotFound: BlockReason(
     shortDescription = "Cannot find AGP version in build files.",
     description = "Cannot locate the version specification for the Android Gradle Plugin dependency, \n" +
-                  "possibly because the project's build files use features not currently support by the \n" +
+                  "possibly because the project's build files use features not currently supported by the \n" +
                   "Upgrade Assistant (for example: using constants defined in buildSrc).",
     readMoreUrl = ReadMoreUrlRedirect("agp-version-not-found")
   )

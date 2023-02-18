@@ -1,29 +1,23 @@
-/*
- * Copyright 2010-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
- * that can be found in the license/LICENSE.txt file.
- */
-
+// Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.kotlin.android.model
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import java.io.File
 
-val Module.isAndroidModule
-
+internal val Module.isAndroidModule
     get() = AndroidModuleInfoProvider.getInstance(this)?.isAndroidModule() ?: false
 
 interface AndroidModuleInfoProvider {
     companion object {
-        val EP_NAME = ExtensionPointName.create<AndroidModuleInfoProvider>("org.jetbrains.kotlin.android.model.androidModuleInfoProvider")
+        val EP_NAME = ExtensionPointName<AndroidModuleInfoProvider>("org.jetbrains.kotlin.android.model.androidModuleInfoProvider")
 
         fun getInstance(module: Module): AndroidModuleInfoProvider? {
-            val extensionArea = Extensions.getArea(module)
+            val extensionArea = module.extensionArea
             if (!extensionArea.hasExtensionPoint(EP_NAME.name)) {
                 return null
             }

@@ -25,6 +25,7 @@ import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.AndroidGradleTests.overrideJdkTo8
 import com.android.tools.idea.testing.AndroidGradleTests.restoreJdk
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationNamesInfo
 import org.gradle.tooling.UnsupportedVersionException
 import org.jetbrains.plugins.gradle.issue.GradleIssueData
 
@@ -47,7 +48,7 @@ class OldAndroidPluginIssueCheckerTest: AndroidGradleTestCase() {
 
   fun verifyGradleIssue(minimumAgpVersion: AgpVersion) {
     val errMsg = "Support for builds using Gradle versions older than 2.6 was removed in tooling API version 5.0. You are currently using Gradle version 2.2. You should upgrade your Gradle build to use Gradle 2.6 or later."
-    val expectedErrorMsg = "This version of Android Studio requires projects to use Gradle 4.8.1 or newer. This project is using Gradle 2.2."
+    val expectedErrorMsg = "This version of ${ApplicationNamesInfo.getInstance().fullProductName} requires projects to use Gradle 4.8.1 or newer. This project is using Gradle 2.2."
     val issueData = GradleIssueData(projectFolderPath.path, Throwable(errMsg, UnsupportedVersionException(errMsg)), null, null)
     val minimumGradleVersion = OldAndroidPluginIssueChecker.MINIMUM_GRADLE_VERSION
 

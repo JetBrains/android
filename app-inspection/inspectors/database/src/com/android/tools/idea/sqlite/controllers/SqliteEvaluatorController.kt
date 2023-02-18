@@ -42,7 +42,8 @@ import java.util.LinkedList
 import java.util.concurrent.Executor
 
 /**
- * Implementation of the application logic related to running queries and updates on a sqlite database.
+ * Implementation of the application logic related to running queries and updates on a sqlite
+ * database.
  *
  * All methods are assumed to run on the UI (EDT) thread.
  */
@@ -64,39 +65,49 @@ class SqliteEvaluatorController(
   }
 
   private var currentTableController: TableController? = null
-  private val sqliteEvaluatorViewListener: SqliteEvaluatorView.Listener = SqliteEvaluatorViewListenerImpl()
+  private val sqliteEvaluatorViewListener: SqliteEvaluatorView.Listener =
+    SqliteEvaluatorViewListenerImpl()
   private val listeners = mutableListOf<Listener>()
   private val openDatabases = mutableListOf<SqliteDatabaseId>()
   // database currently active in combobox + current text in textfield
   private var currentEvaluationParams: EvaluationParams = EvaluationParams(null, "")
 
   // database + query that were used for last query/exec
-  private var lastUsedEvaluationParams : EvaluationParams? = null
+  private var lastUsedEvaluationParams: EvaluationParams? = null
 
   private val queryHistory = LinkedList<String>()
 
-  private val modelListener = object : DatabaseInspectorModel.Listener {
-    @UiThread
-    override fun onDatabasesChanged(openDatabaseIds: List<SqliteDatabaseId>, closeDatabaseIds: List<SqliteDatabaseId>) {
-      openDatabases.clear()
-      openDatabases.addAll(openDatabaseIds.sortedBy { it.name })
+  private val modelListener =
+    object : DatabaseInspectorModel.Listener {
+      @UiThread
+      override fun onDatabasesChanged(
+        openDatabaseIds: List<SqliteDatabaseId>,
+        closeDatabaseIds: List<SqliteDatabaseId>
+      ) {
+        openDatabases.clear()
+        openDatabases.addAll(openDatabaseIds.sortedBy { it.name })
 
-      if (currentEvaluationParams.databaseId !in openDatabaseIds) {
-        currentEvaluationParams =  currentEvaluationParams.copy(databaseId = openDatabases.firstOrNull())
+        if (currentEvaluationParams.databaseId !in openDatabaseIds) {
+          currentEvaluationParams =
+            currentEvaluationParams.copy(databaseId = openDatabases.firstOrNull())
+        }
+        if (lastUsedEvaluationParams?.databaseId !in openDatabaseIds) {
+          resetTable()
+        }
+
+        view.setDatabases(ArrayList(openDatabases), currentEvaluationParams.databaseId)
+        updateRunSqliteStatementButtonState()
       }
-      if (lastUsedEvaluationParams?.databaseId !in openDatabaseIds) {
-        resetTable()
+
+      @UiThread
+      override fun onSchemaChanged(
+        databaseId: SqliteDatabaseId,
+        oldSchema: SqliteSchema,
+        newSchema: SqliteSchema
+      ) {
+        view.schemaChanged(databaseId)
       }
-
-      view.setDatabases(ArrayList(openDatabases), currentEvaluationParams.databaseId)
-      updateRunSqliteStatementButtonState()
     }
-
-    @UiThread
-    override fun onSchemaChanged(databaseId: SqliteDatabaseId, oldSchema: SqliteSchema, newSchema: SqliteSchema) {
-      view.schemaChanged(databaseId)
-    }
-  }
 
   fun setUp(evaluationParams: EvaluationParams? = null) {
     model.addListener(modelListener)
@@ -105,7 +116,9 @@ class SqliteEvaluatorController(
     updateDefaultMessage()
 
     // load query history
-    PropertiesComponent.getInstance(project).getList(QUERY_HISTORY_KEY)?.forEach { queryHistory.add(it!!) }
+    PropertiesComponent.getInstance(project).getList(QUERY_HISTORY_KEY)?.forEach {
+      queryHistory.add(it!!)
+    }
     view.setQueryHistory(queryHistory.toList())
 
     if (evaluationParams != null) {
@@ -113,9 +126,9 @@ class SqliteEvaluatorController(
       // we don't want to automatically run a statement that can modify a database
       if (evaluationParams.databaseId in openDatabases && statement.isQueryStatement) {
         showAndExecuteSqlStatement(evaluationParams.databaseId!!, statement)
-      }
-      else {
-        currentEvaluationParams = currentEvaluationParams.copy(statementText = evaluationParams.statementText)
+      } else {
+        currentEvaluationParams =
+          currentEvaluationParams.copy(statementText = evaluationParams.statementText)
         view.showSqliteStatement(currentEvaluationParams.statementText)
       }
     }
@@ -143,12 +156,20 @@ class SqliteEvaluatorController(
     listeners.remove(listener)
   }
 
-  fun showAndExecuteSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
+  fun showAndExecuteSqlStatement(
+    databaseId: SqliteDatabaseId,
+    sqliteStatement: SqliteStatement
+  ): ListenableFuture<Unit> {
     if (databaseId !in openDatabases) {
-      return immediateFailedFuture(IllegalStateException("Can't evaluate SQLite statement, unknown database: '${databaseId.path}'"))
+      return immediateFailedFuture(
+        IllegalStateException(
+          "Can't evaluate SQLite statement, unknown database: '${databaseId.path}'"
+        )
+      )
     }
 
-    currentEvaluationParams = EvaluationParams(databaseId, sqliteStatement.sqliteStatementWithInlineParameters)
+    currentEvaluationParams =
+      EvaluationParams(databaseId, sqliteStatement.sqliteStatementWithInlineParameters)
     view.showSqliteStatement(sqliteStatement.sqliteStatementWithInlineParameters)
     view.setDatabases(ArrayList(openDatabases), currentEvaluationParams.databaseId)
     return executeSqlStatement(databaseId, sqliteStatement)
@@ -156,19 +177,24 @@ class SqliteEvaluatorController(
 
   fun saveEvaluationParams(): EvaluationParams {
     // prefer newly entered data over last evaluated
-    val databaseId = lastUsedEvaluationParams?.takeIf { currentEvaluationParams.statementText == it.statementText }?.databaseId
+    val databaseId =
+      lastUsedEvaluationParams
+        ?.takeIf { currentEvaluationParams.statementText == it.statementText }
+        ?.databaseId
     return EvaluationParams(databaseId, currentEvaluationParams.statementText)
   }
 
-  private fun executeSqlStatement(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
+  private fun executeSqlStatement(
+    databaseId: SqliteDatabaseId,
+    sqliteStatement: SqliteStatement
+  ): ListenableFuture<Unit> {
     resetTable()
 
     // update query history
     val newEntry = sqliteStatement.sqliteStatementWithInlineParameters
     if (queryHistory.contains(newEntry)) {
       queryHistory.remove(newEntry)
-    }
-    else if (queryHistory.size >= MAX_QUERY_HISTORY_SIZE) {
+    } else if (queryHistory.size >= MAX_QUERY_HISTORY_SIZE) {
       queryHistory.removeLast()
     }
 
@@ -177,16 +203,15 @@ class SqliteEvaluatorController(
     // save query history
     PropertiesComponent.getInstance(project).setList(QUERY_HISTORY_KEY, queryHistory)
 
-    lastUsedEvaluationParams = EvaluationParams(databaseId, sqliteStatement.sqliteStatementWithInlineParameters)
+    lastUsedEvaluationParams =
+      EvaluationParams(databaseId, sqliteStatement.sqliteStatementWithInlineParameters)
     return if (sqliteStatement.isQueryStatement) {
       view.showTableView()
       runQuery(databaseId, sqliteStatement)
-    }
-    else {
+    } else {
       if (databaseId !is SqliteDatabaseId.FileSqliteDatabaseId) {
         runUpdate(databaseId, sqliteStatement)
-      }
-      else {
+      } else {
         view.showMessagePanel("Modifier statements are disabled on offline databases.")
         Futures.immediateFuture(Unit)
       }
@@ -205,41 +230,60 @@ class SqliteEvaluatorController(
   }
 
   private fun updateRunSqliteStatementButtonState() {
-    view.setRunSqliteStatementEnabled(currentEvaluationParams.databaseId != null && !hasParsingError(project, currentEvaluationParams.statementText))
+    view.setRunSqliteStatementEnabled(
+      currentEvaluationParams.databaseId != null &&
+        !hasParsingError(project, currentEvaluationParams.statementText)
+    )
   }
 
-  private fun runQuery(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
-    currentTableController = TableController(
-      closeTabInvoked = closeTabInvoked,
-      project = project,
-      view = view.tableView,
-      tableSupplier = { null },
-      databaseId = databaseId,
-      databaseRepository = databaseRepository,
-      sqliteStatement = sqliteStatement,
-      showExportDialog = showExportDialog,
-      edtExecutor = edtExecutor,
-      taskExecutor = taskExecutor
-    )
+  private fun runQuery(
+    databaseId: SqliteDatabaseId,
+    sqliteStatement: SqliteStatement
+  ): ListenableFuture<Unit> {
+    currentTableController =
+      TableController(
+        closeTabInvoked = closeTabInvoked,
+        project = project,
+        view = view.tableView,
+        tableSupplier = { null },
+        databaseId = databaseId,
+        databaseRepository = databaseRepository,
+        sqliteStatement = sqliteStatement,
+        showExportDialog = showExportDialog,
+        edtExecutor = edtExecutor,
+        taskExecutor = taskExecutor
+      )
     Disposer.register(this@SqliteEvaluatorController, currentTableController!!)
-    return currentTableController!!.setUp()
+    return currentTableController!!
+      .setUp()
       .transform(edtExecutor) {
-        showSuccessfulExecutionNotification(DatabaseInspectorBundle.message("statement.run.successfully"))
-      }.catching(edtExecutor, Throwable::class.java) {
+        showSuccessfulExecutionNotification(
+          DatabaseInspectorBundle.message("statement.run.successfully")
+        )
+      }
+      .catching(edtExecutor, Throwable::class.java) {
         view.showMessagePanel(DatabaseInspectorBundle.message("error.running.statement"))
       }
   }
 
-  private fun runUpdate(databaseId: SqliteDatabaseId, sqliteStatement: SqliteStatement): ListenableFuture<Unit> {
-    return databaseRepository.executeStatement(databaseId, sqliteStatement)
+  private fun runUpdate(
+    databaseId: SqliteDatabaseId,
+    sqliteStatement: SqliteStatement
+  ): ListenableFuture<Unit> {
+    return databaseRepository
+      .executeStatement(databaseId, sqliteStatement)
       .transform(edtExecutor) {
         view.showMessagePanel(DatabaseInspectorBundle.message("statement.run.successfully"))
-        showSuccessfulExecutionNotification(DatabaseInspectorBundle.message("statement.run.successfully"))
+        showSuccessfulExecutionNotification(
+          DatabaseInspectorBundle.message("statement.run.successfully")
+        )
         listeners.forEach { it.onSqliteStatementExecuted(databaseId) }
-      }.catching(edtExecutor, Throwable::class.java) { throwable ->
+      }
+      .catching(edtExecutor, Throwable::class.java) { throwable ->
         view.showMessagePanel(DatabaseInspectorBundle.message("error.running.statement"))
         view.reportError(DatabaseInspectorBundle.message("error.running.statement"), throwable)
-      }.cancelOnDispose(this)
+      }
+      .cancelOnDispose(this)
   }
 
   private fun updateDefaultMessage() {
@@ -248,9 +292,13 @@ class SqliteEvaluatorController(
         view.showMessagePanel("Write a query and run it to see results from the selected database.")
       }
       is SqliteDatabaseId.FileSqliteDatabaseId -> {
-        view.showMessagePanel("The inspector is not connected to an app process.\nYou can inspect and query data, but data is read-only.")
+        view.showMessagePanel(
+          "The inspector is not connected to an app process.\nYou can inspect and query data, but data is read-only."
+        )
       }
-      null -> { view.showMessagePanel("Select a database from the drop down.") }
+      null -> {
+        view.showMessagePanel("Select a database from the drop down.")
+      }
     }
   }
 
@@ -258,17 +306,24 @@ class SqliteEvaluatorController(
     override fun evaluateCurrentStatement() {
       val databaseId = currentEvaluationParams.databaseId!!
 
-      val connectivityState = when (databaseId) {
-        is SqliteDatabaseId.FileSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_OFFLINE
-        is SqliteDatabaseId.LiveSqliteDatabaseId -> AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE
-      }
+      val connectivityState =
+        when (databaseId) {
+          is SqliteDatabaseId.FileSqliteDatabaseId ->
+            AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_OFFLINE
+          is SqliteDatabaseId.LiveSqliteDatabaseId ->
+            AppInspectionEvent.DatabaseInspectorEvent.ConnectivityState.CONNECTIVITY_ONLINE
+        }
 
-      DatabaseInspectorAnalyticsTracker.getInstance(project).trackStatementExecuted(
-        connectivityState,
-        AppInspectionEvent.DatabaseInspectorEvent.StatementContext.USER_DEFINED_STATEMENT_CONTEXT
+      DatabaseInspectorAnalyticsTracker.getInstance(project)
+        .trackStatementExecuted(
+          connectivityState,
+          AppInspectionEvent.DatabaseInspectorEvent.StatementContext.USER_DEFINED_STATEMENT_CONTEXT
+        )
+
+      executeSqlStatement(
+        databaseId,
+        createSqliteStatement(project, currentEvaluationParams.statementText)
       )
-
-      executeSqlStatement(databaseId, createSqliteStatement(project, currentEvaluationParams.statementText))
     }
 
     override fun sqliteStatementTextChangedInvoked(newSqliteStatement: String) {
@@ -290,7 +345,7 @@ class SqliteEvaluatorController(
     /**
      * Called when an user-defined SQLite statement is successfully executed
      * @param databaseId The database on which the statement was executed.
-     * */
+     */
     fun onSqliteStatementExecuted(databaseId: SqliteDatabaseId)
   }
 

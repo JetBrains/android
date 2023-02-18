@@ -1085,7 +1085,7 @@ class ComposePreviewRepresentation(
 
   private fun requestVisibilityAndNotificationsUpdate() {
     launch(workerThread) { refreshNotificationsAndVisibilityFlow.emit(Unit) }
-    updateAnimationPanelVisibility()
+    launch(uiThread) { updateAnimationPanelVisibility() }
   }
 
   /**

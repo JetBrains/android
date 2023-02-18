@@ -24,92 +24,104 @@ import androidx.work.inspection.WorkManagerInspectorProtocol.WorkInfo
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.google.common.truth.Truth.assertThat
+import javax.swing.tree.DefaultMutableTreeNode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.emptyFlow
-import javax.swing.tree.DefaultMutableTreeNode
 
 object BackgroundTaskInspectorTestUtils {
-  private class FakeAppInspectorMessenger(
-    override val scope: CoroutineScope
-  ) : AppInspectorMessenger {
+  private class FakeAppInspectorMessenger(override val scope: CoroutineScope) :
+    AppInspectorMessenger {
     override suspend fun sendRawCommand(rawData: ByteArray): ByteArray = ByteArray(0)
     override val eventFlow = emptyFlow<ByteArray>()
   }
 
-  val FAKE_WORK_INFO: WorkInfo = WorkInfo.newBuilder().apply {
-    id = "ID1"
-    workerClassName = "package1.package2.ClassName1"
-    addAllTags(listOf("tag1", "tag2"))
-    state = WorkInfo.State.ENQUEUED
-    scheduleRequestedAt = 0L
-    runAttemptCount = 1
+  val FAKE_WORK_INFO: WorkInfo =
+    WorkInfo.newBuilder()
+      .apply {
+        id = "ID1"
+        workerClassName = "package1.package2.ClassName1"
+        addAllTags(listOf("tag1", "tag2"))
+        state = WorkInfo.State.ENQUEUED
+        scheduleRequestedAt = 0L
+        runAttemptCount = 1
 
-    val frame1 = CallStack.Frame.newBuilder()
-      .setClassName("pkg1.Class1")
-      .setFileName("File1")
-      .setMethodName("method1")
-      .setLineNumber(12)
-      .build()
-    val frame2 = CallStack.Frame.newBuilder()
-      .setClassName("pkg2.Class2")
-      .setFileName("File2")
-      .setMethodName("method2")
-      .setLineNumber(33)
-      .build()
-    callStack = CallStack.newBuilder().addAllFrames(listOf(frame1, frame2)).build()
+        val frame1 =
+          CallStack.Frame.newBuilder()
+            .setClassName("pkg1.Class1")
+            .setFileName("File1")
+            .setMethodName("method1")
+            .setLineNumber(12)
+            .build()
+        val frame2 =
+          CallStack.Frame.newBuilder()
+            .setClassName("pkg2.Class2")
+            .setFileName("File2")
+            .setMethodName("method2")
+            .setLineNumber(33)
+            .build()
+        callStack = CallStack.newBuilder().addAllFrames(listOf(frame1, frame2)).build()
 
-    data = Data.newBuilder()
-      .addEntries(DataEntry.newBuilder().setKey("k").setValue("v").build())
-      .build()
+        data =
+          Data.newBuilder()
+            .addEntries(DataEntry.newBuilder().setKey("k").setValue("v").build())
+            .build()
 
-    constraints = Constraints.newBuilder().setRequiredNetworkType(Constraints.NetworkType.CONNECTED).build()
-    isPeriodic = false
-    addPrerequisites("prerequisiteId")
-    addDependents("dependentsId")
-  }.build()
+        constraints =
+          Constraints.newBuilder().setRequiredNetworkType(Constraints.NetworkType.CONNECTED).build()
+        isPeriodic = false
+        addPrerequisites("prerequisiteId")
+        addDependents("dependentsId")
+      }
+      .build()
 
   fun getFakeClient(scope: CoroutineScope): BackgroundTaskInspectorClient {
     val backgroundTaskInspectorMessenger = FakeAppInspectorMessenger(scope)
     val workManagerInspectorMessenger = FakeAppInspectorMessenger(scope)
-    return BackgroundTaskInspectorClient(backgroundTaskInspectorMessenger,
-                                         WmiMessengerTarget.Resolved(workManagerInspectorMessenger),
-                                         scope, StubBackgroundTaskInspectorTracker())
+    return BackgroundTaskInspectorClient(
+      backgroundTaskInspectorMessenger,
+      WmiMessengerTarget.Resolved(workManagerInspectorMessenger),
+      scope,
+      StubBackgroundTaskInspectorTracker()
+    )
   }
 
-  fun BackgroundTaskInspectorClient.sendWorkEvent(map: WorkManagerInspectorProtocol.Event.Builder.() -> Unit) {
-    handleEvent(EventWrapper(EventWrapper.Case.WORK, WorkManagerInspectorProtocol.Event.newBuilder().apply(map).build().toByteArray()))
+  fun BackgroundTaskInspectorClient.sendWorkEvent(
+    map: WorkManagerInspectorProtocol.Event.Builder.() -> Unit
+  ) {
+    handleEvent(
+      EventWrapper(
+        EventWrapper.Case.WORK,
+        WorkManagerInspectorProtocol.Event.newBuilder().apply(map).build().toByteArray()
+      )
+    )
   }
 
   fun BackgroundTaskInspectorClient.sendBackgroundTaskEvent(
     timestamp: Long,
-    map: BackgroundTaskInspectorProtocol.BackgroundTaskEvent.Builder.() -> Unit)
-    : BackgroundTaskInspectorProtocol.Event {
-    val event = BackgroundTaskInspectorProtocol.Event.newBuilder().apply {
-      this.timestamp = timestamp
-      backgroundTaskEventBuilder.map()
-    }.build()
+    map: BackgroundTaskInspectorProtocol.BackgroundTaskEvent.Builder.() -> Unit
+  ): BackgroundTaskInspectorProtocol.Event {
+    val event =
+      BackgroundTaskInspectorProtocol.Event.newBuilder()
+        .apply {
+          this.timestamp = timestamp
+          backgroundTaskEventBuilder.map()
+        }
+        .build()
     handleEvent(EventWrapper(EventWrapper.Case.BACKGROUND_TASK, event.toByteArray()))
     return event
   }
 
   fun BackgroundTaskInspectorClient.sendWorkRemovedEvent(id: String) {
-    sendWorkEvent {
-      workRemovedBuilder.apply {
-        this.id = id
-      }
-    }
+    sendWorkEvent { workRemovedBuilder.apply { this.id = id } }
   }
 
   fun BackgroundTaskInspectorClient.sendWorkAddedEvent(work: WorkInfo) {
-    sendWorkEvent {
-      workAddedBuilder.apply {
-        this.work = work
-      }
-    }
+    sendWorkEvent { workAddedBuilder.apply { this.work = work } }
   }
 
   private fun DefaultMutableTreeNode.getCategoryNode(type: String): BackgroundTaskCategoryNode {
-    return children().asSequence().first { (it as BackgroundTaskCategoryNode).name == type } as BackgroundTaskCategoryNode
+    return children().asSequence().first { (it as BackgroundTaskCategoryNode).name == type } as
+      BackgroundTaskCategoryNode
   }
 
   fun DefaultMutableTreeNode.getWorksCategoryNode() = getCategoryNode("Workers")

@@ -20,11 +20,11 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entr
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.JobEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WakeLockEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
+import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.DefaultTreeModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import javax.swing.tree.DefaultMutableTreeNode
-import javax.swing.tree.DefaultTreeModel
 
 typealias BackgroundTaskOnFilteredListener = (filter: String?) -> Unit
 
@@ -37,16 +37,12 @@ class BackgroundTaskTreeModel(
   private val parentFinder: (BackgroundTaskEntry) -> DefaultMutableTreeNode
   private val filterListeners = mutableListOf<BackgroundTaskOnFilteredListener>()
 
-  /**
-   * A Mapping from work id to its related [JobEntry].
-   */
+  /** A Mapping from work id to its related [JobEntry]. */
   private val workIdJobMap = mutableMapOf<String, JobEntry>()
 
   private var currentSortComparator: Comparator<*>? = null
 
-  /**
-   * The category parent nodes.
-   */
+  /** The category parent nodes. */
   private val categoryRoots: List<DefaultMutableTreeNode>
 
   var filterTag: String? = null
@@ -71,11 +67,7 @@ class BackgroundTaskTreeModel(
         is WorkEntry -> worksNode
         is JobEntry -> {
           // Link the job under its target work entry.
-          entry.targetWorkId?.let {
-            client.getEntry(it)
-          }?.let {
-            nodeMap[it]
-          } ?: jobsNode
+          entry.targetWorkId?.let { client.getEntry(it) }?.let { nodeMap[it] } ?: jobsNode
         }
         is AlarmEntry -> alarmsNode
         is WakeLockEntry -> wakesNode
@@ -94,11 +86,8 @@ class BackgroundTaskTreeModel(
                 parent.add(newNode)
 
                 if (entry is JobEntry) {
-                  entry.targetWorkId?.let {
-                    workIdJobMap[it] = entry
-                  }
-                }
-                else if (entry is WorkEntry) {
+                  entry.targetWorkId?.let { workIdJobMap[it] = entry }
+                } else if (entry is WorkEntry) {
                   // Find affiliated jobs for the work.
                   workIdJobMap[entry.id]?.let { jobEntry -> nodeMap[jobEntry] }?.let { jobNode ->
                     jobsNode.remove(jobNode)
@@ -117,9 +106,7 @@ class BackgroundTaskTreeModel(
           }
           EntryUpdateEventType.REMOVE -> {
             val node = nodeMap.remove(entry)!!
-            workIdJobMap.remove(entry.id)?.let { jobEntry ->
-              nodeMap.remove(jobEntry)
-            }
+            workIdJobMap.remove(entry.id)?.let { jobEntry -> nodeMap.remove(jobEntry) }
             if (entry.acceptedByFilter()) {
               val parent = node.parent
               node.removeFromParent()
@@ -139,7 +126,8 @@ class BackgroundTaskTreeModel(
 
   fun getJobUnderWork(workId: String) = workIdJobMap[workId]
 
-  val allTags get() = nodeMap.keys.flatMap { entry -> entry.tags }.toSortedSet().toList()
+  val allTags
+    get() = nodeMap.keys.flatMap { entry -> entry.tags }.toSortedSet().toList()
 
   private fun BackgroundTaskEntry.acceptedByFilter() = filterTag == null || tags.contains(filterTag)
 
@@ -148,28 +136,28 @@ class BackgroundTaskTreeModel(
     refreshTree()
   }
 
-  /**
-   * Reconstructs the entire tree while respecting the current filter and sort ordering.
-   */
+  /** Reconstructs the entire tree while respecting the current filter and sort ordering. */
   private fun refreshTree() {
     categoryRoots.forEach { it.removeAllChildren() }
-    val groupedByParentNode = nodeMap.entries
-      .filter { entry -> entry.key.acceptedByFilter() }
-      .groupBy { entry -> parentFinder(entry.key) }
+    val groupedByParentNode =
+      nodeMap.entries.filter { entry -> entry.key.acceptedByFilter() }.groupBy { entry ->
+        parentFinder(entry.key)
+      }
 
     (currentSortComparator?.let { comparator ->
-      groupedByParentNode
-        .mapValues { entry ->
-          val result = entry.value.sortedWith { o1, o2 ->
-            val value = (comparator as Comparator<DefaultMutableTreeNode>).compare(o1.value, o2.value)
-            value
-          }
+        groupedByParentNode.mapValues { entry ->
+          val result =
+            entry.value.sortedWith { o1, o2 ->
+              val value =
+                (comparator as Comparator<DefaultMutableTreeNode>).compare(o1.value, o2.value)
+              value
+            }
           result
         }
-    } ?: groupedByParentNode)
-      .forEach { (parent, children) ->
-        children.forEach { parent.add(it.value) }
       }
+        ?: groupedByParentNode).forEach { (parent, children) ->
+      children.forEach { parent.add(it.value) }
+    }
 
     nodeStructureChanged(root)
   }

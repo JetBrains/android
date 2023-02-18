@@ -31,7 +31,6 @@ import org.toml.lang.psi.ext.kind
 interface TomlDslNameConverter: GradleDslNameConverter {
   override fun getKind() = TOML
 
-  @JvmDefault
   override fun psiToName(element: PsiElement): String = when(element) {
     is TomlKeySegment -> GradleNameElement.escape(element.name ?: element.text)
     is TomlKey -> element.segments.let { segments ->
@@ -40,7 +39,6 @@ interface TomlDslNameConverter: GradleDslNameConverter {
     else -> GradleNameElement.escape(element.text)
   }
 
-  @JvmDefault
   override fun convertReferenceText(context: GradleDslElement, referenceText: String): String {
     val literal = TomlPsiFactory(context.dslFile.project, true).createLiteral(referenceText)
     val name = when (val kind = literal.kind) {
@@ -51,6 +49,5 @@ interface TomlDslNameConverter: GradleDslNameConverter {
     return "$name"
   }
 
-  @JvmDefault
   override fun externalNameForParent(modelName: String, context: GradleDslElement) = ExternalNameInfo(modelName, UNKNOWN)
 }

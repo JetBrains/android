@@ -34,10 +34,10 @@ import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.containingPackage
 import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil.getFileClassInfoNoResolve
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
-import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
@@ -65,7 +65,7 @@ class LiveEditCompiler(val project: Project) {
    */
   @Trace
   fun compile(inputs: List<LiveEditCompilerInput>, giveWritePriority : Boolean = true) : Optional<LiveEditCompilerOutput> {
-    var output = LiveEditCompilerOutput.Builder()
+    val output = LiveEditCompilerOutput.Builder()
 
     // Bundle changes per-file to prevent wasted recompilation of the same file. The most common
     // scenario is multiple pending changes in the same file, so this is somewhat important.
@@ -87,11 +87,11 @@ class LiveEditCompiler(val project: Project) {
     }
 
     // In manual mode, we trigger when SaveAll action shortcut is detected. Which means we run concurrently with SaveAllAction.
-    // Therefore we cannot use runInReadActionWithWriteActionPriority (otherwise we would be continuously interrupted because
+    // Therefore, we cannot use runInReadActionWithWriteActionPriority (otherwise we would be continuously interrupted because
     // save is happening, upon testing on a small file we were interrupted 1000 times by save writes).
-    // Instead we run with runReadAction.
+    // Instead, we run with runReadAction.
     //
-    // In automatic mode, we want to be interrupted on each keystroke so we only run when the user is done typing.
+    // In automatic mode, we want to be interrupted on each keystroke, so we only run when the user is done typing.
     // A keystroke writes the PSI trees so running with runInReadActionWithWriteActionPriority yield exactly the interrupt policy we need.
 
     var success = true
@@ -190,40 +190,31 @@ class LiveEditCompiler(val project: Project) {
 
     for (input in inputs) {
       // The function we are looking at no longer belongs to file. This is mostly an IDE refactor. Make it a recoverable error
-      // to see if the next step of the refactor can fix it. This should be solve nicely with a ClassDiffer.
+      // to see if the next step of the refactor can fix it. This should be solved nicely with a ClassDiffer.
       input.element.containingFile?: throw compilationError("Invalid AST. Function no longer belong to any files.")
 
-      when(input.element) {
+      when(val element = input.element) {
         // When the edit event was contained in a function
-        is KtNamedFunction -> {
-          val targetFunction = input.element as KtNamedFunction
-          val group = if (LiveEditAdvancedConfiguration.getInstance().usePartialRecompose)
-            getGroupKey(compilerOutput, targetFunction) else null
-          group?.let { output.addGroupId(group) }
-          getGeneratedMethodCode(compilerOutput, targetFunction, generationState, output)
-        }
-
         is KtFunction -> {
-          val targetFunction = input.element as KtFunction
+          // When a Composable is a lambda, we actually need to take into account of all the parent groups of that Composable
+          val parentGroup = input.parentGroups.takeIf { element !is KtNamedFunction }
           val group = if (LiveEditAdvancedConfiguration.getInstance().usePartialRecompose)
-            getGroupKey(compilerOutput, targetFunction, input.parentGroups) else null
+            getGroupKey(compilerOutput, element, parentGroup) else null
           group?.let { output.addGroupId(group) }
-          getGeneratedMethodCode(compilerOutput, targetFunction, generationState, output)
+          getGeneratedMethodCode(compilerOutput, element, generationState, output)
         }
 
         // When the edit event was at class level
         is KtClass -> {
-          val targetClass = input.element as KtClass
-          val desc = bindingContext[BindingContext.CLASS, targetClass]!!
-          val internalClassName = getInternalClassName(desc.containingPackage(), targetClass.fqName.toString(), input.file)
+          val desc = bindingContext[BindingContext.CLASS, element]!!
+          val internalClassName = getInternalClassName(desc.containingPackage(), element.fqName.toString(), input.file)
           getCompiledClasses(internalClassName, input.file as KtFile, compilerOutput, output)
         }
 
         // When the edit was at top level
         is KtFile -> {
-          val targetFile = input.element as KtFile
-          val internalClassName = getInternalClassName(targetFile.packageFqName, targetFile.javaFileFacadeFqName.toString(), input.file)
-          getCompiledClasses(internalClassName, input.file as KtFile, compilerOutput, output)
+          val internalClassName = getInternalClassName(element.packageFqName, element.javaFileFacadeFqName.toString(), element)
+          getCompiledClasses(internalClassName, element, compilerOutput, output)
         }
 
         else -> throw compilationError("Event was generated for unsupported kotlin element")
@@ -302,7 +293,7 @@ class LiveEditCompiler(val project: Project) {
         inlineCandidateCache.computeIfAbsent(name) {
           SourceInlineCandidate(input, it)
         }.setByteCode(primaryClass)
-        liveEditOutput.addClass(name, primaryClass)
+        liveEditOutput.addClass(LiveEditCompiledClass(name, primaryClass, input.module))
         continue
       }
 
@@ -315,7 +306,7 @@ class LiveEditCompiler(val project: Project) {
         inlineCandidateCache.computeIfAbsent(name) {
           SourceInlineCandidate(input, it)
         }.setByteCode(supportClass)
-        liveEditOutput.addSupportClass(name, supportClass)
+        liveEditOutput.addSupportClass(LiveEditCompiledClass(name, supportClass, input.module))
         continue
       }
 
@@ -351,7 +342,7 @@ class LiveEditCompiler(val project: Project) {
                                exceptions: Array<out String>?): MethodVisitor? {
         if (access and Opcodes.ACC_PUBLIC != 0 &&
             access and Opcodes.ACC_STATIC == 0 &&
-            !name.equals("<init>")) {
+            name != SpecialNames.INIT.asString()) {
           publicMethodCount++
         }
 

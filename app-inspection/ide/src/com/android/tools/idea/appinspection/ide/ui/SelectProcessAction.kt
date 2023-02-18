@@ -31,19 +31,33 @@ import com.intellij.ui.JBColor
 import icons.StudioIcons
 import javax.swing.JComponent
 
-val NO_PROCESS_ACTION = object : AnAction(AppInspectionBundle.message("action.no.debuggable.process")) {
-  override fun update(e: AnActionEvent) { e.presentation.isEnabled = false }
-  override fun actionPerformed(event: AnActionEvent) {}
-}
+val NO_PROCESS_ACTION =
+  object : AnAction(AppInspectionBundle.message("action.no.debuggable.process")) {
+    override fun update(e: AnActionEvent) {
+      e.presentation.isEnabled = false
+    }
+    override fun actionPerformed(event: AnActionEvent) {}
+  }
 
-val NO_DEVICE_ACTION = object : AnAction(AppInspectionBundle.message("action.no.devices")) {
-  override fun update(e: AnActionEvent) { e.presentation.isEnabled = false }
-  override fun actionPerformed(event: AnActionEvent) {}
-}
+val NO_DEVICE_ACTION =
+  object : AnAction(AppInspectionBundle.message("action.no.devices")) {
+    override fun update(e: AnActionEvent) {
+      e.presentation.isEnabled = false
+    }
+    override fun actionPerformed(event: AnActionEvent) {}
+  }
 
 private val ICON_COLOR = JBColor(0x6E6E6E, 0xAFB1B3)
-val ICON_PHONE = ColoredIconGenerator.generateColoredIcon(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE, ICON_COLOR)
-val ICON_EMULATOR = ColoredIconGenerator.generateColoredIcon(StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE, ICON_COLOR)
+val ICON_PHONE =
+  ColoredIconGenerator.generateColoredIcon(
+    StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE,
+    ICON_COLOR
+  )
+val ICON_EMULATOR =
+  ColoredIconGenerator.generateColoredIcon(
+    StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE,
+    ICON_COLOR
+  )
 
 /**
  * An action that presents a list of devices and processes, allowing the user to select a process,
@@ -53,35 +67,46 @@ val ICON_EMULATOR = ColoredIconGenerator.generateColoredIcon(StudioIcons.DeviceE
  * notifies other components that a new process is now active.
  *
  * @param supportsOffline If true, this means when a process is stopped, it remains in the list,
+ * ```
  *     since the idea is that any downstream components will still work (perhaps in a read-only
  *     mode). Otherwise, stopped processes will be removed.
  *
- * @param createProcessLabel A callback that allows customizing the display label of the top-level
+ * @param createProcessLabel
+ * ```
+ * A callback that allows customizing the display label of the top-level
+ * ```
  *     process text, particularly useful for supporting compact modes as necessary. The default
  *     option doesn't worry about consuming horizontal space.
  *
- * @param stopPresentation Optional overrides for the "stop" action that shows up in the list, in case
+ * @param stopPresentation
+ * ```
+ * Optional overrides for the "stop" action that shows up in the list, in case
+ * ```
  *     a particular component needs to show a uniquely customized message.
  *
- * @param onStopAction A callback triggered when the user presses the stop button.
+ * @param onStopAction
+ * ```
+ * A callback triggered when the user presses the stop button.
  *
  * @param customDeviceAttribution A callback that allows customization of the device.
  *
  * @param customProcessAttribution A callback that allows customization of a process.
- *
  */
 class SelectProcessAction(
   private val model: ProcessesModel,
   private val supportsOffline: Boolean = true,
-  private val createProcessLabel: (ProcessDescriptor) -> String = Companion::createDefaultProcessLabel,
+  private val createProcessLabel: (ProcessDescriptor) -> String =
+    Companion::createDefaultProcessLabel,
   private val stopPresentation: StopPresentation = StopPresentation(),
   private val onStopAction: ((ProcessDescriptor) -> Unit)? = null,
   private val customDeviceAttribution: (DeviceDescriptor, AnActionEvent) -> Unit = { _, _ -> },
   private val customProcessAttribution: (ProcessDescriptor, AnActionEvent) -> Unit = { _, _ -> }
 ) :
   DropDownAction(
-    AppInspectionBundle.message("action.select.process"), AppInspectionBundle.message("action.select.process.desc"),
-    ICON_PHONE) {
+    AppInspectionBundle.message("action.select.process"),
+    AppInspectionBundle.message("action.select.process.desc"),
+    ICON_PHONE
+  ) {
 
   companion object {
     fun createDefaultProcessLabel(process: ProcessDescriptor): String {
@@ -106,18 +131,19 @@ class SelectProcessAction(
     if (model.selectedProcess == lastProcess && model.processes.size == lastProcessCount) return
 
     val currentProcess = model.selectedProcess
-    val content = currentProcess?.let {
-      if (it.isRunning || supportsOffline) {
-        createProcessLabel(it)
+    val content =
+      currentProcess?.let {
+        if (it.isRunning || supportsOffline) {
+          createProcessLabel(it)
+        } else {
+          AppInspectionBundle.message("action.select.process")
+        }
       }
-      else {
-        AppInspectionBundle.message("action.select.process")
-      }
-    } ?: if (model.processes.isEmpty()) {
-      AppInspectionBundle.message("no.process.available")
-    } else {
-      AppInspectionBundle.message("no.process.selected")
-    }
+        ?: if (model.processes.isEmpty()) {
+          AppInspectionBundle.message("no.process.available")
+        } else {
+          AppInspectionBundle.message("no.process.selected")
+        }
 
     event.presentation.icon = currentProcess?.device.toIcon()
     event.presentation.text = content
@@ -138,12 +164,16 @@ class SelectProcessAction(
 
     // For consistency, always add a stop action, but only enable it if there's a current process
     // that can actually be stopped.
-    val stopInspectionAction = object : AnAction(stopPresentation.text,
-                                                 stopPresentation.desc,
-                                                 StudioIcons.Shell.Toolbar.STOP) {
-      override fun update(e: AnActionEvent) { e.presentation.isEnabled = (model.selectedProcess?.isRunning == true) }
-      override fun actionPerformed(e: AnActionEvent) { onStopAction?.invoke(model.selectedProcess!!) }
-    }
+    val stopInspectionAction =
+      object :
+        AnAction(stopPresentation.text, stopPresentation.desc, StudioIcons.Shell.Toolbar.STOP) {
+        override fun update(e: AnActionEvent) {
+          e.presentation.isEnabled = (model.selectedProcess?.isRunning == true)
+        }
+        override fun actionPerformed(e: AnActionEvent) {
+          onStopAction?.invoke(model.selectedProcess!!)
+        }
+      }
     add(stopInspectionAction)
 
     return true
@@ -151,8 +181,10 @@ class SelectProcessAction(
 
   override fun displayTextInToolbar() = true
 
-  class StopPresentation(val text: String = AppInspectionBundle.message("action.stop.inspectors"),
-                         val desc: String = AppInspectionBundle.message("action.stop.inspectors.description"))
+  class StopPresentation(
+    val text: String = AppInspectionBundle.message("action.stop.inspectors"),
+    val desc: String = AppInspectionBundle.message("action.stop.inspectors.description")
+  )
 
   private inner class ConnectAction(private val processDescriptor: ProcessDescriptor) :
     ToggleAction(processDescriptor.buildProcessName()) {
@@ -176,10 +208,12 @@ class SelectProcessAction(
     override fun displayTextInToolbar() = true
 
     init {
-      val (preferredProcesses, otherProcesses) = model.processes
-        .sortedBy { it.name }
-        .filter { (it.isRunning || supportsOffline) && (it.device.serial == device.serial) }
-        .partition { model.isProcessPreferred(it, includeDead = supportsOffline) }
+      val (preferredProcesses, otherProcesses) =
+        model
+          .processes
+          .sortedBy { it.name }
+          .filter { (it.isRunning || supportsOffline) && (it.device.serial == device.serial) }
+          .partition { model.isProcessPreferred(it, includeDead = supportsOffline) }
 
       for (preferredProcess in preferredProcesses) {
         add(ConnectAction(preferredProcess))

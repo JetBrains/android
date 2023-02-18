@@ -101,6 +101,7 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.CommonDataKeys.EDITOR
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.runInEdt
@@ -114,10 +115,10 @@ import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.editor.impl.ContextMenuPopupHandler
 import com.intellij.openapi.project.Project
-import com.intellij.tools.SimpleActionGroup
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI.Borders
+import com.intellij.util.ui.JBUI.CurrentTheme.Banner
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import kotlinx.coroutines.Dispatchers
@@ -131,6 +132,8 @@ import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Cursor
 import java.awt.Point
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.MouseEvent.BUTTON1
@@ -150,8 +153,8 @@ private const val MAX_TAGS = 1000
 private const val MAX_PACKAGE_NAMES = 1000
 private const val MAX_PROCESS_NAMES = 1000
 
-private val HAND_CURSOR = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-private val TEXT_CURSOR = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
+private val handCursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+private val textCursor = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
 
 // To avoid exposing LogcatMainPanel, we needed to make a factory that will return a JComponent. We
 // initially tried making LogcatMainPanel public, but that caused a chain-reaction of "package
@@ -159,12 +162,10 @@ private val TEXT_CURSOR = Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR)
 class LogcatMainPanelFactory {
   companion object {
     fun create(project: Project): JComponent {
-      return LogcatMainPanel(project, SimpleActionGroup(), LogcatColors(), null)
+      return LogcatMainPanel(project, DefaultActionGroup(), LogcatColors(), null)
     }
   }
 }
-
-private val BANNER_BORDER = BorderFactory.createCompoundBorder(Borders.customLine(JBColor.border(), 1, 1, 0, 1), Borders.empty(0, 5, 0, 0))
 
 /**
  * The top level Logcat panel.
@@ -206,13 +207,16 @@ internal class LogcatMainPanel @TestOnly constructor(
   )
 
   private var isLogcatPaused: Boolean = false
+
+  private var isSoftWrapEnabled: Boolean = false
+
   private var caretLine = 0
 
   @VisibleForTesting
   internal val editor: EditorEx = createLogcatEditor(project)
-  private val pausedBanner = EditorNotificationPanel()
-  private val noApplicationIdsBanner = EditorNotificationPanel()
-  private val noLogsBanner = EditorNotificationPanel()
+  private val pausedBanner = WarningNotificationPanel()
+  private val noApplicationIdsBanner = WarningNotificationPanel()
+  private val noLogsBanner = WarningNotificationPanel()
   private val document = editor.document
   private val documentAppender = DocumentAppender(project, document, logcatSettings.bufferSize)
   private val coroutineScope = AndroidCoroutineScope(this)
@@ -260,13 +264,13 @@ internal class LogcatMainPanel @TestOnly constructor(
 
   @VisibleForTesting
   internal var logcatServiceJob: Job? = null
+  private var editorWidth = 0
 
   init {
     editor.apply {
       installPopupHandler(object : ContextMenuPopupHandler() {
         override fun getActionGroup(event: EditorMouseEvent): ActionGroup = getPopupActionGroup(splitterPopupActionGroup.getChildren(null))
       })
-      settings.isUseSoftWraps = state?.isSoftWrap ?: false
       if (StudioFlags.LOGCAT_CLICK_TO_ADD_FILTER.get()) {
         addFilterHintHandlers()
       }
@@ -282,6 +286,20 @@ internal class LogcatMainPanel @TestOnly constructor(
       UserInputHandlers(this).install()
     }
 
+    isSoftWrapEnabled = state?.isSoftWrap ?: false
+    addComponentListener(object : ComponentAdapter() {
+      override fun componentResized(e: ComponentEvent) {
+        val width = editor.scrollingModel.visibleArea.width
+        val column = editor.xyToLogicalPosition(Point(width, 0)).column
+        if (editorWidth != column) {
+          editorWidth = column
+          if (messageBacklog.get().messages.isNotEmpty()) {
+            reloadMessages()
+          }
+        }
+      }
+    })
+
     toolbar.targetComponent = this
 
     // TODO(aalbert): Ideally, we would like to be able to select the connected device and client in the header from the `state` but this
@@ -295,7 +313,6 @@ internal class LogcatMainPanel @TestOnly constructor(
 
     pausedBanner.apply {
       text = LogcatBundle.message("logcat.main.panel.pause.banner.text")
-      border = BANNER_BORDER
       isVisible = false
     }
     noApplicationIdsBanner.apply {
@@ -303,7 +320,6 @@ internal class LogcatMainPanel @TestOnly constructor(
       createActionLabel(LogcatBundle.message("logcat.main.panel.no.application.ids.banner.sync.now")) {
         ProjectSystemService.getInstance(project).projectSystem.getSyncManager().syncProject(USER_REQUEST)
       }
-      border = BANNER_BORDER
       isVisible = isMissingApplicationIds()
     }
     noLogsBanner.apply {
@@ -311,7 +327,6 @@ internal class LogcatMainPanel @TestOnly constructor(
       createActionLabel(LogcatBundle.message("logcat.main.panel.no.logs.banner.clear.filter")) {
         setFilter("")
       }
-      border = BANNER_BORDER
       isVisible = isLogsMissing()
     }
     val centerPanel = JPanel(null).apply {
@@ -385,7 +400,7 @@ internal class LogcatMainPanel @TestOnly constructor(
   }
 
   private fun getPopupActionGroup(actions: Array<AnAction>): ActionGroup {
-    return SimpleActionGroup().apply {
+    return DefaultActionGroup().apply {
       add(CopyAction().withText(ActionsBundle.message("action.EditorCopy.text")).withIcon(AllIcons.Actions.Copy))
       add(CopyMessageTextAction())
       add(SearchWebAction().withText(ActionsBundle.message("action.\$SearchWeb.text")))
@@ -396,7 +411,7 @@ internal class LogcatMainPanel @TestOnly constructor(
       add(Separator.create())
       actions.forEach { add(it) }
       add(Separator.create())
-      add(ClearLogcatAction(this@LogcatMainPanel))
+      add(ClearLogcatAction())
     }
   }
 
@@ -455,7 +470,7 @@ internal class LogcatMainPanel @TestOnly constructor(
         headerPanel.getSelectedDevice()?.copy(isOnline = false),
         if (formattingOptionsStyle == null) Custom(formattingOptions) else Preset(formattingOptionsStyle),
         headerPanel.filter,
-        editor.settings.isUseSoftWraps))
+        isSoftWrapEnabled))
   }
 
   override suspend fun appendMessages(textAccumulator: TextAccumulator) = withContext(uiThread(ModalityState.any())) {
@@ -548,14 +563,14 @@ internal class LogcatMainPanel @TestOnly constructor(
   override fun getProcessNames(): Set<String> = processNames
 
   private fun createToolbarActions(project: Project): ActionGroup {
-    return SimpleActionGroup().apply {
-      add(ClearLogcatAction(this@LogcatMainPanel))
-      add(PauseLogcatAction(this@LogcatMainPanel))
-      add(RestartLogcatAction(this@LogcatMainPanel))
+    return DefaultActionGroup().apply {
+      add(ClearLogcatAction())
+      add(PauseLogcatAction())
+      add(RestartLogcatAction())
       add(LogcatScrollToTheEndToolbarAction(editor))
       add(PreviousOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
       add(NextOccurrenceToolbarAction(LogcatOccurrenceNavigator(project, editor)))
-      add(LogcatToggleUseSoftWrapsToolbarAction(editor))
+      add(LogcatToggleUseSoftWrapsToolbarAction())
       add(Separator.create())
       add(LogcatFormatAction(project, this@LogcatMainPanel))
       add(Separator.create())
@@ -580,6 +595,14 @@ internal class LogcatMainPanel @TestOnly constructor(
   @UiThread
   override fun resumeLogcat() {
     restartLogcat()
+  }
+
+
+  override fun isSoftWrapEnabled(): Boolean  = isSoftWrapEnabled
+
+  override fun setSoftWrapEnabled(state: Boolean) {
+    isSoftWrapEnabled = state
+    reloadMessages()
   }
 
   override fun clearMessageView() {
@@ -674,7 +697,7 @@ internal class LogcatMainPanel @TestOnly constructor(
   }
 
   private fun formatMessages(textAccumulator: TextAccumulator, messages: List<LogcatMessage>) {
-    messageFormatter.formatMessages(formattingOptions, textAccumulator, messages)
+    messageFormatter.formatMessages(formattingOptions, textAccumulator, messages, if (isSoftWrapEnabled) editorWidth else null)
   }
 
   private fun MouseEvent.getFilterHint(): FilterHint? {
@@ -719,13 +742,13 @@ internal class LogcatMainPanel @TestOnly constructor(
         val filterHint = e.getFilterHint()
         if (e.isControlDown) {
           if (filterHint != null && toggleFilterTerm(logcatFilterParser, headerPanel.filter, filterHint.getFilter()) != null) {
-            contentComponent.cursor = HAND_CURSOR
+            contentComponent.cursor = handCursor
             return
           }
         }
         contentComponent.toolTipText = if (filterHint?.isElided() == true) filterHint.text else null
 
-        contentComponent.cursor = TEXT_CURSOR
+        contentComponent.cursor = textCursor
       }
     })
   }
@@ -744,6 +767,12 @@ internal class LogcatMainPanel @TestOnly constructor(
       // Logging as error in order to see how prevalent this is in the wild. See b/239095674
       LOGGER.error("Failed to check caret position directly. Using backup method.", t)
       caretLine >= document.lineCount - 1
+    }
+  }
+
+  private class WarningNotificationPanel : EditorNotificationPanel(Banner.WARNING_BACKGROUND) {
+    init {
+      border = BorderFactory.createCompoundBorder(Borders.customLine(JBColor.border(), 1, 1, 0, 0), border)
     }
   }
 }

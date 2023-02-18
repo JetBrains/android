@@ -24,6 +24,8 @@ import com.android.tools.profilers.memory.adapters.ValueObject.ValueType.ARRAY
 import com.intellij.icons.AllIcons.Debugger.*
 import com.intellij.icons.AllIcons.Hierarchy.Subtypes
 import com.intellij.ui.ColoredTreeCellRenderer
+import com.intellij.ui.IconManager
+import com.intellij.ui.PlatformIcons
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.PlatformIcons.*
 import icons.StudioIcons.Profiler.Overlays.*
@@ -77,12 +79,12 @@ open class ValueColumnRenderer : ColoredTreeCellRenderer() {
       is FieldObject -> when {
         valueType == ARRAY -> asInstance.getStackedIcon(ARRAY_STACK, Db_array)
         valueType.isPrimitive -> Db_primitive
-        else -> asInstance.getStackedIcon(FIELD_STACK, FIELD_ICON)
+        else -> asInstance.getStackedIcon(FIELD_STACK, IconManager.getInstance().getPlatformIcon(PlatformIcons.Field))
       }
       is ReferenceObject -> when {
         referenceInstance.isRoot -> Subtypes
         referenceInstance.valueType == ARRAY -> referenceInstance.getStackedIcon(ARRAY_STACK, Db_array)
-        else -> referenceInstance.getStackedIcon(FIELD_STACK, FIELD_ICON)
+        else -> referenceInstance.getStackedIcon(FIELD_STACK, IconManager.getInstance().getPlatformIcon(PlatformIcons.Field))
       }
       is InstanceObject -> getStackedIcon(INTERFACE_STACK, INTERFACE_ICON)
       else -> INTERFACE_ICON

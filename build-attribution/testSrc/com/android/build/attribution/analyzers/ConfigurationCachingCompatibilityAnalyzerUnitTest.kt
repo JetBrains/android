@@ -27,15 +27,32 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.google.common.truth.Truth
 import org.gradle.tooling.events.BinaryPluginIdentifier
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import org.mockito.Mockito
 
-class ConfigurationCachingCompatibilityAnalyzerUnitTest {
+@RunWith(Parameterized::class)
+class ConfigurationCachingCompatibilityAnalyzerUnitTest(
+  private val gradleVersion: GradleVersion?,
+  private val gradleWithStableConfigurationCache: Boolean
+) {
 
   @get:Rule
   val temporaryFolder = TemporaryFolder()
+
+  companion object {
+    @JvmStatic
+    @Parameterized.Parameters(name = "Testing with Gradle version \"{0}\"")
+    fun data() = arrayOf<Array<Any?>>(
+      arrayOf(GradleVersion.version("8.0.0"), false),
+      arrayOf(GradleVersion.version("8.1"), true),
+      arrayOf(null, false),
+    )
+  }
 
   val compatiblePlugin = GradlePluginsData.PluginInfo(
     name = "Compatible Plugin",
@@ -60,7 +77,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     pluginsApplied = listOf(appPluginData),
     buildscriptDependenciesInfo = emptySet(),
     knownPluginsData = GradlePluginsData.emptyData,
-    expectedResult = NoIncompatiblePlugins(emptyList())
+    expectedResult = NoIncompatiblePlugins(emptyList(), gradleWithStableConfigurationCache)
   ))
 
   @Test
@@ -77,7 +94,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     pluginsApplied = listOf(),
     buildscriptDependenciesInfo = emptySet(),
     knownPluginsData = GradlePluginsData.emptyData,
-    expectedResult = NoIncompatiblePlugins(emptyList())
+    expectedResult = NoIncompatiblePlugins(emptyList(), gradleWithStableConfigurationCache)
   ))
 
   @Test
@@ -85,7 +102,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     pluginsApplied = listOf(),
     buildscriptDependenciesInfo = emptySet(),
     knownPluginsData = knownPluginsData,
-    expectedResult = NoIncompatiblePlugins(emptyList())
+    expectedResult = NoIncompatiblePlugins(emptyList(), gradleWithStableConfigurationCache)
   ))
 
   @Test
@@ -93,7 +110,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     pluginsApplied = listOf(),
     buildscriptDependenciesInfo = setOf("my.org:plugin-jar:0.1.0"),
     knownPluginsData = GradlePluginsData.emptyData,
-    expectedResult = NoIncompatiblePlugins(emptyList())
+    expectedResult = NoIncompatiblePlugins(emptyList(), gradleWithStableConfigurationCache)
   ))
 
   @Test
@@ -102,7 +119,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.1.0"),
     knownPluginsData = knownPluginsData,
     // No incompatible since plugin not applied.
-    expectedResult = NoIncompatiblePlugins(emptyList())
+    expectedResult = NoIncompatiblePlugins(emptyList(), gradleWithStableConfigurationCache)
   ))
 
   @Test
@@ -111,7 +128,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     buildscriptDependenciesInfo = setOf("my.org:plugin2-jar:0.1.0"),
     knownPluginsData = knownPluginsData,
     // No incompatible since plugin not applied.
-    expectedResult = NoIncompatiblePlugins(emptyList())
+    expectedResult = NoIncompatiblePlugins(emptyList(), gradleWithStableConfigurationCache)
   ))
 
   @Test
@@ -120,7 +137,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.1.0"),
     knownPluginsData = GradlePluginsData.emptyData,
     // No incompatible since plugin since not in known.
-    expectedResult = NoIncompatiblePlugins(listOf(binaryPlugin("my.org.gradle.Plugin1")))
+    expectedResult = NoIncompatiblePlugins(listOf(binaryPlugin("my.org.gradle.Plugin1")), gradleWithStableConfigurationCache)
   ))
 
   @Test
@@ -160,7 +177,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
         pluginsApplied = listOf(binaryPlugin("my.org.gradle.Plugin1")),
         buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.2.0"),
         knownPluginsData = knownPluginsData,
-        expectedResult = NoIncompatiblePlugins(emptyList())
+        expectedResult = NoIncompatiblePlugins(emptyList(), gradleWithStableConfigurationCache)
       ),
     )
   }
@@ -178,7 +195,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     whenever(pluginAnalyzer.result).thenReturn(ProjectConfigurationAnalyzer.Result(emptyMap(), emptyList(), mapOf(":" to testCaseData.pluginsApplied)))
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
       buildscriptDependenciesInfo = testCaseData.buildscriptDependenciesInfo,
-      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(testCaseData.agpVersion.toString(), false)
+      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(testCaseData.agpVersion.toString(), gradleVersion?.version, false)
     ))
     analyzer.receiveKnownPluginsData(testCaseData.knownPluginsData)
     analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)
@@ -205,7 +222,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
 
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
       buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.1.0"),
-      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, false)
+      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, gradleVersion?.version, false)
     ))
     analyzer.receiveKnownPluginsData(knownPluginsData)
     analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)
@@ -237,7 +254,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
 
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
       buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.2.0"),
-      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, true)
+      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, gradleVersion?.version, true)
     ))
     analyzer.receiveKnownPluginsData(knownPluginsData)
     analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)
@@ -262,7 +279,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
 
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
       buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.2.0"),
-      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, false)
+      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, gradleVersion?.version, false)
     ))
     analyzer.receiveKnownPluginsData(knownPluginsData)
     analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)
@@ -287,12 +304,12 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
 
     analyzer.receiveBuildAttributionReport(AndroidGradlePluginAttributionData(
       buildscriptDependenciesInfo = setOf("my.org:plugin1-jar:0.2.0"),
-      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, true)
+      buildInfo = AndroidGradlePluginAttributionData.BuildInfo(agpVersionString, gradleVersion?.version, true)
     ))
     analyzer.receiveKnownPluginsData(knownPluginsData)
     analyzer.runPostBuildAnalysis(analysisResult, studioProvidedInfo)
 
-    Truth.assertThat(analyzer.result).isEqualTo(ConfigurationCacheCompatibilityTestFlow)
+    Truth.assertThat(analyzer.result).isEqualTo(ConfigurationCacheCompatibilityTestFlow(gradleWithStableConfigurationCache))
   }
 
   private fun binaryPlugin(pluginClassName: String, projectPath: String = ":", displayName: String = pluginClassName) = pluginContainer
@@ -308,7 +325,7 @@ class ConfigurationCachingCompatibilityAnalyzerUnitTest {
     buildInvocationType: BuildInvocationType
     ): StudioProvidedInfo = StudioProvidedInfo(
     agpVersion = agpVersion,
-    gradleVersion = null,
+    gradleVersion = gradleVersion,
     configurationCachingGradlePropertyState = configurationCachingGradlePropertyState,
     buildInvocationType = buildInvocationType,
     enableJetifierPropertyState = false,

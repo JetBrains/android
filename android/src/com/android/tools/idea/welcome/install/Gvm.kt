@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.welcome.install
 
+import com.android.tools.idea.avdmanager.AccelerationErrorCode
 import com.android.tools.idea.avdmanager.AccelerationErrorSolution.SolutionCode
-import com.android.tools.idea.avdmanager.CpuVendor
 import com.android.tools.idea.observable.core.IntValueProperty
 import com.android.tools.idea.sdk.install.VmType
 import com.android.tools.idea.welcome.install.InstallationIntention.UNINSTALL
@@ -48,7 +48,10 @@ class Gvm(
     override val vendor = "google"
     override val installSolution = SolutionCode.INSTALL_GVM
     override val reinstallSolution = SolutionCode.REINSTALL_GVM
-    override val compatibleSystem = SystemInfo.isWindows
+    override val incompatibleSystemError = when {
+      !SystemInfo.isWindows -> AccelerationErrorCode.GVM_REQUIRES_WINDOWS
+      else -> null
+    }
     override val componentPath = "Android_Emulator_Hypervisor_Driver"
   }
 }

@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.dagger.index
 
-import com.android.tools.idea.dagger.index.concepts.AllConcepts
-import com.android.tools.idea.dagger.index.concepts.DaggerConcept
+import com.android.tools.idea.dagger.concepts.AllConcepts
+import com.android.tools.idea.dagger.concepts.DaggerConcept
+import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexClassWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexFieldWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexPsiWrapper
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.JavaRecursiveElementWalkingVisitor
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiMethod
@@ -29,6 +31,7 @@ import com.intellij.util.indexing.DataIndexer
 import com.intellij.util.indexing.FileContent
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
@@ -38,9 +41,10 @@ import org.jetbrains.kotlin.psi.KtTreeVisitorVoid
 
 typealias IndexEntries = MutableMap<String, MutableSet<IndexValue>>
 
-internal class DaggerDataIndexer @VisibleForTesting internal constructor(
-  private val conceptIndexers: DaggerConceptIndexers = AllConcepts.indexers)
-  : DataIndexer<String, Set<IndexValue>, FileContent> {
+internal class DaggerDataIndexer
+@VisibleForTesting
+internal constructor(private val conceptIndexers: DaggerConceptIndexers = AllConcepts.indexers) :
+  DataIndexer<String, Set<IndexValue>, FileContent> {
 
   companion object {
     val INSTANCE = DaggerDataIndexer()
@@ -48,19 +52,24 @@ internal class DaggerDataIndexer @VisibleForTesting internal constructor(
 
   override fun map(inputData: FileContent): Map<String, Set<IndexValue>> {
     val results: IndexEntries = mutableMapOf()
-    val visitor = when (inputData.fileType) {
-      KotlinFileType.INSTANCE -> KotlinVisitor(results, conceptIndexers, inputData.psiFile as KtFile)
-      JavaFileType.INSTANCE -> JavaVisitor(results, conceptIndexers, inputData.psiFile as PsiJavaFile)
-      else -> return emptyMap()
-    }
+    val visitor =
+      when (inputData.fileType) {
+        KotlinFileType.INSTANCE ->
+          KotlinVisitor(results, conceptIndexers, inputData.psiFile as KtFile)
+        JavaFileType.INSTANCE ->
+          JavaVisitor(results, conceptIndexers, inputData.psiFile as PsiJavaFile)
+        else -> return emptyMap()
+      }
 
     inputData.psiFile.accept(visitor)
     return results
   }
 
-  private class KotlinVisitor(private val results: IndexEntries,
-                              private val conceptIndexers: DaggerConceptIndexers,
-                              ktFile: KtFile) : KtTreeVisitorVoid() {
+  private class KotlinVisitor(
+    private val results: IndexEntries,
+    private val conceptIndexers: DaggerConceptIndexers,
+    ktFile: KtFile
+  ) : KtTreeVisitorVoid() {
     private val wrapperFactory = DaggerIndexPsiWrapper.KotlinFactory(ktFile)
 
     override fun visitPrimaryConstructor(constructor: KtPrimaryConstructor) {
@@ -82,11 +91,18 @@ internal class DaggerDataIndexer @VisibleForTesting internal constructor(
       conceptIndexers.doIndexing(wrapperFactory.of(property), results)
       // No need to continue traversing within the field definition.
     }
+
+    override fun visitClass(klass: KtClass) {
+      conceptIndexers.doIndexing(wrapperFactory.of(klass), results)
+      super.visitClass(klass)
+    }
   }
 
-  private class JavaVisitor(private val results: IndexEntries,
-                            private val conceptIndexers: DaggerConceptIndexers,
-                            psiJavaFile: PsiJavaFile) : JavaRecursiveElementWalkingVisitor() {
+  private class JavaVisitor(
+    private val results: IndexEntries,
+    private val conceptIndexers: DaggerConceptIndexers,
+    psiJavaFile: PsiJavaFile
+  ) : JavaRecursiveElementWalkingVisitor() {
     private val wrapperFactory = DaggerIndexPsiWrapper.JavaFactory(psiJavaFile)
 
     override fun visitMethod(method: PsiMethod) {
@@ -98,10 +114,18 @@ internal class DaggerDataIndexer @VisibleForTesting internal constructor(
       conceptIndexers.doIndexing(wrapperFactory.of(field), results)
       // No need to continue traversing within the field definition.
     }
+
+    override fun visitClass(aClass: PsiClass) {
+      conceptIndexers.doIndexing(wrapperFactory.of(aClass), results)
+      super.visitClass(aClass)
+    }
   }
 }
 
-/** An indexer for a single [DaggerConcept]. Operates using a [DaggerIndexPsiWrapper], so that the logic is common to Kotlin and Java. */
+/**
+ * An indexer for a single [DaggerConcept]. Operates using a [DaggerIndexPsiWrapper], so that the
+ * logic is common to Kotlin and Java.
+ */
 fun interface DaggerConceptIndexer<T : DaggerIndexPsiWrapper> {
   fun addIndexEntries(wrapper: T, indexEntries: IndexEntries)
 
@@ -112,9 +136,13 @@ fun interface DaggerConceptIndexer<T : DaggerIndexPsiWrapper> {
 
 /** Utility class containing [DaggerConceptIndexer]s associated with [DaggerConcept]s. */
 class DaggerConceptIndexers(
+  val classIndexers: List<DaggerConceptIndexer<DaggerIndexClassWrapper>> = emptyList(),
   val fieldIndexers: List<DaggerConceptIndexer<DaggerIndexFieldWrapper>> = emptyList(),
-  val methodIndexers: List<DaggerConceptIndexer<DaggerIndexMethodWrapper>> = emptyList()) {
+  val methodIndexers: List<DaggerConceptIndexer<DaggerIndexMethodWrapper>> = emptyList()
+) {
 
+  fun doIndexing(wrapper: DaggerIndexClassWrapper, indexEntries: IndexEntries) =
+    classIndexers.forEach { it.addIndexEntries(wrapper, indexEntries) }
   fun doIndexing(wrapper: DaggerIndexFieldWrapper, indexEntries: IndexEntries) =
     fieldIndexers.forEach { it.addIndexEntries(wrapper, indexEntries) }
   fun doIndexing(wrapper: DaggerIndexMethodWrapper, indexEntries: IndexEntries) =

@@ -56,7 +56,7 @@ object SystemNodeFilterAction : ToggleAction("Filter System-Defined Layers") {
     inspector.currentClient.stats.hideSystemNodes = state
 
     if (state) {
-      val model = inspector.layoutInspectorModel
+      val model = inspector.inspectorModel
       val selectedNode = model.selection
       if (selectedNode != null && !selectedNode.isInComponentTree(treeSettings)) {
         model.setSelection(selectedNode.findClosestUnfilteredNode(treeSettings), SelectionOrigin.COMPONENT_TREE)

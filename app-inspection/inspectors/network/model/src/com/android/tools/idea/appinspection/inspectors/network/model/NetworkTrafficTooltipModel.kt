@@ -17,9 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.adtui.model.TooltipModel
 
-/**
- * Tooltip shown when user hovers mouse over the traffic area in the inspector.
- */
+/** Tooltip shown when user hovers mouse over the traffic area in the inspector. */
 class NetworkTrafficTooltipModel(private val model: NetworkInspectorModel) : TooltipModel {
   fun getLegends(): LegendsModel {
     return model.tooltipLegends

@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtImportList
@@ -55,7 +56,8 @@ fun isClassFieldChanges(target: PsiElement?) : Boolean {
   while(cur != null) {
     when(cur) {
       is KtFunction -> return false
-      is KtClass -> return partOfPropertyStatement;
+      is KtClass -> return partOfPropertyStatement
+      is KtFile -> return partOfPropertyStatement
       is KtProperty -> {
         partOfPropertyStatement = true
       }

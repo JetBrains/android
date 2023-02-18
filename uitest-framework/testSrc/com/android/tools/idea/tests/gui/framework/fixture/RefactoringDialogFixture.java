@@ -19,6 +19,7 @@ import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
 import org.fest.swing.fixture.DialogFixture;
 import org.fest.swing.fixture.JButtonFixture;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.JButton;
@@ -50,5 +51,10 @@ public class RefactoringDialogFixture extends DialogFixture {
         return "Preview".equals(component.getText());
       }
     });
+  }
+
+  public void waitForDialogToDisappear() {
+    Wait.seconds(60).expecting(target().getTitle() + " dialog to disappear")
+      .until(() -> !target().isShowing());
   }
 }

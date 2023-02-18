@@ -76,6 +76,7 @@ iml_module(
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/annotations",
     ],
+    test_shard_count = 2,
     test_srcs = [
         "android-extensions-idea/tests",
         "idea-android/tests",

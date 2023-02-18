@@ -19,13 +19,9 @@ import backgroundtask.inspection.BackgroundTaskInspectorProtocol.BackgroundTaskE
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.EventWrapper
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.getId
 
-/**
- * An entry with necessary information for a background task to show in the tree table.
- */
+/** An entry with necessary information for a background task to show in the tree table. */
 interface BackgroundTaskEntry {
-  /**
-   * A unique id across different background tasks.
-   */
+  /** A unique id across different background tasks. */
   val id: String
   val isValid: Boolean
   val className: String
@@ -35,27 +31,27 @@ interface BackgroundTaskEntry {
   val callstacks: List<BackgroundTaskCallStack>
   val retries: Int
 
-  /**
-   * Updates entry information with [event].
-   */
+  /** Updates entry information with [event]. */
   fun consume(eventWrapper: EventWrapper)
 }
 
-data class BackgroundTaskCallStack(
-  val triggerTime: Long,
-  val stack: String
-)
+data class BackgroundTaskCallStack(val triggerTime: Long, val stack: String)
 
-fun createBackgroundTaskEntry(event: EventWrapper): BackgroundTaskEntry = when (event.case) {
-  EventWrapper.Case.WORK -> WorkEntry(event.workEvent.getId())
-  EventWrapper.Case.BACKGROUND_TASK -> {
-    val backgroundTaskEvent = event.backgroundTaskEvent
-    val id = backgroundTaskEvent.getId().toString()
-    when (backgroundTaskEvent.backgroundTaskEvent.metadataCase) {
-      MetadataCase.JOB_SCHEDULED, MetadataCase.JOB_STARTED, MetadataCase.JOB_STOPPED, MetadataCase.JOB_FINISHED -> JobEntry(id)
-      MetadataCase.ALARM_SET, MetadataCase.ALARM_CANCELLED, MetadataCase.ALARM_FIRED -> AlarmEntry(id)
-      MetadataCase.WAKE_LOCK_ACQUIRED, MetadataCase.WAKE_LOCK_RELEASED -> WakeLockEntry(id)
-      else -> throw RuntimeException()
+fun createBackgroundTaskEntry(event: EventWrapper): BackgroundTaskEntry =
+  when (event.case) {
+    EventWrapper.Case.WORK -> WorkEntry(event.workEvent.getId())
+    EventWrapper.Case.BACKGROUND_TASK -> {
+      val backgroundTaskEvent = event.backgroundTaskEvent
+      val id = backgroundTaskEvent.getId().toString()
+      when (backgroundTaskEvent.backgroundTaskEvent.metadataCase) {
+        MetadataCase.JOB_SCHEDULED,
+        MetadataCase.JOB_STARTED,
+        MetadataCase.JOB_STOPPED,
+        MetadataCase.JOB_FINISHED -> JobEntry(id)
+        MetadataCase.ALARM_SET, MetadataCase.ALARM_CANCELLED, MetadataCase.ALARM_FIRED ->
+          AlarmEntry(id)
+        MetadataCase.WAKE_LOCK_ACQUIRED, MetadataCase.WAKE_LOCK_RELEASED -> WakeLockEntry(id)
+        else -> throw RuntimeException()
+      }
     }
   }
-}

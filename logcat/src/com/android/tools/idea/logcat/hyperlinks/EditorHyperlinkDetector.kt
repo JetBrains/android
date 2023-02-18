@@ -32,6 +32,7 @@ internal class EditorHyperlinkDetector(project: Project, editor: Editor) : Hyper
   @VisibleForTesting
   internal val hyperlinkFilters =
     CompositeFilter(project, ConsoleViewUtil.computeConsoleFilters(project, /* consoleView= */ null, GlobalSearchScope.allScope(project)))
+      .apply { setForceUseAllFilters(true) }
 
   override fun detectHyperlinks(startLine: Int, endLine: Int) {
     editorHyperlinkSupport.highlightHyperlinks(hyperlinkFilters, startLine, endLine)

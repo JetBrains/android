@@ -27,8 +27,6 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.codeInspection.ex.QuickFixWrapper;
 import com.intellij.lang.documentation.DocumentationProvider;
 import com.intellij.lang.documentation.ExternalDocumentationProvider;
-import com.intellij.openapi.util.Pair;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.spellchecker.inspections.SpellCheckingInspection;
@@ -44,6 +42,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
+import com.intellij.testFramework.fixtures.impl.CodeInsightTestFixtureImpl;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.inspections.AndroidDomInspection;
 import org.jetbrains.android.dom.inspections.AndroidElementNotAllowedInspection;
@@ -309,19 +308,16 @@ public abstract class AndroidDomTestCase extends AndroidTestCase {
 
   protected final List<IntentionAction> highlightAndFindQuickFixes(Class<?> aClass) {
     List<HighlightInfo> infos = myFixture.doHighlighting();
+    CodeInsightTestFixtureImpl.waitForUnresolvedReferencesQuickFixesUnderCaret(myFixture.getFile(), myFixture.getEditor());
     List<IntentionAction> actions = new ArrayList<>();
 
     for (HighlightInfo info : infos) {
-      List<Pair<HighlightInfo.IntentionActionDescriptor, TextRange>> ranges = info.quickFixActionRanges;
-
-      if (ranges != null) {
-        for (Pair<HighlightInfo.IntentionActionDescriptor, TextRange> pair : ranges) {
-          IntentionAction action = pair.getFirst().getAction();
-          if (aClass == null || action.getClass() == aClass) {
-            actions.add(action);
-          }
+      info.findRegisteredQuickFix((descriptor, range) -> {
+        if (aClass == null || descriptor.getAction().getClass() == aClass) {
+          actions.add(descriptor.getAction());
         }
-      }
+        return null;
+      });
     }
     return actions;
   }

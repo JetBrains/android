@@ -389,7 +389,6 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
         results.putAll(element.getVariableElements());
       }
     }
-
     // Get Ext properties from the GradleDslFile, and the EXT properties from the buildscript.
     if (currentElement instanceof GradleBuildFile) {
       GradleBuildFile file = (GradleBuildFile)currentElement;
@@ -417,6 +416,13 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
         }
 
         file = file.getParentModuleBuildFile();
+      }
+    } else if (currentElement instanceof GradleVersionCatalogFile) {
+      GradleDslExpressionMap map = ((GradleVersionCatalogFile)currentElement).getPropertyElement(GradleDslExpressionMap.VERSIONS);
+      if (map != null) {
+        Map<String, GradleDslElement> versions = map.getPropertyElements();
+        results.putAll(versions.entrySet().stream().collect(Collectors.toMap(e -> "versions."+e.getKey(),
+                                                                             Map.Entry::getValue)));
       }
     }
 

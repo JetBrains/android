@@ -94,7 +94,7 @@ open class AttachAndroidSdkSourcesNotificationProvider(private val myProject: Pr
     refreshAfterDownload: Runnable
   ): MyEditorNotificationPanel {
     val panel = MyEditorNotificationPanel(fileEditor)
-    panel.text = "Android SDK sources for API level ${requestedSourceVersion.apiLevel} not found."
+    panel.text = "Android SDK sources for API ${requestedSourceVersion.apiString} not found."
     panel.createAndAddLink("Download") {
       val sourcesPath = DetailsTypes.getSourcesPath(requestedSourceVersion)
       if (createSdkDownloadDialog(listOf(sourcesPath))?.showAndGet() == true) {

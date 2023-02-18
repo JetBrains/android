@@ -201,7 +201,7 @@ Parameter: height should have Float(dp/px) value.""",
     assertEquals(affectedText, info.text)
     assertEquals(errorDescription, info.description)
 
-    val fixAction = info.quickFixActionMarkers.first().first.action
+    val fixAction = info.findRegisteredQuickFix { desc, _ -> desc.action}
     assertEquals(replaceWithMessage, fixAction.text)
 
     runUndoTransparentWriteAction {

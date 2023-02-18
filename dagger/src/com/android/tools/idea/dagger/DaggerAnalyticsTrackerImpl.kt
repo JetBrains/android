@@ -55,14 +55,15 @@ internal class DaggerAnalyticsTrackerImpl(private val project: Project) : Dagger
     toElement: DaggerEditorEvent.ElementType
   ) {
 
-    val daggerEventBuilder = DaggerEditorEvent.newBuilder()
-      .setType(DaggerEditorEvent.Type.NAVIGATED)
-      .setNavigationMetadata(
-        DaggerEditorEvent.NavigationMetadata.newBuilder()
-          .setContext(context)
-          .setFromElement(fromElement)
-          .setToElement(toElement)
-      )
+    val daggerEventBuilder =
+      DaggerEditorEvent.newBuilder()
+        .setType(DaggerEditorEvent.Type.NAVIGATED)
+        .setNavigationMetadata(
+          DaggerEditorEvent.NavigationMetadata.newBuilder()
+            .setContext(context)
+            .setFromElement(fromElement)
+            .setToElement(toElement)
+        )
 
     track(daggerEventBuilder)
   }
@@ -76,59 +77,62 @@ internal class DaggerAnalyticsTrackerImpl(private val project: Project) : Dagger
     time: Long
   ) {
 
-    val daggerEventBuilder = DaggerEditorEvent.newBuilder()
-      .setType(DaggerEditorEvent.Type.FIND_USAGES_NODE_WAS_DISPLAYED)
-      .setOwnerElementType(ownerElement)
-      .setCalculationTimeMs(time)
+    val daggerEventBuilder =
+      DaggerEditorEvent.newBuilder()
+        .setType(DaggerEditorEvent.Type.FIND_USAGES_NODE_WAS_DISPLAYED)
+        .setOwnerElementType(ownerElement)
+        .setCalculationTimeMs(time)
 
     track(daggerEventBuilder)
   }
 
-  override fun trackGutterWasDisplayed(
-    ownerElement: DaggerEditorEvent.ElementType,
-    time: Long
-  ) {
+  override fun trackGutterWasDisplayed(ownerElement: DaggerEditorEvent.ElementType, time: Long) {
 
     // Showing gutter is a quite a common event so we sample it.
     if (!shouldLog(PERCENTAGE_OF_FREQUENT_EVEN_WE_REPORT)) {
       return
     }
 
-    val daggerEventBuilder = DaggerEditorEvent.newBuilder()
-      .setType(DaggerEditorEvent.Type.GUTTER_WAS_DISPLAYED)
-      .setOwnerElementType(ownerElement)
-      .setCalculationTimeMs(time)
+    val daggerEventBuilder =
+      DaggerEditorEvent.newBuilder()
+        .setType(DaggerEditorEvent.Type.GUTTER_WAS_DISPLAYED)
+        .setOwnerElementType(ownerElement)
+        .setCalculationTimeMs(time)
 
     track(daggerEventBuilder)
   }
 
-  override fun trackClickOnGutter(
-    ownerElement: DaggerEditorEvent.ElementType
-  ) {
+  override fun trackClickOnGutter(ownerElement: DaggerEditorEvent.ElementType) {
 
-    val daggerEventBuilder = DaggerEditorEvent.newBuilder()
-      .setType(DaggerEditorEvent.Type.CLICKED_ON_GUTTER)
-      .setOwnerElementType(ownerElement)
+    val daggerEventBuilder =
+      DaggerEditorEvent.newBuilder()
+        .setType(DaggerEditorEvent.Type.CLICKED_ON_GUTTER)
+        .setOwnerElementType(ownerElement)
 
     track(daggerEventBuilder)
   }
 
-  override fun trackOpenLinkFromError() = track(DaggerEditorEvent.newBuilder().setType(DaggerEditorEvent.Type.OPENED_LINK_FROM_ERROR))
+  override fun trackOpenLinkFromError() =
+    track(DaggerEditorEvent.newBuilder().setType(DaggerEditorEvent.Type.OPENED_LINK_FROM_ERROR))
 
   private fun track(daggerEventBuilder: DaggerEditorEvent.Builder) {
-    daggerEventBuilder.usingBuiltInAnnotationSearch = StudioFlags.DAGGER_BUILT_IN_SEARCH_ENABLED.get()
-    val studioEvent: AndroidStudioEvent.Builder = AndroidStudioEvent.newBuilder()
-      .setKind(AndroidStudioEvent.EventKind.DAGGER_EDITOR)
-      .setDaggerEditorEvent(daggerEventBuilder)
+    daggerEventBuilder.usingBuiltInAnnotationSearch =
+      StudioFlags.DAGGER_BUILT_IN_SEARCH_ENABLED.get()
+    val studioEvent: AndroidStudioEvent.Builder =
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.DAGGER_EDITOR)
+        .setDaggerEditorEvent(daggerEventBuilder)
 
-    // TODO(b/153270761): Use studioEvent.withProjectId instead of AnonymizerUtil.anonymizeUtf8(project.basePath!!),
+    // TODO(b/153270761): Use studioEvent.withProjectId instead of
+    // AnonymizerUtil.anonymizeUtf8(project.basePath!!),
     //  after code is moved out of monolithic core module
     studioEvent.projectId = AnonymizerUtil.anonymizeUtf8(project.basePath!!)
     UsageTracker.log(studioEvent)
   }
 }
 
-// TODO(b/157548167): Use correct types for isDaggerEntryPoint, isDaggerComponentMethod and isDaggerEntryPointMethod
+// TODO(b/157548167): Use correct types for isDaggerEntryPoint, isDaggerComponentMethod and
+// isDaggerEntryPointMethod
 internal fun getTypeForMetrics(element: PsiElement): DaggerEditorEvent.ElementType {
   return when {
     element.isDaggerConsumer -> DaggerEditorEvent.ElementType.CONSUMER
@@ -138,8 +142,10 @@ internal fun getTypeForMetrics(element: PsiElement): DaggerEditorEvent.ElementTy
     element.isDaggerEntryPoint -> DaggerEditorEvent.ElementType.ENTRY_POINT
     element.isDaggerSubcomponent -> DaggerEditorEvent.ElementType.SUBCOMPONENT
     element.isDaggerComponentInstantiationMethod -> DaggerEditorEvent.ElementType.COMPONENT_METHOD
-    element.isDaggerEntryPointInstantiationMethod -> DaggerEditorEvent.ElementType.ENTRY_POINT_METHOD
-    element.isAssistedInjectedConstructor -> DaggerEditorEvent.ElementType.ASSISTED_INJECTED_CONSTRUCTOR
+    element.isDaggerEntryPointInstantiationMethod ->
+      DaggerEditorEvent.ElementType.ENTRY_POINT_METHOD
+    element.isAssistedInjectedConstructor ->
+      DaggerEditorEvent.ElementType.ASSISTED_INJECTED_CONSTRUCTOR
     element.isAssistedFactoryMethod -> DaggerEditorEvent.ElementType.ASSISTED_FACTORY_METHOD
     else -> error("Invalid PsiElement for metrics")
   }

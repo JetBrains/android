@@ -25,7 +25,8 @@ import java.nio.file.Path
  *
  * It uses the provided lambda to determine what to return. The default is [TEST_JAR_PATH].
  */
-class TestArtifactResolver(private val function: (ArtifactCoordinate) -> Path = { TEST_JAR_PATH }) : ArtifactResolver {
+class TestArtifactResolver(private val function: (ArtifactCoordinate) -> Path = { TEST_JAR_PATH }) :
+  ArtifactResolver {
   override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path {
     return function(artifactCoordinate)
   }

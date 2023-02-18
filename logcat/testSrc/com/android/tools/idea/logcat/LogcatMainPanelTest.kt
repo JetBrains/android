@@ -83,6 +83,7 @@ import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnAction.ACTIONS_KEY
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.editor.Document
@@ -99,7 +100,6 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.tools.SimpleActionGroup
 import com.intellij.ui.ClientProperty
 import com.intellij.ui.EditorNotificationPanel
 import com.intellij.util.ConcurrencyUtil
@@ -163,7 +163,7 @@ class LogcatMainPanelTest {
   @Test
   fun createsComponents() {
     // In prod, splitter actions are provided by the Splitting Tabs component. In tests, we create a stand-in
-    val splitterActions = SimpleActionGroup().apply {
+    val splitterActions = DefaultActionGroup().apply {
       add(object : AnAction("Splitter Action") {
         override fun actionPerformed(e: AnActionEvent) {}
       })
@@ -311,7 +311,7 @@ class LogcatMainPanelTest {
   @Test
   fun installPopupHandler() {
     // In prod, splitter actions are provided by the Splitting Tabs component. In tests, we create a stand-in
-    val splitterActions = SimpleActionGroup().apply {
+    val splitterActions = DefaultActionGroup().apply {
       add(object : AnAction("Splitter Action") {
         override fun actionPerformed(e: AnActionEvent) {}
       })
@@ -518,7 +518,7 @@ class LogcatMainPanelTest {
     assertThat(logcatMainPanel.formattingOptions.tagFormat.maxLength).isEqualTo(17)
     assertThat(logcatMainPanel.messageProcessor.logcatFilter).isEqualTo(StringFilter("foo", IMPLICIT_LINE, TextRange(0, "foo".length)))
     assertThat(logcatMainPanel.headerPanel.filter).isEqualTo("foo")
-    assertThat(logcatMainPanel.editor.settings.isUseSoftWraps).isTrue()
+    assertThat(logcatMainPanel.isSoftWrapEnabled()).isTrue()
   }
 
   @RunsInEdt

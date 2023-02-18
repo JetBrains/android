@@ -30,24 +30,22 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.Ht
 import com.android.tools.idea.appinspection.inspectors.network.model.rules.RuleData
 import com.android.tools.idea.appinspection.inspectors.network.view.FakeUiComponentsProvider
 import com.android.tools.idea.appinspection.inspectors.network.view.NetworkInspectorView
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import java.awt.Component
+import javax.swing.JPanel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.cancel
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import studio.network.inspection.NetworkInspectorProtocol.InterceptCommand
-import java.awt.Component
-import javax.swing.JPanel
 
 @RunsInEdt
 class NetworkInspectorDetailsPanelTest {
@@ -58,14 +56,13 @@ class NetworkInspectorDetailsPanelTest {
     override suspend fun interceptResponse(command: InterceptCommand) = Unit
   }
 
-  @get:Rule
-  val flagRule = FlagRule(StudioFlags.ENABLE_NETWORK_INTERCEPTION, true)
+  @get:Rule val flagRule = FlagRule(StudioFlags.ENABLE_NETWORK_INTERCEPTION, true)
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
+
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var client: TestNetworkInspectorClient
   private lateinit var services: TestNetworkInspectorServices
@@ -74,32 +71,46 @@ class NetworkInspectorDetailsPanelTest {
   private lateinit var detailsPanel: NetworkInspectorDetailsPanel
   private val timer: FakeTimer = FakeTimer()
   private lateinit var scope: CoroutineScope
-  private lateinit var disposable: Disposable
 
   @Before
   fun before() {
     val codeNavigationProvider = FakeCodeNavigationProvider()
     client = TestNetworkInspectorClient()
     services = TestNetworkInspectorServices(codeNavigationProvider, timer, client)
-    scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
-    model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), scope, object : HttpDataModel {
-      private val dataList = listOf(DEFAULT_DATA)
-      override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
-        return dataList.filter { it.requestStartTimeUs >= timeCurrentRangeUs.min && it.requestStartTimeUs <= timeCurrentRangeUs.max }
-      }
-    })
+    scope =
+      AndroidCoroutineScope(
+        disposableRule.disposable,
+        MoreExecutors.directExecutor().asCoroutineDispatcher()
+      )
+    model =
+      NetworkInspectorModel(
+        services,
+        FakeNetworkInspectorDataSource(),
+        scope,
+        object : HttpDataModel {
+          private val dataList = listOf(DEFAULT_DATA)
+          override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
+            return dataList.filter {
+              it.requestStartTimeUs >= timeCurrentRangeUs.min &&
+                it.requestStartTimeUs <= timeCurrentRangeUs.max
+            }
+          }
+        }
+      )
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
-    inspectorView = NetworkInspectorView(projectRule.project, model, FakeUiComponentsProvider(), component, services, scope)
+    inspectorView =
+      NetworkInspectorView(
+        projectRule.project,
+        model,
+        FakeUiComponentsProvider(),
+        component,
+        services,
+        scope,
+        disposableRule.disposable
+      )
     parentPanel.add(inspectorView.component)
     detailsPanel = inspectorView.detailsPanel
-    disposable = Disposer.newDisposable()
-  }
-
-  @After
-  fun tearDown() {
-    scope.cancel()
-    Disposer.dispose(disposable)
   }
 
   @Test

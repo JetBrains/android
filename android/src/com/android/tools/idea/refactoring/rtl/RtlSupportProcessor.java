@@ -74,19 +74,14 @@ import static org.jetbrains.android.dom.AndroidResourceDomFileDescription.isFile
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.projectsystem.FilenameConstants;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -102,7 +97,6 @@ import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -346,7 +340,7 @@ public class RtlSupportProcessor extends BaseRefactoringProcessor {
     // For all non library modules in our project
     for (AndroidFacet facet : ProjectSystemUtil.getAndroidFacets(myProject)) {
       if (facet != null && facet.getConfiguration().isAppProject()) {
-        int minSdk = AndroidModuleInfo.getInstance(facet).getMinSdkVersion().getApiLevel();
+        int minSdk = StudioAndroidModuleInfo.getInstance(facet).getMinSdkVersion().getApiLevel();
 
         if (myProperties.generateV17resourcesOption) {
           // First get all the "res" directories

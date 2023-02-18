@@ -26,38 +26,45 @@ import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordin
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.io.FileService
-import kotlinx.coroutines.withContext
 import java.nio.file.Path
+import kotlinx.coroutines.withContext
 
 /**
  * Special handling for blaze projects:
  *
- * Because androidx libraries are released in google3 before they are released on GMaven,
- * there exists a window of time in which http resolver will fail to resolve the library
- * against GMaven.
+ * Because androidx libraries are released in google3 before they are released on GMaven, there
+ * exists a window of time in which http resolver will fail to resolve the library against GMaven.
  *
- * When that happens, the code below will try to resolve the library using
- * BlazeModuleSystem, which will track down the dependency in the blaze BUILD system
- * (if it exists) and match it with a target label. The label is then mapped to a
- * path that is in google3.
+ * When that happens, the code below will try to resolve the library using BlazeModuleSystem, which
+ * will track down the dependency in the blaze BUILD system (if it exists) and match it with a
+ * target label. The label is then mapped to a path that is in google3.
  *
  * For example, assuming the blaze project depends on:
- *   //third_party/java/androidx/work/runtime:runtime
+ * //third_party/java/androidx/work/runtime:runtime
  *
  * Attempting to resolve androidx.work:work-runtime:1.0.0 will yield the path:
- *   ${WORKSPACE_ROOT}/third_party/java/androidx/work/runtime
+ * ${WORKSPACE_ROOT}/third_party/java/androidx/work/runtime
  *
  * The file name is then computed from the maven coordinate, yielding:
- *   ${WORKSPACE_ROOT}/third_party/java/androidx/work/runtime/work-runtime.aar
+ * ${WORKSPACE_ROOT}/third_party/java/androidx/work/runtime/work-runtime.aar
  */
-class BlazeArtifactResolver constructor(
+class BlazeArtifactResolver(
   private val fileService: FileService,
   private val moduleSystemArtifactFinder: ModuleSystemArtifactFinder
 ) : ArtifactResolver {
-  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path = withContext(AndroidDispatchers.diskIoThread) {
-    moduleSystemArtifactFinder.findLibrary(artifactCoordinate)?.let { libraryPath ->
-      val unzippedDir = extractZipIfNeeded(fileService.createRandomTempDir(), libraryPath)
-      unzippedDir.resolveExistsOrNull(INSPECTOR_JAR) ?: unzippedDir.resolveExistsOrNull(artifactCoordinate.blazeFileName)
-    } ?: throw AppInspectionArtifactNotFoundException("Artifact not found in blaze module system.", artifactCoordinate)
-  }
+  override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path =
+    withContext(AndroidDispatchers.diskIoThread) {
+      moduleSystemArtifactFinder.findLibrary(artifactCoordinate)?.let { libraryPath ->
+        extractZipIfNeeded(fileService.createRandomTempDir(), libraryPath)
+          .resolveExistsOrNull(artifactCoordinate.blazeFileName)
+          ?.let {
+            extractZipIfNeeded(fileService.createRandomTempDir(), it)
+              .resolveExistsOrNull(INSPECTOR_JAR)
+          }
+      }
+        ?: throw AppInspectionArtifactNotFoundException(
+          "Artifact not found in blaze module system.",
+          artifactCoordinate
+        )
+    }
 }

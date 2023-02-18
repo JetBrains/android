@@ -56,6 +56,7 @@ import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
 import com.intellij.ui.tree.TreeVisitor
+import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeModelAdapter
 import org.jetbrains.annotations.TestOnly
@@ -593,7 +594,7 @@ private fun createTabName(title: String, issueCount: Int?): String {
   }
   return HtmlBuilder()
     .append(title)
-    .append(" ").append(HtmlChunk.tag("font").attr("color", toHtmlColor(UIUtil.getInactiveTextColor())).addText("$issueCount"))
+    .append(" ").append(HtmlChunk.tag("font").attr("color", toHtmlColor(NamedColorUtil.getInactiveTextColor())).addText("$issueCount"))
     .wrapWithHtmlBody()
     .toString()
 }

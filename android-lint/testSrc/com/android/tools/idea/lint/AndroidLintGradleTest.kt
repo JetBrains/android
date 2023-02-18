@@ -213,8 +213,8 @@ fun JavaCodeInsightTestFixture.checkLint(psiFile: PsiFile, inspection: AndroidLi
     for (i in startIndex until rangeEnd) sb.append("~")
     sb.append("\n")
 
-    for (pair in highlight.quickFixActionRanges) {
-      val action = pair.first.action
+    highlight.findRegisteredQuickFix { desc, range ->
+      val action = desc.action
       sb.append("    ")
       if (action.isAvailable(project, editor, psiFile)) {
         sb.append("Fix: ")
@@ -225,6 +225,7 @@ fun JavaCodeInsightTestFixture.checkLint(psiFile: PsiFile, inspection: AndroidLi
         sb.append(action.text)
       }
       sb.append("\n")
+      null
     }
   }
 

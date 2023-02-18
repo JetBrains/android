@@ -191,7 +191,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
   private fun syncStarted(trigger: GradleSyncStats.Trigger, rootProjectPath: @SystemIndependent String): Boolean {
     state.set {
       if (state.isInProgress) {
-        LOG.error("Sync already in progress for project '${project.name}'.", Throwable())
+        LOG.warnWithDebug("Sync already in progress for project '${project.name}'.", Throwable())
         return@syncStarted false
       }
       copy(stateBeforeSyncStarted = state, state = LastSyncState.IN_PROGRESS)

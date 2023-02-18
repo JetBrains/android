@@ -32,6 +32,7 @@ internal constructor(private val registry: ToolingModelBuilderRegistry) : Plugin
     registry.register(GradlePluginModelBuilder())
     registry.register(BuildMapModelBuilder())
     registry.register(LegacyV1AgpVersionModelBuilder())
+    registry.register(GradlePropertiesModelBuilder())
     // NOTE: The minimum supported AGP version is 3.2 and it requires Gradle 4.6.
     // AdditionalArtifactsModelBuilder extends ParameterizedToolingModelBuilder, which is available since Gradle 4.4.
     if (isGradleAtLeast(project.gradle.gradleVersion, "4.4")) {

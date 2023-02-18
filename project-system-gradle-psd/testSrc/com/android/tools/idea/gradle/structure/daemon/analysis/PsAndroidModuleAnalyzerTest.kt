@@ -62,4 +62,26 @@ class PsAndroidModuleAnalyzerTest {
       )))
     }
   }
+
+  @Test
+  fun testMessagesForBom() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_BOM)
+    projectRule.psTestWithContext(preparedProject, disableAnalysis = true) {
+      val mainModule = project.findModuleByName("app") as PsAndroidModule
+      val analyzer = PsAndroidModuleAnalyzer(context, PsPathRendererImpl().also { it.context = context })
+      val messageCollection = analyzer.analyze(mainModule)
+
+      val messages = messageCollection
+        .filter {
+          val dependencyName = (it.path as? PsLibraryDependencyNavigationPath)?.toString().orEmpty()
+          dependencyName.startsWith("com.android.support")
+        }
+        .map { it.text to it.description!! }
+        .toSet()
+
+      assertThat(messages, equalTo(setOf(
+        "Gradle promoted library version to 28.0.0" to "in: implementation",
+      )))
+    }
+  }
 }

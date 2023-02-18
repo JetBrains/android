@@ -18,7 +18,8 @@ package com.android.tools.idea.configurations;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
+import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -32,7 +33,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.CompatibilityRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -103,7 +103,7 @@ public class TargetMenuAction extends DropDownAction {
       if (module != null) {
         AndroidFacet facet = AndroidFacet.getInstance(module);
         if (facet != null) {
-          return AndroidModuleInfo.getInstance(facet).getMinSdkVersion().getFeatureLevel();
+          return StudioAndroidModuleInfo.getInstance(facet).getMinSdkVersion().getFeatureLevel();
         }
       }
     }

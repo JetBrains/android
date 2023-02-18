@@ -399,6 +399,7 @@ MODULE                        : MultiFlavor.app
         ApplicationRClassConstantIds  : true
         AestRClassConstantIds         : true
         TransitiveRClasses            : true
+        UseAndroidX                   : true
         UsesCompose                   : false
         MlModelBindingEnabled         : false
     - basicVariant:               : firstAbcSecondAbcDebug

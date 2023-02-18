@@ -46,8 +46,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.IconManager;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.LoadingNode;
+import com.intellij.ui.PlatformIcons;
 import com.intellij.ui.SideBorder;
 import com.intellij.ui.SimpleColoredComponent;
 import com.intellij.ui.SimpleTextAttributes;
@@ -219,13 +221,13 @@ public class ApkViewPanel implements TreeSelectionListener {
     myTree.setRootVisible(true); // show root node only when showing LoadingNode
     myTree.setPaintBusy(true);
 
-    TreeSpeedSearch treeSpeedSearch = new TreeSpeedSearch(myTree, path -> {
+    TreeSpeedSearch treeSpeedSearch = new TreeSpeedSearch(myTree, true, path -> {
       Object lastPathComponent = path.getLastPathComponent();
       if (!(lastPathComponent instanceof ArchiveTreeNode)) {
         return null;
       }
       return ((ArchiveTreeNode)lastPathComponent).getData().getPath().toString();
-    }, true);
+    });
 
     // Provides the percentage of the node size to the total size of the APK
     PercentRenderer.PercentProvider percentProvider = (jTree, value, row) -> {
@@ -449,7 +451,7 @@ public class ApkViewPanel implements TreeSelectionListener {
         if (fileName.equals(SdkConstants.FD_RES)) {
           return AllIcons.Modules.ResourcesRoot;
         }
-        return AllIcons.Nodes.Package;
+        return IconManager.getInstance().getPlatformIcon(PlatformIcons.Package);
       }
     }
   }

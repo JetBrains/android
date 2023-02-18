@@ -35,20 +35,22 @@ class AndroidSdkTest {
   }
 
   @Test
-  fun `Haxm is only compatible on Windows with Intel CPU`() {
+  fun `Haxm is only compatible with Windows with Intel CPU`() {
     if (SystemInfo.isWindows && CpuVendor.isIntel) {
-      assertThat(Haxm.InstallerInfo.checkInstallation()).isNotEqualTo(AccelerationErrorCode.CANNOT_INSTALL_ON_THIS_OS);
+      assertThat(Haxm.InstallerInfo.checkInstallation()).isNotEqualTo(AccelerationErrorCode.HAXM_REQUIRES_WINDOWS);
+    } else if (SystemInfo.isWindows && !CpuVendor.isIntel) {
+      assertThat(Haxm.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.HAXM_REQUIRES_INTEL_CPU);
     } else {
-      assertThat(Haxm.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.CANNOT_INSTALL_ON_THIS_OS);
+      assertThat(Haxm.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.HAXM_REQUIRES_WINDOWS);
     }
   }
 
   @Test
-  fun `GVM is only compatible on Windows`() {
+  fun `GVM is only compatible with Windows`() {
     if (SystemInfo.isWindows) {
-      assertThat(Gvm.InstallerInfo.checkInstallation()).isNotEqualTo(AccelerationErrorCode.CANNOT_INSTALL_ON_THIS_OS);
+      assertThat(Gvm.InstallerInfo.checkInstallation()).isNotEqualTo(AccelerationErrorCode.GVM_REQUIRES_WINDOWS);
     } else {
-      assertThat(Gvm.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.CANNOT_INSTALL_ON_THIS_OS);
+      assertThat(Gvm.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.GVM_REQUIRES_WINDOWS);
     }
   }
 }

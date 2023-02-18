@@ -23,7 +23,7 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.api.InsertType;
-import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import icons.StudioIcons;
 import org.jetbrains.android.facet.AndroidFacet;
@@ -62,7 +62,7 @@ public final class SearchItemHandler extends MenuHandler {
     }
 
     NlModel model = newChild.getModel();
-    AndroidVersion minSdkVersion = AndroidModuleInfo.getInstance(model.getFacet()).getMinSdkVersion();
+    AndroidVersion minSdkVersion = StudioAndroidModuleInfo.getInstance(model.getFacet()).getMinSdkVersion();
     NlWriteCommandActionUtil.run(newChild, "", () -> {
       String value = minSdkVersion.getApiLevel() < 11 ? "android.support.v7.widget.SearchView" : "android.widget.SearchView";
       // TODO: Adjust for correct namespace

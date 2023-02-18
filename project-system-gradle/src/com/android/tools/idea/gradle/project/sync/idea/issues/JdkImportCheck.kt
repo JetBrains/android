@@ -159,7 +159,7 @@ private class UseEmbeddedJdkQuickFix : DescribedBuildIssueQuickFix {
   }
 }
 
-private class SelectJdkFromFileSystemQuickFix : DescribedBuildIssueQuickFix {
+public class SelectJdkFromFileSystemQuickFix : DescribedBuildIssueQuickFix {
   override val description: String = "Change Gradle JDK..."
   override val id: String = "select.jdk.from.new.psd"
 

@@ -40,7 +40,6 @@ import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
-import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.matchToProcessDescriptor
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
@@ -67,7 +66,6 @@ import com.intellij.ui.components.JBLoadingPanelListener
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons.LayoutInspector.LIVE_UPDATES
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.TestOnly
@@ -115,15 +113,11 @@ const val PERFORMANCE_WARNING_HIDDEN = "performance.warning.hidden"
  * @param onDeviceSelected is only invoked when [deviceModel] is used.
  */
 class DeviceViewPanel(
-  private val coroutineScope: CoroutineScope,
-  val deviceModel: DeviceModel?,
-  val processesModel: ProcessesModel?,
   onDeviceSelected: (newDevice: DeviceDescriptor) -> Unit,
   onProcessSelected: (newProcess: ProcessDescriptor) -> Unit,
   val onStopInspector: () -> Unit,
-  private val layoutInspector: LayoutInspector,
+  val layoutInspector: LayoutInspector,
   private val viewSettings: RenderSettings,
-  private val inspectorClientSettings: InspectorClientSettings,
   disposableParent: Disposable,
   @TestOnly private val backgroundExecutor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
 ) : JPanel(BorderLayout()), Zoomable, DataProvider, Pannable {
@@ -134,16 +128,16 @@ class DeviceViewPanel(
   override val screenScalingFactor = 1.0
 
   override var isPanning = false
-    get() = ( field || isMiddleMousePressed || isSpacePressed ) && (layoutInspector.isSnapshot || processesModel?.selectedProcess != null)
+    get() = ( field || isMiddleMousePressed || isSpacePressed ) && (layoutInspector.isSnapshot || layoutInspector.processModel?.selectedProcess != null)
 
   private var isSpacePressed = false
   private var isMiddleMousePressed = false
   private var lastPanMouseLocation: Point? = null
   private var performanceWarningGiven = false
 
-  private val selectDeviceAction: SelectDeviceAction? = if (deviceModel != null) {
+  private val selectDeviceAction: SelectDeviceAction? = if (layoutInspector.deviceModel != null) {
     SelectDeviceAction(
-      deviceModel = deviceModel,
+      deviceModel = layoutInspector.deviceModel,
       onDeviceSelected = onDeviceSelected,
       onProcessSelected = onProcessSelected,
       onDetachAction = { stopInspectors() },
@@ -154,9 +148,9 @@ class DeviceViewPanel(
     null
   }
 
-  private val selectProcessAction: SelectProcessAction? = if (processesModel != null) {
+  private val selectProcessAction: SelectProcessAction? = if (layoutInspector.processModel != null) {
     SelectProcessAction(
-      model = processesModel,
+      model = layoutInspector.processModel,
       supportsOffline = false,
       createProcessLabel = (SelectProcessAction)::createCompactProcessLabel,
       stopPresentation = SelectProcessAction.StopPresentation(
@@ -189,8 +183,8 @@ class DeviceViewPanel(
   }
 
   private val contentPanel = DeviceViewContentPanel(
-    inspectorModel = layoutInspector.layoutInspectorModel,
-    deviceModel = deviceModel,
+    inspectorModel = layoutInspector.inspectorModel,
+    deviceModel = layoutInspector.deviceModel,
     treeSettings = layoutInspector.treeSettings,
     renderSettings = viewSettings,
     currentClient = { layoutInspector.currentClient },
@@ -295,18 +289,18 @@ class DeviceViewPanel(
    * [DeviceViewContentPanel] will show an error message.
    */
   fun onNewForegroundProcess(foregroundProcess: ForegroundProcess) {
-    isCurrentForegroundProcessDebuggable = if (processesModel == null) {
+    isCurrentForegroundProcessDebuggable = if (layoutInspector.processModel == null) {
       false
     }
     else {
       hasForegroundProcess = true
-      val processDescriptor = foregroundProcess.matchToProcessDescriptor(processesModel)
+      val processDescriptor = foregroundProcess.matchToProcessDescriptor(layoutInspector.processModel)
       processDescriptor != null
     }
   }
 
   init {
-    deviceModel?.newSelectedDeviceListeners?.add { _ ->
+    layoutInspector.deviceModel?.newSelectedDeviceListeners?.add { _ ->
       // as soon as a new device is connected default to the process not being debuggable.
       // this will change as soon as an actual process shows up
       // and protects us against cases when the device has no foreground process (eg. is locked)
@@ -359,7 +353,7 @@ class DeviceViewPanel(
     add(toolbarComponent, BorderLayout.NORTH)
     loadingPane.add(layeredPane, BorderLayout.CENTER)
     add(loadingPane, BorderLayout.CENTER)
-    val model = layoutInspector.layoutInspectorModel
+    val model = layoutInspector.inspectorModel
 
     model.attachStageListeners.add { state ->
       val text = when (state) {
@@ -394,11 +388,11 @@ class DeviceViewPanel(
       }
     }
 
-    processesModel?.addSelectedProcessListeners(newSingleThreadExecutor()) {
-      if (processesModel.selectedProcess?.isRunning == true) {
+    layoutInspector.processModel?.addSelectedProcessListeners(newSingleThreadExecutor()) {
+      if (layoutInspector.processModel.selectedProcess?.isRunning == true) {
           loadingPane.startLoading()
       }
-      if (processesModel.selectedProcess == null) {
+      if (layoutInspector.processModel.selectedProcess == null) {
           loadingPane.stopLoading()
       }
     }
@@ -488,7 +482,7 @@ class DeviceViewPanel(
 
   fun stopInspectors() {
     loadingPane.stopLoading()
-    processesModel?.stop()
+    layoutInspector.processModel?.stop()
     onStopInspector.invoke()
   }
 
@@ -502,7 +496,7 @@ class DeviceViewPanel(
 
   override fun zoom(type: ZoomType): Boolean {
     var newZoom = viewSettings.scalePercent
-    if (layoutInspector.layoutInspectorModel.isEmpty) {
+    if (layoutInspector.inspectorModel.isEmpty) {
       newZoom = 100
       scrollPane.viewport.revalidate()
     }
@@ -540,20 +534,20 @@ class DeviceViewPanel(
     // This will make sure the screen size is correct even if there are windows we don't know about yet.
     // Example: If the initial screen has a dialog open, we may receive the dialog first. We do not want to zoom to fit the dialog size
     // since it is often smaller than the screen size.
-    val size = layoutInspector.layoutInspectorModel.resourceLookup.screenDimension
+    val size = layoutInspector.inspectorModel.resourceLookup.screenDimension
     if (size != null) {
       return size
     }
     // For the legacy inspector and for snapshots loaded from file, we do not have the screen size, but we know that all windows are loaded.
-    val root = layoutInspector.layoutInspectorModel.root
+    val root = layoutInspector.inspectorModel.root
     return Dimension(root.layoutBounds.width, root.layoutBounds.height)
   }
 
-  override fun canZoomIn() = viewSettings.scalePercent < MAX_ZOOM && !layoutInspector.layoutInspectorModel.isEmpty
+  override fun canZoomIn() = viewSettings.scalePercent < MAX_ZOOM && !layoutInspector.inspectorModel.isEmpty
 
-  override fun canZoomOut() = viewSettings.scalePercent > MIN_ZOOM && !layoutInspector.layoutInspectorModel.isEmpty
+  override fun canZoomOut() = viewSettings.scalePercent > MIN_ZOOM && !layoutInspector.inspectorModel.isEmpty
 
-  override fun canZoomToFit() = !layoutInspector.layoutInspectorModel.isEmpty && getFitZoom() != viewSettings.scalePercent
+  override fun canZoomToFit() = !layoutInspector.inspectorModel.isEmpty && getFitZoom() != viewSettings.scalePercent
 
   override fun canZoomToActual() = viewSettings.scalePercent < 100 && canZoomIn() || viewSettings.scalePercent > 100 && canZoomOut()
 
@@ -591,7 +585,7 @@ class DeviceViewPanel(
     leftGroup.add(AlphaSliderAction)
     if (!layoutInspector.isSnapshot) {
       leftGroup.add(Separator.getInstance())
-      leftGroup.add(PauseLayoutInspectorAction(inspectorClientSettings))
+      leftGroup.add(PauseLayoutInspectorAction(layoutInspector.inspectorClientSettings))
       leftGroup.add(RefreshAction)
     }
     leftGroup.add(Separator.getInstance())
@@ -647,8 +641,8 @@ class DeviceViewPanel(
       val currentClient = client(event)
       if (currentClient.capabilities.contains(Capability.SUPPORTS_CONTINUOUS_MODE)) {
         when (state) {
-          true -> coroutineScope.launch { currentClient.startFetching() }
-          false -> coroutineScope.launch { currentClient.stopFetching() }
+          true -> layoutInspector.coroutineScope.launch { currentClient.startFetching() }
+          false -> layoutInspector.coroutineScope.launch { currentClient.stopFetching() }
         }
       }
       inspectorClientSettings.isCapturingModeOn = state

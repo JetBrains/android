@@ -263,7 +263,7 @@ class BuildAttributionAnalyticsManager(
         is NoIncompatiblePlugins -> ConfigurationCacheCompatibilityData.CompatibilityState.INCOMPATIBLE_PLUGINS_NOT_DETECTED
         is IncompatiblePluginsDetected -> ConfigurationCacheCompatibilityData.CompatibilityState.INCOMPATIBLE_PLUGINS_DETECTED
         ConfigurationCachingTurnedOn -> ConfigurationCacheCompatibilityData.CompatibilityState.CONFIGURATION_CACHE_TURNED_ON
-        ConfigurationCacheCompatibilityTestFlow -> ConfigurationCacheCompatibilityData.CompatibilityState.CONFIGURATION_CACHE_TRIAL_FLOW_BUILD
+        is ConfigurationCacheCompatibilityTestFlow -> ConfigurationCacheCompatibilityData.CompatibilityState.CONFIGURATION_CACHE_TRIAL_FLOW_BUILD
         ConfigurationCachingTurnedOff -> ConfigurationCacheCompatibilityData.CompatibilityState.CONFIGURATION_CACHE_TURNED_OFF
         NoDataFromSavedResult -> ConfigurationCacheCompatibilityData.CompatibilityState.UNKNOWN_STATE
       }

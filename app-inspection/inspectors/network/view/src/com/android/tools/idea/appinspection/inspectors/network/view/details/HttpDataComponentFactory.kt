@@ -45,58 +45,83 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * A factory which wraps a target [HttpData] and can create useful, shared UI components
- * for displaying aspects of it.
+ * A factory which wraps a target [HttpData] and can create useful, shared UI components for
+ * displaying aspects of it.
  */
 @SuppressLint("AvoidByLazy")
-class HttpDataComponentFactory(private val httpData: HttpData, private val componentsProvider: UiComponentsProvider) {
+class HttpDataComponentFactory(
+  private val httpData: HttpData,
+  private val componentsProvider: UiComponentsProvider
+) {
 
   private val requestRawComponent by lazy {
-    createRawDataComponent(getPayload(ConnectionType.REQUEST), getContentType(ConnectionType.REQUEST), componentsProvider)
+    createRawDataComponent(
+      getPayload(ConnectionType.REQUEST),
+      getContentType(ConnectionType.REQUEST),
+      componentsProvider
+    )
   }
   private val requestPrettyComponent by lazy {
-    createParsedDataComponent(getPayload(ConnectionType.REQUEST), getContentType(ConnectionType.REQUEST), componentsProvider)
+    createParsedDataComponent(
+      getPayload(ConnectionType.REQUEST),
+      getContentType(ConnectionType.REQUEST),
+      componentsProvider
+    )
   }
   private val responseRawComponent by lazy {
-    createRawDataComponent(getPayload(ConnectionType.RESPONSE), getContentType(ConnectionType.RESPONSE), componentsProvider)
+    createRawDataComponent(
+      getPayload(ConnectionType.RESPONSE),
+      getContentType(ConnectionType.RESPONSE),
+      componentsProvider
+    )
   }
   private val responsePrettyComponent by lazy {
-    createParsedDataComponent(getPayload(ConnectionType.RESPONSE), getContentType(ConnectionType.RESPONSE), componentsProvider)
+    createParsedDataComponent(
+      getPayload(ConnectionType.RESPONSE),
+      getContentType(ConnectionType.RESPONSE),
+      componentsProvider
+    )
   }
 
-  private fun getRawDataComponent(type: ConnectionType) = when(type) {
-    ConnectionType.REQUEST -> requestRawComponent
-    ConnectionType.RESPONSE -> responseRawComponent
-  }
+  private fun getRawDataComponent(type: ConnectionType) =
+    when (type) {
+      ConnectionType.REQUEST -> requestRawComponent
+      ConnectionType.RESPONSE -> responseRawComponent
+    }
 
-  private fun getPrettyComponent(type: ConnectionType) = when(type) {
-    ConnectionType.REQUEST -> requestPrettyComponent
-    ConnectionType.RESPONSE -> responsePrettyComponent
-  }
+  private fun getPrettyComponent(type: ConnectionType) =
+    when (type) {
+      ConnectionType.REQUEST -> requestPrettyComponent
+      ConnectionType.RESPONSE -> responsePrettyComponent
+    }
 
-  private fun getContentType(type: ConnectionType) = when (type) {
-    ConnectionType.REQUEST -> httpData.requestHeader.contentType
-    ConnectionType.RESPONSE -> httpData.responseHeader.contentType
-  }
+  private fun getContentType(type: ConnectionType) =
+    when (type) {
+      ConnectionType.REQUEST -> httpData.requestHeader.contentType
+      ConnectionType.RESPONSE -> httpData.responseHeader.contentType
+    }
 
-  private fun getPayload(type: ConnectionType) = when (type) {
-    ConnectionType.REQUEST -> httpData.requestPayload
-    ConnectionType.RESPONSE -> httpData.responsePayload
-  }
+  private fun getPayload(type: ConnectionType) =
+    when (type) {
+      ConnectionType.REQUEST -> httpData.requestPayload
+      ConnectionType.RESPONSE -> httpData.responsePayload
+    }
 
-  private fun getHeader(type: ConnectionType) = when (type) {
-    ConnectionType.REQUEST -> httpData.requestHeader
-    ConnectionType.RESPONSE -> httpData.responseHeader
-  }
+  private fun getHeader(type: ConnectionType) =
+    when (type) {
+      ConnectionType.REQUEST -> httpData.requestHeader
+      ConnectionType.RESPONSE -> httpData.responseHeader
+    }
 
-  private fun getMimeTypeString(type: ConnectionType) = when (type) {
-    ConnectionType.REQUEST -> getHeader(type).contentType.mimeType
-    ConnectionType.RESPONSE -> getHeader(type).contentType.mimeType
-  }
+  private fun getMimeTypeString(type: ConnectionType) =
+    when (type) {
+      ConnectionType.REQUEST -> getHeader(type).contentType.mimeType
+      ConnectionType.RESPONSE -> getHeader(type).contentType.mimeType
+    }
 
   /**
-   * Creates a component which displays the current [HttpData]'s headers as a list of
-   * key/value pairs.
+   * Creates a component which displays the current [HttpData]'s headers as a list of key/value
+   * pairs.
    */
   fun createHeaderComponent(type: ConnectionType): JComponent {
     return createStyledMapComponent(getHeader(type).fields)
@@ -111,15 +136,14 @@ class HttpDataComponentFactory(private val httpData: HttpData, private val compo
     val contentType = header.contentType
     return if (contentType.isEmpty) {
       "Body"
-    }
-    else "Body ( ${getDisplayName(contentType)} )"
+    } else "Body ( ${getDisplayName(contentType)} )"
   }
 
   /**
-   * Returns a payload component which can display the underlying data of the current
-   * [HttpData]'s payload. If the payload is empty, this will return a label to
-   * indicate that the target payload is not set. If the payload is not empty and is supported for
-   * parsing, this will return a component containing both the raw data view and the parsed view.
+   * Returns a payload component which can display the underlying data of the current [HttpData]'s
+   * payload. If the payload is empty, this will return a label to indicate that the target payload
+   * is not set. If the payload is not empty and is supported for parsing, this will return a
+   * component containing both the raw data view and the parsed view.
    */
   fun createBodyComponent(type: ConnectionType): JComponent {
     val payload = getPayload(type)
@@ -141,39 +165,46 @@ class HttpDataComponentFactory(private val httpData: HttpData, private val compo
       bodyComponent = payloadPanel
       val toggleLabel = JLabel(cardViewSource)
       northEastComponent = toggleLabel
-      val toggleHoverColor = AdtUiUtils.overlayColor(toggleLabel.background.rgb, toggleLabel.foreground.rgb, 0.9f)
-      val toggleDefaultColor: Color = AdtUiUtils.overlayColor(toggleLabel.background.rgb, toggleHoverColor.rgb, 0.6f)
+      val toggleHoverColor =
+        AdtUiUtils.overlayColor(toggleLabel.background.rgb, toggleLabel.foreground.rgb, 0.9f)
+      val toggleDefaultColor: Color =
+        AdtUiUtils.overlayColor(toggleLabel.background.rgb, toggleHoverColor.rgb, 0.6f)
       toggleLabel.foreground = toggleDefaultColor
       toggleLabel.border = JBUI.Borders.empty(0, 10, 0, 5)
-      toggleLabel.addMouseListener(object : MouseAdapter() {
-        override fun mouseClicked(e: MouseEvent) {
-          toggleLabel.text = if (cardViewSource == toggleLabel.text) cardViewParsed else cardViewSource
-          cardLayout.next(payloadPanel)
-        }
+      toggleLabel.addMouseListener(
+        object : MouseAdapter() {
+          override fun mouseClicked(e: MouseEvent) {
+            toggleLabel.text =
+              if (cardViewSource == toggleLabel.text) cardViewParsed else cardViewSource
+            cardLayout.next(payloadPanel)
+          }
 
-        override fun mouseEntered(e: MouseEvent) {
-          toggleLabel.foreground = toggleHoverColor
-        }
+          override fun mouseEntered(e: MouseEvent) {
+            toggleLabel.foreground = toggleHoverColor
+          }
 
-        override fun mouseExited(e: MouseEvent) {
-          toggleLabel.foreground = toggleDefaultColor
+          override fun mouseExited(e: MouseEvent) {
+            toggleLabel.foreground = toggleDefaultColor
+          }
         }
-      })
+      )
     }
     bodyComponent.name = type.bodyComponentId
     return createHideablePanel(getBodyTitle(type), bodyComponent, northEastComponent)
   }
 
-  fun createDataViewer(type: ConnectionType): DataViewer {
+  fun createDataViewer(type: ConnectionType, formatted: Boolean): DataViewer {
     return componentsProvider.createDataViewer(
       getPayload(type).toByteArray(),
       ContentType.fromMimeType(getMimeTypeString(type)),
-      DataViewer.Style.PRETTY
+      DataViewer.Style.PRETTY,
+      formatted
     )
   }
 
   enum class ConnectionType {
-    REQUEST, RESPONSE;
+    REQUEST,
+    RESPONSE;
 
     val bodyComponentId: String
       get() = if (this == REQUEST) "REQUEST_PAYLOAD_COMPONENT" else "RESPONSE_PAYLOAD_COMPONENT"
@@ -193,11 +224,21 @@ class HttpDataComponentFactory(private val httpData: HttpData, private val compo
 
     override fun preferredLayoutSize(parent: Container): Dimension {
       val parentWidth = parent.width
-      return getSize(parent, { c: Component ->
-        // Always resize prior to getting the preferred size, since we allow our components to be as large as possible.
-        c.setBounds(0, 0, parentWidth, Short.MAX_VALUE.toInt()) // Short.MAX_VALUE since that's what Swing uses (not Integer.MAX_VALUE).
-        c.preferredSize
-      }, preferredSize)
+      return getSize(
+        parent,
+        { c: Component ->
+          // Always resize prior to getting the preferred size, since we allow our components to be
+          // as large as possible.
+          c.setBounds(
+            0,
+            0,
+            parentWidth,
+            Short.MAX_VALUE.toInt()
+          ) // Short.MAX_VALUE since that's what Swing uses (not Integer.MAX_VALUE).
+          c.preferredSize
+        },
+        preferredSize
+      )
     }
 
     override fun maximumLayoutSize(parent: Container): Dimension {
@@ -285,25 +326,19 @@ class HttpDataComponentFactory(private val httpData: HttpData, private val compo
     private val PAYLOAD_BORDER: Border = JBUI.Borders.emptyTop(6)
 
     /**
-     * Search for the payload [DataViewer] inside a component returned by
-     * [.createBodyComponent]. If this returns
-     * `null`, that means no payload viewer was created for it, e.g. the http data
+     * Search for the payload [DataViewer] inside a component returned by [.createBodyComponent]. If
+     * this returns `null`, that means no payload viewer was created for it, e.g. the http data
      * instance didn't have a payload and a "No data found" label was returned instead.
      */
     @VisibleForTesting
     fun findPayloadViewer(body: JComponent?): JComponent? {
       return if (body == null) {
         null
-      }
-      else findComponentWithUniqueName(
-        body,
-        ID_PAYLOAD_VIEWER
-      )
+      } else findComponentWithUniqueName(body, ID_PAYLOAD_VIEWER)
     }
 
     /**
      * Creates the raw data view of given payload.
-     *
      *
      * Assumes the payload is not empty.
      */
@@ -313,7 +348,13 @@ class HttpDataComponentFactory(private val httpData: HttpData, private val compo
       componentsProvider: UiComponentsProvider
     ): JComponent {
       val contentTypeFromMime = ContentType.fromMimeType(contentType.mimeType)
-      val viewer = componentsProvider.createDataViewer(payload.toByteArray(), contentTypeFromMime, DataViewer.Style.RAW)
+      val viewer =
+        componentsProvider.createDataViewer(
+          payload.toByteArray(),
+          contentTypeFromMime,
+          DataViewer.Style.RAW,
+          false
+        )
       val viewerComponent = viewer.component
       viewerComponent.name = ID_PAYLOAD_VIEWER
       viewerComponent.border = PAYLOAD_BORDER
@@ -323,8 +364,8 @@ class HttpDataComponentFactory(private val httpData: HttpData, private val compo
     }
 
     /**
-     * Creates the parsed data view of given payload, or returns null if the payload is not applicable for parsing.
-     *
+     * Creates the parsed data view of given payload, or returns null if the payload is not
+     * applicable for parsing.
      *
      * Assumes the payload is not empty.
      */
@@ -335,23 +376,28 @@ class HttpDataComponentFactory(private val httpData: HttpData, private val compo
     ): JComponent? {
       if (contentType.isFormData) {
         val contentToParse = payload.toStringUtf8()
-        val parsedContent = contentToParse.trim { it <= ' ' }
-          .split('&')
-          .associate { s ->
+        val parsedContent =
+          contentToParse.trim { it <= ' ' }.split('&').associate { s ->
             val splits = s.split('=', limit = 2)
             if (splits.size > 1) {
               splits[0] to splits[1]
-            }
-            else {
+            } else {
               splits[0] to ""
             }
           }
         return createStyledMapComponent(parsedContent)
       }
       val contentTypeFromMime = ContentType.fromMimeType(contentType.mimeType)
-      val viewer: DataViewer = componentsProvider.createDataViewer(payload.toByteArray(), contentTypeFromMime, DataViewer.Style.PRETTY)
+      val viewer: DataViewer =
+        componentsProvider.createDataViewer(
+          payload.toByteArray(),
+          contentTypeFromMime,
+          DataViewer.Style.PRETTY,
+          true
+        )
 
-      // Just because we request a "pretty" viewer doesn't mean we'll actually get one. If we didn't,
+      // Just because we request a "pretty" viewer doesn't mean we'll actually get one. If we
+      // didn't,
       // that means formatting support is not provided, so return null as a way to indicate this
       // failure to the code that called us.
       if (viewer.style == DataViewer.Style.PRETTY) {
@@ -362,18 +408,18 @@ class HttpDataComponentFactory(private val httpData: HttpData, private val compo
         // disable here. A straightforward way to do this is to iterate through all scroll panes
         // (there should only ever be one, but this code should still be harmless even if in the
         // future there are 0 or several).
-        TreeWalker(viewerComponent)
-          .descendants()
-          .filterIsInstance<JScrollPane>()
-          .forEach { scroller: JScrollPane -> NestedScrollPaneMouseWheelListener.installOn(scroller) }
+        TreeWalker(viewerComponent).descendants().filterIsInstance<JScrollPane>().forEach {
+          scroller: JScrollPane ->
+          NestedScrollPaneMouseWheelListener.installOn(scroller)
+        }
         return viewerComponent
       }
       return null
     }
 
     /**
-     * Returns a user visible display name that represents the target `contentType`, with the
-     * first letter capitalized.
+     * Returns a user visible display name that represents the target `contentType`, with the first
+     * letter capitalized.
      */
     @VisibleForTesting
     fun getDisplayName(contentType: HttpData.ContentType): String {
@@ -385,12 +431,13 @@ class HttpDataComponentFactory(private val httpData: HttpData, private val compo
         return "Form Data"
       }
       val typeAndSubType = mimeType.split('/', limit = 2)
-      val showSubType = typeAndSubType.size > 1 && (typeAndSubType[0] == "text" || typeAndSubType[0] == "application")
+      val showSubType =
+        typeAndSubType.size > 1 &&
+          (typeAndSubType[0] == "text" || typeAndSubType[0] == "application")
       val name = if (showSubType) typeAndSubType[1] else typeAndSubType[0]
       return if (name.isEmpty() || showSubType) {
         name.toUpperCase(Locale.getDefault())
-      }
-      else name.substring(0, 1).toUpperCase(Locale.getDefault()) + name.substring(1)
+      } else name.substring(0, 1).toUpperCase(Locale.getDefault()) + name.substring(1)
     }
   }
 }

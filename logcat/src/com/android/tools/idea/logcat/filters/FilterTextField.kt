@@ -58,7 +58,7 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBList
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import icons.StudioIcons.Logcat.Input.FAVORITE_FILLED
 import icons.StudioIcons.Logcat.Input.FAVORITE_FILLED_HOVER
@@ -213,11 +213,9 @@ internal class FilterTextField(
       addFocusListener(object : FocusAdapter() {
         override fun focusGained(e: FocusEvent?) {
           val hintText = getFilterHintText()
-          if (hintText != null) {
-            GotItTooltip(GOT_IT_ID, hintText, logcatPresenter)
-              .withBrowserLink(LogcatBundle.message("logcat.filter.got.it.link.text"), logcatFilterHelpUrl)
-              .show(textField, BOTTOM_LEFT)
-          }
+          GotItTooltip(GOT_IT_ID, hintText, logcatPresenter)
+            .withBrowserLink(LogcatBundle.message("logcat.filter.got.it.link.text"), logcatFilterHelpUrl)
+            .show(textField, BOTTOM_LEFT)
         }
 
         override fun focusLost(e: FocusEvent?) {
@@ -401,7 +399,7 @@ internal class FilterTextField(
     coroutineContext: CoroutineContext = EmptyCoroutineContext,
   ) : JBList<FilterHistoryItem>() {
     private val listModel = CollectionListModel<FilterHistoryItem>()
-    private val inactiveColor = String.format("%06x", UIUtil.getInactiveTextColor().rgb and 0xffffff)
+    private val inactiveColor = String.format("%06x", NamedColorUtil.getInactiveTextColor().rgb and 0xffffff)
 
     init {
       // The "count" field in FilterHistoryItem.Item takes time to calculate so initially, add all items with no count.
@@ -725,9 +723,11 @@ internal class FilterTextField(
   }
 }
 
-private fun getFilterHintText(): String? {
-  val shortcut = KeymapManager.getInstance().activeKeymap.getShortcuts(IdeActions.ACTION_CODE_COMPLETION).firstOrNull() ?: return null
-  return LogcatBundle.message("logcat.filter.hint", KeymapUtil.getShortcutText(shortcut))
+private fun getFilterHintText(): String {
+  return when (val shortcut = KeymapManager.getInstance().activeKeymap.getShortcuts(IdeActions.ACTION_CODE_COMPLETION).firstOrNull()) {
+    null -> LogcatBundle.message("logcat.filter.hint.no.shortcut")
+    else -> LogcatBundle.message("logcat.filter.hint", KeymapUtil.getShortcutText(shortcut))
+  }
 }
 
 private operator fun Rectangle.plus(point: Point): Rectangle {

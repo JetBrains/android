@@ -18,9 +18,11 @@ package com.android.tools.idea.logcat.actions
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.LogcatPresenter
+import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.TestActionEvent
 import org.junit.Rule
 import org.junit.Test
@@ -33,11 +35,10 @@ class ClearLogcatActionTest {
   val applicationRule = ApplicationRule()
 
   private val fakeLogcatPresenter = FakeLogcatPresenter()
-  private val event by lazy(::TestActionEvent)
 
   @Test
   fun presentation() {
-    val action = newClearLogcatAction()
+    val action = ClearLogcatAction()
 
     assertThat(action.templatePresentation.text).isEqualTo("Clear Logcat")
     assertThat(action.templatePresentation.icon).isSameAs(AllIcons.Actions.GC)
@@ -47,7 +48,8 @@ class ClearLogcatActionTest {
   fun update_notEmptyAndAttached() {
     fakeLogcatPresenter.attachedDevice = mock()
     fakeLogcatPresenter.appendMessage("not-empty")
-    val action = newClearLogcatAction(fakeLogcatPresenter)
+    val event = testEvent(fakeLogcatPresenter)
+    val action = ClearLogcatAction()
 
     action.update(event)
 
@@ -58,7 +60,8 @@ class ClearLogcatActionTest {
   fun update_notEmptyAndNotAttached() {
     fakeLogcatPresenter.attachedDevice = null
     fakeLogcatPresenter.appendMessage("not-empty")
-    val action = newClearLogcatAction(fakeLogcatPresenter)
+    val event = testEvent(fakeLogcatPresenter)
+    val action = ClearLogcatAction()
 
     action.update(event)
 
@@ -70,7 +73,8 @@ class ClearLogcatActionTest {
     fakeLogcatPresenter.attachedDevice = mock()
     fakeLogcatPresenter.appendMessage("not-empty")
     fakeLogcatPresenter.clearMessageView()
-    val action = newClearLogcatAction(fakeLogcatPresenter)
+    val event = testEvent(fakeLogcatPresenter)
+    val action = ClearLogcatAction()
 
     action.update(event)
 
@@ -80,12 +84,14 @@ class ClearLogcatActionTest {
   @Test
   fun actionPerformed() {
     fakeLogcatPresenter.appendMessage("message")
-    val action = newClearLogcatAction(fakeLogcatPresenter)
+    val event = testEvent(fakeLogcatPresenter)
+    val action = ClearLogcatAction()
 
     action.actionPerformed(event)
 
     assertThat(fakeLogcatPresenter.isLogcatEmpty()).isTrue()
   }
 
-  private fun newClearLogcatAction(logcatPresenter: LogcatPresenter = fakeLogcatPresenter) = ClearLogcatAction(logcatPresenter)
 }
+
+private fun testEvent(logcatPresenter: LogcatPresenter) = TestActionEvent(MapDataContext(mapOf(LOGCAT_PRESENTER_ACTION to logcatPresenter)))

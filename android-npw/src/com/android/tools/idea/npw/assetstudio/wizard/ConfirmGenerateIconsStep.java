@@ -39,7 +39,7 @@ import com.android.tools.idea.wizard.ui.WizardUtils;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.intellij.ui.treeStructure.Tree;
-import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.NamedColorUtil;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -103,7 +103,7 @@ public final class ConfirmGenerateIconsStep extends ModelWizardStep<GenerateIcon
     DefaultTreeModel emptyModel = new DefaultTreeModel(null);
     myOutputPreviewTree.setModel(emptyModel);
     myOutputPreviewTree.setCellRenderer(new ProposedFileTreeCellRenderer());
-    myOutputPreviewTree.setBorder(BorderFactory.createLineBorder(UIUtil.getBoundsColor()));
+    myOutputPreviewTree.setBorder(BorderFactory.createLineBorder(NamedColorUtil.getBoundsColor()));
     // Tell the tree to ask the TreeCellRenderer for an individual height for each cell.
     myOutputPreviewTree.setRowHeight(-1);
     myOutputPreviewTree.getEmptyText().setText("No resource folder defined in project");

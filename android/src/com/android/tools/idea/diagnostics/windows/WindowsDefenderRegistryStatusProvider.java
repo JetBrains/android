@@ -59,13 +59,10 @@ public class WindowsDefenderRegistryStatusProvider implements VirusCheckerStatus
     }
     catch (Win32Exception exception) {
       // If the exception is FileNotFound, the key doesn't exist, so just assume empty
-      switch (exception.getErrorCode()) {
-        case WinError.ERROR_FILE_NOT_FOUND:
-        case WinError.ERROR_ACCESS_DENIED:
-          return Collections.emptySet();
-        default:
-          throw new IOException("Error code " + exception.getErrorCode() + ": " + exception.getMessage(), exception);
+      if (exception.getErrorCode() == WinError.ERROR_FILE_NOT_FOUND) {
+        return Collections.emptySet();
       }
+      throw new IOException("Error code " + exception.getErrorCode() + ": " + exception.getMessage(), exception);
     }
   }
 

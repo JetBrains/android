@@ -22,6 +22,7 @@ import com.android.tools.adtui.common.WrappedFlowLayout;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.GeneratedIcon;
 import com.android.tools.idea.npw.assetstudio.GeneratedImageIcon;
 import com.android.tools.idea.npw.assetstudio.IconGenerator;
@@ -197,7 +198,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
     myShowGridProperty = new SelectedProperty(myShowGrid);
     myShowSafeZoneProperty = new SelectedProperty(myShowSafeZone);
 
-    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(facet);
+    AndroidModuleInfo androidModuleInfo = StudioAndroidModuleInfo.getInstance(facet);
     int minSdkVersion = androidModuleInfo.getMinSdkVersion().getApiLevel();
 
     // Create a card and a view for each icon type.

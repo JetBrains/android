@@ -33,32 +33,48 @@ import org.jetbrains.kotlin.psi.KtTypeReference
 /**
  * A wrapper around a [com.intellij.psi.PsiElement] to be used when constructing the Dagger index.
  *
- * At indexing time, type resolution and other deeper analysis is not available. As such, the wrappers implementing this interface exist
- * to help enforce that they only use the operations that are available at indexing time. Additionally, the use of wrappers allows indexing
- * to be done in a common way for both Java and Kotlin.
+ * At indexing time, type resolution and other deeper analysis is not available. As such, the
+ * wrappers implementing this interface exist to help enforce that they only use the operations that
+ * are available at indexing time. Additionally, the use of wrappers allows indexing to be done in a
+ * common way for both Java and Kotlin.
  *
- * All wrapper implementations are meant to be lightweight. As such, constructing them creates a new object and stores a reference to the
- * contained [PsiElement], but does not do any other work. This means that there are no properties initialized to values coming from the
- * element, and any calls to get information about the element should be passed through only at the time the call is made. (It's to
- * encourage this design that the wrappers all have explicit "getter" functions, rather than using a more idiomatic Kotlin property.)
+ * All wrapper implementations are meant to be lightweight. As such, constructing them creates a new
+ * object and stores a reference to the contained [PsiElement], but does not do any other work. This
+ * means that there are no properties initialized to values coming from the element, and any calls
+ * to get information about the element should be passed through only at the time the call is made.
+ * (It's to encourage this design that the wrappers all have explicit "getter" functions, rather
+ * than using a more idiomatic Kotlin property.)
  *
- * The interface itself does not have any methods, but rather is used to identify all the wrappers contained in the package.
+ * The interface itself does not have any methods, but rather is used to identify all the wrappers
+ * contained in the package.
  */
 sealed interface DaggerIndexPsiWrapper {
   class KotlinFactory(ktFile: KtFile) {
     private val importHelper = KotlinImportHelper(ktFile)
-    fun of(psiElement: KtClassOrObject): DaggerIndexClassWrapper = KtClassOrObjectWrapper(psiElement, importHelper)
-    fun of(psiElement: KtFunction): DaggerIndexMethodWrapper = KtFunctionWrapper(psiElement, importHelper)
-    fun of(psiElement: KtParameter): DaggerIndexParameterWrapper = KtParameterWrapper(psiElement, importHelper)
-    fun of(psiElement: KtProperty): DaggerIndexFieldWrapper = KtPropertyWrapper(psiElement, importHelper)
-    fun of(psiElement: KtTypeReference): DaggerIndexTypeWrapper = KtTypeReferenceWrapper(psiElement, importHelper)
+    fun of(psiElement: KtAnnotationEntry): DaggerIndexAnnotationWrapper =
+      KtAnnotationEntryWrapper(psiElement)
+    fun of(psiElement: KtClassOrObject): DaggerIndexClassWrapper =
+      KtClassOrObjectWrapper(psiElement, importHelper)
+    fun of(psiElement: KtFunction): DaggerIndexMethodWrapper =
+      KtFunctionWrapper(psiElement, importHelper)
+    fun of(psiElement: KtParameter): DaggerIndexParameterWrapper =
+      KtParameterWrapper(psiElement, importHelper)
+    fun of(psiElement: KtProperty): DaggerIndexFieldWrapper =
+      KtPropertyWrapper(psiElement, importHelper)
+    fun of(psiElement: KtTypeReference): DaggerIndexTypeWrapper =
+      KtTypeReferenceWrapper(psiElement, importHelper)
   }
 
   class JavaFactory(psiJavaFile: PsiJavaFile) {
     private val importHelper = JavaImportHelper(psiJavaFile)
-    fun of(psiElement: PsiClass): DaggerIndexClassWrapper = PsiClassWrapper(psiElement, importHelper)
-    fun of(psiElement: PsiField): DaggerIndexFieldWrapper = PsiFieldWrapper(psiElement, importHelper)
-    fun of(psiElement: PsiMethod): DaggerIndexMethodWrapper = PsiMethodWrapper(psiElement, importHelper)
+    fun of(psiElement: PsiAnnotation): DaggerIndexAnnotationWrapper =
+      PsiAnnotationWrapper(psiElement)
+    fun of(psiElement: PsiClass): DaggerIndexClassWrapper =
+      PsiClassWrapper(psiElement, importHelper)
+    fun of(psiElement: PsiField): DaggerIndexFieldWrapper =
+      PsiFieldWrapper(psiElement, importHelper)
+    fun of(psiElement: PsiMethod): DaggerIndexMethodWrapper =
+      PsiMethodWrapper(psiElement, importHelper)
     fun of(psiElement: PsiParameter): DaggerIndexParameterWrapper = PsiParameterWrapper(psiElement)
     fun of(psiElement: PsiTypeElement): DaggerIndexTypeWrapper = PsiTypeElementWrapper(psiElement)
   }

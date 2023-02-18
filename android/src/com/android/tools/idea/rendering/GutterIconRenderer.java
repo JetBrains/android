@@ -14,6 +14,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.resourcechooser.common.ResourcePickerSources;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.util.FileExtensions;
+import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.utils.HashCodes;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -39,7 +40,6 @@ import java.util.Objects;
 import javax.swing.Icon;
 import org.jetbrains.android.AndroidAnnotatorUtil;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.CompatibilityRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyMode
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
@@ -156,7 +157,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     Set<Module> modulesWithoutAnnotations = new HashSet<>();
     Set<Module> modulesWithLowVersion = new HashSet<>();
     for (Module module : modules.keySet()) {
-      AndroidModuleInfo info = AndroidModuleInfo.getInstance(module);
+      AndroidModuleInfo info = StudioAndroidModuleInfo.getInstance(module);
       if (info != null && info.getBuildSdkVersion() != null && info.getBuildSdkVersion().getFeatureLevel() < MIN_SDK_WITH_NULLABLE) {
         modulesWithLowVersion.add(module);
       }

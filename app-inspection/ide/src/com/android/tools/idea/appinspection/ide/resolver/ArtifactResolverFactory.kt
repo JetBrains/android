@@ -26,18 +26,19 @@ import com.android.tools.idea.io.FileService
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.intellij.openapi.project.Project
 
-class ArtifactResolverFactory(private val fileService: FileService,
-                              private val getIdeBrand: () -> AndroidStudioEvent.IdeBrand = { currentIdeBrand() }) : ArtifactResolverFactory {
-  private val httpArtifactResolver = HttpArtifactResolver(fileService, AppInspectorArtifactPaths(fileService))
+class ArtifactResolverFactory(
+  private val fileService: FileService,
+  private val getIdeBrand: () -> AndroidStudioEvent.IdeBrand = { currentIdeBrand() }
+) : ArtifactResolverFactory {
+  private val httpArtifactResolver =
+    HttpArtifactResolver(fileService, AppInspectorArtifactPaths(fileService))
   override fun getArtifactResolver(project: Project): ArtifactResolver =
     if (getIdeBrand() == AndroidStudioEvent.IdeBrand.ANDROID_STUDIO_WITH_BLAZE) {
       BlazeArtifactResolver(fileService, ModuleSystemArtifactFinder(project))
-    }
-    else {
+    } else {
       if (StudioFlags.APP_INSPECTION_USE_SNAPSHOT_JAR.get()) {
         ModuleSystemArtifactResolver(fileService, ModuleSystemArtifactFinder(project))
-      }
-      else {
+      } else {
         httpArtifactResolver
       }
     }

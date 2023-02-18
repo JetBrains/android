@@ -93,7 +93,7 @@ private fun matchesFile(file: PsiClassOwner, rootClassName: String): Boolean =
  * Compose runtime so we can match the package names.
  */
 private fun packageNameHash(packageName: String): Int =
-  packageName.fold(0) { hash, char -> hash * 31 + char.toInt() }.absoluteValue
+  packageName.fold(0) { hash, char -> hash * 31 + char.code }.absoluteValue
 
 /** Returns true if the given [file] package matches the [packageHash]. */
 private fun matchesPackage(file: PsiClassOwner, packageHash: Int): Boolean =

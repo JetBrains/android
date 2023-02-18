@@ -22,6 +22,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.idea.codenavigation.CodeNavigator;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.transport.TransportServiceProxy;
 import com.android.tools.nativeSymbolizer.ProjectSymbolSource;
@@ -235,9 +236,9 @@ public class AndroidProfilerToolWindow implements Disposable {
 
   @Nullable
   static String getModuleName(@NotNull Module module) {
-    AndroidModuleInfo moduleInfo = AndroidModuleInfo.getInstance(module);
+    AndroidModuleInfo moduleInfo = StudioAndroidModuleInfo.getInstance(module);
     if (moduleInfo != null) {
-      String pkg = moduleInfo.getPackage();
+      String pkg = moduleInfo.getPackageName();
       if (pkg != null) {
         return pkg;
       }

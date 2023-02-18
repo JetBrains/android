@@ -22,7 +22,7 @@ import com.android.tools.idea.configurations.AdaptiveIconShape
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.editors.theme.ThemeResolver
 import com.android.tools.idea.uibuilder.LayoutTestCase
-import org.jetbrains.android.sdk.CompatibilityRenderTarget
+import com.android.tools.sdk.CompatibilityRenderTarget
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
 
 fun verifyAdaptiveShapeReflected(sourceConfig: Configuration, modelsToVerify: Collection<NlModel>, shouldReflect: Boolean) {

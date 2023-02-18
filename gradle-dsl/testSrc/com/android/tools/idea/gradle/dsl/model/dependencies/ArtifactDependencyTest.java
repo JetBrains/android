@@ -35,12 +35,16 @@ import static com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDepen
 import static com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTest.TestFile.EDIT_CATALOG_DEPENDENCY_EXPECTED;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTest.TestFile.EDIT_CATALOG_FILE;
 import static com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTest.TestFile.EDIT_CATALOG_FILE_EXPECTED;
+import static com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTest.TestFile.TRANSFORM_COMPACT_TO_MAP_CATALOG_FILE;
+import static com.android.tools.idea.gradle.dsl.model.dependencies.ArtifactDependencyTest.TestFile.TRANSFORM_COMPACT_TO_MAP_CATALOG_FILE_EXPECTED;
 import static com.google.common.truth.Truth.assertThat;
 
 import static org.junit.Assume.assumeTrue;
 
 import com.android.tools.idea.gradle.dsl.TestFileName;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
+import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel;
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
@@ -256,6 +260,27 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     verifyFileContents(myBuildFile, EDIT_CATALOG_DEPENDENCY_EXPECTED);
     verifyVersionCatalogFileContents(myVersionCatalogFile, EDIT_CATALOG_FILE_EXPECTED);
     assertFalse(buildModel.isModified());
+  }
+
+  @Test
+  public void testCompactToMapTransformCatalogDependency() throws IOException {
+    writeToBuildFile(EDIT_CATALOG_DEPENDENCY);
+    writeToVersionCatalogFile(TRANSFORM_COMPACT_TO_MAP_CATALOG_FILE);
+    ProjectBuildModel projectBuildModel = getProjectBuildModel();
+    GradleBuildModel buildModel = projectBuildModel.getProjectBuildModel();
+    DependenciesModel dependenciesModel = buildModel.dependencies();
+
+    GradleVersionCatalogsModel catalogModels =  projectBuildModel.getVersionCatalogsModel();
+    GradleVersionCatalogModel  catalog = catalogModels.getVersionCatalogModel("libs");
+    GradlePropertyModel junitVersion = catalog.versions().findProperty("junitVersion");
+
+    final List<ArtifactDependencyModel> dependencies = dependenciesModel.artifacts();
+    assertThat(dependencies).hasSize(1);
+    dependencies.get(0).version().setValue(new ReferenceTo(junitVersion));
+    applyChanges(projectBuildModel);
+
+    verifyFileContents(myBuildFile, EDIT_CATALOG_DEPENDENCY);
+    verifyVersionCatalogFileContents(myVersionCatalogFile, TRANSFORM_COMPACT_TO_MAP_CATALOG_FILE_EXPECTED);
   }
 
   @Test
@@ -1627,11 +1652,11 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     artifact.name().delete();
     assertFalse(buildModel.isModified());
 
-    // These operations don't make sense but should leave the model unmodified.
+    // Now we can transform compact notation to map to handle toml interpolation case
+    // TODO need to fix b/268355590 to make converting fake elements
+    // (effectively underneath elements) more selective
     artifact.classifier().convertToEmptyMap();
-    artifact.extension().convertToEmptyList();
-
-    assertFalse(buildModel.isModified());
+    assertTrue(buildModel.isModified());
   }
 
   @Test
@@ -2524,6 +2549,8 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     EDIT_CATALOG_DEPENDENCY("editCatalogDependency"),
     EDIT_CATALOG_FILE("editCatalogDependency.versions.toml"),
     EDIT_CATALOG_FILE_EXPECTED("editCatalogDependencyExpected.versions.toml"),
+    TRANSFORM_COMPACT_TO_MAP_CATALOG_FILE("compactToMapCatalogDependency.versions.toml"),
+    TRANSFORM_COMPACT_TO_MAP_CATALOG_FILE_EXPECTED("compactToMapCatalogDependencyExpected.versions.toml"),
     EDIT_CATALOG_DEPENDENCY_EXPECTED("editCatalogDependencyExpected"),
     ;
 

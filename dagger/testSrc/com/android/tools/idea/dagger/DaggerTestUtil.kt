@@ -18,7 +18,8 @@ package com.android.tools.idea.dagger
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 
 fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
-  fixture.addFileToProject("dagger/Module.java",
+  fixture.addFileToProject(
+    "dagger/Module.java",
     // language=JAVA
     """
       package dagger;
@@ -29,7 +30,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       }
       """.trimIndent()
   )
-  fixture.addFileToProject("dagger/Provides.java",
+  fixture.addFileToProject(
+    "dagger/Provides.java",
     // language=JAVA
     """
       package dagger;
@@ -37,7 +39,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       public @interface Provides {}
       """.trimIndent()
   )
-  fixture.addFileToProject("dagger/Binds.java",
+  fixture.addFileToProject(
+    "dagger/Binds.java",
     // language=JAVA
     """
       package dagger;
@@ -45,7 +48,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       public @interface Binds {}
       """.trimIndent()
   )
-  fixture.addFileToProject("dagger/BindsInstance.java",
+  fixture.addFileToProject(
+    "dagger/BindsInstance.java",
     // language=JAVA
     """
       package dagger;
@@ -53,7 +57,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       public @interface BindsInstance {}
       """.trimIndent()
   )
-  fixture.addFileToProject("javax/inject/Inject.java",
+  fixture.addFileToProject(
+    "javax/inject/Inject.java",
     // language=JAVA
     """
       package javax.inject;
@@ -62,7 +67,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       """.trimIndent()
   )
 
-  fixture.addFileToProject("javax/inject/Qualifier.java",
+  fixture.addFileToProject(
+    "javax/inject/Qualifier.java",
     // language=JAVA
     """
       package javax.inject;
@@ -70,7 +76,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       public @interface Qualifier {}
       """.trimIndent()
   )
-  fixture.addFileToProject("dagger/Component.java",
+  fixture.addFileToProject(
+    "dagger/Component.java",
     // language=JAVA
     """
       package dagger;
@@ -81,7 +88,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       }
       """.trimIndent()
   )
-  fixture.addFileToProject("dagger/Subcomponent.java",
+  fixture.addFileToProject(
+    "dagger/Subcomponent.java",
     // language=JAVA
     """
       package dagger;
@@ -93,7 +101,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       }
       """.trimIndent()
   )
-  fixture.addFileToProject("dagger/hilt/EntryPoint.java",
+  fixture.addFileToProject(
+    "dagger/hilt/EntryPoint.java",
     // language=JAVA
     """
       package dagger.hilt;
@@ -101,7 +110,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       public @interface EntryPoint {}
       """.trimIndent()
   )
-  fixture.addFileToProject("androidx/hilt/work/WorkerInject.java",
+  fixture.addFileToProject(
+    "androidx/hilt/work/WorkerInject.java",
     // language=JAVA
     """
       package androidx.hilt.work;
@@ -109,7 +119,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       public @interface WorkerInject {}
       """.trimIndent()
   )
-  fixture.addFileToProject("androidx/hilt/lifecycle/ViewModelInject.java",
+  fixture.addFileToProject(
+    "androidx/hilt/lifecycle/ViewModelInject.java",
     // language=JAVA
     """
       package androidx.hilt.lifecycle;
@@ -117,7 +128,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       public @interface ViewModelInject {}
       """.trimIndent()
   )
-  fixture.addFileToProject("dagger/Lazy.java",
+  fixture.addFileToProject(
+    "dagger/Lazy.java",
     // language=JAVA
     """
       package dagger;
@@ -127,7 +139,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       }
       """.trimIndent()
   )
-  fixture.addFileToProject("javax/inject/Provider.java",
+  fixture.addFileToProject(
+    "javax/inject/Provider.java",
     // language=JAVA
     """
       package javax.inject;
@@ -137,7 +150,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       }
       """.trimIndent()
   )
-  fixture.addFileToProject("dagger/assisted/AssistedInject.java",
+  fixture.addFileToProject(
+    "dagger/assisted/AssistedInject.java",
     // language=JAVA
     """
       package dagger.assisted;
@@ -145,7 +159,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       public @interface AssistedInject {}
       """.trimIndent()
   )
-  fixture.addFileToProject("dagger/assisted/AssistedFactory.java",
+  fixture.addFileToProject(
+    "dagger/assisted/AssistedFactory.java",
     // language=JAVA
     """
       package dagger.assisted;

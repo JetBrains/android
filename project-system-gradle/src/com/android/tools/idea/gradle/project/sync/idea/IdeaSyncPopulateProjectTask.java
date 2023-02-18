@@ -56,7 +56,7 @@ public class IdeaSyncPopulateProjectTask {
       GradleSyncMessages.getInstance(myProject).removeAllMessages();
     });
     try {
-      myDataManager.importData(projectInfo, myProject, true /* synchronous */);
+      myDataManager.importData(projectInfo, myProject);
     }
     catch (ProcessCanceledException ex) {
       if (syncListener != null) {

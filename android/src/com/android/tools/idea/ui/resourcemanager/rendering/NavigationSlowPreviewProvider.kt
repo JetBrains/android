@@ -77,7 +77,7 @@ class NavigationSlowPreviewProvider(
     // Then see if it has the tools:layout attribute and get the file associated with that resource.
     val layoutUrl = destTag.readAttributeOrNull(SdkConstants.ATTR_LAYOUT, SdkConstants.TOOLS_URI) ?: return null
     val layoutResourceUrl = ResourceUrl.parse(layoutUrl) ?: return null
-    val layoutResourceValue = resourceResolver.resolve(layoutResourceUrl, navPsiFile)?.value ?: return null
+    val layoutResourceValue = runReadAction { resourceResolver.resolve(layoutResourceUrl, navPsiFile)?.value } ?: return null
     val layoutVirtualFile = LocalFileSystem.getInstance().findFileByIoFile(File(layoutResourceValue)) ?: return null
     return runReadAction { PsiManager.getInstance(facet.module.project).findFile(layoutVirtualFile) as? XmlFile }
   }

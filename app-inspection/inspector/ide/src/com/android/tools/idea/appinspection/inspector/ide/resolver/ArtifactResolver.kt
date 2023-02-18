@@ -18,13 +18,11 @@ package com.android.tools.idea.appinspection.inspector.ide.resolver
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import java.nio.file.Path
 
-/**
- * A class that handles the downloading of gradle/maven artifacts.
- */
+/** A class that handles the downloading of gradle/maven artifacts. */
 interface ArtifactResolver {
   /**
-   * Attempts to resolve the requested artifact and returns the path of the resolved jar.
-   * Throws an AppInspectionArtifactNotFoundException when the artifact can't be resolved.
+   * Attempts to resolve the requested artifact and returns the path of the resolved jar. Throws an
+   * AppInspectionArtifactNotFoundException when the artifact can't be resolved.
    */
   suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path
 }

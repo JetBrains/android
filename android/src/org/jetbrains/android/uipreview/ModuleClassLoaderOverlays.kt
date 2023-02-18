@@ -82,11 +82,11 @@ class ModuleClassLoaderOverlays private constructor(private val maxNumOverlays: 
   @Synchronized
   fun pushOverlayPath(path: Path) {
     if (overlayPaths.size == maxNumOverlays) {
+      val removedPath = overlayPaths.removeLast()
+      logger.debug("Removing overlay $removedPath")
       AppExecutorUtil.getAppExecutorService().submit {
-        overlayPaths.removeLast().apply {
-          logger.debug("Removing overlay $path")
-          delete(true)
-        }
+        logger.debug("Deleting overlay from disk $removedPath")
+        removedPath.delete(true)
       }
     }
 

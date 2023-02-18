@@ -44,27 +44,33 @@ public class NavGraphSanityTest {
   protected static final String APP_NAME = "App";
   protected static final String PACKAGE_NAME = "android.com.app";
   protected static final int MIN_SDK_API = 30;
+
   NlEditorFixture editorFixture;
+  private EditorFixture myEditorFixture;
+
   @Before
   public void setUp() {
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
     WizardUtils.createNewProject(guiTest, BASIC_ACTIVITY_TEMPLATE, APP_NAME, PACKAGE_NAME, MIN_SDK_API, Java);
-    guiTest.robot().waitForIdle();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();
+    ideFrame.clearNotificationsPresentOnIdeFrame();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     ideFrame.getProjectView().assertFilesExist(
       "app/src/main/res/navigation/nav_graph.xml"
     );
 
-    editorFixture  = guiTest.ideFrame()
-      .getEditor()
-      .open("app/src/main/res/navigation/nav_graph.xml", EditorFixture.Tab.DESIGN)
+    myEditorFixture = ideFrame.getEditor();
+
+    myEditorFixture.open("app/src/main/res/navigation/nav_graph.xml", EditorFixture.Tab.DESIGN);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    editorFixture = myEditorFixture
       .getLayoutEditor()
       .waitForSurfaceToLoad();
-
-    GuiTests.waitForBackgroundTasks(guiTest.robot(), Wait.seconds(120));
-    guiTest.robot().waitForIdle();
 
     assertThat(editorFixture.canInteractWithSurface()).isTrue();
   }
@@ -114,6 +120,7 @@ public class NavGraphSanityTest {
     assertTrue(scrollableSectionsNames.contains("Argument Default Values"));
     assertTrue(scrollableSectionsNames.contains("Global Actions"));
     assertTrue(scrollableSectionsNames.contains("Deep Links"));
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 
   /**
@@ -156,6 +163,7 @@ public class NavGraphSanityTest {
     assertThat(zoomOutScale).isLessThan(zoomInScale);
 
     assertTrue(editorFixture.panButtonPresent());
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 
   /**
@@ -213,5 +221,6 @@ public class NavGraphSanityTest {
     assertThat(zoomScale).isNotEqualTo(1.0);
 
     assertTrue(editorFixture.panButtonPresent());
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
   }
 }

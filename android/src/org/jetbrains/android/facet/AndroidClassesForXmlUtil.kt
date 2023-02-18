@@ -16,7 +16,7 @@
 package org.jetbrains.android.facet
 
 import com.android.SdkConstants.CLASS_VIEW
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.isClassPackageNeeded
@@ -58,7 +58,7 @@ fun findClassValidInXMLByName(facet: AndroidFacet, name: String, baseClassName: 
   val candidate = findClassByName(facet, name, baseClassName) ?: return null
   if (!candidate.isVisibleInXml()) return null
   if (candidate.name == name &&
-      isClassPackageNeeded(candidate.qualifiedName!!, candidate, AndroidModuleInfo.getInstance(facet).moduleMinApi, baseClassName)) {
+      isClassPackageNeeded(candidate.qualifiedName!!, candidate, StudioAndroidModuleInfo.getInstance(facet).moduleMinApi, baseClassName)) {
     return null
   }
   return candidate

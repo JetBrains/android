@@ -102,6 +102,11 @@ class AndroidProcessHandler @JvmOverloads constructor(
     }
   }
 
+  override fun startNotify() {
+    super.startNotify()
+    myMonitorManager.start()
+  }
+
   /**
    * Adds a target device to this handler.
    */

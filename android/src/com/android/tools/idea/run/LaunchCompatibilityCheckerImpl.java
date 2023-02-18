@@ -22,7 +22,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Abi;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.run.LaunchCompatibility.State;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.run.util.SwapInfo;
@@ -142,7 +142,7 @@ public class LaunchCompatibilityCheckerImpl implements LaunchCompatibilityChecke
   }
 
   private static AndroidVersion getMinSdkVersion(@NotNull AndroidFacet facet) {
-    ListenableFuture<AndroidVersion> minSdkVersionFuture = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
+    ListenableFuture<AndroidVersion> minSdkVersionFuture = StudioAndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
     if (minSdkVersionFuture.isDone()) {
       try {
         return minSdkVersionFuture.get();

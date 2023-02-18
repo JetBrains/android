@@ -21,14 +21,14 @@ import com.android.tools.idea.sqlite.ui.exportToFile.ExportInProgressViewImpl.Us
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.testFramework.LightPlatformTestCase
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit.SECONDS
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.ide.PooledThreadExecutor
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit.SECONDS
-import java.util.concurrent.atomic.AtomicBoolean
 
 class ExportInProgressViewTest : LightPlatformTestCase() {
   private val taskDispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()

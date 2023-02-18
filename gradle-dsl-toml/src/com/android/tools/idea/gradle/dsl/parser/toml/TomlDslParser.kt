@@ -27,22 +27,19 @@ import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpressi
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement
 import com.android.tools.idea.gradle.dsl.parser.files.GradleDslFile
+import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription
 import com.intellij.psi.PsiElement
 import org.toml.lang.psi.TomlArray
-import org.toml.lang.psi.TomlArrayTable
 import org.toml.lang.psi.TomlFile
 import org.toml.lang.psi.TomlInlineTable
 import org.toml.lang.psi.TomlKey
 import org.toml.lang.psi.TomlKeySegment
 import org.toml.lang.psi.TomlKeyValue
-import org.toml.lang.psi.TomlKeyValueOwner
 import org.toml.lang.psi.TomlLiteral
 import org.toml.lang.psi.TomlPsiFactory
 import org.toml.lang.psi.TomlRecursiveVisitor
 import org.toml.lang.psi.TomlTable
-import org.toml.lang.psi.TomlTableHeader
-import org.toml.lang.psi.TomlValue
 import org.toml.lang.psi.ext.TomlLiteralKind
 import org.toml.lang.psi.ext.kind
 import java.math.BigDecimal
@@ -50,7 +47,7 @@ import java.math.BigDecimal
 class TomlDslParser(
   val psiFile: TomlFile,
   private val context: BuildModelContext,
-  val dslFile: GradleDslFile
+  private val dslFile: GradleDslFile
 ) : GradleDslParser, TomlDslNameConverter {
   override fun getContext(): BuildModelContext = context
 
@@ -81,6 +78,7 @@ class TomlDslParser(
         context.addParsedElement(map)
         getVisitor(map, GradleNameElement.empty()).let { visitor -> element.entries.forEach { it.accept(visitor) } }
       }
+
       override fun visitLiteral(element: TomlLiteral) {
         val literal = GradleDslLiteral(context, element, name, element, LITERAL)
         context.addParsedElement(literal)
@@ -127,9 +125,8 @@ class TomlDslParser(
     return mutableListOf()
   }
 
-  override fun getInjections(context: GradleDslSimpleExpression, psiElement: PsiElement): MutableList<GradleReferenceInjection> {
-    return mutableListOf()
-  }
+  override fun getInjections(context: GradleDslSimpleExpression, psiElement: PsiElement): MutableList<GradleReferenceInjection> =
+    (dslFile as? GradleVersionCatalogFile)?.getInjection(context, psiElement) ?: mutableListOf()
 
   override fun getPropertiesElement(nameParts: MutableList<String>,
                                     parentElement: GradlePropertiesDslElement,

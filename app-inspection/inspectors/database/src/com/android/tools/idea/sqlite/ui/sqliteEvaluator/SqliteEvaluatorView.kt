@@ -23,16 +23,14 @@ import javax.swing.JComponent
 /**
  * Abstraction over the UI component used to evaluate user-defined SQL statements.
  *
- * This is used by [com.android.tools.idea.sqlite.controllers.SqliteEvaluatorController] to avoid direct dependency on the
- * UI implementation.
+ * This is used by [com.android.tools.idea.sqlite.controllers.SqliteEvaluatorController] to avoid
+ * direct dependency on the UI implementation.
  *
  * @see [SqliteEvaluatorView.Listener] for the listener interface.
  */
 interface SqliteEvaluatorView {
   val project: Project
-  /**
-   * The JComponent containing the view's UI.
-   */
+  /** The JComponent containing the view's UI. */
   val component: JComponent
   val tableView: TableView
   fun addListener(listener: Listener)
@@ -41,14 +39,10 @@ interface SqliteEvaluatorView {
 
   fun setDatabases(databaseIds: List<SqliteDatabaseId>, selected: SqliteDatabaseId?)
 
-  /**
-   * Notifies the view that the schema associated with [databaseId] has changed.
-   */
+  /** Notifies the view that the schema associated with [databaseId] has changed. */
   fun schemaChanged(databaseId: SqliteDatabaseId)
 
-  /**
-   * Toggles on and off the ability to run sqlite statements
-   */
+  /** Toggles on and off the ability to run sqlite statements */
   fun setRunSqliteStatementEnabled(enabled: Boolean)
 
   fun reportError(message: String, t: Throwable?)
@@ -57,32 +51,24 @@ interface SqliteEvaluatorView {
   fun setQueryHistory(queries: List<String>)
 
   /**
-   * Shows a panel that shows [message] to the user.
-   * [message] will be rendered on multiple lines if contains "\n"
+   * Shows a panel that shows [message] to the user. [message] will be rendered on multiple lines if
+   * contains "\n"
    *
    * The panel hides the table.
    */
   fun showMessagePanel(message: String)
 
-  /**
-   * Shows the table and hides the message panel.
-   */
+  /** Shows the table and hides the message panel. */
   fun showTableView()
 
   interface Listener {
-    /**
-     * Invoked when a database is selected in the combobox
-     */
+    /** Invoked when a database is selected in the combobox */
     fun onDatabaseSelected(databaseId: SqliteDatabaseId) {}
 
-    /**
-     * Method invoked when an sql statement needs to be evaluated.
-     */
+    /** Method invoked when an sql statement needs to be evaluated. */
     fun evaluateCurrentStatement() {}
 
-    /**
-     * Called when the sqlite statement changes
-     */
+    /** Called when the sqlite statement changes */
     fun sqliteStatementTextChangedInvoked(newSqliteStatement: String) {}
   }
 }

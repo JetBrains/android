@@ -23,6 +23,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.notebook.editor.BackedVirtualFile;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -201,7 +202,7 @@ public class RenderResult {
 
   @NotNull
   private static RenderResult createErrorResult(@NotNull PsiFile file, @NotNull Result errorResult, @Nullable RenderLogger logger) {
-    Module module = ModuleUtilCore.findModuleForPsiElement(file);
+    Module module = ReadAction.compute(() -> ModuleUtilCore.findModuleForPsiElement(file));
     assert module != null;
     RenderResult result = new RenderResult(
       file,

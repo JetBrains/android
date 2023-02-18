@@ -41,7 +41,8 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.source.xml.XmlTagImpl
 import com.intellij.psi.xml.XmlFile
-import com.intellij.util.PlatformIcons
+import com.intellij.ui.IconManager
+import com.intellij.ui.PlatformIcons
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
@@ -135,7 +136,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
                                         XmlSourceElement(
                                           SafeArgsXmlTag(
                                             it as XmlTagImpl,
-                                            PlatformIcons.CLASS_ICON,
+                                            IconManager.getInstance().getPlatformIcon(PlatformIcons.Class),
                                             className.asString(),
                                             packageName.asString()
                                           )
@@ -186,7 +187,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
                                         XmlSourceElement(
                                           SafeArgsXmlTag(
                                             it as XmlTagImpl,
-                                            PlatformIcons.CLASS_ICON,
+                                            IconManager.getInstance().getPlatformIcon(PlatformIcons.Class),
                                             className.asString(),
                                             packageName.asString()
                                           )

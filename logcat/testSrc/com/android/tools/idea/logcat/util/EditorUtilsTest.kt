@@ -24,6 +24,7 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.fail
 
 @RunsInEdt
 class EditorUtilsTest {
@@ -53,6 +54,13 @@ class EditorUtilsTest {
     assertThat(editorSettings.isCaretRowShown).isFalse()
     assertThat(editorSettings.isShowingSpecialChars).isFalse()
 
-    EditorFactory.getInstance().releaseEditor(editor)
+    try {
+      editor.document.insertString(0, "\r\n")
+    } catch (e: AssertionError) {
+      fail("Document should acceptSlashR")
+    }
+    finally {
+      EditorFactory.getInstance().releaseEditor(editor)
+    }
   }
 }

@@ -64,7 +64,7 @@ public final class VirtualDevicePanel extends DevicePanel {
     initTable();
     initScrollPane();
 
-    myCreateButton = new JButton("Create device");
+    myCreateButton = new JButton("Create Device");
     myCreateButton.addActionListener(new BuildVirtualDeviceConfigurationWizardActionListener(myCreateButton,
                                                                                              project,
                                                                                              (VirtualDeviceTable)myTable));

@@ -26,7 +26,6 @@ import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.CppStandardType
 import com.android.tools.idea.wizard.template.FormFactor
-import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.android.tools.idea.wizard.template.has
@@ -69,11 +68,11 @@ fun RecipeExecutor.generateAndroidModule(
       null,
     colorsXml = if (isMaterial3 && data.category != Category.Compose) androidModuleColorsMaterial3() else androidModuleColors(),
     enableCpp = enableCpp,
-    cppStandard = cppStandard
+    cppStandard = cppStandard,
+    bytecodeLevel = bytecodeLevel,
   )
   val projectData = data.projectTemplateData
   val formFactorNames = projectData.includedFormFactorNames
-  requireJavaVersion(bytecodeLevel.versionString, data.projectTemplateData.language == Language.Kotlin)
   if (data.category != Category.Compose) {
     addDependency("com.android.support:appcompat-v7:${data.apis.appCompatVersion}.+")
   }

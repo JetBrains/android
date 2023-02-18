@@ -155,15 +155,6 @@ public class NlComponent implements NlAttributesHolder {
     return myBackend.getTagDeprecated();
   }
 
-  /**
-   * @deprecated Use {@link #getTag()} instead.
-   */
-  @NotNull
-  @Deprecated
-  public SmartPsiElementPointer<XmlTag> getTagPointer() {
-    return myBackend.getTagPointer();
-  }
-
   @NotNull
   public NlModel getModel() {
     return myModel;

@@ -18,32 +18,24 @@ package com.android.tools.idea.appinspection.inspector.api.launch
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 
-/**
- * Encapsulates all of the parameters that are required for launching an inspector.
- */
+/** Encapsulates all of the parameters that are required for launching an inspector. */
 data class LaunchParameters(
   /**
-   * Identifies the target process in which to launch the inspector. It is supplied by [AppInspectionProcessDiscovery].
+   * Identifies the target process in which to launch the inspector. It is supplied by
+   * [AppInspectionProcessDiscovery].
    */
   val processDescriptor: ProcessDescriptor,
-  /**
-   * Id of the inspector.
-   */
+  /** Id of the inspector. */
   val inspectorId: String,
-  /**
-   * The [AppInspectorJar] containing the location of the dex to be installed on device.
-   */
+  /** The [AppInspectorJar] containing the location of the dex to be installed on device. */
   val inspectorJar: AppInspectorJar,
-  /**
-   * The name of the studio project launching the inspector.
-   */
+  /** The name of the studio project launching the inspector. */
   val projectName: String,
   /**
-   * Information about the library this inspector is targeting. Null if inspector doesn't target a library (ex: framework inspector).
+   * Information about the library this inspector is targeting. Null if inspector doesn't target a
+   * library (ex: framework inspector).
    */
   val library: LibraryCompatibility? = null,
-  /**
-   * If true, launch the inspector even if one is already running.
-   */
+  /** If true, launch the inspector even if one is already running. */
   val force: Boolean = false
 )

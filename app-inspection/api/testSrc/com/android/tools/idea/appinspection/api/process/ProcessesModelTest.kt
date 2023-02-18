@@ -25,16 +25,21 @@ import org.junit.Test
 
 class ProcessesModelTest {
   private fun createFakeStream(): Common.Stream {
-    return Common.Stream.newBuilder()
-      .setDevice(FakeTransportService.FAKE_DEVICE)
-      .build()
+    return Common.Stream.newBuilder().setDevice(FakeTransportService.FAKE_DEVICE).build()
   }
 
-  private fun Common.Stream.createFakeProcess(name: String? = null, pid: Int = 0): ProcessDescriptor {
-    return TransportProcessDescriptor(this, FakeTransportService.FAKE_PROCESS.toBuilder()
-      .setName(name ?: FakeTransportService.FAKE_PROCESS_NAME)
-      .setPid(pid)
-      .build())
+  private fun Common.Stream.createFakeProcess(
+    name: String? = null,
+    pid: Int = 0
+  ): ProcessDescriptor {
+    return TransportProcessDescriptor(
+      this,
+      FakeTransportService.FAKE_PROCESS
+        .toBuilder()
+        .setName(name ?: FakeTransportService.FAKE_PROCESS_NAME)
+        .setPid(pid)
+        .build()
+    )
   }
 
   @Test
@@ -85,7 +90,8 @@ class ProcessesModelTest {
 
     testNotifier.fireConnected(fakeProcessA)
     testNotifier.fireConnected(fakeProcessB)
-    assertThat(model.selectedProcess).isSameAs(fakeProcessA) // Because fakeProcessB is not preferred
+    assertThat(model.selectedProcess)
+      .isSameAs(fakeProcessA) // Because fakeProcessB is not preferred
 
     model.selectedProcess = fakeProcessB
     assertThat(model.selectedProcess).isSameAs(fakeProcessB)
@@ -204,11 +210,12 @@ class ProcessesModelTest {
     val fakeProcessC = fakeStream.createFakeProcess("C")
     val fakeProcessD = fakeStream.createFakeProcess("D")
 
-    val model = ProcessesModel(
-      processDiscovery = testNotifier,
-      acceptProcess = { it === fakeProcessB || it === fakeProcessD },
-      isPreferred = { it.name == FakeTransportService.FAKE_PROCESS.name }
-    )
+    val model =
+      ProcessesModel(
+        processDiscovery = testNotifier,
+        acceptProcess = { it === fakeProcessB || it === fakeProcessD },
+        isPreferred = { it.name == FakeTransportService.FAKE_PROCESS.name }
+      )
 
     testNotifier.fireConnected(fakeProcessA)
     testNotifier.fireConnected(fakeProcessB)

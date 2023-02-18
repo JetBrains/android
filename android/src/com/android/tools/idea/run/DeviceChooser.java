@@ -27,7 +27,7 @@ import com.android.tools.idea.ddms.DeviceNameProperties;
 import com.android.tools.idea.ddms.DeviceNamePropertiesFetcher;
 import com.android.tools.idea.ddms.DeviceRenderer;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.run.LaunchCompatibility.State;
 import com.google.common.base.Predicate;
 import com.google.common.util.concurrent.FutureCallback;
@@ -115,7 +115,7 @@ public class DeviceChooser implements Disposable, AndroidDebugBridge.IDebugBridg
                        @Nullable Predicate<IDevice> filter) {
     myFacet = facet;
     myFilter = filter;
-    myMinSdkVersion = AndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
+    myMinSdkVersion = StudioAndroidModuleInfo.getInstance(facet).getRuntimeMinSdkVersion();
     myProjectTarget = projectTarget;
     AndroidModel androidModel = AndroidModel.get(facet);
     mySupportedAbis = androidModel != null ?

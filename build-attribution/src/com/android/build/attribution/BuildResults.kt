@@ -184,7 +184,7 @@ data class BuildAnalysisResults(
   }
 
   override fun buildUsesConfigurationCache(): Boolean = configurationCachingCompatibilityAnalyzerResult.let {
-    it == ConfigurationCachingTurnedOn || it == ConfigurationCacheCompatibilityTestFlow
+    it == ConfigurationCachingTurnedOn || it is ConfigurationCacheCompatibilityTestFlow
   }
 
   override fun getDownloadsAnalyzerResult(): DownloadsAnalyzer.Result {

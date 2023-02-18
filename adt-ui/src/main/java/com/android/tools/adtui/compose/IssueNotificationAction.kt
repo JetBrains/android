@@ -68,7 +68,6 @@ interface ComposeStatus {
   val title: String
   val description: String
   /** When true, the refresh icon will be displayed next to the notification chip. */
-  val hasRefreshIcon: Boolean
   val presentation: Presentation?
 
   companion object {

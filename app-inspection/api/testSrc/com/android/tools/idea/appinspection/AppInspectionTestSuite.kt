@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package com.android.tools.idea.appinspection
+
 import com.android.testutils.JarTestSuiteRunner
 import com.android.tools.tests.IdeaTestSuiteBase
 import org.junit.runner.RunWith

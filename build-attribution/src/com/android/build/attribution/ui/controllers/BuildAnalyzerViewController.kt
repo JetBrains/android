@@ -18,6 +18,7 @@ package com.android.build.attribution.ui.controllers
 import com.android.build.attribution.BuildAttributionWarningsFilter
 import com.android.build.attribution.analyzers.CHECK_JETIFIER_TASK_NAME
 import com.android.build.attribution.analyzers.IncompatiblePluginWarning
+import com.android.build.attribution.analyzers.NoIncompatiblePlugins
 import com.android.build.attribution.analyzers.checkJetifierResultFile
 import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.StudioProvidedInfo
@@ -202,12 +203,15 @@ class BuildAnalyzerViewController(
   }
 
   override fun runTestConfigurationCachingBuild() {
-    ConfigurationCacheTestBuildFlowRunner.getInstance(project).startTestBuildsFlow(model.reportUiData.buildRequestData)
+    val configurationCacheData = (model.reportUiData.confCachingData as? NoIncompatiblePlugins) ?: return
+    ConfigurationCacheTestBuildFlowRunner.getInstance(project).startTestBuildsFlow(
+      model.reportUiData.buildRequestData,
+      configurationCacheData.configurationCacheIsStableFeature)
     analytics.rerunBuildWithConfCacheClicked()
   }
 
-  override fun turnConfigurationCachingOnInProperties() {
-    StudioProvidedInfo.turnOnConfigurationCacheInProperties(project)
+  override fun turnConfigurationCachingOnInProperties(isFeatureConsideredStable: Boolean) {
+    StudioProvidedInfo.turnOnConfigurationCacheInProperties(project, isFeatureConsideredStable)
     analytics.turnConfigurationCacheOnInPropertiesClicked()
   }
 

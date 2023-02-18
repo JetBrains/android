@@ -17,9 +17,13 @@ package com.android.tools.idea.logcat.hyperlinks
 
 import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.google.common.truth.Truth.assertThat
+import com.intellij.execution.filters.Filter
+import com.intellij.execution.filters.Filter.Result
+import com.intellij.execution.filters.HyperlinkInfo
 import com.intellij.execution.impl.ConsoleViewUtil
 import com.intellij.execution.impl.EditorHyperlinkSupport
 import com.intellij.openapi.editor.EditorFactory
+import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
@@ -39,7 +43,8 @@ class EditorHyperlinkDetectorTest {
   @get:Rule
   val rule = RuleChain(projectRule, EdtRule())
 
-  private val editor by lazy { createLogcatEditor(projectRule.project) }
+  private val project get() = projectRule.project
+  private val editor by lazy { createLogcatEditor(project) }
 
   @After
   fun tearDown() {
@@ -53,9 +58,9 @@ class EditorHyperlinkDetectorTest {
   @Test
   fun usesCorrectFilters() {
     val expectedFilters =
-      ConsoleViewUtil.computeConsoleFilters(projectRule.project, /* consoleView= */ null, GlobalSearchScope.allScope(projectRule.project))
+      ConsoleViewUtil.computeConsoleFilters(project, /* consoleView= */ null, GlobalSearchScope.allScope(project))
 
-    val hyperlinkDetector = EditorHyperlinkDetector(projectRule.project, editor)
+    val hyperlinkDetector = EditorHyperlinkDetector(project, editor)
 
     assertThat(hyperlinkDetector.hyperlinkFilters.filters.map { it::class }).containsExactlyElementsIn(expectedFilters.map { it::class })
   }
@@ -70,11 +75,42 @@ class EditorHyperlinkDetectorTest {
     editor.document.setText("http://www.google.com")
     val hyperlinkSupport = EditorHyperlinkSupport.get(editor)
 
-    EditorHyperlinkDetector(projectRule.project, editor).detectHyperlinks(0, editor.document.lineCount - 1)
+    EditorHyperlinkDetector(project, editor).detectHyperlinks(0, editor.document.lineCount - 1)
 
     hyperlinkSupport.waitForPendingFilters(/* timeoutMs= */ 5000)
     assertThat(hyperlinkSupport.findAllHyperlinksOnLine(0).map {
       editor.document.text.substring(it.startOffset, it.endOffset)
     }).containsExactly("http://www.google.com")
+  }
+
+  @Test
+  fun detectHyperlinks_usesAllFilters() {
+    editor.document.setText("Foo Bar")
+    val hyperlinkSupport = EditorHyperlinkSupport.get(editor)
+    val editorHyperlinkDetector = EditorHyperlinkDetector(project, editor)
+    editorHyperlinkDetector.hyperlinkFilters.addFilter(TestFilter("Foo"))
+    editorHyperlinkDetector.hyperlinkFilters.addFilter(TestFilter("Bar"))
+
+    editorHyperlinkDetector.detectHyperlinks(0, editor.document.lineCount - 1)
+
+    hyperlinkSupport.waitForPendingFilters(/* timeoutMs= */ 5000)
+    assertThat(hyperlinkSupport.findAllHyperlinksOnLine(0).map {
+      editor.document.text.substring(it.startOffset, it.endOffset)
+    }).containsExactly("Foo", "Bar")
+  }
+
+  private class TestFilter(private val text: String) : Filter {
+    override fun applyFilter(line: String, entireLength: Int): Result? {
+      val start = line.indexOf(text)
+      if (start < 0) {
+        return null
+      }
+
+      return Result(start, start + text.length, Info())
+    }
+
+    private class Info : HyperlinkInfo {
+      override fun navigate(project: Project) {}
+    }
   }
 }

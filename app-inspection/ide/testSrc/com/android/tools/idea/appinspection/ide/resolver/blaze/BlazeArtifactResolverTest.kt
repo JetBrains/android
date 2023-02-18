@@ -23,18 +23,20 @@ import com.android.tools.idea.testing.TemporaryDirectoryRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ProjectRule
 import com.intellij.util.io.createFile
+import java.net.URI
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+import kotlin.test.assertFailsWith
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertFailsWith
 
 class BlazeArtifactResolverTest {
-  @get:Rule
-  val temporaryDirectoryRule = TemporaryDirectoryRule()
+  @get:Rule val temporaryDirectoryRule = TemporaryDirectoryRule()
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
 
   private lateinit var testFileService: TestFileService
 
@@ -44,40 +46,47 @@ class BlazeArtifactResolverTest {
   }
 
   @Test
-  fun resolveInspectorJarOverLibraryAarAndHttp() = runBlocking {
-    val artifactCoordinate = ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01", ArtifactCoordinate.Type.AAR)
+  fun resolveInspectorJarWithBlazeResolver() = runBlocking {
+    val artifactCoordinate =
+      ArtifactCoordinate(
+        "androidx.work",
+        "work-runtime",
+        "2.5.0-beta01",
+        ArtifactCoordinate.Type.AAR
+      )
     val artifactDir = temporaryDirectoryRule.newPath("test")
-    // blaze artifact resolver should always take inspector.jar over other options.
-    artifactDir.resolve("inspector.jar").createFile()
-    artifactDir.resolve("library.aar").createFile()
-    val moduleSystemArtifactFinder = ModuleSystemArtifactFinder(projectRule.project) {
-      artifactDir
+    val inspectorPath = artifactDir.resolve("inspector.jar").createFile()
+
+    val uri = URI.create("jar:${artifactDir.resolve("library.aar").toUri()}")
+    FileSystems.newFileSystem(uri, mapOf("create" to "true")).use { zipFs ->
+      val pathInZipFile = zipFs.getPath("/inspector.jar")
+      Files.copy(inspectorPath, pathInZipFile, StandardCopyOption.REPLACE_EXISTING)
     }
+    val moduleSystemArtifactFinder = ModuleSystemArtifactFinder(projectRule.project) { artifactDir }
     val resolver = BlazeArtifactResolver(testFileService, moduleSystemArtifactFinder)
     val inspectorJar = resolver.resolveArtifact(artifactCoordinate)
     assertThat(inspectorJar.fileName.toString()).isEqualTo("inspector.jar")
   }
 
   @Test
-  fun resolveInspectorLibraryAar() = runBlocking {
-    val artifactCoordinate = ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01", ArtifactCoordinate.Type.AAR)
-    val artifactDir = temporaryDirectoryRule.newPath("test")
-    // when inspector.jar is not present, resolver should take the library.aar
-    artifactDir.resolve("library.aar").createFile()
-    val moduleSystemArtifactFinder = ModuleSystemArtifactFinder(projectRule.project) {
-      artifactDir
+  fun failToResolveInspector() =
+    runBlocking<Unit> {
+      val artifactCoordinate =
+        ArtifactCoordinate(
+          "androidx.work",
+          "work-runtime",
+          "2.5.0-beta01",
+          ArtifactCoordinate.Type.AAR
+        )
+      val resolver =
+        BlazeArtifactResolver(
+          testFileService,
+          ModuleSystemArtifactFinder(projectRule.project) {
+            throw AppInspectionArtifactNotFoundException("blah", artifactCoordinate)
+          }
+        )
+      assertFailsWith(AppInspectionArtifactNotFoundException::class) {
+        resolver.resolveArtifact(artifactCoordinate)
+      }
     }
-    val resolver = BlazeArtifactResolver(testFileService, moduleSystemArtifactFinder)
-    val inspectorJar = resolver.resolveArtifact(artifactCoordinate)
-    assertThat(inspectorJar.fileName.toString()).isEqualTo("library.aar")
-  }
-
-  @Test
-  fun failToResolveInspector() = runBlocking<Unit> {
-    val artifactCoordinate = ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01", ArtifactCoordinate.Type.AAR)
-    val resolver = BlazeArtifactResolver(testFileService, ModuleSystemArtifactFinder(projectRule.project) {
-      throw AppInspectionArtifactNotFoundException("blah", artifactCoordinate)
-    })
-    assertFailsWith(AppInspectionArtifactNotFoundException::class) { resolver.resolveArtifact(artifactCoordinate) }
-  }
 }

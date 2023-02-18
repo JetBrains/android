@@ -93,7 +93,7 @@ interface ViewActionHandlers {
   fun openConfigurationCacheWarnings()
   fun runAgpUpgrade()
   fun runTestConfigurationCachingBuild()
-  fun turnConfigurationCachingOnInProperties()
+  fun turnConfigurationCachingOnInProperties(isFeatureConsideredStable: Boolean)
   fun updatePluginClicked(pluginWarningData: IncompatiblePluginWarning)
   fun runCheckJetifierTask()
   fun turnJetifierOffInProperties(sourceRelativePointSupplier: Supplier<RelativePoint>)

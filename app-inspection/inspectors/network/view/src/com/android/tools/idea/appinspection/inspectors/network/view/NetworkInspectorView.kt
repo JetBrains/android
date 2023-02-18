@@ -66,16 +66,20 @@ import com.android.tools.idea.appinspection.inspectors.network.view.constants.Y_
 import com.android.tools.idea.appinspection.inspectors.network.view.details.NetworkInspectorDetailsPanel
 import com.android.tools.idea.appinspection.inspectors.network.view.rules.RulesTableView
 import com.android.tools.idea.flags.StudioFlags
+import com.intellij.ide.ui.LafManagerListener
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.util.messages.MessageBusConnection
+import com.intellij.util.ui.JBFont
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtilities
 import icons.StudioIcons
-import kotlinx.coroutines.CoroutineScope
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.Component
@@ -91,64 +95,72 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
-
+import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.annotations.VisibleForTesting
 
 private const val CARD_CONNECTIONS = "Connections"
 private const val CARD_INFO = "Info"
 
-/**
- * The main view of network inspector.
- */
+/** The main view of network inspector. */
 class NetworkInspectorView(
   project: Project,
   val model: NetworkInspectorModel,
   val componentsProvider: UiComponentsProvider,
   private val parentPane: TooltipLayeredPane,
-  private val inspectorServices: NetworkInspectorServices,
-  scope: CoroutineScope
-) : AspectObserver() {
+  inspectorServices: NetworkInspectorServices,
+  scope: CoroutineScope,
+  parentDisposable: Disposable
+) : AspectObserver(), Disposable {
 
   val component = JPanel(BorderLayout())
 
-  /**
-   * Container for the tooltip.
-   */
+  /** Container for the tooltip. */
   private val tooltipPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0))
 
-  /**
-   * View of the active tooltip for stages that contain more than one tooltips.
-   */
+  /** View of the active tooltip for stages that contain more than one tooltips. */
   var activeTooltipView: TooltipView? = null
 
-  /**
-   * A common component for showing the current selection range.
-   */
+  /** A common component for showing the current selection range. */
   private val selectionTimeLabel = createSelectionTimeLabel()
 
-  @VisibleForTesting
-  val connectionsView = ConnectionsView(model, parentPane)
+  @VisibleForTesting val connectionsView = ConnectionsView(model, parentPane)
 
-  val rulesView = RulesTableView(project, inspectorServices.client, scope, model, inspectorServices.usageTracker)
+  val rulesView =
+    RulesTableView(project, inspectorServices.client, scope, model, inspectorServices.usageTracker)
 
   @VisibleForTesting
-  val detailsPanel = NetworkInspectorDetailsPanel(this, inspectorServices.usageTracker).apply { isVisible = false }
+  val detailsPanel =
+    NetworkInspectorDetailsPanel(this, inspectorServices.usageTracker).apply { isVisible = false }
   private val mainPanel = JPanel(TabularLayout("*,Fit-", "Fit-,*"))
   private val tooltipBinder = ViewBinder<NetworkInspectorView, TooltipModel, TooltipView>()
 
+  private val messageBusConnection: MessageBusConnection
+
   init {
-    // Use FlowLayout instead of the usual BorderLayout since BorderLayout doesn't respect min/preferred sizes.
+    Disposer.register(parentDisposable, this)
+    // Use FlowLayout instead of the usual BorderLayout since BorderLayout doesn't respect
+    // min/preferred sizes.
     tooltipPanel.background = TOOLTIP_BACKGROUND
     model.addDependency(this).onChange(NetworkInspectorAspect.TOOLTIP) { tooltipChanged() }
-    model.timeline.selectionRange.addDependency(this).onChange(Range.Aspect.RANGE) { selectionChanged() }
+    model.timeline.selectionRange.addDependency(this).onChange(Range.Aspect.RANGE) {
+      selectionChanged()
+    }
     selectionChanged()
-    tooltipBinder.bind(NetworkTrafficTooltipModel::class.java) { view: NetworkInspectorView, tooltip ->
+    tooltipBinder.bind(NetworkTrafficTooltipModel::class.java) { view: NetworkInspectorView, tooltip
+      ->
       NetworkTrafficTooltipView(view, tooltip)
     }
-    detailsPanel.minimumSize = Dimension(JBUI.scale(550), detailsPanel.minimumSize.getHeight().toInt())
+    detailsPanel.minimumSize =
+      Dimension(JBUI.scale(550), detailsPanel.minimumSize.getHeight().toInt())
     val threadsView = ThreadsView(model, parentPane)
     val leftSplitter = JBSplitter(true, 0.25f)
     leftSplitter.divider.border = DEFAULT_HORIZONTAL_BORDERS
     leftSplitter.firstComponent = buildMonitorUi()
+    messageBusConnection = ApplicationManager.getApplication().messageBus.connect(parentDisposable)
+    messageBusConnection.subscribe(
+      LafManagerListener.TOPIC,
+      LafManagerListener { leftSplitter.firstComponent = buildMonitorUi() }
+    )
     val connectionsPanel = JPanel(CardLayout())
     val connectionsTab = CommonTabbedPane()
     val connectionScrollPane = JBScrollPane(connectionsView.component)
@@ -163,14 +175,17 @@ class NetworkInspectorView(
       connectionsTab.addChangeListener {
         when (connectionsTab.selectedComponent) {
           connectionScrollPane, threadsViewScrollPane ->
-            // Switching tabs between connection view and threads view does not open or close details panel.
+            // Switching tabs between connection view and threads view does not open or close
+            // details panel.
             if (selectedComponent == rulesView.component) {
               model.detailContent =
                 if (model.selectedConnection == null) NetworkInspectorModel.DetailContent.EMPTY
                 else NetworkInspectorModel.DetailContent.CONNECTION
             }
           rulesView.component ->
-            if (selectedComponent == connectionScrollPane || selectedComponent == threadsViewScrollPane) {
+            if (selectedComponent == connectionScrollPane ||
+                selectedComponent == threadsViewScrollPane
+            ) {
               model.detailContent =
                 if (model.selectedRule == null) NetworkInspectorModel.DetailContent.EMPTY
                 else NetworkInspectorModel.DetailContent.RULE
@@ -179,20 +194,31 @@ class NetworkInspectorView(
         selectedComponent = connectionsTab.selectedComponent
       }
     }
-    // The toolbar overlays the tab panel, so we have to make sure we repaint the parent panel when switching tabs.
+    // The toolbar overlays the tab panel, so we have to make sure we repaint the parent panel when
+    // switching tabs.
     connectionsTab.addChangeListener { mainPanel.repaint() }
     connectionsPanel.add(connectionsTab, CARD_CONNECTIONS)
     val infoPanel = JPanel(BorderLayout())
-    val infoMessage = InstructionsPanel.Builder(
-      TextInstruction(UIUtilities.getFontMetrics(infoPanel, H3_FONT), "Network inspector data unavailable"),
-      NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-      TextInstruction(UIUtilities.getFontMetrics(infoPanel, STANDARD_FONT),
-                      "There is no information for the network traffic you've selected."),
-      NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
-      HyperlinkInstruction(STANDARD_FONT, "Learn More",
-                           "https://developer.android.com/r/studio-ui/network-profiler-troubleshoot-connections.html"))
-      .setColors(JBColor.foreground(), null)
-      .build()
+    val infoMessage =
+      InstructionsPanel.Builder(
+          TextInstruction(
+            UIUtilities.getFontMetrics(infoPanel, H3_FONT),
+            "Network inspector data unavailable"
+          ),
+          NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
+          TextInstruction(
+            UIUtilities.getFontMetrics(infoPanel, STANDARD_FONT),
+            "There is no information for the network traffic you've selected."
+          ),
+          NewRowInstruction(NewRowInstruction.DEFAULT_ROW_MARGIN),
+          HyperlinkInstruction(
+            STANDARD_FONT,
+            "Learn More",
+            "https://developer.android.com/r/studio-ui/network-profiler-troubleshoot-connections.html"
+          )
+        )
+        .setColors(JBColor.foreground(), null)
+        .build()
     infoPanel.add(infoMessage, BorderLayout.CENTER)
     infoPanel.name = CARD_INFO
     connectionsPanel.add(infoPanel, CARD_INFO)
@@ -203,20 +229,23 @@ class NetworkInspectorView(
     mainPanel.add(connectionsPanel, TabularLayout.Constraint(0, 0, 2, 2))
     leftSplitter.secondComponent = mainPanel
 
-    model.selectionRangeDataFetcher.addListener(object : SelectionRangeDataListener {
-      override fun onUpdate(data: List<HttpData>) {
-        val cardLayout = connectionsPanel.layout as CardLayout
-        if (data.isEmpty()) {
-          val detailedNetworkUsage = model.networkUsage
-          if (hasTrafficUsage(detailedNetworkUsage.rxSeries, model.timeline.selectionRange) ||
-              hasTrafficUsage(detailedNetworkUsage.txSeries, model.timeline.selectionRange)) {
-            cardLayout.show(connectionsPanel, CARD_INFO)
-            return
+    model.selectionRangeDataFetcher.addListener(
+      object : SelectionRangeDataListener {
+        override fun onUpdate(data: List<HttpData>) {
+          val cardLayout = connectionsPanel.layout as CardLayout
+          if (data.isEmpty()) {
+            val detailedNetworkUsage = model.networkUsage
+            if (hasTrafficUsage(detailedNetworkUsage.rxSeries, model.timeline.selectionRange) ||
+                hasTrafficUsage(detailedNetworkUsage.txSeries, model.timeline.selectionRange)
+            ) {
+              cardLayout.show(connectionsPanel, CARD_INFO)
+              return
+            }
           }
+          cardLayout.show(connectionsPanel, CARD_CONNECTIONS)
         }
-        cardLayout.show(connectionsPanel, CARD_CONNECTIONS)
       }
-    })
+    )
     val splitter = JBSplitter(false, 0.6f)
     splitter.firstComponent = leftSplitter
     splitter.secondComponent = detailsPanel
@@ -225,11 +254,12 @@ class NetworkInspectorView(
     component.add(splitter, BorderLayout.CENTER)
   }
 
-  private fun buildTimeAxis(axis: ResizingAxisComponentModel): JComponent {
+  private fun buildTimeAxis(axis: ResizingAxisComponentModel, font: JBFont): JComponent {
     val axisPanel = JPanel(BorderLayout())
     axisPanel.background = DEFAULT_BACKGROUND
     val timeAxis = AxisComponent(axis, AxisComponent.AxisOrientation.BOTTOM, true)
     timeAxis.setShowAxisLine(false)
+    timeAxis.font = font
     timeAxis.minimumSize = Dimension(0, TIME_AXIS_HEIGHT)
     timeAxis.preferredSize = Dimension(Int.MAX_VALUE, TIME_AXIS_HEIGHT)
     axisPanel.add(timeAxis, BorderLayout.CENTER)
@@ -262,14 +292,16 @@ class NetworkInspectorView(
     }
 
     // Note - relative time conversion happens in nanoseconds
-    val selectionMinUs = timeline.convertToRelativeTimeUs(TimeUnit.MICROSECONDS.toNanos(selectionRange.min.toLong()))
-    val selectionMaxUs = timeline.convertToRelativeTimeUs(TimeUnit.MICROSECONDS.toNanos(selectionRange.max.toLong()))
+    val selectionMinUs =
+      timeline.convertToRelativeTimeUs(TimeUnit.MICROSECONDS.toNanos(selectionRange.min.toLong()))
+    val selectionMaxUs =
+      timeline.convertToRelativeTimeUs(TimeUnit.MICROSECONDS.toNanos(selectionRange.max.toLong()))
     selectionTimeLabel.icon = StudioIcons.Profiler.Toolbar.CLOCK
     if (selectionRange.isPoint) {
       selectionTimeLabel.text = TimeFormatter.getSimplifiedClockString(selectionMinUs)
-    }
-    else {
-      selectionTimeLabel.text = "${TimeFormatter.getSimplifiedClockString(selectionMinUs)} - ${
+    } else {
+      selectionTimeLabel.text =
+        "${TimeFormatter.getSimplifiedClockString(selectionMinUs)} - ${
         TimeFormatter.getSimplifiedClockString(selectionMaxUs)
       }"
     }
@@ -279,36 +311,46 @@ class NetworkInspectorView(
     val label = JLabel("")
     label.font = STANDARD_FONT
     label.border = JBUI.Borders.empty(3, 3, 3, 3)
-    label.addMouseListener(object : MouseAdapter() {
-      override fun mouseClicked(e: MouseEvent) {
-        val timeline = model.timeline
-        timeline.frameViewToRange(timeline.selectionRange)
+    label.addMouseListener(
+      object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent) {
+          val timeline = model.timeline
+          timeline.frameViewToRange(timeline.selectionRange)
+        }
       }
-    })
+    )
     label.toolTipText = "Selected range"
     label.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
     return label
   }
 
   private fun buildMonitorUi(): JPanel {
+    val font = JBUI.Fonts.label()
     val timeline = model.timeline
     val selection = RangeSelectionComponent(model.rangeSelectionModel)
     selection.setCursorSetter(AdtUiUtils::setTooltipCursor)
-    val tooltip = RangeTooltipComponent(timeline, tooltipPanel, parentPane) { selection.shouldShowSeekComponent() }
+    val tooltip =
+      RangeTooltipComponent(timeline, tooltipPanel, parentPane) {
+        selection.shouldShowSeekComponent()
+      }
     val layout = TabularLayout("*")
     val panel = JBPanel<Nothing>(layout)
     panel.background = DEFAULT_STAGE_BACKGROUND
-    // Order matters, as such we want to put the tooltip component first so we draw the tooltip line on top of all other
+    // Order matters, as such we want to put the tooltip component first so we draw the tooltip line
+    // on top of all other
     // components.
     panel.add(tooltip, TabularLayout.Constraint(0, 0, 2, 1))
 
-    // The scrollbar can modify the view range - so it should be registered to the Choreographer before all other Animatables
+    // The scrollbar can modify the view range - so it should be registered to the Choreographer
+    // before all other Animatables
     // that attempts to read the same range instance.
     val sb = StreamingScrollbar(timeline, panel)
     panel.add(sb, TabularLayout.Constraint(3, 0))
-    val viewAxis = ResizingAxisComponentModel.Builder(timeline.viewRange, TimeAxisFormatter.DEFAULT)
-      .setGlobalRange(timeline.dataRange).build()
-    val timeAxis = buildTimeAxis(viewAxis)
+    val viewAxis =
+      ResizingAxisComponentModel.Builder(timeline.viewRange, TimeAxisFormatter.DEFAULT)
+        .setGlobalRange(timeline.dataRange)
+        .build()
+    val timeAxis = buildTimeAxis(viewAxis, font)
     panel.add(timeAxis, TabularLayout.Constraint(2, 0))
     val monitorPanel = JBPanel<Nothing>(TabularLayout("*", "*"))
     monitorPanel.isOpaque = false
@@ -321,7 +363,8 @@ class NetworkInspectorView(
     lineChartPanel.border = JBUI.Borders.empty(Y_AXIS_TOP_MARGIN, 0, 0, 0)
     val usage = model.networkUsage
     val lineChart = LineChart(usage)
-    val receivedConfig = LineConfig(NETWORK_RECEIVING_COLOR).setLegendIconType(LegendConfig.IconType.LINE)
+    val receivedConfig =
+      LineConfig(NETWORK_RECEIVING_COLOR).setLegendIconType(LegendConfig.IconType.LINE)
     lineChart.configure(usage.rxSeries, receivedConfig)
     val sentConfig = LineConfig(NETWORK_SENDING_COLOR).setLegendIconType(LegendConfig.IconType.LINE)
     lineChart.configure(usage.txSeries, sentConfig)
@@ -336,20 +379,27 @@ class NetworkInspectorView(
     leftAxis.setHideTickAtMin(true)
     leftAxis.setMarkerLengths(MARKER_LENGTH, MARKER_LENGTH)
     leftAxis.setMargins(0, Y_AXIS_TOP_MARGIN)
+    leftAxis.font = font
     axisPanel.add(leftAxis, BorderLayout.WEST)
     val legends = model.legends
-    val legend = LegendComponent.Builder(legends).setRightPadding(LEGEND_RIGHT_PADDING).build()
+    val legend =
+      LegendComponent.Builder(legends)
+        .setRightPadding(LEGEND_RIGHT_PADDING)
+        .setTextSize(font.size)
+        .build()
     legend.configure(legends.rxLegend, LegendConfig(lineChart.getLineConfig(usage.rxSeries)))
     legend.configure(legends.txLegend, LegendConfig(lineChart.getLineConfig(usage.txSeries)))
     val legendPanel = JBPanel<Nothing>(BorderLayout())
     legendPanel.isOpaque = false
     legendPanel.add(label, BorderLayout.WEST)
     legendPanel.add(legend, BorderLayout.EAST)
-    model.rangeSelectionModel.addListener(object : RangeSelectionListener {
-      override fun selectionCleared() {
-        model.setSelectedConnection(null)
+    model.rangeSelectionModel.addListener(
+      object : RangeSelectionListener {
+        override fun selectionCleared() {
+          model.setSelectedConnection(null)
+        }
       }
-    })
+    )
     selection.addMouseListener(TooltipMouseAdapter(model) { NetworkTrafficTooltipModel(model) })
     tooltip.registerListenersOn(selection)
     monitorPanel.add(legendPanel, TabularLayout.Constraint(0, 0))
@@ -369,18 +419,22 @@ class NetworkInspectorView(
     }
 
     // If there is no positive value at a time t within given range, check if there is index i that
-    // list.get(i).x < range.getMin <= range.getMax < list.get(i + 1).x; and values at i and i+1 are positive.
+    // list.get(i).x < range.getMin <= range.getMax < list.get(i + 1).x; and values at i and i+1 are
+    // positive.
     val getInsertPoint: (Long) -> Int = { time ->
-      val index = Collections.binarySearch(list, SeriesData(time, 0L)) { o1, o2 ->
-        o1.x.compareTo(o2.x)
-      }
+      val index =
+        Collections.binarySearch(list, SeriesData(time, 0L)) { o1, o2 -> o1.x.compareTo(o2.x) }
       if (index < 0) -(index + 1) else index
     }
     val minIndex = getInsertPoint(range.min.toLong())
     val maxIndex = getInsertPoint(range.max.toLong())
     return if (minIndex == maxIndex) {
-      minIndex > 0 && list[minIndex - 1].value > 0 && minIndex < list.size && list[minIndex].value > 0
-    }
-    else false
+      minIndex > 0 &&
+        list[minIndex - 1].value > 0 &&
+        minIndex < list.size &&
+        list[minIndex].value > 0
+    } else false
   }
+
+  override fun dispose() = messageBusConnection.disconnect()
 }

@@ -36,6 +36,7 @@ import com.intellij.psi.impl.search.AnnotatedElementsSearcher
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.SearchScope
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
+import java.text.StringCharacterIterator
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.asJava.toPsiParameters
@@ -58,27 +59,31 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
-import java.text.StringCharacterIterator
 
 /**
- * Searches for methods, fields and parameters of methods annotated with a given annotation, within a given scope in Java and Kotlin files.
+ * Searches for methods, fields and parameters of methods annotated with a given annotation, within
+ * a given scope in Java and Kotlin files.
  *
- * It is a replacement for [AnnotatedElementsSearch] that uses [AnnotatedElementsSearcher] and [KotlinAnnotatedElementsSearcher].
+ * It is a replacement for [AnnotatedElementsSearch] that uses [AnnotatedElementsSearcher] and
+ * [KotlinAnnotatedElementsSearcher].
  *
  * [DaggerAnnotatedElementsSearch] uses [AnnotatedElementsSearcher] for JAVA.
- * [DaggerAnnotatedElementsSearch] works directly with [KotlinAnnotationsIndex] for Kotlin. The main goal is to minimizes calls of
- * [KtElement.analyze]. [KtElement.analyze] is the main bottleneck in [KotlinAnnotatedElementsSearcher].
- * It allows to speed up computation up to 30-40 times for large projects.
+ * [DaggerAnnotatedElementsSearch] works directly with [KotlinAnnotationsIndex] for Kotlin. The main
+ * goal is to minimizes calls of [KtElement.analyze]. [KtElement.analyze] is the main bottleneck in
+ * [KotlinAnnotatedElementsSearcher]. It allows to speed up computation up to 30-40 times for large
+ * projects.
  */
 @Service
 class DaggerAnnotatedElementsSearch(private val project: Project) {
   companion object {
     @JvmStatic
-    fun getInstance(project: Project) = project.getService(DaggerAnnotatedElementsSearch::class.java)!!
+    fun getInstance(project: Project) =
+      project.getService(DaggerAnnotatedElementsSearch::class.java)!!
   }
 
   fun getAnnotation(annotationFQN: String): PsiClass? {
-    return JavaPsiFacade.getInstance(project).findClass(annotationFQN, GlobalSearchScope.allScope(project))
+    return JavaPsiFacade.getInstance(project)
+      .findClass(annotationFQN, GlobalSearchScope.allScope(project))
   }
 
   private fun search(
@@ -94,7 +99,9 @@ class DaggerAnnotatedElementsSearch(private val project: Project) {
       true
     }
 
-    AnnotatedElementsSearcher().execute(AnnotatedElementsSearch.Parameters(annotationClass, scope, javaClassToSearch)) {
+    AnnotatedElementsSearcher().execute(
+        AnnotatedElementsSearch.Parameters(annotationClass, scope, javaClassToSearch)
+      ) {
       javaProcessor(it)
       true
     }
@@ -103,12 +110,13 @@ class DaggerAnnotatedElementsSearch(private val project: Project) {
   fun searchClasses(annotationFQN: String, scope: SearchScope): Collection<PsiClass> {
     val result = mutableListOf<PsiClass>()
 
-    val kotlinProcessor: (KtDeclaration) -> Unit = kotlinProcessor@{ declaration ->
-      if (declaration is KtClassOrObject && declaration !is KtEnumEntry) {
-        val psiClass = declaration.toLightClass() ?: return@kotlinProcessor
-        result.add(psiClass)
+    val kotlinProcessor: (KtDeclaration) -> Unit =
+      kotlinProcessor@{ declaration ->
+        if (declaration is KtClassOrObject && declaration !is KtEnumEntry) {
+          val psiClass = declaration.toLightClass() ?: return@kotlinProcessor
+          result.add(psiClass)
+        }
       }
-    }
 
     val javaProcessor: (PsiElement) -> Unit = {
       if (it is PsiClass) {
@@ -120,16 +128,21 @@ class DaggerAnnotatedElementsSearch(private val project: Project) {
     return result
   }
 
-  fun searchParameters(annotationFQN: String, scope: SearchScope, unboxedPsiType: PsiType): Collection<PsiParameter> {
+  fun searchParameters(
+    annotationFQN: String,
+    scope: SearchScope,
+    unboxedPsiType: PsiType
+  ): Collection<PsiParameter> {
     val result = mutableListOf<PsiParameter>()
 
-    val kotlinProcessor: (KtDeclaration) -> Unit = kotlinProcessor@{ declaration ->
-      val parameter = declaration as? KtParameter ?: return@kotlinProcessor
-      if (parameter.typeReference?.equalsToPsiType(unboxedPsiType) == true) {
-        val param = parameter.toPsiParameters().firstOrNull() ?: return@kotlinProcessor
-        result.add(param)
+    val kotlinProcessor: (KtDeclaration) -> Unit =
+      kotlinProcessor@{ declaration ->
+        val parameter = declaration as? KtParameter ?: return@kotlinProcessor
+        if (parameter.typeReference?.equalsToPsiType(unboxedPsiType) == true) {
+          val param = parameter.toPsiParameters().firstOrNull() ?: return@kotlinProcessor
+          result.add(param)
+        }
       }
-    }
 
     val javaProcessor: (PsiElement) -> Unit = {
       if (it is PsiParameter && it.type.unboxed == unboxedPsiType) {
@@ -141,16 +154,21 @@ class DaggerAnnotatedElementsSearch(private val project: Project) {
     return result
   }
 
-  fun searchMethods(annotationFQN: String, scope: SearchScope, unboxedPsiType: PsiType): Collection<PsiMethod> {
+  fun searchMethods(
+    annotationFQN: String,
+    scope: SearchScope,
+    unboxedPsiType: PsiType
+  ): Collection<PsiMethod> {
     val result = mutableListOf<PsiMethod>()
 
-    val kotlinProcessor: (KtDeclaration) -> Unit = kotlinProcessor@{ declaration ->
-      val func = declaration as? KtNamedFunction ?: return@kotlinProcessor
-      if (func.typeReference?.equalsToPsiType(unboxedPsiType) == true) {
-        val method = LightClassUtil.getLightClassMethod(func) ?: return@kotlinProcessor
-        result.add(method)
+    val kotlinProcessor: (KtDeclaration) -> Unit =
+      kotlinProcessor@{ declaration ->
+        val func = declaration as? KtNamedFunction ?: return@kotlinProcessor
+        if (func.typeReference?.equalsToPsiType(unboxedPsiType) == true) {
+          val method = LightClassUtil.getLightClassMethod(func) ?: return@kotlinProcessor
+          result.add(method)
+        }
       }
-    }
 
     val javaProcessor: (PsiElement) -> Unit = {
       if (it is PsiMethod && it.returnType?.unboxed == unboxedPsiType) {
@@ -162,16 +180,21 @@ class DaggerAnnotatedElementsSearch(private val project: Project) {
     return result
   }
 
-  fun searchFields(annotationFQN: String, scope: SearchScope, unboxedPsiType: PsiType): Collection<PsiField> {
+  fun searchFields(
+    annotationFQN: String,
+    scope: SearchScope,
+    unboxedPsiType: PsiType
+  ): Collection<PsiField> {
     val result = mutableListOf<PsiField>()
 
-    val kotlinProcessor: (KtDeclaration) -> Unit = kotlinProcessor@{ declaration ->
-      val property = declaration as? KtProperty ?: return@kotlinProcessor
-      if (property.typeReference?.equalsToPsiType(unboxedPsiType) == true) {
-        val field = LightClassUtil.getLightClassBackingField(property) ?: return@kotlinProcessor
-        result.add(field)
+    val kotlinProcessor: (KtDeclaration) -> Unit =
+      kotlinProcessor@{ declaration ->
+        val property = declaration as? KtProperty ?: return@kotlinProcessor
+        if (property.typeReference?.equalsToPsiType(unboxedPsiType) == true) {
+          val field = LightClassUtil.getLightClassBackingField(property) ?: return@kotlinProcessor
+          result.add(field)
+        }
       }
-    }
 
     val javaProcessor: (PsiElement) -> Unit = {
       if (it is PsiField && it.type.unboxed == unboxedPsiType) {
@@ -190,15 +213,16 @@ class DaggerAnnotatedElementsSearch(private val project: Project) {
   ): Collection<PsiParameter> {
     val result = mutableListOf<PsiParameter>()
 
-    val kotlinProcessor: (KtDeclaration) -> Unit = kotlinProcessor@{ declaration ->
-      val ktFunction = declaration as? KtFunction ?: return@kotlinProcessor
-      ktFunction.valueParameters.forEach {
-        if (it.typeReference?.equalsToPsiType(unboxedPsiType) == true) {
-          val param = it.toPsiParameters().firstOrNull() ?: return@kotlinProcessor
-          result.add(param)
+    val kotlinProcessor: (KtDeclaration) -> Unit =
+      kotlinProcessor@{ declaration ->
+        val ktFunction = declaration as? KtFunction ?: return@kotlinProcessor
+        ktFunction.valueParameters.forEach {
+          if (it.typeReference?.equalsToPsiType(unboxedPsiType) == true) {
+            val param = it.toPsiParameters().firstOrNull() ?: return@kotlinProcessor
+            result.add(param)
+          }
         }
       }
-    }
 
     val javaProcessor: (PsiElement) -> Unit = { method ->
       if (method is PsiMethod) {
@@ -215,27 +239,32 @@ class DaggerAnnotatedElementsSearch(private val project: Project) {
  * Returns true if KtTypeReference corresponds to the a given PsiType.
  *
  * This method aim to minimise number of calls for KtTypeReference.analyze(BodyResolveMode.PARTIAL).
- * KtTypeReference.analyze(BodyResolveMode.PARTIAL) is slow.
- * It allows to speed up DaggerAnnotatedElementsSearch up to 6 times.
+ * KtTypeReference.analyze(BodyResolveMode.PARTIAL) is slow. It allows to speed up
+ * DaggerAnnotatedElementsSearch up to 6 times.
  */
 @WorkerThread
 private fun KtTypeReference.equalsToPsiType(unboxedPsiType: PsiType): Boolean {
-  val notNullableTypeElement = if (typeElement is KtNullableType) (typeElement as KtNullableType).innerType else typeElement
+  val notNullableTypeElement =
+    if (typeElement is KtNullableType) (typeElement as KtNullableType).innerType else typeElement
 
   if (notNullableTypeElement !is KtUserType) return false
   val shortName = notNullableTypeElement.referencedName ?: return false
   if (unboxedPsiType is PsiClassType) {
     if (shortName != unboxedPsiType.name &&
-        containingKtFile.findImportByAlias(shortName)?.importedFqName?.shortName()?.asString() != unboxedPsiType.name) {
+        containingKtFile.findImportByAlias(shortName)?.importedFqName?.shortName()?.asString() !=
+          unboxedPsiType.name
+    ) {
       return false
     }
   }
 
-  val kotlinPrimitiveTypeFqName = PrimitiveType.getByShortName(shortName)?.typeFqName
-                                  ?: PrimitiveType.getByShortArrayName(shortName)?.arrayTypeFqName
+  val kotlinPrimitiveTypeFqName =
+    PrimitiveType.getByShortName(shortName)?.typeFqName
+      ?: PrimitiveType.getByShortArrayName(shortName)?.arrayTypeFqName
 
   if (kotlinPrimitiveTypeFqName != null) {
-    return kotlinPrimitiveTypeFqNameToPsiType[kotlinPrimitiveTypeFqName.asString()] == unboxedPsiType
+    return kotlinPrimitiveTypeFqNameToPsiType[kotlinPrimitiveTypeFqName.asString()] ==
+      unboxedPsiType
   }
 
   ProgressManager.checkCanceled()
@@ -261,7 +290,6 @@ private fun createTypeFromCanonicalText(
   return type
 }
 
-
 private fun KotlinType.toPsi(context: PsiElement): PsiType? {
   val notNullableType = makeNotNullable()
 
@@ -272,21 +300,22 @@ private fun KotlinType.toPsi(context: PsiElement): PsiType? {
 }
 
 // Inspired by KtLightAnnotationsValues.kt#psiType
-private val kotlinPrimitiveTypeFqNameToPsiType: Map<String, PsiType> = mapOf(
-  "kotlin.Int" to PsiType.INT,
-  "kotlin.Long" to PsiType.LONG,
-  "kotlin.Short" to PsiType.SHORT,
-  "kotlin.Boolean" to PsiType.BOOLEAN,
-  "kotlin.Byte" to PsiType.BYTE,
-  "kotlin.Char" to PsiType.CHAR,
-  "kotlin.Double" to PsiType.DOUBLE,
-  "kotlin.Float" to PsiType.FLOAT,
-  "kotlin.IntArray" to PsiType.INT.createArrayType(),
-  "kotlin.LongArray" to PsiType.LONG.createArrayType(),
-  "kotlin.ShortArray" to PsiType.SHORT.createArrayType(),
-  "kotlin.BooleanArray" to PsiType.BOOLEAN.createArrayType(),
-  "kotlin.ByteArray" to PsiType.BYTE.createArrayType(),
-  "kotlin.CharArray" to PsiType.CHAR.createArrayType(),
-  "kotlin.DoubleArray" to PsiType.DOUBLE.createArrayType(),
-  "kotlin.FloatArray" to PsiType.FLOAT.createArrayType()
-)
+private val kotlinPrimitiveTypeFqNameToPsiType: Map<String, PsiType> =
+  mapOf(
+    "kotlin.Int" to PsiType.INT,
+    "kotlin.Long" to PsiType.LONG,
+    "kotlin.Short" to PsiType.SHORT,
+    "kotlin.Boolean" to PsiType.BOOLEAN,
+    "kotlin.Byte" to PsiType.BYTE,
+    "kotlin.Char" to PsiType.CHAR,
+    "kotlin.Double" to PsiType.DOUBLE,
+    "kotlin.Float" to PsiType.FLOAT,
+    "kotlin.IntArray" to PsiType.INT.createArrayType(),
+    "kotlin.LongArray" to PsiType.LONG.createArrayType(),
+    "kotlin.ShortArray" to PsiType.SHORT.createArrayType(),
+    "kotlin.BooleanArray" to PsiType.BOOLEAN.createArrayType(),
+    "kotlin.ByteArray" to PsiType.BYTE.createArrayType(),
+    "kotlin.CharArray" to PsiType.CHAR.createArrayType(),
+    "kotlin.DoubleArray" to PsiType.DOUBLE.createArrayType(),
+    "kotlin.FloatArray" to PsiType.FLOAT.createArrayType()
+  )

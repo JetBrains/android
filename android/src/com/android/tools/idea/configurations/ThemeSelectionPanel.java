@@ -23,6 +23,7 @@ import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
 import com.intellij.openapi.Disposable;
@@ -473,7 +474,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
       addCategory(topLevel, ThemeCategory.MANIFEST);
       addCategory(topLevel, ThemeCategory.PROJECT);
-      AndroidModuleInfo info = AndroidModuleInfo.getInstance(myConfiguration.getConfigurationManager().getModule());
+      AndroidModuleInfo info = StudioAndroidModuleInfo.getInstance(myConfiguration.getConfigurationManager().getModule());
       if (info != null && info.getBuildSdkVersion() != null && info.getBuildSdkVersion().getFeatureLevel() >= 21) {
         addCategory(topLevel, ThemeCategory.MATERIAL);
         addCategory(topLevel, ThemeCategory.MATERIAL_LIGHT);

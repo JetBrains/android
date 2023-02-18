@@ -24,9 +24,9 @@ import com.android.tools.idea.npw.validator.ClassNameValidator
 import com.android.tools.idea.observable.ui.TextProperty
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.ui.components.JBTextField
+import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
-import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle
 import javax.swing.JTextField
@@ -40,16 +40,16 @@ class ConfigureLibraryModuleStep(
 
   override fun createMainPanel(): DialogPanel = panel {
     row(contextLabel("Library name:", AndroidBundle.message("android.wizard.module.help.name"))) {
-      cell(moduleName).horizontalAlign(HorizontalAlign.FILL)
+      cell(moduleName).align(AlignX.FILL)
     }
     row("Package name:") {
-      cell(packageName).horizontalAlign(HorizontalAlign.FILL)
+      cell(packageName).align(AlignX.FILL)
     }
     row("Class name:") {
-      cell(className).horizontalAlign(HorizontalAlign.FILL)
+      cell(className).align(AlignX.FILL)
     }
     row("Language:") {
-      cell(languageCombo).horizontalAlign(HorizontalAlign.FILL)
+      cell(languageCombo).align(AlignX.FILL)
     }
     if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get() || model.useGradleKts.get()) {
       row {

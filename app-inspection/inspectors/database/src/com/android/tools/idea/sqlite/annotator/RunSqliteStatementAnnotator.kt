@@ -30,32 +30,43 @@ import icons.StudioIcons
 import javax.swing.Icon
 
 /**
- * Annotator that adds a run action to instances of SQL language in the editor, so that they can be executed in the Sqlite Inspector.
+ * Annotator that adds a run action to instances of SQL language in the editor, so that they can be
+ * executed in the Sqlite Inspector.
  */
 class RunSqliteStatementAnnotator : Annotator {
   override fun annotate(element: PsiElement, holder: AnnotationHolder) {
-    val injectedPsiFile = InjectedLanguageManager.getInstance(element.project).getInjectedPsiFiles(element)
-                            .orEmpty()
-                            .map { it.first }
-                            .filter { it.language == AndroidSqlLanguage.INSTANCE }
-                            .firstOrNull { it.getUserData(InjectedLanguageManager.FRANKENSTEIN_INJECTION) == null } ?: return
+    val injectedPsiFile =
+      InjectedLanguageManager.getInstance(element.project)
+        .getInjectedPsiFiles(element)
+        .orEmpty()
+        .map { it.first }
+        .filter { it.language == AndroidSqlLanguage.INSTANCE }
+        .firstOrNull { it.getUserData(InjectedLanguageManager.FRANKENSTEIN_INJECTION) == null }
+        ?: return
 
-    val injectionHost = InjectedLanguageManager.getInstance(injectedPsiFile.project).getInjectionHost(injectedPsiFile)
+    val injectionHost =
+      InjectedLanguageManager.getInstance(injectedPsiFile.project).getInjectionHost(injectedPsiFile)
 
     // If the sql statement is defined over multiple strings (eg: "select " + "*" + " from users")
-    // different elements ("select ", "*", " from users") correspond to the same injection host ("select ").
+    // different elements ("select ", "*", " from users") correspond to the same injection host
+    // ("select ").
     // We don't want to add multiple annotations for these sql statements.
     if (element != injectionHost) return
 
-    holder.newSilentAnnotation(HighlightSeverity.INFORMATION).gutterIconRenderer(RunSqliteStatementGutterIconRenderer(element)).create()
+    holder
+      .newSilentAnnotation(HighlightSeverity.INFORMATION)
+      .gutterIconRenderer(RunSqliteStatementGutterIconRenderer(element))
+      .create()
   }
 }
 
 /**
  * Shows an icon in the gutter when a SQLite statement is recognized. eg. Room @Query annotations.
  */
-private data class RunSqliteStatementGutterIconRenderer(private val element: PsiElement) : GutterIconRenderer() {
-  private val sqliteExplorerProjectService = DatabaseInspectorProjectService.getInstance(element.project)
+private data class RunSqliteStatementGutterIconRenderer(private val element: PsiElement) :
+  GutterIconRenderer() {
+  private val sqliteExplorerProjectService =
+    DatabaseInspectorProjectService.getInstance(element.project)
 
   override fun getIcon(): Icon {
     return if (sqliteExplorerProjectService.hasOpenDatabase()) {
@@ -74,6 +85,10 @@ private data class RunSqliteStatementGutterIconRenderer(private val element: Psi
   }
 
   override fun getClickAction(): AnAction? {
-    return RunSqliteStatementGutterIconAction(element.project, element, DatabaseInspectorViewsFactoryImpl.getInstance())
+    return RunSqliteStatementGutterIconAction(
+      element.project,
+      element,
+      DatabaseInspectorViewsFactoryImpl.getInstance()
+    )
   }
 }

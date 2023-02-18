@@ -21,9 +21,7 @@ import com.android.tools.inspectors.common.ui.dataviewer.DataViewer
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceGroup
 import com.android.tools.inspectors.common.ui.stacktrace.StackTraceView
 
-/**
- * Factory class for the various custom UI components that are used in network inspector.
- */
+/** Factory class for the various custom UI components that are used in network inspector. */
 interface UiComponentsProvider {
   fun createStackView(model: StackTraceModel): StackTraceView {
     // Delegate to StackTraceGroup to simply create a stack trace view of group size 1
@@ -31,16 +29,20 @@ interface UiComponentsProvider {
   }
 
   /**
-   * Creates a UI component that displays some data (which may be text or binary). The view uses the data's content type, if known,
-   * to render it correctly.
+   * Creates a UI component that displays some data (which may be text or binary). The view uses the
+   * data's content type, if known, to render it correctly.
    *
-   * @param styleHint A style which the viewer will attempt to apply; however, this may fail in some cases, so you are encouraged
-   * to check [DataViewer.getStyle] if you need to confirm the style was actually accepted.
+   * @param styleHint A style which the viewer will attempt to apply; however, this may fail in some
+   * cases, so you are encouraged to check [DataViewer.getStyle] if you need to confirm the style
+   * was actually accepted.
    */
-  fun createDataViewer(bytes: ByteArray, contentType: ContentType, styleHint: DataViewer.Style): DataViewer
+  fun createDataViewer(
+    bytes: ByteArray,
+    contentType: ContentType,
+    styleHint: DataViewer.Style,
+    formatted: Boolean
+  ): DataViewer
 
-  /**
-   * Creates a stack trace group that represents a list of stack trace views.
-   */
+  /** Creates a stack trace group that represents a list of stack trace views. */
   fun createStackGroup(): StackTraceGroup
 }

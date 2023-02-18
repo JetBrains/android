@@ -45,6 +45,7 @@ JClass JObject::GetClass() const {
 }
 
 JClass JObject::GetClass(JNIEnv* jni_env) const {
+  Log::V("%s:%d", __FILE__, __LINE__);
   return JClass(jni_env, jni_env->GetObjectClass(ref_));
 }
 
@@ -136,8 +137,23 @@ void JObject::SetFloatField(JNIEnv* jni_env, jfieldID field, float value) const 
 }
 
 string JObject::ToString() const {
-  jmethodID method = GetClass().GetDeclaredOrInheritedMethodId("toString", "()Ljava/lang/String;");
-  return JString(jni_env_, jni_env_->CallObjectMethod(ref_, method)).GetValue();
+  if (ref_ == nullptr) {
+    Log::Fatal("ToString is called on a null object");
+  }
+  Jni jni = GetJni();
+  JClass clazz = GetClass(jni);
+  jmethodID method = clazz.GetDeclaredOrInheritedMethodId("toString", "()Ljava/lang/String;");
+  JString str = JString(jni, jni->CallObjectMethod(ref_, method));
+  if (str.IsNull()) {
+    JObject exception = jni.GetAndClearException();
+    if (exception.IsNull()) {
+      Log::W("%s.toString returned null", clazz.GetName(jni).c_str());
+    } else {
+      Log::W("%s in %s.toString", exception.GetClass().GetName(jni).c_str(), clazz.GetName(jni).c_str());
+    }
+    return "";
+  }
+  return str.GetValue();
 }
 
 void JObject::DeleteRef() noexcept {

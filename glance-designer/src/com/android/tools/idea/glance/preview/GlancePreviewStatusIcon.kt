@@ -21,7 +21,7 @@ import com.android.tools.idea.common.error.SceneViewIssueNodeVisitor
 import com.android.tools.idea.common.error.setIssuePanelVisibility
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.glance.preview.GlancePreviewBundle.message
-import com.android.tools.idea.glance.preview.mvvm.PreviewViewModelStatus
+import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent

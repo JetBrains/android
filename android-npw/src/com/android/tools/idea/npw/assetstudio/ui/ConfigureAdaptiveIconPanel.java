@@ -24,6 +24,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.npw.assetstudio.AdaptiveIconGenerator;
 import com.android.tools.idea.npw.assetstudio.IconGenerator.Shape;
 import com.android.tools.idea.npw.assetstudio.LauncherIconGenerator;
@@ -308,7 +309,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myIconType = iconType;
     myDefaultOutputName = myIconType.toOutputName("");
 
-    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(facet);
+    AndroidModuleInfo androidModuleInfo = StudioAndroidModuleInfo.getInstance(facet);
     AndroidVersion buildSdkVersion = androidModuleInfo.getBuildSdkVersion();
     myBuildSdkVersion = buildSdkVersion != null ? buildSdkVersion : new AndroidVersion(26);
 

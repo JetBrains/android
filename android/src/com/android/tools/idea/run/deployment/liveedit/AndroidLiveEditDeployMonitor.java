@@ -224,7 +224,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
       return true;
     });
 
-    deviceStatusManager.update(status -> status.unrecoverable() ? status : LiveEditStatus.InProgress.INSTANCE);
+    updateEditableStatus(LiveEditStatus.InProgress.INSTANCE);
 
     if (!handleChangedMethods(project, copy)) {
       changedMethodQueue.addAll(copy);
@@ -302,7 +302,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
       return;
     }
 
-    updateEditStatus(LiveEditStatus.InProgress.INSTANCE);
+    updateEditableStatus(LiveEditStatus.InProgress.INSTANCE);
 
     while(!processChanges(project, bufferedEvents, LiveEditEvent.Mode.MANUAL)) {
         LOGGER.info("ProcessChanges was interrupted");
@@ -318,13 +318,13 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
 
     // In manual mode, we store changes and update status but defer processing.
     if (LiveEditService.Companion.isLeTriggerManual()) {
-      updateEditStatus(LiveEditStatus.OutOfDate.INSTANCE);
+      updateEditableStatus(LiveEditStatus.OutOfDate.INSTANCE);
 
       if (bufferedEvents.size() < 2000) {
         bufferedEvents.addAll(changes);
       } else {
         // Something is wrong. Discard event otherwise we will run Out Of Memory
-        updateEditStatus(LiveEditStatus.createErrorStatus("Too many buffered LE keystrokes. Redeploy app."));
+        updateEditableStatus(LiveEditStatus.createErrorStatus("Too many buffered LE keystrokes. Redeploy app."));
       }
 
       return true;
@@ -365,9 +365,9 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
       if (recoverable) {
         filesWithCompilationErrors.add(e.getSource().getName());
       }
-      updateEditStatus(recoverable ?
-                       LiveEditStatus.createPausedStatus(errorMessage(e)) :
-                       LiveEditStatus.createErrorStatus(errorMessage(e)));
+      updateEditableStatus(recoverable ?
+                           LiveEditStatus.createPausedStatus(errorMessage(e)) :
+                           LiveEditStatus.createErrorStatus(errorMessage(e)));
       return true;
     }
 
@@ -378,7 +378,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     event.setCompileDurationMs(TimeUnit.NANOSECONDS.toMillis(compileFinish - start));
     LOGGER.info("LiveEdit compile completed in %dms", event.getCompileDurationMs());
 
-    Optional<LiveUpdateDeployer.UpdateLiveEditError> error = deviceIterator()
+    Optional<LiveUpdateDeployer.UpdateLiveEditError> error = editableDeviceIterator()
       .map(device -> pushUpdatesToDevice(applicationId, device, finalCompiled).errors)
       .flatMap(List::stream)
       .findFirst();
@@ -402,7 +402,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     ScheduledFuture<?> statusPolling = scheduler.scheduleWithFixedDelay(() -> {
       List<Deploy.ComposeException> errors = deployer.retrieveComposeStatus(installer, adb, packageName);
       if (!errors.isEmpty()) {
-        updateEditStatus(createRecomposeErrorStatus(errors.get(0).getMessage()));
+        updateEditableStatus(createRecomposeErrorStatus(errors.get(0).getMessage()));
       }
     }, 2, 2, TimeUnit.SECONDS);
     // Schedule a cancel after 10 seconds.
@@ -452,6 +452,10 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     deviceStatusManager.update(status);
   }
 
+  private void updateEditableStatus(@NotNull LiveEditStatus newStatus) {
+    deviceStatusManager.update(prevStatus -> (prevStatus.unrecoverable() || prevStatus == LiveEditStatus.Disabled.INSTANCE) ? prevStatus : newStatus);
+  }
+
   private void handleDeviceStatusChange(Map<IDevice, LiveEditStatus> map) {
     // Force the UI to redraw with the new status. See com.intellij.openapi.actionSystem.AnAction#update().
     ActivityTracker.getInstance().inc();
@@ -483,8 +487,8 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     }
   }
 
-  private Stream<IDevice> deviceIterator() {
-    return deviceStatusManager.devices().stream().filter(IDevice::isOnline);
+  private Stream<IDevice> editableDeviceIterator() {
+    return deviceStatusManager.devices().stream().filter(IDevice::isOnline).filter(device -> deviceStatusManager.get(device) != LiveEditStatus.Disabled.INSTANCE);
   }
 
   private static Installer newInstaller(IDevice device) {
@@ -504,21 +508,19 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
 
     LiveUpdateDeployer.UpdateLiveEditsParam param =
       new LiveUpdateDeployer.UpdateLiveEditsParam(
-        update.getClasses(),
-        update.getSupportClasses(),
+        update.getClassesMap(),
+        update.getSupportClassesMap(),
         update.getGroupIds(),
         usePartialRecompose,
         useDebugMode);
 
     if (useDebugMode) {
-      for (String className : update.getSupportClasses().keySet()) {
-        byte[] bytecode = update.getSupportClasses().get(className);
-        writeDebugToTmp(className.replaceAll("/", ".") + ".class", bytecode);
+      for (LiveEditCompiledClass clazz : update.getClasses()) {
+        writeDebugToTmp(clazz.getName().replaceAll("/", ".") + ".class", clazz.getData());
       }
 
-      for (String supportClassName : update.getSupportClasses().keySet()) {
-        byte[] bytecode = update.getSupportClasses().get(supportClassName);
-        writeDebugToTmp(supportClassName.replaceAll("/", ".") + ".class", bytecode);
+      for (LiveEditCompiledClass clazz : update.getSupportClasses()) {
+        writeDebugToTmp(clazz.getName().replaceAll("/", ".") + ".class", clazz.getData());
       }
     }
 
@@ -538,7 +540,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
       if (firstProblem.getType() == Deploy.UnsupportedChange.Type.UNSUPPORTED_COMPOSE_VERSION) {
         updateEditStatus(device, LiveEditStatus.createComposeVersionError(firstProblem.getMessage()));
       } else {
-        updateEditStatus(device, LiveEditStatus.createErrorStatus(firstProblem.getMessage()));
+        updateEditStatus(device, LiveEditStatus.createRerunnableErrorStatus(firstProblem.getMessage()));
       }
     }
     return result;

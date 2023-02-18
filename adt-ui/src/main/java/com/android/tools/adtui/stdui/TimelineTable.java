@@ -186,7 +186,7 @@ public final class TimelineTable {
       JPanel axisPanel = new JPanel(new BorderLayout());
       axisPanel.setBackground(StandardColors.DEFAULT_CONTENT_BACKGROUND_COLOR);
 
-      if (value == myTimelineColumnName) {
+      if (myTimelineColumnName.equals(value)) {
         // Only show the timeline axis if we also show at least one timeline row below
         AxisComponent header = createAxis(myTimeline, myShowsAllWhenEmpty);
         header.setShowAxisLine(false);

@@ -18,9 +18,7 @@ package com.android.tools.idea.adddevicedialog
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.devices.Abi
-import com.android.tools.idea.device.Resolution
 import com.android.tools.idea.grouplayout.GroupLayout.Companion.groupLayout
-import com.android.tools.idea.systemimage.SystemImage
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.SimpleTextAttributes
@@ -107,7 +105,7 @@ internal class DeviceAndApiPanel internal constructor() : JBPanel<DeviceAndApiPa
   }
 
   private fun initDeviceDefinitionComboBox(): Component {
-    val comboBox = ComboBox(arrayOf(Definition(name = "Pixel 4", size = 5.8, resolution = Resolution(1080, 2340), density = 440)))
+    val comboBox = ComboBox(Definition.getDefinitions().sorted().toTypedArray())
 
     comboBox.renderer = object : ColoredListCellRenderer<Definition>() {
       override fun customizeCellRenderer(list: JList<out Definition>,
@@ -116,7 +114,7 @@ internal class DeviceAndApiPanel internal constructor() : JBPanel<DeviceAndApiPa
                                          selected: Boolean,
                                          focused: Boolean) {
         append("${definition.name} ")
-        append("${definition.size}″, ${definition.resolution}, ${definition.density} dpi", SimpleTextAttributes.GRAYED_ATTRIBUTES)
+        append("${definition.size}″, ${definition.resolution}, ${definition.density}", SimpleTextAttributes.GRAYED_ATTRIBUTES)
       }
     }
 

@@ -24,39 +24,63 @@ class JobEntryTest {
 
   @Test
   fun jobFinished() {
-    val jobScheduled = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
-      taskId = 1
-      stacktrace = "SCHEDULED"
-      jobScheduled = BackgroundTaskInspectorProtocol.JobScheduled.newBuilder().apply {
-        job = BackgroundTaskInspectorProtocol.JobInfo.newBuilder().apply {
-          jobId = 222
-          serviceName = "package.SERVICE"
-          extras = BackgroundTaskInspectorTestUtils.createJobInfoExtraWithWorkerId("12345")
-        }.build()
-        result = BackgroundTaskInspectorProtocol.JobScheduled.Result.RESULT_SUCCESS
-      }.build()
-    }.build()
+    val jobScheduled =
+      BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder()
+        .apply {
+          taskId = 1
+          stacktrace = "SCHEDULED"
+          jobScheduled =
+            BackgroundTaskInspectorProtocol.JobScheduled.newBuilder()
+              .apply {
+                job =
+                  BackgroundTaskInspectorProtocol.JobInfo.newBuilder()
+                    .apply {
+                      jobId = 222
+                      serviceName = "package.SERVICE"
+                      extras =
+                        BackgroundTaskInspectorTestUtils.createJobInfoExtraWithWorkerId("12345")
+                    }
+                    .build()
+                result = BackgroundTaskInspectorProtocol.JobScheduled.Result.RESULT_SUCCESS
+              }
+              .build()
+        }
+        .build()
 
-    val jobStarted = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
-      taskId = 1
-      jobStarted = BackgroundTaskInspectorProtocol.JobStarted.newBuilder().apply {
-        params = BackgroundTaskInspectorProtocol.JobParameters.newBuilder().apply {
-          jobId = 222
-        }.build()
-        workOngoing = false
-      }.build()
-    }.build()
+    val jobStarted =
+      BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder()
+        .apply {
+          taskId = 1
+          jobStarted =
+            BackgroundTaskInspectorProtocol.JobStarted.newBuilder()
+              .apply {
+                params =
+                  BackgroundTaskInspectorProtocol.JobParameters.newBuilder()
+                    .apply { jobId = 222 }
+                    .build()
+                workOngoing = false
+              }
+              .build()
+        }
+        .build()
 
-    val jobFinished = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
-      taskId = 1
-      stacktrace = "FINISHED"
-      jobFinished = BackgroundTaskInspectorProtocol.JobFinished.newBuilder().apply {
-        params = BackgroundTaskInspectorProtocol.JobParameters.newBuilder().apply {
-          jobId = 222
-        }.build()
-        needsReschedule = false
-      }.build()
-    }.build()
+    val jobFinished =
+      BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder()
+        .apply {
+          taskId = 1
+          stacktrace = "FINISHED"
+          jobFinished =
+            BackgroundTaskInspectorProtocol.JobFinished.newBuilder()
+              .apply {
+                params =
+                  BackgroundTaskInspectorProtocol.JobParameters.newBuilder()
+                    .apply { jobId = 222 }
+                    .build()
+                needsReschedule = false
+              }
+              .build()
+        }
+        .build()
 
     val jobEntry = JobEntry("1")
 
@@ -77,46 +101,73 @@ class JobEntryTest {
 
     jobEntry.consumeAndAssertJob(jobFinished, 3) {
       assertThat(isValid).isTrue()
-      assertThat(callstacks).containsExactly(BackgroundTaskCallStack(1, "SCHEDULED"),
-                                             BackgroundTaskCallStack(3, "FINISHED"))
+      assertThat(callstacks)
+        .containsExactly(
+          BackgroundTaskCallStack(1, "SCHEDULED"),
+          BackgroundTaskCallStack(3, "FINISHED")
+        )
       assertThat(retries).isEqualTo(0)
     }
   }
 
   @Test
   fun jobStoppedAndRetried() {
-    val jobScheduled = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
-      taskId = 1
-      stacktrace = "SCHEDULED"
-      jobScheduled = BackgroundTaskInspectorProtocol.JobScheduled.newBuilder().apply {
-        job = BackgroundTaskInspectorProtocol.JobInfo.newBuilder().apply {
-          jobId = 222
-          serviceName = "SERVICE"
-          extras = BackgroundTaskInspectorTestUtils.createJobInfoExtraWithWorkerId("12345")
-        }.build()
-        result = BackgroundTaskInspectorProtocol.JobScheduled.Result.RESULT_SUCCESS
-      }.build()
-    }.build()
+    val jobScheduled =
+      BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder()
+        .apply {
+          taskId = 1
+          stacktrace = "SCHEDULED"
+          jobScheduled =
+            BackgroundTaskInspectorProtocol.JobScheduled.newBuilder()
+              .apply {
+                job =
+                  BackgroundTaskInspectorProtocol.JobInfo.newBuilder()
+                    .apply {
+                      jobId = 222
+                      serviceName = "SERVICE"
+                      extras =
+                        BackgroundTaskInspectorTestUtils.createJobInfoExtraWithWorkerId("12345")
+                    }
+                    .build()
+                result = BackgroundTaskInspectorProtocol.JobScheduled.Result.RESULT_SUCCESS
+              }
+              .build()
+        }
+        .build()
 
-    val jobStarted = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
-      taskId = 1
-      jobStarted = BackgroundTaskInspectorProtocol.JobStarted.newBuilder().apply {
-        params = BackgroundTaskInspectorProtocol.JobParameters.newBuilder().apply {
-          jobId = 222
-        }.build()
-        workOngoing = false
-      }.build()
-    }.build()
+    val jobStarted =
+      BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder()
+        .apply {
+          taskId = 1
+          jobStarted =
+            BackgroundTaskInspectorProtocol.JobStarted.newBuilder()
+              .apply {
+                params =
+                  BackgroundTaskInspectorProtocol.JobParameters.newBuilder()
+                    .apply { jobId = 222 }
+                    .build()
+                workOngoing = false
+              }
+              .build()
+        }
+        .build()
 
-    val jobStopped = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
-      taskId = 1
-      jobStopped = BackgroundTaskInspectorProtocol.JobStopped.newBuilder().apply {
-        params = BackgroundTaskInspectorProtocol.JobParameters.newBuilder().apply {
-          jobId = 222
-        }.build()
-        reschedule = true
-      }.build()
-    }.build()
+    val jobStopped =
+      BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder()
+        .apply {
+          taskId = 1
+          jobStopped =
+            BackgroundTaskInspectorProtocol.JobStopped.newBuilder()
+              .apply {
+                params =
+                  BackgroundTaskInspectorProtocol.JobParameters.newBuilder()
+                    .apply { jobId = 222 }
+                    .build()
+                reschedule = true
+              }
+              .build()
+        }
+        .build()
 
     val jobEntry = JobEntry("1")
 
@@ -148,26 +199,40 @@ class JobEntryTest {
 
   @Test
   fun missingJobScheduled() {
-    val jobStarted = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
-      taskId = 1
-      jobStarted = BackgroundTaskInspectorProtocol.JobStarted.newBuilder().apply {
-        params = BackgroundTaskInspectorProtocol.JobParameters.newBuilder().apply {
-          jobId = 222
-        }.build()
-        workOngoing = false
-      }.build()
-    }.build()
+    val jobStarted =
+      BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder()
+        .apply {
+          taskId = 1
+          jobStarted =
+            BackgroundTaskInspectorProtocol.JobStarted.newBuilder()
+              .apply {
+                params =
+                  BackgroundTaskInspectorProtocol.JobParameters.newBuilder()
+                    .apply { jobId = 222 }
+                    .build()
+                workOngoing = false
+              }
+              .build()
+        }
+        .build()
 
-    val jobFinished = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
-      taskId = 1
-      stacktrace = "FINISHED"
-      jobFinished = BackgroundTaskInspectorProtocol.JobFinished.newBuilder().apply {
-        params = BackgroundTaskInspectorProtocol.JobParameters.newBuilder().apply {
-          jobId = 222
-        }.build()
-        needsReschedule = false
-      }.build()
-    }.build()
+    val jobFinished =
+      BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder()
+        .apply {
+          taskId = 1
+          stacktrace = "FINISHED"
+          jobFinished =
+            BackgroundTaskInspectorProtocol.JobFinished.newBuilder()
+              .apply {
+                params =
+                  BackgroundTaskInspectorProtocol.JobParameters.newBuilder()
+                    .apply { jobId = 222 }
+                    .build()
+                needsReschedule = false
+              }
+              .build()
+        }
+        .build()
 
     val jobEntry = JobEntry("1")
     jobEntry.consumeAndAssertJob(jobStarted, 1) {
@@ -186,19 +251,24 @@ class JobEntryTest {
 private fun JobEntry.consumeAndAssertJob(
   event: BackgroundTaskInspectorProtocol.BackgroundTaskEvent,
   timestamp: Long = 123,
-  assertion: JobEntry.() -> Unit = { }
+  assertion: JobEntry.() -> Unit = {}
 ) {
   consumeAndAssert(event, timestamp) {
     assertThat(latestEvent!!.backgroundTaskEvent).isEqualTo(event)
-    assertThat(status).isEqualTo(
-      when (event.metadataCase) {
-        BackgroundTaskInspectorProtocol.BackgroundTaskEvent.MetadataCase.JOB_SCHEDULED -> JobEntry.State.SCHEDULED
-        BackgroundTaskInspectorProtocol.BackgroundTaskEvent.MetadataCase.JOB_STARTED -> JobEntry.State.STARTED
-        BackgroundTaskInspectorProtocol.BackgroundTaskEvent.MetadataCase.JOB_STOPPED -> JobEntry.State.STOPPED
-        BackgroundTaskInspectorProtocol.BackgroundTaskEvent.MetadataCase.JOB_FINISHED -> JobEntry.State.FINISHED
-        else -> JobEntry.State.UNSPECIFIED
-      }.name
-    )
+    assertThat(status)
+      .isEqualTo(
+        when (event.metadataCase) {
+          BackgroundTaskInspectorProtocol.BackgroundTaskEvent.MetadataCase.JOB_SCHEDULED ->
+            JobEntry.State.SCHEDULED
+          BackgroundTaskInspectorProtocol.BackgroundTaskEvent.MetadataCase.JOB_STARTED ->
+            JobEntry.State.STARTED
+          BackgroundTaskInspectorProtocol.BackgroundTaskEvent.MetadataCase.JOB_STOPPED ->
+            JobEntry.State.STOPPED
+          BackgroundTaskInspectorProtocol.BackgroundTaskEvent.MetadataCase.JOB_FINISHED ->
+            JobEntry.State.FINISHED
+          else -> JobEntry.State.UNSPECIFIED
+        }.name
+      )
     assertion()
   }
 }

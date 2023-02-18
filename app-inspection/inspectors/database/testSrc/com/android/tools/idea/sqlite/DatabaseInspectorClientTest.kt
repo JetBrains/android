@@ -24,14 +24,14 @@ import com.android.tools.idea.sqlite.model.SqliteDatabaseId
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.PlatformTestUtil
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.runBlocking
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 class DatabaseInspectorClientTest : LightPlatformTestCase() {
   private lateinit var openDatabaseFunction: (SqliteDatabaseId, DatabaseConnection) -> Unit
@@ -74,29 +74,36 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     super.tearDown()
   }
 
-  fun testStartTrackingDatabaseConnectionSendsMessage() = runBlocking<Unit> {
-    // Prepare
-    val emptyResponse = SqliteInspectorProtocol.Response.newBuilder().build().toByteArray()
+  fun testStartTrackingDatabaseConnectionSendsMessage() =
+    runBlocking<Unit> {
+      // Prepare
+      val emptyResponse = SqliteInspectorProtocol.Response.newBuilder().build().toByteArray()
 
-    val appInspectorMessenger = FakeAppInspectorMessenger(scope, emptyResponse)
-    val databaseInspectorClient = createDatabaseInspectorClient(appInspectorMessenger)
+      val appInspectorMessenger = FakeAppInspectorMessenger(scope, emptyResponse)
+      val databaseInspectorClient = createDatabaseInspectorClient(appInspectorMessenger)
 
-    val trackDatabasesCommand = SqliteInspectorProtocol.Command.newBuilder()
-      .setTrackDatabases(SqliteInspectorProtocol.TrackDatabasesCommand.getDefaultInstance())
-      .build()
-      .toByteArray()
+      val trackDatabasesCommand =
+        SqliteInspectorProtocol.Command.newBuilder()
+          .setTrackDatabases(SqliteInspectorProtocol.TrackDatabasesCommand.getDefaultInstance())
+          .build()
+          .toByteArray()
 
-    // Act
-    databaseInspectorClient.startTrackingDatabaseConnections()
+      // Act
+      databaseInspectorClient.startTrackingDatabaseConnections()
 
-    // Assert
-    assertThat(appInspectorMessenger.rawDataSent).isEqualTo(trackDatabasesCommand)
-  }
+      // Assert
+      assertThat(appInspectorMessenger.rawDataSent).isEqualTo(trackDatabasesCommand)
+    }
 
   fun testOnDatabaseOpenedEventOpensDatabase() {
     // Prepare
-    val databaseOpenEvent = SqliteInspectorProtocol.DatabaseOpenedEvent.newBuilder().setDatabaseId(1).setPath("path").build()
-    val event = SqliteInspectorProtocol.Event.newBuilder().setDatabaseOpened(databaseOpenEvent).build()
+    val databaseOpenEvent =
+      SqliteInspectorProtocol.DatabaseOpenedEvent.newBuilder()
+        .setDatabaseId(1)
+        .setPath("path")
+        .build()
+    val event =
+      SqliteInspectorProtocol.Event.newBuilder().setDatabaseOpened(databaseOpenEvent).build()
 
     val databaseInspectorClient = createDatabaseInspectorClient()
 
@@ -110,14 +117,22 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
 
   fun testRecoverableErrorMessageShowsError() {
     // Prepare
-    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredEvent.newBuilder().setContent(
-      SqliteInspectorProtocol.ErrorContent.newBuilder()
-        .setMessage("errorMessage")
-        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().setIsRecoverable(true).build())
-        .setStackTrace("stackTrace")
+    val errorOccurredEvent =
+      SqliteInspectorProtocol.ErrorOccurredEvent.newBuilder()
+        .setContent(
+          SqliteInspectorProtocol.ErrorContent.newBuilder()
+            .setMessage("errorMessage")
+            .setRecoverability(
+              SqliteInspectorProtocol.ErrorRecoverability.newBuilder()
+                .setIsRecoverable(true)
+                .build()
+            )
+            .setStackTrace("stackTrace")
+            .build()
+        )
         .build()
-    ).build()
-    val event = SqliteInspectorProtocol.Event.newBuilder().setErrorOccurred(errorOccurredEvent).build()
+    val event =
+      SqliteInspectorProtocol.Event.newBuilder().setErrorOccurred(errorOccurredEvent).build()
 
     val databaseInspectorClient = createDatabaseInspectorClient()
 
@@ -131,14 +146,22 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
 
   fun testUnrecoverableErrorMessageShowsError() {
     // Prepare
-    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredEvent.newBuilder().setContent(
-      SqliteInspectorProtocol.ErrorContent.newBuilder()
-        .setMessage("errorMessage")
-        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().setIsRecoverable(false).build())
-        .setStackTrace("stackTrace")
+    val errorOccurredEvent =
+      SqliteInspectorProtocol.ErrorOccurredEvent.newBuilder()
+        .setContent(
+          SqliteInspectorProtocol.ErrorContent.newBuilder()
+            .setMessage("errorMessage")
+            .setRecoverability(
+              SqliteInspectorProtocol.ErrorRecoverability.newBuilder()
+                .setIsRecoverable(false)
+                .build()
+            )
+            .setStackTrace("stackTrace")
+            .build()
+        )
         .build()
-    ).build()
-    val event = SqliteInspectorProtocol.Event.newBuilder().setErrorOccurred(errorOccurredEvent).build()
+    val event =
+      SqliteInspectorProtocol.Event.newBuilder().setErrorOccurred(errorOccurredEvent).build()
 
     val databaseInspectorClient = createDatabaseInspectorClient()
 
@@ -152,14 +175,18 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
 
   fun testUnknownRecoverableErrorMessageShowsError() {
     // Prepare
-    val errorOccurredEvent = SqliteInspectorProtocol.ErrorOccurredEvent.newBuilder().setContent(
-      SqliteInspectorProtocol.ErrorContent.newBuilder()
-        .setMessage("errorMessage")
-        .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().build())
-        .setStackTrace("stackTrace")
+    val errorOccurredEvent =
+      SqliteInspectorProtocol.ErrorOccurredEvent.newBuilder()
+        .setContent(
+          SqliteInspectorProtocol.ErrorContent.newBuilder()
+            .setMessage("errorMessage")
+            .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().build())
+            .setStackTrace("stackTrace")
+            .build()
+        )
         .build()
-    ).build()
-    val event = SqliteInspectorProtocol.Event.newBuilder().setErrorOccurred(errorOccurredEvent).build()
+    val event =
+      SqliteInspectorProtocol.Event.newBuilder().setErrorOccurred(errorOccurredEvent).build()
 
     val databaseInspectorClient = createDatabaseInspectorClient()
 
@@ -173,8 +200,12 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
 
   fun testHasDatabasePossiblyChangedCallsCallback() {
     // Prepare
-    val databasePossiblyChangedEvent = SqliteInspectorProtocol.DatabasePossiblyChangedEvent.newBuilder().build()
-    val event = SqliteInspectorProtocol.Event.newBuilder().setDatabasePossiblyChanged(databasePossiblyChangedEvent).build()
+    val databasePossiblyChangedEvent =
+      SqliteInspectorProtocol.DatabasePossiblyChangedEvent.newBuilder().build()
+    val event =
+      SqliteInspectorProtocol.Event.newBuilder()
+        .setDatabasePossiblyChanged(databasePossiblyChangedEvent)
+        .build()
 
     val databaseInspectorClient = createDatabaseInspectorClient()
 
@@ -188,8 +219,10 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
 
   fun testDatabaseClosedCallsCallback() {
     // Prepare
-    val databaseClosedEvent = SqliteInspectorProtocol.DatabaseClosedEvent.newBuilder().setDatabaseId(1).build()
-    val event = SqliteInspectorProtocol.Event.newBuilder().setDatabaseClosed(databaseClosedEvent).build()
+    val databaseClosedEvent =
+      SqliteInspectorProtocol.DatabaseClosedEvent.newBuilder().setDatabaseId(1).build()
+    val event =
+      SqliteInspectorProtocol.Event.newBuilder().setDatabaseClosed(databaseClosedEvent).build()
 
     val databaseInspectorClient = createDatabaseInspectorClient()
 
@@ -204,18 +237,24 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
 
   fun testKeepConnectionOpenSuccess() = runBlocking {
     // Prepare
-    val keepDbsOpenResponse = SqliteInspectorProtocol.Response.newBuilder()
-      .setKeepDatabasesOpen(SqliteInspectorProtocol.KeepDatabasesOpenResponse.newBuilder().build())
-      .build()
-      .toByteArray()
+    val keepDbsOpenResponse =
+      SqliteInspectorProtocol.Response.newBuilder()
+        .setKeepDatabasesOpen(
+          SqliteInspectorProtocol.KeepDatabasesOpenResponse.newBuilder().build()
+        )
+        .build()
+        .toByteArray()
 
     val appInspectorMessenger = FakeAppInspectorMessenger(scope, keepDbsOpenResponse)
     val databaseInspectorClient = createDatabaseInspectorClient(appInspectorMessenger)
 
-    val trackDatabasesCommand = SqliteInspectorProtocol.Command.newBuilder()
-      .setKeepDatabasesOpen(SqliteInspectorProtocol.KeepDatabasesOpenCommand.newBuilder().setSetEnabled(true).build())
-      .build()
-      .toByteArray()
+    val trackDatabasesCommand =
+      SqliteInspectorProtocol.Command.newBuilder()
+        .setKeepDatabasesOpen(
+          SqliteInspectorProtocol.KeepDatabasesOpenCommand.newBuilder().setSetEnabled(true).build()
+        )
+        .build()
+        .toByteArray()
 
     // Act
     val result = pumpEventsAndWaitForFuture(databaseInspectorClient.keepConnectionsOpen(true))
@@ -225,50 +264,67 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     assertEquals(true, result)
   }
 
-  fun testKeepConnectionOpenError() = runBlocking<Unit> {
-    // Prepare
-    val keepDbsOpenResponse = SqliteInspectorProtocol.Response.newBuilder()
-      .setKeepDatabasesOpen(SqliteInspectorProtocol.KeepDatabasesOpenResponse.newBuilder().build())
-      .setErrorOccurred(
-        SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder().setContent(
-          SqliteInspectorProtocol.ErrorContent.newBuilder()
-            .setRecoverability(SqliteInspectorProtocol.ErrorRecoverability.newBuilder().setIsRecoverable(true).build())
-            .setMessage("msg")
-            .setStackTrace("stk")
-            .build()
-        ).build())
-      .build()
-      .toByteArray()
+  fun testKeepConnectionOpenError() =
+    runBlocking<Unit> {
+      // Prepare
+      val keepDbsOpenResponse =
+        SqliteInspectorProtocol.Response.newBuilder()
+          .setKeepDatabasesOpen(
+            SqliteInspectorProtocol.KeepDatabasesOpenResponse.newBuilder().build()
+          )
+          .setErrorOccurred(
+            SqliteInspectorProtocol.ErrorOccurredResponse.newBuilder()
+              .setContent(
+                SqliteInspectorProtocol.ErrorContent.newBuilder()
+                  .setRecoverability(
+                    SqliteInspectorProtocol.ErrorRecoverability.newBuilder()
+                      .setIsRecoverable(true)
+                      .build()
+                  )
+                  .setMessage("msg")
+                  .setStackTrace("stk")
+                  .build()
+              )
+              .build()
+          )
+          .build()
+          .toByteArray()
 
-    val appInspectorMessenger = FakeAppInspectorMessenger(scope, keepDbsOpenResponse)
-    val databaseInspectorClient = createDatabaseInspectorClient(appInspectorMessenger)
+      val appInspectorMessenger = FakeAppInspectorMessenger(scope, keepDbsOpenResponse)
+      val databaseInspectorClient = createDatabaseInspectorClient(appInspectorMessenger)
 
-    val trackDatabasesCommand = SqliteInspectorProtocol.Command.newBuilder()
-      .setKeepDatabasesOpen(SqliteInspectorProtocol.KeepDatabasesOpenCommand.newBuilder().setSetEnabled(true).build())
-      .build()
-      .toByteArray()
+      val trackDatabasesCommand =
+        SqliteInspectorProtocol.Command.newBuilder()
+          .setKeepDatabasesOpen(
+            SqliteInspectorProtocol.KeepDatabasesOpenCommand.newBuilder()
+              .setSetEnabled(true)
+              .build()
+          )
+          .build()
+          .toByteArray()
 
-    // Act
-    pumpEventsAndWaitForFutureException(databaseInspectorClient.keepConnectionsOpen(true))
-    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      // Act
+      pumpEventsAndWaitForFutureException(databaseInspectorClient.keepConnectionsOpen(true))
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
 
-    // Assert
-    assertThat(appInspectorMessenger.rawDataSent).isEqualTo(trackDatabasesCommand)
-  }
+      // Assert
+      assertThat(appInspectorMessenger.rawDataSent).isEqualTo(trackDatabasesCommand)
+    }
 
   fun testKeepConnectionOpenNotSetInResponse() = runBlocking {
     // Prepare
-    val keepDbsOpenResponse = SqliteInspectorProtocol.Response.newBuilder()
-      .build()
-      .toByteArray()
+    val keepDbsOpenResponse = SqliteInspectorProtocol.Response.newBuilder().build().toByteArray()
 
     val appInspectorMessenger = FakeAppInspectorMessenger(scope, keepDbsOpenResponse)
     val databaseInspectorClient = createDatabaseInspectorClient(appInspectorMessenger)
 
-    val trackDatabasesCommand = SqliteInspectorProtocol.Command.newBuilder()
-      .setKeepDatabasesOpen(SqliteInspectorProtocol.KeepDatabasesOpenCommand.newBuilder().setSetEnabled(true).build())
-      .build()
-      .toByteArray()
+    val trackDatabasesCommand =
+      SqliteInspectorProtocol.Command.newBuilder()
+        .setKeepDatabasesOpen(
+          SqliteInspectorProtocol.KeepDatabasesOpenCommand.newBuilder().setSetEnabled(true).build()
+        )
+        .build()
+        .toByteArray()
 
     // Act
     val result = pumpEventsAndWaitForFuture(databaseInspectorClient.keepConnectionsOpen(true))
@@ -278,8 +334,9 @@ class DatabaseInspectorClientTest : LightPlatformTestCase() {
     assertEquals(null, result)
   }
 
-  private fun createDatabaseInspectorClient(appInspectorMessenger: AppInspectorMessenger = FakeAppInspectorMessenger(scope))
-    : DatabaseInspectorClient {
+  private fun createDatabaseInspectorClient(
+    appInspectorMessenger: AppInspectorMessenger = FakeAppInspectorMessenger(scope)
+  ): DatabaseInspectorClient {
     return DatabaseInspectorClient(
       appInspectorMessenger,
       testRootDisposable,

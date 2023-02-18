@@ -258,7 +258,7 @@ public class WindowsPerformanceHintsChecker {
       return ContainerUtil.map(excludedPaths, path -> wildcardsToRegex(expandEnvVars(path)));
     }
     catch (IOException exception) {
-      LOG.warn("Error retrieving list of excluded patterns", exception);
+      LOG.warn("Error retrieving list of excluded patterns: " + exception.getMessage());
       return null;
     }
   }

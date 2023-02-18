@@ -24,6 +24,7 @@ import com.android.tools.idea.gradle.util.GradleProperties
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.memory.usage.LightweightHeapTraverse
 import com.android.tools.memory.usage.LightweightHeapTraverseConfig
+import com.android.tools.memory.usage.LightweightTraverseResult
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.Metric.MetricSample
@@ -105,12 +106,20 @@ abstract class AbstractGradleSyncMemoryUsageTestCase : IdeaTestSuiteBase() {
       val metricAfterSyncTotal = Metric("${projectName}_After_Sync_Total")
 
       val currentTime = Instant.now().toEpochMilli()
+      var result : LightweightTraverseResult?
+
       val elapsedTimeAfterSync = measureTimeMillis {
-        val result = LightweightHeapTraverse.collectReport(LightweightHeapTraverseConfig())
-        metricIdeAfterSyncTotal.addSamples(BENCHMARK, MetricSample(currentTime, result.totalObjectsSizeBytes))
-        metricIdeAfterSync.addSamples(BENCHMARK, MetricSample(currentTime, result.totalStrongReferencedObjectsSizeBytes))
+        result = LightweightHeapTraverse.collectReport(LightweightHeapTraverseConfig())
       }
       println("Heap traversal for IDE after sync finished in $elapsedTimeAfterSync milliseconds")
+
+      metricIdeAfterSyncTotal.addSamples(BENCHMARK, MetricSample(currentTime, result!!.totalObjectsSizeBytes))
+      metricIdeAfterSync.addSamples(BENCHMARK, MetricSample(currentTime, result!!.totalStrongReferencedObjectsSizeBytes))
+      println("IDE total size MBs: ${result!!.totalObjectsSizeBytes shr 20} ")
+      println("IDE total object count: ${result!!.totalObjectsNumber} ")
+      println("IDE strong size MBs: ${result!!.totalStrongReferencedObjectsSizeBytes shr 20} ")
+      println("IDE strong object count: ${result!!.totalStrongReferencedObjectsNumber} ")
+
 
       for (metricFilePath in File(outputDirectory).walk().filter { !it.isDirectory }.asIterable()) {
         when {

@@ -62,6 +62,7 @@ import com.android.builder.model.v2.models.ndk.NativeBuildSystem
 import com.android.builder.model.v2.models.ndk.NativeModule
 import com.android.builder.model.v2.models.ndk.NativeVariant
 import com.android.ide.common.repository.AgpVersion
+import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyApplicationIdModel
 import com.android.tools.idea.gradle.model.CodeShrinker
 import com.android.tools.idea.gradle.model.IdeAaptOptions
@@ -1175,7 +1176,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       ?: flag.legacyDefault
 
   fun createIdeAndroidGradlePluginProjectFlagsImpl(
-    booleanFlagMap: Map<AndroidGradlePluginProjectFlags.BooleanFlag, Boolean>
+    booleanFlagMap: Map<AndroidGradlePluginProjectFlags.BooleanFlag, Boolean>,
+    gradlePropertiesModel: GradlePropertiesModel,
   ): IdeAndroidGradlePluginProjectFlagsImpl {
     return IdeAndroidGradlePluginProjectFlagsImpl(
       applicationRClassConstantIds =
@@ -1184,17 +1186,10 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       transitiveRClasses = booleanFlagMap.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.TRANSITIVE_R_CLASS),
       usesCompose = booleanFlagMap.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.JETPACK_COMPOSE),
       mlModelBindingEnabled = booleanFlagMap.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.ML_MODEL_BINDING),
-      unifiedTestPlatformEnabled = booleanFlagMap.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.UNIFIED_TEST_PLATFORM)
+      unifiedTestPlatformEnabled = booleanFlagMap.getBooleanFlag(AndroidGradlePluginProjectFlags.BooleanFlag.UNIFIED_TEST_PLATFORM),
+      useAndroidX = gradlePropertiesModel.useAndroidX ?: com.android.builder.model.v2.ide.AndroidGradlePluginProjectFlags.BooleanFlag.USE_ANDROID_X.legacyDefault
     )
   }
-
-  /**
-   * Create an empty set of flags for older AGPs and for studio serialization.
-   */
-  fun createIdeAndroidGradlePluginProjectFlagsImpl() = createIdeAndroidGradlePluginProjectFlagsImpl(booleanFlagMap = emptyMap())
-
-  fun androidGradlePluginProjectFlagsFrom(flags: AndroidGradlePluginProjectFlags): IdeAndroidGradlePluginProjectFlagsImpl =
-    createIdeAndroidGradlePluginProjectFlagsImpl(flags.booleanFlagMap)
 
   fun Int.toIdeAndroidProjectType(): IdeAndroidProjectType = when (this) {
     AndroidProjectTypes.PROJECT_TYPE_APP -> IdeAndroidProjectType.PROJECT_TYPE_APP
@@ -1229,7 +1224,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     buildName: String,
     projectPath: String,
     project: AndroidProject,
-    legacyApplicationIdModel: LegacyApplicationIdModel?
+    legacyApplicationIdModel: LegacyApplicationIdModel?,
+    gradlePropertiesModel: GradlePropertiesModel,
   ): ModelResult<IdeAndroidProjectImpl> {
     // Old plugin versions do not return model version.
     val parsedModelVersion = AgpVersion.tryParse(project.modelVersion)
@@ -1271,11 +1267,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     // AndroidProject#isBaseSplit is always non null.
     val isBaseSplit = copyNewProperty({ project.isBaseSplit }, false)
     val agpFlags: IdeAndroidGradlePluginProjectFlagsImpl =
-      if (projectFlags != null) {
-        androidGradlePluginProjectFlagsFrom(projectFlags)
-      } else {
-        createIdeAndroidGradlePluginProjectFlagsImpl()
-      }
+      createIdeAndroidGradlePluginProjectFlagsImpl(projectFlags?.booleanFlagMap ?: emptyMap(), gradlePropertiesModel)
     return ModelResult.create {
       IdeAndroidProjectImpl(
         agpVersion = project.modelVersion,
@@ -1336,9 +1328,12 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       buildName: String,
       projectPath: String,
       project: AndroidProject,
-      legacyApplicationIdModel: LegacyApplicationIdModel?
+      legacyApplicationIdModel: LegacyApplicationIdModel?,
+      gradlePropertiesModel: GradlePropertiesModel,
     ): ModelResult<IdeAndroidProjectImpl> {
-      return lock.withLock { androidProjectFrom(rootBuildId, buildId, buildName, projectPath, project, legacyApplicationIdModel) }
+      return lock.withLock {
+        androidProjectFrom(rootBuildId, buildId, buildName, projectPath, project, legacyApplicationIdModel, gradlePropertiesModel)
+      }
     }
 
     override fun androidArtifactOutputFrom(output: OutputFile): IdeAndroidArtifactOutputImpl =

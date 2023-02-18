@@ -93,15 +93,15 @@ class CapturePanelTest {
 
     selection.selectHeapSet(heap1)
     assertThat(panel.component.getStatLabelValue("Classes")).isEqualTo("${insts1.size}")
-    assertThat(panel.component.getStatLabelValue("Shallow Size")).isEqualTo("${insts1.sumBy{it.shallowSize}}")
+    assertThat(panel.component.getStatLabelValue("Shallow Size")).isEqualTo("${insts1.sumOf { it.shallowSize }}")
 
     selection.selectHeapSet(heap2)
     assertThat(panel.component.getStatLabelValue("Classes")).isEqualTo("${insts2.size}")
-    assertThat(panel.component.getStatLabelValue("Shallow Size")).isEqualTo("${insts2.sumBy{it.shallowSize}}")
+    assertThat(panel.component.getStatLabelValue("Shallow Size")).isEqualTo("${insts2.sumOf { it.shallowSize }}")
 
     selection.selectHeapSet(allHeap)
     assertThat(panel.component.getStatLabelValue("Classes")).isEqualTo("${insts.size}")
-    assertThat(panel.component.getStatLabelValue("Shallow Size")).isEqualTo("${insts.sumBy{it.shallowSize}}")
+    assertThat(panel.component.getStatLabelValue("Shallow Size")).isEqualTo("${insts.sumOf { it.shallowSize }}")
   }
 
   companion object {

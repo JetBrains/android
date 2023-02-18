@@ -27,12 +27,15 @@ import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.JBPopupListener
 import com.intellij.openapi.ui.popup.LightweightWindowEvent
 
 val AGP_UPGRADE_NOTIFICATION_GROUP = NotificationGroup("Android Gradle Upgrade Notification", NotificationDisplayType.STICKY_BALLOON, true)
+
+private val LOG = Logger.getInstance(LOG_CATEGORY)
 
 abstract class ProjectUpgradeNotification(title: String, content: String, type: NotificationType)
   : Notification(AGP_UPGRADE_NOTIFICATION_GROUP.displayId, title, content, type) {
@@ -45,24 +48,28 @@ abstract class ProjectUpgradeNotification(title: String, content: String, type: 
     addAction(object : AnAction("Start AGP Upgrade Assistant") {
       override fun actionPerformed(e: AnActionEvent) {
         this@ProjectUpgradeNotification.expire(false)
+        LOG.info("Starting AGP Upgrade Assistant")
         e.project?.let { performRecommendedPluginUpgrade(it) }
       }
     })
     addAction(object : AnAction("Remind me tomorrow") {
       override fun actionPerformed(e: AnActionEvent) {
         this@ProjectUpgradeNotification.expire(false)
+        LOG.info("AGP Upgrade notification postponed for 24 hours")
         e.project?.let { RecommendedUpgradeReminder(it).updateLastTimestamp() }
       }
     })
     addAction(object : AnAction("Don't ask for this project") {
       override fun actionPerformed(e: AnActionEvent) {
         this@ProjectUpgradeNotification.expire(true)
+        LOG.info("AGP Upgrade notification disabled for this project")
         e.project?.let { RecommendedUpgradeReminder(it).doNotAskForProject = true }
       }
     })
     addAction(object : AnAction("Don't show again") {
       override fun actionPerformed(e: AnActionEvent) {
         this@ProjectUpgradeNotification.expire(true)
+        LOG.info("AGP Upgrade notification disabled application-wide")
         e.project?.let { RecommendedUpgradeReminder(it).doNotAskForApplication = true }
       }
     })
@@ -112,7 +119,16 @@ abstract class ProjectUpgradeNotification(title: String, content: String, type: 
 }
 
 class UpgradeSuggestion(title: String, content: String, override val project: Project, override val currentAgpVersion: AgpVersion)
-  : ProjectUpgradeNotification(title, content, NotificationType.INFORMATION)
+  : ProjectUpgradeNotification(title, content, NotificationType.INFORMATION) {
+    init {
+      isSuggestionType = true
+    }
+  }
 
 class DeprecatedAgpUpgradeWarning(title: String, content: String, override val project: Project, override val currentAgpVersion: AgpVersion)
-  : ProjectUpgradeNotification(title, content, NotificationType.WARNING)
+  : ProjectUpgradeNotification(title, content, NotificationType.WARNING) {
+    init {
+      isSuggestionType = true
+      isImportantSuggestion = true
+    }
+  }

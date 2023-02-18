@@ -18,7 +18,10 @@ package com.android.tools.idea.tests.util;
 import static com.android.tools.idea.wizard.template.Language.Java;
 import static com.google.common.truth.Truth.assertThat;
 
+import com.android.tools.adtui.device.FormFactor;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.npw.CppStandardType;
 import com.android.tools.idea.wizard.template.Language;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import org.fest.swing.timing.Wait;
@@ -26,6 +29,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class WizardUtils {
+  protected static final int MIN_SDK_API = 23;
+
   private WizardUtils() {
   }
 
@@ -49,7 +54,7 @@ public final class WizardUtils {
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
-      .selectMinimumSdkApi(23)
+      .selectMinimumSdkApi(MIN_SDK_API)
       .setSourceLanguage(language)
       .enterPackageName("com.google.myapplication")
       .wizard()
@@ -82,6 +87,40 @@ public final class WizardUtils {
       .getProjectView()
       .selectAndroidPane()
       .clickPath("app"); // Focus "app" in "Android Pane" to allow adding Activities through the menus (instead of right click)
+  }
+
+  public static void createNewProject(GuiTestRule guiTest, FormFactor tabName, String templateName) {
+    System.out.println("\nCreating new project: " + templateName + " in: " + tabName.toString());
+
+    IdeFrameFixture ideFrameFixture = guiTest
+      .welcomeFrame()
+      .createNewProject()
+      .getChooseAndroidProjectStep()
+      .selectTab(tabName)
+      .chooseActivity(templateName)
+      .wizard()
+      .clickNext()
+      .getConfigureNewAndroidProjectStep()
+      .wizard()
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(300));
+  }
+
+  public static void createCppProject(GuiTestRule guiTest, FormFactor tabName, String templateName) {
+    System.out.println("\nCreating template: " + templateName + " in: " + tabName.toString());
+
+    guiTest.welcomeFrame()
+      .createNewProject()
+      .getChooseAndroidProjectStep()
+      .selectTab(tabName)
+      .chooseActivity(templateName)
+      .wizard()
+      .clickNext()
+      .getConfigureNewAndroidProjectStep()
+      .setSourceLanguage(Java)
+      .enterPackageName("com.example.myapplication")
+      .wizard()
+      .clickNext()
+      .clickFinishAndWaitForSyncToFinish(Wait.seconds(300));
   }
 
   //To create a native C++ project, which has additional steps.

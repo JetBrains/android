@@ -34,16 +34,17 @@ import com.android.tools.idea.sqlite.model.SqliteValue
 import com.android.tools.idea.sqlite.model.getRowIdName
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import java.nio.file.Path
+import java.util.concurrent.Executor
+import kotlin.math.min
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.async
 import kotlinx.coroutines.guava.asListenableFuture
-import java.nio.file.Path
-import java.util.concurrent.Executor
-import kotlin.math.min
 
 /**
- * From: [https://cs.android.com/androidx/platform/frameworks/support/+/androidx-master-dev:sqlite/sqlite-inspection/src/main/java/androidx/sqlite/inspection/SqliteInspector.java;l=135;drc=e06399865fcdca1975f6dcc667cc5f9477e67998]
+ * From:
+ * [https://cs.android.com/androidx/platform/frameworks/support/+/androidx-master-dev:sqlite/sqlite-inspection/src/main/java/androidx/sqlite/inspection/SqliteInspector.java;l=135;drc=e06399865fcdca1975f6dcc667cc5f9477e67998]
  *
  * Sample output:
  * ```
@@ -54,7 +55,8 @@ import kotlin.math.min
  * table|t2|c22|int|0|0|0
  * ```
  */
-const val schemaQuery = """
+const val schemaQuery =
+  """
     select
       m.type as type,
       m.name as tableName,
@@ -88,115 +90,153 @@ const val schemaQuery = """
     """
 
 /**
- * Processes requests using sqlite3 CLI - targeted as a testing replacement a live device connection.
- * @param columnSeparator - column separator used for dealing with CLI output; use any value that is not present in the data.
- **/
-class CliDatabaseConnection(private val databasePath: Path,
-                            private val client: SqliteCliClient,
-                            private val columnSeparator: Char,
-                            executor: Executor) : DatabaseConnection {
+ * Processes requests using sqlite3 CLI - targeted as a testing replacement a live device
+ * connection.
+ * @param columnSeparator
+ * - column separator used for dealing with CLI output; use any value that is not present in the
+ * data.
+ */
+class CliDatabaseConnection(
+  private val databasePath: Path,
+  private val client: SqliteCliClient,
+  private val columnSeparator: Char,
+  executor: Executor
+) : DatabaseConnection {
   private val coroutineDispatcher = executor.asCoroutineDispatcher()
 
-  override fun execute(sqliteStatement: SqliteStatement) = CoroutineScope(coroutineDispatcher).async<Unit> {
-    client.runSqliteCliCommand(
-      SqliteCliArgs.builder()
-        .database(databasePath)
-        .raw("${sqliteStatement.checkNoSeparatorClash().sqliteStatementWithInlineParameters};")
-        .build())
-      .checkSuccess()
-  }.asListenableFuture()
+  override fun execute(sqliteStatement: SqliteStatement) =
+    CoroutineScope(coroutineDispatcher)
+      .async<Unit> {
+        client
+          .runSqliteCliCommand(
+            SqliteCliArgs.builder()
+              .database(databasePath)
+              .raw(
+                "${sqliteStatement.checkNoSeparatorClash().sqliteStatementWithInlineParameters};"
+              )
+              .build()
+          )
+          .checkSuccess()
+      }
+      .asListenableFuture()
 
-  override fun query(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> = CoroutineScope(coroutineDispatcher).async {
-    client.runSqliteCliCommand(
-      SqliteCliArgs.builder()
-        .database(databasePath)
-        .headersOn()
-        .separator(columnSeparator)
-        .raw("${sqliteStatement.checkNoSeparatorClash().sqliteStatementWithInlineParameters};")
-        .build())
-      .checkSuccess()
-      .toSqliteResultSet()
-  }.asListenableFuture()
+  override fun query(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet> =
+    CoroutineScope(coroutineDispatcher)
+      .async {
+        client
+          .runSqliteCliCommand(
+            SqliteCliArgs.builder()
+              .database(databasePath)
+              .headersOn()
+              .separator(columnSeparator)
+              .raw(
+                "${sqliteStatement.checkNoSeparatorClash().sqliteStatementWithInlineParameters};"
+              )
+              .build()
+          )
+          .checkSuccess()
+          .toSqliteResultSet()
+      }
+      .asListenableFuture()
 
   override fun close(): ListenableFuture<Unit> = Futures.immediateFuture(null)
 
-  override fun readSchema(): ListenableFuture<SqliteSchema> = CoroutineScope(coroutineDispatcher).async {
-    client.runSqliteCliCommand(
-      SqliteCliArgs.builder()
-        .database(databasePath)
-        .headersOn()
-        .separator(columnSeparator)
-        .raw("$schemaQuery;")
-        .build())
-      .checkSuccess()
-      .toSqliteSchema()
-  }.asListenableFuture()
-
-  private fun SqliteCliResponse.toSqliteResultSet(): SqliteResultSet = toRawCells().let { rawCells ->
-    object : LiveSqliteResultSet(mock(), mock(), -1, mock()) {
-      override val columns: ListenableFuture<List<ResultSetSqliteColumn>>
-        get() = Futures.immediateFuture(let { rawCells.header.map { ResultSetSqliteColumn(it) } })
-
-      override val totalRowCount: ListenableFuture<Int> get() = Futures.immediateFuture(rawCells.dataRows.size)
-
-      override fun getRowBatch(
-        rowOffset: Int,
-        rowBatchSize: Int,
-        responseSizeByteLimitHint: Long?
-      ): ListenableFuture<List<SqliteRow>> = Futures.immediateFuture(let {
-        // simulate responseSizeByteLimitHint by hard-coding `2` rows per response - good enough for testing purposes
-        val batchSize = if (responseSizeByteLimitHint != null) 2 else rowBatchSize
-        // min(batchSize, rowBatchSize) ensures that both size [bytes] and row count limits are enforced
-        rawCells.dataRows.drop(rowOffset).take(min(batchSize, rowBatchSize)).map { row ->
-          val cells = row.mapIndexed { ix, cell -> SqliteColumnValue(rawCells.header[ix], SqliteValue.fromAny(cell)) }
-          SqliteRow(cells)
-        }
-      })
-
-      override fun dispose() {}
-    }
-  }
-
-  private fun SqliteCliResponse.toSqliteSchema(): SqliteSchema = toRawCells().let { rawCells ->
-    /** @see [schemaQuery] documentation for column list */
-    val columnMap = rawCells.header.mapIndexed { ix, name -> name to ix }.toMap()
-    fun List<String>.getCell(columnName: String): String = this[columnMap.getValue(columnName)] // this is a bit slow, but OK for tests
-
-    val tables = rawCells.dataRows
-      .groupBy { it.getCell("tableName") }
-      .map { (tableName, tableLines) ->
-        val columns = tableLines.map { row ->
-          val name = row.getCell("columnName")
-          val type = row.getCell("columnType")
-          val affinity = SqliteAffinity.fromTypename(type)
-          val isNullable = row.getCell("notnull") == "0"
-          val isPrimaryKey = row.getCell("pk") != "0"
-          SqliteColumn(name, affinity, isNullable, isPrimaryKey)
-        }
-        val rowIdName = getRowIdName(columns)
-        val isView = tableLines.first().getCell("type").let {
-          if (listOf("table", "view").contains(it)) it == "view"
-          else throw IllegalArgumentException("Unexpected type: $it")
-        }
-        SqliteTable(tableName, columns, rowIdName, isView)
+  override fun readSchema(): ListenableFuture<SqliteSchema> =
+    CoroutineScope(coroutineDispatcher)
+      .async {
+        client
+          .runSqliteCliCommand(
+            SqliteCliArgs.builder()
+              .database(databasePath)
+              .headersOn()
+              .separator(columnSeparator)
+              .raw("$schemaQuery;")
+              .build()
+          )
+          .checkSuccess()
+          .toSqliteSchema()
       }
+      .asListenableFuture()
 
-    SqliteSchema(tables)
-  }
+  private fun SqliteCliResponse.toSqliteResultSet(): SqliteResultSet =
+    toRawCells().let { rawCells ->
+      object : LiveSqliteResultSet(mock(), mock(), -1, mock()) {
+        override val columns: ListenableFuture<List<ResultSetSqliteColumn>>
+          get() = Futures.immediateFuture(let { rawCells.header.map { ResultSetSqliteColumn(it) } })
+
+        override val totalRowCount: ListenableFuture<Int>
+          get() = Futures.immediateFuture(rawCells.dataRows.size)
+
+        override fun getRowBatch(
+          rowOffset: Int,
+          rowBatchSize: Int,
+          responseSizeByteLimitHint: Long?
+        ): ListenableFuture<List<SqliteRow>> =
+          Futures.immediateFuture(
+            let {
+              // simulate responseSizeByteLimitHint by hard-coding `2` rows per response - good
+              // enough for testing purposes
+              val batchSize = if (responseSizeByteLimitHint != null) 2 else rowBatchSize
+              // min(batchSize, rowBatchSize) ensures that both size [bytes] and row count limits
+              // are enforced
+              rawCells.dataRows.drop(rowOffset).take(min(batchSize, rowBatchSize)).map { row ->
+                val cells =
+                  row.mapIndexed { ix, cell ->
+                    SqliteColumnValue(rawCells.header[ix], SqliteValue.fromAny(cell))
+                  }
+                SqliteRow(cells)
+              }
+            }
+          )
+
+        override fun dispose() {}
+      }
+    }
+
+  private fun SqliteCliResponse.toSqliteSchema(): SqliteSchema =
+    toRawCells().let { rawCells ->
+      /** @see [schemaQuery] documentation for column list */
+      val columnMap = rawCells.header.mapIndexed { ix, name -> name to ix }.toMap()
+      fun List<String>.getCell(columnName: String): String =
+        this[columnMap.getValue(columnName)] // this is a bit slow, but OK for tests
+
+      val tables =
+        rawCells.dataRows.groupBy { it.getCell("tableName") }.map { (tableName, tableLines) ->
+          val columns =
+            tableLines.map { row ->
+              val name = row.getCell("columnName")
+              val type = row.getCell("columnType")
+              val affinity = SqliteAffinity.fromTypename(type)
+              val isNullable = row.getCell("notnull") == "0"
+              val isPrimaryKey = row.getCell("pk") != "0"
+              SqliteColumn(name, affinity, isNullable, isPrimaryKey)
+            }
+          val rowIdName = getRowIdName(columns)
+          val isView =
+            tableLines.first().getCell("type").let {
+              if (listOf("table", "view").contains(it)) it == "view"
+              else throw IllegalArgumentException("Unexpected type: $it")
+            }
+          SqliteTable(tableName, columns, rowIdName, isView)
+        }
+
+      SqliteSchema(tables)
+    }
 
   private data class RawCells(val header: List<String>, val dataRows: List<List<String>>)
 
   private fun SqliteCliResponse.toRawCells(): RawCells = let {
     val rowsRaw: List<String> = checkSuccess().stdOutput.split(System.lineSeparator())
     val rowsCells: Sequence<List<String>> = rowsRaw.asSequence().map { it.split(columnSeparator) }
-    RawCells(header = rowsCells.first(), dataRows = rowsCells.drop(1).toList()
-    )
+    RawCells(header = rowsCells.first(), dataRows = rowsCells.drop(1).toList())
   }
 
   private fun SqliteStatement.checkNoSeparatorClash() = apply {
     if (this.sqliteStatementWithInlineParameters.contains(columnSeparator))
-      throw IllegalArgumentException("Potential clash between the data and a column separator." +
-                                     " Consider using a different column separator or changing your test data.")
+      throw IllegalArgumentException(
+        "Potential clash between the data and a column separator." +
+          " Consider using a different column separator or changing your test data."
+      )
   }
 
   private fun SqliteCliResponse.checkSuccess() = apply {

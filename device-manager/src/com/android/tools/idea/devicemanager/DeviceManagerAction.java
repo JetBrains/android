@@ -16,7 +16,9 @@
 package com.android.tools.idea.devicemanager;
 
 import com.android.tools.idea.avdmanager.HardwareAccelerationCheck;
+import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.project.DumbAwareAction;
@@ -24,10 +26,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import icons.StudioIcons;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.annotations.NotNull;
 
 final class DeviceManagerAction extends DumbAwareAction {
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.BGT;
+  }
+
   @Override
   public void update(@NotNull AnActionEvent event) {
     Presentation presentation = event.getPresentation();
@@ -60,7 +67,7 @@ final class DeviceManagerAction extends DumbAwareAction {
       return;
     }
 
-    presentation.setEnabled(AndroidSdkUtils.isAndroidSdkAvailable());
+    presentation.setEnabled(AndroidSdkPathStore.getInstance().getAndroidSdkPath() != null);
   }
 
   @Override

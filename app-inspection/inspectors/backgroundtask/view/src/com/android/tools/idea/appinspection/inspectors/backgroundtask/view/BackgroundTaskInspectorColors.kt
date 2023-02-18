@@ -19,8 +19,7 @@ import com.intellij.ui.JBColor
 
 object BackgroundTaskInspectorColors {
   // Table View
-  @JvmField
-  val ENTRY_SECTION_BACKGROUND_COLOR = JBColor(0xF2F2F2, 0x2B2B2B)
+  @JvmField val ENTRY_SECTION_BACKGROUND_COLOR = JBColor(0xF2F2F2, 0x2B2B2B)
 
   // Details View
   val DATA_VALUE_TEXT_COLOR = JBColor(0x58AB5C, 0x65BB69)
@@ -29,10 +28,10 @@ object BackgroundTaskInspectorColors {
   val EMPTY_CONTENT_COLOR = JBColor(0x787878, 0xC8C8C8)
 
   // Dependency Graph
-  val DEFAULT_WORK_BORDER_COLOR = JBColor.namedColor(
-    "AppInspector.GraphNode.borderColor", JBColor(0xa7a7a7, 0x2d2f31))
-  val SELECTED_WORK_BORDER_COLOR = JBColor.namedColor(
-    "AppInspector.GraphNode.focusedBorderColor", JBColor(0x1886f7, 0x9ccdff))
-  val GRAPH_LABEL_BACKGROUND_COLOR = JBColor.namedColor(
-    "AppInspector.GraphNode.background", JBColor(0xfdfdfd, 0x515658))
+  val DEFAULT_WORK_BORDER_COLOR =
+    JBColor.namedColor("AppInspector.GraphNode.borderColor", JBColor(0xa7a7a7, 0x2d2f31))
+  val SELECTED_WORK_BORDER_COLOR =
+    JBColor.namedColor("AppInspector.GraphNode.focusedBorderColor", JBColor(0x1886f7, 0x9ccdff))
+  val GRAPH_LABEL_BACKGROUND_COLOR =
+    JBColor.namedColor("AppInspector.GraphNode.background", JBColor(0xfdfdfd, 0x515658))
 }

@@ -17,17 +17,22 @@ package com.android.tools.idea.appinspection.inspectors.network.model.httpdata
 
 import com.android.tools.idea.protobuf.ByteString
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
 import java.io.ByteArrayOutputStream
 import java.util.zip.GZIPOutputStream
+import org.junit.Test
 
 class HttpDataTest {
   @Test
   fun responseFieldsStringIsCorrectlySplitAndTrimmed() {
-    val data = createFakeHttpData(1, responseFields = """status line =  HTTP/1.1 302 Found
+    val data =
+      createFakeHttpData(
+        1,
+        responseFields =
+          """status line =  HTTP/1.1 302 Found
     first=1
     second  = 2
-    equation=x+y=10""")
+    equation=x+y=10"""
+      )
 
     val header = data.responseHeader
     assertThat(header.getField("first")).isEqualTo("1")
@@ -37,19 +42,28 @@ class HttpDataTest {
 
   @Test
   fun testResponseStatusLine() {
-    val data = createFakeHttpData(1, responseFields = """
+    val data =
+      createFakeHttpData(
+        1,
+        responseFields =
+          """
     null  =  HTTP/1.1 302 Found
-    Content-Type =  text/html; charset=UTF-8;  """)
+    Content-Type =  text/html; charset=UTF-8;  """
+      )
     assertThat(data.responseHeader.statusCode).isEqualTo(302)
     assertThat(data.responseHeader.getField("content-type")).isEqualTo("text/html; charset=UTF-8")
   }
 
   @Test
   fun testResponseStatusLineWithoutKey() {
-    val data = createFakeHttpData(1, responseFields = """  HTTP/1.1 200 Found
+    val data =
+      createFakeHttpData(
+        1,
+        responseFields = """  HTTP/1.1 200 Found
 
 
-    Content-Type =  text/html; charset=UTF-8  """)
+    Content-Type =  text/html; charset=UTF-8  """
+      )
     assertThat(data.responseHeader.statusCode).isEqualTo(200)
     assertThat(data.responseHeader.getField("content-type")).isEqualTo("text/html; charset=UTF-8")
   }
@@ -73,11 +87,16 @@ class HttpDataTest {
 
   @Test
   fun responseFieldsWithDuplicateKey() {
-    val data = createFakeHttpData(1, responseFields = """status line =  HTTP/1.1 302 Found
+    val data =
+      createFakeHttpData(
+        1,
+        responseFields =
+          """status line =  HTTP/1.1 302 Found
     first=1
     second  = 2
     equation=x+y=10
-    second =5""")
+    second =5"""
+      )
 
     val header = data.responseHeader
     assertThat(header.getField("first")).isEqualTo("1")
@@ -133,8 +152,10 @@ class HttpDataTest {
 
   @Test
   fun uryQueryDecoded() {
-    val tripleEncoded = "https://www.google.com/test?query1%25253DHello%252520World%252526query2%25253D%252523Goodbye%252523"
-    assertThat(HttpData.getUrlName(tripleEncoded)).isEqualTo("test?query1=Hello World&query2=#Goodbye#")
+    val tripleEncoded =
+      "https://www.google.com/test?query1%25253DHello%252520World%252526query2%25253D%252523Goodbye%252523"
+    assertThat(HttpData.getUrlName(tripleEncoded))
+      .isEqualTo("test?query1=Hello World&query2=#Goodbye#")
   }
 
   @Test
@@ -143,8 +164,10 @@ class HttpDataTest {
       // "%25-2" doesn't decode correctly
       // 1. test%25-2test -> test%-2test
       // 2. test%-2test -> can't decode -2 so throws an exception
-      assertThat(HttpData.getUrlName("https://www.google.com/a/b/c/test%25-2test")).isEqualTo("test%25-2test")
-      assertThat(HttpData.getUrlName("https://www.google.com/a/b/c/test%25-2test/")).isEqualTo("test%25-2test")
+      assertThat(HttpData.getUrlName("https://www.google.com/a/b/c/test%25-2test"))
+        .isEqualTo("test%25-2test")
+      assertThat(HttpData.getUrlName("https://www.google.com/a/b/c/test%25-2test/"))
+        .isEqualTo("test%25-2test")
     }
     assertThat(HttpData.getUrlName("this.is.an.invalid.url/test")).isEqualTo("test")
   }
@@ -173,7 +196,8 @@ class HttpDataTest {
 
   @Test
   fun isFormDataFromContentType() {
-    assertThat(HttpData.ContentType("application/x-www-form-urlencoded; charset=utf-8").isFormData).isTrue()
+    assertThat(HttpData.ContentType("application/x-www-form-urlencoded; charset=utf-8").isFormData)
+      .isTrue()
     assertThat(HttpData.ContentType("application/x-www-form-urlencoded").isFormData).isTrue()
     assertThat(HttpData.ContentType("Application/x-www-form-urlencoded;").isFormData).isTrue()
     assertThat(HttpData.ContentType("").isFormData).isFalse()
@@ -183,36 +207,50 @@ class HttpDataTest {
 
   @Test
   fun contentLengthFromLowerCaseData() {
-    val data = createFakeHttpData(1, responseFields = "CoNtEnt-LEngtH = 10000 \n  response-status-code = 200")
+    val data =
+      createFakeHttpData(
+        1,
+        responseFields = "CoNtEnt-LEngtH = 10000 \n  response-status-code = 200"
+      )
     assertThat(data.responseHeader.getField("content-length")).isEqualTo("10000")
     assertThat(data.responseHeader.getField("cOnTenT-leNGth")).isEqualTo("10000")
   }
 
   @Test
   fun statusCodeFromFields() {
-    val data = createFakeHttpData(1, responseFields = "content-length = 10000 \n  response-status-code = 200")
+    val data =
+      createFakeHttpData(
+        1,
+        responseFields = "content-length = 10000 \n  response-status-code = 200"
+      )
     assertThat(data.responseHeader.statusCode).isEqualTo(200)
   }
 
   @Test
   fun decodesGzippedResponsePayload() {
     val byteOutput = ByteArrayOutputStream()
-    GZIPOutputStream(byteOutput).use { stream ->
-      stream.write("test".encodeToByteArray())
-    }
+    GZIPOutputStream(byteOutput).use { stream -> stream.write("test".encodeToByteArray()) }
     byteOutput.toByteArray()
-    val data = createFakeHttpData(1,
-                                  responseFields = "content-length = 10000 \n  response-status-code = 200 \n content-encoding = gzip",
-                                  responsePayload = ByteString.copyFrom(byteOutput.toByteArray()))
+    val data =
+      createFakeHttpData(
+        1,
+        responseFields =
+          "content-length = 10000 \n  response-status-code = 200 \n content-encoding = gzip",
+        responsePayload = ByteString.copyFrom(byteOutput.toByteArray())
+      )
     assertThat(data.responsePayload.toStringUtf8()).isEqualTo("test")
   }
 
   @Test
   fun decodeMalformedGzipResponsePayload_showRawPayload() {
     val malformedBytes = "Not a gzip".toByteArray()
-    val data = createFakeHttpData(1,
-                                  responseFields = "content-length = 10000 \n  response-status-code = 200 \n content-encoding = gzip",
-                                  responsePayload = ByteString.copyFrom(malformedBytes))
+    val data =
+      createFakeHttpData(
+        1,
+        responseFields =
+          "content-length = 10000 \n  response-status-code = 200 \n content-encoding = gzip",
+        responsePayload = ByteString.copyFrom(malformedBytes)
+      )
     assertThat(data.responsePayload.toByteArray()).isEqualTo(malformedBytes)
   }
 

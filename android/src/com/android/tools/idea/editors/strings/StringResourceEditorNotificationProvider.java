@@ -59,7 +59,7 @@ public class StringResourceEditorNotificationProvider extends EditorNotification
 
   public static class InfoPanel extends EditorNotificationPanel {
     public InfoPanel(@NotNull FileEditor fileEditor) {
-      super(fileEditor, null, EditorColors.READONLY_BACKGROUND_COLOR);
+      super(fileEditor, null, EditorColors.READONLY_BACKGROUND_COLOR, Status.Info);
     }
 
     @NotNull

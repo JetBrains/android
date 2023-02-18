@@ -100,7 +100,7 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
   @VisibleForTesting
   static class MyEditorNotificationPanel extends EditorNotificationPanel {
     MyEditorNotificationPanel(@NotNull FileEditor fileEditor, @NotNull String text) {
-      super(fileEditor);
+      super(fileEditor, EditorNotificationPanel.Status.Warning);
       setText(text);
     }
   }

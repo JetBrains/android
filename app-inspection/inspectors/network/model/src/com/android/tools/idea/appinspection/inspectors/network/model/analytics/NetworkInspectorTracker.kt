@@ -15,9 +15,7 @@
  */
 package com.android.tools.idea.appinspection.inspectors.network.model.analytics
 
-/**
- * Tracks usage of common Network Inspector UI components.
- */
+/** Tracks usage of common Network Inspector UI components. */
 interface NetworkInspectorTracker {
   enum class InterceptionCriteria {
     URL_PROTOCOL,
@@ -49,9 +47,7 @@ interface NetworkInspectorTracker {
   )
 }
 
-/**
- * A stubbed out [NetworkInspectorTracker] meant to be used by tests.
- */
+/** A stubbed out [NetworkInspectorTracker] meant to be used by tests. */
 class StubNetworkInspectorTracker : NetworkInspectorTracker {
   override fun trackMigrationDialogSelected() = Unit
   override fun trackConnectionDetailsSelected() = Unit

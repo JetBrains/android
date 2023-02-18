@@ -49,7 +49,6 @@ interface SnapshotComparisonTest {
   /**
    * The name of the property which should be set to activate "update snapshots" test execution mode.
    */
-  @JvmDefault
   val updateSnapshotsJvmProperty: String get() = "UPDATE_TEST_SNAPSHOTS"
 
   /**
@@ -60,7 +59,6 @@ interface SnapshotComparisonTest {
   /**
    * The list of file name suffixes applicable to the currently running test.
    */
-  @JvmDefault
   val snapshotSuffixes: List<String> get() = listOf("")
 
   /**
@@ -134,8 +132,11 @@ fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
 ): Pair<String, String> {
   val fullSnapshotName = sanitizeFileName(UsefulTestCase.getTestName(getName(), true)) + snapshotTestSuffix
   val expectedText = getExpectedTextFor(fullSnapshotName)
+  if (doNotUpdate) {
+    return fullSnapshotName to expectedText
+  }
 
-  if (!doNotUpdate && System.getProperty(updateSnapshotsJvmProperty) != null) {
+  if (System.getProperty(updateSnapshotsJvmProperty) != null) {
     getSnapshotFileToUpdate(fullSnapshotName).run {
       println("Writing to: ${this.absolutePath}")
       writeText(text)
@@ -152,7 +153,6 @@ fun SnapshotComparisonTest.getAndMaybeUpdateSnapshot(
         writeText(text)
       }
     }
-
   }
   return fullSnapshotName to expectedText
 }

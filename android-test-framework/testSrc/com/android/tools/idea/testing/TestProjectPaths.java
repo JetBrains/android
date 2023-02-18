@@ -66,6 +66,8 @@ public final class TestProjectPaths {
   public static final String PROJECT_WITH_APP_AND_LIB_DEPENDENCY = "projects/projectWithAppAndLibDependency";
   public static final String PROJECT_WITH_APP_AND_LIB_DEPENDENCY_NO_LIB_MANIFEST = "projects/projectWithAppAndLibDependencyNoLibManifest";
   public static final String PSD_DEPENDENCY = "projects/psdDependency";
+  public static final String PSD_DEPENDENCY_CATALOG = "projects/psdDependencyCatalog";
+  public static final String PSD_BOM = "projects/psdBom";
   public static final String PSD_PROJECT_DIR = "projects/psdProjectDir";
   public static final String PSD_SAMPLE_GROOVY = "projects/psdSample/Groovy";
   public static final String PSD_SAMPLE_KOTLIN = "projects/psdSample/Kotlin";

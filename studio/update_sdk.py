@@ -11,14 +11,14 @@ import shutil
 import xml.etree.ElementTree as ET
 import intellij
 
-# A list of files not included in the SDK because they are made by files in the root lib directory
-# This should be sorted out at a different level, but for now removing them here
+# A list of files excluded from the compile classpath.
 HIDDEN = [
-    "/plugins/Kotlin/lib/kotlin-reflect.jar",
-    "/plugins/Kotlin/lib/kotlin-stdlib-jdk8.jar",
-    "/plugins/Kotlin/lib/kotlin-stdlib.jar",
-    "/plugins/Kotlin/lib/kotlin-stdlib-jdk7.jar",
-    "/plugins/Kotlin/lib/kotlin-stdlib-common.jar",
+    # kotlinc-lib.jar contains kotlin-stdlib and kotlin-reflect from the Kotlin compiler.
+    # We prefer compiling against the IntelliJ version of kotlin-stdlib
+    # because IntelliJ has a hack in PluginClassLoader.mustBeLoadedByPlatform()
+    # which circumvents the normal classloader delegation hierarchy in order to
+    # prioritize its own version of kotlin-stdlib at runtime.
+    "/plugins/Kotlin/lib/kotlinc-lib.jar",
 ]
 
 ALL = "all"
@@ -177,10 +177,6 @@ def write_xml_files(workspace, sdk, sdk_jars, plugin_jars):
 
   lib_dir = project_dir + "/.idea/libraries/"
   for lib in os.listdir(lib_dir):
-    if lib == "studio_plugin_Kotlin.xml":
-      # Special case: the Kotlin plugin is part of IntelliJ Platform, but it is built and updated
-      # separately by prebuilts/tools/common/kotlin-plugin/build.py (see Change I788900228).
-      continue
     if (lib.startswith("studio_plugin_") and lib.endswith(".xml")) or lib == "intellij_updater.xml":
       os.remove(lib_dir + lib)
 

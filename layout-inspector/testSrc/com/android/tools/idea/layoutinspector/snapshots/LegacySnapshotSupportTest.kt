@@ -36,6 +36,7 @@ import com.android.tools.idea.layoutinspector.model.DrawViewImage
 import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.legacy.LegacyClient
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.google.common.truth.Truth.assertThat
@@ -139,19 +140,20 @@ DONE.
   private fun setUpLegacyClient(): LegacyClient {
     val model = model(project = projectRule.project) {}
     val process = LEGACY_DEVICE.createProcess()
+    val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
     val legacyClient = LegacyClient(
       process,
       isInstantlyAutoConnected = true,
       model,
       LayoutInspectorSessionMetrics(projectRule.project, process),
-      AndroidCoroutineScope(disposableRule.disposable),
+      coroutineScope,
       disposableRule.disposable
     ).apply {
       launchMonitor = mock()
     }
     // This causes the current client to register its listeners
     val treeSettings = FakeTreeSettings()
-    LayoutInspector(legacyClient, model, treeSettings)
+    LayoutInspector(coroutineScope, InspectorClientSettings(projectRule.project), legacyClient, model, treeSettings)
     legacyClient.state = InspectorClient.State.CONNECTED
     return legacyClient
   }

@@ -23,7 +23,7 @@ import com.intellij.openapi.components.StoragePathMacros
 
 @Service
 @State(name = "NetworkInspectorRules", storages = [Storage(StoragePathMacros.WORKSPACE_FILE)])
-class RulesPersistentStateComponent: PersistentStateComponent<RuleDataState> {
+class RulesPersistentStateComponent : PersistentStateComponent<RuleDataState> {
   var myRuleDataState: RuleDataState = RuleDataState()
 
   override fun getState(): RuleDataState = myRuleDataState
@@ -31,9 +31,6 @@ class RulesPersistentStateComponent: PersistentStateComponent<RuleDataState> {
   override fun loadState(ruleDataState: RuleDataState) {
     myRuleDataState = ruleDataState
   }
-
 }
 
-data class RuleDataState(
-  var rulesList: MutableList<RuleData> = mutableListOf()
-)
+data class RuleDataState(var rulesList: MutableList<RuleData> = mutableListOf())

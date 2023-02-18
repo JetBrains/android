@@ -34,9 +34,7 @@ import kotlinx.coroutines.asExecutor
 
 private val TRAFFIC_AXIS_FORMATTER: BaseAxisFormatter = NetworkTrafficFormatter(1, 5, 5)
 
-/**
- * The model class for [NetworkInspectorView].
- */
+/** The model class for [NetworkInspectorView]. */
 class NetworkInspectorModel(
   services: NetworkInspectorServices,
   dataSource: NetworkInspectorDataSource,
@@ -71,13 +69,16 @@ class NetworkInspectorModel(
 
   val aspect = AspectModel<NetworkInspectorAspect>()
   val timeline = StreamingTimeline(services.updater)
-  val networkUsage = NetworkSpeedLineChartModel(timeline, dataSource, services.workerDispatcher.asExecutor())
+  val networkUsage =
+    NetworkSpeedLineChartModel(timeline, dataSource, services.workerDispatcher.asExecutor())
   val legends = LegendsModel(networkUsage, timeline.dataRange, false)
   val tooltipLegends = LegendsModel(networkUsage, timeline.tooltipRange, true)
-  val trafficAxis = ClampedAxisComponentModel.Builder(networkUsage.trafficRange, TRAFFIC_AXIS_FORMATTER).build()
+  val trafficAxis =
+    ClampedAxisComponentModel.Builder(networkUsage.trafficRange, TRAFFIC_AXIS_FORMATTER).build()
   val stackTraceModel = StackTraceModel(services.navigationProvider.codeNavigator)
   val rangeSelectionModel = RangeSelectionModel(timeline.selectionRange, timeline.viewRange)
-  val selectionRangeDataFetcher = SelectionRangeDataFetcher(connectionsModel, timeline.selectionRange, timeline.dataRange)
+  val selectionRangeDataFetcher =
+    SelectionRangeDataFetcher(connectionsModel, timeline.selectionRange, timeline.dataRange)
 
   var tooltip: TooltipModel? = null
     set(value) {
@@ -102,8 +103,8 @@ class NetworkInspectorModel(
   }
 
   /**
-   * Sets the active connection, or clears the previously selected active connection if given data is null.
-   * Setting a non-null connection will deselect [selectedRule].
+   * Sets the active connection, or clears the previously selected active connection if given data
+   * is null. Setting a non-null connection will deselect [selectedRule].
    */
   fun setSelectedConnection(data: HttpData?): Boolean {
     if (selectedConnection == data) {

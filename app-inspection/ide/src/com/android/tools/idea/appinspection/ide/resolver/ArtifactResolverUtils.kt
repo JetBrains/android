@@ -21,28 +21,29 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.io.FileService
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
 import com.intellij.util.io.ZipUtil
 import com.intellij.util.io.exists
 import com.intellij.util.io.isDirectory
-import kotlinx.coroutines.withContext
-import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.idea.util.projectStructure.allModules
 import java.nio.file.Path
 import java.util.UUID
+import kotlinx.coroutines.withContext
+import org.jetbrains.annotations.TestOnly
 
 /**
  * Unzips the library to a temporary scratch directory if it's a zip.
  *
  * Returns the resulting inspector jar's path.
  */
-suspend fun extractZipIfNeeded(targetDir: Path, libraryPath: Path) = withContext(AndroidDispatchers.diskIoThread) {
-  if (libraryPath.isDirectory()) {
-    libraryPath
-  } else {
-    ZipUtil.extract(libraryPath, targetDir) { _, name -> name == INSPECTOR_JAR }
-    targetDir
+suspend fun extractZipIfNeeded(targetDir: Path, libraryPath: Path) =
+  withContext(AndroidDispatchers.diskIoThread) {
+    if (libraryPath.isDirectory()) {
+      libraryPath
+    } else {
+      ZipUtil.extract(libraryPath, targetDir) { _, name -> name == INSPECTOR_JAR }
+      targetDir
+    }
   }
-}
 
 fun Path.resolveExistsOrNull(path: String) = resolve(path).takeIf { it.exists() }
 
@@ -50,7 +51,10 @@ fun FileService.createRandomTempDir() = getOrCreateTempDir(UUID.randomUUID().toS
 
 class ModuleSystemArtifactFinder(
   project: Project,
-  @TestOnly private val findArtifact: (ArtifactCoordinate) -> Path? = { artifactCoordinate -> project.findLibrary(artifactCoordinate) }
+  @TestOnly
+  private val findArtifact: (ArtifactCoordinate) -> Path? = { artifactCoordinate ->
+    project.findLibrary(artifactCoordinate)
+  }
 ) {
   /**
    * Finds the location of the library's aar specified by [artifactCoordinate].
@@ -61,9 +65,10 @@ class ModuleSystemArtifactFinder(
 
   companion object {
     private fun Project.findLibrary(artifactCoordinate: ArtifactCoordinate) =
-      allModules()
-        .asSequence()
-        .mapNotNull { module -> getProjectSystem().getModuleSystem(module).getDependencyPath(artifactCoordinate.toGradleCoordinate()) }
-        .firstOrNull()
+      modules.asList().firstNotNullOfOrNull { module ->
+        getProjectSystem()
+          .getModuleSystem(module)
+          .getDependencyPath(artifactCoordinate.toGradleCoordinate())
+      }
   }
 }

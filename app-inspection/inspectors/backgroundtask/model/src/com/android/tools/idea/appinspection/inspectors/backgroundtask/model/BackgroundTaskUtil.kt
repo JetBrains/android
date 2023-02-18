@@ -19,17 +19,19 @@ import androidx.work.inspection.WorkManagerInspectorProtocol
 import backgroundtask.inspection.BackgroundTaskInspectorProtocol
 import com.android.tools.inspectors.common.api.stacktrace.StackFrameParser
 
-fun WorkManagerInspectorProtocol.Event.getId(): String = when (oneOfCase) {
-  WorkManagerInspectorProtocol.Event.OneOfCase.WORK_ADDED -> workAdded.work.id
-  WorkManagerInspectorProtocol.Event.OneOfCase.WORK_UPDATED -> workUpdated.id
-  WorkManagerInspectorProtocol.Event.OneOfCase.WORK_REMOVED -> workRemoved.id
-  else -> throw RuntimeException()
-}
+fun WorkManagerInspectorProtocol.Event.getId(): String =
+  when (oneOfCase) {
+    WorkManagerInspectorProtocol.Event.OneOfCase.WORK_ADDED -> workAdded.work.id
+    WorkManagerInspectorProtocol.Event.OneOfCase.WORK_UPDATED -> workUpdated.id
+    WorkManagerInspectorProtocol.Event.OneOfCase.WORK_REMOVED -> workRemoved.id
+    else -> throw RuntimeException()
+  }
 
 fun BackgroundTaskInspectorProtocol.Event.getId(): Long = backgroundTaskEvent.taskId
 
 private fun getTopExternalClassName(trace: String, filter: String): String? {
-  return trace.lines()
+  return trace
+    .lines()
     .mapNotNull { StackFrameParser.parseFrame(it) }
     .map { it.className }
     .firstOrNull { className -> filter != className }

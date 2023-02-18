@@ -261,8 +261,10 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       .addComponent(button, 0, GroupLayout.DEFAULT_SIZE, scale.applyAsInt(250))
       .addGap(scale.applyAsInt(3));
 
-    Group verticalGroup = layout.createParallelGroup()
-      .addComponent(button);
+    Group verticalGroup = layout.createSequentialGroup()
+      .addGap(0, 0, Short.MAX_VALUE)
+      .addComponent(button)
+      .addGap(0, 0, Short.MAX_VALUE);
 
     layout.setHorizontalGroup(horizontalGroup);
     layout.setVerticalGroup(verticalGroup);
@@ -291,12 +293,6 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   @Override
   protected boolean shouldShowDisabledActions() {
     return true;
-  }
-
-  @NotNull
-  @Override
-  protected DefaultActionGroup createPopupActionGroup(@NotNull JComponent button) {
-    throw new UnsupportedOperationException();
   }
 
   @NotNull
@@ -341,7 +337,9 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     updater.update();
     updateTooltip(project);
-    setActiveExecutionTarget(project, getSelectedTargets(project, devices));
+    if (presentation.isVisible()) {
+      setActiveExecutionTarget(project, getSelectedTargets(project, devices));
+    }
   }
 
   private void updateTooltip(@NotNull Project project) {

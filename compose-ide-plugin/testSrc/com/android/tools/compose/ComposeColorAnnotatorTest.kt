@@ -23,21 +23,16 @@ import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.ui.resourcemanager.rendering.MultipleColorIcon
 import com.google.common.truth.Truth.assertThat
-import com.intellij.lang.annotation.Annotation
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestUtil
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.android.AndroidAnnotatorUtil
 import org.jetbrains.android.compose.stubComposableAnnotation
-import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
-import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
@@ -402,24 +397,16 @@ class ComposeColorAnnotatorTest {
     checkGutterIconInfos(listOf(), includeClickAction = false)
   }
 
-  @OptIn(KtAllowAnalysisOnEdt::class)
   private fun setNewColor(window: String, newColor: Color) {
+    val element = runInEdtAndGet { myFixture.moveCaret(window) }
+    val annotations = runReadAction {
+      CodeInsightTestUtil.testAnnotator(ComposeColorAnnotator(), element.parentOfType<KtCallExpression>()!!)
+    }
     runInEdtAndWait {
-      allowAnalysisOnEdt {
-        val element = myFixture.moveCaret(window)
-        val annotator = ComposeColorAnnotator()
-
-        val annotations: List<Annotation> = CodeInsightTestUtil.testAnnotator(annotator, element.parentOfType<KtCallExpression>()!! as PsiElement)
-        val iconRenderer = annotations[0].gutterIconRenderer as ColorIconRenderer
-        val project = myFixture.project
-
-        val setColorTask = iconRenderer.getSetColorTask() ?: return@runInEdtAndWait
-        ApplicationManager.getApplication().invokeLater({
-          WriteCommandAction.runWriteCommandAction(project, "Change Color", null, { setColorTask.invoke(newColor) })
-        }, project.disposed)
-
-        PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
-      }
+      val iconRenderer = annotations[0].gutterIconRenderer as ColorIconRenderer
+      val project = myFixture.project
+      val setColorTask = iconRenderer.getSetColorTask() ?: return@runInEdtAndWait
+      WriteCommandAction.runWriteCommandAction(project, "Change Color", null, { setColorTask.invoke(newColor) })
     }
   }
 

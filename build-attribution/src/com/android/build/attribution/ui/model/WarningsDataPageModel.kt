@@ -152,7 +152,7 @@ class WarningsDataPageModelImpl(
     get() = treeStructure.pageIdToNode[selectedPageId]
 
   override val isEmpty: Boolean
-    get() = reportData.issues.sumBy { it.warningCount } +
+    get() = reportData.issues.sumOf { it.warningCount } +
       reportData.annotationProcessors.issueCount +
       reportData.confCachingData.warningsCount() +
       (reportData.criticalPathTaskCategories?.entries ?: emptyList()).sumOf { category ->
@@ -419,7 +419,7 @@ class PluginGroupingWarningNodeDescriptor(
 
   override val analyticsPageType = PageType.PLUGIN_WARNINGS_ROOT
 
-  private val warningsCount = presentedTasksWithWarnings.values.sumBy { it.size }
+  private val warningsCount = presentedTasksWithWarnings.values.sumOf { it.size }
 
   override val presentation: BuildAnalyzerTreeNodePresentation
     get() = BuildAnalyzerTreeNodePresentation(
@@ -514,7 +514,7 @@ class ConfigurationCachingRootNodeDescriptor(
         }
         is NoIncompatiblePlugins -> ""
         ConfigurationCachingTurnedOn -> ""
-        ConfigurationCacheCompatibilityTestFlow -> ""
+        is ConfigurationCacheCompatibilityTestFlow -> ""
         ConfigurationCachingTurnedOff -> ""
         NoDataFromSavedResult -> ""
       },
@@ -555,7 +555,7 @@ private fun ConfigurationCachingCompatibilityProjectResult.warningsCount() = whe
   is AGPUpdateRequired -> 1
   is IncompatiblePluginsDetected -> incompatiblePluginWarnings.size + upgradePluginWarnings.size
   is NoIncompatiblePlugins -> 1
-  ConfigurationCacheCompatibilityTestFlow -> 1
+  is ConfigurationCacheCompatibilityTestFlow -> 1
   ConfigurationCachingTurnedOn -> 0
   ConfigurationCachingTurnedOff -> 0
   NoDataFromSavedResult -> 0

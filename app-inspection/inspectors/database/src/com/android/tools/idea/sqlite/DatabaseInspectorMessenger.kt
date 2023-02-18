@@ -21,11 +21,11 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.sqlite.databaseConnection.live.LiveInspectorException
 import com.android.tools.idea.sqlite.databaseConnection.live.getErrorMessage
 import com.google.common.util.concurrent.ListenableFuture
+import java.util.concurrent.Executor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.withContext
-import java.util.concurrent.Executor
 
 class DatabaseInspectorMessenger(
   private val messenger: AppInspectorMessenger,
@@ -35,31 +35,37 @@ class DatabaseInspectorMessenger(
 ) {
   private val workerDispatcher = taskExecutor.asCoroutineDispatcher()
 
-  suspend fun sendCommand(command: Command): SqliteInspectorProtocol.Response = withContext(workerDispatcher) {
-    val rawResponse = messenger.sendRawCommand(command.toByteArray())
-    val parsedResponse = SqliteInspectorProtocol.Response.parseFrom(rawResponse)
-    if (parsedResponse.hasErrorOccurred()) {
-      val errorResponse = parsedResponse.errorOccurred
-      errorsSideChannel(command, errorResponse)
-      val message = getErrorMessage(errorResponse.content)
-      throw LiveInspectorException(message, errorResponse.content.stackTrace)
+  suspend fun sendCommand(command: Command): SqliteInspectorProtocol.Response =
+    withContext(workerDispatcher) {
+      val rawResponse = messenger.sendRawCommand(command.toByteArray())
+      val parsedResponse = SqliteInspectorProtocol.Response.parseFrom(rawResponse)
+      if (parsedResponse.hasErrorOccurred()) {
+        val errorResponse = parsedResponse.errorOccurred
+        errorsSideChannel(command, errorResponse)
+        val message = getErrorMessage(errorResponse.content)
+        throw LiveInspectorException(message, errorResponse.content.stackTrace)
+      }
+      parsedResponse
     }
-    parsedResponse
-  }
 
   /**
    * The alternate version of sendCommand using futures. It delegates work to [sendCommand].
    *
-   * This is intended to be used in the interim while database inspector is being migrated to kotlin coroutines, or for Java clients that
-   * cannot be easily ported to Kotlin.
+   * This is intended to be used in the interim while database inspector is being migrated to kotlin
+   * coroutines, or for Java clients that cannot be easily ported to Kotlin.
    */
-  fun sendCommandAsync(command: Command): ListenableFuture<SqliteInspectorProtocol.Response> = scope.future { sendCommand(command) }
+  fun sendCommandAsync(command: Command): ListenableFuture<SqliteInspectorProtocol.Response> =
+    scope.future { sendCommand(command) }
 }
 
-// Overload allowing for passing-in an object-builder instead of an object as per Protobuf calling convention
-suspend fun DatabaseInspectorMessenger.sendCommand(commandBuilder: Command.Builder) = sendCommand(commandBuilder.build())
+// Overload allowing for passing-in an object-builder instead of an object as per Protobuf calling
+// convention
+suspend fun DatabaseInspectorMessenger.sendCommand(commandBuilder: Command.Builder) =
+  sendCommand(commandBuilder.build())
 
-// Overload allowing for passing-in an object-builder instead of an object as per Protobuf calling convention
-fun DatabaseInspectorMessenger.sendCommandAsync(commandBuilder: Command.Builder) = sendCommandAsync(commandBuilder.build())
+// Overload allowing for passing-in an object-builder instead of an object as per Protobuf calling
+// convention
+fun DatabaseInspectorMessenger.sendCommandAsync(commandBuilder: Command.Builder) =
+  sendCommandAsync(commandBuilder.build())
 
 typealias ErrorsSideChannel = (Command, SqliteInspectorProtocol.ErrorOccurredResponse) -> Unit

@@ -215,34 +215,34 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
-    <globalInspection hasStaticDescription="true" displayName="Bounds" shortName="Bounds" groupPath="Android,Lint"
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Bounds" shortName="Bounds" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BoundsAnalyzerInspection"/>
-    <globalInspection hasStaticDescription="true" displayName="Bottom nav" shortName="BottomNav" groupPath="Android,Lint"
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Bottom nav" shortName="BottomNav" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomNavAnalyzerInspection"/>
-    <globalInspection hasStaticDescription="true" displayName="Bottom app bar" shortName="BottomAppBar" groupPath="Android,Lint"
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Bottom app bar" shortName="BottomAppBar" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BottomAppBarAnalyzerInspection"/>
-    <globalInspection hasStaticDescription="true" displayName="Overlap" shortName="Overlap" groupPath="Android,Lint"
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Overlap" shortName="Overlap" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.OverlapAnalyzerInspection"/>
-    <globalInspection hasStaticDescription="true" displayName="Long text" shortName="LongText" groupPath="Android,Lint"
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Long text" shortName="LongText" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LongTextAnalyzerInspection"/>
-    <globalInspection hasStaticDescription="true" displayName="Accessibility" shortName="AccessibilityTestFramework" groupPath="Android,Lint"
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Accessibility" shortName="AccessibilityTestFramework" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.AtfAnalyzerInspection"/>
-    <globalInspection hasStaticDescription="true" displayName="Locale text" shortName="LocaleText" groupPath="Android,Lint"
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Locale text" shortName="LocaleText" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.LocaleAnalyzerInspection"/>
-    <globalInspection hasStaticDescription="true" displayName="Button size" shortName="ButtonSize" groupPath="Android,Lint"
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Button size" shortName="ButtonSize" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.ButtonSizeAnalyzerInspection"/>
-    <globalInspection hasStaticDescription="true" displayName="Text field size" shortName="TextFieldSize" groupPath="Android,Lint"
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Text field size" shortName="TextFieldSize" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.TextFieldSizeAnalyzerInspection"/>
-    <globalInspection hasStaticDescription="true" displayName="Wear margins" shortName="WearMargin" groupPath="Android,Lint"
+    <globalInspection projectType="Android" hasStaticDescription="true" displayName="Wear margins" shortName="WearMargin" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.WearMarginAnalyzerInspection"/>
   </extensions>

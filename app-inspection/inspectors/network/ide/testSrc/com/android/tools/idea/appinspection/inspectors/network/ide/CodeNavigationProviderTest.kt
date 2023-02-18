@@ -23,8 +23,7 @@ import org.junit.Test
 
 class CodeNavigationProviderTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun getCodeNavigator() {

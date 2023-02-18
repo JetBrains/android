@@ -26,6 +26,7 @@ import static com.android.utils.SdkUtils.endsWithIgnoreCase;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.adtui.ImageUtils;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.utils.SdkUtils;
@@ -82,7 +83,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
     }
     int minSdkVersion = Integer.MAX_VALUE;
     if (module != null) {
-      AndroidModuleInfo info = AndroidModuleInfo.getInstance(module);
+      AndroidModuleInfo info = StudioAndroidModuleInfo.getInstance(module);
       if (info != null) {
         minSdkVersion = info.getMinSdkVersion().getFeatureLevel();
       }
@@ -91,7 +92,7 @@ public class ConvertToWebpAction extends DumbAwareAction {
       Module[] modules = e.getData(LangDataKeys.MODULE_CONTEXT_ARRAY);
       if (modules != null) {
         for (Module m : modules) {
-          AndroidModuleInfo info = AndroidModuleInfo.getInstance(m);
+          AndroidModuleInfo info = StudioAndroidModuleInfo.getInstance(m);
           if (info != null) {
             minSdkVersion = Math.min(minSdkVersion, info.getMinSdkVersion().getFeatureLevel());
           }

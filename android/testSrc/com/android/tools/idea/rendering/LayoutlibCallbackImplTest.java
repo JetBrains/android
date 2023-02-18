@@ -27,7 +27,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.Charsets;
@@ -97,7 +97,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
         myModule,
         null,
         ResourceRepositoryManager.getInstance(myFacet),
-        AndroidModuleInfo.getInstance(myFacet),
+        StudioAndroidModuleInfo.getInstance(myFacet),
         null,
         ResourceIdManager.get(myModule)
       );
@@ -143,7 +143,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
         myModule,
         null,
         ResourceRepositoryManager.getInstance(myFacet),
-        AndroidModuleInfo.getInstance(myFacet),
+        StudioAndroidModuleInfo.getInstance(myFacet),
         null,
         ResourceIdManager.get(myModule)
       );

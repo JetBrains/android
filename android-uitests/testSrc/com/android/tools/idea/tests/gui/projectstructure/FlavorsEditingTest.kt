@@ -75,8 +75,8 @@ class FlavorsEditingTest {
             waitForIdle()
             clickOk()
           }
-          minSdkVersion().selectItem("25 (API 25: Android 7.1.1 (Nougat))")
-          targetSdkVersion().selectItem("24 (API 24: Android 7.0 (Nougat))")
+          minSdkVersion().selectItemWithIndex(1)
+          targetSdkVersion().selectItemWithIndex(0)
           versionCode().enterText("5")
           versionName().enterText("2.3")
         }

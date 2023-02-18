@@ -27,6 +27,8 @@ interface RecordingProvider {
 
   suspend fun stopRecording()
 
+  suspend fun cancelRecording()
+
   suspend fun doesRecordingExist(): Boolean
 
   suspend fun pullRecording(target: Path)

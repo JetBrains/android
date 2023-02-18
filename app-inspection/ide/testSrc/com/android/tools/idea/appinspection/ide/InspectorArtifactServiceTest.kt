@@ -16,7 +16,6 @@
 package com.android.tools.idea.appinspection.ide
 
 import com.android.testutils.TestUtils
-import com.android.tools.idea.appinspection.ide.resolver.AppInspectorArtifactPaths
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.service.TestFileService
 import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResolver
@@ -24,42 +23,49 @@ import com.android.tools.idea.appinspection.inspector.ide.resolver.ArtifactResol
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
+import java.nio.file.Path
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
-import java.nio.file.Path
 
 class InspectorArtifactServiceTest {
 
-  @get:Rule
-  val androidProjectRule = AndroidProjectRule.inMemory()
+  @get:Rule val androidProjectRule = AndroidProjectRule.inMemory()
 
-  private val libraryPath = TestUtils.resolveWorkspacePath(
-    "tools/adt/idea/app-inspection/ide/testData/libraries/androidx/work/work-runtime/2.5.0-beta01/work-runtime-2.5.0-beta01.aar")
+  private val libraryPath =
+    TestUtils.resolveWorkspacePath(
+      "tools/adt/idea/app-inspection/ide/testData/libraries/androidx/work/work-runtime/2.5.0-beta01/work-runtime-2.5.0-beta01.aar"
+    )
 
   @Test
-  fun getInspectorJar() = runBlocking<Unit> {
-    val fileService = TestFileService()
-    val artifactResolverFactory = object : ArtifactResolverFactory {
-      override fun getArtifactResolver(project: Project): ArtifactResolver {
-        return object : ArtifactResolver {
-          override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path {
-            return libraryPath
+  fun getInspectorJar() =
+    runBlocking<Unit> {
+      val fileService = TestFileService()
+      val artifactResolverFactory =
+        object : ArtifactResolverFactory {
+          override fun getArtifactResolver(project: Project): ArtifactResolver {
+            return object : ArtifactResolver {
+              override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate): Path {
+                return libraryPath
+              }
+            }
           }
         }
-      }
+      val artifactService = InspectorArtifactServiceImpl(fileService, artifactResolverFactory)
+
+      val resolvedArtifactPath =
+        artifactService.getOrResolveInspectorArtifact(
+          ArtifactCoordinate(
+            "androidx.work",
+            "work-runtime",
+            "2.5.0-beta01",
+            ArtifactCoordinate.Type.AAR
+          ),
+          androidProjectRule.project
+        )
+
+      assertThat(resolvedArtifactPath).isNotNull()
+      assertThat(resolvedArtifactPath.fileName.toString())
+        .isEqualTo("work-runtime-2.5.0-beta01.aar")
     }
-    val artifactService = InspectorArtifactServiceImpl(
-      fileService,
-      artifactResolverFactory
-    )
-
-    val resolvedArtifactPath = artifactService.getOrResolveInspectorArtifact(
-      ArtifactCoordinate("androidx.work", "work-runtime", "2.5.0-beta01", ArtifactCoordinate.Type.AAR),
-      androidProjectRule.project
-    )
-
-    assertThat(resolvedArtifactPath).isNotNull()
-    assertThat(resolvedArtifactPath.fileName.toString()).isEqualTo("work-runtime-2.5.0-beta01.aar")
-  }
 }

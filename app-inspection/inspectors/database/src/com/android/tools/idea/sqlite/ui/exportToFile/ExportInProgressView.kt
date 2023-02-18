@@ -33,7 +33,10 @@ interface ExportInProgressView {
   fun show()
 }
 
-/** Modal dialog showing an export operation is in progress and allowing for the operation to be cancelled. */
+/**
+ * Modal dialog showing an export operation is in progress and allowing for the operation to be
+ * cancelled.
+ */
 class ExportInProgressViewImpl(
   private val project: Project,
   private val job: Job,
@@ -57,11 +60,13 @@ class ExportInProgressViewImpl(
     project.coroutineScope.launch(taskDispatcher) {
       try {
         progressWindow.start()
-        progressWindow.text = DatabaseInspectorBundle.message("export.progress.dialog.caption") // must be called after `start`
+        progressWindow.text =
+          DatabaseInspectorBundle.message(
+            "export.progress.dialog.caption"
+          ) // must be called after `start`
         onShownListener(progressWindow)
         job.join()
-      }
-      finally {
+      } finally {
         withContext(NonCancellable) {
           progressWindow.stop()
           onClosedListener()

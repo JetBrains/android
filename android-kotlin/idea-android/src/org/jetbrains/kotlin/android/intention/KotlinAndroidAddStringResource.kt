@@ -31,6 +31,7 @@ import com.intellij.codeInsight.template.impl.ConstantNode
 import com.intellij.codeInsight.template.impl.MacroCallNode
 import com.intellij.codeInsight.template.impl.TemplateImpl
 import com.intellij.codeInsight.template.impl.TemplateState
+import com.intellij.codeInsight.template.impl.TextExpression
 import com.intellij.codeInsight.template.macro.VariableOfTypeMacro
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
@@ -64,6 +65,7 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtLambdaExpression
 import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
+import org.jetbrains.kotlin.psi.KtStringTemplateEntryWithExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
@@ -88,19 +90,8 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateEx
 
     override fun startInWriteAction(): Boolean = false
 
-    override fun isApplicableTo(element: KtStringTemplateExpression, caretOffset: Int): Boolean {
-        if (AndroidFacet.getInstance(element.containingFile) == null) {
-            return false
-        }
-
-        // Should not be available to strings with template expressions. Only KtStringTemplateExpression with known constant/literal child
-        // types are allowed.
-        val applicableTypes = setOf(
-          KtEscapeStringTemplateEntry::class,
-          KtLiteralStringTemplateEntry::class,
-        )
-        return element.children.all { it::class in applicableTypes }
-    }
+    override fun isApplicableTo(element: KtStringTemplateExpression, caretOffset: Int) =
+        AndroidFacet.getInstance(element.containingFile) != null
 
     override fun applyTo(element: KtStringTemplateExpression, editor: Editor?) {
         val facet = AndroidFacet.getInstance(element.containingFile)
@@ -126,7 +117,8 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateEx
                 return@runWriteAction
             }
 
-            createResourceReference(facet.module, editor, file, element, applicationPackage, parameters.name, ResourceType.STRING)
+            createResourceReference(facet.module, editor, file, element, applicationPackage, parameters.name, ResourceType.STRING,
+                                    parameters.placeholderExpressions)
             PsiDocumentManager.getInstance(project).commitAllDocuments()
             UndoUtil.markPsiFileForUndo(file)
             PsiManager.getInstance(project).dropResolveCaches()
@@ -135,12 +127,14 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateEx
 
     private fun getCreateXmlResourceParameters(module: Module, element: KtStringTemplateExpression,
                                                contextFile: VirtualFile): CreateXmlResourceParameters? {
-        val stringValue = buildLiteralString(element)
+        val (stringValue, placeholders) = buildLiteralStringAndPlaceholders(element)
 
         val showDialog = !ApplicationManager.getApplication().isUnitTestMode
-        val resourceName = buildResourceNameFromStringValue(stringValue)
+        val resourceName = buildResourceNameFromStringValue(stringValue.withoutPlaceholders())
+        val allowValueEditing = placeholders.isEmpty()
 
-        val dialog = CreateXmlResourceDialog(module, ResourceType.STRING, resourceName, stringValue, true, null, contextFile)
+        val dialog = CreateXmlResourceDialog(
+          module, ResourceType.STRING, resourceName, stringValue, true, null, contextFile, allowValueEditing)
         dialog.title = EXTRACT_RESOURCE_DIALOG_TITLE
         if (showDialog) {
             if (!dialog.showAndGet()) {
@@ -161,37 +155,66 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateEx
                                            dialog.value,
                                            dialog.fileName,
                                            resourceDirectory,
-                                           dialog.dirNames)
+                                           dialog.dirNames,
+                                           placeholders)
     }
 
-    private fun buildLiteralString(element: KtStringTemplateExpression): String = buildString {
-        for (child in element.children) {
-            when (child) {
-                is KtEscapeStringTemplateEntry -> append(child.unescapedValue)
-                is KtLiteralStringTemplateEntry -> append(child.text)
-                else -> Logger.getInstance(KotlinAndroidAddStringResource::class.java).error(
-                  "Unexpected child element type: ${child::class.simpleName}")
+    private fun buildLiteralStringAndPlaceholders(element: KtStringTemplateExpression): Pair<String, List<PsiElement>> {
+        val placeholderExpressions: MutableList<PsiElement> = mutableListOf()
+        var placeholderIndex = 1
+        val literalString = buildString {
+            for (child in element.children) {
+                when (child) {
+                    is KtEscapeStringTemplateEntry -> append(child.unescapedValue)
+                    is KtLiteralStringTemplateEntry -> append(child.text)
+                    is KtStringTemplateEntryWithExpression -> {
+                        assert(child.children.size == 1)
+                        placeholderExpressions.add(child.children[0])
+                        append("%$placeholderIndex\$s")
+                        placeholderIndex++
+                    }
+
+                    else -> Logger.getInstance(KotlinAndroidAddStringResource::class.java).error(
+                      "Unexpected child element type: ${child::class.simpleName}")
+                }
             }
         }
+
+        return Pair(literalString, placeholderExpressions.toList())
     }
 
+    /** Removes any placeholders of the form "%1$s" from a string. */
+    private fun String.withoutPlaceholders(): String = replace(Regex("%[0-9]+\\\$s"), "")
+
     private fun createResourceReference(module: Module, editor: Editor, file: KtFile, element: PsiElement, aPackage: String,
-                                        resName: String, resType: ResourceType) {
+                                        resName: String, resType: ResourceType, placeholderExpressions: List<PsiElement>) {
         val rFieldName = getRJavaFieldName(resName)
         val fieldName = "$aPackage.R.$resType.$rFieldName"
 
-        val template: TemplateImpl
-        if (element.isInsideComposableCode()) {
-            template = TemplateImpl("", "$COMPOSE_STRING_RESOURCE_FQN($fieldName)", "")
+        val (methodCall, addContextParameter) = when {
+            element.isInsideComposableCode() -> COMPOSE_STRING_RESOURCE_FQN to false
+            !needContextReceiver(element) -> GET_STRING_METHOD to false
+            else -> "\$context\$.$GET_STRING_METHOD" to true
         }
-        else if (!needContextReceiver(element)) {
-            template = TemplateImpl("", "$GET_STRING_METHOD($fieldName)", "")
+
+        val templateString = buildString {
+            append("$methodCall($fieldName")
+            for (i in placeholderExpressions.indices) {
+                append(", \$placeholder$i\$")
+            }
+            append(")")
         }
-        else {
-            template = TemplateImpl("", "\$context\$.$GET_STRING_METHOD($fieldName)", "")
+
+        val template = TemplateImpl("", templateString, "").apply { isToReformat = true }
+
+        if (addContextParameter) {
             val marker = MacroCallNode(VariableOfTypeMacro())
             marker.addParameter(ConstantNode(CLASS_CONTEXT))
             template.addVariable("context", marker, ConstantNode("context"), true)
+        }
+
+        placeholderExpressions.forEachIndexed { i, expr ->
+            template.addVariable("placeholder$i", TextExpression(expr.text), false)
         }
 
         editor.caretModel.moveToOffset(element.textOffset)
@@ -282,4 +305,11 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateEx
     private fun ClassifierDescriptor.isStrictSubclassOf(className: String) = defaultType.constructor.supertypes.any {
         it.constructor.declarationDescriptor?.isSubclassOf(className) ?: false
     }
+
+    private class CreateXmlResourceParameters(val name: String,
+                                              val value: String,
+                                              val fileName: String,
+                                              val resourceDirectory: VirtualFile,
+                                              val directoryNames: List<String>,
+                                              val placeholderExpressions: List<PsiElement>)
 }

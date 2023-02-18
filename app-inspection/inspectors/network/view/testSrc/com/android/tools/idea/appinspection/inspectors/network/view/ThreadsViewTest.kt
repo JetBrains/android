@@ -33,9 +33,15 @@ import com.android.tools.idea.appinspection.inspectors.network.model.httpdata.cr
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
+import java.awt.Component
+import java.awt.Dimension
+import java.util.concurrent.TimeUnit
+import javax.swing.JPanel
+import javax.swing.JTable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
@@ -43,41 +49,48 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.awt.Component
-import java.awt.Dimension
-import java.util.concurrent.TimeUnit
-import javax.swing.JPanel
-import javax.swing.JTable
 
-private val FAKE_DATA: ImmutableList<HttpData> = ImmutableList.Builder<HttpData>()
-  .add(newData(1, 1, 10, 11, "threadA"))
-  .add(newData(2, 5, 12, 12, "threadB"))
-  .add(newData(3, 13, 15, 11, "threadA"))
-  .add(newData(4, 20, 25, 11, "threadA"))
-  .add(newData(5, 14, 21, 12, "threadB"))
-  .add(newData(11, 100, 110, 13, "threadC"))
-  .add(newData(12, 115, 120, 14, "threadC"))
-  .build()
+private val FAKE_DATA: ImmutableList<HttpData> =
+  ImmutableList.Builder<HttpData>()
+    .add(newData(1, 1, 10, 11, "threadA"))
+    .add(newData(2, 5, 12, 12, "threadB"))
+    .add(newData(3, 13, 15, 11, "threadA"))
+    .add(newData(4, 20, 25, 11, "threadA"))
+    .add(newData(5, 14, 21, 12, "threadB"))
+    .add(newData(11, 100, 110, 13, "threadC"))
+    .add(newData(12, 115, 120, 14, "threadC"))
+    .build()
 
-private fun newData(id: Long, startS: Long, endS: Long, threadId: Long, threadName: String): HttpData {
+private fun newData(
+  id: Long,
+  startS: Long,
+  endS: Long,
+  threadId: Long,
+  threadName: String
+): HttpData {
   return createFakeHttpData(
-    id, TimeUnit.SECONDS.toMicros(startS), TimeUnit.SECONDS.toMicros(startS),
-    TimeUnit.SECONDS.toMicros(endS), TimeUnit.SECONDS.toMicros(endS), TimeUnit.SECONDS.toMicros(endS),
+    id,
+    TimeUnit.SECONDS.toMicros(startS),
+    TimeUnit.SECONDS.toMicros(startS),
+    TimeUnit.SECONDS.toMicros(endS),
+    TimeUnit.SECONDS.toMicros(endS),
+    TimeUnit.SECONDS.toMicros(endS),
     listOf(JavaThread(threadId, threadName))
   )
 }
 
-private fun JTable.getFirstHttpDataAtRow(row: Int): HttpData = (getValueAt(row, 1) as List<*>).first() as HttpData
+private fun JTable.getFirstHttpDataAtRow(row: Int): HttpData =
+  (getValueAt(row, 1) as List<*>).first() as HttpData
 
 @RunsInEdt
 class ThreadsViewTest {
   private val timer = FakeTimer()
 
-  @get:Rule
-  val edtRule = EdtRule()
+  @get:Rule val edtRule = EdtRule()
 
-  @get:Rule
-  val projectRule = ProjectRule()
+  @get:Rule val projectRule = ProjectRule()
+
+  @get:Rule val disposableRule = DisposableRule()
 
   private lateinit var model: NetworkInspectorModel
   private lateinit var inspectorView: NetworkInspectorView
@@ -91,20 +104,44 @@ class ThreadsViewTest {
     scope = CoroutineScope(MoreExecutors.directExecutor().asCoroutineDispatcher())
     val codeNavigationProvider = FakeCodeNavigationProvider()
     val services = TestNetworkInspectorServices(codeNavigationProvider, timer)
-    model = NetworkInspectorModel(services, FakeNetworkInspectorDataSource(), scope, object : HttpDataModel {
-      private val dataList = FAKE_DATA
-      override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
-        return dataList.filter { it.requestStartTimeUs >= timeCurrentRangeUs.min && it.requestStartTimeUs <= timeCurrentRangeUs.max }
-      }
-    })
+    model =
+      NetworkInspectorModel(
+        services,
+        FakeNetworkInspectorDataSource(),
+        scope,
+        object : HttpDataModel {
+          private val dataList = FAKE_DATA
+          override fun getData(timeCurrentRangeUs: Range): List<HttpData> {
+            return dataList.filter {
+              it.requestStartTimeUs >= timeCurrentRangeUs.min &&
+                it.requestStartTimeUs <= timeCurrentRangeUs.max
+            }
+          }
+        }
+      )
     val parentPanel = JPanel()
     val component = TooltipLayeredPane(parentPanel)
-    inspectorView = NetworkInspectorView(projectRule.project, model, FakeUiComponentsProvider(), component, services, scope)
+    inspectorView =
+      NetworkInspectorView(
+        projectRule.project,
+        model,
+        FakeUiComponentsProvider(),
+        component,
+        services,
+        scope,
+        disposableRule.disposable
+      )
     parentPanel.add(inspectorView.component)
 
     threadsView = ThreadsView(model, component)
     threadsView.component.size = Dimension(300, 50)
-    table = TreeWalker(threadsView.component).descendantStream().filter { c -> c is JTable }.findFirst().get() as JTable
+    table =
+      TreeWalker(threadsView.component)
+        .descendantStream()
+        .filter { c -> c is JTable }
+        .findFirst()
+        .get() as
+        JTable
     table.setUI(HeadlessTableUI())
     // Normally, when ThreadsView changes size, it updates the size of its table which in turn
     // fires an event that updates the preferred size of its columns. This requires multiple layout
@@ -127,7 +164,8 @@ class ThreadsViewTest {
     selection[0.0] = TimeUnit.SECONDS.toMicros(22).toDouble()
     assertThat(table.model.rowCount).isEqualTo(2)
     assertThat(table.model.getValueAt(0, 0)).isEqualTo("threadA")
-    assertThat(table.model.getValueAt(0, 1) as List<*>).containsExactly(FAKE_DATA[0], FAKE_DATA[2], FAKE_DATA[3])
+    assertThat(table.model.getValueAt(0, 1) as List<*>)
+      .containsExactly(FAKE_DATA[0], FAKE_DATA[2], FAKE_DATA[3])
     assertThat(table.model.getValueAt(1, 0)).isEqualTo("threadB")
     assertThat(table.model.getValueAt(1, 1) as List<*>).containsExactly(FAKE_DATA[1], FAKE_DATA[4])
   }
@@ -175,15 +213,23 @@ class ThreadsViewTest {
     val selection = model.timeline.selectionRange
     selection[TimeUnit.SECONDS.toMicros(0).toDouble()] = TimeUnit.SECONDS.toMicros(200).toDouble()
     table.rowSorter.toggleSortOrder(table.getColumn("Timeline").modelIndex)
-    assertThat(table.getFirstHttpDataAtRow(0).requestStartTimeUs).isEqualTo(TimeUnit.SECONDS.toMicros(1))
-    assertThat(table.getFirstHttpDataAtRow(1).requestStartTimeUs).isEqualTo(TimeUnit.SECONDS.toMicros(5))
-    assertThat(table.getFirstHttpDataAtRow(2).requestStartTimeUs).isEqualTo(TimeUnit.SECONDS.toMicros(100))
-    assertThat(table.getFirstHttpDataAtRow(3).requestStartTimeUs).isEqualTo(TimeUnit.SECONDS.toMicros(115))
+    assertThat(table.getFirstHttpDataAtRow(0).requestStartTimeUs)
+      .isEqualTo(TimeUnit.SECONDS.toMicros(1))
+    assertThat(table.getFirstHttpDataAtRow(1).requestStartTimeUs)
+      .isEqualTo(TimeUnit.SECONDS.toMicros(5))
+    assertThat(table.getFirstHttpDataAtRow(2).requestStartTimeUs)
+      .isEqualTo(TimeUnit.SECONDS.toMicros(100))
+    assertThat(table.getFirstHttpDataAtRow(3).requestStartTimeUs)
+      .isEqualTo(TimeUnit.SECONDS.toMicros(115))
     table.rowSorter.toggleSortOrder(table.getColumn("Timeline").modelIndex)
-    assertThat(table.getFirstHttpDataAtRow(0).requestStartTimeUs).isEqualTo(TimeUnit.SECONDS.toMicros(115))
-    assertThat(table.getFirstHttpDataAtRow(1).requestStartTimeUs).isEqualTo(TimeUnit.SECONDS.toMicros(100))
-    assertThat(table.getFirstHttpDataAtRow(2).requestStartTimeUs).isEqualTo(TimeUnit.SECONDS.toMicros(5))
-    assertThat(table.getFirstHttpDataAtRow(3).requestStartTimeUs).isEqualTo(TimeUnit.SECONDS.toMicros(1))
+    assertThat(table.getFirstHttpDataAtRow(0).requestStartTimeUs)
+      .isEqualTo(TimeUnit.SECONDS.toMicros(115))
+    assertThat(table.getFirstHttpDataAtRow(1).requestStartTimeUs)
+      .isEqualTo(TimeUnit.SECONDS.toMicros(100))
+    assertThat(table.getFirstHttpDataAtRow(2).requestStartTimeUs)
+      .isEqualTo(TimeUnit.SECONDS.toMicros(5))
+    assertThat(table.getFirstHttpDataAtRow(3).requestStartTimeUs)
+      .isEqualTo(TimeUnit.SECONDS.toMicros(1))
   }
 
   @Test
@@ -215,5 +261,4 @@ class ThreadsViewTest {
     fakeUi.mouse.click(badX, goodY)
     assertThat(model.selectedConnection).isNotNull()
   }
-
 }

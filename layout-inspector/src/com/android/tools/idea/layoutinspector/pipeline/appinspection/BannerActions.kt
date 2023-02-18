@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor
 import com.google.common.annotations.VisibleForTesting
@@ -119,7 +119,7 @@ fun showActivityRestartedInBanner(project: Project, process: ProcessDescriptor) 
 }
 
 private fun moduleFromCurrentProjectBeingInspected(project: Project, process: ProcessDescriptor): Module? =
-  project.allModules().firstOrNull { process.name == AndroidModuleInfo.getInstance(it)?.`package` }
+  project.allModules().firstOrNull { process.name == StudioAndroidModuleInfo.getInstance(it)?.packageName }
 
 /**
  * Get the [AndroidRunConfiguration] for the specified [module].

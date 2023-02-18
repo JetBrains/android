@@ -21,14 +21,15 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.BackgroundTaskEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.WorkEntry
 import com.android.tools.idea.appinspection.inspectors.backgroundtask.model.entries.createBackgroundTaskEntry
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
-import java.util.concurrent.ConcurrentHashMap
 
-typealias EntryUpdateEventListener = (type: EntryUpdateEventType, entry: BackgroundTaskEntry) -> Unit
+typealias EntryUpdateEventListener =
+  (type: EntryUpdateEventType, entry: BackgroundTaskEntry) -> Unit
 
 enum class EntryUpdateEventType {
   ADD,
@@ -42,7 +43,8 @@ sealed class WmiMessengerTarget {
 }
 
 /**
- * A Wrapper class that contains either [WorkManagerInspectorProtocol.Event] or [BackgroundTaskInspectorProtocol.Event].
+ * A Wrapper class that contains either [WorkManagerInspectorProtocol.Event] or
+ * [BackgroundTaskInspectorProtocol.Event].
  */
 class EventWrapper(val case: Case, data: ByteArray) {
   enum class Case {
@@ -54,7 +56,9 @@ class EventWrapper(val case: Case, data: ByteArray) {
   constructor(event: WorkManagerInspectorProtocol.Event) : this(Case.WORK, event.toByteArray())
 
   @TestOnly
-  constructor(event: BackgroundTaskInspectorProtocol.Event) : this(Case.BACKGROUND_TASK, event.toByteArray())
+  constructor(
+    event: BackgroundTaskInspectorProtocol.Event
+  ) : this(Case.BACKGROUND_TASK, event.toByteArray())
 
   val workEvent =
     (if (case == Case.WORK) WorkManagerInspectorProtocol.Event.parseFrom(data)
@@ -65,7 +69,8 @@ class EventWrapper(val case: Case, data: ByteArray) {
 }
 
 /**
- * Class used to send commands to and handle events from the on-device work manager inspector and background task inspector.
+ * Class used to send commands to and handle events from the on-device work manager inspector and
+ * background task inspector.
  */
 class BackgroundTaskInspectorClient(
   private val btiMessenger: AppInspectorMessenger,
@@ -76,9 +81,7 @@ class BackgroundTaskInspectorClient(
   private val listeners = mutableListOf<EntryUpdateEventListener>()
   private val entryMap = ConcurrentHashMap<String, BackgroundTaskEntry>()
 
-  /**
-   * Add a listener which is fired when an entry is added updated or removed.
-   */
+  /** Add a listener which is fired when an entry is added updated or removed. */
   fun addEntryUpdateEventListener(listener: EntryUpdateEventListener) = listeners.add(listener)
 
   private fun fireEntryUpdateEvent(type: EntryUpdateEventType, entry: BackgroundTaskEntry) {
@@ -86,9 +89,12 @@ class BackgroundTaskInspectorClient(
   }
 
   init {
-    val trackBackgroundTaskCommand = BackgroundTaskInspectorProtocol.Command.newBuilder()
-      .setTrackBackgroundTask(BackgroundTaskInspectorProtocol.TrackBackgroundTaskCommand.getDefaultInstance())
-      .build()
+    val trackBackgroundTaskCommand =
+      BackgroundTaskInspectorProtocol.Command.newBuilder()
+        .setTrackBackgroundTask(
+          BackgroundTaskInspectorProtocol.TrackBackgroundTaskCommand.getDefaultInstance()
+        )
+        .build()
     scope.launch {
       btiMessenger.sendRawCommand(trackBackgroundTaskCommand.toByteArray())
       btiMessenger.eventFlow.collect { eventData ->
@@ -97,9 +103,12 @@ class BackgroundTaskInspectorClient(
     }
 
     if (wmiMessengerTarget is WmiMessengerTarget.Resolved) {
-      val trackWorkManagerCommand = WorkManagerInspectorProtocol.Command.newBuilder()
-        .setTrackWorkManager(WorkManagerInspectorProtocol.TrackWorkManagerCommand.getDefaultInstance())
-        .build()
+      val trackWorkManagerCommand =
+        WorkManagerInspectorProtocol.Command.newBuilder()
+          .setTrackWorkManager(
+            WorkManagerInspectorProtocol.TrackWorkManagerCommand.getDefaultInstance()
+          )
+          .build()
       scope.launch {
         wmiMessengerTarget.messenger.sendRawCommand(trackWorkManagerCommand.toByteArray())
         wmiMessengerTarget.messenger.eventFlow.collect { eventData ->
@@ -118,41 +127,43 @@ class BackgroundTaskInspectorClient(
       oldEntry.consume(event)
       if (oldEntry.isValid) {
         fireEntryUpdateEvent(EntryUpdateEventType.UPDATE, oldEntry)
-      }
-      else {
-        entryMap.remove(candidate.id)?.let {
-          fireEntryUpdateEvent(EntryUpdateEventType.REMOVE, it)
-        }
-      }
-    } ?: candidate.let { newEntry ->
-      // Insert a new entry.
-      newEntry.consume(event)
-      if (newEntry.isValid) {
-        entryMap[newEntry.id] = newEntry
-        fireEntryUpdateEvent(EntryUpdateEventType.ADD, newEntry)
+      } else {
+        entryMap.remove(candidate.id)?.let { fireEntryUpdateEvent(EntryUpdateEventType.REMOVE, it) }
       }
     }
+      ?: candidate.let { newEntry ->
+        // Insert a new entry.
+        newEntry.consume(event)
+        if (newEntry.isValid) {
+          entryMap[newEntry.id] = newEntry
+          fireEntryUpdateEvent(EntryUpdateEventType.ADD, newEntry)
+        }
+      }
   }
 
   /**
-   * Returns an entry with [entryId].
-   * Entries are updated from non-UI thread and could be inconsistent with data acquired from UI thread.
+   * Returns an entry with [entryId]. Entries are updated from non-UI thread and could be
+   * inconsistent with data acquired from UI thread.
    */
   fun getEntry(entryId: String): BackgroundTaskEntry? {
     return entryMap[entryId]
   }
 
   fun cancelWorkById(id: String) {
-    val cancelCommand = WorkManagerInspectorProtocol.CancelWorkCommand.newBuilder().setId(id).build()
-    val command = WorkManagerInspectorProtocol.Command.newBuilder().setCancelWork(cancelCommand).build()
+    val cancelCommand =
+      WorkManagerInspectorProtocol.CancelWorkCommand.newBuilder().setId(id).build()
+    val command =
+      WorkManagerInspectorProtocol.Command.newBuilder().setCancelWork(cancelCommand).build()
     scope.launch {
-      (wmiMessengerTarget as WmiMessengerTarget.Resolved).messenger.sendRawCommand(command.toByteArray())
+      (wmiMessengerTarget as WmiMessengerTarget.Resolved).messenger.sendRawCommand(
+        command.toByteArray()
+      )
     }
   }
 
   /**
-   * Returns a chain of works with topological ordering containing the selected work.
-   * Entries are updated from non-UI thread and could be inconsistent with data acquired from UI thread.
+   * Returns a chain of works with topological ordering containing the selected work. Entries are
+   * updated from non-UI thread and could be inconsistent with data acquired from UI thread.
    *
    * @param id id of the selected work.
    */

@@ -24,23 +24,33 @@ class AlarmEntryTest {
   @Test
   fun alarmCancelled() {
     val alarmEntry = AlarmEntry("1")
-    val setEvent = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
-      taskId = 1
-      stacktrace = "SET"
-      alarmSet = BackgroundTaskInspectorProtocol.AlarmSet.newBuilder().apply {
-        type = BackgroundTaskInspectorProtocol.AlarmSet.Type.RTC
-        triggerMs = 2L
-        listener = BackgroundTaskInspectorProtocol.AlarmListener.newBuilder().apply {
-          tag = "TAG1"
-        }.build()
-      }.build()
-    }.build()
+    val setEvent =
+      BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder()
+        .apply {
+          taskId = 1
+          stacktrace = "SET"
+          alarmSet =
+            BackgroundTaskInspectorProtocol.AlarmSet.newBuilder()
+              .apply {
+                type = BackgroundTaskInspectorProtocol.AlarmSet.Type.RTC
+                triggerMs = 2L
+                listener =
+                  BackgroundTaskInspectorProtocol.AlarmListener.newBuilder()
+                    .apply { tag = "TAG1" }
+                    .build()
+              }
+              .build()
+        }
+        .build()
 
-    val cancelledEvent = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
-      taskId = 1
-      stacktrace = "CANCELLED"
-      alarmCancelled = BackgroundTaskInspectorProtocol.AlarmCancelled.getDefaultInstance()
-    }.build()
+    val cancelledEvent =
+      BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder()
+        .apply {
+          taskId = 1
+          stacktrace = "CANCELLED"
+          alarmCancelled = BackgroundTaskInspectorProtocol.AlarmCancelled.getDefaultInstance()
+        }
+        .build()
 
     alarmEntry.consumeAndAssert(setEvent, 1) {
       this as AlarmEntry
@@ -54,7 +64,8 @@ class AlarmEntryTest {
 
     alarmEntry.consumeAndAssert(cancelledEvent, 2) {
       assertThat(status).isEqualTo("CANCELLED")
-      assertThat(callstacks).containsExactly(BackgroundTaskCallStack(1, "SET"), BackgroundTaskCallStack(2, "CANCELLED"))
+      assertThat(callstacks)
+        .containsExactly(BackgroundTaskCallStack(1, "SET"), BackgroundTaskCallStack(2, "CANCELLED"))
       assertThat(retries).isEqualTo(0)
     }
   }
@@ -69,22 +80,32 @@ class AlarmEntryTest {
         android.com.java.profilertester.taskcategory.AlarmTask.execute(BackgroundTaskCategory.java:159)
       """.trimIndent()
 
-    val setEvent = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
-      taskId = 1
-      this.stacktrace = stacktrace
-      alarmSet = BackgroundTaskInspectorProtocol.AlarmSet.newBuilder().apply {
-        type = BackgroundTaskInspectorProtocol.AlarmSet.Type.RTC
-        triggerMs = 2L
-        listener = BackgroundTaskInspectorProtocol.AlarmListener.newBuilder().apply {
-          tag = "TAG1"
-        }.build()
-      }.build()
-    }.build()
+    val setEvent =
+      BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder()
+        .apply {
+          taskId = 1
+          this.stacktrace = stacktrace
+          alarmSet =
+            BackgroundTaskInspectorProtocol.AlarmSet.newBuilder()
+              .apply {
+                type = BackgroundTaskInspectorProtocol.AlarmSet.Type.RTC
+                triggerMs = 2L
+                listener =
+                  BackgroundTaskInspectorProtocol.AlarmListener.newBuilder()
+                    .apply { tag = "TAG1" }
+                    .build()
+              }
+              .build()
+        }
+        .build()
 
-    val firedEvent = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
-      taskId = 1
-      alarmFired = BackgroundTaskInspectorProtocol.AlarmFired.getDefaultInstance()
-    }.build()
+    val firedEvent =
+      BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder()
+        .apply {
+          taskId = 1
+          alarmFired = BackgroundTaskInspectorProtocol.AlarmFired.getDefaultInstance()
+        }
+        .build()
 
     alarmEntry.consumeAndAssert(setEvent, 1) {
       this as AlarmEntry
@@ -110,10 +131,13 @@ class AlarmEntryTest {
   fun missingAlarmSet() {
     val alarmEntry = AlarmEntry("1")
 
-    val firedEvent = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
-      taskId = 1
-      alarmFired = BackgroundTaskInspectorProtocol.AlarmFired.getDefaultInstance()
-    }.build()
+    val firedEvent =
+      BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder()
+        .apply {
+          taskId = 1
+          alarmFired = BackgroundTaskInspectorProtocol.AlarmFired.getDefaultInstance()
+        }
+        .build()
 
     alarmEntry.consumeAndAssert(firedEvent) {
       assertThat(status).isEqualTo("FIRED")

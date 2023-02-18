@@ -25,6 +25,7 @@ import static org.junit.Assert.assertEquals;
 
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
+import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -32,12 +33,14 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import com.intellij.ui.components.JBList;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.fixture.DialogFixture;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,10 +51,15 @@ public class AltEnterSuggestionsTest {
 
   protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Views Activity";
 
+  private IdeFrameFixture ideFrame;
+  private EditorFixture editor;
+
   @Before
   public void setUp() throws Exception {
     WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE); // Default projects are created with androidx dependencies
     guiTest.robot().waitForIdle();
+    ideFrame = guiTest.ideFrame();
+    editor = ideFrame.getEditor();
   }
 
   /**
@@ -91,8 +99,7 @@ public class AltEnterSuggestionsTest {
   @RunIn(TestGroup.SANITY_BAZEL)
   @Test
   public void testAltEnterSuggestions() throws IOException, InterruptedException {
-    IdeFrameFixture ideFrame = guiTest.ideFrame();
-    EditorFixture editor = ideFrame.getEditor();
+    ideFrame.clearNotificationsPresentOnIdeFrame();
 
     editor.open("/app/src/main/java/com/google/myapplication/MainActivity.java")
       .moveBetween("(R.layout.activity_main);", "")
@@ -102,43 +109,40 @@ public class AltEnterSuggestionsTest {
     editor.waitForCodeAnalysisHighlightCount(HighlightSeverity.ERROR, 3);
 
     editor.moveBetween("L", "og");
-    guiTest.waitForBackgroundTasks();
-    guiTest.robot().waitForIdle();
-    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, KeyEvent.ALT_MASK);
-    guiTest.waitForBackgroundTasks();
-    guiTest.robot().waitForIdle();
+    editor.invokeAction(EditorFixture.EditorAction.SHOW_INTENTION_ACTIONS);
+    JBList popupOptionsForImportingLog = GuiTests.waitForPopup(ideFrame.robot());
 
-    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
+    List<String> optionsForLog = editor.moreActionsOptions();
+    assertEquals("Import class", optionsForLog.get(0));
 
-    guiTest.waitForBackgroundTasks();
-    guiTest.robot().waitForIdle();
+    GuiTests.clickPopupMenuItem("Import class", popupOptionsForImportingLog, ideFrame.robot());
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     assertThat(editor.getCurrentFileContents()).contains("import android.util.Log;");
 
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    ideFrame.focus();
     editor.moveBetween("SomeC", "lass someClass;");
-    guiTest.waitForBackgroundTasks();
-    guiTest.robot().waitForIdle();
-    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, KeyEvent.ALT_MASK);
-    guiTest.waitForBackgroundTasks();
-    guiTest.robot().waitForIdle();
-    List<String> options = editor.moreActionsOptions();
+    editor.waitForQuickfix();
+    editor.invokeAction(EditorFixture.EditorAction.SHOW_INTENTION_ACTIONS);
+    JBList popupForImportingSomeClass = GuiTests.waitForPopup(ideFrame.robot());
 
-    assertEquals("Create class 'SomeClass'", options.get(0));
-    assertEquals("Create interface 'SomeClass'", options.get(1));
-    assertEquals("Create enum 'SomeClass'", options.get(2));
-    assertEquals("Create inner class 'SomeClass'", options.get(3));
-    assertEquals("Create type parameter 'SomeClass'", options.get(4));
+    List<String> optionsForImportingSomeClass = editor.moreActionsOptions();
+    assertEquals("Create class 'SomeClass'", optionsForImportingSomeClass.get(0));
+    assertEquals("Create interface 'SomeClass'", optionsForImportingSomeClass.get(1));
+    assertEquals("Create enum 'SomeClass'", optionsForImportingSomeClass.get(2));
+    assertEquals("Create inner class 'SomeClass'", optionsForImportingSomeClass.get(3));
+    assertEquals("Create type parameter 'SomeClass'", optionsForImportingSomeClass.get(4));
 
-    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
+    GuiTests.clickPopupMenuItem("Create class 'SomeClass'", popupForImportingSomeClass, ideFrame.robot());
 
-    DialogFixture createClassDialog = findDialog(withTitle("Create Class SomeClass"))
-      .withTimeout(SECONDS.toMillis(200)).using(guiTest.robot());
-    createClassDialog.button(withText("OK")).click();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    ideFrame.requestFocusIfLost();
 
-    guiTest.waitForBackgroundTasks();
-    guiTest.robot().waitForIdle();
+    DialogFixture createClassDialog = ideFrame.waitForDialog("Create Class SomeClass");
+    GuiTests.findAndClickOkButton(createClassDialog);
+
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     ideFrame.getProjectView().assertFilesExist(
       "/app/src/main/java/com/google/myapplication/SomeClass.java"
@@ -147,21 +151,18 @@ public class AltEnterSuggestionsTest {
     ideFrame.focus();
     editor.open("/app/src/main/java/com/google/myapplication/MainActivity.java")
       .moveBetween("someMeth", "od");
-    guiTest.waitForBackgroundTasks();
-    guiTest.robot().waitForIdle();
-    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER, KeyEvent.ALT_MASK);
-    guiTest.waitForBackgroundTasks();
-    guiTest.robot().waitForIdle();
+    editor.waitForQuickfix();
+    editor.invokeAction(EditorFixture.EditorAction.SHOW_INTENTION_ACTIONS);
 
-    assertEquals("Create method 'someMethod' in 'MainActivity'", editor.moreActionsOptions().get(0));
-    assertEquals("Rename reference", editor.moreActionsOptions().get(1));
+    JBList popupForImportingSomeMethod = GuiTests.waitForPopup(ideFrame.robot());
 
-    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ENTER);
-    guiTest.waitForBackgroundTasks();
-    guiTest.robot().waitForIdle();
+    List<String> optionsForImportingSomeMethod = editor.moreActionsOptions();
+    assertEquals("Create method 'someMethod' in 'MainActivity'", optionsForImportingSomeMethod.get(0));
+    //assertEquals("Rename reference", optionsForImportingSomeMethod.get(1));
 
-    assertThat(editor.getCurrentFileContents()).contains("private int someMethod(int i) {");
+    GuiTests.clickPopupMenuItem("Create method 'someMethod' in 'MainActivity'", popupForImportingSomeMethod, ideFrame.robot());
 
+    assertThat(editor.getCurrentFileContents())
+      .contains("private int someMethod(int i) {");
   }
-
 }

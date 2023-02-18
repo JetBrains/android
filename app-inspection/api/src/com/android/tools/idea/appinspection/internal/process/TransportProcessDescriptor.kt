@@ -19,9 +19,7 @@ import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescript
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.profiler.proto.Common
 
-/**
- * A [ProcessDescriptor] implementation build using transport-related protos.
- */
+/** A [ProcessDescriptor] implementation build using transport-related protos. */
 data class TransportProcessDescriptor(
   override val device: DeviceDescriptor,
   override val abiCpuArch: String,

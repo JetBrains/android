@@ -29,7 +29,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.DesignSurfaceListener
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
 import com.android.tools.idea.res.psi.ResourceRepositoryToPsiResolver
 import com.android.tools.idea.uibuilder.analytics.NlUsageTracker
@@ -214,7 +214,7 @@ open class NlPropertiesModel(
 
   private fun compatibleMarginAttribute(property: NlPropertyItem): String? {
     if (property.namespace != ANDROID_URI ||
-        AndroidModuleInfo.getInstance(facet).minSdkVersion.apiLevel >= RtlSupportProcessor.RTL_TARGET_SDK_START) {
+        StudioAndroidModuleInfo.getInstance(facet).minSdkVersion.apiLevel >= RtlSupportProcessor.RTL_TARGET_SDK_START) {
       return null
     }
     return when (property.name) {

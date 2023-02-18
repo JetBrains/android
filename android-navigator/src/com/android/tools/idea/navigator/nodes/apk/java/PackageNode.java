@@ -23,7 +23,8 @@ import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Queryable;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.util.PlatformIcons;
+import com.intellij.ui.IconManager;
+import com.intellij.ui.PlatformIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -108,7 +109,7 @@ class PackageNode extends ProjectViewNode<ApkPackage> {
 
   @Override
   protected void update(@NotNull PresentationData presentation) {
-    presentation.setIcon(PlatformIcons.PACKAGE_ICON);
+    presentation.setIcon(IconManager.getInstance().getPlatformIcon(PlatformIcons.Package));
     presentation.setPresentableText(getText());
   }
 

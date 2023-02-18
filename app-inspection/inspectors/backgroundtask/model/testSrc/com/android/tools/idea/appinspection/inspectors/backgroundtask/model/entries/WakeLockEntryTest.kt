@@ -29,24 +29,42 @@ class WakeLockEntryTest {
         android.com.java.profilertester.taskcategory.WakeLockTask.execute(BackgroundTaskCategory.java:83)
       """.trimIndent()
 
-    val wakeLockAcquiredEvent = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
-      taskId = 1
-      this.stacktrace = acquiredStacktrace
-      wakeLockAcquired = BackgroundTaskInspectorProtocol.WakeLockAcquired.newBuilder().apply {
-        level = BackgroundTaskInspectorProtocol.WakeLockAcquired.Level.PARTIAL_WAKE_LOCK
-        tag = "TAG1"
-        addFlags(BackgroundTaskInspectorProtocol.WakeLockAcquired.CreationFlag.ACQUIRE_CAUSES_WAKEUP)
-      }.build()
-    }.build()
+    val wakeLockAcquiredEvent =
+      BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder()
+        .apply {
+          taskId = 1
+          this.stacktrace = acquiredStacktrace
+          wakeLockAcquired =
+            BackgroundTaskInspectorProtocol.WakeLockAcquired.newBuilder()
+              .apply {
+                level = BackgroundTaskInspectorProtocol.WakeLockAcquired.Level.PARTIAL_WAKE_LOCK
+                tag = "TAG1"
+                addFlags(
+                  BackgroundTaskInspectorProtocol.WakeLockAcquired.CreationFlag
+                    .ACQUIRE_CAUSES_WAKEUP
+                )
+              }
+              .build()
+        }
+        .build()
 
-    val wakeLockReleasedEvent = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
-      taskId = 1
-      stacktrace = "RELEASED"
-      wakeLockReleased = BackgroundTaskInspectorProtocol.WakeLockReleased.newBuilder().apply {
-        addFlags(BackgroundTaskInspectorProtocol.WakeLockReleased.ReleaseFlag.RELEASE_FLAG_WAIT_FOR_NO_PROXIMITY)
-        isHeld = false
-      }.build()
-    }.build()
+    val wakeLockReleasedEvent =
+      BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder()
+        .apply {
+          taskId = 1
+          stacktrace = "RELEASED"
+          wakeLockReleased =
+            BackgroundTaskInspectorProtocol.WakeLockReleased.newBuilder()
+              .apply {
+                addFlags(
+                  BackgroundTaskInspectorProtocol.WakeLockReleased.ReleaseFlag
+                    .RELEASE_FLAG_WAIT_FOR_NO_PROXIMITY
+                )
+                isHeld = false
+              }
+              .build()
+        }
+        .build()
 
     val entry = WakeLockEntry("1")
 
@@ -62,21 +80,34 @@ class WakeLockEntryTest {
     entry.consumeAndAssert(wakeLockReleasedEvent, 2) {
       assertThat(isValid).isTrue()
       assertThat(status).isEqualTo("RELEASED")
-      assertThat(callstacks).containsExactly(BackgroundTaskCallStack(1, acquiredStacktrace), BackgroundTaskCallStack(2, "RELEASED"))
+      assertThat(callstacks)
+        .containsExactly(
+          BackgroundTaskCallStack(1, acquiredStacktrace),
+          BackgroundTaskCallStack(2, "RELEASED")
+        )
       assertThat(retries).isEqualTo(0)
     }
   }
 
   @Test
   fun missingWakeLockAcquired() {
-    val wakeLockReleasedEvent = BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder().apply {
-      taskId = 1
-      stacktrace = "RELEASED"
-      wakeLockReleased = BackgroundTaskInspectorProtocol.WakeLockReleased.newBuilder().apply {
-        addFlags(BackgroundTaskInspectorProtocol.WakeLockReleased.ReleaseFlag.RELEASE_FLAG_WAIT_FOR_NO_PROXIMITY)
-        isHeld = false
-      }.build()
-    }.build()
+    val wakeLockReleasedEvent =
+      BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder()
+        .apply {
+          taskId = 1
+          stacktrace = "RELEASED"
+          wakeLockReleased =
+            BackgroundTaskInspectorProtocol.WakeLockReleased.newBuilder()
+              .apply {
+                addFlags(
+                  BackgroundTaskInspectorProtocol.WakeLockReleased.ReleaseFlag
+                    .RELEASE_FLAG_WAIT_FOR_NO_PROXIMITY
+                )
+                isHeld = false
+              }
+              .build()
+        }
+        .build()
 
     val entry = WakeLockEntry("1")
 

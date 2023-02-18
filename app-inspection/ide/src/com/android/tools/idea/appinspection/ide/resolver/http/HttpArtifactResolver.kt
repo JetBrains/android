@@ -29,10 +29,10 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.io.FileService
 import com.android.tools.idea.sdk.StudioDownloader
 import com.intellij.util.io.createDirectories
-import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.net.URL
 import java.nio.file.Path
+import kotlinx.coroutines.withContext
 
 class HttpArtifactResolver(
   private val fileService: FileService,
@@ -40,51 +40,63 @@ class HttpArtifactResolver(
   private val downloader: Downloader = StudioDownloader()
 ) : ArtifactResolver {
   override suspend fun resolveArtifact(artifactCoordinate: ArtifactCoordinate) =
-    artifactPaths.getInspectorArchive(artifactCoordinate) ?: run {
-      val tmpArtifactDir = fileService.createRandomTempDir()
-      val downloadDir = tmpArtifactDir.resolve("download").createDirectories()
-      val downloadedLibraryPath = downloadLibrary(downloadDir, artifactCoordinate)
-      val unzipDir = tmpArtifactDir.resolve("unzip").createDirectories()
-      extractInspector(unzipDir, downloadedLibraryPath, artifactCoordinate).also {
-        artifactPaths.populateInspectorArchive(artifactCoordinate, it)
+    artifactPaths.getInspectorArchive(artifactCoordinate)
+      ?: run {
+        val tmpArtifactDir = fileService.createRandomTempDir()
+        val downloadDir = tmpArtifactDir.resolve("download").createDirectories()
+        val downloadedLibraryPath = downloadLibrary(downloadDir, artifactCoordinate)
+        val unzipDir = tmpArtifactDir.resolve("unzip").createDirectories()
+        extractInspector(unzipDir, downloadedLibraryPath, artifactCoordinate).also {
+          artifactPaths.populateInspectorArchive(artifactCoordinate, it)
+        }
+      }
+
+  private suspend fun downloadLibrary(targetDir: Path, artifactCoordinate: ArtifactCoordinate) =
+    withContext(AndroidDispatchers.diskIoThread) {
+      try {
+        val targetPath = targetDir.resolve(artifactCoordinate.fileName)
+        downloader.downloadFullyWithCaching(
+          artifactCoordinate.toGMavenUrl(),
+          targetPath,
+          null,
+          ConsoleProgressIndicator()
+        )
+        targetPath
+      } catch (e: IOException) {
+        throw throw AppInspectionArtifactNotFoundException(
+          "Artifact $artifactCoordinate could not be resolved on maven.google.com.",
+          artifactCoordinate,
+          e
+        )
       }
     }
 
-  private suspend fun downloadLibrary(targetDir: Path, artifactCoordinate: ArtifactCoordinate) = withContext(
-    AndroidDispatchers.diskIoThread) {
-    try {
-      val targetPath = targetDir.resolve(artifactCoordinate.fileName)
-      downloader.downloadFullyWithCaching(
-        artifactCoordinate.toGMavenUrl(),
-        targetPath,
-        null,
-        ConsoleProgressIndicator()
+  private suspend fun extractInspector(
+    targetDir: Path,
+    libraryPath: Path,
+    artifactCoordinate: ArtifactCoordinate
+  ): Path {
+    val artifactDir =
+      try {
+        extractZipIfNeeded(targetDir, libraryPath)
+      } catch (e: IOException) {
+        throw throw AppInspectionArtifactNotFoundException(
+          "Error happened while unzipping $libraryPath to $targetDir",
+          artifactCoordinate,
+          e
+        )
+      }
+    return artifactDir.resolveExistsOrNull(INSPECTOR_JAR)
+      ?: throw throw AppInspectionArtifactNotFoundException(
+        "inspector.jar was not found in $artifactDir",
+        artifactCoordinate
       )
-      targetPath
-    }
-    catch (e: IOException) {
-      throw throw AppInspectionArtifactNotFoundException(
-        "Artifact $artifactCoordinate could not be resolved on maven.google.com.",
-        artifactCoordinate, e)
-    }
   }
 
-  private suspend fun extractInspector(targetDir: Path, libraryPath: Path, artifactCoordinate: ArtifactCoordinate): Path {
-    val artifactDir = try {
-      extractZipIfNeeded(targetDir, libraryPath)
-    }
-    catch (e: IOException) {
-      throw throw AppInspectionArtifactNotFoundException("Error happened while unzipping $libraryPath to $targetDir", artifactCoordinate, e)
-    }
-    return artifactDir.resolveExistsOrNull(INSPECTOR_JAR) ?: throw throw AppInspectionArtifactNotFoundException(
-      "inspector.jar was not found in $artifactDir", artifactCoordinate)
-  }
+  /** The file name of the artifact in question. */
+  private val ArtifactCoordinate.fileName
+    get() = "${artifactId}-${version}.${type}"
 
-  /**
-   * The file name of the artifact in question.
-   */
-  private val ArtifactCoordinate.fileName get() = "${artifactId}-${version}.${type}"
-
-  private fun ArtifactCoordinate.toGMavenUrl() = URL(
-    "http://maven.google.com/${groupId.replace('.', '/')}/${artifactId}/${version}/${fileName}")
+  private fun ArtifactCoordinate.toGMavenUrl() =
+    URL("http://maven.google.com/${groupId.replace('.', '/')}/${artifactId}/${version}/${fileName}")
 }

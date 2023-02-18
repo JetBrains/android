@@ -38,10 +38,6 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBViewport
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import org.jetbrains.annotations.TestOnly
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.BorderLayout
 import java.awt.CardLayout
 import java.awt.Dimension
@@ -50,25 +46,33 @@ import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ScrollPaneConstants
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 
 const val WORK_MANAGER_TOOLBAR_PLACE = "WorkManagerInspector"
 private const val MINIMUM_ENTRIES_VIEW_WIDTH = 400
 
-/**
- * View containing a table view and graph view, and offers toggle control between the two.
- */
-class BackgroundTaskEntriesView(tab: BackgroundTaskInspectorTab,
-                                private val client: BackgroundTaskInspectorClient,
-                                private val selectionModel: EntrySelectionModel,
-                                scope: CoroutineScope,
-                                uiDispatcher: CoroutineDispatcher) : JPanel() {
+/** View containing a table view and graph view, and offers toggle control between the two. */
+class BackgroundTaskEntriesView(
+  tab: BackgroundTaskInspectorTab,
+  private val client: BackgroundTaskInspectorClient,
+  private val selectionModel: EntrySelectionModel,
+  scope: CoroutineScope,
+  uiDispatcher: CoroutineDispatcher
+) : JPanel() {
   enum class Mode {
     TABLE,
     GRAPH
   }
 
   private inner class CancelAction :
-    AnAction(BackgroundTaskInspectorBundle.message("action.cancel.work"), "", AllIcons.Actions.Suspend) {
+    AnAction(
+      BackgroundTaskInspectorBundle.message("action.cancel.work"),
+      "",
+      AllIcons.Actions.Suspend
+    ) {
 
     override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = selectionModel.selectedWork?.state?.isFinished() == false
@@ -80,26 +84,26 @@ class BackgroundTaskEntriesView(tab: BackgroundTaskInspectorTab,
       client.tracker.trackWorkCancelled()
       if (contentMode == Mode.TABLE) {
         tableView.component.requestFocusInWindow()
-      }
-      else {
+      } else {
         graphView.requestFocusInWindow()
       }
     }
   }
 
-  /**
-   * DropDownAction that shows tags from available works.
-   */
+  /** DropDownAction that shows tags from available works. */
   private inner class TagsDropDownAction :
-    DropDownAction(BackgroundTaskInspectorBundle.message("action.tag.all"),
-                   BackgroundTaskInspectorBundle.message("action.tag.tooltip"),
-                   null) {
+    DropDownAction(
+      BackgroundTaskInspectorBundle.message("action.tag.all"),
+      BackgroundTaskInspectorBundle.message("action.tag.tooltip"),
+      null
+    ) {
     private var selectedTag: String? = null
 
     override fun update(event: AnActionEvent) {
       if (selectedTag != tableView.treeModel.filterTag) {
         selectedTag = tableView.treeModel.filterTag
-        event.presentation.text = selectedTag ?: BackgroundTaskInspectorBundle.message("action.tag.all")
+        event.presentation.text =
+          selectedTag ?: BackgroundTaskInspectorBundle.message("action.tag.all")
       }
       val isTableActive = (contentMode == Mode.TABLE)
       if (event.presentation.isVisible != isTableActive) {
@@ -114,20 +118,16 @@ class BackgroundTaskEntriesView(tab: BackgroundTaskInspectorTab,
     public override fun updateActions(context: DataContext): Boolean {
       removeAll()
       add(FilterWithTagToggleAction(null))
-      tableView.treeModel.allTags.forEach { tag ->
-        add(FilterWithTagToggleAction(tag))
-      }
+      tableView.treeModel.allTags.forEach { tag -> add(FilterWithTagToggleAction(tag)) }
       return true
     }
 
     override fun displayTextInToolbar() = true
   }
 
-  /**
-   * ToggleAction that filters works with a specific [tag].
-   */
-  private inner class FilterWithTagToggleAction(private val tag: String?)
-    : ToggleAction(tag ?: "All tags") {
+  /** ToggleAction that filters works with a specific [tag]. */
+  private inner class FilterWithTagToggleAction(private val tag: String?) :
+    ToggleAction(tag ?: "All tags") {
     override fun isSelected(event: AnActionEvent): Boolean {
       return tag == tableView.treeModel.filterTag
     }
@@ -154,7 +154,11 @@ class BackgroundTaskEntriesView(tab: BackgroundTaskInspectorTab,
   }
 
   private inner class GraphViewAction :
-    AnAction(BackgroundTaskInspectorBundle.message("action.show.graph"), "", AllIcons.Graph.Layout) {
+    AnAction(
+      BackgroundTaskInspectorBundle.message("action.show.graph"),
+      "",
+      AllIcons.Graph.Layout
+    ) {
 
     override fun actionPerformed(e: AnActionEvent) {
       val selectedWork = selectionModel.selectedEntry
@@ -166,7 +170,8 @@ class BackgroundTaskEntriesView(tab: BackgroundTaskInspectorTab,
 
     override fun update(e: AnActionEvent) {
       super.update(e)
-      e.presentation.isEnabled = contentMode == Mode.TABLE && selectionModel.selectedEntry is WorkEntry
+      e.presentation.isEnabled =
+        contentMode == Mode.TABLE && selectionModel.selectedEntry is WorkEntry
     }
   }
 
@@ -182,11 +187,9 @@ class BackgroundTaskEntriesView(tab: BackgroundTaskInspectorTab,
   private val cardLayout: CardLayout
   private val contentPanel: JPanel
 
-  @VisibleForTesting
-  val tableView: BackgroundTaskTreeTableView
+  @VisibleForTesting val tableView: BackgroundTaskTreeTableView
 
-  @VisibleForTesting
-  val graphView: WorkDependencyGraphView
+  @VisibleForTesting val graphView: WorkDependencyGraphView
 
   init {
     tableView = BackgroundTaskTreeTableView(tab, client, selectionModel, scope, uiDispatcher)
@@ -201,10 +204,11 @@ class BackgroundTaskEntriesView(tab: BackgroundTaskInspectorTab,
     // Remove redundant borders from left, right and bottom.
     contentPanel.border = AdtUiUtils.DEFAULT_TOP_BORDER
     contentPanel.add(tableView.component, Mode.TABLE.name)
-    val scrollPane = JBScrollPane(graphView).apply {
-      horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
-      border = BorderFactory.createEmptyBorder()
-    }
+    val scrollPane =
+      JBScrollPane(graphView).apply {
+        horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+        border = BorderFactory.createEmptyBorder()
+      }
     contentPanel.add(scrollPane, Mode.GRAPH.name)
     add(contentPanel, TabularLayout.Constraint(1, 0))
 
@@ -222,13 +226,14 @@ class BackgroundTaskEntriesView(tab: BackgroundTaskInspectorTab,
           client.tracker.trackTableModeSelected()
         }
         Mode.GRAPH -> {
-          client.tracker.trackGraphModeSelected(AppInspectionEvent.BackgroundTaskInspectorEvent.Context.TOOL_BUTTON_CONTEXT,
-                                                client.getOrderedWorkChain(selectionModel.selectedWork!!.id).toChainInfo())
+          client.tracker.trackGraphModeSelected(
+            AppInspectionEvent.BackgroundTaskInspectorEvent.Context.TOOL_BUTTON_CONTEXT,
+            client.getOrderedWorkChain(selectionModel.selectedWork!!.id).toChainInfo()
+          )
         }
       }
       contentPanel.revalidate()
     }
-
   }
 
   fun addContentModeChangedListener(listener: (Mode) -> Unit) {
@@ -238,21 +243,25 @@ class BackgroundTaskEntriesView(tab: BackgroundTaskInspectorTab,
 
   private fun buildActionBar(): JComponent {
     val toolbarPanel = JPanel(BorderLayout())
-    val leftGroup = DefaultActionGroup().apply {
-      add(CancelAction())
-      addSeparator()
-      add(TagsDropDownAction())
-    }
-    val leftToolbar = ActionManager.getInstance().createActionToolbar(WORK_MANAGER_TOOLBAR_PLACE, leftGroup, true)
+    val leftGroup =
+      DefaultActionGroup().apply {
+        add(CancelAction())
+        addSeparator()
+        add(TagsDropDownAction())
+      }
+    val leftToolbar =
+      ActionManager.getInstance().createActionToolbar(WORK_MANAGER_TOOLBAR_PLACE, leftGroup, true)
     leftToolbar.setTargetComponent(this)
     ActionToolbarUtil.makeToolbarNavigable(leftToolbar)
     toolbarPanel.add(leftToolbar.component, BorderLayout.WEST)
 
-    val rightGroup = DefaultActionGroup().apply {
-      add(TableViewAction())
-      add(GraphViewAction())
-    }
-    val rightToolbar = ActionManager.getInstance().createActionToolbar(WORK_MANAGER_TOOLBAR_PLACE, rightGroup, true)
+    val rightGroup =
+      DefaultActionGroup().apply {
+        add(TableViewAction())
+        add(GraphViewAction())
+      }
+    val rightToolbar =
+      ActionManager.getInstance().createActionToolbar(WORK_MANAGER_TOOLBAR_PLACE, rightGroup, true)
     rightToolbar.setTargetComponent(this)
     ActionToolbarUtil.makeToolbarNavigable(rightToolbar)
     toolbarPanel.add(rightToolbar.component, BorderLayout.EAST)
@@ -260,12 +269,12 @@ class BackgroundTaskEntriesView(tab: BackgroundTaskInspectorTab,
     return toolbarPanel
   }
 
-  /**
-   * @return a list of actions from the drop down menu that filter works with a tag.
-   */
+  /** @return a list of actions from the drop down menu that filter works with a tag. */
   @TestOnly
   fun getFilterActionList(): List<ToggleAction> {
-    val toolbar = TreeWalker(this).descendantStream().filter { it is ActionToolbar }.findFirst().get() as ActionToolbarImpl
+    val toolbar =
+      TreeWalker(this).descendantStream().filter { it is ActionToolbar }.findFirst().get() as
+        ActionToolbarImpl
     val selectFilterAction = toolbar.actions[2] as TagsDropDownAction
     selectFilterAction.updateActions(DataContext.EMPTY_CONTEXT)
     return selectFilterAction.getChildren(null).map { it as ToggleAction }
@@ -287,14 +296,12 @@ fun JComponent.scrollToCenter() {
 
   if (viewSize.width >= viewport.size.width) {
     point.x = point.x.coerceAtLeast(0).coerceAtMost(viewSize.width - viewport.size.width)
-  }
-  else {
+  } else {
     point.x = 0
   }
   if (viewSize.height >= viewport.size.height) {
     point.y = point.y.coerceAtLeast(0).coerceAtMost(viewSize.height - viewport.size.height)
-  }
-  else {
+  } else {
     point.y = 0
   }
   viewport.viewPosition = point

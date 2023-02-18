@@ -27,8 +27,7 @@ class ConnectionDetailsView(
   private val usageTracker: NetworkInspectorTracker
 ) : CommonTabbedPane() {
 
-  @VisibleForTesting
-  val tabs = mutableListOf<TabContent>()
+  @VisibleForTesting val tabs = mutableListOf<TabContent>()
 
   init {
     font = STANDARD_FONT
@@ -56,11 +55,10 @@ class ConnectionDetailsView(
     tabs.forEach { tab -> addTab(tab.title, null, tab.component) }
   }
 
-  /**
-   * Updates the view to show given data.
-   */
+  /** Updates the view to show given data. */
   fun setHttpData(httpData: HttpData) {
-    val httpDataComponentFactory = HttpDataComponentFactory(httpData, inspectorView.componentsProvider)
+    val httpDataComponentFactory =
+      HttpDataComponentFactory(httpData, inspectorView.componentsProvider)
     tabs.forEach { it.populateFor(httpData, httpDataComponentFactory) }
   }
 }

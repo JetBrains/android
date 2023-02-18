@@ -22,10 +22,30 @@ import org.junit.Test
 class ArtifactCoordinateTest {
   @Test
   fun testSameArtifact() {
-    assertThat(ArtifactCoordinate("g1", "a1", "1.0", AAR).sameArtifact(ArtifactCoordinate("g1", "a1", "1.0", AAR))).isTrue()
-    assertThat(ArtifactCoordinate("g1", "a1", "1.0", AAR).sameArtifact(ArtifactCoordinate("g1", "a1", "2.0", AAR))).isTrue()
-    assertThat(ArtifactCoordinate("g1", "a1", "1.0", AAR).sameArtifact(ArtifactCoordinate("g1", "a2", "1.0", AAR))).isFalse()
-    assertThat(ArtifactCoordinate("g1", "a1", "1.0", AAR).sameArtifact(ArtifactCoordinate("g2", "a1", "1.0", AAR))).isFalse()
-    assertThat(ArtifactCoordinate("g1", "a1", "1.0", AAR).sameArtifact(ArtifactCoordinate("g2", "a2", "1.0", AAR))).isFalse()
+    assertThat(
+        ArtifactCoordinate("g1", "a1", "1.0", AAR)
+          .sameArtifact(ArtifactCoordinate("g1", "a1", "1.0", AAR))
+      )
+      .isTrue()
+    assertThat(
+        ArtifactCoordinate("g1", "a1", "1.0", AAR)
+          .sameArtifact(ArtifactCoordinate("g1", "a1", "2.0", AAR))
+      )
+      .isTrue()
+    assertThat(
+        ArtifactCoordinate("g1", "a1", "1.0", AAR)
+          .sameArtifact(ArtifactCoordinate("g1", "a2", "1.0", AAR))
+      )
+      .isFalse()
+    assertThat(
+        ArtifactCoordinate("g1", "a1", "1.0", AAR)
+          .sameArtifact(ArtifactCoordinate("g2", "a1", "1.0", AAR))
+      )
+      .isFalse()
+    assertThat(
+        ArtifactCoordinate("g1", "a1", "1.0", AAR)
+          .sameArtifact(ArtifactCoordinate("g2", "a2", "1.0", AAR))
+      )
+      .isFalse()
   }
 }

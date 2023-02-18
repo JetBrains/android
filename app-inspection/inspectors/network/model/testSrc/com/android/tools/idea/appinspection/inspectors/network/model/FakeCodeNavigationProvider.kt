@@ -17,9 +17,8 @@ package com.android.tools.idea.appinspection.inspectors.network.model
 
 import com.android.tools.idea.codenavigation.CodeNavigator
 import com.android.tools.idea.codenavigation.FakeNavSource
-import com.android.tools.idea.codenavigation.NavSource
 
 class FakeCodeNavigationProvider : CodeNavigationProvider {
-  override val codeNavigator: CodeNavigator = CodeNavigator(FakeNavSource(),
-                                                            CodeNavigator.testExecutor)
+  override val codeNavigator: CodeNavigator =
+    CodeNavigator(FakeNavSource(), CodeNavigator.testExecutor)
 }

@@ -798,23 +798,26 @@ public class GradlePropertyModelImpl implements GradlePropertyModel {
       return;
     }
 
-    if (myElement != null && myElement.getElementType() == FAKE) {
-      LOG.warn(new UnsupportedOperationException("Can't bind from a fake element: " + myElement));
-      return;
-    }
+    // if (myElement != null && myElement.getElementType() == FAKE) { ... return }
+    // TODO Need to reinstate support of ignoring transformation for fake elements.
+    // Effectively need to bring back support/ignore cases like artifact.classifier().convertToEmptyMap().
+    // b/268355590 - perhaps this should be done by introducing fake artifact elements
+    // through transforms rather than directly.
 
     GradleDslElement element = getTransform().replace(myPropertyHolder, myElement, newElement, getName());
     if (element != null) {
+      GradleDslElement copyFrom =
+        (myElement != null && myElement.getElementType() == FAKE) ? ((FakeElement)myElement).getRealExpression() : myElement;
       element.setElementType(myPropertyType);
       ModelEffectDescription effect = element.getModelEffect();
       if (effect == null || effect.semantics != CREATE_WITH_VALUE) {
-        if (myElement != null) {
-          element.setExternalSyntax(myElement.getExternalSyntax());
+        if (copyFrom != null) {
+          element.setExternalSyntax(copyFrom.getExternalSyntax());
         }
         // TODO(b/148657110): This is necessary until models store the properties they're associated with: for now, the models
         //  have only names while the Dsl elements are annotated with model effect / properties.
-        if (myElement != null) {
-          element.setModelEffect(myElement.getModelEffect());
+        if (copyFrom != null) {
+          element.setModelEffect(copyFrom.getModelEffect());
         }
       }
       // We need to ensure the parent will be modified so this change takes effect.

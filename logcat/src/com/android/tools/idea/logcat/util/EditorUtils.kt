@@ -21,6 +21,7 @@ import com.intellij.openapi.command.undo.UndoUtil
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.EditorKind
 import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.editor.impl.EditorFactoryImpl
 import com.intellij.openapi.project.Project
 
@@ -32,6 +33,7 @@ import com.intellij.openapi.project.Project
 fun createLogcatEditor(project: Project): EditorEx {
   val editorFactory = EditorFactory.getInstance()
   val document = (editorFactory as EditorFactoryImpl).createDocument(true)
+  (document as DocumentImpl).setAcceptSlashR(true)
   UndoUtil.disableUndoFor(document)
   val editor = editorFactory.createViewer(document, project, EditorKind.CONSOLE) as EditorEx
   val editorSettings = editor.settings

@@ -43,52 +43,68 @@ import com.intellij.openapi.project.ProjectManagerListener
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 
-
 /**
- * This service holds a reference to [DefaultAppInspectionApiServices], which holds references to [ProcessNotifier] and [InspectorLauncher].
- * The first is used to discover and track processes as they come online. The latter is used to launch inspectors on discovered processes.
+ * This service holds a reference to [DefaultAppInspectionApiServices], which holds references to
+ * [ProcessNotifier] and [InspectorLauncher]. The first is used to discover and track processes as
+ * they come online. The latter is used to launch inspectors on discovered processes.
  */
 @Service
 class AppInspectionDiscoveryService : Disposable {
   init {
-    // The following line has the side effect of starting the transport service if it has not been already.
+    // The following line has the side effect of starting the transport service if it has not been
+    // already.
     // The consequence of not doing this is gRPC calls are never responded to.
     TransportService.getInstance()
   }
 
   private val client = TransportClient(TransportService.channelName)
-  private val streamManager = TransportStreamManager.createManager(client.transportStub, AndroidDispatchers.workerThread)
+  private val streamManager =
+    TransportStreamManager.createManager(client.transportStub, AndroidDispatchers.workerThread)
 
   private val applicationMessageBus = ApplicationManager.getApplication().messageBus.connect(this)
 
   private val scope = AndroidCoroutineScope(this)
 
-  val apiServices: AppInspectionApiServices = AppInspectionApiServices.createDefaultAppInspectionApiServices(
-    client, streamManager,
-    scope,
-    // gRPC guarantees FIFO, so we want to poll gRPC messages sequentially
-    MoreExecutors.newSequentialExecutor(AndroidExecutors.getInstance().workerThreadExecutor).asCoroutineDispatcher()) { device ->
-    val jarCopier = findDevice(device)?.createJarCopier()
-    if (jarCopier == null) {
-      logger.error(AppInspectionBundle.message("device.not.found", device.manufacturer, device.model, device.serial))
+  val apiServices: AppInspectionApiServices =
+    AppInspectionApiServices.createDefaultAppInspectionApiServices(
+      client,
+      streamManager,
+      scope,
+      // gRPC guarantees FIFO, so we want to poll gRPC messages sequentially
+      MoreExecutors.newSequentialExecutor(AndroidExecutors.getInstance().workerThreadExecutor)
+        .asCoroutineDispatcher()
+    ) { device ->
+      val jarCopier = findDevice(device)?.createJarCopier()
+      if (jarCopier == null) {
+        logger.error(
+          AppInspectionBundle.message(
+            "device.not.found",
+            device.manufacturer,
+            device.model,
+            device.serial
+          )
+        )
+      }
+      jarCopier
     }
-    jarCopier
-  }
 
   init {
-    applicationMessageBus.subscribe(ProjectManager.TOPIC, object : ProjectManagerListener {
-      override fun projectClosing(project: Project) {
-        scope.launch {
-          apiServices.disposeClients(project.name)
+    applicationMessageBus.subscribe(
+      ProjectManager.TOPIC,
+      object : ProjectManagerListener {
+        override fun projectClosing(project: Project) {
+          scope.launch { apiServices.disposeClients(project.name) }
         }
       }
-    })
+    )
   }
 
   private fun IDevice.createJarCopier(): AppInspectionJarCopier {
     return object : AppInspectionJarCopier {
-      private val delegate = TransportFileManager(this@createJarCopier, TransportService.getInstance().messageBus)
-      override fun copyFileToDevice(jar: AppInspectorJar): List<String> = delegate.copyFileToDevice(jar.toDeployableFile())
+      private val delegate =
+        TransportFileManager(this@createJarCopier, TransportService.getInstance().messageBus)
+      override fun copyFileToDevice(jar: AppInspectorJar): List<String> =
+        delegate.copyFileToDevice(jar.toDeployableFile())
     }
   }
 
@@ -103,19 +119,23 @@ class AppInspectionDiscoveryService : Disposable {
   }
 
   /**
-   * This uses the current [AndroidDebugBridge] to locate a device described by [device]. Return value is null if bridge is not available,
-   * bridge does not detect any devices, or if the provided [device] does not match any of the devices the bridge is aware of.
+   * This uses the current [AndroidDebugBridge] to locate a device described by [device]. Return
+   * value is null if bridge is not available, bridge does not detect any devices, or if the
+   * provided [device] does not match any of the devices the bridge is aware of.
    */
   private fun findDevice(device: DeviceDescriptor): IDevice? {
     return AndroidDebugBridge.getBridge()?.devices?.find {
-      device.manufacturer == TransportServiceProxy.getDeviceManufacturer(it)
-      && device.model == TransportServiceProxy.getDeviceModel(it)
-      && device.serial == it.serialNumber
+      device.manufacturer == TransportServiceProxy.getDeviceManufacturer(it) &&
+        device.model == TransportServiceProxy.getDeviceModel(it) &&
+        device.serial == it.serialNumber
     }
   }
 
-  private fun AppInspectorJar.toDeployableFile() = DeployableFile.Builder(name).apply {
-    releaseDirectory?.let { this.setReleaseDir(it) }
-    developmentDirectory?.let { this.setDevDir(it) }
-  }.build()
+  private fun AppInspectorJar.toDeployableFile() =
+    DeployableFile.Builder(name)
+      .apply {
+        releaseDirectory?.let { this.setReleaseDir(it) }
+        developmentDirectory?.let { this.setDevDir(it) }
+      }
+      .build()
 }

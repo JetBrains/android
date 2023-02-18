@@ -240,7 +240,7 @@ class TreeSettingsActionsTest {
     val client: AppInspectionInspectorClient = mock()
     whenever(treePanel.tree).thenReturn(tree)
     whenever(treePanel.component).thenReturn(component)
-    whenever(inspector.layoutInspectorModel).thenReturn(model)
+    whenever(inspector.inspectorModel).thenReturn(model)
     whenever(inspector.currentClient).thenReturn(client)
     whenever(inspector.treeSettings).thenReturn(treeSettings)
     whenever(client.stats).thenReturn(stats)

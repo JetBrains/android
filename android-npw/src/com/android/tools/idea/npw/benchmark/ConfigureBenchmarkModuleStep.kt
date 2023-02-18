@@ -37,10 +37,10 @@ import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty
 import com.android.tools.idea.project.AndroidProjectInfo
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.ui.DialogPanel
+import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.Row
 import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
-import com.intellij.ui.dsl.gridLayout.HorizontalAlign
 import com.intellij.util.ui.JBUI.Borders.empty
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.JComboBox
@@ -116,23 +116,23 @@ class ConfigureBenchmarkModuleStep(
     }
 
     targetModuleRow = row(contextLabel("Target application", message("android.wizard.module.help.benchmark.target.module"))) {
-      cell(targetModuleCombo).horizontalAlign(HorizontalAlign.FILL)
+      cell(targetModuleCombo).align(AlignX.FILL)
     }.visible(benchmarkModuleType.get() == MACROBENCHMARK)
 
     row(contextLabel("Module name", message("android.wizard.module.help.name"))) {
-      cell(moduleName).horizontalAlign(HorizontalAlign.FILL)
+      cell(moduleName).align(AlignX.FILL)
     }
 
     row("Package name") {
-      cell(packageName).horizontalAlign(HorizontalAlign.FILL)
+      cell(packageName).align(AlignX.FILL)
     }
 
     row("Language") {
-      cell(languageCombo).horizontalAlign(HorizontalAlign.FILL)
+      cell(languageCombo).align(AlignX.FILL)
     }
 
     row("Minimum SDK") {
-      cell(apiLevelCombo).horizontalAlign(HorizontalAlign.FILL)
+      cell(apiLevelCombo).align(AlignX.FILL)
     }
 
     if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get() || model.useGradleKts.get()) {

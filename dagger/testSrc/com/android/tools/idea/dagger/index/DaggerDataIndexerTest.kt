@@ -31,21 +31,16 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
-import java.io.DataOutput
 
 @RunWith(JUnit4::class)
 @RunsInEdt
 class DaggerDataIndexerTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory().onEdt()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private lateinit var myFixture: CodeInsightTestFixture
 
-  private val fakeIndexValue: IndexValue =
-    object : IndexValue(DataType.INJECTED_CONSTRUCTOR) {
-      override fun save(output: DataOutput) = throw NotImplementedError()
-    }
+  private val fakeIndexValue: IndexValue = mock()
 
   @Before
   fun setup() {
@@ -54,202 +49,378 @@ class DaggerDataIndexerTest {
 
   @Test
   fun kotlinNoContent() {
-    val fileContent = createFileContent(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val fileContent =
+      createFileContent(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
-      """.trimIndent())
+      """.trimIndent()
+      )
 
-    val indexer = DaggerDataIndexer(DaggerConceptIndexers(
-      fieldIndexers = listOf(DaggerConceptIndexer { _, indexEntries -> indexEntries["found"] = mutableSetOf(fakeIndexValue) }),
-      methodIndexers = listOf(DaggerConceptIndexer { _, indexEntries -> indexEntries["found"] = mutableSetOf(fakeIndexValue) }),
-    ))
+    val indexer =
+      DaggerDataIndexer(
+        DaggerConceptIndexers(
+          fieldIndexers =
+            listOf(
+              DaggerConceptIndexer { _, indexEntries ->
+                indexEntries["found"] = mutableSetOf(fakeIndexValue)
+              }
+            ),
+          methodIndexers =
+            listOf(
+              DaggerConceptIndexer { _, indexEntries ->
+                indexEntries["found"] = mutableSetOf(fakeIndexValue)
+              }
+            ),
+        )
+      )
 
     assertThat(indexer.map(fileContent)).isEmpty()
   }
 
   @Test
   fun kotlinPrimaryConstructor() {
-    val fileContent = createFileContent(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val fileContent =
+      createFileContent(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
       class CoffeeMaker() {}
-      """.trimIndent())
+      """.trimIndent()
+      )
 
-    val indexer = DaggerDataIndexer(DaggerConceptIndexers(
-      methodIndexers = listOf(DaggerConceptIndexer { wrapper, indexEntries ->
-        if (wrapper.getIsConstructor() && wrapper.getSimpleName() == "CoffeeMaker") indexEntries["found"] = mutableSetOf(fakeIndexValue)
-      }),
-    ))
+    val indexer =
+      DaggerDataIndexer(
+        DaggerConceptIndexers(
+          methodIndexers =
+            listOf(
+              DaggerConceptIndexer { wrapper, indexEntries ->
+                if (wrapper.getIsConstructor() && wrapper.getSimpleName() == "CoffeeMaker")
+                  indexEntries["found"] = mutableSetOf(fakeIndexValue)
+              }
+            ),
+        )
+      )
 
     assertThat(indexer.map(fileContent)).containsKey("found")
   }
 
   @Test
   fun kotlinSecondaryConstructor() {
-    val fileContent = createFileContent(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val fileContent =
+      createFileContent(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
       class CoffeeMaker() {
         constructor(arg1: Int) {}
       }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
-    val indexer = DaggerDataIndexer(DaggerConceptIndexers(
-      methodIndexers = listOf(DaggerConceptIndexer { wrapper, indexEntries ->
-        if (wrapper.getIsConstructor() && wrapper.getSimpleName() == "CoffeeMaker" && wrapper.getParameters().size == 1)
-          indexEntries["found"] = mutableSetOf(fakeIndexValue)
-      }),
-    ))
+    val indexer =
+      DaggerDataIndexer(
+        DaggerConceptIndexers(
+          methodIndexers =
+            listOf(
+              DaggerConceptIndexer { wrapper, indexEntries ->
+                if (wrapper.getIsConstructor() &&
+                    wrapper.getSimpleName() == "CoffeeMaker" &&
+                    wrapper.getParameters().size == 1
+                )
+                  indexEntries["found"] = mutableSetOf(fakeIndexValue)
+              }
+            ),
+        )
+      )
 
     assertThat(indexer.map(fileContent)).containsKey("found")
   }
 
   @Test
   fun kotlinClassFunction() {
-    val fileContent = createFileContent(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val fileContent =
+      createFileContent(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
       class CoffeeMaker() {
         fun foo() {}
       }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
-    val indexer = DaggerDataIndexer(DaggerConceptIndexers(
-      methodIndexers = listOf(DaggerConceptIndexer { wrapper, indexEntries ->
-        if (!wrapper.getIsConstructor() && wrapper.getSimpleName() == "foo") indexEntries["found"] = mutableSetOf(fakeIndexValue)
-      }),
-    ))
+    val indexer =
+      DaggerDataIndexer(
+        DaggerConceptIndexers(
+          methodIndexers =
+            listOf(
+              DaggerConceptIndexer { wrapper, indexEntries ->
+                if (!wrapper.getIsConstructor() && wrapper.getSimpleName() == "foo")
+                  indexEntries["found"] = mutableSetOf(fakeIndexValue)
+              }
+            ),
+        )
+      )
 
     assertThat(indexer.map(fileContent)).containsKey("found")
   }
 
   @Test
   fun kotlinPackageFunction() {
-    val fileContent = createFileContent(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val fileContent =
+      createFileContent(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
 
       fun foo() {}
-      """.trimIndent())
+      """.trimIndent()
+      )
 
-    val indexer = DaggerDataIndexer(DaggerConceptIndexers(
-      methodIndexers = listOf(DaggerConceptIndexer { wrapper, indexEntries ->
-        if (!wrapper.getIsConstructor() && wrapper.getSimpleName() == "foo") indexEntries["found"] = mutableSetOf(fakeIndexValue)
-      }),
-    ))
+    val indexer =
+      DaggerDataIndexer(
+        DaggerConceptIndexers(
+          methodIndexers =
+            listOf(
+              DaggerConceptIndexer { wrapper, indexEntries ->
+                if (!wrapper.getIsConstructor() && wrapper.getSimpleName() == "foo")
+                  indexEntries["found"] = mutableSetOf(fakeIndexValue)
+              }
+            ),
+        )
+      )
 
     assertThat(indexer.map(fileContent)).containsKey("found")
   }
 
   @Test
   fun kotlinProperty() {
-    val fileContent = createFileContent(
-      KotlinFileType.INSTANCE,
-      //language=kotlin
-      """
+    val fileContent =
+      createFileContent(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
       package com.example
       class CoffeeMaker() {
         val foo: Int = 0
       }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
-    val indexer = DaggerDataIndexer(DaggerConceptIndexers(
-      fieldIndexers = listOf(DaggerConceptIndexer { wrapper, indexEntries ->
-        if (wrapper.getSimpleName() == "foo") indexEntries["found"] = mutableSetOf(fakeIndexValue)
-      }),
-    ))
+    val indexer =
+      DaggerDataIndexer(
+        DaggerConceptIndexers(
+          fieldIndexers =
+            listOf(
+              DaggerConceptIndexer { wrapper, indexEntries ->
+                if (wrapper.getSimpleName() == "foo")
+                  indexEntries["found"] = mutableSetOf(fakeIndexValue)
+              }
+            ),
+        )
+      )
 
     assertThat(indexer.map(fileContent)).containsKey("found")
   }
 
   @Test
-  fun javaNoContent() {
-    val fileContent = createFileContent(
-      JavaFileType.INSTANCE,
-      //language=java
-      """
-      package com.example;
-      """.trimIndent())
+  fun kotlinClass() {
+    val fileContent =
+      createFileContent(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+      package com.example
+      class CoffeeMaker {
+        class CoffeeFilter
+      }
+      """.trimIndent()
+      )
 
-    val indexer = DaggerDataIndexer(DaggerConceptIndexers(
-      fieldIndexers = listOf(DaggerConceptIndexer { _, indexEntries -> indexEntries["found"] = mutableSetOf(fakeIndexValue) }),
-      methodIndexers = listOf(DaggerConceptIndexer { _, indexEntries -> indexEntries["found"] = mutableSetOf(fakeIndexValue) }),
-    ))
+    val indexer =
+      DaggerDataIndexer(
+        DaggerConceptIndexers(
+          classIndexers =
+            listOf(
+              DaggerConceptIndexer { wrapper, indexEntries ->
+                when (wrapper.getFqName()) {
+                  "com.example.CoffeeMaker" ->
+                    indexEntries["foundClass"] = mutableSetOf(fakeIndexValue)
+                  "com.example.CoffeeMaker.CoffeeFilter" ->
+                    indexEntries["foundInnerClass"] = mutableSetOf(fakeIndexValue)
+                }
+              }
+            ),
+        )
+      )
+
+    assertThat(indexer.map(fileContent)).containsKey("foundClass")
+    assertThat(indexer.map(fileContent)).containsKey("foundInnerClass")
+  }
+
+  @Test
+  fun javaNoContent() {
+    val fileContent =
+      createFileContent(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
+      package com.example;
+      """.trimIndent()
+      )
+
+    val indexer =
+      DaggerDataIndexer(
+        DaggerConceptIndexers(
+          fieldIndexers =
+            listOf(
+              DaggerConceptIndexer { _, indexEntries ->
+                indexEntries["found"] = mutableSetOf(fakeIndexValue)
+              }
+            ),
+          methodIndexers =
+            listOf(
+              DaggerConceptIndexer { _, indexEntries ->
+                indexEntries["found"] = mutableSetOf(fakeIndexValue)
+              }
+            ),
+        )
+      )
 
     assertThat(indexer.map(fileContent)).isEmpty()
   }
 
   @Test
   fun javaConstructor() {
-    val fileContent = createFileContent(
-      JavaFileType.INSTANCE,
-      //language=java
-      """
+    val fileContent =
+      createFileContent(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
       package com.example;
       class CoffeeMaker {
         public CoffeeMaker() {}
       }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
-    val indexer = DaggerDataIndexer(DaggerConceptIndexers(
-      methodIndexers = listOf(DaggerConceptIndexer { wrapper, indexEntries ->
-        if (wrapper.getIsConstructor() && wrapper.getSimpleName() == "CoffeeMaker") indexEntries["found"] = mutableSetOf(fakeIndexValue)
-      }),
-    ))
+    val indexer =
+      DaggerDataIndexer(
+        DaggerConceptIndexers(
+          methodIndexers =
+            listOf(
+              DaggerConceptIndexer { wrapper, indexEntries ->
+                if (wrapper.getIsConstructor() && wrapper.getSimpleName() == "CoffeeMaker")
+                  indexEntries["found"] = mutableSetOf(fakeIndexValue)
+              }
+            ),
+        )
+      )
 
     assertThat(indexer.map(fileContent)).containsKey("found")
   }
 
   @Test
   fun javaMethod() {
-    val fileContent = createFileContent(
-      JavaFileType.INSTANCE,
-      //language=java
-      """
+    val fileContent =
+      createFileContent(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
       package com.example;
       class CoffeeMaker() {
         public void foo() {}
       }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
-    val indexer = DaggerDataIndexer(DaggerConceptIndexers(
-      methodIndexers = listOf(DaggerConceptIndexer { wrapper, indexEntries ->
-        if (!wrapper.getIsConstructor() && wrapper.getSimpleName() == "foo") indexEntries["found"] = mutableSetOf(fakeIndexValue)
-      }),
-    ))
+    val indexer =
+      DaggerDataIndexer(
+        DaggerConceptIndexers(
+          methodIndexers =
+            listOf(
+              DaggerConceptIndexer { wrapper, indexEntries ->
+                if (!wrapper.getIsConstructor() && wrapper.getSimpleName() == "foo")
+                  indexEntries["found"] = mutableSetOf(fakeIndexValue)
+              }
+            ),
+        )
+      )
 
     assertThat(indexer.map(fileContent)).containsKey("found")
   }
 
   @Test
   fun javaField() {
-    val fileContent = createFileContent(
-      JavaFileType.INSTANCE,
-      //language=java
-      """
+    val fileContent =
+      createFileContent(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
       package com.example;
       class CoffeeMaker() {
         public int foo;
       }
-      """.trimIndent())
+      """.trimIndent()
+      )
 
-    val indexer = DaggerDataIndexer(DaggerConceptIndexers(
-      fieldIndexers = listOf(DaggerConceptIndexer { wrapper, indexEntries ->
-        if (wrapper.getSimpleName() == "foo") indexEntries["found"] = mutableSetOf(fakeIndexValue)
-      }),
-    ))
+    val indexer =
+      DaggerDataIndexer(
+        DaggerConceptIndexers(
+          fieldIndexers =
+            listOf(
+              DaggerConceptIndexer { wrapper, indexEntries ->
+                if (wrapper.getSimpleName() == "foo")
+                  indexEntries["found"] = mutableSetOf(fakeIndexValue)
+              }
+            ),
+        )
+      )
 
     assertThat(indexer.map(fileContent)).containsKey("found")
+  }
+
+  @Test
+  fun javaClass() {
+    val fileContent =
+      createFileContent(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
+      package com.example;
+      public class CoffeeMaker {
+        public void foo() {}
+
+        public class CoffeeFilter {}
+      }
+      """.trimIndent()
+      )
+
+    val indexer =
+      DaggerDataIndexer(
+        DaggerConceptIndexers(
+          classIndexers =
+            listOf(
+              DaggerConceptIndexer { wrapper, indexEntries ->
+                when (wrapper.getFqName()) {
+                  "com.example.CoffeeMaker" ->
+                    indexEntries["foundClass"] = mutableSetOf(fakeIndexValue)
+                  "com.example.CoffeeMaker.CoffeeFilter" ->
+                    indexEntries["foundInnerClass"] = mutableSetOf(fakeIndexValue)
+                }
+              }
+            ),
+        )
+      )
+
+    assertThat(indexer.map(fileContent)).containsKey("foundClass")
+    assertThat(indexer.map(fileContent)).containsKey("foundInnerClass")
   }
 
   private fun createFileContent(fileType: FileType, text: String): FileContent {

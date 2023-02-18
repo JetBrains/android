@@ -19,6 +19,7 @@ import static com.android.tools.idea.gradle.dsl.model.ext.PropertyUtil.createBas
 
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo;
+import com.android.tools.idea.gradle.dsl.parser.android.FakeSdkElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslSimpleExpression;
@@ -76,6 +77,10 @@ public class SdkOrPreviewTransform extends PropertyTransform {
   @Override
   public @Nullable GradleDslElement transform(@Nullable GradleDslElement e) {
     if (e == null) return null;
+    if (e instanceof GradleDslSimpleExpression && previewSetter.equals(e.getNameElement().getLocalName())) {
+      GradleDslSimpleExpression expression = (GradleDslSimpleExpression) e;
+      return new FakeSdkElement(expression.getParent(), GradleNameElement.copy(expression.getNameElement()), expression, true);
+    }
     return e;
   }
 
@@ -86,32 +91,36 @@ public class SdkOrPreviewTransform extends PropertyTransform {
     @NotNull Object value,
     @NotNull String name
   ) {
-    String operatorName = genericSetter;
-    ExternalNameInfo.ExternalNameSyntax syntax = ExternalNameInfo.ExternalNameSyntax.METHOD;
+    String operatorName;
+    ExternalNameInfo.ExternalNameSyntax syntax;
     if (versionConstraint == null || versionConstraint.isOkWith(holder.getDslFile().getContext().getAgpVersion())) {
-      Object resolvedValue = value;
-      if (value instanceof ReferenceTo && ((ReferenceTo)value).getReferredElement() instanceof GradleDslSimpleExpression) {
-        GradleDslSimpleExpression valueExpression = (GradleDslSimpleExpression)((ReferenceTo)value).getReferredElement();
-        resolvedValue = valueExpression.getValue();
+      if (value instanceof ReferenceTo) {
+        // TODO(xof): if and when the genericSetter is removed from AGP, we will need to have some magic at this point.
+        operatorName = genericSetter;
+        syntax = ExternalNameInfo.ExternalNameSyntax.METHOD;
       }
-
-      if (resolvedValue instanceof Integer) {
+      else if (value instanceof Integer) {
         operatorName = sdkSetter;
         syntax = holder.getDslFile().getWriter() instanceof GroovyDslNameConverter
                  ? ExternalNameInfo.ExternalNameSyntax.METHOD
                  : ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
       }
-      else if (resolvedValue instanceof String) {
+      else if (value instanceof String && ((String) value).startsWith("android-")) {
         operatorName = previewSetter;
         syntax = holder.getDslFile().getWriter() instanceof GroovyDslNameConverter
                  ? ExternalNameInfo.ExternalNameSyntax.METHOD
                  : ExternalNameInfo.ExternalNameSyntax.ASSIGNMENT;
+        value = ((String)value).substring("android-".length());
       }
-      else { // RawText, ReferenceTo things we can't prove are integer/string
-        // TODO(xof): when the genericSetter is removed, we will need to guess at this point.
+      else { // RawText, literal Strings not beginning "android-"
+        // TODO(xof): if and when the genericSetter is removed from AGP, we will need to have some magic at this point.
         operatorName = genericSetter;
         syntax = ExternalNameInfo.ExternalNameSyntax.METHOD;
       }
+    }
+    else {
+      operatorName = genericSetter;
+      syntax = ExternalNameInfo.ExternalNameSyntax.METHOD;
     }
     GradleDslSimpleExpression expression = createBasicExpression(holder, value, GradleNameElement.create(operatorName));
     expression.setModelEffect(new ModelEffectDescription(propertyDescription, ModelSemanticsDescription.CREATE_WITH_VALUE));

@@ -307,7 +307,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-J", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
@@ -315,7 +315,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
 
     android.buildToolsVersion().setValue("24.0.0")
-    android.compileSdkVersion().setValue("24")
+    android.compileSdkVersion().setValue("android-K")
     android.defaultPublishConfig().setValue("release")
     android.generatePureSplits().setValue(false)
     android.publishNonDefault().setValue(true)
@@ -323,7 +323,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.targetProjectPath().setValue(":tpp2")
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("publishNonDefault", true, android.publishNonDefault())
@@ -333,14 +333,14 @@ class AndroidModelTest : GradleFileModelTestCase() {
     buildModel.resetState()
 
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-J", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("publishNonDefault", false, android.publishNonDefault())
     assertEquals("resourcePrefix", "abcd", android.resourcePrefix())
     assertEquals("targetProjectPath", ":tpp", android.targetProjectPath())
 
-    // Test the fields that also accept an integer value along with the String valye.
+    // Test the fields that also accept an integer value along with the String value.
     android.buildToolsVersion().setValue(22)
     android.compileSdkVersion().setValue(21)
 
@@ -350,7 +350,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     buildModel.resetState()
 
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-J", android.compileSdkVersion())
   }
 
   @Test
@@ -369,7 +369,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("targetProjectPath", android.targetProjectPath())
 
     android.buildToolsVersion().setValue("24.0.0")
-    android.compileSdkVersion().setValue("24")
+    android.compileSdkVersion().setValue("android-K")
     android.defaultPublishConfig().setValue("release")
     android.generatePureSplits().setValue(false)
     android.publishNonDefault().setValue(true)
@@ -377,7 +377,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.targetProjectPath().setValue(":tpp")
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("publishNonDefault", true, android.publishNonDefault())
@@ -1251,7 +1251,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-J", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace", android.namespace())
@@ -1261,7 +1261,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("testNamespace", "com.my.namespace.test", android.testNamespace())
 
     android.buildToolsVersion().setValue("24.0.0")
-    android.compileSdkVersion().setValue("24")
+    android.compileSdkVersion().setValue("android-K")
     android.defaultPublishConfig().setValue("release")
     android.generatePureSplits().setValue(false)
     android.namespace().setValue("com.my.namespace2")
@@ -1271,7 +1271,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.testNamespace().setValue("com.my.namespace2.test")
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace2", android.namespace())
@@ -1284,7 +1284,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED)
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace2", android.namespace())
@@ -1298,7 +1298,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace2", android.namespace())
@@ -1317,7 +1317,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     assertEquals("buildToolsVersion", "23.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "23", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-J", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "debug", android.defaultPublishConfig())
     assertEquals("generatePureSplits", true, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace", android.namespace())
@@ -1327,7 +1327,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertEquals("testNamespace", "com.my.namespace.test", android.testNamespace())
 
     android.buildToolsVersion().setValue("24.0.0")
-    android.compileSdkVersion().setValue("24")
+    android.compileSdkVersion().setValue("android-K")
     android.defaultPublishConfig().setValue("release")
     android.generatePureSplits().setValue(false)
     android.namespace().setValue("com.my.namespace2")
@@ -1337,7 +1337,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.testNamespace().setValue("com.my.namespace2.test")
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace2", android.namespace())
@@ -1350,7 +1350,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.EDIT_AND_APPLY_LITERAL_ELEMENTS_EXPECTED_400)
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace2", android.namespace())
@@ -1364,7 +1364,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace2", android.namespace())
@@ -1445,7 +1445,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("testNamespace", android.testNamespace())
 
     android.buildToolsVersion().setValue("24.0.0")
-    android.compileSdkVersion().setValue("24")
+    android.compileSdkVersion().setValue("android-K")
     android.defaultPublishConfig().setValue("release")
     android.generatePureSplits().setValue(false)
     android.namespace().setValue("com.my.namespace")
@@ -1455,7 +1455,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.testNamespace().setValue("com.my.namespace.test")
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace", android.namespace())
@@ -1468,7 +1468,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED)
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace", android.namespace())
@@ -1482,7 +1482,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace", android.namespace())
@@ -1511,7 +1511,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertMissingProperty("testNamespace", android.testNamespace())
 
     android.buildToolsVersion().setValue("24.0.0")
-    android.compileSdkVersion().setValue("24")
+    android.compileSdkVersion().setValue("android-K")
     android.defaultPublishConfig().setValue("release")
     android.generatePureSplits().setValue(false)
     android.namespace().setValue("com.my.namespace")
@@ -1521,7 +1521,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.testNamespace().setValue("com.my.namespace.test")
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace", android.namespace())
@@ -1534,7 +1534,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_LITERAL_ELEMENTS_EXPECTED_400)
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace", android.namespace())
@@ -1548,7 +1548,7 @@ class AndroidModelTest : GradleFileModelTestCase() {
     assertNotNull(android)
 
     assertEquals("buildToolsVersion", "24.0.0", android.buildToolsVersion())
-    assertEquals("compileSdkVersion", "24", android.compileSdkVersion())
+    assertEquals("compileSdkVersion", "android-K", android.compileSdkVersion())
     assertEquals("defaultPublishConfig", "release", android.defaultPublishConfig())
     assertEquals("generatePureSplits", false, android.generatePureSplits())
     assertEquals("namespace", "com.my.namespace", android.namespace())
@@ -1610,10 +1610,39 @@ class AndroidModelTest : GradleFileModelTestCase() {
   }
 
   @Test
-  fun setCompileSdkVersionToReference() {
+  fun testAddAndApplyStringSdkElements() {
+    writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
+    android.compileSdkVersion().setValue("android-S")
+    assertEquals("compileSdkVersion", "android-S", android.compileSdkVersion())
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_STRING_SDK_ELEMENTS_EXPECTED);
+  }
+
+  @Test
+  fun testAddAndApplyStringSdkElements400() {
+    writeToBuildFile(TestFile.ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS)
+    val buildModel = gradleBuildModel
+    buildModel.context.agpVersion = AndroidGradlePluginVersion.parse("4.0.0")
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    assertMissingProperty("compileSdkVersion", android.compileSdkVersion())
+    android.compileSdkVersion().setValue("android-S")
+    assertEquals("compileSdkVersion", "android-S", android.compileSdkVersion())
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.ADD_AND_APPLY_STRING_SDK_ELEMENTS_EXPECTED_400);
+  }
+
+  @Test
+  fun testSetCompileSdkVersionToReference() {
     writeToBuildFile(TestFile.SET_COMPILE_SDK_VERSION_TO_REFERENCE)
     val buildModel = gradleBuildModel
-    var android = buildModel.android()
+    val android = buildModel.android()
     assertNotNull(android)
 
     assertEquals("compileSdkVersion", 29, android.compileSdkVersion())
@@ -1621,6 +1650,21 @@ class AndroidModelTest : GradleFileModelTestCase() {
     android.compileSdkVersion().setValue(ReferenceTo(buildModel.ext().findProperty("sdkVersion")))
     applyChangesAndReparse(buildModel)
     verifyFileContents(myBuildFile, TestFile.SET_COMPILE_SDK_VERSION_TO_REFERENCE_EXPECTED)
+  }
+
+  @Test
+  fun testSetCompileSdkVersionToAddOnString() {
+    writeToBuildFile(TestFile.SET_COMPILE_SDK_VERSION_TO_ADD_ON_STRING)
+    val buildModel = gradleBuildModel
+    val android = buildModel.android()
+    assertNotNull(android)
+
+    assertEquals("compileSdkVersion", "android-S", android.compileSdkVersion())
+
+    android.compileSdkVersion().setValue("Google Inc.:Google APIs:24")
+    applyChangesAndReparse(buildModel)
+    verifyFileContents(myBuildFile, TestFile.SET_COMPILE_SDK_VERSION_TO_ADD_ON_STRING_EXPECTED)
+
   }
 
   @Test
@@ -2050,6 +2094,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS("addAndApplyIntegerLiteralElements"),
     ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED("addAndApplyIntegerLiteralElementsExpected"),
     ADD_AND_APPLY_INTEGER_LITERAL_ELEMENTS_EXPECTED_400("addAndApplyIntegerLiteralElementsExpected400"),
+    ADD_AND_APPLY_STRING_SDK_ELEMENTS_EXPECTED("addAndApplyStringSdkElementsExpected"),
+    ADD_AND_APPLY_STRING_SDK_ELEMENTS_EXPECTED_400("addAndApplyStringSdkElementsExpected400"),
     REPLACE_AND_APPLY_LIST_ELEMENTS("replaceAndApplyListElements"),
     REPLACE_AND_APPLY_LIST_ELEMENTS_EXPECTED("replaceAndApplyListElementsExpected"),
     ADD_AND_APPLY_LIST_ELEMENTS("addAndApplyListElements"),
@@ -2064,6 +2110,8 @@ class AndroidModelTest : GradleFileModelTestCase() {
     PARSE_NO_RESCONFIGS_PROPERTY("parseNoResConfigsProperty"),
     DEFAULT_CONFIG_BLOCK_AND_STATEMENT("defaultConfigBlockAndStatement"),
     DEFAULT_CONFIG_STATEMENT_AND_BLOCK("defaultConfigStatementAndBlock"),
+    SET_COMPILE_SDK_VERSION_TO_ADD_ON_STRING("setCompileSdkVersionToAddOnString"),
+    SET_COMPILE_SDK_VERSION_TO_ADD_ON_STRING_EXPECTED("setCompileSdkVersionToAddOnStringExpected"),
     SET_COMPILE_SDK_VERSION_TO_REFERENCE("setCompileSdkVersionToReference"),
     SET_COMPILE_SDK_VERSION_TO_REFERENCE_EXPECTED("setCompileSdkVersionToReferenceExpected"),
     SET_PROGUARD_FILES_TO_REFERENCE("setProguardFilesToReference"),

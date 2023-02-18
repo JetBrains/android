@@ -24,7 +24,8 @@ internal class ExpandableEditor(internal val collapsedEditor: EditorTextField) :
   private val support = MyEditorTextSupport(collapsedEditor)
   internal val expandedEditor = support.expandedEditorTextField
 
-  internal val activeEditor get() = if (isExpanded) expandedEditor else collapsedEditor
+  internal val activeEditor
+    get() = if (isExpanded) expandedEditor else collapsedEditor
 
   override fun collapse() {
     support.collapse()
@@ -40,9 +41,10 @@ internal class ExpandableEditor(internal val collapsedEditor: EditorTextField) :
 }
 
 /**
- * This extension of [ExpandableEditorSupport] always uses the same instance of [EditorTextField] for the expanded editor.
- * This instance is made available to clients of this class. This allows us to keep the collapsed and expanded editors in sync.
- * eg. by setting the document on both when necessary, setting keyboard shortcuts on both etc.
+ * This extension of [ExpandableEditorSupport] always uses the same instance of [EditorTextField]
+ * for the expanded editor. This instance is made available to clients of this class. This allows us
+ * to keep the collapsed and expanded editors in sync. eg. by setting the document on both when
+ * necessary, setting keyboard shortcuts on both etc.
  */
 private class MyEditorTextSupport(editor: EditorTextField) : ExpandableEditorSupport(editor) {
   internal val expandedEditorTextField = EditorTextField(editor.project, editor.fileType)

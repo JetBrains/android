@@ -58,7 +58,6 @@ import javax.swing.SwingConstants
 /**
  * Tab which shows a bunch of useful, high level information for a network request.
  *
- *
  * This tab will be the first one shown to the user when they first select a request.
  */
 class OverviewTabContent : TabContent() {
@@ -71,15 +70,20 @@ class OverviewTabContent : TabContent() {
     contentPanel.border = JBUI.Borders.empty(PAGE_VGAP, HORIZONTAL_PADDING, 0, HORIZONTAL_PADDING)
     val overviewScroll: JBScrollPane = createVerticalScrollPane(contentPanel)
     overviewScroll.verticalScrollBar.unitIncrement = SCROLL_UNIT
-    overviewScroll.addComponentListener(object : ComponentAdapter() {
-      override fun componentResized(e: ComponentEvent) {
-        layout.setRowSizing(
-          0,
-          TabularLayout.SizingRule(TabularLayout.SizingRule.Type.FIXED, (overviewScroll.viewport.height * 0.4f).toInt())
-        )
-        layout.layoutContainer(contentPanel)
+    overviewScroll.addComponentListener(
+      object : ComponentAdapter() {
+        override fun componentResized(e: ComponentEvent) {
+          layout.setRowSizing(
+            0,
+            TabularLayout.SizingRule(
+              TabularLayout.SizingRule.Type.FIXED,
+              (overviewScroll.viewport.height * 0.4f).toInt()
+            )
+          )
+          layout.layoutContainer(contentPanel)
+        }
       }
-    })
+    )
     return overviewScroll
   }
 
@@ -88,7 +92,11 @@ class OverviewTabContent : TabContent() {
     if (data == null) {
       return
     }
-    val payloadViewer = httpDataComponentFactory.createDataViewer(HttpDataComponentFactory.ConnectionType.RESPONSE)
+    val payloadViewer =
+      httpDataComponentFactory.createDataViewer(
+        HttpDataComponentFactory.ConnectionType.RESPONSE,
+        false
+      )
     val responsePayloadComponent: JComponent = payloadViewer.component
     responsePayloadComponent.name = ID_RESPONSE_PAYLOAD_VIEWER
     contentPanel.add(responsePayloadComponent, TabularLayout.Constraint(0, 0))
@@ -172,7 +180,9 @@ class OverviewTabContent : TabContent() {
         }
 
         override fun mouseMoved(e: MouseEvent) {
-          cursor = if (isMouseOverText(e)) Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) else Cursor.getDefaultCursor()
+          cursor =
+            if (isMouseOverText(e)) Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+            else Cursor.getDefaultCursor()
         }
 
         private fun isMouseOverText(e: MouseEvent): Boolean {
@@ -183,12 +193,10 @@ class OverviewTabContent : TabContent() {
   }
 
   companion object {
-    private val TIME_FORMATTER: LongFunction<String> = LongFunction<String> { time: Long ->
-      if (time >= 0) StringUtil.formatDuration(
-        TimeUnit.MICROSECONDS.toMillis(time)
-      )
-      else "*"
-    }
+    private val TIME_FORMATTER: LongFunction<String> =
+      LongFunction<String> { time: Long ->
+        if (time >= 0) StringUtil.formatDuration(TimeUnit.MICROSECONDS.toMillis(time)) else "*"
+      }
     private const val ID_CONTENT_TYPE = "CONTENT_TYPE"
     private const val ID_SIZE = "SIZE"
     private const val ID_URL = "URL"
@@ -238,9 +246,7 @@ class OverviewTabContent : TabContent() {
           val contentLengthLabel = JLabel(StringUtil.formatFileSize(contentLength.toLong()))
           contentLengthLabel.name = ID_SIZE
           myFieldsPanel.add(contentLengthLabel, TabularLayout.Constraint(row, 2))
-        }
-        catch (ignored: NumberFormatException) {
-        }
+        } catch (ignored: NumberFormatException) {}
       }
 
       row++
@@ -292,10 +298,13 @@ class OverviewTabContent : TabContent() {
     private fun createTimingBar(httpData: HttpData): JComponent {
       val panel = JPanel()
       panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
-      val range = Range(
-        httpData.requestStartTimeUs.toDouble(),
-        (if (httpData.connectionEndTimeUs > 0) httpData.connectionEndTimeUs else httpData.requestStartTimeUs + 1).toDouble()
-      )
+      val range =
+        Range(
+          httpData.requestStartTimeUs.toDouble(),
+          (if (httpData.connectionEndTimeUs > 0) httpData.connectionEndTimeUs
+            else httpData.requestStartTimeUs + 1)
+            .toDouble()
+        )
       val connectionsChart = ConnectionsStateChart(httpData, range)
       connectionsChart.component.minimumSize = Dimension(0, JBUI.scale(28))
       connectionsChart.setHeightGap(0f)
@@ -305,8 +314,7 @@ class OverviewTabContent : TabContent() {
       if (httpData.responseStartTimeUs > 0) {
         sentTime = httpData.responseStartTimeUs - httpData.requestStartTimeUs
         receivedTime = httpData.responseCompleteTimeUs - httpData.responseStartTimeUs
-      }
-      else if (httpData.connectionEndTimeUs > 0) {
+      } else if (httpData.connectionEndTimeUs > 0) {
         sentTime = httpData.connectionEndTimeUs - httpData.requestStartTimeUs
         receivedTime = 0
       }
@@ -317,14 +325,24 @@ class OverviewTabContent : TabContent() {
       legendModel.add(receivedLegend)
 
       // TODO: Add waiting time in (currently hidden because it's always 0)
-      val legend: LegendComponent = LegendComponent.Builder(legendModel).setLeftPadding(0).setVerticalPadding(JBUI.scale(8)).build()
+      val legend: LegendComponent =
+        LegendComponent.Builder(legendModel)
+          .setLeftPadding(0)
+          .setVerticalPadding(JBUI.scale(8))
+          .build()
       legend.configure(
         sentLegend,
-        LegendConfig(LegendConfig.IconType.BOX, connectionsChart.colors.getColor(NetworkState.SENDING))
+        LegendConfig(
+          LegendConfig.IconType.BOX,
+          connectionsChart.colors.getColor(NetworkState.SENDING)
+        )
       )
       legend.configure(
         receivedLegend,
-        LegendConfig(LegendConfig.IconType.BOX, connectionsChart.colors.getColor(NetworkState.RECEIVING))
+        LegendConfig(
+          LegendConfig.IconType.BOX,
+          connectionsChart.colors.getColor(NetworkState.RECEIVING)
+        )
       )
       panel.add(legend)
       return panel

@@ -22,6 +22,7 @@ import com.android.builder.model.v2.ide.Variant
 import com.android.builder.model.v2.models.AndroidDsl
 import com.android.builder.model.v2.models.BasicAndroidProject
 import com.android.builder.model.v2.models.Versions
+import com.android.ide.gradle.model.GradlePropertiesModel
 import com.android.ide.gradle.model.LegacyApplicationIdModel
 import com.android.tools.idea.gradle.model.impl.IdeAndroidProjectImpl
 import com.android.tools.idea.gradle.model.impl.IdeVariantCoreImpl
@@ -68,10 +69,11 @@ sealed class AndroidProjectResult {
       projectPath: String,
       androidProject: AndroidProject,
       legacyApplicationIdModel: LegacyApplicationIdModel?,
+      gradlePropertiesModel: GradlePropertiesModel,
     ): ModelResult<V1Project> {
       val agpVersion: String = safeGet(androidProject::getModelVersion, "")
       val ideAndroidProjectResult: ModelResult<IdeAndroidProjectImpl> =
-        modelCache.androidProjectFrom(rootBuildId, buildId, buildName, projectPath, androidProject, legacyApplicationIdModel)
+        modelCache.androidProjectFrom(rootBuildId, buildId, buildName, projectPath, androidProject, legacyApplicationIdModel, gradlePropertiesModel)
       return ideAndroidProjectResult.mapCatching { ideAndroidProject ->
         val allVariantNames: Set<String> = safeGet(androidProject::getVariantNames, null).orEmpty().toSet()
         val defaultVariantName: String? = safeGet(androidProject::getDefaultVariant, null)
@@ -101,6 +103,7 @@ sealed class AndroidProjectResult {
       modelVersions: Versions,
       androidDsl: AndroidDsl,
       legacyApplicationIdModel: LegacyApplicationIdModel?,
+      gradlePropertiesModel: GradlePropertiesModel,
     ): ModelResult<V2Project> {
       val buildName: String = basicAndroidProject.buildName
       val agpVersion: String = modelVersions.agp
@@ -113,7 +116,8 @@ sealed class AndroidProjectResult {
           project = androidProject,
           androidVersion = modelVersions,
           androidDsl = androidDsl,
-          legacyApplicationIdModel = legacyApplicationIdModel
+          legacyApplicationIdModel = legacyApplicationIdModel,
+          gradlePropertiesModel = gradlePropertiesModel,
         )
 
       return ideAndroidProjectResult.mapCatching { ideAndroidProject ->

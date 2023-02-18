@@ -27,8 +27,6 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ex.ApplicationEx;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -38,11 +36,9 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.EditorNotificationPanel;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.SideBorder;
 import com.intellij.util.ui.UIUtil;
-import com.intellij.util.ui.components.BorderLayoutPanel;
 import java.awt.BorderLayout;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -197,32 +193,7 @@ public class AndroidLogcatView {
       myPanel.add(myToolbar.getComponent(), BorderLayout.WEST);
     }
 
-    LogcatExperimentalSettings logcatExperimentalSettings = LogcatExperimentalSettings.getInstance();
-    if (logcatExperimentalSettings.getBannerDismissed()) {
-      myPanel.add(consoleComponent, BorderLayout.CENTER);
-    }
-    else {
-      BorderLayoutPanel centerPanel = new BorderLayoutPanel();
-      EditorNotificationPanel banner = new EditorNotificationPanel();
-      // Not putting these strings in a properties file because this is a temporary feature. Putting in the properties file will probably
-      // result in forgetting to remove them when disabling this code.
-      banner.setText("Try the new Logcat with improved formatting and filtering options.");
-      banner.createActionLabel("Enable", () -> {
-        logcatExperimentalSettings.setLogcatV2Enabled(true);
-        banner.clear();
-        banner.setText("The new Logcat is enabled and will be visible after restarting the IDE.");
-        banner.createActionLabel("Restart now", () -> ((ApplicationEx)ApplicationManager.getApplication()).restart(true));
-        banner.createActionLabel("Dismiss", () -> centerPanel.remove(banner));
-      });
-      banner.createActionLabel("Dismiss", () -> {
-        logcatExperimentalSettings.setBannerDismissed(true);
-        centerPanel.remove(banner);
-      });
-
-      centerPanel.addToTop(banner);
-      centerPanel.addToCenter(consoleComponent);
-      myPanel.add(centerPanel, BorderLayout.CENTER);
-    }
+    myPanel.add(consoleComponent, BorderLayout.CENTER);
     Disposer.register(parentDisposable, myLogConsole);
 
     updateLogConsole();

@@ -49,7 +49,7 @@ object DimensionUnitAction: DefaultActionGroup("Units", listOf(
   }
 )) {
   override fun update(event: AnActionEvent) {
-    val model = LayoutInspector.get(event)?.layoutInspectorModel
+    val model = LayoutInspector.get(event)?.inspectorModel
     event.presentation.isEnabled = model?.resourceLookup?.dpi != null
   }
 

@@ -24,6 +24,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
+import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.rendering.DrawableRenderer;
 import com.android.tools.idea.npw.assetstudio.TvBannerGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
@@ -246,7 +247,7 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
                                 @Nullable DrawableRenderer renderer) {
     super(new BorderLayout());
     myFacet = facet;
-    AndroidModuleInfo androidModuleInfo = AndroidModuleInfo.getInstance(facet);
+    AndroidModuleInfo androidModuleInfo = StudioAndroidModuleInfo.getInstance(facet);
     AndroidVersion buildSdkVersion = androidModuleInfo.getBuildSdkVersion();
     myBuildSdkVersion = buildSdkVersion != null ? buildSdkVersion : new AndroidVersion(26);
 

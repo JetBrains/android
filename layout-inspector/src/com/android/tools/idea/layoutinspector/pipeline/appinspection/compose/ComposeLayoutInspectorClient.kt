@@ -27,6 +27,7 @@ import com.android.tools.idea.appinspection.inspector.api.AppInspectorJar
 import com.android.tools.idea.appinspection.inspector.api.AppInspectorMessenger
 import com.android.tools.idea.appinspection.inspector.api.launch.ArtifactCoordinate
 import com.android.tools.idea.appinspection.inspector.api.launch.LaunchParameters
+import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatbilityInfo.Status
 import com.android.tools.idea.appinspection.inspector.api.launch.LibraryCompatibility
 import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.flags.StudioFlags
@@ -173,7 +174,7 @@ class ComposeLayoutInspectorClient(
         requiredCompatibility = COMPOSE_INSPECTION_COMPATIBILITY
         val compatibility = apiServices.checkVersion(project.name, process, MINIMUM_COMPOSE_COORDINATE.groupId,
                                                      MINIMUM_COMPOSE_COORDINATE.artifactId, listOf(EXPECTED_CLASS_IN_COMPOSE_LIBRARY))
-        val version = compatibility?.version?.takeIf { it.isNotBlank() }
+        val version = compatibility?.version?.takeIf { compatibility.status == Status.COMPATIBLE && it.isNotBlank () }
                       ?: return handleError(project, logErrorToMetrics, isRunningFromSourcesInTests, compatibility?.status.errorCode)
 
         checkComposeVersion(project, version)
@@ -264,7 +265,7 @@ class ComposeLayoutInspectorClient(
         AttachErrorCode.APP_INSPECTION_VERSION_FILE_NOT_FOUND ->
           LayoutInspectorBundle.message(VERSION_MISSING_MESSAGE_KEY)
         AttachErrorCode.APP_INSPECTION_INCOMPATIBLE_VERSION ->
-          LayoutInspectorBundle.message(INCOMPATIBLE_LIBRARY_MESSAGE_KEY, MINIMUM_COMPOSE_COORDINATE.toString())
+          LayoutInspectorBundle.message(INCOMPATIBLE_LIBRARY_MESSAGE_KEY)
         AttachErrorCode.APP_INSPECTION_PROGUARDED_APP -> {
           actions.add(InspectorBannerService.LearnMoreAction(PROGUARD_LEARN_MORE))
           LayoutInspectorBundle.message(PROGUARDED_LIBRARY_MESSAGE_KEY)
