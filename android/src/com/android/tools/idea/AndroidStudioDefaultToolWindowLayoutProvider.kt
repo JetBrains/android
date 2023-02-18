@@ -34,4 +34,13 @@ class AndroidStudioDefaultToolWindowLayoutProvider : IntellijPlatformDefaultTool
     builder.add("Device Manager", weight = 0.25f)
     builder.add("Running Devices", weight = 0.25f)
   }
+
+  override fun configureBottomVisibleOnLargeStripe(builder: DefaultToolWindowLayoutBuilder) {
+    builder.add("Version Control")
+    builder.add("Terminal")
+    builder.add("App Quality Insights")
+    builder.add("Problems View")
+    builder.add("Logcat")
+    builder.add("Build")
+  }
 }
