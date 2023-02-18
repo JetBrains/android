@@ -343,9 +343,9 @@ class MessageFormatterTest {
 
     // Filter the ranges corresponding to a LogLevel and build a map level -> color.
     val textAttributes = textAccumulator.textAttributesKeyRanges.filter {
-      it.getText(textAccumulator.text).matches("message-.*\n".toRegex())
+      it.getText(textAccumulator.text).matches("message-.*".toRegex())
     }
-      .associate { it.getText(textAccumulator.text).trim() to it.data }
+      .associate { it.getText(textAccumulator.text) to it.data }
 
     assertThat(textAttributes).containsExactly(
       "message-VERBOSE", logcatColors.getMessageKey(VERBOSE),

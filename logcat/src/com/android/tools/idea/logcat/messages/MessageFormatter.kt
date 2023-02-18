@@ -68,8 +68,9 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
         else -> wordWrap(message.message, softWrapWidth - headerWidth)
       }
       textAccumulator.accumulate(
-        text = "${messageText.replace("\n", newline)}\n",
+        text = messageText.replace("\n", newline),
         textAttributesKey = logcatColors.getMessageKey(header.logLevel))
+      textAccumulator.accumulate("\n")
       val end = textAccumulator.getTextLength()
       textAccumulator.addMessageRange(start, end - 1, message)
 
