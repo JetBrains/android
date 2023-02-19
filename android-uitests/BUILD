@@ -90,7 +90,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:layoutinspector-view-proto[test]",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
-        "//tools/base/lint/libs/lint-tests:studio.android.sdktools.lint.tests[module, test]",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module, test]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module]",
