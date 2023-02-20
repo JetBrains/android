@@ -2,5 +2,5 @@
 package com.android.tools.idea.gradle.plugin
 
 object AndroidGradlePluginVersion {
-  const val LATEST_STABLE_VERSION = "7.3.0"
+  const val LATEST_STABLE_VERSION = "7.4.1"
 }
