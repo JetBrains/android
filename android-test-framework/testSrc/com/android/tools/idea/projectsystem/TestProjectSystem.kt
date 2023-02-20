@@ -74,6 +74,7 @@ class TestProjectSystem @JvmOverloads constructor(
   private val coordinateToFakeRegisterDependencyError: HashMap<GradleCoordinate, String>
   var namespace: String? = null
   var manifestOverrides = ManifestOverrides()
+  var useAndroidX: Boolean = false
 
   init {
     val sortedHighToLowDeps = availableDependencies.sortedWith(GradleCoordinate.COMPARE_PLUS_HIGHER).reversed()
@@ -201,6 +202,9 @@ class TestProjectSystem @JvmOverloads constructor(
       }
 
       override fun getDependencyPath(coordinate: GradleCoordinate): Path? = null
+
+      override val useAndroidX: Boolean
+        get() = this@TestProjectSystem.useAndroidX
     }
 
     return TestAndroidModuleSystemImpl()

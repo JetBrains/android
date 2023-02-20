@@ -5,6 +5,8 @@ import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.tools.idea.project.DefaultModuleSystem
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addBinaryAarDependency
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
@@ -47,7 +49,6 @@ import org.jetbrains.android.inspections.CreateFileResourceQuickFix
 import org.jetbrains.android.inspections.CreateValueResourceQuickFix
 import org.jetbrains.android.intentions.AndroidCreateOnClickHandlerAction
 import org.jetbrains.android.refactoring.isAndroidx
-import org.jetbrains.android.refactoring.setAndroidxProperties
 import org.junit.Test
 import java.io.IOException
 import java.util.Arrays
@@ -2588,7 +2589,7 @@ b/263898646 */
   }
 
   private fun setAndroidx() = runWriteCommandAction(project) {
-    project.setAndroidxProperties("true")
+    (myModule.getModuleSystem() as DefaultModuleSystem).useAndroidX = true
     assertThat(project.isAndroidx()).isTrue()  // Sanity check, regression test for b/145854589.
   }
 }

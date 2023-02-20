@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.palette;
 
 import static com.android.tools.idea.projectsystem.ProjectSystemSyncUtil.PROJECT_SYSTEM_SYNC_TOPIC;
+import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.repository.GradleCoordinate;
@@ -211,26 +212,11 @@ public class DependencyManager implements Disposable {
   // This method is only called indirectly from checkForRelevantDependencyChanges where the mySync monitor is already held.
   @SuppressWarnings("FieldAccessNotGuarded")
   private boolean computeUseAndroidXDependencies() {
-    if (myProject.isDisposed()) {
-      return false;
-    }
-
-    Boolean useAndroidX = MigrateToAndroidxUtil.useAndroidX(myProject);
-    if (useAndroidX != null) {
-      return useAndroidX;
-    }
-
-    if (myModule == null || myModule.isDisposed()) {
-      return false;
-    }
-
-    if (DependencyManagementUtil.dependsOnAndroidx(myModule)) {
-      // It already depends on androidx
+    if (myProject.isDisposed() || myModule == null || myModule.isDisposed()) {
       return true;
     }
 
-    // It does not depend on androidx. Check default to using androidx unless the module already depends on android.support
-    return !DependencyManagementUtil.dependsOnOldSupportLib(myModule);
+    return getModuleSystem(myModule).getUseAndroidX();
   }
 
   public interface DependencyChangeListener {

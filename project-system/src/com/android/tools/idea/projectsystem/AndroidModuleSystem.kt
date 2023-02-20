@@ -363,7 +363,7 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   fun getTestLibrariesInUse(): TestLibraries? = null
 
   /** Whether AndroidX libraries should be used instead of legacy support libraries. */
-  val useAndroidX: Boolean? get() = null
+  val useAndroidX: Boolean get() = false // TODO(270044829): fix tests to make this true by default
 }
 
 /**
