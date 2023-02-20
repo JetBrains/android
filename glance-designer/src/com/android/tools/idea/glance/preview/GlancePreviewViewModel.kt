@@ -18,6 +18,7 @@ package com.android.tools.idea.glance.preview
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.preview.mvvm.PreviewView
 import com.android.tools.idea.preview.mvvm.PreviewViewModel
+import com.android.tools.idea.preview.viewmodels.CommonPreviewViewModel
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.Project
