@@ -338,28 +338,27 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
+      ResourceValue resourceValue = myFontFamilies.get(fileName);
+      if (resourceValue != null) {
+        // This is a font-family XML. Now check if it defines a downloadable font. If it is,
+        // this is a special case where we generate a synthetic font-family XML file that points
+        // to the cached fonts downloaded by the DownloadableFontCacheService.
+        if (myProjectFonts == null) {
+          myProjectFonts = new ProjectFonts(myRenderModule.getResourceRepositoryManager());
+        }
+
+        FontFamily family = myProjectFonts.getFont(resourceValue.getResourceUrl().toString());
+        String fontFamilyXml = myFontCacheService.toXml(family);
+        if (fontFamilyXml == null) {
+          return null;
+        }
+
+        return getParserFromText(fileName, fontFamilyXml);
+      }
       VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(fileName);
       if (virtualFile != null) {
         PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myRenderModule.getIdeaModule().getProject(), virtualFile);
         if (psiFile != null) {
-          ResourceValue resourceValue = myFontFamilies.get(fileName);
-          if (resourceValue != null) {
-            // This is a font-family XML. Now check if it defines a downloadable font. If it is,
-            // this is a special case where we generate a synthetic font-family XML file that points
-            // to the cached fonts downloaded by the DownloadableFontCacheService.
-            if (myProjectFonts == null) {
-              myProjectFonts = new ProjectFonts(myRenderModule.getResourceRepositoryManager());
-            }
-
-            FontFamily family = myProjectFonts.getFont(resourceValue.getResourceUrl().toString());
-            String fontFamilyXml = myFontCacheService.toXml(family);
-            if (fontFamilyXml == null) {
-              return null;
-            }
-
-            return getParserFromText(fileName, fontFamilyXml);
-          }
-
           String psiText = ApplicationManager.getApplication().isReadAccessAllowed()
                            ? psiFile.getText()
                            : ApplicationManager.getApplication().runReadAction((Computable<String>)psiFile::getText);
