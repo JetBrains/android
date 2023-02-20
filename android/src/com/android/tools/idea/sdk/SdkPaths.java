@@ -53,48 +53,8 @@ public class SdkPaths {
     return validateAndroidSdk(sdkFile == null ? null : sdkFile.toPath(), includePathInMessage);
   }
 
-  /** @see #validateAndroidNdk(Path, boolean) */
   @NotNull
-  @Deprecated
-  public static ValidationResult validateAndroidNdk(@Nullable File ndkPath, boolean includePathInMessage) {
-    return validateAndroidNdk(ndkPath == null ? null : ndkPath.toPath(), includePathInMessage);
-  }
-
-  /**
-   * Indicates whether the given path belongs to a valid Android NDK.
-   *
-   * @param ndkPath              the given path.
-   * @param includePathInMessage indicates whether the given path should be included in the result message.
-   * @return the validation result.
-   */
-  @NotNull
-  public static ValidationResult validateAndroidNdk(@Nullable Path ndkPath, boolean includePathInMessage) {
-    if (ndkPath != null) {
-      Validator.Result result = PathValidator.forAndroidNdkLocation().validate(ndkPath);
-      Validator.Severity severity  = result.getSeverity();
-      if (severity == ERROR) {
-        return ValidationResult.error(result.getMessage());
-      }
-    }
-    ValidationResult validationResult = validatedSdkPath(ndkPath, "NDK", false, includePathInMessage);
-    if (validationResult.success && ndkPath != null) {
-      Path toolchainsDirPath = ndkPath.resolve("toolchains");
-      if (!CancellableFileIo.isDirectory(toolchainsDirPath)) {
-        String message;
-        if (includePathInMessage) {
-          message = String.format("The NDK at\n'%1$s'\ndoes not contain any toolchains.", ndkPath);
-        }
-        else {
-          message = "NDK does not contain any toolchains.";
-        }
-        return ValidationResult.error(message);
-      }
-    }
-    return validationResult;
-  }
-
-  @NotNull
-  private static ValidationResult validatedSdkPath(@Nullable Path sdkPath,
+  static ValidationResult validatedSdkPath(@Nullable Path sdkPath,
                                                    @NotNull String sdkName,
                                                    boolean checkForWritable,
                                                    boolean includePathInMessage) {

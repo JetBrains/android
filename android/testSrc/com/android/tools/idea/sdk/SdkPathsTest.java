@@ -15,31 +15,15 @@
  */
 package com.android.tools.idea.sdk;
 
-import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtil.createDirectory;
 import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.AclEntry;
-import java.nio.file.attribute.AclEntryPermission;
-import java.nio.file.attribute.AclFileAttributeView;
-import java.nio.file.attribute.DosFileAttributeView;
-import java.nio.file.attribute.FileAttributeView;
-import java.nio.file.attribute.PosixFilePermission;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import junit.framework.TestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -101,85 +85,10 @@ public class SdkPathsTest extends TestCase {
     assertTrue(result.message, result.success);
   }
 
-  public void testInvalidNdkDirectory() throws Exception {
-    Path mockFile = createFileMock(DUMMY_PATH, false);
-
-    ValidationResult result = validateAndroidNdk(mockFile, false);
-    assertFalse(result.success);
-    assertEquals("The NDK path does not belong to a directory.", result.message);
-
-    result = validateAndroidNdk(mockFile, true);
-    assertFalse(result.success);
-    assertEquals(String.format("The NDK path\n'%1$s'\ndoes not belong to a directory.", mockFile), result.message);
-  }
-
-  public void testUnReadableNdkDirectory() throws Exception {
-    Path mockFile = Files.createTempDirectory("SdkPathsTest-testUnReadableNdkDirectory");
-    setUnreadable(mockFile);
-
-    ValidationResult result = validateAndroidNdk(mockFile, false);
-    assertFalse(result.success);
-    assertEquals("The NDK path is not readable.", result.message);
-
-    result = validateAndroidNdk(mockFile, true);
-    assertFalse(result.success);
-    assertEquals(String.format("The NDK path\n'%1$s'\nis not readable.", mockFile), result.message);
-  }
-
-  public void testNoPlatformsNdkDirectory() throws Exception {
-    tmpDir = createTempDirectory(SdkPathsTest.class.getSimpleName(), "testNoPlatformsNdkDirectory");
-    ValidationResult result = validateAndroidNdk(tmpDir, false);
-    assertFalse(result.success);
-    assertEquals("NDK does not contain any platforms.", result.message);
-
-    result = validateAndroidNdk(tmpDir, true);
-    assertFalse(result.success);
-    assertEquals(String.format("The NDK at\n'%1$s'\ndoes not contain any platforms.", tmpDir.getPath()), result.message);
-  }
-
-  public void testNoToolchainsNdkDirectory() throws Exception {
-    tmpDir = createTempDirectory(SdkPathsTest.class.getSimpleName(), "testNoToolchainsNdkDirectory");
-    createDirectory(new File(tmpDir, "platforms"));
-
-    ValidationResult result = validateAndroidNdk(tmpDir, false);
-    assertFalse(result.success);
-    assertEquals("NDK does not contain any toolchains.", result.message);
-
-    result = validateAndroidNdk(tmpDir, true);
-    assertFalse(result.success);
-    assertEquals(String.format("The NDK at\n'%1$s'\ndoes not contain any toolchains.", tmpDir.getPath()), result.message);
-  }
-
-  public void testValidNdkDirectory() throws Exception {
-    tmpDir = createTempDirectory(SdkPathsTest.class.getName(), "testValidNdkDirectory");
-    createDirectory(new File(tmpDir, "platforms"));
-    createDirectory(new File(tmpDir, "toolchains"));
-
-    ValidationResult result = validateAndroidNdk(tmpDir, false);
-    assertTrue(result.message, result.success);
-
-    result = validateAndroidNdk(tmpDir, true);
-    assertTrue(result.message, result.success);
-  }
-
   private static Path createFileMock(@NotNull String path, boolean isDirectory) {
     if (isDirectory) {
       return InMemoryFileSystems.createInMemoryFileSystemAndFolder(path);
     }
     return InMemoryFileSystems.getSomeRoot(InMemoryFileSystems.createInMemoryFileSystem()).resolve(path);
-  }
-
-  private void setUnreadable(Path path) throws Exception {
-    if (SystemInfo.isWindows) {
-      AclFileAttributeView acls = Files.getFileAttributeView(path, AclFileAttributeView.class);
-      List<AclEntry> newAcls =
-        acls.getAcl().stream()
-          .map(acl -> AclEntry.newBuilder(acl).setPermissions(EnumSet.noneOf(AclEntryPermission.class)).build())
-          .collect(Collectors.toList());
-      acls.setAcl(newAcls);
-    }
-    else {
-      Files.setPosixFilePermissions(path, EnumSet.noneOf(PosixFilePermission.class));
-    }
   }
 }

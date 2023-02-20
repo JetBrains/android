@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync;
 
-import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
+import static com.android.tools.idea.sdk.NdkPaths.validateAndroidNdk;
 import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
