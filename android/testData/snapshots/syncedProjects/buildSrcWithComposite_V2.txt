@@ -164,7 +164,7 @@ PROJECT                       : BuildSrcWithComposite
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files -module-name app_debugAndroidTest
+                additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -682,7 +682,7 @@ PROJECT                       : BuildSrcWithComposite
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files -module-name app_debugUnitTest
+                additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -1525,7 +1525,7 @@ PROJECT                       : BuildSrcWithComposite
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files -module-name app_debugAndroidTest
+                additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -1547,7 +1547,7 @@ PROJECT                       : BuildSrcWithComposite
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
-            Platform                      : JVM (1.8)
+            Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/android-included/app/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -1763,7 +1763,7 @@ PROJECT                       : BuildSrcWithComposite
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
-            Platform                      : JVM (1.8)
+            Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/android-included/app/build/generated/ap_generated_sources/debug/out [-]
@@ -1922,7 +1922,7 @@ PROJECT                       : BuildSrcWithComposite
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files -module-name app_debugUnitTest
+                additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -1944,7 +1944,7 @@ PROJECT                       : BuildSrcWithComposite
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
-            Platform                      : JVM (1.8)
+            Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/android-included/app/build/generated/ap_generated_sources/debugUnitTest/out [-]
@@ -2207,7 +2207,7 @@ PROJECT                       : BuildSrcWithComposite
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files -module-name lib_debugAndroidTest
+                additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -2229,7 +2229,7 @@ PROJECT                       : BuildSrcWithComposite
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
-            Platform                      : JVM (1.8)
+            Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/android-included/lib/build/generated/ap_generated_sources/debugAndroidTest/out [-]
@@ -2381,7 +2381,7 @@ PROJECT                       : BuildSrcWithComposite
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
-            Platform                      : JVM (1.8)
+            Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/android-included/lib/build/generated/ap_generated_sources/debug/out [-]
@@ -2504,7 +2504,7 @@ PROJECT                       : BuildSrcWithComposite
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
             CompilerSettings
-                additionalArguments           : -Xallow-no-source-files -module-name lib_debugUnitTest
+                additionalArguments           : -Xallow-no-source-files
                 copyJsLibraryFiles            : true
                 outputDirectoryForJsLibraryFiles        : lib
             IsTestModule                  : false
@@ -2526,7 +2526,7 @@ PROJECT                       : BuildSrcWithComposite
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:experimental=false
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:enabled=true
                 - pluginOptions               : plugin:org.jetbrains.kotlin.android:defaultCacheImplementation=hashMap
-            Platform                      : JVM (1.8)
+            Platform                      : JVM (17)
             UseProjectSettings            : false
             Version                       : 5
         CONENT_ENTRY                  : file://<PROJECT>/android-included/lib/build/generated/ap_generated_sources/debugUnitTest/out [-]

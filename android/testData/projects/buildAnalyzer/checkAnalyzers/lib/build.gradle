@@ -11,3 +11,9 @@ dependencies {
   implementation 'com.google.auto.value:auto-value-annotations:1.6.2'
   annotationProcessor 'com.google.auto.value:auto-value:1.6.2'
 }
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KaptGenerateStubs.class).configureEach {
+  compilerOptions {
+    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+  }
+}

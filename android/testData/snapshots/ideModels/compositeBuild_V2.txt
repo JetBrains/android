@@ -593,7 +593,6 @@ MODULE                        : TestCompositeLib1
                     androidTestDebugImplementationDependenciesMetadata          : <empty>
                     androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                     androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugRuntimeOnlyDependenciesMetadata   : <empty>
                     androidTestDebugWearApp       : <empty>
                     androidTestImplementation     : <empty>
                     androidTestImplementationDependenciesMetadata     : <empty>
@@ -607,10 +606,8 @@ MODULE                        : TestCompositeLib1
                     androidTestReleaseImplementationDependenciesMetadata        : <empty>
                     androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
                     androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseRuntimeOnlyDependenciesMetadata : <empty>
                     androidTestReleaseWearApp     : <empty>
                     androidTestRuntimeOnly        : <empty>
-                    androidTestRuntimeOnlyDependenciesMetadata        : <empty>
                     androidTestUtil               : <empty>
                     androidTestWearApp            : <empty>
                     annotationProcessor           : <empty>
@@ -635,7 +632,6 @@ MODULE                        : TestCompositeLib1
                     debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
                     debugAndroidTestRuntimeClasspath        : <empty>
                     debugAndroidTestRuntimeOnly   : <empty>
-                    debugAndroidTestRuntimeOnlyDependenciesMetadata   : <empty>
                     debugAnnotationProcessor      : <empty>
                     debugAnnotationProcessorClasspath       : <empty>
                     debugApi                      : <empty>
@@ -655,7 +651,6 @@ MODULE                        : TestCompositeLib1
                     debugRuntimeClasspath         : <empty>
                     debugRuntimeElements          : <empty>
                     debugRuntimeOnly              : <empty>
-                    debugRuntimeOnlyDependenciesMetadata    : <empty>
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestApi              : <empty>
                     debugUnitTestApiDependenciesMetadata    : <empty>
@@ -671,7 +666,6 @@ MODULE                        : TestCompositeLib1
                     debugUnitTestIntransitiveDependenciesMetadata     : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
                     debugUnitTestRuntimeOnly      : <empty>
-                    debugUnitTestRuntimeOnlyDependenciesMetadata      : <empty>
                     debugWearApp                  : <empty>
                     debugWearBundling             : <empty>
                     default                       : <empty>
@@ -708,7 +702,6 @@ MODULE                        : TestCompositeLib1
                     releaseRuntimeClasspath       : <empty>
                     releaseRuntimeElements        : <empty>
                     releaseRuntimeOnly            : <empty>
-                    releaseRuntimeOnlyDependenciesMetadata  : <empty>
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestApi            : <empty>
                     releaseUnitTestApiDependenciesMetadata  : <empty>
@@ -724,11 +717,9 @@ MODULE                        : TestCompositeLib1
                     releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
                     releaseUnitTestRuntimeOnly    : <empty>
-                    releaseUnitTestRuntimeOnlyDependenciesMetadata    : <empty>
                     releaseWearApp                : <empty>
                     releaseWearBundling           : <empty>
                     runtimeOnly                   : <empty>
-                    runtimeOnlyDependenciesMetadata         : <empty>
                     testAnnotationProcessor       : <empty>
                     testApi                       : <empty>
                     testApiDependenciesMetadata   : <empty>
@@ -743,7 +734,6 @@ MODULE                        : TestCompositeLib1
                     testDebugImplementationDependenciesMetadata       : <empty>
                     testDebugIntransitiveDependenciesMetadata         : <empty>
                     testDebugRuntimeOnly          : <empty>
-                    testDebugRuntimeOnlyDependenciesMetadata          : <empty>
                     testDebugWearApp              : <empty>
                     testFixturesAnnotationProcessor         : <empty>
                     testFixturesApi               : <empty>
@@ -759,7 +749,6 @@ MODULE                        : TestCompositeLib1
                     testFixturesDebugImplementationDependenciesMetadata         : <empty>
                     testFixturesDebugIntransitiveDependenciesMetadata : <empty>
                     testFixturesDebugRuntimeOnly  : <empty>
-                    testFixturesDebugRuntimeOnlyDependenciesMetadata  : <empty>
                     testFixturesDebugWearApp      : <empty>
                     testFixturesImplementation    : <empty>
                     testFixturesImplementationDependenciesMetadata    : <empty>
@@ -773,10 +762,8 @@ MODULE                        : TestCompositeLib1
                     testFixturesReleaseImplementationDependenciesMetadata       : <empty>
                     testFixturesReleaseIntransitiveDependenciesMetadata         : <empty>
                     testFixturesReleaseRuntimeOnly          : <empty>
-                    testFixturesReleaseRuntimeOnlyDependenciesMetadata          : <empty>
                     testFixturesReleaseWearApp    : <empty>
                     testFixturesRuntimeOnly       : <empty>
-                    testFixturesRuntimeOnlyDependenciesMetadata       : <empty>
                     testFixturesWearApp           : <empty>
                     testImplementation            : <empty>
                     testImplementationDependenciesMetadata  : <empty>
@@ -790,10 +777,8 @@ MODULE                        : TestCompositeLib1
                     testReleaseImplementationDependenciesMetadata     : <empty>
                     testReleaseIntransitiveDependenciesMetadata       : <empty>
                     testReleaseRuntimeOnly        : <empty>
-                    testReleaseRuntimeOnlyDependenciesMetadata        : <empty>
                     testReleaseWearApp            : <empty>
                     testRuntimeOnly               : <empty>
-                    testRuntimeOnlyDependenciesMetadata     : <empty>
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             lib                           : TestCompositeLib1:lib (DefaultExternalProject)
@@ -829,7 +814,6 @@ MODULE                        : TestCompositeLib1
                     androidTestDebugImplementationDependenciesMetadata          : <empty>
                     androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                     androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugRuntimeOnlyDependenciesMetadata   : <empty>
                     androidTestDebugWearApp       : <empty>
                     androidTestImplementation     : <empty>
                     androidTestImplementationDependenciesMetadata     : <empty>
@@ -843,10 +827,8 @@ MODULE                        : TestCompositeLib1
                     androidTestReleaseImplementationDependenciesMetadata        : <empty>
                     androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
                     androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseRuntimeOnlyDependenciesMetadata : <empty>
                     androidTestReleaseWearApp     : <empty>
                     androidTestRuntimeOnly        : <empty>
-                    androidTestRuntimeOnlyDependenciesMetadata        : <empty>
                     androidTestUtil               : <empty>
                     androidTestWearApp            : <empty>
                     annotationProcessor           : <empty>
@@ -872,7 +854,6 @@ MODULE                        : TestCompositeLib1
                     debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
                     debugAndroidTestRuntimeClasspath        : <empty>
                     debugAndroidTestRuntimeOnly   : <empty>
-                    debugAndroidTestRuntimeOnlyDependenciesMetadata   : <empty>
                     debugAnnotationProcessor      : <empty>
                     debugAnnotationProcessorClasspath       : <empty>
                     debugApi                      : <empty>
@@ -894,8 +875,8 @@ MODULE                        : TestCompositeLib1
                     debugRuntimeElements          : <empty>
                     - debugRuntimeElements-published        : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/composite1-debug.aar [-]
                     debugRuntimeOnly              : <empty>
-                    debugRuntimeOnlyDependenciesMetadata    : <empty>
-                    - debugSourceArtifacts        : <ROOT>/TestCompositeLib1/lib/build/libs/composite1-debug-1.0-sources.jar [-]
+                    - debugSourcesElements        : <ROOT>/TestCompositeLib1/lib/build/libs/composite1-debug-1.0-sources.jar [-]
+                    - debugSourcesElements-published        : <ROOT>/TestCompositeLib1/lib/build/libs/composite1-debug-1.0-sources.jar [-]
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestApi              : <empty>
                     debugUnitTestApiDependenciesMetadata    : <empty>
@@ -911,7 +892,6 @@ MODULE                        : TestCompositeLib1
                     debugUnitTestIntransitiveDependenciesMetadata     : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
                     debugUnitTestRuntimeOnly      : <empty>
-                    debugUnitTestRuntimeOnlyDependenciesMetadata      : <empty>
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
@@ -949,8 +929,8 @@ MODULE                        : TestCompositeLib1
                     releaseRuntimeElements        : <empty>
                     - releaseRuntimeElements-published      : <ROOT>/TestCompositeLib1/lib/build/outputs/aar/composite1-release.aar [-]
                     releaseRuntimeOnly            : <empty>
-                    releaseRuntimeOnlyDependenciesMetadata  : <empty>
-                    - releaseSourceArtifacts      : <ROOT>/TestCompositeLib1/lib/build/libs/composite1-1.0-sources.jar [-]
+                    - releaseSourcesElements      : <ROOT>/TestCompositeLib1/lib/build/libs/composite1-1.0-sources.jar [-]
+                    - releaseSourcesElements-published      : <ROOT>/TestCompositeLib1/lib/build/libs/composite1-1.0-sources.jar [-]
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestApi            : <empty>
                     releaseUnitTestApiDependenciesMetadata  : <empty>
@@ -966,10 +946,8 @@ MODULE                        : TestCompositeLib1
                     releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
                     releaseUnitTestRuntimeOnly    : <empty>
-                    releaseUnitTestRuntimeOnlyDependenciesMetadata    : <empty>
                     releaseWearApp                : <empty>
                     runtimeOnly                   : <empty>
-                    runtimeOnlyDependenciesMetadata         : <empty>
                     testAnnotationProcessor       : <empty>
                     testApi                       : <empty>
                     testApiDependenciesMetadata   : <empty>
@@ -984,7 +962,6 @@ MODULE                        : TestCompositeLib1
                     testDebugImplementationDependenciesMetadata       : <empty>
                     testDebugIntransitiveDependenciesMetadata         : <empty>
                     testDebugRuntimeOnly          : <empty>
-                    testDebugRuntimeOnlyDependenciesMetadata          : <empty>
                     testDebugWearApp              : <empty>
                     testFixturesAnnotationProcessor         : <empty>
                     testFixturesApi               : <empty>
@@ -1000,7 +977,6 @@ MODULE                        : TestCompositeLib1
                     testFixturesDebugImplementationDependenciesMetadata         : <empty>
                     testFixturesDebugIntransitiveDependenciesMetadata : <empty>
                     testFixturesDebugRuntimeOnly  : <empty>
-                    testFixturesDebugRuntimeOnlyDependenciesMetadata  : <empty>
                     testFixturesDebugWearApp      : <empty>
                     testFixturesImplementation    : <empty>
                     testFixturesImplementationDependenciesMetadata    : <empty>
@@ -1014,10 +990,8 @@ MODULE                        : TestCompositeLib1
                     testFixturesReleaseImplementationDependenciesMetadata       : <empty>
                     testFixturesReleaseIntransitiveDependenciesMetadata         : <empty>
                     testFixturesReleaseRuntimeOnly          : <empty>
-                    testFixturesReleaseRuntimeOnlyDependenciesMetadata          : <empty>
                     testFixturesReleaseWearApp    : <empty>
                     testFixturesRuntimeOnly       : <empty>
-                    testFixturesRuntimeOnlyDependenciesMetadata       : <empty>
                     testFixturesWearApp           : <empty>
                     testImplementation            : <empty>
                     testImplementationDependenciesMetadata  : <empty>
@@ -1031,10 +1005,8 @@ MODULE                        : TestCompositeLib1
                     testReleaseImplementationDependenciesMetadata     : <empty>
                     testReleaseIntransitiveDependenciesMetadata       : <empty>
                     testReleaseRuntimeOnly        : <empty>
-                    testReleaseRuntimeOnlyDependenciesMetadata        : <empty>
                     testReleaseWearApp            : <empty>
                     testRuntimeOnly               : <empty>
-                    testRuntimeOnlyDependenciesMetadata     : <empty>
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
         projectDir                    : <ROOT>/TestCompositeLib1
@@ -2154,6 +2126,7 @@ MODULE                        : TestCompositeLib1.app
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/TestCompositeLib1/app/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : app_debug
                     noJdk                         : true
                     noReflect                     : true
@@ -2222,6 +2195,7 @@ MODULE                        : TestCompositeLib1.app
                     - friendPaths                 : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/TestCompositeLib1/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : app_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
@@ -2290,6 +2264,7 @@ MODULE                        : TestCompositeLib1.app
                     - friendPaths                 : <ROOT>/TestCompositeLib1/app/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/TestCompositeLib1/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : app_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
@@ -3477,6 +3452,7 @@ MODULE                        : TestCompositeLib1.lib
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/TestCompositeLib1/lib/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : composite1_debug
                     noJdk                         : true
                     noReflect                     : true
@@ -3544,6 +3520,7 @@ MODULE                        : TestCompositeLib1.lib
                     - friendPaths                 : <ROOT>/TestCompositeLib1/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     - friendPaths                 : <ROOT>/TestCompositeLib3/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : composite1_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
@@ -3611,6 +3588,7 @@ MODULE                        : TestCompositeLib1.lib
                     - friendPaths                 : <ROOT>/TestCompositeLib1/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     - friendPaths                 : <ROOT>/TestCompositeLib3/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : composite1_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
@@ -3690,7 +3668,6 @@ MODULE                        : TestCompositeLib3
                     androidTestDebugImplementationDependenciesMetadata          : <empty>
                     androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                     androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugRuntimeOnlyDependenciesMetadata   : <empty>
                     androidTestDebugWearApp       : <empty>
                     androidTestImplementation     : <empty>
                     androidTestImplementationDependenciesMetadata     : <empty>
@@ -3704,10 +3681,8 @@ MODULE                        : TestCompositeLib3
                     androidTestReleaseImplementationDependenciesMetadata        : <empty>
                     androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
                     androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseRuntimeOnlyDependenciesMetadata : <empty>
                     androidTestReleaseWearApp     : <empty>
                     androidTestRuntimeOnly        : <empty>
-                    androidTestRuntimeOnlyDependenciesMetadata        : <empty>
                     androidTestUtil               : <empty>
                     androidTestWearApp            : <empty>
                     annotationProcessor           : <empty>
@@ -3732,7 +3707,6 @@ MODULE                        : TestCompositeLib3
                     debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
                     debugAndroidTestRuntimeClasspath        : <empty>
                     debugAndroidTestRuntimeOnly   : <empty>
-                    debugAndroidTestRuntimeOnlyDependenciesMetadata   : <empty>
                     debugAnnotationProcessor      : <empty>
                     debugAnnotationProcessorClasspath       : <empty>
                     debugApi                      : <empty>
@@ -3752,7 +3726,6 @@ MODULE                        : TestCompositeLib3
                     debugRuntimeClasspath         : <empty>
                     debugRuntimeElements          : <empty>
                     debugRuntimeOnly              : <empty>
-                    debugRuntimeOnlyDependenciesMetadata    : <empty>
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestApi              : <empty>
                     debugUnitTestApiDependenciesMetadata    : <empty>
@@ -3768,7 +3741,6 @@ MODULE                        : TestCompositeLib3
                     debugUnitTestIntransitiveDependenciesMetadata     : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
                     debugUnitTestRuntimeOnly      : <empty>
-                    debugUnitTestRuntimeOnlyDependenciesMetadata      : <empty>
                     debugWearApp                  : <empty>
                     debugWearBundling             : <empty>
                     default                       : <empty>
@@ -3805,7 +3777,6 @@ MODULE                        : TestCompositeLib3
                     releaseRuntimeClasspath       : <empty>
                     releaseRuntimeElements        : <empty>
                     releaseRuntimeOnly            : <empty>
-                    releaseRuntimeOnlyDependenciesMetadata  : <empty>
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestApi            : <empty>
                     releaseUnitTestApiDependenciesMetadata  : <empty>
@@ -3821,11 +3792,9 @@ MODULE                        : TestCompositeLib3
                     releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
                     releaseUnitTestRuntimeOnly    : <empty>
-                    releaseUnitTestRuntimeOnlyDependenciesMetadata    : <empty>
                     releaseWearApp                : <empty>
                     releaseWearBundling           : <empty>
                     runtimeOnly                   : <empty>
-                    runtimeOnlyDependenciesMetadata         : <empty>
                     testAnnotationProcessor       : <empty>
                     testApi                       : <empty>
                     testApiDependenciesMetadata   : <empty>
@@ -3840,7 +3809,6 @@ MODULE                        : TestCompositeLib3
                     testDebugImplementationDependenciesMetadata       : <empty>
                     testDebugIntransitiveDependenciesMetadata         : <empty>
                     testDebugRuntimeOnly          : <empty>
-                    testDebugRuntimeOnlyDependenciesMetadata          : <empty>
                     testDebugWearApp              : <empty>
                     testFixturesAnnotationProcessor         : <empty>
                     testFixturesApi               : <empty>
@@ -3856,7 +3824,6 @@ MODULE                        : TestCompositeLib3
                     testFixturesDebugImplementationDependenciesMetadata         : <empty>
                     testFixturesDebugIntransitiveDependenciesMetadata : <empty>
                     testFixturesDebugRuntimeOnly  : <empty>
-                    testFixturesDebugRuntimeOnlyDependenciesMetadata  : <empty>
                     testFixturesDebugWearApp      : <empty>
                     testFixturesImplementation    : <empty>
                     testFixturesImplementationDependenciesMetadata    : <empty>
@@ -3870,10 +3837,8 @@ MODULE                        : TestCompositeLib3
                     testFixturesReleaseImplementationDependenciesMetadata       : <empty>
                     testFixturesReleaseIntransitiveDependenciesMetadata         : <empty>
                     testFixturesReleaseRuntimeOnly          : <empty>
-                    testFixturesReleaseRuntimeOnlyDependenciesMetadata          : <empty>
                     testFixturesReleaseWearApp    : <empty>
                     testFixturesRuntimeOnly       : <empty>
-                    testFixturesRuntimeOnlyDependenciesMetadata       : <empty>
                     testFixturesWearApp           : <empty>
                     testImplementation            : <empty>
                     testImplementationDependenciesMetadata  : <empty>
@@ -3887,10 +3852,8 @@ MODULE                        : TestCompositeLib3
                     testReleaseImplementationDependenciesMetadata     : <empty>
                     testReleaseIntransitiveDependenciesMetadata       : <empty>
                     testReleaseRuntimeOnly        : <empty>
-                    testReleaseRuntimeOnlyDependenciesMetadata        : <empty>
                     testReleaseWearApp            : <empty>
                     testRuntimeOnly               : <empty>
-                    testRuntimeOnlyDependenciesMetadata     : <empty>
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             lib                           : TestCompositeLib3:lib (DefaultExternalProject)
@@ -5096,6 +5059,7 @@ MODULE                        : TestCompositeLib3.app
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/TestCompositeLib3/app/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : app_debug
                     noJdk                         : true
                     noReflect                     : true
@@ -5164,6 +5128,7 @@ MODULE                        : TestCompositeLib3.app
                     - friendPaths                 : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/TestCompositeLib3/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : app_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
@@ -5232,6 +5197,7 @@ MODULE                        : TestCompositeLib3.app
                     - friendPaths                 : <ROOT>/TestCompositeLib3/app/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/TestCompositeLib3/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : app_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
@@ -6668,7 +6634,6 @@ MODULE                        : project
                     androidTestDebugImplementationDependenciesMetadata          : <empty>
                     androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                     androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugRuntimeOnlyDependenciesMetadata   : <empty>
                     androidTestDebugWearApp       : <empty>
                     androidTestImplementation     : <empty>
                     androidTestImplementationDependenciesMetadata     : <empty>
@@ -6682,10 +6647,8 @@ MODULE                        : project
                     androidTestReleaseImplementationDependenciesMetadata        : <empty>
                     androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
                     androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseRuntimeOnlyDependenciesMetadata : <empty>
                     androidTestReleaseWearApp     : <empty>
                     androidTestRuntimeOnly        : <empty>
-                    androidTestRuntimeOnlyDependenciesMetadata        : <empty>
                     androidTestUtil               : <empty>
                     androidTestWearApp            : <empty>
                     annotationProcessor           : <empty>
@@ -6710,7 +6673,6 @@ MODULE                        : project
                     debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
                     debugAndroidTestRuntimeClasspath        : <empty>
                     debugAndroidTestRuntimeOnly   : <empty>
-                    debugAndroidTestRuntimeOnlyDependenciesMetadata   : <empty>
                     debugAnnotationProcessor      : <empty>
                     debugAnnotationProcessorClasspath       : <empty>
                     debugApi                      : <empty>
@@ -6730,7 +6692,6 @@ MODULE                        : project
                     debugRuntimeClasspath         : <empty>
                     debugRuntimeElements          : <empty>
                     debugRuntimeOnly              : <empty>
-                    debugRuntimeOnlyDependenciesMetadata    : <empty>
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestApi              : <empty>
                     debugUnitTestApiDependenciesMetadata    : <empty>
@@ -6746,7 +6707,6 @@ MODULE                        : project
                     debugUnitTestIntransitiveDependenciesMetadata     : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
                     debugUnitTestRuntimeOnly      : <empty>
-                    debugUnitTestRuntimeOnlyDependenciesMetadata      : <empty>
                     debugWearApp                  : <empty>
                     debugWearBundling             : <empty>
                     default                       : <empty>
@@ -6783,7 +6743,6 @@ MODULE                        : project
                     releaseRuntimeClasspath       : <empty>
                     releaseRuntimeElements        : <empty>
                     releaseRuntimeOnly            : <empty>
-                    releaseRuntimeOnlyDependenciesMetadata  : <empty>
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestApi            : <empty>
                     releaseUnitTestApiDependenciesMetadata  : <empty>
@@ -6799,11 +6758,9 @@ MODULE                        : project
                     releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
                     releaseUnitTestRuntimeOnly    : <empty>
-                    releaseUnitTestRuntimeOnlyDependenciesMetadata    : <empty>
                     releaseWearApp                : <empty>
                     releaseWearBundling           : <empty>
                     runtimeOnly                   : <empty>
-                    runtimeOnlyDependenciesMetadata         : <empty>
                     testAnnotationProcessor       : <empty>
                     testApi                       : <empty>
                     testApiDependenciesMetadata   : <empty>
@@ -6818,7 +6775,6 @@ MODULE                        : project
                     testDebugImplementationDependenciesMetadata       : <empty>
                     testDebugIntransitiveDependenciesMetadata         : <empty>
                     testDebugRuntimeOnly          : <empty>
-                    testDebugRuntimeOnlyDependenciesMetadata          : <empty>
                     testDebugWearApp              : <empty>
                     testFixturesAnnotationProcessor         : <empty>
                     testFixturesApi               : <empty>
@@ -6834,7 +6790,6 @@ MODULE                        : project
                     testFixturesDebugImplementationDependenciesMetadata         : <empty>
                     testFixturesDebugIntransitiveDependenciesMetadata : <empty>
                     testFixturesDebugRuntimeOnly  : <empty>
-                    testFixturesDebugRuntimeOnlyDependenciesMetadata  : <empty>
                     testFixturesDebugWearApp      : <empty>
                     testFixturesImplementation    : <empty>
                     testFixturesImplementationDependenciesMetadata    : <empty>
@@ -6848,10 +6803,8 @@ MODULE                        : project
                     testFixturesReleaseImplementationDependenciesMetadata       : <empty>
                     testFixturesReleaseIntransitiveDependenciesMetadata         : <empty>
                     testFixturesReleaseRuntimeOnly          : <empty>
-                    testFixturesReleaseRuntimeOnlyDependenciesMetadata          : <empty>
                     testFixturesReleaseWearApp    : <empty>
                     testFixturesRuntimeOnly       : <empty>
-                    testFixturesRuntimeOnlyDependenciesMetadata       : <empty>
                     testFixturesWearApp           : <empty>
                     testImplementation            : <empty>
                     testImplementationDependenciesMetadata  : <empty>
@@ -6865,10 +6818,8 @@ MODULE                        : project
                     testReleaseImplementationDependenciesMetadata     : <empty>
                     testReleaseIntransitiveDependenciesMetadata       : <empty>
                     testReleaseRuntimeOnly        : <empty>
-                    testReleaseRuntimeOnlyDependenciesMetadata        : <empty>
                     testReleaseWearApp            : <empty>
                     testRuntimeOnly               : <empty>
-                    testRuntimeOnlyDependenciesMetadata     : <empty>
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             composite2                    : composite2 (DefaultExternalProject) (*seen*)
@@ -6907,7 +6858,6 @@ MODULE                        : project
                     androidTestDebugImplementationDependenciesMetadata          : <empty>
                     androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                     androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugRuntimeOnlyDependenciesMetadata   : <empty>
                     androidTestDebugWearApp       : <empty>
                     androidTestImplementation     : <empty>
                     androidTestImplementationDependenciesMetadata     : <empty>
@@ -6921,10 +6871,8 @@ MODULE                        : project
                     androidTestReleaseImplementationDependenciesMetadata        : <empty>
                     androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
                     androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseRuntimeOnlyDependenciesMetadata : <empty>
                     androidTestReleaseWearApp     : <empty>
                     androidTestRuntimeOnly        : <empty>
-                    androidTestRuntimeOnlyDependenciesMetadata        : <empty>
                     androidTestUtil               : <empty>
                     androidTestWearApp            : <empty>
                     annotationProcessor           : <empty>
@@ -6950,7 +6898,6 @@ MODULE                        : project
                     debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
                     debugAndroidTestRuntimeClasspath        : <empty>
                     debugAndroidTestRuntimeOnly   : <empty>
-                    debugAndroidTestRuntimeOnlyDependenciesMetadata   : <empty>
                     debugAnnotationProcessor      : <empty>
                     debugAnnotationProcessorClasspath       : <empty>
                     debugApi                      : <empty>
@@ -6972,8 +6919,8 @@ MODULE                        : project
                     debugRuntimeElements          : <empty>
                     - debugRuntimeElements-published        : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                     debugRuntimeOnly              : <empty>
-                    debugRuntimeOnlyDependenciesMetadata    : <empty>
-                    - debugSourceArtifacts        : <ROOT>/lib/build/libs/lib-debug-1.0-sources.jar [-]
+                    - debugSourcesElements        : <ROOT>/lib/build/libs/lib-debug-1.0-sources.jar [-]
+                    - debugSourcesElements-published        : <ROOT>/lib/build/libs/lib-debug-1.0-sources.jar [-]
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestApi              : <empty>
                     debugUnitTestApiDependenciesMetadata    : <empty>
@@ -6989,7 +6936,6 @@ MODULE                        : project
                     debugUnitTestIntransitiveDependenciesMetadata     : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
                     debugUnitTestRuntimeOnly      : <empty>
-                    debugUnitTestRuntimeOnlyDependenciesMetadata      : <empty>
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
@@ -7027,8 +6973,8 @@ MODULE                        : project
                     releaseRuntimeElements        : <empty>
                     - releaseRuntimeElements-published      : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                     releaseRuntimeOnly            : <empty>
-                    releaseRuntimeOnlyDependenciesMetadata  : <empty>
-                    - releaseSourceArtifacts      : <ROOT>/lib/build/libs/lib-1.0-sources.jar [-]
+                    - releaseSourcesElements      : <ROOT>/lib/build/libs/lib-1.0-sources.jar [-]
+                    - releaseSourcesElements-published      : <ROOT>/lib/build/libs/lib-1.0-sources.jar [-]
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestApi            : <empty>
                     releaseUnitTestApiDependenciesMetadata  : <empty>
@@ -7044,10 +6990,8 @@ MODULE                        : project
                     releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
                     releaseUnitTestRuntimeOnly    : <empty>
-                    releaseUnitTestRuntimeOnlyDependenciesMetadata    : <empty>
                     releaseWearApp                : <empty>
                     runtimeOnly                   : <empty>
-                    runtimeOnlyDependenciesMetadata         : <empty>
                     testAnnotationProcessor       : <empty>
                     testApi                       : <empty>
                     testApiDependenciesMetadata   : <empty>
@@ -7062,7 +7006,6 @@ MODULE                        : project
                     testDebugImplementationDependenciesMetadata       : <empty>
                     testDebugIntransitiveDependenciesMetadata         : <empty>
                     testDebugRuntimeOnly          : <empty>
-                    testDebugRuntimeOnlyDependenciesMetadata          : <empty>
                     testDebugWearApp              : <empty>
                     testFixturesAnnotationProcessor         : <empty>
                     testFixturesApi               : <empty>
@@ -7078,7 +7021,6 @@ MODULE                        : project
                     testFixturesDebugImplementationDependenciesMetadata         : <empty>
                     testFixturesDebugIntransitiveDependenciesMetadata : <empty>
                     testFixturesDebugRuntimeOnly  : <empty>
-                    testFixturesDebugRuntimeOnlyDependenciesMetadata  : <empty>
                     testFixturesDebugWearApp      : <empty>
                     testFixturesImplementation    : <empty>
                     testFixturesImplementationDependenciesMetadata    : <empty>
@@ -7092,10 +7034,8 @@ MODULE                        : project
                     testFixturesReleaseImplementationDependenciesMetadata       : <empty>
                     testFixturesReleaseIntransitiveDependenciesMetadata         : <empty>
                     testFixturesReleaseRuntimeOnly          : <empty>
-                    testFixturesReleaseRuntimeOnlyDependenciesMetadata          : <empty>
                     testFixturesReleaseWearApp    : <empty>
                     testFixturesRuntimeOnly       : <empty>
-                    testFixturesRuntimeOnlyDependenciesMetadata       : <empty>
                     testFixturesWearApp           : <empty>
                     testImplementation            : <empty>
                     testImplementationDependenciesMetadata  : <empty>
@@ -7109,10 +7049,8 @@ MODULE                        : project
                     testReleaseImplementationDependenciesMetadata     : <empty>
                     testReleaseIntransitiveDependenciesMetadata       : <empty>
                     testReleaseRuntimeOnly        : <empty>
-                    testReleaseRuntimeOnlyDependenciesMetadata        : <empty>
                     testReleaseWearApp            : <empty>
                     testRuntimeOnly               : <empty>
-                    testRuntimeOnlyDependenciesMetadata     : <empty>
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
         projectDir                    : <ROOT>
@@ -8238,6 +8176,7 @@ MODULE                        : project.app
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : app_debug
                     noJdk                         : true
                     noReflect                     : true
@@ -8306,6 +8245,7 @@ MODULE                        : project.app
                     - friendPaths                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : app_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
@@ -8374,6 +8314,7 @@ MODULE                        : project.app
                     - friendPaths                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : app_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
@@ -9528,6 +9469,7 @@ MODULE                        : project.lib
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : lib_debug
                     noJdk                         : true
                     noReflect                     : true
@@ -9594,6 +9536,7 @@ MODULE                        : project.lib
                     - friendPaths                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : lib_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
@@ -9660,6 +9603,7 @@ MODULE                        : project.lib
                     - friendPaths                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : lib_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true

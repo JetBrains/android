@@ -587,7 +587,6 @@ MODULE                        : kotlinMultiPlatform
                     _internal-unified-test-platform-core    : <empty>
                     _internal-unified-test-platform-launcher          : <empty>
                     allSourceSetsCompileDependenciesMetadata          : <empty>
-                    allSourceSetsRuntimeDependenciesMetadata          : <empty>
                     androidAndroidTestApi         : <empty>
                     androidAndroidTestApiDependenciesMetadata         : <empty>
                     androidAndroidTestCompileOnly : <empty>
@@ -599,8 +598,8 @@ MODULE                        : kotlinMultiPlatform
                     androidAndroidTestDebugImplementation   : <empty>
                     androidAndroidTestDebugImplementationDependenciesMetadata   : <empty>
                     androidAndroidTestDebugIntransitiveDependenciesMetadata     : <empty>
+                    androidAndroidTestDebugResolvableDependenciesMetadata       : <empty>
                     androidAndroidTestDebugRuntimeOnly      : <empty>
-                    androidAndroidTestDebugRuntimeOnlyDependenciesMetadata      : <empty>
                     androidAndroidTestImplementation        : <empty>
                     androidAndroidTestImplementationDependenciesMetadata        : <empty>
                     androidAndroidTestIntransitiveDependenciesMetadata          : <empty>
@@ -611,10 +610,10 @@ MODULE                        : kotlinMultiPlatform
                     androidAndroidTestReleaseImplementation : <empty>
                     androidAndroidTestReleaseImplementationDependenciesMetadata : <empty>
                     androidAndroidTestReleaseIntransitiveDependenciesMetadata   : <empty>
+                    androidAndroidTestReleaseResolvableDependenciesMetadata     : <empty>
                     androidAndroidTestReleaseRuntimeOnly    : <empty>
-                    androidAndroidTestReleaseRuntimeOnlyDependenciesMetadata    : <empty>
+                    androidAndroidTestResolvableDependenciesMetadata  : <empty>
                     androidAndroidTestRuntimeOnly : <empty>
-                    androidAndroidTestRuntimeOnlyDependenciesMetadata : <empty>
                     androidApis                   : <empty>
                     androidDebugAndroidTestApi    : <empty>
                     androidDebugAndroidTestApiDependenciesMetadata    : <empty>
@@ -628,9 +627,9 @@ MODULE                        : kotlinMultiPlatform
                     androidDebugAndroidTestImplementation   : <empty>
                     androidDebugAndroidTestImplementationDependenciesMetadata   : <empty>
                     androidDebugAndroidTestIntransitiveDependenciesMetadata     : <empty>
+                    androidDebugAndroidTestResolvableDependenciesMetadata       : <empty>
                     androidDebugAndroidTestRuntimeClasspath : <empty>
                     androidDebugAndroidTestRuntimeOnly      : <empty>
-                    androidDebugAndroidTestRuntimeOnlyDependenciesMetadata      : <empty>
                     androidDebugApi               : <empty>
                     androidDebugApiDependenciesMetadata     : <empty>
                     androidDebugCompilationApi    : <empty>
@@ -643,9 +642,9 @@ MODULE                        : kotlinMultiPlatform
                     androidDebugImplementation    : <empty>
                     androidDebugImplementationDependenciesMetadata    : <empty>
                     androidDebugIntransitiveDependenciesMetadata      : <empty>
+                    androidDebugResolvableDependenciesMetadata        : <empty>
                     androidDebugRuntimeClasspath  : <empty>
                     androidDebugRuntimeOnly       : <empty>
-                    androidDebugRuntimeOnlyDependenciesMetadata       : <empty>
                     androidDebugUnitTestApi       : <empty>
                     androidDebugUnitTestApiDependenciesMetadata       : <empty>
                     androidDebugUnitTestCompilationApi      : <empty>
@@ -658,9 +657,9 @@ MODULE                        : kotlinMultiPlatform
                     androidDebugUnitTestImplementation      : <empty>
                     androidDebugUnitTestImplementationDependenciesMetadata      : <empty>
                     androidDebugUnitTestIntransitiveDependenciesMetadata        : <empty>
+                    androidDebugUnitTestResolvableDependenciesMetadata          : <empty>
                     androidDebugUnitTestRuntimeClasspath    : <empty>
                     androidDebugUnitTestRuntimeOnly         : <empty>
-                    androidDebugUnitTestRuntimeOnlyDependenciesMetadata         : <empty>
                     androidJdkImage               : <empty>
                     androidMainApi                : <empty>
                     androidMainApiDependenciesMetadata      : <empty>
@@ -669,8 +668,8 @@ MODULE                        : kotlinMultiPlatform
                     androidMainImplementation     : <empty>
                     androidMainImplementationDependenciesMetadata     : <empty>
                     androidMainIntransitiveDependenciesMetadata       : <empty>
+                    androidMainResolvableDependenciesMetadata         : <empty>
                     androidMainRuntimeOnly        : <empty>
-                    androidMainRuntimeOnlyDependenciesMetadata        : <empty>
                     androidReleaseApi             : <empty>
                     androidReleaseApiDependenciesMetadata   : <empty>
                     androidReleaseCompilationApi  : <empty>
@@ -683,9 +682,9 @@ MODULE                        : kotlinMultiPlatform
                     androidReleaseImplementation  : <empty>
                     androidReleaseImplementationDependenciesMetadata  : <empty>
                     androidReleaseIntransitiveDependenciesMetadata    : <empty>
+                    androidReleaseResolvableDependenciesMetadata      : <empty>
                     androidReleaseRuntimeClasspath          : <empty>
                     androidReleaseRuntimeOnly     : <empty>
-                    androidReleaseRuntimeOnlyDependenciesMetadata     : <empty>
                     androidReleaseUnitTestApi     : <empty>
                     androidReleaseUnitTestApiDependenciesMetadata     : <empty>
                     androidReleaseUnitTestCompilationApi    : <empty>
@@ -698,9 +697,9 @@ MODULE                        : kotlinMultiPlatform
                     androidReleaseUnitTestImplementation    : <empty>
                     androidReleaseUnitTestImplementationDependenciesMetadata    : <empty>
                     androidReleaseUnitTestIntransitiveDependenciesMetadata      : <empty>
+                    androidReleaseUnitTestResolvableDependenciesMetadata        : <empty>
                     androidReleaseUnitTestRuntimeClasspath  : <empty>
                     androidReleaseUnitTestRuntimeOnly       : <empty>
-                    androidReleaseUnitTestRuntimeOnlyDependenciesMetadata       : <empty>
                     androidTestAnnotationProcessor          : <empty>
                     androidTestApi                : <empty>
                     androidTestApiDependenciesMetadata      : <empty>
@@ -714,8 +713,8 @@ MODULE                        : kotlinMultiPlatform
                     androidTestDebugImplementation          : <empty>
                     androidTestDebugImplementationDependenciesMetadata          : <empty>
                     androidTestDebugIntransitiveDependenciesMetadata  : <empty>
+                    androidTestDebugResolvableDependenciesMetadata    : <empty>
                     androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugRuntimeOnlyDependenciesMetadata   : <empty>
                     androidTestDebugWearApp       : <empty>
                     androidTestFixturesApi        : <empty>
                     androidTestFixturesApiDependenciesMetadata        : <empty>
@@ -728,8 +727,8 @@ MODULE                        : kotlinMultiPlatform
                     androidTestFixturesDebugImplementation  : <empty>
                     androidTestFixturesDebugImplementationDependenciesMetadata  : <empty>
                     androidTestFixturesDebugIntransitiveDependenciesMetadata    : <empty>
+                    androidTestFixturesDebugResolvableDependenciesMetadata      : <empty>
                     androidTestFixturesDebugRuntimeOnly     : <empty>
-                    androidTestFixturesDebugRuntimeOnlyDependenciesMetadata     : <empty>
                     androidTestFixturesImplementation       : <empty>
                     androidTestFixturesImplementationDependenciesMetadata       : <empty>
                     androidTestFixturesIntransitiveDependenciesMetadata         : <empty>
@@ -740,10 +739,10 @@ MODULE                        : kotlinMultiPlatform
                     androidTestFixturesReleaseImplementation          : <empty>
                     androidTestFixturesReleaseImplementationDependenciesMetadata          : <empty>
                     androidTestFixturesReleaseIntransitiveDependenciesMetadata  : <empty>
+                    androidTestFixturesReleaseResolvableDependenciesMetadata    : <empty>
                     androidTestFixturesReleaseRuntimeOnly   : <empty>
-                    androidTestFixturesReleaseRuntimeOnlyDependenciesMetadata   : <empty>
+                    androidTestFixturesResolvableDependenciesMetadata : <empty>
                     androidTestFixturesRuntimeOnly          : <empty>
-                    androidTestFixturesRuntimeOnlyDependenciesMetadata          : <empty>
                     androidTestImplementation     : <empty>
                     androidTestImplementationDependenciesMetadata     : <empty>
                     androidTestIntransitiveDependenciesMetadata       : <empty>
@@ -755,16 +754,15 @@ MODULE                        : kotlinMultiPlatform
                     androidTestReleaseImplementation        : <empty>
                     androidTestReleaseImplementationDependenciesMetadata        : <empty>
                     androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
+                    androidTestReleaseResolvableDependenciesMetadata  : <empty>
                     androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseRuntimeOnlyDependenciesMetadata : <empty>
                     androidTestReleaseWearApp     : <empty>
+                    androidTestResolvableDependenciesMetadata         : <empty>
                     androidTestRuntimeOnly        : <empty>
-                    androidTestRuntimeOnlyDependenciesMetadata        : <empty>
                     androidTestUtil               : <empty>
                     androidTestWearApp            : <empty>
                     annotationProcessor           : <empty>
                     api                           : <empty>
-                    - archives                    : <ROOT>/app/build/libs/app-jvm-sources.jar [-]
                     - archives                    : <ROOT>/app/build/libs/app-jvm.jar [-]
                     - archives                    : <ROOT>/app/build/libs/app-metadata.jar [-]
                     commonMainApi                 : <empty>
@@ -774,8 +772,8 @@ MODULE                        : kotlinMultiPlatform
                     commonMainImplementation      : <empty>
                     commonMainImplementationDependenciesMetadata      : <empty>
                     commonMainIntransitiveDependenciesMetadata        : <empty>
+                    commonMainResolvableDependenciesMetadata          : <empty>
                     commonMainRuntimeOnly         : <empty>
-                    commonMainRuntimeOnlyDependenciesMetadata         : <empty>
                     commonTestApi                 : <empty>
                     commonTestApiDependenciesMetadata       : <empty>
                     commonTestCompileOnly         : <empty>
@@ -783,8 +781,8 @@ MODULE                        : kotlinMultiPlatform
                     commonTestImplementation      : <empty>
                     commonTestImplementationDependenciesMetadata      : <empty>
                     commonTestIntransitiveDependenciesMetadata        : <empty>
+                    commonTestResolvableDependenciesMetadata          : <empty>
                     commonTestRuntimeOnly         : <empty>
-                    commonTestRuntimeOnlyDependenciesMetadata         : <empty>
                     compileClasspath              : <empty>
                     compileOnly                   : <empty>
                     coreLibraryDesugaring         : <empty>
@@ -822,11 +820,11 @@ MODULE                        : kotlinMultiPlatform
                     jvmMainImplementation         : <empty>
                     jvmMainImplementationDependenciesMetadata         : <empty>
                     jvmMainIntransitiveDependenciesMetadata : <empty>
+                    jvmMainResolvableDependenciesMetadata   : <empty>
                     jvmMainRuntimeOnly            : <empty>
-                    jvmMainRuntimeOnlyDependenciesMetadata  : <empty>
                     jvmRuntimeClasspath           : <empty>
                     - jvmRuntimeElements          : <ROOT>/app/build/libs/app-jvm.jar [-]
-                    - jvmSourceArtifacts          : <ROOT>/app/build/libs/app-jvm-sources.jar [-]
+                    - jvmSourcesElements          : <ROOT>/app/build/libs/app-jvm-sources.jar [-]
                     jvmTestApi                    : <empty>
                     jvmTestApiDependenciesMetadata          : <empty>
                     jvmTestCompilationApi         : <empty>
@@ -839,9 +837,9 @@ MODULE                        : kotlinMultiPlatform
                     jvmTestImplementation         : <empty>
                     jvmTestImplementationDependenciesMetadata         : <empty>
                     jvmTestIntransitiveDependenciesMetadata : <empty>
+                    jvmTestResolvableDependenciesMetadata   : <empty>
                     jvmTestRuntimeClasspath       : <empty>
                     jvmTestRuntimeOnly            : <empty>
-                    jvmTestRuntimeOnlyDependenciesMetadata  : <empty>
                     kotlinCompilerClasspath       : <empty>
                     kotlinCompilerPluginClasspath : <empty>
                     kotlinCompilerPluginClasspathAndroidDebug         : <empty>
@@ -863,11 +861,14 @@ MODULE                        : kotlinMultiPlatform
                     metadataCommonMainCompilationApi        : <empty>
                     metadataCommonMainCompilationCompileOnly          : <empty>
                     metadataCommonMainCompilationImplementation       : <empty>
+                    metadataCommonMainCompilationRuntimeOnly          : <empty>
                     metadataCommonMainCompileClasspath      : <empty>
                     metadataCompilationApi        : <empty>
                     metadataCompilationCompileOnly          : <empty>
                     metadataCompilationImplementation       : <empty>
+                    metadataCompilationRuntimeOnly          : <empty>
                     metadataCompileClasspath      : <empty>
+                    metadataSourcesElements       : <empty>
                     releaseAnnotationProcessor    : <empty>
                     releaseAnnotationProcessorClasspath     : <empty>
                     releaseApi                    : <empty>
@@ -956,7 +957,6 @@ MODULE                        : kotlinMultiPlatform
                     _internal-unified-test-platform-core    : <empty>
                     _internal-unified-test-platform-launcher          : <empty>
                     allSourceSetsCompileDependenciesMetadata          : <empty>
-                    allSourceSetsRuntimeDependenciesMetadata          : <empty>
                     androidAndroidTestApi         : <empty>
                     androidAndroidTestApiDependenciesMetadata         : <empty>
                     androidAndroidTestCompileOnly : <empty>
@@ -968,8 +968,8 @@ MODULE                        : kotlinMultiPlatform
                     androidAndroidTestDebugImplementation   : <empty>
                     androidAndroidTestDebugImplementationDependenciesMetadata   : <empty>
                     androidAndroidTestDebugIntransitiveDependenciesMetadata     : <empty>
+                    androidAndroidTestDebugResolvableDependenciesMetadata       : <empty>
                     androidAndroidTestDebugRuntimeOnly      : <empty>
-                    androidAndroidTestDebugRuntimeOnlyDependenciesMetadata      : <empty>
                     androidAndroidTestImplementation        : <empty>
                     androidAndroidTestImplementationDependenciesMetadata        : <empty>
                     androidAndroidTestIntransitiveDependenciesMetadata          : <empty>
@@ -980,10 +980,10 @@ MODULE                        : kotlinMultiPlatform
                     androidAndroidTestReleaseImplementation : <empty>
                     androidAndroidTestReleaseImplementationDependenciesMetadata : <empty>
                     androidAndroidTestReleaseIntransitiveDependenciesMetadata   : <empty>
+                    androidAndroidTestReleaseResolvableDependenciesMetadata     : <empty>
                     androidAndroidTestReleaseRuntimeOnly    : <empty>
-                    androidAndroidTestReleaseRuntimeOnlyDependenciesMetadata    : <empty>
+                    androidAndroidTestResolvableDependenciesMetadata  : <empty>
                     androidAndroidTestRuntimeOnly : <empty>
-                    androidAndroidTestRuntimeOnlyDependenciesMetadata : <empty>
                     androidApis                   : <empty>
                     androidDebugAndroidTestApi    : <empty>
                     androidDebugAndroidTestApiDependenciesMetadata    : <empty>
@@ -997,9 +997,9 @@ MODULE                        : kotlinMultiPlatform
                     androidDebugAndroidTestImplementation   : <empty>
                     androidDebugAndroidTestImplementationDependenciesMetadata   : <empty>
                     androidDebugAndroidTestIntransitiveDependenciesMetadata     : <empty>
+                    androidDebugAndroidTestResolvableDependenciesMetadata       : <empty>
                     androidDebugAndroidTestRuntimeClasspath : <empty>
                     androidDebugAndroidTestRuntimeOnly      : <empty>
-                    androidDebugAndroidTestRuntimeOnlyDependenciesMetadata      : <empty>
                     androidDebugApi               : <empty>
                     androidDebugApiDependenciesMetadata     : <empty>
                     - androidDebugArchives        : <ROOT>/module2/build/outputs/aar/module2-debug.aar [-]
@@ -1013,10 +1013,9 @@ MODULE                        : kotlinMultiPlatform
                     androidDebugImplementation    : <empty>
                     androidDebugImplementationDependenciesMetadata    : <empty>
                     androidDebugIntransitiveDependenciesMetadata      : <empty>
+                    androidDebugResolvableDependenciesMetadata        : <empty>
                     androidDebugRuntimeClasspath  : <empty>
                     androidDebugRuntimeOnly       : <empty>
-                    androidDebugRuntimeOnlyDependenciesMetadata       : <empty>
-                    - androidDebugSourceArtifacts : <ROOT>/module2/build/libs/module2-android-debug-sources.jar [-]
                     androidDebugUnitTestApi       : <empty>
                     androidDebugUnitTestApiDependenciesMetadata       : <empty>
                     androidDebugUnitTestCompilationApi      : <empty>
@@ -1029,9 +1028,9 @@ MODULE                        : kotlinMultiPlatform
                     androidDebugUnitTestImplementation      : <empty>
                     androidDebugUnitTestImplementationDependenciesMetadata      : <empty>
                     androidDebugUnitTestIntransitiveDependenciesMetadata        : <empty>
+                    androidDebugUnitTestResolvableDependenciesMetadata          : <empty>
                     androidDebugUnitTestRuntimeClasspath    : <empty>
                     androidDebugUnitTestRuntimeOnly         : <empty>
-                    androidDebugUnitTestRuntimeOnlyDependenciesMetadata         : <empty>
                     androidJdkImage               : <empty>
                     androidMainApi                : <empty>
                     androidMainApiDependenciesMetadata      : <empty>
@@ -1040,8 +1039,8 @@ MODULE                        : kotlinMultiPlatform
                     androidMainImplementation     : <empty>
                     androidMainImplementationDependenciesMetadata     : <empty>
                     androidMainIntransitiveDependenciesMetadata       : <empty>
+                    androidMainResolvableDependenciesMetadata         : <empty>
                     androidMainRuntimeOnly        : <empty>
-                    androidMainRuntimeOnlyDependenciesMetadata        : <empty>
                     androidReleaseApi             : <empty>
                     androidReleaseApiDependenciesMetadata   : <empty>
                     - androidReleaseArchives      : <ROOT>/module2/build/outputs/aar/module2-release.aar [-]
@@ -1055,10 +1054,9 @@ MODULE                        : kotlinMultiPlatform
                     androidReleaseImplementation  : <empty>
                     androidReleaseImplementationDependenciesMetadata  : <empty>
                     androidReleaseIntransitiveDependenciesMetadata    : <empty>
+                    androidReleaseResolvableDependenciesMetadata      : <empty>
                     androidReleaseRuntimeClasspath          : <empty>
                     androidReleaseRuntimeOnly     : <empty>
-                    androidReleaseRuntimeOnlyDependenciesMetadata     : <empty>
-                    - androidReleaseSourceArtifacts         : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
                     androidReleaseUnitTestApi     : <empty>
                     androidReleaseUnitTestApiDependenciesMetadata     : <empty>
                     androidReleaseUnitTestCompilationApi    : <empty>
@@ -1071,9 +1069,9 @@ MODULE                        : kotlinMultiPlatform
                     androidReleaseUnitTestImplementation    : <empty>
                     androidReleaseUnitTestImplementationDependenciesMetadata    : <empty>
                     androidReleaseUnitTestIntransitiveDependenciesMetadata      : <empty>
+                    androidReleaseUnitTestResolvableDependenciesMetadata        : <empty>
                     androidReleaseUnitTestRuntimeClasspath  : <empty>
                     androidReleaseUnitTestRuntimeOnly       : <empty>
-                    androidReleaseUnitTestRuntimeOnlyDependenciesMetadata       : <empty>
                     androidTestAnnotationProcessor          : <empty>
                     androidTestApi                : <empty>
                     androidTestApiDependenciesMetadata      : <empty>
@@ -1087,8 +1085,8 @@ MODULE                        : kotlinMultiPlatform
                     androidTestDebugImplementation          : <empty>
                     androidTestDebugImplementationDependenciesMetadata          : <empty>
                     androidTestDebugIntransitiveDependenciesMetadata  : <empty>
+                    androidTestDebugResolvableDependenciesMetadata    : <empty>
                     androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugRuntimeOnlyDependenciesMetadata   : <empty>
                     androidTestDebugWearApp       : <empty>
                     androidTestFixturesApi        : <empty>
                     androidTestFixturesApiDependenciesMetadata        : <empty>
@@ -1101,8 +1099,8 @@ MODULE                        : kotlinMultiPlatform
                     androidTestFixturesDebugImplementation  : <empty>
                     androidTestFixturesDebugImplementationDependenciesMetadata  : <empty>
                     androidTestFixturesDebugIntransitiveDependenciesMetadata    : <empty>
+                    androidTestFixturesDebugResolvableDependenciesMetadata      : <empty>
                     androidTestFixturesDebugRuntimeOnly     : <empty>
-                    androidTestFixturesDebugRuntimeOnlyDependenciesMetadata     : <empty>
                     androidTestFixturesImplementation       : <empty>
                     androidTestFixturesImplementationDependenciesMetadata       : <empty>
                     androidTestFixturesIntransitiveDependenciesMetadata         : <empty>
@@ -1113,10 +1111,10 @@ MODULE                        : kotlinMultiPlatform
                     androidTestFixturesReleaseImplementation          : <empty>
                     androidTestFixturesReleaseImplementationDependenciesMetadata          : <empty>
                     androidTestFixturesReleaseIntransitiveDependenciesMetadata  : <empty>
+                    androidTestFixturesReleaseResolvableDependenciesMetadata    : <empty>
                     androidTestFixturesReleaseRuntimeOnly   : <empty>
-                    androidTestFixturesReleaseRuntimeOnlyDependenciesMetadata   : <empty>
+                    androidTestFixturesResolvableDependenciesMetadata : <empty>
                     androidTestFixturesRuntimeOnly          : <empty>
-                    androidTestFixturesRuntimeOnlyDependenciesMetadata          : <empty>
                     androidTestImplementation     : <empty>
                     androidTestImplementationDependenciesMetadata     : <empty>
                     androidTestIntransitiveDependenciesMetadata       : <empty>
@@ -1128,11 +1126,11 @@ MODULE                        : kotlinMultiPlatform
                     androidTestReleaseImplementation        : <empty>
                     androidTestReleaseImplementationDependenciesMetadata        : <empty>
                     androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
+                    androidTestReleaseResolvableDependenciesMetadata  : <empty>
                     androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseRuntimeOnlyDependenciesMetadata : <empty>
                     androidTestReleaseWearApp     : <empty>
+                    androidTestResolvableDependenciesMetadata         : <empty>
                     androidTestRuntimeOnly        : <empty>
-                    androidTestRuntimeOnlyDependenciesMetadata        : <empty>
                     androidTestUtil               : <empty>
                     androidTestWearApp            : <empty>
                     annotationProcessor           : <empty>
@@ -1148,8 +1146,8 @@ MODULE                        : kotlinMultiPlatform
                     commonMainImplementation      : <empty>
                     commonMainImplementationDependenciesMetadata      : <empty>
                     commonMainIntransitiveDependenciesMetadata        : <empty>
+                    commonMainResolvableDependenciesMetadata          : <empty>
                     commonMainRuntimeOnly         : <empty>
-                    commonMainRuntimeOnlyDependenciesMetadata         : <empty>
                     commonTestApi                 : <empty>
                     commonTestApiDependenciesMetadata       : <empty>
                     commonTestCompileOnly         : <empty>
@@ -1157,8 +1155,8 @@ MODULE                        : kotlinMultiPlatform
                     commonTestImplementation      : <empty>
                     commonTestImplementationDependenciesMetadata      : <empty>
                     commonTestIntransitiveDependenciesMetadata        : <empty>
+                    commonTestResolvableDependenciesMetadata          : <empty>
                     commonTestRuntimeOnly         : <empty>
-                    commonTestRuntimeOnlyDependenciesMetadata         : <empty>
                     compileClasspath              : <empty>
                     compileOnly                   : <empty>
                     coreLibraryDesugaring         : <empty>
@@ -1175,6 +1173,7 @@ MODULE                        : kotlinMultiPlatform
                     debugRuntimeClasspath         : <empty>
                     debugRuntimeElements          : <empty>
                     debugRuntimeOnly              : <empty>
+                    - debugSourcesElements        : <ROOT>/module2/build/libs/module2-android-debug-sources.jar [-]
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
@@ -1188,8 +1187,8 @@ MODULE                        : kotlinMultiPlatform
                     jvmAndAndroidImplementation   : <empty>
                     jvmAndAndroidImplementationDependenciesMetadata   : <empty>
                     jvmAndAndroidIntransitiveDependenciesMetadata     : <empty>
+                    jvmAndAndroidResolvableDependenciesMetadata       : <empty>
                     jvmAndAndroidRuntimeOnly      : <empty>
-                    jvmAndAndroidRuntimeOnlyDependenciesMetadata      : <empty>
                     - jvmApiElements              : <ROOT>/module2/build/libs/module2-jvm.jar [-]
                     jvmCompilationApi             : <empty>
                     jvmCompilationCompileOnly     : <empty>
@@ -1203,11 +1202,11 @@ MODULE                        : kotlinMultiPlatform
                     jvmMainImplementation         : <empty>
                     jvmMainImplementationDependenciesMetadata         : <empty>
                     jvmMainIntransitiveDependenciesMetadata : <empty>
+                    jvmMainResolvableDependenciesMetadata   : <empty>
                     jvmMainRuntimeOnly            : <empty>
-                    jvmMainRuntimeOnlyDependenciesMetadata  : <empty>
                     jvmRuntimeClasspath           : <empty>
                     - jvmRuntimeElements          : <ROOT>/module2/build/libs/module2-jvm.jar [-]
-                    - jvmSourceArtifacts          : <ROOT>/module2/build/libs/module2-jvm-sources.jar [-]
+                    - jvmSourcesElements          : <ROOT>/module2/build/libs/module2-jvm-sources.jar [-]
                     jvmTestApi                    : <empty>
                     jvmTestApiDependenciesMetadata          : <empty>
                     jvmTestCompilationApi         : <empty>
@@ -1220,9 +1219,9 @@ MODULE                        : kotlinMultiPlatform
                     jvmTestImplementation         : <empty>
                     jvmTestImplementationDependenciesMetadata         : <empty>
                     jvmTestIntransitiveDependenciesMetadata : <empty>
+                    jvmTestResolvableDependenciesMetadata   : <empty>
                     jvmTestRuntimeClasspath       : <empty>
                     jvmTestRuntimeOnly            : <empty>
-                    jvmTestRuntimeOnlyDependenciesMetadata  : <empty>
                     kotlinCompilerClasspath       : <empty>
                     kotlinCompilerPluginClasspath : <empty>
                     kotlinCompilerPluginClasspathAndroidDebug         : <empty>
@@ -1245,15 +1244,19 @@ MODULE                        : kotlinMultiPlatform
                     metadataCommonMainCompilationApi        : <empty>
                     metadataCommonMainCompilationCompileOnly          : <empty>
                     metadataCommonMainCompilationImplementation       : <empty>
+                    metadataCommonMainCompilationRuntimeOnly          : <empty>
                     metadataCommonMainCompileClasspath      : <empty>
                     metadataCompilationApi        : <empty>
                     metadataCompilationCompileOnly          : <empty>
                     metadataCompilationImplementation       : <empty>
+                    metadataCompilationRuntimeOnly          : <empty>
                     metadataCompileClasspath      : <empty>
                     metadataJvmAndAndroidCompilationApi     : <empty>
                     metadataJvmAndAndroidCompilationCompileOnly       : <empty>
                     metadataJvmAndAndroidCompilationImplementation    : <empty>
+                    metadataJvmAndAndroidCompilationRuntimeOnly       : <empty>
                     metadataJvmAndAndroidCompileClasspath   : <empty>
+                    metadataSourcesElements       : <empty>
                     releaseAnnotationProcessor    : <empty>
                     releaseAnnotationProcessorClasspath     : <empty>
                     releaseApi                    : <empty>
@@ -1264,6 +1267,7 @@ MODULE                        : kotlinMultiPlatform
                     releaseRuntimeClasspath       : <empty>
                     releaseRuntimeElements        : <empty>
                     releaseRuntimeOnly            : <empty>
+                    - releaseSourcesElements      : <ROOT>/module2/build/libs/module2-android-sources.jar [-]
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
@@ -2506,8 +2510,8 @@ MODULE                        : kotlinMultiPlatform.app
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 1
             minor                         : 8
-            patch                         : 0
-            versionString                 : 1.8.0-Beta
+            patch                         : 20
+            versionString                 : 1.8.20-Beta
         - kotlinImportingDiagnostics  : OrphanSourceSetsImportingDiagnostic
             kotlinSourceSet               : androidAndroidTestRelease (KotlinSourceSetImpl)
                 actualPlatforms               : KotlinPlatformContainerImpl
@@ -2700,6 +2704,7 @@ MODULE                        : kotlinMultiPlatform.app
                         - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                         destination                   : <ROOT>/app/build/tmp/kotlin-classes/debug
                         jvmDefault                    : disable
+                        jvmTarget                     : 17
                         moduleName                    : app_debug
                         noJdk                         : true
                         noReflect                     : true
@@ -2854,6 +2859,7 @@ MODULE                        : kotlinMultiPlatform.app
                         - friendPaths                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                         - friendPaths                 : <ROOT>/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                         jvmDefault                    : disable
+                        jvmTarget                     : 17
                         moduleName                    : app_debugAndroidTest
                         noJdk                         : true
                         noReflect                     : true
@@ -2986,6 +2992,7 @@ MODULE                        : kotlinMultiPlatform.app
                         - friendPaths                 : <ROOT>/app/build/intermediates/javac/debug/classes [-]
                         - friendPaths                 : <ROOT>/app/build/intermediates/compile_app_classes_jar/debug/classes.jar [-]
                         jvmDefault                    : disable
+                        jvmTarget                     : 17
                         moduleName                    : app_debugUnitTest
                         noJdk                         : true
                         noReflect                     : true
@@ -3087,6 +3094,7 @@ MODULE                        : kotlinMultiPlatform.app
                         - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         destination                   : <ROOT>/app/build/classes/kotlin/jvm/main
                         jvmDefault                    : disable
+                        jvmTarget                     : 17
                         moduleName                    : app
                         noReflect                     : true
                         noStdlib                      : true
@@ -3173,6 +3181,7 @@ MODULE                        : kotlinMultiPlatform.app
                         - friendPaths                 : <ROOT>/app/build/classes/kotlin/jvm/main [-]
                         - friendPaths                 : <ROOT>/app/build/libs/app-jvm.jar [-]
                         jvmDefault                    : disable
+                        jvmTarget                     : 17
                         moduleName                    : app_test
                         noReflect                     : true
                         noStdlib                      : true
@@ -3808,8 +3817,8 @@ MODULE                        : kotlinMultiPlatform.module2
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 1
             minor                         : 8
-            patch                         : 0
-            versionString                 : 1.8.0-Beta
+            patch                         : 20
+            versionString                 : 1.8.20-Beta
         - kotlinImportingDiagnostics  : OrphanSourceSetsImportingDiagnostic
             kotlinSourceSet               : androidAndroidTestRelease (KotlinSourceSetImpl)
                 actualPlatforms               : KotlinPlatformContainerImpl
@@ -3997,6 +4006,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                         destination                   : <ROOT>/module2/build/tmp/kotlin-classes/debug
                         jvmDefault                    : disable
+                        jvmTarget                     : 17
                         moduleName                    : module2_debug
                         noJdk                         : true
                         noReflect                     : true
@@ -4126,6 +4136,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - friendPaths                 : <ROOT>/module2/build/intermediates/javac/debug/classes [-]
                         - friendPaths                 : <ROOT>/module2/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                         jvmDefault                    : disable
+                        jvmTarget                     : 17
                         moduleName                    : module2_debugAndroidTest
                         noJdk                         : true
                         noReflect                     : true
@@ -4242,6 +4253,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - friendPaths                 : <ROOT>/module2/build/intermediates/javac/debug/classes [-]
                         - friendPaths                 : <ROOT>/module2/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                         jvmDefault                    : disable
+                        jvmTarget                     : 17
                         moduleName                    : module2_debugUnitTest
                         noJdk                         : true
                         noReflect                     : true
@@ -4347,6 +4359,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         destination                   : <ROOT>/module2/build/classes/kotlin/jvm/main
                         jvmDefault                    : disable
+                        jvmTarget                     : 17
                         moduleName                    : module2
                         noReflect                     : true
                         noStdlib                      : true
@@ -4434,6 +4447,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - friendPaths                 : <ROOT>/module2/build/classes/kotlin/jvm/main [-]
                         - friendPaths                 : <ROOT>/module2/build/libs/module2-jvm.jar [-]
                         jvmDefault                    : disable
+                        jvmTarget                     : 17
                         moduleName                    : module2_test
                         noReflect                     : true
                         noStdlib                      : true

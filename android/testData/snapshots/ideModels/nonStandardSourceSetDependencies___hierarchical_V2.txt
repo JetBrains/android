@@ -708,7 +708,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     androidTestDebugImplementationDependenciesMetadata          : <empty>
                     androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                     androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugRuntimeOnlyDependenciesMetadata   : <empty>
                     androidTestDebugWearApp       : <empty>
                     androidTestImplementation     : <empty>
                     androidTestImplementationDependenciesMetadata     : <empty>
@@ -722,10 +721,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     androidTestReleaseImplementationDependenciesMetadata        : <empty>
                     androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
                     androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseRuntimeOnlyDependenciesMetadata : <empty>
                     androidTestReleaseWearApp     : <empty>
                     androidTestRuntimeOnly        : <empty>
-                    androidTestRuntimeOnlyDependenciesMetadata        : <empty>
                     androidTestUtil               : <empty>
                     androidTestWearApp            : <empty>
                     annotationProcessor           : <empty>
@@ -750,7 +747,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
                     debugAndroidTestRuntimeClasspath        : <empty>
                     debugAndroidTestRuntimeOnly   : <empty>
-                    debugAndroidTestRuntimeOnlyDependenciesMetadata   : <empty>
                     debugAnnotationProcessor      : <empty>
                     debugAnnotationProcessorClasspath       : <empty>
                     debugApi                      : <empty>
@@ -770,7 +766,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     debugRuntimeClasspath         : <empty>
                     debugRuntimeElements          : <empty>
                     debugRuntimeOnly              : <empty>
-                    debugRuntimeOnlyDependenciesMetadata    : <empty>
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestApi              : <empty>
                     debugUnitTestApiDependenciesMetadata    : <empty>
@@ -786,7 +781,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     debugUnitTestIntransitiveDependenciesMetadata     : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
                     debugUnitTestRuntimeOnly      : <empty>
-                    debugUnitTestRuntimeOnlyDependenciesMetadata      : <empty>
                     debugWearApp                  : <empty>
                     debugWearBundling             : <empty>
                     default                       : <empty>
@@ -823,7 +817,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     releaseRuntimeClasspath       : <empty>
                     releaseRuntimeElements        : <empty>
                     releaseRuntimeOnly            : <empty>
-                    releaseRuntimeOnlyDependenciesMetadata  : <empty>
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestApi            : <empty>
                     releaseUnitTestApiDependenciesMetadata  : <empty>
@@ -839,11 +832,9 @@ MODULE                        : NonStandardSourceSetDependencies
                     releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
                     releaseUnitTestRuntimeOnly    : <empty>
-                    releaseUnitTestRuntimeOnlyDependenciesMetadata    : <empty>
                     releaseWearApp                : <empty>
                     releaseWearBundling           : <empty>
                     runtimeOnly                   : <empty>
-                    runtimeOnlyDependenciesMetadata         : <empty>
                     testAnnotationProcessor       : <empty>
                     testApi                       : <empty>
                     testApiDependenciesMetadata   : <empty>
@@ -858,7 +849,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     testDebugImplementationDependenciesMetadata       : <empty>
                     testDebugIntransitiveDependenciesMetadata         : <empty>
                     testDebugRuntimeOnly          : <empty>
-                    testDebugRuntimeOnlyDependenciesMetadata          : <empty>
                     testDebugWearApp              : <empty>
                     testFixturesAnnotationProcessor         : <empty>
                     testFixturesApi               : <empty>
@@ -874,7 +864,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     testFixturesDebugImplementationDependenciesMetadata         : <empty>
                     testFixturesDebugIntransitiveDependenciesMetadata : <empty>
                     testFixturesDebugRuntimeOnly  : <empty>
-                    testFixturesDebugRuntimeOnlyDependenciesMetadata  : <empty>
                     testFixturesDebugWearApp      : <empty>
                     testFixturesImplementation    : <empty>
                     testFixturesImplementationDependenciesMetadata    : <empty>
@@ -888,10 +877,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     testFixturesReleaseImplementationDependenciesMetadata       : <empty>
                     testFixturesReleaseIntransitiveDependenciesMetadata         : <empty>
                     testFixturesReleaseRuntimeOnly          : <empty>
-                    testFixturesReleaseRuntimeOnlyDependenciesMetadata          : <empty>
                     testFixturesReleaseWearApp    : <empty>
                     testFixturesRuntimeOnly       : <empty>
-                    testFixturesRuntimeOnlyDependenciesMetadata       : <empty>
                     testFixturesWearApp           : <empty>
                     testImplementation            : <empty>
                     testImplementationDependenciesMetadata  : <empty>
@@ -905,10 +892,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     testReleaseImplementationDependenciesMetadata     : <empty>
                     testReleaseIntransitiveDependenciesMetadata       : <empty>
                     testReleaseRuntimeOnly        : <empty>
-                    testReleaseRuntimeOnlyDependenciesMetadata        : <empty>
                     testReleaseWearApp            : <empty>
                     testRuntimeOnly               : <empty>
-                    testRuntimeOnlyDependenciesMetadata     : <empty>
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             common                        : :common (DefaultExternalProject)
@@ -929,8 +914,6 @@ MODULE                        : NonStandardSourceSetDependencies
                 - artifacts                   : <ROOT>/common/build/libs/common-jvm.jar [-]
                 artifactsByConfiguration
                     allSourceSetsCompileDependenciesMetadata          : <empty>
-                    allSourceSetsRuntimeDependenciesMetadata          : <empty>
-                    - archives                    : <ROOT>/common/build/libs/common-jvm-sources.jar [-]
                     - archives                    : <ROOT>/common/build/libs/common-jvm.jar [-]
                     - archives                    : <ROOT>/common/build/libs/common-metadata.jar [-]
                     commonMainApi                 : <empty>
@@ -940,8 +923,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     commonMainImplementation      : <empty>
                     commonMainImplementationDependenciesMetadata      : <empty>
                     commonMainIntransitiveDependenciesMetadata        : <empty>
+                    commonMainResolvableDependenciesMetadata          : <empty>
                     commonMainRuntimeOnly         : <empty>
-                    commonMainRuntimeOnlyDependenciesMetadata         : <empty>
                     commonTestApi                 : <empty>
                     commonTestApiDependenciesMetadata       : <empty>
                     commonTestCompileOnly         : <empty>
@@ -949,8 +932,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     commonTestImplementation      : <empty>
                     commonTestImplementationDependenciesMetadata      : <empty>
                     commonTestIntransitiveDependenciesMetadata        : <empty>
+                    commonTestResolvableDependenciesMetadata          : <empty>
                     commonTestRuntimeOnly         : <empty>
-                    commonTestRuntimeOnlyDependenciesMetadata         : <empty>
                     compileClasspath              : <empty>
                     default                       : <empty>
                     - jvmApiElements              : <ROOT>/common/build/libs/common-jvm.jar [-]
@@ -966,11 +949,11 @@ MODULE                        : NonStandardSourceSetDependencies
                     jvmMainImplementation         : <empty>
                     jvmMainImplementationDependenciesMetadata         : <empty>
                     jvmMainIntransitiveDependenciesMetadata : <empty>
+                    jvmMainResolvableDependenciesMetadata   : <empty>
                     jvmMainRuntimeOnly            : <empty>
-                    jvmMainRuntimeOnlyDependenciesMetadata  : <empty>
                     jvmRuntimeClasspath           : <empty>
                     - jvmRuntimeElements          : <ROOT>/common/build/libs/common-jvm.jar [-]
-                    - jvmSourceArtifacts          : <ROOT>/common/build/libs/common-jvm-sources.jar [-]
+                    - jvmSourcesElements          : <ROOT>/common/build/libs/common-jvm-sources.jar [-]
                     jvmTestApi                    : <empty>
                     jvmTestApiDependenciesMetadata          : <empty>
                     jvmTestCompilationApi         : <empty>
@@ -983,9 +966,9 @@ MODULE                        : NonStandardSourceSetDependencies
                     jvmTestImplementation         : <empty>
                     jvmTestImplementationDependenciesMetadata         : <empty>
                     jvmTestIntransitiveDependenciesMetadata : <empty>
+                    jvmTestResolvableDependenciesMetadata   : <empty>
                     jvmTestRuntimeClasspath       : <empty>
                     jvmTestRuntimeOnly            : <empty>
-                    jvmTestRuntimeOnlyDependenciesMetadata  : <empty>
                     kotlinCompilerClasspath       : <empty>
                     kotlinCompilerPluginClasspath : <empty>
                     kotlinCompilerPluginClasspathJvmMain    : <empty>
@@ -1000,11 +983,14 @@ MODULE                        : NonStandardSourceSetDependencies
                     metadataCommonMainCompilationApi        : <empty>
                     metadataCommonMainCompilationCompileOnly          : <empty>
                     metadataCommonMainCompilationImplementation       : <empty>
+                    metadataCommonMainCompilationRuntimeOnly          : <empty>
                     metadataCommonMainCompileClasspath      : <empty>
                     metadataCompilationApi        : <empty>
                     metadataCompilationCompileOnly          : <empty>
                     metadataCompilationImplementation       : <empty>
+                    metadataCompilationRuntimeOnly          : <empty>
                     metadataCompileClasspath      : <empty>
+                    metadataSourcesElements       : <empty>
                     testKotlinScriptDef           : <empty>
                     testKotlinScriptDefExtensions : <empty>
             desktop                       : :desktop (DefaultExternalProject)
@@ -1071,6 +1057,10 @@ MODULE                        : NonStandardSourceSetDependencies
                             - files                       : <ROOT>/desktop/build/classes/java/main [-]
                             - files                       : <ROOT>/desktop/build/classes/kotlin/main [-]
                             - files                       : <ROOT>/desktop/build/resources/main [-]
+                        - dependencies                : DefaultFileCollectionDependency
+                            - files                       : <ROOT>/desktop/build/classes/java/main [-]
+                        - dependencies                : DefaultFileCollectionDependency
+                            - files                       : <ROOT>/desktop/build/classes/kotlin/main [-]
                         - dependencies                : DefaultExternalLibraryDependency
                             file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                         - dependencies                : DefaultExternalLibraryDependency
@@ -1086,6 +1076,8 @@ MODULE                        : NonStandardSourceSetDependencies
                             - files                       : <ROOT>/desktop/build/classes/java/test [-]
                             - files                       : <ROOT>/desktop/build/classes/kotlin/test [-]
                             - files                       : <ROOT>/desktop/build/resources/test [-]
+                        - dependencies                : DefaultFileCollectionDependency
+                            - files                       : <ROOT>/desktop/build/resources/main [-]
                         sourceCompatibility           : 1.7
                         targetCompatibility           : 1.7
                 externalSystemId              : GRADLE
@@ -1120,8 +1112,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     - runtimeElements             : <ROOT>/desktop/build/libs/desktop.jar [-]
                     - runtimeElements-published   : <ROOT>/desktop/build/libs/desktop.jar [-]
                     runtimeOnly                   : <empty>
-                    runtimeOnlyDependenciesMetadata         : <empty>
-                    - sourceArtifacts             : <ROOT>/desktop/build/libs/desktop-sources.jar [-]
                     testAnnotationProcessor       : <empty>
                     testApi                       : <empty>
                     testApiDependenciesMetadata   : <empty>
@@ -1136,7 +1126,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     - testResultsElementsForTest  : <ROOT>/desktop/build/test-results/test/binary [-]
                     testRuntimeClasspath          : <empty>
                     testRuntimeOnly               : <empty>
-                    testRuntimeOnlyDependenciesMetadata     : <empty>
             feature-a                     : :feature-a (DefaultExternalProject)
                 name                          : feature-a
                 qName                         : :feature-a
@@ -1170,7 +1159,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     androidTestDebugImplementationDependenciesMetadata          : <empty>
                     androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                     androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugRuntimeOnlyDependenciesMetadata   : <empty>
                     androidTestDebugWearApp       : <empty>
                     androidTestImplementation     : <empty>
                     androidTestImplementationDependenciesMetadata     : <empty>
@@ -1184,10 +1172,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     androidTestReleaseImplementationDependenciesMetadata        : <empty>
                     androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
                     androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseRuntimeOnlyDependenciesMetadata : <empty>
                     androidTestReleaseWearApp     : <empty>
                     androidTestRuntimeOnly        : <empty>
-                    androidTestRuntimeOnlyDependenciesMetadata        : <empty>
                     androidTestUtil               : <empty>
                     androidTestWearApp            : <empty>
                     annotationProcessor           : <empty>
@@ -1213,7 +1199,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
                     debugAndroidTestRuntimeClasspath        : <empty>
                     debugAndroidTestRuntimeOnly   : <empty>
-                    debugAndroidTestRuntimeOnlyDependenciesMetadata   : <empty>
                     debugAnnotationProcessor      : <empty>
                     debugAnnotationProcessorClasspath       : <empty>
                     debugApi                      : <empty>
@@ -1235,8 +1220,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     debugRuntimeElements          : <empty>
                     - debugRuntimeElements-published        : <ROOT>/feature-a/build/outputs/aar/feature-a-debug.aar [-]
                     debugRuntimeOnly              : <empty>
-                    debugRuntimeOnlyDependenciesMetadata    : <empty>
-                    - debugSourceArtifacts        : <ROOT>/feature-a/build/libs/feature-a-debug-sources.jar [-]
+                    - debugSourcesElements        : <ROOT>/feature-a/build/libs/feature-a-debug-sources.jar [-]
+                    - debugSourcesElements-published        : <ROOT>/feature-a/build/libs/feature-a-debug-sources.jar [-]
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestApi              : <empty>
                     debugUnitTestApiDependenciesMetadata    : <empty>
@@ -1252,7 +1237,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     debugUnitTestIntransitiveDependenciesMetadata     : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
                     debugUnitTestRuntimeOnly      : <empty>
-                    debugUnitTestRuntimeOnlyDependenciesMetadata      : <empty>
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
@@ -1290,8 +1274,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     releaseRuntimeElements        : <empty>
                     - releaseRuntimeElements-published      : <ROOT>/feature-a/build/outputs/aar/feature-a-release.aar [-]
                     releaseRuntimeOnly            : <empty>
-                    releaseRuntimeOnlyDependenciesMetadata  : <empty>
-                    - releaseSourceArtifacts      : <ROOT>/feature-a/build/libs/feature-a-sources.jar [-]
+                    - releaseSourcesElements      : <ROOT>/feature-a/build/libs/feature-a-sources.jar [-]
+                    - releaseSourcesElements-published      : <ROOT>/feature-a/build/libs/feature-a-sources.jar [-]
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestApi            : <empty>
                     releaseUnitTestApiDependenciesMetadata  : <empty>
@@ -1307,10 +1291,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
                     releaseUnitTestRuntimeOnly    : <empty>
-                    releaseUnitTestRuntimeOnlyDependenciesMetadata    : <empty>
                     releaseWearApp                : <empty>
                     runtimeOnly                   : <empty>
-                    runtimeOnlyDependenciesMetadata         : <empty>
                     testAnnotationProcessor       : <empty>
                     testApi                       : <empty>
                     testApiDependenciesMetadata   : <empty>
@@ -1325,7 +1307,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     testDebugImplementationDependenciesMetadata       : <empty>
                     testDebugIntransitiveDependenciesMetadata         : <empty>
                     testDebugRuntimeOnly          : <empty>
-                    testDebugRuntimeOnlyDependenciesMetadata          : <empty>
                     testDebugWearApp              : <empty>
                     testFixturesAnnotationProcessor         : <empty>
                     testFixturesApi               : <empty>
@@ -1341,7 +1322,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     testFixturesDebugImplementationDependenciesMetadata         : <empty>
                     testFixturesDebugIntransitiveDependenciesMetadata : <empty>
                     testFixturesDebugRuntimeOnly  : <empty>
-                    testFixturesDebugRuntimeOnlyDependenciesMetadata  : <empty>
                     testFixturesDebugWearApp      : <empty>
                     testFixturesImplementation    : <empty>
                     testFixturesImplementationDependenciesMetadata    : <empty>
@@ -1355,10 +1335,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     testFixturesReleaseImplementationDependenciesMetadata       : <empty>
                     testFixturesReleaseIntransitiveDependenciesMetadata         : <empty>
                     testFixturesReleaseRuntimeOnly          : <empty>
-                    testFixturesReleaseRuntimeOnlyDependenciesMetadata          : <empty>
                     testFixturesReleaseWearApp    : <empty>
                     testFixturesRuntimeOnly       : <empty>
-                    testFixturesRuntimeOnlyDependenciesMetadata       : <empty>
                     testFixturesWearApp           : <empty>
                     testImplementation            : <empty>
                     testImplementationDependenciesMetadata  : <empty>
@@ -1372,10 +1350,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     testReleaseImplementationDependenciesMetadata     : <empty>
                     testReleaseIntransitiveDependenciesMetadata       : <empty>
                     testReleaseRuntimeOnly        : <empty>
-                    testReleaseRuntimeOnlyDependenciesMetadata        : <empty>
                     testReleaseWearApp            : <empty>
                     testRuntimeOnly               : <empty>
-                    testRuntimeOnlyDependenciesMetadata     : <empty>
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
             feature-b                     : :feature-b (DefaultExternalProject)
@@ -1410,7 +1386,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     _internal-unified-test-platform-core    : <empty>
                     _internal-unified-test-platform-launcher          : <empty>
                     allSourceSetsCompileDependenciesMetadata          : <empty>
-                    allSourceSetsRuntimeDependenciesMetadata          : <empty>
                     androidAndroidTestApi         : <empty>
                     androidAndroidTestApiDependenciesMetadata         : <empty>
                     androidAndroidTestCompileOnly : <empty>
@@ -1422,8 +1397,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     androidAndroidTestDebugImplementation   : <empty>
                     androidAndroidTestDebugImplementationDependenciesMetadata   : <empty>
                     androidAndroidTestDebugIntransitiveDependenciesMetadata     : <empty>
+                    androidAndroidTestDebugResolvableDependenciesMetadata       : <empty>
                     androidAndroidTestDebugRuntimeOnly      : <empty>
-                    androidAndroidTestDebugRuntimeOnlyDependenciesMetadata      : <empty>
                     androidAndroidTestImplementation        : <empty>
                     androidAndroidTestImplementationDependenciesMetadata        : <empty>
                     androidAndroidTestIntransitiveDependenciesMetadata          : <empty>
@@ -1434,10 +1409,10 @@ MODULE                        : NonStandardSourceSetDependencies
                     androidAndroidTestReleaseImplementation : <empty>
                     androidAndroidTestReleaseImplementationDependenciesMetadata : <empty>
                     androidAndroidTestReleaseIntransitiveDependenciesMetadata   : <empty>
+                    androidAndroidTestReleaseResolvableDependenciesMetadata     : <empty>
                     androidAndroidTestReleaseRuntimeOnly    : <empty>
-                    androidAndroidTestReleaseRuntimeOnlyDependenciesMetadata    : <empty>
+                    androidAndroidTestResolvableDependenciesMetadata  : <empty>
                     androidAndroidTestRuntimeOnly : <empty>
-                    androidAndroidTestRuntimeOnlyDependenciesMetadata : <empty>
                     androidApis                   : <empty>
                     androidDebugAndroidTestApi    : <empty>
                     androidDebugAndroidTestApiDependenciesMetadata    : <empty>
@@ -1451,9 +1426,9 @@ MODULE                        : NonStandardSourceSetDependencies
                     androidDebugAndroidTestImplementation   : <empty>
                     androidDebugAndroidTestImplementationDependenciesMetadata   : <empty>
                     androidDebugAndroidTestIntransitiveDependenciesMetadata     : <empty>
+                    androidDebugAndroidTestResolvableDependenciesMetadata       : <empty>
                     androidDebugAndroidTestRuntimeClasspath : <empty>
                     androidDebugAndroidTestRuntimeOnly      : <empty>
-                    androidDebugAndroidTestRuntimeOnlyDependenciesMetadata      : <empty>
                     androidDebugApi               : <empty>
                     androidDebugApiDependenciesMetadata     : <empty>
                     - androidDebugArchives        : <ROOT>/feature-b/build/outputs/aar/feature-b-debug.aar [-]
@@ -1467,10 +1442,9 @@ MODULE                        : NonStandardSourceSetDependencies
                     androidDebugImplementation    : <empty>
                     androidDebugImplementationDependenciesMetadata    : <empty>
                     androidDebugIntransitiveDependenciesMetadata      : <empty>
+                    androidDebugResolvableDependenciesMetadata        : <empty>
                     androidDebugRuntimeClasspath  : <empty>
                     androidDebugRuntimeOnly       : <empty>
-                    androidDebugRuntimeOnlyDependenciesMetadata       : <empty>
-                    - androidDebugSourceArtifacts : <ROOT>/feature-b/build/libs/feature-b-android-debug-sources.jar [-]
                     androidDebugUnitTestApi       : <empty>
                     androidDebugUnitTestApiDependenciesMetadata       : <empty>
                     androidDebugUnitTestCompilationApi      : <empty>
@@ -1483,9 +1457,9 @@ MODULE                        : NonStandardSourceSetDependencies
                     androidDebugUnitTestImplementation      : <empty>
                     androidDebugUnitTestImplementationDependenciesMetadata      : <empty>
                     androidDebugUnitTestIntransitiveDependenciesMetadata        : <empty>
+                    androidDebugUnitTestResolvableDependenciesMetadata          : <empty>
                     androidDebugUnitTestRuntimeClasspath    : <empty>
                     androidDebugUnitTestRuntimeOnly         : <empty>
-                    androidDebugUnitTestRuntimeOnlyDependenciesMetadata         : <empty>
                     androidJdkImage               : <empty>
                     androidMainApi                : <empty>
                     androidMainApiDependenciesMetadata      : <empty>
@@ -1494,8 +1468,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     androidMainImplementation     : <empty>
                     androidMainImplementationDependenciesMetadata     : <empty>
                     androidMainIntransitiveDependenciesMetadata       : <empty>
+                    androidMainResolvableDependenciesMetadata         : <empty>
                     androidMainRuntimeOnly        : <empty>
-                    androidMainRuntimeOnlyDependenciesMetadata        : <empty>
                     androidReleaseApi             : <empty>
                     androidReleaseApiDependenciesMetadata   : <empty>
                     - androidReleaseArchives      : <ROOT>/feature-b/build/outputs/aar/feature-b-release.aar [-]
@@ -1509,10 +1483,9 @@ MODULE                        : NonStandardSourceSetDependencies
                     androidReleaseImplementation  : <empty>
                     androidReleaseImplementationDependenciesMetadata  : <empty>
                     androidReleaseIntransitiveDependenciesMetadata    : <empty>
+                    androidReleaseResolvableDependenciesMetadata      : <empty>
                     androidReleaseRuntimeClasspath          : <empty>
                     androidReleaseRuntimeOnly     : <empty>
-                    androidReleaseRuntimeOnlyDependenciesMetadata     : <empty>
-                    - androidReleaseSourceArtifacts         : <ROOT>/feature-b/build/libs/feature-b-android-sources.jar [-]
                     androidReleaseUnitTestApi     : <empty>
                     androidReleaseUnitTestApiDependenciesMetadata     : <empty>
                     androidReleaseUnitTestCompilationApi    : <empty>
@@ -1525,9 +1498,9 @@ MODULE                        : NonStandardSourceSetDependencies
                     androidReleaseUnitTestImplementation    : <empty>
                     androidReleaseUnitTestImplementationDependenciesMetadata    : <empty>
                     androidReleaseUnitTestIntransitiveDependenciesMetadata      : <empty>
+                    androidReleaseUnitTestResolvableDependenciesMetadata        : <empty>
                     androidReleaseUnitTestRuntimeClasspath  : <empty>
                     androidReleaseUnitTestRuntimeOnly       : <empty>
-                    androidReleaseUnitTestRuntimeOnlyDependenciesMetadata       : <empty>
                     androidTestAnnotationProcessor          : <empty>
                     androidTestApi                : <empty>
                     androidTestApiDependenciesMetadata      : <empty>
@@ -1541,8 +1514,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     androidTestDebugImplementation          : <empty>
                     androidTestDebugImplementationDependenciesMetadata          : <empty>
                     androidTestDebugIntransitiveDependenciesMetadata  : <empty>
+                    androidTestDebugResolvableDependenciesMetadata    : <empty>
                     androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugRuntimeOnlyDependenciesMetadata   : <empty>
                     androidTestDebugWearApp       : <empty>
                     androidTestFixturesApi        : <empty>
                     androidTestFixturesApiDependenciesMetadata        : <empty>
@@ -1555,8 +1528,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     androidTestFixturesDebugImplementation  : <empty>
                     androidTestFixturesDebugImplementationDependenciesMetadata  : <empty>
                     androidTestFixturesDebugIntransitiveDependenciesMetadata    : <empty>
+                    androidTestFixturesDebugResolvableDependenciesMetadata      : <empty>
                     androidTestFixturesDebugRuntimeOnly     : <empty>
-                    androidTestFixturesDebugRuntimeOnlyDependenciesMetadata     : <empty>
                     androidTestFixturesImplementation       : <empty>
                     androidTestFixturesImplementationDependenciesMetadata       : <empty>
                     androidTestFixturesIntransitiveDependenciesMetadata         : <empty>
@@ -1567,10 +1540,10 @@ MODULE                        : NonStandardSourceSetDependencies
                     androidTestFixturesReleaseImplementation          : <empty>
                     androidTestFixturesReleaseImplementationDependenciesMetadata          : <empty>
                     androidTestFixturesReleaseIntransitiveDependenciesMetadata  : <empty>
+                    androidTestFixturesReleaseResolvableDependenciesMetadata    : <empty>
                     androidTestFixturesReleaseRuntimeOnly   : <empty>
-                    androidTestFixturesReleaseRuntimeOnlyDependenciesMetadata   : <empty>
+                    androidTestFixturesResolvableDependenciesMetadata : <empty>
                     androidTestFixturesRuntimeOnly          : <empty>
-                    androidTestFixturesRuntimeOnlyDependenciesMetadata          : <empty>
                     androidTestImplementation     : <empty>
                     androidTestImplementationDependenciesMetadata     : <empty>
                     androidTestIntransitiveDependenciesMetadata       : <empty>
@@ -1582,11 +1555,11 @@ MODULE                        : NonStandardSourceSetDependencies
                     androidTestReleaseImplementation        : <empty>
                     androidTestReleaseImplementationDependenciesMetadata        : <empty>
                     androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
+                    androidTestReleaseResolvableDependenciesMetadata  : <empty>
                     androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseRuntimeOnlyDependenciesMetadata : <empty>
                     androidTestReleaseWearApp     : <empty>
+                    androidTestResolvableDependenciesMetadata         : <empty>
                     androidTestRuntimeOnly        : <empty>
-                    androidTestRuntimeOnlyDependenciesMetadata        : <empty>
                     androidTestUtil               : <empty>
                     androidTestWearApp            : <empty>
                     annotationProcessor           : <empty>
@@ -1601,8 +1574,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     commonMainImplementation      : <empty>
                     commonMainImplementationDependenciesMetadata      : <empty>
                     commonMainIntransitiveDependenciesMetadata        : <empty>
+                    commonMainResolvableDependenciesMetadata          : <empty>
                     commonMainRuntimeOnly         : <empty>
-                    commonMainRuntimeOnlyDependenciesMetadata         : <empty>
                     commonTestApi                 : <empty>
                     commonTestApiDependenciesMetadata       : <empty>
                     commonTestCompileOnly         : <empty>
@@ -1610,8 +1583,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     commonTestImplementation      : <empty>
                     commonTestImplementationDependenciesMetadata      : <empty>
                     commonTestIntransitiveDependenciesMetadata        : <empty>
+                    commonTestResolvableDependenciesMetadata          : <empty>
                     commonTestRuntimeOnly         : <empty>
-                    commonTestRuntimeOnlyDependenciesMetadata         : <empty>
                     compileOnly                   : <empty>
                     coreLibraryDesugaring         : <empty>
                     debugAndroidTestAnnotationProcessorClasspath      : <empty>
@@ -1627,6 +1600,7 @@ MODULE                        : NonStandardSourceSetDependencies
                     debugRuntimeClasspath         : <empty>
                     debugRuntimeElements          : <empty>
                     debugRuntimeOnly              : <empty>
+                    - debugSourcesElements        : <ROOT>/feature-b/build/libs/feature-b-android-debug-sources.jar [-]
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestCompileClasspath : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
@@ -1650,11 +1624,14 @@ MODULE                        : NonStandardSourceSetDependencies
                     metadataCommonMainCompilationApi        : <empty>
                     metadataCommonMainCompilationCompileOnly          : <empty>
                     metadataCommonMainCompilationImplementation       : <empty>
+                    metadataCommonMainCompilationRuntimeOnly          : <empty>
                     metadataCommonMainCompileClasspath      : <empty>
                     metadataCompilationApi        : <empty>
                     metadataCompilationCompileOnly          : <empty>
                     metadataCompilationImplementation       : <empty>
+                    metadataCompilationRuntimeOnly          : <empty>
                     metadataCompileClasspath      : <empty>
+                    metadataSourcesElements       : <empty>
                     releaseAnnotationProcessor    : <empty>
                     releaseAnnotationProcessorClasspath     : <empty>
                     releaseApi                    : <empty>
@@ -1665,6 +1642,7 @@ MODULE                        : NonStandardSourceSetDependencies
                     releaseRuntimeClasspath       : <empty>
                     releaseRuntimeElements        : <empty>
                     releaseRuntimeOnly            : <empty>
+                    - releaseSourcesElements      : <ROOT>/feature-b/build/libs/feature-b-android-sources.jar [-]
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestCompileClasspath         : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
@@ -1747,15 +1725,14 @@ MODULE                        : NonStandardSourceSetDependencies
                             projectPath                   : :common
                             - projectDependencyArtifacts  : <ROOT>/common/build/libs/common-jvm.jar [-]
                             - projectDependencyArtifacts  : <ROOT>/common/build/libs/common-jvm.jar-MPP-1 [-]
-                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                        - dependencies                : DefaultExternalLibraryDependency
+                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
                         - dependencies                : default (DefaultExternalProjectDependency)
                             projectPath                   : :jarWrapperLib
                             - projectDependencyArtifacts  : <ROOT>/jarWrapperLib/JarWrappedLib.jar
                         - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-                        - dependencies                : DefaultExternalLibraryDependency
-                            file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                        - dependencies                : DefaultExternalLibraryDependency (*seen*)
                         - dependencies                : DefaultExternalLibraryDependency
                             file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                             source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
@@ -1784,6 +1761,10 @@ MODULE                        : NonStandardSourceSetDependencies
                             - files                       : <ROOT>/javaLibrary/build/classes/java/main [-]
                             - files                       : <ROOT>/javaLibrary/build/classes/kotlin/main [-]
                             - files                       : <ROOT>/javaLibrary/build/resources/main [-]
+                        - dependencies                : DefaultFileCollectionDependency
+                            - files                       : <ROOT>/javaLibrary/build/classes/java/main [-]
+                        - dependencies                : DefaultFileCollectionDependency
+                            - files                       : <ROOT>/javaLibrary/build/classes/kotlin/main [-]
                         - dependencies                : jvmApiElements (DefaultExternalProjectDependency)
                             projectPath                   : :common
                             - projectDependencyArtifacts  : <ROOT>/common/build/libs/common-jvm.jar [-]
@@ -1805,6 +1786,8 @@ MODULE                        : NonStandardSourceSetDependencies
                             - files                       : <ROOT>/javaLibrary/build/classes/java/test [-]
                             - files                       : <ROOT>/javaLibrary/build/classes/kotlin/test [-]
                             - files                       : <ROOT>/javaLibrary/build/resources/test [-]
+                        - dependencies                : DefaultFileCollectionDependency
+                            - files                       : <ROOT>/javaLibrary/build/resources/main [-]
                         sourceCompatibility           : 1.7
                         targetCompatibility           : 1.7
                     testEnv                       : testEnv (DefaultExternalSourceSet)
@@ -1864,8 +1847,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     - runtimeElements             : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
                     - runtimeElements-published   : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
                     runtimeOnly                   : <empty>
-                    runtimeOnlyDependenciesMetadata         : <empty>
-                    - sourceArtifacts             : <ROOT>/javaLibrary/build/libs/javaLibrary-sources.jar [-]
                     testAnnotationProcessor       : <empty>
                     testApi                       : <empty>
                     testApiDependenciesMetadata   : <empty>
@@ -1886,7 +1867,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     testEnvKotlinScriptDefExtensions        : <empty>
                     testEnvRuntimeClasspath       : <empty>
                     testEnvRuntimeOnly            : <empty>
-                    testEnvRuntimeOnlyDependenciesMetadata  : <empty>
                     testImplementation            : <empty>
                     testImplementationDependenciesMetadata  : <empty>
                     testIntransitiveDependenciesMetadata    : <empty>
@@ -1895,7 +1875,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     - testResultsElementsForTest  : <ROOT>/javaLibrary/build/test-results/test/binary [-]
                     testRuntimeClasspath          : <empty>
                     testRuntimeOnly               : <empty>
-                    testRuntimeOnlyDependenciesMetadata     : <empty>
             kmp-java                      : :kmp-java (DefaultExternalProject)
                 name                          : kmp-java
                 qName                         : :kmp-java
@@ -1934,8 +1913,10 @@ MODULE                        : NonStandardSourceSetDependencies
                                 - dependencies                : DefaultExternalLibraryDependency (*seen*)
                                 - dependencies                : DefaultExternalLibraryDependency
                                     file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                                - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                                - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                                - dependencies                : DefaultExternalLibraryDependency
+                                    file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                                - dependencies                : DefaultExternalLibraryDependency
+                                    file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                                 - dependencies                : DefaultExternalLibraryDependency (*seen*)
                                 - dependencies                : DefaultFileCollectionDependency
                                     - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
@@ -1965,11 +1946,13 @@ MODULE                        : NonStandardSourceSetDependencies
                                     - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
                                 - dependencies                : DefaultFileCollectionDependency
                                     - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
+                                - dependencies                : DefaultExternalLibraryDependency (*seen*)
                                 - dependencies                : DefaultExternalLibraryDependency
-                                    file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-                                - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                                - dependencies                : DefaultExternalLibraryDependency (*seen*)
-                                - dependencies                : DefaultExternalLibraryDependency (*seen*)
+                                    file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                                - dependencies                : DefaultExternalLibraryDependency
+                                    file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                                - dependencies                : DefaultExternalLibraryDependency
+                                    file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
                                 - dependencies                : DefaultExternalLibraryDependency (*seen*)
                                 - dependencies                : DefaultFileCollectionDependency
                                     - files                       : <ROOT>/kmp-java/sample/build/classes/java/test [-]
@@ -1985,7 +1968,6 @@ MODULE                        : NonStandardSourceSetDependencies
                         - artifacts                   : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                         artifactsByConfiguration
                             allSourceSetsCompileDependenciesMetadata          : <empty>
-                            allSourceSetsRuntimeDependenciesMetadata          : <empty>
                             annotationProcessor           : <empty>
                             - apiElements                 : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                             - archives                    : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
@@ -1997,8 +1979,8 @@ MODULE                        : NonStandardSourceSetDependencies
                             commonMainImplementation      : <empty>
                             commonMainImplementationDependenciesMetadata      : <empty>
                             commonMainIntransitiveDependenciesMetadata        : <empty>
+                            commonMainResolvableDependenciesMetadata          : <empty>
                             commonMainRuntimeOnly         : <empty>
-                            commonMainRuntimeOnlyDependenciesMetadata         : <empty>
                             commonTestApi                 : <empty>
                             commonTestApiDependenciesMetadata       : <empty>
                             commonTestCompileOnly         : <empty>
@@ -2006,8 +1988,8 @@ MODULE                        : NonStandardSourceSetDependencies
                             commonTestImplementation      : <empty>
                             commonTestImplementationDependenciesMetadata      : <empty>
                             commonTestIntransitiveDependenciesMetadata        : <empty>
+                            commonTestResolvableDependenciesMetadata          : <empty>
                             commonTestRuntimeOnly         : <empty>
-                            commonTestRuntimeOnlyDependenciesMetadata         : <empty>
                             compileClasspath              : <empty>
                             compileOnly                   : <empty>
                             default                       : <empty>
@@ -2025,11 +2007,11 @@ MODULE                        : NonStandardSourceSetDependencies
                             jvmMainImplementation         : <empty>
                             jvmMainImplementationDependenciesMetadata         : <empty>
                             jvmMainIntransitiveDependenciesMetadata : <empty>
+                            jvmMainResolvableDependenciesMetadata   : <empty>
                             jvmMainRuntimeOnly            : <empty>
-                            jvmMainRuntimeOnlyDependenciesMetadata  : <empty>
                             jvmRuntimeClasspath           : <empty>
                             - jvmRuntimeElements          : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
-                            - jvmSourceArtifacts          : <ROOT>/kmp-java/sample/build/libs/sample-jvm-sources.jar [-]
+                            - jvmSourcesElements          : <ROOT>/kmp-java/sample/build/libs/sample-jvm-sources.jar [-]
                             jvmTestApi                    : <empty>
                             jvmTestApiDependenciesMetadata          : <empty>
                             jvmTestCompilationApi         : <empty>
@@ -2042,9 +2024,9 @@ MODULE                        : NonStandardSourceSetDependencies
                             jvmTestImplementation         : <empty>
                             jvmTestImplementationDependenciesMetadata         : <empty>
                             jvmTestIntransitiveDependenciesMetadata : <empty>
+                            jvmTestResolvableDependenciesMetadata   : <empty>
                             jvmTestRuntimeClasspath       : <empty>
                             jvmTestRuntimeOnly            : <empty>
-                            jvmTestRuntimeOnlyDependenciesMetadata  : <empty>
                             kotlinCompilerClasspath       : <empty>
                             kotlinCompilerPluginClasspath : <empty>
                             kotlinCompilerPluginClasspathJvmMain    : <empty>
@@ -2061,11 +2043,14 @@ MODULE                        : NonStandardSourceSetDependencies
                             metadataCommonMainCompilationApi        : <empty>
                             metadataCommonMainCompilationCompileOnly          : <empty>
                             metadataCommonMainCompilationImplementation       : <empty>
+                            metadataCommonMainCompilationRuntimeOnly          : <empty>
                             metadataCommonMainCompileClasspath      : <empty>
                             metadataCompilationApi        : <empty>
                             metadataCompilationCompileOnly          : <empty>
                             metadataCompilationImplementation       : <empty>
+                            metadataCompilationRuntimeOnly          : <empty>
                             metadataCompileClasspath      : <empty>
+                            metadataSourcesElements       : <empty>
                             runtimeClasspath              : <empty>
                             - runtimeElements             : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                             runtimeOnly                   : <empty>
@@ -2226,7 +2211,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     androidTestDebugImplementationDependenciesMetadata          : <empty>
                     androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                     androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugRuntimeOnlyDependenciesMetadata   : <empty>
                     androidTestDebugWearApp       : <empty>
                     androidTestImplementation     : <empty>
                     androidTestImplementationDependenciesMetadata     : <empty>
@@ -2240,10 +2224,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     androidTestReleaseImplementationDependenciesMetadata        : <empty>
                     androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
                     androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseRuntimeOnlyDependenciesMetadata : <empty>
                     androidTestReleaseWearApp     : <empty>
                     androidTestRuntimeOnly        : <empty>
-                    androidTestRuntimeOnlyDependenciesMetadata        : <empty>
                     androidTestUtil               : <empty>
                     androidTestWearApp            : <empty>
                     annotationProcessor           : <empty>
@@ -2270,7 +2252,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
                     debugAndroidTestRuntimeClasspath        : <empty>
                     debugAndroidTestRuntimeOnly   : <empty>
-                    debugAndroidTestRuntimeOnlyDependenciesMetadata   : <empty>
                     debugAnnotationProcessor      : <empty>
                     debugAnnotationProcessorClasspath       : <empty>
                     debugApi                      : <empty>
@@ -2292,8 +2273,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     debugRuntimeElements          : <empty>
                     - debugRuntimeElements-published        : <ROOT>/lib/build/outputs/aar/lib-debug.aar [-]
                     debugRuntimeOnly              : <empty>
-                    debugRuntimeOnlyDependenciesMetadata    : <empty>
-                    - debugSourceArtifacts        : <ROOT>/lib/build/libs/lib-debug-sources.jar [-]
+                    - debugSourcesElements        : <ROOT>/lib/build/libs/lib-debug-sources.jar [-]
+                    - debugSourcesElements-published        : <ROOT>/lib/build/libs/lib-debug-sources.jar [-]
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestApi              : <empty>
                     debugUnitTestApiDependenciesMetadata    : <empty>
@@ -2309,7 +2290,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     debugUnitTestIntransitiveDependenciesMetadata     : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
                     debugUnitTestRuntimeOnly      : <empty>
-                    debugUnitTestRuntimeOnlyDependenciesMetadata      : <empty>
                     debugWearApp                  : <empty>
                     default                       : <empty>
                     implementation                : <empty>
@@ -2348,8 +2328,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     releaseRuntimeElements        : <empty>
                     - releaseRuntimeElements-published      : <ROOT>/lib/build/outputs/aar/lib-release.aar [-]
                     releaseRuntimeOnly            : <empty>
-                    releaseRuntimeOnlyDependenciesMetadata  : <empty>
-                    - releaseSourceArtifacts      : <ROOT>/lib/build/libs/lib-sources.jar [-]
+                    - releaseSourcesElements      : <ROOT>/lib/build/libs/lib-sources.jar [-]
+                    - releaseSourcesElements-published      : <ROOT>/lib/build/libs/lib-sources.jar [-]
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestApi            : <empty>
                     releaseUnitTestApiDependenciesMetadata  : <empty>
@@ -2365,10 +2345,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
                     releaseUnitTestRuntimeOnly    : <empty>
-                    releaseUnitTestRuntimeOnlyDependenciesMetadata    : <empty>
                     releaseWearApp                : <empty>
                     runtimeOnly                   : <empty>
-                    runtimeOnlyDependenciesMetadata         : <empty>
                     testAnnotationProcessor       : <empty>
                     testApi                       : <empty>
                     testApiDependenciesMetadata   : <empty>
@@ -2383,7 +2361,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     testDebugImplementationDependenciesMetadata       : <empty>
                     testDebugIntransitiveDependenciesMetadata         : <empty>
                     testDebugRuntimeOnly          : <empty>
-                    testDebugRuntimeOnlyDependenciesMetadata          : <empty>
                     testDebugWearApp              : <empty>
                     testFixturesAnnotationProcessor         : <empty>
                     testFixturesApi               : <empty>
@@ -2399,7 +2376,6 @@ MODULE                        : NonStandardSourceSetDependencies
                     testFixturesDebugImplementationDependenciesMetadata         : <empty>
                     testFixturesDebugIntransitiveDependenciesMetadata : <empty>
                     testFixturesDebugRuntimeOnly  : <empty>
-                    testFixturesDebugRuntimeOnlyDependenciesMetadata  : <empty>
                     testFixturesDebugWearApp      : <empty>
                     testFixturesImplementation    : <empty>
                     testFixturesImplementationDependenciesMetadata    : <empty>
@@ -2413,10 +2389,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     testFixturesReleaseImplementationDependenciesMetadata       : <empty>
                     testFixturesReleaseIntransitiveDependenciesMetadata         : <empty>
                     testFixturesReleaseRuntimeOnly          : <empty>
-                    testFixturesReleaseRuntimeOnlyDependenciesMetadata          : <empty>
                     testFixturesReleaseWearApp    : <empty>
                     testFixturesRuntimeOnly       : <empty>
-                    testFixturesRuntimeOnlyDependenciesMetadata       : <empty>
                     testFixturesWearApp           : <empty>
                     testImplementation            : <empty>
                     testImplementationDependenciesMetadata  : <empty>
@@ -2430,10 +2404,8 @@ MODULE                        : NonStandardSourceSetDependencies
                     testReleaseImplementationDependenciesMetadata     : <empty>
                     testReleaseIntransitiveDependenciesMetadata       : <empty>
                     testReleaseRuntimeOnly        : <empty>
-                    testReleaseRuntimeOnlyDependenciesMetadata        : <empty>
                     testReleaseWearApp            : <empty>
                     testRuntimeOnly               : <empty>
-                    testRuntimeOnlyDependenciesMetadata     : <empty>
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
         projectDir                    : <ROOT>
@@ -3361,14 +3333,14 @@ MODULE                        : NonStandardSourceSetDependencies.common
             2                             : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
             3                             : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
             4                             : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
             5                             : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            6                             : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-            6                             : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
             7                             : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
             8                             : DefaultExternalLibraryDependency
@@ -3376,28 +3348,30 @@ MODULE                        : NonStandardSourceSetDependencies.common
             9                             : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-            10                            : DefaultFileCollectionDependency
-                - files                       : <ROOT>/common/build/classes/kotlin/jvm/main [-]
-            11                            : DefaultExternalLibraryDependency
+            10                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-            12                            : DefaultExternalLibraryDependency
+            11                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-            13                            : DefaultExternalLibraryDependency
+            12                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            14                            : DefaultExternalLibraryDependency
+            13                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-            15                            : DefaultFileCollectionDependency
+            14                            : DefaultFileCollectionDependency
                 - files                       : <ROOT>/common/build/classes/kotlin/jvm/main [-]
-            16                            : DefaultFileCollectionDependency
-                - files                       : <ROOT>/common/build/processedResources/jvm/main [-]
-            17                            : DefaultExternalLibraryDependency
+            15                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+            16                            : DefaultFileCollectionDependency
+                - files                       : <ROOT>/common/build/classes/kotlin/jvm/main [-]
+            17                            : DefaultFileCollectionDependency
+                - files                       : <ROOT>/common/build/processedResources/jvm/main [-]
             18                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
             19                            : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
             20                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            21                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
         extraFeatures                 : ExtraFeaturesImpl
@@ -3405,8 +3379,8 @@ MODULE                        : NonStandardSourceSetDependencies.common
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 1
             minor                         : 8
-            patch                         : 0
-            versionString                 : 1.8.0-Beta
+            patch                         : 20
+            versionString                 : 1.8.20-Beta
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -3434,9 +3408,9 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     - allDependsOnSourceSets      : commonMain
                     - declaredDependsOnSourceSets : commonMain
                     - dependencies                : 2
-                    - dependencies                : 3
-                    - dependencies                : 4
-                    - dependencies                : 5
+                    - dependencies                : 7
+                    - dependencies                : 8
+                    - dependencies                : 9
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -3447,9 +3421,9 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - regularDependencies         : 2
-                    - regularDependencies         : 3
-                    - regularDependencies         : 4
-                    - regularDependencies         : 5
+                    - regularDependencies         : 7
+                    - regularDependencies         : 8
+                    - regularDependencies         : 9
                     - resourceDirs                : <ROOT>/common/src/jvmMain/resources [-]
                     - sourceDirs                  : <ROOT>/common/src/jvmMain/kotlin
                     - dependsOnSourceSets         : commonMain
@@ -3466,6 +3440,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         destination                   : <ROOT>/common/build/classes/kotlin/jvm/main
                         jvmDefault                    : disable
+                        jvmTarget                     : 17
                         moduleName                    : common
                         noReflect                     : true
                         noStdlib                      : true
@@ -3485,13 +3460,13 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - declaredSourceSets          : jvmMain (KotlinSourceSetImpl) (*seen*)
                 - dependencies                : 2
-                - dependencies                : 3
-                - dependencies                : 4
-                - dependencies                : 5
-                - dependencies                : 6
                 - dependencies                : 7
                 - dependencies                : 8
                 - dependencies                : 9
+                - dependencies                : 10
+                - dependencies                : 11
+                - dependencies                : 12
+                - dependencies                : 13
                 disambiguationClassifier      : jvm
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
@@ -3510,33 +3485,11 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         - platforms                   : JVM
                     - additionalVisibleSourceSets : jvmMain
                     - additionalVisibleSourceSets : commonMain
-                    - dependencies                : 1
-                    isTestComponent               : true
-                    languageSettings              : KotlinLanguageSettingsImpl
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - regularDependencies         : 1
-                    - resourceDirs                : <ROOT>/common/src/commonTest/resources [-]
-                    - sourceDirs                  : <ROOT>/common/src/commonTest/kotlin [-]
-                    platform                      : JVM
-                - allSourceSets               : jvmTest (KotlinSourceSetImpl)
-                    actualPlatforms               : KotlinPlatformContainerImpl
-                        arePlatformsInitialized       : true
-                        - platforms                   : JVM
-                    - additionalVisibleSourceSets : jvmMain
-                    - additionalVisibleSourceSets : commonMain
-                    - allDependsOnSourceSets      : commonTest
-                    - declaredDependsOnSourceSets : commonTest
                     - dependencies                : 2
                     - dependencies                : 3
                     - dependencies                : 4
                     - dependencies                : 5
+                    - dependencies                : 6
                     isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -3551,6 +3504,36 @@ MODULE                        : NonStandardSourceSetDependencies.common
                     - regularDependencies         : 3
                     - regularDependencies         : 4
                     - regularDependencies         : 5
+                    - regularDependencies         : 6
+                    - resourceDirs                : <ROOT>/common/src/commonTest/resources [-]
+                    - sourceDirs                  : <ROOT>/common/src/commonTest/kotlin [-]
+                    platform                      : JVM
+                - allSourceSets               : jvmTest (KotlinSourceSetImpl)
+                    actualPlatforms               : KotlinPlatformContainerImpl
+                        arePlatformsInitialized       : true
+                        - platforms                   : JVM
+                    - additionalVisibleSourceSets : jvmMain
+                    - additionalVisibleSourceSets : commonMain
+                    - allDependsOnSourceSets      : commonTest
+                    - declaredDependsOnSourceSets : commonTest
+                    - dependencies                : 2
+                    - dependencies                : 7
+                    - dependencies                : 8
+                    - dependencies                : 9
+                    isTestComponent               : true
+                    languageSettings              : KotlinLanguageSettingsImpl
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - regularDependencies         : 2
+                    - regularDependencies         : 7
+                    - regularDependencies         : 8
+                    - regularDependencies         : 9
                     - resourceDirs                : <ROOT>/common/src/jvmTest/resources [-]
                     - sourceDirs                  : <ROOT>/common/src/jvmTest/kotlin [-]
                     - dependsOnSourceSets         : commonTest
@@ -3572,6 +3555,7 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         - friendPaths                 : <ROOT>/common/build/classes/kotlin/jvm/main [-]
                         - friendPaths                 : <ROOT>/common/build/libs/common-jvm.jar [-]
                         jvmDefault                    : disable
+                        jvmTarget                     : 17
                         moduleName                    : common_test
                         noReflect                     : true
                         noStdlib                      : true
@@ -3590,17 +3574,17 @@ MODULE                        : NonStandardSourceSetDependencies.common
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - declaredSourceSets          : jvmTest (KotlinSourceSetImpl) (*seen*)
-                - dependencies                : 10
-                - dependencies                : 11
-                - dependencies                : 12
-                - dependencies                : 13
                 - dependencies                : 14
                 - dependencies                : 15
+                - dependencies                : 4
+                - dependencies                : 5
+                - dependencies                : 6
                 - dependencies                : 16
                 - dependencies                : 17
                 - dependencies                : 18
                 - dependencies                : 19
                 - dependencies                : 20
+                - dependencies                : 21
                 disambiguationClassifier      : jvm
                 isTestComponent               : true
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
@@ -3657,6 +3641,7 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     destination                   : <ROOT>/desktop/build/classes/kotlin/main
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : desktop
                     noReflect                     : true
                     noStdlib                      : true
@@ -3688,6 +3673,7 @@ MODULE                        : NonStandardSourceSetDependencies.desktop
                     - friendPaths                 : <ROOT>/desktop/build/classes/kotlin/main [-]
                     - friendPaths                 : <ROOT>/desktop/build/libs/desktop.jar [-]
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : desktop_test
                     noReflect                     : true
                     noStdlib                      : true
@@ -4800,6 +4786,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/feature-a/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : feature-a_debug
                     noJdk                         : true
                     noReflect                     : true
@@ -4852,6 +4839,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     - friendPaths                 : <ROOT>/feature-a/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/feature-a/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : feature-a_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
@@ -4904,6 +4892,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-a
                     - friendPaths                 : <ROOT>/feature-a/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/feature-a/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : feature-a_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true
@@ -5378,33 +5367,31 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                 MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
     kotlinMppGradleModel          : {androidAndroidTest=androidAndroidTest, androidMain=androidMain, androidTest=androidTest} (KotlinMPPGradleModelImpl)
         dependencyMap
-            1                             : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-            2                             : commonMain (DefaultExternalProjectDependency)
+            1                             : commonMain (DefaultExternalProjectDependency)
                 projectPath                   : :common
                 - projectDependencyArtifacts  : <ROOT>/common/build/libs/common-metadata.jar [-]
-            3                             : DefaultExternalLibraryDependency
+            2                             : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-            4                             : jvmApiElements (DefaultExternalProjectDependency)
+            3                             : jvmApiElements (DefaultExternalProjectDependency)
                 projectPath                   : :common
                 - projectDependencyArtifacts  : <ROOT>/common/build/libs/common-jvm.jar [-]
                 - projectDependencyArtifacts  : <ROOT>/common/build/libs/common-jvm.jar-MPP-1 [-]
-            5                             : DefaultExternalLibraryDependency
+            4                             : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-            6                             : DefaultExternalLibraryDependency
+            5                             : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-            7                             : DefaultExternalLibraryDependency
+            6                             : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            8                             : DefaultExternalLibraryDependency
+            7                             : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-            9                             : DefaultExternalLibraryDependency
+            8                             : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-            10                            : DefaultExternalLibraryDependency
+            9                             : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-            11                            : DefaultExternalLibraryDependency
+            10                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            12                            : DefaultExternalLibraryDependency
+            11                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
         extraFeatures                 : ExtraFeaturesImpl
@@ -5412,8 +5399,8 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 1
             minor                         : 8
-            patch                         : 0
-            versionString                 : 1.8.0-Beta
+            patch                         : 20
+            versionString                 : 1.8.20-Beta
         - kotlinImportingDiagnostics  : OrphanSourceSetsImportingDiagnostic
             kotlinSourceSet               : androidAndroidTestRelease (KotlinSourceSetImpl)
                 actualPlatforms               : KotlinPlatformContainerImpl
@@ -5552,6 +5539,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                         destination                   : <ROOT>/feature-b/build/tmp/kotlin-classes/debug
                         jvmDefault                    : disable
+                        jvmTarget                     : 17
                         moduleName                    : feature-b_debug
                         noJdk                         : true
                         noReflect                     : true
@@ -5571,6 +5559,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - declaredSourceSets          : androidMain (KotlinSourceSetImpl) (*seen*)
+                - dependencies                : 3
                 - dependencies                : 4
                 - dependencies                : 5
                 - dependencies                : 6
@@ -5579,7 +5568,6 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                 - dependencies                : 9
                 - dependencies                : 10
                 - dependencies                : 11
-                - dependencies                : 12
                 disambiguationClassifier      : android
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
@@ -5647,6 +5635,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         - friendPaths                 : <ROOT>/feature-b/build/intermediates/javac/debug/classes [-]
                         - friendPaths                 : <ROOT>/feature-b/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                         jvmDefault                    : disable
+                        jvmTarget                     : 17
                         moduleName                    : feature-b_debugAndroidTest
                         noJdk                         : true
                         noReflect                     : true
@@ -5666,11 +5655,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - declaredSourceSets          : androidAndroidTest (KotlinSourceSetImpl) (*seen*)
+                - dependencies                : 3
                 - dependencies                : 4
                 - dependencies                : 5
                 - dependencies                : 6
                 - dependencies                : 7
-                - dependencies                : 8
                 disambiguationClassifier      : android
                 isTestComponent               : true
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
@@ -5740,6 +5729,7 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         - friendPaths                 : <ROOT>/feature-b/build/intermediates/javac/debug/classes [-]
                         - friendPaths                 : <ROOT>/feature-b/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                         jvmDefault                    : disable
+                        jvmTarget                     : 17
                         moduleName                    : feature-b_debugUnitTest
                         noJdk                         : true
                         noReflect                     : true
@@ -5759,11 +5749,11 @@ MODULE                        : NonStandardSourceSetDependencies.feature-b
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - declaredSourceSets          : androidTest (KotlinSourceSetImpl) (*seen*)
+                - dependencies                : 3
                 - dependencies                : 4
                 - dependencies                : 5
                 - dependencies                : 6
                 - dependencies                : 7
-                - dependencies                : 8
                 disambiguationClassifier      : android
                 isTestComponent               : true
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
@@ -5832,6 +5822,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     destination                   : <ROOT>/javaLibrary/build/classes/kotlin/main
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : javaLibrary
                     noReflect                     : true
                     noStdlib                      : true
@@ -5864,6 +5855,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     - friendPaths                 : <ROOT>/javaLibrary/build/classes/kotlin/main [-]
                     - friendPaths                 : <ROOT>/javaLibrary/build/libs/javaLibrary.jar [-]
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : javaLibrary_test
                     noReflect                     : true
                     noStdlib                      : true
@@ -5892,6 +5884,7 @@ MODULE                        : NonStandardSourceSetDependencies.javaLibrary
                     - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                     destination                   : <ROOT>/javaLibrary/build/classes/kotlin/testEnv
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : javaLibrary_testEnv
                     noReflect                     : true
                     noStdlib                      : true
@@ -5953,14 +5946,14 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
             2                             : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
             3                             : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
             4                             : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
             5                             : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            6                             : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-            6                             : DefaultExternalLibraryDependency
-                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
             7                             : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
             8                             : DefaultExternalLibraryDependency
@@ -5968,32 +5961,41 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
             9                             : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-            10                            : DefaultFileCollectionDependency
-                - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
-            11                            : DefaultFileCollectionDependency
-                - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
-            12                            : DefaultExternalLibraryDependency
+            10                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-            13                            : DefaultExternalLibraryDependency
+            11                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-            14                            : DefaultExternalLibraryDependency
+            12                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            15                            : DefaultExternalLibraryDependency
+            13                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
-            16                            : DefaultFileCollectionDependency
+            14                            : DefaultFileCollectionDependency
                 - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
-            17                            : DefaultFileCollectionDependency
+            15                            : DefaultFileCollectionDependency
                 - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
-            18                            : DefaultFileCollectionDependency
-                - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
-            19                            : DefaultExternalLibraryDependency
+            16                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
-            20                            : DefaultExternalLibraryDependency
+            17                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
-            21                            : DefaultExternalLibraryDependency
+            18                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-            22                            : DefaultExternalLibraryDependency
+            19                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
+            20                            : DefaultFileCollectionDependency
+                - files                       : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main [-]
+            21                            : DefaultFileCollectionDependency
+                - files                       : <ROOT>/kmp-java/sample/build/classes/java/main [-]
+            22                            : DefaultFileCollectionDependency
+                - files                       : <ROOT>/kmp-java/sample/build/processedResources/jvm/main [-]
+            23                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk8/<KOTLIN_VERSION>/kotlin-stdlib-jdk8-<KOTLIN_VERSION>.jar
+            24                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib-jdk7/<KOTLIN_VERSION>/kotlin-stdlib-jdk7-<KOTLIN_VERSION>.jar
+            25                            : DefaultExternalLibraryDependency
+                file                          : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+            26                            : DefaultExternalLibraryDependency
                 file                          : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                 source                        : <M2>/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar
         extraFeatures                 : ExtraFeaturesImpl
@@ -6001,8 +6003,8 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
         kotlinGradlePluginVersion     : KotlinGradlePluginVersionImpl
             major                         : 1
             minor                         : 8
-            patch                         : 0
-            versionString                 : 1.8.0-Beta
+            patch                         : 20
+            versionString                 : 1.8.20-Beta
         - targets                     : jvm (KotlinTargetImpl)
             - compilations                : main (KotlinCompilationImpl)
                 - allSourceSets               : commonMain (KotlinSourceSetImpl)
@@ -6030,9 +6032,9 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     - allDependsOnSourceSets      : commonMain
                     - declaredDependsOnSourceSets : commonMain
                     - dependencies                : 2
-                    - dependencies                : 3
-                    - dependencies                : 4
-                    - dependencies                : 5
+                    - dependencies                : 7
+                    - dependencies                : 8
+                    - dependencies                : 9
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
@@ -6043,9 +6045,9 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                         - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                     - regularDependencies         : 2
-                    - regularDependencies         : 3
-                    - regularDependencies         : 4
-                    - regularDependencies         : 5
+                    - regularDependencies         : 7
+                    - regularDependencies         : 8
+                    - regularDependencies         : 9
                     - resourceDirs                : <ROOT>/kmp-java/sample/src/jvmMain/resources [-]
                     - sourceDirs                  : <ROOT>/kmp-java/sample/src/jvmMain/kotlin
                     - sourceDirs                  : <ROOT>/kmp-java/sample/src/jvmMain/java [-]
@@ -6063,6 +6065,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                         - classpath                   : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         destination                   : <ROOT>/kmp-java/sample/build/classes/kotlin/jvm/main
                         jvmDefault                    : disable
+                        jvmTarget                     : 17
                         moduleName                    : sample
                         noReflect                     : true
                         noStdlib                      : true
@@ -6082,13 +6085,13 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - declaredSourceSets          : jvmMain (KotlinSourceSetImpl) (*seen*)
                 - dependencies                : 2
-                - dependencies                : 3
-                - dependencies                : 4
-                - dependencies                : 5
-                - dependencies                : 6
                 - dependencies                : 7
                 - dependencies                : 8
                 - dependencies                : 9
+                - dependencies                : 10
+                - dependencies                : 11
+                - dependencies                : 12
+                - dependencies                : 13
                 disambiguationClassifier      : jvm
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
                     incremental                   : true
@@ -6108,33 +6111,11 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                         - platforms                   : JVM
                     - additionalVisibleSourceSets : jvmMain
                     - additionalVisibleSourceSets : commonMain
-                    - dependencies                : 1
-                    isTestComponent               : true
-                    languageSettings              : KotlinLanguageSettingsImpl
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
-                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
-                    - regularDependencies         : 1
-                    - resourceDirs                : <ROOT>/kmp-java/sample/src/commonTest/resources [-]
-                    - sourceDirs                  : <ROOT>/kmp-java/sample/src/commonTest/kotlin [-]
-                    platform                      : JVM
-                - allSourceSets               : jvmTest (KotlinSourceSetImpl)
-                    actualPlatforms               : KotlinPlatformContainerImpl
-                        arePlatformsInitialized       : true
-                        - platforms                   : JVM
-                    - additionalVisibleSourceSets : jvmMain
-                    - additionalVisibleSourceSets : commonMain
-                    - allDependsOnSourceSets      : commonTest
-                    - declaredDependsOnSourceSets : commonTest
                     - dependencies                : 2
                     - dependencies                : 3
                     - dependencies                : 4
                     - dependencies                : 5
+                    - dependencies                : 6
                     isTestComponent               : true
                     languageSettings              : KotlinLanguageSettingsImpl
                         - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
@@ -6149,6 +6130,36 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                     - regularDependencies         : 3
                     - regularDependencies         : 4
                     - regularDependencies         : 5
+                    - regularDependencies         : 6
+                    - resourceDirs                : <ROOT>/kmp-java/sample/src/commonTest/resources [-]
+                    - sourceDirs                  : <ROOT>/kmp-java/sample/src/commonTest/kotlin [-]
+                    platform                      : JVM
+                - allSourceSets               : jvmTest (KotlinSourceSetImpl)
+                    actualPlatforms               : KotlinPlatformContainerImpl
+                        arePlatformsInitialized       : true
+                        - platforms                   : JVM
+                    - additionalVisibleSourceSets : jvmMain
+                    - additionalVisibleSourceSets : commonMain
+                    - allDependsOnSourceSets      : commonTest
+                    - declaredDependsOnSourceSets : commonTest
+                    - dependencies                : 2
+                    - dependencies                : 7
+                    - dependencies                : 8
+                    - dependencies                : 9
+                    isTestComponent               : true
+                    languageSettings              : KotlinLanguageSettingsImpl
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-compiler-impl-embeddable/<KOTLIN_VERSION>/kotlin-scripting-compiler-impl-embeddable-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-jvm/<KOTLIN_VERSION>/kotlin-scripting-jvm-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-scripting-common/<KOTLIN_VERSION>/kotlin-scripting-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib/<KOTLIN_VERSION>/kotlin-stdlib-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
+                        - compilerPluginClasspath     : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                    - regularDependencies         : 2
+                    - regularDependencies         : 7
+                    - regularDependencies         : 8
+                    - regularDependencies         : 9
                     - resourceDirs                : <ROOT>/kmp-java/sample/src/jvmTest/resources [-]
                     - sourceDirs                  : <ROOT>/kmp-java/sample/src/jvmTest/kotlin [-]
                     - sourceDirs                  : <ROOT>/kmp-java/sample/src/jvmTest/java [-]
@@ -6172,6 +6183,7 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                         - friendPaths                 : <ROOT>/kmp-java/sample/build/classes/java/main [-]
                         - friendPaths                 : <ROOT>/kmp-java/sample/build/libs/sample-jvm.jar [-]
                         jvmDefault                    : disable
+                        jvmTarget                     : 17
                         moduleName                    : sample_test
                         noReflect                     : true
                         noStdlib                      : true
@@ -6190,10 +6202,6 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
                 - declaredSourceSets          : jvmTest (KotlinSourceSetImpl) (*seen*)
-                - dependencies                : 10
-                - dependencies                : 11
-                - dependencies                : 12
-                - dependencies                : 13
                 - dependencies                : 14
                 - dependencies                : 15
                 - dependencies                : 16
@@ -6203,6 +6211,10 @@ MODULE                        : NonStandardSourceSetDependencies.kmp-java.sample
                 - dependencies                : 20
                 - dependencies                : 21
                 - dependencies                : 22
+                - dependencies                : 23
+                - dependencies                : 24
+                - dependencies                : 25
+                - dependencies                : 26
                 disambiguationClassifier      : jvm
                 isTestComponent               : true
                 kotlinTaskProperties          : KotlinTaskPropertiesImpl
@@ -7037,6 +7049,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     - classpath                   : <ANDROID_SDK>/build-tools/<BUILD_TOOLS_VERSION>/core-lambda-stubs.jar
                     destination                   : <ROOT>/lib/build/tmp/kotlin-classes/debug
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : lib_debug
                     noJdk                         : true
                     noReflect                     : true
@@ -7080,6 +7093,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     - friendPaths                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : lib_debugAndroidTest
                     noJdk                         : true
                     noReflect                     : true
@@ -7109,6 +7123,7 @@ MODULE                        : NonStandardSourceSetDependencies.lib
                     - friendPaths                 : <ROOT>/lib/build/intermediates/javac/debug/classes [-]
                     - friendPaths                 : <ROOT>/lib/build/intermediates/compile_library_classes_jar/debug/classes.jar [-]
                     jvmDefault                    : disable
+                    jvmTarget                     : 17
                     moduleName                    : lib_debugUnitTest
                     noJdk                         : true
                     noReflect                     : true

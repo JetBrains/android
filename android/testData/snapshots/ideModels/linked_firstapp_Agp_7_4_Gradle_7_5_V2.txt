@@ -557,7 +557,6 @@ MODULE                        : My_First_App
                             androidTestDebugImplementationDependenciesMetadata          : <empty>
                             androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                             androidTestDebugRuntimeOnly   : <empty>
-                            androidTestDebugRuntimeOnlyDependenciesMetadata   : <empty>
                             androidTestDebugWearApp       : <empty>
                             androidTestImplementation     : <empty>
                             androidTestImplementationDependenciesMetadata     : <empty>
@@ -571,10 +570,8 @@ MODULE                        : My_First_App
                             androidTestReleaseImplementationDependenciesMetadata        : <empty>
                             androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
                             androidTestReleaseRuntimeOnly : <empty>
-                            androidTestReleaseRuntimeOnlyDependenciesMetadata : <empty>
                             androidTestReleaseWearApp     : <empty>
                             androidTestRuntimeOnly        : <empty>
-                            androidTestRuntimeOnlyDependenciesMetadata        : <empty>
                             androidTestUtil               : <empty>
                             androidTestWearApp            : <empty>
                             annotationProcessor           : <empty>
@@ -600,7 +597,6 @@ MODULE                        : My_First_App
                             debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
                             debugAndroidTestRuntimeClasspath        : <empty>
                             debugAndroidTestRuntimeOnly   : <empty>
-                            debugAndroidTestRuntimeOnlyDependenciesMetadata   : <empty>
                             debugAnnotationProcessor      : <empty>
                             debugAnnotationProcessorClasspath       : <empty>
                             debugApi                      : <empty>
@@ -622,8 +618,8 @@ MODULE                        : My_First_App
                             debugRuntimeElements          : <empty>
                             - debugRuntimeElements-published        : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
                             debugRuntimeOnly              : <empty>
-                            debugRuntimeOnlyDependenciesMetadata    : <empty>
-                            - debugSourceArtifacts        : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-debug-sources.jar [-]
+                            - debugSourcesElements        : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-debug-sources.jar [-]
+                            - debugSourcesElements-published        : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-debug-sources.jar [-]
                             debugUnitTestAnnotationProcessorClasspath         : <empty>
                             debugUnitTestApi              : <empty>
                             debugUnitTestApiDependenciesMetadata    : <empty>
@@ -639,7 +635,6 @@ MODULE                        : My_First_App
                             debugUnitTestIntransitiveDependenciesMetadata     : <empty>
                             debugUnitTestRuntimeClasspath : <empty>
                             debugUnitTestRuntimeOnly      : <empty>
-                            debugUnitTestRuntimeOnlyDependenciesMetadata      : <empty>
                             - debugVariantAllApiPublication         : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
                             - debugVariantAllRuntimePublication     : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
                             - debugVariantDebugApiPublication       : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-debug.aar [-]
@@ -681,8 +676,8 @@ MODULE                        : My_First_App
                             releaseRuntimeElements        : <empty>
                             - releaseRuntimeElements-published      : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
                             releaseRuntimeOnly            : <empty>
-                            releaseRuntimeOnlyDependenciesMetadata  : <empty>
-                            - releaseSourceArtifacts      : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-sources.jar [-]
+                            - releaseSourcesElements      : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-sources.jar [-]
+                            - releaseSourcesElements-published      : <ROOT>/shared/mysharedlibrary/build/libs/mysharedlibrary-sources.jar [-]
                             releaseUnitTestAnnotationProcessorClasspath       : <empty>
                             releaseUnitTestApi            : <empty>
                             releaseUnitTestApiDependenciesMetadata  : <empty>
@@ -698,14 +693,12 @@ MODULE                        : My_First_App
                             releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
                             releaseUnitTestRuntimeClasspath         : <empty>
                             releaseUnitTestRuntimeOnly    : <empty>
-                            releaseUnitTestRuntimeOnlyDependenciesMetadata    : <empty>
                             - releaseVariantAllApiPublication       : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
                             - releaseVariantAllRuntimePublication   : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
                             - releaseVariantReleaseApiPublication   : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
                             - releaseVariantReleaseRuntimePublication         : <ROOT>/shared/mysharedlibrary/build/outputs/aar/mysharedlibrary-release.aar [-]
                             releaseWearApp                : <empty>
                             runtimeOnly                   : <empty>
-                            runtimeOnlyDependenciesMetadata         : <empty>
                             testAnnotationProcessor       : <empty>
                             testApi                       : <empty>
                             testApiDependenciesMetadata   : <empty>
@@ -720,7 +713,6 @@ MODULE                        : My_First_App
                             testDebugImplementationDependenciesMetadata       : <empty>
                             testDebugIntransitiveDependenciesMetadata         : <empty>
                             testDebugRuntimeOnly          : <empty>
-                            testDebugRuntimeOnlyDependenciesMetadata          : <empty>
                             testDebugWearApp              : <empty>
                             testFixturesAnnotationProcessor         : <empty>
                             testFixturesApi               : <empty>
@@ -736,7 +728,6 @@ MODULE                        : My_First_App
                             testFixturesDebugImplementationDependenciesMetadata         : <empty>
                             testFixturesDebugIntransitiveDependenciesMetadata : <empty>
                             testFixturesDebugRuntimeOnly  : <empty>
-                            testFixturesDebugRuntimeOnlyDependenciesMetadata  : <empty>
                             testFixturesDebugWearApp      : <empty>
                             testFixturesImplementation    : <empty>
                             testFixturesImplementationDependenciesMetadata    : <empty>
@@ -750,10 +741,8 @@ MODULE                        : My_First_App
                             testFixturesReleaseImplementationDependenciesMetadata       : <empty>
                             testFixturesReleaseIntransitiveDependenciesMetadata         : <empty>
                             testFixturesReleaseRuntimeOnly          : <empty>
-                            testFixturesReleaseRuntimeOnlyDependenciesMetadata          : <empty>
                             testFixturesReleaseWearApp    : <empty>
                             testFixturesRuntimeOnly       : <empty>
-                            testFixturesRuntimeOnlyDependenciesMetadata       : <empty>
                             testFixturesWearApp           : <empty>
                             testImplementation            : <empty>
                             testImplementationDependenciesMetadata  : <empty>
@@ -767,10 +756,8 @@ MODULE                        : My_First_App
                             testReleaseImplementationDependenciesMetadata     : <empty>
                             testReleaseIntransitiveDependenciesMetadata       : <empty>
                             testReleaseRuntimeOnly        : <empty>
-                            testReleaseRuntimeOnlyDependenciesMetadata        : <empty>
                             testReleaseWearApp            : <empty>
                             testRuntimeOnly               : <empty>
-                            testRuntimeOnlyDependenciesMetadata     : <empty>
                             testWearApp                   : <empty>
                             wearApp                       : <empty>
                 projectDir                    : <ROOT>/firstapp/app
@@ -800,7 +787,6 @@ MODULE                        : My_First_App
                     androidTestDebugImplementationDependenciesMetadata          : <empty>
                     androidTestDebugIntransitiveDependenciesMetadata  : <empty>
                     androidTestDebugRuntimeOnly   : <empty>
-                    androidTestDebugRuntimeOnlyDependenciesMetadata   : <empty>
                     androidTestDebugWearApp       : <empty>
                     androidTestImplementation     : <empty>
                     androidTestImplementationDependenciesMetadata     : <empty>
@@ -814,10 +800,8 @@ MODULE                        : My_First_App
                     androidTestReleaseImplementationDependenciesMetadata        : <empty>
                     androidTestReleaseIntransitiveDependenciesMetadata          : <empty>
                     androidTestReleaseRuntimeOnly : <empty>
-                    androidTestReleaseRuntimeOnlyDependenciesMetadata : <empty>
                     androidTestReleaseWearApp     : <empty>
                     androidTestRuntimeOnly        : <empty>
-                    androidTestRuntimeOnlyDependenciesMetadata        : <empty>
                     androidTestUtil               : <empty>
                     androidTestWearApp            : <empty>
                     annotationProcessor           : <empty>
@@ -843,7 +827,6 @@ MODULE                        : My_First_App
                     debugAndroidTestIntransitiveDependenciesMetadata  : <empty>
                     debugAndroidTestRuntimeClasspath        : <empty>
                     debugAndroidTestRuntimeOnly   : <empty>
-                    debugAndroidTestRuntimeOnlyDependenciesMetadata   : <empty>
                     debugAnnotationProcessor      : <empty>
                     debugAnnotationProcessorClasspath       : <empty>
                     debugApi                      : <empty>
@@ -864,7 +847,6 @@ MODULE                        : My_First_App
                     debugRuntimeClasspath         : <empty>
                     debugRuntimeElements          : <empty>
                     debugRuntimeOnly              : <empty>
-                    debugRuntimeOnlyDependenciesMetadata    : <empty>
                     debugUnitTestAnnotationProcessorClasspath         : <empty>
                     debugUnitTestApi              : <empty>
                     debugUnitTestApiDependenciesMetadata    : <empty>
@@ -880,7 +862,6 @@ MODULE                        : My_First_App
                     debugUnitTestIntransitiveDependenciesMetadata     : <empty>
                     debugUnitTestRuntimeClasspath : <empty>
                     debugUnitTestRuntimeOnly      : <empty>
-                    debugUnitTestRuntimeOnlyDependenciesMetadata      : <empty>
                     debugWearApp                  : <empty>
                     debugWearBundling             : <empty>
                     default                       : <empty>
@@ -919,7 +900,6 @@ MODULE                        : My_First_App
                     releaseRuntimeClasspath       : <empty>
                     releaseRuntimeElements        : <empty>
                     releaseRuntimeOnly            : <empty>
-                    releaseRuntimeOnlyDependenciesMetadata  : <empty>
                     releaseUnitTestAnnotationProcessorClasspath       : <empty>
                     releaseUnitTestApi            : <empty>
                     releaseUnitTestApiDependenciesMetadata  : <empty>
@@ -935,11 +915,9 @@ MODULE                        : My_First_App
                     releaseUnitTestIntransitiveDependenciesMetadata   : <empty>
                     releaseUnitTestRuntimeClasspath         : <empty>
                     releaseUnitTestRuntimeOnly    : <empty>
-                    releaseUnitTestRuntimeOnlyDependenciesMetadata    : <empty>
                     releaseWearApp                : <empty>
                     releaseWearBundling           : <empty>
                     runtimeOnly                   : <empty>
-                    runtimeOnlyDependenciesMetadata         : <empty>
                     testAnnotationProcessor       : <empty>
                     testApi                       : <empty>
                     testApiDependenciesMetadata   : <empty>
@@ -954,7 +932,6 @@ MODULE                        : My_First_App
                     testDebugImplementationDependenciesMetadata       : <empty>
                     testDebugIntransitiveDependenciesMetadata         : <empty>
                     testDebugRuntimeOnly          : <empty>
-                    testDebugRuntimeOnlyDependenciesMetadata          : <empty>
                     testDebugWearApp              : <empty>
                     testFixturesAnnotationProcessor         : <empty>
                     testFixturesApi               : <empty>
@@ -970,7 +947,6 @@ MODULE                        : My_First_App
                     testFixturesDebugImplementationDependenciesMetadata         : <empty>
                     testFixturesDebugIntransitiveDependenciesMetadata : <empty>
                     testFixturesDebugRuntimeOnly  : <empty>
-                    testFixturesDebugRuntimeOnlyDependenciesMetadata  : <empty>
                     testFixturesDebugWearApp      : <empty>
                     testFixturesImplementation    : <empty>
                     testFixturesImplementationDependenciesMetadata    : <empty>
@@ -984,10 +960,8 @@ MODULE                        : My_First_App
                     testFixturesReleaseImplementationDependenciesMetadata       : <empty>
                     testFixturesReleaseIntransitiveDependenciesMetadata         : <empty>
                     testFixturesReleaseRuntimeOnly          : <empty>
-                    testFixturesReleaseRuntimeOnlyDependenciesMetadata          : <empty>
                     testFixturesReleaseWearApp    : <empty>
                     testFixturesRuntimeOnly       : <empty>
-                    testFixturesRuntimeOnlyDependenciesMetadata       : <empty>
                     testFixturesWearApp           : <empty>
                     testImplementation            : <empty>
                     testImplementationDependenciesMetadata  : <empty>
@@ -1001,10 +975,8 @@ MODULE                        : My_First_App
                     testReleaseImplementationDependenciesMetadata     : <empty>
                     testReleaseIntransitiveDependenciesMetadata       : <empty>
                     testReleaseRuntimeOnly        : <empty>
-                    testReleaseRuntimeOnlyDependenciesMetadata        : <empty>
                     testReleaseWearApp            : <empty>
                     testRuntimeOnly               : <empty>
-                    testRuntimeOnlyDependenciesMetadata     : <empty>
                     testWearApp                   : <empty>
                     wearApp                       : <empty>
         projectDir                    : <ROOT>/firstapp
