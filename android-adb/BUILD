@@ -49,6 +49,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
+        "//tools/adt/idea/android-adb:intellij.android.adb.testUtil[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module, test]",
@@ -61,5 +62,24 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/.idea/libraries:zxing-core[test]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
+    ],
+)
+
+# managed by go/iml_to_build
+iml_module(
+    name = "intellij.android.adb.testUtil",
+    iml_files = ["intellij.android.adb.testUtil.iml"],
+    test_srcs = ["testUtil"],
+    test_tags = ["manual"],  # testUtil is TEST scoped but contains no runnable tests
+    visibility = ["//visibility:public"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
+        "//tools/base/ddmlib:studio.android.sdktools.ddmlib[module, test]",
+        "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
     ],
 )
