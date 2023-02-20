@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.InspectorConnectionError
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.ConnectionFailedException
+import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.logUnexpectedError
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
@@ -128,6 +129,34 @@ class LayoutInspector private constructor(
   private val latestLoadTime = AtomicLong(-1)
 
   private val recentExecutor = MostRecentExecutor(workerExecutor)
+
+  val stopInspectorListeners: MutableList<() -> Unit> = mutableListOf()
+
+  /**
+   * Stops LayoutInspector.
+   * If a device is selected, stops foreground process detection.
+   * If a device is not selected, stops process inspection by setting the selected process to null.
+   *
+   * A process can be selected when a device does not support foreground process detection.
+   *
+   * This method also resets device-level DebugViewAttributes from the device.
+   */
+  fun stopInspector() {
+    val selectedDevice = deviceModel?.selectedDevice
+    if (selectedDevice != null) {
+      val debugViewAttributes = DebugViewAttributes.getInstance()
+      if (debugViewAttributes.usePerDeviceSettings()) {
+        debugViewAttributes.clear(inspectorModel.project, selectedDevice)
+      }
+      foregroundProcessDetection?.stopPollingSelectedDevice()
+    }
+    else {
+      processModel?.stop()
+      processModel?.selectedProcess = null
+    }
+
+    stopInspectorListeners.forEach { it() }
+  }
 
   private fun onClientChanged(client: InspectorClient) {
     if (client !== DisconnectedClient) {

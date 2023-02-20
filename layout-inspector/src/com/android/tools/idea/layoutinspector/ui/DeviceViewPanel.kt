@@ -116,7 +116,6 @@ const val PERFORMANCE_WARNING_HIDDEN = "performance.warning.hidden"
 class DeviceViewPanel(
   onDeviceSelected: (newDevice: DeviceDescriptor) -> Unit,
   onProcessSelected: (newProcess: ProcessDescriptor) -> Unit,
-  val onStopInspector: () -> Unit,
   val layoutInspector: LayoutInspector,
   private val viewSettings: RenderSettings,
   disposableParent: Disposable,
@@ -141,7 +140,7 @@ class DeviceViewPanel(
       deviceModel = layoutInspector.deviceModel,
       onDeviceSelected = onDeviceSelected,
       onProcessSelected = onProcessSelected,
-      onDetachAction = { stopInspectors() },
+      onDetachAction = { layoutInspector.stopInspector() },
       customDeviceAttribution = ::deviceAttribution
     )
   }
@@ -157,7 +156,7 @@ class DeviceViewPanel(
       stopPresentation = SelectProcessAction.StopPresentation(
         "Stop Inspector",
         "Stop running the layout inspector against the current process"),
-      onStopAction = { stopInspectors() },
+      onStopAction = { layoutInspector.stopInspector() },
       customDeviceAttribution = ::deviceAttribution
     )
   }
@@ -301,6 +300,10 @@ class DeviceViewPanel(
   }
 
   init {
+    layoutInspector.stopInspectorListeners.add {
+      loadingPane.stopLoading()
+    }
+
     layoutInspector.deviceModel?.newSelectedDeviceListeners?.add { _ ->
       // as soon as a new device is connected default to the process not being debuggable.
       // this will change as soon as an actual process shows up
@@ -479,12 +482,6 @@ class DeviceViewPanel(
         }
       }
     }
-  }
-
-  fun stopInspectors() {
-    loadingPane.stopLoading()
-    layoutInspector.processModel?.stop()
-    onStopInspector.invoke()
   }
 
   private fun updateLayeredPaneSize() {

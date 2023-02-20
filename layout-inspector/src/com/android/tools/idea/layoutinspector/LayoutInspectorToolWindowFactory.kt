@@ -19,7 +19,6 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessListener
-import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.stopInspector
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
@@ -56,7 +55,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val disposable = toolWindow.disposable
     val layoutInspector = LayoutInspectorProjectService.getInstance(project).getLayoutInspector(project, disposable)
-    val devicePanel = createDevicePanel(project, disposable, layoutInspector)
+    val devicePanel = createDevicePanel(disposable, layoutInspector)
 
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, disposable).apply {
       init(
@@ -81,19 +80,17 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
       .connect(toolWindow.disposable)
       .subscribe(
         ToolWindowManagerListener.TOPIC,
-        LayoutInspectorToolWindowManagerListener(project, toolWindow, devicePanel, layoutInspector.launcher!!)
+        LayoutInspectorToolWindowManagerListener(project, toolWindow, layoutInspector, layoutInspector.launcher!!)
       )
   }
 
-  private fun createDevicePanel(project: Project, disposable: Disposable, layoutInspector: LayoutInspector): DeviceViewPanel {
-    val deviceModel = checkNotNull(layoutInspector.deviceModel)
+  private fun createDevicePanel(disposable: Disposable, layoutInspector: LayoutInspector): DeviceViewPanel {
     val processModel = checkNotNull(layoutInspector.processModel)
     val foregroundProcessDetection = layoutInspector.foregroundProcessDetection
 
     val deviceViewPanel = DeviceViewPanel(
       onDeviceSelected = { newDevice -> foregroundProcessDetection?.startPollingDevice(newDevice) },
       onProcessSelected = { newProcess -> processModel.selectedProcess = newProcess },
-      onStopInspector = { stopInspector(project, deviceModel, processModel, foregroundProcessDetection) },
       layoutInspector = layoutInspector,
       viewSettings = InspectorRenderSettings(),
       disposableParent = disposable
@@ -119,9 +116,9 @@ class LayoutInspectorToolWindowManagerListener @VisibleForTesting constructor(pr
 
   internal constructor(project: Project,
                        toolWindow: ToolWindow,
-                       deviceViewPanel: DeviceViewPanel,
+                       layoutInspector: LayoutInspector,
                        clientLauncher: InspectorClientLauncher,
-  ) : this(project, clientLauncher, { deviceViewPanel.stopInspectors() }, toolWindow.isVisible)
+  ) : this(project, clientLauncher, { layoutInspector.stopInspector() }, toolWindow.isVisible)
 
   override fun stateChanged(toolWindowManager: ToolWindowManager) {
     val window = toolWindowManager.getToolWindow(LAYOUT_INSPECTOR_TOOL_WINDOW_ID) ?: return
