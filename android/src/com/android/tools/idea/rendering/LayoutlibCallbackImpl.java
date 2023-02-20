@@ -59,7 +59,6 @@ import com.android.ide.common.resources.ResourcesUtil;
 import com.android.ide.common.util.PathString;
 import com.android.resources.ResourceType;
 import com.android.support.AndroidxName;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
@@ -72,7 +71,6 @@ import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.FileResourceReader;
-import com.android.tools.idea.util.FileExtensions;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -84,13 +82,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -352,15 +345,9 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
         return getParserFromText(fileName, fontFamilyXml);
       }
-      VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(fileName);
-      if (virtualFile != null) {
-        PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myRenderModule.getProject(), virtualFile);
-        if (psiFile != null) {
-          String psiText = ApplicationManager.getApplication().isReadAccessAllowed()
-                           ? psiFile.getText()
-                           : ApplicationManager.getApplication().runReadAction((Computable<String>)psiFile::getText);
-          return getParserFromText(fileName, psiText);
-        }
+      String fileText = myRenderModule.getEnvironment().getFileText(fileName);
+      if (fileText != null) {
+        return getParserFromText(fileName, fileText);
       }
       return null;
     }
@@ -499,27 +486,25 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       if (parentName != null
           && !path.contains(FilenameConstants.EXPLODED_AAR) && !path.contains(FD_LAYOUTLIB) && !path.contains(BUILD_CACHE)
           && (parentName.startsWith(FD_RES_LAYOUT) || parentName.startsWith(FD_RES_DRAWABLE) || parentName.startsWith(FD_RES_MENU))) {
-        VirtualFile file = FileExtensions.toVirtualFile(xml);
-        if (file != null) {
-          PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myRenderModule.getProject(), file);
-          if (psiFile instanceof XmlFile) {
-            ResourceResolver resourceResolver = myRenderTask.getContext().getConfiguration().getResourceResolver();
-            // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different
-            // layout so we already have a parent.
-            LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile,
-                                                                    myLogger,
-                                                                    false,
-                                                                    resourceResolver,
-                                                                    myRenderModule.getResourceRepositoryManager(),
-                                                                    sampleDataCounter.getAndIncrement());
-            parser.setUseSrcCompat(myHasLegacyAppCompat || myHasAndroidXAppCompat);
-            if (parentName.startsWith(FD_RES_LAYOUT)) {
-              // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag.
-              parser.setProvideViewCookies(myRenderTask.getProvideCookiesForIncludedViews());
-            }
-            return parser;
+        XmlFile xmlFile = myRenderModule.getEnvironment().getXmlFile(xml);
+        if (xmlFile != null) {
+          ResourceResolver resourceResolver = myRenderTask.getContext().getConfiguration().getResourceResolver();
+          // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different
+          // layout so we already have a parent.
+          LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile,
+                                                                  myLogger,
+                                                                  false,
+                                                                  resourceResolver,
+                                                                  myRenderModule.getResourceRepositoryManager(),
+                                                                  sampleDataCounter.getAndIncrement());
+          parser.setUseSrcCompat(myHasLegacyAppCompat || myHasAndroidXAppCompat);
+          if (parentName.startsWith(FD_RES_LAYOUT)) {
+            // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag.
+            parser.setProvideViewCookies(myRenderTask.getProvideCookiesForIncludedViews());
           }
+          return parser;
         }
+
       }
     }
 
