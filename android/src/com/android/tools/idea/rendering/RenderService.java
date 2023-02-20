@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import static com.android.tools.idea.rendering.RenderAsyncActionExecutor.*;
-import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
+import static com.android.tools.idea.rendering.ProblemSeverity.ERROR;
 
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.SessionParams;

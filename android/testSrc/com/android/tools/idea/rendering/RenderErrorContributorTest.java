@@ -16,6 +16,8 @@
 package com.android.tools.idea.rendering;
 
 import static com.android.tools.idea.diagnostics.ExceptionTestUtils.createExceptionFromDesc;
+import static com.android.tools.idea.rendering.ProblemSeverity.ERROR;
+import static com.android.tools.idea.rendering.ProblemSeverity.WARNING;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
@@ -684,10 +686,10 @@ public class RenderErrorContributorTest extends AndroidTestCase {
   public void testNoDuplicateIssues() {
       LogOperation operation = (logger, render) -> {
         // MANUALLY register errors
-        logger.addMessage(RenderProblem.createPlain(HighlightSeverity.ERROR, "Error 1"));
-        logger.addMessage(RenderProblem.createPlain(HighlightSeverity.WARNING, "Warning 1"));
-        logger.addMessage(RenderProblem.createPlain(HighlightSeverity.WARNING, "Warning 1"));
-        logger.addMessage(RenderProblem.createPlain(HighlightSeverity.ERROR, "Error 1"));
+        logger.addMessage(RenderProblem.createPlain(ERROR, "Error 1"));
+        logger.addMessage(RenderProblem.createPlain(WARNING, "Warning 1"));
+        logger.addMessage(RenderProblem.createPlain(WARNING, "Warning 1"));
+        logger.addMessage(RenderProblem.createPlain(ERROR, "Error 1"));
       };
 
       List<RenderErrorModel.Issue> issues =
@@ -701,8 +703,8 @@ public class RenderErrorContributorTest extends AndroidTestCase {
   public void testIssueSeverity() {
     LogOperation operation = (logger, render) -> {
       // MANUALLY register errors
-      logger.addMessage(RenderProblem.createPlain(HighlightSeverity.ERROR, "Error"));
-      logger.addMessage(RenderProblem.createPlain(HighlightSeverity.WARNING, "Warning"));
+      logger.addMessage(RenderProblem.createPlain(ERROR, "Error"));
+      logger.addMessage(RenderProblem.createPlain(WARNING, "Warning"));
     };
 
     List<RenderErrorModel.Issue> issues =

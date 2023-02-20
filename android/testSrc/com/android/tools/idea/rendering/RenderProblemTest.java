@@ -21,9 +21,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.android.tools.idea.rendering.ProblemSeverity.ERROR;
 import static com.android.tools.idea.rendering.RenderProblem.PRIORITY_RENDERING_FIDELITY;
 import static com.android.tools.idea.rendering.RenderProblem.PRIORITY_UNEXPECTED;
-import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 
 public class RenderProblemTest extends TestCase {
   public void testCreateFull() {

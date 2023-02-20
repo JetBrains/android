@@ -17,7 +17,6 @@ package com.android.tools.idea.rendering;
 
 import com.android.utils.HtmlBuilder;
 import com.android.utils.XmlUtils;
-import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,19 +24,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 /**
- * A {@linkplain RenderProblem} holds information about a layout rendering
- * error, suitable for display in a {@link RenderErrorPanel}.
+ * A {@linkplain RenderProblem} holds information about a layout rendering error.
  */
 public abstract class RenderProblem implements Comparable<RenderProblem> {
   public static final int PRIORITY_UNEXPECTED = 10;
-  public static final int PRIORITY_MISSING_CLASSES = 20;
-  public static final int PRIORITY_BROKEN_CLASSES = 30;
-  public static final int PRIORITY_MISSING_ATTRIBUTE = 40;
-  public static final int PRIORITY_MISSING_STYLE = 50;
-  public static final int PRIORITY_NINEPATCH_RENDER_ERROR = 60;
   public static final int PRIORITY_RENDERING_FIDELITY = 1000;
 
-  @NotNull final private HighlightSeverity mySeverity;
+  @NotNull final private ProblemSeverity mySeverity;
   private final int myOrdinal;
   private int myPriority = PRIORITY_UNEXPECTED;
   @Nullable private Throwable myThrowable;
@@ -55,12 +48,12 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
    * @return a new error message
    */
   @NotNull
-  public static RenderProblem createPlain(@NotNull HighlightSeverity severity, @Nullable String message) {
+  public static RenderProblem createPlain(@NotNull ProblemSeverity severity, @Nullable String message) {
     return new Plain(severity, ourNextOrdinal++, message != null ? XmlUtils.toXmlTextValue(message) : "");
   }
 
   @NotNull
-  public static RenderProblem createPlain(@NotNull HighlightSeverity severity,
+  public static RenderProblem createPlain(@NotNull ProblemSeverity severity,
                                           @NotNull String message,
                                           @Nullable Project project,
                                           @NotNull HtmlLinkManager linkManager,
@@ -87,7 +80,7 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
    * @return a new error message
    */
   @NotNull
-  public static RenderProblem.Html create(@NotNull HighlightSeverity severity) {
+  public static RenderProblem.Html create(@NotNull ProblemSeverity severity) {
     return new Html(severity, ourNextOrdinal++);
   }
 
@@ -102,14 +95,14 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
    * @return a new error message
    */
   @NotNull
-  public static RenderProblem createDeferred(@NotNull HighlightSeverity severity,
+  public static RenderProblem createDeferred(@NotNull ProblemSeverity severity,
                                              @Nullable String tag,
                                              @NotNull String text,
                                              @Nullable Throwable throwable) {
     return new Deferred(severity, tag, text, throwable);
   }
 
-  private RenderProblem(@NotNull HighlightSeverity severity, int ordinal) {
+  private RenderProblem(@NotNull ProblemSeverity severity, int ordinal) {
     mySeverity = severity;
     myOrdinal = ordinal;
   }
@@ -172,7 +165,7 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
   }
 
   @NotNull
-  public HighlightSeverity getSeverity() {
+  public ProblemSeverity getSeverity() {
     return mySeverity;
   }
 
@@ -193,7 +186,7 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
   public static class Plain extends RenderProblem {
     @NotNull private final String myHtml;
 
-    private Plain(@NotNull HighlightSeverity severity, int ordinal, @NotNull String text) {
+    private Plain(@NotNull ProblemSeverity severity, int ordinal, @NotNull String text) {
       super(severity, ordinal);
       myHtml = text;
     }
@@ -208,7 +201,7 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
   public static class Html extends RenderProblem {
     @NotNull private final HtmlBuilder myBuilder;
 
-    private Html(@NotNull HighlightSeverity severity, int ordinal) {
+    private Html(@NotNull ProblemSeverity severity, int ordinal) {
       super(severity, ordinal);
       myBuilder = new HtmlBuilder();
     }
@@ -231,7 +224,7 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
   public static class Deferred extends RenderProblem {
     protected final String myText;
 
-    protected Deferred(@NotNull HighlightSeverity severity,
+    protected Deferred(@NotNull ProblemSeverity severity,
                        @Nullable String tag,
                        @NotNull String text,
                        @Nullable Throwable throwable) {

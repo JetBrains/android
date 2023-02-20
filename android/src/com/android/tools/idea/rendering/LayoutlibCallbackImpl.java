@@ -36,7 +36,7 @@ import static com.android.SdkConstants.LIST_VIEW;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.SdkConstants.VIEW_INCLUDE;
-import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
+import static com.android.tools.idea.rendering.ProblemSeverity.WARNING;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.annotations.NonNull;
