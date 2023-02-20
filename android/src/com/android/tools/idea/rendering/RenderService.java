@@ -45,6 +45,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
@@ -128,11 +129,11 @@ final public class RenderService implements Disposable {
     if (target == null) {
       return null;
     }
-    Project project = module.getProject();
     AndroidPlatform platform = AndroidPlatforms.getInstance(module);
     if (platform != null) {
       try {
-        return AndroidTargetData.get(platform.getSdkData(), target).getLayoutLibrary(project);
+        Disposable disposable = ((ProjectEx)module.getProject()).getEarlyDisposable();
+        return AndroidTargetData.get(platform.getSdkData(), target).getLayoutLibrary(disposable);
       }
       catch (RenderingException e) {
         // Ignore.
@@ -610,7 +611,8 @@ final public class RenderService implements Disposable {
         }
         LayoutLibrary layoutLib;
         try {
-          layoutLib = AndroidTargetData.get(platform.getSdkData(), target).getLayoutLibrary(module.getProject());
+          Disposable disposable = ((ProjectEx)module.getProject()).getEarlyDisposable();
+          layoutLib = AndroidTargetData.get(platform.getSdkData(), target).getLayoutLibrary(disposable);
         }
         catch (UnsupportedJavaRuntimeException e) {
           RenderProblem.Html javaVersionProblem = RenderProblem.create(ERROR);

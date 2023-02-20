@@ -40,10 +40,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.intellij.internal.statistic.analytics.StudioCrashDetails;
 import com.intellij.internal.statistic.analytics.StudioCrashDetection;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.reference.SoftReference;
@@ -136,13 +136,13 @@ public class AndroidTargetData {
 
   @Slow
   @NotNull
-  public LayoutLibrary getLayoutLibrary(@NotNull Project project) throws RenderingException {
+  public LayoutLibrary getLayoutLibrary(@NotNull Disposable parentDisposable) throws RenderingException {
     if (myLayoutLibrary == null || myLayoutLibrary.isDisposed()) {
       if (myTarget instanceof CompatibilityRenderTarget) {
         IAndroidTarget target = ((CompatibilityRenderTarget)myTarget).getRenderTarget();
         AndroidTargetData targetData = AndroidTargetData.get(mySdkData, target);
         if (targetData != this) {
-          myLayoutLibrary = targetData.getLayoutLibrary(project);
+          myLayoutLibrary = targetData.getLayoutLibrary(parentDisposable);
           return myLayoutLibrary;
         }
       }
@@ -151,7 +151,7 @@ public class AndroidTargetData {
         LOG.warn("Rendering will not use the StudioEmbeddedRenderTarget");
       }
       myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues(), AndroidTargetData::hasStudioCrash);
-      Disposer.register(((ProjectEx)project).getEarlyDisposable(), myLayoutLibrary);
+      Disposer.register(parentDisposable, myLayoutLibrary);
     }
 
     return myLayoutLibrary;
