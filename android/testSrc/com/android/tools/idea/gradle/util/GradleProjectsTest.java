@@ -84,8 +84,8 @@ public class GradleProjectsTest implements GradleIntegrationTest {
       validateModuleGradlePath(project, ":lib", ":lib");
       validateModuleGradlePath(project, ":TestCompositeLib1:app", "TestCompositeLib1:app");
       validateModuleGradlePath(project, ":TestCompositeLib1:lib", "TestCompositeLib1:lib");
-      validateModuleGradlePath(project, ":TestCompositeLib3:app", "TestCompositeLib1.TestCompositeLib3:app");
-      validateModuleGradlePath(project, ":TestCompositeLib3:lib", "TestCompositeLib1.TestCompositeLib3:lib");
+      validateModuleGradlePath(project, ":TestCompositeLib3:app", "TestCompositeLib3:app");
+      validateModuleGradlePath(project, ":TestCompositeLib3:lib", "TestCompositeLib3:lib");
       validateModuleGradlePath(project, ":TestCompositeLib2", "composite2");
       validateModuleGradlePath(project, ":TestCompositeLib4", "composite4");
       return Unit.INSTANCE;
