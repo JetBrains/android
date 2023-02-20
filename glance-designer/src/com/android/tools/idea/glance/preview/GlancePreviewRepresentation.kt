@@ -29,6 +29,7 @@ import com.android.tools.idea.preview.DelegatingPreviewElementModelAdapter
 import com.android.tools.idea.preview.MemoizedPreviewElementProvider
 import com.android.tools.idea.preview.NavigatingInteractionHandler
 import com.android.tools.idea.preview.PreviewDisplaySettings
+import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
 import com.android.tools.idea.preview.navigation.DefaultNavigationHandler
@@ -75,7 +76,7 @@ internal class GlancePreviewRepresentation<T : MethodPreviewElement>(
   adapterViewFqcn: String,
   psiFile: PsiFile,
   previewProvider: PreviewElementProvider<T>,
-  previewElementModelAdapterDelegate: GlancePreviewElementModelAdapter<T, NlModel>
+  previewElementModelAdapterDelegate: PreviewElementModelAdapter<T, NlModel>
 ) : PreviewRepresentation, AndroidCoroutinesAware, UserDataHolderEx by UserDataHolderBase() {
 
   private val LOG = Logger.getInstance(GlancePreviewRepresentation::class.java)
