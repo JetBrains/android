@@ -29,6 +29,7 @@ import com.intellij.execution.configurations.RunProfileState
 import com.intellij.execution.configurations.RunnerSettings
 import com.intellij.execution.runners.AsyncProgramRunner
 import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.execution.ui.ExecutionUiService
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressIndicator
@@ -38,6 +39,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.ThreeState
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
+import org.jetbrains.concurrency.catchError
 
 /**
  * Class required by platform to determine which execution buttons are available for a given configuration. See [canRun] method.
@@ -91,6 +93,32 @@ abstract class AndroidConfigurationProgramRunner internal constructor(
     val stats = RunStats.from(environment)
     val promise = AsyncPromise<RunContentDescriptor?>()
 
+    promise.onError { e: Throwable ->
+      if (e is AndroidExecutionException) {
+        stats.setErrorId(e.errorId)
+      }
+      stats.fail()
+    }
+
+    promise.onSuccess { descriptor ->
+      if (descriptor == null) {
+        stats.abort()
+      }
+      else {
+        stats.success()
+      }
+    }
+
+    if (state !is AndroidConfigurationExecutor) {
+      // For custom RunProfileState. See [DeployTarget.hasCustomRunProfileState]
+      promise.catchError {
+        val executionResult = (state.execute(environment.executor, this@AndroidConfigurationProgramRunner)
+                               ?: throw ExecutionException("Can't execute state ${state::class}"))
+        promise.setResult(ExecutionUiService.getInstance().showRunContent(executionResult, environment))
+      }
+      return promise
+    }
+
     ProgressManager.getInstance().run(object : Task.Backgroundable(environment.project, "Launching ${runProfile.name}") {
       override fun run(indicator: ProgressIndicator) {
         try {
@@ -101,26 +129,19 @@ abstract class AndroidConfigurationProgramRunner internal constructor(
           AndroidSessionInfo.create(processHandler, runProfile as RunConfiguration, environment.executor.id,
                                     environment.executionTarget)
           promise.setResult(runContentDescriptor)
-          stats.success()
         }
         catch (e: ExecutionException) {
-          if (e is AndroidExecutionException) {
-            stats.setErrorId(e.errorId)
-          }
           promise.setError(e)
-          stats.fail()
         }
       }
 
       override fun onCancel() {
         promise.setResult(null)
-        stats.abort()
         super.onCancel()
       }
 
       override fun onThrowable(error: Throwable) {
         promise.setError(error)
-        stats.fail()
         super.onThrowable(error)
       }
     })
