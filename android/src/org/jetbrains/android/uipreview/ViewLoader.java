@@ -55,7 +55,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -229,11 +228,6 @@ public class ViewLoader {
    */
   public boolean isClassLoaded(@NonNull String name) {
     return myLoadedClasses.containsKey(name);
-  }
-
-  @NotNull
-  public Module getModule() {
-    return myModule;
   }
 
   @VisibleForTesting
@@ -428,6 +422,20 @@ public class ViewLoader {
     }
   }
 
+  private static Stream<String> getRClassesNames(@NotNull Module module) {
+    return Stream.concat(
+      Stream.concat(
+          Stream.of(module),
+          // Get all project (not external libraries) dependencies
+          AndroidDependenciesCache.getAllAndroidDependencies(module, false).stream().map(Facet::getModule)
+        )
+        .map(ViewLoader::getRClassName),
+      // Get all external (libraries) dependencies
+      ProjectSystemUtil.getModuleSystem(module).getAndroidLibraryDependencies(DependencyScopeType.MAIN).stream()
+        .map(ViewLoader::getPackageName)
+    );
+  }
+
   /**
    * Load and parse the R class such that resource references in the layout rendering can refer
    * to local resources properly. Only needed if views are compiled against an R class with
@@ -439,17 +447,7 @@ public class ViewLoader {
     // All the ids are loaded into the idManager for the "app module".
     ResourceIdManager idManager = ResourceIdManager.get(myModule);
     idManager.resetCompiledIds();
-    Stream.concat(
-        Stream.concat(
-            Stream.of(myModule),
-            // Get all project (not external libraries) dependencies
-            AndroidDependenciesCache.getAllAndroidDependencies(myModule, false).stream().map(Facet::getModule)
-          )
-          .map(ViewLoader::getRClassName),
-        // Get all external (libraries) dependencies
-        ProjectSystemUtil.getModuleSystem(myModule).getAndroidLibraryDependencies(DependencyScopeType.MAIN).stream()
-          .map(ViewLoader::getPackageName)
-      ).forEach((rClassName) -> {
+    getRClassesNames(myModule).forEach((rClassName) -> {
         try {
           if (rClassName == null) {
             LOG.info(
