@@ -19,6 +19,7 @@ iml_module(
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module]",
         "//tools/adt/idea/observable-ui:intellij.android.observable.ui[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
     ],
 )
 

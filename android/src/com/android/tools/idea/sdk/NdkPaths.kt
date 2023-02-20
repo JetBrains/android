@@ -19,6 +19,7 @@ package com.android.tools.idea.sdk
 import com.android.io.CancellableFileIo
 import com.android.tools.adtui.validation.Validator
 import com.android.tools.idea.ui.validation.validators.PathValidator.Companion.forAndroidNdkLocation
+import com.android.tools.sdk.SdkPaths
 import java.io.File
 import java.nio.file.Path
 

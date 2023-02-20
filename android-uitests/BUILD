@@ -107,6 +107,7 @@ iml_module(
         "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
         "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools[module]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
     ],
 )
 

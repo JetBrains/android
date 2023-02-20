@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.sdk;
 
-import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
+import static com.android.tools.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtil.createDirectory;
 import static com.intellij.openapi.util.io.FileUtil.createTempDirectory;
 
 import com.android.testutils.file.InMemoryFileSystems;
-import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
+import com.android.tools.sdk.SdkPaths;
+import com.android.tools.sdk.SdkPaths.ValidationResult;
 import com.intellij.openapi.util.io.FileUtil;
 import java.io.File;
 import java.nio.file.Path;

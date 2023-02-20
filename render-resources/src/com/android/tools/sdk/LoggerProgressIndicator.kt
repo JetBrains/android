@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jetbrains.android.sdk
+package com.android.tools.sdk
 
 import com.android.repository.api.ProgressIndicatorAdapter
 import com.intellij.openapi.diagnostic.Logger

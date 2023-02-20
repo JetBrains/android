@@ -15,6 +15,7 @@
  */
 package org.jetbrains.android.refactoring;
 
+import com.android.tools.sdk.AndroidSdkData;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
@@ -31,7 +32,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.PathUtil;
 import com.intellij.util.net.HttpConfigurable;
 import java.nio.file.FileSystems;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

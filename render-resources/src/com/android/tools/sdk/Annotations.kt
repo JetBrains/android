@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@file:JvmName("AndroidSdkPath")
-package com.android.tools.idea.sdk
+@file:JvmName("Annotations")
+package com.android.tools.sdk
 
-import java.io.File
+import com.android.sdklib.IAndroidTarget
 
-fun isValid(path: File): Boolean = SdkPaths.validateAndroidSdk(path, false).success
+/**
+ * Indicates whether annotations.jar needs to be added to the classpath of an Android SDK. annotations.jar is not needed for API 16
+ * or newer. The annotations are already included in android.jar.
+ */
+fun IAndroidTarget.needsAnnotationsJarInClasspath(): Boolean = this.version.apiLevel <= 15

@@ -11,18 +11,21 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
+        "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[module]",
     ],
 )
 
 # Build target to verify that render-resources builds for tools/base
 kotlin_library(
     name = "tools.render-resources",
-    srcs = glob(
-        ["src/**/*.java"],
-    ),
+    srcs = glob([
+        "src/**/*.java",
+        "src/**/*.kt",
+    ]),
     visibility = ["//visibility:public"],
     deps = [
         "//prebuilts/tools/common/lint-psi/intellij-core",
+        "//tools/adt/idea/layoutlib-loader:tools.layoutlib-loader",
         "//tools/base/common:tools.common",
         "//tools/base/sdklib:tools.sdklib",
     ],

@@ -17,6 +17,7 @@ package com.android.tools.idea.updater.configure;
 
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.sdk.AndroidSdkData;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory;
 import com.intellij.openapi.actionSystem.ActionPlaces;
@@ -26,10 +27,8 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.options.ex.ConfigurableExtensionPointUtil;
 import com.intellij.openapi.project.DumbAwareAction;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import static org.jetbrains.android.sdk.AndroidSdkUtils.isAndroidSdkManagerEnabled;
 

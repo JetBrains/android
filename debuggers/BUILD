@@ -20,6 +20,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images",
         "//tools/base/lint:studio.android.sdktools.lint-api[module]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
     ],
 )
 
