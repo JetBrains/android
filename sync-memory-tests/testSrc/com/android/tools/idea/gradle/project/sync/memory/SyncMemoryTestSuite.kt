@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.memory
 
 class Benchmark50MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
   override val projectName = "50Modules"
-  override val memoryLimitMb = null // uses gradle default
+  override val memoryLimitMb = 400
 
   init {
     setUpProject("diff-50")
@@ -25,7 +25,7 @@ class Benchmark50MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
 }
 class Benchmark100MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
   override val projectName = "100Modules"
-  override val memoryLimitMb = null // uses gradle default
+  override val memoryLimitMb = 600
 
   init {
     setUpProject("diff-100")
@@ -34,7 +34,7 @@ class Benchmark100MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
 
 class Benchmark200MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
   override val projectName = "200Modules"
-  override val memoryLimitMb = 1100
+  override val memoryLimitMb = 1300
 
   init {
     setUpProject("diff-200")
@@ -43,7 +43,7 @@ class Benchmark200MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
 
 class Benchmark500MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
   override val projectName = "500Modules"
-  override val memoryLimitMb = 3200
+  override val memoryLimitMb = 4000
 
   init {
     setUpProject("diff-500")
@@ -52,7 +52,7 @@ class Benchmark500MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
 
 class Benchmark1000MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
   override val projectName = "1000Modules"
-  override val memoryLimitMb = 6800
+  override val memoryLimitMb = 9000
 
   init {
     setUpProject("diff-1000")
@@ -70,7 +70,7 @@ class Benchmark2000MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
 
 class BenchmarkXLMemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
   override val projectName = "BenchmarkXL"
-  override val memoryLimitMb = 60000
+  override val memoryLimitMb = 40000
 
   init {
     setUpProject() // no diff
