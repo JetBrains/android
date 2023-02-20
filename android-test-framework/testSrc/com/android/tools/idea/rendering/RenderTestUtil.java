@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
 import static java.io.File.separatorChar;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -164,8 +165,8 @@ public class RenderTestUtil {
     Module module = facet.getModule();
     PsiFile psiFile = ReadAction.compute(() -> PsiManager.getInstance(module.getProject()).findFile(file));
     assertNotNull(psiFile);
-    RenderService renderService = RenderService.getInstance(module.getProject());
-    final CompletableFuture<RenderTask> taskFuture = renderService.taskBuilder(facet, configuration, logger)
+    RenderService renderService = StudioRenderService.getInstance(module.getProject());
+    final CompletableFuture<RenderTask> taskFuture = taskBuilder(renderService, facet, configuration, logger)
       .withPsiFile(psiFile)
       .disableSecurityManager()
       .withPriority(priority)
@@ -212,7 +213,7 @@ public class RenderTestUtil {
   public static RenderTask createRenderTask(@NotNull AndroidFacet facet,
                                     @NotNull VirtualFile file,
                                     @NotNull Configuration configuration) {
-    RenderService renderService = RenderService.getInstance(facet.getModule().getProject());
+    RenderService renderService = StudioRenderService.getInstance(facet.getModule().getProject());
     return createRenderTask(facet, file, configuration, renderService.createLogger(facet.getModule()), RenderingPriority.HIGH);
   }
 
@@ -220,7 +221,7 @@ public class RenderTestUtil {
                                      @NotNull VirtualFile file,
                                      @NotNull Configuration configuration,
                                      @NotNull Consumer<RenderTask> f) {
-    RenderService renderService = RenderService.getInstance(facet.getModule().getProject());
+    RenderService renderService = StudioRenderService.getInstance(facet.getModule().getProject());
     withRenderTask(facet, file, configuration, renderService.createLogger(facet.getModule()), f);
   }
 
@@ -229,7 +230,7 @@ public class RenderTestUtil {
                                     @NotNull Configuration configuration,
                                     boolean enableLayoutScanner,
                                     @NotNull Consumer<RenderTask> f) {
-    RenderService renderService = RenderService.getInstance(facet.getModule().getProject());
+    RenderService renderService = StudioRenderService.getInstance(facet.getModule().getProject());
     withRenderTask(facet, file, configuration, renderService.createLogger(facet.getModule()), f, enableLayoutScanner);
   }
 

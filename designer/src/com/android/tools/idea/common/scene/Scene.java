@@ -19,6 +19,7 @@ import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
 import static com.android.SdkConstants.ATTR_LAYOUT_WIDTH;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
+import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
 
 import com.android.SdkConstants;
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier;
@@ -45,6 +46,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.SecondarySelector;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutDecorator;
@@ -1198,11 +1200,11 @@ public class Scene implements SelectionListener, Disposable {
     NlModel model = neleComponent.getModel();
     XmlFile xmlFile = model.getFile();
     Module module = model.getModule();
-    RenderService renderService = RenderService.getInstance(module.getProject());
+    RenderService renderService = StudioRenderService.getInstance(module.getProject());
     AndroidFacet facet = model.getFacet();
     RenderLogger logger = renderService.createLogger(module);
 
-    return renderService.taskBuilder(facet, model.getConfiguration(), logger)
+    return taskBuilder(renderService, facet, model.getConfiguration(), logger)
       .withPsiFile(xmlFile)
       .build()
       .thenCompose(task -> {

@@ -30,7 +30,6 @@ import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import com.android.tools.idea.model.MergedManifestException;
 import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.model.MergedManifestSnapshot;
-import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
@@ -39,9 +38,6 @@ import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
-import com.android.tools.idea.res.AssetRepositoryImpl;
-import com.android.tools.idea.res.ResourceIdManager;
-import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -50,9 +46,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
-import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.ShutDownTracker;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -66,8 +59,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 import java.util.function.Function;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.sdk.AndroidTargetData;
@@ -80,22 +73,12 @@ import org.jetbrains.annotations.TestOnly;
 /**
  * The {@link RenderService} provides rendering and layout information for Android layouts. This is a wrapper around the layout library.
  */
-public class RenderService implements Disposable {
+final public class RenderService implements Disposable {
   private static RenderExecutor ourExecutor;
-
-  /**
-   * {@link Key} used to keep the RenderService instance project association. They key is also used as synchronization object to guard the
-   * access to the new instances.
-   */
-  private static final Key<RenderService> KEY = Key.create(RenderService.class.getName());
 
   static {
     ourExecutor = RenderExecutor.create();
-    // Register the executor to be shutdown on close
-    ShutDownTracker.getInstance().registerShutdownTask(RenderService::shutdownRenderExecutor);
   }
-
-  private final Project myProject;
 
   @TestOnly
   public static void initializeRenderExecutor() {
@@ -104,7 +87,7 @@ public class RenderService implements Disposable {
     ourExecutor = RenderExecutor.create();
   }
 
-  private static void shutdownRenderExecutor() {
+  protected static void shutdownRenderExecutor() {
     ourExecutor.shutdown();
   }
 
@@ -125,31 +108,11 @@ public class RenderService implements Disposable {
 
   private final ImagePool myImagePool = ImagePoolFactory.createImagePool();
 
+  private final Consumer<RenderTaskBuilder> myConfigureBuilder;
+
   @NotNull
   public static RenderAsyncActionExecutor getRenderAsyncActionExecutor() {
     return ourExecutor;
-  }
-
-  /**
-   * @return the {@linkplain RenderService} for the given facet.
-   */
-  @NotNull
-  public static RenderService getInstance(@NotNull Project project) {
-    synchronized (KEY) {
-      RenderService renderService = project.getUserData(KEY);
-      if (renderService == null) {
-        renderService = new RenderService(project);
-        project.putUserData(KEY, renderService);
-      }
-      return renderService;
-    }
-  }
-
-  @TestOnly
-  public static void setForTesting(@NotNull Project project, @Nullable RenderService renderService) {
-    synchronized (KEY) {
-      project.putUserData(KEY, renderService);
-    }
   }
 
   /**
@@ -157,12 +120,6 @@ public class RenderService implements Disposable {
    */
   public static boolean isCurrentThreadARenderThread() {
     return ourExecutor.isCurrentThreadARenderThread();
-  }
-
-  @VisibleForTesting
-  protected RenderService(@NotNull Project project) {
-    myProject = project;
-    Disposer.register(project, this);
   }
 
   @Nullable
@@ -188,6 +145,10 @@ public class RenderService implements Disposable {
     return file != null && LayoutPullParsers.isSupported(file);
   }
 
+  protected RenderService(@NotNull Consumer<RenderTaskBuilder> configureBuilder) {
+    myConfigureBuilder = configureBuilder;
+  }
+
   @NotNull
   public RenderLogger createLogger(@NotNull Module module) {
     return new RenderLogger(module.getName(), module, myCredential);
@@ -205,40 +166,13 @@ public class RenderService implements Disposable {
   public RenderTaskBuilder taskBuilder(@NotNull RenderModelModule module,
                                        @NotNull Configuration configuration,
                                        @NotNull RenderLogger logger) {
-    return new RenderTaskBuilder(module, configuration, myImagePool, myCredential, logger);
-  }
-
-  /**
-   * Returns a {@link RenderTaskBuilder} that can be used to build a new {@link RenderTask}
-   */
-  @NotNull
-  public RenderTaskBuilder taskBuilder(@NotNull AndroidFacet facet,
-                                       @NotNull Configuration configuration,
-                                       @NotNull RenderLogger logger) {
-    Module module = facet.getModule();
-    RenderModelModule renderModule = new DefaultRenderModelModule(
-      module,
-      new AssetRepositoryImpl(facet),
-      ResourceRepositoryManager.getInstance(facet),
-      StudioAndroidModuleInfo.getInstance(facet),
-      AndroidPlatform.getInstance(module),
-      ResourceIdManager.get(module)
-    );
-    return taskBuilder(renderModule, configuration, logger);
-  }
-
-  /**
-   * Returns a {@link RenderTaskBuilder} that can be used to build a new {@link RenderTask}
-   */
-  @NotNull
-  public RenderTaskBuilder taskBuilder(@NotNull AndroidFacet facet,
-                                       @NotNull Configuration configuration) {
-    return taskBuilder(facet, configuration, this.createLogger(facet.getModule()));
+    RenderTaskBuilder builder = new RenderTaskBuilder(module, configuration, myImagePool, myCredential, logger);
+    myConfigureBuilder.accept(builder);
+    return builder;
   }
 
   @Override
   public void dispose() {
-    myProject.putUserData(KEY, null);
     myImagePool.dispose();
   }
 

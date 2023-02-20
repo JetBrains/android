@@ -19,6 +19,7 @@ import static com.android.SdkConstants.ATTR_SHOW_IN;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.common.surface.SceneView.SQUARE_SHAPE_POLICY;
+import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
 import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
 import static com.intellij.util.ui.update.Update.HIGH_PRIORITY;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
@@ -59,6 +60,7 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.InteractionEventResult;
+import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
@@ -1111,9 +1113,9 @@ public class LayoutlibSceneManager extends SceneManager {
     AndroidFacet facet = getModel().getFacet();
     myRenderedVersion = resourceNotificationManager.getCurrentVersion(facet, getModel().getFile(), configuration);
 
-    RenderService renderService = RenderService.getInstance(getModel().getProject());
+    RenderService renderService = StudioRenderService.getInstance(getModel().getProject());
     RenderLogger logger = myLogRenderErrors ? renderService.createLogger(facet.getModule()) : renderService.getNopLogger();
-    RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration, logger)
+    RenderService.RenderTaskBuilder renderTaskBuilder = taskBuilder(renderService, facet, configuration, logger)
       .withPsiFile(getModel().getFile())
       .withLayoutScanner(myLayoutScannerConfig.isLayoutScannerEnabled());
     return setupRenderTaskBuilder(renderTaskBuilder).build()

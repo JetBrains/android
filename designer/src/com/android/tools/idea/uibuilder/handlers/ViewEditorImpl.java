@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.handlers;
 
 import static com.android.tools.lint.checks.AnnotationDetectorKt.RESTRICT_TO_ANNOTATION;
+import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
 
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.AndroidVersion;
@@ -31,6 +32,7 @@ import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
@@ -155,8 +157,8 @@ public class ViewEditorImpl extends ViewEditor {
     NlModel model = myModel;
     XmlFile xmlFile = model.getFile();
     Module module = model.getModule();
-    RenderService renderService = RenderService.getInstance(module.getProject());
-    final CompletableFuture<RenderTask> taskFuture = renderService.taskBuilder(model.getFacet(), getConfiguration())
+    RenderService renderService = StudioRenderService.getInstance(module.getProject());
+    final CompletableFuture<RenderTask> taskFuture = taskBuilder(renderService, model.getFacet(), getConfiguration())
       .withPsiFile(xmlFile)
       .build();
 

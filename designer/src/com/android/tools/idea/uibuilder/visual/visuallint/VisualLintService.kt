@@ -23,7 +23,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.RenderAsyncActionExecutor
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
+import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
+import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater.updateHierarchy
 import com.android.tools.idea.uibuilder.visual.WearDeviceModelsProvider
 import com.android.tools.idea.uibuilder.visual.WindowSizeModelsProvider
@@ -234,7 +236,7 @@ class VisualLintService(val project: Project): Disposable {
  * Inflates or renders a model, then returns the completable future with render result.
  */
 fun createRenderResult(model: NlModel, requireRender: Boolean): CompletableFuture<RenderResult> {
-  val renderService = RenderService.getInstance(model.project)
+  val renderService = StudioRenderService.getInstance(model.project)
   val logger = renderService.createLogger(model.facet.module)
 
   return renderService.taskBuilder(model.facet, model.configuration, logger)

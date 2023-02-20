@@ -26,8 +26,9 @@ import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.RenderResult
-import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTask
+import com.android.tools.idea.rendering.StudioRenderService
+import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.idea.uibuilder.api.PaletteComponentHandler
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.highlighter.XmlFileType
@@ -151,7 +152,7 @@ class PreviewProvider(
   private fun getRenderTask(configuration: Configuration): CompletableFuture<RenderTask?> {
     val module = configuration.module ?: return CompletableFuture.completedFuture(null)
     val facet = AndroidFacet.getInstance(module) ?: return CompletableFuture.completedFuture(null)
-    val renderService = RenderService.getInstance(module.project)
+    val renderService = StudioRenderService.getInstance(module.project)
     val logger = renderService.createLogger(module)
     return renderService.taskBuilder(facet, configuration, logger).build()
   }

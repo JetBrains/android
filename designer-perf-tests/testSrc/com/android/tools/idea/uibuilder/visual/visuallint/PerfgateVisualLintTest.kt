@@ -20,9 +20,9 @@ import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.type.DesignerTypeRegistrar
 import com.android.tools.idea.rendering.ElapsedTimeMeasurement
 import com.android.tools.idea.rendering.MemoryUseMeasurement
-import com.android.tools.idea.rendering.NoSecurityManagerRenderService
-import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTestUtil
+import com.android.tools.idea.rendering.StudioRenderService
+import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.rendering.measureOperation
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
@@ -63,7 +63,7 @@ class PerfgateVisualLintTest {
   fun setup() {
     projectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/designer-perf-tests/testData").toString()
     RenderTestUtil.beforeRenderTestCase()
-    RenderService.setForTesting(projectRule.project, NoSecurityManagerRenderService(projectRule.project))
+    StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())
     DesignerTypeRegistrar.register(LayoutFileType)
     val visualLintInspections = arrayOf(
       BoundsAnalyzerInspection, BottomNavAnalyzerInspection, BottomAppBarAnalyzerInspection,
@@ -78,7 +78,7 @@ class PerfgateVisualLintTest {
     ApplicationManager.getApplication().invokeAndWait {
       RenderTestUtil.afterRenderTestCase()
     }
-    RenderService.setForTesting(projectRule.project, null)
+    StudioRenderService.setForTesting(projectRule.project, null)
   }
 
   @Test

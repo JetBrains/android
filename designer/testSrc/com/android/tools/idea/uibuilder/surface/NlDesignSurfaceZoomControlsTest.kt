@@ -25,9 +25,9 @@ import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.editor.zoomActionPlace
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DesignSurface
-import com.android.tools.idea.rendering.NoSecurityManagerRenderService
-import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTestUtil
+import com.android.tools.idea.rendering.StudioRenderService
+import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -76,7 +76,7 @@ class NlDesignSurfaceZoomControlsTest {
   fun setup() {
     androidProjectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/designer/testData").toString()
     RenderTestUtil.beforeRenderTestCase()
-    RenderService.setForTesting(androidProjectRule.project, NoSecurityManagerRenderService(androidProjectRule.project))
+    StudioRenderService.setForTesting(androidProjectRule.project, createNoSecurityRenderService())
 
     layout = androidProjectRule.fixture.addFileToProject(
       "res/layout/test.xml",

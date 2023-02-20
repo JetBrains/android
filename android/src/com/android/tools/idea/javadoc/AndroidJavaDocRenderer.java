@@ -21,6 +21,7 @@ import static com.android.SdkConstants.DOT_PNG;
 import static com.android.SdkConstants.DOT_WEBP;
 import static com.android.SdkConstants.PREFIX_ANDROID;
 import static com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION;
+import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
 import static com.android.tools.idea.util.NonBlockingReadActionUtilKt.waitInterruptibly;
 import static com.android.utils.SdkUtils.hasImageExtension;
@@ -58,6 +59,7 @@ import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -1049,9 +1051,9 @@ public class AndroidJavaDocRenderer {
         if (myConfiguration != null) {
           AndroidFacet facet = AndroidFacet.getInstance(myModule);
           assert facet != null;
-          final RenderService service = RenderService.getInstance(myModule.getProject());
+          final RenderService service = StudioRenderService.getInstance(myModule.getProject());
           RenderLogger logger = new RenderLogger("AndroidJavaDocRendererLogger", null);
-          CompletableFuture<RenderTask> renderTaskFuture = service.taskBuilder(facet, myConfiguration, logger).build();
+          CompletableFuture<RenderTask> renderTaskFuture = taskBuilder(service, facet, myConfiguration, logger).build();
           CompletableFuture<BufferedImage> future = renderTaskFuture.thenCompose(renderTask -> {
             if (renderTask == null) {
               return CompletableFuture.completedFuture(null);

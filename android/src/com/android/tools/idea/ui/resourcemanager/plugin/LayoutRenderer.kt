@@ -18,8 +18,9 @@ package com.android.tools.idea.ui.resourcemanager.plugin
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.layoutlib.RenderingException
 import com.android.tools.idea.rendering.RenderResult
-import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTask
+import com.android.tools.idea.rendering.StudioRenderService
+import com.android.tools.idea.rendering.taskBuilder
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
@@ -46,7 +47,7 @@ private val LAYOUT_KEY = Key.create<LayoutRenderer>(LayoutRenderer::class.java.n
 private fun createRenderTask(facet: AndroidFacet,
                              xmlFile: XmlFile,
                              configuration: Configuration): CompletableFuture<RenderTask?> {
-  return RenderService.getInstance(facet.module.project)
+  return StudioRenderService.getInstance(facet.module.project)
     .taskBuilder(facet, configuration)
     .withPsiFile(xmlFile)
     .withQuality(QUALITY)
