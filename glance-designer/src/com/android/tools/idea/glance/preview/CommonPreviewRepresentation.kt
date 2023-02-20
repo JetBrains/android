@@ -72,14 +72,14 @@ import kotlinx.coroutines.withContext
 private val GLANCE_APPWIDGET_SUPPORTED_ACTIONS = setOf(NlSupportedActions.TOGGLE_ISSUE_PANEL)
 
 /** A generic [MethodPreviewElement] [PreviewRepresentation]. */
-internal class GlancePreviewRepresentation<T : MethodPreviewElement>(
+internal class CommonPreviewRepresentation<T : MethodPreviewElement>(
   adapterViewFqcn: String,
   psiFile: PsiFile,
   previewProvider: PreviewElementProvider<T>,
   previewElementModelAdapterDelegate: PreviewElementModelAdapter<T, NlModel>
 ) : PreviewRepresentation, AndroidCoroutinesAware, UserDataHolderEx by UserDataHolderBase() {
 
-  private val LOG = Logger.getInstance(GlancePreviewRepresentation::class.java)
+  private val LOG = Logger.getInstance(CommonPreviewRepresentation::class.java)
   private val project = psiFile.project
   private val module = runReadAction { ModuleUtilCore.findModuleForPsiElement(psiFile) }
   private val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
@@ -278,7 +278,7 @@ internal class GlancePreviewRepresentation<T : MethodPreviewElement>(
           surface.refreshExistingPreviewElements(
             refreshProgressIndicator,
             previewElementModelAdapter::modelToElement,
-            this@GlancePreviewRepresentation::configureLayoutlibSceneManager
+            this@CommonPreviewRepresentation::configureLayoutlibSceneManager
           )
         } else {
           refreshProgressIndicator.text =
@@ -345,7 +345,7 @@ internal class GlancePreviewRepresentation<T : MethodPreviewElement>(
       }
 
       launch(workerThread) {
-        smartModeFlow(project, this@GlancePreviewRepresentation, LOG).collectLatest {
+        smartModeFlow(project, this@CommonPreviewRepresentation, LOG).collectLatest {
           onEnterSmartMode()
         }
       }

@@ -92,7 +92,7 @@ class AppWidgetPreviewRepresentationProvider(
             .asSequence()
       }
 
-    return GlancePreviewRepresentation(
+    return CommonPreviewRepresentation(
       APP_WIDGET_VIEW_ADAPTER,
       psiFile,
       previewProvider,
