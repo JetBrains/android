@@ -59,6 +59,7 @@ import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
 import com.intellij.openapi.actionSystem.ex.TooltipLinkProvider
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.components.JBLoadingPanel
@@ -593,7 +594,8 @@ class DeviceViewPanel(
     val actionToolbar = ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorLeft", leftGroup, true)
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
     actionToolbar.component.name = DEVICE_VIEW_ACTION_TOOLBAR_NAME
-    actionToolbar.setTargetComponent(this)
+    actionToolbar.component.putClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY, true)
+    actionToolbar.targetComponent = this
     actionToolbar.updateActionsImmediately()
     return actionToolbar
   }

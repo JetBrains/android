@@ -96,6 +96,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.SystemInfo
@@ -1594,6 +1595,22 @@ class DeviceViewPanelWithNoClientsTest {
     // goes back to false because MODERN_PROCESS is in the process model
     assertThat(deviceViewContentPanel.showProcessNotDebuggableText).isFalse()
     assertThat(deviceViewContentPanel.showNavigateToDebuggableProcess).isFalse()
+  }
+
+  @Test
+  fun testDeviceSelectionToolbarIsImportant() {
+    val toolbar = getToolbar(
+      DeviceViewPanel(
+        {},
+        {},
+        {},
+        inspectorRule.inspector,
+        EditorRenderSettings(),
+        projectRule.fixture.testRootDisposable
+      )
+    )
+    val isImportant = toolbar.getClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY) as? Boolean ?: false
+    assertThat(isImportant).isTrue()
   }
 }
 
