@@ -628,7 +628,7 @@ internal fun modelCacheV2Impl(
       bootClasspath: Collection<String>,
       seenDependencies: MutableMap<String, List<String>>
     ) {
-      getOptionalBootClasspathLibraries(bootClasspath).forEach { jarFile ->
+      getUsefulBootClasspathLibraries(bootClasspath).forEach { jarFile ->
         if (!seenDependencies.contains(jarFile.path)) { // Any unique key identifying the library  is suitable.
           seenDependencies[jarFile.path] = listOf()
           librariesById.computeIfAbsent(jarFile.path) {

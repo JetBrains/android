@@ -541,11 +541,11 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       }
     }
 
-    fun populateOptionalSdkLibrariesLibraries(
+    fun populateBootclasspathLibrariesLibraries(
       bootClasspath: Collection<String>,
       visited: MutableSet<String>
     ) {
-      getOptionalBootClasspathLibraries(bootClasspath).forEach { jarFile ->
+      getUsefulBootClasspathLibraries(bootClasspath).forEach { jarFile ->
         val address = jarFile.path
         if (visited.add(jarFile.path)) {   // Any unique key identifying the library  is suitable.
           dependenciesById.computeIfAbsent(address) { libraryFrom(jarFile) }
@@ -672,7 +672,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       val visited = mutableSetOf<String>()
       populateAndroidLibraries(dependencies.libraries, visited)
       populateJavaLibraries(dependencies.javaLibraries, visited)
-      populateOptionalSdkLibrariesLibraries(bootClasspath, visited)
+      populateBootclasspathLibrariesLibraries(bootClasspath, visited)
       populateModuleDependencies(dependencies, visited, variantName, androidModuleId)
       return createInstance(visited, runtimeOnlyClasses)
     }
