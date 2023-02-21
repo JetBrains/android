@@ -263,6 +263,14 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     return compiler;
   }
 
+  public boolean notifyAppRefresh(@NotNull IDevice device) {
+    if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit() || !supportLiveEdits(device)) {
+      return false;
+    }
+    deviceStatusManager.update(device, LiveEditStatus.UpToDate.INSTANCE);
+    return true;
+  }
+
   public Callable<?> getCallback(String applicationId, IDevice device) {
     if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit()) {
       LOGGER.info("Live Edit on device disabled via settings.");
@@ -284,7 +292,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
         () -> {
           this.applicationId = applicationId;
           this.gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
-          LiveEditService.getInstance(project).resetState();
+          resetState();
           deviceWatcher.setApplicationId(applicationId);
         },
         0L,

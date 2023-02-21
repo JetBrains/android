@@ -97,11 +97,6 @@ class LiveEditService constructor(val project: Project,
     return deployMonitor.compiler.inlineCandidateCache
   }
 
-  // TODO: Find out why we can't just recreate deployMonitor
-  fun resetState() {
-    deployMonitor.resetState()
-  }
-
   private val deployMonitor: AndroidLiveEditDeployMonitor
 
   init {
@@ -148,6 +143,10 @@ class LiveEditService constructor(val project: Project,
 
   fun editStatus(device: IDevice): LiveEditStatus {
     return deployMonitor.status(device)
+  }
+
+  fun notifyAppRefresh(device: IDevice): Boolean {
+    return deployMonitor.notifyAppRefresh(device)
   }
 
   fun getCallback(packageName: String, device: IDevice) : Callable<*>? {
