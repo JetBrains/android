@@ -15,8 +15,6 @@
  */
 package org.jetbrains.android.dom.inspections;
 
-import static com.android.tools.idea.projectsystem.SourceProvidersKt.isTestFile;
-
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -25,30 +23,21 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.Consumer;
-import com.intellij.util.xml.Converter;
-import com.intellij.util.xml.DomElement;
-import com.intellij.util.xml.DomFileElement;
-import com.intellij.util.xml.DomUtil;
-import com.intellij.util.xml.GenericDomValue;
-import com.intellij.util.xml.Required;
-import com.intellij.util.xml.WrappingConverter;
+import com.intellij.util.xml.*;
 import com.intellij.util.xml.highlighting.BasicDomElementsInspection;
 import com.intellij.util.xml.highlighting.DomElementAnnotationHolder;
 import com.intellij.util.xml.reflect.AbstractDomChildrenDescription;
 import org.jetbrains.android.dom.AndroidDomElement;
 import org.jetbrains.android.dom.AndroidXmlExtension;
-import org.jetbrains.android.dom.converters.AndroidPackageConverter;
-import org.jetbrains.android.dom.converters.AndroidPermissionConverter;
-import org.jetbrains.android.dom.converters.ConstantFieldConverter;
-import org.jetbrains.android.dom.converters.OnClickConverter;
-import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
+import org.jetbrains.android.dom.converters.*;
 import org.jetbrains.android.dom.resources.DeclareStyleableNameConverter;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+
+import static com.android.tools.idea.projectsystem.SourceProvidersKt.isTestFile;
 
 public class AndroidDomInspection extends BasicDomElementsInspection<AndroidDomElement> {
   private static final Logger LOG = Logger.getInstance("#org.jetbrains.android.dom.inspections.AndroidDomInspection");
@@ -79,7 +68,7 @@ public class AndroidDomInspection extends BasicDomElementsInspection<AndroidDomE
   }
 
   @Override
-  public void checkFileElement(DomFileElement<AndroidDomElement> domFileElement, DomElementAnnotationHolder holder) {
+  public void checkFileElement(@NotNull DomFileElement<AndroidDomElement> domFileElement, @NotNull DomElementAnnotationHolder holder) {
     XmlTag rootTag = domFileElement.getRootTag();
     if (rootTag == null || StringUtil.isEmpty(rootTag.getName())) return;
     super.checkFileElement(domFileElement, holder);
@@ -116,7 +105,7 @@ public class AndroidDomInspection extends BasicDomElementsInspection<AndroidDomE
   }
 
   @Override
-  protected void checkChildren(final DomElement element, Consumer<? super DomElement> visitor) {
+  protected void checkChildren(@NotNull DomElement element, @NotNull java.util.function.Consumer<? super @NotNull DomElement> visitor) {
     // The following code is similar to contents of the overridden method,
     // but adds support for "aapt:attr" attributes.
     final XmlElement xmlElement = element.getXmlElement();
@@ -128,7 +117,7 @@ public class AndroidDomInspection extends BasicDomElementsInspection<AndroidDomE
                     "; parent=" + element);
         }
         else if (element1.isPhysical()) {
-          visitor.consume(child);
+          visitor.accept(child);
         }
       }
 
@@ -142,7 +131,7 @@ public class AndroidDomInspection extends BasicDomElementsInspection<AndroidDomE
                 name = namespaceKey + ':' + name;
               }
               if (!AndroidXmlExtension.isAaptAttributeDefined((XmlTag)xmlElement, name)) {
-                visitor.consume(child);
+                visitor.accept(child);
               }
             }
           }
