@@ -1574,8 +1574,8 @@ public final class StudioFlags {
   private static final FlagGroup NEW_COLLECT_LOGS_DIALOG = new FlagGroup(FLAGS, "new.collect.logs", "New Collect Logs Dialog");
   public static final Flag<Boolean> ENABLE_NEW_COLLECT_LOGS_DIALOG = Flag.create(
     NEW_COLLECT_LOGS_DIALOG, "enable.new.collect.logs.dialog", "Enable new collect logs dialog",
-    "Enable the new send feedback dialog",
-    false
+    "Enable the collect logs dialog",
+    true
   );
   // endregion NEW_COLLECT_LOGS_DIALOG
 
