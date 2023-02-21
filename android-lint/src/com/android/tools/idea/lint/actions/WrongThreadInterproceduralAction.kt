@@ -39,7 +39,10 @@ import kotlin.system.measureTimeMillis
 
 private val LOG = Logger.getInstance(WrongThreadInterproceduralAction::class.java)
 
-/** An internal action for running the interprocedural thread annotation Lint check. Useful for timing and debugging. */
+/**
+ * An internal action for running the interprocedural thread annotation Lint check. Useful for
+ * timing and debugging.
+ */
 class WrongThreadInterproceduralAction : BaseAnalysisAction(ACTION_NAME, ACTION_NAME) {
 
   companion object {
@@ -47,35 +50,47 @@ class WrongThreadInterproceduralAction : BaseAnalysisAction(ACTION_NAME, ACTION_
   }
 
   override fun analyze(project: Project, scope: AnalysisScope) {
-    ProgressManager.getInstance().run(object : Task.Backgroundable(
-        project, "Finding interprocedural thread annotation violations", true) {
+    ProgressManager.getInstance()
+      .run(
+        object :
+          Task.Backgroundable(
+            project,
+            "Finding interprocedural thread annotation violations",
+            true
+          ) {
 
-      override fun run(indicator: ProgressIndicator) {
-        val time = measureTimeMillis {
-          // The Lint check won't run unless explicitly enabled by default..
-          val wasEnabledByDefault = WrongThreadInterproceduralDetector.ISSUE.isEnabledByDefault()
-          val detectorIssue = WrongThreadInterproceduralDetector.ISSUE.setEnabledByDefault(true)
-          val client = LintIdeSupport.get().createBatchClient(LintBatchResult(project, mutableMapOf(), scope, setOf(detectorIssue)))
-          try {
-            val files = ArrayList<VirtualFile>()
-            scope.accept { files.add(it) }
-            val modules = ModuleManager.getInstance(project).modules.toList()
-            val request = LintIdeRequest(client, project, files, modules, /*incremental*/ false)
-            request.setScope(EnumSet.of(Scope.ALL_JAVA_FILES))
-            val issue = object : IssueRegistry() {
-              override val vendor: Vendor = AOSP_VENDOR
-              override val issues: List<Issue>
-                get() = listOf(WrongThreadInterproceduralDetector.ISSUE)
+          override fun run(indicator: ProgressIndicator) {
+            val time = measureTimeMillis {
+              // The Lint check won't run unless explicitly enabled by default..
+              val wasEnabledByDefault =
+                WrongThreadInterproceduralDetector.ISSUE.isEnabledByDefault()
+              val detectorIssue = WrongThreadInterproceduralDetector.ISSUE.setEnabledByDefault(true)
+              val client =
+                LintIdeSupport.get()
+                  .createBatchClient(
+                    LintBatchResult(project, mutableMapOf(), scope, setOf(detectorIssue))
+                  )
+              try {
+                val files = ArrayList<VirtualFile>()
+                scope.accept { files.add(it) }
+                val modules = ModuleManager.getInstance(project).modules.toList()
+                val request = LintIdeRequest(client, project, files, modules, /*incremental*/ false)
+                request.setScope(EnumSet.of(Scope.ALL_JAVA_FILES))
+                val issue =
+                  object : IssueRegistry() {
+                    override val vendor: Vendor = AOSP_VENDOR
+                    override val issues: List<Issue>
+                      get() = listOf(WrongThreadInterproceduralDetector.ISSUE)
+                  }
+                client.createDriver(request, issue).analyze()
+              } finally {
+                Disposer.dispose(client)
+                WrongThreadInterproceduralDetector.ISSUE.setEnabledByDefault(wasEnabledByDefault)
+              }
             }
-            client.createDriver(request, issue).analyze()
-          }
-          finally {
-            Disposer.dispose(client)
-            WrongThreadInterproceduralDetector.ISSUE.setEnabledByDefault(wasEnabledByDefault)
+            LOG.info("Interprocedural thread check: ${time}ms")
           }
         }
-        LOG.info("Interprocedural thread check: ${time}ms")
-      }
-    })
+      )
   }
 }

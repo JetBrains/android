@@ -19,6 +19,8 @@ import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.PackageVisibilityDetector
 
-class AndroidLintQueryAllPackagesPermissionInspection : AndroidLintInspectionBase(
-  AndroidLintBundle.message("android.lint.inspections.query.all.packages.permission"), PackageVisibilityDetector.QUERY_ALL_PACKAGES_PERMISSION
-)
+class AndroidLintQueryAllPackagesPermissionInspection :
+  AndroidLintInspectionBase(
+    AndroidLintBundle.message("android.lint.inspections.query.all.packages.permission"),
+    PackageVisibilityDetector.QUERY_ALL_PACKAGES_PERMISSION
+  )

@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.lint.inspections
 
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.PermissionErrorDetector
-import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 
-class AndroidLintKnownPermissionErrorInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.known.permission.error"), PermissionErrorDetector.KNOWN_PERMISSION_ERROR
-)
+class AndroidLintKnownPermissionErrorInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.known.permission.error"),
+    PermissionErrorDetector.KNOWN_PERMISSION_ERROR
+  )

@@ -19,6 +19,8 @@ import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.SdCardDetector
 
-class AndroidLintSdCardPathInspection : AndroidLintInspectionBase(
-  AndroidLintBundle.message("android.lint.inspections.sd.card.path"), SdCardDetector.ISSUE
-)
+class AndroidLintSdCardPathInspection :
+  AndroidLintInspectionBase(
+    AndroidLintBundle.message("android.lint.inspections.sd.card.path"),
+    SdCardDetector.ISSUE
+  )

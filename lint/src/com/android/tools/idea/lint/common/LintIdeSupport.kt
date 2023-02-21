@@ -18,8 +18,8 @@ package com.android.tools.idea.lint.common
 import com.android.SdkConstants.FN_ANDROID_PROGUARD_FILE
 import com.android.SdkConstants.FN_PROJECT_PROGUARD_FILE
 import com.android.SdkConstants.OLD_PROGUARD_FILE
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.AgpVersion
+import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.lint.client.api.IssueRegistry
 import com.android.tools.lint.client.api.LintClient
 import com.android.tools.lint.client.api.LintClient.Companion.CLIENT_STUDIO
@@ -40,15 +40,15 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.xml.XmlFile
+import java.io.File
+import java.util.EnumSet
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.gradle.config.isGradleFile
 import org.toml.lang.psi.TomlFileType
-import java.io.File
-import java.util.EnumSet
 
 /**
- * Extension point for the general lint support to look up services it does not
- * directly depend upon.
+ * Extension point for the general lint support to look up services it does not directly depend
+ * upon.
  */
 abstract class LintIdeSupport {
   init {
@@ -56,15 +56,17 @@ abstract class LintIdeSupport {
   }
   companion object {
     @JvmStatic
-    fun get(): LintIdeSupport = getApplication().getService(LintIdeSupport::class.java)
-                                ?: object : LintIdeSupport() {}
+    fun get(): LintIdeSupport =
+      getApplication().getService(LintIdeSupport::class.java) ?: object : LintIdeSupport() {}
   }
 
   open fun getIssueRegistry(): IssueRegistry = LintIdeIssueRegistry()
 
   open fun getBaselineFile(client: LintIdeClient, module: Module): File? {
     val dir = module.getModuleDir() ?: return null
-    client.getConfiguration(dir)?.baselineFile?.let { baseline -> return baseline }
+    client.getConfiguration(dir)?.baselineFile?.let { baseline ->
+      return baseline
+    }
     val lintBaseline = File(dir, "lint_baseline.xml")
     if (lintBaseline.exists()) {
       return lintBaseline
@@ -82,20 +84,22 @@ abstract class LintIdeSupport {
   /** Whether or not the given file should be annotated on the fly in the editor */
   open fun canAnnotate(file: PsiFile, module: Module): Boolean {
     val fileType = file.fileType
-    if (fileType === JavaFileType.INSTANCE
-        || fileType === KotlinFileType.INSTANCE
-        || fileType === PropertiesFileType.INSTANCE
-        || fileType === TomlFileType) {
+    if (
+      fileType === JavaFileType.INSTANCE ||
+        fileType === KotlinFileType.INSTANCE ||
+        fileType === PropertiesFileType.INSTANCE ||
+        fileType === TomlFileType
+    ) {
       return true
     }
     if (fileType === XmlFileType.INSTANCE) {
       return true
-    }
-    else if (fileType === FileTypes.PLAIN_TEXT) {
+    } else if (fileType === FileTypes.PLAIN_TEXT) {
       val name = file.name
-      return name == FN_PROJECT_PROGUARD_FILE || name == FN_ANDROID_PROGUARD_FILE || name == OLD_PROGUARD_FILE
-    }
-    else if (file.isGradleFile()) {
+      return name == FN_PROJECT_PROGUARD_FILE ||
+        name == FN_ANDROID_PROGUARD_FILE ||
+        name == OLD_PROGUARD_FILE
+    } else if (file.isGradleFile()) {
       return true
     }
     return false
@@ -108,49 +112,52 @@ abstract class LintIdeSupport {
 
   // Creating projects
   /** Creates a set of projects for the given IntelliJ modules */
-  open fun createProject(client: LintIdeClient,
-                         files: List<VirtualFile>?,
-                         vararg modules: Module): List<com.android.tools.lint.detector.api.Project> {
+  open fun createProject(
+    client: LintIdeClient,
+    files: List<VirtualFile>?,
+    vararg modules: Module
+  ): List<com.android.tools.lint.detector.api.Project> {
     return LintIdeProject.create(client, files, *modules)
   }
 
-  open fun createProjectForSingleFile(client: LintIdeClient,
-                                      file: VirtualFile?,
-                                      module: Module): Pair<com.android.tools.lint.detector.api.Project, com.android.tools.lint.detector.api.Project> {
+  open fun createProjectForSingleFile(
+    client: LintIdeClient,
+    file: VirtualFile?,
+    module: Module
+  ): Pair<
+    com.android.tools.lint.detector.api.Project, com.android.tools.lint.detector.api.Project
+  > {
     return LintIdeProject.createForSingleFile(client, file, module)
   }
 
-  /**
-   * Creates a lint client
-   */
-  open fun createClient(project: Project, lintResult: LintResult = LintIgnoredResult()): LintIdeClient {
+  /** Creates a lint client */
+  open fun createClient(
+    project: Project,
+    lintResult: LintResult = LintIgnoredResult()
+  ): LintIdeClient {
     return LintIdeClient(project, lintResult)
   }
 
-  /**
-   * Creates a lint client for batch inspections
-   */
+  /** Creates a lint client for batch inspections */
   open fun createBatchClient(lintResult: LintBatchResult): LintIdeClient {
     return LintIdeClient(lintResult.project, lintResult)
   }
 
   /**
-   * Creates a lint client used for in-editor single file lint analysis (e.g. background checking while user is editing.)
+   * Creates a lint client used for in-editor single file lint analysis (e.g. background checking
+   * while user is editing.)
    */
   open fun createEditorClient(lintResult: LintEditorResult): LintIdeClient {
     return LintIdeClient(lintResult.getModule().project, lintResult)
   }
 
   // Gradle
-  open fun updateToLatest(module: Module, gc: GradleCoordinate) {
-  }
+  open fun updateToLatest(module: Module, gc: GradleCoordinate) {}
   open fun recommendedAgpVersion(project: Project): AgpVersion? = null
   open fun shouldRecommendUpdateAgpToLatest(project: Project): Boolean = false
-  open fun updateAgpToLatest(project: Project) {
-  }
-  open fun shouldOfferUpgradeAssistantForDeprecatedConfigurations(project: Project) : Boolean = false
-  open fun updateDeprecatedConfigurations(project: Project, element: PsiElement) {
-  }
+  open fun updateAgpToLatest(project: Project) {}
+  open fun shouldOfferUpgradeAssistantForDeprecatedConfigurations(project: Project): Boolean = false
+  open fun updateDeprecatedConfigurations(project: Project, element: PsiElement) {}
 
   open fun resolveDynamic(project: Project, gc: GradleCoordinate): String? = null
   // Analytics
@@ -164,7 +171,11 @@ abstract class LintIdeSupport {
   open fun logSession(lint: LintDriver, module: Module?, lintResult: LintBatchResult) {}
 
   // XML processing
-  open fun ensureNamespaceImported(file: XmlFile, namespaceUri: String, suggestedPrefix: String?): String = ""
+  open fun ensureNamespaceImported(
+    file: XmlFile,
+    namespaceUri: String,
+    suggestedPrefix: String?
+  ): String = ""
 }
 
 fun Module.getModuleDir(): File? {

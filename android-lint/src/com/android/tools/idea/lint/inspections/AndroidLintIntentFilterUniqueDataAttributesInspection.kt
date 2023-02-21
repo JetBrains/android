@@ -19,6 +19,8 @@ import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.AppLinksValidDetector
 
-class AndroidLintIntentFilterUniqueDataAttributesInspection : AndroidLintInspectionBase(
-  AndroidLintBundle.message("android.lint.inspections.intent.filter.unique.data.attributes"), AppLinksValidDetector.INTENT_FILTER_UNIQUE_DATA_ATTRIBUTES
-)
+class AndroidLintIntentFilterUniqueDataAttributesInspection :
+  AndroidLintInspectionBase(
+    AndroidLintBundle.message("android.lint.inspections.intent.filter.unique.data.attributes"),
+    AppLinksValidDetector.INTENT_FILTER_UNIQUE_DATA_ATTRIBUTES
+  )

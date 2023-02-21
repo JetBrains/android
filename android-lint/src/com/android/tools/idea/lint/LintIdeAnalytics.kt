@@ -45,20 +45,29 @@ import java.nio.file.Paths
 class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project) {
   /** Logs feedback from user on an individual issue */
   fun logFeedback(issue: String, feedback: LintAction.LintFeedback) {
-    val event = AndroidStudioEvent.newBuilder().apply {
-      kind = AndroidStudioEvent.EventKind.LINT_ACTION
-      computeProjectId(project)?.let { projectId = it }
-      computeApplicationId(project)?.let { rawProjectId = it }
-      val action = LintAction.newBuilder().apply {
-        issueId = issue
-        lintFeedback = feedback
-      }.build()
-      lintAction = action
-    }.withProjectId(project)
+    val event =
+      AndroidStudioEvent.newBuilder()
+        .apply {
+          kind = AndroidStudioEvent.EventKind.LINT_ACTION
+          computeProjectId(project)?.let { projectId = it }
+          computeApplicationId(project)?.let { rawProjectId = it }
+          val action =
+            LintAction.newBuilder()
+              .apply {
+                issueId = issue
+                lintFeedback = feedback
+              }
+              .build()
+          lintAction = action
+        }
+        .withProjectId(project)
     UsageTracker.log(event)
   }
 
-  /** Logs feedback from user on a lint run (either on-the-fly in the editor, or explicit full inspection run) */
+  /**
+   * Logs feedback from user on a lint run (either on-the-fly in the editor, or explicit full
+   * inspection run)
+   */
   fun logSession(
     type: LintSession.AnalysisType,
     driver: LintDriver,
@@ -72,44 +81,52 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
       return
     }
 
-    val session = LintSession.newBuilder().apply {
-      analysisType = type
-      projectId = computeProjectId(project)
-      lintPerformance = computePerformance(driver, type == LintSession.AnalysisType.IDE_FILE)
-      baselineEnabled = driver.baseline != null
-      includingGeneratedSources = driver.checkGeneratedSources
-      includingTestSources = driver.checkTestSources
-      includingDependencies = driver.checkDependencies
-      for (issueBuilder in computeIssueData(warnings1, warnings2, severityModule).values) {
-        addIssueIds(issueBuilder)
-      }
-    }.build()
+    val session =
+      LintSession.newBuilder()
+        .apply {
+          analysisType = type
+          projectId = computeProjectId(project)
+          lintPerformance = computePerformance(driver, type == LintSession.AnalysisType.IDE_FILE)
+          baselineEnabled = driver.baseline != null
+          includingGeneratedSources = driver.checkGeneratedSources
+          includingTestSources = driver.checkTestSources
+          includingDependencies = driver.checkDependencies
+          for (issueBuilder in computeIssueData(warnings1, warnings2, severityModule).values) {
+            addIssueIds(issueBuilder)
+          }
+        }
+        .build()
 
-    val event = AndroidStudioEvent.newBuilder().apply {
-      kind = AndroidStudioEvent.EventKind.LINT_SESSION
-      lintSession = session
-      javaProcessStats = CommonMetricsData.javaProcessStats
-      jvmDetails = CommonMetricsData.jvmDetails
-    }.withProjectId(project)
+    val event =
+      AndroidStudioEvent.newBuilder()
+        .apply {
+          kind = AndroidStudioEvent.EventKind.LINT_SESSION
+          lintSession = session
+          javaProcessStats = CommonMetricsData.javaProcessStats
+          jvmDetails = CommonMetricsData.jvmDetails
+        }
+        .withProjectId(project)
 
     UsageTracker.log(event)
   }
 
   private fun computePerformance(driver: LintDriver, singleFileAnalysis: Boolean): LintPerformance =
-    LintPerformance.newBuilder().apply {
-      analysisTimeMs = System.currentTimeMillis() - driver.analysisStartTime
-      fileCount = driver.fileCount.toLong()
+    LintPerformance.newBuilder()
+      .apply {
+        analysisTimeMs = System.currentTimeMillis() - driver.analysisStartTime
+        fileCount = driver.fileCount.toLong()
 
-      // When doing single file analysis we don't have an accurate module count for
-      // the project etc; the below statistics aren't interesting and are misleading
-      if (!singleFileAnalysis) {
-        moduleCount = driver.moduleCount.toLong()
-        javaSourceCount = driver.javaFileCount.toLong()
-        kotlinSourceCount = driver.kotlinFileCount.toLong()
-        resourceFileCount = driver.resourceFileCount.toLong()
-        testSourceCount = driver.testSourceCount.toLong()
+        // When doing single file analysis we don't have an accurate module count for
+        // the project etc; the below statistics aren't interesting and are misleading
+        if (!singleFileAnalysis) {
+          moduleCount = driver.moduleCount.toLong()
+          javaSourceCount = driver.javaFileCount.toLong()
+          kotlinSourceCount = driver.kotlinFileCount.toLong()
+          resourceFileCount = driver.resourceFileCount.toLong()
+          testSourceCount = driver.testSourceCount.toLong()
+        }
       }
-    }.build()
+      .build()
 
   private fun recordSeverityOverride(
     map: HashMap<String, LintIssueId.Builder>,
@@ -181,8 +198,7 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
               recordSeverityOverride(map, id, severity.toAnalyticsSeverity())
             }
           }
-        }
-        catch (ignore: Throwable) { // safety measure around gradle model
+        } catch (ignore: Throwable) { // safety measure around gradle model
         }
       }
     }
@@ -190,24 +206,28 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
     return map
   }
 
-  private fun recordIssueData(warnings: List<LintProblemData>, map: HashMap<String, LintIssueId.Builder>) {
+  private fun recordIssueData(
+    warnings: List<LintProblemData>,
+    map: HashMap<String, LintIssueId.Builder>
+  ) {
     for (warning in warnings) {
       val issue = warning.issue
       val id = issue.id
-      val issueBuilder = map[id] ?: run {
-        LintIssueId.newBuilder().apply {
-          map[id] = this
-          issueId = issue.id
-          val configuredSeverity = warning.configuredSeverity
-          severity =
-            if (configuredSeverity == null || configuredSeverity == issue.defaultSeverity) {
-              LintSeverity.DEFAULT_SEVERITY
+      val issueBuilder =
+        map[id]
+          ?: run {
+            LintIssueId.newBuilder().apply {
+              map[id] = this
+              issueId = issue.id
+              val configuredSeverity = warning.configuredSeverity
+              severity =
+                if (configuredSeverity == null || configuredSeverity == issue.defaultSeverity) {
+                  LintSeverity.DEFAULT_SEVERITY
+                } else {
+                  configuredSeverity.toAnalyticsSeverity()
+                }
             }
-            else {
-              configuredSeverity.toAnalyticsSeverity()
-            }
-        }
-      }
+          }
       issueBuilder.count = issueBuilder.count + 1
     }
   }
@@ -230,15 +250,15 @@ class LintIdeAnalytics(private val project: com.intellij.openapi.project.Project
     return null
   }
 
-  private fun computeProjectId(project: com.intellij.openapi.project.Project): String? = computeProjectId(Paths.get(project.basePath))
+  private fun computeProjectId(project: com.intellij.openapi.project.Project): String? =
+    computeProjectId(Paths.get(project.basePath))
 
   private fun computeProjectId(projectPath: Path?): String? {
     projectPath ?: return null
 
     return try {
       Anonymizer.anonymizeUtf8(NullLogger(), projectPath.toAbsolutePath().toString())
-    }
-    catch (e: IOException) {
+    } catch (e: IOException) {
       "*ANONYMIZATION_ERROR*"
     }
   }

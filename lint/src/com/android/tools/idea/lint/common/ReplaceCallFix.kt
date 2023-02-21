@@ -42,7 +42,11 @@ class ReplaceCallFix(private val mySuggest: String) : DefaultLintQuickFix(null) 
     return "Call $methodName instead"
   }
 
-  override fun apply(startElement: PsiElement, endElement: PsiElement, context: AndroidQuickfixContexts.Context) {
+  override fun apply(
+    startElement: PsiElement,
+    endElement: PsiElement,
+    context: AndroidQuickfixContexts.Context
+  ) {
     if (!startElement.isValid) {
       return
     }
@@ -58,7 +62,8 @@ class ReplaceCallFix(private val mySuggest: String) : DefaultLintQuickFix(null) 
   }
 
   private fun handleJava(element: PsiElement, context: AndroidQuickfixContexts.Context) {
-    val methodCall = PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression::class.java, false) ?: return
+    val methodCall =
+      PsiTreeUtil.getParentOfType(element, PsiMethodCallExpression::class.java, false) ?: return
     val file = methodCall.containingFile ?: return
     val document = context.getDocument(file) ?: return
     val methodExpression = methodCall.methodExpression
@@ -70,8 +75,7 @@ class ReplaceCallFix(private val mySuggest: String) : DefaultLintQuickFix(null) 
     // tricky to figure out in general how to map existing parameters to new
     // parameters. Consider using MethodSignatureInsertHandler.
     val name = methodName
-    if (name.startsWith("enforce") &&
-        name.endsWith("Permission")) {
+    if (name.startsWith("enforce") && name.endsWith("Permission")) {
       val referenceName = methodExpression.referenceName
       if (referenceName != null && referenceName.startsWith("check")) {
         val argumentList = methodCall.argumentList
@@ -85,7 +89,8 @@ class ReplaceCallFix(private val mySuggest: String) : DefaultLintQuickFix(null) 
   }
 
   private fun handleKotlin(element: PsiElement, context: AndroidQuickfixContexts.Context) {
-    val methodCall = PsiTreeUtil.getParentOfType(element, KtCallExpression::class.java, false) ?: return
+    val methodCall =
+      PsiTreeUtil.getParentOfType(element, KtCallExpression::class.java, false) ?: return
     val methodExpression = methodCall.getCalleeExpression()
     if (methodExpression is KtNameReferenceExpression) {
       val identifier: PsiElement? = methodExpression.getIdentifier()
@@ -99,8 +104,7 @@ class ReplaceCallFix(private val mySuggest: String) : DefaultLintQuickFix(null) 
         // tricky to figure out in general how to map existing parameters to new
         // parameters. Consider using MethodSignatureInsertHandler.
         val name = methodName
-        if (name.startsWith("enforce") &&
-            name.endsWith("Permission")) {
+        if (name.startsWith("enforce") && name.endsWith("Permission")) {
           val referencedName = methodExpression.getReferencedName()
           if (referencedName.startsWith("check")) {
             methodCall.valueArgumentList?.textRange?.let { range: TextRange ->

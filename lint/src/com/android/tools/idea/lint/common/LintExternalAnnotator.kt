@@ -69,16 +69,17 @@ import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiFileRange
 import com.intellij.util.IncorrectOperationException
 import com.intellij.xml.util.XmlStringUtil
+import java.util.EnumSet
+import javax.swing.Icon
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.plugins.gradle.config.GradleFileType
 import org.toml.lang.psi.TomlFileType
-import java.util.EnumSet
-import javax.swing.Icon
 
 class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResult>() {
 
   companion object {
-    const val LINK_PREFIX = "#lint/" // Should match the codeInsight.linkHandler prefix specified in lint-plugin.xml.
+    const val LINK_PREFIX =
+      "#lint/" // Should match the codeInsight.linkHandler prefix specified in lint-plugin.xml.
     const val INCLUDE_IDEA_SUPPRESS_ACTIONS = false
 
     init {
@@ -90,15 +91,21 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       val issueList = fullRegistry.issues
       val result = Sets.newHashSetWithExpectedSize<Issue>(issueList.size + 10)
       for (issue in issueList) {
-        val inspectionShortName = AndroidLintInspectionBase.getInspectionShortNameByIssue(project, issue) ?: continue
+        val inspectionShortName =
+          AndroidLintInspectionBase.getInspectionShortNameByIssue(project, issue) ?: continue
         val key = HighlightDisplayKey.find(inspectionShortName) ?: continue
-        val profile: InspectionProfile = InspectionProjectProfileManager.getInstance(project).currentProfile
-        val enabled = if (context != null) profile.isToolEnabled(key, context) else profile.isToolEnabled(key)
+        val profile: InspectionProfile =
+          InspectionProjectProfileManager.getInstance(project).currentProfile
+        val enabled =
+          if (context != null) profile.isToolEnabled(key, context) else profile.isToolEnabled(key)
         if (!enabled) continue
         if (!issue.isEnabledByDefault()) {
-          // If an issue is marked as not enabled by default, lint won't run it, even if it's in the set
-          // of issues provided by an issue registry. Since in the IDE we're enforcing the enabled-state via
-          // inspection profiles, mark the issue as enabled to allow users to turn on a lint check directly
+          // If an issue is marked as not enabled by default, lint won't run it, even if it's in the
+          // set
+          // of issues provided by an issue registry. Since in the IDE we're enforcing the
+          // enabled-state via
+          // inspection profiles, mark the issue as enabled to allow users to turn on a lint check
+          // directly
           // via the inspections UI.
           issue.setEnabledByDefault(true)
         }
@@ -112,9 +119,11 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       issue: Issue,
       context: PsiElement
     ): Pair<AndroidLintInspectionBase, HighlightDisplayLevel>? {
-      val inspectionShortName = AndroidLintInspectionBase.getInspectionShortNameByIssue(project, issue) ?: return null
+      val inspectionShortName =
+        AndroidLintInspectionBase.getInspectionShortNameByIssue(project, issue) ?: return null
       val key = HighlightDisplayKey.find(inspectionShortName) ?: return null
-      val profile: InspectionProfile = InspectionProjectProfileManager.getInstance(context.project).currentProfile
+      val profile: InspectionProfile =
+        InspectionProjectProfileManager.getInstance(context.project).currentProfile
       if (!profile.isToolEnabled(key, context)) {
         if (!issue.isEnabledByDefault()) {
           // Lint will skip issues (and not report them) for issues that have been disabled,
@@ -125,13 +134,19 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
           return null
         }
       }
-      val inspection = profile.getUnwrappedTool(inspectionShortName, context) as AndroidLintInspectionBase? ?: return null
+      val inspection =
+        profile.getUnwrappedTool(inspectionShortName, context) as AndroidLintInspectionBase?
+          ?: return null
       val errorLevel = profile.getErrorLevel(key, context)
       return Pair(inspection, errorLevel)
     }
   }
 
-  override fun collectInformation(file: PsiFile, editor: Editor, hasErrors: Boolean): LintEditorResult? {
+  override fun collectInformation(
+    file: PsiFile,
+    editor: Editor,
+    hasErrors: Boolean
+  ): LintEditorResult? {
     return collectInformation(file)
   }
 
@@ -175,7 +190,11 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
         if (name.endsWith(DOT_KTS)) {
           scope = EnumSet.of(Scope.GRADLE_FILE, Scope.JAVA_FILE)
         }
-      } else if (name == OLD_PROGUARD_FILE || name == FN_PROJECT_PROGUARD_FILE || name == FN_ANDROID_PROGUARD_FILE) {
+      } else if (
+        name == OLD_PROGUARD_FILE ||
+          name == FN_PROJECT_PROGUARD_FILE ||
+          name == FN_ANDROID_PROGUARD_FILE
+      ) {
         scope = EnumSet.of(Scope.PROGUARD_FILE)
       } else if (GradleFileType.isGradleFile(mainFile)) {
         scope = Scope.GRADLE_SCOPE
@@ -196,7 +215,14 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
         return lintResult // Lint cannot run without indices.
       }
       val files = listOf(mainFile)
-      val request: LintRequest = LintIdeRequest(client, project, files, listOf(lintResult.getModule()), true /* incremental */)
+      val request: LintRequest =
+        LintIdeRequest(
+          client,
+          project,
+          files,
+          listOf(lintResult.getModule()),
+          true /* incremental */
+        )
       request.setScope(scope)
       val lint = client.createDriver(request)
       lint.analyze()
@@ -225,7 +251,8 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
         continue
       }
 
-      var (inspection, displayLevel) = getHighlightLevelAndInspection(project, issue, file) ?: continue
+      var (inspection, displayLevel) =
+        getHighlightLevelAndInspection(project, issue, file) ?: continue
       val key = HighlightDisplayKey.find(inspection.shortName) ?: continue
       val startElement = file.findElementAt(range.startOffset)
       val endElement = file.findElementAt(range.endOffset - 1)
@@ -242,12 +269,16 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       }
       val severity = displayLevel.severity
       val type: ProblemHighlightType =
-        if (issue === DeprecationDetector.ISSUE ||
+        if (
+          issue === DeprecationDetector.ISSUE ||
             issue === GradleDetector.DEPRECATED ||
             issue === GradleDetector.DEPRECATED_CONFIGURATION ||
-            issue === DeprecatedSinceApiDetector.ISSUE) {
+            issue === DeprecatedSinceApiDetector.ISSUE
+        ) {
           ProblemHighlightType.LIKE_DEPRECATED
-        } else if (issue === WrongIdDetector.UNKNOWN_ID || issue === WrongIdDetector.UNKNOWN_ID_LAYOUT) {
+        } else if (
+          issue === WrongIdDetector.UNKNOWN_ID || issue === WrongIdDetector.UNKNOWN_ID_LAYOUT
+        ) {
           ProblemHighlightType.ERROR // like unknown symbol
         } else if (severity === HighlightSeverity.ERROR) {
           // In recent versions of IntelliJ, HighlightInfo.convertSeverityToProblemHighlight
@@ -261,22 +292,25 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
 
       // Long warning messages can freeze the IDE due to text layout overhead in Swing.
       // See https://issuetracker.google.com/178779561 for an example (should be a very rare case).
-      val message = if (rawMessage.length <= 1000) rawMessage else rawMessage.take(1000) + "... [truncated]"
+      val message =
+        if (rawMessage.length <= 1000) rawMessage else rawMessage.take(1000) + "... [truncated]"
 
       // This description link is not displayed. It is parsed by IDEA to
       // populate the "Show Inspection Description" action.
       val descriptionLink = "<a href=\"" + LINK_PREFIX + issue.id + "\"></a>"
       val tooltip = XmlStringUtil.wrapInHtml(descriptionLink + RAW.convertTo(message, HTML))
-      var builder = holder
-        .newAnnotation(severity, message)
-        .highlightType(type)
-        .range(range)
-        .tooltip(tooltip)
-      val fixes = inspection.getAllFixes(startElement, endElement, message, quickfixData, fixProviders, issue)
+      var builder =
+        holder.newAnnotation(severity, message).highlightType(type).range(range).tooltip(tooltip)
+      val fixes =
+        inspection.getAllFixes(startElement, endElement, message, quickfixData, fixProviders, issue)
       for (fix in fixes) {
-        if (fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.EditorContext.TYPE)) {
-          val smartRange = fix.range
-                           ?: SmartPointerManager.getInstance(project).createSmartPsiFileRangePointer(file, range)
+        if (
+          fix.isApplicable(startElement, endElement, AndroidQuickfixContexts.EditorContext.TYPE)
+        ) {
+          val smartRange =
+            fix.range
+              ?: SmartPointerManager.getInstance(project)
+                .createSmartPsiFileRangePointer(file, range)
           builder = builder.withFix(MyFixingIntention(fix, smartRange))
         }
       }
@@ -296,9 +330,16 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
         val suppressActions = inspection.getBatchSuppressActions(startElement)
         for (action in suppressActions) {
           if (action.isAvailable(project, startElement)) {
-            val descriptor = InspectionManager.getInstance(project).createProblemDescriptor(
-              startElement, endElement, message, type, true, *LocalQuickFix.EMPTY_ARRAY
-            )
+            val descriptor =
+              InspectionManager.getInstance(project)
+                .createProblemDescriptor(
+                  startElement,
+                  endElement,
+                  message,
+                  type,
+                  true,
+                  *LocalQuickFix.EMPTY_ARRAY
+                )
             builder = builder.newLocalQuickFix(action, descriptor).key(key).registerFix()
           }
         }
@@ -345,8 +386,15 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
     /** If non-null, the fix is targeted for a different file than the current one in the editor. */
     @SafeFieldForPreview private val myRange: SmartPsiFileRange
   ) : IntentionAction, HighPriorityAction {
-    constructor(quickFix: LintIdeQuickFix, project: Project, file: PsiFile, range: TextRange)
-      : this(quickFix, SmartPointerManager.getInstance(project).createSmartPsiFileRangePointer(file, range))
+    constructor(
+      quickFix: LintIdeQuickFix,
+      project: Project,
+      file: PsiFile,
+      range: TextRange
+    ) : this(
+      quickFix,
+      SmartPointerManager.getInstance(project).createSmartPsiFileRangePointer(file, range)
+    )
 
     override fun getText(): String {
       return myQuickFix.name
@@ -397,12 +445,22 @@ class LintExternalAnnotator : ExternalAnnotator<LintEditorResult, LintEditorResu
       return myQuickFix.priority
     }
 
-    override fun generatePreview(project: Project, editor: Editor, file: PsiFile): IntentionPreviewInfo {
+    override fun generatePreview(
+      project: Project,
+      editor: Editor,
+      file: PsiFile
+    ): IntentionPreviewInfo {
       return myQuickFix.generatePreview(project, editor, file)
-             ?: super.generatePreview(project, editor, file)
+        ?: super.generatePreview(project, editor, file)
     }
   }
 
-  private class MyEditInspectionToolsSettingsAction(key: HighlightDisplayKey, inspection: AndroidLintInspectionBase) :
-    CustomEditInspectionToolsSettingsAction(key, Computable { "Edit '" + inspection.displayName + "' inspection settings" })
+  private class MyEditInspectionToolsSettingsAction(
+    key: HighlightDisplayKey,
+    inspection: AndroidLintInspectionBase
+  ) :
+    CustomEditInspectionToolsSettingsAction(
+      key,
+      Computable { "Edit '" + inspection.displayName + "' inspection settings" }
+    )
 }

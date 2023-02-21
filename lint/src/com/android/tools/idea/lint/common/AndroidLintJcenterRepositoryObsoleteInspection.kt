@@ -18,6 +18,8 @@ package com.android.tools.idea.lint.common
 import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.GradleDetector
 
-class AndroidLintJcenterRepositoryObsoleteInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.jcenter.repository.obsolete"), GradleDetector.JCENTER_REPOSITORY_OBSOLETE
-)
+class AndroidLintJcenterRepositoryObsoleteInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.jcenter.repository.obsolete"),
+    GradleDetector.JCENTER_REPOSITORY_OBSOLETE
+  )

@@ -18,6 +18,8 @@ package com.android.tools.idea.lint.common
 import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.IndentationDetector
 
-class AndroidLintSuspiciousIndentationInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.suspicious.indentation"), IndentationDetector.ISSUE
-)
+class AndroidLintSuspiciousIndentationInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.suspicious.indentation"),
+    IndentationDetector.ISSUE
+  )

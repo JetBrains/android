@@ -147,8 +147,16 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     addNoInspectionComment(project, file, offset, "#")
   }
 
-  /** Given a file and offset of a statement, inserts a //noinspection <id> comment on the **previous** line. */
-  private fun addNoInspectionComment(project: Project, file: PsiFile, offset: Int, commentPrefix: String = "//") {
+  /**
+   * Given a file and offset of a statement, inserts a //noinspection <id> comment on the
+   * **previous** line.
+   */
+  private fun addNoInspectionComment(
+    project: Project,
+    file: PsiFile,
+    offset: Int,
+    commentPrefix: String = "//"
+  ) {
     val documentManager = PsiDocumentManager.getInstance(project)
     val document = documentManager.getDocument(file) ?: return
     val line = document.getLineNumber(offset)
@@ -159,8 +167,10 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       val prevLine = document.getText(TextRange(prevLineStart, prevLineEnd))
       val index = prevLine.indexOf(NO_INSPECTION_PREFIX)
       if (index != -1) {
-        document.insertString(prevLineStart + index + NO_INSPECTION_PREFIX.length,
-                              getLintId(id) + ",")
+        document.insertString(
+          prevLineStart + index + NO_INSPECTION_PREFIX.length,
+          getLintId(id) + ","
+        )
         return
       }
     }
@@ -173,7 +183,14 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       nonSpace++
     }
     ApplicationManager.getApplication().assertWriteAccessAllowed()
-    document.insertString(lineStart + nonSpace, commentPrefix + NO_INSPECTION_PREFIX + getLintId(id) + "\n" + linePrefix.substring(0, nonSpace))
+    document.insertString(
+      lineStart + nonSpace,
+      commentPrefix +
+        NO_INSPECTION_PREFIX +
+        getLintId(id) +
+        "\n" +
+        linePrefix.substring(0, nonSpace)
+    )
     documentManager.commitDocument(document)
   }
 
@@ -213,7 +230,8 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
           FqName(getAnnotationClass(element)),
           argument,
           whiteSpaceText = if (target.isNewLineNeededForAnnotation()) "\n" else " ",
-          addToExistingAnnotation = { entry -> addArgumentToAnnotation(entry, argument) })
+          addToExistingAnnotation = { entry -> addArgumentToAnnotation(entry, argument) }
+        )
       }
       else -> {
         // Cannot annotate non-annotation owner elements; use //noinspection comment instead
@@ -237,7 +255,9 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       val module = ModuleUtilCore.findModuleForPsiElement(context)
       val scope = module?.getModuleWithDependenciesAndLibrariesScope(false)
       return when {
-        scope != null && JavaPsiFacade.getInstance(project).findClass(FQCN_SUPPRESS_LINT, scope) != null -> FQCN_SUPPRESS_LINT
+        scope != null &&
+          JavaPsiFacade.getInstance(project).findClass(FQCN_SUPPRESS_LINT, scope) != null ->
+          FQCN_SUPPRESS_LINT
         context.language == KotlinLanguage.INSTANCE -> "kotlin.Suppress"
         else -> "java.lang.SuppressWarnings"
       }
@@ -250,20 +270,20 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     @Throws(IncorrectOperationException::class)
     private fun addSuppressAttribute(file: XmlFile, element: XmlTag, id: String) {
       val attribute = element.getAttribute(SdkConstants.ATTR_IGNORE, SdkConstants.TOOLS_URI)
-      val value: String = if (attribute == null || attribute.value == null) {
-        id
-      }
-      else {
-        val ids = ArrayList<String>()
-        for (existing in Splitter.on(',').trimResults().split(attribute.value!!)) {
-          if (existing != id) {
-            ids.add(existing)
+      val value: String =
+        if (attribute == null || attribute.value == null) {
+          id
+        } else {
+          val ids = ArrayList<String>()
+          for (existing in Splitter.on(',').trimResults().split(attribute.value!!)) {
+            if (existing != id) {
+              ids.add(existing)
+            }
           }
+          ids.add(id)
+          ids.sort()
+          Joiner.on(',').join(ids)
         }
-        ids.add(id)
-        ids.sort()
-        Joiner.on(',').join(ids)
-      }
       LintIdeSupport.get().ensureNamespaceImported(file, SdkConstants.TOOLS_URI, null)
       element.setAttribute(SdkConstants.ATTR_IGNORE, SdkConstants.TOOLS_URI, value)
     }
@@ -272,29 +292,32 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     // to add @SuppressWarnings annotations
 
     @Throws(IncorrectOperationException::class)
-    private fun addSuppressAnnotation(project: Project,
-                                      container: PsiElement,
-                                      modifierOwner: PsiModifierListOwner,
-                                      id: String) {
+    private fun addSuppressAnnotation(
+      project: Project,
+      container: PsiElement,
+      modifierOwner: PsiModifierListOwner,
+      id: String
+    ) {
       val annotationName = getAnnotationClass(container)
       val annotation = AnnotationUtil.findAnnotation(modifierOwner, annotationName)
       val newAnnotation = createNewAnnotation(project, container, annotation, id)
       if (newAnnotation != null) {
         if (annotation != null && annotation.isPhysical) {
           annotation.replace(newAnnotation)
-        }
-        else {
+        } else {
           val attributes = newAnnotation.parameterList.attributes
-          AddAnnotationFix(annotationName, modifierOwner, attributes).invoke(project, null,
-                                                                             container.containingFile)/*editor*/
+          AddAnnotationFix(annotationName, modifierOwner, attributes)
+            .invoke(project, null, container.containingFile) /*editor*/
         }
       }
     }
 
-    private fun createNewAnnotation(project: Project,
-                                    container: PsiElement,
-                                    annotation: PsiAnnotation?,
-                                    id: String): PsiAnnotation? {
+    private fun createNewAnnotation(
+      project: Project,
+      container: PsiElement,
+      annotation: PsiAnnotation?,
+      id: String
+    ): PsiAnnotation? {
       if (annotation != null) {
         val currentSuppressedId = "\"" + id + "\""
         val annotationText = annotation.text
@@ -303,25 +326,28 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
           if (attributes.size == 1) {
             val suppressedWarnings = attributes[0].text
             return if (suppressedWarnings.contains(currentSuppressedId)) null
-            else JavaPsiFacade.getInstance(
-              project).elementFactory.createAnnotationFromText(
-              "@${getAnnotationClass(container)}({$suppressedWarnings, $currentSuppressedId})", container)
-
+            else
+              JavaPsiFacade.getInstance(project)
+                .elementFactory
+                .createAnnotationFromText(
+                  "@${getAnnotationClass(container)}({$suppressedWarnings, $currentSuppressedId})",
+                  container
+                )
           }
-        }
-        else {
+        } else {
           val curlyBraceIndex = annotationText.lastIndexOf('}')
           if (curlyBraceIndex > 0) {
             val oldSuppressWarning = annotationText.substring(0, curlyBraceIndex)
             return if (oldSuppressWarning.contains(currentSuppressedId)) null
-            else JavaPsiFacade.getInstance(
-              project).elementFactory.createAnnotationFromText(
-              "$oldSuppressWarning, $currentSuppressedId})", container)
+            else
+              JavaPsiFacade.getInstance(project)
+                .elementFactory
+                .createAnnotationFromText("$oldSuppressWarning, $currentSuppressedId})", container)
           }
         }
-      }
-      else {
-        return JavaPsiFacade.getInstance(project).elementFactory
+      } else {
+        return JavaPsiFacade.getInstance(project)
+          .elementFactory
           .createAnnotationFromText("@${getAnnotationClass(container)}(\"$id\")", container)
       }
       return null
@@ -334,9 +360,9 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       val newArgList = psiFactory.createCallArguments("($argument)")
       when {
         args == null -> // new argument list
-          entry.addAfter(newArgList, entry.lastChild)
+        entry.addAfter(newArgList, entry.lastChild)
         args.arguments.isEmpty() -> // replace '()' with a new argument list
-          args.replace(newArgList)
+        args.replace(newArgList)
         args.arguments.none { it.textMatches(argument) } ->
           args.addArgument(newArgList.arguments[0])
       }
@@ -345,15 +371,15 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     }
 
     /**
-     * Like [findJavaAnnotationTarget], but also includes other PsiElements where we
-     * can place suppression comments
+     * Like [findJavaAnnotationTarget], but also includes other PsiElements where we can place
+     * suppression comments
      */
     private fun findJavaSuppressElement(element: PsiElement): PsiElement? {
       // In addition to valid annotation targets we can also place suppress directives
       // using comments on import or package statements
       return findJavaAnnotationTarget(element)
-             ?: element.getParentOfType<PsiImportStatementBase>(false)
-             ?: element.getParentOfType<PsiPackageStatement>(false)
+        ?: element.getParentOfType<PsiImportStatementBase>(false)
+          ?: element.getParentOfType<PsiPackageStatement>(false)
     }
 
     private fun findKotlinSuppressElement(element: PsiElement): PsiElement? {
@@ -362,12 +388,12 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
 
     private fun PsiElement.isSuppressLintTarget(): Boolean {
       return this is KtDeclaration &&
-             (this as? KtProperty)?.hasBackingField() ?: true &&
-             this !is KtFunctionLiteral &&
-             this !is KtDestructuringDeclaration &&
-             this !is KtClassInitializer
-             // We also allow placing suppression via comments on imports and package statements
-             || this is KtImportDirective || this is KtPackageDirective
+        (this as? KtProperty)?.hasBackingField() ?: true &&
+        this !is KtFunctionLiteral &&
+        this !is KtDestructuringDeclaration &&
+        this !is KtClassInitializer
+      // We also allow placing suppression via comments on imports and package statements
+      || this is KtImportDirective || this is KtPackageDirective
     }
 
     fun displayName(element: PsiElement?, inspectionId: String): String {
@@ -378,15 +404,13 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
           val target = findJavaSuppressElement(element)
           if (target is PsiModifierListOwner)
             LintBundle.message("android.lint.fix.suppress.lint.api.annotation", id)
-          else
-            LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
+          else LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
         }
         KotlinLanguage.INSTANCE -> {
           val target = findKotlinSuppressElement(element)
           if (target is KtDeclaration)
             LintBundle.message("android.lint.fix.suppress.lint.api.annotation", id)
-          else
-            LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
+          else LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
         }
         GroovyLanguage -> LintBundle.message("android.lint.fix.suppress.lint.api.comment", id)
         else -> "Suppress $id"

@@ -26,9 +26,9 @@ import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import java.io.IOException
 import junit.framework.Assert.*
 import org.intellij.lang.annotations.Language
-import java.io.IOException
 
 // Migrated tests from org.jetbrains.kotlin.android.quickfix.AndroidLintQuickfixTestGenerated
 class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
@@ -74,7 +74,9 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     val actions = myFixture.filterAvailableIntentions(fixPrefix)
     if (actions.isEmpty()) {
       if (expectedDiff.isNotBlank()) {
-        fail("Did not find quickfix with prefix $fixPrefix; available fixes are:\n${myFixture.availableIntentions.joinToString("\n") { it.text }}")
+        fail(
+          "Did not find quickfix with prefix $fixPrefix; available fixes are:\n${myFixture.availableIntentions.joinToString("\n") { it.text }}"
+        )
       }
       assertThat(expectedDiff.trim()).isEqualTo("")
       return
@@ -90,10 +92,12 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
   }
 
   @Language("kt")
-  private val requiresApiAnnotationStub = """
+  private val requiresApiAnnotationStub =
+    """
       package android.support.annotation
       annotation class RequiresApi(val api: Int)
-      """.trimIndent()
+      """
+      .trimIndent()
 
   private fun createFile(relativePath: String, @Language("kt") source: String): PsiFile {
     val virtualFile = myFixture.tempDirFixture.createFile(relativePath)
@@ -196,7 +200,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
   @Suppress("RemoveEmptyClassBody")
   fun testRequiresApiAnnotation() {
     check(
-      source = """
+      source =
+        """
       import android.graphics.drawable.VectorDrawable
       import kotlin.reflect.KClass
 
@@ -250,7 +255,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @RequiresApi",
-      expectedDiff = """
+      expectedDiff =
+        """
             @@ -2 +2
               import android.graphics.drawable.VectorDrawable
             + import android.os.Build
@@ -274,7 +280,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @RequiresApi",
-      expectedDiff = """
+      expectedDiff =
+        """
         @@ -2 +2
           import android.graphics.drawable.VectorDrawable
         + import android.os.Build
@@ -489,7 +496,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintSdCardPathInspection(),
       fixPrefix = "Suppress SdCardPath with an annotation",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -6 +6
         class MainActivity : Activity() {
       -     @SuppressLint("Something")
@@ -506,7 +514,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintSdCardPathInspection(),
       fixPrefix = "Suppress SdCardPath with an annotation",
-      expectedDiff = """
+      expectedDiff =
+        """
         @@ -1 +1
         - class SdCard(val path: String = "/sdcard")
         + import android.annotation.SuppressLint
@@ -528,7 +537,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintSdCardPathInspection(),
       fixPrefix = "Suppress SdCardPath with an annotation",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -1 +1
       + import android.annotation.SuppressLint
       +
@@ -551,7 +561,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintSdCardPathInspection(),
       fixPrefix = "Suppress SdCardPath with an annotation",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -1 +1
       + import android.annotation.SuppressLint
       +
@@ -573,7 +584,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintSdCardPathInspection(),
       fixPrefix = "Suppress SdCardPath with an annotation",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -1 +1
       + import android.annotation.SuppressLint
       +
@@ -592,7 +604,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintSdCardPathInspection(),
       fixPrefix = "Suppress SdCardPath with an annotation",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -1 +1
       - fun foo(path: String = "/sdcard") = path
       + import android.annotation.SuppressLint
@@ -609,7 +622,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintSdCardPathInspection(),
       fixPrefix = "Suppress SdCardPath with an annotation",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -1 +1
       + import android.annotation.SuppressLint
       +
@@ -627,7 +641,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintSdCardPathInspection(),
       fixPrefix = "Suppress SdCardPath with an annotation",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -1 +1
       + import android.annotation.SuppressLint
       +
@@ -658,7 +673,6 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
     )
   }
 
-
   fun testAddTargetApiCompanion() {
     check(
       """
@@ -672,7 +686,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @TargetApi",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
@@ -695,7 +710,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @TargetApi",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
@@ -718,7 +734,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @TargetApi",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
@@ -745,7 +762,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @TargetApi",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
@@ -769,7 +787,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintInlinedApiInspection(),
       fixPrefix = "Add @TargetApi",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -1 +1
       + import android.annotation.TargetApi
       + import android.os.Build
@@ -794,7 +813,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @TargetApi",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
@@ -819,7 +839,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @TargetApi",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
@@ -843,7 +864,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @TargetApi",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
@@ -872,7 +894,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Add @TargetApi",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -1 +1
       + import android.annotation.TargetApi
         import android.graphics.drawable.VectorDrawable
@@ -934,7 +957,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Surround with if (VERSION.SDK_INT",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -3 +3
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
@@ -963,7 +987,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Surround with if (VERSION.SDK_INT",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
@@ -995,7 +1020,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Surround with if (VERSION.SDK_INT",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
@@ -1023,7 +1049,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Surround with if (VERSION.SDK_INT",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
@@ -1054,7 +1081,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Surround with if (VERSION.SDK_INT",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
@@ -1088,7 +1116,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Surround with if (VERSION.SDK_INT",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
@@ -1117,7 +1146,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintInlinedApiInspection(),
       fixPrefix = "Surround with if (VERSION.SDK_INT",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -1 +1
       + import android.os.Build
       +
@@ -1147,7 +1177,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Surround with if (VERSION.SDK_INT",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build
@@ -1182,7 +1213,8 @@ class LintKotlinQuickFixTest : AbstractAndroidLintTest() {
       """,
       inspection = AndroidLintNewApiInspection(),
       fixPrefix = "Surround with if (VERSION.SDK_INT",
-      expectedDiff = """
+      expectedDiff =
+        """
       @@ -2 +2
         import android.graphics.drawable.VectorDrawable
       + import android.os.Build

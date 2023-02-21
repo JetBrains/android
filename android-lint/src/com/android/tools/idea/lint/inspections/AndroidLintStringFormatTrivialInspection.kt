@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.lint.inspections
 
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.StringFormatDetector
-import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 
-class AndroidLintStringFormatTrivialInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.string.format.trivial"), StringFormatDetector.TRIVIAL
-)
+class AndroidLintStringFormatTrivialInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.string.format.trivial"),
+    StringFormatDetector.TRIVIAL
+  )

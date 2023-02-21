@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.lint.inspections
 
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.BinderGetCallingInMainThreadDetector
-import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 
-class AndroidLintBinderGetCallingInMainThreadInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.binder.get.calling.in.main.thread"), BinderGetCallingInMainThreadDetector.ISSUE
-)
+class AndroidLintBinderGetCallingInMainThreadInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.binder.get.calling.in.main.thread"),
+    BinderGetCallingInMainThreadDetector.ISSUE
+  )

@@ -36,13 +36,16 @@ class ProvideLintFeedbackFix(private val myIssue: String) : LocalQuickFix {
   }
 
   override fun applyFix(project: Project, descriptor: ProblemDescriptor) {
-    ApplicationManager.getApplication().invokeLater(
-      {
-        if (!project.isDisposed) {
-          val dialog = ProvideLintFeedbackPanel(project, myIssue)
-          dialog.show()
-        }
-      }, ModalityState.any())
+    ApplicationManager.getApplication()
+      .invokeLater(
+        {
+          if (!project.isDisposed) {
+            val dialog = ProvideLintFeedbackPanel(project, myIssue)
+            dialog.show()
+          }
+        },
+        ModalityState.any()
+      )
   }
 
   override fun startInWriteAction(): Boolean {

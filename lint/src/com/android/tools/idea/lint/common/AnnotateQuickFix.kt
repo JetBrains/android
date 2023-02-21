@@ -56,7 +56,11 @@ class AnnotateQuickFix(
     }
   }
 
-  override fun apply(element: PsiElement, endElement: PsiElement, context: AndroidQuickfixContexts.Context) {
+  override fun apply(
+    element: PsiElement,
+    endElement: PsiElement,
+    context: AndroidQuickfixContexts.Context
+  ) {
     val language = element.language
     val container = findContainer(element) ?: return
 
@@ -74,10 +78,10 @@ class AnnotateQuickFix(
         val annotation = AnnotationUtil.findAnnotation(owner, annotationName)
         if (annotation != null && annotation.isPhysical && replace) {
           annotation.replace(newAnnotation)
-        }
-        else {
+        } else {
           val attributes = newAnnotation.parameterList.attributes
-          AddAnnotationFix(annotationName, container, attributes).invoke(project, null, element.containingFile)
+          AddAnnotationFix(annotationName, container, attributes)
+            .invoke(project, null, element.containingFile)
         }
       }
       KotlinLanguage.INSTANCE -> {
@@ -86,40 +90,42 @@ class AnnotateQuickFix(
         val annotationEntry = psiFactory.createAnnotationEntry(annotationSource)
         val fqName = annotationSource.removePrefix("@").substringAfter(':').substringBefore('(')
         val existing = container.findAnnotation(FqName(fqName))
-        val addedAnnotation = if (existing != null && existing.isPhysical && replace) {
-          existing.replace(annotationEntry) as KtAnnotationEntry
-        } else {
-          container.addAnnotationEntry(annotationEntry)
-        }
+        val addedAnnotation =
+          if (existing != null && existing.isPhysical && replace) {
+            existing.replace(annotationEntry) as KtAnnotationEntry
+          } else {
+            container.addAnnotationEntry(annotationEntry)
+          }
         ShortenReferences.DEFAULT.process(addedAnnotation)
       }
     }
   }
 
-  override fun isApplicable(startElement: PsiElement, endElement: PsiElement, contextType: AndroidQuickfixContexts.ContextType): Boolean {
+  override fun isApplicable(
+    startElement: PsiElement,
+    endElement: PsiElement,
+    contextType: AndroidQuickfixContexts.ContextType
+  ): Boolean {
     return findContainer(startElement) != null
   }
 }
 
 fun PsiElement.isAnnotationTarget(): Boolean {
   return this is KtClassOrObject ||
-         (this is KtFunction && this !is KtFunctionLiteral) ||
-         (this is KtProperty && !isLocal && hasBackingField()) ||
-         this is KtPropertyAccessor
+    (this is KtFunction && this !is KtFunctionLiteral) ||
+    (this is KtProperty && !isLocal && hasBackingField()) ||
+    this is KtPropertyAccessor
 }
 
 fun KtElement.isNewLineNeededForAnnotation(): Boolean {
-  return !(this is KtParameter ||
-           this is KtTypeParameter ||
-           this is KtPropertyAccessor)
+  return !(this is KtParameter || this is KtTypeParameter || this is KtPropertyAccessor)
 }
 
 fun findJavaAnnotationTarget(element: PsiElement?): PsiModifierListOwner? {
   val modifier = PsiTreeUtil.getParentOfType(element, PsiModifierListOwner::class.java, false)
   return if (modifier is PsiClassInitializer || modifier is PsiAnonymousClass) {
     findJavaAnnotationTarget(modifier.parent)
-  }
-  else {
+  } else {
     modifier
   }
 }

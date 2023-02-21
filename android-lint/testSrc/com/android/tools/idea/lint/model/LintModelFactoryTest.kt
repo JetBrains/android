@@ -23,15 +23,14 @@ import org.junit.Test
 class LintModelFactoryTest {
   @Test
   fun testNonMavenArtifact() {
-    // 259832798: Android linter warnings are not shown due to bug in AndroidLintIdeClient.findRuleJars
-    assertThat(
-      LintModelFactory.getMavenName("androidx.databinding:viewbinding:7.3.1@aar")).isEqualTo(
-      DefaultLintModelMavenName("androidx.databinding", "viewbinding", "7.3.1")
-    )
+    // 259832798: Android linter warnings are not shown due to bug in
+    // AndroidLintIdeClient.findRuleJars
+    assertThat(LintModelFactory.getMavenName("androidx.databinding:viewbinding:7.3.1@aar"))
+      .isEqualTo(DefaultLintModelMavenName("androidx.databinding", "viewbinding", "7.3.1"))
 
-    assertThat(
-      LintModelFactory.getMavenName("/some/path/to/lib/build/libs/lib-all.jar")).isEqualTo(
-      DefaultLintModelMavenName("__non_maven__", "/some/path/to/lib/build/libs/lib-all.jar")
-    )
+    assertThat(LintModelFactory.getMavenName("/some/path/to/lib/build/libs/lib-all.jar"))
+      .isEqualTo(
+        DefaultLintModelMavenName("__non_maven__", "/some/path/to/lib/build/libs/lib-all.jar")
+      )
   }
 }

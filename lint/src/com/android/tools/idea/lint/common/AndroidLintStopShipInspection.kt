@@ -18,6 +18,8 @@ package com.android.tools.idea.lint.common
 import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.CommentDetector
 
-class AndroidLintStopShipInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.stop.ship"), CommentDetector.STOP_SHIP
-)
+class AndroidLintStopShipInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.stop.ship"),
+    CommentDetector.STOP_SHIP
+  )

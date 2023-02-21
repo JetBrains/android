@@ -23,18 +23,27 @@ import com.intellij.testFramework.fixtures.JavaCodeInsightFixtureTestCase
 class AnnotateQuickFixTest : JavaCodeInsightFixtureTestCase() {
 
   fun testKotlinAnnotationArgs() {
-    val file = myFixture.configureByText(
-      "src/p1/p2/AnnotateTest.kt",
-      //language=kotlin
-      """
+    val file =
+      myFixture.configureByText(
+        "src/p1/p2/AnnotateTest.kt",
+        // language=kotlin
+        """
         package p1.p2
         const val someProperty = ""
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     val ktProperty = myFixture.findElementByText("someProperty", PsiElement::class.java)
-    val addAnnotationFix = AnnotateQuickFix("Add @Suppress(SomeInspection)", "Test", "@kotlin.Suppress(\"SomeInspection\")", true)
-    val context = AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor, myFixture.file)
+    val addAnnotationFix =
+      AnnotateQuickFix(
+        "Add @Suppress(SomeInspection)",
+        "Test",
+        "@kotlin.Suppress(\"SomeInspection\")",
+        true
+      )
+    val context =
+      AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor, myFixture.file)
 
     assertTrue(addAnnotationFix.isApplicable(ktProperty, ktProperty, context.type))
     WriteCommandAction.runWriteCommandAction(project) {
@@ -46,24 +55,29 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureTestCase() {
       package p1.p2
       @Suppress("SomeInspection")
       const val someProperty = ""
-      """.trimIndent(),
+      """
+        .trimIndent(),
       file.text
     )
   }
 
   fun testKotlinUseSiteTarget() {
-    val file = myFixture.configureByText(
-      "src/p1/p2/AnnotateTest.kt",
-      //language=kotlin
-      """
+    val file =
+      myFixture.configureByText(
+        "src/p1/p2/AnnotateTest.kt",
+        // language=kotlin
+        """
         package p1.p2
         const val someProperty = ""
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     val ktProperty = myFixture.findElementByText("someProperty", PsiElement::class.java)
-    val addAnnotationFix = AnnotateQuickFix("Add @get:JvmSynthetic", "Test", "@get:JvmSynthetic", true)
-    val context = AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor, myFixture.file)
+    val addAnnotationFix =
+      AnnotateQuickFix("Add @get:JvmSynthetic", "Test", "@get:JvmSynthetic", true)
+    val context =
+      AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor, myFixture.file)
 
     assertTrue(addAnnotationFix.isApplicable(ktProperty, ktProperty, context.type))
     WriteCommandAction.runWriteCommandAction(project) {
@@ -75,27 +89,42 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureTestCase() {
       package p1.p2
       @get:JvmSynthetic
       const val someProperty = ""
-      """.trimIndent(),
+      """
+        .trimIndent(),
       file.text
     )
   }
 
   fun testKotlinMultipleAnnotations() {
-    val file = myFixture.configureByText(
-      "src/p1/p2/AnnotateTest.kt",
-      //language=kotlin
-      """
+    val file =
+      myFixture.configureByText(
+        "src/p1/p2/AnnotateTest.kt",
+        // language=kotlin
+        """
         package p1.p2
         const val someProperty = ""
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     val ktProperty = myFixture.findElementByText("someProperty", PsiElement::class.java)
-    val addAnnotationFixes = listOf(
-      AnnotateQuickFix("Add @Suppress(SomeInspection1)", "Test", "@kotlin.Suppress(\"SomeInspection1\")", false),
-      AnnotateQuickFix("Add @Suppress(SomeInspection2)", "Test", "@kotlin.Suppress(\"SomeInspection2\")", false),
-    )
-    val context = AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor, myFixture.file)
+    val addAnnotationFixes =
+      listOf(
+        AnnotateQuickFix(
+          "Add @Suppress(SomeInspection1)",
+          "Test",
+          "@kotlin.Suppress(\"SomeInspection1\")",
+          false
+        ),
+        AnnotateQuickFix(
+          "Add @Suppress(SomeInspection2)",
+          "Test",
+          "@kotlin.Suppress(\"SomeInspection2\")",
+          false
+        ),
+      )
+    val context =
+      AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor, myFixture.file)
 
     for (fix in addAnnotationFixes) {
       assertTrue(fix.isApplicable(ktProperty, ktProperty, context.type))
@@ -110,27 +139,42 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureTestCase() {
       @Suppress("SomeInspection2")
       @Suppress("SomeInspection1")
       const val someProperty = ""
-      """.trimIndent(),
+      """
+        .trimIndent(),
       file.text
     )
   }
 
   fun testKotlinReplaceAnnotation() {
-    val file = myFixture.configureByText(
-      "src/p1/p2/AnnotateTest.kt",
-      //language=kotlin
-      """
+    val file =
+      myFixture.configureByText(
+        "src/p1/p2/AnnotateTest.kt",
+        // language=kotlin
+        """
         package p1.p2
         const val someProperty = ""
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     val ktProperty = myFixture.findElementByText("someProperty", PsiElement::class.java)
-    val addAnnotationFixes = listOf(
-      AnnotateQuickFix("Add @Suppress(SomeInspection1)", "Test", "@kotlin.Suppress(\"SomeInspection1\")", true),
-      AnnotateQuickFix("Add @Suppress(SomeInspection2)", "Test", "@kotlin.Suppress(\"SomeInspection2\")", true),
-    )
-    val context = AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor, myFixture.file)
+    val addAnnotationFixes =
+      listOf(
+        AnnotateQuickFix(
+          "Add @Suppress(SomeInspection1)",
+          "Test",
+          "@kotlin.Suppress(\"SomeInspection1\")",
+          true
+        ),
+        AnnotateQuickFix(
+          "Add @Suppress(SomeInspection2)",
+          "Test",
+          "@kotlin.Suppress(\"SomeInspection2\")",
+          true
+        ),
+      )
+    val context =
+      AndroidQuickfixContexts.EditorContext.getInstance(myFixture.editor, myFixture.file)
 
     for (fix in addAnnotationFixes) {
       assertTrue(fix.isApplicable(ktProperty, ktProperty, context.type))
@@ -144,27 +188,28 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureTestCase() {
       package p1.p2
       @Suppress("SomeInspection2")
       const val someProperty = ""
-      """.trimIndent(),
+      """
+        .trimIndent(),
       file.text
     )
   }
 
   fun testTomlSuppressFix() {
-    val file = myFixture.configureByText(
-      "src/test.toml",
-      //language=TOML
-      """
+    val file =
+      myFixture.configureByText(
+        "src/test.toml",
+        // language=TOML
+        """
         key1="value1"
         key2="value2"
         #noinspection MyId2
         key3="value3"
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     val element = myFixture.findElementByText("value2", PsiElement::class.java)
-    val fixes = listOf(
-      SuppressLintIntentionAction("MyId1", element)
-    )
+    val fixes = listOf(SuppressLintIntentionAction("MyId1", element))
 
     for (fix in fixes) {
       assertTrue(fix.isAvailable(project, myFixture.editor, file))
@@ -176,14 +221,15 @@ class AnnotateQuickFixTest : JavaCodeInsightFixtureTestCase() {
     }
 
     assertEquals(
-      //language=TOML
+      // language=TOML
       """
       key1="value1"
       #noinspection MyId1
       key2="value2"
       #noinspection MyId2
       key3="value3"
-      """.trimIndent(),
+      """
+        .trimIndent(),
       file.text
     )
   }

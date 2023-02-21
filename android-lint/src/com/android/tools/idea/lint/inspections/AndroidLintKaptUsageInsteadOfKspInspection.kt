@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.lint.inspections
 
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.GradleDetector
-import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 
-class AndroidLintKaptUsageInsteadOfKspInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.kapt.usage.instead.of.ksp"), GradleDetector.KAPT_USAGE_INSTEAD_OF_KSP
-)
+class AndroidLintKaptUsageInsteadOfKspInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.kapt.usage.instead.of.ksp"),
+    GradleDetector.KAPT_USAGE_INSTEAD_OF_KSP
+  )

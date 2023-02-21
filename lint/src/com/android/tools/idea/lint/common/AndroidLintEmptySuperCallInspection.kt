@@ -18,6 +18,8 @@ package com.android.tools.idea.lint.common
 import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.EmptySuperDetector
 
-class AndroidLintEmptySuperCallInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.empty.super.call"), EmptySuperDetector.ISSUE
-)
+class AndroidLintEmptySuperCallInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.empty.super.call"),
+    EmptySuperDetector.ISSUE
+  )

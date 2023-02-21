@@ -29,17 +29,27 @@ import com.android.tools.lint.detector.api.LintFix.LintFixGroup
 import com.intellij.psi.PsiElement
 import java.util.ArrayList
 
-class AndroidLintAndroidGradlePluginVersionInspection : AndroidLintInspectionBase(
-  AndroidLintBundle.message("android.lint.inspections.android.gradle.plugin.version"), GradleDetector.AGP_DEPENDENCY) {
-  override fun getQuickFixes(startElement: PsiElement, endElement: PsiElement, message: String, fixData: LintFix?): Array<LintIdeQuickFix> {
+class AndroidLintAndroidGradlePluginVersionInspection :
+  AndroidLintInspectionBase(
+    AndroidLintBundle.message("android.lint.inspections.android.gradle.plugin.version"),
+    GradleDetector.AGP_DEPENDENCY
+  ) {
+  override fun getQuickFixes(
+    startElement: PsiElement,
+    endElement: PsiElement,
+    message: String,
+    fixData: LintFix?
+  ): Array<LintIdeQuickFix> {
     val quickFixes = ArrayList<LintIdeQuickFix>()
     // Find and add a quick fix corresponding to a "safe" (micro-level change only) AGP upgrade
     if (fixData is LintFixGroup && fixData.type == LintFix.GroupType.ALTERNATIVES) {
-      fixData.fixes.asSequence().filter { it.robot }.forEach { fix ->
-        quickFixes.addAll(super.getQuickFixes(startElement, endElement, message, fix))
-      }
-    }
-    else if (fixData != null && fixData.robot) {
+      fixData.fixes
+        .asSequence()
+        .filter { it.robot }
+        .forEach { fix ->
+          quickFixes.addAll(super.getQuickFixes(startElement, endElement, message, fix))
+        }
+    } else if (fixData != null && fixData.robot) {
       quickFixes.addAll(super.getQuickFixes(startElement, endElement, message, fixData))
     }
     if (get().shouldRecommendUpdateAgpToLatest(startElement.project)) {
@@ -50,16 +60,23 @@ class AndroidLintAndroidGradlePluginVersionInspection : AndroidLintInspectionBas
     return quickFixes.toArray(LintIdeQuickFix.EMPTY_ARRAY)
   }
 
-  class InvokeAGPUpgradeAssistantQuickFix(agpVersion: AgpVersion?) : DefaultLintQuickFix(
-    if (agpVersion == null)
-      "Invoke Upgrade Assistant"
-    else
-      "Invoke Upgrade Assistant for upgrade to $agpVersion"
-  ) {
-    override fun apply(startElement: PsiElement, endElement: PsiElement, context: AndroidQuickfixContexts.Context) {
+  class InvokeAGPUpgradeAssistantQuickFix(agpVersion: AgpVersion?) :
+    DefaultLintQuickFix(
+      if (agpVersion == null) "Invoke Upgrade Assistant"
+      else "Invoke Upgrade Assistant for upgrade to $agpVersion"
+    ) {
+    override fun apply(
+      startElement: PsiElement,
+      endElement: PsiElement,
+      context: AndroidQuickfixContexts.Context
+    ) {
       get().updateAgpToLatest(startElement.project)
     }
 
-    override fun isApplicable(startElement: PsiElement, endElement: PsiElement, contextType: ContextType): Boolean = true
+    override fun isApplicable(
+      startElement: PsiElement,
+      endElement: PsiElement,
+      contextType: ContextType
+    ): Boolean = true
   }
 }

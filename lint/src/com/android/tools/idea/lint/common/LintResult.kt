@@ -28,26 +28,32 @@ sealed class LintResult {
 }
 
 /**
- * Result object which doesn't record anything. Used in scenarios where you're depending
- * on lint infrastructure (such as [ApiLookup] and need to construct a client but you don't
- * need to record any potential warnings.
+ * Result object which doesn't record anything. Used in scenarios where you're depending on lint
+ * infrastructure (such as [ApiLookup] and need to construct a client but you don't need to record
+ * any potential warnings.
  */
 class LintIgnoredResult() : LintResult() {
   override fun getIssues(): Set<Issue> = emptySet()
 }
 
-data class LintBatchResult(val project: Project,
-                           val problemMap: Map<Issue, Map<File, List<LintProblemData>>>,
-                           val scope: AnalysisScope,
-                           private val issues: Set<Issue>) : LintResult() {
+data class LintBatchResult(
+  val project: Project,
+  val problemMap: Map<Issue, Map<File, List<LintProblemData>>>,
+  val scope: AnalysisScope,
+  private val issues: Set<Issue>
+) : LintResult() {
   override fun getIssues(): Set<Issue> {
     return issues
   }
 }
-class LintEditorResult constructor(private val myModule: Module,
-                                            val mainFile: VirtualFile,
-                                            val mainFileContent: String,
-                                            private val myIssues: Set<Issue>) : LintResult() {
+
+class LintEditorResult
+constructor(
+  private val myModule: Module,
+  val mainFile: VirtualFile,
+  val mainFileContent: String,
+  private val myIssues: Set<Issue>
+) : LintResult() {
   val problems: List<LintProblemData> = ArrayList()
 
   @Volatile

@@ -56,10 +56,10 @@ import com.intellij.testFramework.fixtures.TestFixtureBuilder
 import com.intellij.testFramework.fixtures.impl.JavaModuleFixtureBuilderImpl
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl
 import com.intellij.util.ThrowableRunnable
-import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
+import org.jetbrains.android.JavaCodeInsightFixtureAdtTestCase
 
 class LintIdeTest : UsefulTestCase() {
   init {
@@ -77,13 +77,17 @@ class LintIdeTest : UsefulTestCase() {
 
     val factory = IdeaTestFixtureFactory.getFixtureFactory()
     val projectBuilder = factory.createFixtureBuilder(name)
-    val fixture = JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.fixture)
+    val fixture =
+      JavaTestFixtureFactory.getFixtureFactory().createCodeInsightFixture(projectBuilder.fixture)
     myFixture = fixture
     fixture.setUp()
     fixture.testDataPath = testDataPath
 
     // Set up module and content roots
-    factory.registerFixtureBuilder(LintModuleFixtureBuilder::class.java, LintModuleFixtureBuilderImpl::class.java)
+    factory.registerFixtureBuilder(
+      LintModuleFixtureBuilder::class.java,
+      LintModuleFixtureBuilderImpl::class.java
+    )
     val moduleFixtureBuilder = projectBuilder.addModule(LintModuleFixtureBuilder::class.java)
     moduleFixtureBuilder.setModuleRoot(fixture.tempDirPath)
     moduleFixtureBuilder.addContentRoot(fixture.tempDirPath)
@@ -97,11 +101,9 @@ class LintIdeTest : UsefulTestCase() {
   override fun tearDown() {
     try {
       myFixture.tearDown()
-    }
-    catch (e: Throwable) {
+    } catch (e: Throwable) {
       addSuppressedException(e)
-    }
-    finally {
+    } finally {
       super.tearDown()
     }
   }
@@ -110,110 +112,172 @@ class LintIdeTest : UsefulTestCase() {
     get() = myFixture.project
 
   fun testLintIdeClientReturnsModuleFromEditorResult() {
-    val fileContent = """
+    val fileContent =
+      """
       package p1.p2;
       public class WhySoSerious {}
-    """.trimIndent()
-    val vfPointer = myFixture.addFileToProject("src/p1/p2/WhySoSerious.java", fileContent).virtualFile
+    """
+        .trimIndent()
+    val vfPointer =
+      myFixture.addFileToProject("src/p1/p2/WhySoSerious.java", fileContent).virtualFile
 
     val module = ModuleManager.getInstance(myFixture.project).modules[0]
-    val lintClient = LintIdeClient(myFixture.project, LintEditorResult(module, vfPointer, fileContent, Sets.newHashSet()))
+    val lintClient =
+      LintIdeClient(
+        myFixture.project,
+        LintEditorResult(module, vfPointer, fileContent, Sets.newHashSet())
+      )
 
     assertThat(lintClient.module).isSameAs(module)
   }
 
   fun testUseValueOf() {
-    doTestWithFix(AndroidLintUseValueOfInspection(),
-                  "Replace with valueOf()", "/src/test/pkg/UseValueOf.java", "java")
+    doTestWithFix(
+      AndroidLintUseValueOfInspection(),
+      "Replace with valueOf()",
+      "/src/test/pkg/UseValueOf.java",
+      "java"
+    )
   }
 
   fun testUseValueOfSuppress() {
-    doTestWithFix(AndroidLintUseValueOfInspection(),
-                  "Suppress UseValueOf with an annotation", "/src/test/pkg/UseValueOf.java", "java")
+    doTestWithFix(
+      AndroidLintUseValueOfInspection(),
+      "Suppress UseValueOf with an annotation",
+      "/src/test/pkg/UseValueOf.java",
+      "java"
+    )
   }
 
   fun testWrongQuote() {
-    doTestWithFix(AndroidLintNotInterpolatedInspection(),
-                  "Replace single quotes with double quotes", "build.gradle", "gradle")
+    doTestWithFix(
+      AndroidLintNotInterpolatedInspection(),
+      "Replace single quotes with double quotes",
+      "build.gradle",
+      "gradle"
+    )
   }
 
   fun testAddSuperCallJava() {
     addCallSuper()
-    doTestWithFix(AndroidLintMissingSuperCallInspection(),
-                  "Add super call", "/src/p1/p2/SuperTestJava.java", "java")
+    doTestWithFix(
+      AndroidLintMissingSuperCallInspection(),
+      "Add super call",
+      "/src/p1/p2/SuperTestJava.java",
+      "java"
+    )
   }
 
   fun testAddSuperCall() {
     addCallSuper()
-    doTestWithFix(AndroidLintMissingSuperCallInspection(),
-                  "Add super call", "/src/p1/p2/SuperTest.kt", "kt")
+    doTestWithFix(
+      AndroidLintMissingSuperCallInspection(),
+      "Add super call",
+      "/src/p1/p2/SuperTest.kt",
+      "kt"
+    )
   }
 
   fun testAddSuperCallSuppress() {
     addCallSuper()
-    doTestWithFix(AndroidLintMissingSuperCallInspection(),
-                  "Suppress MissingSuperCall with an annotation", "/src/p1/p2/SuperTest.kt", "kt")
+    doTestWithFix(
+      AndroidLintMissingSuperCallInspection(),
+      "Suppress MissingSuperCall with an annotation",
+      "/src/p1/p2/SuperTest.kt",
+      "kt"
+    )
   }
 
   fun testAddSuperCallExpression() {
     addCallSuper()
-    doTestWithFix(AndroidLintMissingSuperCallInspection(),
-                  "Add super call", "/src/p1/p2/SuperTest.kt", "kt")
+    doTestWithFix(
+      AndroidLintMissingSuperCallInspection(),
+      "Add super call",
+      "/src/p1/p2/SuperTest.kt",
+      "kt"
+    )
   }
 
   fun testJavaCheckResultTest1() {
     addCheckResult()
-    doTestWithFix(AndroidLintCheckResultInspection(),
-                  "Call replace instead", "/src/p1/p2/JavaCheckResultTest1.java", "java")
+    doTestWithFix(
+      AndroidLintCheckResultInspection(),
+      "Call replace instead",
+      "/src/p1/p2/JavaCheckResultTest1.java",
+      "java"
+    )
   }
 
   fun testKotlinCheckResultTest1() {
     addCheckResult()
-    doTestWithFix(AndroidLintCheckResultInspection(),
-                  "Call replace instead", "/src/p1/p2/KotlinCheckResultTest1.kt", "kt")
+    doTestWithFix(
+      AndroidLintCheckResultInspection(),
+      "Call replace instead",
+      "/src/p1/p2/KotlinCheckResultTest1.kt",
+      "kt"
+    )
   }
 
   fun testPropertyFiles() {
-    doTestWithFix(AndroidLintPropertyEscapeInspection(),
-                  "Escape", "local.properties", "properties")
+    doTestWithFix(AndroidLintPropertyEscapeInspection(), "Escape", "local.properties", "properties")
   }
 
   fun testCallSuper() {
     addCallSuper()
-    doTestWithFix(AndroidLintMissingSuperCallInspection(),
-                  "Add super call", "src/p1/p2/CallSuperTest.java", "java")
+    doTestWithFix(
+      AndroidLintMissingSuperCallInspection(),
+      "Add super call",
+      "src/p1/p2/CallSuperTest.java",
+      "java"
+    )
   }
 
   fun testCallSuper2() {
     addCallSuper()
-    doTestWithFix(AndroidLintMissingSuperCallInspection(),
-                  "Add super call", "src/p1/p2/FooImpl.java", "java")
+    doTestWithFix(
+      AndroidLintMissingSuperCallInspection(),
+      "Add super call",
+      "src/p1/p2/FooImpl.java",
+      "java"
+    )
   }
 
   fun testCallSuperKotlin() {
     addCallSuper()
-    doTestWithFix(AndroidLintMissingSuperCallInspection(),
-                  "Add super call", "src/p1/p2/FooImpl.kt", "kt")
+    doTestWithFix(
+      AndroidLintMissingSuperCallInspection(),
+      "Add super call",
+      "src/p1/p2/FooImpl.kt",
+      "kt"
+    )
   }
 
   fun testStopShip() {
     CommentDetector.STOP_SHIP.setEnabledByDefault(true)
-    doTestWithFix(AndroidLintStopShipInspection(), "Remove STOPSHIP", "/src/test/pkg/StopShip.java",
-                  "java")
+    doTestWithFix(
+      AndroidLintStopShipInspection(),
+      "Remove STOPSHIP",
+      "/src/test/pkg/StopShip.java",
+      "java"
+    )
   }
 
   fun testDisabledTestsEnabledOnTheFly() {
     // If this changes test no longer applies; pick different disabled issue
-/* b/214265385
-    assertThat(CommentDetector.STOP_SHIP.isEnabledByDefault()).isFalse()
-b/214265385 */
+    /* b/214265385
+        assertThat(CommentDetector.STOP_SHIP.isEnabledByDefault()).isFalse()
+    b/214265385 */
     myFixture.copyFileToProject("$globalTestDir/Stopship.java", "src/p1/p2/Stopship.java")
     doGlobalInspectionTest(AndroidLintStopShipInspection())
   }
 
   fun testGradleWindows() {
-    doTestWithFix(AndroidLintGradlePathInspection(),
-                  "Replace with my/libs/http.jar", "build.gradle", "gradle")
+    doTestWithFix(
+      AndroidLintGradlePathInspection(),
+      "Replace with my/libs/http.jar",
+      "build.gradle",
+      "gradle"
+    )
   }
 
   // Global (batch) inspections
@@ -229,10 +293,11 @@ b/214265385 */
   }
 
   fun testLintNonAndroid() {
-    // Make sure that we include the lint implementation checks themselves outside of Android contexts
+    // Make sure that we include the lint implementation checks themselves outside of Android
+    // contexts
     val issues = LintIdeIssueRegistry()
     val issue = issues.getIssue("LintImplDollarEscapes")!!
-    val support = object : LintIdeSupport() { }
+    val support = object : LintIdeSupport() {}
     assertEquals(support.getPlatforms(), issue.platforms)
   }
 
@@ -262,13 +327,13 @@ b/214265385 */
       action!!
 
       assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
-      WriteCommandAction.writeCommandAction(myFixture.project).run(
-        ThrowableRunnable<Throwable?> {
-          action.invoke(myFixture.project, myFixture.editor, myFixture.file)
-        })
-      myFixture.checkResultByFile("build.gradle",
-                                  "$globalTestDir/build.gradle_after", true)
-
+      WriteCommandAction.writeCommandAction(myFixture.project)
+        .run(
+          ThrowableRunnable<Throwable?> {
+            action.invoke(myFixture.project, myFixture.editor, myFixture.file)
+          }
+        )
+      myFixture.checkResultByFile("build.gradle", "$globalTestDir/build.gradle_after", true)
     } finally {
       AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
     }
@@ -280,51 +345,73 @@ b/214265385 */
   }
 
   private fun doGlobalInspectionTest(
-    inspection: GlobalInspectionTool, globalTestDir: String, scope: AnalysisScope) {
+    inspection: GlobalInspectionTool,
+    globalTestDir: String,
+    scope: AnalysisScope
+  ) {
     doGlobalInspectionTest(GlobalInspectionToolWrapper(inspection), globalTestDir, scope)
   }
 
   private fun doGlobalInspectionTest(
-    wrapper: GlobalInspectionToolWrapper, globalTestDir: String, scope: AnalysisScope) {
+    wrapper: GlobalInspectionToolWrapper,
+    globalTestDir: String,
+    scope: AnalysisScope
+  ) {
     myFixture.enableInspections(wrapper.tool)
     scope.invalidate()
-    val globalContext = createGlobalContextForTool(scope, project,
-                                                   listOf<InspectionToolWrapper<*, *>>(wrapper))
+    val globalContext =
+      createGlobalContextForTool(scope, project, listOf<InspectionToolWrapper<*, *>>(wrapper))
     InspectionTestUtil.runTool(wrapper, scope, globalContext)
-    InspectionTestUtil.compareToolResults(globalContext, wrapper, false, testDataPath + globalTestDir)
+    InspectionTestUtil.compareToolResults(
+      globalContext,
+      wrapper,
+      false,
+      testDataPath + globalTestDir
+    )
     globalContext.getPresentation(wrapper).problemElements
   }
 
   private val globalTestDir: String
     get() = BASE_PATH_GLOBAL + getTestName(true)
 
-  private fun doTestWithFix(inspection: AndroidLintInspectionBase,
-                            message: String,
-                            copyTo: String,
-                            extension: String) {
+  private fun doTestWithFix(
+    inspection: AndroidLintInspectionBase,
+    message: String,
+    copyTo: String,
+    extension: String
+  ) {
     val action = doTestHighlightingAndGetQuickfix(inspection, message, copyTo, extension)
     doTestWithAction(extension, action!!)
   }
 
   private fun doTestWithAction(extension: String, action: IntentionAction) {
     assertTrue(action.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
-    WriteCommandAction.writeCommandAction(myFixture.project).run(
-      ThrowableRunnable<Throwable?> {
-        action.invoke(myFixture.project, myFixture.editor, myFixture.file)
-      })
+    WriteCommandAction.writeCommandAction(myFixture.project)
+      .run(
+        ThrowableRunnable<Throwable?> {
+          action.invoke(myFixture.project, myFixture.editor, myFixture.file)
+        }
+      )
     myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after." + extension)
   }
 
   @Throws(IOException::class)
-  private fun doTestHighlightingAndGetQuickfix(inspection: AndroidLintInspectionBase,
-                                               message: String,
-                                               copyTo: String,
-                                               extension: String): IntentionAction? {
+  private fun doTestHighlightingAndGetQuickfix(
+    inspection: AndroidLintInspectionBase,
+    message: String,
+    copyTo: String,
+    extension: String
+  ): IntentionAction? {
     doTestHighlighting(inspection, copyTo, extension, skipCheck = false)
     return getIntentionAction(message)
   }
 
-  private fun doTestHighlighting(inspection: AndroidLintInspectionBase, copyTo: String, extension: String, skipCheck: Boolean) {
+  private fun doTestHighlighting(
+    inspection: AndroidLintInspectionBase,
+    copyTo: String,
+    extension: String,
+    skipCheck: Boolean
+  ) {
     myFixture.enableInspections(inspection)
     val file = myFixture.copyFileToProject(BASE_PATH + getTestName(true) + "." + extension, copyTo)
     myFixture.configureFromExistingVirtualFile(file)
@@ -360,8 +447,7 @@ b/214265385 */
       if (message == intention.text) {
         return if (intention is IntentionActionDelegate) {
           (intention as IntentionActionDelegate).delegate
-        }
-        else {
+        } else {
           intention
         }
       }
@@ -370,7 +456,9 @@ b/214265385 */
   }
 
   private fun addCallSuper() {
-    myFixture.addFileToProject("/src/android/support/annotation/CallSuper.java", """
+    myFixture.addFileToProject(
+      "/src/android/support/annotation/CallSuper.java",
+      """
         package android.support.annotation;
         import static java.lang.annotation.ElementType.METHOD;
         import static java.lang.annotation.RetentionPolicy.CLASS;
@@ -381,11 +469,15 @@ b/214265385 */
         @Retention(CLASS)
         @Target({METHOD})
         public @interface CallSuper {
-        }""".trimIndent())
+        }"""
+        .trimIndent()
+    )
   }
 
   private fun addCheckResult(): PsiFile {
-    return myFixture.addFileToProject("/src/android/support/annotation/Keep.java", """
+    return myFixture.addFileToProject(
+      "/src/android/support/annotation/Keep.java",
+      """
           package android.support.annotation;
           import static java.lang.annotation.ElementType.METHOD;
           import static java.lang.annotation.RetentionPolicy.CLASS;
@@ -397,15 +489,20 @@ b/214265385 */
           @Target({METHOD})
           public @interface CheckResult {
               String suggest() default "";
-          }""".trimIndent())
+          }"""
+        .trimIndent()
+    )
   }
 
   interface LintModuleFixtureBuilder<T : ModuleFixture?> : JavaModuleFixtureBuilder<T> {
     fun setModuleRoot(moduleRoot: String)
   }
 
-  class LintModuleFixtureBuilderImpl(fixtureBuilder: TestFixtureBuilder<out IdeaProjectTestFixture>)
-    : JavaModuleFixtureBuilderImpl<ModuleFixtureImpl>(fixtureBuilder), LintModuleFixtureBuilder<ModuleFixtureImpl> {
+  class LintModuleFixtureBuilderImpl(
+    fixtureBuilder: TestFixtureBuilder<out IdeaProjectTestFixture>
+  ) :
+    JavaModuleFixtureBuilderImpl<ModuleFixtureImpl>(fixtureBuilder),
+    LintModuleFixtureBuilder<ModuleFixtureImpl> {
 
     init {
       JavaCodeInsightFixtureAdtTestCase.addJdk(this)
@@ -434,19 +531,25 @@ b/214265385 */
   }
 
   fun testIsEdited() {
-    val fileContent = """
+    val fileContent =
+      """
       package p1.p2;
       public class Test {}
-    """.trimIndent()
+    """
+        .trimIndent()
 
     val now = System.currentTimeMillis()
-    val yesterday = now - 24*60*60*1000L
+    val yesterday = now - 24 * 60 * 60 * 1000L
 
     val vFile = myFixture.addFileToProject("src/p1/p2/Test.java", fileContent).virtualFile
     val file = VfsUtilCore.virtualToIoFile(vFile)
 
     val module = ModuleManager.getInstance(myFixture.project).modules[0]
-    val client = LintIdeClient(myFixture.project, LintEditorResult(module, vFile, fileContent, Sets.newHashSet()))
+    val client =
+      LintIdeClient(
+        myFixture.project,
+        LintEditorResult(module, vFile, fileContent, Sets.newHashSet())
+      )
 
     assertThat(file).isNotNull()
     // File was just created: recent files are treated as edited
@@ -456,10 +559,8 @@ b/214265385 */
 
     val document = FileDocumentManager.getInstance().getDocument(vFile)
     assertThat(document).isNotNull()
-    WriteCommandAction.writeCommandAction(myFixture.project).run(
-      ThrowableRunnable {
-        document?.insertString(document.textLength, "// appended")
-      })
+    WriteCommandAction.writeCommandAction(myFixture.project)
+      .run(ThrowableRunnable { document?.insertString(document.textLength, "// appended") })
     assertThat(client.isEdited(file, true)).isTrue()
   }
 
@@ -474,10 +575,8 @@ b/214265385 */
     private val androidPluginHome: String
       get() {
         val adtPath = StudioPathManager.resolvePathFromSourcesRoot("tools/adt/idea/android")
-        return if (Files.exists(adtPath))
-          adtPath.toString()
-        else
-          PathManagerEx.findFileUnderCommunityHome("android/android").path
+        return if (Files.exists(adtPath)) adtPath.toString()
+        else PathManagerEx.findFileUnderCommunityHome("android/android").path
       }
   }
 }

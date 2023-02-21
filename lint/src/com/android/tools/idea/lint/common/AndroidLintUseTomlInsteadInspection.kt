@@ -18,6 +18,8 @@ package com.android.tools.idea.lint.common
 import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.GradleDetector
 
-class AndroidLintUseTomlInsteadInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.use.toml.instead"), GradleDetector.SWITCH_TO_TOML
-)
+class AndroidLintUseTomlInsteadInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.use.toml.instead"),
+    GradleDetector.SWITCH_TO_TOML
+  )

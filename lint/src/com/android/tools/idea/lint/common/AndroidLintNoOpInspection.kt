@@ -18,6 +18,5 @@ package com.android.tools.idea.lint.common
 import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.NoOpDetector
 
-class AndroidLintNoOpInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.no.op"), NoOpDetector.ISSUE
-)
+class AndroidLintNoOpInspection :
+  AndroidLintInspectionBase(message("android.lint.inspections.no.op"), NoOpDetector.ISSUE)

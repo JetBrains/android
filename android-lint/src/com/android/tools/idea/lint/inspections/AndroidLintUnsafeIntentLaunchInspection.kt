@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.lint.inspections
 
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.UnsafeIntentLaunchDetector
-import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 
-class AndroidLintUnsafeIntentLaunchInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.unsafe.intent.launch"), UnsafeIntentLaunchDetector.ISSUE
-)
+class AndroidLintUnsafeIntentLaunchInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.unsafe.intent.launch"),
+    UnsafeIntentLaunchDetector.ISSUE
+  )

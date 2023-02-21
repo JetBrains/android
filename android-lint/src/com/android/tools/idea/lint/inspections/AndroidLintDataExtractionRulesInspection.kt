@@ -19,6 +19,8 @@ import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.ManifestDetector
 
-class AndroidLintDataExtractionRulesInspection : AndroidLintInspectionBase(
-  AndroidLintBundle.message("android.lint.inspections.data.extraction.rules"), ManifestDetector.DATA_EXTRACTION_RULES
-)
+class AndroidLintDataExtractionRulesInspection :
+  AndroidLintInspectionBase(
+    AndroidLintBundle.message("android.lint.inspections.data.extraction.rules"),
+    ManifestDetector.DATA_EXTRACTION_RULES
+  )

@@ -34,12 +34,12 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlTag
+import java.io.IOException
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.uipreview.EditorUtil
 import org.jetbrains.android.util.AndroidUtils.createChildDirectoryIfNotExist
-import java.io.IOException
 
 /**
  * Quickfix for generating a MotionScene file.
@@ -49,39 +49,58 @@ import java.io.IOException
  * <li>Set the layoutDescription attribute on the MotionLayout. </li>
  * </ul>
  */
-class GenerateMotionSceneFix(val url: ResourceUrl) : DefaultLintQuickFix("Generate MotionScene file") {
-  override fun isApplicable(startElement: PsiElement, endElement: PsiElement, contextType: AndroidQuickfixContexts.ContextType): Boolean {
+class GenerateMotionSceneFix(val url: ResourceUrl) :
+  DefaultLintQuickFix("Generate MotionScene file") {
+  override fun isApplicable(
+    startElement: PsiElement,
+    endElement: PsiElement,
+    contextType: AndroidQuickfixContexts.ContextType
+  ): Boolean {
     val facet = AndroidFacet.getInstance(startElement) ?: return false
     val appResources = ResourceRepositoryManager.getAppResources(facet)
-    return !(appResources.getResources(ResourceNamespace.TODO(), ResourceType.XML).keySet().contains(url.name))
+    return !(appResources
+      .getResources(ResourceNamespace.TODO(), ResourceType.XML)
+      .keySet()
+      .contains(url.name))
   }
 
-  override fun apply(startElement: PsiElement, endElement: PsiElement, context: AndroidQuickfixContexts.Context) {
+  override fun apply(
+    startElement: PsiElement,
+    endElement: PsiElement,
+    context: AndroidQuickfixContexts.Context
+  ) {
     val project = startElement.project
     val facet = AndroidFacet.getInstance(startElement) ?: return
-    WriteCommandAction.runWriteCommandAction(project, "Create MotionScene file", null, Runnable {
-      try {
-        val motionTag = PsiTreeUtil.getNonStrictParentOfType(startElement, XmlTag::class.java)
-        val widgetId = findFirstWidgetId(motionTag) ?: "widget"
-        @Suppress("DEPRECATION")
-        val primaryResourceDir = ResourceFolderManager.getInstance(facet).primaryFolder ?: return@Runnable
-        val xmlDir = createChildDirectoryIfNotExist(project, primaryResourceDir, FD_RES_XML)
-        val resFile = xmlDir.createChildData(project, "${url.name}$DOT_XML")
-        VfsUtil.saveText(resFile, generateMotionSceneContent(widgetId))
-        ReformatUtil.reformatAndRearrange(project, resFile)
-        EditorUtil.openEditor(project, resFile)
-        EditorUtil.selectEditor(project, resFile)
-        motionTag?.setAttribute(ATTR_CONSTRAINT_LAYOUT_DESCRIPTION, AUTO_URI, url.toString())
+    WriteCommandAction.runWriteCommandAction(
+      project,
+      "Create MotionScene file",
+      null,
+      Runnable {
+        try {
+          val motionTag = PsiTreeUtil.getNonStrictParentOfType(startElement, XmlTag::class.java)
+          val widgetId = findFirstWidgetId(motionTag) ?: "widget"
+          @Suppress("DEPRECATION")
+          val primaryResourceDir =
+            ResourceFolderManager.getInstance(facet).primaryFolder ?: return@Runnable
+          val xmlDir = createChildDirectoryIfNotExist(project, primaryResourceDir, FD_RES_XML)
+          val resFile = xmlDir.createChildData(project, "${url.name}$DOT_XML")
+          VfsUtil.saveText(resFile, generateMotionSceneContent(widgetId))
+          ReformatUtil.reformatAndRearrange(project, resFile)
+          EditorUtil.openEditor(project, resFile)
+          EditorUtil.selectEditor(project, resFile)
+          motionTag?.setAttribute(ATTR_CONSTRAINT_LAYOUT_DESCRIPTION, AUTO_URI, url.toString())
+        } catch (ex: IOException) {
+          val error = String.format("Failed to create file: %1\$s", ex.message)
+          Messages.showErrorDialog(project, error, "Create MotionScene")
+        }
       }
-      catch (ex: IOException) {
-        val error = String.format("Failed to create file: %1\$s", ex.message)
-        Messages.showErrorDialog(project, error, "Create MotionScene")
-      }
-    })
+    )
   }
 
   private fun findFirstWidgetId(tag: XmlTag?): String? {
-    val reference = tag?.subTags?.map { it.getAttributeValue(ATTR_ID, ANDROID_URI) }?.find { !it.isNullOrEmpty() } ?: return null
+    val reference =
+      tag?.subTags?.map { it.getAttributeValue(ATTR_ID, ANDROID_URI) }?.find { !it.isNullOrEmpty() }
+        ?: return null
     return ResourceUrl.parse(reference)?.name
   }
 
