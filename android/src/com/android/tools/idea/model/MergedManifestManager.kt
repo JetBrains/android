@@ -279,7 +279,6 @@ private class MergedManifestSupplier(private val module: Module) : AsyncSupplier
 class MergedManifestManager(module: Module) : Disposable {
   private val supplier = MergedManifestSupplier(module)
   val mergedManifest: AsyncSupplier<MergedManifestSnapshot> get() = supplier
-  val modificationTracker: ModificationTracker get() = supplier
 
   init {
     // The Disposer tree doesn't access the fields of the objects
@@ -306,9 +305,6 @@ class MergedManifestManager(module: Module) : Disposable {
 
     @JvmStatic
     fun getMergedManifestSupplier(module: Module): AsyncSupplier<MergedManifestSnapshot> = getInstance(module).mergedManifest
-
-    @JvmStatic
-    fun getModificationTracker(module: Module): ModificationTracker = getInstance(module).modificationTracker
 
     @Deprecated(
       message = "Do NOT call this function! It only exists as a workaround to avoid deadlocks when computing the merged manifest."
@@ -343,7 +339,7 @@ class MergedManifestManager(module: Module) : Disposable {
     @Slow
     @JvmStatic
     fun getSnapshot(module: Module): MergedManifestSnapshot {
-      val supplier = getInstance(module).supplier
+      val supplier = getInstance(module).mergedManifest
       return supplier.now ?: getFreshSnapshot(module)
     }
 

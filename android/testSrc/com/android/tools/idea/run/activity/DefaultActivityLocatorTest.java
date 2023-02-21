@@ -59,13 +59,6 @@ public class DefaultActivityLocatorTest extends AndroidTestCase {
     myFixture.renameElement(classToRename, newName);
   }
 
-  private void runAndWaitForMergedManifestUpdate(@NotNull Runnable runnable) throws Exception {
-    ModificationTracker modificationTracker = MergedManifestManager.getModificationTracker(myModule);
-    long modificationCount = modificationTracker.getModificationCount();
-    runnable.run();
-    waitForCondition(2, TimeUnit.SECONDS, () -> modificationTracker.getModificationCount() > modificationCount);
-  }
-
   @Nullable
   private static String computeDefaultActivity(@NotNull AndroidFacet facet, @Nullable IDevice device) {
     List<DefaultActivityLocator.ActivityWrapper> activities = getActivitiesFromMergedManifest(facet);
