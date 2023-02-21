@@ -18,5 +18,7 @@ package com.android.tools.idea.adddevicedialog
 import com.android.tools.idea.wizard.model.WizardModel
 
 internal class AddDeviceWizardModel internal constructor() : WizardModel() {
-  override fun handleFinished() = TODO()
+  override fun handleFinished() {
+    // TODO
+  }
 }
