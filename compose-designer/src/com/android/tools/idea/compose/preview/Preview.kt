@@ -1114,6 +1114,7 @@ class ComposePreviewRepresentation(
   private fun onAfterRender() {
     composeWorkBench.hasRendered = true
     hasRenderedAtLeastOnce.set(true)
+    surface.sceneManagers.forEach { it.executeCallbacksAsync() }
   }
 
   /**
