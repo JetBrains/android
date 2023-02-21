@@ -16,7 +16,6 @@
 package com.android.tools.idea.sdk.sources
 
 import com.android.annotations.concurrency.GuardedBy
-import com.android.annotations.concurrency.UiThread
 import com.intellij.debugger.SourcePosition
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
@@ -28,7 +27,6 @@ internal class SdkSourcePositionFinderImpl(val project: Project) : SdkSourcePosi
   @GuardedBy("itself")
   private val finders = mutableMapOf<Int, SdkSourceFinderForApiLevel>()
 
-  @UiThread
   override fun getSourcePosition(apiLevel: Int, file: PsiFile, lineNumber: Int): SourcePosition {
     val finder = synchronized(finders) {
       finders.computeIfAbsent(apiLevel) { SdkSourceFinderForApiLevel(project, apiLevel) }

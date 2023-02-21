@@ -15,14 +15,12 @@
  */
 package com.android.tools.idea.sdk.sources
 
-import com.android.annotations.concurrency.UiThread
 import com.intellij.debugger.SourcePosition
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 
 /** Finds the [SourcePosition] for a framework code reference in the proper API level */
 interface SdkSourcePositionFinder {
-  @UiThread
   fun getSourcePosition(apiLevel: Int, file: PsiFile, lineNumber: Int): SourcePosition
 
   companion object {

@@ -19,21 +19,16 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.psi.PsiFileFactory
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.RuleChain
-import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.runInEdtAndGet
 import org.junit.Rule
 import org.junit.Test
 
 /**
  * Tests for [SdkSourcePositionFinderImpl]
  */
-@RunsInEdt
 class SdkSourcePositionFinderImplTest {
-  private val androidProjectRule = AndroidProjectRule.withSdk()
-
   @get:Rule
-  val rule = RuleChain(androidProjectRule, EdtRule())
+  val androidProjectRule = AndroidProjectRule.withSdk()
 
   private val project get() = androidProjectRule.project
 
@@ -42,7 +37,7 @@ class SdkSourcePositionFinderImplTest {
    */
   @Test
   fun getSourcePosition_missingSourcesFileIsCreatedOnlyOnce() {
-    val file = PsiFileFactory.getInstance(project).createFileFromText("View.java", JavaLanguage.INSTANCE, "")
+    val file = runInEdtAndGet { PsiFileFactory.getInstance(project).createFileFromText("View.java", JavaLanguage.INSTANCE, "") }
     val finder = SdkSourcePositionFinderImpl(project)
 
     val position1 = finder.getSourcePosition(apiLevel = 1, file, lineNumber = 12)

@@ -16,7 +16,6 @@
 package com.android.tools.idea.sdk.sources
 
 import com.android.SdkConstants
-import com.android.annotations.concurrency.UiThread
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.repository.meta.DetailsTypes
 import com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider.Companion.REQUIRED_SOURCES_KEY
@@ -27,6 +26,8 @@ import com.intellij.debugger.SourcePosition
 import com.intellij.ide.highlighter.JavaClassFileType
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.lang.java.JavaLanguage
+import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
@@ -58,7 +59,6 @@ private const val MISSING_SOURCES_FILE_NAME = "android-%d/UnavailableSource"
 internal class SdkSourceFinderForApiLevel(val project: Project, private val apiLevel: Int) {
   private val missingSourcesFile: PsiFile by lazy(SYNCHRONIZED) { createMissingSourcesFile() }
 
-  @UiThread
   fun getSourcePosition(file: PsiFile, lineNumber: Int): SourcePosition {
     return getSourceFileForApiLevel(file, lineNumber) ?: getPositionForMissingSources()
   }
@@ -77,7 +77,7 @@ internal class SdkSourceFinderForApiLevel(val project: Project, private val apiL
       return null
     }
 
-    val apiSpecificSourceFile = PsiManager.getInstance(project).findFile(virtualFile) ?: return null
+    val apiSpecificSourceFile = runReadAction { PsiManager.getInstance(project).findFile(virtualFile) } ?: return null
 
     return SourcePosition.createFromLine(apiSpecificSourceFile, lineNumber)
   }
@@ -141,7 +141,7 @@ internal class SdkSourceFinderForApiLevel(val project: Project, private val apiL
   private fun createMissingSourcesFile(): PsiFile {
     val content = String.format(Locale.getDefault(), missingSourcesFileContentsFormat, apiLevel)
     val name = MISSING_SOURCES_FILE_NAME.format(apiLevel)
-    val psiFile = PsiFileFactory.getInstance(project).createFileFromText(name, JavaLanguage.INSTANCE, content, true, true)
+    val psiFile = runReadAction { PsiFileFactory.getInstance(project).createFileFromText(name, JavaLanguage.INSTANCE, content, true, true) }
     val file = psiFile.virtualFile
 
     // Technically, VirtualFile.setWritable() can throw, but we will have a LightVirtualFile which doesn't throw.
@@ -152,7 +152,9 @@ internal class SdkSourceFinderForApiLevel(val project: Project, private val apiL
       val path = DetailsTypes.getSourcesPath(AndroidVersion(apiLevel))
       if (installed.find { it.path == path } != null) {
         if (file.isValid) {
-          FileEditorManager.getInstance(project).closeFile(file)
+          runInEdt {
+            FileEditorManager.getInstance(project).closeFile(file)
+          }
         }
       }
     })

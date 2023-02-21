@@ -25,18 +25,17 @@ import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.SdkInstallListener
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.engine.PositionManagerImpl
 import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.LightVirtualFile
-import com.intellij.testFramework.RuleChain
-import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.runInEdtAndWait
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
@@ -45,11 +44,10 @@ import kotlin.test.fail
 /**
  * Tests for [SdkSourceFinderForApiLevel]
  */
-@RunsInEdt
 class SdkSourceFinderForApiLevelTest {
 
   @get:Rule
-  val androidProjectRule = AndroidProjectRule.withSdk().onEdt()
+  val androidProjectRule = AndroidProjectRule.withSdk()
 
   private val project get() = androidProjectRule.project
 
@@ -115,13 +113,17 @@ class SdkSourceFinderForApiLevelTest {
     removeLocalTargetSdkPackages(28)
     val finder = SdkSourceFinderForApiLevel(project, apiLevel = 28)
     val sourcePosition = finder.getSourcePosition(target, lineNumber = 121)
-    fileEditorManager.openFile(sourcePosition.file.virtualFile, false)
+    runInEdtAndWait {
+      fileEditorManager.openFile(sourcePosition.file.virtualFile, false)
+    }
     val installedPackage = UpdatablePackage(FakeRemotePackage("sources;android-28"))
     assertThat(fileEditorManager.isFileOpen(sourcePosition.file.virtualFile)).isTrue()
 
     project.messageBus.syncPublisher(SdkInstallListener.TOPIC).installCompleted(listOf(installedPackage), emptyList())
 
-    assertThat(fileEditorManager.isFileOpen(sourcePosition.file.virtualFile)).isFalse()
+    runInEdt {
+      assertThat(fileEditorManager.isFileOpen(sourcePosition.file.virtualFile)).isFalse()
+    }
   }
 
   private fun removeLocalTargetSdkPackages(apiLevel: Int) {
@@ -157,7 +159,7 @@ class SdkSourceFinderForApiLevelTest {
 
   @Suppress("SameParameterValue")
   private fun getFile(fqName: String): PsiFile {
-    val psiClass = PositionManagerImpl.findClass(project, fqName, GlobalSearchScope.allScope(project), true)
+    val psiClass = runReadAction { PositionManagerImpl.findClass(project, fqName, GlobalSearchScope.allScope(project), true) }
     return psiClass?.containingFile ?: fail("Failed to get file for $fqName")
   }
 }
