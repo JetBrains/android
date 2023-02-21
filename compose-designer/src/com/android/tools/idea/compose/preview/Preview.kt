@@ -83,7 +83,6 @@ import com.intellij.notification.Notifications
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.event.CaretEvent
@@ -126,7 +125,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
@@ -391,32 +389,19 @@ class ComposePreviewRepresentation(
   override suspend fun startInteractivePreview(instance: ComposePreviewElementInstance) {
     if (interactiveMode.isStartingOrReady()) return
     log.debug("New single preview element focus: $instance")
-    val isFromAnimationInspection = animationInspection.get()
-    // The order matters because we first want to change the composable being previewed and then
-    // start interactive loop when enabled
-    // but we want to stop the loop first and then change the composable when disabled
-    if (isFromAnimationInspection) {
-      onAnimationInspectionStop()
-    } else {
-      requestVisibilityAndNotificationsUpdate()
-    }
+    requestVisibilityAndNotificationsUpdate()
     interactiveMode = ComposePreviewManager.InteractiveMode.STARTING
-    val quickRefresh =
-      shouldQuickRefresh() &&
-        !isFromAnimationInspection // We should call this before assigning newValue to
-    // instanceIdFilter
+    // We should call this before assigning newValue to instanceIdFilter
+    val quickRefresh = shouldQuickRefresh()
     val peerPreviews = previewElementProvider.previewElements().count()
     previewElementProvider.instanceFilter = instance
     sceneComponentProvider.enabled = false
     val startUpStart = System.currentTimeMillis()
     forceRefresh(quickRefresh).invokeOnCompletion {
       surface.sceneManagers.forEach { it.resetInteractiveEventsCounter() }
-      if (
-        !isFromAnimationInspection
-      ) { // Currently it will re-create classloader and will be slower that switch from static
-        InteractivePreviewUsageTracker.getInstance(surface)
-          .logStartupTime((System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
-      }
+      // Currently it will re-create classloader and will be slower that switch from static
+      InteractivePreviewUsageTracker.getInstance(surface)
+        .logStartupTime((System.currentTimeMillis() - startUpStart).toInt(), peerPreviews)
       fpsCounter.resetAndStart()
       ticker.start()
       delegateInteractionHandler.delegate = interactiveInteractionHandler
@@ -477,9 +462,6 @@ class ComposePreviewRepresentation(
           (animationInspection.get() && value == null)
       ) {
         if (value != null) {
-          if (interactiveMode != ComposePreviewManager.InteractiveMode.DISABLED) {
-            onInteractivePreviewStop()
-          }
           log.debug("Animation Preview open for preview: $value")
           ComposePreviewAnimationManager.onAnimationInspectorOpened()
           previewElementProvider.instanceFilter = value
