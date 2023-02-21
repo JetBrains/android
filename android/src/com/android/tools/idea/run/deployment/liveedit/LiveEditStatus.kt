@@ -181,7 +181,8 @@ open class LiveEditStatus(
       message("le.status.error.gradle_sync.title"),
       message("le.status.error.gradle_sync.description"),
       UNRECOVERABLE_ERROR,
-      redeployMode = RedeployMode.RERUN
+      redeployMode = RedeployMode.RERUN,
+      actionId = "Android.SyncProject"
     )
 
   fun unrecoverable(): Boolean {
