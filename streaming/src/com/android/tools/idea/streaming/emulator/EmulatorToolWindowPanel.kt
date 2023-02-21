@@ -22,6 +22,7 @@ import com.android.emulator.control.ExtendedControlsStatus
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.idea.protobuf.TextFormat.shortDebugString
 import com.android.tools.idea.streaming.AbstractDisplayPanel
+import com.android.tools.idea.streaming.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.DeviceId
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.NUMBER_OF_DISPLAYS
@@ -253,7 +254,7 @@ class EmulatorToolWindowPanel(
   override fun getData(dataId: String): Any? {
     return when (dataId) {
       EMULATOR_CONTROLLER_KEY.name -> emulator
-      EMULATOR_VIEW_KEY.name, ZOOMABLE_KEY.name -> primaryEmulatorView
+      EMULATOR_VIEW_KEY.name, DISPLAY_VIEW_KEY.name, ZOOMABLE_KEY.name -> primaryEmulatorView
       NUMBER_OF_DISPLAYS.name -> displayPanels.size
       ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name -> getScreenRecorderParameters()
       else -> super.getData(dataId)

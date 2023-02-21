@@ -64,6 +64,7 @@ private class TestDataContext(private val displayView: AbstractDisplayView, priv
       DEVICE_VIEW_KEY.name -> deviceView
       DEVICE_CONFIGURATION_KEY.name -> emptyDeviceConfiguration
       DEVICE_CONTROLLER_KEY.name -> deviceView?.deviceController
+      DISPLAY_VIEW_KEY.name -> displayView
       ZOOMABLE_KEY.name -> displayView
       SERIAL_NUMBER_KEY.name -> emulatorView?.deviceSerialNumber ?: deviceView?.deviceSerialNumber
       CommonDataKeys.PROJECT.name -> project

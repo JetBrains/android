@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.device
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.idea.streaming.AbstractDisplayPanel
+import com.android.tools.idea.streaming.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.DeviceId
 import com.android.tools.idea.streaming.RunningDevicePanel
 import com.android.tools.idea.streaming.STREAMING_SECONDARY_TOOLBAR_ID
@@ -134,7 +135,7 @@ internal class DeviceToolWindowPanel(
 
   override fun getData(dataId: String): Any? {
     return when (dataId) {
-      DEVICE_VIEW_KEY.name, ZOOMABLE_KEY.name -> primaryDeviceView
+      DEVICE_VIEW_KEY.name, DISPLAY_VIEW_KEY.name, ZOOMABLE_KEY.name -> primaryDeviceView
       DEVICE_CONTROLLER_KEY.name -> deviceClient.deviceController
       DEVICE_CONFIGURATION_KEY.name -> deviceConfig
       ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name ->
