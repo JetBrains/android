@@ -29,9 +29,11 @@ import com.android.tools.idea.preview.DelegatingPreviewElementModelAdapter
 import com.android.tools.idea.preview.MemoizedPreviewElementProvider
 import com.android.tools.idea.preview.NavigatingInteractionHandler
 import com.android.tools.idea.preview.PreviewDisplaySettings
+import com.android.tools.idea.preview.PreviewElement
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
+import com.android.tools.idea.preview.mvvm.PreviewView
 import com.android.tools.idea.preview.navigation.DefaultNavigationHandler
 import com.android.tools.idea.preview.refreshExistingPreviewElements
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
@@ -44,8 +46,8 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.util.runWhenSmartAndSyncedOnEdt
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
@@ -55,11 +57,13 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
+import com.intellij.psi.SmartPsiElementPointer
 import javax.swing.JComponent
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -69,14 +73,25 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private val GLANCE_APPWIDGET_SUPPORTED_ACTIONS = setOf(NlSupportedActions.TOGGLE_ISSUE_PANEL)
-
-/** A generic [MethodPreviewElement] [PreviewRepresentation]. */
-internal class CommonPreviewRepresentation<T : MethodPreviewElement>(
+/** A generic [PreviewElement] [PreviewRepresentation]. */
+open class CommonPreviewRepresentation<T : PreviewElement>(
   adapterViewFqcn: String,
   psiFile: PsiFile,
   previewProvider: PreviewElementProvider<T>,
-  previewElementModelAdapterDelegate: PreviewElementModelAdapter<T, NlModel>
+  previewElementModelAdapterDelegate: PreviewElementModelAdapter<T, NlModel>,
+  viewConstructor:
+    (
+      project: Project, surfaceBuilder: NlDesignSurface.Builder, parentDisposable: Disposable
+    ) -> CommonNlDesignSurfacePreviewView,
+  viewModelConstructor:
+    (
+      previewView: PreviewView,
+      projectBuildStatusManager: ProjectBuildStatusManager,
+      project: Project,
+      psiFilePointer: SmartPsiElementPointer<PsiFile>,
+      hasRenderErrors: () -> Boolean
+    ) -> CommonPreviewViewModel,
+  configureDesignSurface: NlDesignSurface.Builder.() -> Unit
 ) : PreviewRepresentation, AndroidCoroutinesAware, UserDataHolderEx by UserDataHolderBase() {
 
   private val LOG = Logger.getInstance(CommonPreviewRepresentation::class.java)
@@ -109,16 +124,14 @@ internal class CommonPreviewRepresentation<T : MethodPreviewElement>(
     )
 
   private val previewView = invokeAndWaitIfNeeded {
-    CommonNlDesignSurfacePreviewView(
+    viewConstructor(
       project,
       NlDesignSurface.builder(project, this)
-        .setActionManagerProvider { surface -> GlancePreviewActionManager(surface) }
         .setSceneManagerProvider { surface, model ->
           NlDesignSurface.defaultSceneManagerProvider(surface, model).apply {
             setShrinkRendering(true)
           }
         }
-        .setSupportedActions(GLANCE_APPWIDGET_SUPPORTED_ACTIONS)
         .setInteractionHandlerProvider { NavigatingInteractionHandler(it) }
         .setNavigationHandler(DefaultNavigationHandler { _, _, _, _, _ -> null })
         .setDelegateDataProvider {
@@ -127,7 +140,7 @@ internal class CommonPreviewRepresentation<T : MethodPreviewElement>(
             else -> null
           }
         }
-        .setScreenViewProvider(GLANCE_SCREEN_VIEW_PROVIDER, false),
+        .apply { configureDesignSurface() },
       this
     )
   }
@@ -136,14 +149,14 @@ internal class CommonPreviewRepresentation<T : MethodPreviewElement>(
     get() = previewView.surface
 
   private val previewViewModel: CommonPreviewViewModel =
-    GlancePreviewViewModel(previewView, projectBuildStatusManager, project, psiFilePointer) {
+    viewModelConstructor(previewView, projectBuildStatusManager, project, psiFilePointer) {
       surface.sceneManagers.any { it.renderResult.isErrorResult(adapterViewFqcn) }
     }
 
   private val previewFreshnessTracker =
     CodeOutOfDateTracker.create(module, this) { requestRefresh() }
 
-  private val previewElementProvider =
+  private val previewElementProvider: PreviewElementProvider<T> =
     MemoizedPreviewElementProvider(previewProvider, previewFreshnessTracker)
   private var renderedElements: List<T> = emptyList()
 

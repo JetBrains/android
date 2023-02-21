@@ -90,7 +90,7 @@ class TilePreviewRepresentationProvider(
             .asSequence()
       }
 
-    return CommonPreviewRepresentation(
+    return GlancePreviewRepresentation(
       WEAR_TILE_VIEW_ADAPTER,
       psiFile,
       previewProvider,
