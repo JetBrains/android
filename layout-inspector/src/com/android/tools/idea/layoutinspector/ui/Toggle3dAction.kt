@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,56 +15,24 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.tools.adtui.actions.PanSurfaceAction
-import com.android.tools.adtui.actions.ZoomInAction
-import com.android.tools.adtui.actions.ZoomLabelAction
-import com.android.tools.adtui.actions.ZoomOutAction
-import com.android.tools.adtui.actions.ZoomResetAction
-import com.android.tools.adtui.actions.ZoomToFitAction
-import com.android.tools.editor.EditorActionsFloatingToolbarProvider
-import com.android.tools.editor.EditorActionsToolbarActionGroups
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.intellij.ide.BrowserUtil
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
 import com.intellij.openapi.actionSystem.ex.TooltipLinkProvider
-import com.intellij.openapi.actionSystem.impl.ActionButton
-import icons.StudioIcons.LayoutInspector.MODE_3D
-import icons.StudioIcons.LayoutInspector.RESET_VIEW
+import icons.StudioIcons
 import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 
-val TOGGLE_3D_ACTION_BUTTON_KEY = DataKey.create<ActionButton?>("$DEVICE_VIEW_ACTION_TOOLBAR_NAME.FloatingToolbar")
-
 private const val ROTATION_FRAMES = 20L
 private const val ROTATION_TIMEOUT = 10_000L
 
-/** Creates the actions toolbar used on the [DeviceViewPanel] */
-class DeviceViewPanelActionsToolbarProvider(
-  deviceViewPanel: DeviceViewPanel,
-  parentDisposable: Disposable
-) : EditorActionsFloatingToolbarProvider(deviceViewPanel, parentDisposable) {
-
-  val toggle3dActionButton: ActionButton?
-    get() = findActionButton(LayoutInspectorToolbarGroups.toggle3dGroup, Toggle3dAction)
-
-  init {
-    updateToolbar()
-  }
-
-  override fun getActionGroups() = LayoutInspectorToolbarGroups
-}
-
-object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescriptionProvider {
+object Toggle3dAction : AnAction(StudioIcons.LayoutInspector.MODE_3D), TooltipLinkProvider, TooltipDescriptionProvider {
   @VisibleForTesting
   var executorFactory = { Executors.newSingleThreadScheduledExecutor() }
   @VisibleForTesting
@@ -115,7 +83,7 @@ object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescripti
     val inspector = LayoutInspector.get(event)
     val client = inspector?.currentClient
     val inspectorModel = inspector?.inspectorModel
-    event.presentation.icon = if (model?.isRotated == true) RESET_VIEW else MODE_3D
+    event.presentation.icon = if (model?.isRotated == true) StudioIcons.LayoutInspector.RESET_VIEW else StudioIcons.LayoutInspector.MODE_3D
     if (model != null && model.overlay == null &&
         client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) == true &&
         (client.isCapturing || inspectorModel?.pictureType == AndroidWindow.ImageType.SKP)) {
@@ -149,22 +117,5 @@ object Toggle3dAction : AnAction(MODE_3D), TooltipLinkProvider, TooltipDescripti
   override fun getTooltipLink(owner: JComponent?) = TooltipLinkProvider.TooltipLink("Learn More") {
     // TODO: link for performance issue
     BrowserUtil.browse("https://d.android.com/r/studio-ui/layout-inspector-2D-3D-mode")
-  }
-}
-
-object LayoutInspectorToolbarGroups : EditorActionsToolbarActionGroups {
-  override val zoomLabelGroup = DefaultActionGroup().apply {
-    add(ZoomLabelAction)
-    add(ZoomResetAction)
-  }
-
-  val toggle3dGroup = DefaultActionGroup().apply { add(Toggle3dAction) }
-
-  override val otherGroups: List<ActionGroup> = listOf(DefaultActionGroup().apply { add(PanSurfaceAction) }, toggle3dGroup)
-
-  override val zoomControlsGroup = DefaultActionGroup().apply {
-    add(ZoomInAction.getInstance())
-    add(ZoomOutAction.getInstance())
-    add(ZoomToFitAction.getInstance())
   }
 }

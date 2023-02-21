@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.ui
+package com.android.tools.idea.layoutinspector.ui.toolbar
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.actions.DropDownAction
@@ -24,6 +24,7 @@ import com.android.tools.idea.appinspection.ide.ui.buildDeviceName
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
+import com.android.tools.idea.layoutinspector.ui.SelectDeviceAction
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -67,7 +68,7 @@ object TargetSelectionActionFactory {
         "Stop Inspector",
         "Stop running the layout inspector against the current process"),
       onStopAction = { layoutInspector.stopInspector() },
-      customDeviceAttribution = ::deviceAttribution
+      customDeviceAttribution = TargetSelectionActionFactory::deviceAttribution
     )
   }
 
@@ -78,7 +79,7 @@ object TargetSelectionActionFactory {
       onDeviceSelected = { newDevice -> layoutInspector.foregroundProcessDetection?.startPollingDevice(newDevice) },
       onProcessSelected = { newProcess -> layoutInspector.processModel?.selectedProcess = newProcess },
       onDetachAction = { layoutInspector.stopInspector() },
-      customDeviceAttribution = ::deviceAttribution
+      customDeviceAttribution = TargetSelectionActionFactory::deviceAttribution
     )
   }
 

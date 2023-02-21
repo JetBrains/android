@@ -36,6 +36,8 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.matchToProcessDescriptor
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotAction
+import com.android.tools.idea.layoutinspector.ui.toolbar.FloatingToolbarProvider
+import com.android.tools.idea.layoutinspector.ui.toolbar.TargetSelectionActionFactory
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
 import com.intellij.ide.BrowserUtil
@@ -44,12 +46,14 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
 import com.intellij.openapi.actionSystem.ex.TooltipLinkProvider
+import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.components.JBLoadingPanel
@@ -91,6 +95,8 @@ const val DEVICE_VIEW_ACTION_TOOLBAR_NAME = "DeviceViewPanel.ActionToolbar"
 
 const val PERFORMANCE_WARNING_3D = "performance.warning.3d"
 const val PERFORMANCE_WARNING_HIDDEN = "performance.warning.hidden"
+
+val TOGGLE_3D_ACTION_BUTTON_KEY = DataKey.create<ActionButton?>("$DEVICE_VIEW_ACTION_TOOLBAR_NAME.FloatingToolbar")
 
 /**
  * Panel that shows the device screen in the layout inspector.
@@ -193,7 +199,7 @@ class DeviceViewPanel(
   private val scrollPane = JBScrollPane(contentPanel)
   private val layeredPane = JLayeredPane()
   private val loadingPane: JBLoadingPanel = JBLoadingPanel(BorderLayout(), disposableParent)
-  private val deviceViewPanelActionsToolbar: DeviceViewPanelActionsToolbarProvider
+  private val floatingToolbarProvider = FloatingToolbarProvider(this, disposableParent)
   private val viewportLayoutManager = MyViewportLayoutManager(scrollPane.viewport, { contentPanel.renderModel.layerSpacing },
                                                               { contentPanel.rootLocation })
 
@@ -346,12 +352,8 @@ class DeviceViewPanel(
       }
     }
 
-    deviceViewPanelActionsToolbar = DeviceViewPanelActionsToolbarProvider(this, disposableParent)
-
-    val floatingToolbar = deviceViewPanelActionsToolbar.floatingToolbar
-
     layeredPane.setLayer(scrollPane, JLayeredPane.DEFAULT_LAYER)
-    layeredPane.setLayer(floatingToolbar, JLayeredPane.PALETTE_LAYER)
+    layeredPane.setLayer(floatingToolbarProvider.floatingToolbar, JLayeredPane.PALETTE_LAYER)
 
     layeredPane.layout = object : BorderLayout() {
       override fun layoutContainer(parent: Container?) {
@@ -361,7 +363,7 @@ class DeviceViewPanel(
       }
     }
 
-    layeredPane.add(floatingToolbar)
+    layeredPane.add(floatingToolbarProvider.floatingToolbar)
     layeredPane.add(scrollPane, BorderLayout.CENTER)
 
     // Zoom to fit on initial connect
@@ -392,7 +394,7 @@ class DeviceViewPanel(
       }
       if (prevZoom != viewSettings.scalePercent) {
         backgroundExecutor.execute {
-          deviceViewPanelActionsToolbar.zoomChanged(prevZoom / 100.0, viewSettings.scalePercent / 100.0)
+          floatingToolbarProvider.zoomChanged(prevZoom / 100.0, viewSettings.scalePercent / 100.0)
           prevZoom = viewSettings.scalePercent
           model.windows.values.forEach {
             it.refreshImages(viewSettings.scaleFraction)
@@ -405,7 +407,7 @@ class DeviceViewPanel(
 
   private fun updateLayeredPaneSize() {
     scrollPane.size = layeredPane.size
-    val floatingToolbar = deviceViewPanelActionsToolbar.floatingToolbar
+    val floatingToolbar = floatingToolbarProvider.floatingToolbar
     floatingToolbar.size = floatingToolbar.preferredSize
     floatingToolbar.location = Point(layeredPane.width - floatingToolbar.width - TOOLBAR_INSET,
                                      layeredPane.height - floatingToolbar.height - TOOLBAR_INSET)
@@ -479,7 +481,7 @@ class DeviceViewPanel(
       return viewSettings
     }
     if (TOGGLE_3D_ACTION_BUTTON_KEY.`is`(dataId)) {
-      return deviceViewPanelActionsToolbar.toggle3dActionButton
+      return floatingToolbarProvider.toggle3dActionButton
     }
     return null
   }
