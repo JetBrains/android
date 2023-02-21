@@ -44,6 +44,19 @@ private val defaultAttributes = SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES
 private val errorAttributes = SimpleTextAttributes.ERROR_ATTRIBUTES
 private val codeAttributes = merge(SimpleTextAttributes.REGULAR_ATTRIBUTES, SimpleTextAttributes(0, JBColor.black))
 
+typealias RenderToHandler<PropertyT> =
+  Annotated<ParsedValue<PropertyT>>.(TextRenderer, PropertyT.() -> String, Map<ParsedValue<PropertyT>, ValueRenderer>) -> Boolean
+
+fun <PropertyT:Any> Annotated<ParsedValue<PropertyT>>.renderEmptyTo(
+  textRenderer: TextRenderer
+): Boolean =
+  if (value is ParsedValue.NotSet) {
+    val text = "/*not specified*/"
+    textRenderer.append(text, commentAttributes)
+     true
+  }
+  else false
+
 /**
  * Renders the receiver (which may be of [List], [Map] or any simple type to the [textRenderer] with any known values handled by renderers
  * from [knownValues]. Returns true in the case of non-empty output.
@@ -146,11 +159,6 @@ fun <PropertyT : Any> ParsedValue<PropertyT>.renderTo(
         value.value.renderAnyTo(textRenderer, knownValues.toMap())
       value is ParsedValue.Set.Parsed && value.dslText === DslText.Literal && value.value is List<*> ->
         value.value.renderAnyTo(textRenderer, knownValues.toMap())
-      value is ParsedValue.NotSet -> {
-        val text = "/*not specified*/"
-        textRenderer.append(text, commentAttributes)
-        true
-      }
       else -> {
         val formattedText = value.getText(formatValue)
         textRenderer.append(formattedText, regularAttributes)

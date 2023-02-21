@@ -92,6 +92,11 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
   private var disposed = false
   private var knownValuesFuture: ListenableFuture<Unit>? = null  // Accessed only from the EDT.
   private val formatter = propertyContext.valueFormatter()
+  var customRenderTo: RenderToHandler<PropertyT>? = null
+    set(value) {
+      field = value
+      renderedComboBox.updateWatermark()
+    }
 
   private val renderedComboBox = object : RenderedComboBox<Annotated<ParsedValue<PropertyT>>>(DefaultComboBoxModel()) {
 
@@ -112,7 +117,10 @@ class SimplePropertyEditor<PropertyT : Any, ModelPropertyT : ModelPropertyCore<P
     }
 
     override fun TextRenderer.renderCell(value: Annotated<ParsedValue<PropertyT>>?) {
-      (value ?: ParsedValue.NotSet.annotated()).renderTo(this, formatter, knownValueRenderers)
+      val annotatedVal = value ?: ParsedValue.NotSet.annotated()
+      val rendered = customRenderTo?.invoke(annotatedVal, this, formatter, knownValueRenderers) ?: false
+      // if custom RenderTo was empty or did not work - call standard renderTo
+      if (!rendered) annotatedVal.renderTo(this, formatter, knownValueRenderers)
     }
 
     override fun createEditorExtensions(): List<Extension> =
