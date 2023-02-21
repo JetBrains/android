@@ -10,7 +10,9 @@ iml_module(
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module, test]",
+        "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/intellij.android.device[module, test]",
     ],
 )

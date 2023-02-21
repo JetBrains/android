@@ -16,7 +16,6 @@
 package com.android.tools.idea.adddevicedialog
 
 import com.android.sdklib.AndroidVersion
-import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.devices.Abi
 import com.android.tools.idea.grouplayout.GroupLayout.Companion.groupLayout
 import com.intellij.openapi.ui.ComboBox
@@ -130,19 +129,7 @@ internal class DeviceAndApiPanel internal constructor() : JBPanel<DeviceAndApiPa
 
     (apiLevelComboBox.model as DefaultComboBoxModel).addAll(levels)
 
-    apiLevelComboBox.renderer = object : ColoredListCellRenderer<AndroidVersion>() {
-      override fun customizeCellRenderer(list: JList<out AndroidVersion>,
-                                         version: AndroidVersion,
-                                         index: Int,
-                                         selected: Boolean,
-                                         focused: Boolean) {
-        append("$version ")
-
-        append("Android ${SdkVersionInfo.getVersionString(version.apiLevel)} ${SdkVersionInfo.getCodeName(version.featureLevel)}",
-               SimpleTextAttributes.GRAYED_ATTRIBUTES)
-      }
-    }
-
+    apiLevelComboBox.renderer = AndroidVersionListCellRenderer()
     apiLevelComboBox.selectedIndex = 0
   }
 }
