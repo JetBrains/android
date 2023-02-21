@@ -17,7 +17,6 @@ package com.android.tools.idea.testing
 
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.SyncIssue
-import com.android.builder.model.v2.ide.AndroidGradlePluginProjectFlags
 import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.ARTIFACT_NAME_TEST_FIXTURES
@@ -821,7 +820,7 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     unresolvedDependencies = emptyList(),
     applicationId = applicationId(variant),
     signingConfigName = "defaultConfig",
-    isSigned = false,
+    isSigned = variant == "release",
     generatedResourceFolders = listOfNotNull(
       if (includeRenderScriptSources) buildPath.resolve("generated/res/rs/${variant}") else null,
       buildPath.resolve("generated/res/resValues/${variant}"),
@@ -887,7 +886,7 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     unresolvedDependencies = emptyList(),
     applicationId = applicationId,
     signingConfigName = "defaultConfig",
-    isSigned = false,
+    isSigned = true,
     generatedResourceFolders = listOfNotNull(
       if (includeRenderScriptSources) buildPath.resolve("generated/res/rs/androidTest/${variant}") else null,
       buildPath.resolve("generated/res/resValues/androidTest/${variant}"),
