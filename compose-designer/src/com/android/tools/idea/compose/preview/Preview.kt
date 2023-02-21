@@ -1401,7 +1401,7 @@ class ComposePreviewRepresentation(
           IllegalStateException("Preview File is no valid")
         )
     val previewFileModule =
-      previewFile.module
+      runReadAction { previewFile.module }
         ?: return CompilationResult.RequestException(
           IllegalStateException("Preview File does not have a valid module")
         )
@@ -1410,7 +1410,7 @@ class ComposePreviewRepresentation(
         .filterIsInstance<KtFile>()
         .filter { modifiedFile ->
           if (modifiedFile.isEquivalentTo(previewFile)) return@filter true
-          val modifiedFileModule = modifiedFile.module ?: return@filter false
+          val modifiedFileModule = runReadAction { modifiedFile.module } ?: return@filter false
 
           // Keep the file if the file is from this module or from a module we depend on
           modifiedFileModule == previewFileModule ||
