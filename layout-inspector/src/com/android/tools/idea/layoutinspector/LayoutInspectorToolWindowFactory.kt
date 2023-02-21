@@ -85,12 +85,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
   }
 
   private fun createDevicePanel(disposable: Disposable, layoutInspector: LayoutInspector): DeviceViewPanel {
-    val processModel = checkNotNull(layoutInspector.processModel)
-    val foregroundProcessDetection = layoutInspector.foregroundProcessDetection
-
     val deviceViewPanel = DeviceViewPanel(
-      onDeviceSelected = { newDevice -> foregroundProcessDetection?.startPollingDevice(newDevice) },
-      onProcessSelected = { newProcess -> processModel.selectedProcess = newProcess },
       layoutInspector = layoutInspector,
       viewSettings = InspectorRenderSettings(),
       disposableParent = disposable

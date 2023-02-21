@@ -136,8 +136,6 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
         treeSettings
       )
       val deviceViewPanel = DeviceViewPanel(
-        onDeviceSelected = { },
-        onProcessSelected = { },
         layoutInspector = layoutInspector,
         viewSettings = viewSettings,
         disposableParent = workbench

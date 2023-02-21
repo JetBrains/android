@@ -16,7 +16,6 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.adtui.Pannable
-import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
@@ -62,14 +61,10 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.geom.AffineTransform
 import java.awt.geom.Point2D
-import javax.swing.JComponent
 
 private const val MARGIN = 50
 
 private const val FRAMES_BEFORE_RESET_TO_BITMAP = 3
-
-// We use a generic DropDownAction container because actions can be [SelectDeviceAction] or [SelectProcessAction].
-data class DropDownActionWithButton(val dropDownAction: DropDownAction, val getButton: () -> JComponent?)
 
 class DeviceViewContentPanel(
   val inspectorModel: InspectorModel,
