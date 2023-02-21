@@ -24,7 +24,6 @@ import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.AndroidSdkPath;
 import com.android.tools.idea.sdk.DeviceManagers;
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.projectRoots.Sdk;
 import java.lang.ref.SoftReference;
@@ -117,7 +116,7 @@ public class AndroidSdkData {
 
   @Nullable
   public BuildToolInfo getLatestBuildTool(boolean allowPreview) {
-    return mySdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(getClass()), allowPreview);
+    return mySdkHandler.getLatestBuildTool(new LoggerProgressIndicator(getClass()), allowPreview);
   }
 
   @NotNull
@@ -128,7 +127,7 @@ public class AndroidSdkData {
 
   @NotNull
   private Collection<IAndroidTarget> getTargetCollection() {
-    ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+    ProgressIndicator progress = new LoggerProgressIndicator(getClass());
     return mySdkHandler.getAndroidTargetManager(progress).getTargets(progress);
   }
 
@@ -165,7 +164,7 @@ public class AndroidSdkData {
 
   @Nullable
   public IAndroidTarget findTargetByHashString(@NotNull String hashString) {
-    ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+    ProgressIndicator progress = new LoggerProgressIndicator(getClass());
     return mySdkHandler.getAndroidTargetManager(progress).getTargetFromHashString(hashString, progress);
   }
 
