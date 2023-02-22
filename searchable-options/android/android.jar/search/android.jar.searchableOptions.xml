@@ -1034,13 +1034,15 @@
     <option name="updates" hit=" Updates literals used in composables in the emulators and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly. Learn more." />
     <option name="used" hit=" Updates literals used in composables in the emulators and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly. Learn more." />
     <option name="work" hit=" Updates literals used in composables in the emulators and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly. Learn more." />
+    <option name="" hit="(deprecated) Live Edit of literals" />
+    <option name="deprecated" hit="(deprecated) Live Edit of literals" />
+    <option name="edit" hit="(deprecated) Live Edit of literals" />
+    <option name="literals" hit="(deprecated) Live Edit of literals" />
+    <option name="live" hit="(deprecated) Live Edit of literals" />
+    <option name="of" hit="(deprecated) Live Edit of literals" />
     <option name="compose" hit="Compose Live Edit" />
     <option name="edit" hit="Compose Live Edit" />
     <option name="live" hit="Compose Live Edit" />
-    <option name="edit" hit="Live Edit of literals" />
-    <option name="literals" hit="Live Edit of literals" />
-    <option name="live" hit="Live Edit of literals" />
-    <option name="of" hit="Live Edit of literals" />
     <option name="none" hit="None" />
     <option name="automatically" hit="Push Edits Automatically" />
     <option name="edits" hit="Push Edits Automatically" />
