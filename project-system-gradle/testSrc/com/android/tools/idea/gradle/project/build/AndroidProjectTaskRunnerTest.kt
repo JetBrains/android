@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.build
 
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -46,6 +47,28 @@ class AndroidProjectTaskRunnerTest {
       expect.that(capturedRequests.getOrNull(0)?.project).isSameAs(project)
       expect.that(capturedRequests.getOrNull(0)?.rootProjectPath).isEqualTo(preparedProject.root)
       expect.that(capturedRequests.getOrNull(0)?.gradleTasks).contains(":app:compileDebugSources")
+    }
+  }
+
+  @Test
+  fun `build all modules of kotlin multiplatform project with jvm`() {
+    val preparedProject = projectRule.prepareTestProject(TestProject.KOTLIN_MULTIPLATFORM_JVM)
+    preparedProject.open { project ->
+      val capturedRequests = project.hookExecuteTasks()
+
+      ProjectTaskManager.getInstance(project).buildAllModules()
+
+      expect.that(capturedRequests).hasSize(1)
+      expect.that(capturedRequests.getOrNull(0)?.project).isSameAs(project)
+      expect.that(capturedRequests.getOrNull(0)?.rootProjectPath).isEqualTo(preparedProject.root)
+      expect.that(capturedRequests.getOrNull(0)?.gradleTasks).isEqualTo(listOf(
+        ":app:compileDebugSources",
+        ":app:compileDebugUnitTestSources",
+        ":app:compileDebugAndroidTestSources",
+        ":module2:compileDebugSources",
+        ":module2:compileDebugUnitTestSources",
+        ":module2:compileDebugAndroidTestSources"
+      ))
     }
   }
 }
