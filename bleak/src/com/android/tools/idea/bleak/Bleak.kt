@@ -59,7 +59,7 @@ class MainBleakCheck(ignoreList: IgnoreList<LeakInfo>,
                      knownIssues: IgnoreList<LeakInfo> = IgnoreList(),
                      customExpanderSupplier: Supplier<List<Expander>>,
                      private val forbiddenObjects: List<Any> = listOf(),
-                     private val dominatorTimeout: Duration = Duration.ofSeconds(30)):
+                     private val dominatorTimeout: Duration = Duration.ofSeconds(60)):
   BleakCheck<() -> ExpanderChooser, LeakInfo>({ getExpanderChooser(customExpanderSupplier) }, ignoreList, knownIssues) {
   lateinit var g1: HeapGraph
   lateinit var g2: HeapGraph
