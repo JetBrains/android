@@ -14,6 +14,7 @@
 package com.android.tools.idea.gradle.structure.configurables.suggestions
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConfigurable
 import com.android.tools.idea.gradle.structure.configurables.PsContext
@@ -39,7 +40,9 @@ open class ModuleSuggestionsConfigurable(
   override fun createPanel(): AbstractMainPanel = object : AbstractMainPanel(context) {
     private val panel = createInnerPanel().also {
       if (GradleVersionCatalogDetector.getInstance(context.project.ideProject).isVersionCatalogProject) {
-        add(VersionCatalogWarningHeader(), BorderLayout.NORTH)
+        if (StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_CAVEATS.get()) {
+          add(VersionCatalogWarningHeader(), BorderLayout.NORTH)
+        }
       }
       add(it.panel, BorderLayout.CENTER)
     }

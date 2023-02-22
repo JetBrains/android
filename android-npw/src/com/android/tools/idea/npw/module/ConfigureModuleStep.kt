@@ -28,6 +28,7 @@ import com.android.tools.adtui.validation.ValidatorPanel
 import com.android.tools.adtui.validation.createValidator
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.getSuggestedProjectPackage
 import com.android.tools.idea.npw.model.NewProjectModel.Companion.nameToJavaPackage
@@ -115,6 +116,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
       }, model.useGradleKts)
 
       registerValidator(versionCatalogUse, createValidator {
+        if (!StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_CAVEATS.get()) return@createValidator OK
         if (it.isPresent && it.get()) Validator.Result(INFO, "New module will not use Version Catalog information") else OK
       })
 
