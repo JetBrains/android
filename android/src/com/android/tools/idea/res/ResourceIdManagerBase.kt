@@ -21,10 +21,8 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader
 import com.android.tools.idea.model.Namespacing
-import com.intellij.openapi.module.Module
 import gnu.trove.TIntObjectHashMap
 import gnu.trove.TObjectIntHashMap
-import org.jetbrains.android.facet.AndroidFacet
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.Arrays
@@ -32,9 +30,8 @@ import java.util.EnumMap
 
 private const val FIRST_PACKAGE_ID: Byte = 0x02
 
-open class ResourceIdManagerBase protected constructor(val module: Module) : ResourceIdManager {
-
-  private val facet = AndroidFacet.getInstance(module) ?: error("${ResourceIdManager::class.qualifiedName} used on a non-Android module.")
+/** Studio agnostic implementation of [ResourceIdManager]. */
+open class ResourceIdManagerBase(private val module: ResourceIdManagerModelModule) : ResourceIdManager {
   private var generationCounter = 1L
 
   /**
@@ -100,8 +97,7 @@ open class ResourceIdManagerBase protected constructor(val module: Module) : Res
 
   override val finalIdsUsed: Boolean
     get() {
-      return facet.configuration.isAppOrFeature
-             && ResourceRepositoryManager.getInstance(facet).namespacing == Namespacing.DISABLED
+      return module.isAppOrFeature && module.namespacing == Namespacing.DISABLED
     }
 
   @Synchronized
@@ -304,3 +300,4 @@ open class ResourceIdManagerBase protected constructor(val module: Module) : Res
     fun findById(id: Int): ResourceReference? = fromIdMap[id]?.let { (type, name) -> ResourceReference(namespace, type, name) }
   }
 }
+

@@ -16,27 +16,10 @@
 package com.android.tools.idea.res
 
 import com.android.tools.idea.model.Namespacing
-import com.intellij.openapi.module.Module
 
-private val STUB_MODULE = object : ResourceIdManagerModelModule {
-  override val isAppOrFeature: Boolean = true
-  override val namespacing: Namespacing = Namespacing.DISABLED
-}
+/** Representation of an Android module required for a [ResourceIdManager]. */
+interface ResourceIdManagerModelModule {
+  val isAppOrFeature: Boolean
 
-class TestResourceIdManager private constructor(module: Module) : ResourceIdManagerBase(STUB_MODULE) {
-  private var _finalIdsUsed = true
-  override val finalIdsUsed: Boolean
-    get() = _finalIdsUsed
-
-  fun setFinalIdsUsed(finalIdsUsed: Boolean) {
-    _finalIdsUsed = finalIdsUsed
-  }
-
-  fun resetFinalIdsUsed() {
-    _finalIdsUsed = true
-  }
-
-  companion object {
-    fun getManager(module: Module) = module.getService(ResourceIdManager::class.java) as TestResourceIdManager
-  }
+  val namespacing: Namespacing
 }
