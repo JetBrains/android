@@ -174,7 +174,7 @@ MODULE: MultiFlavor.app
                 ShadersDirectories:
                     ./app/src/firstAbcSecondAbcDebug/shaders
                 BaselineProfileDirectories:
-                    ./app/src/firstAbcSecondAbcDebug/resources
+                    ./app/src/firstAbcSecondAbcDebug/baselineProfiles
         All:
             main
                 Manifest:
@@ -276,7 +276,7 @@ MODULE: MultiFlavor.app
                 ShadersDirectories:
                     ./app/src/firstAbcSecondAbcDebug/shaders
                 BaselineProfileDirectories:
-                    ./app/src/firstAbcSecondAbcDebug/resources
+                    ./app/src/firstAbcSecondAbcDebug/baselineProfiles
             firstXyz
                 Manifest:
                     ./app/src/firstXyz/AndroidManifest.xml
@@ -476,7 +476,7 @@ MODULE: MultiFlavor.app
                 ShadersDirectories:
                     ./app/src/testFirstAbcSecondAbcDebug/shaders
                 BaselineProfileDirectories:
-                    ./app/src/testFirstAbcSecondAbcDebug/resources
+                    ./app/src/testFirstAbcSecondAbcDebug/baselineProfiles
         AndroidTest:
             androidTest
                 Manifest:
@@ -597,7 +597,7 @@ MODULE: MultiFlavor.app
                 ShadersDirectories:
                     ./app/src/androidTestFirstAbcSecondAbcDebug/shaders
                 BaselineProfileDirectories:
-                    ./app/src/androidTestFirstAbcSecondAbcDebug/resources
+                    ./app/src/androidTestFirstAbcSecondAbcDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:

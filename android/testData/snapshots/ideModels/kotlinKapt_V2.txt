@@ -2024,7 +2024,7 @@ MODULE                        : MainActivity.app
                     AssetsDirectories             : <ROOT>/app/src/localDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/localDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/localDebug/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/localDebug/resources [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/localDebug/baselineProfiles [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : androidx.core:core-ktx:1.0.1@aar
@@ -2151,7 +2151,7 @@ MODULE                        : MainActivity.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestLocalDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestLocalDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestLocalDebug/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/androidTestLocalDebug/resources [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/androidTestLocalDebug/baselineProfiles [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : androidx.test.ext:junit:1.1.2@aar
@@ -2320,7 +2320,7 @@ MODULE                        : MainActivity.app
                     AssetsDirectories             : <ROOT>/app/src/testLocalDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testLocalDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testLocalDebug/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/testLocalDebug/resources [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/testLocalDebug/baselineProfiles [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : androidx.core:core-ktx:1.0.1@aar

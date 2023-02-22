@@ -2880,7 +2880,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/basicBarDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/basicBarDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/basicBarDebug/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/basicBarDebug/resources [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/basicBarDebug/baselineProfiles [-]
                 MultiFlavorSourceProvider
                     Name                          : basicBar
                     Manifest                      : <ROOT>/app/src/basicBar/AndroidManifest.xml [-]
@@ -3187,7 +3187,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestBasicBarDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestBasicBarDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestBasicBarDebug/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/androidTestBasicBarDebug/resources [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/androidTestBasicBarDebug/baselineProfiles [-]
                 MultiFlavorSourceProvider
                     Name                          : androidTestBasicBar
                     Manifest                      : <ROOT>/app/src/androidTestBasicBar/AndroidManifest.xml [-]
@@ -3445,7 +3445,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testBasicBarDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testBasicBarDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testBasicBarDebug/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/testBasicBarDebug/resources [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/testBasicBarDebug/baselineProfiles [-]
                 MultiFlavorSourceProvider
                     Name                          : testBasicBar
                     Manifest                      : <ROOT>/app/src/testBasicBar/AndroidManifest.xml [-]
@@ -5992,7 +5992,7 @@ MODULE                        : project.nested2
                     AssetsDirectories             : <ROOT>/nested2/src/basicDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/basicDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/basicDebug/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/nested2/src/basicDebug/resources [-]
+                    BaselineProfileDirectories    : <ROOT>/nested2/src/basicDebug/baselineProfiles [-]
                 Dependencies
                     compileClasspath
                     runtimeClasspath
@@ -6026,7 +6026,7 @@ MODULE                        : project.nested2
                     AssetsDirectories             : <ROOT>/nested2/src/androidTestBasicDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/androidTestBasicDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/androidTestBasicDebug/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/nested2/src/androidTestBasicDebug/resources [-]
+                    BaselineProfileDirectories    : <ROOT>/nested2/src/androidTestBasicDebug/baselineProfiles [-]
                 Dependencies
                     compileClasspath
                         module                        : <ROOT>-:nested2-MAIN
@@ -6063,7 +6063,7 @@ MODULE                        : project.nested2
                     AssetsDirectories             : <ROOT>/nested2/src/testBasicDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/nested2/src/testBasicDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/nested2/src/testBasicDebug/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/nested2/src/testBasicDebug/resources [-]
+                    BaselineProfileDirectories    : <ROOT>/nested2/src/testBasicDebug/baselineProfiles [-]
                 Dependencies
                     compileClasspath
                         module                        : <ROOT>-:nested2-MAIN

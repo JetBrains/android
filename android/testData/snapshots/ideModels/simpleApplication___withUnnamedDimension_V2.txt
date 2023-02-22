@@ -1078,7 +1078,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/exampleDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/exampleDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/exampleDebug/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/exampleDebug/resources [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/exampleDebug/baselineProfiles [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar
@@ -1357,7 +1357,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestExampleDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestExampleDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestExampleDebug/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/androidTestExampleDebug/resources [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/androidTestExampleDebug/baselineProfiles [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support.test:runner:1.0.2@aar
@@ -1603,7 +1603,7 @@ MODULE                        : project.app
                     AssetsDirectories             : <ROOT>/app/src/testExampleDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testExampleDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testExampleDebug/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/testExampleDebug/resources [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/testExampleDebug/baselineProfiles [-]
                 Dependencies
                     compileClasspath
                         androidLibrary                : com.android.support:appcompat-v7:28.0.0@aar

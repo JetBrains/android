@@ -172,7 +172,7 @@ MODULE: project.app
                 ShadersDirectories:
                     ./app/src/basicBarDebug/shaders
                 BaselineProfileDirectories:
-                    ./app/src/basicBarDebug/resources
+                    ./app/src/basicBarDebug/baselineProfiles
         All:
             main
                 Manifest:
@@ -273,7 +273,7 @@ MODULE: project.app
                 ShadersDirectories:
                     ./app/src/basicBarDebug/shaders
                 BaselineProfileDirectories:
-                    ./app/src/basicBarDebug/resources
+                    ./app/src/basicBarDebug/baselineProfiles
             debug
                 Manifest:
                     ./app/src/debug/AndroidManifest.xml
@@ -492,7 +492,7 @@ MODULE: project.app
                 ShadersDirectories:
                     ./app/src/testBasicBarDebug/shaders
                 BaselineProfileDirectories:
-                    ./app/src/testBasicBarDebug/resources
+                    ./app/src/testBasicBarDebug/baselineProfiles
         AndroidTest:
             androidTest
                 Manifest:
@@ -613,7 +613,7 @@ MODULE: project.app
                 ShadersDirectories:
                     ./app/src/androidTestBasicBarDebug/shaders
                 BaselineProfileDirectories:
-                    ./app/src/androidTestBasicBarDebug/resources
+                    ./app/src/androidTestBasicBarDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
@@ -3893,7 +3893,7 @@ MODULE: project.nested2
                 ShadersDirectories:
                     ./nested2/src/basicDebug/shaders
                 BaselineProfileDirectories:
-                    ./nested2/src/basicDebug/resources
+                    ./nested2/src/basicDebug/baselineProfiles
         All:
             main
                 Manifest:
@@ -3954,7 +3954,7 @@ MODULE: project.nested2
                 ShadersDirectories:
                     ./nested2/src/basicDebug/shaders
                 BaselineProfileDirectories:
-                    ./nested2/src/basicDebug/resources
+                    ./nested2/src/basicDebug/baselineProfiles
             debug
                 Manifest:
                     ./nested2/src/debug/AndroidManifest.xml
@@ -4093,7 +4093,7 @@ MODULE: project.nested2
                 ShadersDirectories:
                     ./nested2/src/testBasicDebug/shaders
                 BaselineProfileDirectories:
-                    ./nested2/src/testBasicDebug/resources
+                    ./nested2/src/testBasicDebug/baselineProfiles
         AndroidTest:
             androidTest
                 Manifest:
@@ -4174,7 +4174,7 @@ MODULE: project.nested2
                 ShadersDirectories:
                     ./nested2/src/androidTestBasicDebug/shaders
                 BaselineProfileDirectories:
-                    ./nested2/src/androidTestBasicDebug/resources
+                    ./nested2/src/androidTestBasicDebug/baselineProfiles
         TestFixtures:
     by IdeaSourceProviders:
         Manifests:
