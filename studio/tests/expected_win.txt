@@ -545,7 +545,6 @@ android-studio/license/dev01_license.txt
 android-studio/license/dexlib2-2.0.8-NOTICE
 android-studio/license/fest-NOTICE
 android-studio/license/fetchasgoogle.jar-NOTICE
-android-studio/license/ffmpeg-LICENSE.TXT
 android-studio/license/ffmpeg-LICENSE.md
 android-studio/license/ffmpeg-LICENSE.openh264
 android-studio/license/ffmpeg-SOURCE_CODE.TXT
@@ -1341,9 +1340,9 @@ android-studio/plugins/android/lib/deploy_java_proto.jar
 android-studio/plugins/android/lib/dexlib2-2.5.2.jar
 android-studio/plugins/android/lib/emulator_java_proto.jar
 android-studio/plugins/android/lib/explainer.jar
-android-studio/plugins/android/lib/ffmpeg-5.0-1.5.7-windows-x86_64.jar
-android-studio/plugins/android/lib/ffmpeg-5.0-1.5.7.jar
-android-studio/plugins/android/lib/ffmpeg-platform-5.0-1.5.7.jar
+android-studio/plugins/android/lib/ffmpeg-5.1.2-1.5.8-windows-x86_64.jar
+android-studio/plugins/android/lib/ffmpeg-5.1.2-1.5.8.jar
+android-studio/plugins/android/lib/ffmpeg-platform-5.1.2-1.5.8.jar
 android-studio/plugins/android/lib/firebase_java_proto.jar
 android-studio/plugins/android/lib/flatbuffers-java-1.12.0.jar
 android-studio/plugins/android/lib/game-tools-protos.jar
@@ -1353,9 +1352,9 @@ android-studio/plugins/android/lib/google-analytics-library.jar
 android-studio/plugins/android/lib/inspectors-common.jar
 android-studio/plugins/android/lib/instantapps-api-1.8.jar
 android-studio/plugins/android/lib/jarutils.jar
-android-studio/plugins/android/lib/javacpp-1.5.7-windows-x86_64.jar
-android-studio/plugins/android/lib/javacpp-1.5.7.jar
-android-studio/plugins/android/lib/javacpp-platform-1.5.7.jar
+android-studio/plugins/android/lib/javacpp-1.5.8-windows-x86_64.jar
+android-studio/plugins/android/lib/javacpp-1.5.8.jar
+android-studio/plugins/android/lib/javacpp-platform-1.5.8.jar
 android-studio/plugins/android/lib/javapoet-1.10.0.jar
 android-studio/plugins/android/lib/javax.inject-1.jar
 android-studio/plugins/android/lib/jetifier-core-1.0.0-beta10.jar

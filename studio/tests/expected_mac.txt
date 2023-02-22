@@ -489,7 +489,6 @@ Android Studio Preview.app/Contents/license/dev01_license.txt
 Android Studio Preview.app/Contents/license/dexlib2-2.0.8-NOTICE
 Android Studio Preview.app/Contents/license/fest-NOTICE
 Android Studio Preview.app/Contents/license/fetchasgoogle.jar-NOTICE
-Android Studio Preview.app/Contents/license/ffmpeg-LICENSE.TXT
 Android Studio Preview.app/Contents/license/ffmpeg-LICENSE.md
 Android Studio Preview.app/Contents/license/ffmpeg-LICENSE.openh264
 Android Studio Preview.app/Contents/license/ffmpeg-SOURCE_CODE.TXT
@@ -2033,9 +2032,9 @@ Android Studio Preview.app/Contents/plugins/android/lib/deploy_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/dexlib2-2.5.2.jar
 Android Studio Preview.app/Contents/plugins/android/lib/emulator_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/explainer.jar
-Android Studio Preview.app/Contents/plugins/android/lib/ffmpeg-5.0-1.5.7-macosx-x86_64.jar
-Android Studio Preview.app/Contents/plugins/android/lib/ffmpeg-5.0-1.5.7.jar
-Android Studio Preview.app/Contents/plugins/android/lib/ffmpeg-platform-5.0-1.5.7.jar
+Android Studio Preview.app/Contents/plugins/android/lib/ffmpeg-5.1.2-1.5.8-macosx-x86_64.jar
+Android Studio Preview.app/Contents/plugins/android/lib/ffmpeg-5.1.2-1.5.8.jar
+Android Studio Preview.app/Contents/plugins/android/lib/ffmpeg-platform-5.1.2-1.5.8.jar
 Android Studio Preview.app/Contents/plugins/android/lib/firebase_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/flatbuffers-java-1.12.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/game-tools-protos.jar
@@ -2045,9 +2044,9 @@ Android Studio Preview.app/Contents/plugins/android/lib/google-analytics-library
 Android Studio Preview.app/Contents/plugins/android/lib/inspectors-common.jar
 Android Studio Preview.app/Contents/plugins/android/lib/instantapps-api-1.8.jar
 Android Studio Preview.app/Contents/plugins/android/lib/jarutils.jar
-Android Studio Preview.app/Contents/plugins/android/lib/javacpp-1.5.7-macosx-x86_64.jar
-Android Studio Preview.app/Contents/plugins/android/lib/javacpp-1.5.7.jar
-Android Studio Preview.app/Contents/plugins/android/lib/javacpp-platform-1.5.7.jar
+Android Studio Preview.app/Contents/plugins/android/lib/javacpp-1.5.8-macosx-x86_64.jar
+Android Studio Preview.app/Contents/plugins/android/lib/javacpp-1.5.8.jar
+Android Studio Preview.app/Contents/plugins/android/lib/javacpp-platform-1.5.8.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javapoet-1.10.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javax.inject-1.jar
 Android Studio Preview.app/Contents/plugins/android/lib/jetifier-core-1.0.0-beta10.jar
