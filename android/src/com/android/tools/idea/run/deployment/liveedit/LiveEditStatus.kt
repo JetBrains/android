@@ -78,7 +78,8 @@ open class LiveEditStatus(
         message("le.status.out_of_date.title"),
         message,
         UNRECOVERABLE_ERROR,
-        redeployMode = RedeployMode.RERUN
+        redeployMode = RedeployMode.RERUN,
+        actionId = "Run"
       )
     }
 
