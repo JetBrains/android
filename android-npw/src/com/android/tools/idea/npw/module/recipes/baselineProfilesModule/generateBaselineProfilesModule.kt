@@ -27,6 +27,7 @@ import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.execution.RunManager
 import com.intellij.openapi.module.Module
 import org.jetbrains.android.facet.AndroidRootUtil
@@ -56,7 +57,7 @@ fun RecipeExecutor.generateBaselineProfilesModule(
 
   // TODO(b/269581369): Remove once alpha build of the plugin is released.
   projectBuildModel.projectSettingsModel?.pluginManagement()?.repositories()?.addMavenRepositoryByUrl(
-    "https://androidx.dev/snapshots/builds/9605710/artifacts/repository",
+    "https://androidx.dev/snapshots/builds/9639714/artifacts/repository",
     "AndroidX Snapshot Repository"
   )
   projectBuildModel.applyChanges()
@@ -70,7 +71,7 @@ fun RecipeExecutor.generateBaselineProfilesModule(
     FlavorNameAndDimension(it.name(), it.dimension().forceString())
   }
 
-  val variants = generateBuildVariants(flavorDimensionNames, flavorNamesAndDimensions)
+  val variants = generateBuildVariants(flavorDimensionNames, flavorNamesAndDimensions, "release")
 
   createModule(
     newModule = newModule,
@@ -96,10 +97,11 @@ fun RecipeExecutor.generateBaselineProfilesModule(
   setupRunConfigurations(variants, targetModule)
 }
 
+@VisibleForTesting
 fun RecipeExecutor.updateTargetModule(newModule: ModuleTemplateData, targetModule: Module) {
   val targetModuleDir = AndroidRootUtil.getModuleDirPath(targetModule)?.let { File(it) } ?: return
 
-  applyPluginInModule("androidx.baselineprofiles.buildprovider", targetModule, BASELINE_PROFILES_PLUGIN_MIN_REV)
+  applyPluginInModule("androidx.baselineprofiles.apkprovider", targetModule, BASELINE_PROFILES_PLUGIN_MIN_REV)
   applyPluginInModule("androidx.baselineprofiles.consumer", targetModule, BASELINE_PROFILES_PLUGIN_MIN_REV)
 
   addDependency(
@@ -109,14 +111,14 @@ fun RecipeExecutor.updateTargetModule(newModule: ModuleTemplateData, targetModul
     moduleDir = targetModuleDir
   )
 
-  // TODO(b/268476199): Should be renamed to camel case
-  addModuleDependency("baselineprofiles", newModule.name, targetModuleDir)
+  addModuleDependency("baselineProfiles", newModule.name, targetModuleDir)
 }
 
 /**
  * Add BaselineProfile generator
  * Add StartupBenchmark for measuring effectiveness
  */
+@VisibleForTesting
 fun RecipeExecutor.createTestClasses(
   targetModule: Module,
   moduleData: ModuleTemplateData,
@@ -135,7 +137,7 @@ fun RecipeExecutor.createTestClasses(
       )
       // Create Macrobenchmark tests
       val benchmarksContent = baselineProfileBenchmarksKt(
-        targetModuleName = targetModule.name,
+        newModuleName = moduleData.name,
         className = MACROBENCHMARKS_CLASS_NAME,
         packageName = moduleData.packageName,
         targetPackageName = targetApplicationId,
@@ -147,14 +149,14 @@ fun RecipeExecutor.createTestClasses(
     Language.Java -> {
       // Create Baseline Profile Generator class
       val generatorContent = baselineProfileGeneratorJava(
-        moduleName = moduleData.name,
+        targetModuleName = targetModule.name,
         className = GENERATOR_CLASS_NAME,
         packageName = moduleData.packageName,
         targetPackageName = targetApplicationId,
       )
       // Create Macrobenchmark tests
       val benchmarksContent = baselineProfileBenchmarksJava(
-        targetModuleName = moduleData.name,
+        newModuleName = moduleData.name,
         className = MACROBENCHMARKS_CLASS_NAME,
         packageName = moduleData.packageName,
         targetPackageName = targetApplicationId,
@@ -177,7 +179,8 @@ fun RecipeExecutor.createTestClasses(
 /**
  * Creates run configurations for each build flavor of the target module.
  */
-private fun RecipeExecutor.setupRunConfigurations(
+@VisibleForTesting
+fun RecipeExecutor.setupRunConfigurations(
   variants: List<String?>,
   targetModule: Module,
 ) {
@@ -189,7 +192,7 @@ private fun RecipeExecutor.setupRunConfigurations(
   val runManager = RunManager.getInstance(project)
   val gradleConfigFactory = GradleExternalTaskConfigurationType.getInstance().factory
 
-  variants.forEach { variantName ->
+  variants.forEachIndexed { index, variantName ->
     var runName = "Generate Baseline Profiles"
     if (variants.size > 1) {
       runName += " [$variantName]"
@@ -208,9 +211,15 @@ private fun RecipeExecutor.setupRunConfigurations(
     // Persists in .idea folder
     runConfigSettings.storeInDotIdeaFolder()
     runManager.addConfiguration(runConfigSettings)
+
+    // Select first run configuration
+    if (index == 0) {
+      runManager.selectedConfiguration = runConfigSettings
+    }
   }
 }
 
+@VisibleForTesting
 fun Module.getModuleNameForGradleTask(): String {
   // name of the whole project
   val projectName = project.name

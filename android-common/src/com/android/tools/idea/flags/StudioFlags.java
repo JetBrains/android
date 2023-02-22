@@ -90,6 +90,11 @@ public final class StudioFlags {
     NPW, "new.macro.benchmark.module", "New Macro Benchmark Module",
     "Show template to create a new Macro Benchmark module in the new module wizard.",
     true);
+
+  public static final Flag<Boolean> NPW_NEW_BASELINE_PROFILES_MODULE = Flag.create(
+    NPW, "new.baseline.profiles.module", "New Baseline Profiles Module",
+    "Show template to create a new Baseline Profiles module in the new module wizard.",
+    true);
   //endregion
 
   //region Memory Usage Reporting

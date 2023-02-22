@@ -123,6 +123,12 @@ class BaselineProfilesMacrobenchmarkCommonTest {
   }
 
   @Test
+  fun generateBuildVariants_emptyFlavors_with_buildType() {
+    val variants = generateBuildVariants(emptyList(), emptyList(), "release")
+    assertThat(variants).containsExactlyElementsIn(listOf("release"))
+  }
+
+  @Test
   fun generateBuildVariants_oneDimensionOneFlavor() {
     val dimen = listOf("env")
     val flavors = listOf(FlavorNameAndDimension("demo", "env"))
@@ -203,6 +209,31 @@ class BaselineProfilesMacrobenchmarkCommonTest {
       "paidDemoBlue",
       "paidProdRed",
       "paidProdBlue",
+    ))
+  }
+
+  @Test
+  fun generateBuildVariants_threeDimensionFlavorsReversedWithBuildType() {
+    val dimen = listOf("tier", "env", "color")
+    val flavors = listOf(
+      FlavorNameAndDimension("demo", "env"),
+      FlavorNameAndDimension("prod", "env"),
+      FlavorNameAndDimension("free", "tier"),
+      FlavorNameAndDimension("paid", "tier"),
+      FlavorNameAndDimension("red", "color"),
+      FlavorNameAndDimension("blue", "color"),
+    )
+    val variants = generateBuildVariants(dimen, flavors, "release")
+
+    assertThat(variants).containsExactlyElementsIn(listOf(
+      "freeDemoRedRelease",
+      "freeDemoBlueRelease",
+      "freeProdRedRelease",
+      "freeProdBlueRelease",
+      "paidDemoRedRelease",
+      "paidDemoBlueRelease",
+      "paidProdRedRelease",
+      "paidProdBlueRelease",
     ))
   }
 

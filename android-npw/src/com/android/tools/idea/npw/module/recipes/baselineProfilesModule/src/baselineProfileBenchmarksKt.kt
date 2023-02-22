@@ -16,7 +16,7 @@
 package com.android.tools.idea.npw.module.recipes.baselineProfilesModule.src
 
 fun baselineProfileBenchmarksKt(
-  targetModuleName: String,
+  newModuleName: String,
   className: String,
   packageName: String,
   targetPackageName: String
@@ -45,7 +45,7 @@ import org.junit.runner.RunWith
  * the effectiveness of your Baseline Profiles. You can run it directly from Android
  * Studio as an instrumentation test, or run all benchmarks with this Gradle task:
  * ```
- * ./gradlew :$targetModuleName:connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=Macrobenchmark
+ * ./gradlew :$newModuleName:connectedAndroidTest -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=Macrobenchmark
  * ```
  *
  * You should run the benchmarks on a physical device, not an Android emulator, because the

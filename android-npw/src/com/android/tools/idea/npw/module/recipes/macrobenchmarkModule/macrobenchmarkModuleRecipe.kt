@@ -29,6 +29,7 @@ import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.module.Module
 import org.jetbrains.android.facet.AndroidRootUtil
 import java.io.File
@@ -77,6 +78,7 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
   )
 }
 
+@VisibleForTesting
 fun RecipeExecutor.updateTargetModule(
   projectBuildModel: ProjectBuildModel,
   buildTypeName: String,
@@ -96,6 +98,7 @@ fun RecipeExecutor.updateTargetModule(
 /**
  * Generates unique build type name with prefix of [buildTypeName] if already exist in [buildTypes]
  */
+@VisibleForTesting
 fun getUniqueBuildTypeName(buildTypeName: String, buildTypes: List<String>): String {
   var uniqueName = buildTypeName
   var buildTypeSuffix = 0
@@ -110,6 +113,7 @@ fun getUniqueBuildTypeName(buildTypeName: String, buildTypes: List<String>): Str
 /**
  * Creates new build type with [buildTypeName] to the specified [targetModuleModel].
  */
+@VisibleForTesting
 fun RecipeExecutor.addBuildTypeToTargetBuildGradle(
   projectBuildModel: ProjectBuildModel,
   buildTypeName: String,
@@ -143,6 +147,7 @@ fun RecipeExecutor.addBuildTypeToTargetBuildGradle(
 /**
  * TODO(b/269582562): Can be replaced with isProfileable since AGP 8.0
  */
+@VisibleForTesting
 fun RecipeExecutor.addProfileableToTargetManifest(targetModule: Module, targetModuleRootDir: File) {
   // Only do the actions for the default executor, not when just finding references.
   if (this is FindReferencesRecipeExecutor) return
@@ -157,6 +162,7 @@ fun RecipeExecutor.addProfileableToTargetManifest(targetModule: Module, targetMo
   mergeXml(appAndroidManifest(needsTargetFlag), targetModuleManifest)
 }
 
+@VisibleForTesting
 fun RecipeExecutor.createTestClasses(moduleData: ModuleTemplateData, targetApplicationId: String) {
   val language = moduleData.projectTemplateData.language
   val benchmarksContent = when (language) {

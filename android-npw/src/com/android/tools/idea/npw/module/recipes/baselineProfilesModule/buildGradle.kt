@@ -74,7 +74,7 @@ fun baselineProfilesBuildGradle(
   val pluginConfiguration = buildString {
     appendLine("// This is the configuration block for the Baseline Profiles plugin.")
     appendLine("// You can specify to run the generators on a managed devices or connected devices.")
-    appendLine("baselineProfilesProfileProducer {")
+    appendLine("baselineProfiles {")
     if (useGmd != null) {
       appendLine("managedDevices += \"${useGmd.identifier}\"")
       appendLine("useConnectedDevices = false")
