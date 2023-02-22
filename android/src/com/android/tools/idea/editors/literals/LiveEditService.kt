@@ -16,15 +16,19 @@
 
 package com.android.tools.idea.editors.literals
 
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
+import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.ui.EmulatorLiveEditAdapter
 import com.android.tools.idea.editors.liveedit.ui.LiveEditIssueNotificationAction
+import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.run.deployment.liveedit.AdbConnection
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditDeployMonitor
 import com.android.tools.idea.run.deployment.liveedit.DeviceConnection
 import com.android.tools.idea.run.deployment.liveedit.EditEvent
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
+import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.createRerunnableErrorStatus
 import com.android.tools.idea.run.deployment.liveedit.PsiListener
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
@@ -34,12 +38,14 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.psi.PsiManager
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
 import com.intellij.util.concurrency.AppExecutorUtil
+import com.intellij.util.containers.stream
 import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.Callable
 import java.util.concurrent.Executor
@@ -129,6 +135,15 @@ class LiveEditService constructor(val project: Project,
 
     @JvmStatic
     fun getInstance(project: Project): LiveEditService = project.getService(LiveEditService::class.java)
+
+    @JvmStatic
+    fun usesCompose(project: Project) = project.modules.stream().anyMatch {
+      ProjectSystemService.getInstance(project).projectSystem.getModuleSystem(it).usesCompose
+    }
+
+    fun hasLiveEditSupportedDeviceConnected() = AndroidDebugBridge.getBridge()!!.devices.any { device ->
+      AndroidLiveEditDeployMonitor.supportLiveEdits(device)
+    }
   }
 
   // TODO: Refactor this away when AndroidLiveEditDeployMonitor functionality is moved to LiveEditService/other classes.
@@ -151,6 +166,26 @@ class LiveEditService constructor(val project: Project,
 
   fun getCallback(packageName: String, device: IDevice) : Callable<*>? {
     return deployMonitor.getCallback(packageName, device)
+  }
+
+  fun toggleLiveEdit(oldMode: LiveEditApplicationConfiguration.LiveEditMode, newMode: LiveEditApplicationConfiguration.LiveEditMode) {
+    if (oldMode == newMode) {
+      return
+    } else if (newMode == LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT) {
+      if (usesCompose(project) && hasLiveEditSupportedDeviceConnected()) {
+        deployMonitor.requestRerun()
+      }
+    } else {
+      deployMonitor.clearDevices();
+    }
+  }
+
+  fun toggleLiveEditMode(oldMode: LiveEditTriggerMode, newMode: LiveEditTriggerMode) {
+    if (oldMode == newMode) {
+      return
+    } else if (newMode == LiveEditTriggerMode.LE_TRIGGER_AUTOMATIC) {
+      deployMonitor.onManualLETrigger(project)
+    }
   }
 
   @com.android.annotations.Trace

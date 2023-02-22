@@ -205,8 +205,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           myLaunchOptions.getInstallOnAllUsers(),
           myLaunchOptions.getAlwaysInstallWithPm()));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
-        AndroidProjectSystem androidProjectSystem = ProjectSystemService.getInstance(myProject).getProjectSystem();
-        if (ProjectStructureUtilKt.allModules(myProject).stream().anyMatch(m -> androidProjectSystem.getModuleSystem(m).getUsesCompose())) {
+        if (LiveEditService.usesCompose(myProject)) {
           tasks.add(new StartLiveUpdateMonitoringTask(LiveEditService.getInstance(myProject).getCallback(packageName, device)));
         }
         break;

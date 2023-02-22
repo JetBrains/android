@@ -21,6 +21,7 @@ import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.Pr
 
 import com.android.annotations.Nullable;
 import com.android.annotations.Trace;
+import com.android.ddmlib.AndroidDebugBridge;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ThreeState;
@@ -421,6 +422,14 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     return true;
   }
 
+  public void requestRerun() {
+    // This is triggered when Live Edit is just toggled on. Since the last deployment didn't start the Live Edit service,
+    // we will fetch all the running devices and change every one of them to be outdated.
+    for (IDevice device : AndroidDebugBridge.getBridge().getDevices()) {
+      deviceStatusManager.addDevice(device, LiveEditStatus.createRerunnableErrorStatus("Re-run application to start Live Edit updates."));
+    }
+  }
+
   private void scheduleErrorPolling(LiveUpdateDeployer deployer, Installer installer, AdbClient adb, String packageName) {
     ScheduledExecutorService scheduler = JobScheduler.getScheduler();
     ScheduledFuture<?> statusPolling = scheduler.scheduleWithFixedDelay(() -> {
@@ -431,6 +440,10 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     }, 2, 2, TimeUnit.SECONDS);
     // Schedule a cancel after 10 seconds.
     scheduler.schedule(() -> {statusPolling.cancel(true);}, 10, TimeUnit.SECONDS);
+  }
+
+  public void clearDevices() {
+    deviceStatusManager.clear();
   }
 
 
@@ -585,7 +598,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     }
   }
 
-  private static boolean supportLiveEdits(IDevice device) {
+  public static boolean supportLiveEdits(IDevice device) {
     return device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.R);
   }
 
