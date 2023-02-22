@@ -90,7 +90,8 @@ internal fun checkUnsupportedPsiEvents(change: EditEvent) {
   }
 
   if (change.unsupportedPsiEvents.contains(UnsupportedPsiEvent.IMPORT_DIRECTIVES)) {
-    throw unsupportedRecoverableSourceModification("Updates to changes to import statement is not supported", change.file)
+    throw unsupportedRecoverableSourceModification("Import statement has been edited, and Live Edit is temporarily paused." +
+                                                   " Live Edit will continue on the next supported edit.", change.file)
   }
 
   if (change.unsupportedPsiEvents.contains(UnsupportedPsiEvent.FIELD_CHANGES)) {
