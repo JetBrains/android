@@ -56,7 +56,7 @@ abstract class ActivityLaunchOptionState : ComponentLaunchOptions {
                       extraFlags: String,
                       console: ConsoleView)
 
-  open fun checkConfiguration(facet: AndroidFacet): List<ValidationError?> {
-    return emptyList<ValidationError>()
+  open fun checkConfiguration(facet: AndroidFacet): List<ValidationError> {
+    return emptyList()
   }
 }

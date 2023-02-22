@@ -54,7 +54,7 @@ open class ComposePreviewRunConfiguration(
    * test artifact and .apk is used. The validations needed to make sure that is possible to provide
    * this support are already part of [AndroidRunConfigurationBase.validate]
    */
-  override fun supportsRunningLibraryProjects(facet: AndroidFacet): Pair<Boolean, String>? =
+  override fun supportsRunningLibraryProjects(facet: AndroidFacet): Pair<Boolean, String?> =
     Pair(java.lang.Boolean.TRUE, null)
 
   /**
