@@ -1498,13 +1498,11 @@
     <option name="only" hit="Optimize build for target device API level only" />
     <option name="optimize" hit="Optimize build for target device API level only" />
     <option name="target" hit="Optimize build for target device API level only" />
-    <option name="and" hit="Parse and write to Version Catalog files" />
-    <option name="catalog" hit="Parse and write to Version Catalog files" />
-    <option name="files" hit="Parse and write to Version Catalog files" />
-    <option name="parse" hit="Parse and write to Version Catalog files" />
-    <option name="to" hit="Parse and write to Version Catalog files" />
-    <option name="version" hit="Parse and write to Version Catalog files" />
-    <option name="write" hit="Parse and write to Version Catalog files" />
+    <option name="catalog" hit="Parse multiple Version Catalog files" />
+    <option name="files" hit="Parse multiple Version Catalog files" />
+    <option name="multiple" hit="Parse multiple Version Catalog files" />
+    <option name="parse" hit="Parse multiple Version Catalog files" />
+    <option name="version" hit="Parse multiple Version Catalog files" />
     <option name="annotation" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
     <option name="editing" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
     <option name="editor" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />

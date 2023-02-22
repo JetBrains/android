@@ -749,9 +749,8 @@ public final class StudioFlags {
   public static final Flag<Boolean> GRADLE_SYNC_RECREATE_JDK = Flag.create(
     GRADLE_IDE, "gradle.sync.recreate.jdk", "Recreate JDK on sync", "Recreate Gradle JDK when syncing if there are changed roots.", true);
 
-  public static final Flag<Boolean> GRADLE_DSL_TOML_WRITE_SUPPORT = Flag.create(
-    GRADLE_IDE, "gradle.dsl.toml.write", "Write TOML files", "Write changes to TOML Version Catalog files.", true);
-
+  // TODO(b/200280395): when deleting this flag, check whether the dependencies associated with flags can be removed from the gradle-dsl
+  //  modules.
   public static final Flag<Boolean> GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT = Flag.create(
     GRADLE_IDE, "gradle.extended.version.catalog", "Gradle version catalog support", "Multiple TOML files, catalog variables in PSD", true);
 

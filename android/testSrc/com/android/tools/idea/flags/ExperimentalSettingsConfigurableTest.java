@@ -111,7 +111,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     myConfigurable.setTraceProfileLocation("/tmp/text2.profile");
     myConfigurable.setTraceProfileSelection(SPECIFIED_LOCATION);
     myConfigurable.setEnableParallelSync(false);
-    myConfigurable.setEnableVersionCatalogParsing(false);
+    myConfigurable.setExtendedVersionCatalogSupport(false);
     myConfigurable.setEnabledGradleApiOptimization(false);
 
     myConfigurable.apply();

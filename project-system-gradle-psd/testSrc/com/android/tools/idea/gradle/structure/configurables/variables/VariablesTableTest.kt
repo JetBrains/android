@@ -869,7 +869,6 @@ class VariablesTableTest {
   @Test
   fun testAddAndEditVersionCatalogVariable() {
     StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.override(true)
-    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
     try {
       val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
       preparedProject.open { project ->
@@ -907,14 +906,12 @@ class VariablesTableTest {
     }
     finally {
       StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.clearOverride()
-      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
     }
   }
 
   @Test
   fun testValidationVariableName() {
     StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.override(true)
-    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
     try {
       val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
       preparedProject.open { project ->
@@ -940,7 +937,6 @@ class VariablesTableTest {
     }
     finally {
       StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.clearOverride()
-      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
     }
   }
 
@@ -1120,7 +1116,6 @@ class VariablesTableTest {
   @Test
   fun testCatalogVersionDelete() {
     StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.override(true)
-    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
     try {
       val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
       preparedProject.open { project ->
@@ -1149,7 +1144,6 @@ class VariablesTableTest {
     }
     finally {
       StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.clearOverride()
-      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
     }
   }
 
