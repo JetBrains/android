@@ -709,7 +709,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> BUILD_OUTPUT_DOWNLOADS_INFORMATION = Flag.create(
     GRADLE_IDE, "build.output.downloads.information", "Enable downloads information in Build/Sync View",
-    "Show separate node with downloads information in Build and Sync views.", false);
+    "Show separate node with downloads information in Build and Sync views.", true);
 
   public static final Flag<Boolean> DISABLE_FORCED_UPGRADES = Flag.create(
     GRADLE_IDE, "forced.agp.update", "Disable forced Android Gradle plugin upgrades",
