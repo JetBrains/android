@@ -2,6 +2,30 @@
 <issues format="5" by="lint 8.1.0-dev">
 
     <issue
+        id="AdbDeviceServicesCommand"
+        message="Use of `com.android.adblib.AdbDeviceServices#shell` is discouraged. Consider using `AdbDeviceServices.shellCommand()` instead">
+        <location
+            file="src/com/android/tools/idea/adb/AdbShellCommandsUtil.kt"
+            line="106"/>
+    </issue>
+
+    <issue
+        id="AdbDeviceServicesCommand"
+        message="Use of `com.android.adblib.AdbDeviceServices#shell` is discouraged. Consider using `AdbDeviceServices.shellCommand()` instead">
+        <location
+            file="src/com/android/tools/idea/adb/AdbShellCommandsUtil.kt"
+            line="106"/>
+    </issue>
+
+    <issue
+        id="AdbDeviceServicesCommand"
+        message="Use of `com.android.adblib.AdbDeviceServices#shell` is discouraged. Consider using `AdbDeviceServices.shellCommand()` instead">
+        <location
+            file="src/com/android/tools/idea/adblib/ddmlibcompatibility/Shell.kt"
+            line="59"/>
+    </issue>
+
+    <issue
         id="AvoidByLazy"
         message="Avoid `by lazy` for simple lazy initialization">
         <location
