@@ -363,9 +363,9 @@ class AnimationPreview(
     // update
     timeline.cachedVal = -1
     // The animation panel might not have the focus when the "No animations" panel is displayed,
-    // i.e. when a live literal is changed in the
-    // editor and we need to refresh the animation preview so it displays the most up-to-date
-    // animations. For that reason, we need to make
+    // i.e. when code has changed in the editor using Fast Preview and we need to refresh the
+    // animation preview so it displays the most up-to-date animations. For that reason, we need to
+    // make
     // sure the animation panel is repainted correctly.
     animationPreviewPanel.repaint()
     playbackControls.pause()

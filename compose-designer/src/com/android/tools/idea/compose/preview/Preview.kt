@@ -1374,10 +1374,7 @@ class ComposePreviewRepresentation(
     }
   }
 
-  /**
-   * We will only do quick refresh if there is a single preview. When live literals is enabled, we
-   * want to try to preserve the same class loader as much as possible.
-   */
+  /** We will only do quick refresh if there is a single preview. */
   private fun shouldQuickRefresh() = renderedElements.count() == 1
 
   private suspend fun requestFastPreviewRefreshAndTrack(): CompilationResult {

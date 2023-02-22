@@ -266,7 +266,7 @@ class LiveLiteralsService private constructor(private val project: Project,
     }
 
   /**
-   * Link to all instantiated [HighlightTracker]s. This allows to switch them on/off via the [ToggleLiveLiteralsHighlightAction].
+   * Link to all instantiated [HighlightTracker]s. This allows to switch them on/off via the [ToggleLiveLiteralsHighlightsAction].
    * This is a [WeakList] since the trackers will be mainly held by the mouse listener created in [addDocumentTracking].
    */
   private val trackers = WeakList<HighlightTracker>()
@@ -603,7 +603,6 @@ class LiveLiteralsService private constructor(private val project: Project,
     // Some elements, like directories do not have a containingFile and are safe to ignore.
     val containingFile = element.containingFile ?: return false
     val literalReference = LiteralsManager.getLiteralReference(element) ?: return false
-    val literalReferencePath = literalReference.containingFile?.virtualFile?.path ?: return false
     @Suppress("USELESS_ELVIS") // initialTextRange can be null under certain conditions
     val initialTextRange = literalReference.initialTextRange ?: return false
     return containingFile.hasCompilerLiveLiteral(initialTextRange.startOffset)
