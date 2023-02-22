@@ -1114,6 +1114,9 @@ class ComposePreviewRepresentation(
   private fun onAfterRender() {
     composeWorkBench.hasRendered = true
     hasRenderedAtLeastOnce.set(true)
+    // Some Composables (e.g. Popup) delay their content placement and wrap them into a coroutine
+    // controlled by the Compose clock. For that reason, we need to call executeCallbacksAsync()
+    // once, to make sure the queued behaviors are triggered and displayed in static preview.
     surface.sceneManagers.forEach { it.executeCallbacksAsync() }
   }
 
