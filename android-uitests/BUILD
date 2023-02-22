@@ -121,6 +121,7 @@ maven_repository(
     # keep sorted: for buildifier
     artifacts = [
         "//tools/adt/idea/kotlin-integration:kotlin-android-extensions-runtime-for-ide-plugin",
+        "//tools/adt/idea/kotlin-integration:kotlin-gradle-plugin-api-for-ide-plugin",
         "//tools/adt/idea/kotlin-integration:kotlin-gradle-plugin-for-ide-plugin",
         "//tools/adt/idea/kotlin-integration:kotlin-reflect-for-ide-plugin",
         "//tools/adt/idea/kotlin-integration:kotlin-script-runtime-for-ide-plugin",
