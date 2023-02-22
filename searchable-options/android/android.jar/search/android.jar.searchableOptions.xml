@@ -1535,7 +1535,7 @@
     <option name="sync" hit="Use new dependency mechanism during Gradle sync" />
     <option name="use" hit="Use new dependency mechanism during Gradle sync" />
   </configurable>
-  <configurable id="gradle.compiler" configurable_name="Compiler">
+  <configurable id="gradle.compiler" configurable_name="Gradle-Android Compiler">
     <option name="" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
     <option name="android" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
     <option name="are" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
@@ -1561,11 +1561,13 @@
     <option name="parallel" hit="Compile independent modules in parallel (may require larger heap size)" />
     <option name="require" hit="Compile independent modules in parallel (may require larger heap size)" />
     <option name="size" hit="Compile independent modules in parallel (may require larger heap size)" />
-    <option name="compiler" hit="Compiler" />
     <option name="after" hit="Continue the build after failures" />
     <option name="build" hit="Continue the build after failures" />
     <option name="continue" hit="Continue the build after failures" />
     <option name="failures" hit="Continue the build after failures" />
     <option name="the" hit="Continue the build after failures" />
+    <option name="android" hit="Gradle-Android Compiler" />
+    <option name="compiler" hit="Gradle-Android Compiler" />
+    <option name="gradle" hit="Gradle-Android Compiler" />
   </configurable>
 </options>
