@@ -22,6 +22,7 @@ import com.android.tools.idea.util.ZipData
 import com.android.tools.idea.util.zipFiles
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.CreateDiagnosticReportAction
+import com.intellij.icons.AllIcons
 import com.intellij.ide.actions.RevealFileAction
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
@@ -325,8 +326,13 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
                                    leaf: Boolean,
                                    row: Int,
                                    hasFocus: Boolean) {
-      (value as? DefaultMutableTreeNode)?.let {
+      val node = value as? FileTreeNode
+      node?.let {
         textRenderer.append(it.userObject as String)
+        textRenderer.icon = when {
+          (it.fileInfo == null) -> AllIcons.Nodes.Folder
+          else -> AllIcons.FileTypes.Text
+        }
       }
 
       super.customizeRenderer(tree, value, selected, expanded, leaf, row, hasFocus)
