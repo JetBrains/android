@@ -21,10 +21,11 @@ import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 import com.intellij.ide.GeneralLocalSettings;
 import com.intellij.ide.RecentProjectsManager;
-import com.intellij.openapi.application.ApplicationNamesInfo;
+import com.intellij.ide.impl.ProjectUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.PathUtil;
+import com.intellij.util.PlatformUtils;
 import com.intellij.util.SystemProperties;
 import java.io.File;
 import javax.swing.JPanel;
@@ -63,8 +64,12 @@ public final class WizardUtils {
       return new File(defaultProjectLocation);
     }
 
-    String child = ApplicationNamesInfo.getInstance().getFullProductName().replace(" ", "") + "Projects";
-    return new File(SystemProperties.getUserHome(), child);
+    if (PlatformUtils.isIntelliJ()) {
+      return new File(ProjectUtil.getUserHomeProjectDir());
+    }
+    else {
+      return new File(SystemProperties.getUserHome(), PlatformUtils.getPlatformPrefix() + "Projects");
+    }
   }
 
   /**
