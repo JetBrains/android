@@ -538,7 +538,7 @@
     <moduleService serviceImplementation="org.jetbrains.android.resourceManagers.ModuleResourceManagers" />
     <moduleService serviceImplementation="org.jetbrains.android.facet.ResourceFolderManager" />
     <moduleService serviceInterface="com.android.tools.idea.res.ResourceIdManager"
-                   serviceImplementation="com.android.tools.idea.res.ResourceIdManagerImpl"
+                   serviceImplementation="com.android.tools.idea.res.ResourceIdManagerBase"
                    testServiceImplementation="com.android.tools.idea.res.TestResourceIdManager" />
     <moduleService serviceImplementation="com.android.tools.idea.model.MergedManifestManager" />
     <moduleService serviceImplementation="com.android.tools.idea.model.MergedManifestModificationTracker" />

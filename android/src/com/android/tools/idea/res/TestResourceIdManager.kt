@@ -17,7 +17,7 @@ package com.android.tools.idea.res
 
 import com.intellij.openapi.module.Module
 
-class TestResourceIdManager private constructor(module: Module) : ResourceIdManagerImpl(module) {
+class TestResourceIdManager private constructor(module: Module) : ResourceIdManagerBase(module) {
   private var _finalIdsUsed = true
   override val finalIdsUsed: Boolean
     get() = _finalIdsUsed

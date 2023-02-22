@@ -32,7 +32,7 @@ import java.util.EnumMap
 
 private const val FIRST_PACKAGE_ID: Byte = 0x02
 
-open class ResourceIdManagerImpl protected constructor(val module: Module) : ResourceIdManager {
+open class ResourceIdManagerBase protected constructor(val module: Module) : ResourceIdManager {
 
   private val facet = AndroidFacet.getInstance(module) ?: error("${ResourceIdManager::class.qualifiedName} used on a non-Android module.")
   private var generationCounter = 1L
