@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.glance.preview
+package com.android.tools.idea.preview.representation
 
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
@@ -23,16 +23,17 @@ import com.android.tools.idea.concurrency.launchWithProgress
 import com.android.tools.idea.concurrency.smartModeFlow
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
-import com.android.tools.idea.glance.preview.GlancePreviewBundle.message
 import com.android.tools.idea.log.LoggerWithFixedInfo
 import com.android.tools.idea.preview.DelegatingPreviewElementModelAdapter
 import com.android.tools.idea.preview.MemoizedPreviewElementProvider
 import com.android.tools.idea.preview.NavigatingInteractionHandler
+import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElement
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.lifecycle.PreviewLifecycleManager
+import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewView
 import com.android.tools.idea.preview.navigation.DefaultNavigationHandler
 import com.android.tools.idea.preview.refreshExistingPreviewElements

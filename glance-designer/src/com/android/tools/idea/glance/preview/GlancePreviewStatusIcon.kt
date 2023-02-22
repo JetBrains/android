@@ -21,16 +21,12 @@ import com.android.tools.idea.common.error.SceneViewIssueNodeVisitor
 import com.android.tools.idea.common.error.setIssuePanelVisibility
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.glance.preview.GlancePreviewBundle.message
+import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataKey
 import icons.StudioIcons
-import org.jetbrains.annotations.VisibleForTesting
-
-@VisibleForTesting
-val PREVIEW_VIEW_MODEL_STATUS = DataKey.create<PreviewViewModelStatus>("PreviewViewModelStatus")
 
 /** [AnAction] that can be used to show an icon according to the [PreviewViewModelStatus]. */
 internal class GlancePreviewStatusIcon(private val sceneView: SceneView) : AnAction() {

@@ -16,8 +16,8 @@
 package com.android.tools.idea.glance.preview.actions
 
 import com.android.tools.adtui.swing.getDescendant
-import com.android.tools.idea.glance.preview.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.actions.PreviewStatus
+import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.TestProjectSystem

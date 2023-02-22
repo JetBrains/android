@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.glance.preview
+package com.android.tools.idea.preview.representation
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.projectsystem.BuildListener
@@ -32,7 +32,7 @@ import kotlin.concurrent.withLock
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
-/** Interface for tracking build status. */
+/** Interface for tracking build status. TODO(b/269723767): Use [PsiCodeFileChangeDetectorService] and remove this file. */
 interface CodeOutOfDateTracker : ModificationTracker {
   /**
    * Call this method when an external event has caused the saved build to not be "usable" anymore.
