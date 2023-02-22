@@ -22,6 +22,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.assetstudio.AssetStudioWizardFixture;
 import com.android.tools.idea.bleak.UseBleak;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.core.MouseButton;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,7 +38,7 @@ import org.junit.runner.RunWith;
 @RunIn(TestGroup.PERFORMANCE)
 public class AddAssetMemoryUseTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(6, TimeUnit.MINUTES);
 
   @Test
   @UseBleak
