@@ -35,8 +35,9 @@ class IssueNotificationActionButton(val action: IssueNotificationAction, present
 
   private val actionPresentation: ComposeStatus.Presentation?
     get() = myPresentation.getClientProperty(ComposeStatus.PRESENTATION)
-  val textAlignment: Int
-    get() = myPresentation.getClientProperty(ComposeStatus.TEXT_ALIGNMENT) ?: SwingConstants.LEADING
+
+  val textPosition: Int
+    get() = myPresentation.getClientProperty(ComposeStatus.TEXT_POSITION) ?: SwingConstants.LEADING
 
   private val font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
 
@@ -74,7 +75,7 @@ class IssueNotificationActionButton(val action: IssueNotificationAction, present
   override fun addNotify() {
     super.addNotify()
     addMouseListener(action.mouseListener)
-    setHorizontalTextPosition(textAlignment)
+    setHorizontalTextPosition(textPosition)
   }
 
   override fun removeNotify() {
@@ -88,6 +89,6 @@ class IssueNotificationActionButton(val action: IssueNotificationAction, present
   override fun updateToolTipText() {}
 
   init {
-    setHorizontalTextPosition(textAlignment)
+    setHorizontalTextPosition(textPosition)
   }
 }

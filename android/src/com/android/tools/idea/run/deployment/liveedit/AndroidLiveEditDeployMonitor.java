@@ -279,6 +279,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
 
     if (!supportLiveEdits(device)) {
       LOGGER.info("Live edit not support for device %s targeting app %s", project.getName(), applicationId);
+      deviceStatusManager.addDevice(device, LiveEditStatus.UnsupportedVersion.INSTANCE);
       return null;
     }
 

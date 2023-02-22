@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.compose.ComposeStatus
 import com.android.tools.idea.editors.liveedit.ui.MANUAL_LIVE_EDIT_ACTION_ID
 import com.android.tools.idea.editors.liveedit.ui.SHOW_LOGCAT_ACTION_ID
@@ -28,7 +27,6 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.P
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.UNRECOVERABLE_ERROR
 import com.intellij.icons.AllIcons
 import com.intellij.ui.AnimatedIcon
-import com.intellij.ui.JBColor
 import javax.swing.Icon
 
 open class LiveEditStatus(
@@ -65,7 +63,7 @@ open class LiveEditStatus(
     @JvmStatic
     fun createErrorStatus(message: String): LiveEditStatus {
       return LiveEditStatus(
-        ColoredIconGenerator.generateColoredIcon(AllIcons.General.InspectionsError, JBColor.RED),
+        AllIcons.General.Error,
         "Error",
         message,
         UNRECOVERABLE_ERROR
@@ -183,6 +181,14 @@ open class LiveEditStatus(
       UNRECOVERABLE_ERROR,
       redeployMode = RedeployMode.RERUN,
       actionId = "Android.SyncProject"
+    )
+
+  object UnsupportedVersion :
+    LiveEditStatus(
+      AllIcons.General.Warning,
+      message("le.status.error.unsupported_version.title"),
+      message("le.status.error.unsupported_version.description"),
+      UNRECOVERABLE_ERROR
     )
 
   fun unrecoverable(): Boolean {
