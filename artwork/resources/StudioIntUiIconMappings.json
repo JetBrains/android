@@ -664,14 +664,7 @@
           "adb-unmanaged.svg": "studio/icons/shell/status-bar/adb-unmanaged.svg"
         },
         "telemetry": {
-          "send-feedback.svg": "studio/icons/shell/telemetry/send-feedback.svg",
-          "sentiment-dissatisfied.svg": "studio/icons/shell/telemetry/sentiment-dissatisfied.svg",
-          "sentiment-negative.svg": "studio/icons/shell/telemetry/sentiment-negative.svg",
-          "sentiment-neutral.svg": "studio/icons/shell/telemetry/sentiment-neutral.svg",
-          "sentiment-positive.svg": "studio/icons/shell/telemetry/sentiment-positive.svg",
-          "sentiment-satisfied.svg": "studio/icons/shell/telemetry/sentiment-satisfied.svg",
-          "sentiment-very-dissatisfied.svg": "studio/icons/shell/telemetry/sentiment-very-dissatisfied.svg",
-          "sentiment-very-satisfied.svg": "studio/icons/shell/telemetry/sentiment-very-satisfied.svg"
+          "send-feedback.svg": "studio/icons/shell/telemetry/send-feedback.svg"
         },
         "tool-windows": {
           "android-profiler.svg": "studio/icons/shell/tool-windows/android-profiler.svg",
@@ -690,9 +683,7 @@
           "logcat.svg": "studio/icons/shell/tool-windows/logcat.svg",
           "multi-preview.svg": "studio/icons/shell/tool-windows/multi-preview.svg",
           "palette.svg": "studio/icons/shell/tool-windows/palette.svg",
-          "search.svg": "studio/icons/shell/tool-windows/search.svg",
           "structure.svg": "studio/icons/shell/tool-windows/structure.svg",
-          "toggle-properties.svg": "studio/icons/shell/tool-windows/toggle-properties.svg",
           "visual-assets.svg": "studio/icons/shell/tool-windows/visual-assets.svg"
         },
         "toolbar": {
@@ -701,9 +692,7 @@
           "attach-debugger.svg": "studio/icons/shell/toolbar/attach-debugger.svg",
           "device-manager.svg": "studio/icons/shell/toolbar/device-manager.svg",
           "gradle-sync.svg": "studio/icons/shell/toolbar/gradle-sync.svg",
-          "instant-run.svg": "studio/icons/shell/toolbar/instant-run.svg",
           "profiler.svg": "studio/icons/shell/toolbar/profiler.svg",
-          "run-with-coverage.svg": "studio/icons/shell/toolbar/run-with-coverage.svg",
           "sdk-manager.svg": "studio/icons/shell/toolbar/sdk-manager.svg",
           "user-profile.svg": "studio/icons/shell/toolbar/user-profile.svg",
           "user-profile-active.svg": "studio/icons/shell/toolbar/user-profile-active.svg"
