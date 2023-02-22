@@ -19,7 +19,6 @@ import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androi
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleColorsMaterial3
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemes
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemesMaterial3
-import com.android.tools.idea.npw.module.recipes.androidModule.res.values_v29.androidModuleThemesMaterial3V29
 import com.android.tools.idea.npw.module.recipes.generateCommonModule
 import com.android.tools.idea.npw.module.recipes.generateManifest
 import com.android.tools.idea.wizard.template.BytecodeLevel
@@ -62,10 +61,6 @@ fun RecipeExecutor.generateAndroidModule(
       androidModuleThemesNightMaterial3(data.themesData.main.name)
     else
       androidModuleThemesNight(useAndroidX, data.apis.minApi, data.themesData.main.name),
-    themesXmlV29 = if (isMaterial3 && data.apis.targetApi.api >= 29)
-      androidModuleThemesMaterial3V29(data.themesData.main.name)
-    else
-      null,
     colorsXml = if (isMaterial3 && data.category != Category.Compose) androidModuleColorsMaterial3() else androidModuleColors(),
     enableCpp = enableCpp,
     cppStandard = cppStandard,
