@@ -95,9 +95,14 @@ fun AndroidProjectRule.getResourceItemFromPath(testFolderPath: String, fileName:
   ApplicationManager.getApplication().invokeAndWait {
     fixture.copyFileToProject("$testFolderPath/$fileName", "res/drawable/$fileName")
   }
-  return StudioResourceRepositoryManager
-    .getModuleResources(module)
-    ?.getResources(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, fileName.substringBefore("."))!![0]
+
+  val resourceRepository = StudioResourceRepositoryManager.getModuleResources(module)
+                           ?: throw Exception("No StudioResourceRepositoryManager for module=$module")
+  resourceRepository.invalidateResourceDirs()
+
+  return resourceRepository
+    .getResources(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, fileName.substringBefore("."))
+    .firstOrNull() ?: throw Exception("Unable to obtain resource res/drawable/$fileName ${resourceRepository.getResources(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE)}")
 }
 
 private const val WAIT_TIMEOUT = 3000
