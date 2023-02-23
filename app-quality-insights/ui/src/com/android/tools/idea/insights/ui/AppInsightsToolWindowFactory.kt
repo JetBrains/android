@@ -37,15 +37,12 @@ const val APP_INSIGHTS_ID = "App Quality Insights"
 
 class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
   companion object {
-    fun setActiveTab(project: Project, tabName: String) {
-      val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(APP_INSIGHTS_ID)
-      toolWindow?.contentManager?.setSelectedContent(toolWindow.contentManager.findContent(tabName))
-    }
-
     fun show(project: Project, tabName: String, callback: (() -> Unit)?) {
       val toolWindowManager = ToolWindowManager.getInstance(project).getToolWindow(APP_INSIGHTS_ID)
       toolWindowManager?.show {
-        setActiveTab(project, tabName)
+        toolWindowManager.contentManager.setSelectedContent(
+          toolWindowManager.contentManager.findContent(tabName)
+        )
         callback?.invoke()
       }
     }
