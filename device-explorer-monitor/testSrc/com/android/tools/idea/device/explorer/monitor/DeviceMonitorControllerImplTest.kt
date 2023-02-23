@@ -62,7 +62,7 @@ class DeviceMonitorControllerImplTest {
     processService = DeviceProcessService { _, client, _ ->
       client.clientData.debuggerConnectionStatus = ClientData.DebuggerStatus.ATTACHED
       // Add new client to trigger device update
-      addClient(testDevice1, 10)
+      addClient(testDevice1, 60)
     }
     model = DeviceMonitorModel(processService)
     mockView = MockDeviceMonitorView(model)
@@ -173,6 +173,7 @@ class DeviceMonitorControllerImplTest {
     mockView.debugNodes()
 
     // Assert
+    // This assumes the first process is pid 5. Adding a new client can affect this assumption
     waitForCondition(
       "Row debugger status set to ${model.tableModel.getValueForRow(0).debuggerStatus} and was expecting ${ClientData.DebuggerStatus.ATTACHED}"
     ) { model.tableModel.getValueForRow(0).debuggerStatus == ClientData.DebuggerStatus.ATTACHED }
