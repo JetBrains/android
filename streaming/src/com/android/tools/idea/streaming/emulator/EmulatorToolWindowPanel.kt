@@ -68,7 +68,7 @@ private val LOG get() = Logger.getInstance(EmulatorToolWindowPanel::class.java)
 /**
  * Provides view of one AVD in the Running Devices tool window.
  */
-class EmulatorToolWindowPanel(
+internal class EmulatorToolWindowPanel(
   private val project: Project,
   val emulator: EmulatorController
 ) : RunningDevicePanel(DeviceId.ofEmulator(emulator.emulatorId), EMULATOR_MAIN_TOOLBAR_ID, STREAMING_SECONDARY_TOOLBAR_ID),

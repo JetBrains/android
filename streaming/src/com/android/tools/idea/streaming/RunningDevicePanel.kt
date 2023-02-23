@@ -39,7 +39,7 @@ private const val IS_TOOLBAR_HORIZONTAL = true
 /**
  * Provides view of one Android device in the Running Devices tool window.
  */
-abstract class RunningDevicePanel(
+internal abstract class RunningDevicePanel(
   val id: DeviceId,
   mainToolbarId: String,
   secondaryToolbarId: String
