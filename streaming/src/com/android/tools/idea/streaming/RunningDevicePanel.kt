@@ -118,6 +118,7 @@ internal abstract class RunningDevicePanel(
   override fun getData(dataId: String): Any? {
     return when (dataId) {
       SERIAL_NUMBER_KEY.name -> id.serialNumber
+      STREAMING_CONTENT_PANEL_KEY.name -> centerPanel
       else -> null
     }
   }
