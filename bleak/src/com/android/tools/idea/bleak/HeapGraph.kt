@@ -263,12 +263,12 @@ class HeapGraph(private val expanderChooser: ExpanderChooser, private val forbid
     println("New graph has ${newGraph.leakRoots.size} potential leak roots")
   }
 
-  fun getLeaks(prevGraph: HeapGraph, dominatorTimeout: Duration): List<LeakInfo> {
+  fun getLeaks(prevGraph: HeapGraph, ignoreList: IgnoreList<LeakInfo>, dominatorTimeout: Duration): List<LeakInfo> {
     val leaks = leakRoots.mapNotNull { root ->
       (prevGraph.getNodeForPath(root.getPath()) ?: prevGraph.leakRoots.find { it.obj === root.obj })?.let { prevRoot ->
         LeakInfo(this, root, prevRoot)
       }
-    }
+    }.filterNot { ignoreList.matches(it) }
     var startTime = System.currentTimeMillis()
     leaks.forEach { leak ->
       if (System.currentTimeMillis() - startTime > dominatorTimeout.toMillis()) return@forEach

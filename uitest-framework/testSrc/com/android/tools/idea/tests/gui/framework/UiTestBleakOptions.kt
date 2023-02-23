@@ -79,13 +79,6 @@ private val globalIgnoreList = IgnoreList<LeakInfo>(listOf(
   IgnoreListEntry { it.leaktrace.referenceMatches(-2, "com.intellij.execution.process.ProcessIOExecutorService", "workers") },
   IgnoreListEntry { it.leaktrace.referenceMatches(-4, "com.intellij.util.containers.RecentStringInterner", "myInterns") },
   IgnoreListEntry { it.leaktrace.referenceMatches(-1, "com.intellij.util.xml.EvaluatedXmlNameImpl", "ourInterned") },
-
-))
-
-/**
- * Known issues must have a corresponding tracking bug and should be removed as soon as they're fixed.
- */
-private val knownIssues = IgnoreList<LeakInfo>(listOf(
   IgnoreListEntry {
     // b/151316853; upstream bug: IDEA-234673
     it.leaktrace.referenceMatches(-1, "com.intellij.ide.util.treeView.AbstractTreeUi", "myElementToNodeMap")
@@ -97,13 +90,13 @@ private val customExpanders = Supplier { listOf(SmartListExpander(), SmartFMapEx
 object UiTestBleakOptions {
   // a fresh copy of the default options are provided with each access, to facilitate local modifications (e.g. test-specific ignore lists)
   val defaults: BleakOptions
-    get() = BleakOptions().withCheck(MainBleakCheck(globalIgnoreList, knownIssues, customExpanders, listOf(TObjectHash.REMOVED)))
+    get() = BleakOptions().withCheck(MainBleakCheck(globalIgnoreList, customExpanders, listOf(TObjectHash.REMOVED)))
                           .withCheck(DisposerCheck())
 
 
   fun defaultsWithAdditionalIgnoreList(additionalIgnoreList: IgnoreList<LeakInfo>): BleakOptions {
     return BleakOptions().withCheck(
-      MainBleakCheck(globalIgnoreList + additionalIgnoreList, knownIssues, customExpanders, listOf(TObjectHash.REMOVED))).withCheck(
+      MainBleakCheck(globalIgnoreList + additionalIgnoreList, customExpanders, listOf(TObjectHash.REMOVED))).withCheck(
       DisposerCheck())
   }
 }

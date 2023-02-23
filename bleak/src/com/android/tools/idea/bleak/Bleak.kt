@@ -50,20 +50,18 @@ fun runWithBleak(options: BleakOptions, scenario: Runnable) {
 
 fun runWithBleak(options: BleakOptions, scenario: () -> Unit) {
   val result = iterativeLeakCheck(options, scenario)
-  if (!result.success) {
+  if (result.errorMessage.isNotEmpty()) {
     throw MemoryLeakDetectedError(result.errorMessage)
   }
 }
 
 class MainBleakCheck(ignoreList: IgnoreList<LeakInfo>,
-                     knownIssues: IgnoreList<LeakInfo> = IgnoreList(),
                      customExpanderSupplier: Supplier<List<Expander>>,
                      private val forbiddenObjects: List<Any> = listOf(),
                      private val dominatorTimeout: Duration = Duration.ofSeconds(60)):
-  BleakCheck<() -> ExpanderChooser, LeakInfo>({ getExpanderChooser(customExpanderSupplier) }, ignoreList, knownIssues) {
+  BleakCheck<() -> ExpanderChooser, LeakInfo>({ getExpanderChooser(customExpanderSupplier) }, ignoreList) {
   lateinit var g1: HeapGraph
   lateinit var g2: HeapGraph
-  var leaks: List<LeakInfo> = listOf()
 
   private fun buildGraph(firstRun: Boolean = false) = HeapGraph(options(), forbiddenObjects).expandWholeGraph(firstRun)
 
@@ -80,10 +78,11 @@ class MainBleakCheck(ignoreList: IgnoreList<LeakInfo>,
   override fun lastIterationFinished() {
     g2 = buildGraph()
     g1.propagateGrowing(g2)
-    leaks = g2.getLeaks(g1, dominatorTimeout)
   }
 
-  override fun getResults() = leaks;
+  override fun getResults(ignoreList: IgnoreList<LeakInfo>): List<LeakInfo> {
+    return g2.getLeaks(g1, ignoreList, dominatorTimeout)
+  }
 
 }
 

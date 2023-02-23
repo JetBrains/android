@@ -83,7 +83,7 @@ class DisposerLeakInfo(val k: DisposerInfo.Key, val count: Int) {
   }
 }
 
-class DisposerCheck(w: IgnoreList<DisposerLeakInfo> = IgnoreList(), ki: IgnoreList<DisposerLeakInfo> = IgnoreList()): BleakCheck<Nothing?, DisposerLeakInfo>(null, w, ki) {
+class DisposerCheck(w: IgnoreList<DisposerLeakInfo> = IgnoreList()): BleakCheck<Nothing?, DisposerLeakInfo>(null, w) {
   private var disposerInfo: DisposerInfo? = null
 
   override fun firstIterationFinished() {
@@ -96,6 +96,7 @@ class DisposerCheck(w: IgnoreList<DisposerLeakInfo> = IgnoreList(), ki: IgnoreLi
 
   override fun lastIterationFinished() = middleIterationFinished()
 
-  override fun getResults() = disposerInfo?.growingCounts?.map { (key, count) -> DisposerLeakInfo(key, count) } ?: listOf()
+  override fun getResults(ignoreList: IgnoreList<DisposerLeakInfo>) =
+    disposerInfo?.growingCounts?.map { (key, count) -> DisposerLeakInfo(key, count) }?.filterNot { ignoreList.matches(it) } ?: listOf()
 
 }
