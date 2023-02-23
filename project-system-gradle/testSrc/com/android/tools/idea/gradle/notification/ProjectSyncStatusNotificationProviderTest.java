@@ -178,11 +178,11 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     PropertiesComponent.getInstance().setValue("PROJECT_STRUCTURE_NOTIFICATION_LAST_HIDDEN_TIMESTAMP", "0");
 
     Type type = myNotificationProvider.notificationPanelType();
-    assertEquals(Type.COMPLICATED_PROJECT, type);
+    assertEquals(Type.VERSION_CATALOG_PROJECT, type);
 
     ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
     if (myFileNeedsVersionCatalogNotifications) {
-      assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ComplicatedProjectNotificationPanel.class);
+      assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.VersionCatalogProjectNotificationPanel.class);
     }
     else if (myFileNeedsProjectStructureNotifications) {
       assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
@@ -194,7 +194,7 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     String version = ApplicationInfo.getInstance().getShortVersion();
     PropertiesComponent.getInstance(myProject).setValue("PROJECT_COMPLICATED_NOTIFICATION_LAST_HIDDEN_VERSION", version);
     type = myNotificationProvider.notificationPanelType();
-    assertEquals(Type.COMPLICATED_PROJECT, type);
+    assertEquals(Type.VERSION_CATALOG_PROJECT, type);
     panel = createPanel(type);
     if (myFileNeedsProjectStructureNotifications) {
       assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.ProjectStructureNotificationPanel.class);
