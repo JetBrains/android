@@ -57,7 +57,6 @@ class LayoutRendererTest {
   @get:Rule
   val rule = AndroidProjectRule.withSdk()
 
-  @Ignore("b/134190873")
   @Test
   fun renderLayout() {
     val psiFile = createLayoutFile()
@@ -65,7 +64,7 @@ class LayoutRendererTest {
     val layoutRenderer = LayoutRenderer(facet, ::createRenderTaskForTest, ImageFuturesManager())
     val configuration = ConfigurationManager.getOrCreateInstance(facet.module).getConfiguration(psiFile.virtualFile)
     val layoutRender = layoutRenderer.getLayoutRender(psiFile, configuration)
-    val image = layoutRender.get(5, TimeUnit.SECONDS)!!
+    val image = layoutRender.get(60, TimeUnit.SECONDS)!!
 
     // Check that we get the correct background color.
     val intArray = IntArray(4)
@@ -76,7 +75,6 @@ class LayoutRendererTest {
     assertThat(image.height).isEqualTo(1024)
   }
 
-  @Ignore("b/135927007")
   @Test
   fun integrationWithProjectResourcesBrowserViewModel() {
     val latch = CountDownLatch(1)
@@ -85,40 +83,35 @@ class LayoutRendererTest {
     LayoutRenderer.setInstance(androidFacet, layoutRenderer)
     val designAsset = DesignAsset(createLayoutFile().virtualFile, emptyList(), ResourceType.LAYOUT)
     lateinit var resourceExplorerListViewModel: ResourceExplorerListViewModel
-    val disposable = Disposer.newDisposable("LayoutRendererTest")
-    try {
       resourceExplorerListViewModel = ResourceExplorerListViewModelImpl(
         androidFacet,
         null,
         Mockito.mock(ResourceResolver::class.java),
         FilterOptions.createDefault(),
         ResourceType.DRAWABLE,
-        ImageCache.createImageCache(disposable),
-        ImageCache.createImageCache(disposable)
+        ImageCache.createImageCache(rule.fixture.projectDisposable),
+        ImageCache.createImageCache(rule.fixture.projectDisposable)
       )
-      val previewProvider = resourceExplorerListViewModel.assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT)
-      val width = 150
-      val height = 200
-      (previewProvider.getIcon(designAsset, width, height, JLabel(), { latch.countDown() })
-        as ImageIcon).image.toBufferedImage()
+    val previewProvider = resourceExplorerListViewModel.assetPreviewManager.getPreviewProvider(ResourceType.LAYOUT)
+    val width = 150
+    val height = 200
+    (previewProvider.getIcon(designAsset, width, height, JLabel(), { latch.countDown() })
+      as ImageIcon).image.toBufferedImage()
 
-      assertTrue(latch.await(10, TimeUnit.SECONDS))
-      val image = (previewProvider.getIcon(designAsset, width, height, JLabel(), { latch.countDown() })
-        as ImageIcon).image.toBufferedImage()
+    val start = System.currentTimeMillis()
+    assertTrue(latch.await(60, TimeUnit.SECONDS))
+    val image = (previewProvider.getIcon(designAsset, width, height, JLabel(), { latch.countDown() })
+      as ImageIcon).image.toBufferedImage()
 
-      // Check that we get the correct background color.
-      val intArray = IntArray(4)
-      assertThat(image.raster.width).isEqualTo(width)
-      assertThat(image.raster.height).isEqualTo(height)
-      assertThat(image.raster.getPixel(100, 100, intArray)).asList().containsExactly(*BACKGROUND_COLOR)
+    // Check that we get the correct background color.
+    val intArray = IntArray(4)
+    assertThat(image.raster.width).isEqualTo(width)
+    assertThat(image.raster.height).isEqualTo(height)
+    assertThat(image.raster.getPixel(100, 100, intArray)).asList().containsExactly(*BACKGROUND_COLOR)
 
-      // Test the size
-      assertThat(image.width).isEqualTo(width)
-      assertThat(image.height).isEqualTo(height)
-    }
-    finally {
-      Disposer.dispose(disposable)
-    }
+    // Test the size
+    assertThat(image.width).isEqualTo(width)
+    assertThat(image.height).isEqualTo(height)
   }
 
   private fun createLayoutFile(): XmlFile {

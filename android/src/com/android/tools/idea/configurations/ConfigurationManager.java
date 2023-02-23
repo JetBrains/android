@@ -38,6 +38,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.Collections;
 import java.util.List;
@@ -65,6 +66,9 @@ import org.jetbrains.annotations.TestOnly;
  */
 public class ConfigurationManager implements Disposable {
   private static final Key<ConfigurationManager> KEY = Key.create(ConfigurationManager.class.getName());
+  private static final Key<VirtualFile> CONFIGURATION_MANAGER_PROJECT_CANONICAL_KEY = Key.create(
+    ConfigurationManager.class.getName() + "ProjectCanonicalKey"
+  );
 
   @NotNull private final Module myModule;
   private final Map<VirtualFile, Configuration> myCache = ContainerUtil.createSoftValueMap();
@@ -96,6 +100,27 @@ public class ConfigurationManager implements Disposable {
   }
 
   /**
+   * In some tests the project might not have a project file. We use this to create a per-project canonical file that can be used to
+   * associate the default project configuration to.
+   */
+  @NotNull
+  private static VirtualFile getFakeProjectFile(@NotNull Project project) {
+    VirtualFile projectFile = CONFIGURATION_MANAGER_PROJECT_CANONICAL_KEY.get(project);
+    if (projectFile == null) {
+      VirtualFile parent = new LightVirtualFile("layout");
+      projectFile = new LightVirtualFile("no-project-file") {
+        @Override
+        public VirtualFile getParent() {
+          return parent;
+        }
+      };
+      CONFIGURATION_MANAGER_PROJECT_CANONICAL_KEY.set(project, projectFile);
+    }
+
+    return projectFile;
+  }
+
+  /**
    * Gets the {@link Configuration} associated with the given module.
    *
    * @return the {@link Configuration} for the given module.
@@ -107,7 +132,9 @@ public class ConfigurationManager implements Disposable {
     ConfigurationManager configurationManager = getOrCreateInstance(module);
 
     VirtualFile projectFile = project.getProjectFile();
-    assert projectFile != null;
+    if (projectFile == null) {
+      projectFile = getFakeProjectFile(project);
+    }
 
     return configurationManager.getConfiguration(projectFile);
   }
