@@ -35,6 +35,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.JBColor
 import com.intellij.ui.RoundedLineBorder
 import com.intellij.ui.components.AnActionLink
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.Alarm
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
@@ -59,9 +60,8 @@ val REFRESH_BUTTON =
     JBColor(0x59A869, 0x499C54)
   )
 
-internal fun chipBorder(color: Color): Border = RoundedLineBorder(UIUtil.toAlpha(color, ACTION_BORDER_ALPHA),
-                                                                 ACTION_BORDER_ARC_SIZE,
-                                                                 ACTION_BORDER_THICKNESS)
+internal fun chipBorder(color: Color): Border = RoundedLineBorder(
+  UIUtil.toAlpha(color, ACTION_BORDER_ALPHA), ACTION_BORDER_ARC_SIZE, (ACTION_BORDER_THICKNESS * JBUIScale.sysScale()).toInt())
 
 interface ComposeStatus {
   val icon: Icon?
