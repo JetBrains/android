@@ -110,6 +110,7 @@ import com.android.tools.idea.projectsystem.AndroidProjectRootUtil
 import com.android.tools.idea.projectsystem.AndroidProjectSystem
 import com.android.tools.idea.projectsystem.BuildConfigurationSourceProvider
 import com.android.tools.idea.projectsystem.LightResourceClassService
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
@@ -130,6 +131,7 @@ import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ValidationError
 import com.android.tools.idea.sdk.IdeSdks
+import com.android.tools.idea.stats.ProjectSizeUsageTrackerListener
 import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.android.utils.FileUtils
 import com.android.utils.appendCapitalized
@@ -2106,7 +2108,8 @@ data class OpenPreparedProjectOptions @JvmOverloads constructor(
   val syncViewEventHandler: (BuildEvent) -> Unit = {},
   val subscribe: (MessageBusConnection) -> Unit = {},
   val disableKtsRelatedIndexing: Boolean = false,
-  val overrideProjectJdk: Sdk? = null
+  val overrideProjectJdk: Sdk? = null,
+  val reportProjectSizeUsage: Boolean = false
 )
 
 fun OpenPreparedProjectOptions.withoutKtsRelatedIndexing(): OpenPreparedProjectOptions = copy(disableKtsRelatedIndexing = true)
@@ -2186,7 +2189,15 @@ private fun <T> openPreparedProject(
             ScriptingSupport.EPN.getPoint(project).unregisterExtensions({ _, _ -> false }, false)
             ScriptChangeListener.LISTENER.getPoint(project).unregisterExtensions({ _, _ -> false }, false)
           }
-          project.messageBus.connect(disposable).let { options.subscribe(it) }
+          project.messageBus.connect(disposable).let {
+            options.subscribe(it)
+
+            if (options.reportProjectSizeUsage) {
+              // By default, unit tests do not report project system. Some integration tests might want to gather this data to verify
+              // the collection works.
+              it.subscribe(PROJECT_SYSTEM_SYNC_TOPIC, ProjectSizeUsageTrackerListener(project))
+            }
+          }
           val outputHandler = options.outputHandler
           val syncExceptionHandler = options.syncExceptionHandler
           if (outputHandler != null || syncExceptionHandler != null) {

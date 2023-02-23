@@ -135,7 +135,8 @@ abstract class SyncedProjectTestBase<TestProject: TemplateBasedTestProject>(
         preparedProject.open(
           updateOptions = {
             it.copy(
-              disableKtsRelatedIndexing = true
+              disableKtsRelatedIndexing = true,
+              reportProjectSizeUsage = true,
             )
           }
         ) { project ->
