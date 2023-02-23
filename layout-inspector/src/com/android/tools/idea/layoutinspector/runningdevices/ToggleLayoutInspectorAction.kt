@@ -16,8 +16,12 @@
 package com.android.tools.idea.layoutinspector.runningdevices
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
+import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
+import com.android.tools.idea.streaming.STREAMING_CONTENT_PANEL_KEY
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.wm.ToolWindowManager
 
 /**
  * Action used to turn Layout Inspector on and off in Running Devices tool window.
@@ -25,15 +29,39 @@ import com.intellij.openapi.actionSystem.ToggleAction
 class ToggleLayoutInspectorAction : ToggleAction() {
   override fun isSelected(e: AnActionEvent): Boolean {
     val project = e.project ?: return false
-    return LayoutInspectorManager.getInstance(project).isEnabled
+    val runningDevicesTabContext = e.createRunningDevicesTabContext() ?: return false
+
+    return LayoutInspectorManager.getInstance(project).isEnabled(runningDevicesTabContext)
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     val project = e.project ?: return
-    LayoutInspectorManager.getInstance(project).toggleLayoutInspector(state)
+    val runningDevicesTabContext = e.createRunningDevicesTabContext() ?: return
+
+    LayoutInspectorManager.getInstance(project).enableLayoutInspector(runningDevicesTabContext, state)
   }
 
   override fun update(e: AnActionEvent) {
     e.presentation.isVisible = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
   }
+}
+
+/**
+ * Creates a [RunningDevicesTabContext] using data from the Running Devices Tool Window.
+ */
+private fun AnActionEvent.createRunningDevicesTabContext(): RunningDevicesTabContext? {
+  val project = project ?: return null
+  val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID) ?: return null
+  val selectedContent = toolWindow.contentManager.selectedContent ?: return null
+
+  val deviceSerialNumber = SERIAL_NUMBER_KEY.getData(dataContext) ?: return null
+  val contentPanel = STREAMING_CONTENT_PANEL_KEY.getData(dataContext) ?: return null
+
+  return RunningDevicesTabContext(
+    project,
+    selectedContent,
+    deviceSerialNumber,
+    contentPanel,
+    contentPanel.parent
+  )
 }

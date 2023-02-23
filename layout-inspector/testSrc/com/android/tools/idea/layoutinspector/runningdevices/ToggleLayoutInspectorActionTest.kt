@@ -20,6 +20,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
+import com.android.tools.idea.streaming.STREAMING_CONTENT_PANEL_KEY
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.actionSystem.AnAction
@@ -38,9 +39,11 @@ import com.intellij.testFramework.replaceService
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManager
+import com.intellij.util.ui.components.BorderLayoutPanel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import javax.swing.JPanel
 
 class ToggleLayoutInspectorActionTest {
 
@@ -89,10 +92,15 @@ class ToggleLayoutInspectorActionTest {
   }
 
   private fun AnAction.getFakeActionEvent(): AnActionEvent {
+    val contentPanelContainer = JPanel()
+    val contentPanel = BorderLayoutPanel()
+    contentPanelContainer.add(contentPanel)
+
     val dataContext = DataContext {
       when (it) {
         CommonDataKeys.PROJECT.name -> projectRule.project
         SERIAL_NUMBER_KEY.name -> "serial_number"
+        STREAMING_CONTENT_PANEL_KEY.name -> contentPanel
         else -> null
       }
     }
@@ -107,14 +115,17 @@ class ToggleLayoutInspectorActionTest {
   }
 
   private class FakeLayoutInspectorManager : LayoutInspectorManager {
+    var isEnabled = false
     var toggleLayoutInspectorInvocations = 0
 
-    override var isEnabled = false
+    override fun addStateListener(listener: LayoutInspectorManager.StateListener) { }
 
-    override fun toggleLayoutInspector(enable: Boolean) {
+    override fun enableLayoutInspector(runningDevicesTabContext: RunningDevicesTabContext, enable: Boolean) {
       toggleLayoutInspectorInvocations += 1
       isEnabled = enable
     }
+
+    override fun isEnabled(runningDevicesTabContext: RunningDevicesTabContext) = isEnabled
   }
 
   private class FakeToolWindowManager(project: Project) : ToolWindowHeadlessManagerImpl(project) {
