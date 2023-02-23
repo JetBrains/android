@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.glance.preview
+package com.android.tools.idea.preview.actions
 
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.error.SceneViewIssueNodeVisitor
 import com.android.tools.idea.common.error.setIssuePanelVisibility
 import com.android.tools.idea.common.surface.SceneView
-import com.android.tools.idea.glance.preview.GlancePreviewBundle.message
+import com.android.tools.idea.preview.PreviewBundle.message
 import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.mvvm.PreviewViewModelStatus
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
@@ -29,7 +29,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
 
 /** [AnAction] that can be used to show an icon according to the [PreviewViewModelStatus]. */
-internal class GlancePreviewStatusIcon(private val sceneView: SceneView) : AnAction() {
+class PreviewStatusIcon(private val sceneView: SceneView) : AnAction() {
   override fun update(e: AnActionEvent) {
     val previewViewModelStatus = e.getData(PREVIEW_VIEW_MODEL_STATUS)
     e.presentation.apply {
