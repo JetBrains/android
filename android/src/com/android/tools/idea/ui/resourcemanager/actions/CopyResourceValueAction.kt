@@ -16,17 +16,19 @@
 package com.android.tools.idea.ui.resourcemanager.actions
 
 import com.android.tools.idea.ui.resourcemanager.model.RESOURCE_DESIGN_ASSETS_KEY
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.ide.CopyPasteManager
 import org.jetbrains.android.util.AndroidBundle.message
 import java.awt.datatransfer.StringSelection
 
-@Suppress("ComponentNotRegistered")
 class CopyResourceValueAction : AnAction(
   message("resource.explorer.copy.value.title"),
   message("resource.explorer.copy.value.description"),
   null) {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabledAndVisible =
       e.getData(RESOURCE_DESIGN_ASSETS_KEY)?.singleOrNull()?.resourceItem?.resourceValue?.value?.isNotBlank() ?: false
