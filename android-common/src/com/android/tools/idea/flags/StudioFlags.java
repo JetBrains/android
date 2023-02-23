@@ -1535,6 +1535,14 @@ public final class StudioFlags {
       "Enable read/write notes functionality.",
       "Add notes tab to App Quality Insights panel.",
       true);
+
+  public static final Flag<Boolean> PLAY_VITALS_ENABLED =
+    Flag.create(
+      APP_INSIGHTS,
+      "enable.play.vitals",
+      "Enable the play vitals tool window tab.",
+      "Enables the play vitals tab and its associated functionality.",
+      false);
   // endregion App Insights
 
   // region App Links Assistant
