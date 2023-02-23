@@ -748,6 +748,10 @@ public final class StudioFlags {
     Flag.create(GRADLE_IDE, "gradle.version.catalog.banners", "IDE banners if Version Catalogs used",
                 "Display banners in Gradle-related tools when Version Catalogs are in use", true);
 
+  public static final Flag<Boolean> GRADLE_VERSION_CATALOG_NEW_MODULE_WARNING =
+    Flag.create(GRADLE_IDE, "gradle.version.catalog.new.module.warning", "Warning for new module if Version Catalogs used",
+                "Display a warning in the New Module wizard when Version Catalogs are in use", true);
+
   public static final Flag<Boolean> GRADLE_SAVE_LOG_TO_FILE = Flag.create(
     GRADLE_IDE, "save.log.to.file", "Save log to file", "Appends the build log to the given file", false);
 

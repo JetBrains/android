@@ -116,7 +116,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
       }, model.useGradleKts)
 
       registerValidator(versionCatalogUse, createValidator {
-        if (!StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_BANNERS.get()) return@createValidator OK
+        if (!StudioFlags.GRADLE_VERSION_CATALOG_NEW_MODULE_WARNING.get()) return@createValidator OK
         if (it.isPresent && it.get()) Validator.Result(INFO, "New module will not use Version Catalog information") else OK
       })
 
