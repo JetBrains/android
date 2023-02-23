@@ -58,7 +58,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
-import com.intellij.openapi.wm.ex.ToolWindowEx
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentFactory
@@ -108,6 +107,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     @AnyThread get() = toolWindow.project
   private val emulatorSettings = EmulatorSettings.getInstance()
   private val deviceMirroringSettings = DeviceMirroringSettings.getInstance()
+  private var initialized = false
   private var contentCreated = false
   private var mirroringConfirmationDialogShowing = false
   private var physicalDeviceWatcher: PhysicalDeviceWatcher? = null
@@ -300,15 +300,19 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun createContent() {
+    if (!initialized) {
+      initialized = true
+      toolWindow.contentManager.addDataProvider { dataId -> getDataFromSelectedPanel(dataId) }
+      val actionGroup = DefaultActionGroup()
+      actionGroup.addAction(ToggleZoomToolbarAction())
+      actionGroup.addAction(ToggleDeviceFrameAction())
+      toolWindow.setAdditionalGearActions(actionGroup)
+    }
+
     if (contentCreated) {
       return
     }
     contentCreated = true
-
-    val actionGroup = DefaultActionGroup()
-    actionGroup.addAction(ToggleZoomToolbarAction())
-    actionGroup.addAction(ToggleDeviceFrameAction())
-    (toolWindow as ToolWindowEx).setAdditionalGearActions(actionGroup)
 
     val emulatorCatalog = RunningEmulatorCatalog.getInstance()
     emulatorCatalog.updateNow()
@@ -497,6 +501,13 @@ internal class StreamingToolWindowManager @AnyThread constructor(
         ToggleToolbarAction.setToolbarVisible(toolWindow, PropertiesComponent.getInstance(project), null)
       }
     }
+  }
+
+  private fun getDataFromSelectedPanel(dataId: String): Any? {
+    val selectedContent = toolWindow.contentManager.selectedContent ?: return null
+    val panelId = selectedContent.getUserData(ID_KEY) ?: return null
+    val panel = findPanelByDeviceId(panelId) ?: return null
+    return panel.getData(dataId)
   }
 
   private fun findPanelByDeviceId(deviceId: DeviceId): RunningDevicePanel? {
