@@ -22,9 +22,9 @@ import com.intellij.openapi.actionSystem.DataKey
 
 /** Constants for the Running Devices tool window. */
 
-@JvmField val DISPLAY_VIEW_KEY = DataKey.create<AbstractDisplayView>("AbstractDisplayView")
+@JvmField val DISPLAY_VIEW_KEY = DataKey.create<AbstractDisplayView>("DisplayView")
 
-@JvmField internal val NUMBER_OF_DISPLAYS = DataKey.create<Int>("NumberOfDisplays")
+@JvmField internal val NUMBER_OF_DISPLAYS_KEY = DataKey.create<Int>("NumberOfDisplays")
 
 internal val RUNNING_DEVICES_NOTIFICATION_GROUP: NotificationGroup
   get() = findRegisteredGroup("Running Devices Messages")!!
