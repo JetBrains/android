@@ -28,17 +28,21 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.diagnostic.LogLevel
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JPanel
 import junit.framework.Assert.assertFalse
 import junit.framework.Assert.assertTrue
 import kotlinx.coroutines.runBlocking
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -50,6 +54,14 @@ class RenderErrorTest {
     get() = projectRule.project
   private val fixture: CodeInsightTestFixture
     get() = projectRule.fixture
+
+  private val log = Logger.getInstance(RenderErrorTest::class.java)
+
+  @Before
+  fun setup() {
+    log.setLevel(LogLevel.ALL)
+    Logger.getInstance(ComposePreviewRepresentation::class.java).setLevel(LogLevel.ALL)
+  }
 
   @Test
   fun testSceneViewHasRenderErrors() {
@@ -68,25 +80,30 @@ class RenderErrorTest {
     Disposer.register(fixture.testRootDisposable, composePreviewRepresentation)
 
     lateinit var fakeUi: FakeUi
-    invokeAndWaitIfNeeded {
-      fakeUi =
-        FakeUi(
-          JPanel().apply {
-            layout = BorderLayout()
-            size = Dimension(1000, 800)
-            add(previewView, BorderLayout.CENTER)
-          },
-          1.0,
-          true
-        )
-      fakeUi.root.validate()
-    }
-    composePreviewRepresentation.onActivate()
+    UIUtil.invokeAndWaitIfNeeded(
+      Runnable {
+        fakeUi =
+          FakeUi(
+            JPanel().apply {
+              layout = BorderLayout()
+              size = Dimension(1000, 800)
+              add(previewView, BorderLayout.CENTER)
+            },
+            1.0,
+            true
+          )
+        fakeUi.root.validate()
+      }
+    )
 
     runBlocking { composePreviewRepresentation.activateAndWaitForRender(fakeUi) }
 
     val panels = fakeUi.findAllComponents<SceneViewPeerPanel>()
 
+    panels.forEach { log.debug("Found SceneViewPeerPanel ${it.displayName}") }
+    fakeUi.findAllComponents<SceneViewErrorsPanel>().forEach {
+      log.debug("Found SceneViewErrorsPanel $it")
+    }
     val sceneViewPanelWithErrors = panels.single { it.displayName == "PreviewWithRenderErrors" }
     assertTrue(sceneViewPanelWithErrors.sceneView.hasRenderErrors())
     val visibleErrorsPanel =
