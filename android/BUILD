@@ -199,6 +199,10 @@ iml_module(
             "test_filter": "org.jetbrains.android.AndroidGutterIconAnnotatorTest",
             "shard_count": 1,
         },
+        "resourcemanager": {
+            "test_filter": "com.android.tools.idea.ui.resourcemanager",
+            "shard_count": 2,
+        },
         "other": {
             "shard_count": 5,
         },
