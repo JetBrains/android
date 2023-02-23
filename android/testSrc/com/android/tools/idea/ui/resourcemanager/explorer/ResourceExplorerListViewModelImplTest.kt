@@ -61,6 +61,8 @@ import javax.swing.JLabel
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
+private const val timeoutSeconds = 10L
+
 class ResourceExplorerListViewModelImplTest {
   private val projectRule = AndroidProjectRule.onDisk()
 
@@ -88,7 +90,6 @@ class ResourceExplorerListViewModelImplTest {
     Disposer.dispose(disposable)
   }
 
-  @Ignore("b/149867299")
   @Test
   fun refreshDrawablePreviews() {
     var renderLatch = CountDownLatch(1)
@@ -102,20 +103,19 @@ class ResourceExplorerListViewModelImplTest {
 
     // Trigger a render for a drawable asset, will load generated image into cache.
     viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, JLabel(), { renderLatch.countDown() })
-    assertTrue(renderLatch.await(1, TimeUnit.SECONDS))
+    assertTrue(renderLatch.await(timeoutSeconds, TimeUnit.SECONDS))
     Truth.assertThat(uiCallbackLatch.count).isEqualTo(1)
 
     // Clear cache for all current drawable resources.
     viewModel.clearCacheForCurrentResources()
-    assertTrue(uiCallbackLatch.await(1, TimeUnit.SECONDS))
+    assertTrue(uiCallbackLatch.await(timeoutSeconds, TimeUnit.SECONDS))
 
     // Another render request for the drawable asset, should load the image into cache again, since it was recently cleared.
     renderLatch = CountDownLatch(1)
     viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, JLabel(), { renderLatch.countDown() })
-    assertTrue(renderLatch.await(1, TimeUnit.SECONDS))
+    assertTrue(renderLatch.await(timeoutSeconds, TimeUnit.SECONDS))
   }
 
-  @Ignore("b/149867299")
   @Test
   fun getDrawablePreviewAndRefresh() {
     var latch = CountDownLatch(1)
@@ -125,7 +125,7 @@ class ResourceExplorerListViewModelImplTest {
     val iconSize = 32 // To compensate the 10% margin around the icon
     whenever(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
     val emptyIcon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, JLabel(), { latch.countDown() })
-    assertTrue(latch.await(1, TimeUnit.SECONDS))
+    assertTrue(latch.await(timeoutSeconds, TimeUnit.SECONDS))
 
     val icon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, JLabel(), { /* Do nothing */ }) as ImageIcon
     val image = icon.image as BufferedImage
@@ -136,7 +136,7 @@ class ResourceExplorerListViewModelImplTest {
     viewModel.clearImageCache(asset)
     val clearedCacheIcon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, JLabel(), { latch.countDown() }) as ImageIcon
     assertSame(emptyIcon, clearedCacheIcon) // When cleared, it should return the same instance of an empty icon
-    assertTrue(latch.await(1, TimeUnit.SECONDS))
+    assertTrue(latch.await(timeoutSeconds, TimeUnit.SECONDS))
 
     val refreshedIcon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, JLabel(), { /* Do nothing */ }) as ImageIcon
     val refreshedImage = refreshedIcon.image as BufferedImage
@@ -157,7 +157,7 @@ class ResourceExplorerListViewModelImplTest {
     val emptyIcon = viewModel.assetPreviewManager
       .getPreviewProvider(ResourceType.DRAWABLE)
       .getIcon(asset, iconSize, iconSize, JLabel(), { latch.countDown() }) as ImageIcon
-    Truth.assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue()
+    Truth.assertThat(latch.await(timeoutSeconds, TimeUnit.SECONDS)).isTrue()
     val emptyImage = emptyIcon.image as BufferedImage
     Truth.assertThat(emptyImage.getRGB(0, 0)).isEqualTo(0) // No value in empty icon
 
