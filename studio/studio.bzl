@@ -1097,6 +1097,30 @@ def intellij_platform(
         visibility = ["//visibility:public"],
     )
 
+    # Expose product-info.json.
+    native.filegroup(
+        name = name + "-product-info",
+        srcs = select({
+            "//tools/base/bazel:windows": [src + "/windows/android-studio/product-info.json"],
+            "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/Resources/product-info.json"],
+            "//tools/base/bazel:darwin_arm64": [src + "/darwin_aarch64/android-studio/Contents/Resources/product-info.json"],
+            "//conditions:default": [src + "/linux/android-studio/product-info.json"],
+        }),
+        visibility = ["//visibility:public"],
+    )
+
+    # Expose the default VM options file.
+    native.filegroup(
+        name = name + "-vm-options",
+        srcs = select({
+            "//tools/base/bazel:windows": [src + "/windows/android-studio/bin/studio64.exe.vmoptions"],
+            "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/bin/studio.vmoptions"],
+            "//tools/base/bazel:darwin_arm64": [src + "/darwin_aarch64/android-studio/Contents/bin/studio.vmoptions"],
+            "//conditions:default": [src + "/linux/android-studio/bin/studio64.vmoptions"],
+        }),
+        visibility = ["//visibility:public"],
+    )
+
     # TODO: merge this into the intellij_platform rule.
     dir_archive(
         name = name + "-full-linux",

@@ -756,6 +756,32 @@ py_library(
     visibility = ["//visibility:public"],
 )
 
+py_binary(
+    name = "jvm_args_extractor",
+    srcs = ["jvm_args_extractor.py"],
+)
+
+# Extracts the JVM args used in AS release builds.
+# The result is used by Studio dev builds and tests.
+genrule(
+    name = "required_jvm_args",
+    srcs = ["//prebuilts/studio/intellij-sdk:studio-sdk-product-info"],
+    outs = ["required_jvm_args.txt"],
+    cmd = "$(location :jvm_args_extractor) $< $@",
+    tools = [":jvm_args_extractor"],
+    visibility = ["//visibility:public"],
+)
+
+# Extracts the default user-configurable JVM args used in a fresh AS installation.
+# The result is used by Studio dev builds and tests.
+genrule(
+    name = "default_user_jvm_args",
+    srcs = ["//prebuilts/studio/intellij-sdk:studio-sdk-vm-options"],
+    outs = ["default_user_jvm_args.txt"],
+    cmd = "cp $< $@",
+    visibility = ["//visibility:public"],
+)
+
 java_binary(
     name = "updater",
     main_class = "com.intellij.updater.Runner",

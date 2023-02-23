@@ -451,6 +451,8 @@ filegroup(
         ":transport-artifacts",
         "//tools/adt/idea/server-flags:server-flag-test-proto",
         "//tools/adt/idea/streaming/screen-sharing-agent:bundle",
+        "//tools/adt/idea/studio:default_user_jvm_args",
+        "//tools/adt/idea/studio:required_jvm_args",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
         "//tools/base/bazel:studio-grpc",
