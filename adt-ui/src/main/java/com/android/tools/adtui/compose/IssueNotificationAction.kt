@@ -40,6 +40,8 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
+import java.awt.Component
+import java.awt.Graphics
 import java.awt.Insets
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -59,9 +61,15 @@ val REFRESH_BUTTON =
     JBColor(0x59A869, 0x499C54)
   )
 
-internal fun chipBorder(color: Color): Border = RoundedLineBorder(UIUtil.toAlpha(color, ACTION_BORDER_ALPHA),
-                                                                 ACTION_BORDER_ARC_SIZE,
-                                                                 ACTION_BORDER_THICKNESS)
+internal fun chipBorder(color: Color): Border = object: RoundedLineBorder(
+  UIUtil.toAlpha(color, ACTION_BORDER_ALPHA), ACTION_BORDER_ARC_SIZE, ACTION_BORDER_THICKNESS) {
+  override fun paintBorder(c: Component?, g: Graphics?, x: Int, y: Int, width: Int, height: Int) {
+    // Slightly hack RoundedLineBorder since it has a rendering bug in HiDPI modes.
+    // Will need to properly fix this by overriding the underlying component's paint method to
+    // use a filled Path instead of line rendering for border drawing.
+    super.paintBorder(c, g, x+1, y+1, width-1, height-1)
+  }
+}
 
 interface ComposeStatus {
   val icon: Icon?
