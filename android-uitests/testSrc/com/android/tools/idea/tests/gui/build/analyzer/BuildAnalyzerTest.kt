@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.build.analyzer
 
+import com.android.flags.junit.FlagRule
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTests.findAndClickButton
 import com.android.tools.idea.tests.gui.framework.fixture.BuildAnalyzerViewFixture
@@ -27,6 +29,7 @@ import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
 
 import kotlin.test.assertTrue
+import kotlin.test.assertEquals
 
 @RunWith(GuiTestRemoteRunner::class)
 class BuildAnalyzerTest {
@@ -34,6 +37,49 @@ class BuildAnalyzerTest {
   @Rule
   @JvmField
   val guiTest = GuiTestRule().withTimeout(9, TimeUnit.MINUTES)
+
+  @get:Rule
+  val flagRule = FlagRule(StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION, true)
+
+  /**
+   * * <p>
+   * This is run to qualify releases. Please involve the test team in substantial changes.
+   * <p>
+   * TT ID: fcf6beb5-9a59-4f2c-9fab-428f378dcdb2
+   * <p>
+   * Test user path through Info on download impact during sync.
+   *
+   * Test Steps:
+   * The test opens an existing project.
+   * Opens build tools window, checks for "Downloads info" node.
+   * Checks if the table is present.
+   * Triggers gradle sync again.
+   * Checks if the node and table is present.
+   */
+
+  @Test
+  fun testDownloadsInfoOnSync() {
+    val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("BuildAttributionApp")
+    ideFrame.clearNotificationsPresentOnIdeFrame()
+
+    ideFrame.buildToolWindow.also { buildToolWindow ->
+      buildToolWindow.activate()
+      guiTest.robot().waitForIdle()
+
+      buildToolWindow.gradleSyncEventTree.also { tree ->
+        assertEquals("Downloads info", tree.valueAt(1))
+        tree.clickRow(1)
+      }
+
+      ideFrame.requestProjectSyncAndWaitForSyncToFinish()
+      guiTest.robot().waitForIdle()
+
+      buildToolWindow.gradleSyncEventTree.also { tree ->
+        assertEquals("Downloads info", tree.valueAt(1))
+        tree.clickRow(1)
+      }
+    }
+  }
 
   /**
    * * <p>
@@ -49,6 +95,7 @@ class BuildAnalyzerTest {
    * Check detailed report dialog can be opened and closed.
    * Check tab can be closed and re-opened from a build output link.
    */
+
   @Test
   fun testBuildAnalyzerFlow() {
     val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("BuildAttributionApp")
@@ -58,7 +105,7 @@ class BuildAnalyzerTest {
       buildToolWindow.activate()
       guiTest.robot().waitForIdle()
 
-      val result = ideFrame.invokeCleanAndMakeProject()
+      val result = ideFrame.invokeProjectMake()
       assertTrue(result.isBuildSuccessful)
       guiTest.robot().waitForIdle()
 
@@ -82,6 +129,12 @@ class BuildAnalyzerTest {
 
       buildToolWindow.openBuildAnalyzerUsingBuildOutputLink().verifyOverviewPage()
       buildToolWindow.closeBuildAnalyzerTab()
+
+      buildToolWindow.gradleBuildEventTree.also { tree ->
+        assertEquals("Downloads info", tree.valueAt(1))
+        tree.clickRow(1)
+        tree.toggleRow(0)
+      }
     }
     ideFrame.closeBuildPanel()
   }

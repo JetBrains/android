@@ -65,6 +65,13 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
     return myRobot.finder().findByType(buildContent.getComponent(), ConsoleViewImpl.class, true /* showing */);
   }
 
+  @NotNull
+  public JTreeFixture getGradleBuildEventTree() {
+    Content syncContent = getContent("Build Output");
+    JTree tree = myRobot.finder().findByType(syncContent.getComponent(), JTree.class, true /* showing */);
+    return new JTreeFixture(myRobot, tree);
+  }
+
   /**
    * This method finds the given hyperlink text from console view, and performs mouse click on the text.
    * Please note that, because content in console view are regular textual strings, this method doesn't guarantee that
