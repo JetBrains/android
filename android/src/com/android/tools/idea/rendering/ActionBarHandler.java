@@ -24,9 +24,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
 import com.android.tools.idea.model.MergedManifestSnapshot;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
-import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ModalityState;
@@ -42,6 +40,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.concurrent.Callable;
+import java.util.function.Function;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,9 +64,15 @@ public class ActionBarHandler extends ActionBarCallback {
   @NotNull private final RenderTask myRenderTask;
   @Nullable private ImmutableList<ResourceReference> myMenus;
 
-  ActionBarHandler(@NotNull RenderTask renderTask, @Nullable Object credential) {
+  @NotNull private final Function<Module, MergedManifestSnapshot> myManifestProvider;
+
+  ActionBarHandler(
+    @NotNull RenderTask renderTask,
+    @NotNull Function<Module, MergedManifestSnapshot> manifestProvider,
+    @Nullable Object credential) {
     myRenderTask = renderTask;
     myCredential = credential;
+    myManifestProvider = manifestProvider;
   }
 
   @Override
@@ -204,7 +209,7 @@ public class ActionBarHandler extends ActionBarCallback {
   private ActivityAttributesSnapshot getActivityAttributes() {
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(myRenderTask.getContext().getModule().getIdeaModule());
+      MergedManifestSnapshot manifest = myManifestProvider.apply(myRenderTask.getContext().getModule().getIdeaModule());
       String activity = StringUtil.notNullize(myRenderTask.getContext().getConfiguration().getActivity());
       return manifest.getActivityAttributes(activity);
     } finally {
