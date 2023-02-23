@@ -96,7 +96,7 @@ class EmulatorToolWindowPanel(
           clipboardSynchronizer?.setDeviceClipboardAndKeepHostClipboardInSync()
         }
       }
-      else if (lost) {
+      else {
         clipboardSynchronizer?.stopKeepingHostClipboardInSync()
       }
     }
