@@ -77,9 +77,10 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon ADD = load("studio/icons/common/add.svg", 1108999431, 2);
     /** 16x16 */ public static final @NotNull Icon ANDROID_HEAD = load("studio/icons/common/android-head.svg", -577291347, 2);
     /** 16x16 */ public static final @NotNull Icon BACK_ARROW = load("studio/icons/common/back-arrow.svg", -570405156, 2);
-    /** 16x16 */ public static final @NotNull Icon CHECKED = load("studio/icons/common/checked.svg", -470653466, 2);
+    /** 16x16 */ public static final @NotNull Icon CHECKED = load("studio/icons/common/checked.svg", -1584759575, 2);
     /** 16x16 */ public static final @NotNull Icon CLEAR = load("studio/icons/common/clear.svg", 150076204, 2);
     /** 16x16 */ public static final @NotNull Icon CLOSE = load("studio/icons/common/close.svg", -669517912, 2);
+    /** 16x16 */ public static final @NotNull Icon CONFIGURE_COLUMNS = load("studio/icons/common/configure-columns.svg", 357916596, 2);
     /** 16x16 */ public static final @NotNull Icon CROP = load("studio/icons/common/crop.svg", -1898658388, 2);
     /** 16x16 */ public static final @NotNull Icon DELETE = load("studio/icons/common/delete.svg", 318160196, 2);
     /** 16x16 */ public static final @NotNull Icon EDIT = load("studio/icons/common/edit.svg", -1377697553, 2);
@@ -823,7 +824,7 @@ public final class StudioIcons {
     public static final class Toolbar {
       /** 16x16 */ public static final @NotNull Icon APPLY_ALL_CHANGES = load("studio/icons/shell/toolbar/apply-all-changes.svg", -1578220239, 2);
       /** 16x16 */ public static final @NotNull Icon APPLY_CODE_SWAP = load("studio/icons/shell/toolbar/apply-code-swap.svg", -1225074599, 2);
-      /** 16x16 */ public static final @NotNull Icon ATTACH_DEBUGGER = load("studio/icons/shell/toolbar/attach-debugger.svg", 304669241, 2);
+      /** 16x16 */ public static final @NotNull Icon ATTACH_DEBUGGER = load("studio/icons/shell/toolbar/attach-debugger.svg", 1846058903, 2);
       /** 16x16 */ public static final @NotNull Icon BUILD = load("studio/icons/shell/toolbar/build.svg", -285315614, 2);
       /** 16x16 */ public static final @NotNull Icon DEBUG = load("studio/icons/shell/toolbar/debug.svg", 610847801, 2);
       /** 16x16 */ public static final @NotNull Icon DEVICE_MANAGER = load("studio/icons/shell/toolbar/device-manager.svg", 375911769, 2);
