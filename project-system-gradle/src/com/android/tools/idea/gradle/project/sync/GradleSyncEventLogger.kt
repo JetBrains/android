@@ -21,6 +21,7 @@ import com.android.ide.common.repository.GradleCoordinate
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.model.IdeArtifactDependency
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
+import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -109,6 +110,7 @@ class GradleSyncEventLogger(val now: () -> Long = { System.currentTimeMillis() }
     syncStats.syncType = syncType ?: GradleSyncStats.GradleSyncType.GRADLE_SYNC_TYPE_UNKNOWN
     syncStats.usesBuildGradle = buildFileTypes.contains(SdkConstants.DOT_GRADLE)
     syncStats.usesBuildGradleKts = buildFileTypes.contains(SdkConstants.DOT_KTS)
+    syncStats.versionCatalogDetectorState = GradleVersionCatalogDetector.getInstance(project).versionCatalogDetectorResult.state
     if (rootProjectPath != null) {
       syncStats.updateUserRequestedParallelSyncMode(project, rootProjectPath)
     }

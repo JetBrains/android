@@ -143,7 +143,7 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
       }
     }
 
-  private val _isVersionCatalogProject: DetectorResult
+  val versionCatalogDetectorResult: DetectorResult
     get() {
       val gradleVersion = gradleVersion
       if (gradleVersion < PREVIEW_GRADLE_VERSION) return OLD_GRADLE
@@ -160,7 +160,7 @@ class GradleVersionCatalogDetector(private val project: Project): Disposable {
   private var shouldSendTrackerEvent = true
 
   val isVersionCatalogProject: Boolean
-    get() = _isVersionCatalogProject.run {
+    get() = versionCatalogDetectorResult.run {
       if (shouldSendTrackerEvent) {
         shouldSendTrackerEvent = false
         val thunk = {
