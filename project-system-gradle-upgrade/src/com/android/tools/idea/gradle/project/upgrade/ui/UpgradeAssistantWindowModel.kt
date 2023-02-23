@@ -469,7 +469,7 @@ class UpgradeAssistantWindowModel(
     else if (!projectFilesClean) {
       uiState.set(UIState.ProjectFilesNotCleanWarning)
     }
-    else if (versionCatalogs && StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_CAVEATS.get()) {
+    else if (versionCatalogs && StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_BANNERS.get()) {
       uiState.set(UIState.ProjectUsesVersionCatalogs)
     }
     else {

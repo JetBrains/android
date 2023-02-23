@@ -123,7 +123,7 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     Project project = context.getProject().getIdeProject();
     boolean projectUsesVersionCatalogs = GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject();
     if (projectUsesVersionCatalogs) {
-      if (StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_CAVEATS.get()) {
+      if (StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_BANNERS.get()) {
         add(new VersionCatalogWarningHeader());
       }
     }

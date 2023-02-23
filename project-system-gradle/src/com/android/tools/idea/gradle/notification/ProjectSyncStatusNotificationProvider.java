@@ -131,7 +131,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     }
 
     if (myVersionCatalogDetector.isVersionCatalogProject()) {
-      if (StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_CAVEATS.get()) {
+      if (StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_BANNERS.get()) {
         return NotificationPanel.Type.VERSION_CATALOG_PROJECT;
       }
     }
