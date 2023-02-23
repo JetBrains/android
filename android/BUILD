@@ -352,6 +352,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-coverage[test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
+        "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
     ],
 )
 
