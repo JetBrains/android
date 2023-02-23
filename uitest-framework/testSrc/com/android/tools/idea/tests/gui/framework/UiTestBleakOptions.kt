@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.framework
 
 import com.android.tools.idea.bleak.BleakOptions
+import com.android.tools.idea.bleak.DisposerCheck
 import com.android.tools.idea.bleak.LeakInfo
 import com.android.tools.idea.bleak.MainBleakCheck
 import com.android.tools.idea.bleak.IgnoreList
@@ -27,7 +28,8 @@ import java.util.function.Supplier
 
 private val globalIgnoreList = IgnoreList<LeakInfo>(listOf(
   IgnoreListEntry { it.leaktrace.size == 1 },
-  IgnoreListEntry { it.leaktrace.referenceMatches(-3, "com.intellij.openapi.util.Disposer", "ourTree")},
+  IgnoreListEntry { it.leaktrace.referenceMatches(-2, "com.intellij.openapi.util.ObjectNode", "myChildren") },
+  IgnoreListEntry { it.leaktrace.referenceMatches(-2, "com.intellij.openapi.util.ObjectTree", "myObject2ParentNode") },
   IgnoreListEntry { info -> info.leaktrace.elements.any { it.type.contains("com.intellij.testGuiFramework") } },
   IgnoreListEntry { it.leaktrace.referenceMatches(1, "com.android.layoutlib.bridge.impl.DelegateManager", "sJavaReferences") },
   IgnoreListEntry { info -> info.leaktrace.elements.any { it.type.contains("org.fest.swing") } },
@@ -96,9 +98,12 @@ object UiTestBleakOptions {
   // a fresh copy of the default options are provided with each access, to facilitate local modifications (e.g. test-specific ignore lists)
   val defaults: BleakOptions
     get() = BleakOptions().withCheck(MainBleakCheck(globalIgnoreList, knownIssues, customExpanders, listOf(TObjectHash.REMOVED)))
+                          .withCheck(DisposerCheck())
+
 
   fun defaultsWithAdditionalIgnoreList(additionalIgnoreList: IgnoreList<LeakInfo>): BleakOptions {
     return BleakOptions().withCheck(
-      MainBleakCheck(globalIgnoreList + additionalIgnoreList, knownIssues, customExpanders, listOf(TObjectHash.REMOVED)))
+      MainBleakCheck(globalIgnoreList + additionalIgnoreList, knownIssues, customExpanders, listOf(TObjectHash.REMOVED))).withCheck(
+      DisposerCheck())
   }
 }
