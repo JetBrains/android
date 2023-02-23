@@ -21,11 +21,13 @@ import com.android.tools.idea.naveditor.model.isDestination
 import com.android.tools.idea.naveditor.model.moveIntoNestedGraph
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.wireless.android.sdk.stats.NavEditorEvent
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
 
 class NestedGraphToolbarAction(surface: NavDesignSurface) :
   ToolbarAction(surface, "Group into nested graph", StudioIcons.NavEditor.Toolbar.NESTED_GRAPH) {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun isEnabled() = surface.selectionModel.selection.any {
     it.isDestination && it != surface.currentNavigation

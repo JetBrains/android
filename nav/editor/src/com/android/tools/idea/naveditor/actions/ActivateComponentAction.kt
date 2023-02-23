@@ -20,23 +20,20 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.model.className
 import com.android.tools.idea.naveditor.model.isNavigation
 import com.android.tools.idea.naveditor.model.layout
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
-class ActivateComponentAction(text: String?, private val mySurface: DesignSurface<*>, private val component: NlComponent) : AnAction(text) {
-  init {
-    setEnabled()
-  }
+class ActivateComponentAction(
+  text: String?,
+  private val mySurface: DesignSurface<*>,
+  private val component: NlComponent
+) : AnAction(text) {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     super.update(e)
-    setEnabled()
-  }
-
-  fun setEnabled() {
-    if (!component.isNavigation && component.className == null && component.layout == null) {
-      templatePresentation.isEnabled = false
-    }
+    e.presentation.isEnabled = component.isNavigation || component.className != null || component.layout != null
   }
 
   override fun actionPerformed(e: AnActionEvent) {

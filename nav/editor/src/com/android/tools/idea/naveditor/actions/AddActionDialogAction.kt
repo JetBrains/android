@@ -20,6 +20,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.naveditor.dialogs.AddActionDialog
 import com.android.tools.idea.naveditor.dialogs.showAndUpdateFromDialog
 import com.google.wireless.android.sdk.stats.NavEditorEvent
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 
@@ -29,6 +30,8 @@ sealed class AddActionDialogAction(
   private val parent: NlComponent,
   private val existingAction: NlComponent?
 ) : AnAction(text) {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
   override fun actionPerformed(e: AnActionEvent) {
     val addActionDialog = AddActionDialog(AddActionDialog.Defaults.NORMAL, existingAction, parent, NavEditorEvent.Source.CONTEXT_MENU)
     showAndUpdateFromDialog(addActionDialog, surface, existingAction != null)

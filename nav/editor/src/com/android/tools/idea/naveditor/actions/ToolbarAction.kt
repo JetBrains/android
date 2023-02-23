@@ -18,6 +18,7 @@ package com.android.tools.idea.naveditor.actions
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.roots.ui.configuration.actions.IconWithTextAction
@@ -28,6 +29,8 @@ import javax.swing.JComponent
 
 abstract class ToolbarAction(protected val surface: NavDesignSurface, description: String, icon: Icon) :
   IconWithTextAction("", description, icon) {
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   private var buttonPresentation: Presentation? = null
 
