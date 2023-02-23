@@ -746,7 +746,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> GRADLE_VERSION_CATALOG_DISPLAY_BANNERS =
     Flag.create(GRADLE_IDE, "gradle.version.catalog.banners", "IDE banners if Version Catalogs used",
-                "Display banners in Gradle-related tools when Version Catalogs are in use", true);
+                "Display banners in Gradle-related tools when Version Catalogs are in use", false);
 
   public static final Flag<Boolean> GRADLE_VERSION_CATALOG_NEW_MODULE_WARNING =
     Flag.create(GRADLE_IDE, "gradle.version.catalog.new.module.warning", "Warning for new module if Version Catalogs used",
