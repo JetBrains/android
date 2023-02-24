@@ -676,6 +676,13 @@ class ComposePreviewRepresentation(
          */
         private var hadOutOfDateFiles = false
 
+        /**
+         * True if the animation inspection was open at the beginning of the build. If open, we will
+         * force a refresh after the build has completed since the animations preview panel
+         * refreshes only when a refresh happens.
+         */
+        private var animationInspectionsEnabled = false
+
         override fun buildSucceeded() {
           log.debug("buildSucceeded")
           module?.let {
@@ -695,13 +702,19 @@ class ComposePreviewRepresentation(
             FastPreviewManager.getInstance(project).preStartDaemon(module)
           }
 
-          afterBuildComplete(isSuccessful = true, needsRefresh = hadOutOfDateFiles)
+          afterBuildComplete(
+            isSuccessful = true,
+            needsRefresh = hadOutOfDateFiles || animationInspectionsEnabled
+          )
         }
 
         override fun buildFailed() {
           log.debug("buildFailed")
 
           afterBuildComplete(isSuccessful = false, needsRefresh = false)
+
+          // This ensures the animations panel is showed again after the build completes.
+          if (animationInspectionsEnabled) requestRefresh()
         }
 
         override fun buildCleaned() {
@@ -714,6 +727,7 @@ class ComposePreviewRepresentation(
           log.debug("buildStarted")
           hadOutOfDateFiles =
             PsiCodeFileChangeDetectorService.getInstance(project).outOfDateFiles.isNotEmpty()
+          animationInspectionsEnabled = animationInspection.get()
 
           composeWorkBench.updateProgress(message("panel.building"))
           afterBuildStarted()
