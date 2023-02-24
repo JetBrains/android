@@ -83,8 +83,9 @@ private object InjectedConstructorIndexer : DaggerConceptIndexer<DaggerIndexMeth
 }
 
 @VisibleForTesting
-internal data class InjectedConstructorIndexValue(val classFqName: String) :
-  IndexValue(DataType.INJECTED_CONSTRUCTOR) {
+internal data class InjectedConstructorIndexValue(val classFqName: String) : IndexValue() {
+  override val dataType = Reader.supportedType
+
   override fun save(output: DataOutput) {
     output.writeString(classFqName)
   }
@@ -123,7 +124,9 @@ internal data class InjectedConstructorIndexValue(val classFqName: String) :
 internal data class InjectedConstructorParameterIndexValue(
   val classFqName: String,
   val parameterName: String
-) : IndexValue(DataType.INJECTED_CONSTRUCTOR_PARAMETER) {
+) : IndexValue() {
+  override val dataType = Reader.supportedType
+
   override fun save(output: DataOutput) {
     output.writeString(classFqName)
     output.writeString(parameterName)

@@ -70,7 +70,9 @@ private object InjectedFieldIndexer : DaggerConceptIndexer<DaggerIndexFieldWrapp
 
 @VisibleForTesting
 internal data class InjectedFieldIndexValue(val classFqName: String, val fieldName: String) :
-  IndexValue(DataType.INJECTED_FIELD) {
+  IndexValue() {
+  override val dataType = Reader.supportedType
+
   override fun save(output: DataOutput) {
     output.writeString(classFqName)
     output.writeString(fieldName)

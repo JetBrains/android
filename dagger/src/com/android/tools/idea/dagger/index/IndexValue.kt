@@ -34,7 +34,11 @@ import org.jetbrains.annotations.VisibleForTesting
  * An index value for the Dagger index. Each [DaggerConcept] is responsible for defining the exact
  * data that it needs to store for its entries.
  */
-abstract class IndexValue(val dataType: DataType) {
+abstract class IndexValue {
+
+  /** The [DataType] represented by this [IndexValue] instance. */
+  abstract val dataType: DataType
+
   /**
    * Type of value being stored. This is required to be centralized to ensure that each type has a
    * unique integer representation that can be used for serialization and storage.

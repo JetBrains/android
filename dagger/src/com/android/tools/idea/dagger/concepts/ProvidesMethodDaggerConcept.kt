@@ -99,7 +99,9 @@ private object ProvidesMethodIndexer : DaggerConceptIndexer<DaggerIndexMethodWra
 internal data class ProvidesMethodIndexValue(
   val classFqName: String,
   val methodSimpleName: String
-) : IndexValue(DataType.PROVIDES_METHOD) {
+) : IndexValue() {
+  override val dataType = Reader.supportedType
+
   override fun save(output: DataOutput) {
     output.writeString(classFqName)
     output.writeString(methodSimpleName)
@@ -161,7 +163,9 @@ internal data class ProvidesMethodParameterIndexValue(
   val classFqName: String,
   val methodSimpleName: String,
   val parameterName: String
-) : IndexValue(DataType.PROVIDES_METHOD_PARAMETER) {
+) : IndexValue() {
+  override val dataType = Reader.supportedType
+
   override fun save(output: DataOutput) {
     output.writeString(classFqName)
     output.writeString(methodSimpleName)
