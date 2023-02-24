@@ -19,6 +19,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.components.JBScrollPane
 import javax.swing.BorderFactory
+import javax.swing.JLabel
 import javax.swing.SortOrder
 import org.junit.Test
 
@@ -51,6 +52,72 @@ class CategoryTableTest {
     assertThat(sorted.map { it.type })
       .containsExactly("Phone", "Phone", "Tablet", "Phone", "Phone", "Tablet")
   }
+
+  @Test
+  fun addAndRemoveGrouping() {
+    demo.devices.forEach { table.addRow(it) }
+    assertThat(table.rowComponents).hasSize(6)
+
+    table.toggleSortOrder(Name.attribute)
+    table.addGrouping(Api.attribute)
+
+    assertThat(table.rowComponents.map { it.stringValue() })
+      .containsExactly(
+        "25",
+        "Nexus 7",
+        "26",
+        "Nexus 7",
+        "31",
+        "Pixel 6",
+        "Pixel 6a",
+        "32",
+        "Pixel 5",
+        "33",
+        "Pixel 7"
+      )
+
+    table.addGrouping(Type.attribute)
+
+    assertThat(table.rowComponents.map { it.stringValue() })
+      .containsExactly(
+        "25",
+        "25, Tablet",
+        "Nexus 7",
+        "26",
+        "26, Tablet",
+        "Nexus 7",
+        "31",
+        "31, Phone",
+        "Pixel 6",
+        "Pixel 6a",
+        "32",
+        "32, Phone",
+        "Pixel 5",
+        "33",
+        "33, Phone",
+        "Pixel 7"
+      )
+
+    table.removeGrouping(Api.attribute)
+
+    assertThat(table.rowComponents.map { it.stringValue() })
+      .containsExactly(
+        "Tablet",
+        "Nexus 7",
+        "Nexus 7",
+        "Phone",
+        "Pixel 5",
+        "Pixel 6",
+        "Pixel 6a",
+        "Pixel 7"
+      )
+  }
+
+  private fun RowComponent<CategoryTableDemo.Device>.stringValue() =
+    when (this) {
+      is CategoryRowComponent -> path.joinToString { it.value.toString() }
+      is ValueRowComponent -> (componentList[0].component as JLabel).text
+    }
 
   @Test
   fun tableLayout() {

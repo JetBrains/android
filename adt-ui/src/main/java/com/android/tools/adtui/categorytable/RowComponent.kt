@@ -39,7 +39,7 @@ sealed interface RowKey<T> {
 }
 
 /** A UI component for a row in a CategoryTable that is either a category or a value. */
-internal abstract class RowComponent<T> : JBPanel<RowComponent<T>>() {
+internal sealed class RowComponent<T> : JBPanel<RowComponent<T>>() {
   init {
     isFocusable = true
   }

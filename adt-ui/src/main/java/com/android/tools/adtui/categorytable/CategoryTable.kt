@@ -224,7 +224,7 @@ class CategoryTable<T : Any>(
     }
   }
 
-  private fun <C> toggleSortOrder(attribute: Attribute<T, C>) {
+  fun <C> toggleSortOrder(attribute: Attribute<T, C>) {
     if (attribute.sorter != null) {
       val currentSortOrders = columnSorters
       val newSortOrder =
@@ -329,7 +329,7 @@ class CategoryTable<T : Any>(
     var collapsedParentCount = 0
     for (value in values) {
       // Remove categories that no longer apply.
-      while (categoryList.isNotEmpty() && !categoryList.last().matches(value)) {
+      while (categoryList.isNotEmpty() && !categoryList.all { it.matches(value) }) {
         if (collapsedNodes.value.contains(categoryList)) {
           collapsedParentCount--
         }
