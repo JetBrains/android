@@ -27,6 +27,7 @@ import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.Upgra
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.AIDL_DEFAULT
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.ANDROID_MANIFEST_EXTRACT_NATIVE_LIBS
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.ANDROID_MANIFEST_PACKAGE
+import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.ANDROID_MANIFEST_USE_EMBEDDED_DEX
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.BUILD_CONFIG_DEFAULT
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.COMPILE_RUNTIME_CONFIGURATION
 import com.google.wireless.android.sdk.stats.UpgradeAssistantComponentInfo.UpgradeAssistantComponentKind.FABRIC_CRASHLYTICS
@@ -579,6 +580,25 @@ class ComponentTrackerTest : UpgradeGradleFileModelTestCase() {
         .build(),
       UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("8.0.0").setNewAgpVersion("9.0.0")
         .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(ANDROID_MANIFEST_EXTRACT_NATIVE_LIBS).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(0).setFiles(2))
+        .build(),
+    )
+  }
+
+
+  @Test
+  fun testNoAndroidManifestsUseEmbeddedDexUsageTracker() {
+    val processor = AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(
+      project, AgpVersion.parse("8.0.0"), AgpVersion.parse("9.0.0"))
+    processor.run()
+
+    checkComponentEvents(
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("8.0.0").setNewAgpVersion("9.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(ANDROID_MANIFEST_USE_EMBEDDED_DEX).setIsEnabled(true))
+        .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(FIND_USAGES).setUsages(0).setFiles(2))
+        .build(),
+      UpgradeAssistantComponentEvent.newBuilder().setUpgradeUuid(processor.uuid).setCurrentAgpVersion("8.0.0").setNewAgpVersion("9.0.0")
+        .setComponentInfo(UpgradeAssistantComponentInfo.newBuilder().setKind(ANDROID_MANIFEST_USE_EMBEDDED_DEX).setIsEnabled(true))
         .setEventInfo(UpgradeAssistantEventInfo.newBuilder().setKind(EXECUTE).setUsages(0).setFiles(2))
         .build(),
     )

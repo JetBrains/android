@@ -281,6 +281,7 @@ class AgpUpgradeRefactoringProcessor(
     AidlDefaultRefactoringProcessor(this),
     REMOVE_SOURCE_SET_JNI_INFO.RefactoringProcessor(this),
     AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor(this),
+    AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor(this),
     MIGRATE_AAPT_OPTIONS_TO_ANDROID_RESOURCES.RefactoringProcessor(this),
     REMOVE_BUILD_TYPE_USE_PROGUARD_INFO.RefactoringProcessor(this),
     RemoveImplementationPropertiesRefactoringProcessor(this),
