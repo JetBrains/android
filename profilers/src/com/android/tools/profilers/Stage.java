@@ -126,14 +126,6 @@ public abstract class Stage<T extends Timeline> extends AspectObserver {
    * Log a message (e.g., to idea.log) indicating the entering of a profiler stage.
    */
   protected void logEnterStage() {
-    if (!myProfilers.getIdeServices().getFeatureConfig().isVerboseLoggingEnabled()) {
-      return;
-    }
-
-    StringBuilder message = new StringBuilder("PROFILER: Enter ");
-    message.append(this.getClass().getSimpleName());
-    // Use qualified name because "a type with the same simple name is already defined by the single-type-import of
-    // org.apache.log4j.Logger"
-    com.intellij.openapi.diagnostic.Logger.getInstance(this.getClass()).info(message.toString());
+    LogUtils.logIfVerbose(myProfilers.getIdeServices(), this.getClass(), "Enter " + this.getClass().getSimpleName());
   }
 }
