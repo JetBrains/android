@@ -99,6 +99,7 @@ public class EnergyProfilerStage extends StreamingStage {
 
   @Override
   public void enter() {
+    logEnterStage();
     myEventMonitor.enter();
 
     getStudioProfilers().getUpdater().register(myDetailedUsage);

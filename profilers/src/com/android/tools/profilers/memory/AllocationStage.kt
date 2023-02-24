@@ -85,6 +85,7 @@ class AllocationStage private constructor(profilers: StudioProfilers, loader: Ca
   }
 
   override fun enter() {
+    logEnterStage()
     super.enter()
     if (isStatic) {
       timeline.viewRange.set(minTrackingTimeUs, maxTrackingTimeUs)

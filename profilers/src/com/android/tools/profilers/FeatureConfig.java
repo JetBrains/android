@@ -29,6 +29,8 @@ public interface FeatureConfig {
   boolean isMemoryCSVExportEnabled();
   boolean isPerformanceMonitoringEnabled();
   boolean isProfileableBuildsEnabled();
+  boolean isVerboseLoggingEnabled();
+
   PowerProfilerDisplayMode getSystemTracePowerProfilerDisplayMode();
   // Add new features alphabetically instead of at the end of the list
   // This reduces the chance of having to deal with an annoying merge conflict.

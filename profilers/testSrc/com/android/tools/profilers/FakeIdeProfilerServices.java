@@ -252,6 +252,11 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
+      public boolean isVerboseLoggingEnabled() {
+        return false;
+      }
+
+      @Override
       public PowerProfilerDisplayMode getSystemTracePowerProfilerDisplayMode() {
         return mySystemTracePowerProfilerDisplayMode;
       }

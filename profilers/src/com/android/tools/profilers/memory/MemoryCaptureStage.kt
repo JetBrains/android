@@ -19,7 +19,8 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.adapters.CaptureObject
 import com.android.tools.profilers.memory.adapters.HeapDumpCaptureObject
 import com.android.tools.profilers.memory.adapters.NativeAllocationSampleCaptureObject
-import com.google.wireless.android.sdk.stats.AndroidProfilerEvent.Stage.*
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent.Stage.MEMORY_HEAP_DUMP_STAGE
+import com.google.wireless.android.sdk.stats.AndroidProfilerEvent.Stage.MEMORY_NATIVE_RECORDING_STAGE
 import java.util.concurrent.Executor
 
 class MemoryCaptureStage(profilers: StudioProfilers,
@@ -29,6 +30,7 @@ class MemoryCaptureStage(profilers: StudioProfilers,
       : BaseMemoryProfilerStage(profilers, loader) {
 
   override fun enter() {
+    logEnterStage()
     studioProfilers.ideServices.featureTracker.trackEnterStage(stageType)
     loader.start()
     doSelectCaptureDuration(durationData, joiner)

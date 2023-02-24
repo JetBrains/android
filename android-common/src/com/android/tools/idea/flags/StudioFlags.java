@@ -119,6 +119,12 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> PROFILER_VERBOSE_LOGGING = Flag.create(
+    PROFILER, "verbose.logging", "Enable Profiler verbose logging",
+    "Toggles if profiler verbose logging is enabled for testing.",
+    false
+  );
+
   public static final Flag<Boolean> PROFILER_JANK_DETECTION_UI = Flag.create(
     PROFILER, "jank.ui", "Enable jank detection UI",
     "Add a track in the display group showing frame janks.",
