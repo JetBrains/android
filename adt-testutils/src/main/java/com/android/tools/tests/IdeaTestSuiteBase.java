@@ -20,6 +20,8 @@ import com.android.repository.util.InstallerUtil;
 import com.android.testutils.RepoLinker;
 import com.android.testutils.TestUtils;
 import com.android.testutils.diff.UnifiedDiff;
+import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -68,6 +70,12 @@ public class IdeaTestSuiteBase {
     // When running tests from the IDE, IntelliJ allows plugin descriptors to be anywhere if a plugin.xml is found in a directory.
     // On bazel we pack each directory in a jar, so we have to tell IJ explicitely that we are still "in directory mode"
     System.setProperty("resolve.descriptors.in.resources", "true");
+
+    // Configure JNA and other native libs.
+    System.setProperty("jna.noclasspath", "true");
+    System.setProperty("jna.nosys", "true");
+    System.setProperty("jna.boot.library.path", Paths.get(PathManager.getHomePath(), "lib", "jna", SystemInfo.OS_ARCH).toString());
+    System.setProperty("pty4j.preferred.native.folder", Paths.get(PathManager.getHomePath(), "lib", "pty4j").toString());
 
     // TODO(b/213385827): Fix Kotlin script classpath calculation during tests
     System.setProperty("kotlin.script.classpath", "");
