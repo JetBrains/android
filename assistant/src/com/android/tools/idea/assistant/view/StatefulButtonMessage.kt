@@ -19,6 +19,7 @@ import com.android.tools.idea.assistant.AssistActionState
 import com.intellij.ui.components.JBLabel
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.util.Objects
 import javax.swing.BorderFactory
 import javax.swing.JEditorPane
 import javax.swing.JPanel
@@ -30,7 +31,7 @@ import org.jetbrains.annotations.TestOnly
  * extension of JBLabel as it will display other elements such as an edit link and potentially
  * support progress indication.
  */
-data class StatefulButtonMessage
+open class StatefulButtonMessage
 @JvmOverloads
 constructor(val title: String, val state: AssistActionState, val body: String? = null) :
   JPanel(GridBagLayout()) {
@@ -88,4 +89,14 @@ constructor(val title: String, val state: AssistActionState, val body: String? =
       add(bodyPane, c)
     }
   }
+
+  override fun equals(other: Any?): Boolean =
+    (this === other) ||
+      (javaClass == other?.javaClass &&
+        other is StatefulButtonMessage &&
+        title == other.title &&
+        state == other.state &&
+        body == other.body)
+
+  override fun hashCode(): Int = Objects.hash(title, state, body)
 }
