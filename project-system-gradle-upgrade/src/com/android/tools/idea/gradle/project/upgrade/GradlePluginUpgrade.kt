@@ -20,6 +20,7 @@ import com.android.SdkConstants
 import com.android.SdkConstants.GRADLE_PLUGIN_NEXT_MINIMUM_VERSION
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.repository.AgpVersion
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.AndroidPluginInfo
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet
@@ -38,11 +39,7 @@ import com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeState.Im
 import com.android.tools.idea.gradle.repositories.IdeGoogleMavenRepository
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.ide.util.PropertiesComponent
-import com.intellij.notification.NotificationListener
 import com.intellij.notification.NotificationsManager
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.application.ModalityState.NON_MODAL
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
@@ -246,8 +243,11 @@ data class GradlePluginUpgradeState(
 fun computeGradlePluginUpgradeState(
   current: AgpVersion,
   latestKnown: AgpVersion,
-  published: Set<AgpVersion>
+  published: Set<AgpVersion>,
+  supportFutureAgpVersions: Boolean = StudioFlags.SUPPORT_FUTURE_AGP_VERSIONS.get(),
 ): GradlePluginUpgradeState {
+  // When supportFutureAgpVersions=true, neither offer to upgrade to future versions nor force downgrades from future versions.
+  if (supportFutureAgpVersions && current > latestKnown) return GradlePluginUpgradeState(NO_UPGRADE, current)
   val compatibility = computeAndroidGradlePluginCompatibility(current, latestKnown)
   when (compatibility) {
     BEFORE_MINIMUM -> {
@@ -274,10 +274,12 @@ fun computeGradlePluginUpgradeState(
       // X are released.)
       return GradlePluginUpgradeState(FORCE, seriesAcceptableStable ?: latestKnown)
     }
+    // Forced downgrade to latest supported
     AFTER_MAXIMUM -> return GradlePluginUpgradeState(FORCE, latestKnown)
     COMPATIBLE, DEPRECATED -> Unit
   }
-
+  // Don't recommend upgrade for future point releases (e.g. don't suggest 9.0.1 where latestKnown=9.0.0)
+  // TODO(b/274115496): Do we want to revisit the point-release behavior?
   if (current >= latestKnown) return GradlePluginUpgradeState(NO_UPGRADE, current)
   val recommendationStrength = when (compatibility) {
     DEPRECATED -> STRONGLY_RECOMMEND

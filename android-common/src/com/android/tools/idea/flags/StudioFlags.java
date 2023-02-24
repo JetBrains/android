@@ -758,6 +758,13 @@ public final class StudioFlags {
     GRADLE_IDE, "forced.agp.update", "Disable forced Android Gradle plugin upgrades",
     "This option is only respected when running Android Studio internally.", false);
 
+  public static final Flag<Boolean> SUPPORT_FUTURE_AGP_VERSIONS = Flag.create(
+    GRADLE_IDE, "support.future.agp.versions", "Support opening projects that use future AGPs",
+    "Respect the Android Gradle plugin's minimum model consumer version (i.e. minimum required Studio version), " +
+    "if present in AGP, superseding the hardcoded maximum supported version of AGP. " +
+    "This opens the possibility for Studio to open versions of AGP released after it was, if that version of AGP declares " +
+    "that it is compatible.", false);
+
   public static final Flag<Boolean> GRADLE_SYNC_PARALLEL_SYNC_ENABLED = Flag.create(
     GRADLE_IDE, "gradle.sync.parallel.sync.enabled", "Enables parallel sync",
     "This allows the IDE to fetch models in parallel (if supported by Gradle and enabled via org.gradle.parallel=true).", true);

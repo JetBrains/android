@@ -76,7 +76,9 @@ internal class AndroidExtraModelProviderWorker(
             val modules: List<BasicIncompleteGradleModule> = syncCounters.projectListPhase { getBasicIncompleteGradleModules() }
             val v2AndroidGradleModules = modules.filterIsInstance<BasicV2AndroidModuleGradleProject>()
 
-            modules.filterIsInstance<BasicIncompleteAndroidModule>().forEach { checkAgpVersionCompatibility(it.agpVersion, syncOptions) }
+            modules.filterIsInstance<BasicIncompleteAndroidModule>().forEach {
+              checkAgpVersionCompatibility(it.minimumModelConsumerVersion, it.agpVersion, syncOptions)
+            }
             verifyIncompatibleAgpVersionsAreNotUsedOrFailSync(modules)
 
             val gradleVersion = safeActionRunner.runAction { it.getModel(BuildEnvironment::class.java).gradle.gradleVersion }
