@@ -17,6 +17,8 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.annotations.Trace
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
+import com.intellij.openapi.fileEditor.ClientFileEditorManager
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.psi.PsiTreeChangeListener
@@ -72,13 +74,20 @@ class PsiListener(val onPsiChanged: (EditEvent) -> Unit) : PsiTreeChangeListener
       return
     }
 
-    if (psiEvent.file !is KtFile) {
-      val event = EditEvent(psiEvent.file!!, origin = null, unsupportedPsiEvent = UnsupportedPsiEvent.NON_KOTLIN)
+    val file: PsiFile = psiEvent.file!!
+
+    // All sort of files might be modified and written during save actions. This is an issue for manual mode where some metadata json file
+    // get updated on save. To avoid that, we only Live Edit files that are currently opened by the editor.
+    if (!FileEditorManager.getInstance(file.project).isFileOpen(file.virtualFile)) {
+      return
+    }
+
+    if (file !is KtFile) {
+      val event = EditEvent(file, origin = null, unsupportedPsiEvent = UnsupportedPsiEvent.NON_KOTLIN)
       handleEvent(event)
       return
     }
 
-    val file = psiEvent.file as KtFile
     var parent = psiEvent.parent;
 
     // The code might not be valid at this point, so we should not be making any
