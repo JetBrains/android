@@ -48,6 +48,7 @@ import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBUI
+import icons.StudioIcons
 import java.awt.Dimension
 import java.awt.Insets
 import java.awt.Point
@@ -165,7 +166,7 @@ private class ConfigureLiveEditActionOption(text: String, val setSelected: () ->
   }
 
   override fun update(e: AnActionEvent) {
-    e.presentation.icon = if (getSelected()) AllIcons.Actions.Checked else EmptyIcon.ICON_13
+    e.presentation.icon = if (getSelected()) StudioIcons.Common.CHECKED else EmptyIcon.ICON_13
   }
 
   fun getSelected() : Boolean {
