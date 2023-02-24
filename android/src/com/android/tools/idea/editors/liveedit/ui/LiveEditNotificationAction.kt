@@ -81,8 +81,9 @@ internal fun defaultCreateInformationPopup(
     }
 
     val link = status.actionId?.let {
+      val id = if (it == MANUAL_LIVE_EDIT_ACTION_ID) LiveEditService.PIGGYBACK_ACTION_ID else it
       val action = ActionManager.getInstance().getAction(it)
-      val shortcut = KeymapManager.getInstance()?.activeKeymap?.getShortcuts(it)?.toList()?.firstOrNull()
+      val shortcut = KeymapManager.getInstance()?.activeKeymap?.getShortcuts(id)?.toList()?.firstOrNull()
       AnActionLink("${action.templateText}${if (shortcut != null) " (${KeymapUtil.getShortcutText(shortcut)})" else ""}", action)
     }
 
