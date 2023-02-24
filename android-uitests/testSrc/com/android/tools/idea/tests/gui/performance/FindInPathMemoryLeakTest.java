@@ -22,6 +22,8 @@ import com.android.tools.idea.tests.gui.framework.fixture.FindPopupPanelFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.bleak.UseBleak;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
+import org.fest.swing.fixture.DialogFixture;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,16 +34,18 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 @RunIn(TestGroup.PERFORMANCE)
 public class FindInPathMemoryLeakTest {
-  @Rule public final GuiTestRule guiTest = new GuiTestRule();
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(6, TimeUnit.MINUTES);
 
   @Test
   @UseBleak
   public void openAndClosePopup() throws Exception {
     IdeFrameFixture ideFrame = guiTest.importSimpleApplication();
     guiTest.runWithBleak(() -> {
-      ideFrame.openFromMenu(FindPopupPanelFixture::find, "Edit", "Find", "Find in Path...")
-          .dialog()
-          .close();
+      ideFrame.focus()
+        .invokeMenuPath("Edit", "Find", "Find in Files...");
+      FindPopupPanelFixture.find(ideFrame)
+        .dialog()
+        .close();
     });
   }
 }
