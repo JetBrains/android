@@ -35,7 +35,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.util.concurrency.SameThreadExecutor;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetScopedService;
-import com.android.tools.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

@@ -17,8 +17,6 @@ package org.jetbrains.android.sdk;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.sdk.AndroidPlatform;
-import com.android.tools.sdk.AndroidSdkData;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import org.jdom.Element;

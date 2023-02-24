@@ -18,7 +18,6 @@ package org.jetbrains.android.sdk;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.sdk.AndroidSdkData;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.OrderRootType;

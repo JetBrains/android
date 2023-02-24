@@ -38,7 +38,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

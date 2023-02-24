@@ -150,6 +150,7 @@ import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
+import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.android.sdk.getInstance
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidUtils

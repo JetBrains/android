@@ -24,6 +24,7 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator
 import com.android.tools.idea.progress.StudioProgressRunner
+import com.android.tools.idea.sdk.isValid
 import com.android.tools.idea.sdk.StudioDownloader
 import com.android.tools.idea.sdk.StudioSettingsController
 import com.android.tools.idea.ui.validation.validators.PathValidator
@@ -32,7 +33,6 @@ import com.android.tools.idea.welcome.install.ComponentTreeNode
 import com.android.tools.idea.welcome.install.InstallableComponent
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
-import com.android.tools.sdk.isValid
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
 import com.intellij.openapi.ui.Splitter
@@ -52,7 +52,7 @@ import com.intellij.util.containers.notNullize
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.accessibility.AccessibleContextDelegate
-import com.android.tools.sdk.AndroidSdkData
+import org.jetbrains.android.sdk.AndroidSdkData
 import org.jetbrains.annotations.Contract
 import java.awt.BorderLayout
 import java.awt.Container

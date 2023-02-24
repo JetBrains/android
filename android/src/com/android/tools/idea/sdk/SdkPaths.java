@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2015 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.sdk;
+package com.android.tools.idea.sdk;
 
+import static com.android.tools.adtui.validation.Validator.Severity.ERROR;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 
 import com.android.SdkConstants;
 import com.android.io.CancellableFileIo;
+import com.android.tools.adtui.validation.Validator;
+import com.android.tools.idea.ui.validation.validators.PathValidator;
 import java.io.File;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
@@ -51,10 +54,10 @@ public class SdkPaths {
   }
 
   @NotNull
-  public static ValidationResult validatedSdkPath(@Nullable Path sdkPath,
-                                                  @NotNull String sdkName,
-                                                  boolean checkForWritable,
-                                                  boolean includePathInMessage) {
+  static ValidationResult validatedSdkPath(@Nullable Path sdkPath,
+                                                   @NotNull String sdkName,
+                                                   boolean checkForWritable,
+                                                   boolean includePathInMessage) {
     if (sdkPath == null) {
       return ValidationResult.error("");
     }
@@ -102,7 +105,7 @@ public class SdkPaths {
     @Nullable public final String message;
 
     @NotNull
-    public static ValidationResult error(@NotNull String message) {
+    static ValidationResult error(@NotNull String message) {
       return new ValidationResult(false, message);
     }
 

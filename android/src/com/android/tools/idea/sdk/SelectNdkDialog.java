@@ -18,7 +18,7 @@ package com.android.tools.idea.sdk;
 
 import com.android.SdkConstants;
 import com.android.tools.idea.io.FilePaths;
-import com.android.tools.sdk.SdkPaths.ValidationResult;
+import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
 import com.android.tools.idea.wizard.model.ModelWizardDialog;
 import com.google.common.base.Strings;

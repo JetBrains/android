@@ -27,7 +27,6 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
-        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/wizard:intellij.android.wizard[module]",
         "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module]",
         "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module]",
@@ -142,7 +141,6 @@ iml_module(
         "//tools/analytics-library/shared:analytics-shared[module, test]",
         "//tools/adt/idea/build-attribution:intellij.android.build-attribution[module, test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
-        "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
     ],
 )
 

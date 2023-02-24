@@ -30,7 +30,6 @@ iml_module(
         "//tools/base/resource-repository:studio.android.sdktools.resource-repository[module]",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml",
-        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
     ],
 )
 

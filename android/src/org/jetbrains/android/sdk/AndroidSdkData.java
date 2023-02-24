@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright 2000-2010 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.android.tools.sdk;
+package org.jetbrains.android.sdk;
 
 import com.android.prefs.AndroidLocationsSingleton;
 import com.android.repository.api.ProgressIndicator;
@@ -22,6 +22,8 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.idea.sdk.AndroidSdkPath;
+import com.android.tools.idea.sdk.DeviceManagers;
 import com.google.common.collect.Maps;
 import com.intellij.openapi.projectRoots.Sdk;
 import java.lang.ref.SoftReference;

@@ -22,7 +22,7 @@ import com.android.sdklib.devices.DeviceParser;
 import com.android.sdklib.devices.DeviceWriter;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.sdk.DeviceManagers;
+import com.android.tools.idea.sdk.DeviceManagers;
 import com.android.utils.ILogger;
 import com.android.tools.idea.log.LogWrapper;
 import com.google.common.base.Predicate;

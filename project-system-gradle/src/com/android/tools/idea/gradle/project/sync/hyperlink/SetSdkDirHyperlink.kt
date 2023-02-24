@@ -28,7 +28,7 @@ import com.intellij.openapi.command.undo.GlobalUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.project.Project
 import com.intellij.util.ModalityUiUtil
-import com.android.tools.sdk.AndroidSdkData
+import org.jetbrains.android.sdk.AndroidSdkData
 import java.io.File
 
 class SetSdkDirHyperlink(

@@ -15,7 +15,6 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
-        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",

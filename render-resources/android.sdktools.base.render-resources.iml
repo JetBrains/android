@@ -8,11 +8,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="intellij-core" level="project" />
-    <orderEntry type="module" module-name="android.sdktools.base.layoutlib-loader" />
     <orderEntry type="module" module-name="android.sdktools.base.sdklib-base" />
     <orderEntry type="module" module-name="android.sdktools.common" />
-    <orderEntry type="module" module-name="android.sdktools.repository" />
-    <orderEntry type="library" name="kotlin-stdlib-jdk8" level="project" />
-    <orderEntry type="library" name="Guava" level="project" />
   </component>
 </module>

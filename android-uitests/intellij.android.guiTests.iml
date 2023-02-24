@@ -73,6 +73,5 @@
     <orderEntry type="module" module-name="android.sdktools.adblib" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.adblib.tools" />
     <orderEntry type="module" module-name="intellij.android.execution.common" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.render-resources" scope="TEST" />
   </component>
 </module>

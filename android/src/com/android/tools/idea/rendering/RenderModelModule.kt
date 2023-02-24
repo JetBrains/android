@@ -21,7 +21,8 @@ import com.android.tools.idea.res.ResourceIdManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
-import com.android.tools.sdk.AndroidPlatform
+import org.jetbrains.android.sdk.AndroidPlatform
+import org.jetbrains.android.uipreview.ModuleClassLoaderManager
 
 /**
  * Provides all the module-specific Android resources information required for rendering.

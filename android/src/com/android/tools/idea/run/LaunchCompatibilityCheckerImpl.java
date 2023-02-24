@@ -33,7 +33,7 @@ import java.util.EnumSet;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

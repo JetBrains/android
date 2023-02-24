@@ -20,7 +20,7 @@ import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.res.ResourceIdManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.intellij.openapi.module.Module
-import com.android.tools.sdk.AndroidPlatform
+import org.jetbrains.android.sdk.AndroidPlatform
 
 /**
  * Almost trivial, delegating implementation of the [RenderModelModule] interface. The only complication is freeing reference to the

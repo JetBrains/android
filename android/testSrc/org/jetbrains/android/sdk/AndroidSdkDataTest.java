@@ -21,7 +21,6 @@ import static org.mockito.Mockito.when;
 
 import com.android.testutils.TestUtils;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.sdk.AndroidSdkData;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;

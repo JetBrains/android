@@ -20,8 +20,6 @@ import com.android.prefs.AndroidLocationsSingleton
 import com.android.sdklib.internal.avd.AvdManager
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.log.LogWrapper
-import com.android.tools.sdk.DeviceManagerCache
-import com.android.tools.sdk.DeviceManagers
 import com.android.utils.ILogger
 import java.nio.file.Path
 
