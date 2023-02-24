@@ -57,7 +57,7 @@ import com.intellij.openapi.wm.ToolWindow
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import org.jetbrains.plugins.gradle.util.getGradlePath
+import org.jetbrains.plugins.gradle.util.gradleIdentityPath
 import java.io.File
 import java.util.concurrent.Future
 import java.util.concurrent.atomic.AtomicBoolean
@@ -358,7 +358,7 @@ class GradleConnectedAndroidTestInvoker(
 
   private fun getTaskNames(androidModuleModel: GradleAndroidModel): List<String> {
     return listOf(
-      "${moduleData.getGradlePath().trimEnd(':')}:connected${androidModuleModel.selectedVariantName.usLocaleCapitalize()}AndroidTest"
+      "${moduleData.gradleIdentityPath.trimEnd(':')}:connected${androidModuleModel.selectedVariantName.usLocaleCapitalize()}AndroidTest"
     )
   }
 
