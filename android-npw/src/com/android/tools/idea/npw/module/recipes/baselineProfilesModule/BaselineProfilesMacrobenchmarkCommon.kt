@@ -69,30 +69,14 @@ object BaselineProfilesMacrobenchmarkCommon {
   }
 
   /**
-   * [filterArgument] can be one of [FILTER_ARG_BASELINE_PROFILE], [FILTER_ARG_MACROBENCHMARK]
-   */
-  fun runConfigurationGradleTask(
-    moduleName: String,
-    flavorName: String?,
-    filterArgument: String?,
-  ) = buildString {
-    append(":${moduleName}:")
-    append("generate${flavorName?.capitalize() ?: ""}BaselineProfiles")
-    // Allows running only Baseline Profile generators (in case Macrobenchmarks are in the same module)
-    if (filterArgument != null) {
-      append(" -P$FILTER_INSTR_ARG=$filterArgument")
-    }
-  }
-
-  /**
    * Generates variants from product flavors.
-   * @return If no product flavors, returns list with one element - null
+   * @return If no product flavors, returns empty list
    */
   fun generateBuildVariants(
     dimensionNames: List<String>,
     productFlavorsAndDimensions: List<FlavorNameAndDimension>,
     buildType: String? = null,
-  ): List<String?> {
+  ): List<String> {
     val dimensionsWithFlavors = dimensionNames.map { dimensionName ->
       // flavor names grouped by its dimension
       productFlavorsAndDimensions
@@ -105,7 +89,7 @@ object BaselineProfilesMacrobenchmarkCommon {
 
     // Check if at least one item exists
     if (dimensionsWithFlavors.isEmpty()) {
-      return listOf(null)
+      return emptyList()
     }
 
     // We know that we have at least one flavor, so we use it as acc and combine with the rest of the list

@@ -91,8 +91,8 @@ public final class StudioFlags {
     true);
 
   public static final Flag<Boolean> NPW_NEW_BASELINE_PROFILES_MODULE = Flag.create(
-    NPW, "new.baseline.profiles.module", "New Baseline Profiles Module",
-    "Show template to create a new Baseline Profiles module in the new module wizard.",
+    NPW, "new.baseline.profiles.module", "New Baseline Profile Module",
+    "Show template to create a new Baseline Profile module in the new module wizard.",
     true);
   //endregion
 

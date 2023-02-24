@@ -43,7 +43,7 @@ import javax.swing.JComboBox
 import javax.swing.JPanel
 
 
-private const val BASELINE_PROFILES_AGP_MIN_VERSION = "8.0.0"
+private const val BASELINE_PROFILES_AGP_MIN_VERSION = "8.1.0"
 private const val GMD_LINK = "${AndroidWebHelpProvider.HELP_URL}studio/test/gradle-managed-devices"
 
 class ConfigureBaselineProfilesModuleStep(

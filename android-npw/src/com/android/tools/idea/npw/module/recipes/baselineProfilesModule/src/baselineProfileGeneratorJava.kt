@@ -17,6 +17,7 @@ package com.android.tools.idea.npw.module.recipes.baselineProfilesModule.src
 
 fun baselineProfileGeneratorJava(
   targetModuleName: String,
+  pluginTaskName: String,
   className: String,
   packageName: String,
   targetPackageName: String
@@ -40,9 +41,9 @@ import org.junit.runner.RunWith;
  * for more information.
  * <p>
  * You can run the generator with the Generate Baseline Profile run configuration,
- * or directly with {@code generateBaselineProfiles} Gradle task:
+ * or directly with {@code generateBaselineProfile} Gradle task:
  * <pre>
- * ./gradlew :$targetModuleName:generateReleaseBaselineProfiles -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
+ * ./gradlew :$targetModuleName:$pluginTaskName -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
  * </pre>
  * The run configuration runs the Gradle task and applies filtering to run only the generators.
  * <p>

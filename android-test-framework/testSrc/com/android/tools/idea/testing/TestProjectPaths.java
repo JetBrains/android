@@ -6,6 +6,8 @@ package com.android.tools.idea.testing;
 public final class TestProjectPaths {
   public static final String TEST_DATA_PATH = "tools/adt/idea/android/testData";
   public static final String ANDROIDX_SIMPLE = "projects/androidxSimple";
+
+  public static final String ANDROIDX_WITH_LIB_MODULE = "projects/androidxWithLibModule";
   public static final String ANDROID_LIBRARY_AS_TEST_DEPENDENCY = "projects/AndroidLibraryAsTestDependency";
   public static final String APK_SAN_ANGELES = "projects/apk/sanAngeles";
   public static final String APP_WITH_BUILDSRC = "projects/appWithBuildSrc";
