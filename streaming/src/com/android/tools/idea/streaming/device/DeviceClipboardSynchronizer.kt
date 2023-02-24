@@ -26,6 +26,7 @@ import java.awt.KeyboardFocusManager
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.awt.datatransfer.Transferable
+import java.awt.datatransfer.UnsupportedFlavorException
 import java.beans.PropertyChangeListener
 import java.io.IOException
 
@@ -113,6 +114,9 @@ internal class DeviceClipboardSynchronizer(
   private fun Transferable.getText(): String? {
     return try {
       getTransferData(DataFlavor.stringFlavor) as? String
+    }
+    catch (e: UnsupportedFlavorException) {
+      null
     }
     catch (e: IOException) {
       null
