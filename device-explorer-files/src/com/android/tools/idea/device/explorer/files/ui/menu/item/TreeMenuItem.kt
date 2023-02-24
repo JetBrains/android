@@ -17,6 +17,9 @@ package com.android.tools.idea.device.explorer.files.ui.menu.item
 
 import com.android.tools.idea.device.explorer.files.DeviceFileEntryNode
 import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerActionListener
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import java.util.stream.Collectors
 import javax.swing.Icon
 
@@ -48,6 +51,22 @@ abstract class TreeMenuItem(val listener: DeviceFileExplorerActionListener) : Po
       return isVisible(nodes)
     }
 
+  override val action: AnAction = object : AnAction() {
+    override fun update(e: AnActionEvent) {
+      val presentation = e.presentation
+      presentation.text = text
+      presentation.isEnabled = isEnabled
+      presentation.isVisible = isVisible
+      presentation.icon = icon
+    }
+
+    override fun actionPerformed(e: AnActionEvent) {
+      run()
+    }
+
+    override fun getActionUpdateThread() = ActionUpdateThread.EDT
+  }
+
   override fun run() {
     var nodes = listener.selectedNodes ?: return
     nodes = nodes.stream().filter { node: DeviceFileEntryNode ->
@@ -58,23 +77,17 @@ abstract class TreeMenuItem(val listener: DeviceFileExplorerActionListener) : Po
     }
   }
 
+  open fun isEnabled(nodes: List<DeviceFileEntryNode>): Boolean =
+    nodes.stream().anyMatch { node: DeviceFileEntryNode -> this.isEnabled(node) }
+
+  open fun isVisible(nodes: List<DeviceFileEntryNode>): Boolean =
+    nodes.stream().anyMatch { node: DeviceFileEntryNode -> this.isVisible(node) }
+
+  open fun isVisible(node: DeviceFileEntryNode): Boolean = true
+
+  open fun isEnabled(node: DeviceFileEntryNode): Boolean = isVisible(node)
+
   abstract fun getText(nodes: List<DeviceFileEntryNode>): String
-
-  open fun isEnabled(nodes: List<DeviceFileEntryNode>): Boolean {
-    return nodes.stream().anyMatch { node: DeviceFileEntryNode -> this.isEnabled(node) }
-  }
-
-  open fun isVisible(nodes: List<DeviceFileEntryNode>): Boolean {
-    return nodes.stream().anyMatch { node: DeviceFileEntryNode -> this.isVisible(node) }
-  }
-
-  open fun isVisible(node: DeviceFileEntryNode): Boolean {
-    return true
-  }
-
-  open fun isEnabled(node: DeviceFileEntryNode): Boolean {
-    return isVisible(node)
-  }
 
   abstract fun run(nodes: List<DeviceFileEntryNode>)
 }

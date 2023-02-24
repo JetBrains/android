@@ -17,20 +17,25 @@ package com.android.tools.idea.device.explorer.files.ui.menu.item
 
 import com.android.tools.idea.device.explorer.files.DeviceFileEntryNode
 import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerActionListener
-import com.intellij.icons.AllIcons
+import icons.StudioIcons
 import javax.swing.Icon
 
-class DeleteNodesMenuItem(listener: DeviceFileExplorerActionListener) : TreeMenuItem(listener) {
+class DeleteNodesMenuItem(
+  listener: DeviceFileExplorerActionListener,
+  private val context: MenuContext
+) : TreeMenuItem(listener) {
   override fun getText(nodes: List<DeviceFileEntryNode>): String = "Delete..."
 
   override val icon: Icon
-    get() = AllIcons.Actions.Cancel
-
-  override fun isVisible(node: DeviceFileEntryNode): Boolean = true
+    get() = StudioIcons.Common.DELETE
 
   override val shortcutId: String
     get() = // Re-use existing shortcut, see platform/platform-resources/src/keymaps/$default.xml
       "\$Delete"
+
+  override val isVisible: Boolean
+    get() =
+      if (context == MenuContext.Toolbar) true else super.isVisible
 
   override fun run(nodes: List<DeviceFileEntryNode>) {
     listener.deleteNodes(nodes)

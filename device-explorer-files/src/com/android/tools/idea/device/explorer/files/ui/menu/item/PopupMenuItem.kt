@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.device.explorer.files.ui.menu.item
 
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.Shortcut
 import javax.swing.Icon
 
@@ -27,8 +28,13 @@ interface PopupMenuItem : Runnable {
   val isEnabled: Boolean
   val isVisible: Boolean
     get() = true
+  val action: AnAction
   val shortcutId: String?
     get() = null
   val shortcuts: Array<Shortcut?>?
     get() = null
+}
+
+enum class MenuContext {
+  Popup, Toolbar
 }

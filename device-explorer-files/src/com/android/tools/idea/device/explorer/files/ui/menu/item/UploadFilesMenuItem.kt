@@ -17,19 +17,31 @@ package com.android.tools.idea.device.explorer.files.ui.menu.item
 
 import com.android.tools.idea.device.explorer.files.DeviceFileEntryNode
 import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerActionListener
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.actionSystem.Shortcut
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
+import javax.swing.Icon
 import javax.swing.KeyStroke
 
-class UploadFilesMenuItem(listener: DeviceFileExplorerActionListener) : SingleSelectionTreeMenuItem(listener) {
+class UploadFilesMenuItem(
+  listener: DeviceFileExplorerActionListener,
+  private val context: MenuContext
+) : SingleSelectionTreeMenuItem(listener) {
   override fun getText(nodes: List<DeviceFileEntryNode>): String = "Upload..."
+
+  override val icon: Icon
+    get() = AllIcons.Actions.Upload
 
   override val shortcuts: Array<Shortcut?>
     get() = arrayOf(
       KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_O, InputEvent.CTRL_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK), null),
       KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_U, InputEvent.CTRL_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK), null))
+
+  override val isVisible: Boolean
+    get() =
+      if (context == MenuContext.Toolbar) true else super.isVisible
 
   override fun isVisible(node: DeviceFileEntryNode): Boolean =
     node.entry.isDirectory || node.isSymbolicLinkToDirectory

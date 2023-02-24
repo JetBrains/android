@@ -17,27 +17,32 @@ package com.android.tools.idea.device.explorer.files.ui.menu.item
 
 import com.android.tools.idea.device.explorer.files.DeviceFileEntryNode
 import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerActionListener
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.actionSystem.Shortcut
+import icons.StudioIcons
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.Icon
 import javax.swing.KeyStroke
 
-class SaveAsMenuItem(listener: DeviceFileExplorerActionListener) : TreeMenuItem(listener) {
+class SaveAsMenuItem(
+  listener: DeviceFileExplorerActionListener,
+  private val context: MenuContext
+) : TreeMenuItem(listener) {
   override fun getText(nodes: List<DeviceFileEntryNode>): String =
     if (nodes.size > 1) "Save To..." else "Save As..."
 
   override val icon: Icon
-    get() = AllIcons.Actions.MenuSaveall
+    get() = StudioIcons.LayoutEditor.Extras.PALETTE_DOWNLOAD
 
   override val shortcuts: Array<Shortcut?>
     get() = arrayOf(
       KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK), null),
       KeyboardShortcut(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.CTRL_DOWN_MASK or InputEvent.SHIFT_DOWN_MASK), null))
 
-  override fun isVisible(node: DeviceFileEntryNode): Boolean = true
+  override val isVisible: Boolean
+    get() =
+      if (context == MenuContext.Toolbar) true else super.isVisible
 
   override fun run(nodes: List<DeviceFileEntryNode>) {
     listener.saveNodesAs(nodes)

@@ -20,11 +20,20 @@ import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerActionL
 import com.intellij.icons.AllIcons
 import javax.swing.Icon
 
-class NewDirectoryMenuItem(listener: DeviceFileExplorerActionListener) : SingleSelectionTreeMenuItem(listener) {
-  override fun getText(nodes: List<DeviceFileEntryNode>): String = "Directory"
+class NewDirectoryMenuItem(
+  listener: DeviceFileExplorerActionListener,
+  private val context: MenuContext
+) : SingleSelectionTreeMenuItem(listener) {
+  override fun getText(nodes: List<DeviceFileEntryNode>): String =
+    if (context == MenuContext.Toolbar) "New Directory" else "Directory"
 
   override val icon: Icon
-    get() = AllIcons.Nodes.Folder
+    get() =
+      if (context == MenuContext.Toolbar) AllIcons.Actions.NewFolder else AllIcons.Nodes.Folder
+
+  override val isVisible: Boolean
+    get() =
+      if (context == MenuContext.Toolbar) true else super.isVisible
 
   override fun isVisible(node: DeviceFileEntryNode): Boolean =
     node.entry.isDirectory || node.isSymbolicLinkToDirectory

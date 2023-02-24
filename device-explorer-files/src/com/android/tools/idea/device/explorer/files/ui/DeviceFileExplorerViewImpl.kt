@@ -24,6 +24,7 @@ import com.android.tools.idea.device.explorer.files.DeviceFileExplorerView
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem
 import com.android.tools.idea.device.explorer.files.ui.menu.item.CopyPathMenuItem
 import com.android.tools.idea.device.explorer.files.ui.menu.item.DeleteNodesMenuItem
+import com.android.tools.idea.device.explorer.files.ui.menu.item.MenuContext
 import com.android.tools.idea.device.explorer.files.ui.menu.item.NewDirectoryMenuItem
 import com.android.tools.idea.device.explorer.files.ui.menu.item.NewFileMenuItem
 import com.android.tools.idea.device.explorer.files.ui.menu.item.OpenMenuItem
@@ -222,6 +223,7 @@ class DeviceFileExplorerViewImpl(
     tree.transferHandler = getTransferHandler(tree)
     tree.dragEnabled = !GraphicsEnvironment.isHeadless()
     createTreePopupMenu()
+    createToolBar()
   }
 
   private fun getTreeWillExpandListener() = object : TreeWillExpandListener {
@@ -285,17 +287,31 @@ class DeviceFileExplorerViewImpl(
     treePopupMenu = ComponentPopupMenu(panel.tree).apply {
       val fileMenu = addPopup("New")
       fileMenu.addItem(NewFileMenuItem(fileExplorerActionListener))
-      fileMenu.addItem(NewDirectoryMenuItem(fileExplorerActionListener))
+      fileMenu.addItem(NewDirectoryMenuItem(fileExplorerActionListener, MenuContext.Popup))
       addSeparator()
       addItem(OpenMenuItem(fileExplorerActionListener))
-      addItem(SaveAsMenuItem(fileExplorerActionListener))
-      addItem(UploadFilesMenuItem(fileExplorerActionListener))
-      addItem(DeleteNodesMenuItem(fileExplorerActionListener))
+      addItem(SaveAsMenuItem(fileExplorerActionListener, MenuContext.Popup))
+      addItem(UploadFilesMenuItem(fileExplorerActionListener, MenuContext.Popup))
+      addItem(DeleteNodesMenuItem(fileExplorerActionListener, MenuContext.Popup))
       addSeparator()
-      addItem(SynchronizeNodesMenuItem(fileExplorerActionListener))
+      addItem(SynchronizeNodesMenuItem(fileExplorerActionListener, MenuContext.Popup))
       addItem(CopyPathMenuItem(fileExplorerActionListener))
       install()
     }
+  }
+
+  private fun createToolBar() {
+    val actionManager = ActionManager.getInstance()
+    val actionGroup = DefaultActionGroup().apply {
+      add(NewDirectoryMenuItem(fileExplorerActionListener, MenuContext.Toolbar).action)
+      add(SaveAsMenuItem(fileExplorerActionListener, MenuContext.Toolbar).action)
+      add(UploadFilesMenuItem(fileExplorerActionListener, MenuContext.Toolbar).action)
+      add(DeleteNodesMenuItem(fileExplorerActionListener, MenuContext.Toolbar).action)
+      add(SynchronizeNodesMenuItem(fileExplorerActionListener, MenuContext.Toolbar).action)
+    }
+    val actionToolbar = actionManager.createActionToolbar("Device File Explorer Toolbar", actionGroup, true)
+    actionToolbar.targetComponent = panel.tree
+    panel.toolbarPanel.add(actionToolbar.component, BorderLayout.WEST)
   }
 
   private fun openSelectedNodes(paths: List<TreePath>) {

@@ -17,20 +17,25 @@ package com.android.tools.idea.device.explorer.files.ui.menu.item
 
 import com.android.tools.idea.device.explorer.files.DeviceFileEntryNode
 import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerActionListener
-import com.intellij.icons.AllIcons
+import icons.StudioIcons
 import javax.swing.Icon
 
-class SynchronizeNodesMenuItem(listener: DeviceFileExplorerActionListener) : TreeMenuItem(listener) {
+class SynchronizeNodesMenuItem(
+  listener: DeviceFileExplorerActionListener,
+  private val context: MenuContext
+) : TreeMenuItem(listener) {
   override fun getText(nodes: List<DeviceFileEntryNode>): String = "Synchronize"
 
   override val icon: Icon
-    get() = AllIcons.Actions.Refresh
+    get() = StudioIcons.LayoutEditor.Toolbar.REFRESH
 
   override val shortcutId: String
     get() = // Re-use existing shortcut, see platform/platform-resources/src/keymaps/$default.xml
       "Refresh"
 
-  override fun isVisible(node: DeviceFileEntryNode): Boolean = true
+  override val isVisible: Boolean
+    get() =
+      if (context == MenuContext.Toolbar) true else super.isVisible
 
   override fun run(nodes: List<DeviceFileEntryNode>) {
     listener.synchronizeNodes(nodes)
