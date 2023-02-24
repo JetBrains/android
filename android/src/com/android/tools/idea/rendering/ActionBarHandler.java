@@ -23,7 +23,6 @@ import com.android.ide.common.rendering.api.ActionBarCallback;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -70,11 +69,11 @@ public class ActionBarHandler extends ActionBarCallback {
   @NotNull private final ResourceRepositoryManager myResourceRepositoryManager;
   @Nullable private ImmutableList<ResourceReference> myMenus;
 
-  @NotNull private final Function<Module, MergedManifestSnapshot> myManifestProvider;
+  @NotNull private final Function<Module, RenderModelManifest> myManifestProvider;
 
   ActionBarHandler(
     @NotNull RenderTask renderTask,
-    @NotNull Function<Module, MergedManifestSnapshot> manifestProvider,
+    @NotNull Function<Module, RenderModelManifest> manifestProvider,
     @Nullable Object credential) {
     myRenderTask = renderTask;
     myCredential = credential;
@@ -213,7 +212,7 @@ public class ActionBarHandler extends ActionBarCallback {
   private ActivityAttributesSnapshot getActivityAttributes() {
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      MergedManifestSnapshot manifest = myManifestProvider.apply(myRenderTask.getContext().getModule().getIdeaModule());
+      RenderModelManifest manifest = myManifestProvider.apply(myRenderTask.getContext().getModule().getIdeaModule());
       String activity = StringUtil.notNullize(myRenderTask.getContext().getConfiguration().getActivity());
       return manifest.getActivityAttributes(activity);
     } finally {

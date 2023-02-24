@@ -29,7 +29,6 @@ import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import com.android.tools.idea.model.MergedManifestException;
 import com.android.tools.idea.model.MergedManifestManager;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
@@ -329,10 +328,10 @@ final public class RenderService implements Disposable {
     private boolean enableLayoutScanner = false;
     private SessionParams.RenderingMode myRenderingMode = null;
     private boolean useTransparentBackground = false;
-    @NotNull private Function<Module, MergedManifestSnapshot> myManifestProvider =
+    @NotNull private Function<Module, RenderModelManifest> myManifestProvider =
       module -> {
         try {
-          return MergedManifestManager.getMergedManifest(module).get(1, TimeUnit.SECONDS);
+          return new RenderMergedManifest(MergedManifestManager.getMergedManifest(module).get(1, TimeUnit.SECONDS));
         }
         catch (InterruptedException e) {
           throw new ProcessCanceledException(e);
@@ -519,10 +518,10 @@ final public class RenderService implements Disposable {
     }
 
     /**
-     * Sets the {@link MergedManifestSnapshot} provider
+     * Sets the {@link RenderModelManifest} provider
      */
     @NotNull
-    public RenderTaskBuilder setMergedManifestProvider(@NotNull Function<Module, MergedManifestSnapshot> provider) {
+    public RenderTaskBuilder setManifestProvider(@NotNull Function<Module, RenderModelManifest> provider) {
       myManifestProvider = provider;
       return this;
     }

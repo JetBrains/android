@@ -52,7 +52,6 @@ import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
@@ -176,7 +175,7 @@ public class RenderTask {
   private final List<CompletableFuture<?>> myRunningFutures = new LinkedList<>();
   @NotNull private final AtomicBoolean isDisposed = new AtomicBoolean(false);
   @Nullable private XmlFile myXmlFile;
-  @NotNull private final Function<Module, MergedManifestSnapshot> myManifestProvider;
+  @NotNull private final Function<Module, RenderModelManifest> myManifestProvider;
   @NotNull private final ModuleClassLoader myModuleClassLoader;
 
   /**
@@ -203,7 +202,7 @@ public class RenderTask {
              boolean isSecurityManagerEnabled,
              float quality,
              @NotNull StackTraceCapture stackTraceCaptureElement,
-             @NotNull Function<Module, MergedManifestSnapshot> manifestProvider,
+             @NotNull Function<Module, RenderModelManifest> manifestProvider,
              boolean privateClassLoader,
              @NotNull ClassTransform additionalProjectTransform,
              @NotNull ClassTransform additionalNonProjectTransform,
@@ -616,7 +615,7 @@ public class RenderTask {
       params.setLocale(myLocale.toLocaleId());
     }
     try {
-      @Nullable MergedManifestSnapshot manifestInfo = myManifestProvider.apply(module);
+      @Nullable RenderModelManifest manifestInfo = myManifestProvider.apply(module);
       params.setRtlSupport(manifestInfo != null && manifestInfo.isRtlSupported());
     }
     catch (Exception e) {
@@ -630,7 +629,7 @@ public class RenderTask {
     }
     else {
       try {
-        @Nullable MergedManifestSnapshot manifestInfo = myManifestProvider.apply(module);
+        @Nullable RenderModelManifest manifestInfo = myManifestProvider.apply(module);
         ResourceValue appLabel = manifestInfo != null
                                  ? manifestInfo.getApplicationLabel()
                                  : new ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.STRING, "appName", "");
@@ -1335,7 +1334,7 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
     params.setFlag(RenderParamsFlags.FLAG_KEY_USE_THEMED_ICON, configuration.getUseThemedIcon());
     params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
-    @Nullable MergedManifestSnapshot manifestInfo = myManifestProvider.apply(module);
+    @Nullable RenderModelManifest manifestInfo = myManifestProvider.apply(module);
     params.setRtlSupport(manifestInfo != null && manifestInfo.isRtlSupported());
 
     try {
