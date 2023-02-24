@@ -1291,6 +1291,8 @@ private fun setupTestProjectFromAndroidModelCore(
       object : ExternalProject {
         override fun getExternalSystemId(): String = GRADLE_SYSTEM_ID.id
         override fun getId(): String = projectName
+        override fun getPath(): String = ":"
+        override fun getIdentityPath(): String = ":"
         override fun getName(): String = projectName
         override fun getQName(): String = projectName
         override fun getDescription(): String? = null
