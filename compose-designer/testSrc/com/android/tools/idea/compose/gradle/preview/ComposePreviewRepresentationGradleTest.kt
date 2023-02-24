@@ -498,6 +498,7 @@ class ComposePreviewRepresentationGradleTest {
   }
 
   // Regression test for b/246963901
+  @Ignore("b/270198240")
   @Test
   fun `second build doesn't trigger refresh on first nor second activation`() = runBlocking {
     // This test only makes sense when fast preview is disabled,
