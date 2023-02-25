@@ -35,7 +35,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.table.TableView;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.ListTableModel;
 import java.awt.BorderLayout;
 import java.awt.Point;
@@ -70,15 +69,14 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   private SystemImageListModel myModel;
   private SystemImageDescription myLastSelectedImage;
 
-  private static final Map<Abi, Integer> DEFAULT_ABI_SORT_ORDER = new ContainerUtil.ImmutableMapBuilder<Abi, Integer>()
-    .put(Abi.MIPS64, 0)
-    .put(Abi.MIPS, 1)
-    .put(Abi.ARM64_V8A, 2)
-    .put(Abi.ARMEABI, 3)
-    .put(Abi.ARMEABI_V7A, 4)
-    .put(Abi.X86_64, 5)
-    .put(Abi.X86, 6)
-    .build();
+  private static final Map<Abi, Integer> DEFAULT_ABI_SORT_ORDER = Map.of(
+    Abi.MIPS64, 0,
+    Abi.MIPS, 1,
+    Abi.ARM64_V8A, 2,
+    Abi.ARMEABI, 3,
+    Abi.ARMEABI_V7A, 4,
+    Abi.X86_64, 5,
+    Abi.X86, 6);
 
   /**
    * Components which wish to receive a notification when the user has selected an AVD from this
