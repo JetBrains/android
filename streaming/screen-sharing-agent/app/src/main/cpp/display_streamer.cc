@@ -112,8 +112,9 @@ struct CodecOutputBuffer {
   size_t size;
 };
 
-bool IsCodecResolutionLessThanDisplayResolution(Size codec_resolution, Size display_resolution) {
-  return max(codec_resolution.width, codec_resolution.height) < max(display_resolution.width, display_resolution.height);
+bool IsUnderpoweredCodec(Size codec_resolution, Size display_resolution, int api_level) {
+  int32_t resolution = min(codec_resolution.width, codec_resolution.height);
+  return resolution < 1024 || (api_level < 32 && resolution < max(display_resolution.width, display_resolution.height));
 }
 
 AMediaFormat* CreateMediaFormat(const string& mime_type) {
@@ -306,8 +307,7 @@ void DisplayStreamer::Run() {
     DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni, display_id_);
     Log::D("display_info: %s", display_info.ToDebugString().c_str());
     // Use heuristics for determining a bit rate value that doesn't cause SIGABRT in the encoder (b/251659422).
-    int32_t bit_rate =
-        api_level < 32 && IsCodecResolutionLessThanDisplayResolution(codec_info_->max_resolution, display_info.logical_size) ?
+    int32_t bit_rate = IsUnderpoweredCodec(codec_info_->max_resolution, display_info.logical_size, api_level) ?
         BIT_RATE_REDUCED : BIT_RATE;
     if (max_bit_rate_ > 0 && bit_rate > max_bit_rate_) {
       bit_rate = max_bit_rate_;
