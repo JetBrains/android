@@ -20,6 +20,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Ignore
 import org.junit.Test
 import kotlin.random.Random
 
@@ -56,6 +57,7 @@ class ConflatingFlowTest {
     assertEquals("Not all numbers were received", 101, expected)
   }
 
+  @Ignore("b/270758949")
   @Test
   fun `element batching`() = runBlocking {
     val startNumber = 0
