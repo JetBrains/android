@@ -126,6 +126,7 @@ iml_module(
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
+        "//tools/base/process-monitor:studio.android.sdktools.process-monitor[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//prebuilts/r8",
     ],
