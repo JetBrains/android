@@ -15,14 +15,6 @@
  */
 package com.android.tools.idea.avdmanager;
 
-import static com.android.sdklib.repository.targets.SystemImage.ANDROID_TV_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.AUTOMOTIVE_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.DEFAULT_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.DESKTOP_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_APIS_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.GOOGLE_TV_TAG;
-import static com.android.sdklib.repository.targets.SystemImage.WEAR_TAG;
-
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.devices.Abi;
@@ -34,32 +26,24 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.table.TableView;
-import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.ListTableModel;
-import java.awt.BorderLayout;
-import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import javax.swing.DefaultListSelectionModel;
-import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.ListSelectionModel;
-import javax.swing.RowFilter;
-import javax.swing.RowSorter;
-import javax.swing.SortOrder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableRowSorter;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.List;
+import java.util.*;
+
+import static com.android.sdklib.repository.targets.SystemImage.*;
 
 /**
  * Displays a list of system images currently installed and allows selection of one
@@ -70,15 +54,14 @@ public class SystemImageList extends JPanel implements ListSelectionListener {
   private SystemImageListModel myModel;
   private SystemImageDescription myLastSelectedImage;
 
-  private static final Map<Abi, Integer> DEFAULT_ABI_SORT_ORDER = new ContainerUtil.ImmutableMapBuilder<Abi, Integer>()
-    .put(Abi.MIPS64, 0)
-    .put(Abi.MIPS, 1)
-    .put(Abi.ARM64_V8A, 2)
-    .put(Abi.ARMEABI, 3)
-    .put(Abi.ARMEABI_V7A, 4)
-    .put(Abi.X86_64, 5)
-    .put(Abi.X86, 6)
-    .build();
+  private static final Map<Abi, Integer> DEFAULT_ABI_SORT_ORDER = Map.of(
+    Abi.MIPS64, 0,
+    Abi.MIPS, 1,
+    Abi.ARM64_V8A, 2,
+    Abi.ARMEABI, 3,
+    Abi.ARMEABI_V7A, 4,
+    Abi.X86_64, 5,
+    Abi.X86, 6);
 
   /**
    * Components which wish to receive a notification when the user has selected an AVD from this
