@@ -4,6 +4,10 @@ load("//tools/base/bazel:bazel.bzl", "iml_module")
 iml_module(
     name = "intellij.android.guiTestFramework",
     srcs = ["src"],
+    data = [
+        "//tools/adt/idea/studio:default_user_jvm_args",
+        "//tools/adt/idea/studio:required_jvm_args",
+    ],
     iml_files = ["intellij.android.guiTestFramework.iml"],
     lint_baseline = "//tools/base/lint:studio-checks/empty_baseline.xml",
     tags = ["no_test_windows"],
