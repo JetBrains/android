@@ -79,7 +79,7 @@ public class UIUtils {
   /**
    * Panel background color. Patterned after tree text background.
    */
-  private static final Color BACKGROUND_COLOR = new JBColor(0xFFFFFF, 0xFF3C3F41);
+  private static final Color BACKGROUND_COLOR = JBUI.CurrentTheme.ToolWindow.background();
 
   /**
    * Hover color for components using {@code BACKGROUND_COLOR}.
