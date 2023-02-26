@@ -17,7 +17,6 @@ package com.android.tools.profilers.memory;
 
 import com.android.tools.profilers.memory.adapters.MemoryObject;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,7 +82,7 @@ public class MemoryObjectTreeNode<T extends MemoryObject> implements MutableTree
 
   public @NotNull List<MemoryObjectTreeNode<T>> getChildren() {
     ensureOrder();
-    return ContainerUtil.immutableList(myChildren);
+    return List.copyOf(myChildren);
   }
 
   @Override
