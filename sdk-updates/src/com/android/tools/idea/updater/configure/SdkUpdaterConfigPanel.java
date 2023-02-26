@@ -50,6 +50,8 @@ import com.android.tools.idea.wizard.dynamic.DialogWrapperHost;
 import com.android.tools.idea.wizard.dynamic.DynamicWizard;
 import com.android.tools.idea.wizard.dynamic.DynamicWizardHost;
 import com.android.tools.idea.wizard.dynamic.SingleStepPath;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidSdkData;
 import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
 import com.google.common.collect.ImmutableList;
@@ -118,9 +120,7 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

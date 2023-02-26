@@ -26,7 +26,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;

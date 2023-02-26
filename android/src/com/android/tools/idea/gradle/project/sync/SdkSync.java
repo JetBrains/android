@@ -16,16 +16,16 @@
 package com.android.tools.idea.gradle.project.sync;
 
 import static com.android.tools.idea.sdk.NdkPaths.validateAndroidNdk;
-import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
+import static com.android.tools.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtil.filesEqual;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.util.LocalProperties;
-import com.android.tools.idea.sdk.AndroidSdkPath;
 import com.android.tools.idea.sdk.IdeSdks;
-import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
+import com.android.tools.sdk.AndroidSdkPath;
+import com.android.tools.sdk.SdkPaths.ValidationResult;
 import com.android.tools.idea.sdk.SelectSdkDialog;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;

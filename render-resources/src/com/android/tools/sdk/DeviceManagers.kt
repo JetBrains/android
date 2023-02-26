@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.sdk
+package com.android.tools.sdk
 
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.repository.AndroidSdkHandler
-import com.android.tools.idea.log.LogWrapper
+import com.android.tools.idea.layoutlib.LogWrapper
 import com.android.utils.ILogger
+import com.intellij.openapi.diagnostic.Logger
 
-internal class DeviceManagerCache(val logger: ILogger) {
+class DeviceManagerCache(val logger: ILogger) {
   private val deviceManagers = mutableMapOf<AndroidSdkHandler, DeviceManager>()
 
   fun getDeviceManager(sdkHandler: AndroidSdkHandler): DeviceManager =
@@ -35,9 +36,8 @@ internal class DeviceManagerCache(val logger: ILogger) {
  * The [DeviceManagerCache] wrapper.
  */
 object DeviceManagers {
-  private val logger =
-    LogWrapper(DeviceManager::class.java).alwaysLogAsDebug(true).allowVerbose(false)
-  internal val cache = DeviceManagerCache(logger)
+  private val logger = LogWrapper(Logger.getInstance(DeviceManager::class.java))
+  val cache = DeviceManagerCache(logger)
 
   @JvmStatic
   fun getDeviceManager(sdkHandler: AndroidSdkHandler): DeviceManager =

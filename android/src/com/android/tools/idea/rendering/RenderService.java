@@ -62,7 +62,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import org.jetbrains.android.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.sdk.AndroidTargetData;

@@ -16,7 +16,7 @@
 package org.jetbrains.android.sdk;
 
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.sdk.AndroidPlatform;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.projectRoots.*;

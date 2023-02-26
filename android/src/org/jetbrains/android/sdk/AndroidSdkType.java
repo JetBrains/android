@@ -1,9 +1,9 @@
 // Copyright 2000-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.sdk;
 
-import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
+import static com.android.tools.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
-import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
+import static com.android.tools.sdk.AndroidSdkData.getSdkData;
 import static org.jetbrains.android.sdk.AndroidSdkUtils.getTargetPresentableName;
 
 import com.android.sdklib.AndroidVersion;
@@ -12,6 +12,7 @@ import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.wizard.SdkQuickfixUtils;
+import com.android.tools.sdk.AndroidSdkData;
 import com.intellij.CommonBundle;
 import com.intellij.openapi.projectRoots.AdditionalDataConfigurable;
 import com.intellij.openapi.projectRoots.JavaSdk;

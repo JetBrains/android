@@ -19,7 +19,6 @@ import com.android.SdkConstants
 import com.android.repository.Revision
 import com.android.repository.api.RemotePackage
 import com.android.sdklib.AndroidVersion
-import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.getFullReleaseName
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.sdklib.repository.meta.DetailsTypes

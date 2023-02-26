@@ -18,7 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.tools.idea.log.LogWrapper;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.module.Module;
-import org.jetbrains.android.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

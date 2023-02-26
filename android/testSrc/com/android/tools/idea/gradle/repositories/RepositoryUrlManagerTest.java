@@ -36,7 +36,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.function.Predicate;
-import org.jetbrains.android.sdk.AndroidSdkData;
+import com.android.tools.sdk.AndroidSdkData;
 import org.mockito.Mockito;
 
 /**

@@ -19,8 +19,7 @@ package org.jetbrains.android.sdk;
 import static com.android.SdkConstants.FN_ADB;
 import static com.intellij.openapi.roots.OrderRootType.SOURCES;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static org.jetbrains.android.sdk.AndroidSdkData.getSdkData;
+import static com.android.tools.sdk.AndroidSdkData.getSdkData;
 import static org.jetbrains.android.util.AndroidBuildCommonUtils.platformToolPath;
 
 import com.android.ddmlib.AndroidDebugBridge;
@@ -32,6 +31,8 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.SelectSdkDialog;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidSdkData;
 import com.google.common.base.Strings;
 import com.intellij.CommonBundle;
 import com.intellij.facet.ProjectFacetManager;
