@@ -125,20 +125,26 @@ final public class RenderService implements Disposable {
 
   @Nullable
   public static LayoutLibrary getLayoutLibrary(@NotNull Module module, @Nullable IAndroidTarget target) {
-    if (target == null) {
+    try {
+      return getLayoutLibrary(target, AndroidPlatforms.getInstance(module), ((ProjectEx)module.getProject()).getEarlyDisposable());
+    } catch (RenderingException | InsufficientDataException e) {
       return null;
     }
-    AndroidPlatform platform = AndroidPlatforms.getInstance(module);
-    if (platform != null) {
-      try {
-        Disposable disposable = ((ProjectEx)module.getProject()).getEarlyDisposable();
-        return AndroidTargetData.get(platform.getSdkData(), target).getLayoutLibrary(disposable);
-      }
-      catch (RenderingException e) {
-        // Ignore.
-      }
+  }
+
+  @Nullable
+  public static LayoutLibrary getLayoutLibrary(
+    @Nullable IAndroidTarget target,
+    @Nullable AndroidPlatform platform,
+    @NotNull Disposable parentDisposable
+  ) throws RenderingException, NoAndroidTargetException, NoAndroidPlatformException {
+    if (platform == null) {
+      throw new NoAndroidPlatformException();
     }
-    return null;
+    if (target == null) {
+      throw new NoAndroidTargetException();
+    }
+    return AndroidTargetData.get(platform.getSdkData(), target).getLayoutLibrary(parentDisposable);
   }
 
   /** Returns true if the given file can be rendered */
@@ -591,27 +597,17 @@ final public class RenderService implements Disposable {
       StackTraceCapture stackTraceCaptureElement = RenderTaskAllocationTrackerKt.captureAllocationStackTrace();
 
       return CompletableFuture.supplyAsync(() -> {
-        AndroidPlatform platform = myContext.getModule().getAndroidPlatform();
-        if (platform == null) {
-          reportMissingSdk(myLogger, myContext.getModule().getIdeaModule());
-          return null;
-        }
-
-        IAndroidTarget target = myContext.getConfiguration().getTarget();
-        if (target == null) {
-          myLogger.addMessage(RenderProblem.createPlain(ERROR, "No render target was chosen"));
-          return null;
-        }
-
         Module module = myContext.getModule().getIdeaModule();
         if (module.isDisposed()) {
           getLogger().warn("Module was already disposed");
           return null;
         }
+        AndroidPlatform platform = myContext.getModule().getAndroidPlatform();
+        IAndroidTarget target = myContext.getConfiguration().getTarget();
+
         LayoutLibrary layoutLib;
         try {
-          Disposable disposable = ((ProjectEx)module.getProject()).getEarlyDisposable();
-          layoutLib = AndroidTargetData.get(platform.getSdkData(), target).getLayoutLibrary(disposable);
+          layoutLib = getLayoutLibrary(target, platform, ((ProjectEx)module.getProject()).getEarlyDisposable());
         }
         catch (UnsupportedJavaRuntimeException e) {
           RenderProblem.Html javaVersionProblem = RenderProblem.create(ERROR);
@@ -626,6 +622,14 @@ final public class RenderService implements Disposable {
           String message = e.getPresentableMessage();
           message = message != null ? message : AndroidBundle.message("android.layout.preview.default.error.message");
           myLogger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), myLogger.getLinkManager(), e));
+          return null;
+        }
+        catch (NoAndroidTargetException e) {
+          myLogger.addMessage(RenderProblem.createPlain(ERROR, "No render target was chosen"));
+          return null;
+        }
+        catch (NoAndroidPlatformException e) {
+          reportMissingSdk(myLogger, myContext.getModule().getIdeaModule());
           return null;
         }
 
