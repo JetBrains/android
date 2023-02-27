@@ -71,7 +71,7 @@ class ShowFileInResourceManagerActionTest {
     val resourceManagerAction = findResourceManagerAction()
     val testActionEvent = checkActionWithFile(resourceManagerAction, newFile.virtualFile)
     assertTrue { testActionEvent.presentation.isEnabledAndVisible }
-    assertEquals(resourceManagerAction.templatePresentation.text, testActionEvent.presentation.text)
+    assertEquals("Show In Resource Manager", testActionEvent.presentation.text)
   }
 
   @Test

@@ -22,6 +22,7 @@ import com.google.common.truth.Truth
 import com.intellij.mock.MockVirtualFile
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.testFramework.MapDataContext
 import org.junit.Before
@@ -46,7 +47,7 @@ class RefreshDesignAssetActionTest {
     val refreshAction = RefreshDesignAssetAction { latch.countDown() }
     val assets = getDesignAssets(arrayOf(ResourceType.DRAWABLE, ResourceType.MIPMAP, ResourceType.MENU, ResourceType.LAYOUT))
     val dataContext = MapDataContext().apply { put(RESOURCE_DESIGN_ASSETS_KEY.name, assets) }
-    val actionEvent = AnActionEvent(null, dataContext, "ActionTest", refreshAction.templatePresentation, actionManager, 0)
+    val actionEvent = AnActionEvent(null, dataContext, "ActionTest", Presentation(), actionManager, 0)
     refreshAction.update(actionEvent)
     assertTrue(actionEvent.presentation.isEnabledAndVisible)
     refreshAction.actionPerformed(actionEvent)
@@ -67,7 +68,7 @@ class RefreshDesignAssetActionTest {
     val latch = CountDownLatch(1)
     val refreshAction = RefreshDesignAssetAction { latch.countDown() }
     val dataContext = MapDataContext().apply { put(RESOURCE_DESIGN_ASSETS_KEY.name, assets) }
-    val actionEvent = AnActionEvent(null, dataContext, "ActionTest", refreshAction.templatePresentation, actionManager, 0)
+    val actionEvent = AnActionEvent(null, dataContext, "ActionTest", Presentation(), actionManager, 0)
     refreshAction.update(actionEvent)
     assertFalse(actionEvent.presentation.isEnabledAndVisible)
     refreshAction.actionPerformed(actionEvent)
