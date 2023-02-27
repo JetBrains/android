@@ -33,6 +33,11 @@ import com.android.tools.tests.IdeaTestSuiteBase
 import com.android.tools.tests.LeakCheckerRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.containers.map2Array
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.time.delay
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.jetbrains.android.AndroidTestBase
 import org.junit.After
@@ -46,6 +51,8 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.Duration
 import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import kotlin.io.path.createDirectory
 import kotlin.system.measureTimeMillis
 
@@ -71,21 +78,14 @@ abstract class AbstractGradleSyncMemoryUsageTestCase : IdeaTestSuiteBase() {
 
   @After
   open fun tearDown() {
-    val tmpDir = Paths.get(System.getProperty("java.io.tmpdir"))
-    val testOutputDir = TestUtils.getTestOutputDir()
-    tmpDir
-      .resolve(".gradle/daemon").toFile()
-      .walk()
-      .filter { it.name.endsWith("out.log") }
-      .forEach {
-        Files.move(it.toPath(), testOutputDir.resolve(it.name))
-      }
+    collectDaemonLogs()
     StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY.clearOverride()
     File(outputDirectory).delete()
   }
 
   @Test
-  open fun testSyncMemory() {
+  fun testSyncMemory() = runBlocking {
+    startMemoryPolling()
     setJvmArgs()
     projectRule.openTestProject(testProjectTemplateFromPath(
         path = DIRECTORY,
@@ -138,7 +138,6 @@ abstract class AbstractGradleSyncMemoryUsageTestCase : IdeaTestSuiteBase() {
       metricIdeAfterSync.commit()
       metricIdeAfterSyncTotal.commit()
     }
-
   }
 
   private fun setJvmArgs() {
@@ -176,3 +175,33 @@ abstract class AbstractGradleSyncMemoryUsageTestCase : IdeaTestSuiteBase() {
     private fun String.toSpec() = DiffSpec("prebuilts/studio/buildbenchmarks/extra-large.2022.9/$this", 0)
   }
 }
+
+private fun collectDaemonLogs() {
+  val tmpDir = Paths.get(System.getProperty("java.io.tmpdir"))
+  val testOutputDir = TestUtils.getTestOutputDir()
+  tmpDir
+    .resolve(".gradle/daemon").toFile()
+    .walk()
+    .filter { it.name.endsWith("out.log") }
+    .forEach {
+      Files.move(it.toPath(), testOutputDir.resolve(it.name))
+    }
+}
+
+private fun startMemoryPolling() {
+  // This is used just for logging and diagnosing issues in the test
+  CoroutineScope(Dispatchers.IO).launch {
+    while (true) {
+      File("/proc/meminfo").readLines().filter { it.startsWith("Mem") }.forEach {
+        // This will have MemAvailable, MemFree, MemTotal lines
+        println("${getTimestamp()} - $it")
+      }
+      delay(Duration.ofSeconds(15))
+    }
+  }
+}
+
+private fun getTimestamp() = DateTimeFormatter
+  .ofPattern("yyyy-MM dd-HH:mm:ss.SSS")
+  .withZone(ZoneOffset.UTC)
+  .format(Instant.now())
