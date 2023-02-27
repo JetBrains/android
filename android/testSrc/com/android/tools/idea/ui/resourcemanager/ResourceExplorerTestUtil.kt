@@ -24,10 +24,13 @@ import com.android.resources.NightMode
 import com.android.resources.ResourceType
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.waitForUpdates
 import com.android.tools.idea.ui.resourcemanager.model.StaticStringMapper
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.ex.dummy.DummyFileSystem
@@ -92,17 +95,24 @@ fun AndroidProjectRule.getStateList(): ResourceItem {
 }
 
 fun AndroidProjectRule.getResourceItemFromPath(testFolderPath: String, fileName: String): ResourceItem {
-  ApplicationManager.getApplication().invokeAndWait {
+  val newResource = runWriteActionAndWait {
     fixture.copyFileToProject("$testFolderPath/$fileName", "res/drawable/$fileName")
   }
-
   val resourceRepository = StudioResourceRepositoryManager.getModuleResources(module)
-                           ?: throw Exception("No StudioResourceRepositoryManager for module=$module")
-  resourceRepository.invalidateResourceDirs()
+    ?: throw Exception("No StudioResourceRepositoryManager for module=$module")
+  // Ensure repository updates have been processed
+  waitForUpdates(resourceRepository)
 
   return resourceRepository
     .getResources(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, fileName.substringBefore("."))
-    .firstOrNull() ?: throw Exception("Unable to obtain resource res/drawable/$fileName ${resourceRepository.getResources(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE)}")
+    .firstOrNull()
+    ?: throw Exception(
+      """
+        Unable to obtain resource res/drawable/$fileName
+        resource=${resourceRepository.getResources(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE)}
+        file=$newResource ${newResource.exists()}
+      """.trimIndent()
+    )
 }
 
 private const val WAIT_TIMEOUT = 3000
