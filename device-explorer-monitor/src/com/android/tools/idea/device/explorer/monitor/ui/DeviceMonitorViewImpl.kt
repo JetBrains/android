@@ -82,6 +82,7 @@ class DeviceMonitorViewImpl(
     ComponentPopupMenu(table).apply {
       addItem(KillMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
       addItem(ForceStopMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
+      addItem(DebugMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
       install()
     }
   }
