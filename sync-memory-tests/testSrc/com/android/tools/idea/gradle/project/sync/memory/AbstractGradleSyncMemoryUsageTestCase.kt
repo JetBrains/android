@@ -68,21 +68,30 @@ abstract class AbstractGradleSyncMemoryUsageTestCase : IdeaTestSuiteBase() {
 
   private lateinit var outputDirectory: String
   private val memoryAgentPath = System.getProperty("memory.agent.path")
+  private val analysisFlag =
+    // This can be specified via --jvmopt="-Dkeep_snapshots=true" in bazel test invocation and  will collect hprofs in the bazel output.
+    // It won't do any measurements since it takes extra time, and it's to be used for manual inspection via a profiler.
+    if (System.getProperty("keep_snapshots").toBoolean())
+      StudioFlags.GRADLE_HPROF_OUTPUT_DIRECTORY
+    else
+      StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY
+
 
   @Before
   open fun setUp() {
     outputDirectory = File(System.getenv("TEST_TMPDIR"), "snapshots").also {
       it.toPath().createDirectory()
     }.absolutePath
-    StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY.override(outputDirectory)
+    analysisFlag.override(outputDirectory)
     StudioFlags.GRADLE_HEAP_ANALYSIS_LIGHTWEIGHT_MODE.override(lightweightMode)
   }
 
   @After
   open fun tearDown() {
     collectDaemonLogs()
+    collectHprofs(outputDirectory)
     StudioFlags.GRADLE_HEAP_ANALYSIS_LIGHTWEIGHT_MODE.clearOverride()
-    StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY.clearOverride()
+    analysisFlag.clearOverride()
     File(outputDirectory).delete()
   }
 
@@ -189,6 +198,12 @@ private fun collectDaemonLogs() {
     .forEach {
       Files.move(it.toPath(), testOutputDir.resolve(it.name))
     }
+}
+
+private fun collectHprofs(outputDirectory: String) {
+  File(outputDirectory).walk().filter { !it.isDirectory && it.name.endsWith(".hprof")}.forEach {
+    Files.move(it.toPath(),  TestUtils.getTestOutputDir().resolve(it.name))
+  }
 }
 
 private fun startMemoryPolling() {

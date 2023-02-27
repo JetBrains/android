@@ -25,6 +25,11 @@ iml_module(
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryTest",
             "exec_properties": LARGE_MACHINE,
         },
+        "BenchmarkXL": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.BenchmarkXLMemoryTest",
+            "exec_properties": LARGE_MACHINE,
+            "tags": ["manual"],
+        },
     },
     test_data = [
         "//prebuilts/studio/buildbenchmarks:ExtraLarge2022_project",
