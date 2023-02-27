@@ -51,6 +51,8 @@ class ComputeAndroidGradlePluginCompatibilityTest(private val info: TestInfo) {
       // RC/release of the same major/minor cycle
       TestInfo("7.1.0-rc01", "7.1.0", COMPATIBLE),
       TestInfo("7.1.0", "7.1.0-rc01", COMPATIBLE),
+      TestInfo("7.1.0", "7.1.1", COMPATIBLE),
+      TestInfo("7.1.1", "7.1.0", COMPATIBLE),
 
       // project's version is a snapshot, and Studio is a RC/release of the same major/minor version
       TestInfo("7.1.0-dev", "7.1.0-rc01", DIFFERENT_PREVIEW),
