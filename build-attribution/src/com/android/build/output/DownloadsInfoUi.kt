@@ -15,14 +15,20 @@
  */
 package com.android.build.output
 
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.stats.withProjectId
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.BuildOutputDownloadsInfoEvent
 import com.intellij.build.events.BuildEventPresentationData
 import com.intellij.build.events.PresentableBuildEvent
 import com.intellij.execution.ui.ExecutionConsole
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.setEmptyState
+import com.intellij.openapi.util.CheckedDisposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.LayeredIcon
@@ -32,6 +38,8 @@ import com.intellij.ui.components.BrowserLink
 import com.intellij.ui.table.TableView
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -43,8 +51,9 @@ import javax.swing.ListSelectionModel
  * [DownloadsInfoUIModel] contains the logic of how this page is populated and reacts on user interactions.
  */
 class DownloadsInfoExecutionConsole(
-  buildId: ExternalSystemTaskId,
-  val buildFinishedDisposable: Disposable
+  val buildId: ExternalSystemTaskId,
+  val buildFinishedDisposable: CheckedDisposable,
+  val buildStartTimestampMs: Long
 ) : ExecutionConsole {
   val uiModel = DownloadsInfoUIModel(buildId, buildFinishedDisposable)
   val table = TableView(uiModel.requestsTableModel).apply {
@@ -63,6 +72,7 @@ class DownloadsInfoExecutionConsole(
     selectionModel.addListSelectionListener {
       if (it.valueIsAdjusting) return@addListSelectionListener
       uiModel.repoSelectionUpdated(selectedObject)
+      logUserEvent(BuildOutputDownloadsInfoEvent.Interaction.SELECT_REPOSITORY_ROW)
     }
   }
 
@@ -76,6 +86,7 @@ class DownloadsInfoExecutionConsole(
       "https://docs.gradle.org/current/userguide/performance.html#optimize_repository_order"
     ).apply {
       border = JBUI.Borders.empty(10)
+      addActionListener { logUserEvent(BuildOutputDownloadsInfoEvent.Interaction.CLICK_LEARN_MORE_LINK) }
     }
     val splitter = OnePixelSplitter(true).apply {
       firstComponent = ScrollPaneFactory.createScrollPane(reposTable)
@@ -83,6 +94,12 @@ class DownloadsInfoExecutionConsole(
     }
     add(browserLink, BorderLayout.NORTH)
     add(splitter, BorderLayout.CENTER)
+
+    addComponentListener(object: ComponentAdapter() {
+      override fun componentShown(e: ComponentEvent?) {
+        logUserEvent(BuildOutputDownloadsInfoEvent.Interaction.OPEN_DOWNLOADS_INFO_UI)
+      }
+    })
   }}
 
   override fun dispose() {
@@ -90,23 +107,36 @@ class DownloadsInfoExecutionConsole(
   }
   override fun getComponent(): JComponent = panel
   override fun getPreferredFocusableComponent(): JComponent = table
+
+  private fun logUserEvent(reportedInteraction: BuildOutputDownloadsInfoEvent.Interaction) {
+    buildId.findProject()?.let { project: Project ->
+      val event = AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.BUILD_OUTPUT_DOWNLOADS_INFO_USER_INTERACTION)
+        .setBuildOutputDownloadsInfoEvent(BuildOutputDownloadsInfoEvent.newBuilder().apply {
+          view = if (buildId.type == ExternalSystemTaskType.RESOLVE_PROJECT) BuildOutputDownloadsInfoEvent.View.SYNC_VIEW else BuildOutputDownloadsInfoEvent.View.BUILD_VIEW
+          msSinceBuildStart = (System.currentTimeMillis() - buildStartTimestampMs).toInt()
+          buildFinished = buildFinishedDisposable.isDisposed
+          interaction = reportedInteraction
+        })
+      UsageTracker.log(event.withProjectId(project))
+    }
+  }
 }
 
 @Suppress("UnstableApiUsage")
 class DownloadsInfoPresentableEvent(
   val buildId: ExternalSystemTaskId,
-  val buildFinishedDisposable: Disposable
+  val buildFinishedDisposable: CheckedDisposable,
+  val buildStartTimestampMs: Long
 ) : PresentableBuildEvent {
   override fun getId(): Any = "Downloads info"
   override fun getParentId(): Any = buildId
   override fun getEventTime(): Long = 0
   override fun getMessage(): String = "Downloads info"
   override fun getHint(): String? = null
-
   override fun getDescription(): String? = null
-
   override fun getPresentationData(): BuildEventPresentationData = object : BuildEventPresentationData {
-    private val downloadsExecutionConsole = DownloadsInfoExecutionConsole(buildId, buildFinishedDisposable)
+    private val downloadsExecutionConsole = DownloadsInfoExecutionConsole(buildId, buildFinishedDisposable, buildStartTimestampMs)
     override fun getNodeIcon(): Icon = DownloadsNodeIcon(downloadsExecutionConsole.uiModel)
     override fun getExecutionConsole(): ExecutionConsole = downloadsExecutionConsole
     override fun consoleToolbarActions(): ActionGroup? = null
