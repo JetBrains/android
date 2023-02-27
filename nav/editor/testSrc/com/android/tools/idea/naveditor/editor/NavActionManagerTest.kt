@@ -397,8 +397,11 @@ class NavActionManagerTest : NavTestCase() {
     validateItem(items[1], Separator::class.java, null, true)
     validateItem(items[2], CutAction::class.java, "Cut", true)
     validateItem(items[3], CopyAction::class.java, "Copy", true)
-    validateItem(items[4], PasteAction::class.java, "Paste", true)
     validateItem(items[5], DeleteAction::class.java, "Delete", true)
+
+    // Make a copy to ensure Paste is available
+    surface.actionHandlerProvider.apply(surface).performCopy(DataContext.EMPTY_CONTEXT)
+    validateItem(items[4], PasteAction::class.java, "Paste", true)
   }
 
   private fun validateItem(item: AnAction, c: Class<*>, name: String?, enabled: Boolean) {
