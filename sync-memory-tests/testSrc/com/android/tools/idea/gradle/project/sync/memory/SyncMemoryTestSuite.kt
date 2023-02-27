@@ -66,7 +66,7 @@ class Benchmark1000MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
 
 class Benchmark2000MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
   override val projectName = "2000Modules"
-  override val memoryLimitMb = 20000
+  override val memoryLimitMb = 25000
   override val lightweightMode = true
 
   init {
