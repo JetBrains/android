@@ -57,7 +57,6 @@ class ConflatingFlowTest {
     assertEquals("Not all numbers were received", 101, expected)
   }
 
-  @Ignore("b/270758949")
   @Test
   fun `element batching`() = runBlocking {
     val startNumber = 0
@@ -84,7 +83,7 @@ class ConflatingFlowTest {
       waiting + new
     }
       .collect {
-        delay(Random.nextLong(0, 100))
+        delay(100)
         if (it.contains(slowElement)) {
           // Add a bunch 4 more permits in one go. This will generate a bunch of inputs
           // very quickly and will allow a batch of 5 to form.
