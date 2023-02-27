@@ -637,7 +637,7 @@ final public class RenderService implements Disposable {
           RenderTask task =
             new RenderTask(myContext, StudioModuleClassLoaderManager.get(), myLogger, layoutLib,
                            myCredential, StudioCrashReporter.getInstance(), myImagePool,
-                           myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, myManifestProvider,
+                           myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, () -> myManifestProvider.apply(module),
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
                            classesToPreload, reportOutOfDateUserClasses, myPriority, myMinDownscalingFactor);
           if (myPsiFile instanceof XmlFile) {
