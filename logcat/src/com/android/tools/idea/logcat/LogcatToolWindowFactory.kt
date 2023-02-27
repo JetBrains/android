@@ -59,7 +59,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
         showLogcat(toolWindow, device, applicationId)
       })
 
-    ProcessNameMonitor.getInstance(project).start()
+    project.getService(ProcessNameMonitor::class.java).start()
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {

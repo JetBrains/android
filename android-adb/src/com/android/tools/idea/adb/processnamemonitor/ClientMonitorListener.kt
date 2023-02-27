@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adb.processnamemonitor
 
+import com.android.adblib.AdbLogger
 import com.android.ddmlib.AndroidDebugBridge.IClientChangeListener
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
 import com.android.ddmlib.Client
@@ -24,7 +25,6 @@ import com.android.ddmlib.IDevice.CHANGE_CLIENT_LIST
 import com.android.tools.idea.adb.processnamemonitor.ClientMonitorListener.ClientEvent
 import com.android.tools.idea.adb.processnamemonitor.ClientMonitorListener.ClientEvent.ClientChanged
 import com.android.tools.idea.adb.processnamemonitor.ClientMonitorListener.ClientEvent.ClientListChanged
-import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor.Companion.LOGGER
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.channels.trySendBlocking
@@ -38,6 +38,7 @@ internal class ClientMonitorListener(
   private val device: IDevice,
   @Suppress("EXPERIMENTAL_API_USAGE") // Not experimental in main
   private val flow: ProducerScope<ClientEvent>,
+  private val logger: AdbLogger,
 ) : IDeviceChangeListener, IClientChangeListener {
 
   override fun deviceConnected(device: IDevice) {}
@@ -59,7 +60,7 @@ internal class ClientMonitorListener(
   private fun send(event: ClientEvent) {
     @Suppress("EXPERIMENTAL_API_USAGE") // Not experimental in main
     flow.trySendBlocking(event).onFailure {
-      LOGGER.warn("Failed to send ClientEvent", it)
+      logger.warn(it, "Failed to send ClientEvent")
     }
   }
 

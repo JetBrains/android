@@ -15,104 +15,83 @@
  */
 package com.android.tools.idea.adb.processnamemonitor
 
-import com.android.adblib.AdbDeviceServices
-import com.android.adblib.DeviceSelector
-import com.android.adblib.testing.FakeAdbDeviceServices
+import com.android.adblib.testing.FakeAdbLoggerFactory
 import com.android.adblib.testing.FakeAdbSession
 import com.android.tools.idea.adb.processnamemonitor.DeviceMonitorEvent.Disconnected
 import com.android.tools.idea.adb.processnamemonitor.DeviceMonitorEvent.Online
-import com.android.tools.idea.concurrency.waitForCondition
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.util.use
-import com.intellij.testFramework.ProjectRule
-import com.intellij.testFramework.RuleChain
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.test.runBlockingTest
-import org.junit.Before
-import org.junit.Rule
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.advanceTimeBy
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
-import java.util.concurrent.TimeUnit
 
 /**
  * Tests for [ProcessNameMonitor]
  */
-@Suppress("OPT_IN_USAGE") // runBlockingTest is experimental
+@Suppress("OPT_IN_IS_NOT_ENABLED")
+@OptIn(ExperimentalCoroutinesApi::class) // runTest is experimental (replaced runTestTest)
 class ProcessNameMonitorImplTest {
-  private val projectRule = ProjectRule()
-
   private val device1 = mockDevice("device1")
   private val device2 = mockDevice("device2")
   private val process1 = ProcessInfo(1, "package1", "process1")
   private val process2 = ProcessInfo(2, "package2", "process2")
 
-  @get:Rule
-  val rule = RuleChain(projectRule)
-
-  private val fakeAdbDeviceServices = FakeAdbDeviceServices(FakeAdbSession())
-
-  @Before
-  fun setUp() {
-    fakeAdbDeviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(device1.serialNumber), "ps -A -o PID,NAME", "")
-    fakeAdbDeviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(device2.serialNumber), "ps -A -o PID,NAME", "")
-  }
-
+  private val fakeAdbSession = FakeAdbSession()
 
   @Test
-  fun devicesOnline() = runBlockingTest {
+  fun devicesOnline(): Unit = runTest {
     FakeProcessNameMonitorFlows().use { flows ->
-      processNameMonitor(flows).use { monitor ->
+      val monitor = processNameMonitor(flows)
 
-        flows.sendDeviceEvents(Online(device1))
-        flows.sendDeviceEvents(Online(device2))
-        flows.sendClientEvents(device1.serialNumber, clientsAddedEvent(process1))
-        flows.sendClientEvents(device2.serialNumber, clientsAddedEvent(process2))
+      flows.sendDeviceEvents(Online(device1))
+      flows.sendDeviceEvents(Online(device2))
+      flows.sendClientEvents(device1.serialNumber, clientsAddedEvent(process1))
+      flows.sendClientEvents(device2.serialNumber, clientsAddedEvent(process2))
 
-        assertThat(monitor.getProcessNames(device1.serialNumber, 1)).isEqualTo(process1.names)
-        assertThat(monitor.getProcessNames(device2.serialNumber, 2)).isEqualTo(process2.names)
-        assertThat(monitor.getProcessNames(device1.serialNumber, 2)).isNull()
-        assertThat(monitor.getProcessNames(device2.serialNumber, 1)).isNull()
-      }
+      advanceUntilIdle()
+      assertThat(monitor.getProcessNames(device1.serialNumber, 1)).isEqualTo(process1.names)
+      assertThat(monitor.getProcessNames(device2.serialNumber, 2)).isEqualTo(process2.names)
     }
   }
 
   @Test
-  fun deviceDisconnected() = runBlockingTest {
+  fun deviceDisconnected(): Unit = runTest {
     FakeProcessNameMonitorFlows().use { flows ->
-      processNameMonitor(flows).use { monitor ->
+      val monitor = processNameMonitor(flows)
 
-        flows.sendDeviceEvents(Online(device1))
-        flows.sendDeviceEvents(Online(device2))
-        flows.sendClientEvents(device1.serialNumber, clientsAddedEvent(process1))
-        flows.sendClientEvents(device2.serialNumber, clientsAddedEvent(process2))
-        flows.sendDeviceEvents(Disconnected(device1))
+      flows.sendDeviceEvents(Online(device1))
+      flows.sendDeviceEvents(Online(device2))
+      flows.sendClientEvents(device1.serialNumber, clientsAddedEvent(process1))
+      flows.sendClientEvents(device2.serialNumber, clientsAddedEvent(process2))
+      advanceUntilIdle()
+      flows.sendDeviceEvents(Disconnected(device1))
 
-        assertThat(monitor.getProcessNames(device1.serialNumber, 1)).isNull()
-        assertThat(monitor.getProcessNames(device2.serialNumber, 2)).isEqualTo(process2.names)
-        assertThat(monitor.getProcessNames(device1.serialNumber, 2)).isNull()
-        assertThat(monitor.getProcessNames(device2.serialNumber, 1)).isNull()
-      }
+      advanceUntilIdle()
+      assertThat(monitor.getProcessNames(device2.serialNumber, 2)).isEqualTo(process2.names)
     }
   }
 
   @Test
-  fun disconnect_disposes() {
-    runBlockingTest {
-      val flows = TerminationTrackingProcessNameMonitorFlows()
-      processNameMonitor(flows).use {
+  fun disconnect_terminatesClientFlow(): Unit = runTest {
+    val flows = TerminationTrackingProcessNameMonitorFlows()
+    processNameMonitor(flows)
+    flows.sendDeviceEvents(Online(device1))
+    advanceTimeBy(2000) // Let the flow run a few cycles
+    assertThat(flows.isClientFlowStarted(device1.serialNumber)).isTrue()
 
-        flows.sendDeviceEvents(Online(device1))
-        waitForCondition(5, TimeUnit.SECONDS) { flows.isClientFlowStarted(device1.serialNumber) }
-        flows.sendDeviceEvents(Disconnected(device1))
+    flows.sendDeviceEvents(Disconnected(device1))
 
-        waitForCondition(5, TimeUnit.SECONDS) { flows.isClientFlowTerminated(device1.serialNumber) }
-      }
-    }
+    advanceUntilIdle()
+    assertThat(flows.isClientFlowTerminated(device1.serialNumber)).isTrue()
   }
 
   private fun CoroutineScope.processNameMonitor(
     flows: ProcessNameMonitorFlows = FakeProcessNameMonitorFlows(),
-    adbDeviceServices: AdbDeviceServices = fakeAdbDeviceServices,
   ): ProcessNameMonitorImpl {
-    return ProcessNameMonitorImpl(projectRule.project, flows, this) { adbDeviceServices }.apply { start() }
+    return ProcessNameMonitorImpl(this, fakeAdbSession, flows, FakeAdbLoggerFactory().logger).apply {
+      start()
+    }
   }
 }

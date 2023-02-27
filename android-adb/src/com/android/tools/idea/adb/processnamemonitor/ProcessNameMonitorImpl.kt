@@ -15,56 +15,39 @@
  */
 package com.android.tools.idea.adb.processnamemonitor
 
-import com.android.adblib.AdbDeviceServices
+import com.android.adblib.AdbLogger
+import com.android.adblib.AdbSession
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.adb.AdbAdapterImpl
+import com.android.tools.idea.adb.AdbAdapter
 import com.android.tools.idea.adb.processnamemonitor.DeviceMonitorEvent.Disconnected
-import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor.Companion.LOGGER
-import com.android.tools.idea.adblib.AdbLibService
-import com.android.tools.idea.concurrency.coroutineScope
-import com.android.tools.idea.concurrency.createChildScope
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
-import com.intellij.serviceContainer.NonInjectable
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
+import java.io.Closeable
 import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Implementation of ProcessNameMonitor
  */
-internal class ProcessNameMonitorImpl @TestOnly @NonInjectable internal constructor(
-  private val project: Project,
-  private val flows: ProcessNameMonitorFlows,
+internal class ProcessNameMonitorImpl @TestOnly internal constructor(
   parentScope: CoroutineScope,
-  private val adbDeviceServicesFactory: () -> AdbDeviceServices,
-) : ProcessNameMonitor, Disposable {
+  private val adbSession: AdbSession,
+  private val flows: ProcessNameMonitorFlows,
+  private val logger: AdbLogger,
+) : ProcessNameMonitor, Closeable {
 
-  @Suppress("unused") // Actually used by the getService() mechanism
-  constructor(project: Project)
-    : this(
-    project,
-    ProcessNameMonitorFlowsImpl(AdbAdapterImpl(project)),
-    project.coroutineScope,
-    { AdbLibService.getInstance(project).session.deviceServices }
-  )
+  constructor(parentScope: CoroutineScope, adbSession: AdbSession, adbAdapter: AdbAdapter, logger: AdbLogger)
+    : this(parentScope, adbSession, ProcessNameMonitorFlowsImpl(adbAdapter, logger, adbSession.ioDispatcher), logger)
 
-  private val coroutineScope = parentScope.createChildScope(parentDisposable = this)
+  private val scope: CoroutineScope = CoroutineScope(parentScope.coroutineContext + SupervisorJob())
 
   @Volatile
   private var isStarted = false
 
   // Connected devices.
   private val devices = ConcurrentHashMap<String, ProcessNameClientMonitor>()
-
-  init {
-    Disposer.register(project, this)
-  }
-
-  override fun dispose() {}
 
   override fun start() {
     if (isStarted) {
@@ -76,7 +59,7 @@ internal class ProcessNameMonitorImpl @TestOnly @NonInjectable internal construc
       }
       isStarted = true
     }
-    coroutineScope.launch {
+    scope.launch {
       flows.trackDevices().collect {
         when (it) {
           is DeviceMonitorEvent.Online -> addDevice(it.device)
@@ -90,19 +73,20 @@ internal class ProcessNameMonitorImpl @TestOnly @NonInjectable internal construc
     return devices[serialNumber]?.getProcessNames(pid)
   }
 
+  override fun close() {
+    scope.cancel()
+  }
+
   private fun addDevice(device: IDevice) {
-    LOGGER.info("Adding ${device.serialNumber}")
-    devices[device.serialNumber] = ProcessNameClientMonitor(project, coroutineScope, device, flows, adbDeviceServicesFactory).apply {
+    logger.info { "Adding ${device.serialNumber}" }
+    devices[device.serialNumber] = ProcessNameClientMonitor(scope, device, flows, adbSession, logger).apply {
       start()
     }
   }
 
   private fun removeDevice(device: IDevice) {
-    LOGGER.info("Removing ${device.serialNumber}: ${System.identityHashCode(device)}")
+    logger.info { ("Removing ${device.serialNumber}: ${System.identityHashCode(device)}") }
     val clientMonitor = devices.remove(device.serialNumber)
-    if (clientMonitor != null) {
-      Disposer.dispose(clientMonitor)
-    }
+    clientMonitor?.close()
   }
 }
-

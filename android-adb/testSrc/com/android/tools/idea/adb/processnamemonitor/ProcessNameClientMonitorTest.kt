@@ -15,36 +15,23 @@
  */
 package com.android.tools.idea.adb.processnamemonitor
 
-import com.android.adblib.DeviceSelector
+import com.android.adblib.testing.FakeAdbLoggerFactory
 import com.android.adblib.testing.FakeAdbSession
 import com.android.ddmlib.IDevice
-import com.android.flags.junit.FlagRule
-import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.util.use
-import com.intellij.testFramework.ProjectRule
-import com.intellij.testFramework.RuleChain
-import kotlinx.coroutines.test.TestCoroutineScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceTimeBy
-import kotlinx.coroutines.test.runBlockingTest
-import org.junit.Before
-import org.junit.Rule
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
-import java.util.concurrent.TimeUnit.SECONDS
-
-private const val PS_COMMAND = "ps -A -o PID,NAME"
 
 /**
  * Tests for [ProcessNameClientMonitor]
  */
-@Suppress("OPT_IN_USAGE") // runBlockingTest is experimental
+@Suppress("OPT_IN_IS_NOT_ENABLED")
+@OptIn(ExperimentalCoroutinesApi::class) // runTest is experimental (replaced runTestTest)
 class ProcessNameClientMonitorTest {
-  private val projectRule = ProjectRule()
-
-  @get:Rule
-  val rule = RuleChain(projectRule, FlagRule(StudioFlags.ENABLE_PROCESS_NAME_POLLING))
-
   private val process1 = ProcessInfo(1, "package1", "process1")
   private val process2 = ProcessInfo(2, "package2", "process2")
   private val process3 = ProcessInfo(3, "package3", "process3")
@@ -53,241 +40,127 @@ class ProcessNameClientMonitorTest {
 
   private val device = mockDevice("device1")
 
-  private val fakeAdbDeviceServices = FakeAdbSession().deviceServices
-
-  @Before
-  fun setUp() {
-    fakeAdbDeviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(device.serialNumber), PS_COMMAND, "")
-    if (StudioFlags.ADBLIB_LEGACY_SHELL_FOR_PS_MONITOR.get()) {
-      fakeAdbDeviceServices.configureShellCommand(DeviceSelector.fromSerialNumber(device.serialNumber), "getprop", "")
-    }
-  }
+  private val fakeAdbSession = FakeAdbSession()
 
   @Test
-  fun trackClients_add() = runBlockingTest {
+  fun trackClients_add(): Unit = runTest {
     FakeProcessNameMonitorFlows().use { flows ->
-      processNameClientMonitor(device = device, flows = flows).use { monitor ->
+      val monitor = processNameClientMonitor(device = device, flows = flows)
 
-        flows.sendClientEvents(
-          device.serialNumber,
-          clientsAddedEvent(process1, process2),
-          clientsAddedEvent(process3),
-        )
+      flows.sendClientEvents(
+        device.serialNumber,
+        clientsAddedEvent(process1, process2),
+        clientsAddedEvent(process3),
+      )
 
-        assertThat(monitor.getProcessNames(1)).isEqualTo(process1.names)
-        assertThat(monitor.getProcessNames(2)).isEqualTo(process2.names)
-        assertThat(monitor.getProcessNames(3)).isEqualTo(process3.names)
-
-      }
+      advanceUntilIdle()
+      assertThat(monitor.getProcessNames(1)).isEqualTo(process1.names)
+      assertThat(monitor.getProcessNames(2)).isEqualTo(process2.names)
+      assertThat(monitor.getProcessNames(3)).isEqualTo(process3.names)
     }
   }
 
   @Test
-  fun trackClients_removeDoesNotEvict() = runBlockingTest {
+  fun trackClients_removeDoesNotEvict(): Unit = runTest {
     FakeProcessNameMonitorFlows().use { flows ->
-      processNameClientMonitor(device = device, flows = flows, maxPids = 1000).use { monitor ->
+      val monitor = processNameClientMonitor(device = device, flows = flows, maxPids = 1000)
 
-        flows.sendClientEvents(
-          device.serialNumber,
-          clientsAddedEvent(process1, process2, process3),
-          clientsRemovedEvent(1, 2, 3),
-        )
+      flows.sendClientEvents(
+        device.serialNumber,
+        clientsAddedEvent(process1, process2, process3),
+        clientsRemovedEvent(1, 2, 3),
+      )
 
-        assertThat(monitor.getProcessNames(1)).isEqualTo(process1.names)
-        assertThat(monitor.getProcessNames(2)).isEqualTo(process2.names)
-        assertThat(monitor.getProcessNames(3)).isEqualTo(process3.names)
-
-      }
+      advanceUntilIdle()
+      assertThat(monitor.getProcessNames(1)).isEqualTo(process1.names)
+      assertThat(monitor.getProcessNames(2)).isEqualTo(process2.names)
+      assertThat(monitor.getProcessNames(3)).isEqualTo(process3.names)
     }
   }
 
   @Test
-  fun trackClients_overflowRemoveEvicts() = runBlockingTest {
+  fun trackClients_overflowRemoveEvicts(): Unit = runTest {
     FakeProcessNameMonitorFlows().use { flows ->
-      processNameClientMonitor(device = device, flows = flows, maxPids = 3).use { monitor ->
+      val monitor = processNameClientMonitor(device = device, flows = flows, maxPids = 3)
 
-        flows.sendClientEvents(
-          device.serialNumber,
-          clientsAddedEvent(process1, process2, process3),
-          clientMonitorEvent(listOf(process4, process5), listOf(1, 2, 3)),
-        )
+      flows.sendClientEvents(
+        device.serialNumber,
+        clientsAddedEvent(process1, process2, process3),
+        clientMonitorEvent(listOf(process4, process5), listOf(1, 2, 3)),
+      )
 
-        assertThat(monitor.getProcessNames(1)).isNull()
-        assertThat(monitor.getProcessNames(2)).isNull()
-        assertThat(monitor.getProcessNames(3)).isEqualTo(process3.names)
-        assertThat(monitor.getProcessNames(4)).isEqualTo(process4.names)
-        assertThat(monitor.getProcessNames(5)).isEqualTo(process5.names)
-
-      }
+      advanceUntilIdle()
+      assertThat(monitor.getProcessNames(1)).isNull()
+      assertThat(monitor.getProcessNames(2)).isNull()
+      assertThat(monitor.getProcessNames(3)).isEqualTo(process3.names)
+      assertThat(monitor.getProcessNames(4)).isEqualTo(process4.names)
+      assertThat(monitor.getProcessNames(5)).isEqualTo(process5.names)
     }
   }
 
   @Test
-  fun trackClients_reusedPidIsNotEvicted() = runBlockingTest {
+  fun trackClients_reusedPidIsNotEvicted(): Unit = runTest {
     FakeProcessNameMonitorFlows().use { flows ->
-      processNameClientMonitor(device = device, flows = flows, maxPids = 3).use { monitor ->
+      val monitor = processNameClientMonitor(device = device, flows = flows, maxPids = 3)
+      val newProcess1 = ProcessInfo(process1.pid, "newPackage1", "newProcess1")
 
-        val newProcess1 = ProcessInfo(process1.pid, "newPackage1", "newProcess1")
-        flows.sendClientEvents(
-          device.serialNumber,
-          clientsAddedEvent(process1, process2, process3),
-          clientMonitorEvent(listOf(process4, newProcess1), listOf(1, 2, 3)),
-        )
+      flows.sendClientEvents(
+        device.serialNumber,
+        clientsAddedEvent(process1, process2, process3),
+        clientMonitorEvent(listOf(process4, newProcess1), listOf(1, 2, 3)),
+      )
 
-        assertThat(monitor.getProcessNames(1)).isEqualTo(newProcess1.names)
-        assertThat(monitor.getProcessNames(2)).isNull()
-        assertThat(monitor.getProcessNames(3)).isEqualTo(process3.names)
-        assertThat(monitor.getProcessNames(4)).isEqualTo(process4.names)
-
-      }
+      advanceUntilIdle()
+      assertThat(monitor.getProcessNames(1)).isEqualTo(newProcess1.names)
+      assertThat(monitor.getProcessNames(2)).isNull()
+      assertThat(monitor.getProcessNames(3)).isEqualTo(process3.names)
+      assertThat(monitor.getProcessNames(4)).isEqualTo(process4.names)
     }
   }
 
   @Test
-  fun trackClients_reusedPidIsNotEvicted_inLaterEvent() = runBlockingTest {
+  fun trackClients_reusedPidIsNotEvicted_inLaterEvent(): Unit = runTest {
     FakeProcessNameMonitorFlows().use { flows ->
-      processNameClientMonitor(device = device, flows = flows, maxPids = 3).use { monitor ->
+      val monitor = processNameClientMonitor(device = device, flows = flows, maxPids = 3)
+      val newProcess1 = ProcessInfo(process1.pid, "newPackage1", "newProcess1")
 
-        val newProcess1 = ProcessInfo(process1.pid, "newPackage1", "newProcess1")
-        flows.sendClientEvents(
-          device.serialNumber,
-          clientsAddedEvent(process1, process2, process3),
-          clientsRemovedEvent(1, 2, 3),
-          clientsAddedEvent(process4, newProcess1),
-        )
+      flows.sendClientEvents(
+        device.serialNumber,
+        clientsAddedEvent(process1, process2, process3),
+        clientsRemovedEvent(1, 2, 3),
+        clientsAddedEvent(process4, newProcess1),
+      )
 
-        assertThat(monitor.getProcessNames(1)).isEqualTo(newProcess1.names)
-        assertThat(monitor.getProcessNames(2)).isNull()
-        assertThat(monitor.getProcessNames(3)).isEqualTo(process3.names)
-        assertThat(monitor.getProcessNames(4)).isEqualTo(process4.names)
-
-      }
+      advanceUntilIdle()
+      assertThat(monitor.getProcessNames(1)).isEqualTo(newProcess1.names)
+      assertThat(monitor.getProcessNames(2)).isNull()
+      assertThat(monitor.getProcessNames(3)).isEqualTo(process3.names)
+      assertThat(monitor.getProcessNames(4)).isEqualTo(process4.names)
     }
   }
 
   @Test
-  fun dispose_closesFlow() = runBlockingTest {
+  fun stop_closesFlow(): Unit = runTest {
     val flows = TerminationTrackingProcessNameMonitorFlows()
-    processNameClientMonitor(device, flows).use {
-      waitForCondition(5, SECONDS) { flows.isClientFlowStarted(device.serialNumber) }
-    }
+    val monitor = processNameClientMonitor(device, flows)
+    advanceTimeBy(2000) // Let the flow run a few cycles
+    assertThat(flows.isClientFlowStarted(device.serialNumber)).isTrue()
 
-    waitForCondition(5, SECONDS) { flows.isClientFlowTerminated(device.serialNumber) }
+    monitor.close()
+
+    advanceUntilIdle()
+    assertThat(flows.isClientFlowTerminated(device.serialNumber)).isTrue()
   }
 
-  @Test
-  fun processNamesFromPs() = runBlockingTest {
-    StudioFlags.ENABLE_PROCESS_NAME_POLLING.override(true)
-    FakeProcessNameMonitorFlows().use { flows ->
-      processNameClientMonitor(flows = flows, device = device).use { monitor ->
-        fakeAdbDeviceServices.configureShellCommand(
-          DeviceSelector.fromSerialNumber(device.serialNumber),
-          PS_COMMAND,
-          """
-          2 process2-from-ps
-          3 process3-from-ps
 
-        """.trimIndent())
-
-        flows.sendClientEvents(device.serialNumber, clientsAddedEvent(process1))
-
-        advanceTimeBy(2000)
-        assertThat(monitor.getProcessNames(1)).isEqualTo(process1.names)
-        assertThat(monitor.getProcessNames(2)).isEqualTo(ProcessNames("", "process2-from-ps"))
-        assertThat(monitor.getProcessNames(3)).isEqualTo(ProcessNames("", "process3-from-ps"))
-      }
-    }
-  }
-
-  @Test
-  fun processNamesFromPs_disabledByDefault() = runBlockingTest {
-    FakeProcessNameMonitorFlows().use { flows ->
-      processNameClientMonitor(flows = flows, device = device).use { monitor ->
-        fakeAdbDeviceServices.configureShellCommand(
-          DeviceSelector.fromSerialNumber(device.serialNumber),
-          PS_COMMAND,
-          """
-          2 process2-from-ps
-          3 process3-from-ps
-
-        """.trimIndent())
-
-        flows.sendClientEvents(device.serialNumber, clientsAddedEvent(process1))
-
-        advanceTimeBy(2000)
-        assertThat(monitor.getProcessNames(1)).isEqualTo(process1.names)
-        assertThat(monitor.getProcessNames(2)).isNull()
-        assertThat(monitor.getProcessNames(3)).isNull()
-      }
-    }
-  }
-
-  @Test
-  fun processNamesFromPs_preferFromClient() = runBlockingTest {
-    StudioFlags.ENABLE_PROCESS_NAME_POLLING.override(true)
-    FakeProcessNameMonitorFlows().use { flows ->
-      processNameClientMonitor(flows = flows, device = device).use { monitor ->
-        fakeAdbDeviceServices.configureShellCommand(
-          DeviceSelector.fromSerialNumber(device.serialNumber),
-          PS_COMMAND,
-          """
-          1 process1-from-ps
-
-        """.trimIndent())
-
-        flows.sendClientEvents(device.serialNumber, clientsAddedEvent(process1))
-
-        advanceTimeBy(2000)
-        assertThat(monitor.getProcessNames(1)).isEqualTo(process1.names)
-      }
-    }
-  }
-
-  @Test
-  fun processNamesFromPs_multipleRuns() = runBlockingTest {
-    StudioFlags.ENABLE_PROCESS_NAME_POLLING.override(true)
-    FakeProcessNameMonitorFlows().use { flows ->
-      processNameClientMonitor(flows = flows, device = device).use { monitor ->
-
-        fakeAdbDeviceServices.configureShellCommand(
-          DeviceSelector.fromSerialNumber(device.serialNumber),
-          PS_COMMAND,
-          """
-          2 process2-from-ps
-          3 process3-from-ps
-
-        """.trimIndent())
-        advanceTimeBy(2000)
-
-        fakeAdbDeviceServices.configureShellCommand(
-          DeviceSelector.fromSerialNumber(device.serialNumber),
-          PS_COMMAND,
-          """
-          3 new-process3-from-ps
-          4 process4-from-ps
-
-        """.trimIndent())
-        advanceTimeBy(2000)
-
-        assertThat(monitor.getProcessNames(2)).isNull()
-        assertThat(monitor.getProcessNames(3)).isEqualTo(ProcessNames("", "new-process3-from-ps"))
-        assertThat(monitor.getProcessNames(4)).isEqualTo(ProcessNames("", "process4-from-ps"))
-      }
-    }
-  }
-
-  private fun TestCoroutineScope.processNameClientMonitor(
+  private fun CoroutineScope.processNameClientMonitor(
     device: IDevice = this@ProcessNameClientMonitorTest.device,
     flows: ProcessNameMonitorFlows = FakeProcessNameMonitorFlows(),
     maxPids: Int = 10
   ): ProcessNameClientMonitor {
-    return ProcessNameClientMonitor(
-      projectRule.project,
-      this,
-      device,
-      flows,
-      { fakeAdbDeviceServices },
-      maxPids)
-      .apply { start() }
+    return ProcessNameClientMonitor(this, device, flows, fakeAdbSession, FakeAdbLoggerFactory().logger, maxPidsBeforeEviction = maxPids)
+      .apply {
+        start()
+      }
   }
 }

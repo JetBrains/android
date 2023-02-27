@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adb.processnamemonitor
 
+import com.android.adblib.testing.FakeAdbLoggerFactory
 import com.android.ddmlib.IDevice.CHANGE_BUILD_INFO
 import com.android.ddmlib.IDevice.CHANGE_CLIENT_LIST
 import com.android.ddmlib.IDevice.CHANGE_STATE
@@ -38,11 +39,13 @@ import org.junit.Test
  */
 @Suppress("EXPERIMENTAL_API_USAGE")
 class DevicesMonitorListenerTest {
+  private val logger = FakeAdbLoggerFactory().logger
+
   @Test
   fun deviceConnected() {
     runBlocking {
       val flow = callbackFlow {
-        val monitor = DevicesMonitorListener(this)
+        val monitor = DevicesMonitorListener(this, logger)
 
         monitor.deviceConnected(mockDevice("device1", ONLINE))
         monitor.deviceConnected(mockDevice("device2", ONLINE))
@@ -65,7 +68,7 @@ class DevicesMonitorListenerTest {
   fun deviceDisconnected() {
     runBlocking {
       val flow = callbackFlow {
-        val monitor = DevicesMonitorListener(this)
+        val monitor = DevicesMonitorListener(this, logger)
 
         monitor.deviceDisconnected(mockDevice("device1", ONLINE))
         monitor.deviceDisconnected(mockDevice("device2", FASTBOOTD))
@@ -89,7 +92,7 @@ class DevicesMonitorListenerTest {
   fun deviceChanged() {
     runBlocking {
       val flow = callbackFlow {
-        val monitor = DevicesMonitorListener(this)
+        val monitor = DevicesMonitorListener(this, logger)
 
         monitor.deviceChanged(mockDevice("device1", ONLINE), CHANGE_STATE)
         monitor.deviceChanged(mockDevice("device2", ONLINE), CHANGE_STATE)
@@ -114,7 +117,7 @@ class DevicesMonitorListenerTest {
   fun realisticLyfecycle() {
     runBlocking {
       val flow = callbackFlow {
-        val monitor = DevicesMonitorListener(this)
+        val monitor = DevicesMonitorListener(this, logger)
 
         val device = mockDevice("device1", OFFLINE)
 

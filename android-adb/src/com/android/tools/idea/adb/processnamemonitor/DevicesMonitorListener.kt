@@ -15,12 +15,12 @@
  */
 package com.android.tools.idea.adb.processnamemonitor
 
+import com.android.adblib.AdbLogger
 import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.IDevice.DeviceState.ONLINE
 import com.android.tools.idea.adb.processnamemonitor.DeviceMonitorEvent.Disconnected
 import com.android.tools.idea.adb.processnamemonitor.DeviceMonitorEvent.Online
-import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor.Companion.LOGGER
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.channels.trySendBlocking
@@ -33,6 +33,7 @@ import kotlinx.coroutines.channels.trySendBlocking
 internal class DevicesMonitorListener(
   @Suppress("EXPERIMENTAL_API_USAGE") // Not experimental in main
   private val producerScope: ProducerScope<DeviceMonitorEvent>,
+  private val logger: AdbLogger,
 ) : IDeviceChangeListener {
   override fun deviceConnected(device: IDevice) {
     if (device.state == ONLINE) {
@@ -53,7 +54,7 @@ internal class DevicesMonitorListener(
   private fun send(event: DeviceMonitorEvent) {
     @Suppress("EXPERIMENTAL_API_USAGE") // Not experimental in main
     producerScope.trySendBlocking(event).onFailure {
-      LOGGER.warn("Failed to send DeviceMonitorEvent", it)
+      logger.warn(it, "Failed to send DeviceMonitorEvent")
     }
   }
 }

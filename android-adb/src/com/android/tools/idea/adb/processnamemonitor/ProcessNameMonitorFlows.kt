@@ -16,7 +16,6 @@
 package com.android.tools.idea.adb.processnamemonitor
 
 import com.android.ddmlib.IDevice
-import com.intellij.openapi.Disposable
 import kotlinx.coroutines.flow.Flow
 
 /**

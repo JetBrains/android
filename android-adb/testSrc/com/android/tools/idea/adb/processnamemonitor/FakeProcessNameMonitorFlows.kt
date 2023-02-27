@@ -32,7 +32,7 @@ internal class FakeProcessNameMonitorFlows : ProcessNameMonitorFlows, Closeable 
   }
 
   suspend fun sendClientEvents(serialNumber: String, vararg events: ClientMonitorEvent) {
-    val channel = clientEventsChannels[serialNumber] ?: throw IllegalArgumentException("Channel for device $serialNumber not found.")
+    val channel = clientEventsChannels.getOrPut(serialNumber) { Channel(Channel.UNLIMITED) }
     events.forEach { channel.send(it) }
   }
 

@@ -21,6 +21,7 @@ package com.android.tools.idea.adb.processnamemonitor
  * @param addedProcesses A map (pid -> process name) of processes added on the devices
  * @param removedProcesses A collection of processes removed from the device.
  */
+@Suppress("MemberVisibilityCanBePrivate") // members are accessed by deconstructed assignment
 internal class ClientMonitorEvent(val addedProcesses: Map<Int, ProcessNames>, val removedProcesses: Collection<Int>) {
   override fun toString(): String {
     val added = addedProcesses.entries.joinToString(prefix = "Added: [", postfix = "]") { "${it.key}->${it.value}" }

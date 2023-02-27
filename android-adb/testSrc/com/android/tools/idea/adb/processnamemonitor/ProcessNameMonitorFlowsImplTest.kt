@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.adb.processnamemonitor
 
+import com.android.adblib.testing.FakeAdbLoggerFactory
 import com.android.ddmlib.Client.CHANGE_NAME
 import com.android.ddmlib.IDevice.CHANGE_CLIENT_LIST
 import com.android.ddmlib.IDevice.CHANGE_STATE
@@ -24,39 +25,30 @@ import com.android.ddmlib.IDevice.DeviceState.DISCONNECTED
 import com.android.ddmlib.IDevice.DeviceState.OFFLINE
 import com.android.ddmlib.IDevice.DeviceState.ONLINE
 import com.android.tools.idea.adb.FakeAdbAdapter
-import com.android.tools.idea.concurrency.waitForCondition
 import com.google.common.truth.Truth.assertThat
-import com.intellij.testFramework.ApplicationRule
-import com.intellij.testFramework.RuleChain
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.TestCoroutineScope
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeoutOrNull
-import org.junit.Rule
 import org.junit.Test
 import java.io.Closeable
-import java.util.concurrent.TimeUnit.SECONDS
 
 /**
  * Tests for [ProcessNameMonitorFlowsImpl]
  */
+@Suppress("OPT_IN_IS_NOT_ENABLED")
+@OptIn(ExperimentalCoroutinesApi::class) // runTest is experimental (replaced runTestTest)
 class ProcessNameMonitorFlowsImplTest {
-  @get:Rule
-  val rule = RuleChain(ApplicationRule())
-
   private val adbAdapter = FakeAdbAdapter()
 
-  private val processNameMonitorFlows = ProcessNameMonitorFlowsImpl(adbAdapter)
-
-  private val testScope = TestCoroutineScope(TestCoroutineDispatcher())
+  private val processNameMonitorFlows = ProcessNameMonitorFlowsImpl(adbAdapter, FakeAdbLoggerFactory().logger)
 
   private val eventChannel = Channel<String>(1)
 
@@ -65,9 +57,9 @@ class ProcessNameMonitorFlowsImplTest {
   private val client3 = mockClient(3, "package3", "process3")
 
   @Test
-  fun trackDevices_noInitialDevices(): Unit = runBlocking {
-    testScope.collectFlowToChannel(processNameMonitorFlows.trackDevices(), eventChannel).use {
-      waitForCondition(1, SECONDS) { adbAdapter.deviceChangeListeners.isNotEmpty() }
+  fun trackDevices_noInitialDevices(): Unit = runTest {
+    collectFlowToChannel(processNameMonitorFlows.trackDevices(), eventChannel).use {
+      advanceUntilIdle()
 
       adbAdapter.fireDeviceConnected(mockDevice("device1", ONLINE))
       assertThat(eventChannel.receive()).isEqualTo("Online(device=device1)")
@@ -84,10 +76,10 @@ class ProcessNameMonitorFlowsImplTest {
   }
 
   @Test
-  fun trackDevices_noInitialDevices1(): Unit = runBlocking {
-    val job = testScope.async { processNameMonitorFlows.trackDevices().take(3).toList() }
+  fun trackDevices_noInitialDevices1(): Unit = runTest {
+    val job = async { processNameMonitorFlows.trackDevices().take(3).toList() }
+    advanceUntilIdle()
 
-    waitForCondition(1, SECONDS) { adbAdapter.deviceChangeListeners.isNotEmpty() }
     adbAdapter.fireDeviceConnected(mockDevice("device1", ONLINE))
     adbAdapter.fireDeviceDisconnected(mockDevice("device1", ONLINE))
     adbAdapter.fireDeviceConnected(mockDevice("device1", OFFLINE))
@@ -101,7 +93,7 @@ class ProcessNameMonitorFlowsImplTest {
   }
 
   @Test
-  fun trackDevices_withInitialDevices(): Unit = runBlocking {
+  fun trackDevices_withInitialDevices(): Unit = runTest {
     adbAdapter.devices = listOf(
       mockDevice("device1", OFFLINE),
       mockDevice("device2", ONLINE),
@@ -113,7 +105,7 @@ class ProcessNameMonitorFlowsImplTest {
   }
 
   @Test
-  fun trackDevices_initialOfflineDevice_becomesOnline(): Unit = runBlocking {
+  fun trackDevices_initialOfflineDevice_becomesOnline(): Unit = runTest {
     adbAdapter.devices = listOf(
       mockDevice("device1", OFFLINE),
       mockDevice("device2", ONLINE),
@@ -128,19 +120,19 @@ class ProcessNameMonitorFlowsImplTest {
   }
 
   @Test
-  fun trackDevices_jobCanceled_unregisters(): Unit = runBlocking {
-    val job = testScope.launch { processNameMonitorFlows.trackDevices().collect { } }
-    waitForCondition(1, SECONDS) { adbAdapter.deviceChangeListeners.isNotEmpty() }
+  fun trackDevices_jobCanceled_unregisters(): Unit = runTest {
+    val job = launch { processNameMonitorFlows.trackDevices().collect { } }
+    advanceUntilIdle()
+    assertThat(adbAdapter.deviceChangeListeners).isNotEmpty()
 
     job.cancel()
 
-    // Job.cancel() is asynchronous so rather than assert on the listener being removed, we give it a bit of time. A timeout will fail the
-    // test anyway so no need to assert after.
-    waitForCondition(1, SECONDS) { adbAdapter.deviceChangeListeners.isEmpty() }
+    advanceUntilIdle()
+    assertThat(adbAdapter.deviceChangeListeners).isEmpty()
   }
 
   @Test
-  fun trackClients_initialClients(): Unit = runBlocking {
+  fun trackClients_initialClients(): Unit = runTest {
     val device = mockDevice("device", ONLINE).withClients(client1, client2)
 
     collectFlowToChannel(processNameMonitorFlows.trackClients(device), eventChannel).use {
@@ -149,7 +141,7 @@ class ProcessNameMonitorFlowsImplTest {
   }
 
   @Test
-  fun trackClients_clientListChanged(): Unit = runBlocking {
+  fun trackClients_clientListChanged(): Unit = runTest {
     val device = mockDevice("device", ONLINE)
 
     collectFlowToChannel(processNameMonitorFlows.trackClients(device.withClients(client1)), eventChannel).use {
@@ -164,7 +156,7 @@ class ProcessNameMonitorFlowsImplTest {
   }
 
   @Test
-  fun trackClients_clientListChanged_otherDevice(): Unit = runBlocking {
+  fun trackClients_clientListChanged_otherDevice(): Unit = runTest {
     val device1 = mockDevice("device1", ONLINE)
     val device2 = mockDevice("device2", ONLINE)
 
@@ -177,7 +169,7 @@ class ProcessNameMonitorFlowsImplTest {
   }
 
   @Test
-  fun trackClients_clientWithoutName(): Unit = runBlocking {
+  fun trackClients_clientWithoutName(): Unit = runTest {
     val client4 = mockClient(4, packageName = null, processName = null)
     val device = mockDevice("device", ONLINE).withClients(client1, client4)
 
@@ -190,7 +182,7 @@ class ProcessNameMonitorFlowsImplTest {
   }
 
   @Test
-  fun trackClients_clientWithoutName_otherDevice(): Unit = runBlocking {
+  fun trackClients_clientWithoutName_otherDevice(): Unit = runTest {
     val client4Device1 = mockClient(4, packageName = null, processName = null)
     val device1 = mockDevice("device1", ONLINE).withClients(client1, client4Device1)
     val client4Device2 = mockClient(4, packageName = null, processName = null)

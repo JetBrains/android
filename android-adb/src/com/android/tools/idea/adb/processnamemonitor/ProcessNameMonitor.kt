@@ -15,9 +15,6 @@
  */
 package com.android.tools.idea.adb.processnamemonitor
 
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.project.Project
-
 /**
  * Monitors devices and keeps track of process names.
  */
@@ -31,11 +28,4 @@ interface ProcessNameMonitor {
    * Returns a [ProcessNames] for a given pid or null if not found.
    */
   fun getProcessNames(serialNumber: String, pid: Int): ProcessNames?
-
-  companion object {
-    internal val LOGGER = Logger.getInstance(ProcessNameMonitor::class.java)
-
-    @JvmStatic
-    fun getInstance(project: Project): ProcessNameMonitor = project.getService(ProcessNameMonitor::class.java)
-  }
 }

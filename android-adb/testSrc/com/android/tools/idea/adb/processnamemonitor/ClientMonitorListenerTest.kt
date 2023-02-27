@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.adb.processnamemonitor
 
+import com.android.adblib.testing.FakeAdbLoggerFactory
 import com.android.ddmlib.Client.CHANGE_NAME
 import com.android.ddmlib.IDevice.CHANGE_CLIENT_LIST
 import com.android.tools.idea.adb.processnamemonitor.ClientMonitorListener.ClientEvent
@@ -31,6 +32,8 @@ import org.junit.Test
  */
 @Suppress("EXPERIMENTAL_API_USAGE")
 class ClientMonitorListenerTest {
+  private val logger = FakeAdbLoggerFactory().logger
+
   private val device1 = mockDevice("device1")
   private val device2 = mockDevice("device2")
   private val client1 = mockClient(1, "package1", "process1")
@@ -40,7 +43,7 @@ class ClientMonitorListenerTest {
   fun clientListChanged() {
     runBlocking {
       val flow = callbackFlow {
-        val monitor = ClientMonitorListener(device1, this)
+        val monitor = ClientMonitorListener(device1, this, logger)
 
         monitor.deviceChanged(device1.withClients(client1), CHANGE_CLIENT_LIST)
         monitor.deviceChanged(device1.withClients(client1, client2), CHANGE_CLIENT_LIST)
@@ -65,7 +68,7 @@ class ClientMonitorListenerTest {
         val clientNotInitialized = mockClient(1, null, null)
         val clientInitialized = mockClient(1, "package1", "process1")
 
-        val monitor = ClientMonitorListener(device1, this)
+        val monitor = ClientMonitorListener(device1, this, logger)
         device1.withClients(clientNotInitialized)
         monitor.clientChanged(clientNotInitialized, CHANGE_NAME)
         device1.withClients(clientInitialized)
@@ -86,7 +89,7 @@ class ClientMonitorListenerTest {
   fun clientChanged_wrongDevice() {
     runBlocking {
       val flow = callbackFlow {
-        val monitor = ClientMonitorListener(device1.withClients(client1), this)
+        val monitor = ClientMonitorListener(device1.withClients(client1), this, logger)
         device2.withClients(client2)
         monitor.clientChanged(client2, CHANGE_NAME)
 

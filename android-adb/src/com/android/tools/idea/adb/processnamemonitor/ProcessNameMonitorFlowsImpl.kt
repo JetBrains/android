@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.adb.processnamemonitor
 
+import com.android.adblib.AdbLogger
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.adb.AdbAdapter
 import com.android.tools.idea.adb.processnamemonitor.ClientMonitorListener.ClientEvent.ClientChanged
 import com.android.tools.idea.adb.processnamemonitor.ClientMonitorListener.ClientEvent.ClientListChanged
 import com.android.tools.idea.adb.processnamemonitor.DeviceMonitorEvent.Online
-import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor.Companion.LOGGER
-import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.channels.trySendBlocking
@@ -31,6 +30,8 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.transform
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * Implementation of ProcessNameMonitorFlows
@@ -38,21 +39,25 @@ import kotlinx.coroutines.flow.transform
 @Suppress("EXPERIMENTAL_API_USAGE") // Not experimental in main
 internal class ProcessNameMonitorFlowsImpl(
   private val adbAdapter: AdbAdapter,
+  private val logger: AdbLogger,
+  private val context: CoroutineContext = EmptyCoroutineContext,
 ) : ProcessNameMonitorFlows {
   override fun trackDevices(): Flow<DeviceMonitorEvent> = callbackFlow {
-    val listener = DevicesMonitorListener(this)
+    val listener = DevicesMonitorListener(this, logger)
     adbAdapter.addDeviceChangeListener(listener)
 
     // Adding a listener does not fire events about existing devices, so we have to add them manually.
     adbAdapter.getDevices().filter { it.isOnline }.forEach {
       trySendBlocking(Online(it))
-        .onFailure { e -> LOGGER.warn("Failed to send a DeviceMonitorEvent", e) }
+        .onFailure { e -> logger.warn(e, "Failed to send a DeviceMonitorEvent") }
     }
 
-    awaitClose { adbAdapter.removeDeviceChangeListener(listener) }
-  }.flowOn(workerThread)
+    awaitClose {
+      adbAdapter.removeDeviceChangeListener(listener)
+    }
+  }.flowOn(context)
 
-  override fun trackClients(device: IDevice): Flow<ClientMonitorEvent>  = ClientsEventFlow(device, adbAdapter).flow()
+  override fun trackClients(device: IDevice): Flow<ClientMonitorEvent> = ClientsEventFlow(device, adbAdapter, logger).flow().flowOn(context)
 }
 
 /**
@@ -65,20 +70,20 @@ internal class ProcessNameMonitorFlowsImpl(
  * Note that this class could be refactored completely into ProcessNameMonitorFlowsImpl.trackClients but extracting here makes it more
  * readable.
  */
-private class ClientsEventFlow(private val device: IDevice, private val adbAdapter: AdbAdapter) {
+private class ClientsEventFlow(private val device: IDevice, private val adbAdapter: AdbAdapter, private val logger: AdbLogger) {
   private var clients = mutableSetOf<Client>()
   private val preInitializedClients = hashSetOf<Client>()
 
   @Suppress("EXPERIMENTAL_API_USAGE") // callbackFlow is not experimental in main
   fun flow(): Flow<ClientMonitorEvent> {
     return callbackFlow {
-      val listener = ClientMonitorListener(device, this)
+      val listener = ClientMonitorListener(device, this, logger)
       adbAdapter.addDeviceChangeListener(listener)
       adbAdapter.addClientChangeListener(listener)
 
       // Adding a listener does not fire events about existing clients, so we have to add them manually.
       trySendBlocking(ClientListChanged(device.clients))
-        .onFailure { LOGGER.warn("Failed to send a ClientEvent", it) }
+        .onFailure { logger.warn(it, "Failed to send a ClientEvent") }
 
       awaitClose {
         adbAdapter.removeDeviceChangeListener(listener)
@@ -89,7 +94,7 @@ private class ClientsEventFlow(private val device: IDevice, private val adbAdapt
         is ClientListChanged -> handleClientListChanged(this, it.clients.toHashSet())
         is ClientChanged -> handleClientChanged(this, it.client)
       }
-    }.flowOn(workerThread)
+    }
   }
 
   suspend fun handleClientListChanged(flow: FlowCollector<ClientMonitorEvent>, newClients: MutableSet<Client>) {
@@ -110,7 +115,7 @@ private class ClientsEventFlow(private val device: IDevice, private val adbAdapt
       val pid = client.pid()
       val names = ProcessNames(client.applicationId(), client.processName())
       if (names.isInitialized()) {
-        LOGGER.debug("Process initialized: $pid -> ($names)")
+        logger.debug { ("Process initialized: $pid -> ($names)") }
         preInitializedClients.remove(client)
         clients.add(client)
 
@@ -125,7 +130,7 @@ private class ClientsEventFlow(private val device: IDevice, private val adbAdapt
       while (hasNext()) {
         val (pid, names) = next()
         if (names.isNotInitialized()) {
-          LOGGER.debug("Process $pid is not yet initialized. Skipped...")
+          logger.debug { "Process $pid is not yet initialized. Skipped..." }
           val client = clientsByPid[pid]
           if (client != null) {
             clients.remove(client)

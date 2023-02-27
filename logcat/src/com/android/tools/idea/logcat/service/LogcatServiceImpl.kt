@@ -61,7 +61,7 @@ internal class LogcatServiceImpl @VisibleForTesting constructor(
         serialNumber,
         logcatFormat,
         channel,
-        ProcessNameMonitor.getInstance(project),
+        project.getService(ProcessNameMonitor::class.java),
         coroutineContext,
         lastMessageDelayMs,
         cutoffTime)
