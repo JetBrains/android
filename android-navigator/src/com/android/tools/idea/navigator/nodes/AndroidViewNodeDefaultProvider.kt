@@ -36,6 +36,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidSourceType
+import org.jetbrains.android.facet.BUILT_IN_TYPES
 
 class AndroidViewNodeDefaultProvider : AndroidViewNodeProvider {
   override fun getModuleNodes(module: Module, settings: ViewSettings): List<AbstractTreeNode<*>>? {
@@ -118,7 +119,7 @@ private fun getSourcesBySourceType(
   // If a set of sources has partially been included as part of another source type's source set, then we simply don't include it
   // as part of this source type.
   val allSources: MutableSet<VirtualFile> = HashSet()
-  for (sourceType in AndroidSourceType.BUILT_IN_TYPES) {
+  for (sourceType in BUILT_IN_TYPES) {
     if (sourceType == AndroidSourceType.SHADERS && androidModel == null) {
       continue
     }
