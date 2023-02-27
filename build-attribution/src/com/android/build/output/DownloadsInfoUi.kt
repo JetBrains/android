@@ -68,6 +68,7 @@ class DownloadsInfoExecutionConsole(
 
   private val panel by lazy { JPanel().apply {
     layout = BorderLayout()
+    name = "downloads info build output panel"
     reposTable.visibleRowCount = 5
     val browserLink = BrowserLink(
       "Read more on repositories optimization",

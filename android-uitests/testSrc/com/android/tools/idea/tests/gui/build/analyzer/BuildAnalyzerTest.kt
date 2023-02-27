@@ -23,10 +23,12 @@ import com.android.tools.idea.tests.gui.framework.fixture.BuildAnalyzerViewFixtu
 import com.android.tools.idea.tests.gui.framework.fixture.IdeSettingsDialogFixture
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.matcher.JButtonMatcher.withText
+import org.fest.swing.fixture.JPanelFixture
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
+import javax.swing.JPanel
 
 import kotlin.test.assertTrue
 import kotlin.test.assertEquals
@@ -70,6 +72,9 @@ class BuildAnalyzerTest {
         assertEquals("Downloads info", tree.valueAt(1))
         tree.clickRow(1)
       }
+      buildToolWindow.syncContent.component.also {
+        JPanelFixture(guiTest.robot(), guiTest.robot().finder().findByName(it, "downloads info build output panel", JPanel::class.java)).requireVisible()
+      }
 
       ideFrame.requestProjectSyncAndWaitForSyncToFinish()
       guiTest.robot().waitForIdle()
@@ -77,6 +82,9 @@ class BuildAnalyzerTest {
       buildToolWindow.gradleSyncEventTree.also { tree ->
         assertEquals("Downloads info", tree.valueAt(1))
         tree.clickRow(1)
+      }
+      buildToolWindow.syncContent.component.also {
+        JPanelFixture(guiTest.robot(), guiTest.robot().finder().findByName(it, "downloads info build output panel", JPanel::class.java)).requireVisible()
       }
     }
   }
@@ -133,7 +141,9 @@ class BuildAnalyzerTest {
       buildToolWindow.gradleBuildEventTree.also { tree ->
         assertEquals("Downloads info", tree.valueAt(1))
         tree.clickRow(1)
-        tree.toggleRow(0)
+      }
+      buildToolWindow.buildContent.component.also {
+        JPanelFixture(guiTest.robot(), guiTest.robot().finder().findByName(it, "downloads info build output panel", JPanel::class.java)).requireVisible()
       }
     }
     ideFrame.closeBuildPanel()
