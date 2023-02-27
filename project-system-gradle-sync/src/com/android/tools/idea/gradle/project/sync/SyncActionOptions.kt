@@ -68,5 +68,6 @@ data class GradleSyncStudioFlags(
   val studioFlagOutputSyncStats: Boolean,
   val studioHprofOutputDirectory: String,
   val studioHeapAnalysisOutputDirectory: String,
+  val studioHeapAnalysisLightweightMode: Boolean
 ) : Serializable
 

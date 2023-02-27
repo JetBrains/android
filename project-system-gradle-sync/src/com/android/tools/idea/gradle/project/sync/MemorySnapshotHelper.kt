@@ -38,22 +38,25 @@ fun captureSnapshot(outputPath: String, name: String) {
   }
 }
 
-fun analyzeCurrentProcessHeap(outputPath: String, name: String) {
+fun analyzeCurrentProcessHeap(outputPath: String, name: String, lightweightMode: Boolean) {
+  val collectReachableObjectsInfo = !lightweightMode
   println("Starting heap traversal for $name")
   var result : LightweightTraverseResult?
   val elapsedTime = measureTimeMillis {
-    result = LightweightHeapTraverse.collectReport(LightweightHeapTraverseConfig(false, true, true))
+    result = LightweightHeapTraverse.collectReport(LightweightHeapTraverseConfig(false, collectReachableObjectsInfo, true))
   }
   println("Heap traversal for $name finished in $elapsedTime milliseconds")
 
-  println("Heap $name total size MBs: ${result!!.totalReachableObjectsSizeBytes shr 20} ")
-  println("Heap $name total object count: ${result!!.totalReachableObjectsNumber} ")
+  if (collectReachableObjectsInfo) {
+    println("Heap $name total size MBs: ${result!!.totalReachableObjectsSizeBytes shr 20} ")
+    println("Heap $name total object count: ${result!!.totalReachableObjectsNumber} ")
+    val fileTotal = File(outputPath).resolve("${getTimestamp()}_${name}_total")
+    fileTotal.writeText(result!!.totalReachableObjectsSizeBytes.toString())
+  }
   println("Heap $name strong size MBs: ${result!!.totalStrongReferencedObjectsSizeBytes shr 20} ")
   println("Heap $name strong object count: ${result!!.totalStrongReferencedObjectsNumber} ")
   val fileStrong = File(outputPath).resolve("${getTimestamp()}_${name}_strong")
   fileStrong.writeText(result!!.totalStrongReferencedObjectsSizeBytes.toString())
-  val fileTotal = File(outputPath).resolve("${getTimestamp()}_${name}_total")
-  fileTotal.writeText(result!!.totalReachableObjectsSizeBytes.toString())
 }
 
 private fun getTimestamp() = DateTimeFormatter

@@ -797,6 +797,15 @@ public final class StudioFlags {
     ""
   );
 
+  public static final Flag<Boolean> GRADLE_HEAP_ANALYSIS_LIGHTWEIGHT_MODE = Flag.create(
+    GRADLE_IDE,
+    "gradle.heap.analysis.lightweight.mode",
+    "Gradle heap analysis lightweight mode",
+    "If set, the analysis will only run after sync once and will only collect the strongly connected object info. This makes the " +
+    "analysis faster at the cost of losing some information.",
+    false
+  );
+
   //endregion
 
   //region Database Inspector
