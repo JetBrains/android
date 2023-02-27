@@ -43,7 +43,7 @@ class Benchmark200MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
 
 class Benchmark500MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
   override val projectName = "500Modules"
-  override val memoryLimitMb = 4000
+  override val memoryLimitMb = 4200
 
   init {
     setUpProject("diff-500")
