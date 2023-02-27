@@ -149,6 +149,7 @@ JNIEXPORT jobject JNICALL Java_com_android_tools_memory_usage_LightweightHeapTra
           env->IsAssignableFrom(classes[i], weak_reference_class) == JNI_TRUE) {
         jvmti->SetTag(classes[i], IGNORE_CLASS_TAG);
       }
+      env->DeleteLocalRef(classes[i]);
     }
     jvmti->Deallocate((unsigned char *)classes);
 
