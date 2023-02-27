@@ -19,6 +19,8 @@ import com.android.tools.analytics.UsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.FileType
 import com.google.wireless.android.sdk.stats.FileUsage
+import com.google.wireless.android.sdk.stats.KotlinGradlePerformance
+import com.google.wireless.android.sdk.stats.KotlinGradlePerformance.FirUsage
 import com.google.wireless.android.sdk.stats.KotlinProjectConfiguration
 import com.google.wireless.android.sdk.stats.RunFinishData
 import com.google.wireless.android.sdk.stats.RunStartData
@@ -29,6 +31,9 @@ import com.intellij.internal.statistic.eventLog.EventLogGroup
 import com.intellij.internal.statistic.eventLog.StatisticsEventLogger
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.getProjectCacheFileName
+import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
+import org.jetbrains.kotlin.statistics.metrics.StringMetrics
+import java.util.Locale
 import java.util.concurrent.CompletableFuture
 
 object AndroidStudioEventLogger : StatisticsEventLogger {
@@ -39,6 +44,7 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
     when (group.id) {
       "file.types" -> logFileType(eventId, data)
       "file.types.usage" -> logFileTypeUsage(eventId, data)
+      "kotlin.gradle.performance" -> logKotlinGradlePerformance(eventId, data)
       "kotlin.project.configuration" -> logKotlinProjectConfiguration(eventId, data)
       "run.configuration.exec" -> logRunConfigurationExec(eventId, data)
       "vfs" -> logVfsEvent(eventId, data)
@@ -96,6 +102,48 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
     }.withProjectId(data))
   }
 
+  private fun logKotlinGradlePerformance(eventId: String, data: Map<String, Any>) {
+    if (eventId != "All") {
+      return
+    }
+
+    UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
+      kind = AndroidStudioEvent.EventKind.KOTLIN_GRADLE_PERFORMANCE_EVENT
+      kotlinGradlePerformanceEvent = KotlinGradlePerformance.newBuilder().apply {
+        (data[StringMetrics.USE_FIR.key()] as? String?)?.let { useFir = firUsage(it) }
+        (data[StringMetrics.KOTLIN_API_VERSION.key()] as? String?)?.let { kotlinApiVersion = it }
+        (data[StringMetrics.KOTLIN_COMPILER_VERSION.key()] as? String?)?.let { kotlinCompilerVersion = it }
+        (data[StringMetrics.KOTLIN_LANGUAGE_VERSION.key()] as? String?)?.let { kotlinLanguageVersion = it }
+        (data[StringMetrics.KOTLIN_STDLIB_VERSION.key()] as? String?)?.let { kotlinStdlibVersion = it }
+        (data["plugin_version"] as? String?)?.let { pluginVersion = it }
+        (data[BooleanMetrics.ENABLED_COMPILER_PLUGIN_ALL_OPEN.key()] as? String?)?.toBoolean()?.let { enabledCompilerPluginAllOpen = it }
+        (data[BooleanMetrics.ENABLED_COMPILER_PLUGIN_ATOMICFU.key()] as? String?)?.toBoolean()?.let { enabledCompilerPluginAtomicfu = it }
+        (data["enabled_compiler_plugin_jpasupport"] as? String?)?.toBoolean()?.let { enabledCompilerPluginJpaSupport = it }
+        (data[BooleanMetrics.ENABLED_COMPILER_PLUGIN_LOMBOK.key()] as? String?)?.toBoolean()?.let { enabledCompilerPluginLombok = it }
+        (data[BooleanMetrics.ENABLED_COMPILER_PLUGIN_NO_ARG.key()] as? String?)?.toBoolean()?.let { enabledCompilerPluginNoArg = it }
+        (data[BooleanMetrics.ENABLED_COMPILER_PLUGIN_PARSELIZE.key()] as? String?)?.toBoolean()?.let { enabledCompilerPluginParcelize = it }
+        (data[BooleanMetrics.ENABLED_COMPILER_PLUGIN_SAM_WITH_RECEIVER.key()] as? String?)?.toBoolean()?.let { enabledCompilerPluginSamWithReceiver = it }
+        (data[BooleanMetrics.KOTLIN_KTS_USED.key()] as? String?)?.toBoolean()?.let { ktsUsed = it }
+      }.build()
+    }.withProjectId(data))
+  }
+
+  private fun BooleanMetrics.key() = this.toString().lowercase(Locale.getDefault())
+  private fun StringMetrics.key() = this.toString().lowercase(Locale.getDefault())
+
+  private fun firUsage(s: String): FirUsage {
+    val tokens = s.split(';')
+    val hasTrue = tokens.contains("true")
+    val hasFalse = tokens.contains("false")
+
+    return when {
+      hasTrue && !hasFalse -> FirUsage.TOTAL
+      hasFalse && !hasTrue -> FirUsage.NONE
+      hasTrue && hasFalse -> FirUsage.PARTIAL
+      else -> FirUsage.UNSPECIFIED
+    }
+  }
+
   private fun logKotlinProjectConfiguration(eventId: String, data: Map<String, Any>) {
     // filter out events that Jetbrains does not require
     if (eventId == "invoked") {
@@ -130,6 +178,7 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
           (data["id"] as? String?)?.let { runConfiguration = it }
         }.build()
       }
+
       "finished" -> AndroidStudioEvent.newBuilder().apply {
         kind = AndroidStudioEvent.EventKind.RUN_FINISH_DATA
         runFinishData = RunFinishData.newBuilder().apply {
@@ -137,6 +186,7 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
           (data["ide_activity_id"] as? String?)?.toIntOrNull()?.let { ideActivity = it }
         }.build()
       }
+
       else -> return
     }
 
