@@ -51,5 +51,6 @@
     <orderEntry type="module" module-name="intellij.android.lint" />
     <orderEntry type="module" module-name="intellij.android.device-manager" />
     <orderEntry type="module" module-name="intellij.android.wear-pairing" />
+    <orderEntry type="module" module-name="intellij.android.device-manager-v2" />
   </component>
 </module>
