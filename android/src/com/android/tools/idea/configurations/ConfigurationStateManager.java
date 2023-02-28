@@ -60,12 +60,6 @@ public class ConfigurationStateManager implements PersistentStateComponent<Confi
     }
   }
 
-  public void removeConfigurationState(@NotNull VirtualFile file) {
-    synchronized (myFileToState) {
-      myFileToState.remove(file);
-    }
-  }
-
   @NotNull
   public ConfigurationProjectState getProjectState() {
     return myProjectState;
