@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run
+package com.android.tools.idea.run.blaze
 
 import com.android.ddmlib.IDevice
-import com.android.tools.deployer.DeployerException
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
-import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.ClearLogcatListener
+import com.android.tools.idea.run.ConsoleProvider
+import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.run.DeviceHeadsUpListener
+import com.android.tools.idea.run.LaunchOptions
+import com.android.tools.idea.run.ShowLogcatListener
 import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLinkText
 import com.android.tools.idea.run.applychanges.findExistingSessionAndMaybeDetachForColdSwap
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
+import com.android.tools.idea.run.tasks.ConnectDebuggerTask
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchTask
-import com.android.tools.idea.run.tasks.LaunchTasksProvider
-import com.android.tools.idea.run.util.SwapInfo
+import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.stats.RunStats
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RunConfiguration
@@ -40,7 +44,6 @@ import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
-import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
@@ -48,20 +51,26 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
-import org.jetbrains.kotlin.utils.keysToMap
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
-class LaunchTaskRunner(
+
+/**
+ * [AndroidConfigurationExecutor] for [BlazeRunConfiguration].
+ * TODO: Move to blaze module as we support Kotlin in it.
+ */
+class BlazeAndroidConfigurationExecutor(
   private val consoleProvider: ConsoleProvider,
   private val applicationIdProvider: ApplicationIdProvider,
   private val env: ExecutionEnvironment,
   override val deviceFutures: DeviceFutures,
-  private val myLaunchTasksProvider: LaunchTasksProvider,
+  private val myLaunchTasksProvider: BlazeLaunchTasksProvider,
+  private val launchOptions: LaunchOptions
 ) : AndroidConfigurationExecutor {
 
   val project = env.project
-  override val configuration = env.runProfile as AndroidRunConfiguration
+  override val configuration = env.runProfile as RunConfiguration
   private val LOG = Logger.getInstance(this::class.java)
 
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
@@ -78,7 +87,10 @@ class LaunchTaskRunner(
 
     devices.forEach { device ->
       processHandler.addTargetDevice(device)
-      if (!StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.get()) {
+      if (launchOptions.isOpenLogcatAutomatically) {
+        project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, packageName)
+      }
+      else {
         console.printHyperlink(getShowLogcatLinkText(device)) { project ->
           project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, packageName)
         }
@@ -96,21 +108,24 @@ class LaunchTaskRunner(
     val stat = RunStats.from(env).apply { setPackage(applicationId) }
     stat.beginLaunchTasks()
     try {
-
       printLaunchTaskStartedMessage(console)
-      myLaunchTasksProvider.fillStats(stat)
 
-      // Create launch tasks for each device.
       indicator.text = "Getting task for devices"
-      val launchTaskMap = devices.keysToMap { myLaunchTasksProvider.getTasks(it) }
 
       // A list of devices that we have launched application successfully.
       indicator.text = "Launching on devices"
-      launchTaskMap.entries.map { (device, tasks) ->
+      devices.map {device ->
         async {
+          if (launchOptions.isClearAppStorage) {
+            project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device.serialNumber)
+          }
+
+          LaunchUtils.initiateDismissKeyguard(device)
           LOG.info("Launching on device ${device.name}")
-          val launchContext = LaunchContext(env, device, console, processHandler, indicator)
-          runLaunchTasks(tasks, launchContext)
+          val launchContext = BlazeLaunchContext(env, device, console, processHandler, indicator)
+          myLaunchTasksProvider.getTasks(device).forEach {
+            it.run(launchContext)
+          }
           // Notify listeners of the deployment.
           project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)
         }
@@ -156,75 +171,43 @@ class LaunchTaskRunner(
     session.runContentDescriptor
   }
 
-  override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
-    val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
+  override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor = throw UnsupportedOperationException("Apply Changes are not supported for Blaze")
 
-    val oldSession = findExistingSessionAndMaybeDetachForColdSwap(env)
-    val packageName = applicationIdProvider.packageName
-    val processHandler = oldSession.processHandler ?: AndroidProcessHandler(project, packageName)
-
-    val console = oldSession.executionConsole as? ConsoleView ?: createConsole(processHandler)
-
-    doRun(devices, processHandler, indicator, console)
-
-    if (oldSession.processHandler == null && processHandler is AndroidProcessHandler) {
-      devices.forEach { device ->
-        processHandler.addTargetDevice(device)
-        if (!StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.get()) {
-          console.printHyperlink(getShowLogcatLinkText(device)) { project ->
-            project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, applicationIdProvider.packageName)
-          }
-        }
-      }
-    }
-
-    withContext(uiThread) {
-      val descriptor = RunContentManager.getInstance(project).findContentDescriptor(env.executor, processHandler)
-
-      if (descriptor?.attachedContent == null) {
-        createRunContentDescriptor(processHandler, console, env)
-      }
-      else {
-        descriptor.takeIf { it is HiddenRunContentDescriptor } ?: HiddenRunContentDescriptor(descriptor)
-      }
-    }
-  }
+  override fun applyCodeChanges(indicator: ProgressIndicator): RunContentDescriptor = throw UnsupportedOperationException("Apply Code Changes are not supported for Blaze")
 
   private suspend fun createConsole(processHandler: ProcessHandler): ConsoleView = withContext(uiThread) {
     consoleProvider.createAndAttach(project, processHandler, env.executor)
   }
 
-  override fun applyCodeChanges(indicator: ProgressIndicator): RunContentDescriptor {
-    return applyChanges(indicator)
-  }
-
-  private fun runLaunchTasks(launchTasks: List<LaunchTask>, launchContext: LaunchContext) {
-    val stat = RunStats.from(env)
-    for (task in launchTasks) {
-      if (task.shouldRun(launchContext)) {
-        val details = stat.beginLaunchTask(task)
-        try {
-          task.run(launchContext)
-          stat.endLaunchTask(task, details, true)
-        }
-        catch (e: Exception) {
-          stat.endLaunchTask(task, details, false)
-          if (e is DeployerException) {
-            throw AndroidExecutionException(e.id, e.message)
-          }
-          throw e
-        }
-      }
-    }
-  }
-
   private fun printLaunchTaskStartedMessage(consoleView: ConsoleView) {
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT)
-    val launchVerb = when (env.getUserData(SwapInfo.SWAP_INFO_KEY)?.type) {
-      SwapInfo.SwapType.APPLY_CHANGES -> "Applying changes to"
-      SwapInfo.SwapType.APPLY_CODE_CHANGES -> "Applying code changes to"
-      else -> "Launching"
-    }
-    consoleView.println("$dateFormat: $launchVerb ${configuration.name} on '${env.executionTarget.displayName}.")
+    val date = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT).format(Date())
+    consoleView.println("$date: Launching ${configuration.name} on '${env.executionTarget.displayName}.")
   }
 }
+
+
+interface BlazeLaunchTasksProvider {
+  @Throws(ExecutionException::class)
+  fun getTasks(device: IDevice): List<BlazeLaunchTask>
+
+  @get:Throws(ExecutionException::class)
+  val connectDebuggerTask: ConnectDebuggerTask?
+}
+
+
+interface BlazeLaunchTask {
+  @Throws(ExecutionException::class)
+  fun run(launchContext: BlazeLaunchContext)
+}
+
+class BlazeLaunchTaskWrapper(private val launchTask: LaunchTask):BlazeLaunchTask {
+  override fun run(launchContext: BlazeLaunchContext) {
+    launchTask.run(LaunchContext(launchContext.env, launchContext.device, launchContext.consoleView, launchContext.processHandler, launchContext.progressIndicator))
+  }
+}
+
+class BlazeLaunchContext(val env: ExecutionEnvironment,
+    val device: IDevice,
+    val consoleView: ConsoleView,
+    val processHandler: ProcessHandler,
+    val progressIndicator: ProgressIndicator)
