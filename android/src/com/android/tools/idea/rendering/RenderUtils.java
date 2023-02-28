@@ -26,6 +26,7 @@ import com.intellij.openapi.module.Module;
 import java.util.Objects;
 import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +43,7 @@ public class RenderUtils {
           ResourceIdManager.get(module).resetDynamicIds();
           ResourceClassRegistry.get(module.getProject()).clearCache();
           if (target != null) {
-            AndroidTargetData targetData = AndroidTargetData.getTargetData(target, module);
+            AndroidTargetData targetData = AndroidTargetData.getTargetData(target, AndroidPlatforms.getInstance(module));
             if (targetData != null) {
               targetData.clearAllCaches(module);
             }

@@ -557,7 +557,7 @@ public class ConfigurationManager implements Disposable {
         // needlessly flush the bitmap cache for the project still using it, but that just
         // means the next render will need to fetch them again; from that point on both platform
         // bitmap sets are in memory.
-        AndroidTargetData targetData = AndroidTargetData.getTargetData(myTarget, myModule);
+        AndroidTargetData targetData = AndroidTargetData.getTargetData(myTarget, AndroidPlatforms.getInstance(myModule));
         if (targetData != null) {
           targetData.clearLayoutBitmapCache(myModule);
         }

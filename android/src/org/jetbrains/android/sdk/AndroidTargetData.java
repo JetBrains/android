@@ -255,8 +255,7 @@ public class AndroidTargetData {
    * This method can return null when the user is changing the SDK setting in their project.
    */
   @Nullable
-  public static AndroidTargetData getTargetData(@NotNull IAndroidTarget target, @NotNull Module module) {
-    AndroidPlatform platform = AndroidPlatforms.getInstance(module);
+  public static AndroidTargetData getTargetData(@NotNull IAndroidTarget target, @Nullable AndroidPlatform platform) {
     return platform != null ? AndroidTargetData.get(platform.getSdkData(), target) : null;
   }
 

@@ -56,6 +56,7 @@ import org.jetbrains.android.dom.attrs.AttributeDefinition;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -189,7 +190,7 @@ public class ResolutionUtils {
       }
       assert target != null;
 
-      AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, module);
+      AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, AndroidPlatforms.getInstance(module));
       assert androidTargetData != null;
 
       definitions = androidTargetData.getAllAttrDefs(module.getProject());
