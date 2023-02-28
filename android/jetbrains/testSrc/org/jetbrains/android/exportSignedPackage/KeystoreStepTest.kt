@@ -26,7 +26,7 @@ import com.intellij.credentialStore.PasswordSafeSettings
 import com.intellij.credentialStore.ProviderType
 import com.intellij.facet.FacetManager
 import com.intellij.ide.passwordSafe.PasswordSafe
-import com.intellij.ide.passwordSafe.impl.BasePasswordSafe
+import com.intellij.ide.passwordSafe.impl.TestPasswordSafeImpl
 import com.intellij.ide.wizard.CommitStepException
 import com.intellij.mock.MockModule
 import com.intellij.openapi.Disposable
@@ -243,7 +243,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
 
     val passwordSafeSettings = PasswordSafeSettings()
     passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
-    val passwordSafe = BasePasswordSafe(passwordSafeSettings)
+    val passwordSafe = TestPasswordSafeImpl(passwordSafeSettings)
     ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
@@ -282,7 +282,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
     // Setup in-memory PasswordSafe for tests
     val passwordSafeSettings = PasswordSafeSettings()
     passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
-    val passwordSafe = BasePasswordSafe(passwordSafeSettings)
+    val passwordSafe = TestPasswordSafeImpl(passwordSafeSettings)
     ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
@@ -390,7 +390,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
 
     val passwordSafeSettings = PasswordSafeSettings()
     passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
-    val passwordSafe = BasePasswordSafe(passwordSafeSettings)
+    val passwordSafe = TestPasswordSafeImpl(passwordSafeSettings)
     val keyPasswordKey = KeystoreStep.makePasswordKey(KEY_PASSWORD_KEY, settings.KEY_STORE_PATH, settings.KEY_ALIAS)
     passwordSafe.setPassword(CredentialAttributes(legacyRequestor.name, keyPasswordKey, legacyRequestor), testLegacyKeyPassword)
     ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
@@ -441,7 +441,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
 
     val passwordSafeSettings = PasswordSafeSettings()
     passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
-    val passwordSafe = BasePasswordSafe(passwordSafeSettings)
+    val passwordSafe = TestPasswordSafeImpl(passwordSafeSettings)
     val keyStorePasswordKey = KeystoreStep.makePasswordKey(KEY_STORE_PASSWORD_KEY, settings.KEY_STORE_PATH, null)
     passwordSafe.setPassword(CredentialAttributes(legacyKeystoreRequestor, keyStorePasswordKey), testLegacyKeyStorePassword)
     val keyPasswordKey = KeystoreStep.makePasswordKey(KEY_PASSWORD_KEY, settings.KEY_STORE_PATH, settings.KEY_ALIAS)
@@ -484,7 +484,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
     // Setup in-memory PasswordSafe for tests
     val passwordSafeSettings = PasswordSafeSettings()
     passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
-    val passwordSafe = BasePasswordSafe(passwordSafeSettings)
+    val passwordSafe = TestPasswordSafeImpl(passwordSafeSettings)
     ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
 
     val settings = GenerateSignedApkSettings()
@@ -557,7 +557,7 @@ class KeystoreStepTest : LightPlatformTestCase() {
 
     val passwordSafeSettings = PasswordSafeSettings()
     passwordSafeSettings.providerType = ProviderType.MEMORY_ONLY
-    val passwordSafe = BasePasswordSafe(passwordSafeSettings)
+    val passwordSafe = TestPasswordSafeImpl(passwordSafeSettings)
     ideComponents.replaceApplicationService(PasswordSafe::class.java, passwordSafe)
 
     val wizard = mock(ExportSignedPackageWizard::class.java)
