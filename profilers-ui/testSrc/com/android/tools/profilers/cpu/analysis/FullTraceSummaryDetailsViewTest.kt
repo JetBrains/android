@@ -27,6 +27,7 @@ import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuCapture
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -41,6 +42,9 @@ class FullTraceSummaryDetailsViewTest {
   @get:Rule
   val applicationRule = ApplicationRule()
 
+  @get:Rule
+  val disposableRule = DisposableRule()
+
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
@@ -52,7 +56,7 @@ class FullTraceSummaryDetailsViewTest {
   @Before
   fun setUp() {
     val profilers = StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices())
-    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
   }
 
   @Test

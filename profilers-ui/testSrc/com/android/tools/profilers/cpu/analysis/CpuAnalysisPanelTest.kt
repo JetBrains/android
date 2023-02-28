@@ -30,6 +30,7 @@ import com.android.tools.profilers.cpu.CpuCaptureStage
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
@@ -48,6 +49,8 @@ class CpuAnalysisPanelTest {
   val myEdtRule = EdtRule()
   @get:Rule
   val applicationRule = ApplicationRule()
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   private lateinit var profilers: StudioProfilers
   private val services = FakeIdeProfilerServices()
@@ -59,7 +62,7 @@ class CpuAnalysisPanelTest {
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                    resolveWorkspacePath(CpuProfilerUITestUtils.ATRACE_TRACE_PATH).toFile(), 123L)
-    panel = CpuAnalysisPanel(StudioProfilersView(profilers, FakeIdeProfilerComponents()), stage)
+    panel = CpuAnalysisPanel(StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable), stage)
   }
 
   @Test

@@ -30,6 +30,7 @@ import com.android.tools.profilers.cpu.config.ImportedConfiguration
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.After
 import org.junit.Rule
 import java.io.File
@@ -57,6 +58,9 @@ open class CpuProfilerMemoryLoadTestBase {
   @get:Rule
   val appRule = ApplicationRule()
 
+  @get:Rule
+  val disposableRule = DisposableRule()
+
   @After
   fun cleanup() {
     Disposer.dispose(myProfilersView!!)
@@ -78,7 +82,7 @@ open class CpuProfilerMemoryLoadTestBase {
     // One second must be enough for new devices (and processes) to be picked up
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     myTimingBenchmark.log(name, measureTimeMillis {
-    myProfilersView = StudioProfilersView(profilers, myComponents)
+    myProfilersView = StudioProfilersView(profilers, myComponents, disposableRule.disposable)
       // Setting the stage enters the stage and triggers the parsing of the CpuCapture
       stage.studioProfilers.stage = stage
       cpuCaptureView = CpuCaptureStageView(myProfilersView!!, stage)

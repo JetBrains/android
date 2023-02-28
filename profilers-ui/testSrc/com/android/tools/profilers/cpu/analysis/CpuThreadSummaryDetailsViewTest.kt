@@ -36,6 +36,7 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.systemtrace.CpuSystemTraceData
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -51,6 +52,9 @@ class CpuThreadSummaryDetailsViewTest {
   @get:Rule
   val applicationRule = ApplicationRule()
 
+  @get:Rule
+  val disposableRule = DisposableRule()
+
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
 
@@ -62,7 +66,7 @@ class CpuThreadSummaryDetailsViewTest {
   @Before
   fun setUp() {
     val profilers = StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices())
-    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
   }
 
   @Test

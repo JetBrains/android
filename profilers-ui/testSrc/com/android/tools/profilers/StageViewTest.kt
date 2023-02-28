@@ -21,6 +21,7 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
@@ -29,6 +30,9 @@ import javax.swing.JComponent
 class StageViewTest {
   @get:Rule
   val applicationRule = ApplicationRule()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
@@ -39,7 +43,7 @@ class StageViewTest {
   @Test
   fun testSelectionTimeLabel() {
     val profilers = StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices(), timer)
-    val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     val stageView = object : StageView<FakeStage>(profilersView, FakeStage(profilers)) {
       override fun getToolbar(): JComponent? {
         return null
@@ -67,7 +71,7 @@ class StageViewTest {
   fun testClickSelectionTimeLabel() {
     val timer = FakeTimer()
     val profilers = StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices(), timer)
-    val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     val stageView = object : StageView<FakeStage>(profilersView, FakeStage(profilers)) {
       override fun getToolbar(): JComponent? {
         return null

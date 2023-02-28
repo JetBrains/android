@@ -28,6 +28,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -45,12 +46,15 @@ class UserEventTooltipViewTest {
   @get:Rule
   val applicationRule = ApplicationRule()
 
+  @get:Rule
+  val disposableRule = DisposableRule()
+
   @Before
   fun setup() {
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), timer)
     timer.tick(TimeUnit.SECONDS.toNanos(1))
     monitor = EventMonitor(profilers)
-    val view = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    val view = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     // Need to set the view range, and component bounds as they are used by the view in determining how much time
     // around an event should be considered when determining if the tooltip range overlaps the icon.
     view.stageView.component.setBounds(0, 0, 1024, 1024)

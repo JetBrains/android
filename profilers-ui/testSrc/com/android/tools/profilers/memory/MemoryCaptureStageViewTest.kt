@@ -31,6 +31,7 @@ import com.android.tools.profilers.memory.adapters.FakeCaptureObject
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -50,6 +51,9 @@ class MemoryCaptureStageViewTest {
   @get:Rule
   val appRule = ApplicationRule()
 
+  @get:Rule
+  val disposableRule = DisposableRule()
+
   @Rule
   @JvmField
   val grpcChannel = FakeGrpcChannel("MemoryProfilerStageViewTestChannel", transportService)
@@ -59,7 +63,7 @@ class MemoryCaptureStageViewTest {
     ideProfilerServices = FakeIdeProfilerServices()
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, myTimer)
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
-    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     mockLoader = FakeCaptureObjectLoader()
 
     // Advance the clock to make sure StudioProfilers has a chance to select device + process.

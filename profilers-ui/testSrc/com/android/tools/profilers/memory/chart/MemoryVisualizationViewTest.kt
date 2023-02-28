@@ -35,6 +35,7 @@ import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.memory.MemoryCaptureObjectTestUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -50,6 +51,9 @@ class MemoryVisualizationViewTest {
   @get:Rule
   val applicationRule = ApplicationRule()
 
+  @get:Rule
+  val disposableRule = DisposableRule()
+
   private lateinit var fakeIdeProfilerComponents: FakeIdeProfilerComponents
   private lateinit var stage: MainMemoryProfilerStage
   private lateinit var visualizationView: MemoryVisualizationView
@@ -62,7 +66,8 @@ class MemoryVisualizationViewTest {
     fakeIdeProfilerComponents = FakeIdeProfilerComponents()
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), fakeIdeProfilerServices, FakeTimer())
     stage = MainMemoryProfilerStage(profilers, loader)
-    visualizationView = MemoryVisualizationView(stage.captureSelection, StudioProfilersView(profilers, fakeIdeProfilerComponents))
+    val profilersView = StudioProfilersView(profilers, fakeIdeProfilerComponents, disposableRule.disposable)
+    visualizationView = MemoryVisualizationView(stage.captureSelection, profilersView)
   }
 
   @Test

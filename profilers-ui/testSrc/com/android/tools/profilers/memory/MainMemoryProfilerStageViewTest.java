@@ -70,6 +70,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.ApplicationRule;
+import com.intellij.testFramework.DisposableRule;
 import com.intellij.testFramework.ServiceContainerUtil;
 import icons.StudioIcons;
 import java.awt.Component;
@@ -100,6 +101,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
   public FakeGrpcChannel myGrpcChannel =
     new FakeGrpcChannel("MemoryProfilerStageViewTestChannel", myTransportService, new FakeEventService());
   @Rule public final ApplicationRule myApplicationRule = new ApplicationRule();
+  @Rule public final DisposableRule myDisposableRule = new DisposableRule();
 
   private StudioProfilersView myProfilersView;
 
@@ -110,7 +112,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
   @Override
   protected void onProfilersCreated(StudioProfilers profilers) {
-    myProfilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
+    myProfilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents(), myDisposableRule.getDisposable());
   }
 
   @Before

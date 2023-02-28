@@ -39,12 +39,16 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Rule
 import org.junit.Test
 
 class CaptureDetailsTest {
   @get:Rule
   val appRule = ApplicationRule()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
@@ -132,7 +136,7 @@ class CaptureDetailsTest {
     val profilers = object: StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices()) {
       override fun update(elapsedNs: Long) {}
     }
-    return StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    return StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
   }
 
   private fun<A> withTestData(test: (Range, List<CaptureNode>, CpuCapture) -> A): A {

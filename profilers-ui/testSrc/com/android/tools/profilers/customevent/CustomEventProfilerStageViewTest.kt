@@ -30,6 +30,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -49,6 +50,9 @@ class CustomEventProfilerStageViewTest {
   @get:Rule
   val applicationRule = ApplicationRule()
 
+  @get:Rule
+  val disposableRule = DisposableRule()
+
   @Before
   fun setUp() {
     val services = FakeIdeProfilerServices().apply { enableCustomEventVisualization(true) }
@@ -58,7 +62,7 @@ class CustomEventProfilerStageViewTest {
     profilers.stage = stage
 
     //Initialize the view after the stage, otherwise it will create views for monitoring stage
-    view = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    view = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
 
   }
 

@@ -49,6 +49,7 @@ import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.intellij.testFramework.ApplicationRule;
+import com.intellij.testFramework.DisposableRule;
 import com.intellij.util.containers.ImmutableList;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,6 +74,7 @@ public class MemoryClassSetViewTest {
   @NotNull private final FakeIdeProfilerComponents myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
   @Rule public final FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryInstanceViewTestGrpc", new FakeTransportService(myTimer));
   @Rule public final ApplicationRule myApplicationRule = new ApplicationRule();
+  @Rule public final DisposableRule myDisposableRule = new DisposableRule();
 
   private MainMemoryProfilerStage myStage;
 
@@ -90,7 +92,7 @@ public class MemoryClassSetViewTest {
   @Before
   public void before() {
     StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), myTimer);
-    StudioProfilersView profilersView = new StudioProfilersView(profilers, myFakeIdeProfilerComponents);
+    StudioProfilersView profilersView = new StudioProfilersView(profilers, myFakeIdeProfilerComponents, myDisposableRule.getDisposable());
 
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);

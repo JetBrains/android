@@ -29,6 +29,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -40,6 +41,9 @@ class CustomEventMonitorViewTest {
 
   @get:Rule
   val applicationRule = ApplicationRule()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
@@ -53,7 +57,7 @@ class CustomEventMonitorViewTest {
     transportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE)
     timer.tick(TimeUnit.SECONDS.toNanos(1))
 
-    val profilerView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    val profilerView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     monitorView = CustomEventMonitorView(profilerView, CustomEventMonitor(profilers))
   }
 

@@ -33,6 +33,7 @@ import com.android.tools.profilers.memory.adapters.classifiers.AllHeapSet
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -51,6 +52,9 @@ class CapturePanelTest {
 
   @get:Rule
   val applicationRule = ApplicationRule()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   @Before
   fun setupBase() {
@@ -78,7 +82,7 @@ class CapturePanelTest {
 
     val stage = MainMemoryProfilerStage(profilers, FakeCaptureObjectLoader())
     val selection = MemoryCaptureSelection(profilers.ideServices)
-    val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     val panel = CapturePanel(profilersView, selection, null, profilers.timeline.selectionRange,
                              FakeIdeProfilerComponents(), profilers.timeline,true)
 

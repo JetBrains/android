@@ -32,7 +32,6 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import icons.StudioIcons
 import java.util.function.Supplier
@@ -68,8 +67,7 @@ class StudioProfilersWrapper constructor(private val project: Project,
     }
 
     val profilerComponents: IdeProfilerComponents = IntellijProfilerComponents(project, profilers.ideServices.featureTracker)
-    profilersView = StudioProfilersView(profilers, profilerComponents)
-    Disposer.register(this, profilersView)
+    profilersView = StudioProfilersView(profilers, profilerComponents, this)
 
     project.messageBus.connect(this).subscribe(ToolWindowManagerListener.TOPIC,
                                                AndroidProfilerWindowManagerListener(project, profilers, profilersView))

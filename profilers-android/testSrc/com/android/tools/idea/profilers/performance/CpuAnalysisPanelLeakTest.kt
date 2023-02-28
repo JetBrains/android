@@ -30,6 +30,7 @@ import com.android.tools.profilers.cpu.CpuCaptureStage
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisPanel
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import org.junit.Before
 import org.junit.Rule
@@ -47,6 +48,8 @@ class CpuAnalysisPanelLeakTest {
   val myEdtRule = EdtRule()
   @get:Rule
   val applicationRule = ApplicationRule()
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   private lateinit var profilers: StudioProfilers
   private val services = FakeIdeProfilerServices()
@@ -58,7 +61,7 @@ class CpuAnalysisPanelLeakTest {
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                    resolveWorkspacePath(CpuProfilerTestUtils.ATRACE_DATA_FILE).toFile(), 123L)
-    panel = CpuAnalysisPanel(StudioProfilersView(profilers, FakeIdeProfilerComponents()), stage)
+    panel = CpuAnalysisPanel(StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable), stage)
   }
 
   @Test

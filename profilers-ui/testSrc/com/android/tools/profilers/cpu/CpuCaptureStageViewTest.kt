@@ -51,6 +51,7 @@ import com.android.tools.profilers.cpu.systemtrace.VsyncTooltip
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.registerServiceInstance
@@ -83,6 +84,9 @@ class CpuCaptureStageViewTest {
   @get:Rule
   val appRule = ApplicationRule()
 
+  @get:Rule
+  val disposableRule = DisposableRule()
+
   private lateinit var stage: CpuCaptureStage
   private lateinit var profilersView: StudioProfilersView
   private val services = FakeIdeProfilerServices()
@@ -91,7 +95,7 @@ class CpuCaptureStageViewTest {
   fun setUp() {
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
-    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                    resolveWorkspacePath(CpuProfilerUITestUtils.VALID_TRACE_PATH).toFile(), 123L)

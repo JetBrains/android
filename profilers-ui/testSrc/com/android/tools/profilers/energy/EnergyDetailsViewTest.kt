@@ -29,6 +29,7 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
@@ -117,6 +118,8 @@ class EnergyDetailsViewTest {
   val edtRule = EdtRule()
   @get:Rule
   val applicationRule = ApplicationRule()
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   private lateinit var view: EnergyDetailsView
 
@@ -132,7 +135,7 @@ class EnergyDetailsViewTest {
     // in the channel, and the tick loop would not complete properly to set the process and agent status.
     profilers.stage = EnergyProfilerStage(profilers)
     // Initialize the view after the stage, otherwise it will create the views for the monitoring stage.
-    val studioProfilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    val studioProfilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     view = EnergyDetailsView(studioProfilersView.stageView as EnergyProfilerStageView)
   }
 

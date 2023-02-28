@@ -30,6 +30,7 @@ import com.android.tools.profilers.TraceConfigOptionsUtils
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -50,6 +51,9 @@ class CpuProfilerStageCpuUsageTooltipViewTest {
   @get:Rule
   val applicationRule = ApplicationRule()
 
+  @get:Rule
+  val disposableRule = DisposableRule()
+
   @Before
   fun setUp() {
     val profilerServices = FakeIdeProfilerServices()
@@ -57,7 +61,7 @@ class CpuProfilerStageCpuUsageTooltipViewTest {
     cpuStage = CpuProfilerStage(profilers)
     timer.tick(TimeUnit.SECONDS.toNanos(1))
     profilers.stage = cpuStage
-    val view = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    val view = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     val stageView: CpuProfilerStageView = view.stageView as CpuProfilerStageView
     val usageTooltip = CpuProfilerStageCpuUsageTooltip(cpuStage)
     usageTooltipView = FakeCpuUsageTooltipView(stageView, usageTooltip)

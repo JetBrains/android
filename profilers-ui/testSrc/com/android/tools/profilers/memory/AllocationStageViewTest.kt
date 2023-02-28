@@ -26,6 +26,7 @@ import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveA
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import icons.StudioIcons
 import org.junit.Before
 import org.junit.ClassRule
@@ -48,6 +49,9 @@ class AllocationStageViewTest(private val isLive: Boolean) {
   @get:Rule
   val applicationRule = ApplicationRule()
 
+  @get:Rule
+  val disposableRule = DisposableRule()
+
   private lateinit var profilers: StudioProfilers
   private lateinit var stage: AllocationStage
   private lateinit var mockLoader: FakeCaptureObjectLoader
@@ -66,7 +70,7 @@ class AllocationStageViewTest(private val isLive: Boolean) {
       if (isLive) AllocationStage.makeLiveStage(profilers, mockLoader)
       else AllocationStage.makeStaticStage(profilers, minTrackingTimeUs = 1.0, maxTrackingTimeUs = 5.0)
     observer = MemoryAspectObserver(stage.aspect, stage.captureSelection.aspect)
-    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     stageView = AllocationStageView(profilersView, stage)
 
     // Advance the clock to make sure StudioProfilers has a chance to select device + process.

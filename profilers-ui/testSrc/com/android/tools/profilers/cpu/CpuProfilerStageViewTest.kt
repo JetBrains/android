@@ -37,6 +37,7 @@ import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.event.FakeEventService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.JBSplitter
@@ -75,6 +76,9 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
   @get:Rule
   val applicationRule = ApplicationRule()
 
+  @get:Rule
+  val disposableRule = DisposableRule()
+
   private lateinit var myStage: CpuProfilerStage
 
   private lateinit var myProfilersView: StudioProfilersView
@@ -90,7 +94,7 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
     myStage = CpuProfilerStage(profilers)
     myStage.studioProfilers.stage = myStage
     myStage.enter()
-    myProfilersView = StudioProfilersView(profilers, myComponents)
+    myProfilersView = StudioProfilersView(profilers, myComponents, disposableRule.disposable)
   }
 
   @Test
