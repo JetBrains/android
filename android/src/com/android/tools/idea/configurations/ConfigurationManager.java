@@ -229,7 +229,7 @@ public class ConfigurationManager implements Disposable {
    * Returns the associated persistence manager
    */
   public ConfigurationStateManager getStateManager() {
-    return ConfigurationStateManager.get(myModule.getProject());
+    return StudioConfigurationStateManager.get(myModule.getProject());
   }
 
   /**

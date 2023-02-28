@@ -24,9 +24,9 @@ public class ConfigurationStateManagerTest extends AndroidTestCase {
     Project project = getProject();
     assertNotNull(project);
 
-    ConfigurationStateManager manager = ConfigurationStateManager.get(project);
+    StudioConfigurationStateManager manager = (StudioConfigurationStateManager)StudioConfigurationStateManager.get(project);
     assertNotNull(manager);
-    assertSame(manager, ConfigurationStateManager.get(project));
+    assertSame(manager, StudioConfigurationStateManager.get(project));
 
     manager.getProjectState().setLocale("en-rUS");
     assertEquals("en-rUS", manager.getProjectState().getLocale());
@@ -52,9 +52,9 @@ public class ConfigurationStateManagerTest extends AndroidTestCase {
     Project project = getProject();
     assertNotNull(project);
 
-    ConfigurationStateManager manager = ConfigurationStateManager.get(project);
+    ConfigurationStateManager manager = StudioConfigurationStateManager.get(project);
     assertNotNull(manager);
-    assertSame(manager, ConfigurationStateManager.get(project));
+    assertSame(manager, StudioConfigurationStateManager.get(project));
 
     VirtualFile file = myFixture.copyFileToProject("xmlpull/layout.xml", "res/layout/layout.xml");
     ConfigurationFileState configState1 = new ConfigurationFileState();

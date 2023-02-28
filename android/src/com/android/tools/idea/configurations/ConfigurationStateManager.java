@@ -15,16 +15,12 @@
  */
 package com.android.tools.idea.configurations;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.components.*;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.util.xmlb.annotations.Property;
 import com.intellij.util.xmlb.annotations.Tag;
 import com.intellij.util.xmlb.annotations.XMap;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,73 +33,17 @@ import java.util.Map;
  * The {@linkplain ConfigurationStateManager} is responsible for papering over these
  * differences and providing persistence for configuration changes.
  */
-@State(name = "AndroidLayouts", storages = @Storage(StoragePathMacros.WORKSPACE_FILE))
-public class ConfigurationStateManager implements PersistentStateComponent<ConfigurationStateManager.State> {
-  private final Map<VirtualFile, ConfigurationFileState> myFileToState = new HashMap<>();
-  private ConfigurationProjectState myProjectState = new ConfigurationProjectState();
+public interface ConfigurationStateManager extends PersistentStateComponent<ConfigurationStateManager.State> {
+
+  ConfigurationFileState getConfigurationState(@NotNull VirtualFile file);
+
+  void setConfigurationState(@NotNull VirtualFile file, @NotNull ConfigurationFileState state);
 
   @NotNull
-  public static ConfigurationStateManager get(@NotNull Project project) {
-    return project.getService(ConfigurationStateManager.class);
-  }
-
-  @Nullable
-  public ConfigurationFileState getConfigurationState(@NotNull VirtualFile file) {
-    synchronized (myFileToState) {
-      return myFileToState.get(file);
-    }
-  }
-
-  public void setConfigurationState(@NotNull VirtualFile file, @NotNull ConfigurationFileState state) {
-    synchronized (myFileToState) {
-      myFileToState.put(file, state);
-    }
-  }
-
-  @NotNull
-  public ConfigurationProjectState getProjectState() {
-    return myProjectState;
-  }
-
-  @VisibleForTesting
-  void setProjectState(@NotNull ConfigurationProjectState projectState) {
-    myProjectState = projectState;
-  }
-
-  @Override
-  public State getState() {
-    final Map<String, ConfigurationFileState> urlToState = new HashMap<>();
-
-    synchronized (myFileToState) {
-      for (Map.Entry<VirtualFile, ConfigurationFileState> entry : myFileToState.entrySet()) {
-        urlToState.put(entry.getKey().getUrl(), entry.getValue());
-      }
-    }
-    final State state = new State();
-    state.setUrlToStateMap(urlToState);
-    state.setProjectState(myProjectState);
-    return state;
-  }
-
-  @Override
-  public void loadState(@NotNull State state) {
-    myProjectState = state.getProjectState();
-
-    synchronized (myFileToState) {
-      myFileToState.clear();
-
-      for (Map.Entry<String, ConfigurationFileState> entry : state.getUrlToStateMap().entrySet()) {
-        final VirtualFile file = VirtualFileManager.getInstance().findFileByUrl(entry.getKey());
-
-        if (file != null) {
-          myFileToState.put(file, entry.getValue());
-        }
-      }
-    }
-  }
+  ConfigurationProjectState getProjectState();
 
   /** Persisted state */
-  public static class State {
+  class State {
     private ConfigurationProjectState myProjectState;
 
     @Tag("shared")
