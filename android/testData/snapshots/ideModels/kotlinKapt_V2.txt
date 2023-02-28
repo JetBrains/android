@@ -2016,7 +2016,6 @@ MODULE                        : MainActivity.app
                     Name                          : localDebug
                     Manifest                      : <ROOT>/app/src/localDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/localDebug/java [-]
-                    JavaDirectories               : <ROOT>/app/build/generated/source/kapt/localDebug [-]
                     KotlinDirectories             : <ROOT>/app/src/localDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/localDebug/java [-]
                     ResourcesDirectories          : <ROOT>/app/src/localDebug/resources [-]
@@ -2143,7 +2142,6 @@ MODULE                        : MainActivity.app
                     Name                          : androidTestLocalDebug
                     Manifest                      : <ROOT>/app/src/androidTestLocalDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/androidTestLocalDebug/java [-]
-                    JavaDirectories               : <ROOT>/app/build/generated/source/kapt/localDebugAndroidTest [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTestLocalDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/androidTestLocalDebug/java [-]
                     ResourcesDirectories          : <ROOT>/app/src/androidTestLocalDebug/resources [-]
@@ -2313,7 +2311,6 @@ MODULE                        : MainActivity.app
                     Name                          : testLocalDebug
                     Manifest                      : <ROOT>/app/src/testLocalDebug/AndroidManifest.xml [-]
                     JavaDirectories               : <ROOT>/app/src/testLocalDebug/java [-]
-                    JavaDirectories               : <ROOT>/app/build/generated/source/kapt/localDebugUnitTest [-]
                     KotlinDirectories             : <ROOT>/app/src/testLocalDebug/kotlin [-]
                     KotlinDirectories             : <ROOT>/app/src/testLocalDebug/java [-]
                     ResourcesDirectories          : <ROOT>/app/src/testLocalDebug/resources [-]

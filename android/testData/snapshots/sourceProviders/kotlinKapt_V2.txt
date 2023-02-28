@@ -120,7 +120,6 @@ MODULE: MainActivity.app
                     ./app/src/localDebug/assets
                 JavaDirectories:
                     ./app/src/localDebug/java
-                    ./app/build/generated/source/kapt/localDebug
                 KotlinDirectories:
                     ./app/src/localDebug/kotlin
                     ./app/src/localDebug/java
@@ -202,7 +201,6 @@ MODULE: MainActivity.app
                     ./app/src/localDebug/assets
                 JavaDirectories:
                     ./app/src/localDebug/java
-                    ./app/build/generated/source/kapt/localDebug
                 KotlinDirectories:
                     ./app/src/localDebug/kotlin
                     ./app/src/localDebug/java
@@ -324,7 +322,6 @@ MODULE: MainActivity.app
                     ./app/src/testLocalDebug/assets
                 JavaDirectories:
                     ./app/src/testLocalDebug/java
-                    ./app/build/generated/source/kapt/localDebugUnitTest
                 KotlinDirectories:
                     ./app/src/testLocalDebug/kotlin
                     ./app/src/testLocalDebug/java
@@ -404,7 +401,6 @@ MODULE: MainActivity.app
                     ./app/src/androidTestLocalDebug/assets
                 JavaDirectories:
                     ./app/src/androidTestLocalDebug/java
-                    ./app/build/generated/source/kapt/localDebugAndroidTest
                 KotlinDirectories:
                     ./app/src/androidTestLocalDebug/kotlin
                     ./app/src/androidTestLocalDebug/java
@@ -449,7 +445,6 @@ MODULE: MainActivity.app
                     file://./app/src/local/java
                     file://./app/src/debug/java
                     file://./app/src/localDebug/java
-                    file://./app/build/generated/source/kapt/localDebug
                 JavaDirectories:
                     file://./app/src/main/java
                 KotlinDirectoryUrls:
@@ -510,7 +505,6 @@ MODULE: MainActivity.app
                     file://./app/src/testLocal/java
                     file://./app/src/testDebug/java
                     file://./app/src/testLocalDebug/java
-                    file://./app/build/generated/source/kapt/localDebugUnitTest
                 JavaDirectories:
                     file://./app/src/test/java
                 KotlinDirectoryUrls:
@@ -568,7 +562,6 @@ MODULE: MainActivity.app
                     file://./app/src/androidTestLocal/java
                     file://./app/src/androidTestDebug/java
                     file://./app/src/androidTestLocalDebug/java
-                    file://./app/build/generated/source/kapt/localDebugAndroidTest
                 JavaDirectories:
                     file://./app/src/androidTest/java
                 KotlinDirectoryUrls:
@@ -717,7 +710,6 @@ MODULE: MainActivity.app
                     file://./app/src/localDebug/assets
                 JavaDirectoryUrls:
                     file://./app/src/localDebug/java
-                    file://./app/build/generated/source/kapt/localDebug
                 KotlinDirectoryUrls:
                     file://./app/src/localDebug/kotlin
                     file://./app/src/localDebug/java
@@ -855,7 +847,6 @@ MODULE: MainActivity.app
                     file://./app/src/localDebug/assets
                 JavaDirectoryUrls:
                     file://./app/src/localDebug/java
-                    file://./app/build/generated/source/kapt/localDebug
                 KotlinDirectoryUrls:
                     file://./app/src/localDebug/kotlin
                     file://./app/src/localDebug/java
@@ -947,7 +938,6 @@ MODULE: MainActivity.app
                     file://./app/src/testLocalDebug/assets
                 JavaDirectoryUrls:
                     file://./app/src/testLocalDebug/java
-                    file://./app/build/generated/source/kapt/localDebugUnitTest
                 KotlinDirectoryUrls:
                     file://./app/src/testLocalDebug/kotlin
                     file://./app/src/testLocalDebug/java
@@ -1037,7 +1027,6 @@ MODULE: MainActivity.app
                     file://./app/src/androidTestLocalDebug/assets
                 JavaDirectoryUrls:
                     file://./app/src/androidTestLocalDebug/java
-                    file://./app/build/generated/source/kapt/localDebugAndroidTest
                 KotlinDirectoryUrls:
                     file://./app/src/androidTestLocalDebug/kotlin
                     file://./app/src/androidTestLocalDebug/java
