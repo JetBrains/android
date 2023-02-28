@@ -230,6 +230,8 @@ maven_repository(
         "@maven//:com.android.library.com.android.library.gradle.plugin_7.2.0",
         "@maven//:com.android.tools.build.aapt2_7.2.0-7984345",
         "@maven//:com.android.tools.build.gradle_7.2.0",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
+        "@maven//:org.jetbrains.markdown_0.2.1",
     ],
 )
 
