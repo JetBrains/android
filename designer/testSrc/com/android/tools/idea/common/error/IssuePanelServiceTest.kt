@@ -21,9 +21,12 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.analysis.problemsView.toolWindow.HighlightingPanel
 import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel
+import com.intellij.analysis.problemsView.toolWindow.ProblemsViewState
 import com.intellij.analysis.problemsView.toolWindow.ProblemsViewTab
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.RegisterToolWindowTask
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
@@ -39,7 +42,6 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -187,23 +189,39 @@ class IssuePanelServiceTest {
     runInEdtAndWait {
       messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf())
     }
-    assertEquals("Layout and Qualifiers", content.displayName)
+
+    assertEquals("Layout and Qualifiers".toTabTitle(), content.displayName)
 
     runInEdtAndWait {
       messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf(TestIssue(source = issueSource)))
     }
-    assertEquals("<html><body>Layout and Qualifiers <font color=\"#999999\">1</font></body></html>", content.displayName)
+    assertEquals("Layout and Qualifiers".toTabTitle(1), content.displayName)
 
     runInEdtAndWait {
       messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf(TestIssue(summary = "1", source = issueSource),
                                                                                         TestIssue(summary = "2", source = issueSource)))
     }
-    assertEquals("<html><body>Layout and Qualifiers <font color=\"#999999\">2</font></body></html>", content.displayName)
+    assertEquals("Layout and Qualifiers".toTabTitle(2), content.displayName)
 
     runInEdtAndWait {
       messageBus.syncPublisher(IssueProviderListener.TOPIC).issueUpdated(source, listOf())
     }
-    assertEquals("Layout and Qualifiers", content.displayName)
+    assertEquals("Layout and Qualifiers".toTabTitle(), content.displayName)
+  }
+
+  /**
+   * Note: This test may fail if [com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel.getName] changes the implementation
+   * after merging IDEA. Please disable it and file a bug to fix.
+   */
+  @Test
+  fun testTabNameAndStyleSameAsIntellijProblemsPanel() {
+    // Create an IJ's problems panel for comparing the custom tab title and style.
+    val panel = ProblemsViewPanel(rule.project, "ID_IssuePanelServiceTest", ProblemsViewState()) { "Problems" }
+    Disposer.register(rule.testRootDisposable, panel)
+
+    assertEquals(panel.getName(0), createTabName("Problems", 0))
+    assertEquals(panel.getName(1), createTabName("Problems", 1))
+    assertEquals(panel.getName(10), createTabName("Problems", 10))
   }
 
   @RunsInEdt
@@ -222,7 +240,7 @@ class IssuePanelServiceTest {
     service.setSharedIssuePanelVisibility(true)
     // It should select the shared issue panel.
     assertEquals(contentManager.selectedContent,
-                 contentManager.findContent("Designer"))
+                 contentManager.findContent("Designer".toTabTitle()))
 
     service.removeSharedIssueTabFromProblemsPanel()
     // It should select the first tab, which is the "Current File" tab.
@@ -260,7 +278,7 @@ class IssuePanelServiceTest {
     service.setSharedIssuePanelVisibility(true)
 
     val manager = toolWindow.contentManager
-    val tab = manager.findContent("Designer")
+    val tab = manager.findContent("Designer".toTabTitle())
     assertFalse(tab.isPinnable)
   }
 

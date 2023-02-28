@@ -44,21 +44,22 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.text.HtmlBuilder
-import com.intellij.openapi.util.text.HtmlChunk
+import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.psi.PsiFile
-import com.intellij.ui.ColorUtil.toHtmlColor
+import com.intellij.ui.ColorUtil
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
 import com.intellij.ui.tree.TreeVisitor
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.tree.TreeModelAdapter
+import org.intellij.lang.annotations.Language
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -586,17 +587,24 @@ fun DesignSurface<*>.setIssuePanelVisibility(show: Boolean, userInvoked: Boolean
 }
 
 /**
- * This is same as [com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel.getName] for consistency.
+ * This should be same as [com.intellij.analysis.problemsView.toolWindow.ProblemsViewPanel.getName] for consistency.
  */
-private fun createTabName(title: String, issueCount: Int?): String {
-  if (issueCount == null || issueCount <= 0) {
-    return title
-  }
-  return HtmlBuilder()
-    .append(title)
-    .append(" ").append(HtmlChunk.tag("font").attr("color", toHtmlColor(NamedColorUtil.getInactiveTextColor())).addText("$issueCount"))
-    .wrapWithHtmlBody()
-    .toString()
+@VisibleForTesting
+@NlsContexts.TabTitle
+fun createTabName(title: String, issueCount: Int?): String {
+  val count: Int = issueCount ?: 0
+  val name: String = title
+  val padding = (if (count <= 0) 0 else JBUI.scale(8)).toString()
+  val fg = ColorUtil.toHtmlColor(NamedColorUtil.getInactiveTextColor())
+  val number = if (count <= 0) "" else count.toString()
+  @Language("HTML")
+  val labelWithCounter = "<html><body>" +
+                         "<table cellpadding='0' cellspacing='0'><tr>" +
+                         "<td><nobr>%s</nobr></td>" +
+                         "<td width='%s'></td>" +
+                         "<td><font color='%s'>%s</font></td>" +
+                         "</tr></table></body></html>"
+  return String.format(labelWithCounter, name, padding, fg, number)
 }
 
 fun FileEditor.getDesignSurface(): DesignSurface<*>? {
