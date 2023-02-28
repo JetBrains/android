@@ -3,8 +3,8 @@ package com.android.tools.idea.logcat.service
 import com.android.adblib.DeviceSelector
 import com.android.adblib.LineBatchShellCollector
 import com.android.adblib.shellAsText
+import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.sdklib.AndroidVersion
-import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.devices.Device

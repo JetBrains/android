@@ -16,7 +16,7 @@
 package com.android.tools.idea.logcat.message
 
 /** TODO */
-import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
+import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.tools.idea.logcat.message.LogLevel.ASSERT
 import com.android.tools.idea.logcat.message.LogLevel.WARN
 import com.android.tools.idea.logcat.message.LogcatHeaderParser.LogcatFormat.EPOCH_FORMAT

@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.logcat.service
 
+import com.android.processmonitor.monitor.ProcessNameMonitor
+import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
 import com.android.testutils.TestResources
-import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
-import com.android.tools.idea.adb.processnamemonitor.testing.FakeProcessNameMonitor
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.message.LogLevel.DEBUG

@@ -22,7 +22,7 @@
         serviceImplementation="com.android.tools.idea.adblib.AdbLibServiceImpl"
     />
     <projectService
-        serviceInterface="com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor"
+        serviceInterface="com.android.processmonitor.monitor.ProcessNameMonitor"
         serviceImplementation="com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitorService"
     />
     <xdebugger.configurableProvider implementation="com.android.tools.idea.adb.AdbConfigurableProvider"/>

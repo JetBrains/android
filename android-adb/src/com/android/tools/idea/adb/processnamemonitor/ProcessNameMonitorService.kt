@@ -15,7 +15,10 @@
  */
 package com.android.tools.idea.adb.processnamemonitor
 
-import com.android.tools.idea.adb.AdbAdapterImpl
+import com.android.processmonitor.monitor.ProcessNameMonitor
+import com.android.processmonitor.monitor.ddmlib.AdbAdapterImpl
+import com.android.processmonitor.monitor.ddmlib.ProcessNameMonitorDdmlib
+import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.AndroidAdbLogger
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -23,12 +26,12 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 
-/** A trivial [ProcessNameMonitor] that delegates to [ProcessNameMonitorImpl] */
+/** A trivial [ProcessNameMonitor] that delegates to [ProcessNameMonitorDdmlib] */
 internal class ProcessNameMonitorService(project: Project) : ProcessNameMonitor, Disposable {
-  private val delegate = ProcessNameMonitorImpl(
+  private val delegate = ProcessNameMonitorDdmlib(
     AndroidCoroutineScope(this),
     AdbLibService.getSession(project),
-    AdbAdapterImpl(project),
+    AdbAdapterImpl(AdbService.getInstance().getDebugBridge(project)),
     AndroidAdbLogger(thisLogger()),
   )
 

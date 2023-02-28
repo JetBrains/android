@@ -25,5 +25,6 @@
     <orderEntry type="module" module-name="intellij.android.adb.ui" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="android.sdktools.device-provisioner" />
+    <orderEntry type="module" module-name="android.sdktools.process-monitor" />
   </component>
 </module>

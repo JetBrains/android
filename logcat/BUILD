@@ -30,6 +30,7 @@ iml_module(
         "//tools/adt/idea/android-adb-ui:intellij.android.adb.ui[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
+        "//tools/base/process-monitor:studio.android.sdktools.process-monitor[module]",
     ],
 )
 
@@ -70,5 +71,6 @@ iml_module(
         "//tools/base/adblib-ddmlibcompatibility:studio.android.sdktools.adblib.ddmlibcompatibility[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
+        "//tools/base/process-monitor:studio.android.sdktools.process-monitor[module, test]",
     ],
 )
