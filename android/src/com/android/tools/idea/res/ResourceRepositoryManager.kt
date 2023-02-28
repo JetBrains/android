@@ -17,13 +17,9 @@ package com.android.tools.idea.res
 
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.ide.common.resources.Locale
 import com.android.tools.idea.model.Namespacing
-import com.android.tools.idea.namespacing
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleUtilCore
-import com.intellij.openapi.util.Disposer
-import com.intellij.psi.PsiElement
-import org.jetbrains.android.facet.AndroidFacet
+import com.google.common.collect.ImmutableList
 
 /**
  * Studio independent version of [StudioResourceRepositoryManager]
@@ -59,4 +55,7 @@ interface ResourceRepositoryManager {
    */
   val namespacing: Namespacing
   val namespace: ResourceNamespace
+
+  /** Returns all locales of the project resources. */
+  val localesInProject: ImmutableList<Locale>
 }

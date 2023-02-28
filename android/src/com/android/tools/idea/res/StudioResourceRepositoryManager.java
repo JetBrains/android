@@ -754,6 +754,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
   /**
    * Returns all locales of the project resources.
    */
+  @Override
   @NotNull
   public ImmutableList<Locale> getLocalesInProject() {
     return getLocalesAndLanguages().locales;
