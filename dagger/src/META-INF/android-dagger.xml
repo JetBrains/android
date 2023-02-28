@@ -18,7 +18,6 @@
     <customUsageSearcher implementation="com.android.tools.idea.dagger.DaggerCustomUsageSearcher"/>
     <customUsageSearcher implementation="com.android.tools.idea.dagger.DaggerCustomUsageSearcherV2"/>
     <usageTypeProvider implementation="com.android.tools.idea.dagger.DaggerUsageTypeProvider"/>
-    <usageTypeProvider implementation="com.android.tools.idea.dagger.DaggerUsageTypeProviderV2"/>
     <codeInsight.lineMarkerProvider language="JAVA"
                                     implementationClass="com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProvider"
                                     order="last"

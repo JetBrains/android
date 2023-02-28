@@ -24,7 +24,10 @@ import com.intellij.psi.PsiElement
 import com.intellij.usageView.UsageInfo
 import com.intellij.usages.Usage
 import com.intellij.usages.UsageInfo2UsageAdapter
+import com.intellij.usages.impl.rules.UsageType
+import com.intellij.usages.impl.rules.UsageWithType
 import com.intellij.util.Processor
+import java.util.concurrent.ConcurrentHashMap
 
 /** Adds custom usages for Dagger-related classes to a find usages window. */
 class DaggerCustomUsageSearcherV2 : CustomUsageSearcher() {
@@ -39,8 +42,19 @@ class DaggerCustomUsageSearcherV2 : CustomUsageSearcher() {
     val relatedDaggerItems = runReadAction {
       element.getDaggerElement()?.getRelatedDaggerElements()
     }
-    relatedDaggerItems?.forEach {
-      processor.process(UsageInfo2UsageAdapter(UsageInfo(it.psiElement)))
+    relatedDaggerItems?.forEach { (relatedItem, relationName) ->
+      processor.process(DaggerUsage(relatedItem.psiElement, relationName))
+    }
+  }
+
+  class DaggerUsage(psiElement: PsiElement, private val usageTypeName: String) :
+    UsageInfo2UsageAdapter(UsageInfo(psiElement)), UsageWithType {
+    override fun getUsageType(): UsageType? {
+      return usageTypeMap.getOrPut(usageTypeName) { UsageType { usageTypeName } }
+    }
+
+    companion object {
+      private val usageTypeMap = ConcurrentHashMap<String, UsageType>()
     }
   }
 }

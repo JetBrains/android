@@ -95,8 +95,8 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
 
     /** Given a [DaggerElement], find its related items. */
     private fun DaggerElement.getGotoItems(): List<GotoRelatedItem> =
-      getRelatedDaggerElements().map { relatedItem ->
-        GotoRelatedItem(relatedItem.psiElement, relatedItem.daggerType.getGroupName())
+      getRelatedDaggerElements().map { (relatedItem, relationName) ->
+        GotoRelatedItem(relatedItem.psiElement, relationName)
       }
 
     /**
@@ -124,16 +124,6 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
         COMPONENT,
         SUBCOMPONENT,
         MODULE -> StudioIcons.Misc.DEPENDENCY_CONSUMER
-      }
-
-    /** Returns the related item group name for a given Dagger element type. */
-    private fun DaggerElement.Type.getGroupName(): String =
-      when (this) {
-        CONSUMER -> DaggerBundle.message("consumers")
-        PROVIDER -> DaggerBundle.message("providers")
-        COMPONENT -> DaggerBundle.message("parent.components")
-        SUBCOMPONENT -> DaggerBundle.message("subcomponents")
-        MODULE -> DaggerBundle.message("modules.included")
       }
   }
 

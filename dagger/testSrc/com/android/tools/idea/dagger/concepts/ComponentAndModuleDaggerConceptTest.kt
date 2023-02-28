@@ -26,6 +26,7 @@ import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.RunsInEdt
@@ -652,5 +653,266 @@ class ComponentAndModuleDaggerConceptTest {
         )
       )
       .isEmpty()
+  }
+
+  @Test
+  fun daggerElementIdentifiers_kotlin() {
+    addDaggerAndHiltClasses(myFixture)
+
+    myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      // language=kotlin
+      """
+      package com.example
+
+      import dagger.Component
+      import dagger.Module
+      import dagger.Subcomponent
+
+      @Component
+      interface CoffeeShopComponent
+
+      @Subcomponent
+      interface CoffeeShopSubcomponent
+
+      @Module
+      interface CoffeeShopModule
+      """
+        .trimIndent()
+    )
+
+    val componentDaggerElement =
+      ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
+        myFixture.moveCaret("CoffeeShop|Component").parentOfType<KtClass>()!!
+      )
+    assertThat(componentDaggerElement).isNotNull()
+    assertThat(componentDaggerElement!!.daggerType).isEqualTo(DaggerElement.Type.COMPONENT)
+
+    val subcomponentDaggerElement =
+      ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
+        myFixture.moveCaret("CoffeeShop|Subcomponent").parentOfType<KtClass>()!!
+      )
+    assertThat(subcomponentDaggerElement).isNotNull()
+    assertThat(subcomponentDaggerElement!!.daggerType).isEqualTo(DaggerElement.Type.SUBCOMPONENT)
+
+    val moduleDaggerElement =
+      ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
+        myFixture.moveCaret("CoffeeShop|Module").parentOfType<KtClass>()!!
+      )
+    assertThat(moduleDaggerElement).isNotNull()
+    assertThat(moduleDaggerElement!!.daggerType).isEqualTo(DaggerElement.Type.MODULE)
+  }
+
+  @Test
+  fun daggerElementIdentifiers_java() {
+    addDaggerAndHiltClasses(myFixture)
+
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      // language=java
+      """
+      package com.example;
+
+      import dagger.Component;
+      import dagger.Module;
+      import dagger.Subcomponent;
+
+      @Component
+      public interface CoffeeShopComponent {}
+
+      @Subcomponent
+      public interface CoffeeShopSubcomponent {}
+
+      @Module
+      public interface CoffeeShopModule {}
+      """
+        .trimIndent()
+    )
+
+    val componentDaggerElement =
+      ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
+        myFixture.moveCaret("CoffeeShop|Component").parentOfType<PsiClass>()!!
+      )
+    assertThat(componentDaggerElement).isNotNull()
+    assertThat(componentDaggerElement!!.daggerType).isEqualTo(DaggerElement.Type.COMPONENT)
+
+    val subcomponentDaggerElement =
+      ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
+        myFixture.moveCaret("CoffeeShop|Subcomponent").parentOfType<PsiClass>()!!
+      )
+    assertThat(subcomponentDaggerElement).isNotNull()
+    assertThat(subcomponentDaggerElement!!.daggerType).isEqualTo(DaggerElement.Type.SUBCOMPONENT)
+
+    val moduleDaggerElement =
+      ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
+        myFixture.moveCaret("CoffeeShop|Module").parentOfType<PsiClass>()!!
+      )
+    assertThat(moduleDaggerElement).isNotNull()
+    assertThat(moduleDaggerElement!!.daggerType).isEqualTo(DaggerElement.Type.MODULE)
+  }
+
+  @Test
+  fun componentDaggerElementBase_getIncludedModulesAndSubcomponents_kotlin() {
+    addDaggerAndHiltClasses(myFixture)
+
+    myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      // language=kotlin
+      """
+      package com.example
+
+      import dagger.Component
+      import dagger.Module
+      import dagger.Subcomponent
+
+      @Component(modules = [ CoffeeShopModule::class, NotAModule::class ])
+      interface CoffeeShopComponent
+
+      @Module(subcomponents = [ CoffeeShopSubcomponent::class, NotASubcomponent::class ])
+      interface CoffeeShopModule
+      interface NotAModule
+
+      @Subcomponent
+      interface CoffeeShopSubcomponent
+      interface NotASubcomponent
+      """
+        .trimIndent()
+    )
+
+    val componentPsiElement = myFixture.moveCaret("CoffeeShop|Component").parentOfType<KtClass>()!!
+
+    val componentDaggerElementBase =
+      FakeComponentDaggerElementBase(
+        componentPsiElement,
+        DaggerElement.Type.COMPONENT,
+        "dagger.Component"
+      )
+    val modulesAndSubcomponents =
+      componentDaggerElementBase.callGetIncludedModulesAndSubcomponents()
+
+    assertThat(modulesAndSubcomponents).hasSize(2)
+
+    assertThat(modulesAndSubcomponents[0].first.daggerType).isEqualTo(DaggerElement.Type.MODULE)
+    assertThat(modulesAndSubcomponents[1].first.daggerType)
+      .isEqualTo(DaggerElement.Type.SUBCOMPONENT)
+
+    assertThat(modulesAndSubcomponents[0].first.psiElement.text).contains("CoffeeShopModule")
+    assertThat(modulesAndSubcomponents[1].first.psiElement.text).contains("CoffeeShopSubcomponent")
+
+    assertThat(modulesAndSubcomponents[0].second).isEqualTo("Modules included")
+    assertThat(modulesAndSubcomponents[1].second).isEqualTo("Subcomponents")
+  }
+
+  @Test
+  fun componentDaggerElementBase_getIncludedModulesAndSubcomponents_java() {
+    addDaggerAndHiltClasses(myFixture)
+
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      // language=java
+      """
+      package com.example;
+
+      import dagger.Component;
+      import dagger.Module;
+      import dagger.Subcomponent;
+
+      @Component(modules = { CoffeeShopModule.class, NotAModule.class })
+      public interface CoffeeShopComponent {}
+
+      @Module(subcomponents = { CoffeeShopSubcomponent.class, NotASubcomponent.class })
+      public interface CoffeeShopModule {}
+      public interface NotAModule {}
+
+      @Subcomponent
+      public interface CoffeeShopSubcomponent {}
+      public interface NotASubcomponent {}
+      """
+        .trimIndent()
+    )
+
+    val componentPsiElement = myFixture.moveCaret("CoffeeShop|Component").parentOfType<PsiClass>()!!
+
+    val componentDaggerElementBase =
+      FakeComponentDaggerElementBase(
+        componentPsiElement,
+        DaggerElement.Type.COMPONENT,
+        "dagger.Component"
+      )
+    val modulesAndSubcomponents =
+      componentDaggerElementBase.callGetIncludedModulesAndSubcomponents()
+
+    assertThat(modulesAndSubcomponents).hasSize(2)
+
+    assertThat(modulesAndSubcomponents[0].first.daggerType).isEqualTo(DaggerElement.Type.MODULE)
+    assertThat(modulesAndSubcomponents[1].first.daggerType)
+      .isEqualTo(DaggerElement.Type.SUBCOMPONENT)
+
+    assertThat(modulesAndSubcomponents[0].first.psiElement.text).contains("CoffeeShopModule")
+    assertThat(modulesAndSubcomponents[1].first.psiElement.text).contains("CoffeeShopSubcomponent")
+
+    assertThat(modulesAndSubcomponents[0].second).isEqualTo("Modules included")
+    assertThat(modulesAndSubcomponents[1].second).isEqualTo("Subcomponents")
+  }
+
+  @Test
+  fun componentDaggerElementBase_getIncludedModulesAndSubcomponents_javaSingleInitializer() {
+    addDaggerAndHiltClasses(myFixture)
+
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      // language=java
+      """
+      package com.example;
+
+      import dagger.Component;
+      import dagger.Module;
+      import dagger.Subcomponent;
+
+      @Component(modules = CoffeeShopModule.class)
+      public interface CoffeeShopComponent {}
+
+      @Module(subcomponents = CoffeeShopSubcomponent.class)
+      public interface CoffeeShopModule {}
+
+      @Subcomponent
+      public interface CoffeeShopSubcomponent {}
+      """
+        .trimIndent()
+    )
+
+    val componentPsiElement = myFixture.moveCaret("CoffeeShop|Component").parentOfType<PsiClass>()!!
+
+    val componentDaggerElementBase =
+      FakeComponentDaggerElementBase(
+        componentPsiElement,
+        DaggerElement.Type.COMPONENT,
+        "dagger.Component"
+      )
+    val modulesAndSubcomponents =
+      componentDaggerElementBase.callGetIncludedModulesAndSubcomponents()
+
+    assertThat(modulesAndSubcomponents).hasSize(2)
+
+    assertThat(modulesAndSubcomponents[0].first.daggerType).isEqualTo(DaggerElement.Type.MODULE)
+    assertThat(modulesAndSubcomponents[1].first.daggerType)
+      .isEqualTo(DaggerElement.Type.SUBCOMPONENT)
+
+    assertThat(modulesAndSubcomponents[0].first.psiElement.text).contains("CoffeeShopModule")
+    assertThat(modulesAndSubcomponents[1].first.psiElement.text).contains("CoffeeShopSubcomponent")
+
+    assertThat(modulesAndSubcomponents[0].second).isEqualTo("Modules included")
+    assertThat(modulesAndSubcomponents[1].second).isEqualTo("Subcomponents")
+  }
+
+  private class FakeComponentDaggerElementBase(
+    psiElement: PsiElement,
+    daggerType: Type,
+    override val definingAnnotationName: String
+  ) : ComponentDaggerElementBase(psiElement, daggerType) {
+
+    override fun getRelatedDaggerElements() = throw NotImplementedError()
+
+    fun callGetIncludedModulesAndSubcomponents() = getIncludedModulesAndSubcomponents()
   }
 }

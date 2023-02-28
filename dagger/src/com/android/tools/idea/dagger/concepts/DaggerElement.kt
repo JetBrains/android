@@ -17,6 +17,7 @@ package com.android.tools.idea.dagger.concepts
 
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.dagger.index.DaggerIndex
+import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.android.tools.idea.dagger.unboxed
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
@@ -34,6 +35,8 @@ import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 
+typealias DaggerRelatedElement = Pair<DaggerElement, String>
+
 /**
  * Wrapper around a PsiElement that represents an item in the Dagger graph, along with associated
  * data.
@@ -50,15 +53,13 @@ internal constructor(val psiElement: PsiElement, val daggerType: Type) {
   }
 
   /** Looks up related Dagger elements. */
-  abstract fun getRelatedDaggerElements(): List<DaggerElement>
+  abstract fun getRelatedDaggerElements(): List<DaggerRelatedElement>
 
   /**
    * Looks up related Dagger elements using [DaggerIndex]. Derived classes should use this to
    * implement the part of [getRelatedDaggerElements] that finds items stored in the index.
    */
-  protected fun getRelatedDaggerElementsFromIndex(
-    relatedItemTypes: Set<Type>
-  ): List<DaggerElement> {
+  internal fun getRelatedDaggerElementsFromIndex(relatedItemTypes: Set<Type>): List<DaggerElement> {
     val project = psiElement.project
     val scope = project.projectScope()
     val psiType = psiElement.getPsiType()
@@ -82,14 +83,18 @@ internal constructor(val psiElement: PsiElement, val daggerType: Type) {
 
 internal class ProviderDaggerElement(psiElement: PsiElement) :
   DaggerElement(psiElement, Type.PROVIDER) {
-  override fun getRelatedDaggerElements(): List<DaggerElement> =
-    getRelatedDaggerElementsFromIndex(setOf(Type.CONSUMER))
+  override fun getRelatedDaggerElements(): List<DaggerRelatedElement> =
+    getRelatedDaggerElementsFromIndex(setOf(Type.CONSUMER)).map {
+      DaggerRelatedElement(it, DaggerBundle.message("consumers"))
+    }
 }
 
 internal class ConsumerDaggerElement(psiElement: PsiElement) :
   DaggerElement(psiElement, Type.CONSUMER) {
-  override fun getRelatedDaggerElements(): List<DaggerElement> =
-    getRelatedDaggerElementsFromIndex(setOf(Type.PROVIDER))
+  override fun getRelatedDaggerElements(): List<DaggerRelatedElement> =
+    getRelatedDaggerElementsFromIndex(setOf(Type.PROVIDER)).map {
+      DaggerRelatedElement(it, DaggerBundle.message("providers"))
+    }
 }
 
 fun interface DaggerElementIdentifier<T : PsiElement> {
