@@ -1187,9 +1187,10 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_R8_DESUGAR = Flag.create(
     COMPOSE, "deploy.live.edit.deploy.desugar.r8",
-    "Desugar kotlinc outputs with R8",
-    "If enabled, the outputs of kotlinc are desugared to improve the odds of matching what was produced by the Build system",
-    false
+    "LiveEdit: Desugar kotlinc outputs with R8",
+    "If enabled, the outputs of kotlinc are desugared before being sent to LiveEdit engine. This improves " +
+    "the odds of matching what was produced by the Build system",
+    false // False by default until we can gracefully fail if AGP < 8.1.0-alpha
   );
 
   public static final Flag<Integer> COMPOSE_LIVE_LITERALS_UPDATE_RATE = Flag.create(

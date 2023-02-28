@@ -564,16 +564,6 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
         usePartialRecompose,
         useDebugMode);
 
-    if (useDebugMode) {
-      for (LiveEditCompiledClass clazz : update.getClasses()) {
-        writeDebugToTmp(clazz.getName().replaceAll("/", ".") + ".class", clazz.getData());
-      }
-
-      for (LiveEditCompiledClass clazz : update.getSupportClasses()) {
-        writeDebugToTmp(clazz.getName().replaceAll("/", ".") + ".class", clazz.getData());
-      }
-    }
-
     LiveUpdateDeployer.UpdateLiveEditResult result = deployer.updateLiveEdit(installer, adb, applicationId, param);
 
     if (filesWithCompilationErrors.isEmpty()) {
@@ -596,20 +586,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     return result;
   }
 
-  private static void writeDebugToTmp(String name, byte[] data) {
-    String tmpPath = System.getProperty("java.io.tmpdir");
-    if (tmpPath == null) {
-      return;
-    }
-    Path path = Paths.get(tmpPath, name);
-    try {
-      Files.write(path, data);
-      LOGGER.info("Wrote debug file at '%s'", path.toAbsolutePath());
-    }
-    catch (IOException e) {
-      LOGGER.info("Unable to write debug file '%s'", path.toAbsolutePath());
-    }
-  }
+
 
   public static boolean supportLiveEdits(IDevice device) {
     return device.getVersion().isGreaterOrEqualThan(AndroidVersion.VersionCodes.R);

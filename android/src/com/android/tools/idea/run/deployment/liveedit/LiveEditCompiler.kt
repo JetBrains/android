@@ -18,11 +18,14 @@ package com.android.tools.idea.run.deployment.liveedit
 import com.android.annotations.Trace
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonPrivateInlineFunctionFailure
+import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugar
 import com.google.common.collect.HashMultimap
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
@@ -35,7 +38,6 @@ import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.containingPackage
 import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil.getFileClassInfoNoResolve
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
-import org.jetbrains.kotlin.idea.base.projectStructure.languageVersionSettings
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.idea.util.module
 import org.jetbrains.kotlin.name.FqName
@@ -50,17 +52,19 @@ import org.objectweb.asm.ClassReader
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.Optional
 
-// Delete once b/268928663 comes to a resolution
-private val DESUGARING_ENABLED = false
-
 class LiveEditCompiler(val project: Project) {
+
+  private val LOGGER = LogWrapper(Logger.getInstance(LiveEditCompiler::class.java))
 
   // Cache of fully-qualified class name to inlineable bytecode on disk or in memory
   var inlineCandidateCache = SourceInlineCandidateCache()
 
-  private val desugarer = LiveEditDesugar()
+  private var desugarer = LiveEditDesugar()
 
   /**
    * Compile a given set of MethodReferences to Java .class files and populates the output list with the compiled code.
@@ -93,9 +97,12 @@ class LiveEditCompiler(val project: Project) {
         compileKtFile(file, input, outputBuilder)
         outputs = outputBuilder.build()
 
+        dumpOutputs(outputs)
+
         // Desugaring pass
-        if (DESUGARING_ENABLED && StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_R8_DESUGAR.get()) {
+        if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_R8_DESUGAR.get()) {
           desugarer.desugar(outputs)
+          dumpOutputs(outputs, "desugared-")
         }
       }
     }
@@ -116,6 +123,17 @@ class LiveEditCompiler(val project: Project) {
     }
 
     return if (success) Optional.of(outputs) else Optional.empty()
+  }
+
+  private fun dumpOutputs(outputs: LiveEditCompilerOutput, prefix : String = "") {
+    if (LiveEditAdvancedConfiguration.getInstance().useDebugMode) {
+      for (clazz in outputs.classes) {
+        writeDebugToTmp(prefix + clazz.name.replace("/".toRegex(), ".") + ".class", clazz.data)
+      }
+      for (clazz in outputs.supportClasses) {
+        writeDebugToTmp(prefix + clazz.name.replace("/".toRegex(), ".") + ".class", clazz.data)
+      }
+    }
   }
 
   private fun compileKtFile(file: KtFile, inputs: Collection<LiveEditCompilerInput>, output: LiveEditCompilerOutput.Builder) {
@@ -385,5 +403,24 @@ class LiveEditCompiler(val project: Project) {
 
   fun resetState() {
     inlineCandidateCache.clear()
+
+    try {
+      // Desugarer caches jar indexes and entries. It MUST be closed and recreated.
+      desugarer.close()
+    } finally {
+      desugarer = LiveEditDesugar()
+    }
+  }
+
+  private fun writeDebugToTmp(name: String, data: ByteArray) {
+    val tmpPath = System.getProperty("java.io.tmpdir") ?: return
+    val path = Paths.get(tmpPath, name)
+    try {
+      Files.write(path, data)
+      LOGGER.info("Wrote debug file at '%s'", path.toAbsolutePath())
+    }
+    catch (e: IOException) {
+      LOGGER.info("Unable to write debug file '%s'", path.toAbsolutePath())
+    }
   }
 }

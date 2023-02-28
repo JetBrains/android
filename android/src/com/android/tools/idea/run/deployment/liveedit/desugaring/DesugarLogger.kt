@@ -15,16 +15,13 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.desugaring
 
-import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiledClass
-import com.android.tools.r8.ProgramResource
-import com.android.tools.r8.ProgramResourceProvider
-import com.android.tools.r8.origin.Origin
+import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 
-class R8MemoryProgramResourceProvider(private val classes: List<LiveEditCompiledClass>, private val logger: DesugarLogger) : ProgramResourceProvider {
-  override fun getProgramResources(): MutableCollection<ProgramResource> {
-    return classes.stream().map {
-      ProgramResource.fromBytes(Origin.root(), ProgramResource.Kind.CF, it.data, mutableSetOf())
-    }.toList()
+class DesugarLogger {
+  internal fun log(message: String) {
+    if (!LiveEditAdvancedConfiguration.getInstance().useDebugMode) {
+      return
+    }
+    println("LE Desugar: " + message)
   }
-
 }
