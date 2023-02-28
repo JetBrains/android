@@ -8,6 +8,7 @@ import tarfile
 import re
 import glob
 import shutil
+import json
 import xml.etree.ElementTree as ET
 import intellij
 
@@ -19,6 +20,9 @@ HIDDEN = [
     # which circumvents the normal classloader delegation hierarchy in order to
     # prioritize its own version of kotlin-stdlib at runtime.
     "/plugins/Kotlin/lib/kotlinc-lib.jar",
+    # This annotation jar is nonexistent, despite being referenced by product-info.json.
+    # Probably this happens because BaseIdeaProperties.copyAdditionalFiles() moves this jar.
+    "/lib/annotations-java5.jar",
 ]
 
 ALL = "all"
@@ -36,12 +40,22 @@ HOME_PATHS = {
     WIN: "/windows/android-studio",
 }
 
+def read_product_info(sdk, platform):
+  path = "/Resources/product-info.json" if platform in [MAC, MAC_ARM] else "/product-info.json"
+  product_info = sdk + HOME_PATHS[platform] + path
+  with open(product_info) as f:
+    return json.load(f)
+
+
 def list_sdk_jars(sdk):
   sets = {}
   for platform in PLATFORMS:
-    idea_home = sdk + HOME_PATHS[platform]
-    jars = ["/lib/" + jar for jar in os.listdir(idea_home + "/lib") if jar.endswith(".jar")]
+    # Extract the runtime classpath from product-info.json.
+    product_info = read_product_info(sdk, platform)
+    (launch_config,) = product_info["launch"]
+    jars = ["/lib/" + jar for jar in launch_config["bootClassPathJarNames"]]
     # Java plugin sdk are included as part of the platform as there are references to it.
+    idea_home = sdk + HOME_PATHS[platform]
     jars += ["/plugins/java/lib/" + jar for jar in os.listdir(idea_home + "/plugins/java/lib/") if jar.endswith(".jar")]
     jars = [jar for jar in jars if jar not in HIDDEN]
     sets[platform] = set(jars)
