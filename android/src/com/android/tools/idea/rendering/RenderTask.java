@@ -675,7 +675,7 @@ public class RenderTask {
       myLayoutlibCallback.setLogger(myLogger);
 
       RenderSecurityManager securityManager =
-        isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, context.getModule().getAndroidPlatform()) : null;
+        isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module.getProject().getBasePath(), context.getModule().getAndroidPlatform()) : null;
       if (securityManager != null) {
         securityManager.setActive(true, myCredential);
       }

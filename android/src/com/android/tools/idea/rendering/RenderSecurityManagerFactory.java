@@ -17,7 +17,6 @@ package com.android.tools.idea.rendering;
 
 import com.android.tools.idea.log.LogWrapper;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.module.Module;
 import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,12 +26,10 @@ import org.jetbrains.annotations.Nullable;
  */
 public class RenderSecurityManagerFactory {
   /**
-   * Returns a {@link RenderSecurityManager} for the current module. The {@link RenderSecurityManager} will be
-   * setup with the SDK path and project path of the module.
+   * Returns a {@link RenderSecurityManager} for the SDK path and project path.
    */
   @NotNull
-  public static RenderSecurityManager create(@NotNull Module module, @Nullable AndroidPlatform platform) {
-    String projectPath = module.getProject().getBasePath();
+  public static RenderSecurityManager create(@Nullable String projectPath, @Nullable AndroidPlatform platform) {
     String sdkPath = platform != null ? platform.getSdkData().getLocation().toString() : null;
 
     @SuppressWarnings("ConstantConditions")
