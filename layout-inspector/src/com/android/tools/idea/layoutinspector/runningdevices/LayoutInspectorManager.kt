@@ -167,7 +167,8 @@ private class LayoutInspectorManagerImpl : LayoutInspectorManager {
   ) {
     fun injectWorkbench() {
       wrapLogic.wrapComponent { centerPanel ->
-        createLayoutInspectorWorkbench(tabContext.project, tabContext.disposable, centerPanel)
+        val layoutInspectorMainPanel = LayoutInspectorMainPanel(centerPanel)
+        createLayoutInspectorWorkbench(tabContext.project, tabContext.disposable, layoutInspectorMainPanel)
       }
     }
 
