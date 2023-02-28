@@ -41,7 +41,7 @@ internal class EnableInteractiveAction(private val dataContextProvider: () -> Da
 
   override fun updateButton(e: AnActionEvent) {
     super.updateButton(e)
-    e.presentation.isEnabled = true
+    e.presentation.isEnabledAndVisible = true
   }
 
   override fun actionPerformed(e: AnActionEvent) {

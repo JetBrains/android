@@ -85,6 +85,7 @@ internal class PreviewSurfaceActionManager(
                 DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext },
               )
               .disabledIfRefreshingOrRenderErrors(sceneView)
+              .hideIfRenderErrors(sceneView)
               .visibleOnlyInComposeStaticPreview()
         ),
         true,
