@@ -726,8 +726,7 @@ public class RenderTask {
     // Code to support editing included layout.
     if (myIncludedWithin == null) {
       String layout = IncludeReference.getIncludingLayout(xmlFile);
-      Module module = getContext().getModule().getIdeaModule();
-      myIncludedWithin = layout != null ? IncludeReference.get(module, xmlFile, resolver) : IncludeReference.NONE;
+      myIncludedWithin = layout != null ? IncludeReference.get(xmlFile, resolver) : IncludeReference.NONE;
     }
 
     ILayoutPullParser topParser = null;

@@ -22,7 +22,6 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.utils.SdkUtils;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -41,7 +40,7 @@ import static com.android.SdkConstants.*;
  */
 public class IncludeReference {
   @SuppressWarnings("ConstantConditions")
-  public static final IncludeReference NONE = new IncludeReference(null, null, null);
+  public static final IncludeReference NONE = new IncludeReference(null, null);
 
   /**
    * The source file of the reference (included from).
@@ -56,16 +55,9 @@ public class IncludeReference {
   private final VirtualFile myToFile;
 
   /**
-   * The module containing the file.
-   */
-  @NotNull
-  private final Module myModule;
-
-  /**
    * Creates a new include reference.
    */
-  private IncludeReference(@NonNull Module module, @NonNull VirtualFile fromFile, @Nullable VirtualFile toFile) {
-    myModule = module;
+  private IncludeReference(@NonNull VirtualFile fromFile, @Nullable VirtualFile toFile) {
     myFromFile = fromFile;
     myToFile = toFile;
   }
@@ -73,18 +65,8 @@ public class IncludeReference {
   /**
    * Creates a new include reference.
    */
-  public static IncludeReference create(@NonNull Module module, @NonNull VirtualFile fromFile, @Nullable VirtualFile toFile) {
-    return new IncludeReference(module, fromFile, toFile);
-  }
-
-  /**
-   * Returns the associated module.
-   *
-   * @return the module
-   */
-  @NotNull
-  public Module getModule() {
-    return myModule;
+  public static IncludeReference create(@NonNull VirtualFile fromFile, @Nullable VirtualFile toFile) {
+    return new IncludeReference(fromFile, toFile);
   }
 
   /**
@@ -191,9 +173,9 @@ public class IncludeReference {
    * the given file.
    */
   @NotNull
-  public static IncludeReference get(@NotNull Module module, @NotNull XmlFile file, @NotNull RenderResources resolver) {
+  public static IncludeReference get(@NotNull XmlFile file, @NotNull RenderResources resolver) {
     if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-      return ApplicationManager.getApplication().runReadAction((Computable<IncludeReference>)() -> get(module, file, resolver));
+      return ApplicationManager.getApplication().runReadAction((Computable<IncludeReference>)() -> get(file, resolver));
     }
 
     ApplicationManager.getApplication().assertReadAccessAllowed();
@@ -211,7 +193,7 @@ public class IncludeReference {
             VirtualFile source = IdeResourcesUtil.resolveLayout(resolver, resValue);
             if (source != null) {
               VirtualFile target = file.getVirtualFile();
-              return create(module, source, target);
+              return create(source, target);
             }
           }
         }
