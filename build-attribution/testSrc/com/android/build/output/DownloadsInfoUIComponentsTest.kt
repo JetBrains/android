@@ -45,6 +45,7 @@ import com.intellij.ui.table.TableView
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
@@ -136,6 +137,8 @@ class DownloadsInfoExecutionConsoleTest {
   private val buildStartTimestampMs = System.currentTimeMillis()
   private lateinit var buildId: ExternalSystemTaskId
   private lateinit var executionConsole: DownloadsInfoExecutionConsole
+  private lateinit var buildDisposable: CheckedDisposable
+
   private val reposTable: TableView<*>
     get() = TreeWalker(executionConsole.component).descendants().filter { it.name == "repositories table" }.filterIsInstance<TableView<*>>().single()
   private val requestsTable: TableView<*>
@@ -145,7 +148,9 @@ class DownloadsInfoExecutionConsoleTest {
   fun setUp() {
     UsageTracker.setWriterForTest(tracker)
     buildId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.RESOLVE_PROJECT, projectRule.project)
-    executionConsole = DownloadsInfoExecutionConsole(buildId, Disposer.newCheckedDisposable("build finished disposable"), buildStartTimestampMs)
+    buildDisposable = Disposer.newCheckedDisposable("build finished disposable")
+    Disposer.register(projectRule.testRootDisposable, buildDisposable)
+    executionConsole = DownloadsInfoExecutionConsole(buildId, buildDisposable, buildStartTimestampMs)
     Disposer.register(projectRule.testRootDisposable, executionConsole)
   }
 
@@ -207,5 +212,29 @@ class DownloadsInfoExecutionConsoleTest {
       .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_DOWNLOADS_INFO_USER_INTERACTION }
       .map { use -> use.studioEvent.buildOutputDownloadsInfoEvent.interaction }
     assertThat(interactions).isEqualTo(listOf(BuildOutputDownloadsInfoEvent.Interaction.OPEN_DOWNLOADS_INFO_UI))
+  }
+
+  @Test
+  fun testBuildFinishedBeforeUiDisposed() {
+    var executionConsoleDisposed = false
+    Disposer.register(executionConsole) { executionConsoleDisposed = true }
+    Disposer.dispose(buildDisposable)
+    assertThat(executionConsoleDisposed).isFalse()
+    Disposer.dispose(executionConsole)
+  }
+
+  @Test
+  fun testBuildFinishedAfterUiDisposed() {
+    Disposer.dispose(executionConsole)
+    assertThat(buildDisposable.isDisposed).isFalse()
+    Disposer.dispose(buildDisposable)
+  }
+
+  @Test
+  @Ignore("b/271258614")
+  fun testBuildFinishedBeforeUiCreated() {
+    Disposer.dispose(buildDisposable)
+    val lateExecutionConsole = DownloadsInfoExecutionConsole(buildId, buildDisposable, buildStartTimestampMs)
+    Disposer.register(projectRule.testRootDisposable, lateExecutionConsole)
   }
 }

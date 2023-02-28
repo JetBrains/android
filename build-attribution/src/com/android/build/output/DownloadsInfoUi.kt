@@ -55,7 +55,9 @@ class DownloadsInfoExecutionConsole(
   val buildFinishedDisposable: CheckedDisposable,
   val buildStartTimestampMs: Long
 ) : ExecutionConsole {
-  val uiModel = DownloadsInfoUIModel(buildId, buildFinishedDisposable)
+  // TODO (b/271258614): In an unlikely case when build is finished before running this code this will result in an error.
+  private val listenBuildEventsDisposable = Disposer.newDisposable(buildFinishedDisposable, "DownloadsInfoExecutionConsole")
+  val uiModel = DownloadsInfoUIModel(buildId, listenBuildEventsDisposable)
   val table = TableView(uiModel.requestsTableModel).apply {
     name = "requests table"
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
@@ -103,7 +105,7 @@ class DownloadsInfoExecutionConsole(
   }}
 
   override fun dispose() {
-    Disposer.dispose(buildFinishedDisposable)
+    Disposer.dispose(listenBuildEventsDisposable)
   }
   override fun getComponent(): JComponent = panel
   override fun getPreferredFocusableComponent(): JComponent = table

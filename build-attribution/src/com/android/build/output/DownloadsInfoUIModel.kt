@@ -106,6 +106,8 @@ class DownloadsInfoUIModel(val taskId: ExternalSystemTaskId, val buildFinishedDi
 
   init {
     taskId.findProject()?.let { project: Project ->
+      // TODO (b/271258614): in the case this UI is created after events start coming, these events will be missed.
+      //    To avoid this probably need to re-read data from some data accumulator.
       project.messageBus.connect(buildFinishedDisposable).subscribe(DownloadsInfoUIModelNotifier.DOWNLOADS_OUTPUT_TOPIC, object : DownloadsInfoUIModelNotifier.Listener {
         override fun updateDownloadRequest(taskId: ExternalSystemTaskId, downloadRequest: DownloadRequestItem) {
           if (this@DownloadsInfoUIModel.taskId != taskId) return
