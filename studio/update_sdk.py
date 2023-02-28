@@ -204,6 +204,9 @@ def write_xml_files(workspace, sdk, sdk_jars, plugin_jars):
   if os.path.exists(project_dir + "/" + updater_jar):
     gen_lib(project_dir, "intellij-updater", [updater_jar], [workspace + sdk + "/android-studio-sources.zip"])
 
+  test_framework_jar = rel_workspace + sdk + "/$SDK_PLATFORM$/lib/testFramework.jar"
+  gen_lib(project_dir, "intellij-test-framework", [test_framework_jar], [workspace + sdk + "/android-studio-sources.zip"])
+
 
 def update_files(workspace, version, mac_bundle_name):
   sdk = "/prebuilts/studio/intellij-sdk/" + version

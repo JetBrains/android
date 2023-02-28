@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="intellij-test-framework">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/testFramework.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/android-studio-sources.zip!/" />
+    </SOURCES>
+  </library>
+</component>

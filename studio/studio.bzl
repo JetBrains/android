@@ -1158,6 +1158,18 @@ def intellij_platform(
         visibility = ["//visibility:public"],
     )
 
+    # Expose the IntelliJ test framework separately, for consumption by tests only.
+    jvm_import(
+        name = name + "-test-framework",
+        jars = select({
+            "//tools/base/bazel:windows": [src + "/windows/android-studio/lib/testFramework.jar"],
+            "//tools/base/bazel:darwin": [src + "/darwin/android-studio/Contents/lib/testFramework.jar"],
+            "//tools/base/bazel:darwin_arm64": [src + "/darwin_aarch64/android-studio/Contents/lib/testFramework.jar"],
+            "//conditions:default": [src + "/linux/android-studio/lib/testFramework.jar"],
+        }),
+        visibility = ["//visibility:public"],
+    )
+
 def _gen_plugin_jars_import_target(name, src, spec, plugin, jars):
     """Generates a jvm_import target for the specified plugin."""
     add_windows = spec.plugin_jars_windows[plugin] if plugin in spec.plugin_jars_windows else []
