@@ -199,6 +199,7 @@ import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCache
 import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService
 import org.jetbrains.plugins.gradle.util.GradleConstants
+import org.jetbrains.plugins.gradle.util.gradleIdentityPath
 import org.jetbrains.plugins.gradle.util.setBuildSrcModule
 import java.io.File
 import java.io.IOException
@@ -1698,6 +1699,7 @@ private fun createGradleModuleDataNode(
       imlBasePath.systemIndependentPath,
       moduleBasePath.systemIndependentPath
     ).also {
+      it.gradleIdentityPath = gradlePath
       it.group = groupId
       it.version = version
     },
