@@ -45,6 +45,7 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.runInEdtAndWait
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager
 import org.jetbrains.plugins.gradle.util.GradleConstants
+import org.jetbrains.plugins.gradle.util.gradleIdentityPath
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -86,6 +87,7 @@ class GradleConnectedAndroidTestInvokerTest {
     whenever(mockProcessHandler.getCopyableUserData(ANDROID_TEST_RESULT_LISTENER_KEY)).thenReturn(mockAndroidTestResultListener)
     whenever(mockAndroidModuleModel.selectedVariantName).thenReturn("debug")
     whenever(mockModuleData.id).thenReturn(":app")
+    whenever(mockModuleData.getProperty(eq("gradleIdentityPath"))).thenReturn(":app")
     whenever(mockBuildToolWindow.isAvailable).thenReturn(true)
     whenever(mockBuildToolWindow.isVisible).thenReturn(false)
   }
@@ -443,7 +445,7 @@ class GradleConnectedAndroidTestInvokerTest {
 
   @Test
   fun testTaskNamesMatchSelectedModule() {
-    whenever(mockModuleData.id).thenReturn(":app:testModule")
+    whenever(mockModuleData.getProperty(eq("gradleIdentityPath"))).thenReturn(":app:testModule")
 
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
@@ -465,7 +467,8 @@ class GradleConnectedAndroidTestInvokerTest {
   @Test
   fun testTaskNamesCanHandleTheRootModuleOnlyProject() {
     // This is a regression test for b/219164389.
-    whenever(mockModuleData.id).thenReturn("rootProjectName")
+    whenever(mockModuleData.getProperty(eq("gradleIdentityPath"))).thenReturn(":")
+
 
     val gradleConnectedTestInvoker = createGradleConnectedAndroidTestInvoker()
 
