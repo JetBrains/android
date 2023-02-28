@@ -177,7 +177,4 @@ class DefaultProjectSystem(val project: Project) : AndroidProjectSystem, Android
       .toList()
   }
 
-  override fun desugarLibraryConfigFiles(project: Project): List<File> {
-    return listOf()
-  }
 }

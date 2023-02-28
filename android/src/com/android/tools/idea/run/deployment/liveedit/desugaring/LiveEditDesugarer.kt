@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.model.StudioAndroidModuleInfo
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.run.deployment.liveedit.desugaring.R8DiagnosticHandler
 import com.android.tools.idea.run.deployment.liveedit.desugaring.R8MemoryClassFileConsumer
@@ -87,7 +88,7 @@ private fun getDesugarConfig(module: com.intellij.openapi.module.Module?): Strin
     return null
   }
 
-  val jsonConfigs = module.project.getProjectSystem().desugarLibraryConfigFiles(module.project)
+  val jsonConfigs = module.getModuleSystem().desugarLibraryConfigFiles
   if (jsonConfigs.isEmpty()) {
     log("Not Library Config from Build System")
     return null
@@ -95,7 +96,7 @@ private fun getDesugarConfig(module: com.intellij.openapi.module.Module?): Strin
 
   // R8 only requires a single json config file. Gradle returns a list if R8 even decides to return several.
   // We only get the first one.
-  val path = jsonConfigs[0].toPath()
+  val path = jsonConfigs[0]
   val config = String(Files.readAllBytes(path))
   log("Library Config = $path")
   return config

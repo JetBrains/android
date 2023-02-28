@@ -522,6 +522,9 @@ class GradleModuleSystem(
   override val submodules: Collection<Module>
     get() = moduleHierarchyProvider.submodules
 
+  override val desugarLibraryConfigFiles: List<Path>
+    get() = GradleAndroidModel.get(module)?.androidProject?.desugarLibraryConfigFiles?.map { it.toPath() } ?: emptyList()
+
   companion object {
     private val AGP_GLOBAL_FLAGS_DEFAULTS = AgpBuildGlobalFlags(
       useAndroidX = true

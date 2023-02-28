@@ -123,8 +123,6 @@ class GradleAndroidModel(
   val allAndroidTestSourceProviders: List<IdeSourceProvider> get() = data.allAndroidTestSourceProviders
   val allTestFixturesSourceProviders: List<IdeSourceProvider> get() = data.allTestFixturesSourceProviders
 
-  val getDesugarLibraryConfigFiles: List<File> = data.getDesugarLibraryConfig()
-
   override fun getAgpVersion(): AgpVersion = agpVersion
 
   /**
