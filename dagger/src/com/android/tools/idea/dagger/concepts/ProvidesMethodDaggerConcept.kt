@@ -17,7 +17,6 @@ package com.android.tools.idea.dagger.concepts
 
 import com.android.tools.idea.dagger.concepts.DaggerAnnotations.MODULE
 import com.android.tools.idea.dagger.concepts.DaggerAnnotations.PROVIDES
-import com.android.tools.idea.dagger.concepts.DaggerElement.Type
 import com.android.tools.idea.dagger.index.DaggerConceptIndexer
 import com.android.tools.idea.dagger.index.DaggerConceptIndexers
 import com.android.tools.idea.dagger.index.IndexEntries
@@ -121,7 +120,7 @@ internal data class ProvidesMethodIndexValue(
             psiElement.hasAnnotation(PROVIDES) &&
             psiElement.containingClassOrObject?.hasAnnotation(MODULE) == true
         ) {
-          DaggerElement(psiElement, Type.PROVIDER)
+          ProviderDaggerElement(psiElement)
         } else {
           null
         }
@@ -134,7 +133,7 @@ internal data class ProvidesMethodIndexValue(
             psiElement.hasAnnotation(PROVIDES) &&
             psiElement.containingClass?.hasAnnotation(MODULE) == true
         ) {
-          DaggerElement(psiElement, Type.PROVIDER)
+          ProviderDaggerElement(psiElement)
         } else {
           null
         }
@@ -187,7 +186,7 @@ internal data class ProvidesMethodParameterIndexValue(
             parent.hasAnnotation(PROVIDES) &&
             parent.containingClassOrObject?.hasAnnotation(MODULE) == true
         ) {
-          DaggerElement(psiElement, Type.CONSUMER)
+          ConsumerDaggerElement(psiElement)
         } else {
           null
         }
@@ -201,7 +200,7 @@ internal data class ProvidesMethodParameterIndexValue(
             parent.hasAnnotation(PROVIDES) &&
             parent.containingClass?.hasAnnotation(MODULE) == true
         ) {
-          DaggerElement(psiElement, Type.CONSUMER)
+          ConsumerDaggerElement(psiElement)
         } else {
           null
         }

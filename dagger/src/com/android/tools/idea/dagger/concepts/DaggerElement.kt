@@ -38,46 +38,30 @@ import org.jetbrains.kotlin.psi.psiUtil.containingClass
  * Wrapper around a PsiElement that represents an item in the Dagger graph, along with associated
  * data.
  */
-data class DaggerElement
-internal constructor(val psiElement: PsiElement, val daggerType: Type, val psiType: PsiType) {
-  internal constructor(
-    psiElement: PsiElement,
-    type: Type
-  ) : this(psiElement, type, psiElement.getPsiType())
+abstract class DaggerElement
+internal constructor(val psiElement: PsiElement, val daggerType: Type) {
 
   enum class Type {
     PROVIDER,
     CONSUMER,
     COMPONENT,
     SUBCOMPONENT,
-    MODULE;
-
-    companion object {
-      private val CONSUMER_RELATED_TYPES = setOf(PROVIDER)
-      private val PROVIDER_RELATED_TYPES = setOf(CONSUMER)
-      private val COMPONENT_RELATED_TYPES = setOf(COMPONENT, SUBCOMPONENT, MODULE)
-      private val SUBCOMPONENT_RELATED_TYPES = setOf(COMPONENT, SUBCOMPONENT, MODULE)
-      private val MODULE_RELATED_TYPES = setOf(COMPONENT, SUBCOMPONENT, MODULE)
-    }
-
-    /**
-     * Returns types of related Dagger elements should be displayed for the given Dagger element
-     * type.
-     */
-    fun getRelatedElementTypes(): Set<Type> =
-      when (this) {
-        CONSUMER -> CONSUMER_RELATED_TYPES
-        PROVIDER -> PROVIDER_RELATED_TYPES
-        COMPONENT -> COMPONENT_RELATED_TYPES
-        SUBCOMPONENT -> SUBCOMPONENT_RELATED_TYPES
-        MODULE -> MODULE_RELATED_TYPES
-      }
+    MODULE,
   }
 
-  /** Look up related Dagger items using [DaggerIndex]. */
-  fun getRelatedDaggerItems(): List<DaggerElement> {
+  /** Looks up related Dagger elements. */
+  abstract fun getRelatedDaggerElements(): List<DaggerElement>
+
+  /**
+   * Looks up related Dagger elements using [DaggerIndex]. Derived classes should use this to
+   * implement the part of [getRelatedDaggerElements] that finds items stored in the index.
+   */
+  protected fun getRelatedDaggerElementsFromIndex(
+    relatedItemTypes: Set<Type>
+  ): List<DaggerElement> {
     val project = psiElement.project
     val scope = project.projectScope()
+    val psiType = psiElement.getPsiType()
 
     return DaggerIndex
       // Get index keys
@@ -85,7 +69,7 @@ internal constructor(val psiElement: PsiElement, val daggerType: Type, val psiTy
       // Look up the keys in the index
       .flatMap { DaggerIndex.getValues(it, scope) }
       // Remove types we aren't interested in before resolving
-      .filter { it.dataType.daggerElementType in daggerType.getRelatedElementTypes() }
+      .filter { it.dataType.daggerElementType in relatedItemTypes }
       // Ensure there are no duplicate index values (which can happen if two different keys have
       // identical values)
       .distinct()
@@ -94,6 +78,18 @@ internal constructor(val psiElement: PsiElement, val daggerType: Type, val psiTy
       // Ensure there are no duplicate resolved values
       .distinct()
   }
+}
+
+internal class ProviderDaggerElement(psiElement: PsiElement) :
+  DaggerElement(psiElement, Type.PROVIDER) {
+  override fun getRelatedDaggerElements(): List<DaggerElement> =
+    getRelatedDaggerElementsFromIndex(setOf(Type.CONSUMER))
+}
+
+internal class ConsumerDaggerElement(psiElement: PsiElement) :
+  DaggerElement(psiElement, Type.CONSUMER) {
+  override fun getRelatedDaggerElements(): List<DaggerElement> =
+    getRelatedDaggerElementsFromIndex(setOf(Type.PROVIDER))
 }
 
 fun interface DaggerElementIdentifier<T : PsiElement> {

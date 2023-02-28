@@ -16,7 +16,6 @@
 package com.android.tools.idea.dagger.concepts
 
 import com.android.tools.idea.dagger.concepts.DaggerAnnotations.INJECT
-import com.android.tools.idea.dagger.concepts.DaggerElement.Type
 import com.android.tools.idea.dagger.index.DaggerConceptIndexer
 import com.android.tools.idea.dagger.index.DaggerConceptIndexers
 import com.android.tools.idea.dagger.index.IndexEntries
@@ -88,13 +87,13 @@ internal data class InjectedFieldIndexValue(val classFqName: String, val fieldNa
     private val identifyInjectedFieldKotlin =
       DaggerElementIdentifier<KtProperty> {
         if (it.containingClassOrObject != null && it.hasAnnotation(INJECT))
-          DaggerElement(it, Type.CONSUMER)
+          ConsumerDaggerElement(it)
         else null
       }
 
     private val identifyInjectedFieldJava =
       DaggerElementIdentifier<PsiField> {
-        if (it.hasAnnotation(INJECT)) DaggerElement(it, Type.CONSUMER) else null
+        if (it.hasAnnotation(INJECT)) ConsumerDaggerElement(it) else null
       }
 
     internal val identifiers =

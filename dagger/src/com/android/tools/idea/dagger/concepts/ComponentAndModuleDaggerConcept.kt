@@ -162,9 +162,10 @@ internal data class ClassIndexValue(
     private val identifyClassKotlin =
       DaggerElementIdentifier<KtClass> {
         when {
-          it.hasAnnotation(DaggerAnnotations.COMPONENT) -> DaggerElement(it, Type.COMPONENT)
-          it.hasAnnotation(DaggerAnnotations.SUBCOMPONENT) -> DaggerElement(it, Type.SUBCOMPONENT)
-          it.hasAnnotation(DaggerAnnotations.MODULE) -> DaggerElement(it, Type.MODULE)
+          it.hasAnnotation(DaggerAnnotations.COMPONENT) -> ClassDaggerElement(it, Type.COMPONENT)
+          it.hasAnnotation(DaggerAnnotations.SUBCOMPONENT) ->
+            ClassDaggerElement(it, Type.SUBCOMPONENT)
+          it.hasAnnotation(DaggerAnnotations.MODULE) -> ClassDaggerElement(it, Type.MODULE)
           else -> null
         }
       }
@@ -172,9 +173,10 @@ internal data class ClassIndexValue(
     private val identifyClassJava =
       DaggerElementIdentifier<PsiClass> {
         when {
-          it.hasAnnotation(DaggerAnnotations.COMPONENT) -> DaggerElement(it, Type.COMPONENT)
-          it.hasAnnotation(DaggerAnnotations.SUBCOMPONENT) -> DaggerElement(it, Type.SUBCOMPONENT)
-          it.hasAnnotation(DaggerAnnotations.MODULE) -> DaggerElement(it, Type.MODULE)
+          it.hasAnnotation(DaggerAnnotations.COMPONENT) -> ClassDaggerElement(it, Type.COMPONENT)
+          it.hasAnnotation(DaggerAnnotations.SUBCOMPONENT) ->
+            ClassDaggerElement(it, Type.SUBCOMPONENT)
+          it.hasAnnotation(DaggerAnnotations.MODULE) -> ClassDaggerElement(it, Type.MODULE)
           else -> null
         }
       }
@@ -218,4 +220,10 @@ internal data class ClassIndexValue(
   }
 
   override val daggerElementIdentifiers = identifiers
+}
+
+internal class ClassDaggerElement(psiElement: PsiElement, daggerType: Type) :
+  DaggerElement(psiElement, daggerType) {
+  override fun getRelatedDaggerElements(): List<DaggerElement> =
+    getRelatedDaggerElementsFromIndex(setOf(Type.COMPONENT, Type.MODULE, Type.SUBCOMPONENT))
 }

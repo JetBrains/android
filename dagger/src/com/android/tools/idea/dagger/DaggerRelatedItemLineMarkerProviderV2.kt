@@ -95,7 +95,7 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
 
     /** Given a [DaggerElement], find its related items. */
     private fun DaggerElement.getGotoItems(): List<GotoRelatedItem> =
-      getRelatedDaggerItems().map { relatedItem ->
+      getRelatedDaggerElements().map { relatedItem ->
         GotoRelatedItem(relatedItem.psiElement, relatedItem.daggerType.getGroupName())
       }
 

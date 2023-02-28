@@ -173,14 +173,13 @@ class InjectedFieldDaggerConceptTest {
 
     val heaterField = myFixture.moveCaret("var hea|ter").parentOfType<KtProperty>()!!
 
-    assertThat(
-        indexValue1.resolveToDaggerElements(
-          heaterPsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .containsExactly(DaggerElement(heaterField, DaggerElement.Type.CONSUMER))
+    val resolvedIndexValue1 =
+      indexValue1
+        .resolveToDaggerElements(heaterPsiType, myFixture.project, myFixture.project.projectScope())
+        .single()
+    assertThat(resolvedIndexValue1.psiElement).isEqualTo(heaterField)
+    assertThat(resolvedIndexValue1.daggerType).isEqualTo(DaggerElement.Type.CONSUMER)
+
     assertThat(
         indexValue1.resolveToDaggerElements(
           otherPsiType,
@@ -242,14 +241,13 @@ class InjectedFieldDaggerConceptTest {
 
     val heaterField = myFixture.moveCaret("Heater hea|ter").parentOfType<PsiField>()!!
 
-    assertThat(
-        indexValue1.resolveToDaggerElements(
-          heaterPsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .containsExactly(DaggerElement(heaterField, DaggerElement.Type.CONSUMER))
+    val resolvedIndexValue1 =
+      indexValue1
+        .resolveToDaggerElements(heaterPsiType, myFixture.project, myFixture.project.projectScope())
+        .single()
+    assertThat(resolvedIndexValue1.psiElement).isEqualTo(heaterField)
+    assertThat(resolvedIndexValue1.daggerType).isEqualTo(DaggerElement.Type.CONSUMER)
+
     assertThat(
         indexValue1.resolveToDaggerElements(
           otherPsiType,

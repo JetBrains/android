@@ -36,7 +36,9 @@ class DaggerCustomUsageSearcherV2 : CustomUsageSearcher() {
   ) {
     if (!element.isDaggerWithIndexEnabled()) return
 
-    val relatedDaggerItems = runReadAction { element.getDaggerElement()?.getRelatedDaggerItems() }
+    val relatedDaggerItems = runReadAction {
+      element.getDaggerElement()?.getRelatedDaggerElements()
+    }
     relatedDaggerItems?.forEach {
       processor.process(UsageInfo2UsageAdapter(UsageInfo(it.psiElement)))
     }

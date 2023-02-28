@@ -229,14 +229,17 @@ class InjectedConstructorDaggerConceptTest {
     val indexValue2 = InjectedConstructorIndexValue("com.example.ClassWithoutInjectedConstructor")
     val expectedPsiType2 = constructor2Element.containingClass()?.toPsiType()!!
 
-    assertThat(
-        indexValue1.resolveToDaggerElements(
+    val resolvedIndexValue1 =
+      indexValue1
+        .resolveToDaggerElements(
           expectedPsiType1,
           myFixture.project,
           myFixture.project.projectScope()
         )
-      )
-      .containsExactly(DaggerElement(constructor1Element, DaggerElement.Type.PROVIDER))
+        .single()
+    assertThat(resolvedIndexValue1.psiElement).isEqualTo(constructor1Element)
+    assertThat(resolvedIndexValue1.daggerType).isEqualTo(DaggerElement.Type.PROVIDER)
+
     assertThat(
         indexValue1.resolveToDaggerElements(
           expectedPsiType2,
@@ -298,14 +301,17 @@ class InjectedConstructorDaggerConceptTest {
     val indexValue2 = InjectedConstructorIndexValue("com.example.ClassWithoutInjectedConstructor")
     val expectedPsiType2 = toPsiType(constructor2Element.containingClass!!)!!
 
-    assertThat(
-        indexValue1.resolveToDaggerElements(
+    val resolvedIndexValue1 =
+      indexValue1
+        .resolveToDaggerElements(
           expectedPsiType1,
           myFixture.project,
           myFixture.project.projectScope()
         )
-      )
-      .containsExactly(DaggerElement(constructor1Element, DaggerElement.Type.PROVIDER))
+        .single()
+    assertThat(resolvedIndexValue1.psiElement).isEqualTo(constructor1Element)
+    assertThat(resolvedIndexValue1.daggerType).isEqualTo(DaggerElement.Type.PROVIDER)
+
     assertThat(
         indexValue1.resolveToDaggerElements(
           expectedPsiType2,
@@ -379,14 +385,13 @@ class InjectedConstructorDaggerConceptTest {
     val indexValue2 =
       InjectedConstructorParameterIndexValue("com.example.ClassWithoutInjectedConstructor", "bar")
 
-    assertThat(
-        indexValue1.resolveToDaggerElements(
-          barPsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .containsExactly(DaggerElement(parameter1Element, DaggerElement.Type.CONSUMER))
+    val resolvedIndexValue1 =
+      indexValue1
+        .resolveToDaggerElements(barPsiType, myFixture.project, myFixture.project.projectScope())
+        .single()
+    assertThat(resolvedIndexValue1.psiElement).isEqualTo(parameter1Element)
+    assertThat(resolvedIndexValue1.daggerType).isEqualTo(DaggerElement.Type.CONSUMER)
+
     assertThat(
         indexValue1.resolveToDaggerElements(
           otherPsiType,
@@ -454,14 +459,13 @@ class InjectedConstructorDaggerConceptTest {
     val indexValue2 =
       InjectedConstructorParameterIndexValue("com.example.ClassWithoutInjectedConstructor", "bar")
 
-    assertThat(
-        indexValue1.resolveToDaggerElements(
-          barPsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .containsExactly(DaggerElement(parameter1Element, DaggerElement.Type.CONSUMER))
+    val resolvedIndexValue1 =
+      indexValue1
+        .resolveToDaggerElements(barPsiType, myFixture.project, myFixture.project.projectScope())
+        .single()
+    assertThat(resolvedIndexValue1.psiElement).isEqualTo(parameter1Element)
+    assertThat(resolvedIndexValue1.daggerType).isEqualTo(DaggerElement.Type.CONSUMER)
+
     assertThat(
         indexValue1.resolveToDaggerElements(
           otherPsiType,

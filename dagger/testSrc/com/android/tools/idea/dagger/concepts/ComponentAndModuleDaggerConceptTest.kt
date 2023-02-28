@@ -283,22 +283,19 @@ class ComponentAndModuleDaggerConceptTest {
         "com.example.CoffeeShopComponent"
       )
 
-    assertThat(
-        moduleIndexValue.resolveToDaggerElements(
-          modulePsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .containsExactly(DaggerElement(componentClass, DaggerElement.Type.COMPONENT))
-    assertThat(
-        dependencyIndexValue.resolveToDaggerElements(
-          dependencyPsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .containsExactly(DaggerElement(componentClass, DaggerElement.Type.COMPONENT))
+    val resolvedModuleIndexValue =
+      moduleIndexValue
+        .resolveToDaggerElements(modulePsiType, myFixture.project, myFixture.project.projectScope())
+        .single()
+    assertThat(resolvedModuleIndexValue.psiElement).isEqualTo(componentClass)
+    assertThat(resolvedModuleIndexValue.daggerType).isEqualTo(DaggerElement.Type.COMPONENT)
+
+    val resolvedDependencyIndexValue =
+      moduleIndexValue
+        .resolveToDaggerElements(modulePsiType, myFixture.project, myFixture.project.projectScope())
+        .single()
+    assertThat(resolvedDependencyIndexValue.psiElement).isEqualTo(componentClass)
+    assertThat(resolvedDependencyIndexValue.daggerType).isEqualTo(DaggerElement.Type.COMPONENT)
 
     // When the psi types are swapped, no matches should be returned.
     assertThat(
@@ -353,14 +350,12 @@ class ComponentAndModuleDaggerConceptTest {
         "com.example.CoffeeShopSubcomponent"
       )
 
-    assertThat(
-        indexValue.resolveToDaggerElements(
-          modulePsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .containsExactly(DaggerElement(subcomponentClass, DaggerElement.Type.SUBCOMPONENT))
+    val resolvedIndexValue =
+      indexValue
+        .resolveToDaggerElements(modulePsiType, myFixture.project, myFixture.project.projectScope())
+        .single()
+    assertThat(resolvedIndexValue.psiElement).isEqualTo(subcomponentClass)
+    assertThat(resolvedIndexValue.daggerType).isEqualTo(DaggerElement.Type.SUBCOMPONENT)
   }
 
   @Test
@@ -409,22 +404,27 @@ class ComponentAndModuleDaggerConceptTest {
     val subcomponentIndexValue =
       ClassIndexValue(IndexValue.DataType.MODULE_WITH_SUBCOMPONENT, "com.example.CoffeeShopModule")
 
-    assertThat(
-        includeIndexValue.resolveToDaggerElements(
+    val resolvedIncludeIndexValue =
+      includeIndexValue
+        .resolveToDaggerElements(
           includedModulePsiType,
           myFixture.project,
           myFixture.project.projectScope()
         )
-      )
-      .containsExactly(DaggerElement(moduleClass, DaggerElement.Type.MODULE))
-    assertThat(
-        subcomponentIndexValue.resolveToDaggerElements(
+        .single()
+    assertThat(resolvedIncludeIndexValue.psiElement).isEqualTo(moduleClass)
+    assertThat(resolvedIncludeIndexValue.daggerType).isEqualTo(DaggerElement.Type.MODULE)
+
+    val resolvedSubcomponentIndexValue =
+      subcomponentIndexValue
+        .resolveToDaggerElements(
           subcomponentPsiType,
           myFixture.project,
           myFixture.project.projectScope()
         )
-      )
-      .containsExactly(DaggerElement(moduleClass, DaggerElement.Type.MODULE))
+        .single()
+    assertThat(resolvedSubcomponentIndexValue.psiElement).isEqualTo(moduleClass)
+    assertThat(resolvedSubcomponentIndexValue.daggerType).isEqualTo(DaggerElement.Type.MODULE)
 
     // When the psi types are swapped, no matches should be returned.
     assertThat(
@@ -492,22 +492,19 @@ class ComponentAndModuleDaggerConceptTest {
         "com.example.CoffeeShopComponent"
       )
 
-    assertThat(
-        moduleIndexValue.resolveToDaggerElements(
-          modulePsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .containsExactly(DaggerElement(componentClass, DaggerElement.Type.COMPONENT))
-    assertThat(
-        dependencyIndexValue.resolveToDaggerElements(
-          dependencyPsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .containsExactly(DaggerElement(componentClass, DaggerElement.Type.COMPONENT))
+    val resolvedModuleIndexValue =
+      moduleIndexValue
+        .resolveToDaggerElements(modulePsiType, myFixture.project, myFixture.project.projectScope())
+        .single()
+    assertThat(resolvedModuleIndexValue.psiElement).isEqualTo(componentClass)
+    assertThat(resolvedModuleIndexValue.daggerType).isEqualTo(DaggerElement.Type.COMPONENT)
+
+    val resolvedDependencyIndexValue =
+      moduleIndexValue
+        .resolveToDaggerElements(modulePsiType, myFixture.project, myFixture.project.projectScope())
+        .single()
+    assertThat(resolvedDependencyIndexValue.psiElement).isEqualTo(componentClass)
+    assertThat(resolvedDependencyIndexValue.daggerType).isEqualTo(DaggerElement.Type.COMPONENT)
 
     // When the psi types are swapped, no matches should be returned.
     assertThat(
@@ -562,14 +559,12 @@ class ComponentAndModuleDaggerConceptTest {
         "com.example.CoffeeShopSubcomponent"
       )
 
-    assertThat(
-        indexValue.resolveToDaggerElements(
-          modulePsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .containsExactly(DaggerElement(subcomponentClass, DaggerElement.Type.SUBCOMPONENT))
+    val resolvedIndexValue =
+      indexValue
+        .resolveToDaggerElements(modulePsiType, myFixture.project, myFixture.project.projectScope())
+        .single()
+    assertThat(resolvedIndexValue.psiElement).isEqualTo(subcomponentClass)
+    assertThat(resolvedIndexValue.daggerType).isEqualTo(DaggerElement.Type.SUBCOMPONENT)
   }
 
   @Test
@@ -618,22 +613,27 @@ class ComponentAndModuleDaggerConceptTest {
     val subcomponentIndexValue =
       ClassIndexValue(IndexValue.DataType.MODULE_WITH_SUBCOMPONENT, "com.example.CoffeeShopModule")
 
-    assertThat(
-        includeIndexValue.resolveToDaggerElements(
+    val resolvedIncludeIndexValue =
+      includeIndexValue
+        .resolveToDaggerElements(
           includedModulePsiType,
           myFixture.project,
           myFixture.project.projectScope()
         )
-      )
-      .containsExactly(DaggerElement(moduleClass, DaggerElement.Type.MODULE))
-    assertThat(
-        subcomponentIndexValue.resolveToDaggerElements(
+        .single()
+    assertThat(resolvedIncludeIndexValue.psiElement).isEqualTo(moduleClass)
+    assertThat(resolvedIncludeIndexValue.daggerType).isEqualTo(DaggerElement.Type.MODULE)
+
+    val resolvedSubcomponentIndexValue =
+      subcomponentIndexValue
+        .resolveToDaggerElements(
           subcomponentPsiType,
           myFixture.project,
           myFixture.project.projectScope()
         )
-      )
-      .containsExactly(DaggerElement(moduleClass, DaggerElement.Type.MODULE))
+        .single()
+    assertThat(resolvedSubcomponentIndexValue.psiElement).isEqualTo(moduleClass)
+    assertThat(resolvedSubcomponentIndexValue.daggerType).isEqualTo(DaggerElement.Type.MODULE)
 
     // When the psi types are swapped, no matches should be returned.
     assertThat(
