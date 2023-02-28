@@ -42,8 +42,6 @@ import com.intellij.internal.statistic.analytics.StudioCrashDetails;
 import com.intellij.internal.statistic.analytics.StudioCrashDetection;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.reference.SoftReference;
@@ -90,8 +88,8 @@ public class AndroidTargetData {
    * Filters attributes through the public.xml file
    */
   @NotNull
-  public AttributeDefinitions getPublicAttrDefs(@NotNull Project project) {
-    AttributeDefinitions attrDefs = getAllAttrDefs(project);
+  public AttributeDefinitions getPublicAttrDefs() {
+    AttributeDefinitions attrDefs = getAllAttrDefs();
     return new PublicAttributeDefinitions(attrDefs);
   }
 
@@ -99,7 +97,7 @@ public class AndroidTargetData {
    * Returns all attributes
    */
   @NotNull
-  public AttributeDefinitions getAllAttrDefs(@NotNull Project project) {
+  public AttributeDefinitions getAllAttrDefs() {
     synchronized (myAttrDefsLock) {
       if (myAttrDefs == null) {
         String attrsPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.ATTRIBUTES).toString());
@@ -196,9 +194,9 @@ public class AndroidTargetData {
     return result;
   }
 
-  public void clearLayoutBitmapCache(Module module) {
+  public void clearLayoutBitmapCache(Object moduleKey) {
     if (myLayoutLibrary != null) {
-      myLayoutLibrary.clearResourceCaches(module);
+      myLayoutLibrary.clearResourceCaches(moduleKey);
     }
   }
 
@@ -208,9 +206,9 @@ public class AndroidTargetData {
     }
   }
 
-  public void clearAllCaches(Module module) {
+  public void clearAllCaches(Object moduleKey) {
     if (myLayoutLibrary != null) {
-      myLayoutLibrary.clearAllCaches(module);
+      myLayoutLibrary.clearAllCaches(moduleKey);
     }
   }
 

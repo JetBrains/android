@@ -193,7 +193,7 @@ public class ResolutionUtils {
       AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, AndroidPlatforms.getInstance(module));
       assert androidTargetData != null;
 
-      definitions = androidTargetData.getAllAttrDefs(module.getProject());
+      definitions = androidTargetData.getAllAttrDefs();
     }
     else {
       AndroidFacet facet = AndroidFacet.getInstance(module);

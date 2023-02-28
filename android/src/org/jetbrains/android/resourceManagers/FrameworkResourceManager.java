@@ -71,7 +71,7 @@ public class FrameworkResourceManager extends ResourceManager {
     if (platform == null) {
       return null;
     }
-    return AndroidTargetData.get(platform.getSdkData(), platform.getTarget()).getPublicAttrDefs(myProject);
+    return AndroidTargetData.get(platform.getSdkData(), platform.getTarget()).getPublicAttrDefs();
   }
 
   @Override

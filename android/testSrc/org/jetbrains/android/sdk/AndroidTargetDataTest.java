@@ -70,7 +70,7 @@ public class AndroidTargetDataTest extends AndroidTestCase {
     when(target.getPath(eq(IAndroidTarget.RESOURCES))).thenReturn(resDir.toPath());
 
     AndroidTargetData targetData = new AndroidTargetData(mock(AndroidSdkData.class), target);
-    AttributeDefinitions publicAttrs = targetData.getPublicAttrDefs(getProject());
+    AttributeDefinitions publicAttrs = targetData.getPublicAttrDefs();
 
     assertThat(publicAttrs.getAttrs()).containsExactly(ResourceReference.attr(ResourceNamespace.ANDROID, "realAttr"));
   }
