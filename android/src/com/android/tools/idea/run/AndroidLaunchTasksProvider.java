@@ -228,6 +228,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     stats.setApplyChangesFallbackToRun(isApplyChangesFallbackToRun());
     stats.setApplyCodeChangesFallbackToRun(isApplyCodeChangesFallbackToRun());
     stats.setRunAlwaysInstallWithPm(myLaunchOptions.getAlwaysInstallWithPm());
+    stats.setIsComposeProject(LiveEditService.usesCompose(myProject));
   }
 
   @NotNull

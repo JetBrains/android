@@ -216,6 +216,10 @@ public class RunStats {
     myEvent.getRunEventBuilder().setRunAlwaysInstallWithPm(alwaysUsesPackageManager);
   }
 
+  public void setIsComposeProject(boolean isCompose) {
+    myEvent.getRunEventBuilder().setIsComposeProject(isCompose);
+  }
+  
   public static RunStats from(ExecutionEnvironment env) {
     RunStats data = env.getUserData(KEY);
     if (data == null) {
