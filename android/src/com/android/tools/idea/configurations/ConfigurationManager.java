@@ -336,6 +336,7 @@ public class ConfigurationManager implements Disposable {
   public String computePreferredTheme(@NotNull Configuration configuration) {
     // TODO: If we are rendering a layout in included context, pick the theme from the outer layout instead.
     String activityName = configuration.getActivity();
+    ThemeInfoProvider themeInfo = new StudioThemeInfoProvider(myModule);
     if (activityName != null) {
       String activityFqcn = activityName;
       if (activityName.startsWith(".")) {
@@ -343,21 +344,21 @@ public class ConfigurationManager implements Disposable {
         activityFqcn = packageName + activityName;
       }
 
-      String theme = ThemeUtils.getThemeNameForActivity(myModule, activityFqcn);
+      String theme = themeInfo.getThemeNameForActivity(activityFqcn);
       if (theme != null) {
         return theme;
       }
     }
 
     // Returns an app theme if possible
-    String appTheme = ThemeUtils.getAppThemeName(myModule);
+    String appTheme = themeInfo.getAppThemeName();
     if (appTheme != null) {
       return appTheme;
     }
 
     // Look up the default/fallback theme to use for this project (which depends on the screen size when no particular
     // theme is specified in the manifest).
-    return ThemeUtils.getDefaultTheme(myModule, configuration.getTarget(), configuration.getScreenSize(), configuration.getCachedDevice());
+    return themeInfo.getDefaultTheme(configuration.getTarget(), configuration.getScreenSize(), configuration.getCachedDevice());
   }
 
   @NotNull

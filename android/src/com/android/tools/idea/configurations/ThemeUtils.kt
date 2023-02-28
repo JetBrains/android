@@ -19,6 +19,7 @@ package com.android.tools.idea.configurations
 import com.android.SdkConstants
 import com.android.SdkConstants.PREFIX_ANDROID
 import com.android.SdkConstants.STYLE_RESOURCE_PREFIX
+import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.HardwareConfigHelper
 import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.ide.common.resources.ResourceResolver.THEME_NAME
@@ -234,6 +235,19 @@ fun Module.getDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: ScreenS
   // related to race condition between Gradle sync and layout rendering
   val moduleInfo = AndroidFacet.getInstance(this)?.let { StudioAndroidModuleInfo.getInstance(it) }
   return getDefaultTheme(moduleInfo, renderingTarget, screenSize, device)
+}
+
+/** Studio-specific implementation of [ThemeInfoProvider]. */
+class StudioThemeInfoProvider(private val module: Module) : ThemeInfoProvider {
+  override val appThemeName: String?
+    @Slow
+    get() = module.getAppThemeName()
+
+  @Slow
+  override fun getThemeNameForActivity(activityFqcn: String): String? = module.getThemeNameForActivity(activityFqcn)
+
+  override fun getDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String =
+    module.getDefaultTheme(renderingTarget, screenSize, device)
 }
 
 fun getDefaultTheme(moduleInfo: AndroidModuleInfo?, renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String {
