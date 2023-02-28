@@ -36,6 +36,7 @@ open class LiveEditStatus(
   private val mergePriority: Priority,
   /** When true, the refresh icon will be displayed next to the notification chip. */
   override val presentation: ComposeStatus.Presentation? = null,
+  val descriptionManualMode: String? = null,
   val redeployMode: RedeployMode = RedeployMode.NONE,
   val actionId: String? = null,
 ) : ComposeStatus {
@@ -171,7 +172,8 @@ open class LiveEditStatus(
       AllIcons.General.InspectionsOK,
       message("le.status.up_to_date.title"),
       message("le.status.up_to_date.description"),
-      DEFAULT
+      DEFAULT,
+      descriptionManualMode = "App is up to date. Code changes will be applied to the running app on Refresh.",
     )
 
   object SyncNeeded :

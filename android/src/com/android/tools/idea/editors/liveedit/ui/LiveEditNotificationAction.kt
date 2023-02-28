@@ -90,7 +90,7 @@ internal fun defaultCreateInformationPopup(
     val configureLiveEditAction = ConfigureLiveEditAction()
     return@let InformationPopupImpl(
       null,
-      status.description,
+      if (LiveEditService.isLeTriggerManual()) status.descriptionManualMode ?: status.description else status.description,
       emptyList(),
       listOfNotNull(
         link,
