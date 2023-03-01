@@ -32,6 +32,7 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.projectsystem.DependencyScopeType;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.IRenderLogger;
+import com.android.tools.idea.rendering.RenderModelModule;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.ResourceIdManager;
@@ -69,7 +70,7 @@ public class ViewLoader {
   /** Number of instances of a custom view that are allowed to nest inside itself. */
   private static final int ALLOWED_NESTED_VIEWS = 100;
 
-  @NotNull private final Module myModule;
+  @NotNull private final RenderModelModule myModule;
   @NotNull private final Map<String, Class<?>> myLoadedClasses = Maps.newHashMap();
   /** Classes that are being loaded currently. */
   @NotNull private final Multiset<Class<?>> myLoadingClasses = HashMultiset.create(5);
@@ -80,7 +81,7 @@ public class ViewLoader {
   @NotNull private IRenderLogger myLogger;
   @NotNull private final ClassLoader myClassLoader;
 
-  public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull Module module, @NotNull IRenderLogger logger,
+  public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull RenderModelModule module, @NotNull IRenderLogger logger,
                     @Nullable Object credential,
                     @NotNull ClassLoader classLoader) {
     myLayoutLibrary = layoutLib;
@@ -365,9 +366,9 @@ public class ViewLoader {
     final Ref<Boolean> token = new Ref<>();
     token.set(RenderSecurityManager.enterSafeRegion(myCredential));
     try {
-      return DumbService.getInstance(myModule.getProject()).runReadActionInSmartMode(() -> {
-        final JavaPsiFacade facade = JavaPsiFacade.getInstance(myModule.getProject());
-        PsiClass psiClass = facade.findClass(className, myModule.getModuleWithDependenciesAndLibrariesScope(false));
+      return DumbService.getInstance(myModule.getIdeaModule().getProject()).runReadActionInSmartMode(() -> {
+        final JavaPsiFacade facade = JavaPsiFacade.getInstance(myModule.getIdeaModule().getProject());
+        PsiClass psiClass = facade.findClass(className, myModule.getIdeaModule().getModuleWithDependenciesAndLibrariesScope(false));
 
         if (psiClass == null) {
           return null;
@@ -443,13 +444,13 @@ public class ViewLoader {
    */
   public void loadAndParseRClassSilently() {
     // All the ids are loaded into the idManager for the "app module".
-    ResourceIdManager idManager = ResourceIdManager.get(myModule);
+    ResourceIdManager idManager = myModule.getResourceIdManager();
     idManager.resetCompiledIds();
-    getRClassesNames(myModule).forEach((rClassName) -> {
+    getRClassesNames(myModule.getIdeaModule()).forEach((rClassName) -> {
         try {
           if (rClassName == null) {
             LOG.info(
-              String.format("loadAndParseRClass: failed to find manifest package for project %1$s", myModule.getProject().getName()));
+              String.format("loadAndParseRClass: failed to find manifest package for project %1$s", myModule.getIdeaModule().getProject().getName()));
             return;
           }
           myLogger.setResourceClass(rClassName);
@@ -479,12 +480,12 @@ public class ViewLoader {
 
       if (!isClassLoaded) {
         if (LOG.isDebugEnabled()) {
-          LOG.debug(String.format("  Class found in module %s, first time load.", anonymize(myModule)));
+          LOG.debug(String.format("  Class found in module %s, first time load.", anonymize(myModule.getIdeaModule())));
         }
       }
       else {
         if (LOG.isDebugEnabled()) {
-          LOG.debug(String.format("  Class already loaded in module %s.", anonymize(myModule)));
+          LOG.debug(String.format("  Class already loaded in module %s.", anonymize(myModule.getIdeaModule())));
         }
       }
 

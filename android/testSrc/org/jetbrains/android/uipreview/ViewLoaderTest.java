@@ -23,6 +23,7 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTestUtil;
@@ -82,14 +83,14 @@ public class ViewLoaderTest extends AndroidTestCase {
   public void testMissingClass() throws Exception {
     Project project = myModule.getProject();
     RenderLogger logger = StudioRenderService.getInstance(project).createLogger(myModule);
-    ViewLoader viewLoader = new ViewLoader(myLayoutLib, myModule, logger, null, myClassLoader);
+    ViewLoader viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null, myClassLoader);
 
     assertNull(viewLoader.loadClass("broken.brokenclass", true));
     assertTrue(logger.hasErrors());
     assertThat(logger.getMissingClasses(), hasItem("broken.brokenclass"));
 
     logger = StudioRenderService.getInstance(project).createLogger(myModule);
-    viewLoader = new ViewLoader(myLayoutLib, myModule, logger, null, myClassLoader);
+    viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null, myClassLoader);
 
     try {
       viewLoader.loadView("broken.brokenclass", null, null);
@@ -99,14 +100,14 @@ public class ViewLoaderTest extends AndroidTestCase {
     }
 
     logger = StudioRenderService.getInstance(project).createLogger(myModule);
-    viewLoader = new ViewLoader(myLayoutLib, myModule, logger, null, myClassLoader);
+    viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null, myClassLoader);
     assertNull(viewLoader.loadClass("broken.brokenclass", false));
     assertFalse(logger.hasErrors());
   }
 
   public void testRClassLoad() throws ClassNotFoundException {
     RenderLogger logger = StudioRenderService.getInstance(myModule.getProject()).createLogger(myModule);
-    ViewLoader viewLoader = new ViewLoader(myLayoutLib, myModule, logger, null, myClassLoader);
+    ViewLoader viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null, myClassLoader);
     ResourceIdManager idManager = ResourceIdManager.get(myModule);
     assertNotNull(idManager);
 

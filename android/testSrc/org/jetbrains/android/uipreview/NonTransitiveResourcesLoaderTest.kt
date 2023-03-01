@@ -21,6 +21,7 @@ import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.layoutlib.LayoutLibrary
+import com.android.tools.idea.rendering.AndroidFacetRenderModelModule
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.classloading.loadClassBytes
 import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
@@ -113,7 +114,7 @@ class NonTransitiveResourcesLoaderTest : AndroidTestCase() {
     val logger = StudioRenderService.getInstance(myModule.project).createLogger(myModule)
     // We do not need any of the services offered by LayoutLibrary in this test so just mock it.
     val layoutlib = mock<LayoutLibrary>()
-    val viewLoader = ViewLoader(layoutlib, myModule, logger, null, delegateClassLoader)
+    val viewLoader = ViewLoader(layoutlib, AndroidFacetRenderModelModule(myFacet), logger, null, delegateClassLoader)
     viewLoader.loadAndParseRClassSilently()
     val idManager = get(myModule)
     assertNotNull(idManager)
