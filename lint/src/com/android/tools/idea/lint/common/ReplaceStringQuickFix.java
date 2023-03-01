@@ -17,14 +17,11 @@ package com.android.tools.idea.lint.common;
 
 import static com.android.tools.lint.detector.api.LintFix.ReplaceString.INSERT_BEGINNING;
 import static com.android.tools.lint.detector.api.LintFix.ReplaceString.INSERT_END;
-import static kotlin.text.StringsKt.removePrefix;
-import static kotlin.text.StringsKt.removeSuffix;
 
 import com.android.annotations.NonNull;
 import com.android.tools.lint.detector.api.LintFix.ReplaceString;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Position;
-import com.intellij.codeInsight.intention.impl.AddSingleMemberStaticImportAction;
 import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils;
 import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.diagnostic.Logger;
@@ -36,26 +33,16 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiImportList;
-import com.intellij.psi.PsiImportStatement;
-import com.intellij.psi.PsiImportStatementBase;
-import com.intellij.psi.PsiImportStaticStatement;
 import com.intellij.psi.PsiJavaFile;
-import com.intellij.psi.PsiMember;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiPackage;
 import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.SmartPsiFileRange;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
-import com.intellij.psi.codeStyle.JavaCodeStyleSettings;
-import com.intellij.psi.impl.source.codeStyle.ImportHelper;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.DocumentUtil;
@@ -66,21 +53,14 @@ import java.util.regex.Pattern;
 import org.intellij.lang.annotations.RegExp;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.asJava.classes.KtLightClass;
-import org.jetbrains.kotlin.asJava.elements.KtLightField;
-import org.jetbrains.kotlin.asJava.elements.KtLightMethod;
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor;
 import org.jetbrains.kotlin.idea.KotlinLanguage;
-import org.jetbrains.kotlin.idea.caches.resolve.util.JavaResolutionUtils;
-import org.jetbrains.kotlin.idea.core.PsiModificationUtilsKt;
 import org.jetbrains.kotlin.idea.core.ShortenReferences;
-import org.jetbrains.kotlin.idea.util.ImportInsertHelper;
 import org.jetbrains.kotlin.name.FqName;
-import org.jetbrains.kotlin.psi.KtDeclaration;
 import org.jetbrains.kotlin.psi.KtElement;
 import org.jetbrains.kotlin.psi.KtFile;
-import org.jetbrains.kotlin.psi.KtImportDirective;
 import org.jetbrains.kotlin.psi.KtImportList;
+import org.jetbrains.kotlin.psi.KtPsiFactoryKt;
+import org.jetbrains.kotlin.resolve.ImportPath;
 
 /**
  * Generic lint quickfix which replaces text somewhere in the range from [startElement,endElement] by matching
@@ -301,42 +281,10 @@ public class ReplaceStringQuickFix extends DefaultLintQuickFix {
         SmartPsiElementPointer<PsiElement> endPointer = end != null ? pointerManager.createSmartPsiElementPointer(end) : null;
 
         if (myImports != null && !myImports.isEmpty()) {
-          if (file instanceof PsiJavaFile) {
-            PsiJavaFile javaFile = (PsiJavaFile)file;
-            for (String symbol : myImports) {
-              if (alreadyImported(javaFile, symbol)) {
-                continue;
-              }
-              PsiElement importSymbol = findSymbol(symbol, javaFile);
-              if (importSymbol instanceof PsiClass) {
-                ImportHelper importHelper = new ImportHelper(JavaCodeStyleSettings.getInstance(file));
-                importHelper.addImport(javaFile, (PsiClass)importSymbol);
-              } else if (importSymbol instanceof PsiMember) {
-                PsiMember member = (PsiMember)importSymbol;
-                AddSingleMemberStaticImportAction.bindAllClassRefs(file, member, member.getName(), member.getContainingClass());
-              }
-            }
-          } else if (file instanceof KtFile) {
-            KtFile ktFile = (KtFile)file;
-            for (String symbol : myImports) {
-              if (alreadyImported(ktFile, symbol)) {
-                continue;
-              }
-
-              PsiElement importSymbol = findSymbol(symbol, ktFile);
-              DeclarationDescriptor descriptor = null;
-              if (importSymbol instanceof KtDeclaration) {
-                descriptor = PsiModificationUtilsKt.toDescriptor((KtDeclaration)importSymbol);
-              } else if (importSymbol instanceof PsiClass) {
-                descriptor = JavaResolutionUtils.getJavaClassDescriptor((PsiClass)importSymbol);
-              } else if (importSymbol instanceof PsiMember) {
-                descriptor = JavaResolutionUtils.getJavaMemberDescriptor((PsiMember)importSymbol);
-              }
-
-              if (descriptor != null) {
-                ImportInsertHelper.getInstance(project).importDescriptor(ktFile, descriptor, false);
-              }
-            }
+          if (file instanceof PsiJavaFile javaFile) {
+            addJavaImports(javaFile, myImports);
+          } else if (file instanceof KtFile ktFile) {
+            addKotlinImports(ktFile, myImports);
           }
         }
 
@@ -396,116 +344,63 @@ public class ReplaceStringQuickFix extends DefaultLintQuickFix {
     }
   }
 
-  private static PsiElement findSymbol(String symbol, PsiFile file) {
-    Project project = file.getProject();
-    JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-    GlobalSearchScope scope = GlobalSearchScope.allScope(project);
-    PsiClass cls = facade.findClass(symbol, scope);
-    if (cls != null) {
-      if (cls instanceof KtLightClass) {
-        return ((KtLightClass)cls).getKotlinOrigin();
+  private static void addJavaImports(PsiJavaFile javaFile, List<String> imports) {
+    var importList = javaFile.getImportList();  // Always non-null in well-formed Java sources.
+    if (importList == null) return;
+    var project = javaFile.getProject();
+    var psiFacade = JavaPsiFacade.getInstance(project);
+    var psiSearchScope = GlobalSearchScope.allScope(project);
+    var psiFactory = psiFacade.getElementFactory();
+    for (String symbol : imports) {
+      if (alreadyImported(importList, symbol)) {
+        continue;
       }
-      return cls;
-    }
-    else {
-      // Field or method?
-      int index = symbol.lastIndexOf('.');
-      String className = symbol.substring(0, index);
-      String name = symbol.substring(index + 1);
-      cls = facade.findClass(className, scope);
+      var cls = psiFacade.findClass(symbol, psiSearchScope);
       if (cls != null) {
-        return findSymbolMember(cls, name);
+        // Normal class import.
+        importList.add(psiFactory.createImportStatement(cls));
       } else {
-        // Extension functions where you didn't specify the class name? There's some potential
-        // ambiguity here so prefer declaring using the containing class name.
-        PsiPackage pkg = facade.findPackage(className);
-        if (pkg != null) {
-          for (PsiClass pkgCls : pkg.getClasses()) {
-            PsiElement member = findSymbolMember(pkgCls, name);
-            if (member != null) {
-              return member;
-            }
-          }
+        // Static member import.
+        int lastDot = symbol.lastIndexOf('.');
+        if (lastDot == -1) continue;
+        var containingClassName = symbol.substring(0, lastDot);
+        var containingClass = psiFacade.findClass(containingClassName, psiSearchScope);
+        if (containingClass != null) {
+          var memberName = symbol.substring(lastDot + 1);
+          importList.add(psiFactory.createImportStaticStatement(containingClass, memberName));
         }
       }
     }
-    Logger.getInstance(ReplaceStringQuickFix.class).warn("Couldn't find and import " + symbol);
-    return null;
   }
 
-  @Nullable
-  private static PsiElement findSymbolMember(@NonNull PsiClass cls, @NonNull String name) {
-    // When we have a reference like foo.Bar.baz, it's ambiguous where we're
-    // referring to a method named "baz" or a field named "baz". We'll look
-    // for both and assume it's referring to the method. As far as imports go
-    // you cannot distinguish between these anyway.
-    PsiMethod[] methods = cls.findMethodsByName(name, true);
-    if (methods.length > 0) {
-      PsiMethod method = methods[0];
-      if (method instanceof KtLightMethod) {
-        return ((KtLightMethod)method).getKotlinOrigin();
+  private static void addKotlinImports(KtFile ktFile, List<String> imports) {
+    var importList = ktFile.getImportList();  // Always non-null in well-formed Kotlin sources.
+    if (importList == null) return;
+    var psiFactory = KtPsiFactoryKt.KtPsiFactory(ktFile);
+    for (String symbol : imports) {
+      if (alreadyImported(importList, symbol)) {
+        continue;
       }
-      return method;
+      var importDirective = psiFactory.createImportDirective(new ImportPath(new FqName(symbol), false));
+      importList.add(importDirective);
     }
-    else {
-      PsiField field = cls.findFieldByName(name, false);
-      if (field != null) {
-        if (field instanceof KtLightField) {
-          return ((KtLightField)field).getKotlinOrigin();
-        }
-        return field;
-      }
-    }
-    return null;
   }
 
-  private static boolean alreadyImported(@NonNull PsiJavaFile javaFile, @NonNull String symbol) {
-    // Already imported? ImportHelper has a utility method, but it doesn't seem to be working
-    // (and there isn't a good one for static imports) so just doing it the simple way here:
-    PsiImportList importList = javaFile.getImportList();
-    if (importList != null) {
-      for (PsiImportStatementBase statement : importList.getAllImportStatements()) {
-        if (statement instanceof PsiImportStaticStatement) {
-          PsiImportStaticStatement s = (PsiImportStaticStatement)statement;
-          PsiClass aClass = s.resolveTargetClass();
-          if (aClass == null) {
-            String text = statement.getText();
-            if (!text.contains(symbol)) {
-              continue;
-            }
-            // Drop "import static" prefix and ";", with flexible handling of unnecessary whitespace tokens
-            String t = removeSuffix(removePrefix(removePrefix(text, "import").trim(), "static").trim(), ";").trim();
-            if (t.equals(symbol)) {
-              return true;
-            }
-            continue;
-          }
-          String referenceName = s.getReferenceName();
-          if (symbol.equals(aClass.getQualifiedName() + "." + referenceName)) {
-            return true;
-          }
-        } else if (statement instanceof PsiImportStatement) {
-          if (symbol.equals(((PsiImportStatement)statement).getQualifiedName())) {
-            return true;
-          }
-        }
+  private static boolean alreadyImported(PsiImportList imports, String candidate) {
+    for (var importStatement : imports.getAllImportStatements()) {
+      var ref = importStatement.getImportReference();
+      if (ref != null && candidate.equals(ref.getQualifiedName())) {
+        return true;
       }
     }
     return false;
   }
 
-  private static boolean alreadyImported(@NonNull KtFile ktFile, @NonNull String symbol) {
-    KtImportList importList = ktFile.getImportList();
-    if (importList != null) {
-      for (KtImportDirective statement : importList.getImports()) {
-        FqName fqName = statement.getImportedFqName();
-        if (fqName == null) {
-          continue;
-        }
-        String imported = fqName.asString();
-        if (symbol.equals(imported)) {
-          return true;
-        }
+  private static boolean alreadyImported(KtImportList imports, String candidate) {
+    for (var importDirective : imports.getImports()) {
+      var ref = importDirective.getImportedFqName();
+      if (ref != null && candidate.equals(ref.asString())) {
+        return true;
       }
     }
     return false;

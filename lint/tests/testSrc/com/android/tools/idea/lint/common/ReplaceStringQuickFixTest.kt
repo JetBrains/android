@@ -31,7 +31,7 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureTestCase() {
   }
 
   fun testImportsJava() {
-    // Unit test for [ReplaceStringQuickFix]' import handling of Java files.
+    // Unit test for [ReplaceStringQuickFix] import handling of Java files.
     val lintFix =
       LintFix.create()
         .replace()
@@ -124,12 +124,9 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureTestCase() {
           "java.lang.Integer.MAX_VALUE",
           "test.pkg.MyTest",
           "test.pkg.MyTest.MY_CONSTANT",
-          // Extension methods. For now, work around this
-          // by supplying the actual class containing the declaration
-          // since the search doesn't find methods from packages on its
-          // own.
-          "test.pkg.MyUtil.myMethod",
-          "test.pkg.Kotlin2Kt.myMethod2",
+          // Extension methods.
+          "test.pkg.myMethod",
+          "test.pkg.myMethod2",
           "test.pkg.myMethod3"
         )
         .build()
@@ -187,14 +184,14 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureTestCase() {
       """
       package p1.p2
 
+      import java.util.ArrayList
+      import java.lang.Math.abs
+      import java.lang.Integer.MAX_VALUE
       import test.pkg.MyTest
-      import test.pkg.MyTest.Companion.MY_CONSTANT
+      import test.pkg.MyTest.MY_CONSTANT
       import test.pkg.myMethod
       import test.pkg.myMethod2
       import test.pkg.myMethod3
-      import java.lang.Integer.MAX_VALUE
-      import java.lang.Math.abs
-      import java.util.ArrayList
 
       class ImportTest {
           fun newName() {
