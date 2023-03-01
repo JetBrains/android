@@ -29,6 +29,10 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.kotlin.utils.yieldIfNotNull
+import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
+import org.jetbrains.plugins.gradle.util.gradleIdentityPath
+import org.jetbrains.plugins.gradle.util.gradlePath
+import org.jetbrains.plugins.gradle.util.isIncludedBuild
 import java.util.Comparator
 
 private const val BUILD_ORDER_BASE = 1_000_000
@@ -41,28 +45,28 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
   private data class ModuleDesc(
     val module: Module,
     val projectPath: GradleHolderProjectPath,
-    private val buildPath: BuildRelativeGradleProjectPath
+    val buildName: String
   ) {
 
     val orderBase: Int = when {
-      projectPath.path == ":" && buildPath.buildName == ":" -> 0
+      projectPath.path == ":" && buildName == ":" -> 0
       projectPath.path == ":" -> BUILD_ORDER_BASE
       else -> MODULE_ORDER_BASE
     }
 
-    val displayPath: String = buildPath.buildNamePrefixedGradleProjectPath()
+    val displayPath: String = projectPath.path
 
     val projectDisplayName: String = when {
-      projectPath.path == ":" && buildPath.buildName == ":" -> PROJECT_PREFIX + module.name
-      projectPath.path == ":" -> BUILD_PREFIX +  buildPath.buildName
+      projectPath.path == ":" && buildName == ":" -> PROJECT_PREFIX + module.name
+      projectPath.path == ":" -> BUILD_PREFIX +  buildName
       else -> MODULE_PREFIX + displayPath
     }
 
     companion object {
       val CONFIG_FILE_GROUP_COMPARATOR: Comparator<ModuleDesc> =
-        compareBy<ModuleDesc> { it.buildPath.rootBuildPath() }
-          .thenBy { it.buildPath.buildName }
-          .thenBy { it.buildPath.gradleProjectPath }
+        compareBy<ModuleDesc> { it.projectPath.buildRootDir }
+          .thenBy { it.buildName }
+          .thenBy { it.projectPath.path }
     }
   }
 
@@ -76,10 +80,7 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
             ModuleDesc(
               module = holderModule,
               projectPath = gradleHolderProjectPath,
-              buildPath = holderModule
-                .compositeBuildMap()
-                .forceGradleDirectTaskInvocationSupport()  // We use build name prefixed path as display names.
-                .translateToBuildAndRelativeProjectPath(gradleHolderProjectPath)
+              buildName = holderModule.resolveBuildName()
             )
           }
       }
@@ -202,13 +203,15 @@ class GradleBuildConfigurationSourceProvider(private val project: Project) : Bui
   }
 
   private val proguardFileType: FileType = FileTypeRegistry.getInstance().findFileTypeByName("Shrinker Config File")
-}
 
-private fun CompositeBuildMap.forceGradleDirectTaskInvocationSupport(): CompositeBuildMap {
-  return object: CompositeBuildMap by this@forceGradleDirectTaskInvocationSupport {
-    override val gradleSupportsDirectTaskInvocation: Boolean
-      get() = true
+  private fun Module.resolveBuildName(): String {
+    val mainModuleDataNode = CachedModuleDataFinder.getInstance(project).findMainModuleData(this) ?: return ":"
+    if (!mainModuleDataNode.data.isIncludedBuild) return ":"
+    val gradlePath = mainModuleDataNode.data.gradlePath
+    val gradleIdentityPath = mainModuleDataNode.data.gradleIdentityPath
+    return gradleIdentityPath.removeSuffix(gradlePath)
   }
+
 }
 
 private const val MODULE_PREFIX = "Module "

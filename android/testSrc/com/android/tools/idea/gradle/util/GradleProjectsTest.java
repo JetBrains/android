@@ -19,6 +19,7 @@ import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModu
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.openPreparedProject;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.prepareGradleProject;
 import static com.android.tools.idea.testing.AndroidProjectRuleKt.onEdt;
+import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getGradleIdentityPathOrNull;
 
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.testing.AndroidModuleModelBuilder;
@@ -82,12 +83,12 @@ public class GradleProjectsTest implements GradleIntegrationTest {
       validateModuleGradlePath(project, ":", ":");
       validateModuleGradlePath(project, ":app", ":app");
       validateModuleGradlePath(project, ":lib", ":lib");
-      validateModuleGradlePath(project, ":TestCompositeLib1:app", "TestCompositeLib1:app");
-      validateModuleGradlePath(project, ":TestCompositeLib1:lib", "TestCompositeLib1:lib");
-      validateModuleGradlePath(project, ":TestCompositeLib3:app", "TestCompositeLib3:app");
-      validateModuleGradlePath(project, ":TestCompositeLib3:lib", "TestCompositeLib3:lib");
-      validateModuleGradlePath(project, ":TestCompositeLib2", "composite2");
-      validateModuleGradlePath(project, ":TestCompositeLib4", "composite4");
+      validateModuleGradlePath(project, ":TestCompositeLib1:app", ":TestCompositeLib1:app");
+      validateModuleGradlePath(project, ":TestCompositeLib1:lib", ":TestCompositeLib1:lib");
+      validateModuleGradlePath(project, ":TestCompositeLib3:app", ":TestCompositeLib3:app");
+      validateModuleGradlePath(project, ":TestCompositeLib3:lib", ":TestCompositeLib3:lib");
+      validateModuleGradlePath(project, ":TestCompositeLib2", ":TestCompositeLib2");
+      validateModuleGradlePath(project, ":TestCompositeLib4", ":TestCompositeLib4");
       return Unit.INSTANCE;
     });
   }
@@ -98,11 +99,11 @@ public class GradleProjectsTest implements GradleIntegrationTest {
     openPreparedProject(this, "project", project -> {
       List<Module> modules = Arrays.stream(ModuleManager.getInstance(project).getModules()).sorted(Comparator.comparing(Module::getName))
         .collect(Collectors.toList());
-      expect.that(GradleProjects.getGradleModulePath(modules.get(0))).isEqualTo(":");
-      expect.that(GradleProjects.getGradleModulePath(modules.get(1))).isEqualTo(":app"); // holder module
-      expect.that(GradleProjects.getGradleModulePath(modules.get(2))).isEqualTo(":app"); // android test module
-      expect.that(GradleProjects.getGradleModulePath(modules.get(3))).isEqualTo(":app"); // main module
-      expect.that(GradleProjects.getGradleModulePath(modules.get(4))).isEqualTo(":app"); // unit test module
+      expect.that(getGradleIdentityPathOrNull(modules.get(0))).isEqualTo(":");
+      expect.that(getGradleIdentityPathOrNull(modules.get(1))).isEqualTo(":app"); // holder module
+      expect.that(getGradleIdentityPathOrNull(modules.get(2))).isEqualTo(":app"); // android test module
+      expect.that(getGradleIdentityPathOrNull(modules.get(3))).isEqualTo(":app"); // main module
+      expect.that(getGradleIdentityPathOrNull(modules.get(4))).isEqualTo(":app"); // unit test module
       return Unit.INSTANCE;
     });
   }
@@ -113,7 +114,7 @@ public class GradleProjectsTest implements GradleIntegrationTest {
     //noinspection ConstantConditions
     if (module != null) {
       // Note: gradleModule is implemented via `getGradleModulePath` so it should fail on `isNotNull` rather than here.
-      expect.that(GradleProjects.getGradleModulePath(module)).isEqualTo(s);
+      expect.that(getGradleIdentityPathOrNull(module)).isEqualTo(s);
     }
   }
 

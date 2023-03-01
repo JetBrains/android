@@ -16,21 +16,17 @@
 package com.android.tools.idea.gradle.util;
 
 import static com.android.tools.idea.gradle.project.ProjectImportUtil.findGradleTarget;
-import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.isExternalSystemAwareModule;
 
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.model.AndroidModel;
-import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.externalSystem.ExternalSystemModulePropertyManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.util.Objects;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
@@ -78,30 +74,7 @@ public final class GradleProjects {
    * @return {@code true} if the given module is the one that represents the project, {@code false} otherwise.
    */
   public static boolean isGradleProjectModule(@NotNull Module module) {
-    return ":".equals(getGradleModulePath(module));
-  }
-
-  /**
-   * Returns the gradle path of a module, for example ":app" or ":lib:mylib". In the case of a module from a project included in the
-   * composite build, the returned Gradle path is prefixed by the included project name, i.e. included_project:libs:mylib or just
-   * included_project for an included build root project.
-   * @param module the give module
-   * @return the gradle path or {@code null} if not a gradle module or can't find the path.
-   */
-  @Nullable
-  public static String getGradleModulePath(@NotNull Module module) {
-    if (!isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, module)) {
-      return null;
-    }
-    Module holderModule = ModuleSystemUtil.getHolderModule(module);
-    ExternalSystemModulePropertyManager moduleProperties = ExternalSystemModulePropertyManager.getInstance(holderModule);
-    String linkedProjectId = moduleProperties.getLinkedProjectId();
-    if (linkedProjectId == null) {
-      return null;
-    }
-    boolean isRootProject = Objects.equals(moduleProperties.getRootProjectPath(), moduleProperties.getLinkedProjectPath());
-
-    return isRootProject ? ":" : linkedProjectId;
+    return ":".equals(GradleProjectResolverUtil.getGradleIdentityPathOrNull(module));
   }
 
   public static boolean isIdeaAndroidModule(@NotNull Module module) {

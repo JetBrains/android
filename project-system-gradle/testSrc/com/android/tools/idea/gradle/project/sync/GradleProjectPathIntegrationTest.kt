@@ -17,9 +17,7 @@ package com.android.tools.idea.gradle.project.sync
 
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
-import com.android.tools.idea.projectsystem.gradle.buildNamePrefixedGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
-import com.android.tools.idea.projectsystem.gradle.getBuildAndRelativeGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.GradleIntegrationTest
@@ -142,7 +140,7 @@ class GradleProjectPathIntegrationTest : GradleIntegrationTest {
   fun rootBuildRelativeGradleProjectPaths_inComposites() {
     val root = prepareGradleProject(TestProjectToSnapshotPaths.COMPOSITE_BUILD, "project")
     openPreparedProject("project") { project ->
-      assertThat(dumpModuleToRootBuildRelativeGradlePathMapping(project, root)).isEqualTo(
+      assertThat(dumpModuleToRootBuildRelativeGradlePathMapping(project)).isEqualTo(
         """
             ==> :
             .app ==> :app
@@ -207,14 +205,13 @@ class GradleProjectPathIntegrationTest : GradleIntegrationTest {
       .trim()
   }
 
-  private fun dumpModuleToRootBuildRelativeGradlePathMapping(project: Project, root: File): String {
+  private fun dumpModuleToRootBuildRelativeGradlePathMapping(project: Project): String {
     return ModuleManager.getInstance(project)
       .modules
       .mapNotNull { it to (it.getGradleProjectPath() as? GradleHolderProjectPath ?: return@mapNotNull  null) }
       .map { (module, gradleProjectPath) ->
         val moduleName = module.name.removePrefix(project.name)
-        val path = module.getBuildAndRelativeGradleProjectPath()
-        "$moduleName ==> ${path?.buildNamePrefixedGradleProjectPath()}"
+        "$moduleName ==> ${gradleProjectPath.path}"
       }
       .sorted()
       .joinToString("\n")
