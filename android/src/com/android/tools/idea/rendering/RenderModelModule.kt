@@ -38,4 +38,7 @@ interface RenderModelModule : Disposable {
   val androidPlatform: AndroidPlatform?
 
   val resourceIdManager: ResourceIdManager
+
+  /** An object uniquely identifying the module. Used for caching. */
+  val moduleKey: Any
 }

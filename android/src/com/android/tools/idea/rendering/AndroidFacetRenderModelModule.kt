@@ -40,6 +40,8 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
     get() = getInstance(ideaModule)
   override val resourceIdManager: ResourceIdManager
     get() = ResourceIdManager.get(ideaModule)
+  override val moduleKey: Any
+    get() = ideaModule
 
   override fun dispose() {
     assetRepository = null

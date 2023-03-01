@@ -36,6 +36,7 @@ class DefaultRenderModelModule(
 ) : RenderModelModule {
   override var assetRepository: AssetRepository? = assets
     private set
+  override val moduleKey: Any = ideaModule
 
   override fun dispose() {
     assetRepository = null
