@@ -48,7 +48,7 @@ class BuildTypesPanel extends JPanel {
     myBuildTypesList.setSelectionChangeListener(myEventDispatcher::selectionChanged);
     myBuildTypesList.setItemsSelected(true);
 
-    new ListSpeedSearch(myBuildTypesList);
+    ListSpeedSearch.installOn(myBuildTypesList);
 
     JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(myBuildTypesList);
     scrollPane.setBorder(IdeBorderFactory.createBorder(RIGHT | BOTTOM));

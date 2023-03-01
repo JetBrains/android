@@ -57,7 +57,7 @@ public class GradleSignStep extends ExportSignedPackageWizardStep {
 
     myBuildVariantsList.setModel(myBuildVariantsListModel);
     myBuildVariantsList.setEmptyText(AndroidBundle.message("android.apk.sign.gradle.no.variants"));
-    new ListSpeedSearch<>(myBuildVariantsList);
+    ListSpeedSearch.installOn(myBuildVariantsList);
   }
 
   @Override
