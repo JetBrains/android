@@ -99,7 +99,7 @@ final class HeapSnapshotStatistics {
     return categoryComponentStats;
   }
 
-  public void addObjectSizeToSharedComponent(long sharedMask, long size, String objectClassName) {
+  public void addObjectSizeToSharedComponent(long sharedMask, long size, String objectClassName, boolean isMergePoint) {
     if (!maskToSharedComponentStats.containsKey(sharedMask)) {
       maskToSharedComponentStats.put(sharedMask, new SharedClusterStatistics(sharedMask));
     }
@@ -107,15 +107,15 @@ final class HeapSnapshotStatistics {
     stats.getStatistics().addObject(size);
 
     if (config.collectHistograms && extendedReportStatistics != null) {
-      extendedReportStatistics.addClassNameToSharedClusterHistogram(stats, objectClassName, size);
+      extendedReportStatistics.addClassNameToSharedClusterHistogram(stats, objectClassName, size, isMergePoint);
     }
   }
 
-  public void addOwnedObjectSizeToComponent(int componentId, long size, String objectClassName) {
+  public void addOwnedObjectSizeToComponent(int componentId, long size, String objectClassName, boolean isRoot) {
     ComponentClusterObjectsStatistics stats = componentStats.get(componentId);
     stats.addOwnedObject(size);
     if (config.collectHistograms && extendedReportStatistics != null) {
-      extendedReportStatistics.addClassNameToComponentOwnedHistogram(stats.getComponent(), objectClassName, size);
+      extendedReportStatistics.addClassNameToComponentOwnedHistogram(stats.getComponent(), objectClassName, size, isRoot);
     }
   }
 
@@ -127,11 +127,11 @@ final class HeapSnapshotStatistics {
     categoryComponentStats.get(categoryId).addRetainedObject(size);
   }
 
-  public void addOwnedObjectSizeToCategoryComponent(int categoryId, long size, String objectClassName) {
+  public void addOwnedObjectSizeToCategoryComponent(int categoryId, long size, String objectClassName, boolean isRoot) {
     CategoryClusterObjectsStatistics stats = categoryComponentStats.get(categoryId);
     stats.addOwnedObject(size);
     if (config.collectHistograms && extendedReportStatistics != null) {
-      extendedReportStatistics.addClassNameToCategoryOwnedHistogram(stats.getComponentCategory(), objectClassName, size);
+      extendedReportStatistics.addClassNameToCategoryOwnedHistogram(stats.getComponentCategory(), objectClassName, size, isRoot);
     }
   }
 

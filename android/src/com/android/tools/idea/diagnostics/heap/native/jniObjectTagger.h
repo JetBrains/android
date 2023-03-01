@@ -68,7 +68,7 @@ JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverse
 // added to the native map. Otherwise, updates the existing element.
 JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverseNode_putOrUpdateObjectIdToTraverseNodeMap
     (JNIEnv *, jclass, jint id, jobject obj, jint refWeight, jlong ownedByComponentMask, jlong retainedMask, jint retainedMaskForCategories,
-    jlong tag);
+    jlong tag, jboolean isMergePoint);
 // Return element from the native HeapTraverseNode map.
 JNIEXPORT jobject JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverseNode_getObjectIdToTraverseNodeMapElement
   (JNIEnv *, jclass, jint id, jclass heapTraverseNodeClass);

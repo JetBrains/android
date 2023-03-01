@@ -17,6 +17,7 @@ struct ObjectMapNode {
     jlong retained_mask;
     jint retained_mask_for_categories;
     jlong tag;
+    jboolean isMergePoint;
 };
 
 jvmtiEnv *jvmti;
@@ -207,7 +208,7 @@ std::unordered_map<int, ObjectMapNode*>::iterator objectIdToTraverseNodeMapErase
 
 JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverseNode_cacheHeapSnapshotTraverseNodeConstructorId
     (JNIEnv *env, jclass klass, jclass heapTraverseNodeClass) {
-    heap_snapshot_traverse_node_constructor = env->GetMethodID(heapTraverseNodeClass, "<init>", "(Ljava/lang/Object;IJJIJ)V");
+    heap_snapshot_traverse_node_constructor = env->GetMethodID(heapTraverseNodeClass, "<init>", "(Ljava/lang/Object;IJJIJZ)V");
 }
 
 JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverseNode_clearObjectIdToTraverseNodeMap
@@ -229,7 +230,7 @@ JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverse
 
 JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverseNode_putOrUpdateObjectIdToTraverseNodeMap
     (JNIEnv *env, jclass klass, jint id, jobject obj, jint ref_weight, jlong owned_by_component_mask, jlong retained_mask,
-    jint retained_mask_for_categories, jlong tag) {
+    jint retained_mask_for_categories, jlong tag, jboolean isMergePoint) {
     ObjectMapNode* node;
     auto element_iterator = object_id_to_traverse_node_map.find(id);
     if (element_iterator != object_id_to_traverse_node_map.end()) {
@@ -245,6 +246,7 @@ JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverse
     node->retained_mask = retained_mask;
     node->retained_mask_for_categories = retained_mask_for_categories;
     node->tag = tag;
+    node->isMergePoint = isMergePoint;
 }
 
 JNIEXPORT jobject JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverseNode_getObjectIdToTraverseNodeMapElement
@@ -259,7 +261,8 @@ JNIEXPORT jobject JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTrave
                                                                                       node->owned_by_component_mask,
                                                                                       node->retained_mask,
                                                                                       node->retained_mask_for_categories,
-                                                                                      node->tag);
+                                                                                      node->tag,
+                                                                                      node->isMergePoint);
 }
 
 JNIEXPORT jint JNICALL Agent_OnAttach(JavaVM *vm, char *options, void *reserved) {
