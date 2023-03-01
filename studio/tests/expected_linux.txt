@@ -483,7 +483,6 @@ android-studio/license/ffmpeg-LICENSE.openh264
 android-studio/license/ffmpeg-SOURCE_CODE.TXT
 android-studio/license/freemarker-NOTICE
 android-studio/license/google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0.jar-NOTICE
-android-studio/license/google-api-services-debugger.jar-NOTICE
 android-studio/license/google-api-services-mobilesdk-v1.jar-NOTICE
 android-studio/license/google-api-services-source.jar-NOTICE
 android-studio/license/google-api-services-storage.jar-NOTICE
@@ -2669,14 +2668,12 @@ android-studio/plugins/firebase/lib/google-api-services-cloudresourcemanager-v1b
 android-studio/plugins/firebase/lib/google-api-services-mobilesdk-v1.jar
 android-studio/plugins/google-appindexing/lib/fetchasgoogle.jar
 android-studio/plugins/google-appindexing/lib/google-appindexing.jar
-android-studio/plugins/google-cloud-tools-as/lib/google-api-services-debugger.jar
 android-studio/plugins/google-cloud-tools-as/lib/google-api-services-source.jar
 android-studio/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.jar
 android-studio/plugins/google-cloud-tools-as/lib/gradle-appengine-builder-model-0.1.0.jar
 android-studio/plugins/google-cloud-tools-as/lib/samplesindex-v1-1.0-SNAPSHOT.jar
 android-studio/plugins/google-cloud-tools-core-as/lib/google-api-services-appengine-v1-rev9-1.22.0.jar
 android-studio/plugins/google-cloud-tools-core-as/lib/google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0.jar
-android-studio/plugins/google-cloud-tools-core-as/lib/google-api-services-debugger.jar
 android-studio/plugins/google-cloud-tools-core-as/lib/google-api-services-source.jar
 android-studio/plugins/google-cloud-tools-core-as/lib/google-cloud-tools-core-as.jar
 android-studio/plugins/google-cloud-tools-core-as/lib/gradle-appengine-builder-model-0.1.0.jar

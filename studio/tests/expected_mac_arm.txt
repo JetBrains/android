@@ -487,7 +487,6 @@ Android Studio Preview.app/Contents/license/ffmpeg-LICENSE.openh264
 Android Studio Preview.app/Contents/license/ffmpeg-SOURCE_CODE.TXT
 Android Studio Preview.app/Contents/license/freemarker-NOTICE
 Android Studio Preview.app/Contents/license/google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0.jar-NOTICE
-Android Studio Preview.app/Contents/license/google-api-services-debugger.jar-NOTICE
 Android Studio Preview.app/Contents/license/google-api-services-mobilesdk-v1.jar-NOTICE
 Android Studio Preview.app/Contents/license/google-api-services-source.jar-NOTICE
 Android Studio Preview.app/Contents/license/google-api-services-storage.jar-NOTICE
@@ -2684,14 +2683,12 @@ Android Studio Preview.app/Contents/plugins/firebase/lib/google-api-services-clo
 Android Studio Preview.app/Contents/plugins/firebase/lib/google-api-services-mobilesdk-v1.jar
 Android Studio Preview.app/Contents/plugins/google-appindexing/lib/fetchasgoogle.jar
 Android Studio Preview.app/Contents/plugins/google-appindexing/lib/google-appindexing.jar
-Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-api-services-debugger.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-api-services-source.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/gradle-appengine-builder-model-0.1.0.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/samplesindex-v1-1.0-SNAPSHOT.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-core-as/lib/google-api-services-appengine-v1-rev9-1.22.0.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-core-as/lib/google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0.jar
-Android Studio Preview.app/Contents/plugins/google-cloud-tools-core-as/lib/google-api-services-debugger.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-core-as/lib/google-api-services-source.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-core-as/lib/google-cloud-tools-core-as.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-core-as/lib/gradle-appengine-builder-model-0.1.0.jar

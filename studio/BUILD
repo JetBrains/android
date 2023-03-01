@@ -497,7 +497,6 @@ studio_plugin(
         "//tools/studio/google/cloud/tools/android-studio-plugin/lib:gradle-appengine-builder-model-0.1.0",
         "//tools/studio/google/cloud/tools/android-studio-plugin/lib:samplesindex-v1-1.0-SNAPSHOT",
         "//tools/studio/google/cloud/tools/android-studio-plugin/lib:google-api-services-source",
-        "//tools/studio/google/cloud/tools/android-studio-plugin/lib:google-api-services-debugger",
     ],
     licenses = [
         "//tools/studio/google/cloud/tools/android-studio-plugin/lib:licenses",
@@ -524,7 +523,6 @@ studio_plugin(
         "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0",
         "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-appengine-v1-rev9-1.22.0",
         "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-source",
-        "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-debugger",
     ],
     licenses = [
         "//tools/studio/google/cloud/tools/core-plugin/lib:licenses",
