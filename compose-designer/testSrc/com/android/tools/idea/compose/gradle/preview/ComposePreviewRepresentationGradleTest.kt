@@ -38,6 +38,7 @@ import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.moveCaretLines
+import com.android.tools.idea.testing.moveCaretToEnd
 import com.android.tools.idea.testing.replaceText
 import com.android.tools.idea.ui.ApplicationUtils
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
@@ -75,6 +76,8 @@ import kotlin.test.assertFalse
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -711,6 +714,60 @@ class ComposePreviewRepresentationGradleTest {
         }
       }
     }
+
+  /**
+   * When a kotlin file is updated while a preview is inactive, this will not trigger a refresh. See
+   * [file modification don't trigger refresh on inactive preview representations]
+   *
+   * This test verifies that the refresh does happen when we come back to the preview.
+   */
+  @Test
+  fun `file modification refresh triggers refresh on reactivation`(): Unit = runBlocking {
+    val psiCodeFileChangeDetectorService = PsiCodeFileChangeDetectorService.getInstance(project)
+    val otherPreviewsFile = getPsiFile(SimpleComposeAppPaths.APP_OTHER_PREVIEWS.path)
+    val otherPreviewView = TestComposePreviewView(fixture.testRootDisposable, project)
+    val otherPreviewRepresentation =
+      createComposePreviewRepresentation(otherPreviewsFile, otherPreviewView)
+
+    composePreviewRepresentation.onDeactivate()
+    otherPreviewRepresentation.onActivate()
+
+    // Now otherPreviewRepresentation is active, but the main file representation is not,
+    // so modifying otherPreviewsFile shouldn't trigger a refresh in the later one, only invalidate
+    // it
+    ApplicationUtils.invokeWriteActionAndWait(ModalityState.defaultModalityState()) {
+      fixture.openFileInEditor(otherPreviewsFile.virtualFile)
+    }
+
+    assertFalse(composePreviewRepresentation.isInvalid())
+    assertFailsWith<TimeoutCancellationException> {
+      runAndWaitForRefresh {
+        runWriteActionAndWait {
+          fixture.editor.executeAndSave {
+            moveCaretToEnd()
+            insertText("\n\nfun testMethod() {}\n\n")
+          }
+          PsiDocumentManager.getInstance(projectRule.project).commitAllDocuments()
+          FileDocumentManager.getInstance().saveAllDocuments()
+        }
+      }
+    }
+
+    // Make sure there are no pending files to update
+    psiCodeFileChangeDetectorService.fileUpdatesFlow.filter { it.isEmpty() }.first()
+
+    // The preview must now be invalid until it is activated and it automatically refreshes
+    assertTrue(composePreviewRepresentation.isInvalid())
+
+    ApplicationUtils.invokeWriteActionAndWait(ModalityState.defaultModalityState()) {
+      fixture.openFileInEditor(psiMainFile.virtualFile)
+    }
+    runAndWaitForRefresh {
+      otherPreviewRepresentation.onDeactivate()
+      composePreviewRepresentation.onActivate()
+    }
+    assertFalse(composePreviewRepresentation.isInvalid())
+  }
 
   private fun getPsiFile(path: String): PsiFile {
     val vFile = project.guessProjectDir()!!.findFileByRelativePath(path)!!
