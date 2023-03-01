@@ -173,10 +173,18 @@ class DeviceMonitorControllerImplTest {
     mockView.debugNodes()
 
     // Assert
-    // This assumes the first process is pid 5. Adding a new client can affect this assumption
+    checkMockViewActiveDevice(2)
     waitForCondition(
       "Row debugger status set to ${model.tableModel.getValueForRow(0).debuggerStatus} and was expecting ${ClientData.DebuggerStatus.ATTACHED}"
-    ) { model.tableModel.getValueForRow(0).debuggerStatus == ClientData.DebuggerStatus.ATTACHED }
+    ) {
+      for (index in 0 until model.tableModel.rowCount) {
+        val processInfo = model.tableModel.getValueForRow(index)
+        if (processInfo.pid == 5 && processInfo.debuggerStatus == ClientData.DebuggerStatus.ATTACHED) {
+          return@waitForCondition true
+        }
+      }
+      return@waitForCondition false
+    }
   }
 
   @Test
