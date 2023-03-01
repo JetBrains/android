@@ -86,15 +86,15 @@ open class LiveEditStatus(
 
     // A composition error that is not recoverable.
     @JvmStatic
-    fun createRecomposeErrorStatus(message: String): LiveEditStatus {
+    fun createRecomposeErrorStatus(name: String, message: String, recoverable: Boolean): LiveEditStatus {
       return LiveEditStatus(
         null,
         message("le.status.error.recompose.title"),
         String.format(
-          "Application encountered unexpected exception during recomposition and is reverted to last successful composition state:<br>%s",
-          if (message.length > 120) message.substring(0, 120) + "..." else message
+          "%s during recomposition and is reverted to last successful composition state:<br>%s",
+          name, if (message.length > 120) message.substring(0, 120) + "..." else message
         ),
-        UNRECOVERABLE_ERROR,
+        if (recoverable) RECOVERABLE_ERROR else UNRECOVERABLE_ERROR,
         redeployMode = RedeployMode.RERUN,
         actionId = SHOW_LOGCAT_ACTION_ID
       )

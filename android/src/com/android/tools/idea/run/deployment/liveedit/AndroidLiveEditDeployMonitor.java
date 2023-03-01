@@ -443,7 +443,8 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     ScheduledFuture<?> statusPolling = scheduler.scheduleWithFixedDelay(() -> {
       List<Deploy.ComposeException> errors = deployer.retrieveComposeStatus(installer, adb, packageName);
       if (!errors.isEmpty()) {
-        updateEditableStatus(createRecomposeErrorStatus(errors.get(0).getMessage()));
+        Deploy.ComposeException error = errors.get(0);
+        updateEditableStatus(createRecomposeErrorStatus(error.getExceptionClassName(), error.getMessage(), error.getRecoverable()));
       }
     }, 2, 2, TimeUnit.SECONDS);
     // Schedule a cancel after 10 seconds.
