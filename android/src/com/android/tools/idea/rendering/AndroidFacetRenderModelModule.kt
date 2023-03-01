@@ -28,15 +28,24 @@ import com.android.tools.sdk.AndroidPlatform
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.getInstance
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicBoolean
 
 /** Studio-specific [RenderModelModule] constructed from [AndroidFacet]. */
 class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderModelModule {
   private val LOG = Logger.getInstance(AndroidFacetRenderModelModule::class.java)
+  private val _isDisposed = AtomicBoolean(false)
+  init {
+    if (!Disposer.tryRegister(facet, this)) {
+      _isDisposed.set(true)
+    }
+  }
 
   override val ideaModule: Module
     get() = facet.module
@@ -76,8 +85,13 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
   override val resourcePackage: String?
     get() = ideaModule.getModuleSystem().getPackageName()
   override val dependencies: RenderDependencyInfo = StudioRenderDependencyInfo(ideaModule)
+  override val project: Project
+    get() = ideaModule.project
+  override val isDisposed: Boolean
+    get() = _isDisposed.get()
 
   override fun dispose() {
+    _isDisposed.set(true)
     assetRepository = null
   }
 }

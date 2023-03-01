@@ -354,7 +354,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       }
       VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(fileName);
       if (virtualFile != null) {
-        PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myRenderModule.getIdeaModule().getProject(), virtualFile);
+        PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myRenderModule.getProject(), virtualFile);
         if (psiFile != null) {
           String psiText = ApplicationManager.getApplication().isReadAccessAllowed()
                            ? psiFile.getText()
@@ -501,7 +501,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
           && (parentName.startsWith(FD_RES_LAYOUT) || parentName.startsWith(FD_RES_DRAWABLE) || parentName.startsWith(FD_RES_MENU))) {
         VirtualFile file = FileExtensions.toVirtualFile(xml);
         if (file != null) {
-          PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myRenderModule.getIdeaModule().getProject(), file);
+          PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myRenderModule.getProject(), file);
           if (psiFile instanceof XmlFile) {
             ResourceResolver resourceResolver = myRenderTask.getContext().getConfiguration().getResourceResolver();
             // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different

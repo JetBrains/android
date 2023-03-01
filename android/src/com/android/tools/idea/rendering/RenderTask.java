@@ -405,7 +405,7 @@ public class RenderTask {
         clearClassLoader();
       }
       myImageFactoryDelegate = null;
-      myContext.getModule().dispose();
+      Disposer.dispose(myContext.getModule());
 
       return null;
     });
@@ -531,7 +531,7 @@ public class RenderTask {
   @Nullable
   private RenderResult createRenderSession(@NotNull IImageFactory factory) {
     RenderContext context = getContext();
-    Module module = context.getModule().getIdeaModule();
+    RenderModelModule module = context.getModule();
     if (module.isDisposed()) {
       return null;
     }
@@ -739,7 +739,7 @@ public class RenderTask {
       myLayoutlibCallback.setLayoutParser(queryLayoutName, modelParser);
 
       // Attempt to read from PSI.
-      PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(getContext().getModule().getIdeaModule().getProject(), layoutVirtualFile);
+      PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(getContext().getModule().getProject(), layoutVirtualFile);
       if (psiFile instanceof XmlFile) {
         LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger,
                                                                 myContext.getModule().getResourceRepositoryManager());

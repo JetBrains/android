@@ -201,7 +201,7 @@ class PreviewProvider(
     }
     val file = runReadAction {
       PsiFileFactory
-        .getInstance(renderTask.context.module.ideaModule.project)
+        .getInstance(renderTask.context.module.project)
         .createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml)
     }
     assert(file is XmlFile)

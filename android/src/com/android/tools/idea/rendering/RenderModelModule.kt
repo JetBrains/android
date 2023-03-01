@@ -22,6 +22,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.android.tools.sdk.AndroidPlatform
+import com.intellij.openapi.project.Project
 
 /**
  * Provides all the module-specific Android resources information required for rendering.
@@ -48,4 +49,9 @@ interface RenderModelModule : Disposable {
   val resourcePackage: String?
 
   val dependencies: RenderDependencyInfo
+
+  /** The project current module belongs to. */
+  val project: Project
+
+  val isDisposed: Boolean
 }

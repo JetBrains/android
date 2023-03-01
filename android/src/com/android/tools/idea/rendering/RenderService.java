@@ -575,7 +575,7 @@ final public class RenderService implements Disposable {
       StackTraceCapture stackTraceCaptureElement = RenderTaskAllocationTrackerKt.captureAllocationStackTrace();
 
       return CompletableFuture.supplyAsync(() -> {
-        Module module = myContext.getModule().getIdeaModule();
+        RenderModelModule module = myContext.getModule();
         if (module.isDisposed()) {
           getLogger().warn("Module was already disposed");
           return null;

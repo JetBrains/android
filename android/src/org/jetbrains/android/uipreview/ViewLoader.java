@@ -366,8 +366,8 @@ public class ViewLoader {
     final Ref<Boolean> token = new Ref<>();
     token.set(RenderSecurityManager.enterSafeRegion(myCredential));
     try {
-      return DumbService.getInstance(myModule.getIdeaModule().getProject()).runReadActionInSmartMode(() -> {
-        final JavaPsiFacade facade = JavaPsiFacade.getInstance(myModule.getIdeaModule().getProject());
+      return DumbService.getInstance(myModule.getProject()).runReadActionInSmartMode(() -> {
+        final JavaPsiFacade facade = JavaPsiFacade.getInstance(myModule.getProject());
         PsiClass psiClass = facade.findClass(className, myModule.getIdeaModule().getModuleWithDependenciesAndLibrariesScope(false));
 
         if (psiClass == null) {
@@ -450,7 +450,7 @@ public class ViewLoader {
         try {
           if (rClassName == null) {
             LOG.info(
-              String.format("loadAndParseRClass: failed to find manifest package for project %1$s", myModule.getIdeaModule().getProject().getName()));
+              String.format("loadAndParseRClass: failed to find manifest package for project %1$s", myModule.getProject().getName()));
             return;
           }
           myLogger.setResourceClass(rClassName);
