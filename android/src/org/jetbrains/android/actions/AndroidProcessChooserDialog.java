@@ -167,7 +167,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
       getOKAction().setEnabled(selectedDevice != null && selectedClient != null);
     });
 
-    TreeSpeedSearch treeSpeedSearch = new TreeSpeedSearch(myProcessTree) {
+    TreeSpeedSearch treeSpeedSearch = new TreeSpeedSearch(myProcessTree, (Void)null) {
       @Override
       protected boolean isMatchingElement(Object element, String pattern) {
         if (element instanceof TreePath) {
@@ -183,6 +183,7 @@ public class AndroidProcessChooserDialog extends DialogWrapper {
         return false;
       }
     };
+    treeSpeedSearch.setupListeners();
 
     FutureCallback<DeviceNameProperties> callback = new FutureCallback<DeviceNameProperties>() {
       @Override

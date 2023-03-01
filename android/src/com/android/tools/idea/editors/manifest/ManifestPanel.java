@@ -310,7 +310,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
 
   @NotNull
   private TreeSpeedSearch addSpeedSearch() {
-    return new TreeSpeedSearch(myTree);
+    return TreeSpeedSearch.installOn(myTree);
   }
 
 

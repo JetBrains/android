@@ -101,7 +101,7 @@ class TreeImpl(
       }
     }
     if (installTreeSearch) {
-      TreeSpeedSearch(this, false) { componentTreeModel.toSearchString(it.lastPathComponent) }
+      TreeSpeedSearch.installOn(this, false) { componentTreeModel.toSearchString(it.lastPathComponent) }
     }
     initialized = true
 

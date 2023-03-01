@@ -217,7 +217,7 @@ public class ApkViewPanel implements TreeSelectionListener {
     myTree.setRootVisible(true); // show root node only when showing LoadingNode
     myTree.setPaintBusy(true);
 
-    TreeSpeedSearch treeSpeedSearch = new TreeSpeedSearch(myTree, true, path -> {
+    TreeSpeedSearch treeSpeedSearch = TreeSpeedSearch.installOn(myTree, true, path -> {
       Object lastPathComponent = path.getLastPathComponent();
       if (!(lastPathComponent instanceof ArchiveTreeNode)) {
         return null;
