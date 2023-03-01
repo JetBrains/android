@@ -34,9 +34,11 @@ import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.diagnostics.report.DiagnosticReport;
 import com.android.tools.idea.diagnostics.report.FreezeReport;
 import com.android.tools.idea.diagnostics.report.HistogramReport;
+import com.intellij.internal.statistic.analytics.StudioCrashDetection;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationGroupManager;
 import com.intellij.testFramework.PlatformLiteFixture;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -97,7 +99,7 @@ public class AndroidStudioSystemHealthMonitorTest extends PlatformLiteFixture {
     List<DiagnosticReport> diagnosticReports = Arrays.asList(freezeReport, histogramReport);
     when(studioReportDatabaseMock.reapReports()).thenReturn(diagnosticReports);
 
-    androidStudioSystemHealthMonitor.start();
+    androidStudioSystemHealthMonitor.startInternal();
 
     Integer expectedNumberOfReportsSubmitted = 2;
     verify(studioCrashReporterMock, timeout(TIMEOUT).times(expectedNumberOfReportsSubmitted)).submit(any(), eq(true));
@@ -105,7 +107,7 @@ public class AndroidStudioSystemHealthMonitorTest extends PlatformLiteFixture {
     orderVerifier.verify(studioCrashReporterMock, timeout(TIMEOUT)).submit(histogramCrashReport, true);
     orderVerifier.verify(studioCrashReporterMock, timeout(TIMEOUT)).submit(freezeCrashReport, true);
   }
-
+  
   @Test
   public void testSubsetOfHistogramReportsSubmitted() throws Exception {
     AnalyticsSettingsData analyticsSettings = new AnalyticsSettingsData();
@@ -123,7 +125,7 @@ public class AndroidStudioSystemHealthMonitorTest extends PlatformLiteFixture {
     }
     when(studioReportDatabaseMock.reapReports()).thenReturn(diagnosticReports);
 
-    androidStudioSystemHealthMonitor.start();
+    androidStudioSystemHealthMonitor.startInternal();
 
     Integer expectedNumberOfReportsSubmitted = AndroidStudioSystemHealthMonitor.getMaxHistogramReportsCount();
     ArgumentCaptor<CrashReport> crashReportArgumentCaptor = ArgumentCaptor.forClass(CrashReport.class);
