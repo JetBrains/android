@@ -57,6 +57,7 @@ import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.registry.Registry
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.channels.BroadcastChannel
@@ -238,11 +239,18 @@ object AndroidStudioUsageTracker {
   }
 
   private fun logNewUI() {
+    val newUI: Boolean
+    try {
+      newUI = ExperimentalUI.isNewUI()
+    } catch (_: Throwable) {
+      // Don't send the message if the new UI check fails
+      return
+    }
     UsageTracker.log(
       AndroidStudioEvent.newBuilder().apply {
         kind = EventKind.INTELLIJ_NEW_UI_STATE_EVENT
         intellijNewUiStateEvent = IntelliJNewUIState.newBuilder().apply {
-          isEnabled = Registry.stringValue("ide.experimental.ui").toBoolean()
+          isEnabled = newUI
         }.build()
       })
   }
