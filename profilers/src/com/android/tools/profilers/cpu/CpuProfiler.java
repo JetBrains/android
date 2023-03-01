@@ -355,6 +355,7 @@ public class CpuProfiler implements StudioProfiler {
                                  @NotNull Common.Session session,
                                  @NotNull Trace.TraceConfiguration configuration,
                                  @Nullable Consumer<Trace.TraceStopStatus> responseHandler) {
+    Executor poolExecutor = profilers.getIdeServices().getPoolExecutor();
     Commands.Command stopCommand = Commands.Command.newBuilder()
       .setStreamId(session.getStreamId())
       .setPid(session.getPid())
@@ -364,21 +365,23 @@ public class CpuProfiler implements StudioProfiler {
                       .setConfiguration(configuration)
                       .setNeedTraceResponse(responseHandler != null))
       .build();
-    Transport.ExecuteResponse response = profilers.getClient().getTransportClient().execute(
-      Transport.ExecuteRequest.newBuilder().setCommand(stopCommand).build());
-    if (responseHandler != null) {
-      TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.TRACE_STATUS,
-                                                                         profilers.getIdeServices().getMainExecutor(),
-                                                                         event -> event.getCommandId() == response.getCommandId(),
-                                                                         () -> session.getStreamId(),
-                                                                         () -> session.getPid(),
-                                                                         event -> {
-                                                                           responseHandler
-                                                                             .accept(event.getTraceStatus().getTraceStopStatus());
-                                                                           // return true to unregister the listener.
-                                                                           return true;
-                                                                         });
-      profilers.getTransportPoller().registerListener(statusListener);
-    }
+
+    profilers.getClient().executeAsync(stopCommand, poolExecutor)
+      .thenAcceptAsync(response -> {
+        if (responseHandler != null) {
+          TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.TRACE_STATUS,
+                                                                             profilers.getIdeServices().getMainExecutor(),
+                                                                             event -> event.getCommandId() == response.getCommandId(),
+                                                                             () -> session.getStreamId(),
+                                                                             () -> session.getPid(),
+                                                                             event -> {
+                                                                               responseHandler
+                                                                                 .accept(event.getTraceStatus().getTraceStopStatus());
+                                                                               // return true to unregister the listener.
+                                                                               return true;
+                                                                             });
+          profilers.getTransportPoller().registerListener(statusListener);
+        }
+      }, poolExecutor);
   }
 }
