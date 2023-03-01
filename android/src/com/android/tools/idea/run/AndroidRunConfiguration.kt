@@ -36,7 +36,6 @@ import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor
 import com.android.tools.idea.run.editor.ApplicationRunParameters
 import com.android.tools.idea.run.editor.DeployTargetProvider
 import com.android.tools.idea.run.tasks.AppLaunchTask
-import com.android.tools.idea.run.tasks.LaunchTasksProvider
 import com.android.tools.idea.run.ui.BaseAction
 import com.android.tools.idea.stats.RunStats
 import com.google.common.base.Predicate
@@ -50,9 +49,7 @@ import com.intellij.execution.RunnerIconProvider
 import com.intellij.execution.configurations.ConfigurationFactory
 import com.intellij.execution.configurations.RefactoringListenerProvider
 import com.intellij.execution.configurations.RunConfiguration
-import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.executors.DefaultRunExecutor
-import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.junit.RefactoringListeners
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConfigurationModuleSelector
@@ -130,13 +127,8 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
   @Throws(ExecutionException::class)
   override fun getExecutor(env: ExecutionEnvironment, facet: AndroidFacet, deployFutures: DeviceFutures): AndroidConfigurationExecutor {
     val applicationIdProvider = applicationIdProvider ?: throw RuntimeException("Cannot get ApplicationIdProvider")
-    val isDebugging = env.executor is DefaultDebugExecutor
-    val launchOptions = launchOptions.setDebug(isDebugging)
-    val consoleProvider = consoleProvider
     val apkProvider = apkProvider ?: throw RuntimeException("Cannot get ApkProvider")
-    val launchTasksProvider: LaunchTasksProvider =
-      AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions.build())
-    return LaunchTaskRunner(consoleProvider, applicationIdProvider, env, deployFutures, launchTasksProvider)
+    return LaunchTaskRunner(applicationIdProvider, env, deployFutures, apkProvider)
   }
 
   override fun supportsRunningLibraryProjects(facet: AndroidFacet): Pair<Boolean, String?> {
@@ -148,7 +140,7 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
     return activityLaunchOptionState.checkConfiguration(facet)
   }
 
-  override fun getLaunchOptions(): LaunchOptions.Builder {
+  public override fun getLaunchOptions(): LaunchOptions.Builder {
     return super.getLaunchOptions()
       .setDeploy(DEPLOY)
       .setPmInstallOptions { PM_INSTALL_OPTIONS }
@@ -214,15 +206,6 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
       }
     })
   }
-
-  private val consoleProvider: ConsoleProvider
-    get() = ConsoleProvider { _, handler, _ ->
-      val project = configurationModule.project
-      val builder = TextConsoleBuilderFactory.getInstance().createBuilder(project)
-      val console = builder.console
-      console.attachToProcess(handler)
-      console
-    }
 
   @Throws(ExecutionException::class)
   open fun getApplicationLaunchTask(

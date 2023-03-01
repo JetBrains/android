@@ -74,7 +74,8 @@ class AppInspectionLaunchTaskContributorTest {
           androidFacet,
           applicationIdProvider,
           mock(),
-          launchOptions
+          launchOptions,
+          false
         )
 
       val task1 =
@@ -110,7 +111,8 @@ class AppInspectionLaunchTaskContributorTest {
           androidFacet,
           applicationIdProvider,
           mock(),
-          launchOptions
+          launchOptions,
+          false
         )
       val task2 =
         launchTaskProvider2

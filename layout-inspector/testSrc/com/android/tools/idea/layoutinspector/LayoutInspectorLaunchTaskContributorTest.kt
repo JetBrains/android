@@ -211,7 +211,8 @@ class LayoutInspectorLaunchTaskContributorTest {
       AndroidFacet.getInstance(projectRule.module)!!,
       applicationIdProvider,
       mock(),
-      LaunchOptions.builder().build()
+      LaunchOptions.builder().build(),
+      false
     )
 
     val adb = AdbUtils.getAdbFuture(project).get()!!

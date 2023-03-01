@@ -21,23 +21,17 @@ import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LIN
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.deploy.DeploymentConfiguration;
 import com.android.tools.idea.editors.literals.LiveEditService;
-import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
-import com.android.tools.idea.projectsystem.AndroidProjectSystem;
-import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.tasks.ApplyChangesTask;
 import com.android.tools.idea.run.tasks.ApplyCodeChangesTask;
 import com.android.tools.idea.run.tasks.ClearAppStorageTask;
 import com.android.tools.idea.run.tasks.ClearLogcatTask;
-import com.android.tools.idea.run.tasks.ConnectDebuggerTask;
-import com.android.tools.idea.run.tasks.DefaultConnectDebuggerTaskKt;
 import com.android.tools.idea.run.tasks.DeployTask;
 import com.android.tools.idea.run.tasks.DismissKeyguardTask;
 import com.android.tools.idea.run.tasks.KillAndRestartAppLaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
-import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.tasks.RunInstantAppTask;
 import com.android.tools.idea.run.tasks.ShowLogcatTask;
 import com.android.tools.idea.run.tasks.StartLiveUpdateMonitoringTask;
@@ -55,10 +49,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.idea.util.projectStructure.ProjectStructureUtilKt;
 
-public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
+public class AndroidLaunchTasksProvider {
   private final Logger myLogger = Logger.getInstance(AndroidLaunchTasksProvider.class);
   private final AndroidRunConfiguration myRunConfig;
   private final ExecutionEnvironment myEnv;
@@ -66,6 +58,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   private final ApplicationIdProvider myApplicationIdProvider;
   private final ApkProvider myApkProvider;
   private final LaunchOptions myLaunchOptions;
+  private final Boolean myDebug;
   private final Project myProject;
 
   public AndroidLaunchTasksProvider(@NotNull AndroidRunConfiguration runConfig,
@@ -73,7 +66,9 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
                                     @NotNull AndroidFacet facet,
                                     @NotNull ApplicationIdProvider applicationIdProvider,
                                     @NotNull ApkProvider apkProvider,
-                                    @NotNull LaunchOptions launchOptions) {
+                                    @NotNull LaunchOptions launchOptions,
+                                    Boolean isDebug
+  ) {
     myRunConfig = runConfig;
     myEnv = env;
     myProject = facet.getModule().getProject();
@@ -81,10 +76,10 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     myApplicationIdProvider = applicationIdProvider;
     myApkProvider = apkProvider;
     myLaunchOptions = launchOptions;
+    myDebug = isDebug;
   }
 
   @NotNull
-  @Override
   public List<LaunchTask> getTasks(@NotNull IDevice device) throws ExecutionException {
     final List<LaunchTask> launchTasks = new ArrayList<>();
 
@@ -118,7 +113,8 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         // RunInstantAppTask
         AppLaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
                                                                            amStartOptions.toString(),
-                                                                           myLaunchOptions.isDebug(), myApkProvider,
+                                                                           myDebug,
+                                                                           myApkProvider,
                                                                            device);
 
         if (appLaunchTask != null) {
@@ -222,7 +218,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     return DeploymentConfiguration.getInstance().APPLY_CHANGES_FALLBACK_TO_RUN;
   }
 
-  @Override
   public void fillStats(RunStats stats) {
     stats.setApplyChangesFallbackToRun(isApplyChangesFallbackToRun());
     stats.setApplyCodeChangesFallbackToRun(isApplyCodeChangesFallbackToRun());
@@ -240,17 +235,6 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
     } else {
       return apkInfo;
     }
-  }
-
-  @Nullable
-  @Override
-  public ConnectDebuggerTask getConnectDebuggerTask() throws ExecutionException {
-    if (!myLaunchOptions.isDebug()) {
-      return null;
-    }
-    AndroidDebuggerContext androidDebuggerContext = myRunConfig.getAndroidDebuggerContext();
-
-    return DefaultConnectDebuggerTaskKt.getBaseDebuggerTask(androidDebuggerContext, myFacet, myEnv, 15);
   }
 
   private boolean shouldDeployAsInstant() {
