@@ -9,6 +9,7 @@ iml_module(
     iml_files = ["intellij.android.adt.testutils.iml"],
     test_srcs = ["src/main/java"],
     visibility = ["//visibility:public"],
+    exports = ["//prebuilts/studio/intellij-sdk:studio-sdk-test-framework"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
@@ -17,5 +18,6 @@ iml_module(
         "//tools/base/repository:studio.android.sdktools.repository[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-toml[test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-test-framework[test]",
     ],
 )

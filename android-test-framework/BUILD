@@ -8,6 +8,7 @@ iml_module(
     test_agents = ["//tools/base/threading-agent:threading_agent.jar"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
+    exports = ["//prebuilts/studio/intellij-sdk:studio-sdk-test-framework"],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
@@ -36,5 +37,6 @@ iml_module(
         "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
         "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback[module, test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-test-framework[test]",
     ],
 )

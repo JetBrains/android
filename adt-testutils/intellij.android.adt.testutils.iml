@@ -13,5 +13,6 @@
     <orderEntry type="module" module-name="android.sdktools.repository" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />
     <orderEntry type="library" scope="TEST" name="studio-plugin-toml" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="intellij-test-framework" level="project" />
   </component>
 </module>
