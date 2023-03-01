@@ -125,8 +125,6 @@ import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
-import com.android.tools.idea.projectsystem.gradle.buildNamePrefixedGradleProjectPath
-import com.android.tools.idea.projectsystem.gradle.getBuildAndRelativeGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.projectsystem.gradle.toSourceSetPath
@@ -228,6 +226,7 @@ import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCach
 import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.jetbrains.plugins.gradle.util.gradleIdentityPath
+import org.jetbrains.plugins.gradle.util.gradlePath
 import org.jetbrains.plugins.gradle.util.setBuildSrcModule
 import java.io.File
 import java.io.IOException
@@ -1857,6 +1856,7 @@ private fun createGradleModuleDataNode(
       imlBasePath.systemIndependentPath,
       moduleBasePath.systemIndependentPath
     ).also {
+      it.gradlePath = gradlePath
       it.gradleIdentityPath = gradlePath
       it.group = groupId
       it.version = version
@@ -1997,7 +1997,7 @@ private fun mergeModuleContentRoots(weightMap: Map<String, Int>, moduleNode: Dat
 @JvmOverloads
 fun Project.gradleModule(gradlePath: String, sourceSet: IdeModuleSourceSet? = null): Module? =
   ModuleManager.getInstance(this).modules
-    .firstOrNull { it.getBuildAndRelativeGradleProjectPath()?.buildNamePrefixedGradleProjectPath() == gradlePath }
+    .firstOrNull { it.getGradleProjectPath()?.path == gradlePath }
     ?.getHolderModule()
     ?.let {
       if (sourceSet == null) it

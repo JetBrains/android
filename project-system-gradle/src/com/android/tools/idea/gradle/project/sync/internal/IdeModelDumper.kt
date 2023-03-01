@@ -59,7 +59,6 @@ import com.android.tools.idea.gradle.project.sync.idea.data.DataNodeCaches
 import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
-import com.android.tools.idea.projectsystem.gradle.findCompositeBuildMapModel
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.projectsystem.isHolderModule
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -100,7 +99,6 @@ fun ProjectDumper.dumpAndroidIdeModel(
       // build located at the root of the IDE project.
       GradleHolderProjectPath(projectRoot.canonicalPath, ":")
         .resolveIn(project)
-        ?.findCompositeBuildMapModel()
         ?.let { dump(it) }
 
       dumpLibraryTable(project)

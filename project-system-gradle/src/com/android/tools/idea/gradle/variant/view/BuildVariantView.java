@@ -16,8 +16,6 @@
 package com.android.tools.idea.gradle.variant.view;
 
 import static com.android.tools.idea.gradle.variant.conflict.ConflictResolution.solveSelectionConflict;
-import static com.android.tools.idea.projectsystem.gradle.BuildRelativeGradleProjectPathKt.buildNamePrefixedGradleProjectPath;
-import static com.android.tools.idea.projectsystem.gradle.BuildRelativeGradleProjectPathKt.getBuildAndRelativeGradleProjectPath;
 import static com.intellij.ui.TableUtil.scrollSelectionToVisible;
 import static com.intellij.util.ui.JBUI.scale;
 import static com.intellij.util.ui.UIUtil.getTableFocusCellHighlightBorder;
@@ -76,6 +74,7 @@ import javax.swing.table.TableCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
+import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil;
 
 /**
  * The contents of the "Build Variants" tool window.
@@ -567,9 +566,7 @@ public class BuildVariantView {
       if (value instanceof Module) {
         Module module = (Module)value;
         if (!module.isDisposed()) {
-          final var gradleProjectPath = getBuildAndRelativeGradleProjectPath(module);
-          String modulePath = gradleProjectPath != null ? buildNamePrefixedGradleProjectPath(gradleProjectPath) : null;
-
+          String modulePath = GradleProjectResolverUtil.getGradleIdentityPathOrNull(module);
           // Note: modulePath should never be null here.
           moduleName = modulePath != null ? modulePath : module.getName();
           moduleIcon = AndroidIconProvider.getModuleIcon(module);

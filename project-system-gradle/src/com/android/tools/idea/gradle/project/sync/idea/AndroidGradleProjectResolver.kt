@@ -71,12 +71,10 @@ import com.android.tools.idea.gradle.util.AndroidGradleSettings
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.LocalProperties
 import com.android.tools.idea.io.FilePaths
-import com.android.tools.idea.projectsystem.gradle.CompositeBuildMap
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleProjectPath
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.android.tools.idea.projectsystem.gradle.findModule
-import com.android.tools.idea.projectsystem.gradle.toCompositeBuildMap
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.stats.withProjectId
 import com.android.utils.appendCapitalized
@@ -144,8 +142,7 @@ import org.jetbrains.plugins.gradle.service.project.GradleProjectResolver
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import org.jetbrains.plugins.gradle.util.getCompositeBuildGradlePath
-import org.jetbrains.plugins.gradle.util.setCompositeBuildGradlePath
+import org.jetbrains.plugins.gradle.util.gradleIdentityPath
 import java.io.File
 import java.io.IOException
 import java.util.function.Function
@@ -191,8 +188,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     if (buildMap != null) {
       projectDataNode.createChild(AndroidProjectKeys.IDE_COMPOSITE_BUILD_MAP, buildMap)
     }
-    val compositeBuildMap = buildMap?.toCompositeBuildMap()
-    projectDataNode.putUserData(COMPOSITE_BUILD_MAP, compositeBuildMap)
 
     val syncError = resolverCtx.models.getModel(IdeAndroidSyncError::class.java)
     if (syncError != null) {
@@ -410,7 +405,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       }
 
       // Setup testData nodes for testing sources used by Gradle test runners.
-      createAndSetupTestDataNode(projectDataNode, moduleNode, gradleModule, androidModel)
+      createAndSetupTestDataNode(moduleNode, androidModel)
     }
     patchMissingKaptInformationOntoModelAndDataNode(androidModel, moduleNode, kaptGradleModel)
 
@@ -420,37 +415,21 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
 
   @SuppressLint("NewApi")
   private fun createAndSetupTestDataNode(
-    projectDataNode: DataNode<ProjectData>,
     moduleDataNode: DataNode<ModuleData>,
-    gradleModule: IdeaModule,
     gradleAndroidModel: GradleAndroidModelData
   ) {
     // Get the unit test task for the current module.
     val testTaskName = getTasksFromAndroidModuleData(gradleAndroidModel)
     val moduleData = moduleDataNode.data
-    val gradlePath = GradleProjectResolverUtil.getGradlePath(moduleData)
-    val compositeBuildMap = projectDataNode.getUserData(COMPOSITE_BUILD_MAP) ?: error("No composite Build Map available for this project.")
-    // Get the included project name for the given module.
-    val compositeBuildName = compositeBuildMap.getBuildNameByBuildId(gradleModule)
+    val gradlePath = moduleData.gradleIdentityPath
 
-    // Get the Gradle path of the build.
-    val compositeBuildGradlePath = if (compositeBuildName != null && compositeBuildName != ":") {
-      val pathPrefix = if (compositeBuildName.startsWith(":")) "" else ":"
-      // b/241760958: until IDEA-291565 is fixed, we should set the CompositeBuildGradlePath to consider the correct included projects names.
-      moduleData.setCompositeBuildGradlePath(pathPrefix + compositeBuildName)
-      pathPrefix + compositeBuildName
-    } else {
-      moduleData.getCompositeBuildGradlePath()
-    }
-
-    val fullGradlePath = compositeBuildGradlePath + gradlePath
     val sourceFolders: MutableSet<String> = HashSet()
     for (sourceProvider in gradleAndroidModel.getTestSourceProviders(IdeArtifactName.UNIT_TEST)) {
       for (sourceFolder in getAllSourceFolders(sourceProvider)) {
         sourceFolders.add(sourceFolder.path)
       }
     }
-    val taskNamePrefix = if (fullGradlePath == ":") fullGradlePath else "$fullGradlePath:"
+    val taskNamePrefix = if (gradlePath == ":") gradlePath else "$gradlePath:"
     val testData = TestData(GradleConstants.SYSTEM_ID, testTaskName, taskNamePrefix + testTaskName, sourceFolders)
     moduleDataNode.createChild(ProjectKeys.TEST, testData)
   }
@@ -1094,16 +1073,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
         provider.baselineProfileDirectories,
       ).flatten()
     }
-
-    private fun DataNode<ProjectData>.getCompositeBuildMap() =
-      ExternalSystemApiUtil.find(this, AndroidProjectKeys.IDE_COMPOSITE_BUILD_MAP)?.data ?: IdeCompositeBuildMap.EMPTY
-
-    private fun CompositeBuildMap.getBuildNameByBuildId(gradleModule: IdeaModule) =
-      try {
-        buildIdToName(gradleModule.gradleProject.projectIdentifier.buildIdentifier.rootDir)
-      } catch (e: IllegalStateException) {
-        null
-      }
   }
 }
 
@@ -1128,8 +1097,6 @@ private fun IdeAndroidSyncIssuesAndExceptions.process(moduleDataNode: DataNode<M
   allSyncIssues.createAsDataNodesAndAttach(moduleDataNode)
   exceptions.forEach { logger<AndroidGradleProjectResolver>().warn(it) }
 }
-
-private val COMPOSITE_BUILD_MAP = com.intellij.openapi.util.Key.create<CompositeBuildMap>("COMPOSITE_BUILD_MAP")
 
 @VisibleForTesting
 fun mergeProjectResolvedArtifacts(
