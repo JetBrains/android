@@ -1,11 +1,13 @@
 package com.android.tools.idea.gradle.project.build
 
+import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.concurrency.addCallback
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleMultiInvocationResult
 import com.android.tools.idea.gradle.project.build.invoker.GradleTaskFinder
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.util.BuildMode
+import com.android.tools.idea.gradle.util.isAndroidProject
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors.directExecutor
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil
@@ -16,7 +18,6 @@ import com.intellij.task.ProjectTask
 import com.intellij.task.ProjectTaskContext
 import com.intellij.task.ProjectTaskRunner
 import com.intellij.task.TaskRunnerResults
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.concurrency.AsyncPromise
 import org.jetbrains.concurrency.Promise
 import org.jetbrains.concurrency.resolvedPromise
@@ -24,14 +25,14 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.nio.file.Path
 
 class AndroidProjectTaskRunner : ProjectTaskRunner() {
-
+  private val isAndroidStudio = IdeInfo.getInstance().isAndroidStudio
   override fun run(project: Project, context: ProjectTaskContext, vararg tasks: ProjectTask): Promise<Result> {
     return executeTasks(project, tasks.filterIsInstance<ModuleBuildTask>())
   }
 
   override fun canRun(projectTask: ProjectTask): Boolean {
     return projectTask is ModuleBuildTask &&
-      AndroidFacet.getInstance(projectTask.module) != null &&
+      (isAndroidStudio || projectTask.module.project.isAndroidProject) &&
       ExternalSystemApiUtil.isExternalSystemAwareModule(GradleConstants.SYSTEM_ID, projectTask.module)
   }
 
