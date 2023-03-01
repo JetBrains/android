@@ -39,7 +39,6 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.concurrent.Callable;
-import java.util.function.Supplier;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,16 +68,12 @@ public class ActionBarHandler extends ActionBarCallback {
   @NotNull private final ResourceRepositoryManager myResourceRepositoryManager;
   @Nullable private ImmutableList<ResourceReference> myMenus;
 
-  @NotNull private final Supplier<RenderModelManifest> myManifestProvider;
-
   ActionBarHandler(
     @NotNull RenderTask renderTask,
-    @NotNull Supplier<RenderModelManifest> manifestProvider,
     @Nullable Object credential) {
     myRenderTask = renderTask;
     myCredential = credential;
     myResourceRepositoryManager = renderTask.getContext().getModule().getResourceRepositoryManager();
-    myManifestProvider = manifestProvider;
   }
 
   @Override
@@ -212,9 +207,9 @@ public class ActionBarHandler extends ActionBarCallback {
   private ActivityAttributesSnapshot getActivityAttributes() {
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      RenderModelManifest manifest = myManifestProvider.get();
+      RenderModelManifest manifest = myRenderTask.getContext().getModule().getManifest();
       String activity = StringUtil.notNullize(myRenderTask.getContext().getConfiguration().getActivity());
-      return manifest.getActivityAttributes(activity);
+      return manifest != null ? manifest.getActivityAttributes(activity) : null;
     } finally {
       RenderSecurityManager.exitSafeRegion(token);
     }

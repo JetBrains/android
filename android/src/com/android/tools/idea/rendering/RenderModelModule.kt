@@ -31,6 +31,8 @@ interface RenderModelModule : Disposable {
 
   val assetRepository: AssetRepository?
 
+  val manifest: RenderModelManifest?
+
   val resourceRepositoryManager: ResourceRepositoryManager
 
   val info: AndroidModuleInfo

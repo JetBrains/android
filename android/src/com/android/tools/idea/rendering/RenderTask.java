@@ -172,7 +172,6 @@ public class RenderTask {
   private final List<CompletableFuture<?>> myRunningFutures = new LinkedList<>();
   @NotNull private final AtomicBoolean isDisposed = new AtomicBoolean(false);
   @Nullable private XmlFile myXmlFile;
-  @NotNull private final Supplier<RenderModelManifest> myManifestProvider;
   @NotNull private final ModuleClassLoader myModuleClassLoader;
 
   /**
@@ -199,7 +198,6 @@ public class RenderTask {
              boolean isSecurityManagerEnabled,
              float quality,
              @NotNull StackTraceCapture stackTraceCaptureElement,
-             @NotNull Supplier<RenderModelManifest> manifestProvider,
              boolean privateClassLoader,
              @NotNull ClassTransform additionalProjectTransform,
              @NotNull ClassTransform additionalNonProjectTransform,
@@ -233,7 +231,7 @@ public class RenderTask {
                                     ScreenOrientation.PORTRAIT;
     myHardwareConfigHelper.setOrientation(orientation);
     myLayoutLib = layoutLib;
-    ActionBarHandler actionBarHandler = new ActionBarHandler(this, manifestProvider, myCredential);
+    ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
     WeakReference<RenderTask> xmlFileProvider = new WeakReference<>(this);
     ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(renderContext.getModule().getIdeaModule(), () -> {
       RenderTask task = xmlFileProvider.get();
@@ -287,7 +285,6 @@ public class RenderTask {
         myDownScaledImageMaxBytes = DEFAULT_DOWNSCALED_IMAGE_MAX_BYTES;
       }
       restoreDefaultQuality();
-      myManifestProvider = manifestProvider;
 
       stackTraceCaptureElement.bind(this);
     } catch (Exception ex) {
@@ -612,7 +609,7 @@ public class RenderTask {
       params.setLocale(myLocale.toLocaleId());
     }
     try {
-      @Nullable RenderModelManifest manifestInfo = myManifestProvider.get();
+      @Nullable RenderModelManifest manifestInfo = context.getModule().getManifest();
       params.setRtlSupport(manifestInfo != null && manifestInfo.isRtlSupported());
     }
     catch (Exception e) {
@@ -626,7 +623,7 @@ public class RenderTask {
     }
     else {
       try {
-        @Nullable RenderModelManifest manifestInfo = myManifestProvider.get();
+        @Nullable RenderModelManifest manifestInfo = context.getModule().getManifest();
         ResourceValue appLabel = manifestInfo != null
                                  ? manifestInfo.getApplicationLabel()
                                  : new ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.STRING, "appName", "");
@@ -1327,7 +1324,7 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
     params.setFlag(RenderParamsFlags.FLAG_KEY_USE_THEMED_ICON, configuration.getUseThemedIcon());
     params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
-    @Nullable RenderModelManifest manifestInfo = myManifestProvider.get();
+    @Nullable RenderModelManifest manifestInfo = context.getModule().getManifest();
     params.setRtlSupport(manifestInfo != null && manifestInfo.isRtlSupported());
 
     try {

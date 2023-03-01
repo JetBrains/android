@@ -53,9 +53,11 @@ import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager;
+import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
 import com.android.tools.idea.rendering.ExecuteCallbacksResult;
 import com.android.tools.idea.rendering.InteractionEventResult;
 import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderModelModule;
 import com.android.tools.idea.rendering.RenderProblem;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
@@ -1059,6 +1061,11 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
+  @VisibleForTesting
+  protected RenderModelModule createRenderModule(AndroidFacet facet) {
+    return new AndroidFacetRenderModelModule(facet);
+  }
+
   /**
    * Synchronously inflates the model and updates the view hierarchy
    *
@@ -1097,7 +1104,8 @@ public class LayoutlibSceneManager extends SceneManager {
 
     RenderService renderService = StudioRenderService.getInstance(getModel().getProject());
     RenderLogger logger = myLogRenderErrors ? renderService.createLogger(facet.getModule()) : renderService.getNopLogger();
-    RenderService.RenderTaskBuilder renderTaskBuilder = taskBuilder(renderService, facet, configuration, logger)
+    RenderModelModule renderModule = createRenderModule(facet);
+    RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(renderModule, configuration, logger)
       .withPsiFile(getModel().getFile())
       .withLayoutScanner(myLayoutScannerConfig.isLayoutScannerEnabled());
     return setupRenderTaskBuilder(renderTaskBuilder).build()

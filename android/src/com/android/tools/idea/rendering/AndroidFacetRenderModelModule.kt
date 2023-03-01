@@ -17,22 +17,52 @@ package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.AssetRepository
 import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.MergedManifestException
+import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AssetRepositoryImpl
 import com.android.tools.idea.res.ResourceIdManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.sdk.AndroidPlatform
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.progress.ProcessCanceledException
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.sdk.getInstance
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 /** Studio-specific [RenderModelModule] constructed from [AndroidFacet]. */
 class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderModelModule {
+  private val LOG = Logger.getInstance(AndroidFacetRenderModelModule::class.java)
+
   override val ideaModule: Module
     get() = facet.module
   override var assetRepository: AssetRepository? = AssetRepositoryImpl(facet)
     private set
+  override val manifest: RenderModelManifest?
+    get() {
+      try {
+        return RenderMergedManifest(MergedManifestManager.getMergedManifest(ideaModule).get(1, TimeUnit.SECONDS))
+      }
+      catch (e: InterruptedException) {
+        throw ProcessCanceledException(e)
+      }
+      catch (e: TimeoutException) {
+        LOG.warn(e);
+      }
+      catch (e: ExecutionException) {
+        when (val cause = e.cause) {
+          is ProcessCanceledException -> throw cause
+          is MergedManifestException -> LOG.warn(e)
+          else -> LOG.error(e)
+        }
+      }
+
+      return null
+    }
   override val resourceRepositoryManager: StudioResourceRepositoryManager
     get() = StudioResourceRepositoryManager.getInstance(facet)
   override val info: AndroidModuleInfo

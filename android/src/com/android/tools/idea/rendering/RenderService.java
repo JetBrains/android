@@ -334,32 +334,6 @@ final public class RenderService implements Disposable {
     private boolean enableLayoutScanner = false;
     private SessionParams.RenderingMode myRenderingMode = null;
     private boolean useTransparentBackground = false;
-    @NotNull private Function<Module, RenderModelManifest> myManifestProvider =
-      module -> {
-        try {
-          return new RenderMergedManifest(MergedManifestManager.getMergedManifest(module).get(1, TimeUnit.SECONDS));
-        }
-        catch (InterruptedException e) {
-          throw new ProcessCanceledException(e);
-        }
-        catch (TimeoutException e) {
-          getLogger().warn(e);
-        }
-        catch (ExecutionException e) {
-          Throwable cause = e.getCause();
-          if (cause instanceof ProcessCanceledException) {
-            throw (ProcessCanceledException)cause;
-          }
-          else if (cause instanceof MergedManifestException) {
-            getLogger().warn(e);
-          }
-          else {
-            getLogger().error(e);
-          }
-        }
-
-        return null;
-      };
 
     /**
      * If two RenderTasks share the same ModuleClassLoader they share the same compose framework. This way they share the state. If we would
@@ -524,15 +498,6 @@ final public class RenderService implements Disposable {
     }
 
     /**
-     * Sets the {@link RenderModelManifest} provider
-     */
-    @NotNull
-    public RenderTaskBuilder setManifestProvider(@NotNull Function<Module, RenderModelManifest> provider) {
-      myManifestProvider = provider;
-      return this;
-    }
-
-    /**
      * Sets an additional Java bytecode transformation to be applied to the loaded project classes.
      */
     @NotNull
@@ -637,7 +602,7 @@ final public class RenderService implements Disposable {
           RenderTask task =
             new RenderTask(myContext, StudioModuleClassLoaderManager.get(), myLogger, layoutLib,
                            myCredential, StudioCrashReporter.getInstance(), myImagePool,
-                           myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, () -> myManifestProvider.apply(module),
+                           myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
                            classesToPreload, reportOutOfDateUserClasses, myPriority, myMinDownscalingFactor);
           if (myPsiFile instanceof XmlFile) {
