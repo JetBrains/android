@@ -45,6 +45,7 @@ import static com.intellij.openapi.vfs.StandardFileSystems.JAR_PROTOCOL_PREFIX;
 import static com.intellij.pom.java.LanguageLevel.JDK_1_8;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil.getGradleIdentityPathOrNull;
 import static org.jetbrains.plugins.gradle.settings.DistributionType.DEFAULT_WRAPPED;
 import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.any;
@@ -193,7 +194,7 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
     loadProject(NESTED_MODULE);
 
     Module rootModule = TestModuleUtil.findModule(getProject(), getProject().getName());
-    assertEquals(":", GradleProjectResolverUtil.getGradlePath(rootModule));
+    assertEquals(":", getGradleIdentityPathOrNull(rootModule));
     assertNull(AndroidFacet.getInstance(rootModule));
   }
 

@@ -110,8 +110,7 @@ import com.android.tools.idea.projectsystem.getHolderModule
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleProjectSystem
 import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
-import com.android.tools.idea.projectsystem.gradle.buildNamePrefixedGradleProjectPath
-import com.android.tools.idea.projectsystem.gradle.getBuildAndRelativeGradleProjectPath
+import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.android.utils.FileUtils
@@ -200,6 +199,7 @@ import org.jetbrains.plugins.gradle.service.project.data.ExternalProjectDataCach
 import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.jetbrains.plugins.gradle.util.gradleIdentityPath
+import org.jetbrains.plugins.gradle.util.gradlePath
 import org.jetbrains.plugins.gradle.util.setBuildSrcModule
 import java.io.File
 import java.io.IOException
@@ -1699,6 +1699,7 @@ private fun createGradleModuleDataNode(
       imlBasePath.systemIndependentPath,
       moduleBasePath.systemIndependentPath
     ).also {
+      it.gradlePath = gradlePath
       it.gradleIdentityPath = gradlePath
       it.group = groupId
       it.version = version
@@ -1839,7 +1840,7 @@ private fun mergeModuleContentRoots(weightMap: Map<String, Int>, moduleNode: Dat
 fun Project.gradleModule(gradlePath: String): Module? =
   ModuleManager.getInstance(this).modules
     .firstOrNull {
-      it.getBuildAndRelativeGradleProjectPath()?.buildNamePrefixedGradleProjectPath() == gradlePath
+      it.getGradleProjectPath()?.path == gradlePath
     }?.getHolderModule()
 
 /**
