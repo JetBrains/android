@@ -121,7 +121,7 @@ interface TaskUiData {
 }
 
 enum class PluginSourceType {
-  ANDROID_PLUGIN, BUILD_SRC, THIRD_PARTY
+  ANDROID_PLUGIN, BUILD_SCRIPT, THIRD_PARTY
 }
 
 interface CriticalPathPluginUiData : CriticalPathEntryUiData {

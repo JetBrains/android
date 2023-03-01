@@ -93,7 +93,7 @@ private fun HtmlBuilder.createWarningsSection(
     newline()
   }
   else {
-    if (taskData.sourceType != PluginSourceType.BUILD_SRC && taskData.issues.isNotEmpty()) {
+    if (taskData.sourceType != PluginSourceType.BUILD_SCRIPT && taskData.issues.isNotEmpty()) {
       val generateReportLink = linksHandler.actionLink("Generate report", "generateReport") {
         actionHandlers.generateReportClicked(taskData)
       }

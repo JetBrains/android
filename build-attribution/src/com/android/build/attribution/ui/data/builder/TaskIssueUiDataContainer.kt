@@ -163,6 +163,6 @@ To optimize task execution with up-to-date checks, remove the <code>upToDateWhen
 }
 
 private fun TaskUiData.pluginUiName(): String = when(sourceType) {
-  PluginSourceType.BUILD_SRC -> "build script"
+  PluginSourceType.BUILD_SCRIPT -> "build script"
   else -> pluginName
 }

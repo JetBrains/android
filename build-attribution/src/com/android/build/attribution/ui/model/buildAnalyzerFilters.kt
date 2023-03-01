@@ -89,7 +89,7 @@ data class WarningsFilter(
 
   companion object {
     val DEFAULT = WarningsFilter(
-      showTaskSourceTypes = setOf(PluginSourceType.ANDROID_PLUGIN, PluginSourceType.THIRD_PARTY, PluginSourceType.BUILD_SRC),
+      showTaskSourceTypes = setOf(PluginSourceType.ANDROID_PLUGIN, PluginSourceType.THIRD_PARTY, PluginSourceType.BUILD_SCRIPT),
       showTaskWarningTypes = setOf(TaskIssueType.ALWAYS_RUN_TASKS, TaskIssueType.TASK_SETUP_ISSUE),
       showAnnotationProcessorWarnings = true,
       showNonCriticalPathTasks = false,
@@ -204,7 +204,7 @@ fun warningsFilterActions(model: WarningsDataPageModel, actionHandlers: ViewActi
       "Show issues for other plugins", PluginSourceType.THIRD_PARTY, model, actionHandlers
     ))
     add(TaskSourceTypeWarningFilterToggleAction(
-      "Show issues for project customization", PluginSourceType.BUILD_SRC, model, actionHandlers
+      "Show issues for project customization", PluginSourceType.BUILD_SCRIPT, model, actionHandlers
     ))
     add(BoolValueWarningsFilterToggleAction(
       "Include issues for tasks non determining this build duration", model, actionHandlers,
@@ -260,14 +260,14 @@ data class TasksFilter(
 
   companion object {
     val DEFAULT = TasksFilter(
-      showTaskSourceTypes = setOf(PluginSourceType.ANDROID_PLUGIN, PluginSourceType.THIRD_PARTY, PluginSourceType.BUILD_SRC),
+      showTaskSourceTypes = setOf(PluginSourceType.ANDROID_PLUGIN, PluginSourceType.THIRD_PARTY, PluginSourceType.BUILD_SCRIPT),
       showTasksWithoutWarnings = true
     )
   }
 }
 
 private fun PluginSourceType.toFilterUiShortName(): String = when (this) {
-  PluginSourceType.BUILD_SRC -> "Project customization"
+  PluginSourceType.BUILD_SCRIPT -> "Project customization"
   PluginSourceType.ANDROID_PLUGIN -> "Android/Java/Kotlin"
   PluginSourceType.THIRD_PARTY -> "Other"
 }
@@ -353,7 +353,7 @@ fun tasksFilterActions(model: TasksDataPageModel, actionHandlers: ViewActionHand
     ))
     add(TaskSourceTypeTasksFilterToggleAction("Show tasks for other plugins", PluginSourceType.THIRD_PARTY, model, actionHandlers))
     add(TaskSourceTypeTasksFilterToggleAction(
-      "Show tasks for project customization", PluginSourceType.BUILD_SRC, model, actionHandlers
+      "Show tasks for project customization", PluginSourceType.BUILD_SCRIPT, model, actionHandlers
     ))
     addSeparator()
     add(TasksWithoutWarningsFilterToggleAction("Show tasks without warnings", model, actionHandlers))
