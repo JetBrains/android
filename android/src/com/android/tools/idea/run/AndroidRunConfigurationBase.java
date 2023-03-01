@@ -368,15 +368,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return myIsTestConfiguration;
   }
 
-
-  @Nullable
-  protected abstract AppLaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
-                                                            @NotNull AndroidFacet facet,
-                                                            @NotNull String contributorsAmStartOptions,
-                                                            boolean waitForDebugger,
-                                                            @NotNull ApkProvider apkProvider,
-                                                            @NotNull IDevice device) throws ExecutionException;
-
   public void updateExtraRunStats(RunStats runStats) {
 
   }

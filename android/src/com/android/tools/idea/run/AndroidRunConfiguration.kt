@@ -225,7 +225,7 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
     }
 
   @Throws(ExecutionException::class)
-  override fun getApplicationLaunchTask(
+  open fun getApplicationLaunchTask(
     applicationIdProvider: ApplicationIdProvider,
     facet: AndroidFacet,
     contributorsAmStartOptions: String,

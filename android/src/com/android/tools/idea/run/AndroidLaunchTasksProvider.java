@@ -60,7 +60,7 @@ import org.jetbrains.kotlin.idea.util.projectStructure.ProjectStructureUtilKt;
 
 public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   private final Logger myLogger = Logger.getInstance(AndroidLaunchTasksProvider.class);
-  private final AndroidRunConfigurationBase myRunConfig;
+  private final AndroidRunConfiguration myRunConfig;
   private final ExecutionEnvironment myEnv;
   private final AndroidFacet myFacet;
   private final ApplicationIdProvider myApplicationIdProvider;
@@ -68,7 +68,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
   private final LaunchOptions myLaunchOptions;
   private final Project myProject;
 
-  public AndroidLaunchTasksProvider(@NotNull AndroidRunConfigurationBase runConfig,
+  public AndroidLaunchTasksProvider(@NotNull AndroidRunConfiguration runConfig,
                                     @NotNull ExecutionEnvironment env,
                                     @NotNull AndroidFacet facet,
                                     @NotNull ApplicationIdProvider applicationIdProvider,
@@ -170,8 +170,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
         if (myLaunchOptions.isClearAppStorage()) {
           tasks.add(new ClearAppStorageTask(packageName));
         }
-        AndroidRunConfiguration runConfig = (AndroidRunConfiguration)myRunConfig;
-        DeepLinkLaunch.State state = (DeepLinkLaunch.State)runConfig.getLaunchOptionState(LAUNCH_DEEP_LINK);
+        DeepLinkLaunch.State state = (DeepLinkLaunch.State)myRunConfig.getLaunchOptionState(LAUNCH_DEEP_LINK);
         assert state != null;
         tasks.add(new RunInstantAppTask(myApkProvider.getApks(device), state.DEEP_LINK, disabledFeatures));
         break;

@@ -344,17 +344,6 @@ public class AndroidTestRunConfiguration extends AndroidRunConfigurationBase imp
       moduleSelector -> new TestRunParameters(getProject(), moduleSelector));
   }
 
-  @Nullable
-  @Override
-  protected AppLaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,
-                                                   @NotNull AndroidFacet facet,
-                                                   @NotNull String contributorsAmStartOptions,
-                                                   boolean waitForDebugger,
-                                                   @NotNull ApkProvider apkProvider,
-                                                   @NotNull IDevice device) throws ExecutionException {
-    return null;
-  }
-
   /**
    * Returns the qualified class name of the default instrumentation runner class of the given facet.
    */
