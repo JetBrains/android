@@ -52,7 +52,6 @@ import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
@@ -60,7 +59,6 @@ import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -566,8 +564,8 @@ public class RenderTask {
 
     if (modelParser instanceof LayoutPsiPullParser) {
       // For regular layouts, if we use appcompat, we have to emulat the app:srcCompat attribute behaviour.
-      boolean useSrcCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7) ||
-                             DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
+      boolean useSrcCompat = context.getModule().getDependencies().getDependsOnAppCompat() ||
+                             context.getModule().getDependencies().getDependsOnAndroidXAppCompat();
       ((LayoutPsiPullParser)modelParser).setUseSrcCompat(useSrcCompat);
       myLayoutlibCallback.setAaptDeclaredResources(((LayoutPsiPullParser)modelParser).getAaptDeclaredAttrs());
     }
@@ -582,7 +580,7 @@ public class RenderTask {
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     SessionParams params =
-      new SessionParams(modelParser, myRenderingMode, module /* projectKey */, hardwareConfig, resolver,
+      new SessionParams(modelParser, myRenderingMode, context.getModule().getModuleKey(), hardwareConfig, resolver,
                         myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
                         myLogger, simulatedPlatform);
     params.setAssetRepository(context.getModule().getAssetRepository());

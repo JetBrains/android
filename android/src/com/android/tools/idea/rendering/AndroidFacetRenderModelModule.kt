@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering
 import com.android.ide.common.rendering.api.AssetRepository
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.model.StudioAndroidModuleInfo
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.AssetRepositoryImpl
 import com.android.tools.idea.res.ResourceIdManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
@@ -42,6 +43,9 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
     get() = ResourceIdManager.get(ideaModule)
   override val moduleKey: Any
     get() = ideaModule
+  override val resourcePackage: String?
+    get() = ideaModule.getModuleSystem().getPackageName()
+  override val dependencies: RenderDependencyInfo = StudioRenderDependencyInfo(ideaModule)
 
   override fun dispose() {
     assetRepository = null

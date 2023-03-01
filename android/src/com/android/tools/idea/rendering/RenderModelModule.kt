@@ -41,4 +41,9 @@ interface RenderModelModule : Disposable {
 
   /** An object uniquely identifying the module. Used for caching. */
   val moduleKey: Any
+
+  /** If found, returns the module's resource package name. */
+  val resourcePackage: String?
+
+  val dependencies: RenderDependencyInfo
 }

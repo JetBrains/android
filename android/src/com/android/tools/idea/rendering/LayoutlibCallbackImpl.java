@@ -66,15 +66,12 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.FilenameConstants;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.parsers.AaptAttrParser;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.FileResourceReader;
-import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.HtmlBuilder;
@@ -200,8 +197,8 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myClassLoader = new ViewLoader(myLayoutLib, renderModule, logger, credential, moduleClassLoader);
     myActionBarHandler = actionBarHandler;
     myLayoutPullParserFactory = parserFactory;
-    myHasLegacyAppCompat = DependencyManagementUtil.dependsOn(renderModule.getIdeaModule(), GoogleMavenArtifactId.APP_COMPAT_V7);
-    myHasAndroidXAppCompat = DependencyManagementUtil.dependsOn(renderModule.getIdeaModule(), GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
+    myHasLegacyAppCompat = renderModule.getDependencies().getDependsOnAppCompat();
+    myHasAndroidXAppCompat = renderModule.getDependencies().getDependsOnAndroidXAppCompat();
 
     myNamespacing = renderModule.getResourceRepositoryManager().getNamespacing();
     if (myNamespacing == Namespacing.DISABLED) {
@@ -824,7 +821,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
   @Nullable
   public String getResourcePackage() {
-    return ProjectSystemUtil.getModuleSystem(myRenderModule.getIdeaModule()).getPackageName();
+    return myRenderModule.getResourcePackage();
   }
 
   @Nullable
