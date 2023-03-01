@@ -208,13 +208,8 @@ Size ConfigureCodec(AMediaCodec* codec, const CodecInfo& codec_info, Size max_vi
   return video_size;
 }
 
-// The display area defined by display_info.logical_size is mapped to projected size.
-void ConfigureDisplay(const SurfaceControl& surface_control, jobject display_token, ANativeWindow* surface, const DisplayInfo& display_info,
-                      Size projected_size) {
-  SurfaceControl::Transaction transaction(surface_control);
-  surface_control.SetDisplaySurface(display_token, surface);
-  surface_control.SetDisplayProjection(display_token, 0, display_info.logical_size.toRect(), projected_size.toRect());
-  surface_control.SetDisplayLayerStack(display_token, display_info.layer_stack);
+void ConfigureVirtualDisplay(Jni jni, jobject virtual_display, ANativeWindow* surface, Size size) {
+
 }
 
 }  // namespace
@@ -225,7 +220,6 @@ DisplayStreamer::DisplayStreamer(int32_t display_id, string codec_name, Size max
       display_id_(display_id),
       codec_name_(std::move(codec_name)),
       socket_fd_(socket_fd),
-      presentation_timestamp_offset_(0),
       max_bit_rate_(max_bit_rate),
       max_video_resolution_(max_video_resolution),
       video_orientation_(initial_video_orientation) {
@@ -288,7 +282,6 @@ void DisplayStreamer::Run() {
 
   WindowManager::WatchRotation(jni, &display_rotation_watcher_);
   DisplayManager::RegisterDisplayListener(jni, this);
-  SurfaceControl surface_control(jni);
   VideoPacketHeader packet_header = {.frame_number = 1};
 
   bool end_of_stream = false;
@@ -299,13 +292,20 @@ void DisplayStreamer::Run() {
       Log::Fatal("Unable to create a %s video encoder", codec_info_->name.c_str());
     }
     int api_level = android_get_device_api_level();
-    bool secure = android_get_device_api_level() < 31;  // Creation of secure displays is not allowed on API 31+.
-    JObject display = surface_control.CreateDisplay("screen-sharing-agent", secure);
-    if (display.IsNull()) {
-      Log::Fatal("Unable to create a virtual display");
-    }
     DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni, display_id_);
     Log::D("display_info: %s", display_info.ToDebugString().c_str());
+    VirtualDisplay virtual_display;
+    JObject display_token;
+    if (DisplayManager::CanCreateVirtualDisplay(jni)) {
+      virtual_display = DisplayManager::CreateVirtualDisplay(
+          jni, "screen-sharing-agent", display_info.logical_size.width, display_info.logical_size.height, display_id_, nullptr);
+    } else {
+      bool secure = android_get_device_api_level() < 31;  // Creation of secure displays is not allowed on API 31+.
+      display_token = SurfaceControl::CreateDisplay(jni, "screen-sharing-agent", secure);
+      if (display_token.IsNull()) {
+        Log::Fatal("Unable to create a virtual display");
+      }
+    }
     // Use heuristics for determining a bit rate value that doesn't cause SIGABRT in the encoder (b/251659422).
     int32_t bit_rate = IsUnderpoweredCodec(codec_info_->max_resolution, display_info.logical_size, api_level) ?
         BIT_RATE_REDUCED : BIT_RATE;
@@ -324,7 +324,12 @@ void DisplayStreamer::Run() {
       if (status != AMEDIA_OK) {
         Log::Fatal("AMediaCodec_createInputSurface returned %d", status);
       }
-      ConfigureDisplay(surface_control, display, surface, display_info, video_size);
+      if (virtual_display.HasDisplay()) {
+        virtual_display.Resize(video_size.width, video_size.height, display_info_.logical_density_dpi);
+        virtual_display.SetSurface(surface);
+      } else {
+        SurfaceControl::ConfigureProjection(jni, display_token, surface, display_info, video_size);
+      }
       AMediaCodec_start(codec);
       running_codec_ = codec;
       Size display_size = display_info.NaturalSize();  // The display dimensions in the canonical orientation.
@@ -339,7 +344,11 @@ void DisplayStreamer::Run() {
     end_of_stream = ProcessFramesUntilCodecStopped(codec, &packet_header, sync_frame_request);
     StopCodec();
     AMediaFormat_delete(sync_frame_request);
-    surface_control.DestroyDisplay(display);
+    if (virtual_display.HasDisplay()) {
+      virtual_display.Release();
+    } else {
+      SurfaceControl::DestroyDisplay(jni, display_token);
+    }
     AMediaCodec_delete(codec);
     ANativeWindow_release(surface);
   }

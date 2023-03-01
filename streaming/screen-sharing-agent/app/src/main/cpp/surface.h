@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,34 +16,12 @@
 
 #pragma once
 
-#include <future>
-#include <mutex>
-#include <thread>
+#include <android/native_window.h>
 
-#include "accessors/display_manager.h"
 #include "jvm.h"
 
 namespace screensharing {
 
-// Provides access to the android.hardware.display.IDisplayListener.getDisplayInfo method.
-class DisplayListenerDispatcher {
-public:
-  DisplayListenerDispatcher() = default;
-  ~DisplayListenerDispatcher();
-  void Start();
-  void Stop();
-
-private:
-  friend class DisplayManager;
-
-  void Run();
-
-  Jni jni_ = nullptr;
-  std::mutex mutex_;
-  std::thread thread_;  // GUARDED_BY(mutex_)
-  std::promise<JObject> looper_promise_; // GUARDED_BY(mutex_)
-
-  DISALLOW_COPY_AND_ASSIGN(DisplayListenerDispatcher);
-};
+JObject SurfaceToJava(Jni jni, ANativeWindow* surface);
 
 }  // namespace screensharing

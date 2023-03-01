@@ -16,7 +16,10 @@
 
 #pragma once
 
-#include "display_info.h"
+#include <android/native_window.h>
+
+#include "accessors/display_info.h"
+#include "accessors/virtual_display.h"
 #include "jvm.h"
 
 namespace screensharing {
@@ -44,23 +47,40 @@ public:
   static void OnDisplayChanged(Jni jni, int32_t display_id);
   static void OnDisplayRemoved(Jni jni, int32_t display_id);
 
+  static bool CanCreateVirtualDisplay(Jni jni) {
+    InitializeStatics(jni);
+    return create_virtual_display_method_ != nullptr;
+  }
+
+  static VirtualDisplay CreateVirtualDisplay(
+      Jni jni, const char* name, int32_t width, int32_t height, int32_t display_id, ANativeWindow* surface);
+
 private:
-  DisplayManager(Jni jni);
-  ~DisplayManager();
-  static DisplayManager& GetInstance(Jni jni);
+  friend class DisplayListenerDispatcher;
 
-  JClass display_manager_class_;
-  JObject display_manager_;
-  jmethodID get_display_info_method_;
-  jfieldID logical_width_field_;
-  jfieldID logical_height_field_;
-  jfieldID rotation_field_;
-  jfieldID layer_stack_field_;
-  jfieldID flags_field_;
+  DisplayManager() = delete;
+
+  static void InitializeStatics(Jni jni);
+
+  // DisplayManagerGlobal class.
+  static JClass display_manager_global_class_;
+  static JObject display_manager_global_;
+  static jmethodID get_display_info_method_;
+  // DisplayInfo class.
+  static jfieldID logical_width_field_;
+  static jfieldID logical_height_field_;
+  static jfieldID logical_density_dpi_field_;
+  static jfieldID rotation_field_;
+  static jfieldID layer_stack_field_;
+  static jfieldID flags_field_;
+  // DisplayManager class.
+  static JClass display_manager_class_;
+  static jmethodID create_virtual_display_method_;
+
   // Copy-on-write set of clipboard listeners.
-  std::atomic<std::vector<DisplayListener*>*> display_listeners_;
+  static std::atomic<std::vector<DisplayListener*>*> display_listeners_;
 
-  DisplayListenerDispatcher* display_listener_dispatcher_;  // Owned
+  static DisplayListenerDispatcher* display_listener_dispatcher_;
 
   DISALLOW_COPY_AND_ASSIGN(DisplayManager);
 };

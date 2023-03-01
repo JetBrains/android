@@ -75,6 +75,10 @@ public:
     return ref_ == nullptr;
   }
 
+  bool IsNotNull() const {
+    return ref_ != nullptr;
+  }
+
   // Converts a local reference to a global one and deletes the local reference.
   JObject& MakeGlobal();
   JObject&& ToGlobal()&& {

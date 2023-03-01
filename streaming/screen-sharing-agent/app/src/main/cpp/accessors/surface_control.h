@@ -20,6 +20,7 @@
 #include <android/native_window.h>
 
 #include "common.h"
+#include "display_info.h"
 #include "jvm.h"
 
 namespace screensharing {
@@ -36,50 +37,29 @@ enum class DisplayPowerMode : int32_t {
 // Provides access to few non-API methods of the android.view.SurfaceControl class.
 // Can only be used by the thread that created the object.
 class SurfaceControl {
-public:
-  class Transaction {
-  public:
-    Transaction(const SurfaceControl& surface_control)
-      : surface_control_(surface_control) {
-      surface_control.OpenTransaction();
-    }
-
-    ~Transaction() {
-      surface_control_.CloseTransaction();
-    }
-
-  private:
-    const SurfaceControl& surface_control_;
-
-    DISALLOW_COPY_AND_ASSIGN(Transaction);
-  };
-
-  SurfaceControl(Jni jni);
-  ~SurfaceControl();
-
-  JObject GetInternalDisplayToken() const;
-
-  void OpenTransaction() const;
-
-  void CloseTransaction() const;
-
-  JObject CreateDisplay(const char* name, bool secure) const;
-
-  void DestroyDisplay(jobject display_token) const;
-
-  void SetDisplaySurface(jobject display_token, ANativeWindow* surface) const;
-
-  void SetDisplayLayerStack(jobject display_token, int32_t layer_stack) const;
-
-  void SetDisplayProjection(jobject display_token, int32_t orientation, const ARect& layer_stack_rect, const ARect& display_rect) const;
-
-  void SetDisplayPowerMode(jobject display_token, DisplayPowerMode mode);
-
 private:
   static void InitializeStatics(Jni jni);
 
-  JObject ToJava(const ARect& rect) const;
+  static void OpenTransaction(Jni jni);
+  static void CloseTransaction(Jni jni);
+  static void SetDisplaySurface(Jni jni, jobject display_token, ANativeWindow* surface);
+  static void SetDisplayLayerStack(Jni jni, jobject display_token, int32_t layer_stack);
+  static void SetDisplayProjection(Jni jni, jobject display_token, int32_t orientation, const ARect& layer_stack_rect, const ARect& display_rect);
 
+  static JObject ToJava(Jni jni, const ARect& rect);
+
+public:
+  static JObject GetInternalDisplayToken(Jni jni);
+  static void SetDisplayPowerMode(Jni jni, jobject display_token, DisplayPowerMode mode);
+
+  static JObject CreateDisplay(Jni jni, const char* name, bool secure);
+  static void DestroyDisplay(Jni jni, jobject display_token);
+  // The display area defined by display_info.logical_size is mapped to projected size.
+  static void ConfigureProjection(
+      Jni jni, jobject display_token, ANativeWindow* surface, const DisplayInfo& display_info, Size projected_size);
+
+private:
+  // SurfaceControl class.
   static JClass surface_control_class_;
   static jmethodID get_internal_display_token_method_;
   static bool get_internal_display_token_method_not_available_;
@@ -91,10 +71,9 @@ private:
   static jmethodID set_display_layer_stack_method_;
   static jmethodID set_display_projection_method_;
   static jmethodID set_display_power_mode_method_;
+  // android.graphics.Rect class.
   static JClass rect_class_;
   static jmethodID rect_constructor_;
-
-  Jni jni_;
 
   DISALLOW_COPY_AND_ASSIGN(SurfaceControl);
 };

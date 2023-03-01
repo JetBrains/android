@@ -90,9 +90,9 @@ private:
   std::string codec_name_;
   CodecInfo* codec_info_ = nullptr;
   int socket_fd_;
-  int64_t presentation_timestamp_offset_;
+  int64_t presentation_timestamp_offset_ = 0;
   int32_t max_bit_rate_;
-  int32_t consequent_deque_error_count_;
+  int32_t consequent_deque_error_count_ = 0;
   std::atomic_bool streamer_stopped_ = true;
 
   std::mutex mutex_;

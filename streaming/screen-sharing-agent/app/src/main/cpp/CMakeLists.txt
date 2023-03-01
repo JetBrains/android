@@ -25,6 +25,7 @@ add_library(
         accessors/pointer_helper.cc
         accessors/service_manager.cc
         accessors/surface_control.cc
+        accessors/virtual_display.cc
         accessors/window_manager.cc
         agent.cc
         base128_input_stream.cc
@@ -40,6 +41,7 @@ add_library(
         session_environment.cc
         settings.cc
         string_printf.cc
+        surface.cc
         video_packet_header.cc
 )
 
