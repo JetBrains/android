@@ -125,12 +125,19 @@ private fun buildModelsAndMap(
   buildModel: GradleBuild,
   controller: BuildController
 ): BuildModelsAndMap {
+  val gradleSupportsBuildSrcAsCompositeMember = checkGradleVersionIsAtLeast(controller, buildModel, "8.0")
   val buildModels =
     flattenDag(
       root = buildModel,
       getId = { it.buildIdentifier.rootDir },
       getChildren = {
-        runCatching { it.includedBuilds.all }.getOrDefault(/* old Gradle? */ emptyList())
+        runCatching {
+          if (gradleSupportsBuildSrcAsCompositeMember) {
+            it.editableBuilds.all
+          } else {
+            it.includedBuilds.all
+          }
+        }.getOrDefault(/* old Gradle? */ emptyList())
       }
     )
       .toSet()
@@ -143,10 +150,7 @@ private fun buildCompositeBuildMap(
   buildModel: GradleBuild,
   buildModels: Set<GradleBuild>
 ): IdeCompositeBuildMapImpl {
-  val buildEnvironment = controller.findModel(buildModel, BuildEnvironment::class.java)
-    ?: error("Cannot get BuildEnvironment model")
-  val parsedGradleVersion = GradleVersion.parse(buildEnvironment.gradle.gradleVersion)
-  val gradleSupportsDirectTaskInvocationInComposites = parsedGradleVersion.compareIgnoringQualifiers("6.8") >= 0
+  val gradleSupportsDirectTaskInvocationInComposites = checkGradleVersionIsAtLeast(controller, buildModel, "6.8")
   return IdeCompositeBuildMapImpl(
     builds = listOf(IdeBuildImpl(":", buildModel.buildIdentifier.rootDir)) +
       buildModels
@@ -155,6 +159,15 @@ private fun buildCompositeBuildMap(
         .distinct(),
     gradleSupportsDirectTaskInvocation = gradleSupportsDirectTaskInvocationInComposites
   )
+}
+
+private fun checkGradleVersionIsAtLeast(controller: BuildController,
+                                        buildModel: GradleBuild,
+                                        version: String): Boolean {
+  val buildEnvironment = controller.findModel(buildModel, BuildEnvironment::class.java)
+                         ?: error("Cannot get BuildEnvironment model")
+  val parsedGradleVersion = GradleVersion.parse(buildEnvironment.gradle.gradleVersion)
+  return parsedGradleVersion.compareIgnoringQualifiers(version) >= 0
 }
 
 private fun <T : Any> flattenDag(root: T, getId: (T) -> Any = { it }, getChildren: (T) -> List<T>): List<T> = sequence {
