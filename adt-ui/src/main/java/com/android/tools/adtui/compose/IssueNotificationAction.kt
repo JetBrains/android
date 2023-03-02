@@ -180,8 +180,6 @@ open class IssueNotificationAction(
     return JBUI.insets(1)
   }
 
-  open fun iconTextSpace(component: ActionButtonWithText): Int = 3
-
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent = IssueNotificationActionButton(this, presentation, place)
 
   override fun updateCustomComponent(component: JComponent, presentation: Presentation) {
