@@ -52,4 +52,7 @@ public abstract class GradleModelProvider {
 
   @NotNull
   public abstract GradleSettingsModel getSettingsModel(@NotNull VirtualFile settingsFile, @NotNull Project hostProject);
+
+  @NotNull
+  public abstract GradleVersionCatalogView getVersionCatalogView(@NotNull Project hostProject);
 }

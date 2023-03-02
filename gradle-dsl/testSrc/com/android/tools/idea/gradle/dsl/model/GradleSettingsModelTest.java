@@ -576,11 +576,6 @@ public class GradleSettingsModelTest extends GradleFileModelTestCase {
     verifyFileContents(mySettingsFile, TestFile.ADD_AND_APPLY_PLUGINS_BY_REFERENCE_EXPECTED);
   }
 
-  private void applyChanges(@NotNull final GradleSettingsModel settingsModel) {
-    runWriteCommandAction(myProject, () -> settingsModel.applyChanges());
-    assertFalse(settingsModel.isModified());
-  }
-
   enum TestFile implements TestFileName {
     INCLUDED_MODULE_PATHS("includedModulePaths"),
     INCLUDED_MODULE_PATHS_WITH_DOT_SEPARATOR("includedModulePathsWithDotSeparator"),
