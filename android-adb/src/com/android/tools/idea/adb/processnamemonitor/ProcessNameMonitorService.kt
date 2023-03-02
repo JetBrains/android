@@ -22,6 +22,7 @@ import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.AndroidAdbLogger
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
@@ -32,6 +33,7 @@ internal class ProcessNameMonitorService(project: Project) : ProcessNameMonitor,
     AndroidCoroutineScope(this),
     AdbLibService.getSession(project),
     AdbAdapterImpl(AdbService.getInstance().getDebugBridge(project)),
+    StudioFlags.PROCESS_NAME_MONITOR_MAX_RETENTION.get(),
     AndroidAdbLogger(thisLogger()),
   )
 

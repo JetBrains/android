@@ -1639,10 +1639,10 @@ public final class StudioFlags {
 
   // region PROCESS_NAME_MONITOR
   private static final FlagGroup PROCESS_NAME_MONITOR = new FlagGroup(FLAGS, "processnamemonitor", "Process Name Monitor");
-  public static final Flag<Boolean> ENABLE_PROCESS_NAME_POLLING = Flag.create(
-    PROCESS_NAME_MONITOR, "processnamemonitor.enable.process.name.polling", "Enable process name polling",
-    "Enable process name polling. Changing the value of this flag requires restarting Android Studio.",
-    false
+  public static final Flag<Integer> PROCESS_NAME_MONITOR_MAX_RETENTION = Flag.create(
+    PROCESS_NAME_MONITOR, "processnamemonitor.max.retention", "Set max process retention",
+    "Maximum number of processes to retain after they are terminated. Changing the value of this flag requires restarting Android Studio.",
+    100
   );
   // endregion NEW_SEND_FEEDBACK_DIALOG
 
