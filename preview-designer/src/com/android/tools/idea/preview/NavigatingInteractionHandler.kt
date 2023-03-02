@@ -31,8 +31,10 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import kotlinx.coroutines.launch
 import org.intellij.lang.annotations.JdkConstants
+import java.awt.MouseInfo
 import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
+import javax.swing.SwingUtilities
 
 /**
  * [InteractionHandler] mainly based in [NlInteractionHandler], but with some extra code navigation
@@ -75,6 +77,8 @@ class NavigatingInteractionHandler(private val surface: DesignSurface<*>,
       val component = sceneView.sceneManager.model.components.firstOrNull()
       if (isSelectionEnabled() && component != null) {
         sceneView.selectComponent(component, allowToggle = false, ignoreIfAlreadySelected = true)
+        // The component will now be selected, force hover state update
+        this.hoverWhenNoInteraction(x, y, mouseEvent.modifiersEx)
       }
       val actions = surface.actionManager.getPopupMenuActions(component)
       surface.showPopup(mouseEvent, actions, "Preview")
@@ -90,15 +94,20 @@ class NavigatingInteractionHandler(private val surface: DesignSurface<*>,
     if (isSelectionEnabled()) {
       val sceneView = surface.getSceneViewAt(x, y)
       if (sceneView != null) {
+        val component = sceneView.sceneManager.model.components.firstOrNull()
         // If this is not a "toggle" click and the preview is already selected,
         // then it is a navigation click, and shouldn't impact the selected components.
         val allowToggle = isShiftDown(modifiersEx)
-        if (sceneView.sceneManager.model.components.isNotEmpty()) {
+        if (component != null) {
           sceneView.selectComponent(
-            sceneView.sceneManager.model.components[0],
+            component,
             allowToggle,
             ignoreIfAlreadySelected = !allowToggle
           )
+          // If the component is now selected, then force hover state update
+          if (sceneView.selectionModel.isSelected(component)) {
+            this.hoverWhenNoInteraction(x, y, modifiersEx)
+          }
         }
       }
       else {
@@ -116,6 +125,16 @@ class NavigatingInteractionHandler(private val surface: DesignSurface<*>,
       return null
     }
     return interaction
+  }
+
+  override fun mouseExited() {
+    val mousePosition = MouseInfo.getPointerInfo().location
+    SwingUtilities.convertPointFromScreen(mousePosition, surface.interactionPane)
+    // Exiting to a popup from a point within the surface is not considered as exiting the surface.
+    // This is needed to keep the hover state of a preview when interacting with its right-click pop-up.
+    if (!surface.interactionPane.contains(mousePosition.x, mousePosition.y)) {
+      super.mouseExited()
+    }
   }
 
   /**
