@@ -186,7 +186,7 @@ public class MESaveGif {
         protected boolean condition() {
           return isRenderCompleted.get();
         }
-      }.assertCompleted();
+      };
 
       mySceneViewPanel.paint(g2d);
       try {
