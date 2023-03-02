@@ -19,6 +19,7 @@ import com.android.tools.idea.gradle.model.IdeAndroidArtifact
 import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.tools.idea.gradle.model.IdeBaseArtifact
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
+import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProjectKeys
 import com.android.tools.idea.gradle.util.BuildMode
 import com.android.tools.idea.gradle.util.GradleBuilds
 import com.android.tools.idea.projectsystem.gradle.GradleHolderProjectPath
@@ -30,7 +31,6 @@ import com.intellij.openapi.project.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.plugins.gradle.execution.build.CachedModuleDataFinder
-import org.jetbrains.plugins.gradle.service.project.data.GradleExtensionsDataService
 import java.io.File
 import java.nio.file.Path
 import java.util.ArrayDeque
@@ -276,10 +276,9 @@ private fun Module.isGradleJavaModule(): Boolean {
   val gradleModuleData =
     CachedModuleDataFinder.getGradleModuleData(this) // `buildSrc` modules are handled by Gradle so we don't need to run any tasks for them.
   if (gradleModuleData == null || gradleModuleData.isBuildSrcModule) return false
-  val extensions = gradleModuleData.findAll(GradleExtensionsDataService.KEY).firstOrNull() ?: return false
 
   // Check to see if the Java plugin is applied to this project.
-  return extensions.extensions.any { it.name == "java" }
+  return gradleModuleData.find(AndroidProjectKeys.GRADLE_MODULE_MODEL)?.gradlePlugins?.contains("org.gradle.api.plugins.JavaPlugin") ?: false
 }
 
 private fun getGradleJavaTaskNames(buildMode: BuildMode, testCompileMode: TestCompileType): Set<@NonNls String> {
