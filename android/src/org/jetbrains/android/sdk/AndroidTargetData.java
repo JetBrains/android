@@ -58,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.util.function.Supplier;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.dom.attrs.AttributeDefinitionsImpl;
 import org.jetbrains.android.resourceManagers.FilteredAttributeDefinitions;
@@ -117,30 +118,16 @@ public class AndroidTargetData {
     return !resources.isEmpty() && ((ResourceItemWithVisibility)resources.get(0)).getVisibility() == ResourceVisibility.PUBLIC;
   }
 
-  private static boolean isCrashCausedByLayoutlib(@NotNull StudioCrashDetails crash) {
-    return crash.isJvmCrash() &&
-           (crash.getErrorThread().contains("Layoutlib Render Thread") || crash.getErrorFrame().contains("libandroid_runtime"));
-  }
-
-  private static boolean hasStudioCrash() {
-    List<StudioCrashDetails> crashes = StudioCrashDetection.reapCrashDescriptions();
-    for (StudioCrashDetails crash : crashes) {
-      if (isCrashCausedByLayoutlib(crash)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   @Slow
   @NotNull
-  public LayoutLibrary getLayoutLibrary(@NotNull Disposable parentDisposable) throws RenderingException {
+  public LayoutLibrary getLayoutLibrary(
+    @NotNull Disposable parentDisposable, @NotNull Supplier<Boolean> hasLayoutlibCrash) throws RenderingException {
     if (myLayoutLibrary == null || myLayoutLibrary.isDisposed()) {
       if (myTarget instanceof CompatibilityRenderTarget) {
         IAndroidTarget target = ((CompatibilityRenderTarget)myTarget).getRenderTarget();
         AndroidTargetData targetData = AndroidTargetData.get(mySdkData, target);
         if (targetData != this) {
-          myLayoutLibrary = targetData.getLayoutLibrary(parentDisposable);
+          myLayoutLibrary = targetData.getLayoutLibrary(parentDisposable, hasLayoutlibCrash);
           return myLayoutLibrary;
         }
       }
@@ -148,7 +135,7 @@ public class AndroidTargetData {
       if (!(myTarget instanceof StudioEmbeddedRenderTarget)) {
         LOG.warn("Rendering will not use the StudioEmbeddedRenderTarget");
       }
-      myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues(), AndroidTargetData::hasStudioCrash);
+      myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues(), hasLayoutlibCrash);
       Disposer.register(parentDisposable, myLayoutLibrary);
     }
 

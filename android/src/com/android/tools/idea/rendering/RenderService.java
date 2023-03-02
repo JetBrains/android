@@ -62,6 +62,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import com.android.tools.sdk.AndroidPlatform;
+import java.util.function.Supplier;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.sdk.AndroidTargetData;
@@ -126,7 +127,12 @@ final public class RenderService implements Disposable {
   @Nullable
   public static LayoutLibrary getLayoutLibrary(@NotNull Module module, @Nullable IAndroidTarget target) {
     try {
-      return getLayoutLibrary(target, AndroidPlatforms.getInstance(module), ((ProjectEx)module.getProject()).getEarlyDisposable());
+      return getLayoutLibrary(
+        target,
+        AndroidPlatforms.getInstance(module),
+        ((ProjectEx)module.getProject()).getEarlyDisposable(),
+        StudioCrash::hasStudioLayoutlibCrash
+      );
     } catch (RenderingException | InsufficientDataException e) {
       return null;
     }
@@ -136,7 +142,8 @@ final public class RenderService implements Disposable {
   public static LayoutLibrary getLayoutLibrary(
     @Nullable IAndroidTarget target,
     @Nullable AndroidPlatform platform,
-    @NotNull Disposable parentDisposable
+    @NotNull Disposable parentDisposable,
+    @NotNull Supplier<Boolean> hasLayoutlibCrash
   ) throws RenderingException, NoAndroidTargetException, NoAndroidPlatformException {
     if (platform == null) {
       throw new NoAndroidPlatformException();
@@ -144,7 +151,7 @@ final public class RenderService implements Disposable {
     if (target == null) {
       throw new NoAndroidTargetException();
     }
-    return AndroidTargetData.get(platform.getSdkData(), target).getLayoutLibrary(parentDisposable);
+    return AndroidTargetData.get(platform.getSdkData(), target).getLayoutLibrary(parentDisposable, hasLayoutlibCrash);
   }
 
   /** Returns true if the given file can be rendered */
@@ -578,7 +585,7 @@ final public class RenderService implements Disposable {
 
         LayoutLibrary layoutLib;
         try {
-          layoutLib = getLayoutLibrary(target, platform, ((ProjectEx)module.getProject()).getEarlyDisposable());
+          layoutLib = getLayoutLibrary(target, platform, ((ProjectEx)module.getProject()).getEarlyDisposable(), StudioCrash::hasStudioLayoutlibCrash);
         }
         catch (UnsupportedJavaRuntimeException e) {
           RenderProblem.Html javaVersionProblem = RenderProblem.create(ERROR);
