@@ -141,7 +141,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
       throw new ExecutionException("Unable to determine application id: " + e);
     }
 
-    if (!myLaunchOptions.isDebug() && myLaunchOptions.isOpenLogcatAutomatically()) {
+    if (myLaunchOptions.isOpenLogcatAutomatically()) {
       launchTasks.add(new ShowLogcatTask(myProject, packageName));
     }
 
