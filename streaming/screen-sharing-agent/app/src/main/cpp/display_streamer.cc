@@ -380,6 +380,11 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
     if (!IsCodecRunning()) {
       return false;
     }
+    // Skip an AV1-specific data packet that is not a part of AV1 bitstream.
+    // See https://aomediacodec.github.io/av1-spec/#obu-header-semantics.
+    if (codec_info_->mime_type == "video/av01" && (*codec_buffer.buffer & 0x80) != 0) {
+      continue;
+    }
     if (first_frame_after_start) {
       // Request another sync frame to prevent a green bar that sometimes appears at the bottom
       // of the first frame.
