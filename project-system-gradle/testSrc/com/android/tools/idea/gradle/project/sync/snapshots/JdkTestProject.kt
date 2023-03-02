@@ -51,8 +51,8 @@ sealed class JdkTestProject(
     agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
     ideaGradleJdk: String? = null,
     ideaProjectJdk: String? = null,
-    gradleLocalJavaHomePath: String? = null,
-    gradlePropertiesJavaHomePath: String? = null
+    gradleLocalJavaHome: String? = null,
+    gradlePropertiesJavaHome: String? = null
   ) : JdkTestProject(
     agpVersion = agpVersion,
     template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
@@ -67,10 +67,10 @@ sealed class JdkTestProject(
       ideaProjectJdk?.let {
         ProjectJdkUtils.setProjectIdeaMiscJdk(projectRoot, it)
       }
-      gradleLocalJavaHomePath?.let {
+      gradleLocalJavaHome?.let {
         ProjectJdkUtils.setProjectGradleLocalJavaHome(projectRoot, it)
       }
-      gradlePropertiesJavaHomePath?.let {
+      gradlePropertiesJavaHome?.let {
         ProjectJdkUtils.setProjectGradlePropertiesJavaHome(projectRoot, it)
       }
     }
@@ -89,7 +89,7 @@ sealed class JdkTestProject(
         projectRoot,
         gradleRoots = roots,
         configGradleRoot = { gradleRootFile, gradleRoot ->
-          gradleRoot.gradleLocalJavaHomePath?.let {
+          gradleRoot.gradleLocalJavaHome?.let {
             ProjectJdkUtils.setProjectGradleLocalJavaHome(gradleRootFile, it)
           }
         },

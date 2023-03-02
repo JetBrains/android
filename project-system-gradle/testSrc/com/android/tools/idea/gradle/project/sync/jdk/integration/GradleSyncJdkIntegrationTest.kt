@@ -76,7 +76,7 @@ class GradleSyncJdkIntegrationTest {
     jdkIntegrationTest.run(
       project = SimpleApplication(
         ideaGradleJdk = USE_GRADLE_JAVA_HOME,
-        gradlePropertiesJavaHomePath = "/invalid/jdk/path"
+        gradlePropertiesJavaHome = "/invalid/jdk/path"
       )
     ) {
       sync()

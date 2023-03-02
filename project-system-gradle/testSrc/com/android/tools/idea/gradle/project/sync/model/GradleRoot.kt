@@ -22,12 +22,12 @@ import org.jetbrains.annotations.SystemIndependent
  * Project gradle root representation model
  * @param name The gradle root name
  * @param ideaGradleJdk The jdk.table.xml entry name or macro defined on [ExternalSystemJdkUtil] used to configure the gradle java for sync
- * @param gradleLocalJavaHomePath The java.home absolute path located on .gradle/config.properties
+ * @param gradleLocalJavaHome The java.home absolute path located on .gradle/config.properties
  * @param modulesPath A list containing the gradle root modules absolute path
  */
 data class GradleRoot(
   val name: String = "",
   val ideaGradleJdk: String? = null,
-  val gradleLocalJavaHomePath: @SystemIndependent String? = null,
+  val gradleLocalJavaHome: @SystemIndependent String? = null,
   val modulesPath: List<String> = listOf()
 )

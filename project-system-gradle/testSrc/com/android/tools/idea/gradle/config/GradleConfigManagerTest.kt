@@ -15,10 +15,15 @@
  */
 package com.android.tools.idea.gradle.config
 
+import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils
 import com.android.tools.idea.gradle.util.GradleConfigProperties
 import com.android.tools.idea.sdk.GradleDefaultJdkPathStore
+import com.android.tools.idea.testing.JdkConstants
 import com.android.tools.idea.testing.JdkConstants.JDK_1_8_PATH
 import com.android.tools.idea.testing.JdkConstants.JDK_EMBEDDED_PATH
+import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.projectRoots.ProjectJdkTable
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.testFramework.LightPlatformTestCase
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -35,30 +40,55 @@ class GradleConfigManagerTest: LightPlatformTestCase() {
 
   override fun tearDown() {
     GradleDefaultJdkPathStore.jdkPath = null
+    runWriteActionAndWait {
+      JdkTableUtils.removeAllSdkFromJdkTable()
+    }
     super.tearDown()
   }
 
   fun `test Given undefined default JDK When initialize jdkDir Then embedded JDK path was used`() {
     GradleDefaultJdkPathStore.jdkPath = null
-    GradleConfigManager.initializeJavaHome(temporaryFolder.root)
+    GradleConfigManager.initializeJavaHome(project, temporaryFolder.root.path)
 
     val properties = GradleConfigProperties(temporaryFolder.root)
     assertEquals(JDK_EMBEDDED_PATH, properties.javaHome?.path)
   }
 
-  fun `test Given invalid default JDK When initialize jdkDir Then embedded JDK path was used`() {
-    GradleDefaultJdkPathStore.jdkPath = "invalid/jdk/path"
-    GradleConfigManager.initializeJavaHome(temporaryFolder.root)
-
-    val properties = GradleConfigProperties(temporaryFolder.root)
-    assertEquals(JDK_EMBEDDED_PATH, properties.javaHome?.path)
-  }
-
-  fun `test Given valid default JDK When initialize jdkDir Then default JDK path was used`() {
+  fun `test Given valid project JDK and valid default JDK When initialize jdkDir Then project JDK path was used`() {
+    setProjectJdk(JdkConstants.JDK_17_PATH)
     GradleDefaultJdkPathStore.jdkPath = JDK_1_8_PATH
-    GradleConfigManager.initializeJavaHome(temporaryFolder.root)
+    GradleConfigManager.initializeJavaHome(project, temporaryFolder.root.path)
+
+    val properties = GradleConfigProperties(temporaryFolder.root)
+    assertEquals(JdkConstants.JDK_17_PATH, properties.javaHome?.path)
+  }
+
+  fun `test Given invalid project JDK and valid default JDK When initialize jdkDir Then default JDK path was used`() {
+    setProjectJdk(JdkConstants.JDK_INVALID_PATH)
+    GradleDefaultJdkPathStore.jdkPath = JDK_1_8_PATH
+    GradleConfigManager.initializeJavaHome(project, temporaryFolder.root.path)
 
     val properties = GradleConfigProperties(temporaryFolder.root)
     assertEquals(JDK_1_8_PATH, properties.javaHome?.path)
+  }
+
+  fun `test Given invalid project JDK and invalid default JDK When initialize jdkDir Then embedded JDK path was used`() {
+    setProjectJdk(JdkConstants.JDK_INVALID_PATH)
+    GradleDefaultJdkPathStore.jdkPath = JdkConstants.JDK_INVALID_PATH
+    GradleConfigManager.initializeJavaHome(project, temporaryFolder.root.path)
+
+    val properties = GradleConfigProperties(temporaryFolder.root)
+    assertEquals(JDK_EMBEDDED_PATH, properties.javaHome?.path)
+  }
+
+  private fun setProjectJdk(homePath: String) {
+    runWriteActionAndWait {
+      val jdkName = "test"
+      JdkTableUtils.populateJdkTableWith(JdkTableUtils.Jdk(jdkName, homePath), temporaryFolder.root)
+      val jdk = ProjectJdkTable.getInstance().findJdk(jdkName)
+      assertNotNull(jdk)
+      assertEquals(jdk?.homePath, homePath)
+      ProjectRootManager.getInstance(project).projectSdk = jdk
+    }
   }
 }

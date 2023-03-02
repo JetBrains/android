@@ -207,7 +207,7 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
       if (GRADLE_USES_LOCAL_JAVA_HOME_FOR_NEW_CREATED_PROJECTS.get() || ApplicationManager.getApplication().isUnitTestMode) {
         projectSettings.gradleJvm = USE_GRADLE_LOCAL_JAVA_HOME
         ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)
-        GradleConfigManager.initializeJavaHome(File(externalProjectPath))
+        GradleConfigManager.initializeJavaHome(newProject, externalProjectPath)
       } else {
         projectSettings.gradleJvm = ExternalSystemJdkUtil.USE_PROJECT_JDK
         ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)

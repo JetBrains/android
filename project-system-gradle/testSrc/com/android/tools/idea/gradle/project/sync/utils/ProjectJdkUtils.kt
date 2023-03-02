@@ -41,16 +41,16 @@ private const val PROJECT_IDEA_MISC_XML_PATH = "$DIRECTORY_STORE_FOLDER/misc.xml
 
 object ProjectJdkUtils {
 
-  fun setProjectGradleLocalJavaHome(projectRoot: File, javaHomePath: String) {
+  fun setProjectGradleLocalJavaHome(projectRoot: File, javaHome: String) {
     GradleConfigProperties(projectRoot).run {
-      javaHome = File(javaHomePath)
+      this.javaHome = File(javaHome)
       save()
     }
   }
 
-  fun setProjectGradlePropertiesJavaHome(projectRoot: File, javaHomePath: String) {
+  fun setProjectGradlePropertiesJavaHome(projectRoot: File, javaHome: String) {
     val gradlePropertiesFile = projectRoot.resolve(GRADLE_PROPERTIES_FILE_NAME)
-    setGradlePropertiesJdk(gradlePropertiesFile, javaHomePath)
+    setGradlePropertiesJdk(gradlePropertiesFile, javaHome)
   }
 
   fun setProjectIdeaGradleJdk(projectRoot: File, gradleRoots: List<GradleRoot>) = createProjectFile(
