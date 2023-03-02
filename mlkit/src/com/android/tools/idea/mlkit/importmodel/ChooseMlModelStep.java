@@ -268,7 +268,7 @@ public class ChooseMlModelStep extends ModelWizardStep<MlWizardModel> {
   @NotNull
   private static Validator.Result checkFlavor(@NotNull NamedModuleTemplate flavor) {
     if (flavor.getPaths().getMlModelsDirectories().isEmpty()) {
-      new Validator.Result(Validator.Severity.ERROR, "No valid ml directory in checkFlavor.");
+      return new Validator.Result(Validator.Severity.ERROR, "No valid ml directory in checkFlavor.");
     }
 
     return Validator.Result.OK;
