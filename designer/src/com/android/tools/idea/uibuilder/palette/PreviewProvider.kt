@@ -153,8 +153,7 @@ class PreviewProvider(
     val module = configuration.module ?: return CompletableFuture.completedFuture(null)
     val facet = AndroidFacet.getInstance(module) ?: return CompletableFuture.completedFuture(null)
     val renderService = StudioRenderService.getInstance(module.project)
-    val logger = renderService.createLogger(module)
-    return renderService.taskBuilder(facet, configuration, logger).build()
+    return renderService.taskBuilder(facet, configuration).build()
   }
 
   private fun extractImage(result: RenderResult): BufferedImage? {

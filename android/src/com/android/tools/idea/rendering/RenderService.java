@@ -24,6 +24,7 @@ import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
@@ -157,8 +158,14 @@ final public class RenderService implements Disposable {
   }
 
   @NotNull
+  public RenderLogger createLogger(@NotNull Module module, boolean logFramework) {
+    return new RenderLogger(module.getName(), module, myCredential, logFramework);
+  }
+
+
+  @NotNull
   public RenderLogger createLogger(@NotNull Module module) {
-    return new RenderLogger(module.getName(), module, myCredential);
+    return createLogger(module, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get());
   }
 
   @NotNull

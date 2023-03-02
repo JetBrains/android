@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering
 
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
@@ -71,4 +72,4 @@ fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration,
  * Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask].
  */
 fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration): RenderService.RenderTaskBuilder =
-  taskBuilder(facet, configuration, createLogger(facet.module))
+  taskBuilder(facet, configuration, createLogger(facet.module, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get()))

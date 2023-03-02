@@ -53,6 +53,7 @@ import com.android.resources.aar.AarResourceRepository;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.SourceProviders;
@@ -1052,7 +1053,8 @@ public class AndroidJavaDocRenderer {
           AndroidFacet facet = AndroidFacet.getInstance(myModule);
           assert facet != null;
           final RenderService service = StudioRenderService.getInstance(myModule.getProject());
-          RenderLogger logger = new RenderLogger("AndroidJavaDocRendererLogger", null);
+          RenderLogger logger =
+            new RenderLogger("AndroidJavaDocRendererLogger", null, null, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get());
           CompletableFuture<RenderTask> renderTaskFuture = taskBuilder(service, facet, myConfiguration, logger).build();
           CompletableFuture<BufferedImage> future = renderTaskFuture.thenCompose(renderTask -> {
             if (renderTask == null) {

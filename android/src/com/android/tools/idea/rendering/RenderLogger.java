@@ -24,7 +24,6 @@ import static com.android.tools.idea.rendering.ProblemSeverity.WARNING;
 
 import com.android.annotations.concurrency.GuardedBy;
 import com.android.ide.common.rendering.api.ILayoutLog;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.XmlUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -156,18 +155,27 @@ public class RenderLogger implements IRenderLogger {
   private List<String> myMissingFragments;
   private Object myCredential;
 
-  /**
-   * Construct a logger for the given named layout. Don't call this method directly; obtain via {@link RenderService}.
-   */
-  public RenderLogger(@Nullable String name, @Nullable Module module, @Nullable Object credential) {
+  private final boolean myLogFramework;
+
+  public RenderLogger(@Nullable String name, @Nullable Module module, @Nullable Object credential, boolean logFramework) {
     myName = name;
     myModule = module;
     myCredential = credential;
+    myLogFramework = logFramework;
   }
 
   /**
    * Construct a logger for the given named layout. Don't call this method directly; obtain via {@link RenderService}.
    */
+  @VisibleForTesting
+  public RenderLogger(@Nullable String name, @Nullable Module module, @Nullable Object credential) {
+    this(name, module, credential, false);
+  }
+
+  /**
+   * Construct a logger for the given named layout. Don't call this method directly; obtain via {@link RenderService}.
+   */
+  @VisibleForTesting
   public RenderLogger(@Nullable String name, @Nullable Module module) {
     this(name, module, null);
   }
@@ -770,7 +778,7 @@ public class RenderLogger implements IRenderLogger {
 
   @Override
   public void logAndroidFramework(int priority, String tag, @NotNull String message) {
-    if (StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get()) {
+    if (myLogFramework) {
       boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
       try {
         String fullMessage = tag + ": " + message;
