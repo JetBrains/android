@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,38 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.service.notification
+package com.android.tools.idea.gradle.project.sync.hyperlink
 
+import com.android.tools.idea.project.hyperlink.NotificationHyperlink
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
-import com.intellij.notification.Notification
-import com.intellij.notification.NotificationListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
 import org.jetbrains.annotations.SystemIndependent
-import javax.swing.event.HyperlinkEvent
 
 /**
- * A [NotificationListener.Adapter] that allows user to change their project Gradle JDK location from the Project settings popup
+ * A [NotificationHyperlink] that allows user to change their project Gradle JDK location from the Project settings popup
  * @param settingsService Android custom settings service for navigation intents
  * @param gradleRootProjectPath Gradle project root absolute path, if specified allows to select the current project
  */
-class OpenProjectJdkLocationListener private constructor(
+class SelectJdkFromFileSystemHyperlink private constructor(
   private val settingsService: AndroidProjectSettingsService,
   private val gradleRootProjectPath: @SystemIndependent String?
-): NotificationListener.Adapter() {
-  companion object {
-    const val ID = "open.project.jdk.location"
+) : NotificationHyperlink("select.jdk", "Select the Gradle JDK location") {
 
+  companion object {
     @JvmStatic
-    fun create(project: Project, rootProjectPath: @SystemIndependent String?): OpenProjectJdkLocationListener? {
+    fun create(project: Project, rootProjectPath: @SystemIndependent String?): SelectJdkFromFileSystemHyperlink? {
       (ProjectSettingsService.getInstance(project) as? AndroidProjectSettingsService)?.let { service ->
-        return OpenProjectJdkLocationListener(service, rootProjectPath)
+        return SelectJdkFromFileSystemHyperlink(service, rootProjectPath)
       }
       return null
     }
   }
 
-  override fun hyperlinkActivated(notification: Notification, event: HyperlinkEvent) {
+  override fun execute(project: Project) {
     settingsService.chooseJdkLocation(gradleRootProjectPath)
   }
 }

@@ -236,7 +236,7 @@ class AndroidGradleProjectSettingsControlBuilder(
     )
 
     // Add JAVA_HOME
-    IdeSdks.getJdkFromJavaHome()?.let {
+    IdeSdks.getInstance().jdkFromJavaHome?.let {
       myGradleJdkComboBox?.addJdkReferenceItem(JAVA_HOME, it)
     }
 

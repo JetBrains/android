@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.sdk;
 
-import static com.android.tools.idea.sdk.IdeSdks.getJdkFromJavaHome;
 import static com.android.tools.idea.testing.AndroidGradleTests.getEmbeddedJdk8Path;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -59,7 +58,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
     super.setUp();
     myIdeSdks = IdeSdks.getInstance();
     myInitialJdkPath = myIdeSdks.getJdkPath();
-    String javaHome = getJdkFromJavaHome();
+    String javaHome = myIdeSdks.getJdkFromJavaHome();
     assertThat(javaHome).isNotEmpty();
     myJavaHomePath = new File(javaHome);
     Path embeddedPath = EmbeddedDistributionPaths.getInstance().getEmbeddedJdkPath();

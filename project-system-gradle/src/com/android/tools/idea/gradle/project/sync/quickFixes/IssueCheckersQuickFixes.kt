@@ -287,7 +287,7 @@ class OpenGradleJdkSettingsQuickfix : BuildIssueQuickFix {
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val service = ProjectSettingsService.getInstance(project)
     if (service is AndroidProjectSettingsService) {
-      service.chooseJdkLocation()
+      service.chooseJdkLocation(project.basePath)
     }
     return CompletableFuture.completedFuture<Any>(null)
   }

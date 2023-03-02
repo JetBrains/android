@@ -559,7 +559,7 @@ public class IdeSdks {
     if (projectJvmPath == null) {
       return false;
     }
-    String javaHome = IdeSdks.getJdkFromJavaHome();
+    String javaHome = getJdkFromJavaHome();
     if (javaHome == null) {
       return false;
     }
@@ -583,7 +583,7 @@ public class IdeSdks {
    *
    * @return true if JAVA_HOME is the same as path
    */
-  public static boolean isSameAsJavaHomeJdk(@Nullable Path path) {
+  public boolean isSameAsJavaHomeJdk(@Nullable Path path) {
     String javaHome = getJdkFromJavaHome();
     return javaHome != null && FileUtil.pathsEqual(path.toString(), javaHome);
   }
@@ -594,7 +594,7 @@ public class IdeSdks {
    * @return null if no JDK can be found, or the path where the JDK is located.
    */
   @Nullable
-  public static String getJdkFromJavaHome() {
+  public String getJdkFromJavaHome() {
     // Now try with current environment
     String envVariableValue = doGetJdkFromPathOrParent(ExternalSystemJdkUtil.getJavaHome());
     if (!isNullOrEmpty(envVariableValue)) {

@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.project
 
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.gradle.project.sync.hyperlink.SelectJdkFromFileSystemHyperlink
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
@@ -42,7 +43,8 @@ class ProjectNotificationsUtilsTest {
   @Test
   fun testInvalidGradleJdkLinks() {
     val links = generateInvalidGradleJdkLinks(projectRule.project)
-    assertThat(links).hasSize(0)
+    assertThat(links).hasSize(1)
+    assertThat(links.first()).isInstanceOf(SelectJdkFromFileSystemHyperlink::class.java)
   }
 
   @Test

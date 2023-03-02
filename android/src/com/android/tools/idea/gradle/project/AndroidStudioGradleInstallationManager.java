@@ -19,7 +19,7 @@ public class AndroidStudioGradleInstallationManager extends GradleInstallationMa
   public String getGradleJvmPath(@NotNull Project project, @NotNull String linkedProjectPath) {
     IdeSdks ideSdks = IdeSdks.getInstance();
     // Using environment variable
-    if (IdeSdks.getInstance().isUsingEnvVariableJdk()) {
+    if (ideSdks.isUsingEnvVariableJdk()) {
       return ideSdks.getEnvVariableJdkValue();
     }
 
@@ -30,11 +30,11 @@ public class AndroidStudioGradleInstallationManager extends GradleInstallationMa
         // Try to resolve from variables before looking in GradleInstallationManager
         switch (settingsJvm) {
           case JDK_LOCATION_ENV_VARIABLE_NAME:
-            if (IdeSdks.getInstance().isJdkEnvVariableValid()) {
+            if (ideSdks.isJdkEnvVariableValid()) {
               return ideSdks.getEnvVariableJdkValue();
             }
           case USE_JAVA_HOME: {
-            String javaHome = IdeSdks.getJdkFromJavaHome();
+            String javaHome = ideSdks.getJdkFromJavaHome();
             if (!StringUtils.isNullOrEmpty(javaHome)) {
               return javaHome;
             }

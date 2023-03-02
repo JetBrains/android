@@ -119,7 +119,7 @@ class JdkImportIssueChecker : GradleIssueChecker {
 
   private fun addUseJavaHomeQuickFix(composer: BuildIssueComposer) {
     val ideSdks = IdeSdks.getInstance()
-    val jdkFromHome = IdeSdks.getJdkFromJavaHome()
+    val jdkFromHome = ideSdks.jdkFromJavaHome
     if (jdkFromHome != null && ideSdks.validateJdkPath(Paths.get(jdkFromHome)) != null) {
       composer.addQuickFix(UseJavaHomeAsJdkQuickFix())
     }
@@ -163,7 +163,7 @@ class SelectJdkFromFileSystemQuickFix : DescribedBuildIssueQuickFix {
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {
     val service = ProjectSettingsService.getInstance(project)
     if (service is AndroidProjectSettingsService) {
-      service.chooseJdkLocation()
+      service.chooseJdkLocation(project.basePath)
     }
     return CompletableFuture.completedFuture(null)
   }

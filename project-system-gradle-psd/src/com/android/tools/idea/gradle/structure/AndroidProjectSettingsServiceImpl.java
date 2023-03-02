@@ -47,6 +47,7 @@ import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.SystemIndependent;
 
 /**
  * This subclass of {@linkplain ProjectSettingsService} disables navigation to Project Settings panes that don't apply to
@@ -133,8 +134,12 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
   }
 
   @Override
-  public void chooseJdkLocation() {
-    if (myProject != null) {
+  public void chooseJdkLocation(@Nullable @SystemIndependent String gradleRootProjectPath) {
+    if (myProject.isDisposed()) return;
+
+    if (gradleRootProjectPath != null) {
+      showGradleSettings(myProject, gradleRootProjectPath);
+    } else {
       showGradleSettings(myProject);
     }
   }

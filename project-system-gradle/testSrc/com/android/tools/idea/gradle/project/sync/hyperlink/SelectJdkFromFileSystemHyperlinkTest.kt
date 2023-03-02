@@ -15,16 +15,39 @@
  */
 package com.android.tools.idea.gradle.project.sync.hyperlink
 
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.project.Project
-import junit.framework.TestCase
-import org.mockito.Mockito.mock
+import com.android.tools.idea.gradle.structure.AndroidProjectSettingsServiceImpl
+import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
+import com.intellij.testFramework.LightPlatformTestCase
+import com.intellij.testFramework.replaceService
+import org.mockito.Mockito.verify
+import javax.swing.event.HyperlinkEvent
 
-internal class SelectJdkFromFileSystemHyperlinkTest : TestCase() {
-  fun testCreateProjectDisposed() {
-    val mockProject = mock(Project::class.java)
-    whenever(mockProject.isDisposed()).thenReturn(true)
-    assertThat(SelectJdkFromFileSystemHyperlink.doCreate(mockProject)).isNull();
+class SelectJdkFromFileSystemHyperlinkTest : LightPlatformTestCase() {
+
+  fun `test Given JdkHyperlink without rootProjectPath When execute Then chooseJdkLocation was invoked with null path`() {
+    val mockService = mock<AndroidProjectSettingsServiceImpl>()
+    project.replaceService(ProjectSettingsService::class.java, mockService, testRootDisposable)
+    val jdkHyperlink = SelectJdkFromFileSystemHyperlink.create(project, null)
+    val mockHyperlinkEvent = mock<HyperlinkEvent>().apply {
+      whenever(description).thenReturn(jdkHyperlink?.url)
+    }
+
+    jdkHyperlink?.executeIfClicked(project, mockHyperlinkEvent)
+    verify(mockService).chooseJdkLocation(null)
+  }
+
+  fun `test Given JdkHyperlink with rootProjectPath When execute Then chooseJdkLocation was invoked with provided path`() {
+    val mockService = mock<AndroidProjectSettingsServiceImpl>()
+    project.replaceService(ProjectSettingsService::class.java, mockService, testRootDisposable)
+    val rootProjectPath = "gradle/project/root/path"
+    val jdkHyperlink = SelectJdkFromFileSystemHyperlink.create(project, rootProjectPath)
+    val mockHyperlinkEvent = mock<HyperlinkEvent>().apply {
+      whenever(description).thenReturn(jdkHyperlink?.url)
+    }
+
+    jdkHyperlink?.executeIfClicked(project, mockHyperlinkEvent)
+    verify(mockService).chooseJdkLocation(rootProjectPath)
   }
 }

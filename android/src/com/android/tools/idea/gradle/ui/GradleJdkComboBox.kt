@@ -70,7 +70,7 @@ class GradleJdkComboBox(
       when (value) {
         USE_JAVA_HOME -> comboBox.selectedItem = comboBox.addJdkReferenceItem(
           name = JAVA_HOME,
-          homePath = IdeSdks.getJdkFromJavaHome()
+          homePath = IdeSdks.getInstance().jdkFromJavaHome
         )
         USE_GRADLE_LOCAL_JAVA_HOME -> comboBox.selectedItem = comboBox.addJdkReferenceItem(
           name = GRADLE_LOCAL_JAVA_HOME,
@@ -99,7 +99,7 @@ class GradleJdkComboBox(
   fun getSelectedGradleJvmInfo() = when (selectedGradleJvmReference) {
     USE_JAVA_HOME -> createJdkInfo(
       name = JAVA_HOME,
-      homePath = IdeSdks.getJdkFromJavaHome()
+      homePath = IdeSdks.getInstance().jdkFromJavaHome
     )
     USE_GRADLE_LOCAL_JAVA_HOME -> createJdkInfo(
       name = GRADLE_LOCAL_JAVA_HOME,

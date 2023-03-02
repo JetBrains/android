@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.service.notification
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
-import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.utils.FileUtils
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -30,7 +29,6 @@ import com.intellij.openapi.externalSystem.service.notification.NotificationData
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.roots.ProjectRootManager
-import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager
 import org.jetbrains.plugins.gradle.service.notification.GradleNotificationExtension
 import org.jetbrains.plugins.gradle.settings.GradleSettings
@@ -205,11 +203,9 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
       }
       // Add change JDK location link
       if ((registeredListeners != null) && (!registeredListeners.contains(OpenProjectJdkLocationListener.ID))) {
-        val service = ProjectSettingsService.getInstance(project)
-        if (service is AndroidProjectSettingsService) {
-          val listener = OpenProjectJdkLocationListener(service)
+        OpenProjectJdkLocationListener.create(project, project.basePath)?.let {
           notificationData.message = notificationData.message + "<a href=\"${OpenProjectJdkLocationListener.ID}\">Change JDK location</a>\n"
-          notificationData.setListener(OpenProjectJdkLocationListener.ID, listener)
+          notificationData.setListener(OpenProjectJdkLocationListener.ID, it)
         }
       }
       // Track reason

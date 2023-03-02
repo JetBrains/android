@@ -22,7 +22,9 @@ import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.SystemIndependent;
 import org.jetbrains.plugins.gradle.GradleManager;
+import org.jetbrains.plugins.gradle.service.settings.GradleConfigurable;
 
 import static com.android.tools.idea.gradle.util.GradleUtil.GRADLE_SYSTEM_ID;
 import static com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil.getManager;
@@ -38,10 +40,21 @@ public class OpenGradleSettingsHyperlink extends SyncIssueNotificationHyperlink 
   }
 
   public static void showGradleSettings(@NotNull Project project) {
-    ExternalSystemManager<?,?,?,?,?> manager = getManager(GRADLE_SYSTEM_ID);
+    ExternalSystemManager<?, ?, ?, ?, ?> manager = getManager(GRADLE_SYSTEM_ID);
     assert manager instanceof GradleManager;
     GradleManager gradleManager = (GradleManager)manager;
     Configurable configurable = gradleManager.getConfigurable(project);
     ShowSettingsUtil.getInstance().editConfigurable(project, configurable);
+  }
+
+  public static void showGradleSettings(@NotNull Project project, @SystemIndependent @NotNull String gradleRootProjectPath) {
+    ExternalSystemManager<?, ?, ?, ?, ?> manager = getManager(GRADLE_SYSTEM_ID);
+    assert manager instanceof GradleManager;
+    GradleManager gradleManager = (GradleManager)manager;
+    Configurable configurable = gradleManager.getConfigurable(project);
+    assert configurable instanceof GradleConfigurable;
+    GradleConfigurable gradleConfigurable = (GradleConfigurable)configurable;
+    ShowSettingsUtil.getInstance()
+      .editConfigurable(project, gradleConfigurable, () -> gradleConfigurable.selectProject(gradleRootProjectPath));
   }
 }

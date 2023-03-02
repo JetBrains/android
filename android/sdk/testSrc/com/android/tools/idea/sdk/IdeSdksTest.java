@@ -268,7 +268,7 @@ public class IdeSdksTest extends PlatformTestCase {
   }
 
   public void testJdkEnvVariableValid() {
-    String validPath = IdeSdks.getJdkFromJavaHome();
+    String validPath = IdeSdks.getInstance().getJdkFromJavaHome();
     myIdeSdks.overrideJdkEnvVariable(validPath);
     assertThat(myIdeSdks.isJdkEnvVariableDefined()).isTrue();
     assertThat(myIdeSdks.isJdkEnvVariableValid()).isTrue();
