@@ -257,8 +257,8 @@ public class RenderErrorContributor {
                                  @NotNull XmlTag tag,
                                  @NotNull String id,
                                  @NotNull String attribute) {
-    Module module = logger.getModule();
-    if (module == null) {
+    Project project = logger.getProject();
+    if (project == null) {
       return;
     }
     String wrapUrl = myLinkManager.createCommandLink(new SetAttributeFix(tag, attribute, ANDROID_URI, VALUE_WRAP_CONTENT));
@@ -344,12 +344,12 @@ public class RenderErrorContributor {
   }
 
   private static void addHtmlForIssue164378(@NotNull Throwable throwable,
-                                            Module module,
+                                            Project project,
                                             HtmlLinkManager linkManager,
                                             HtmlBuilder builder,
                                             boolean addShowExceptionLink) {
     builder.add("Rendering failed with a known bug. ");
-    if (module == null) {
+    if (project == null) {
       // Unlikely, but just in case.
       builder.add("Please rebuild the project and then clear the cache by clicking the refresh icon above the preview.").newline();
       return;
@@ -359,7 +359,7 @@ public class RenderErrorContributor {
     if (!addShowExceptionLink) {
       return;
     }
-    ShowExceptionFix showExceptionFix = new ShowExceptionFix(module.getProject(), throwable);
+    ShowExceptionFix showExceptionFix = new ShowExceptionFix(project, throwable);
     builder.addLink("Show Exception", linkManager.createRunnableLink(showExceptionFix));
   }
 
@@ -1053,11 +1053,11 @@ public class RenderErrorContributor {
     }
 
     HtmlBuilder builder = new HtmlBuilder();
-    final Module module = logger.getModule();
+    final Project project = logger.getProject();
 
     for (Throwable throwable : brokenClasses.values()) {
       if (RenderLogger.isIssue164378(throwable)) {
-        addHtmlForIssue164378(throwable, module, myLinkManager, builder, false);
+        addHtmlForIssue164378(throwable, project, myLinkManager, builder, false);
         break;
       }
     }
@@ -1081,9 +1081,9 @@ public class RenderErrorContributor {
         .add(className)
         .add(" (")
         .addLink("Open Class", myLinkManager.createOpenClassUrl(className));
-      if (throwable != null && module != null) {
+      if (throwable != null && project != null) {
         builder.add(", ");
-        ShowExceptionFix detailsFix = new ShowExceptionFix(module.getProject(), throwable);
+        ShowExceptionFix detailsFix = new ShowExceptionFix(project, throwable);
         builder.addLink("Show Exception", myLinkManager.createRunnableLink(detailsFix));
       }
       builder.add(", ")
@@ -1160,13 +1160,12 @@ public class RenderErrorContributor {
       builder.add(" (");
 
       if (isActivityKnown) {
-        final Module module = logger.getModule();
+        final Project project = logger.getProject();
         ApplicationManager.getApplication().runReadAction(() -> {
           // TODO: Look up layout references in the given layout, if possible
           // Find activity class
           // Look for R references in the layout
-          assert module != null;
-          Project project = module.getProject();
+          assert project != null;
           GlobalSearchScope scope = GlobalSearchScope.allScope(project);
           PsiClass clz = DumbService.getInstance(project).isDumb() ?
                          null :
