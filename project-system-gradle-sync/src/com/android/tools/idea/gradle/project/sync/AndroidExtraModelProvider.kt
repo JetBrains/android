@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.ide.common.repository.GradleVersion
 import com.android.ide.gradle.model.GradlePluginModel
 import com.android.ide.gradle.model.composites.BuildMap
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
@@ -26,7 +27,6 @@ import org.gradle.tooling.BuildController
 import org.gradle.tooling.model.Model
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.gradle.GradleBuild
-import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.model.ProjectImportModelProvider
 import java.io.File
 import java.net.URLClassLoader
@@ -159,12 +159,19 @@ private fun buildModelsAndMap(
   buildModel: GradleBuild,
   controller: BuildController
 ): BuildModelsAndMap {
+  val gradleSupportsBuildSrcAsCompositeMember = checkGradleVersionIsAtLeast(controller, buildModel, "8.0")
   val buildModels =
     flattenDag(
       root = buildModel,
       getId = { it.buildIdentifier.rootDir },
       getChildren = {
-        runCatching { it.includedBuilds.all }.getOrDefault(/* old Gradle? */ emptyList())
+        runCatching {
+          if (gradleSupportsBuildSrcAsCompositeMember) {
+            it.editableBuilds.all
+          } else {
+            it.includedBuilds.all
+          }
+        }.getOrDefault(/* old Gradle? */ emptyList())
       }
     )
       .toSet()
@@ -177,10 +184,7 @@ private fun buildCompositeBuildMap(
   buildModel: GradleBuild,
   buildModels: Set<GradleBuild>
 ): IdeCompositeBuildMapImpl {
-  val buildEnvironment = controller.findModel(buildModel, BuildEnvironment::class.java)
-    ?: error("Cannot get BuildEnvironment model")
-  val parsedGradleVersion = GradleVersion.version(buildEnvironment.gradle.gradleVersion)
-  val gradleSupportsDirectTaskInvocationInComposites = parsedGradleVersion.baseVersion >= GradleVersion.version("6.8")
+  val gradleSupportsDirectTaskInvocationInComposites = checkGradleVersionIsAtLeast(controller, buildModel, "6.8")
   return IdeCompositeBuildMapImpl(
     builds = listOf(IdeBuildImpl(":", buildModel.buildIdentifier.rootDir)) +
       buildModels
@@ -189,6 +193,15 @@ private fun buildCompositeBuildMap(
         .distinct(),
     gradleSupportsDirectTaskInvocation = gradleSupportsDirectTaskInvocationInComposites
   )
+}
+
+private fun checkGradleVersionIsAtLeast(controller: BuildController,
+                                        buildModel: GradleBuild,
+                                        version: String): Boolean {
+  val buildEnvironment = controller.findModel(buildModel, BuildEnvironment::class.java)
+                         ?: error("Cannot get BuildEnvironment model")
+  val parsedGradleVersion = GradleVersion.parse(buildEnvironment.gradle.gradleVersion)
+  return parsedGradleVersion.compareIgnoringQualifiers(version) >= 0
 }
 
 private fun <T : Any> flattenDag(root: T, getId: (T) -> Any = { it }, getChildren: (T) -> List<T>): List<T> = sequence {
