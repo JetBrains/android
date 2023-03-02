@@ -62,6 +62,7 @@ import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.res.AndroidDependenciesCache;
+import com.android.tools.idea.res.ResourceFilesUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceFolderRegistry;
@@ -651,7 +652,7 @@ public class AndroidJavaDocRenderer {
               builder.newline();
             }
           } else if (value.endsWith(DOT_PNG)) {
-            if (IdeResourcesUtil.isFileResource(value)) {
+            if (ResourceFilesUtil.isFileResource(value)) {
               found = true;
               ResourceValueRenderer renderer = ResourceValueRenderer.create(ResourceType.DRAWABLE, myModule, myConfiguration);
               assert renderer != null;
@@ -990,7 +991,7 @@ public class AndroidJavaDocRenderer {
 
     private void renderDrawableToHtml(@NotNull HtmlBuilder builder, @NotNull String result, @NotNull Density density,
                                       @NotNull ResourceValue resolvedValue) {
-      if (IdeResourcesUtil.isFileResource(result)) {
+      if (ResourceFilesUtil.isFileResource(result)) {
         VirtualFile file = toVirtualFile(ResourcesUtil.toFileResourcePathString(result));
         if (file == null) {
           renderError(builder, result);

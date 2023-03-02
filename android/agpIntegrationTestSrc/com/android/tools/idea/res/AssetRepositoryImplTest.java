@@ -31,7 +31,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 /**
  * Tests for {@link AssetRepositoryImpl}.
  */
-public class AssetRepositoryImplTest extends AndroidGradleTestCase {
+public class  AssetRepositoryImplTest extends AndroidGradleTestCase {
   private AssetRepositoryImpl myAppRepo;
   private AssetRepositoryImpl myLibRepo;
 

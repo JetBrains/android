@@ -64,6 +64,7 @@ import com.android.tools.idea.rendering.AndroidXmlFiles;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.res.ResourceFilesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -86,7 +87,6 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Attr;
@@ -389,7 +389,7 @@ public class LayoutPullParsers {
   }
 
   public static void saveFileIfNecessary(PsiFile psiFile) {
-    if (!needSave(IdeResourcesUtil.getFolderType(psiFile.getVirtualFile()))) { // Avoid need for read lock in get parent
+    if (!needSave(ResourceFilesUtil.getFolderType(psiFile.getVirtualFile()))) { // Avoid need for read lock in get parent
       return;
     }
 
