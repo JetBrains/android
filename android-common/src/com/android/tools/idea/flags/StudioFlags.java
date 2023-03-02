@@ -1235,7 +1235,7 @@ public final class StudioFlags {
     COMPOSE, "view.inspector",
     "Show the switch of view inspection tool in Compose",
     "If enabled, the user can toggle the mouse inspection tool in the dropdown menu of Compose Preview. The tools is disabled by default",
-    true
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_VIEW_FILTER = Flag.create(
