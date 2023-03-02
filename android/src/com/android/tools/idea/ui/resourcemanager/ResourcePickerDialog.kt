@@ -19,15 +19,14 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ResourceItem
 import com.android.resources.ResourceType
 import com.android.tools.adtui.common.AdtUiUtils
-import com.android.tools.idea.editors.theme.ResolutionUtils
 import com.android.tools.idea.res.StudioResourceRepositoryManager
+import com.android.tools.idea.res.getResourceUrlFromQualifiedName
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
@@ -163,7 +162,7 @@ private fun ResourceItem.getReferenceString(): String {
     // TODO: Fix. This is a workaround, qualified name should already return this.
     qualifiedName = resourceReference.namespace.toString() + ":" + qualifiedName
   }
-  return ResolutionUtils.getResourceUrlFromQualifiedName(qualifiedName, type.getName())
+  return getResourceUrlFromQualifiedName(qualifiedName, type.getName())
 }
 
 /**

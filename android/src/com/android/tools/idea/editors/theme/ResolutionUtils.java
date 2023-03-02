@@ -71,27 +71,6 @@ public class ResolutionUtils {
   private ResolutionUtils() { }
 
   /**
-   * @return ResourceUrl representation of a style from qualifiedName
-   * e.g. for "android:Theme" returns "@android:style/Theme" or for "AppTheme" returns "@style/AppTheme"
-   */
-  @NotNull
-  public static String getStyleResourceUrl(@NotNull String qualifiedName) {
-    return getResourceUrlFromQualifiedName(qualifiedName, TAG_STYLE);
-  }
-
-  public static String getResourceUrlFromQualifiedName(@NotNull String qualifiedName, @NotNull String type) {
-    String startChar = TAG_ATTR.equals(type) ? PREFIX_THEME_REF : PREFIX_RESOURCE_REF;
-    int colonIndex = qualifiedName.indexOf(':');
-    if (colonIndex != -1) {
-      // The theme name contains a namespace, change the format to be "@namespace:style/ThemeName".
-      String namespace = qualifiedName.substring(0, colonIndex + 1); // Namespace plus + colon
-      String themeNameWithoutNamespace = StringUtil.trimStart(qualifiedName, namespace);
-      return startChar + namespace + type + "/" + themeNameWithoutNamespace;
-    }
-    return startChar + type + "/" + qualifiedName;
-  }
-
-  /**
    * @deprecated Avoid qualified style and theme names and use {@link ResourceReference}s instead.
    */
   @Deprecated
