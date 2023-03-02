@@ -61,6 +61,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../base/ninepatch/android.sdktools.ninepatch.iml" filepath="$PROJECT_DIR$/../../base/ninepatch/android.sdktools.ninepatch.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/perflib/android.sdktools.perflib.iml" filepath="$PROJECT_DIR$/../../base/perflib/android.sdktools.perflib.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/pixelprobe/android.sdktools.pixelprobe.iml" filepath="$PROJECT_DIR$/../../base/pixelprobe/android.sdktools.pixelprobe.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/previewlib/cli/android.sdktools.screenshot.cli.iml" filepath="$PROJECT_DIR$/../../base/previewlib/cli/android.sdktools.screenshot.cli.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/process-monitor/android.sdktools.process-monitor.iml" filepath="$PROJECT_DIR$/../../base/process-monitor/android.sdktools.process-monitor.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/profgen/profgen/android.sdktools.profgen.iml" filepath="$PROJECT_DIR$/../../base/profgen/profgen/android.sdktools.profgen.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/repository/android.sdktools.repository.iml" filepath="$PROJECT_DIR$/../../base/repository/android.sdktools.repository.iml" />
