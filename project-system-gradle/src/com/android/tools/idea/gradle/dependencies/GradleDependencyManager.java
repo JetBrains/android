@@ -16,14 +16,22 @@
 package com.android.tools.idea.gradle.dependencies;
 
 import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
+import static com.android.ide.common.repository.VersionCatalogNamingUtilKt.pickLibraryVariableName;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
+import static com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.DEFAULT_CATALOG_NAME;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_GRADLEDEPENDENCY_ADDED;
 import static com.intellij.openapi.roots.ModuleRootModificationUtil.updateModel;
 
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
+import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
+import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogLibraries;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
+import com.android.tools.idea.gradle.dsl.api.dependencies.LibraryDeclarationSpec;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
@@ -37,6 +45,9 @@ import com.intellij.openapi.project.Project;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import kotlin.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -47,6 +58,59 @@ public class GradleDependencyManager {
   @NotNull
   public static GradleDependencyManager getInstance(@NotNull Project project) {
     return project.getService(GradleDependencyManager.class);
+  }
+
+  static class DependencySearchResultInternal {
+    public List<GradleCoordinate> missingLibraries = new ArrayList<>();
+    public List<Pair<String, GradleCoordinate>> matchedCoordinates = new ArrayList<>();
+  }
+
+  private enum AddingDependencyPolicy{
+    VERSION_CATALOG,
+    BUILD_FILE
+  }
+
+  protected DependencySearchResultInternal findMissingCatalogDependencies(@NotNull Project project,
+                                                                       @NotNull Iterable<GradleCoordinate> dependencies,
+                                                                       GradleVersionCatalogModel catalogModel) {
+    GradleBuildModel buildModel = ProjectBuildModel.get(project).getProjectBuildModel();
+    List<ArtifactDependencyModel> compileDependencies = buildModel != null ? buildModel.dependencies().artifacts() : null;
+
+    String appCompatVersion = getAppCompatVersion(compileDependencies);
+    DependencySearchResultInternal searchResult = new DependencySearchResultInternal();
+    GradleVersionCatalogLibraries libraries = catalogModel.libraryDeclarations();
+    for (GradleCoordinate coordinate : dependencies) {
+      if (coordinate.getGroupId() == null || coordinate.getArtifactId() == null) continue;
+      Optional<GradleCoordinate> resolvedCoordinate = resolveCoordinate(project, coordinate, appCompatVersion);
+      GradleCoordinate finalCoordinate = resolvedCoordinate.orElse(coordinate);
+      if (libraries == null) {
+        searchResult.missingLibraries.add(finalCoordinate);
+      }
+      else {
+        Optional<Pair<String, GradleCoordinate>> maybeCoordinate = libraries.getAll().entrySet().stream()
+          .filter(entry -> {
+            LibraryDeclarationSpec spec = entry.getValue().getSpec();
+            return (Objects.equal(spec.getGroup(), coordinate.getGroupId()) &&
+                    Objects.equal(spec.getName(), coordinate.getArtifactId()));
+          }).map(dep -> new Pair<>(dep.getKey(), coordinate)).findFirst();
+        if (maybeCoordinate.isEmpty()) {
+          searchResult.missingLibraries.add(finalCoordinate);
+        }
+        else {
+          searchResult.matchedCoordinates.add(maybeCoordinate.get());
+        }
+      }
+    }
+    return searchResult;
+  }
+
+
+  private Optional<String> getCatalogNameToInsert(GradleVersionCatalogsModel catalog) {
+    Set<String> names = catalog.catalogNames();
+    if (names.isEmpty()) return Optional.empty();
+
+    GradleVersionCatalogModel model = catalog.getVersionCatalogModel(DEFAULT_CATALOG_NAME);
+    return Optional.of((model == null) ? names.iterator().next() : DEFAULT_CATALOG_NAME);
   }
 
   /**
@@ -60,17 +124,41 @@ public class GradleDependencyManager {
    * @param dependencies the dependencies of interest.
    * @return a list of the dependencies NOT defined in the build files.
    */
+
   @NotNull
   public List<GradleCoordinate> findMissingDependencies(@NotNull Module module, @NotNull Iterable<GradleCoordinate> dependencies) {
+    Project project = module.getProject();
     AndroidModuleModel gradleModel = AndroidModuleModel.get(module);
-    GradleBuildModel buildModel = GradleBuildModel.get(module);
+    GradleBuildModel buildModel = ProjectBuildModel.get(project).getModuleBuildModel(module);
 
     if (gradleModel == null && buildModel == null) {
       return Collections.emptyList();
     }
 
     List<ArtifactDependencyModel> compileDependencies = buildModel != null ? buildModel.dependencies().artifacts() : null;
+    String appCompatVersion = getAppCompatVersion(compileDependencies);
 
+    List<GradleCoordinate> missingLibraries = new ArrayList<>();
+    for (GradleCoordinate coordinate : dependencies) {
+
+      if (coordinate.getGroupId() == null || coordinate.getArtifactId() == null) continue;
+
+      Optional<GradleCoordinate> resolvedCoordinate = resolveCoordinate(project, coordinate, appCompatVersion);
+      GradleCoordinate finalCoordinate = resolvedCoordinate.orElse(coordinate);
+
+      boolean dependencyFound = compileDependencies != null &&
+                                compileDependencies.stream()
+                                  .anyMatch(d -> Objects.equal(d.group().toString(), finalCoordinate.getGroupId()) &&
+                                                 d.name().forceString().equals(finalCoordinate.getArtifactId()));
+      if (!dependencyFound) {
+        missingLibraries.add(finalCoordinate);
+      }
+    }
+
+    return missingLibraries;
+  }
+
+  private static String getAppCompatVersion(List<ArtifactDependencyModel> compileDependencies) {
     // Record current version of support library; if used, prefer that for other dependencies
     // (e.g. if you're using appcompat-v7 version 25.3.1, and you drag in a recyclerview-v7
     // library, we should also use 25.3.1, not whatever happens to be latest
@@ -87,39 +175,27 @@ public class GradleDependencyManager {
         }
       }
     }
+    return appCompatVersion;
+  }
 
-    Project project = module.getProject();
+  private Optional<GradleCoordinate> resolveCoordinate(Project project, GradleCoordinate coordinate, String appCompatVersion) {
     RepositoryUrlManager manager = RepositoryUrlManager.get();
-    List<GradleCoordinate> missingLibraries = new ArrayList<>();
-    for (GradleCoordinate coordinate : dependencies) {
-      String groupId = coordinate.getGroupId();
-      String artifactId = coordinate.getArtifactId();
-      GradleCoordinate resolvedCoordinate = manager.resolveDynamicCoordinate(coordinate, project, null);
+    String groupId = coordinate.getGroupId();
+    String artifactId = coordinate.getArtifactId();
 
-      // If we're adding a support library with a dynamic version (+), and we already have a resolved
-      // support library version, use that specific version for the new support library too to keep them
-      // all consistent.
-      if (appCompatVersion != null
-          && coordinate.acceptsGreaterRevisions() && SUPPORT_LIB_GROUP_ID.equals(groupId)
-          // The only library in groupId=SUPPORT_LIB_GROUP_ID which doesn't follow the normal version numbering scheme
-          && !artifactId.equals("multidex")) {
-        resolvedCoordinate = GradleCoordinate.parseCoordinateString(groupId + ":" + artifactId + ":" + appCompatVersion);
-      }
+    GradleCoordinate resolvedCoordinate = manager.resolveDynamicCoordinate(coordinate, project, null);
 
-      if (resolvedCoordinate != null) {
-        coordinate = resolvedCoordinate;
-      }
-
-      boolean dependencyFound = compileDependencies != null &&
-                                compileDependencies.stream()
-                                                   .anyMatch(d -> Objects.equal(d.group().toString(), groupId) &&
-                                                                  d.name().forceString().equals(artifactId));
-      if (!dependencyFound) {
-        missingLibraries.add(coordinate);
-      }
+    // If we're adding a support library with a dynamic version (+), and we already have a resolved
+    // support library version, use that specific version for the new support library too to keep them
+    // all consistent.
+    if (appCompatVersion != null
+        && coordinate.acceptsGreaterRevisions() && SUPPORT_LIB_GROUP_ID.equals(groupId)
+        // The only library in groupId=SUPPORT_LIB_GROUP_ID which doesn't follow the normal version numbering scheme
+        && !artifactId.equals("multidex")) {
+      resolvedCoordinate = GradleCoordinate.parseCoordinateString(groupId + ":" + artifactId + ":" + appCompatVersion);
     }
 
-    return missingLibraries;
+    return Optional.of((resolvedCoordinate != null) ? resolvedCoordinate : coordinate);
   }
 
   /**
@@ -135,7 +211,8 @@ public class GradleDependencyManager {
   @TestOnly
   public boolean addDependenciesAndSync(@NotNull Module module,
                                         @NotNull Iterable<GradleCoordinate> dependencies) {
-    boolean result = addDependenciesInTransaction(module, dependencies, null);
+    AddingDependencyPolicy policy = calculateDefaultAddingPolicy(module);
+    boolean result = addDependenciesInTransaction(module, dependencies, policy, null);
     requestProjectSync(module.getProject(), TRIGGER_GRADLEDEPENDENCY_ADDED);
     return result;
   }
@@ -149,7 +226,14 @@ public class GradleDependencyManager {
    * @return true if the dependencies were successfully added or were already present in the module.
    */
   public boolean addDependenciesWithoutSync(@NotNull Module module, @NotNull Iterable<GradleCoordinate> dependencies) {
-    return addDependenciesInTransaction(module, dependencies, null);
+    AddingDependencyPolicy policy = calculateDefaultAddingPolicy(module);
+    return addDependenciesInTransaction(module, dependencies, policy, null);
+  }
+
+  private AddingDependencyPolicy calculateDefaultAddingPolicy(Module module) {
+    GradleVersionCatalogsModel catalogsModel = ProjectBuildModel.get(module.getProject()).getVersionCatalogsModel();
+    GradleVersionCatalogModel catalog = catalogsModel.getVersionCatalogModel(DEFAULT_CATALOG_NAME);
+    return catalog != null ? AddingDependencyPolicy.VERSION_CATALOG : AddingDependencyPolicy.BUILD_FILE;
   }
 
   /**
@@ -165,7 +249,8 @@ public class GradleDependencyManager {
     @NotNull Module module,
     @NotNull Iterable<GradleCoordinate> dependencies,
     @Nullable ConfigurationNameMapper nameMapper) {
-    return addDependenciesInTransaction(module, dependencies, nameMapper);
+    AddingDependencyPolicy policy = calculateDefaultAddingPolicy(module);
+    return addDependenciesInTransaction(module, dependencies, policy,nameMapper);
   }
 
   /**
@@ -175,7 +260,8 @@ public class GradleDependencyManager {
    */
   public boolean updateLibrariesToVersion(@NotNull Module module,
                                           @NotNull List<GradleCoordinate> dependencies) {
-    GradleBuildModel buildModel = GradleBuildModel.get(module);
+    // TODO upgrade to work seamlessly with version catalog
+    GradleBuildModel buildModel = ProjectBuildModel.get(module.getProject()).getModuleBuildModel(module);
     if (buildModel == null) {
       return false;
     }
@@ -183,30 +269,99 @@ public class GradleDependencyManager {
     return true;
   }
 
+  private static List<Pair<String, GradleCoordinate>> addCatalogLibraries(@NotNull GradleVersionCatalogModel catalogModel,
+                                                                          @NotNull List<GradleCoordinate> coordinates) {
+    List<Pair<String, GradleCoordinate>> addedCoordinates = new ArrayList<>();
+
+    GradleVersionCatalogLibraries libraries = catalogModel.libraryDeclarations();
+    Set<String> names = libraries.getAllAliases();
+    for (GradleCoordinate coordinate : coordinates) {
+      String alias = pickLibraryVariableName(coordinate, false, names);
+      libraries.addDeclaration(alias, coordinate.toString());
+      names.add(alias);
+      addedCoordinates.add(new Pair<>(alias, coordinate));
+    }
+    return addedCoordinates;
+  }
+
+  private static void addCatalogReferences(@NotNull GradleBuildModel buildModel,
+                                           @NotNull Module module,
+                                           @NotNull List<Pair<String, GradleCoordinate>> namedCoordinates,
+                                           @NotNull GradleVersionCatalogModel catalogModel,
+                                           @Nullable ConfigurationNameMapper nameMapper) {
+      DependenciesModel dependenciesModel = buildModel.dependencies();
+      for (Pair<String, GradleCoordinate> namedCoordinate : namedCoordinates) {
+        String name = COMPILE;
+        if (nameMapper != null) {
+          name = nameMapper.mapName(module, name, namedCoordinate.getSecond());
+        }
+        name = GradleUtil.mapConfigurationName(name, GradleProjectSystemUtil.getAndroidGradleModelVersionInUse(module), false);
+        String alias = namedCoordinate.getFirst();
+        ReferenceTo reference = new ReferenceTo(catalogModel.libraries().findProperty(alias), dependenciesModel);
+        dependenciesModel.addArtifact(name, reference);
+      }
+  }
+
   private boolean addDependenciesInTransaction(@NotNull Module module,
                                                @NotNull Iterable<GradleCoordinate> coordinates,
+                                               @NotNull AddingDependencyPolicy policy,
                                                @Nullable ConfigurationNameMapper nameMapper) {
-    GradleBuildModel buildModel = GradleBuildModel.get(module);
+    Project project = module.getProject();
+    GradleBuildModel buildModel = ProjectBuildModel.get(project).getModuleBuildModel(module);
     if (buildModel == null) {
       return false;
     }
 
-    Project project = module.getProject();
-    WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY).run(() -> {
-      List<GradleCoordinate> missing = findMissingDependencies(module, coordinates);
-      if (missing.isEmpty()) {
-        return;
-      }
+    switch (policy) {
+      case BUILD_FILE ->
+        WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY).run(() -> {
+          List<GradleCoordinate> missing = findMissingDependencies(module, coordinates);
+          if (missing.isEmpty()) {
+            return;
+          }
+          addDependenciesToBuildFile(buildModel, module, missing, nameMapper);
+        });
+      case VERSION_CATALOG -> {
+        GradleVersionCatalogsModel catalog = ProjectBuildModel.get(project).getVersionCatalogsModel();
+        GradleVersionCatalogModel catalogModel = catalog.getVersionCatalogModel(DEFAULT_CATALOG_NAME);
+        WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY).run(() -> {
 
-      addDependencies(buildModel, module, missing, nameMapper);
-    });
+          List<GradleCoordinate> missing = findMissingDependencies(module, coordinates);
+          DependencySearchResultInternal catalogSearchResult = findMissingCatalogDependencies(module.getProject(), missing, catalogModel);
+
+          if (missing.isEmpty() || catalogSearchResult.missingLibraries.isEmpty()) {
+            return;
+          }
+
+          addDependenciesToCatalogAndBuild(module, nameMapper, buildModel, catalogModel, catalogSearchResult);
+        });
+      }
+    }
     return true;
   }
 
-  private static void addDependencies(@NotNull GradleBuildModel buildModel,
-                                      @NotNull Module module,
-                                      @NotNull List<GradleCoordinate> coordinates,
-                                      @Nullable ConfigurationNameMapper nameMapper) {
+  private static void addDependenciesToCatalogAndBuild(@NotNull Module module,
+                                                       @Nullable ConfigurationNameMapper nameMapper,
+                                                       GradleBuildModel buildModel,
+                                                       GradleVersionCatalogModel catalogModel,
+                                                       DependencySearchResultInternal catalogSearchResult) {
+    updateModel(module, model -> {
+      List<Pair<String, GradleCoordinate>> addedCoordinates = addCatalogLibraries(catalogModel,
+                                                                                  catalogSearchResult.missingLibraries);
+
+      List<Pair<String, GradleCoordinate>> allCoordinates = new ArrayList<>(catalogSearchResult.matchedCoordinates);
+      allCoordinates.addAll(addedCoordinates);
+      addCatalogReferences(buildModel, module, allCoordinates, catalogModel, nameMapper);
+      catalogModel.applyChanges(); // need to store catalog first as build file has reference to it
+      buildModel.applyChanges();
+    });
+  }
+
+
+  private static void addDependenciesToBuildFile(@NotNull GradleBuildModel buildModel,
+                                                 @NotNull Module module,
+                                                 @NotNull List<GradleCoordinate> coordinates,
+                                                 @Nullable ConfigurationNameMapper nameMapper) {
     updateModel(module, model -> {
       DependenciesModel dependenciesModel = buildModel.dependencies();
       for (GradleCoordinate coordinate : coordinates) {
@@ -246,6 +401,8 @@ public class GradleDependencyManager {
           if (gc.getGroupId().equals(m.group().toString())
               && gc.getArtifactId().equals(m.name().forceString())
               && !gc.getRevision().equals(m.version().toString())) {
+            // TODO probably need to update in place as external references can be broken
+            // need to reconsider version catalog as dependency storage
             dependenciesModel.remove(m);
             dependenciesModel.addArtifact(m.configurationName(), gc.toString());
           }

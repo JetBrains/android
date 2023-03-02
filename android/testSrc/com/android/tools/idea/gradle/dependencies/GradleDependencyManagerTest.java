@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dependencies;
 
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.prepareTestProject;
+import static com.android.tools.idea.imports.UtilsKt.assertBuildGradle;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.android.tools.idea.projectsystem.gradle.GradleModuleSystemKt.CHECK_DIRECT_GRADLE_DEPENDENCIES;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
@@ -29,6 +30,9 @@ import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
+import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
+import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
@@ -38,9 +42,13 @@ import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.RunsInEdt;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Ignore;
@@ -191,6 +199,7 @@ public class GradleDependencyManagerTest {
       assertThat(missing.size()).isEqualTo(1);
       assertThat(missing.get(0).getId()).isEqualTo(SdkConstants.RECYCLER_VIEW_LIB_ARTIFACT);
       assertThat(missing.get(0).toString()).isEqualTo("com.android.support:recyclerview-v7:25.4.0");
+      assertFalse(isRecyclerInCatalog(project));
       return null;
     });
   }
@@ -209,6 +218,7 @@ public class GradleDependencyManagerTest {
       GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(project);
       List<GradleCoordinate> missing = dependencyManager.findMissingDependencies(appModule, vectorDrawable);
       assertFalse(missing.isEmpty());
+      assertFalse(isRecyclerInCatalog(project));
       return null;
     });
   }
@@ -221,5 +231,46 @@ public class GradleDependencyManagerTest {
   private boolean isRecyclerViewResolved(@NotNull Project project) {
     return getModuleSystem(TestModuleUtil.findAppModule(project))
              .getResolvedDependency(GoogleMavenArtifactId.RECYCLERVIEW_V7.getCoordinate("+")) != null;
+  }
+
+  @Test
+  public void testAddCatalogDependencyAndSync() {
+    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.SIMPLE_APPLICATION_VERSION_CATALOG);
+    preparedProject.open(it -> it, project -> {
+      Module appModule = TestModuleUtil.findAppModule(project);
+      GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(project);
+      List<GradleCoordinate> dependencies = Collections.singletonList(RECYCLER_VIEW_DEPENDENCY);
+
+      assertThat(dependencyManager.findMissingDependencies(appModule, dependencies)).isNotEmpty();
+
+      boolean result = dependencyManager.addDependenciesAndSync(appModule, dependencies);
+
+      assertTrue(result);
+      GradleVersionCatalogsModel catalog = ProjectBuildModel.get(project).getVersionCatalogsModel();
+      GradleVersionCatalogModel catalogModel = catalog.getVersionCatalogModel("libs");
+
+      assertThat(
+        dependencyManager.findMissingCatalogDependencies(appModule.getProject(), dependencies, catalogModel).missingLibraries).isEmpty();
+      assertTrue(isRecyclerInCatalog(project));
+      assertBuildGradle(project, str -> !str.contains("com.android.support:libs.recyclerview-v7:+"));
+      assertBuildGradle(project, str -> str.contains("implementation libs.recyclerview.v7"));
+      return null;
+    });
+  }
+
+  private boolean checkFileContent(Project project, VirtualFile file, Predicate<String> check) {
+    PsiFile buildGradlePsi = PsiManager.getInstance(project).findFile(file);
+    assertNotNull(buildGradlePsi.getText());
+    return check.test(buildGradlePsi.getText().replace(" ", "").replace("\"", ""));
+  }
+
+  private boolean isRecyclerInCatalog(Project project) {
+    GradleVersionCatalogsModel catalog = ProjectBuildModel.get(project).getVersionCatalogsModel();
+    GradleVersionCatalogModel catalogModel = catalog.getVersionCatalogModel("libs");
+    if (catalogModel == null) return false;
+    VirtualFile file = catalogModel.getVirtualFile();
+    return checkFileContent(project,
+                            file,
+                            str -> str.contains("group=com.android.support,name=recyclerview-v7,version=28.0.0"));
   }
 }

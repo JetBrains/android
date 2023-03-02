@@ -16,7 +16,10 @@
 package com.android.tools.idea.gradle.dsl.model;
 
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
+import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogLibraries;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
+import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel;
+import com.android.tools.idea.gradle.dsl.model.catalog.GradleVersionCatalogLibrariesImpl;
 import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
@@ -31,10 +34,14 @@ public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implement
     catalogFile = file;
   }
 
-  private ExtModel extractByName(String sectionName) {
-    GradleDslExpressionMap librariesDslElement = catalogFile.ensurePropertyElement(
+  private GradleDslExpressionMap ensureMap(String sectionName){
+   return  catalogFile.ensurePropertyElement(
       new PropertiesElementDescription<>(sectionName, GradleDslExpressionMap.class, GradleDslExpressionMap::new)
     );
+  }
+
+  private ExtModel extractByName(String sectionName) {
+    GradleDslExpressionMap librariesDslElement = ensureMap(sectionName);
     return new ExtModelImpl(librariesDslElement,
                             GradleVersionCatalogPropertyModel::new,
                             GradleVersionCatalogPropertyModel::new);
@@ -43,6 +50,12 @@ public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implement
   @Override
   public ExtModel libraries() {
     return extractByName("libraries");
+  }
+
+  @Override
+  public GradleVersionCatalogLibraries libraryDeclarations(){
+    GradleDslExpressionMap librariesDslElement = ensureMap("libraries");
+    return new GradleVersionCatalogLibrariesImpl(librariesDslElement);
   }
 
   @Override
@@ -67,7 +80,6 @@ public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implement
 
   @Override
   public boolean isDefault() {
-    return "libs".equals(catalogName);
+    return VersionCatalogModel.DEFAULT_CATALOG_NAME.equals(catalogName);
   }
-
 }
