@@ -56,12 +56,14 @@ import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager;
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
 import com.android.tools.idea.rendering.ExecuteCallbacksResult;
 import com.android.tools.idea.rendering.InteractionEventResult;
+import com.android.tools.idea.rendering.RenderConfiguration;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderModelModule;
 import com.android.tools.idea.rendering.RenderProblem;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.StudioRenderConfiguration;
 import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
@@ -1105,7 +1107,8 @@ public class LayoutlibSceneManager extends SceneManager {
     RenderService renderService = StudioRenderService.getInstance(getModel().getProject());
     RenderLogger logger = myLogRenderErrors ? renderService.createLogger(facet.getModule()) : renderService.getNopLogger();
     RenderModelModule renderModule = createRenderModule(facet);
-    RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(renderModule, configuration, logger)
+    RenderConfiguration renderConfiguration = new StudioRenderConfiguration(configuration);
+    RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(renderModule, renderConfiguration, logger)
       .withPsiFile(getModel().getFile())
       .withLayoutScanner(myLayoutScannerConfig.isLayoutScannerEnabled());
     return setupRenderTaskBuilder(renderTaskBuilder).build()

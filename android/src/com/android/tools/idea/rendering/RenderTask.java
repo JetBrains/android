@@ -47,7 +47,6 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.analytics.crash.CrashReporter;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
@@ -417,7 +416,7 @@ public class RenderTask {
    * the {@link #setRenderingMode(RenderingMode)} is {@link RenderingMode#FULL_EXPAND}.
    * <p/>
    * A value of -1 will make the rendering use the normal width and height coming from the
-   * {@link Configuration#getDevice()} object.
+   * {@link RenderConfiguration#getDevice()} object.
    *
    * @param overrideRenderWidth  the width in pixels of the layout to be rendered
    * @param overrideRenderHeight the height in pixels of the layout to be rendered
@@ -435,7 +434,7 @@ public class RenderTask {
    * the {@link #setRenderingMode(RenderingMode)} is {@link RenderingMode#FULL_EXPAND}.
    * <p/>
    * A value of -1 will make the rendering use the normal width and height coming from the
-   * {@link Configuration#getDevice()} object.
+   * {@link RenderConfiguration#getDevice()} object.
    *
    * @param maxRenderWidth  the max width in pixels of the layout to be rendered
    * @param maxRenderHeight the max height in pixels of the layout to be rendered
@@ -545,7 +544,7 @@ public class RenderTask {
       return null;
     }
 
-    Configuration configuration = context.getConfiguration();
+    RenderConfiguration configuration = context.getConfiguration();
     ResourceResolver resolver = ResourceResolver.copy(configuration.getResourceResolver());
     if (resolver == null) {
       // Abort the rendering if the resources are not found.
@@ -1116,7 +1115,7 @@ public class RenderTask {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
     RenderContext context = getContext();
-    Configuration configuration = context.getConfiguration();
+    RenderConfiguration configuration = context.getConfiguration();
     DrawableParams params =
       new DrawableParams(drawableResourceValue, context.getModule().getModuleKey(), hardwareConfig, configuration.getResourceResolver(),
                          myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
@@ -1170,7 +1169,7 @@ public class RenderTask {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
     RenderContext context = getContext();
-    Configuration configuration = context.getConfiguration();
+    RenderConfiguration configuration = context.getConfiguration();
     DrawableParams params =
       new DrawableParams(drawableResourceValue, context.getModule().getModuleKey(), hardwareConfig, configuration.getResourceResolver(),
                          myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
@@ -1302,7 +1301,7 @@ public class RenderTask {
   @Nullable
   private RenderSession measure(ILayoutPullParser parser) {
     RenderContext context = getContext();
-    Configuration configuration = context.getConfiguration();
+    RenderConfiguration configuration = context.getConfiguration();
     ResourceResolver resolver = configuration.getResourceResolver();
 
     myLayoutlibCallback.reset();

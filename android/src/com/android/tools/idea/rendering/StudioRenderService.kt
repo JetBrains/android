@@ -66,7 +66,7 @@ open class StudioRenderService {
  * Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask].
  */
 fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration, logger: RenderLogger): RenderService.RenderTaskBuilder =
-  taskBuilder(AndroidFacetRenderModelModule(facet), configuration, logger)
+  taskBuilder(AndroidFacetRenderModelModule(facet), StudioRenderConfiguration(configuration), logger)
 
 /**
  * Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask].

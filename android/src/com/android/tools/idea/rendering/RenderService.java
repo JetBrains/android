@@ -22,7 +22,6 @@ import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
@@ -178,7 +177,7 @@ final public class RenderService implements Disposable {
    */
   @NotNull
   public RenderTaskBuilder taskBuilder(@NotNull RenderModelModule module,
-                                       @NotNull Configuration configuration,
+                                       @NotNull RenderConfiguration configuration,
                                        @NotNull RenderLogger logger) {
     RenderTaskBuilder builder = new RenderTaskBuilder(module, configuration, myImagePool, myCredential, logger);
     myConfigureBuilder.accept(builder);
@@ -379,7 +378,7 @@ final public class RenderService implements Disposable {
     private float myMinDownscalingFactor = 0.5f;
 
     private RenderTaskBuilder(@NotNull RenderModelModule module,
-                              @NotNull Configuration configuration,
+                              @NotNull RenderConfiguration configuration,
                               @NotNull ImagePool defaultImagePool,
                               @NotNull Object credential,
                               @NotNull RenderLogger logger) {
