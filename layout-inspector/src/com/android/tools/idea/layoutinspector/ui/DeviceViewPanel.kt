@@ -103,13 +103,13 @@ val TOGGLE_3D_ACTION_BUTTON_KEY = DataKey.create<ActionButton?>("$DEVICE_VIEW_AC
  */
 class DeviceViewPanel(
   val layoutInspector: LayoutInspector,
-  private val viewSettings: RenderSettings,
   disposableParent: Disposable,
   @TestOnly private val backgroundExecutor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
 ) : JPanel(BorderLayout()), Zoomable, DataProvider, Pannable {
 
-  override val scale
-    get() = viewSettings.scaleFraction
+  private val renderSettings = layoutInspector.renderLogic.renderSettings
+
+  override val scale get() = renderSettings.scaleFraction
 
   override val screenScalingFactor = 1.0
 
@@ -127,14 +127,15 @@ class DeviceViewPanel(
     inspectorModel = layoutInspector.inspectorModel,
     deviceModel = layoutInspector.deviceModel,
     treeSettings = layoutInspector.treeSettings,
-    renderSettings = viewSettings,
     currentClient = { layoutInspector.currentClient },
     pannable = this,
     selectTargetAction = targetSelectedAction,
     disposableParent = disposableParent,
     isLoading = { isLoading },
     isCurrentForegroundProcessDebuggable = { isCurrentForegroundProcessDebuggable },
-    hasForegroundProcess = { hasForegroundProcess }
+    hasForegroundProcess = { hasForegroundProcess },
+    renderLogic = layoutInspector.renderLogic,
+    renderModel = layoutInspector.renderModel
   )
 
   private fun showGrab() {
@@ -369,11 +370,11 @@ class DeviceViewPanel(
     // Zoom to fit on initial connect
     model.modificationListeners.add { _, new, _ ->
       if (contentPanel.renderModel.maxWidth == 0) {
-        layoutInspector.currentClient.stats.recompositionHighlightColor = viewSettings.highlightColor
+        layoutInspector.currentClient.stats.recompositionHighlightColor = renderSettings.highlightColor
         contentPanel.renderModel.refresh()
         if (!zoom(ZoomType.FIT)) {
           // If we didn't change the zoom, we need to refresh explicitly. Otherwise the zoom listener will do it.
-          new?.refreshImages(viewSettings.scaleFraction)
+          new?.refreshImages(renderSettings.scaleFraction)
           contentPanel.renderModel.refresh()
         }
       }
@@ -381,23 +382,23 @@ class DeviceViewPanel(
         // refreshImages is done here instead of by the model itself so that we can be sure to zoom to fit first before trying to render
         // images upon first connecting.
         if (layoutInspector.currentClient.isConnected) {
-          new?.refreshImages(viewSettings.scaleFraction)
+          new?.refreshImages(renderSettings.scaleFraction)
         }
         contentPanel.renderModel.refresh()
       }
     }
-    var prevZoom = viewSettings.scalePercent
-    viewSettings.modificationListeners.add {
+    var prevZoom = renderSettings.scalePercent
+    renderSettings.modificationListeners.add {
       val client = layoutInspector.currentClient
       if (client.isCapturing) {
-        client.updateScreenshotType(null, viewSettings.scaleFraction.toFloat())
+        client.updateScreenshotType(null, renderSettings.scaleFraction.toFloat())
       }
-      if (prevZoom != viewSettings.scalePercent) {
+      if (prevZoom != renderSettings.scalePercent) {
         backgroundExecutor.execute {
-          floatingToolbarProvider.zoomChanged(prevZoom / 100.0, viewSettings.scalePercent / 100.0)
-          prevZoom = viewSettings.scalePercent
+          floatingToolbarProvider.zoomChanged(prevZoom / 100.0, renderSettings.scalePercent / 100.0)
+          prevZoom = renderSettings.scalePercent
           model.windows.values.forEach {
-            it.refreshImages(viewSettings.scaleFraction)
+            it.refreshImages(renderSettings.scaleFraction)
           }
           contentPanel.renderModel.refresh()
         }
@@ -414,7 +415,7 @@ class DeviceViewPanel(
   }
 
   override fun zoom(type: ZoomType): Boolean {
-    var newZoom = viewSettings.scalePercent
+    var newZoom = renderSettings.scalePercent
     if (layoutInspector.inspectorModel.isEmpty) {
       newZoom = 100
       scrollPane.viewport.revalidate()
@@ -429,8 +430,8 @@ class DeviceViewPanel(
       }
       newZoom = newZoom.coerceIn(MIN_ZOOM, MAX_ZOOM)
     }
-    if (newZoom != viewSettings.scalePercent) {
-      viewSettings.scalePercent = newZoom
+    if (newZoom != renderSettings.scalePercent) {
+      renderSettings.scalePercent = newZoom
       contentPanel.revalidate()
       return true
     }
@@ -462,13 +463,13 @@ class DeviceViewPanel(
     return Dimension(root.layoutBounds.width, root.layoutBounds.height)
   }
 
-  override fun canZoomIn() = viewSettings.scalePercent < MAX_ZOOM && !layoutInspector.inspectorModel.isEmpty
+  override fun canZoomIn() = renderSettings.scalePercent < MAX_ZOOM && !layoutInspector.inspectorModel.isEmpty
 
-  override fun canZoomOut() = viewSettings.scalePercent > MIN_ZOOM && !layoutInspector.inspectorModel.isEmpty
+  override fun canZoomOut() = renderSettings.scalePercent > MIN_ZOOM && !layoutInspector.inspectorModel.isEmpty
 
-  override fun canZoomToFit() = !layoutInspector.inspectorModel.isEmpty && getFitZoom() != viewSettings.scalePercent
+  override fun canZoomToFit() = !layoutInspector.inspectorModel.isEmpty && getFitZoom() != renderSettings.scalePercent
 
-  override fun canZoomToActual() = viewSettings.scalePercent < 100 && canZoomIn() || viewSettings.scalePercent > 100 && canZoomOut()
+  override fun canZoomToActual() = renderSettings.scalePercent < 100 && canZoomIn() || renderSettings.scalePercent > 100 && canZoomOut()
 
   override fun getData(dataId: String): Any? {
     if (ZOOMABLE_KEY.`is`(dataId) || PANNABLE_KEY.`is`(dataId)) {
@@ -478,7 +479,7 @@ class DeviceViewPanel(
       return contentPanel.renderModel
     }
     if (DEVICE_VIEW_SETTINGS_KEY.`is`(dataId)) {
-      return viewSettings
+      return renderSettings
     }
     if (TOGGLE_3D_ACTION_BUTTON_KEY.`is`(dataId)) {
       return floatingToolbarProvider.toggle3dActionButton

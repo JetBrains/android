@@ -46,7 +46,7 @@ private val HQ_RENDERING_HINTS = mapOf(
 /**
  * Class defining the logic that renders the Layout Inspector device-related components. Eg: images, borders etc.
  */
-class RenderLogic(private val renderModel: RenderModel, private val renderSettings: RenderSettings) {
+class RenderLogic(private val renderModel: RenderModel, val renderSettings: RenderSettings) {
   private val inspectorModel = renderModel.model
 
   /**

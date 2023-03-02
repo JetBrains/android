@@ -30,7 +30,11 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.logUnexpect
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import com.android.tools.idea.layoutinspector.ui.EditorRenderSettings
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
+import com.android.tools.idea.layoutinspector.ui.InspectorRenderSettings
+import com.android.tools.idea.layoutinspector.ui.RenderLogic
+import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import com.intellij.ide.DataManager
@@ -66,7 +70,9 @@ class LayoutInspector private constructor(
   val isSnapshot: Boolean,
   val launcher: InspectorClientLauncher?,
   private val currentClientProvider: () -> InspectorClient,
-  workerExecutor: Executor = AndroidExecutors.getInstance().workerThreadExecutor
+  workerExecutor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
+  val renderModel: RenderModel,
+  val renderLogic: RenderLogic,
 ) {
 
   /**
@@ -81,7 +87,9 @@ class LayoutInspector private constructor(
     launcher: InspectorClientLauncher,
     layoutInspectorModel: InspectorModel,
     treeSettings: TreeSettings,
-    executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor
+    executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
+    renderModel: RenderModel = RenderModel(layoutInspectorModel, treeSettings) { launcher.activeClient },
+    renderLogic: RenderLogic = RenderLogic(renderModel, InspectorRenderSettings()),
   ) : this(
     layoutInspectorModel,
     coroutineScope,
@@ -93,7 +101,9 @@ class LayoutInspector private constructor(
     false,
     launcher,
     { launcher.activeClient },
-    executor
+    executor,
+    renderModel,
+    renderLogic
   ) {
     launcher.addClientChangedListener(::onClientChanged)
   }
@@ -107,7 +117,9 @@ class LayoutInspector private constructor(
     client: InspectorClient,
     layoutInspectorModel: InspectorModel,
     treeSettings: TreeSettings,
-    executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor
+    executor: Executor = AndroidExecutors.getInstance().workerThreadExecutor,
+    renderModel: RenderModel = RenderModel(layoutInspectorModel, treeSettings) { client },
+    renderLogic: RenderLogic = RenderLogic(renderModel, EditorRenderSettings()),
   ) : this(
     inspectorModel = layoutInspectorModel,
     coroutineScope = coroutineScope,
@@ -119,7 +131,9 @@ class LayoutInspector private constructor(
     isSnapshot = true,
     launcher = null,
     currentClientProvider = { client },
-    workerExecutor = executor
+    workerExecutor = executor,
+    renderModel,
+    renderLogic
   ) {
     onClientChanged(client)
   }

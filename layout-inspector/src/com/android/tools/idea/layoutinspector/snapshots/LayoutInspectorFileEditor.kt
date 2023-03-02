@@ -137,7 +137,6 @@ class LayoutInspectorFileEditor(val project: Project, private val path: Path) : 
       )
       val deviceViewPanel = DeviceViewPanel(
         layoutInspector = layoutInspector,
-        viewSettings = viewSettings,
         disposableParent = workbench
       )
       DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector, deviceViewPanel))

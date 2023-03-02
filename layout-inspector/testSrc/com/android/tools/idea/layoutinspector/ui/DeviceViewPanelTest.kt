@@ -184,10 +184,8 @@ class DeviceViewPanelWithFullInspectorTest {
     connect(MODERN_PROCESS)
     assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
 
-    val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
       inspectorRule.inspector,
-      settings,
       projectRule.fixture.testRootDisposable
     )
     val banner = InspectorBannerService.getInstance(inspectorRule.project) ?: error("no banner")
@@ -247,11 +245,9 @@ class DeviceViewPanelWithFullInspectorTest {
 
   @Test
   fun testLiveControlEnabledAndSetByDefaultWhenDisconnected() {
-    val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
         inspectorRule.inspector,
-        settings,
         projectRule.fixture.testRootDisposable)
     )
 
@@ -268,11 +264,9 @@ class DeviceViewPanelWithFullInspectorTest {
     val clientSettings = InspectorClientSettings(projectRule.project)
     clientSettings.isCapturingModeOn = false
 
-    val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
         inspectorRule.inspector,
-        settings,
         projectRule.fixture.testRootDisposable))
 
     val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
@@ -290,11 +284,9 @@ class DeviceViewPanelWithFullInspectorTest {
     connect(MODERN_PROCESS)
     assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
 
-    val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
         inspectorRule.inspector,
-        settings,
         projectRule.fixture.testRootDisposable
       )
     )
@@ -318,11 +310,9 @@ class DeviceViewPanelWithFullInspectorTest {
     latch = CountDownLatch(1)
     connect(MODERN_PROCESS)
     assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
-    val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
         inspectorRule.inspector,
-        settings,
         projectRule.fixture.testRootDisposable
       )
     )
@@ -346,11 +336,9 @@ class DeviceViewPanelWithFullInspectorTest {
 
     val stats = inspectorRule.inspector.currentClient.stats
     stats.currentModeIsLive = true
-    val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
         inspectorRule.inspector,
-        settings,
         projectRule.fixture.testRootDisposable
       )
     )
@@ -377,11 +365,9 @@ class DeviceViewPanelWithFullInspectorTest {
 
     val stats = inspectorRule.inspector.currentClient.stats
     stats.currentModeIsLive = false
-    val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
         inspectorRule.inspector,
-        settings,
         projectRule.fixture.testRootDisposable
       )
     )
@@ -411,11 +397,9 @@ class DeviceViewPanelWithFullInspectorTest {
     val stats = inspectorRule.inspector.currentClient.stats
     stats.currentModeIsLive = true
     latch = CountDownLatch(2)
-    val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
         inspectorRule.inspector,
-        settings,
         projectRule.fixture.testRootDisposable
       )
     )
@@ -453,11 +437,9 @@ class DeviceViewPanelWithFullInspectorTest {
     stats.currentModeIsLive = false
 
     latch = CountDownLatch(1)
-    val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
         inspectorRule.inspector,
-        settings,
         projectRule.fixture.testRootDisposable
       )
     )
@@ -489,10 +471,8 @@ class DeviceViewPanelWithFullInspectorTest {
       latch.await(20, TimeUnit.SECONDS)
       inspectorRule.inspectorModel.update(window("w1", 1L), listOf("w1"), 1)
     }
-    val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
       inspectorRule.inspector,
-      settings,
       projectRule.fixture.testRootDisposable
     )
     val loadingPane = flatten(panel).filterIsInstance<JBLoadingPanel>().first()
@@ -523,10 +503,8 @@ class DeviceViewPanelWithFullInspectorTest {
       latch.await(5, TimeUnit.HOURS)
       inspectorRule.inspectorModel.update(window("w1", 1L), listOf("w1"), 1)
     }
-    val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
       inspectorRule.inspector,
-      settings,
       projectRule.fixture.testRootDisposable,
     )
 
@@ -565,10 +543,8 @@ class DeviceViewPanelWithFullInspectorTest {
 
   @Test
   fun testSelectProcessDropDown() {
-    val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
       inspectorRule.inspector,
-      settings,
       projectRule.fixture.testRootDisposable
     )
 
@@ -646,7 +622,6 @@ class DeviceViewPanelWithFullInspectorTest {
     inspectorRule.inspector.treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(
       inspectorRule.inspector,
-      FakeRenderSettings(),
       projectRule.fixture.testRootDisposable
     )
     delegateDataProvider(panel)
@@ -732,7 +707,6 @@ class DeviceViewPanelTest {
 
   @Test
   fun testZoomOnConnect() {
-    val viewSettings = EditorRenderSettings()
     val model = InspectorModel(projectRule.project)
     val processModel = ProcessesModel(TestProcessDiscovery())
     val deviceModel = DeviceModel(disposableRule.disposable, processModel)
@@ -761,14 +735,13 @@ class DeviceViewPanelTest {
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(
       inspector,
-      viewSettings,
       disposableRule.disposable
     )
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
     scrollPane.setSize(200, 300)
 
-    assertThat(viewSettings.scalePercent).isEqualTo(100)
+    assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(100)
 
     val newWindow = window(ROOT, ROOT, 0, 0, 100, 200) {
       view(VIEW1, 25, 30, 50, 50) {
@@ -779,9 +752,9 @@ class DeviceViewPanelTest {
     model.update(newWindow, listOf(ROOT), 0)
 
     // now we should be zoomed to fit
-    assertThat(viewSettings.scalePercent).isEqualTo(135)
+    assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(135)
 
-    viewSettings.scalePercent = 200
+    inspector.renderLogic.renderSettings.scalePercent = 200
 
     // Update the model
     val newWindow2 = window(ROOT, ROOT, 0, 0, 100, 200) {
@@ -792,12 +765,11 @@ class DeviceViewPanelTest {
     model.update(newWindow2, listOf(ROOT), 0)
 
     // Should still have the manually set zoom
-    assertThat(viewSettings.scalePercent).isEqualTo(200)
+    assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(200)
   }
 
   @Test
   fun testZoomOnConnectWithFiltering() {
-    val viewSettings = EditorRenderSettings()
     val model = InspectorModel(projectRule.project)
     val processModel = ProcessesModel(TestProcessDiscovery())
     val deviceModel = DeviceModel(disposableRule.disposable, processModel)
@@ -826,14 +798,13 @@ class DeviceViewPanelTest {
     treeSettings.hideSystemNodes = true
     val panel = DeviceViewPanel(
       inspector,
-      viewSettings,
       disposableRule.disposable
     )
 
     val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
     scrollPane.setSize(200, 300)
 
-    assertThat(viewSettings.scalePercent).isEqualTo(100)
+    assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(100)
 
     val newWindow = window(ROOT, ROOT, 0, 0, 100, 200) {
       view(VIEW1, 25, 30, 50, 50) {
@@ -844,12 +815,11 @@ class DeviceViewPanelTest {
     model.update(newWindow, listOf(ROOT), 0)
 
     // now we should be zoomed to fit
-    assertThat(viewSettings.scalePercent).isEqualTo(135)
+    assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(135)
   }
 
   @Test
   fun testZoomOnConnectWithFilteringAndScreenSizeFromAppContext() {
-    val viewSettings = EditorRenderSettings()
     val model = InspectorModel(projectRule.project)
     val processModel = ProcessesModel(TestProcessDiscovery())
     val deviceModel = DeviceModel(disposableRule.disposable, processModel)
@@ -878,7 +848,6 @@ class DeviceViewPanelTest {
     treeSettings.hideSystemNodes = true
     val panel = DeviceViewPanel(
       inspector,
-      viewSettings,
       disposableRule.disposable
     )
 
@@ -886,7 +855,7 @@ class DeviceViewPanelTest {
     scrollPane.setSize(200, 300)
     model.resourceLookup.screenDimension = Dimension(200, 300)
 
-    assertThat(viewSettings.scalePercent).isEqualTo(100)
+    assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(100)
 
     val newWindow = window(ROOT, ROOT, 0, 0, 100, 200) {
       view(VIEW1, 25, 30, 50, 50) {
@@ -897,12 +866,11 @@ class DeviceViewPanelTest {
     model.update(newWindow, listOf(ROOT), 0)
 
     // now we should be zoomed to fit
-    assertThat(viewSettings.scalePercent).isEqualTo(90)
+    assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(90)
   }
 
   @Test
   fun testDrawNewWindow() {
-    val viewSettings = EditorRenderSettings()
     val model = InspectorModel(projectRule.project)
     val processModel = ProcessesModel(TestProcessDiscovery())
     val deviceModel = DeviceModel(disposableRule.disposable, processModel)
@@ -931,7 +899,6 @@ class DeviceViewPanelTest {
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(
       inspector,
-      viewSettings,
       disposableRule.disposable,
       MoreExecutors.directExecutor()
     )
@@ -964,7 +931,6 @@ class DeviceViewPanelTest {
 
   @Test
   fun testNewWindowDoesntResetZoom() {
-    val viewSettings = EditorRenderSettings()
     val model = InspectorModel(projectRule.project)
     val processModel = ProcessesModel(TestProcessDiscovery())
     val deviceModel = DeviceModel(disposableRule.disposable, processModel)
@@ -991,7 +957,6 @@ class DeviceViewPanelTest {
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(
       inspector,
-      viewSettings,
       disposableRule.disposable,
       MoreExecutors.directExecutor()
     )
@@ -1009,7 +974,7 @@ class DeviceViewPanelTest {
     model.update(window1, listOf(ROOT), 0)
     assertThat(contentPanelModel.hitRects.size).isEqualTo(2)
 
-    viewSettings.scalePercent = 33
+    inspector.renderLogic.renderSettings.scalePercent = 33
 
     // Add another window
     val window2 = window(ROOT2, ROOT2, 0, 0, 100, 200) {
@@ -1022,7 +987,7 @@ class DeviceViewPanelTest {
     assertThat(contentPanelModel.hitRects.size).isEqualTo(4)
 
     // we should still have the manually set zoom
-    assertThat(viewSettings.scalePercent).isEqualTo(33)
+    assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(33)
   }
 
   @Test
@@ -1053,10 +1018,8 @@ class DeviceViewPanelTest {
       MoreExecutors.directExecutor()
     )
     treeSettings.hideSystemNodes = false
-    val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
       inspector,
-      settings,
       disposableRule.disposable,
     )
     val toolbar = getToolbar(panel)
@@ -1155,10 +1118,8 @@ class DeviceViewPanelTest {
         MoreExecutors.directExecutor()
       )
     }
-    val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
       inspector,
-      settings,
       disposableRule.disposable,
     )
 
@@ -1233,11 +1194,9 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
     inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
     waitForCondition(5, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
 
-    val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
         inspectorRule.inspector,
-        settings,
         projectRule.fixture.testRootDisposable,
       )
     )
@@ -1253,11 +1212,9 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
     inspectorRule.processes.selectedProcess = MODERN_PROCESS
     waitForCondition(5, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
 
-    val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
         inspectorRule.inspector,
-        settings,
         projectRule.fixture.testRootDisposable,
       )
     )
@@ -1456,10 +1413,8 @@ class DeviceViewPanelWithNoClientsTest {
   fun testLoadingPane() {
     inspectorRule.startLaunch(4)
     inspectorRule.launchSynchronously = false
-    val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
       inspectorRule.inspector,
-      settings,
       projectRule.fixture.testRootDisposable,
     )
     val loadingPane = flatten(panel).filterIsInstance<JBLoadingPanel>().first()
@@ -1485,7 +1440,6 @@ class DeviceViewPanelWithNoClientsTest {
     inspectorRule.launchSynchronously = false
     val panel = DeviceViewPanel(
       inspectorRule.inspector,
-      EditorRenderSettings(),
       projectRule.fixture.testRootDisposable,
     )
 
@@ -1531,7 +1485,6 @@ class DeviceViewPanelWithNoClientsTest {
     val toolbar = getToolbar(
       DeviceViewPanel(
         inspectorRule.inspector,
-        EditorRenderSettings(),
         projectRule.fixture.testRootDisposable
       )
     )

@@ -25,7 +25,6 @@ import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.tree.EditorTreeSettings
-import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.EditorRenderSettings
 import com.android.tools.idea.layoutinspector.util.CheckUtil
 import com.android.tools.idea.layoutinspector.util.ComponentUtil
@@ -85,11 +84,14 @@ class LayoutInspectorFileEditorTest {
     )
     Disposer.register(disposableRule.disposable, editor)
     val editorComponent = editor.component
-    val settings = ComponentUtil.flatten(editorComponent).firstIsInstance<DeviceViewContentPanel>().renderSettings
+
+    val inspector = DataManager.getDataProvider(
+      ComponentUtil.flatten(editorComponent).firstIsInstance<WorkBench<*>>()
+    )?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
+
+    val settings = inspector.renderLogic.renderSettings
     assertThat(settings).isInstanceOf(EditorRenderSettings::class.java)
 
-    val inspector = DataManager.getDataProvider(ComponentUtil.flatten(editorComponent).firstIsInstance<WorkBench<*>>())?.getData(
-      LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
     assertThat(inspector.treeSettings).isInstanceOf(EditorTreeSettings::class.java)
     assertThat(inspector.currentClient.capabilities).containsExactly(Capability.SUPPORTS_SYSTEM_NODES)
   }
@@ -102,11 +104,14 @@ class LayoutInspectorFileEditorTest {
     )
     Disposer.register(disposableRule.disposable, editor)
     val editorComponent = editor.component
-    val settings = ComponentUtil.flatten(editorComponent).firstIsInstance<DeviceViewContentPanel>().renderSettings
+
+    val inspector = DataManager.getDataProvider(
+      ComponentUtil.flatten(editorComponent).firstIsInstance<WorkBench<*>>()
+    )?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
+
+    val settings = inspector.renderLogic.renderSettings
     assertThat(settings).isInstanceOf(EditorRenderSettings::class.java)
 
-    val inspector = DataManager.getDataProvider(ComponentUtil.flatten(editorComponent).firstIsInstance<WorkBench<*>>())?.getData(
-      LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
     assertThat(inspector.treeSettings).isInstanceOf(EditorTreeSettings::class.java)
     assertThat(inspector.currentClient.capabilities).containsExactly(
       Capability.SUPPORTS_SYSTEM_NODES, Capability.SUPPORTS_COMPOSE, Capability.SUPPORTS_SEMANTICS)
