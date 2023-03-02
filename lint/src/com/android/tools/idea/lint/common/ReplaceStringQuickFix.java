@@ -23,7 +23,6 @@ import com.android.tools.lint.detector.api.LintFix.ReplaceString;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Position;
 import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils;
-import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -39,7 +38,6 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiImportList;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.SmartPointerManager;
-import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.SmartPsiFileRange;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
@@ -47,16 +45,15 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.DocumentUtil;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.intellij.lang.annotations.RegExp;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.idea.KotlinLanguage;
-import org.jetbrains.kotlin.idea.core.ShortenReferences;
+import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility;
 import org.jetbrains.kotlin.name.FqName;
-import org.jetbrains.kotlin.psi.KtElement;
 import org.jetbrains.kotlin.psi.KtFile;
 import org.jetbrains.kotlin.psi.KtImportList;
 import org.jetbrains.kotlin.psi.KtPsiFactoryKt;
@@ -250,8 +247,8 @@ public class ReplaceStringQuickFix extends DefaultLintQuickFix {
     if (document != null) {
       documentManager.doPostponedOperationsAndUnblockDocument(document);
       editBefore(document);
-      TextRange range = getRange(startElement, endElement, true);
-      if (range != null) {
+      TextRange replaceRange = getRange(startElement, endElement, true);
+      if (replaceRange != null) {
         String newValue = getNewValue();
         if (newValue == null) {
           newValue = "";
@@ -260,70 +257,18 @@ public class ReplaceStringQuickFix extends DefaultLintQuickFix {
           // If we're replacing a text segment with just whitespace,
           // and the line begins and ends with whitespace after making
           // the adjustment, delete the whole line
-          range = includeFullLineIfOnlySpace(document, range);
+          replaceRange = includeFullLineIfOnlySpace(document, replaceRange);
         }
-        int startOffset = range.getStartOffset();
-        int endOffset = range.getEndOffset();
-        document.replaceString(startOffset, endOffset, newValue);
-        endOffset = startOffset + newValue.length();
+        final int replaceStart = replaceRange.getStartOffset();
+        final int replaceEnd = replaceRange.getEndOffset();
+        document.replaceString(replaceStart, replaceEnd, newValue);
         editAfter(document);
-
         documentManager.commitDocument(document);
-        PsiElement element = file.findElementAt(startOffset);
-        if (element == null) {
-          return;
-        }
-        startOffset = element.getTextOffset();
-        PsiElement end = file.findElementAt(endOffset);
-
-        SmartPointerManager pointerManager = SmartPointerManager.getInstance(project);
-        SmartPsiElementPointer<PsiElement> elementPointer = pointerManager.createSmartPsiElementPointer(element);
-        SmartPsiElementPointer<PsiElement> endPointer = end != null ? pointerManager.createSmartPsiElementPointer(end) : null;
-
-        if (myImports != null && !myImports.isEmpty()) {
-          if (file instanceof PsiJavaFile javaFile) {
-            addJavaImports(javaFile, myImports);
-          } else if (file instanceof KtFile ktFile) {
-            addKotlinImports(ktFile, myImports);
-          }
-        }
-
-        if (myShortenNames || myFormat) {
-          element = elementPointer.getElement();
-          if (element != null) {
-            end = endPointer != null ? endPointer.getElement() : null;
-            PsiElement parent = end != null ? PsiTreeUtil.findCommonParent(element.getParent(), end) : element.getParent();
-            if (parent == null) {
-              parent = element.getParent();
-            }
-            if (myShortenNames) {
-              if (element.getLanguage() == JavaLanguage.INSTANCE) {
-                parent = JavaCodeStyleManager.getInstance(project).shortenClassReferences(parent);
-              }
-              else if (element.getLanguage() == KotlinLanguage.INSTANCE && parent instanceof KtElement) {
-                parent = ShortenReferences.DEFAULT.process((KtElement)parent);
-              }
-              else {
-                parent = null;
-              }
-            }
-
-            if (myFormat) {
-              CodeStyleManager codeStyleManager = CodeStyleManager.getInstance(project);
-              if (parent != null) {
-                codeStyleManager.reformat(parent);
-              }
-              else {
-                codeStyleManager.reformatRange(element, startOffset, endOffset);
-              }
-            }
-          }
-        }
 
         if (mySelectPattern != null && context instanceof AndroidQuickfixContexts.EditorContext && file.isPhysical()) {
           Pattern pattern = Pattern.compile(mySelectPattern);
           Matcher matcher = pattern.matcher(document.getText());
-          if (matcher.find(startOffset)) {
+          if (matcher.find(replaceStart)) {
             int selectStart;
             int selectEnd;
             if (matcher.groupCount() > 0) {
@@ -336,8 +281,45 @@ public class ReplaceStringQuickFix extends DefaultLintQuickFix {
             }
             Editor editor = context.getEditor(file);
             if (editor != null) {
+              // Note: the selection model uses smart ranges (RangeMarker), so it will
+              // correctly adapt to the post-processing edits below.
               editor.getSelectionModel().setSelection(selectStart, selectEnd);
             }
+          }
+        }
+
+        // In order to apply multiple transformations in sequence, we use a smart range to keep
+        // track of where we are in the file.
+        SmartPointerManager pointerManager = SmartPointerManager.getInstance(project);
+        TextRange resultTextRange = TextRange.from(replaceStart, newValue.length());
+        SmartPsiFileRange resultSmartRange = pointerManager.createSmartPsiFileRangePointer(file, resultTextRange);
+
+        if (myImports != null && !myImports.isEmpty()) {
+          if (file instanceof PsiJavaFile javaFile) {
+            addJavaImports(javaFile, myImports);
+          } else if (file instanceof KtFile ktFile) {
+            addKotlinImports(ktFile, myImports);
+          }
+        }
+
+        if (myShortenNames) {
+          var range = resultSmartRange.getPsiRange();
+          if (range != null) {
+            var textRange = new TextRange(range.getStartOffset(), range.getEndOffset());
+            if (file instanceof PsiJavaFile) {
+              shortenJavaReferencesInRange(file, textRange);
+            }
+            else if (file instanceof KtFile ktFile) {
+              ShortenReferencesFacility.Companion.getInstance().shorten(ktFile, textRange);
+            }
+          }
+        }
+
+        if (myFormat) {
+          var range = resultSmartRange.getPsiRange();
+          if (range != null) {
+            CodeStyleManager codeStyleManager = CodeStyleManager.getInstance(project);
+            codeStyleManager.reformatRange(file, range.getStartOffset(), range.getEndOffset());
           }
         }
       }
@@ -404,6 +386,44 @@ public class ReplaceStringQuickFix extends DefaultLintQuickFix {
       }
     }
     return false;
+  }
+
+  private static void shortenJavaReferencesInRange(PsiFile file, TextRange range) {
+    // We'd really prefer to use JavaCodeStyleManager.shortenClassReferences(file, startOffset, startOffset),
+    // but unfortunately it hard-codes the 'incompleteCode' flag to true, which breaks reference shortening
+    // for static method calls. So instead we visit in-range PSI elements ourselves.
+
+    // Find the parent PSI element covering the entire range.
+    var startPsi = file.findElementAt(range.getStartOffset());
+    var endPsi = file.findElementAt(range.getEndOffset() - 1);
+    if (startPsi == null || endPsi == null) return;
+    var commonParent = PsiTreeUtil.findCommonParent(startPsi, endPsi);
+    if (commonParent == null) return;
+
+    // Process constituent PSI elements inside the target range.
+    var psiInRange = new ArrayList<PsiElement>();
+    collectDisjointDescendantsCoveringRange(commonParent, range, psiInRange);
+    var javaCodeStyleManager = JavaCodeStyleManager.getInstance(file.getProject());
+    for (var psiElement : psiInRange) {
+      if (psiElement.isValid()) {
+        javaCodeStyleManager.shortenClassReferences(psiElement);
+      }
+    }
+  }
+
+  private static void collectDisjointDescendantsCoveringRange(PsiElement parent, TextRange fileRange, List<PsiElement> out) {
+    for (var child = parent.getFirstChild(); child != null; child = child.getNextSibling()) {
+      var childRange = child.getTextRange();
+      if (childRange == null || childRange.isEmpty()) {
+        continue;
+      }
+      if (fileRange.contains(childRange)) {
+        out.add(child);
+      }
+      else if (fileRange.intersectsStrict(childRange)) {
+        collectDisjointDescendantsCoveringRange(child, fileRange, out);
+      }
+    }
   }
 
   private static boolean whitespaceOnly(@NotNull String text) {

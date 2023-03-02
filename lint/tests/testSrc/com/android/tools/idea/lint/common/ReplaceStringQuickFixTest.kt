@@ -394,4 +394,145 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureTestCase() {
       file.text
     )
   }
+
+  fun testReformatRangeJava() {
+    // Regression test for b/242557502: reformat just the inserted code.
+    val lintFix =
+      LintFix.create()
+        .replace()
+        .text("ReplaceMe()")
+        .with("p1.p3.Utils.myUtilFunction(   );\nnew   String()")
+        .shortenNames()
+        .reformat(true)
+        .build()
+
+    val file =
+      myFixture.addFileToProject(
+        "src/p1/p2/ReformatRangeTest.java",
+        // language=Java
+        """
+        package p1.p2;
+
+        public class ReformatRangeTest {
+            public static void test() {
+                var  doNotReformatMe = new java.lang.String(  );
+                ReplaceMe();
+                var  doNotReformatMeEither = new java.lang.String(  );
+            }
+        }
+        """
+          .trimIndent()
+      )
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    myFixture.addFileToProject(
+      "src/p1/p3/Utils.java",
+      // language=Java
+      """
+      package p1.p3;
+
+      public class Utils {
+          public static void myUtilFunction() {}
+      }
+      """
+        .trimIndent()
+    )
+
+    val fix = ReplaceStringQuickFix.create(file, lintFix as LintFix.ReplaceString)
+    val context = AndroidQuickfixContexts.BatchContext.getInstance()
+    val element = file.findElementAt(file.text.indexOf("ReplaceMe"))?.parent!!.parent!!
+    assertEquals("ReplaceMe()", element.text)
+
+    assertTrue(fix.isApplicable(element, element, context.type))
+
+    WriteCommandAction.writeCommandAction(myFixture.project)
+      .run(ThrowableRunnable { fix.apply(element, element, context) })
+
+    assertEquals(
+      // language=Java
+      """
+      package p1.p2;
+
+      import p1.p3.Utils;
+
+      public class ReformatRangeTest {
+          public static void test() {
+              var  doNotReformatMe = new java.lang.String(  );
+              Utils.myUtilFunction();
+              new String();
+              var  doNotReformatMeEither = new java.lang.String(  );
+          }
+      }
+      """
+        .trimIndent(),
+      file.text
+    )
+  }
+
+  fun testReformatRangeKotlin() {
+    // Regression test for b/242557502: reformat just the inserted code.
+    val lintFix =
+      LintFix.create()
+        .replace()
+        .text("ReplaceMe()")
+        .with("p1.p3.myUtilFunction(   )")
+        .shortenNames()
+        .reformat(true)
+        .build()
+
+    val file =
+      myFixture.addFileToProject(
+        "src/p1/p2/ReformatRangeTest.kt",
+        // language=KT
+        """
+      package p1.p2
+
+      fun test() {
+          val  doNotReformatMe = kotlin.String(  )
+          ReplaceMe()
+          val  doNotReformatMeEither = kotlin.String(  )
+      }
+      """
+          .trimIndent()
+      )
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+
+    myFixture.addFileToProject(
+      "src/p1/p3/Util.kt",
+      // language=KT
+      """
+      package p1.p3
+
+      fun myUtilFunction() {}
+      """
+        .trimIndent()
+    )
+
+    val fix = ReplaceStringQuickFix.create(file, lintFix as LintFix.ReplaceString)
+    val context = AndroidQuickfixContexts.BatchContext.getInstance()
+    val element = file.findElementAt(file.text.indexOf("ReplaceMe"))?.parent!!.parent!!
+    assertEquals("ReplaceMe()", element.text)
+
+    assertTrue(fix.isApplicable(element, element, context.type))
+
+    WriteCommandAction.writeCommandAction(myFixture.project)
+      .run(ThrowableRunnable { fix.apply(element, element, context) })
+
+    assertEquals(
+      // language=KT
+      """
+      package p1.p2
+
+      import p1.p3.myUtilFunction
+
+      fun test() {
+          val  doNotReformatMe = kotlin.String(  )
+          myUtilFunction()
+          val  doNotReformatMeEither = kotlin.String(  )
+      }
+      """
+        .trimIndent(),
+      file.text
+    )
+  }
 }
