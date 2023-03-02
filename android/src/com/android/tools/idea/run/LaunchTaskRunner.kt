@@ -31,6 +31,7 @@ import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.getBaseDebuggerTask
+import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.util.androidFacet
@@ -76,8 +77,17 @@ class LaunchTaskRunner(
     waitPreviousProcessTermination(devices, packageName, indicator)
 
     val processHandler = AndroidProcessHandler(project, packageName, { it.forceStop(packageName) })
-
     val console = createConsole()
+
+    RunStats.from(env).apply { setPackage(packageName) }
+
+    devices.forEach {
+      if (configuration.CLEAR_LOGCAT) {
+        project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(it.serialNumber)
+      }
+      LaunchUtils.initiateDismissKeyguard(it)
+    }
+
     doRun(devices, processHandler, indicator, console, false)
 
     devices.forEach { device ->
@@ -102,8 +112,6 @@ class LaunchTaskRunner(
 
     val applicationId = applicationIdProvider.packageName
     val stat = RunStats.from(env).apply { setPackage(applicationId) }
-    stat.beginLaunchTasks()
-    try {
 
       printLaunchTaskStartedMessage(console)
       launchTasksProvider.fillStats(stat)
@@ -123,10 +131,7 @@ class LaunchTaskRunner(
           project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)
         }
       }.awaitAll()
-    }
-    finally {
-      stat.endLaunchTasks()
-    }
+
   }
 
   private suspend fun waitPreviousProcessTermination(devices: List<IDevice>,
@@ -147,6 +152,8 @@ class LaunchTaskRunner(
     if (devices.size != 1) {
       throw ExecutionException("Cannot launch a debug session on more than 1 device.")
     }
+    RunStats.from(env).apply { setPackage(applicationId) }
+
     waitPreviousProcessTermination(devices, applicationId, indicator)
 
     findExistingSessionAndMaybeDetachForColdSwap(env)
@@ -156,6 +163,14 @@ class LaunchTaskRunner(
     doRun(devices, processHandler, indicator, console, true)
 
     val device = devices.single()
+
+    if (configuration.CLEAR_LOGCAT) {
+      project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device.serialNumber)
+    }
+
+    LaunchUtils.initiateDismissKeyguard(device)
+    doRun(devices, processHandler, indicator, console, true)
+
     indicator.text = "Connecting debugger"
     val debuggerTask = getBaseDebuggerTask(configuration.androidDebuggerContext, facet, env)
     val session = debuggerTask.perform(device, applicationId, env, indicator, console)

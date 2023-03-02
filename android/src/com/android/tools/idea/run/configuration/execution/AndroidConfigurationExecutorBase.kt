@@ -67,8 +67,6 @@ abstract class AndroidConfigurationExecutorBase(
     val console = createConsole()
     val processHandler = AndroidProcessHandler(project, appId, getStopCallback(console, false))
 
-    RunStats.from(environment).beginLaunchTasks()
-
     val applicationInstaller = getApplicationDeployer(console)
 
     val onDevice = { device: IDevice ->
@@ -90,8 +88,6 @@ abstract class AndroidConfigurationExecutorBase(
 
     devices.map { async { onDevice(it) } }.joinAll()
 
-    RunStats.from(environment).endLaunchTasks()
-
     createRunContentDescriptor(processHandler, console, environment)
   }
 
@@ -101,8 +97,6 @@ abstract class AndroidConfigurationExecutorBase(
     if (devices.size > 1) {
       throw ExecutionException("Debugging is allowed only for single device")
     }
-
-    RunStats.from(environment).beginLaunchTasks()
 
     val console = createConsole()
     val device = devices.single()
@@ -120,9 +114,7 @@ abstract class AndroidConfigurationExecutorBase(
     launch(device, deployResult.app, console, true, indicator)
 
     try {
-      val runContentDescriptor = runContentDescriptorDeferred.await()
-      RunStats.from(environment).endLaunchTasks()
-      return@runBlockingCancellable runContentDescriptor
+      return@runBlockingCancellable runContentDescriptorDeferred.await()
     }
     catch (e: ExecutionException) {
       if (!device.isOffline) {

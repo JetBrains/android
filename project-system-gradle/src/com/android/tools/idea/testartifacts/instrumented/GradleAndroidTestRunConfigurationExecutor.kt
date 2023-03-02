@@ -19,10 +19,10 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
-import com.android.tools.idea.run.DeviceFutures
-import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.run.ApkProvisionException
+import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
@@ -31,7 +31,6 @@ import com.android.tools.idea.run.tasks.getBaseDebuggerTask
 import com.android.tools.idea.run.ui.BaseAction
 import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME
-import com.android.tools.idea.testartifacts.instrumented.testsuite.api.ANDROID_TEST_RESULT_LISTENER_KEY
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.ExecutionException
@@ -112,8 +111,7 @@ open class GradleAndroidTestRunConfigurationExecutor(
                             indicator: ProgressIndicator,
                             console: AndroidTestSuiteView,
                             isDebug: Boolean) = coroutineScope {
-    val stat = RunStats.from(env).apply { setPackage(packageName) }
-    stat.beginLaunchTasks()
+    RunStats.from(env).apply { setPackage(packageName) }
     try {
       printLaunchTaskStartedMessage(console)
       indicator.text = "Start gradle task"
@@ -124,7 +122,6 @@ open class GradleAndroidTestRunConfigurationExecutor(
         // Notify listeners of the deployment.
         project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(it.serialNumber, project)
       }
-      stat.endLaunchTasks()
     }
   }
 

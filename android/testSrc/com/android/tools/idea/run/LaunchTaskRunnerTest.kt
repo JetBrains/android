@@ -29,7 +29,6 @@ import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestP
 import com.android.tools.idea.project.AndroidRunConfigurations
 import com.android.tools.idea.run.activity.launch.EmptyTestConsoleView
 import com.android.tools.idea.run.util.SwapInfo
-import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.flags.override
 import com.android.tools.idea.testing.gradleModule
@@ -56,7 +55,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import kotlin.test.fail
@@ -76,7 +74,6 @@ class LaunchTaskRunnerTest {
   @get:Rule
   val cleaner = MockitoCleanerRule()
 
-  private var mockRunStats = mock(RunStats::class.java)
   private val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
 
   @Before
@@ -124,8 +121,6 @@ class LaunchTaskRunnerTest {
     assertThat(processHandler.autoTerminate).isEqualTo(true)
     assertThat(processHandler.isAssociated(device)).isEqualTo(true)
 
-    verify(mockRunStats).endLaunchTasks()
-
     if (!latch.await(10, TimeUnit.SECONDS)) {
       fail("Activity is not started")
     }
@@ -158,7 +153,6 @@ class LaunchTaskRunnerTest {
     ) { emptyList<ApkInfo>() }
 
     val processHandler = (runner.debug(EmptyProgressIndicator()).processHandler as AndroidRemoteDebugProcessHandler)
-    verify(mockRunStats).endLaunchTasks()
     assertThat(!processHandler.isProcessTerminating || !processHandler.isProcessTerminated)
     deviceState.stopClient(1234)
     if (!processHandler.waitFor(5000)) {
@@ -188,8 +182,6 @@ class LaunchTaskRunnerTest {
     assertThat(processHandler.isAssociated(device)).isEqualTo(true)
     assertThat(processHandler.isProcessTerminated).isEqualTo(false)
     assertThat(processHandler.isProcessTerminating).isEqualTo(false)
-
-    verify(mockRunStats).endLaunchTasks()
   }
 
   @Test
@@ -210,7 +202,6 @@ class LaunchTaskRunnerTest {
     catch (_: ExecutionException) {
 
     }
-    verify(mockRunStats).endLaunchTasks()
   }
 
   @Test
@@ -232,8 +223,6 @@ class LaunchTaskRunnerTest {
     assertThat(runningProcessHandler.isAssociated(device)).isEqualTo(true)
     assertThat(runningProcessHandler.isProcessTerminated).isEqualTo(false)
     assertThat(runningProcessHandler.isProcessTerminating).isEqualTo(false)
-
-    verify(mockRunStats).endLaunchTasks()
   }
 
 
@@ -257,7 +246,6 @@ class LaunchTaskRunnerTest {
         override fun getRunningDevices() = devices
       })
       .build()
-    executionEnvironment.putUserData(RunStats.KEY, mockRunStats)
     return executionEnvironment
   }
 

@@ -27,9 +27,7 @@ import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.tasks.ApplyChangesTask;
 import com.android.tools.idea.run.tasks.ApplyCodeChangesTask;
 import com.android.tools.idea.run.tasks.ClearAppStorageTask;
-import com.android.tools.idea.run.tasks.ClearLogcatTask;
 import com.android.tools.idea.run.tasks.DeployTask;
-import com.android.tools.idea.run.tasks.DismissKeyguardTask;
 import com.android.tools.idea.run.tasks.KillAndRestartAppLaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.RunInstantAppTask;
@@ -82,12 +80,6 @@ public class AndroidLaunchTasksProvider {
   @NotNull
   public List<LaunchTask> getTasks(@NotNull IDevice device) throws ExecutionException {
     final List<LaunchTask> launchTasks = new ArrayList<>();
-
-    if (myLaunchOptions.isClearLogcatBeforeStart()) {
-      launchTasks.add(new ClearLogcatTask(myProject));
-    }
-
-    launchTasks.add(new DismissKeyguardTask());
 
     final boolean useApplyChanges = shouldApplyChanges() || shouldApplyCodeChanges();
     String packageName;

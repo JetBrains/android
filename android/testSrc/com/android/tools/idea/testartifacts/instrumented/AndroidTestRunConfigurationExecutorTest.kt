@@ -95,7 +95,6 @@ class AndroidTestRunConfigurationExecutorTest {
     val runContentDescriptor = executor.run(EmptyProgressIndicator())
     val processHandler = runContentDescriptor.processHandler!!
     processHandler.startNotify()
-    Mockito.verify(mockRunStats).endLaunchTasks()
 
     Truth.assertThat(processHandler).isInstanceOf(AndroidProcessHandler::class.java)
     Truth.assertThat((processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo("testApplicationId")
