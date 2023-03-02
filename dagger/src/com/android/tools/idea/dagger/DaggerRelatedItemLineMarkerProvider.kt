@@ -257,8 +257,11 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     val gotoTargets =
       getUsagesForDaggerModule(module.toPsiClass()!!).map {
         val group =
-          if (it.isDaggerComponent) message("included.in.components")
-          else message("included.in.modules")
+          when {
+            it.isDaggerComponent -> message("included.in.components")
+            it.isDaggerSubcomponent -> message("included.in.subcomponents")
+            else -> message("included.in.modules")
+          }
         GotoItemWithAnalyticsTracking(module, it, group)
       }
     return Pair(StudioIcons.Misc.DEPENDENCY_CONSUMER, gotoTargets)
