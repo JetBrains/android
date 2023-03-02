@@ -161,6 +161,8 @@ class VisualLintAnalysisTest {
         }
         else -> fail("Unexpected visual lint error")
       }
+      assertEquals(it.components.size, it.source.components.size)
+      assertEquals(it.models.size, it.source.models.size)
     }
 
     projectRule.fixture.disableInspections(BoundsAnalyzerInspection, TextFieldSizeAnalyzerInspection)
