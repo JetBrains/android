@@ -85,17 +85,19 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
   fun createTabs(project: Project, toolWindow: ToolWindow) {
     val contentFactory = ContentFactory.getInstance()
 
-    AppInsightsTabProvider.EP_NAME.extensionList.forEach { tabProvider ->
-      val tabPanel = AppInsightsTabPanel()
-      tabProvider.populateTab(project, tabPanel)
-      val tabContent =
-        contentFactory.createContent(tabPanel, tabProvider.tabDisplayName, false).apply {
-          putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
-          icon = tabProvider.tabIcon
-        }
-      tabContent.setDisposer(tabPanel)
-      toolWindow.contentManager.addContent(tabContent)
-    }
+    AppInsightsTabProvider.EP_NAME.extensionList
+      .filter { it.isApplicable() }
+      .forEach { tabProvider ->
+        val tabPanel = AppInsightsTabPanel()
+        tabProvider.populateTab(project, tabPanel)
+        val tabContent =
+          contentFactory.createContent(tabPanel, tabProvider.tabDisplayName, false).apply {
+            putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
+            icon = tabProvider.tabIcon
+          }
+        tabContent.setDisposer(tabPanel)
+        toolWindow.contentManager.addContent(tabContent)
+      }
 
     toolWindow.setDefaultContentUiType(ToolWindowContentUiType.TABBED)
     toolWindow.show()

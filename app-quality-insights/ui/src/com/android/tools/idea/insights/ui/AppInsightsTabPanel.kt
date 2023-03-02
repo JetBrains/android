@@ -32,6 +32,9 @@ class AppInsightsTabPanel : JPanel(BorderLayout()), Disposable {
     if (disposable != null) {
       Disposer.dispose(disposable)
     }
+    if (component is Disposable) {
+      Disposer.register(this, component)
+    }
     super.add(component)
   }
 

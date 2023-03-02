@@ -13,26 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights.ui
+package com.android.tools.idea.vitals.ui
 
-import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.project.Project
-import javax.swing.Icon
+import com.android.tools.idea.insights.TimeIntervalFilter
 
-interface AppInsightsTabProvider {
-  val tabDisplayName: String
-  val tabIcon: Icon
-
-  /** Populates the provided [tabPanel] with content. */
-  fun populateTab(project: Project, tabPanel: AppInsightsTabPanel)
-
-  fun isApplicable(): Boolean = true
-
-  companion object {
-    @JvmField
-    val EP_NAME =
-      ExtensionPointName<AppInsightsTabProvider>(
-        "com.android.tools.idea.insights.ui.appInsightsTabProvider"
-      )
-  }
-}
+internal val VitalsTimeIntervals =
+  listOf(
+    TimeIntervalFilter.ONE_DAY,
+    TimeIntervalFilter.SEVEN_DAYS,
+    TimeIntervalFilter.FOURTEEN_DAYS,
+    TimeIntervalFilter.TWENTY_EIGHT_DAYS,
+    TimeIntervalFilter.SIXTY_DAYS
+  )

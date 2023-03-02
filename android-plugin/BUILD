@@ -59,5 +59,7 @@ iml_module(
         "//tools/adt/idea/device-manager:intellij.android.device-manager[module]",
         "//tools/adt/idea/wear-pairing:intellij.android.wear-pairing[module]",
         "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2[module]",
+        "//tools/adt/idea/app-quality-insights/ui:intellij.android.app-quality-insights.ui[module]",
+        "//tools/adt/idea/app-quality-insights/play-vitals/view:intellij.android.app-quality-insights.play-vitals.view[module]",
     ],
 )
