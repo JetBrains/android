@@ -66,7 +66,7 @@ public class DeclaredDependenciesTableView<T extends PsBaseDependency> extends T
     setIntercellSpacing(new Dimension(0, 0));
     setShowGrid(false);
 
-    new TableSpeedSearch(this, (o, cell) -> {
+    TableSpeedSearch.installOn(this, (o, cell) -> {
       T dependency = model.getItem(cell.getRow());
       if (dependency != null) {
         return displayTextOf(dependency, context.getUiSettings());

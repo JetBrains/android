@@ -51,7 +51,7 @@ final class SubTable<M extends TableModel> extends JBTable implements DataProvid
     setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
     setCellSelectionEnabled(true);
 
-    new TableSpeedSearch(this);
+    TableSpeedSearch.installOn(this);
     myFrozenColumnTable = frozenColumnTable;
   }
 

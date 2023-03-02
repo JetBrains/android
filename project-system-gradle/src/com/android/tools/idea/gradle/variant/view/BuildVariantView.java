@@ -117,7 +117,7 @@ public class BuildVariantView {
 
   private void createUIComponents() {
     myVariantsTable = new BuildVariantTable();
-    new TableSpeedSearch(myVariantsTable);
+    TableSpeedSearch.installOn(myVariantsTable);
     myNotificationPanel = new NotificationPanel();
     myNotificationPanel.setVisible(false);
   }
@@ -283,7 +283,7 @@ public class BuildVariantView {
       });
 
       setExpandableItemsEnabled(false);
-      new TableSpeedSearch(this);
+      TableSpeedSearch.installOn(this);
     }
 
     /**

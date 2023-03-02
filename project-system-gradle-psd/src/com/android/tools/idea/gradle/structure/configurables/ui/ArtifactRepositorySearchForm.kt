@@ -127,7 +127,7 @@ class ArtifactRepositorySearchForm(
 
     myResultsPanel.add(splitter, BorderLayout.CENTER)
 
-    TableSpeedSearch(resultsTable)
+    TableSpeedSearch.installOn(resultsTable)
   }
 
   private fun getQuery() = myArtifactQueryTextField.text.parseArtifactSearchQuery()
