@@ -95,12 +95,14 @@ class SyncUtilTest {
     WriteAction.runAndWait(ThrowableRunnable<Exception> {
       DumbServiceImpl.getInstance(project).isDumb = true
     })
+    ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
   }
 
   private fun stopDumbMode() {
     WriteAction.runAndWait(ThrowableRunnable<Exception> {
       DumbServiceImpl.getInstance(project).isDumb = false
     })
+    ApplicationManager.getApplication().invokeAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
   }
 
   @Test
