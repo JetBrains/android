@@ -306,7 +306,7 @@ class JetifierWarningDetailsView(
       }
     }.run()
     // Also refresh right away on page reopening, otherwise there will be 30s lag until next alarm triggers.
-    UiNotifyConnector(pagePanel, object : Activatable {
+    UiNotifyConnector.installOn(pagePanel, object : Activatable {
       override fun showNotify() {
         refreshUi()
       }
