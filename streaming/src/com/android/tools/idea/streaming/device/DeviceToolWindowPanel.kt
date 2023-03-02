@@ -81,10 +81,10 @@ internal class DeviceToolWindowPanel(
   }
 
   override fun getDeviceInfo(): DeviceInfo {
-    val deviceInfo = DeviceInfo.newBuilder()
-    deviceInfo.fillFrom(deviceConfig)
-    deviceInfo.fillMdnsConnectionType(deviceSerialNumber)
-    return deviceInfo.build()
+    return DeviceInfo.newBuilder()
+        .fillFrom(deviceConfig)
+        .fillMdnsConnectionType(deviceSerialNumber)
+        .build()
   }
 
   /**

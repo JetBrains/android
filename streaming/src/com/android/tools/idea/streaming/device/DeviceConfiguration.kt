@@ -68,6 +68,6 @@ class DeviceConfiguration(val deviceProperties: DeviceProperties, useTitleAsName
   }
 }
 
-fun DeviceInfo.Builder.fillFrom(deviceConfiguration: DeviceConfiguration) {
-  fillFrom(deviceConfiguration.deviceProperties)
+fun DeviceInfo.Builder.fillFrom(deviceConfiguration: DeviceConfiguration): DeviceInfo.Builder {
+  return fillFrom(deviceConfiguration.deviceProperties)
 }

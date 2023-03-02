@@ -28,18 +28,21 @@ import com.google.wireless.android.sdk.stats.DeviceInfo.MdnsConnectionType
 import com.google.wireless.android.sdk.stats.DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_TLS
 import com.google.wireless.android.sdk.stats.DeviceInfo.MdnsConnectionType.MDNS_AUTO_CONNECT_UNENCRYPTED
 import com.google.wireless.android.sdk.stats.DeviceInfo.MdnsConnectionType.MDNS_NONE
+import com.intellij.openapi.util.text.Strings.notNullize
 
-fun DeviceInfo.Builder.fillFrom(deviceProperties: DeviceProperties) {
-  deviceProperties.manufacturer?.let { manufacturer = it }
-  deviceProperties.manufacturer?.let { model = it }
-  deviceProperties.androidRelease?.let { buildVersionRelease = it }
-  deviceProperties.androidVersion?.let { buildApiLevelFull = it.apiString }
-  deviceProperties.abi?.let { cpuAbi = CommonMetricsData.applicationBinaryInterfaceFromString(it.toString()) }
+fun DeviceInfo.Builder.fillFrom(deviceProperties: DeviceProperties): DeviceInfo.Builder {
+  manufacturer = notNullize(deviceProperties.manufacturer)
+  model = notNullize(deviceProperties.model)
+  buildVersionRelease = notNullize(deviceProperties.androidRelease)
+  buildApiLevelFull = notNullize(deviceProperties.androidVersion?.apiString)
+  cpuAbi = CommonMetricsData.applicationBinaryInterfaceFromString(deviceProperties.abi?.toString())
   deviceType = deviceProperties.getDeviceInfoType()
+  return this
 }
 
-fun DeviceInfo.Builder.fillMdnsConnectionType(deviceSerialNumber: String) {
+fun DeviceInfo.Builder.fillMdnsConnectionType(deviceSerialNumber: String): DeviceInfo.Builder {
   mdnsConnectionType = getMdnsConnectionType(deviceSerialNumber)
+  return this
 }
 
 private fun DeviceProperties.getDeviceInfoType(): DeviceType {
