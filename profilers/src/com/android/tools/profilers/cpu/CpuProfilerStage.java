@@ -344,7 +344,7 @@ public class CpuProfilerStage extends StreamingStage {
 
     // Execute a start trace command for cpu-based tracing and registers a listener for event reception and handling.
     // The startCapturingCallback with be called on event reception.
-    CpuProfiler.startTracing(getStudioProfilers(), mySession, configuration, this::startCapturingCallback);
+    CpuProfiler.startTracing(getStudioProfilers(), mySession, configuration, this::startCapturingCallback, null);
 
     getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_CPU_CAPTURE, true);
     myInstructionsEaseOutModel.setCurrentPercentage(1);
@@ -377,7 +377,7 @@ public class CpuProfilerStage extends StreamingStage {
     // Set myCaptureStopTimeNs before updating the state because the timestamp may be used to construct stopping panel.
     myCaptureStopTimeNs = currentTimeNs();
     setCaptureState(CaptureState.STOPPING);
-    CpuProfiler.stopTracing(getStudioProfilers(), mySession, myInProgressTraceInfo.getConfiguration(), this::stopCapturingCallback);
+    CpuProfiler.stopTracing(getStudioProfilers(), mySession, myInProgressTraceInfo.getConfiguration(), this::stopCapturingCallback, null);
   }
 
   public long getCaptureStartTimeNs() {
