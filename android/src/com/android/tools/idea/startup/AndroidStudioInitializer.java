@@ -145,7 +145,7 @@ public class AndroidStudioInitializer implements ActionConfigurationCustomizer {
       UsageTracker.setIdeaIsInternal(true);
     }
     AndroidStudioUsageTracker.setup(JobScheduler.getScheduler());
-    new GcPauseWatcher();
+    new GcPauseWatcher().setupWatcher();
   }
 
   private static void checkInstallation() {

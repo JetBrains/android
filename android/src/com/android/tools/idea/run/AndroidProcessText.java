@@ -30,7 +30,10 @@ public class AndroidProcessText {
 
   private final List<MyFragment> myFragments = new ArrayList<MyFragment>();
 
-  private AndroidProcessText(@NotNull ProcessHandler processHandler) {
+  private AndroidProcessText() {
+  }
+
+  private void setupListeners(@NotNull ProcessHandler processHandler) {
     processHandler.addProcessListener(new ProcessAdapter() {
       @Override
       public void onTextAvailable(@NotNull ProcessEvent event, @NotNull Key outputType) {
@@ -43,7 +46,8 @@ public class AndroidProcessText {
   }
 
   public static void attach(@NotNull ProcessHandler processHandler) {
-    new AndroidProcessText(processHandler);
+    AndroidProcessText text = new AndroidProcessText();
+    text.setupListeners(processHandler);
   }
 
   @Nullable

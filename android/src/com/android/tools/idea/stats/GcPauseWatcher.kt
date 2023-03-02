@@ -40,7 +40,7 @@ class GcPauseWatcher {
 
   }
 
-  init {
+  fun setupWatcher() {
     JobScheduler.getScheduler().scheduleWithFixedDelay(::checkForPauses, 0, SAMPLING_RATE_MS, TimeUnit.MILLISECONDS)
   }
 
