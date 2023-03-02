@@ -309,7 +309,7 @@ class ProjectStructureConfigurable(private val myProject: Project) : SearchableC
         contentPanel.minimumSize = Dimension(JBUI.scale(900), JBUI.scale(400))
       }
     }
-    UiNotifyConnector.Once(dialog.contentPane, object : Activatable {
+    UiNotifyConnector.Once.installOn(dialog.contentPane, object : Activatable {
       override fun showNotify() {
         advanceInit.run()
       }
