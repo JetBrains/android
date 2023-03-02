@@ -21,7 +21,6 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.ide.common.rendering.api.ActionBarCallback;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.Splitter;
@@ -146,17 +145,16 @@ public class ActionBarHandler extends ActionBarCallback {
 
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      Module module = myRenderTask.getContext().getModule().getIdeaModule();
       ResourceNamespace namespace = myResourceRepositoryManager.getNamespace();
       XmlFile xmlFile = myRenderTask.getXmlFile();
-      String commaSeparatedMenus = xmlFile == null ? null : AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_MENU, TOOLS_URI);
+      String commaSeparatedMenus = xmlFile == null ? null : AndroidXmlFiles.getRootTagAttributeSafely(xmlFile, ATTR_MENU, TOOLS_URI);
       if (commaSeparatedMenus != null) {
         List<String> names = Splitter.on(',').trimResults().omitEmptyStrings().splitToList(commaSeparatedMenus);
         myMenus = names.stream()
           .map(name -> new ResourceReference(namespace, ResourceType.MENU, name))
           .collect(ImmutableList.toImmutableList());
       } else {
-        String fqn = xmlFile == null ? null : AndroidUtils.getDeclaredContextFqcn(module, xmlFile);
+        String fqn = xmlFile == null ? null : AndroidXmlFiles.getDeclaredContextFqcn(myRenderTask.getContext().getModule().getResourcePackage(), xmlFile);
         if (fqn != null) {
           updateMenusInBackground(xmlFile.getProject(), fqn, namespace);
         }
@@ -185,7 +183,7 @@ public class ActionBarHandler extends ActionBarCallback {
   public int getNavigationMode() {
     XmlFile xmlFile = myRenderTask.getXmlFile();
     String navMode =
-        StringUtil.notNullize(xmlFile == null ? null : AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_NAV_MODE, TOOLS_URI)).trim();
+        StringUtil.notNullize(xmlFile == null ? null : AndroidXmlFiles.getRootTagAttributeSafely(xmlFile, ATTR_NAV_MODE, TOOLS_URI)).trim();
     if (navMode.equalsIgnoreCase(VALUE_NAV_MODE_TABS)) {
       return NAVIGATION_MODE_TABS;
     }
