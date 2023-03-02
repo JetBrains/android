@@ -18,13 +18,13 @@ package com.android.tools.idea.streaming.device
 import com.android.sdklib.SdkVersionInfo
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.intellij.openapi.util.text.StringUtil
 
 /**
  * Characteristics of a mirrored Android device.
  */
-class DeviceConfiguration(private val deviceProperties: DeviceProperties, useTitleAsName: Boolean = false) {
-
+class DeviceConfiguration(val deviceProperties: DeviceProperties, useTitleAsName: Boolean = false) {
   val apiLevel: Int
     get() = deviceProperties.androidVersion?.apiLevel ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
 
@@ -41,6 +41,8 @@ class DeviceConfiguration(private val deviceProperties: DeviceProperties, useTit
     get() = deviceProperties.deviceType == DeviceType.AUTOMOTIVE
 
   val deviceName: String?
+
+  val hasOrientationSensors: Boolean = true // TODO Obtain sensor info from the device.
 
   init {
     deviceName = if (useTitleAsName) {
@@ -64,6 +66,8 @@ class DeviceConfiguration(private val deviceProperties: DeviceProperties, useTit
       name.toString()
     }
   }
+}
 
-  val hasOrientationSensors: Boolean = true // TODO Obtain sensor info from the device.
+fun DeviceInfo.Builder.fillFrom(deviceConfiguration: DeviceConfiguration) {
+  fillFrom(deviceConfiguration.deviceProperties)
 }

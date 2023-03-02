@@ -14,6 +14,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/analytics[module]",
+        "//tools/analytics-library/shared:analytics-shared[module]",
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
         "//tools/base/adblib-tools:studio.android.sdktools.adblib.tools[module]",
@@ -27,13 +28,13 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/.idea/libraries:emulator-proto",
         "//tools/adt/idea/.idea/libraries:ffmpeg",
         "//tools/adt/idea/.idea/libraries:HdrHistogram",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
-        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
     ],
 )
 

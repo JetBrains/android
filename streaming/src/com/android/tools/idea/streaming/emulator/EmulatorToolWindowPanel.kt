@@ -38,6 +38,7 @@ import com.android.tools.idea.streaming.installFileDropHandler
 import com.android.tools.idea.streaming.sizeWithoutInsets
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.utils.HashCodes
+import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DeviceMirroringSession
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.Disposable
@@ -133,6 +134,9 @@ internal class EmulatorToolWindowPanel(
   override fun setDeviceFrameVisible(visible: Boolean) {
     primaryEmulatorView?.deviceFrameVisible = visible
   }
+
+  override fun getDeviceInfo(): DeviceInfo =
+    DeviceInfo.newBuilder().setDeviceType(DeviceInfo.DeviceType.LOCAL_EMULATOR).build()
 
   override fun connectionStateChanged(emulator: EmulatorController, connectionState: ConnectionState) {
     if (connectionState == ConnectionState.CONNECTED) {
