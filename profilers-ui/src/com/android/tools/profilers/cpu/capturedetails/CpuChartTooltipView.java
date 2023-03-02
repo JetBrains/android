@@ -25,8 +25,8 @@ import com.android.tools.profilers.ChartTooltipViewBase;
 import com.android.tools.profilers.ProfilerColors;
 import com.android.tools.profilers.cpu.CaptureNode;
 import com.intellij.util.ui.JBUI;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JLayeredPane;
 import org.jetbrains.annotations.NotNull;
 
 class CpuChartTooltipView extends ChartTooltipViewBase<CaptureNode> {
@@ -35,7 +35,7 @@ class CpuChartTooltipView extends ChartTooltipViewBase<CaptureNode> {
 
   CpuChartTooltipView(@NotNull HTreeChart<CaptureNode> chart,
                       @NotNull Range dataRange,
-                      @NotNull JLayeredPane tooltipRoot) {
+                      @NotNull JComponent tooltipRoot) {
     super(chart, tooltipRoot);
     myDataRange = dataRange;
   }
