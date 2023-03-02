@@ -35,10 +35,10 @@ class GradleConfigProperties(
       isJavaHomeModified = true
       field = value
     }
-  private var isJavaHomeModified = false
-  private val propertiesFilePath = projectFolderPath.resolve(
+  val propertiesFilePath = projectFolderPath.resolve(
     Paths.get(GRADLE_CACHE_DIR_NAME, GRADLE_LOCAL_PROPERTIES_FILE_NAME).toString()
   )
+  private var isJavaHomeModified = false
   private val properties = PropertiesFiles.getProperties(propertiesFilePath)
 
   fun save() {

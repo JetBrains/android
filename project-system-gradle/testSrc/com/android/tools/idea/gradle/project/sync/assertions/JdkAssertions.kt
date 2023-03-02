@@ -16,12 +16,17 @@
 package com.android.tools.idea.gradle.project.sync.assertions
 
 import com.android.tools.idea.gradle.util.GradleConfigProperties
+import com.android.tools.idea.gradle.project.sync.jdk.exceptions.cause.InvalidGradleJdkCause
 import com.android.tools.idea.gradle.project.sync.model.ExpectedGradleRoot
 import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils
 import com.android.tools.idea.gradle.project.sync.utils.ProjectJdkUtils
+import com.android.tools.idea.gradle.service.notification.OpenProjectJdkLocationListener
+import com.android.tools.idea.gradle.service.notification.UseJdkAsProjectJdkListener
+import com.android.tools.idea.sdk.IdeSdks
 import com.google.common.truth.Expect
 import com.intellij.openapi.project.Project
 import io.ktor.util.reflect.instanceOf
+import org.jetbrains.plugins.gradle.util.GradleBundle
 import java.io.File
 import kotlin.reflect.KClass
 
@@ -118,5 +123,21 @@ class AssertOnFailure(
 ) {
   fun assertException(expectedException: KClass<out Exception>) {
     expect.that(exception).instanceOf(expectedException)
+  }
+}
+
+class AssertSyncEvents(
+  private val exceptionSyncMessages: List<String>,
+  private val expect: Expect
+) {
+  fun assertInvalidGradleJdkMessage(expectedInvalidGradleJdk: InvalidGradleJdkCause) {
+    val currentException = exceptionSyncMessages.joinToString("\n")
+    val expectedException = """
+      |${GradleBundle.message("gradle.jvm.is.invalid")}
+      |${expectedInvalidGradleJdk.description}
+      |<a href="${UseJdkAsProjectJdkListener.baseId()}.embedded">Use Embedded JDK (${IdeSdks.getInstance().embeddedJdkPath})</a>
+      |<a href="${OpenProjectJdkLocationListener.ID}">Change Gradle JDK location</a>
+    """.trimMargin()
+    expect.that(currentException).isEqualTo(expectedException)
   }
 }

@@ -5,7 +5,6 @@ import static com.intellij.openapi.externalSystem.service.execution.ExternalSyst
 
 import com.android.tools.idea.sdk.IdeSdks;
 import com.intellij.openapi.project.Project;
-import org.gradle.internal.impldep.com.amazonaws.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.service.GradleInstallationManager;
@@ -30,14 +29,9 @@ public class AndroidStudioGradleInstallationManager extends GradleInstallationMa
         // Try to resolve from variables before looking in GradleInstallationManager
         switch (settingsJvm) {
           case JDK_LOCATION_ENV_VARIABLE_NAME:
-            if (ideSdks.isJdkEnvVariableValid()) {
               return ideSdks.getEnvVariableJdkValue();
-            }
           case USE_JAVA_HOME: {
-            String javaHome = ideSdks.getJdkFromJavaHome();
-            if (!StringUtils.isNullOrEmpty(javaHome)) {
-              return javaHome;
-            }
+              return ideSdks.getJdkFromJavaHome();
           }
         }
       }

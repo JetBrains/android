@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.sync.snapshots
 import com.android.tools.idea.gradle.project.sync.assertions.AssertInMemoryConfig
 import com.android.tools.idea.gradle.project.sync.assertions.AssertOnDiskConfig
 import com.android.tools.idea.gradle.project.sync.assertions.AssertOnFailure
+import com.android.tools.idea.gradle.project.sync.assertions.AssertSyncEvents
 import com.android.tools.idea.gradle.project.sync.model.ExpectedGradleRoot
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
 import com.android.tools.idea.gradle.project.sync.utils.EnvironmentUtils
@@ -25,6 +26,8 @@ import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils
 import com.android.tools.idea.gradle.project.sync.utils.ProjectJdkUtils
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Expect
+import com.intellij.build.events.FailureResult
+import com.intellij.build.events.FinishBuildEvent
 import com.intellij.openapi.Disposable
 import org.junit.rules.TemporaryFolder
 import java.io.File
@@ -87,6 +90,7 @@ class JdkIntegrationTest(
       assertInMemoryConfig: AssertInMemoryConfig.() -> Unit = {},
       assertOnDiskConfig: AssertOnDiskConfig.() -> Unit = {},
       assertOnFailure: AssertOnFailure.(Exception) -> Unit = { throw it },
+      assertSyncEvents: AssertSyncEvents.() -> Unit = {},
     ) {
       var capturedException: Exception? = null
       val project = preparedProject.open(
@@ -95,6 +99,19 @@ class JdkIntegrationTest(
             overrideProjectGradleJdkPath = null,
             syncExceptionHandler = { exception ->
               capturedException = exception
+            },
+            syncViewEventHandler = { event ->
+              when (event) {
+                is FinishBuildEvent -> {
+                  val capturedExceptionSyncMessages = mutableListOf<String>()
+                  (event.result as? FailureResult)?.failures?.forEach { failure ->
+                    failure.message?.let { failureMessage ->
+                      capturedExceptionSyncMessages.add(failureMessage)
+                    }
+                  }
+                  assertSyncEvents(AssertSyncEvents(capturedExceptionSyncMessages, expect))
+                }
+              }
             },
             verifyOpened = {
               capturedException?.let { exception ->

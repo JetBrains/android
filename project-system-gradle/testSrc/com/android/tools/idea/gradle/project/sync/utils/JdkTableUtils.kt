@@ -46,7 +46,7 @@ object JdkTableUtils {
    */
   data class Jdk(
     val name: String,
-    val path: @SystemIndependent String,
+    val path: @SystemIndependent String?,
     val rootsType: JdkRootsType = VALID
   )
 
@@ -97,7 +97,7 @@ object JdkTableUtils {
     tempDir: File
   ) {
     jdks.forEach { (name, path, rootsType) ->
-      val jdkPath = findOrCreateTempDir(path, tempDir).path
+      val jdkPath = findOrCreateTempDir(path.orEmpty(), tempDir).path
       val createdJdk = (JavaSdk.getInstance().createJdk(name, jdkPath) as ProjectJdkImpl).apply {
         homePath = path
       }
