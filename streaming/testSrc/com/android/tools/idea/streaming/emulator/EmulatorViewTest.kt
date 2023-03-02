@@ -345,7 +345,7 @@ class EmulatorViewTest {
       getKeyStroke(ACTION_COPY) to listOf("eventType: keypress key: \"Copy\""),
       getKeyStroke(ACTION_PASTE) to listOf("eventType: keypress key: \"Paste\""),
       getKeyStroke(ACTION_SELECT_ALL) to
-          listOf("key: \"Control\"", "eventType: keypress key: \"KeyA\"", "eventType: keyup key: \"Control\""),
+          listOf("key: \"Control\"", "eventType: keypress key: \"a\"", "eventType: keyup key: \"Control\""),
       getKeyStroke(ACTION_EDITOR_MOVE_CARET_LEFT_WITH_SELECTION) to
           listOf("key: \"Shift\"", "eventType: keypress key: \"ArrowLeft\"", "eventType: keyup key: \"Shift\""),
       getKeyStroke(ACTION_EDITOR_MOVE_CARET_RIGHT_WITH_SELECTION) to
@@ -383,9 +383,9 @@ class EmulatorViewTest {
           listOf("key: \"Shift\"", "key: \"Control\"", "eventType: keypress key: \"End\"",
                  "eventType: keyup key: \"Control\"", "eventType: keyup key: \"Shift\""),
       getKeyStroke(ACTION_UNDO) to
-          listOf("key: \"Control\"", "eventType: keypress key: \"KeyZ\"", "eventType: keyup key: \"Control\""),
+          listOf("key: \"Control\"", "eventType: keypress key: \"z\"", "eventType: keyup key: \"Control\""),
       getKeyStroke(ACTION_REDO) to
-          listOf("key: \"Shift\"", "key: \"Control\"", "eventType: keypress key: \"KeyZ\"",
+          listOf("key: \"Shift\"", "key: \"Control\"", "eventType: keypress key: \"z\"",
                  "eventType: keyup key: \"Control\"", "eventType: keyup key: \"Shift\"")
     )
     for ((hostKeyStroke, keyboardEventMessages) in keyStrokeCases) {
