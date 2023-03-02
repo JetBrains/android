@@ -20,9 +20,14 @@ import com.android.tools.perflogger.Benchmark
 import com.android.tools.perflogger.Metric
 import com.android.tools.perflogger.WindowDeviationAnalyzer
 import io.ktor.util.date.getTimeMillis
+import java.lang.Boolean.getBoolean
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.concurrent.TimeUnit
+
+// This is the name of the flag that is used for local E2e integration test runs and, when set, will be resent to the test Studio instance
+// to enable collection of extended memory usage reports
+const val COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS: String = "studio.collect.extended.memory.reports"
 
 /**
  * Util class that requests memory usage report collection by calling internal action `IntegrationTestCollectMemoryUsageStatisticsAction`,
@@ -113,6 +118,9 @@ class MemoryUsageReportProcessor {
         metric.commit()
       }
       println("Memory statistics collection finished successfully. Took ${TimeUnit.MILLISECONDS.toSeconds(reportCollectionTimeMs)}seconds.")
+      if (getBoolean(COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS)) {
+        installation.memoryReportFile.printContents()
+      }
     }
 
     fun collectMemoryUsageStatistics(studio: AndroidStudio,

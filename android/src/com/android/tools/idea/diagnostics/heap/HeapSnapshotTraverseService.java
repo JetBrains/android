@@ -53,6 +53,9 @@ import org.jetbrains.annotations.Nullable;
 public final class HeapSnapshotTraverseService {
 
   private static final long REPORT_COLLECTION_DELAY_MILLISECONDS = Duration.ofMinutes(30).toMillis();
+  // This is the name of the flag that is used for local E2E integration test runs and is used for enabling extended reports collection and
+  // logging.
+  private static final String COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS = "studio.collect.extended.memory.reports";
   private static final String DIAGNOSTICS_HEAP_NATIVE_PATH =
     "tools/adt/idea/android/src/com/android/tools/idea/diagnostics/heap/native";
 
@@ -144,6 +147,12 @@ public final class HeapSnapshotTraverseService {
         return;
       }
 
+      HeapSnapshotStatistics statistics = Boolean.getBoolean(COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS)
+                                          ? new HeapSnapshotStatistics(
+        new HeapTraverseConfig(ComponentsSet.buildComponentSetForIntegrationTesting(), /*collectHistograms=*/
+                               true, /*collectDisposerTreeInfo=*/true))
+                                          : new HeapSnapshotStatistics(ComponentsSet.buildComponentSetForIntegrationTesting());
+
       HeapSnapshotTraverse.collectAndWriteStats(
         (String s) -> {
           try {
@@ -152,7 +161,7 @@ public final class HeapSnapshotTraverseService {
           catch (IOException e) {
             LOG.warn(String.format("%s Failed to write to the memory report file", MEMORY_USAGE_REPORT_FAILURE_MESSAGE_PREFIX), e);
           }
-        }, new HeapSnapshotStatistics(ComponentsSet.buildComponentSetForIntegrationTesting()),
+        }, statistics,
         new HeapSnapshotTraverse.HeapSnapshotPresentationConfig(
           BYTES,
           /*shouldLogSharedClusters=*/false,

@@ -15,6 +15,8 @@
  */
 package com.android.tools.asdriver.tests;
 
+import static com.android.tools.asdriver.tests.MemoryUsageReportProcessorKt.COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS;
+
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.TestUtils;
@@ -123,25 +125,30 @@ public class AndroidStudioInstallation {
       throw new IllegalStateException("Threading checker agent not found at " + threadingCheckerAgentZip);
     }
 
-    String vmOptions = String.format("-javaagent:%s%n", agentZip) +
-                       String.format("-javaagent:%s%n", threadingCheckerAgentZip) +
-                       // Need to disable android first run checks, or we get stuck in a modal dialog complaining about lack of web access.
-                       String.format("-Ddisable.android.first.run=true%n") +
-                       String.format("-Dgradle.ide.save.log.to.file=true%n") +
-                       String.format("-Didea.config.path=%s%n", configDir) +
-                       String.format("-Didea.plugins.path=%s/plugins%n", configDir) +
-                       String.format("-Didea.system.path=%s/system%n", workDir) +
-                       // Prevent our crash metrics from going to the production URL
-                       String.format("-Duse.staging.crash.url=true%n") +
-                       // Work around b/247532990, which is that libnotify.so.4 is missing on our
-                       // test machines.
-                       String.format("-Dide.libnotify.enabled=false%n") +
-                       String.format("-Didea.log.path=%s%n", logsDir) +
-                       String.format("-Duser.home=%s%n", fileSystem.getHome()) +
-                       // Enabling this flag is required for connecting all the Java Instrumentation agents needed for memory statistics.
-                       String.format("-Dstudio.run.under.integration.test=true%n") +
-                       String.format("-Djdk.attach.allowAttachSelf=true%n");
-    Files.write(vmOptionsPath, vmOptions.getBytes(StandardCharsets.UTF_8));
+    StringBuilder vmOptions = new StringBuilder();
+    vmOptions.append(String.format("-javaagent:%s%n", agentZip));
+    vmOptions.append(String.format("-javaagent:%s%n", threadingCheckerAgentZip));
+    // Need to disable android first run checks, or we get stuck in a modal dialog complaining about lack of web access.
+    vmOptions.append(String.format("-Ddisable.android.first.run=true%n"));
+    vmOptions.append(String.format("-Dgradle.ide.save.log.to.file=true%n"));
+    vmOptions.append(String.format("-Didea.config.path=%s%n", configDir));
+    vmOptions.append(String.format("-Didea.plugins.path=%s/plugins%n", configDir));
+    vmOptions.append(String.format("-Didea.system.path=%s/system%n", workDir));
+    // Prevent our crash metrics from going to the production URL
+    vmOptions.append(String.format("-Duse.staging.crash.url=true%n"));
+    // Work around b/247532990, which is that libnotify.so.4 is missing on our
+    // test machines.
+    vmOptions.append(String.format("-Dide.libnotify.enabled=false%n"));
+    vmOptions.append(String.format("-Didea.log.path=%s%n", logsDir));
+    vmOptions.append(String.format("-Duser.home=%s%n", fileSystem.getHome()));
+    // Enabling this flag is required for connecting all the Java Instrumentation agents needed for memory statistics.
+    vmOptions.append(String.format("-Dstudio.run.under.integration.test=true%n"));
+    vmOptions.append(String.format("-Djdk.attach.allowAttachSelf=true%n"));
+    if (Boolean.getBoolean(COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS)) {
+      vmOptions.append(String.format("-D%s=true%n", COLLECT_AND_LOG_EXTENDED_MEMORY_REPORTS));
+    }
+
+    Files.writeString(vmOptionsPath, vmOptions.toString());
 
     // Handy utility to allow run configurations to force debugging
     if (Sets.newHashSet("true", "1").contains(System.getenv("AS_TEST_DEBUG"))) {
