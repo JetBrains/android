@@ -22,11 +22,10 @@ import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.Pr
 import com.android.annotations.Nullable;
 import com.android.annotations.Trace;
 import com.android.ddmlib.AndroidDebugBridge;
-import com.android.tools.analytics.Anonymizer;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.stats.UsageTrackerUtils;
-import com.android.utils.NullLogger;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.util.Ref;
 import com.intellij.util.ThreeState;
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
@@ -57,6 +56,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -272,6 +272,29 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     return compiler;
   }
 
+  /**
+   * Notifies the monitor that a {@link com.intellij.execution.configurations.RunConfiguration} has just started execution.
+   *
+   * @param devices The devices that the execution will deploy to.
+   * @return true if multi-deploy is detected, false otherwise (this will be removed once multi-deploy is supported)
+   */
+  public boolean notifyExecution(@NotNull Collection<IDevice> devices) {
+    Set<IDevice> deviceSet = new HashSet<>(devices);
+    deviceSet.removeIf(d -> !supportLiveEdits(d));
+    Ref<Boolean> multiDeploy = new Ref<>(false);
+    deviceStatusManager.update((device, status) -> {
+      if (deviceSet.contains(device)) {
+        if (status == LiveEditStatus.NoMultiDeploy.INSTANCE) {
+          return LiveEditStatus.Disabled.INSTANCE;
+        }
+        return status;
+      }
+      multiDeploy.set(true);
+      return LiveEditStatus.NoMultiDeploy.INSTANCE;
+    });
+    return multiDeploy.get();
+  }
+
   public boolean notifyAppRefresh(@NotNull IDevice device) {
     if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit() || !supportLiveEdits(device)) {
       return false;
@@ -310,7 +333,11 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
       .get();
   }
 
-
+  @VisibleForTesting
+  @NotNull
+  public DeviceStatusManager getDeviceStatusManager() {
+    return deviceStatusManager;
+  }
 
   // Triggered from LiveEdit manual mode. Use buffered changes.
   @Trace
@@ -503,7 +530,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
   }
 
   private void updateEditableStatus(@NotNull LiveEditStatus newStatus) {
-    deviceStatusManager.update(prevStatus -> (prevStatus.unrecoverable() || prevStatus == LiveEditStatus.Disabled.INSTANCE) ? prevStatus : newStatus);
+    deviceStatusManager.update((device, prevStatus) -> (prevStatus.unrecoverable() || prevStatus == LiveEditStatus.Disabled.INSTANCE) ? prevStatus : newStatus);
   }
 
   private void handleDeviceStatusChange(Map<IDevice, LiveEditStatus> map) {
@@ -521,19 +548,19 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
         deviceStatusManager.clear(device);
       case APPLICATION_CONNECT ->
         // If the device was previously in LOADING state, we are now ready to receive live edits.
-        deviceStatusManager.update(device, status -> status == LiveEditStatus.Loading.INSTANCE ? LiveEditStatus.UpToDate.INSTANCE : status);
+        deviceStatusManager.update(device, (d, status) -> status == LiveEditStatus.Loading.INSTANCE ? LiveEditStatus.UpToDate.INSTANCE : status);
       case APPLICATION_DISCONNECT ->
         // If the application disconnects while in the Loading status (if it's the current session that disconnected while loading, we
         // would've gotten an APPLICATION_CONNECT event first before the Client disconnected), that means it is the disconnect from the
         // previous session that has finally arrived in Studio through ADB. Ignore the event in this case.
-        deviceStatusManager.update(device, status -> status != LiveEditStatus.Loading.INSTANCE ? LiveEditStatus.Disabled.INSTANCE : status);
+        deviceStatusManager.update(device, (d, status) -> status != LiveEditStatus.Loading.INSTANCE ? LiveEditStatus.Disabled.INSTANCE : status);
       case DEBUGGER_CONNECT ->
         deviceStatusManager.update(device, LiveEditStatus.DebuggerAttached.INSTANCE);
       case DEBUGGER_DISCONNECT ->
         // Don't return to up-to-date state if another state transition has taken place since.
-        deviceStatusManager.update(device, status -> status == LiveEditStatus.DebuggerAttached.INSTANCE
-                                                     ? LiveEditStatus.UpToDate.INSTANCE
-                                                     : status);
+        deviceStatusManager.update(device, (d, status) -> status == LiveEditStatus.DebuggerAttached.INSTANCE
+                                                          ? LiveEditStatus.UpToDate.INSTANCE
+                                                          : status);
     }
   }
 

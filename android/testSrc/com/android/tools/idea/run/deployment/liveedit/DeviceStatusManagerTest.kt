@@ -82,7 +82,7 @@ class DeviceStatusManagerTest {
     val events = mutableMapOf<IDevice, LiveEditStatus>()
     map.addListener { events.putAll(it) }
 
-    map.update { if (it.unrecoverable()) LiveEditStatus.Disabled else it }
+    map.update { _, it -> if (it.unrecoverable()) LiveEditStatus.Disabled else it }
 
     assertEquals(LiveEditStatus.UpToDate, map.get(device1))
     assertEquals(LiveEditStatus.Disabled, map.get(device2))
@@ -123,8 +123,8 @@ class DeviceStatusManagerTest {
     val events = mutableMapOf<IDevice, LiveEditStatus>()
     map.addListener { events.putAll(it) }
 
-    map.update(device1) { if (it == LiveEditStatus.UpToDate) LiveEditStatus.Disabled else it }
-    map.update(device2) { if (it.unrecoverable()) LiveEditStatus.Disabled else it }
+    map.update(device1) { _, it -> if (it == LiveEditStatus.UpToDate) LiveEditStatus.Disabled else it }
+    map.update(device2) { _, it -> if (it.unrecoverable()) LiveEditStatus.Disabled else it }
 
     assertEquals(LiveEditStatus.Disabled, map.get(device1))
     assertEquals(LiveEditStatus.Disabled, map.get(device2))
@@ -144,19 +144,19 @@ class DeviceStatusManagerTest {
     map.addDevice(device1, LiveEditStatus.UpToDate)
     assertFalse(map.isDisabled())
 
-    map.update(device1) { if (it == LiveEditStatus.UpToDate) LiveEditStatus.Disabled else it }
+    map.update(device1) { _, it -> if (it == LiveEditStatus.UpToDate) LiveEditStatus.Disabled else it }
     assertTrue(map.isDisabled())
 
-    map.update(device1) { if (it == LiveEditStatus.Disabled) LiveEditStatus.UpToDate else it }
+    map.update(device1) { _, it -> if (it == LiveEditStatus.Disabled) LiveEditStatus.UpToDate else it }
     assertFalse(map.isDisabled())
 
     map.addDevice(device2, LiveEditStatus.UnrecoverableError)
     assertFalse(map.isDisabled())
 
-    map.update(device1) { if (it == LiveEditStatus.UpToDate) LiveEditStatus.Disabled else it }
+    map.update(device1) { _, it -> if (it == LiveEditStatus.UpToDate) LiveEditStatus.Disabled else it }
     assertFalse(map.isDisabled())
 
-    map.update(device2) { if (it.unrecoverable()) LiveEditStatus.Disabled else it }
+    map.update(device2) { _, it -> if (it.unrecoverable()) LiveEditStatus.Disabled else it }
     assertTrue(map.isDisabled())
   }
 

@@ -19,7 +19,7 @@ import com.android.ddmlib.IDevice
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 
-typealias StatusUpdateFunction = (LiveEditStatus) -> LiveEditStatus
+typealias StatusUpdateFunction = (IDevice, LiveEditStatus) -> LiveEditStatus
 typealias StatusChangeListener = Consumer<Map<IDevice, LiveEditStatus>>
 
 // Associates devices with their LiveEdit status, and implements state transition logic. Status values may be updated directly or by
@@ -47,7 +47,7 @@ class DeviceStatusManager {
   }
 
   fun isDisabled(): Boolean {
-    return deviceStatuses.values.all { it == LiveEditStatus.Disabled }
+    return deviceStatuses.values.all { it == LiveEditStatus.Disabled || it == LiveEditStatus.NoMultiDeploy }
   }
 
   fun clear() {
@@ -59,7 +59,7 @@ class DeviceStatusManager {
   }
 
   fun update(status: LiveEditStatus) {
-    update(deviceStatuses.keys) { _ -> status }
+    update(deviceStatuses.keys) { _, _ -> status }
   }
 
   fun update(transition: StatusUpdateFunction) {
@@ -67,7 +67,7 @@ class DeviceStatusManager {
   }
 
   fun update(device: IDevice, status: LiveEditStatus) {
-    update(setOf(device)) { _ -> status }
+    update(setOf(device)) { _, _ -> status }
   }
 
   fun update(device: IDevice, transition: StatusUpdateFunction) {
@@ -81,7 +81,7 @@ class DeviceStatusManager {
         return@replaceAll oldStatus
       }
 
-      val newStatus = transition(oldStatus)
+      val newStatus = transition(device, oldStatus)
       if (newStatus != oldStatus) {
         changes[device] = newStatus
       }
