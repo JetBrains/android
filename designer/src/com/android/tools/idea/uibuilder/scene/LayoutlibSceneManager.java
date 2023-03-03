@@ -61,6 +61,7 @@ import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderModelModule;
 import com.android.tools.idea.rendering.RenderProblem;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.RenderResults;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.StudioRenderConfiguration;
@@ -1157,14 +1158,14 @@ public class LayoutlibSceneManager extends SceneManager {
           })
             .handle((result, exception) -> {
               if (project.isDisposed()) return null;
-              return result != null ? result : RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception);
+              return result != null ? result : RenderResults.createRenderTaskErrorResult(getModel().getFile(), exception);
             });
         }
         else {
           updateRenderTask(null);
 
           if (project.isDisposed()) return CompletableFuture.completedFuture(null);
-          return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(getModel().getFile(), logger));
+          return CompletableFuture.completedFuture(RenderResults.createRenderTaskErrorResult(getModel().getFile(), logger));
         }
       })
       .thenApply(this::updateCachedRenderResultIfNotNull)
@@ -1448,7 +1449,7 @@ public class LayoutlibSceneManager extends SceneManager {
       })
       .handle((result, exception) -> {
         if (exception != null) {
-          return RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception);
+          return RenderResults.createRenderTaskErrorResult(getModel().getFile(), exception);
         }
         return result;
       });

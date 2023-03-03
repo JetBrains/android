@@ -92,7 +92,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
 import org.jetbrains.android.uipreview.ClassLoaderPreloaderKt;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
@@ -859,7 +858,7 @@ public class RenderTask {
         }
         else {
           if (xmlFile.isValid()) {
-            return RenderResult.createRenderTaskErrorResult(xmlFile, ex);
+            return RenderResult.createRenderTaskErrorResult(myContext.getModule(), xmlFile, ex);
           }
           else {
             LOG.warn("Invalid file " + xmlFile);
@@ -1041,7 +1040,7 @@ public class RenderTask {
           message = e.toString();
         }
         myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e));
-        return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(psiFile, e));
+        return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(myContext.getModule(), psiFile, e));
       }
     });
   }

@@ -26,6 +26,7 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.RenderLogger
 import com.android.tools.idea.rendering.RenderResult
+import com.android.tools.idea.rendering.createRenderTaskErrorResult
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.ScreenView.DEVICE_CONTENT_SIZE_POLICY
@@ -77,7 +78,7 @@ class ScreenViewTest {
     // Fully simulate an error to make the result invalid
     renderLogger.addBrokenClass("Broken", Throwable())
     val file = projectRule.fixture.addFileToProject("src/EmptyFile.kt", "")
-    val result = RenderResult.createRenderTaskErrorResult(file, renderLogger)
+    val result = createRenderTaskErrorResult(file, renderLogger)
 
     whenever(sceneManager.renderResult).thenReturn(result)
     whenever(screenView.sceneManager).thenReturn(sceneManager)

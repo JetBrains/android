@@ -23,10 +23,8 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.notebook.editor.BackedVirtualFile;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -174,44 +172,16 @@ public class RenderResult {
       myStats.combine(stats));
   }
 
-  /**
-   * Creates a new blank {@link RenderResult}
-   *
-   * @param file the PSI file the render result corresponds to
-   * @return a blank render result
-   */
   @NotNull
-  public static RenderResult createBlank(@NotNull PsiFile file) {
-    return createErrorResult(file, Result.Status.ERROR_UNKNOWN.createResult(""), null);
-  }
-
-  /**
-   * Creates a blank {@link RenderResult} to report render task creation errors
-   *
-   * @param file the PSI file the render result corresponds to
-   * @param logger the logger containing the errors to surface to the user
-   */
-  @NotNull
-  public static RenderResult createRenderTaskErrorResult(@NotNull PsiFile file, @NotNull RenderLogger logger) {
-    return createErrorResult(file, Result.Status.ERROR_RENDER_TASK.createResult(), logger);
-  }
-
-  @NotNull
-  public static RenderResult createRenderTaskErrorResult(@NotNull PsiFile file, @Nullable Throwable throwable) {
-    return createErrorResult(file, Result.Status.ERROR_RENDER_TASK.createResult("Render error", throwable), null);
-  }
-
-  @NotNull
-  private static RenderResult createErrorResult(@NotNull PsiFile file, @NotNull Result errorResult, @Nullable RenderLogger logger) {
-    Module module = ReadAction.compute(() -> ModuleUtilCore.findModuleForPsiElement(file));
-    assert module != null;
+  public static RenderResult createRenderTaskErrorResult(
+    @NotNull RenderModelModule renderModule, @NotNull PsiFile file, @Nullable Throwable throwable) {
     RenderResult result = new RenderResult(
       file,
-      module,
-      logger != null ? logger : new RenderLogger(module, null, false),
+      renderModule.getIdeaModule(),
+      new RenderLogger(renderModule.getIdeaModule(), null, false),
       null,
       false,
-      errorResult,
+      Result.Status.ERROR_RENDER_TASK.createResult("Render error", throwable),
       ImmutableList.of(),
       ImmutableList.of(),
       ImagePool.NULL_POOLED_IMAGE,
