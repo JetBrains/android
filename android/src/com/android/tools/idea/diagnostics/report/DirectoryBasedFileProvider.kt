@@ -31,7 +31,8 @@ private val HEAP_REPORT_REGEX = Regex("^$HEAP_REPORTS_DIR$")
  * DirectoryBasedFileProvider returns all files under directories
  * that match the specified regex.
  */
-class DirectoryBasedFileProvider(private val regex: Regex,
+class DirectoryBasedFileProvider(override val name: String,
+                                 private val regex: Regex,
                                  private val pathProvider: PathProvider) : DiagnosticsSummaryFileProvider {
 
   override fun getFiles(project: Project?): List<FileInfo> {
@@ -72,6 +73,6 @@ class DirectoryBasedFileProvider(private val regex: Regex,
   }
 }
 
-val ThreadDumpProvider = DirectoryBasedFileProvider(THREAD_DUMP_REGEX, DefaultPathProvider)
-val UIFreezeProvider = DirectoryBasedFileProvider(UI_FREEZE_REGEX, DefaultPathProvider)
-val HeapReportProvider = DirectoryBasedFileProvider(HEAP_REPORT_REGEX, DefaultPathProvider)
+val ThreadDumpProvider = DirectoryBasedFileProvider("Thread Dumps", THREAD_DUMP_REGEX, DefaultPathProvider)
+val UIFreezeProvider = DirectoryBasedFileProvider("UI Freezes", UI_FREEZE_REGEX, DefaultPathProvider)
+val HeapReportProvider = DirectoryBasedFileProvider("Heap Reports", HEAP_REPORT_REGEX, DefaultPathProvider)
