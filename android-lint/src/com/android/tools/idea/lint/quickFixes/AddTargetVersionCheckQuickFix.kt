@@ -30,6 +30,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.ScrollType
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
@@ -41,10 +42,10 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.codeInsight.surroundWith.statement.KotlinIfSurrounder
 import org.jetbrains.kotlin.idea.codeinsight.utils.findExistingEditor
-import org.jetbrains.kotlin.idea.core.ShortenReferences
 import org.jetbrains.kotlin.psi.KtBlockExpression
 import org.jetbrains.kotlin.psi.KtClassInitializer
 import org.jetbrains.kotlin.psi.KtContainerNode
@@ -146,11 +147,11 @@ class AddTargetVersionCheckQuickFix(
     document.replaceString(conditionRange.startOffset, conditionRange.endOffset, conditionText)
     documentManager.commitDocument(document)
 
-    ShortenReferences.DEFAULT.process(
-      documentManager.getPsiFile(document) as KtFile,
-      conditionRange.startOffset,
-      conditionRange.startOffset + conditionText.length
-    )
+    ShortenReferencesFacility.getInstance()
+      .shorten(
+        documentManager.getPsiFile(document) as KtFile,
+        TextRange.from(conditionRange.startOffset, conditionText.length)
+      )
   }
 
   private fun getExtensionCheckPrefix(): String {

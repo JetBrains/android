@@ -26,7 +26,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.core.ShortenReferences
+import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -96,7 +96,7 @@ class AnnotateQuickFix(
           } else {
             container.addAnnotationEntry(annotationEntry)
           }
-        ShortenReferences.DEFAULT.process(addedAnnotation)
+        ShortenReferencesFacility.getInstance().shorten(addedAnnotation)
       }
     }
   }
