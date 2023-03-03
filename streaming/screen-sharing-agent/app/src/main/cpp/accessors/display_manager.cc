@@ -57,7 +57,7 @@ void DisplayManager::InitializeStatics(Jni jni) {
 
     if (api_level >= 33) {
       display_manager_class_ = jni.GetClass("android/hardware/display/DisplayManager");
-      create_virtual_display_method_ = display_manager_class_.GetStaticMethodId(
+      create_virtual_display_method_ = display_manager_class_.FindStaticMethod(
           "createVirtualDisplay", "(Ljava/lang/String;IIILandroid/view/Surface;)Landroid/hardware/display/VirtualDisplay;");
     }
 
