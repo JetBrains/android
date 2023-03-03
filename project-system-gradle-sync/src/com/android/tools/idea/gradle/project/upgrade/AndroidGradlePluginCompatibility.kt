@@ -81,6 +81,7 @@ fun computeAndroidGradlePluginCompatibility(current: AgpVersion, latestKnown: Ag
       // If the current/latestKnown are RC or releases, and of the same major/minor series, compatible. (2)
       // e.g. current = 7.1.0-rc01, latestKnown = 7.1.0
       //      current = 7.1.0, latestKnown = 7.1.0-rc01
+      //      current = 7.1.1, latestKnown = 7.1.0
       (!latestKnown.isPreview || latestKnown.previewType == "rc") && (!current.isPreview || current.previewType == "rc") &&
       (AgpVersion(latestKnown.major, latestKnown.minor) == AgpVersion(current.major, current.minor)) ->
         compatibleOrDeprecated // in practice presumably always compatible

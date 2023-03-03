@@ -24,7 +24,6 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.perflib.vmtrace.ClockType
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
@@ -40,6 +39,7 @@ import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.cpu.nodemodel.CaptureNodeModel
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Rule
 import org.junit.Test
 
@@ -47,12 +47,14 @@ class CaptureDetailsTest {
   @get:Rule
   val appRule = ApplicationRule()
 
+  @get:Rule
+  val disposableRule = DisposableRule()
+
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, false)
-  private val profilerService = FakeProfilerService(timer)
 
   @get:Rule
-  var grpcServer = FakeGrpcServer.createFakeGrpcServer("CaptureDetailsTest", transportService, profilerService)
+  var grpcServer = FakeGrpcServer.createFakeGrpcServer("CaptureDetailsTest", transportService)
 
   private fun benchmarkInit(prefix: String) =
     benchmarkMemoryAndTime("$prefix Initialization", "Load-Capture", memUnit = MemoryUnit.KB)
@@ -134,7 +136,7 @@ class CaptureDetailsTest {
     val profilers = object: StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices()) {
       override fun update(elapsedNs: Long) {}
     }
-    return StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    return StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
   }
 
   private fun<A> withTestData(test: (Range, List<CaptureNode>, CpuCapture) -> A): A {

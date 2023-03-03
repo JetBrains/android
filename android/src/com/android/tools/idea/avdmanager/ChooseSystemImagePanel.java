@@ -199,7 +199,7 @@ public class ChooseSystemImagePanel extends JPanel
 
     if (tag.equals(SystemImage.WEAR_TAG)) {
       // For Wear, recommend based on API level (all Wear have Google APIs)
-      return (apiLevel >= MIN_RECOMMENDED_WEAR_API && (isArm64HostOs || abi == Abi.X86))
+      return (apiLevel >= MIN_RECOMMENDED_WEAR_API && (isArm64HostOs || isAvdIntel))
              ? SystemImageClassification.RECOMMENDED
              : SystemImageClassification.PERFORMANT;
     }

@@ -24,18 +24,16 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_
 import com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.cpu.FakeCpuService
-import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.adapters.FakeCaptureObject
 import com.android.tools.profilers.memory.adapters.FakeInstanceObject
 import com.android.tools.profilers.memory.adapters.classifiers.AllHeapSet
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -47,16 +45,16 @@ class CapturePanelTest {
   private lateinit var ideProfilerServices: FakeIdeProfilerServices
   private val myTimer = FakeTimer()
   private val transportService = FakeTransportService(myTimer)
-  private val service = FakeMemoryService(transportService)
 
   @Rule
   @JvmField
-  val grpcChannel = FakeGrpcChannel("MemoryProfilerStageViewTestChannel", transportService, service,
-                                    FakeProfilerService(myTimer),
-                                    FakeCpuService(), FakeEventService())
+  val grpcChannel = FakeGrpcChannel("MemoryProfilerStageViewTestChannel", transportService)
 
   @get:Rule
   val applicationRule = ApplicationRule()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   @Before
   fun setupBase() {
@@ -84,7 +82,7 @@ class CapturePanelTest {
 
     val stage = MainMemoryProfilerStage(profilers, FakeCaptureObjectLoader())
     val selection = MemoryCaptureSelection(profilers.ideServices)
-    val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     val panel = CapturePanel(profilersView, selection, null, profilers.timeline.selectionRange,
                              FakeIdeProfilerComponents(), profilers.timeline,true)
 

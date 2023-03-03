@@ -16,24 +16,16 @@
 
 #include "surface_control.h"
 
-#include <android/native_window_jni.h>
-
 #include <mutex>
 
 #include "log.h"
+#include "surface.h"
 
 namespace screensharing {
 
 using namespace std;
 
 static mutex static_initialization_mutex; // Protects initialization of static fields.
-
-SurfaceControl::SurfaceControl(Jni jni)
-    : jni_(jni) {
-  InitializeStatics(jni);
-}
-
-SurfaceControl::~SurfaceControl() = default;
 
 void SurfaceControl::InitializeStatics(Jni jni) {
   scoped_lock lock(static_initialization_mutex);
@@ -51,12 +43,14 @@ void SurfaceControl::InitializeStatics(Jni jni) {
         "setDisplayProjection", "(Landroid/os/IBinder;ILandroid/graphics/Rect;Landroid/graphics/Rect;)V");
     rect_class_ = jni.GetClass("android/graphics/Rect");
     rect_constructor_ = rect_class_.GetConstructorId("(IIII)V");
+
     surface_control_class_.MakeGlobal();
     rect_class_.MakeGlobal();
   }
 }
 
-JObject SurfaceControl::GetInternalDisplayToken() const {
+JObject SurfaceControl::GetInternalDisplayToken(Jni jni) {
+  InitializeStatics(jni);
   int api_level = android_get_device_api_level();
   {
     scoped_lock lock(static_initialization_mutex);
@@ -66,10 +60,10 @@ JObject SurfaceControl::GetInternalDisplayToken() const {
     if (get_internal_display_token_method_ == nullptr) {
       get_internal_display_token_method_ =
           api_level >= 33 ?
-              surface_control_class_.FindStaticMethod(jni_, "getInternalDisplayToken", "()Landroid/os/IBinder;") :
+              surface_control_class_.FindStaticMethod(jni, "getInternalDisplayToken", "()Landroid/os/IBinder;") :
           api_level >= 29 ?
-              surface_control_class_.GetStaticMethodId(jni_, "getInternalDisplayToken", "()Landroid/os/IBinder;") :
-              surface_control_class_.GetStaticMethodId(jni_, "getBuiltInDisplay", "(I)Landroid/os/IBinder;");
+              surface_control_class_.GetStaticMethodId(jni, "getInternalDisplayToken", "()Landroid/os/IBinder;") :
+              surface_control_class_.GetStaticMethodId(jni, "getBuiltInDisplay", "(I)Landroid/os/IBinder;");
       if (get_internal_display_token_method_ == nullptr) {
         get_internal_display_token_method_not_available_ = true;
         return JObject();
@@ -77,63 +71,81 @@ JObject SurfaceControl::GetInternalDisplayToken() const {
     }
   }
   return api_level >= 29 ?
-      surface_control_class_.CallStaticObjectMethod(jni_, get_internal_display_token_method_) :
-      surface_control_class_.CallStaticObjectMethod(jni_, get_internal_display_token_method_, 0);
+      surface_control_class_.CallStaticObjectMethod(jni, get_internal_display_token_method_) :
+      surface_control_class_.CallStaticObjectMethod(jni, get_internal_display_token_method_, 0);
 }
 
-void SurfaceControl::OpenTransaction() const {
-  surface_control_class_.CallStaticVoidMethod(jni_, open_transaction_method_);
+void SurfaceControl::OpenTransaction(Jni jni) {
+  surface_control_class_.CallStaticVoidMethod(jni, open_transaction_method_);
 }
 
-void SurfaceControl::CloseTransaction() const {
-  surface_control_class_.CallStaticVoidMethod(jni_, close_transaction_method_);
+void SurfaceControl::CloseTransaction(Jni jni) {
+  surface_control_class_.CallStaticVoidMethod(jni, close_transaction_method_);
 }
 
-JObject SurfaceControl::CreateDisplay(const char* name, bool secure) const {
-  return surface_control_class_.CallStaticObjectMethod(jni_, create_display_method_, JString(jni_, name).ref(), jboolean(secure));
+JObject SurfaceControl::CreateDisplay(Jni jni, const char* name, bool secure) {
+  InitializeStatics(jni);
+  return surface_control_class_.CallStaticObjectMethod(jni, create_display_method_, JString(jni, name).ref(), jboolean(secure));
 }
 
-void SurfaceControl::DestroyDisplay(jobject display_token) const {
-  surface_control_class_.CallStaticObjectMethod(jni_, destroy_display_method_, display_token);
+void SurfaceControl::DestroyDisplay(Jni jni, jobject display_token) {
+  InitializeStatics(jni);
+  surface_control_class_.CallStaticObjectMethod(jni, destroy_display_method_, display_token);
 }
 
-void SurfaceControl::SetDisplaySurface(jobject display_token, ANativeWindow* surface) const {
-  JObject java_surface(jni_, ANativeWindow_toSurface(jni_, surface));
-  if (java_surface.IsNull()) {
-    Log::Fatal("Unable to create an android.view.Surface");
-  }
-  surface_control_class_.CallStaticObjectMethod(jni_, set_display_surface_method_, display_token, java_surface.ref());
+void SurfaceControl::SetDisplaySurface(Jni jni, jobject display_token, ANativeWindow* surface) {
+  surface_control_class_.CallStaticObjectMethod(jni, set_display_surface_method_, display_token, SurfaceToJava(jni, surface).ref());
 }
 
-void SurfaceControl::SetDisplayLayerStack(jobject display_token, int32_t layer_stack) const {
-  surface_control_class_.CallStaticObjectMethod(
-      jni_, set_display_layer_stack_method_, display_token, static_cast<jint>(layer_stack));
+void SurfaceControl::SetDisplayLayerStack(Jni jni, jobject display_token, int32_t layer_stack) {
+  surface_control_class_.CallStaticObjectMethod(jni, set_display_layer_stack_method_, display_token, static_cast<jint>(layer_stack));
 }
 
 void SurfaceControl::SetDisplayProjection(
-    jobject display_token, int32_t orientation, const ARect& layer_stack_rect, const ARect& display_rect) const {
+    Jni jni, jobject display_token, int32_t orientation, const ARect& layer_stack_rect, const ARect& display_rect) {
   Log::D("SurfaceControl::SetDisplayProjection: layer_stack_rect=%dx%d, display_rect=%dx%d",
          layer_stack_rect.right, layer_stack_rect.bottom, display_rect.right, display_rect.bottom);
-  JObject java_layer_stack_rect = ToJava(layer_stack_rect);
-  JObject java_display_rect = ToJava(display_rect);
+  JObject java_layer_stack_rect = ToJava(jni, layer_stack_rect);
+  JObject java_display_rect = ToJava(jni, display_rect);
   surface_control_class_.CallStaticObjectMethod(
-      jni_, set_display_projection_method_, display_token, static_cast<jint>(orientation),
+      jni, set_display_projection_method_, display_token, static_cast<jint>(orientation),
       java_layer_stack_rect.ref(), java_display_rect.ref());
 }
 
-void SurfaceControl::SetDisplayPowerMode(jobject display_token, DisplayPowerMode mode) {
+void SurfaceControl::ConfigureProjection(
+    Jni jni, jobject display_token, ANativeWindow* surface, const DisplayInfo& display_info, Size projected_size) {
+  struct Transaction {
+    explicit Transaction(Jni jni)
+        : jni_(jni) {
+      OpenTransaction(jni_);
+    }
+    ~Transaction() {
+      CloseTransaction(jni_);
+    }
+
+    Jni jni_;
+  };
+  InitializeStatics(jni);
+  Transaction transaction(jni);
+  SetDisplaySurface(jni, display_token, surface);
+  SetDisplayProjection(jni, display_token, 0, display_info.logical_size.toRect(), projected_size.toRect());
+  SetDisplayLayerStack(jni, display_token, display_info.layer_stack);
+}
+
+void SurfaceControl::SetDisplayPowerMode(Jni jni, jobject display_token, DisplayPowerMode mode) {
+  InitializeStatics(jni);
   {
     scoped_lock lock(static_initialization_mutex);
     if (set_display_power_mode_method_ == nullptr) {
-      set_display_power_mode_method_ = surface_control_class_.GetStaticMethodId(jni_, "setDisplayPowerMode", "(Landroid/os/IBinder;I)V");
+      set_display_power_mode_method_ = surface_control_class_.GetStaticMethodId(jni, "setDisplayPowerMode", "(Landroid/os/IBinder;I)V");
     }
   }
-  surface_control_class_.CallStaticVoidMethod(jni_, set_display_power_mode_method_, display_token, mode);
+  surface_control_class_.CallStaticVoidMethod(jni, set_display_power_mode_method_, display_token, mode);
 }
 
-JObject SurfaceControl::ToJava(const ARect& rect) const {
+JObject SurfaceControl::ToJava(Jni jni, const ARect& rect) {
   return rect_class_.NewObject(
-      jni_, rect_constructor_, static_cast<jint>(rect.left), static_cast<jint>(rect.top),
+      jni, rect_constructor_, static_cast<jint>(rect.left), static_cast<jint>(rect.top),
       static_cast<jint>(rect.right), static_cast<jint>(rect.bottom));
 }
 

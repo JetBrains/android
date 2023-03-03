@@ -25,6 +25,7 @@ import com.android.tools.adtui.validation.Validator.Result;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.observable.BindingsManager;
 import com.android.tools.idea.observable.ListenerManager;
+import com.android.tools.idea.observable.ObservableValue;
 import com.android.tools.idea.observable.adapters.StringToDoubleAdapterProperty;
 import com.android.tools.idea.observable.adapters.StringToIntAdapterProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
@@ -160,6 +161,16 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     return myValidatorPanel.hasErrors().not();
   }
 
+  private void isScreenRoundChanged(boolean isRound) {
+    myScreenResolutionHeight.setEnabled(!isRound);
+    if (isRound) {
+      myScreenResHeightAdapter.set(myScreenResWidthAdapter.get());
+      myListeners.listen(myScreenResWidthAdapter, width -> myScreenResHeightAdapter.set(width));
+    } else {
+      myListeners.release((ObservableValue<?>)myScreenResWidthAdapter);
+    }
+  }
+
   private void attachBindingsAndValidators() {
     final AvdDeviceData deviceModel = getModel().getDeviceData();
     myBindings.bindTwoWay(new TextProperty(myDeviceName), deviceModel.name());
@@ -174,7 +185,6 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     myBindings.bindTwoWay(new SelectedProperty(myHasHardwareKeyboard), deviceModel.hasHardwareKeyboard());
     myBindings.bindTwoWay(new SelectedItemProperty<>(myNavigationControlsCombo), deviceModel.navigation());
 
-    myBindings.bindTwoWay(new SelectedProperty(myIsScreenRound), deviceModel.isScreenRound());
     myBindings.bindTwoWay(new SelectedProperty(mySupportsLandscape), deviceModel.supportsLandscape());
     myBindings.bindTwoWay(new SelectedProperty(mySupportsPortrait), deviceModel.supportsPortrait());
     myBindings.bindTwoWay(new SelectedProperty(myHasBackFacingCamera), deviceModel.hasBackCamera());
@@ -186,30 +196,29 @@ public final class ConfigureDeviceOptionsStep extends ModelWizardStep<ConfigureD
     myBindings.bindTwoWay(new SelectedProperty(myHasProximitySensor), deviceModel.hasProximitySensor());
     myBindings.bindTwoWay(new SelectedItemProperty<>(myCustomSkinPath.getComboBox()), deviceModel.customSkinFile());
 
+    SelectedProperty isScreenRound = new SelectedProperty(myIsScreenRound);
+    myBindings.bindTwoWay(isScreenRound, deviceModel.isScreenRound());
+    myListeners.listen(isScreenRound, this::isScreenRoundChanged);
+
     SelectedItemProperty<IdDisplay> selectedDeviceType = new SelectedItemProperty<>(myDeviceTypeComboBox);
     myBindings.bindTwoWay(selectedDeviceType, deviceModel.deviceType());
+
     myListeners.listen(selectedDeviceType, idDisplayOptional -> {
       if (idDisplayOptional.isPresent()) {
         IdDisplay selectedType = idDisplayOptional.get();
-        /**
-         * TODO When the user selects round, the following could be done to make the UI cleaner
-         * if(selectedType == WEAR){
-         *     disable and hide width textbox
-         *     addListener to height textbox to set the new value to width so it is always round (square)
-         * }else{
-         *     enable and show width textbox
-         *    remove listener
-         * }
-         */
-        getModel().getDeviceData().isWear().set(selectedType.equals(SystemImage.WEAR_TAG));
+
+        boolean isWear = selectedType.equals(SystemImage.WEAR_TAG);
+        getModel().getDeviceData().isWear().set(isWear);
         getModel().getDeviceData().isTv().set(selectedType.equals(SystemImage.ANDROID_TV_TAG)
                                               || selectedType.equals(SystemImage.GOOGLE_TV_TAG));
         getModel().getDeviceData().isDesktop().set(selectedType.equals(SystemImage.DESKTOP_TAG));
-        myIsScreenRound.setEnabled(selectedType.equals(SystemImage.WEAR_TAG));
-        myIsScreenRound.setSelected(getModel().getDeviceData().isScreenRound().get());
+
+        myIsScreenRound.setEnabled(isWear);
+        boolean isRound = getModel().getDeviceData().isScreenRound().get();
+        myIsScreenRound.setSelected(isRound);
+        isScreenRoundChanged(isWear && isRound);
       }
     });
-
 
     myValidatorPanel.registerTest(deviceModel.name().isEmpty().not(),
                                   "Please write a name for the new device.");

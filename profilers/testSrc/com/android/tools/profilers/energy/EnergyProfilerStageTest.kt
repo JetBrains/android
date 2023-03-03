@@ -109,7 +109,6 @@ class EnergyProfilerStageTest {
   fun setUp() {
     val services = FakeIdeProfilerServices().apply {
       enableEnergyProfiler(true)
-      enableEventsPipeline(true)
     }
     fakeData.forEach { event -> transportService.addEventToStream(1, event) }
     stage = EnergyProfilerStage(StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer))

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator.actions
 
-import com.android.tools.idea.streaming.NUMBER_OF_DISPLAYS
+import com.android.tools.idea.streaming.NUMBER_OF_DISPLAYS_KEY
 import com.android.tools.idea.streaming.emulator.EMULATOR_CONTROLLER_KEY
 import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorConfiguration
@@ -61,7 +61,7 @@ internal fun getEmulatorView(event: AnActionEvent): EmulatorView? =
   event.getData(EMULATOR_VIEW_KEY)
 
 internal fun getNumberOfDisplays(event: AnActionEvent): Int =
-  event.getData(NUMBER_OF_DISPLAYS) ?: 0
+  event.getData(NUMBER_OF_DISPLAYS_KEY) ?: 0
 
 internal fun isEmulatorConnected(event: AnActionEvent) =
   getEmulatorController(event)?.connectionState == EmulatorController.ConnectionState.CONNECTED

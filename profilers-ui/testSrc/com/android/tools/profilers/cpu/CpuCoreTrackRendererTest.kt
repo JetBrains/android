@@ -23,7 +23,6 @@ import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerTrackRendererType
 import com.android.tools.profilers.StudioProfilers
@@ -40,7 +39,7 @@ class CpuCoreTrackRendererTest {
   private val transportService = FakeTransportService(timer, true)
 
   @get:Rule
-  var grpcChannel = FakeGrpcChannel("CpuCoreTrackTestChannel", FakeCpuService(), FakeProfilerService(timer), transportService)
+  var grpcChannel = FakeGrpcChannel("CpuCoreTrackTestChannel", transportService)
 
   private lateinit var profilers: StudioProfilers
 

@@ -128,6 +128,7 @@ public class MainMemoryProfilerStage extends BaseStreamingMemoryProfilerStage {
 
   @Override
   public void enter() {
+    logEnterStage();
     super.enter();
 
     BiConsumer<SupportLevel.Feature, RecordingOption> adder = (feature, option) -> {

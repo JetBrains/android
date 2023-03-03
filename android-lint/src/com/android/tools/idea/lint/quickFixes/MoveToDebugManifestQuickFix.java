@@ -77,9 +77,10 @@ public class MoveToDebugManifestQuickFix extends DefaultLintQuickFix {
             // TODO: b/22928250
             GradleAndroidModel androidModel = GradleAndroidModel.get(facet);
             if (androidModel != null && mainManifest != null
-                && mainManifest.getParent() != null && mainManifest.getParent().getParent() != null) {
+                && mainManifest.getParent() != null && mainManifest.getParent().getParent() != null
+                && androidModel.getAndroidProject().getMultiVariantData() != null) {
               final VirtualFile src = mainManifest.getParent().getParent();
-              for (IdeBuildTypeContainer container : androidModel.getAndroidProject().getBuildTypes()) {
+              for (IdeBuildTypeContainer container : androidModel.getAndroidProject().getMultiVariantData().getBuildTypes()) {
                 IdeBuildType buildType = container.getBuildType();
                 if (buildType.isDebuggable()) {
                   addManifest(module, src, buildType.getName());

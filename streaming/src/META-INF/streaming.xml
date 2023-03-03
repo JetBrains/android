@@ -204,8 +204,7 @@
       <reference ref="android.device.screen.record"/>
     </group>
 
-    <group id="StreamingToolbarSecondary">
-      <action id="android.device.liveedit.status" class="com.android.tools.idea.editors.liveedit.ui.LiveEditNotificationGroup"/>
-    </group>
+    <!-- This action group and the corresponding toolbar are intended for external contributions -->
+    <group id="StreamingToolbarSecondary"/>
   </actions>
 </idea-plugin>

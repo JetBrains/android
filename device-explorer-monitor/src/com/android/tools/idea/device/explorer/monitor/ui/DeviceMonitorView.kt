@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.device.explorer.monitor.ui
 
-import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModelListener
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorViewListener
 import javax.swing.JComponent
 

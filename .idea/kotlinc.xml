@@ -11,6 +11,6 @@
     <option name="additionalArguments" value="-version -Xjvm-default=all-compatibility -Xsam-conversions=class -Xstrict-java-nullability-assertions" />
   </component>
   <component name="KotlinJpsPluginSettings">
-    <option name="version" value="1.7.0" />
+    <option name="version" value="1.7.20" />
   </component>
 </project>

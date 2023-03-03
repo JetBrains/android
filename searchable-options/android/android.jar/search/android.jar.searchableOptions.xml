@@ -725,6 +725,9 @@
     <option name="history" path="ActionManager" hit="Test History" />
     <option name="test" path="ActionManager" hit="Test History" />
     <option name="tilt" path="ActionManager" hit="Tilt" />
+    <option name="inspector" path="ActionManager" hit="Toggle Layout Inspector" />
+    <option name="layout" path="ActionManager" hit="Toggle Layout Inspector" />
+    <option name="toggle" path="ActionManager" hit="Toggle Layout Inspector" />
     <option name="formatting" path="ActionManager" hit="Toggle Logcat Formatting" />
     <option name="logcat" path="ActionManager" hit="Toggle Logcat Formatting" />
     <option name="toggle" path="ActionManager" hit="Toggle Logcat Formatting" />
@@ -750,6 +753,15 @@
     <option name="toggle" path="ActionManager" hit="Toggle using soft wraps in current editor" />
     <option name="using" path="ActionManager" hit="Toggle using soft wraps in current editor" />
     <option name="wraps" path="ActionManager" hit="Toggle using soft wraps in current editor" />
+    <option name="and" path="ActionManager" hit="Toggles Layout Inspection on and off for this device." />
+    <option name="device" path="ActionManager" hit="Toggles Layout Inspection on and off for this device." />
+    <option name="for" path="ActionManager" hit="Toggles Layout Inspection on and off for this device." />
+    <option name="inspection" path="ActionManager" hit="Toggles Layout Inspection on and off for this device." />
+    <option name="layout" path="ActionManager" hit="Toggles Layout Inspection on and off for this device." />
+    <option name="off" path="ActionManager" hit="Toggles Layout Inspection on and off for this device." />
+    <option name="on" path="ActionManager" hit="Toggles Layout Inspection on and off for this device." />
+    <option name="this" path="ActionManager" hit="Toggles Layout Inspection on and off for this device." />
+    <option name="toggles" path="ActionManager" hit="Toggles Layout Inspection on and off for this device." />
     <option name="resource" path="ActionManager" hit="Trace Resource Updates" />
     <option name="trace" path="ActionManager" hit="Trace Resource Updates" />
     <option name="updates" path="ActionManager" hit="Trace Resource Updates" />
@@ -1490,23 +1502,19 @@
     <option name="tasks" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
     <option name="test" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
     <option name="the" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="api" hit="Optimise/build app for the target device API level only" />
-    <option name="app" hit="Optimise/build app for the target device API level only" />
-    <option name="build" hit="Optimise/build app for the target device API level only" />
-    <option name="device" hit="Optimise/build app for the target device API level only" />
-    <option name="for" hit="Optimise/build app for the target device API level only" />
-    <option name="level" hit="Optimise/build app for the target device API level only" />
-    <option name="only" hit="Optimise/build app for the target device API level only" />
-    <option name="optimise" hit="Optimise/build app for the target device API level only" />
-    <option name="target" hit="Optimise/build app for the target device API level only" />
-    <option name="the" hit="Optimise/build app for the target device API level only" />
-    <option name="and" hit="Parse and write to Version Catalog files" />
-    <option name="catalog" hit="Parse and write to Version Catalog files" />
-    <option name="files" hit="Parse and write to Version Catalog files" />
-    <option name="parse" hit="Parse and write to Version Catalog files" />
-    <option name="to" hit="Parse and write to Version Catalog files" />
-    <option name="version" hit="Parse and write to Version Catalog files" />
-    <option name="write" hit="Parse and write to Version Catalog files" />
+    <option name="api" hit="Optimize build for target device API level only" />
+    <option name="build" hit="Optimize build for target device API level only" />
+    <option name="device" hit="Optimize build for target device API level only" />
+    <option name="for" hit="Optimize build for target device API level only" />
+    <option name="level" hit="Optimize build for target device API level only" />
+    <option name="only" hit="Optimize build for target device API level only" />
+    <option name="optimize" hit="Optimize build for target device API level only" />
+    <option name="target" hit="Optimize build for target device API level only" />
+    <option name="catalog" hit="Parse multiple Version Catalog files" />
+    <option name="files" hit="Parse multiple Version Catalog files" />
+    <option name="multiple" hit="Parse multiple Version Catalog files" />
+    <option name="parse" hit="Parse multiple Version Catalog files" />
+    <option name="version" hit="Parse multiple Version Catalog files" />
     <option name="annotation" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
     <option name="editing" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />
     <option name="editor" hit="Popup with editing tools for @Preview annotation from the Editor gutter" />

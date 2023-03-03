@@ -59,6 +59,7 @@ import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeGlassPane;
@@ -135,7 +136,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   @NotNull
   private final IdeProfilerComponents myIdeProfilerComponents;
 
-  public StudioProfilersView(@NotNull StudioProfilers profiler, @NotNull IdeProfilerComponents ideProfilerComponents) {
+  public StudioProfilersView(@NotNull StudioProfilers profiler, @NotNull IdeProfilerComponents ideProfilerComponents, @NotNull Disposable parentDisposable) {
     myProfiler = profiler;
     myIdeProfilerComponents = ideProfilerComponents;
     myStageView = null;
@@ -177,6 +178,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       .onChange(ProfilerAspect.PREFERRED_PROCESS, this::toggleStageLayout);
     updateStageView();
     toggleStageLayout();
+
+    Disposer.register(parentDisposable, this);
   }
 
   @Override

@@ -19,9 +19,11 @@ import com.android.SdkConstants
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.adtui.actions.ZoomToFitAction
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.actions.GotoComponentAction
 import com.android.tools.idea.common.util.NlTreeDumper
@@ -46,13 +48,20 @@ import com.intellij.ide.actions.DeleteAction
 import com.intellij.ide.actions.PasteAction
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.PlatformDataKeys.COPY_PROVIDER
+import com.intellij.openapi.actionSystem.PlatformDataKeys.CUT_PROVIDER
+import com.intellij.openapi.actionSystem.PlatformDataKeys.DELETE_ELEMENT_PROVIDER
+import com.intellij.openapi.actionSystem.PlatformDataKeys.PASTE_PROVIDER
 import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.xml.XmlFile
+import com.intellij.testFramework.TestActionEvent
 import org.jetbrains.android.resourceManagers.LocalResourceManager
-
 
 /**
  * Tests for [NavActionManager]
@@ -135,8 +144,10 @@ class NavActionManagerTest : NavTestCase() {
     }
 
     surface.model = model
+    val fragment1 = model.find("fragment1")!!
     val actionManager = NavActionManager(surface)
-    var menuGroup = actionManager.getPopupMenuActions(model.find("fragment1"))
+    surface.selectionModel.setSelection(listOf(fragment1))
+    var menuGroup = actionManager.getPopupMenuActions(fragment1)
 
     var items = menuGroup.getChildren(null)
 
@@ -150,10 +161,13 @@ class NavActionManagerTest : NavTestCase() {
     validateItem(items[6], Separator::class.java, null, true)
     validateItem(items[7], CutAction::class.java, "Cut", true)
     validateItem(items[8], CopyAction::class.java, "Copy", true)
-    validateItem(items[9], PasteAction::class.java, "Paste", true)
     validateItem(items[10], DeleteAction::class.java, "Delete", true)
     validateItem(items[11], Separator::class.java, null, true)
     validateItem(items[12], GotoComponentAction::class.java, "Go to XML", true)
+
+    // Make a copy to ensure Paste is available
+    surface.actionHandlerProvider.apply(surface).performCopy(DataContext.EMPTY_CONTEXT)
+    validateItem(items[9], PasteAction::class.java, "Paste", true)
 
     val addActionItems = (items[2] as ActionGroup).getChildren(null)
     assertEquals(4, addActionItems.size)
@@ -168,12 +182,16 @@ class NavActionManagerTest : NavTestCase() {
     validateItem(nestedGraphItems[1], Separator::class.java, null, true)
     validateItem(nestedGraphItems[2], AddToExistingGraphAction::class.java, "subflow", true)
 
-    menuGroup = actionManager.getPopupMenuActions(model.find("fragment2"))
+    val fragment2 = model.find("fragment2")!!
+    surface.selectionModel.setSelection(listOf(fragment2))
+    menuGroup = actionManager.getPopupMenuActions(fragment2)
     items = menuGroup.getChildren(null)
     validateItem(items[0], ActivateComponentAction::class.java, "Edit", true)
     validateItem(items[4], StartDestinationAction::class.java, "Set as Start Destination", false)
 
-    menuGroup = actionManager.getPopupMenuActions(model.find("fragment3"))
+    val fragment3 = model.find("fragment3")!!
+    menuGroup = actionManager.getPopupMenuActions(fragment3)
+    surface.selectionModel.setSelection(listOf(fragment3))
     items = menuGroup.getChildren(null)
     validateItem(items[0], ActivateComponentAction::class.java, "Edit", true)
     validateItem(items[4], StartDestinationAction::class.java, "Set as Start Destination", true)
@@ -187,8 +205,11 @@ class NavActionManagerTest : NavTestCase() {
     }
 
     surface.model = model
+    val activity = model.find("activity")!!
+    // Select the activity to enable Cut and Copy
+    surface.selectionModel.setSelection(listOf(activity))
     val actionManager = NavActionManager(surface)
-    val menuGroup = actionManager.getPopupMenuActions(model.find("activity"))
+    val menuGroup = actionManager.getPopupMenuActions(activity)
 
     val items = menuGroup.getChildren(null)
 
@@ -202,10 +223,13 @@ class NavActionManagerTest : NavTestCase() {
     validateItem(items[6], Separator::class.java, null, true)
     validateItem(items[7], CutAction::class.java, "Cut", true)
     validateItem(items[8], CopyAction::class.java, "Copy", true)
-    validateItem(items[9], PasteAction::class.java, "Paste", true)
     validateItem(items[10], DeleteAction::class.java, "Delete", true)
     validateItem(items[11], Separator::class.java, null, true)
     validateItem(items[12], GotoComponentAction::class.java, "Go to XML", true)
+
+    // Make a copy to ensure Paste is available
+    surface.actionHandlerProvider.apply(surface).performCopy(DataContext.EMPTY_CONTEXT)
+    validateItem(items[9], PasteAction::class.java, "Paste", true)
 
     val nestedGraphItems = (items[3] as ActionGroup).getChildren(null)
     assertEquals(1, nestedGraphItems.size)
@@ -220,8 +244,10 @@ class NavActionManagerTest : NavTestCase() {
     }
 
     surface.model = model
+    val subflow = model.find("subflow")!!
     val actionManager = NavActionManager(surface)
-    val menuGroup = actionManager.getPopupMenuActions(model.find("subflow"))
+    val menuGroup = actionManager.getPopupMenuActions(subflow)
+    surface.selectionModel.setSelection(listOf(subflow))
 
     val items = menuGroup.getChildren(null)
 
@@ -235,10 +261,13 @@ class NavActionManagerTest : NavTestCase() {
     validateItem(items[6], Separator::class.java, null, true)
     validateItem(items[7], CutAction::class.java, "Cut", true)
     validateItem(items[8], CopyAction::class.java, "Copy", true)
-    validateItem(items[9], PasteAction::class.java, "Paste", true)
     validateItem(items[10], DeleteAction::class.java, "Delete", true)
     validateItem(items[11], Separator::class.java, null, true)
     validateItem(items[12], GotoComponentAction::class.java, "Go to XML", true)
+
+    // Make a copy to ensure Paste is available
+    surface.actionHandlerProvider.apply(surface).performCopy(DataContext.EMPTY_CONTEXT)
+    validateItem(items[9], PasteAction::class.java, "Paste", true)
 
     val addActionItems = (items[2] as ActionGroup).getChildren(null)
     assertEquals(4, addActionItems.size)
@@ -260,8 +289,10 @@ class NavActionManagerTest : NavTestCase() {
     }
 
     surface.model = model
+    val nav = model.find("nav")!!
     val actionManager = NavActionManager(surface)
-    val menuGroup = actionManager.getPopupMenuActions(model.find("nav"))
+    val menuGroup = actionManager.getPopupMenuActions(nav)
+    surface.selectionModel.setSelection(listOf(nav))
 
     val items = menuGroup.getChildren(null)
 
@@ -275,10 +306,13 @@ class NavActionManagerTest : NavTestCase() {
     validateItem(items[6], Separator::class.java, null, true)
     validateItem(items[7], CutAction::class.java, "Cut", true)
     validateItem(items[8], CopyAction::class.java, "Copy", true)
-    validateItem(items[9], PasteAction::class.java, "Paste", true)
     validateItem(items[10], DeleteAction::class.java, "Delete", true)
     validateItem(items[11], Separator::class.java, null, true)
     validateItem(items[12], GotoComponentAction::class.java, "Go to XML", true)
+
+    // Make a copy to ensure Paste is available
+    surface.actionHandlerProvider.apply(surface).performCopy(DataContext.EMPTY_CONTEXT)
+    validateItem(items[9], PasteAction::class.java, "Paste", true)
 
     val nestedGraphItems = (items[3] as ActionGroup).getChildren(null)
     assertEquals(1, nestedGraphItems.size)
@@ -298,6 +332,7 @@ class NavActionManagerTest : NavTestCase() {
     surface.currentNavigation = subnav
     val actionManager = NavActionManager(surface)
     val menuGroup = actionManager.getPopupMenuActions(subnav)
+    surface.selectionModel.setSelection(listOf(subnav))
 
     val items = menuGroup.getChildren(null)
 
@@ -307,7 +342,7 @@ class NavActionManagerTest : NavTestCase() {
     validateItem(items[2], AutoArrangeAction::class.java, "Auto Arrange", true)
     validateItem(items[3], Separator::class.java, null, true)
     validateItem(items[4], ZoomInAction::class.java, "Zoom In", true)
-    validateItem(items[5], ZoomOutAction::class.java, "Zoom Out", true)
+    validateItem(items[5], ZoomOutAction::class.java, "Zoom Out", false)
     validateItem(items[6], ZoomToFitAction::class.java, "Zoom to Fit Screen", true)
     validateItem(items[7], Separator::class.java, null, true)
     validateItem(items[8], GotoComponentAction::class.java, "Go to XML", true)
@@ -354,6 +389,7 @@ class NavActionManagerTest : NavTestCase() {
     val actionManager = NavActionManager(surface)
     val action1 = model.find("action1")!!
     val menuGroup = actionManager.getPopupMenuActions(action1)
+    surface.selectionModel.setSelection(listOf(action1))
     val items = menuGroup.getChildren(null)
 
     assertEquals(6, items.size)
@@ -361,21 +397,36 @@ class NavActionManagerTest : NavTestCase() {
     validateItem(items[1], Separator::class.java, null, true)
     validateItem(items[2], CutAction::class.java, "Cut", true)
     validateItem(items[3], CopyAction::class.java, "Copy", true)
-    validateItem(items[4], PasteAction::class.java, "Paste", true)
     validateItem(items[5], DeleteAction::class.java, "Delete", true)
+
+    // Make a copy to ensure Paste is available
+    surface.actionHandlerProvider.apply(surface).performCopy(DataContext.EMPTY_CONTEXT)
+    validateItem(items[4], PasteAction::class.java, "Paste", true)
   }
 
   private fun validateItem(item: AnAction, c: Class<*>, name: String?, enabled: Boolean) {
+    val surfaceActionProvider = surface.actionHandlerProvider.apply(surface)
+    val dataContext = SimpleDataContext.builder()
+      .add(CommonDataKeys.PROJECT, project)
+      .add(DESIGN_SURFACE, surface)
+      .add(ZOOMABLE_KEY, surface)
+      .add(COPY_PROVIDER, surfaceActionProvider)
+      .add(CUT_PROVIDER, surfaceActionProvider)
+      .add(PASTE_PROVIDER, surfaceActionProvider)
+      .add(DELETE_ELEMENT_PROVIDER, surfaceActionProvider)
+      .build()
+    val event = TestActionEvent(dataContext, item)
+    item.update(event)
     assertInstanceOf(item, c)
-    assertEquals(name, item.templatePresentation.text)
+    assertEquals(name, event.presentation.text)
     if (item is ActionGroup) {
       assertEquals(!enabled,
                    item.disableIfNoVisibleChildren() &&
                    !item.hideIfNoVisibleChildren() &&
-                   item.getChildren(null).none { it.templatePresentation.isVisible })
+                   item.getChildren(null).none { event.presentation.isVisible })
     }
     else {
-      assertEquals(enabled, item.templatePresentation.isEnabled)
+      assertEquals(enabled, event.presentation.isEnabled)
     }
   }
 }

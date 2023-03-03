@@ -81,7 +81,7 @@ import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.LayoutMetadata;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.StudioResourceRepositoryManager;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -219,17 +219,19 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    * @param sampleDataCounter start index for displaying sample data
+   * @param resourceRepositoryManager for namespace
    */
   @NotNull
   public static LayoutPsiPullParser create(@NotNull XmlFile file,
                                            @NotNull IRenderLogger logger,
                                            boolean honorMergeParentTag,
                                            @Nullable ResourceResolver resolver,
+                                           @Nullable ResourceRepositoryManager resourceRepositoryManager,
                                            int sampleDataCounter) {
     if (IdeResourcesUtil.getFolderType(file) == ResourceFolderType.MENU) {
-      return new MenuPsiPullParser(file, logger);
+      return new MenuPsiPullParser(file, logger, resourceRepositoryManager);
     }
-    return new LayoutPsiPullParser(file, logger, honorMergeParentTag, resolver, sampleDataCounter);
+    return new LayoutPsiPullParser(file, logger, honorMergeParentTag, resolver, resourceRepositoryManager, sampleDataCounter);
   }
 
   /**
@@ -240,8 +242,8 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    */
   @NotNull
-  public static LayoutPsiPullParser create(@NotNull XmlFile file, @NotNull IRenderLogger logger) {
-    return create(file, logger, true, null, 0);
+  public static LayoutPsiPullParser create(@NotNull XmlFile file, @NotNull IRenderLogger logger, @Nullable ResourceRepositoryManager resourceRepositoryManager) {
+    return create(file, logger, true, null, resourceRepositoryManager, 0);
   }
 
   /**
@@ -267,21 +269,23 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
                                            @Nullable Set<XmlTag> explodeNodes,
                                            @NotNull Density density,
                                            @Nullable ResourceResolver resourceResolver,
+                                           @Nullable ResourceRepositoryManager resourceRepositoryManager,
                                            @NotNull Boolean useToolsPositionAndVisibility) {
     if (explodeNodes != null && !explodeNodes.isEmpty()) {
-      return new PaddingLayoutPsiPullParser(file, logger, explodeNodes, density);
+      return new PaddingLayoutPsiPullParser(file, logger, explodeNodes, density, resourceRepositoryManager);
     } else {
       // This method is only called to create layouts from the preview/editor (not inflated by custom components) so we always honor
       // the tools:parentTag
-      return new LayoutPsiPullParser(file, logger, true, resourceResolver, useToolsPositionAndVisibility);
+      return new LayoutPsiPullParser(file, logger, true, resourceResolver, resourceRepositoryManager, useToolsPositionAndVisibility);
     }
   }
 
   @NotNull
   public static LayoutPsiPullParser create(@Nullable final AttributeFilter filter,
                                            @NotNull XmlTag root,
-                                           @NotNull IRenderLogger logger) {
-    return new AttributeFilteredLayoutParser(root, logger, filter);
+                                           @NotNull IRenderLogger logger,
+                                           @Nullable ResourceRepositoryManager resourceRepositoryManager) {
+    return new AttributeFilteredLayoutParser(root, logger, filter, resourceRepositoryManager);
   }
 
   @NotNull
@@ -296,8 +300,8 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    */
-  protected LayoutPsiPullParser(@NotNull XmlFile file, @NotNull ILayoutLog logger, boolean honorMergeParentTag) {
-    this(file, logger, honorMergeParentTag, null, 0);
+  protected LayoutPsiPullParser(@NotNull XmlFile file, @NotNull ILayoutLog logger, boolean honorMergeParentTag, @Nullable ResourceRepositoryManager resourceRepositoryManager) {
+    this(file, logger, honorMergeParentTag, null, resourceRepositoryManager, 0 );
   }
 
   /**
@@ -314,8 +318,9 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
                                 @NotNull ILayoutLog logger,
                                 boolean honorMergeParentTag,
                                 @Nullable ResourceResolver resolver,
+                                @Nullable ResourceRepositoryManager resourceRepositoryManager,
                                 int sampleDataCounter) {
-    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag, resolver, sampleDataCounter, true);
+    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag, resolver, resourceRepositoryManager, sampleDataCounter, true);
   }
 
   /**
@@ -333,8 +338,9 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
                                 @NotNull ILayoutLog logger,
                                 boolean honorMergeParentTag,
                                 @Nullable ResourceResolver resourceResolver,
+                                @Nullable ResourceRepositoryManager resourceRepositoryManager,
                                 boolean useToolsPositionAndVisibility) {
-    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag, resourceResolver, 0, useToolsPositionAndVisibility);
+    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag, resourceResolver, resourceRepositoryManager, 0, useToolsPositionAndVisibility);
   }
 
   /**
@@ -370,8 +376,9 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   protected LayoutPsiPullParser(@Nullable final XmlTag root,
                                 @NotNull ILayoutLog logger,
                                 boolean honorMergeParentTag,
-                                @Nullable ResourceResolver resourceResolver) {
-    this(root, logger, honorMergeParentTag, resourceResolver, 0, true);
+                                @Nullable ResourceResolver resourceResolver,
+                                @Nullable ResourceRepositoryManager resourceRepositoryManager) {
+    this(root, logger, honorMergeParentTag, resourceResolver, resourceRepositoryManager, 0, true);
   }
 
   /**
@@ -383,6 +390,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
                                 @NotNull ILayoutLog logger,
                                 boolean honorMergeParentTag,
                                 @Nullable ResourceResolver resourceResolver,
+                                @Nullable ResourceRepositoryManager repositoryManager,
                                 int sampleDataCounter,
                                 boolean useToolsPositionAndVisibility) {
     myResourceResolver = resourceResolver;
@@ -395,8 +403,6 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
     ReadAction.run(() -> {
       if (root != null && root.isValid()) {
         myRootRef.set(createSnapshot(root, honorMergeParentTag, mySampleDataProcessing));
-
-        StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(root);
         if (repositoryManager != null) {
           myLayoutNamespaceRef.set(repositoryManager.getNamespace());
         }
@@ -1154,13 +1160,19 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
     @Nullable
     private final AttributeFilter myFilter;
 
-    public AttributeFilteredLayoutParser(@NotNull XmlTag root, @NotNull ILayoutLog logger, @Nullable AttributeFilter filter) {
-      super(root, logger, true, null);
+    public AttributeFilteredLayoutParser(@NotNull XmlTag root,
+                                         @NotNull ILayoutLog logger,
+                                         @Nullable AttributeFilter filter,
+                                         @Nullable ResourceRepositoryManager resourceRepositoryManager) {
+      super(root, logger, true, null, resourceRepositoryManager);
       this.myFilter = filter;
     }
 
-    public AttributeFilteredLayoutParser(@NotNull XmlFile file, @NotNull ILayoutLog logger, @Nullable AttributeFilter filter) {
-      super(file, logger, true);
+    public AttributeFilteredLayoutParser(@NotNull XmlFile file,
+                                         @NotNull ILayoutLog logger,
+                                         @Nullable AttributeFilter filter,
+                                         @Nullable ResourceRepositoryManager resourceRepositoryManager) {
+      super(file, logger, true, resourceRepositoryManager);
       this.myFilter = filter;
     }
 

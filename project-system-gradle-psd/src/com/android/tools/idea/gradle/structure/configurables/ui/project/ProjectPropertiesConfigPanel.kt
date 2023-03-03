@@ -48,7 +48,7 @@ class ProjectPropertiesConfigPanel(project: PsProject, context: PsContext) :
     uiComponent.minimumSize = Dimension(500, 300)
     uiComponent.preferredSize = Dimension(1050, 440)
     if (GradleVersionCatalogDetector.getInstance(project.ideProject).isVersionCatalogProject) {
-      if (StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_CAVEATS.get()) {
+      if (StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_BANNERS.get()) {
         uiComponent.add(VersionCatalogWarningHeader(), BorderLayout.NORTH)
       }
     }

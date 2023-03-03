@@ -129,7 +129,7 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
       .setCommon(
         configBuilder.getCommonBuilder()
           .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
-          .setProfilerUnifiedPipeline(StudioFlags.PROFILER_UNIFIED_PIPELINE.get())
+          .setProfilerUnifiedPipeline(true)
           .setProfilerCustomEventVisualization(StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get()))
       .setCpu(
         Transport.DaemonConfig.CpuConfig.newBuilder()
@@ -147,7 +147,7 @@ public class AndroidProfilerService implements TransportDeviceManager.TransportD
       .setCommon(
         configBuilder.getCommonBuilder()
           .setEnergyProfilerEnabled(StudioFlags.PROFILER_ENERGY_PROFILER_ENABLED.get())
-          .setProfilerUnifiedPipeline(StudioFlags.PROFILER_UNIFIED_PIPELINE.get())
+          .setProfilerUnifiedPipeline(true)
           .setProfilerCustomEventVisualization(StudioFlags.PROFILER_CUSTOM_EVENT_VISUALIZATION.get())
           .setProfilerKeyboardEvent(StudioFlags.PROFILER_KEYBOARD_EVENT.get()))
       .setMem(

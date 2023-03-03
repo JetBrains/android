@@ -68,11 +68,9 @@ class RenderModel(
     }
 
   /** The distance the image was moved in x direction to rotate the image */
-  @VisibleForTesting
   var xOff = 0.0
 
   /** The distance the image was moved in y direction to rotate the image */
-  @VisibleForTesting
   var yOff = 0.0
 
   private var visibleBounds: Rectangle = Rectangle()

@@ -47,6 +47,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.CheckedDisposable
 import com.intellij.openapi.util.Disposer
 import org.gradle.tooling.events.ProgressEvent
 import java.io.File
@@ -66,12 +67,12 @@ class BuildAttributionManagerImpl(
   val analyzersProxy = BuildEventsAnalyzersProxy(taskContainer, pluginContainer)
   @get:VisibleForTesting
   lateinit var currentBuildRequest: GradleBuildInvoker.Request
-  private var currentBuildDisposable: Disposable? = null
+  private var currentBuildDisposable: CheckedDisposable? = null
   private val analyzersWrapper = BuildAnalyzersWrapper(analyzersProxy.buildAnalyzers, taskContainer, pluginContainer)
 
   override fun onBuildStart(request: GradleBuildInvoker.Request) {
     currentBuildRequest = request
-    currentBuildDisposable = Disposer.newDisposable("BuildAnalyzer disposable for ${request.taskId}")
+    currentBuildDisposable = Disposer.newCheckedDisposable("BuildAnalyzer disposable for ${request.taskId}")
     eventsProcessingFailedFlag = false
     myCurrentBuildInvocationType = detectBuildType(request)
     analyzersWrapper.onBuildStart()
@@ -189,9 +190,9 @@ class BuildAttributionManagerImpl(
     }
   }
 
-  private fun Project.setUpDownloadsInfoNodeOnBuildOutput(id: ExternalSystemTaskId, buildDisposable: Disposable) {
+  private fun Project.setUpDownloadsInfoNodeOnBuildOutput(id: ExternalSystemTaskId, buildDisposable: CheckedDisposable) {
     if (!StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()) return
-    val rootDownloadEvent = DownloadsInfoPresentableEvent(id, buildDisposable)
+    val rootDownloadEvent = DownloadsInfoPresentableEvent(id, buildDisposable, System.currentTimeMillis())
     val viewManager = getService(BuildViewManager::class.java)
     viewManager.onEvent(id, rootDownloadEvent)
   }

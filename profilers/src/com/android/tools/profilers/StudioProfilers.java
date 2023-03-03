@@ -872,10 +872,14 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   @NotNull
-  public SupportLevel getSelectedSessionSupportLevel() {
-    Common.Session session = mySessionsManager.getSelectedSession();
+  public SupportLevel getSupportLevelForSession(Common.Session session) {
     return SupportLevel.of(
       getProcessForStreamIdPidTimestamp(session.getStreamId(), session.getPid(), session.getStartTimestamp()).getExposureLevel());
+  }
+
+  @NotNull
+  public SupportLevel getSelectedSessionSupportLevel() {
+    return getSupportLevelForSession(mySessionsManager.getSelectedSession());
   }
 
   public boolean isAgentAttached() {

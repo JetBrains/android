@@ -39,7 +39,7 @@ private const val IS_TOOLBAR_HORIZONTAL = true
 /**
  * Provides view of one Android device in the Running Devices tool window.
  */
-abstract class RunningDevicePanel(
+internal abstract class RunningDevicePanel(
   val id: DeviceId,
   mainToolbarId: String,
   secondaryToolbarId: String
@@ -118,6 +118,7 @@ abstract class RunningDevicePanel(
   override fun getData(dataId: String): Any? {
     return when (dataId) {
       SERIAL_NUMBER_KEY.name -> id.serialNumber
+      STREAMING_CONTENT_PANEL_KEY.name -> centerPanel
       else -> null
     }
   }

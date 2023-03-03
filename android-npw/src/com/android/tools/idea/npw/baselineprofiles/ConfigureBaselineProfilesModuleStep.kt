@@ -43,7 +43,7 @@ import javax.swing.JComboBox
 import javax.swing.JPanel
 
 
-private const val BASELINE_PROFILES_AGP_MIN_VERSION = "8.0.0"
+private const val BASELINE_PROFILES_AGP_MIN_VERSION = "8.1.0"
 private const val GMD_LINK = "${AndroidWebHelpProvider.HELP_URL}studio/test/gradle-managed-devices"
 
 class ConfigureBaselineProfilesModuleStep(
@@ -121,6 +121,12 @@ class ConfigureBaselineProfilesModuleStep(
       cell(apiLevelCombo).horizontalAlign(HorizontalAlign.FILL)
     }
 
+    if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
+      row("Build configuration language") {
+        cell(buildConfigurationLanguageCombo).horizontalAlign(HorizontalAlign.FILL)
+      }
+    }
+
     row {
       cell(useGmdCheck)
       cell(
@@ -130,12 +136,6 @@ class ConfigureBaselineProfilesModuleStep(
           "Learn more"
         ) { BrowserUtil.browse(GMD_LINK) }
       ).horizontalAlign(HorizontalAlign.LEFT)
-    }
-
-    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get() || model.useGradleKts.get()) {
-      row {
-        cell(gradleKtsCheck)
-      }.topGap(TopGap.SMALL)
     }
   }
 }

@@ -22,13 +22,13 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
@@ -40,15 +40,15 @@ import java.util.concurrent.TimeUnit
 class EnergyProfilerStageViewTest {
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, true)
-  private val energyService = FakeEnergyService()
 
   @get:Rule
-  var grpcChannel = FakeGrpcChannel(EnergyProfilerStageViewTest::class.java.simpleName, transportService, energyService,
-                                    FakeProfilerService(timer))
+  var grpcChannel = FakeGrpcChannel(EnergyProfilerStageViewTest::class.java.simpleName, transportService)
   @get:Rule
   val edtRule = EdtRule()
   @get:Rule
   val applicationRule = ApplicationRule()
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   private lateinit var view: StudioProfilersView
 
@@ -64,7 +64,7 @@ class EnergyProfilerStageViewTest {
     // in the channel, and the tick loop would not complete properly to set the process and agent status.
     profilers.stage = EnergyProfilerStage(profilers)
     // Initialize the view after the stage, otherwise it will create the views for the monitoring stage.
-    view = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    view = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
   }
 
   @Test

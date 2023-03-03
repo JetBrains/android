@@ -121,4 +121,11 @@ public abstract class Stage<T extends Timeline> extends AspectObserver {
   public boolean isInteractingWithTimeline() {
     return true;
   }
+
+  /**
+   * Log a message (e.g., to idea.log) indicating the entering of a profiler stage.
+   */
+  protected void logEnterStage() {
+    LogUtils.logIfVerbose(myProfilers.getIdeServices(), this.getClass(), "Enter " + this.getClass().getSimpleName());
+  }
 }

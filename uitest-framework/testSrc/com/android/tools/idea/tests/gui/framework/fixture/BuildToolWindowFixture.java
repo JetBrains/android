@@ -19,7 +19,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.ex.ToolWindowEx;
 import com.intellij.openapi.wm.impl.InternalDecorator;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
@@ -43,26 +42,41 @@ public class BuildToolWindowFixture extends ToolWindowFixture {
     super("Build", project, robot);
   }
 
+  public Content getSyncContent() {
+    return getContent("Sync");
+  }
+
   /**
    * @return the console view in Sync tab of Build tool window.
    */
   @NotNull
   public ConsoleViewImpl getGradleSyncConsoleView() {
-    Content syncContent = getContent("Sync");
+    Content syncContent = getSyncContent();
     return myRobot.finder().findByType(syncContent.getComponent(), ConsoleViewImpl.class, true /* showing */);
   }
 
   @NotNull
   public JTreeFixture getGradleSyncEventTree() {
-    Content syncContent = getContent("Sync");
+    Content syncContent = getSyncContent();
     JTree tree = myRobot.finder().findByType(syncContent.getComponent(), JTree.class, true /* showing */);
     return new JTreeFixture(myRobot, tree);
   }
 
+  public Content getBuildContent() {
+    return getContent("Build Output");
+  }
+
   @NotNull
   public ConsoleViewImpl getGradleBuildConsoleView() {
-    Content buildContent = getContent("Build Output");
+    Content buildContent = getBuildContent();
     return myRobot.finder().findByType(buildContent.getComponent(), ConsoleViewImpl.class, true /* showing */);
+  }
+
+  @NotNull
+  public JTreeFixture getGradleBuildEventTree() {
+    Content syncContent = getBuildContent();
+    JTree tree = myRobot.finder().findByType(syncContent.getComponent(), JTree.class, true /* showing */);
+    return new JTreeFixture(myRobot, tree);
   }
 
   /**

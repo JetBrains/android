@@ -52,7 +52,6 @@ import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
@@ -61,7 +60,6 @@ import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.utils.HtmlBuilder;
@@ -97,7 +95,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Function;
+import java.util.function.Supplier;
 import org.jetbrains.android.uipreview.ClassLoaderPreloaderKt;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
@@ -176,7 +174,7 @@ public class RenderTask {
   private final List<CompletableFuture<?>> myRunningFutures = new LinkedList<>();
   @NotNull private final AtomicBoolean isDisposed = new AtomicBoolean(false);
   @Nullable private XmlFile myXmlFile;
-  @NotNull private final Function<Module, MergedManifestSnapshot> myManifestProvider;
+  @NotNull private final Supplier<RenderModelManifest> myManifestProvider;
   @NotNull private final ModuleClassLoader myModuleClassLoader;
 
   /**
@@ -203,7 +201,7 @@ public class RenderTask {
              boolean isSecurityManagerEnabled,
              float quality,
              @NotNull StackTraceCapture stackTraceCaptureElement,
-             @NotNull Function<Module, MergedManifestSnapshot> manifestProvider,
+             @NotNull Supplier<RenderModelManifest> manifestProvider,
              boolean privateClassLoader,
              @NotNull ClassTransform additionalProjectTransform,
              @NotNull ClassTransform additionalNonProjectTransform,
@@ -237,8 +235,7 @@ public class RenderTask {
                                     ScreenOrientation.PORTRAIT;
     myHardwareConfigHelper.setOrientation(orientation);
     myLayoutLib = layoutLib;
-    LocalResourceRepository appResources = renderContext.getModule().getStudioResourceRepositoryManager().getAppResources();
-    ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
+    ActionBarHandler actionBarHandler = new ActionBarHandler(this, manifestProvider, myCredential);
     WeakReference<RenderTask> xmlFileProvider = new WeakReference<>(this);
     ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(renderContext.getModule().getIdeaModule(), () -> {
       RenderTask task = xmlFileProvider.get();
@@ -617,7 +614,7 @@ public class RenderTask {
       params.setLocale(myLocale.toLocaleId());
     }
     try {
-      @Nullable MergedManifestSnapshot manifestInfo = myManifestProvider.apply(module);
+      @Nullable RenderModelManifest manifestInfo = myManifestProvider.get();
       params.setRtlSupport(manifestInfo != null && manifestInfo.isRtlSupported());
     }
     catch (Exception e) {
@@ -631,7 +628,7 @@ public class RenderTask {
     }
     else {
       try {
-        @Nullable MergedManifestSnapshot manifestInfo = myManifestProvider.apply(module);
+        @Nullable RenderModelManifest manifestInfo = myManifestProvider.get();
         ResourceValue appLabel = manifestInfo != null
                                  ? manifestInfo.getApplicationLabel()
                                  : new ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.STRING, "appName", "");
@@ -677,7 +674,7 @@ public class RenderTask {
       myLayoutlibCallback.setLogger(myLogger);
 
       RenderSecurityManager securityManager =
-        isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module, context.getModule().getAndroidPlatform()) : null;
+        isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module.getProject().getBasePath(), context.getModule().getAndroidPlatform()) : null;
       if (securityManager != null) {
         securityManager.setActive(true, myCredential);
       }
@@ -728,8 +725,7 @@ public class RenderTask {
     // Code to support editing included layout.
     if (myIncludedWithin == null) {
       String layout = IncludeReference.getIncludingLayout(xmlFile);
-      Module module = getContext().getModule().getIdeaModule();
-      myIncludedWithin = layout != null ? IncludeReference.get(module, xmlFile, resolver) : IncludeReference.NONE;
+      myIncludedWithin = layout != null ? IncludeReference.get(xmlFile, resolver) : IncludeReference.NONE;
     }
 
     ILayoutPullParser topParser = null;
@@ -751,7 +747,8 @@ public class RenderTask {
       // Attempt to read from PSI.
       PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(getContext().getModule().getIdeaModule().getProject(), layoutVirtualFile);
       if (psiFile instanceof XmlFile) {
-        LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger);
+        LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger,
+                                                                myContext.getModule().getResourceRepositoryManager());
         // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
         parser.setProvideViewCookies(myProvideCookiesForIncludedViews);
         topParser = parser;
@@ -1248,7 +1245,10 @@ public class RenderTask {
    */
   @NotNull
   public CompletableFuture<Map<XmlTag, ViewInfo>> measureChildren(@NotNull XmlTag parent, @Nullable AttributeFilter filter) {
-    ILayoutPullParser modelParser = LayoutPsiPullParser.create(filter, parent, myLogger);
+    ILayoutPullParser modelParser = LayoutPsiPullParser.create(filter,
+                                                               parent,
+                                                               myLogger,
+                                                               myContext.getModule().getResourceRepositoryManager());
     Map<XmlTag, ViewInfo> map = new HashMap<>();
     return RenderService.getRenderAsyncActionExecutor().runAsyncAction(myPriority, () -> measure(modelParser))
       .thenComposeAsync(session -> {
@@ -1332,7 +1332,7 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
     params.setFlag(RenderParamsFlags.FLAG_KEY_USE_THEMED_ICON, configuration.getUseThemedIcon());
     params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
-    @Nullable MergedManifestSnapshot manifestInfo = myManifestProvider.apply(module);
+    @Nullable RenderModelManifest manifestInfo = myManifestProvider.get();
     params.setRtlSupport(manifestInfo != null && manifestInfo.isRtlSupported());
 
     try {

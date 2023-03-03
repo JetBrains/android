@@ -34,5 +34,6 @@ iml_module(
         "//tools/adt/idea/server-flags:intellij.android.server-flags[module]",
         "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
     ],
 )

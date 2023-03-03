@@ -20,7 +20,7 @@ import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.ShellV2Protocol
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
-import com.android.tools.idea.testingutils.FakeAdbServiceRule
+import com.android.tools.idea.adb.FakeAdbServiceRule
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.ex.ProjectEx

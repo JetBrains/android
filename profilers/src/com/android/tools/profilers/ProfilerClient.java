@@ -35,12 +35,7 @@ import org.jetbrains.annotations.NotNull;
 public class ProfilerClient {
   @NotNull private final ManagedChannel myChannel;
   @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myTransportClient;
-  @NotNull private final ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerClient;
-  @NotNull private final MemoryServiceGrpc.MemoryServiceBlockingStub myMemoryClient;
-  @NotNull private final CpuServiceGrpc.CpuServiceBlockingStub myCpuClient;
-  @NotNull private final NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkClient;
   @NotNull private final EventServiceGrpc.EventServiceBlockingStub myEventClient;
-  @NotNull private final EnergyServiceGrpc.EnergyServiceBlockingStub myEnergyClient;
 
   public ProfilerClient(@NotNull String name) {
     // Optimization - In-process direct-executor channel which allows us to communicate between the profiler and transport-database without
@@ -52,12 +47,7 @@ public class ProfilerClient {
   public ProfilerClient(@NotNull ManagedChannel channel) {
     myChannel = channel;
     myTransportClient = TransportServiceGrpc.newBlockingStub(channel);
-    myProfilerClient = ProfilerServiceGrpc.newBlockingStub(channel);
-    myMemoryClient = MemoryServiceGrpc.newBlockingStub(channel);
-    myCpuClient = CpuServiceGrpc.newBlockingStub(channel);
-    myNetworkClient = NetworkServiceGrpc.newBlockingStub(channel);
     myEventClient = EventServiceGrpc.newBlockingStub(channel);
-    myEnergyClient = EnergyServiceGrpc.newBlockingStub(channel);
   }
 
   @NotNull
@@ -70,33 +60,8 @@ public class ProfilerClient {
   }
 
   @NotNull
-  public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient() {
-    return myProfilerClient;
-  }
-
-  @NotNull
-  public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient() {
-    return myMemoryClient;
-  }
-
-  @NotNull
-  public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient() {
-    return myCpuClient;
-  }
-
-  @NotNull
-  public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient() {
-    return myNetworkClient;
-  }
-
-  @NotNull
   public EventServiceGrpc.EventServiceBlockingStub getEventClient() {
     return myEventClient;
-  }
-
-  @NotNull
-  public EnergyServiceGrpc.EnergyServiceBlockingStub getEnergyClient() {
-    return myEnergyClient;
   }
 
   /**

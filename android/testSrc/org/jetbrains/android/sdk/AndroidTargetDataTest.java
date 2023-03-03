@@ -25,16 +25,9 @@ import static org.mockito.Mockito.when;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.sdklib.IAndroidTarget;
-import com.android.testutils.TestUtils;
+import com.android.tools.sdk.AndroidSdkData;
 import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.util.xml.NanoXmlUtil;
-import gnu.trove.TIntObjectHashMap;
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import net.n3.nanoxml.IXMLBuilder;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 
@@ -77,7 +70,7 @@ public class AndroidTargetDataTest extends AndroidTestCase {
     when(target.getPath(eq(IAndroidTarget.RESOURCES))).thenReturn(resDir.toPath());
 
     AndroidTargetData targetData = new AndroidTargetData(mock(AndroidSdkData.class), target);
-    AttributeDefinitions publicAttrs = targetData.getPublicAttrDefs(getProject());
+    AttributeDefinitions publicAttrs = targetData.getPublicAttrDefs();
 
     assertThat(publicAttrs.getAttrs()).containsExactly(ResourceReference.attr(ResourceNamespace.ANDROID, "realAttr"));
   }

@@ -22,7 +22,6 @@ import com.android.tools.idea.device.explorer.files.DeviceFileEntryNode;
 import com.android.tools.idea.device.explorer.files.ErrorNode;
 import com.android.tools.idea.device.explorer.files.MyLoadingNode;
 import com.android.tools.idea.device.explorer.files.fs.DeviceFileEntry;
-import com.android.tools.idea.device.explorer.files.fs.DeviceFileSystem;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.ui.search.SearchUtil;
 import com.intellij.openapi.actionSystem.ActionManager;
@@ -47,7 +46,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import javax.swing.Icon;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JTree;
@@ -87,6 +85,11 @@ public class DeviceExplorerPanel {
   @NotNull
   public ProgressPanel getProgressPanel() {
     return myProgressPanel;
+  }
+
+  @NotNull
+  public JPanel getToolbarPanel() {
+    return myToolbarPanel;
   }
 
   @TestOnly

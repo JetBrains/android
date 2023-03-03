@@ -24,6 +24,7 @@ import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
 import com.android.tools.idea.model.MergedManifestManager;
+import com.android.tools.idea.rendering.RenderMergedManifest;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
@@ -140,7 +141,7 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
     return super.setupRenderTaskBuilder(taskBuilder)
       .disableSecurityManager()
       // For testing, we do not need to wait for the full merged manifest
-      .setMergedManifestProvider(module -> MergedManifestManager.getMergedManifestSupplier(module).getNow());
+      .setManifestProvider(module -> new RenderMergedManifest(MergedManifestManager.getMergedManifestSupplier(module).getNow()));
   }
 
   @Override

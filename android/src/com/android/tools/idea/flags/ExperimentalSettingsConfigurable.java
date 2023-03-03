@@ -64,7 +64,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
   private JCheckBox myEnableParallelSync;
 
-  private JCheckBox myEnableVersionCatalogParsing;
+  private JCheckBox myExtendedVersionCatalogSupport;
   private JCheckBox myEnableDeviceApiOptimization;
 
   private Runnable myRestartCallback;
@@ -84,7 +84,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myUseL2DependenciesCheckBox.setVisible(false);
 
     myEnableParallelSync.setVisible(StudioFlags.GRADLE_SYNC_PARALLEL_SYNC_ENABLED.get());
-    myEnableVersionCatalogParsing.setVisible(StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.get());
+    myExtendedVersionCatalogSupport.setVisible(StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.get());
     myEnableDeviceApiOptimization.setVisible(StudioFlags.API_OPTIMIZATION_ENABLE.get());
 
     Hashtable<Integer, JComponent> qualityLabels = new Hashtable<>();
@@ -135,7 +135,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
            mySettings.ENABLE_GRADLE_API_OPTIMIZATION != isGradleApiOptimization() ||
            (int)(myRenderSettings.getQuality() * 100) != getQualitySetting() ||
            myPreviewPickerCheckBox.isSelected() != ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled() ||
-           myEnableVersionCatalogParsing.isSelected() != GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled();
+           myExtendedVersionCatalogSupport.isSelected() != GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled();
   }
 
   private int getQualitySetting() {
@@ -153,7 +153,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
 
     applyTraceSettings();
     ComposeExperimentalConfiguration.getInstance().setPreviewPickerEnabled(myPreviewPickerCheckBox.isSelected());
-    GradleDslModelExperimentalSettings.getInstance().setVersionCatalogEnabled(myEnableVersionCatalogParsing.isSelected());
+    GradleDslModelExperimentalSettings.getInstance().setVersionCatalogEnabled(myExtendedVersionCatalogSupport.isSelected());
   }
 
   @Override
@@ -231,8 +231,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   }
 
   @TestOnly
-  void setEnableVersionCatalogParsing(boolean value) {
-    myEnableVersionCatalogParsing.setSelected(value);
+  void setExtendedVersionCatalogSupport(boolean value) {
+    myExtendedVersionCatalogSupport.setSelected(value);
   }
 
   private void initTraceComponents() {
@@ -324,7 +324,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myEnableDeviceApiOptimization.setSelected(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
     updateTraceComponents();
     myPreviewPickerCheckBox.setSelected(ComposeExperimentalConfiguration.getInstance().isPreviewPickerEnabled());
-    myEnableVersionCatalogParsing.setSelected(GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled());
+    myExtendedVersionCatalogSupport.setSelected(GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled());
   }
 
   public enum TraceProfileItem {

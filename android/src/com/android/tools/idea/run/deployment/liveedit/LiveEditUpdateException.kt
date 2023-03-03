@@ -37,6 +37,7 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
     UNSUPPORTED_SRC_CHANGE_RECOVERABLE("Unsupported change", "%", true),
     UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE("Unsupported change", "%", false),
     UNSUPPORTED_TEST_SRC_CHANGE("Test sources not supported", "%", false),
+    UNABLE_TO_DESUGAR("Error during desugar: ", "%", false),
 
     INTERNAL_ERROR("Internal Error", "%", false),
     KNOWN_ISSUE("Known Issue", "%", true),
@@ -86,6 +87,10 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
     fun nonPrivateInlineFunctionFailure(source: PsiFile? = null) =
       LiveEditUpdateException(Error.NON_PRIVATE_INLINE_FUNCTION, "Inline functions visible outside of the file cannot be live edited. " +
                                                                  "Application needs to be rebuild.", source, null)
+
+    fun desugarFailure(details: String) {
+      LiveEditUpdateException(Error.UNABLE_TO_DESUGAR, details, null, null)
+    }
   }
 }
 

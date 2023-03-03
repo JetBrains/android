@@ -33,6 +33,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/.idea/libraries:studio-grpc",
         "//tools/adt/idea/.idea/libraries:studio-proto",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
     ],
 )
 
@@ -60,7 +61,7 @@ iml_module(
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/android-adb:intellij.android.adb[module, test]",
-        "//tools/adt/idea/android-adb:intellij.android.adb.tests[module, test]",
+        "//tools/adt/idea/android-adb:intellij.android.adb.testUtil[module, test]",
         "//tools/adt/idea/android-adb-ui:intellij.android.adb.ui[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",

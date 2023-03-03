@@ -20,6 +20,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Ignore
 import org.junit.Test
 import kotlin.random.Random
 
@@ -82,7 +83,7 @@ class ConflatingFlowTest {
       waiting + new
     }
       .collect {
-        delay(Random.nextLong(0, 100))
+        delay(100)
         if (it.contains(slowElement)) {
           // Add a bunch 4 more permits in one go. This will generate a bunch of inputs
           // very quickly and will allow a batch of 5 to form.

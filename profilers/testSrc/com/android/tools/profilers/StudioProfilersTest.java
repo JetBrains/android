@@ -57,7 +57,6 @@ public final class StudioProfilersTest {
 
   @Before
   public void setUp() {
-    myIdeProfilerServices.enableEventsPipeline(true);
     myProfilers = new StudioProfilers(new ProfilerClient(myGrpcServer.getChannel()), myIdeProfilerServices, myTimer);
   }
 

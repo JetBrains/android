@@ -33,6 +33,11 @@ import com.android.tools.tests.IdeaTestSuiteBase
 import com.android.tools.tests.LeakCheckerRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.containers.map2Array
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.time.delay
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.jetbrains.android.AndroidTestBase
 import org.junit.After
@@ -46,6 +51,8 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.Duration
 import java.time.Instant
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import kotlin.io.path.createDirectory
 import kotlin.system.measureTimeMillis
 
@@ -54,38 +61,43 @@ abstract class AbstractGradleSyncMemoryUsageTestCase : IdeaTestSuiteBase() {
 
   abstract val projectName: String
   abstract val memoryLimitMb: Int
+  abstract val lightweightMode: Boolean
 
   @get:Rule
   val projectRule = AndroidProjectRule.withIntegrationTestEnvironment()
 
   private lateinit var outputDirectory: String
   private val memoryAgentPath = System.getProperty("memory.agent.path")
+  private val analysisFlag =
+    // This can be specified via --jvmopt="-Dkeep_snapshots=true" in bazel test invocation and  will collect hprofs in the bazel output.
+    // It won't do any measurements since it takes extra time, and it's to be used for manual inspection via a profiler.
+    if (System.getProperty("keep_snapshots").toBoolean())
+      StudioFlags.GRADLE_HPROF_OUTPUT_DIRECTORY
+    else
+      StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY
+
 
   @Before
   open fun setUp() {
     outputDirectory = File(System.getenv("TEST_TMPDIR"), "snapshots").also {
       it.toPath().createDirectory()
     }.absolutePath
-    StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY.override(outputDirectory)
+    analysisFlag.override(outputDirectory)
+    StudioFlags.GRADLE_HEAP_ANALYSIS_LIGHTWEIGHT_MODE.override(lightweightMode)
   }
 
   @After
   open fun tearDown() {
-    val tmpDir = Paths.get(System.getProperty("java.io.tmpdir"))
-    val testOutputDir = TestUtils.getTestOutputDir()
-    tmpDir
-      .resolve(".gradle/daemon").toFile()
-      .walk()
-      .filter { it.name.endsWith("out.log") }
-      .forEach {
-        Files.move(it.toPath(), testOutputDir.resolve(it.name))
-      }
-    StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY.clearOverride()
+    collectDaemonLogs()
+    collectHprofs(outputDirectory)
+    StudioFlags.GRADLE_HEAP_ANALYSIS_LIGHTWEIGHT_MODE.clearOverride()
+    analysisFlag.clearOverride()
     File(outputDirectory).delete()
   }
 
   @Test
-  open fun testSyncMemory() {
+  fun testSyncMemory() = runBlocking {
+    startMemoryPolling()
     setJvmArgs()
     projectRule.openTestProject(testProjectTemplateFromPath(
         path = DIRECTORY,
@@ -109,14 +121,14 @@ abstract class AbstractGradleSyncMemoryUsageTestCase : IdeaTestSuiteBase() {
       var result : LightweightTraverseResult?
 
       val elapsedTimeAfterSync = measureTimeMillis {
-        result = LightweightHeapTraverse.collectReport(LightweightHeapTraverseConfig())
+        result = LightweightHeapTraverse.collectReport(LightweightHeapTraverseConfig(false, true, true))
       }
       println("Heap traversal for IDE after sync finished in $elapsedTimeAfterSync milliseconds")
 
-      metricIdeAfterSyncTotal.addSamples(BENCHMARK, MetricSample(currentTime, result!!.totalObjectsSizeBytes))
+      metricIdeAfterSyncTotal.addSamples(BENCHMARK, MetricSample(currentTime, result!!.totalReachableObjectsSizeBytes))
       metricIdeAfterSync.addSamples(BENCHMARK, MetricSample(currentTime, result!!.totalStrongReferencedObjectsSizeBytes))
-      println("IDE total size MBs: ${result!!.totalObjectsSizeBytes shr 20} ")
-      println("IDE total object count: ${result!!.totalObjectsNumber} ")
+      println("IDE total size MBs: ${result!!.totalReachableObjectsSizeBytes shr 20} ")
+      println("IDE total object count: ${result!!.totalReachableObjectsNumber} ")
       println("IDE strong size MBs: ${result!!.totalStrongReferencedObjectsSizeBytes shr 20} ")
       println("IDE strong object count: ${result!!.totalStrongReferencedObjectsNumber} ")
 
@@ -138,7 +150,6 @@ abstract class AbstractGradleSyncMemoryUsageTestCase : IdeaTestSuiteBase() {
       metricIdeAfterSync.commit()
       metricIdeAfterSyncTotal.commit()
     }
-
   }
 
   private fun setJvmArgs() {
@@ -176,3 +187,39 @@ abstract class AbstractGradleSyncMemoryUsageTestCase : IdeaTestSuiteBase() {
     private fun String.toSpec() = DiffSpec("prebuilts/studio/buildbenchmarks/extra-large.2022.9/$this", 0)
   }
 }
+
+private fun collectDaemonLogs() {
+  val tmpDir = Paths.get(System.getProperty("java.io.tmpdir"))
+  val testOutputDir = TestUtils.getTestOutputDir()
+  tmpDir
+    .resolve(".gradle/daemon").toFile()
+    .walk()
+    .filter { it.name.endsWith("out.log") }
+    .forEach {
+      Files.move(it.toPath(), testOutputDir.resolve(it.name))
+    }
+}
+
+private fun collectHprofs(outputDirectory: String) {
+  File(outputDirectory).walk().filter { !it.isDirectory && it.name.endsWith(".hprof")}.forEach {
+    Files.move(it.toPath(),  TestUtils.getTestOutputDir().resolve(it.name))
+  }
+}
+
+private fun startMemoryPolling() {
+  // This is used just for logging and diagnosing issues in the test
+  CoroutineScope(Dispatchers.IO).launch {
+    while (true) {
+      File("/proc/meminfo").readLines().filter { it.startsWith("Mem") }.forEach {
+        // This will have MemAvailable, MemFree, MemTotal lines
+        println("${getTimestamp()} - $it")
+      }
+      delay(Duration.ofSeconds(15))
+    }
+  }
+}
+
+private fun getTimestamp() = DateTimeFormatter
+  .ofPattern("yyyy-MM dd-HH:mm:ss.SSS")
+  .withZone(ZoneOffset.UTC)
+  .format(Instant.now())

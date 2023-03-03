@@ -17,9 +17,12 @@ package com.android.tools.idea.device.explorer.monitor
 
 import com.android.annotations.concurrency.UiThread
 import com.android.ddmlib.IDevice
+import com.android.tools.analytics.UsageTracker.log
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorView
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DeviceExplorerEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -78,6 +81,17 @@ class DeviceMonitorControllerImpl(
     uiThreadScope.cancel("${javaClass.simpleName} has been disposed")
   }
 
+  private fun trackAction(action: DeviceExplorerEvent.Action) {
+    log(
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.DEVICE_EXPLORER)
+        .setDeviceExplorerEvent(
+          DeviceExplorerEvent.newBuilder()
+            .setAction(action)
+        )
+    )
+  }
+
   private inner class ModelDeviceServiceListener : DeviceServiceListener {
     override fun deviceProcessListUpdated(device: IDevice) {
       uiThreadScope.launch {
@@ -91,24 +105,28 @@ class DeviceMonitorControllerImpl(
     override fun refreshInvoked() {
       uiThreadScope.launch {
         model.refreshCurrentProcessList()
+        trackAction(DeviceExplorerEvent.Action.REFRESH_PROCESSES)
       }
     }
 
-    override fun killNodesInvoked(nodes: List<ProcessTreeNode>) {
+    override fun killNodesInvoked(rows: IntArray) {
       uiThreadScope.launch {
-        model.killNodesInvoked(nodes)
+        model.killNodesInvoked(rows)
+        trackAction(DeviceExplorerEvent.Action.KILL)
       }
     }
 
-    override fun forceStopNodesInvoked(nodes: List<ProcessTreeNode>) {
+    override fun forceStopNodesInvoked(rows: IntArray) {
       uiThreadScope.launch {
-        model.forceStopNodesInvoked(nodes)
+        model.forceStopNodesInvoked(rows)
+        trackAction(DeviceExplorerEvent.Action.FORCE_STOP)
       }
     }
 
-    override fun debugNodes(nodes: List<ProcessTreeNode>) {
+    override fun debugNodes(rows: IntArray) {
       uiThreadScope.launch {
-        model.debugNodesInvoked(project, nodes)
+        model.debugNodesInvoked(project, rows)
+        trackAction(DeviceExplorerEvent.Action.ATTACH_DEBUGGER)
       }
     }
   }

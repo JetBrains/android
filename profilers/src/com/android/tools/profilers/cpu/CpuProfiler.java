@@ -48,6 +48,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -311,6 +312,43 @@ public class CpuProfiler implements StudioProfiler {
       return Common.Event.getDefaultInstance();
     }
     return response.getGroups(0).getEvents(response.getGroups(0).getEventsCount() - 1);
+  }
+
+  /**
+   * Executes a start trace command for cpu-based tracing and registers a listener
+   * for the expected response event. This listener, on event reception, calls the
+   * passed in callback reponseHandler.
+   */
+  public static void startTracing(@NotNull StudioProfilers profilers,
+                                  @NotNull Common.Session session,
+                                  @NotNull Trace.TraceConfiguration configuration,
+                                  @NotNull Consumer<Trace.TraceStartStatus> responseHandler) {
+    Executor poolExecutor = profilers.getIdeServices().getPoolExecutor();
+    Commands.Command startCommand = Commands.Command.newBuilder()
+      .setStreamId(session.getStreamId())
+      .setPid(session.getPid())
+      .setType(Commands.Command.CommandType.START_TRACE)
+      .setStartTrace(Trace.StartTrace.newBuilder()
+                       .setProfilerType(Trace.ProfilerType.CPU)
+                       .setConfiguration(configuration)
+                       .build())
+      .build();
+
+    profilers.getClient().executeAsync(startCommand, poolExecutor)
+      .thenAcceptAsync(response -> {
+        TransportEventListener statusListener = new TransportEventListener(
+          Common.Event.Kind.TRACE_STATUS,
+          profilers.getIdeServices().getMainExecutor(),
+          event -> event.getCommandId() == response.getCommandId(),
+          session::getStreamId,
+          session::getPid,
+          event -> {
+            responseHandler.accept(event.getTraceStatus().getTraceStartStatus());
+            // unregisters the listener.
+            return true;
+          });
+        profilers.getTransportPoller().registerListener(statusListener);
+      }, poolExecutor);
   }
 
   public static void stopTracing(@NotNull StudioProfilers profilers,

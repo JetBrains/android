@@ -113,7 +113,6 @@ class ScreenshotAction : DumbAwareAction(
 
   interface ScreenshotOptions {
     val serialNumber: String
-    val apiLevel: Int
     val screenshotViewerOptions: Set<ScreenshotViewer.Option>
     val screenshotPostprocessor: ScreenshotPostprocessor
 

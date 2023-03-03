@@ -56,10 +56,10 @@ SessionEnvironment::SessionEnvironment(bool turn_off_display)
 
   if (turn_off_display) {
     // Turn off display.
-    SurfaceControl surface_control(Jvm::GetJni());
-    JObject display_token = surface_control.GetInternalDisplayToken();
+    Jni jni = Jvm::GetJni();
+    JObject display_token = SurfaceControl::GetInternalDisplayToken(jni);
     if (!display_token.IsNull()) {
-      surface_control.SetDisplayPowerMode(display_token, DisplayPowerMode::POWER_MODE_OFF);
+      SurfaceControl::SetDisplayPowerMode(jni, display_token, DisplayPowerMode::POWER_MODE_OFF);
       restore_normal_display_power_mode_ = true;
     }
   }
@@ -69,10 +69,10 @@ SessionEnvironment::SessionEnvironment(bool turn_off_display)
 
 SessionEnvironment::~SessionEnvironment() {
   if (restore_normal_display_power_mode_) {
-    SurfaceControl surface_control(Jvm::GetJni());
-    JObject display_token = surface_control.GetInternalDisplayToken();
+    Jni jni = Jvm::GetJni();
+    JObject display_token = SurfaceControl::GetInternalDisplayToken(jni);
     if (!display_token.IsNull()) {
-      surface_control.SetDisplayPowerMode(display_token, DisplayPowerMode::POWER_MODE_NORMAL);
+      SurfaceControl::SetDisplayPowerMode(jni, display_token, DisplayPowerMode::POWER_MODE_NORMAL);
     }
   }
   stay_on_.Restore();

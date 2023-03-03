@@ -25,7 +25,6 @@ import com.android.tools.idea.observable.ui.TextProperty
 import com.android.tools.idea.wizard.template.CppStandardType
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.AlignX
-import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
 import org.jetbrains.android.util.AndroidBundle.message
 import javax.swing.JComboBox
@@ -70,10 +69,10 @@ class ConfigureAndroidNativeModuleStep(val model: NewAndroidNativeModuleModel,
       cell(apiLevelCombo).align(AlignX.FILL)
     }
 
-    if (StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.get() || model.useGradleKts.get()) {
-      row {
-        cell(gradleKtsCheck)
-      }.topGap(TopGap.SMALL)
+    if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
+      row("Build configuration language") {
+        cell(buildConfigurationLanguageCombo).align(AlignX.FILL)
+      }
     }
   }
 }

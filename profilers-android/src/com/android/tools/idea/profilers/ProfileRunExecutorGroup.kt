@@ -134,6 +134,16 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
 
   override fun createExecutorGroupWrapper(actionGroup: ActionGroup): ExecutorGroupWrapper = GroupWrapper(actionGroup)
 
+  /**
+   * Returns the child executor for the given profiling mode.
+   *
+   * The child executor's IDs are in the format of "Android Profiler Group#1", per the implementation of ExecutorGroup. Because
+   * the IDs are not very readable, action name is compared to locate the executor.
+   */
+  fun getChildExecutor(profilingMode: ProfilingMode): Executor = childExecutors().filter { e ->
+    e.actionName == ProfilerSetting(profilingMode).actionName
+  }.first()
+
   companion object {
     private val PROFILEABLE_ICON = StudioIcons.Shell.Toolbar.PROFILER_LOW_OVERHEAD
     private val DEBUGGABLE_ICON = StudioIcons.Shell.Toolbar.PROFILER_DETAILED

@@ -43,10 +43,9 @@ class AllocationSamplingRateDataSeriesTest {
 
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer)
-  private val myService = FakeMemoryService()
 
   @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("AllocationSamplingRateDataSeriesTest", myTransportService, myService)
+  var myGrpcChannel = FakeGrpcChannel("AllocationSamplingRateDataSeriesTest", myTransportService)
 
   @Test
   fun testGetDataForXRange() {

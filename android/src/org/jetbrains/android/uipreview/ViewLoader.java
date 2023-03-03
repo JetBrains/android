@@ -39,7 +39,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
-import com.google.common.collect.Sets;
 import com.intellij.facet.Facet;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -75,7 +74,6 @@ public class ViewLoader {
   /** Classes that are being loaded currently. */
   @NotNull private final Multiset<Class<?>> myLoadingClasses = HashMultiset.create(5);
   /** Classes that have been modified after compilation. */
-  @NotNull private final Set<String> myRecentlyModifiedClasses = Sets.newHashSetWithExpectedSize(5);
   @Nullable private final Object myCredential;
   @NotNull private final LayoutLibrary myLayoutLibrary;
   /** {@link IRenderLogger} used to log loading problems. */

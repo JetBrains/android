@@ -64,7 +64,7 @@ import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.StudioResourceRepositoryManager;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeInsight.template.emmet.generators.LoremGenerator;
@@ -176,6 +176,8 @@ public class LayoutPullParsers {
       throw new IllegalArgumentException("RenderTask always should always have PsiFile when it has ResourceFolderType");
     }
 
+    ResourceRepositoryManager manager = renderTask.getContext().getModule().getResourceRepositoryManager();
+
     switch (folderType) {
       case LAYOUT: {
         IRenderLogger logger = renderTask.getLogger();
@@ -183,7 +185,7 @@ public class LayoutPullParsers {
         ResourceResolver resourceResolver = renderTask.getContext().getConfiguration().getResourceResolver();
         boolean useToolsNamespace = renderTask.getShowWithToolsVisibilityAndPosition();
         return LayoutPsiPullParser
-          .create(file, logger, Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver, useToolsNamespace);
+          .create(file, logger, Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver, manager, useToolsNamespace);
       }
       case DRAWABLE:
       case MIPMAP:
@@ -207,20 +209,16 @@ public class LayoutPullParsers {
             IRenderLogger logger = renderTask.getLogger();
             HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
             ResourceResolver resourceResolver = renderTask.getContext().getConfiguration().getResourceResolver();
-            return LayoutPsiPullParser.create(file, logger,  Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver, true);
+            return LayoutPsiPullParser.create(file, logger,  Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver, manager, true);
           }
         }
         return null;
       }
       case FONT:
-        AndroidFacet facet = AndroidFacet.getInstance(renderTask.getContext().getModule().getIdeaModule());
         renderTask.setTransparentBackground();
         renderTask.setDecorations(false);
         renderTask.setRenderingMode(V_SCROLL);
-        StudioResourceRepositoryManager manager = facet != null ? StudioResourceRepositoryManager.getInstance(facet) : null;
-        return createFontFamilyParser(file, (fontName) -> manager != null
-                                                          ? (new ProjectFonts(manager)).getFont(fontName)
-                                                          : null);
+        return createFontFamilyParser(file, (fontName) -> (new ProjectFonts(manager)).getFont(fontName));
       default:
         // Should have been prevented by isSupported(PsiFile)
         assert false : folderType;

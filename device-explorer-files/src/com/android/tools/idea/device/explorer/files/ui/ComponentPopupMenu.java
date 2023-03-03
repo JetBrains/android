@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.device.explorer.files.ui;
 
+import com.android.tools.idea.device.explorer.files.ui.menu.item.PopupMenuItem;
 import com.intellij.ide.actions.NonEmptyActionGroup;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionPlaces;

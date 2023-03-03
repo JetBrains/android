@@ -56,9 +56,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -311,6 +311,13 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
 
     // Save the stats so that before-run task can access it
     env.putUserData(RunStats.KEY, stats);
+    Optional<AndroidConfigurationExecutor> provided = AndroidConfigurationExecutor.Provider.EP_NAME.extensions()
+      .map(it -> it.createAndroidConfigurationExecutor(facet, env, deviceFutures))
+      .filter(Objects::nonNull)
+      .findFirst();
+    if (provided.isPresent()) {
+      return new AndroidConfigurationExecutorRunProfileState(provided.get());
+    }
 
     AndroidConfigurationExecutor configurationExecutor = getExecutor(env, facet, deviceFutures);
     return new AndroidConfigurationExecutorRunProfileState(configurationExecutor);

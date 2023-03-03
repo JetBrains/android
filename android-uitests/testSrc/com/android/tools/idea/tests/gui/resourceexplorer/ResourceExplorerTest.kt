@@ -37,6 +37,7 @@ import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.KeyPressInfo
@@ -97,7 +98,12 @@ class ResourceExplorerTest {
     val layoutEditor = ide.editor.open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.DESIGN).layoutEditor
 
     // 1. On a resource file, press "ctrl + shift + t" to open and select the resource in the resource manager.
-    val showInResourceManagerKeyInfo = KeyPressInfo.keyCode(KeyEvent.VK_T).apply { modifiers(InputEvent.CTRL_MASK, InputEvent.SHIFT_MASK) }
+    val showInResourceManagerKeyInfo =
+      if(SystemInfo.isMac) {
+        KeyPressInfo.keyCode(KeyEvent.VK_T).apply { modifiers(InputEvent.META_MASK, InputEvent.SHIFT_MASK) }
+        } else {
+          KeyPressInfo.keyCode(KeyEvent.VK_T).apply { modifiers(InputEvent.CTRL_MASK, InputEvent.SHIFT_MASK) }
+      }
     layoutEditor.waitForRenderToFinish().pressAndReleaseKey(showInResourceManagerKeyInfo).findResourceExplorer()
 
     // 2. Add a Drawable resource through the VectorAsset action.

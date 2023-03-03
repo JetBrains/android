@@ -54,6 +54,7 @@ import com.android.tools.idea.common.surface.SinglePositionableContentLayoutMana
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ConfigurationStateManager;
+import com.android.tools.idea.configurations.StudioConfigurationStateManager;
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
 import com.android.tools.idea.naveditor.model.ActionType;
@@ -839,7 +840,7 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
     @Override
     public ConfigurationStateManager getStateManager() {
       // Nav editor doesn't want persistent configuration state.
-      return new ConfigurationStateManager();
+      return new StudioConfigurationStateManager();
     }
   }
 }

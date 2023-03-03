@@ -22,12 +22,9 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.FakeCpuService
-import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.CaptureDataSeries.ofHeapDumpSamples
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.google.common.truth.Truth.assertThat
@@ -44,14 +41,7 @@ class HprofSessionArtifactTest {
   private val transportService = FakeTransportService(timer, false)
 
   @get:Rule
-  var myGrpcChannel = FakeGrpcChannel(
-    "SessionsManagerTestChannel",
-    transportService,
-    FakeProfilerService(timer),
-    FakeMemoryService(),
-    FakeCpuService(),
-    FakeEventService()
-  )
+  var myGrpcChannel = FakeGrpcChannel("SessionsManagerTestChannel", transportService)
 
   private lateinit var myProfilers: StudioProfilers
 
@@ -102,7 +92,6 @@ class HprofSessionArtifactTest {
 
   @Test
   fun `selecting the same heap dump does not reload`() {
-    services.enableEventsPipeline(true)
     fun info(setup: HeapDumpInfo.Builder.() -> Unit) = HeapDumpInfo.newBuilder().apply(setup).build()
     fun artifact(info: HeapDumpInfo) = HprofSessionArtifact(myProfilers,
                                                             Common.Session.getDefaultInstance(),

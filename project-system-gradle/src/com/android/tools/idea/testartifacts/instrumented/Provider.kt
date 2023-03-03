@@ -17,48 +17,26 @@ package com.android.tools.idea.testartifacts.instrumented
 
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.gradle.util.GradleBuilds
-import com.android.tools.idea.run.AndroidRunConfigurationBase
-import com.android.tools.idea.run.ApkProvider
-import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.LaunchOptions
-import com.android.tools.idea.run.tasks.LaunchTasksProvider
+import com.android.tools.idea.run.DeviceFutures
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration.Companion.getInstance
 import com.intellij.execution.runners.ExecutionEnvironment
 import org.jetbrains.android.facet.AndroidFacet
 
-class CreateLaunchTasksProvider : LaunchTasksProvider.Provider {
-  override fun
-    createLaunchTasksProvider(
-    runConfiguration: AndroidRunConfigurationBase,
-    env: ExecutionEnvironment,
+class GradleAndroidTestRunConfigurationExecutorProvider : AndroidConfigurationExecutor.Provider {
+  override fun createAndroidConfigurationExecutor(
     facet: AndroidFacet,
-    applicationIdProvider: ApplicationIdProvider,
-    apkProvider: ApkProvider,
-    launchOptions: LaunchOptions
-  ): LaunchTasksProvider? {
-    if (runConfiguration !is AndroidTestRunConfiguration) return null
+    env: ExecutionEnvironment,
+    deviceFutures: DeviceFutures
+  ): AndroidConfigurationExecutor? {
+    val configuration = env.runProfile
+    if (configuration !is AndroidTestRunConfiguration) return null
 
     if (getInstance().RUN_ANDROID_TEST_USING_GRADLE && isRunAndroidTestUsingGradleSupported(facet)) {
       // Skip task for instrumentation tests run via UTP/AGP so that Gradle build
       // doesn't run twice per test run.
       env.putUserData(GradleBuilds.BUILD_SHOULD_EXECUTE, false)
-      return GradleAndroidTestApplicationLaunchTasksProvider(
-        runConfiguration,
-        env,
-        facet,
-        applicationIdProvider,
-        launchOptions,
-        runConfiguration.TESTING_TYPE,
-        runConfiguration.PACKAGE_NAME,
-        runConfiguration.CLASS_NAME,
-        runConfiguration.METHOD_NAME,
-        runConfiguration.TEST_NAME_REGEX,
-        RetentionConfiguration(
-          runConfiguration.RETENTION_ENABLED,
-          runConfiguration.RETENTION_MAX_SNAPSHOTS,
-          runConfiguration.RETENTION_COMPRESS_SNAPSHOTS
-        )
-      )
+      return GradleAndroidTestRunConfigurationExecutor(env, deviceFutures)
     }
     return null
   }

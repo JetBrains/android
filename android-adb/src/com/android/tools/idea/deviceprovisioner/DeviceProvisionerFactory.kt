@@ -17,7 +17,6 @@ package com.android.tools.idea.deviceprovisioner
 
 import com.android.sdklib.deviceprovisioner.DeviceProvisionerPlugin
 import com.android.sdklib.deviceprovisioner.PhysicalDeviceProvisionerPlugin
-import com.android.tools.idea.concurrency.coroutineScope
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
@@ -36,8 +35,10 @@ interface DeviceProvisionerFactory {
       coroutineScope: CoroutineScope,
       project: Project
     ): List<DeviceProvisionerPlugin> =
-      EP_NAME.extensionList.map { it.create(coroutineScope, project) }
+      EP_NAME.extensionList.filter { it.isEnabled }.map { it.create(coroutineScope, project) }
   }
+
+  val isEnabled: Boolean
 
   /**
    * Create a [DeviceProvisionerPlugin].
@@ -50,6 +51,9 @@ interface DeviceProvisionerFactory {
 }
 
 class PhysicalDeviceProvisionerFactory : DeviceProvisionerFactory {
+  override val isEnabled: Boolean
+    get() = true
+
   override fun create(coroutineScope: CoroutineScope, project: Project): DeviceProvisionerPlugin =
     PhysicalDeviceProvisionerPlugin(coroutineScope)
 }

@@ -75,6 +75,7 @@ import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.ide.plugins.PluginUtil;
 import com.intellij.ide.util.PropertiesComponent;
+import com.intellij.idea.AppMode;
 import com.intellij.internal.statistic.analytics.StudioCrashDetails;
 import com.intellij.internal.statistic.analytics.StudioCrashDetection;
 import com.intellij.internal.statistic.utils.StatisticsUploadAssistant;
@@ -435,6 +436,13 @@ public final class AndroidStudioSystemHealthMonitor {
   }
 
   public void start() {
+    // No monitoring in headless mode
+    if (AppMode.isHeadless())
+      return;
+    startInternal();
+  }
+
+  public void startInternal() {
     assert myGroup != null;
     Application application = ApplicationManager.getApplication();
     registerPlatformEventsListener();
@@ -478,6 +486,7 @@ public final class AndroidStudioSystemHealthMonitor {
     ourBundledPluginsExceptionCount.set(getPersistedExceptionCount(BUNDLED_PLUGINS_EXCEPTION_COUNT_FILE));
     ourNonBundledPluginsExceptionCount.set(getPersistedExceptionCount(NON_BUNDLED_PLUGINS_EXCEPTION_COUNT_FILE));
 
+    StudioCrashDetection.start();
     StudioCrashDetection.updateRecordedVersionNumber(ApplicationInfo.getInstance().getStrictVersion());
     startActivityMonitoring();
     trackCrashes(StudioCrashDetection.reapCrashDescriptions());

@@ -40,16 +40,11 @@ public final class AllocationInfosDataSeriesTest {
 
   private final FakeTimer myTimer = new FakeTimer();
   private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
-  private final FakeMemoryService myService = new FakeMemoryService();
   @NotNull private final FakeIdeProfilerServices myIdeProfilerServices = new FakeIdeProfilerServices();
 
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("AllocationInfosDataSeriesTest", myTransportService, myService);
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("AllocationInfosDataSeriesTest", myTransportService);
 
   private MainMemoryProfilerStage myStage;
-
-  public AllocationInfosDataSeriesTest() {
-    myIdeProfilerServices.enableEventsPipeline(true);
-  }
 
   @Before
   public void setUp() {

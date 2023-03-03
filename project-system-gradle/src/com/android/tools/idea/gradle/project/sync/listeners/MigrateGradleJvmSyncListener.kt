@@ -17,7 +17,7 @@ package com.android.tools.idea.gradle.project.sync.listeners
 
 import com.android.tools.idea.gradle.project.sync.GradleSyncListenerWithRoot
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
-import com.intellij.openapi.application.runWriteActionAndWait
+import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_JAVA_HOME
@@ -40,7 +40,7 @@ open class MigrateGradleJvmSyncListener : GradleSyncListenerWithRoot {
   override fun syncStarted(project: Project, rootProjectPath: @SystemIndependent String) {
     val projectRootSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(rootProjectPath)
     when (projectRootSettings?.gradleJvm) {
-      EMBEDDED_JDK_NAME, ANDROID_STUDIO_DEFAULT_JDK_NAME -> runWriteActionAndWait {
+      EMBEDDED_JDK_NAME, ANDROID_STUDIO_DEFAULT_JDK_NAME -> WriteAction.computeAndWait<Unit, Throwable> {
         JdkUtils.setProjectGradleJvmToUseEmbeddedJdk(project, rootProjectPath)?.let { gradleJvm ->
           LOG.info("Project Gradle root: $rootProjectPath gradleJvm updated from ${projectRootSettings.gradleJvm} to $gradleJvm")
         }

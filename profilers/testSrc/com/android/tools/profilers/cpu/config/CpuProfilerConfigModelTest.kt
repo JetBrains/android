@@ -23,14 +23,10 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common.Device
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.CpuProfilerAspect
 import com.android.tools.profilers.cpu.CpuProfilerStage
-import com.android.tools.profilers.cpu.FakeCpuService
-import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.memory.FakeMemoryService
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Rule
@@ -44,8 +40,7 @@ class CpuProfilerConfigModelTest {
   private var model: CpuProfilerConfigModel? = null
 
   @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("CpuProfilerConfigModelTest", FakeCpuService(), FakeTransportService(myTimer),
-                                      FakeProfilerService(myTimer), FakeMemoryService(), FakeEventService())
+  var myGrpcChannel = FakeGrpcChannel("CpuProfilerConfigModelTest", FakeTransportService(myTimer))
 
   @Before
   fun setup() {

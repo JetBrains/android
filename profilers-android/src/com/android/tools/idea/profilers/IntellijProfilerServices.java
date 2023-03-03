@@ -391,13 +391,13 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
-    public PowerProfilerDisplayMode getSystemTracePowerProfilerDisplayMode() {
-      return StudioFlags.PROFILER_SYSTEM_TRACE_POWER_PROFILER_DISPLAY_MODE.get();
+    public boolean isVerboseLoggingEnabled() {
+      return StudioFlags.PROFILER_VERBOSE_LOGGING.get();
     }
 
     @Override
-    public boolean isUnifiedPipelineEnabled() {
-      return StudioFlags.PROFILER_UNIFIED_PIPELINE.get();
+    public PowerProfilerDisplayMode getSystemTracePowerProfilerDisplayMode() {
+      return StudioFlags.PROFILER_SYSTEM_TRACE_POWER_PROFILER_DISPLAY_MODE.get();
     }
 
     @Override

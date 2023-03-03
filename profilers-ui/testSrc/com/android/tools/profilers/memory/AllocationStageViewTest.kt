@@ -16,18 +16,17 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
-import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.NONE
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import icons.StudioIcons
 import org.junit.Before
 import org.junit.ClassRule
@@ -41,16 +40,17 @@ import java.util.concurrent.TimeUnit
 @RunWith(Parameterized::class)
 class AllocationStageViewTest(private val isLive: Boolean) {
   private val timer = FakeTimer()
-  private val service = FakeMemoryService()
   private val transportService = FakeTransportService(timer)
 
   @Rule
   @JvmField
-  val grpcChannel = FakeGrpcChannel("LiveAllocationStageTestChannel", service, transportService,
-                                    FakeProfilerService(timer), FakeCpuService(), FakeEventService())
+  val grpcChannel = FakeGrpcChannel("LiveAllocationStageTestChannel", transportService, FakeEventService())
 
   @get:Rule
   val applicationRule = ApplicationRule()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   private lateinit var profilers: StudioProfilers
   private lateinit var stage: AllocationStage
@@ -65,13 +65,12 @@ class AllocationStageViewTest(private val isLive: Boolean) {
     ideProfilerServices = FakeIdeProfilerServices()
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
-    ideProfilerServices.enableEventsPipeline(true)
     mockLoader = FakeCaptureObjectLoader()
     stage =
       if (isLive) AllocationStage.makeLiveStage(profilers, mockLoader)
       else AllocationStage.makeStaticStage(profilers, minTrackingTimeUs = 1.0, maxTrackingTimeUs = 5.0)
     observer = MemoryAspectObserver(stage.aspect, stage.captureSelection.aspect)
-    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     stageView = AllocationStageView(profilersView, stage)
 
     // Advance the clock to make sure StudioProfilers has a chance to select device + process.

@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering.parsers;
 import com.android.annotations.Nullable;
 import com.android.resources.Density;
 import com.android.tools.idea.rendering.IRenderLogger;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
@@ -62,11 +63,11 @@ class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
   private final Set<XmlTag> myExplodeNodes;
 
   /**
-   * Use the {@link LayoutPsiPullParser#create(XmlFile, IRenderLogger, Set, Density)} factory instead.
+   * Use the {@link LayoutPsiPullParser#create(XmlFile, IRenderLogger, Set, Density, ResourceRepositoryManager)} factory instead.
    */
   PaddingLayoutPsiPullParser(@NotNull XmlFile file, @NotNull IRenderLogger logger, @NotNull Set<XmlTag> explodeNodes,
-                             @NotNull Density density) {
-    super(file, logger, true);
+                             @NotNull Density density, @Nullable ResourceRepositoryManager resourceRepositoryManager) {
+    super(file, logger, true, resourceRepositoryManager);
     myExplodeNodes = explodeNodes;
     myDensity = density;
   }

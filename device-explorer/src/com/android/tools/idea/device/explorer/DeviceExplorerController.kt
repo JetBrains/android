@@ -18,6 +18,7 @@ package com.android.tools.idea.device.explorer
 import com.android.adblib.ConnectedDevice
 import com.android.adblib.serialNumber
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.analytics.UsageTracker.log
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -27,6 +28,8 @@ import com.android.tools.idea.device.explorer.files.adbimpl.AdbDeviceFileSystem
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorController
 import com.android.tools.idea.device.explorer.ui.DeviceExplorerView
 import com.android.tools.idea.device.explorer.ui.DeviceExplorerViewListener
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DeviceExplorerEvent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -87,8 +90,20 @@ class DeviceExplorerController(
 
   private fun setActiveDevice(deviceHandle: DeviceHandle?) {
     model.setActiveDevice(deviceHandle)
+    trackDeviceChangeAction()
     deviceMonitorControllerImpl.setActiveConnectedDevice(deviceHandle?.state?.connectedDevice?.serialNumber)
     deviceFilesController.setActiveConnectedDevice(newDeviceFileSystem(deviceHandle, deviceHandle?.state?.connectedDevice))
+  }
+
+  private fun trackDeviceChangeAction() {
+    log(
+      AndroidStudioEvent.newBuilder()
+        .setKind(AndroidStudioEvent.EventKind.DEVICE_EXPLORER)
+        .setDeviceExplorerEvent(
+          DeviceExplorerEvent.newBuilder()
+            .setAction(DeviceExplorerEvent.Action.DEVICE_CHANGE)
+        )
+    )
   }
 
   private fun newDeviceFileSystem(handle: DeviceHandle?, connectedDevice: ConnectedDevice?): AdbDeviceFileSystem?  =

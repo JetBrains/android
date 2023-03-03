@@ -21,13 +21,13 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -36,18 +36,19 @@ import java.util.concurrent.TimeUnit
 class CpuCaptureStageCpuUsageTooltipViewTest {
   private val timer = FakeTimer()
 
-  private val myIdeServices = FakeIdeProfilerServices().apply {
-    enableEventsPipeline(true)
-  }
+  private val myIdeServices = FakeIdeProfilerServices()
 
   @get:Rule
-  val grpcChannel = FakeGrpcChannel("CaptureCpuUsageTooltipTest", FakeTransportService(timer), FakeProfilerService(timer))
+  val grpcChannel = FakeGrpcChannel("CaptureCpuUsageTooltipTest", FakeTransportService(timer))
 
   /**
    * For initializing [com.intellij.ide.HelpTooltip].
    */
   @get:Rule
   val appRule = ApplicationRule()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   private lateinit var captureStage: CpuCaptureStage
   private lateinit var tooltipView: FakeCaptureCpuUsageTooltipView
@@ -56,7 +57,7 @@ class CpuCaptureStageCpuUsageTooltipViewTest {
   fun setUp() {
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), myIdeServices, timer)
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
-    val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     captureStage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                           resolveWorkspacePath(CpuProfilerUITestUtils.VALID_TRACE_PATH).toFile(), 123L)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)

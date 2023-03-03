@@ -53,6 +53,7 @@ import com.google.common.truth.Truth;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.testFramework.ApplicationRule;
+import com.intellij.testFramework.DisposableRule;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
 import icons.StudioIcons;
@@ -104,6 +105,7 @@ public class StudioProfilersViewTest {
   @Rule public final FakeGrpcServer myGrpcChannel;
   @Rule public final EdtRule myEdtRule = new EdtRule();
   @Rule public final ApplicationRule myAppRule = new ApplicationRule();  // For initializing HelpTooltip.
+  @Rule public final DisposableRule myDisposableRule = new DisposableRule();
 
   private StudioProfilers myProfilers;
   private FakeIdeProfilerServices myProfilerServices = new FakeIdeProfilerServices();
@@ -112,11 +114,10 @@ public class StudioProfilersViewTest {
 
   @Before
   public void setUp() {
-    myProfilerServices.enableEventsPipeline(true);
     myProfilerServices.enableEnergyProfiler(true);
     myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myProfilerServices, myTimer);
     myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
-    myView = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents());
+    myView = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents(), myDisposableRule.getDisposable());
     myView.bind(FakeStage.class, FakeView::new);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     if (myIsTestingProfileable) {
@@ -242,7 +243,7 @@ public class StudioProfilersViewTest {
     // Fake a collapse action and re-create the StudioProfilerView, the session UI should now remain collapsed.
     myView.getSessionsView().getCollapseButton().doClick();
     StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myProfilerServices, myTimer);
-    StudioProfilersView profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
+    StudioProfilersView profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents(), myDisposableRule.getDisposable());
     assertThat(profilersView.getSessionsView().getCollapsed()).isTrue();
 
     // Fake a resize and re-create the StudioProfilerView, the session UI should maintain the previous dimension
@@ -253,7 +254,7 @@ public class StudioProfilersViewTest {
     myUi.mouse.drag(splitter.getFirstSize(), 0, 10, 0);
 
     profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myProfilerServices, myTimer);
-    profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents());
+    profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents(), myDisposableRule.getDisposable());
     assertThat(profilersView.getSessionsView().getCollapsed()).isFalse();
     assertThat(((ThreeComponentsSplitter)profilersView.getComponent().getComponent(0)).getFirstSize()).isEqualTo(splitter.getFirstSize());
   }

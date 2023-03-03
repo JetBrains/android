@@ -112,7 +112,7 @@ class ParsedValueRendererTest {
   fun testRenderParsedValue_notSet() {
     assertThat(
       ParsedValue.NotSet.testRenderWith<Int>(buildKnownValueRenderers(emptyKnownValues(), Any::testToString, null)),
-      equalTo("<comment>/*not specified*/" ))
+      equalTo(""))
     assertThat(
       ParsedValue.NotSet.testRenderWith<Int>(
         buildKnownValueRenderers(knownValuesFrom(listOf(ValueDescriptor<Int>(ParsedValue.NotSet, "Null"))), Any::testToString, null)),
@@ -129,7 +129,7 @@ class ParsedValueRendererTest {
     assertThat(
       ParsedValue.NotSet.annotateWithError("error").testRenderWith<Int>(
         buildKnownValueRenderers(emptyKnownValues(), Any::testToString, null)),
-      equalTo("<w><comment>/*not specified*/</w><error> (error)"))
+      equalTo("<error>(error)"))
     assertThat(
       ParsedValue.NotSet.annotateWithError("error").testRenderWith<Int>(
         buildKnownValueRenderers(knownValuesFrom(listOf(ValueDescriptor<Int>(ParsedValue.NotSet, "Null"))), Any::testToString, null)),

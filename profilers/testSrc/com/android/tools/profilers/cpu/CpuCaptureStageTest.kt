@@ -25,7 +25,6 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.idea.transport.faketransport.TransportServiceTestImpl
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.NullMonitorStage
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
@@ -48,7 +47,7 @@ class CpuCaptureStageTest {
   private val transportService = FakeTransportService(timer, true)
 
   @get:Rule
-  var grpcChannel = FakeGrpcChannel("CpuCaptureStageTestChannel", FakeCpuService(), FakeProfilerService(timer), transportService)
+  var grpcChannel = FakeGrpcChannel("CpuCaptureStageTestChannel", transportService)
 
   @get:Rule
   val applicationRule = ApplicationRule()
@@ -84,7 +83,6 @@ class CpuCaptureStageTest {
 
   @Test
   fun parsingFailureGoesToNullStage() {
-    services.enableEventsPipeline(true)
     profilers.sessionsManager.importSessionFromFile(CpuProfilerTestUtils.getTraceFile("corrupted_trace.trace"))
     profilers.sessionsManager.update()
     assertThat(services.notification).isNotNull()
@@ -324,7 +322,6 @@ class CpuCaptureStageTest {
 
   @Test
   fun validTraceIdReturnsCaptureStage() {
-    services.enableEventsPipeline(true)
     val trace = CpuProfilerTestUtils.getTraceFile("perfetto.trace")
     val traceBytes = ByteString.readFrom(FileInputStream(trace))
     transportService.addFile("1", traceBytes)

@@ -30,6 +30,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.CheckedDisposable
 import com.intellij.openapi.util.Disposer
 import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.events.OperationType
@@ -62,9 +63,9 @@ class SyncAnalyzerManagerImpl(
     project.getService(SyncAnalyzerDataManager::class.java).clearDataForTask(id)
   }
 
-  private fun Project.setUpDownloadsInfoNodeOnBuildOutput(id: ExternalSystemTaskId, buildDisposable: Disposable) {
+  private fun Project.setUpDownloadsInfoNodeOnBuildOutput(id: ExternalSystemTaskId, buildDisposable: CheckedDisposable) {
     if (!StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()) return
-    val rootDownloadEvent = DownloadsInfoPresentableEvent(id, buildDisposable)
+    val rootDownloadEvent = DownloadsInfoPresentableEvent(id, buildDisposable, System.currentTimeMillis())
     val viewManager = getService(SyncViewManager::class.java)
     viewManager.onEvent(id, rootDownloadEvent)
   }
@@ -85,7 +86,7 @@ class SyncAnalyzerDataManager {
 
   class DataHolder(val id: ExternalSystemTaskId) {
     val downloadsStatsAccumulator = DownloadsAnalyzer.DownloadStatsAccumulator()
-    val buildDisposable = Disposer.newDisposable("SyncAnalyzer disposable for $id")
+    val buildDisposable = Disposer.newCheckedDisposable("SyncAnalyzer disposable for $id")
   }
 }
 

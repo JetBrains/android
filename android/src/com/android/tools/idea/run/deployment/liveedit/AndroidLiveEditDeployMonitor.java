@@ -22,7 +22,10 @@ import static com.android.tools.idea.run.deployment.liveedit.PrebuildChecksKt.Pr
 import com.android.annotations.Nullable;
 import com.android.annotations.Trace;
 import com.android.ddmlib.AndroidDebugBridge;
+import com.android.tools.analytics.Anonymizer;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.stats.UsageTrackerUtils;
+import com.android.utils.NullLogger;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.util.ThreeState;
 import com.android.ddmlib.IDevice;
@@ -169,10 +172,15 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
 
   private final LiveEditCompiler compiler;
 
+  // We want to log only a percentage of LE events, but we also always want to log the *first* event after a deployment.
+  private final double LE_LOG_FRACTION = 0.1;
+  private boolean hasLoggedSinceReset = false;
+
   public void resetState() {
     bufferedEvents.clear();
     filesWithCompilationErrors.clear();
     compiler.resetState();
+    hasLoggedSinceReset = false;
   }
 
   @VisibleForTesting
@@ -435,7 +443,8 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     ScheduledFuture<?> statusPolling = scheduler.scheduleWithFixedDelay(() -> {
       List<Deploy.ComposeException> errors = deployer.retrieveComposeStatus(installer, adb, packageName);
       if (!errors.isEmpty()) {
-        updateEditableStatus(createRecomposeErrorStatus(errors.get(0).getMessage()));
+        Deploy.ComposeException error = errors.get(0);
+        updateEditableStatus(createRecomposeErrorStatus(error.getExceptionClassName(), error.getMessage(), error.getRecoverable()));
       }
     }, 2, 2, TimeUnit.SECONDS);
     // Schedule a cancel after 10 seconds.
@@ -473,11 +482,15 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
   }
 
   private static final Random random = new Random();
-  private static void logLiveEditEvent(LiveEditEvent.Builder event) {
-    // Because LiveEdit could conceivably run every time the user stops typing, we log only 10% of events.
-    if (random.nextDouble() < 0.1) {
-      UsageTracker.log(AndroidStudioEvent.newBuilder().setCategory(AndroidStudioEvent.EventCategory.DEPLOYMENT)
-                         .setKind(AndroidStudioEvent.EventKind.LIVE_EDIT_EVENT).setLiveEditEvent(event));
+  private void logLiveEditEvent(LiveEditEvent.Builder event) {
+    if (!hasLoggedSinceReset || random.nextDouble() < LE_LOG_FRACTION) {
+      UsageTracker.log(
+        UsageTrackerUtils.withProjectId(AndroidStudioEvent.newBuilder()
+                                          .setCategory(AndroidStudioEvent.EventCategory.DEPLOYMENT)
+                                          .setKind(AndroidStudioEvent.EventKind.LIVE_EDIT_EVENT)
+                                          .setLiveEditEvent(event),
+                                        project));
+      hasLoggedSinceReset = true;
     }
   }
 

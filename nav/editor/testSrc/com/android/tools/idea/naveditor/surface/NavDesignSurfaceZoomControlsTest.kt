@@ -28,6 +28,7 @@ import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
@@ -194,6 +195,7 @@ class NavDesignSurfaceZoomControlsTest {
         </navigation>
       """.trimIndent()
     )
+    waitForResourceRepositoryUpdates(androidProjectRule.fixture.module)
     val configuration = RenderTestUtil.getConfiguration(androidProjectRule.fixture.module, layout.virtualFile)
     val surface = UIUtil.invokeAndWaitIfNeeded(Computable {
       NavDesignSurface(androidProjectRule.project, androidProjectRule.fixture.testRootDisposable)

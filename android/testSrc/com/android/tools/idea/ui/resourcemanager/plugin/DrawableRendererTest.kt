@@ -26,7 +26,6 @@ import com.android.tools.idea.ui.resourcemanager.pathToVirtualFile
 import com.intellij.configurationStore.runInAllowSaveMode
 import com.intellij.util.ui.ImageUtil
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
@@ -55,7 +54,6 @@ class DrawableRendererTest {
     assertFalse { viewer.isFileSupported(otherFile) }
   }
 
-  @Ignore("b/113242835")
   @Test
   fun renderSelector() {
     val stateList = projectRule.getStateList()
@@ -64,7 +62,7 @@ class DrawableRendererTest {
     saveProjectOnDisk()
     val viewer = DrawableAssetRenderer()
     assertTrue { viewer.isFileSupported(virtualFile) }
-    val image = checkNotNull(viewer.getImage(virtualFile, projectRule.module, Dimension(32, 32)).get(2, TimeUnit.SECONDS))
+    val image = checkNotNull(viewer.getImage(virtualFile, projectRule.module, Dimension(32, 32)).get(60, TimeUnit.SECONDS))
     ImageDiffUtil.assertImageSimilar(getPNGFile().toPath(), ImageUtil.toBufferedImage(image), 0.05)
   }
 

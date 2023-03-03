@@ -29,7 +29,6 @@ import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
 import com.android.tools.idea.model.MergedManifestException;
 import com.android.tools.idea.model.MergedManifestManager;
-import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
@@ -45,6 +44,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
@@ -61,7 +61,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import org.jetbrains.android.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.sdk.AndroidTargetData;
@@ -125,20 +125,26 @@ final public class RenderService implements Disposable {
 
   @Nullable
   public static LayoutLibrary getLayoutLibrary(@NotNull Module module, @Nullable IAndroidTarget target) {
-    if (target == null) {
+    try {
+      return getLayoutLibrary(target, AndroidPlatforms.getInstance(module), ((ProjectEx)module.getProject()).getEarlyDisposable());
+    } catch (RenderingException | InsufficientDataException e) {
       return null;
     }
-    Project project = module.getProject();
-    AndroidPlatform platform = AndroidPlatforms.getInstance(module);
-    if (platform != null) {
-      try {
-        return AndroidTargetData.get(platform.getSdkData(), target).getLayoutLibrary(project);
-      }
-      catch (RenderingException e) {
-        // Ignore.
-      }
+  }
+
+  @Nullable
+  public static LayoutLibrary getLayoutLibrary(
+    @Nullable IAndroidTarget target,
+    @Nullable AndroidPlatform platform,
+    @NotNull Disposable parentDisposable
+  ) throws RenderingException, NoAndroidTargetException, NoAndroidPlatformException {
+    if (platform == null) {
+      throw new NoAndroidPlatformException();
     }
-    return null;
+    if (target == null) {
+      throw new NoAndroidTargetException();
+    }
+    return AndroidTargetData.get(platform.getSdkData(), target).getLayoutLibrary(parentDisposable);
   }
 
   /** Returns true if the given file can be rendered */
@@ -328,10 +334,10 @@ final public class RenderService implements Disposable {
     private boolean enableLayoutScanner = false;
     private SessionParams.RenderingMode myRenderingMode = null;
     private boolean useTransparentBackground = false;
-    @NotNull private Function<Module, MergedManifestSnapshot> myManifestProvider =
+    @NotNull private Function<Module, RenderModelManifest> myManifestProvider =
       module -> {
         try {
-          return MergedManifestManager.getMergedManifest(module).get(1, TimeUnit.SECONDS);
+          return new RenderMergedManifest(MergedManifestManager.getMergedManifest(module).get(1, TimeUnit.SECONDS));
         }
         catch (InterruptedException e) {
           throw new ProcessCanceledException(e);
@@ -518,10 +524,10 @@ final public class RenderService implements Disposable {
     }
 
     /**
-     * Sets the {@link MergedManifestSnapshot} provider
+     * Sets the {@link RenderModelManifest} provider
      */
     @NotNull
-    public RenderTaskBuilder setMergedManifestProvider(@NotNull Function<Module, MergedManifestSnapshot> provider) {
+    public RenderTaskBuilder setManifestProvider(@NotNull Function<Module, RenderModelManifest> provider) {
       myManifestProvider = provider;
       return this;
     }
@@ -591,26 +597,17 @@ final public class RenderService implements Disposable {
       StackTraceCapture stackTraceCaptureElement = RenderTaskAllocationTrackerKt.captureAllocationStackTrace();
 
       return CompletableFuture.supplyAsync(() -> {
-        AndroidPlatform platform = myContext.getModule().getAndroidPlatform();
-        if (platform == null) {
-          reportMissingSdk(myLogger, myContext.getModule().getIdeaModule());
-          return null;
-        }
-
-        IAndroidTarget target = myContext.getConfiguration().getTarget();
-        if (target == null) {
-          myLogger.addMessage(RenderProblem.createPlain(ERROR, "No render target was chosen"));
-          return null;
-        }
-
         Module module = myContext.getModule().getIdeaModule();
         if (module.isDisposed()) {
           getLogger().warn("Module was already disposed");
           return null;
         }
+        AndroidPlatform platform = myContext.getModule().getAndroidPlatform();
+        IAndroidTarget target = myContext.getConfiguration().getTarget();
+
         LayoutLibrary layoutLib;
         try {
-          layoutLib = AndroidTargetData.get(platform.getSdkData(), target).getLayoutLibrary(module.getProject());
+          layoutLib = getLayoutLibrary(target, platform, ((ProjectEx)module.getProject()).getEarlyDisposable());
         }
         catch (UnsupportedJavaRuntimeException e) {
           RenderProblem.Html javaVersionProblem = RenderProblem.create(ERROR);
@@ -627,12 +624,20 @@ final public class RenderService implements Disposable {
           myLogger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), myLogger.getLinkManager(), e));
           return null;
         }
+        catch (NoAndroidTargetException e) {
+          myLogger.addMessage(RenderProblem.createPlain(ERROR, "No render target was chosen"));
+          return null;
+        }
+        catch (NoAndroidPlatformException e) {
+          reportMissingSdk(myLogger, myContext.getModule().getIdeaModule());
+          return null;
+        }
 
         try {
           RenderTask task =
             new RenderTask(myContext, StudioModuleClassLoaderManager.get(), myLogger, layoutLib,
                            myCredential, StudioCrashReporter.getInstance(), myImagePool,
-                           myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, myManifestProvider,
+                           myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement, () -> myManifestProvider.apply(module),
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
                            classesToPreload, reportOutOfDateUserClasses, myPriority, myMinDownscalingFactor);
           if (myPsiFile instanceof XmlFile) {

@@ -18,9 +18,9 @@ package com.android.tools.idea.rendering
 import com.android.ide.common.rendering.api.AssetRepository
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.res.ResourceIdManager
-import com.android.tools.idea.res.StudioResourceRepositoryManager
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.openapi.module.Module
-import org.jetbrains.android.sdk.AndroidPlatform
+import com.android.tools.sdk.AndroidPlatform
 
 /**
  * Almost trivial, delegating implementation of the [RenderModelModule] interface. The only complication is freeing reference to the
@@ -29,7 +29,7 @@ import org.jetbrains.android.sdk.AndroidPlatform
 class DefaultRenderModelModule(
   override val ideaModule: Module,
   assets: AssetRepository?,
-  override val studioResourceRepositoryManager: StudioResourceRepositoryManager,
+  override val resourceRepositoryManager: ResourceRepositoryManager,
   override val info: AndroidModuleInfo,
   override val androidPlatform: AndroidPlatform?,
   override val resourceIdManager: ResourceIdManager

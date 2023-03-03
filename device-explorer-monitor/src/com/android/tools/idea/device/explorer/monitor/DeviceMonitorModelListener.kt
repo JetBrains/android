@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.device.explorer.monitor
 
-import javax.swing.tree.DefaultTreeModel
-import javax.swing.tree.DefaultTreeSelectionModel
+import javax.swing.table.TableModel
 
 interface DeviceMonitorModelListener {
-  fun treeModelChanged(newTreeModel: DefaultTreeModel?, newTreeSelectionModel: DefaultTreeSelectionModel?)
+  fun treeModelChanged(tableModel: TableModel)
 }

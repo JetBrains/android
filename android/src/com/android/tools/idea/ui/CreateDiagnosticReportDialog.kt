@@ -63,11 +63,9 @@ import javax.swing.tree.DefaultMutableTreeNode
 import kotlin.io.path.name
 
 private const val PRIVACY_TEXT =
-  "By creating this report, you acknowledge that Google may use information included in the report and " +
-  "other attached files to diagnose technical issues and to improve our products and services, in accordance with our " +
-  "<a href=\"http://www.google.com/policies/privacy/\">Privacy Policy</a>, and you agree that we may share it with engineering partners" +
-  " potentially impacted by your issue. This report will include personal information logged by your computer, such as file names, " +
-  "installed plugins, usage data, system information such as memory and processes, and machine specifications."
+  "Some account and system information may be sent to Google. We will use the information you give us to help address technical issues " +
+  "and to improve our services, subject to our <a href=\\\"http://www.google.com/policies/privacy/\\\">Privacy Policy</a> and " +
+  "<a href=\\\"http://www.google.com/policies/terms/\\\">Terms of Service/a>."
 
 /**
  * CreateDiagnosticReportDialog displays a tree view of files to be included in a diagnostic zip file, as well as a preview pane

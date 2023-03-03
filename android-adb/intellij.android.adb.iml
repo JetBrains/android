@@ -21,6 +21,7 @@
     <orderEntry type="library" name="studio-plugin-platform-images" level="project" />
     <orderEntry type="module" module-name="android.sdktools.pixelprobe" />
     <orderEntry type="module" module-name="android.sdktools.device-provisioner" />
+    <orderEntry type="module" module-name="android.sdktools.process-monitor" />
     <orderEntry type="module" module-name="android.sdktools.adblib.tools" />
     <orderEntry type="module" module-name="android.sdktools.adblib.ddmlibcompatibility" />
     <orderEntry type="module" module-name="android.sdktools.jdwptracer" />

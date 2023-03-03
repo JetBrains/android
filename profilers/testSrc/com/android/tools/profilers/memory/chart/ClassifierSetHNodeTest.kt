@@ -19,11 +19,9 @@ import com.android.tools.adtui.model.FakeTimer
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader
-import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.MemoryCaptureObjectTestUtils
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.google.common.truth.Truth.assertThat
@@ -35,10 +33,7 @@ class ClassifierSetHNodeTest {
   private val myTimer = FakeTimer()
 
   @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("MEMORY_TEST_CHANNEL",
-                                      FakeTransportService(myTimer),
-                                      FakeProfilerService(myTimer),
-                                      FakeMemoryService())
+  var myGrpcChannel = FakeGrpcChannel("MEMORY_TEST_CHANNEL", FakeTransportService(myTimer))
   private lateinit var myStage: MainMemoryProfilerStage
 
   @Before

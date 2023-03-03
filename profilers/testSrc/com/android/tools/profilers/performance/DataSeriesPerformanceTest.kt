@@ -40,9 +40,7 @@ import com.android.tools.profilers.energy.EnergyUsage
 import com.android.tools.profilers.event.LifecycleEventDataSeries
 import com.android.tools.profilers.event.UserEventDataSeries
 import com.android.tools.profilers.memory.AllocStatsDataSeries
-import com.android.tools.profilers.memory.LegacyGcStatsDataSeries
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
-import com.android.tools.profilers.memory.MemoryDataSeries
 import com.android.tools.profilers.memory.adapters.LiveAllocationCaptureObject
 import com.google.common.util.concurrent.MoreExecutors
 import org.junit.After
@@ -106,9 +104,6 @@ class DataSeriesPerformanceTest {
                                  Pair("Event-Activities", LifecycleEventDataSeries(studioProfilers, false)),
                                  Pair("Event-Interactions", UserEventDataSeries(studioProfilers)),
                                  Pair("Energy-Usage", EnergyUsage.buildDataSeries(client.transportClient, session)),
-                                 Pair("Memory-GC-Stats",
-                                      LegacyGcStatsDataSeries(client.memoryClient, session)),
-                                 Pair("Memory-Series", MemoryDataSeries(client.memoryClient, session) { sample -> sample.timestamp }),
                                  Pair("Memory-Allocation",
                                       AllocStatsDataSeries(studioProfilers) { sample -> sample.javaAllocationCount.toLong() }),
                                  Pair("Memory-LiveAllocation", TestLiveAllocationSeries(studioProfilers, session))

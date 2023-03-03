@@ -33,11 +33,12 @@ import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCaptureParser
+import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
-import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -52,13 +53,16 @@ class CallChartDetailsViewTest {
   @get:Rule
   val applicationRule = ApplicationRule()
 
+  @get:Rule
+  val disposableRule = DisposableRule()
+
   private lateinit var profilersView: StudioProfilersView
   private val capture = CpuProfilerUITestUtils.validCapture()
 
   @Before
   fun setUp() {
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), timer)
-    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
   }
 
   @Test
@@ -84,7 +88,7 @@ class CallChartDetailsViewTest {
     val parser = CpuCaptureParser(FakeIdeProfilerServices())
 
     val traceFile = resolveWorkspacePath(CpuProfilerUITestUtils.ATRACE_PID1_PATH).toFile()
-    val aTraceCapture = parser.parse(traceFile, FakeCpuService.FAKE_TRACE_ID, TraceType.ATRACE, 1, null).get()
+    val aTraceCapture = parser.parse(traceFile, CpuProfilerTestUtils.FAKE_TRACE_ID, TraceType.ATRACE, 1, null).get()
 
     val callChart = CaptureDetails.Type.CALL_CHART.build(ClockType.GLOBAL, Range(Double.MIN_VALUE, Double.MAX_VALUE),
                                                          listOf(aTraceCapture.getCaptureNode(aTraceCapture.mainThreadId)!!),

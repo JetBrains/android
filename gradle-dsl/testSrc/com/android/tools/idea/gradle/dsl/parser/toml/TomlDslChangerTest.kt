@@ -31,15 +31,6 @@ import com.intellij.testFramework.PlatformTestCase
 import org.junit.Test
 
 class TomlDslChangerTest : PlatformTestCase() {
-  override fun setUp() {
-    super.setUp()
-    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
-  }
-
-  override fun tearDown() {
-    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
-    super.tearDown()
-  }
 
   @Test
   fun testDeleteSingleLiteral() {

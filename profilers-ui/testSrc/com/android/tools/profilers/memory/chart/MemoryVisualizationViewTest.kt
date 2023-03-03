@@ -26,35 +26,33 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.memory.ClassGrouping
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader
-import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.memory.MemoryCaptureObjectTestUtils
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JComboBox
 import javax.swing.JComponent
 
-
 class MemoryVisualizationViewTest {
   private val timer = FakeTimer()
 
   @get:Rule
-  val grpcChannel = FakeGrpcChannel("MEMORY_TEST_CHANNEL",
-                                    FakeTransportService(timer),
-                                    FakeProfilerService(timer),
-                                    FakeMemoryService())
+  val grpcChannel = FakeGrpcChannel("MEMORY_TEST_CHANNEL", FakeTransportService(timer))
 
   @get:Rule
   val applicationRule = ApplicationRule()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   private lateinit var fakeIdeProfilerComponents: FakeIdeProfilerComponents
   private lateinit var stage: MainMemoryProfilerStage
@@ -68,7 +66,8 @@ class MemoryVisualizationViewTest {
     fakeIdeProfilerComponents = FakeIdeProfilerComponents()
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), fakeIdeProfilerServices, FakeTimer())
     stage = MainMemoryProfilerStage(profilers, loader)
-    visualizationView = MemoryVisualizationView(stage.captureSelection, StudioProfilersView(profilers, fakeIdeProfilerComponents))
+    val profilersView = StudioProfilersView(profilers, fakeIdeProfilerComponents, disposableRule.disposable)
+    visualizationView = MemoryVisualizationView(stage.captureSelection, profilersView)
   }
 
   @Test

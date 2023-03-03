@@ -98,11 +98,13 @@ import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeMavenCoordinatesImpl
+import com.android.tools.idea.gradle.model.impl.IdeMultiVariantDataImpl
 import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
+import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
@@ -237,10 +239,22 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     )
   }
 
-  fun sourceProviderContainerFrom(container: SourceProviderContainer, mlModelBindingEnabled: Boolean): IdeSourceProviderContainerImpl {
-    return IdeSourceProviderContainerImpl(
+  fun extraSourceProviderFrom(container: SourceProviderContainer, mlModelBindingEnabled: Boolean): IdeExtraSourceProviderImpl {
+    return IdeExtraSourceProviderImpl(
       artifactName = container.artifactName,
       sourceProvider = copyModel(container.sourceProvider, mlModelBindingEnabled, ::sourceProviderFrom)
+    )
+  }
+
+  fun sourceProviderContainerFrom(
+    container: ProductFlavorContainer,
+    mlModelBindingEnabled: Boolean
+  ): IdeSourceProviderContainerImpl {
+    fun extraSourceProviderFrom(container: SourceProviderContainer) = extraSourceProviderFrom(container, mlModelBindingEnabled)
+
+    return IdeSourceProviderContainerImpl(
+      sourceProvider = container.sourceProvider?.let { copyModel(it, mlModelBindingEnabled, ::sourceProviderFrom) },
+      extraSourceProviders = copy(container::getExtraSourceProviders, ::extraSourceProviderFrom)
     )
   }
 
@@ -248,14 +262,15 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     container: ProductFlavorContainer,
     mlModelBindingEnabled: Boolean
   ): IdeProductFlavorContainerImpl {
-    fun sourceProviderContainerFrom(container: SourceProviderContainer) = sourceProviderContainerFrom(container, mlModelBindingEnabled)
+    fun extraSourceProviderFrom(container: SourceProviderContainer) = extraSourceProviderFrom(container, mlModelBindingEnabled)
 
     return IdeProductFlavorContainerImpl(
       productFlavor = copyModel(container.productFlavor, ::productFlavorFrom),
       sourceProvider = container.sourceProvider?.let { copyModel(it, mlModelBindingEnabled, ::sourceProviderFrom) },
-      extraSourceProviders = copy(container::getExtraSourceProviders, ::sourceProviderContainerFrom)
+      extraSourceProviders = copy(container::getExtraSourceProviders, ::extraSourceProviderFrom)
     )
   }
+
 
   fun buildTypeFrom(buildType: BuildType): IdeBuildTypeImpl {
     return IdeBuildTypeImpl(
@@ -284,7 +299,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   }
 
   fun buildTypeContainerFrom(container: BuildTypeContainer, mlModelBindingEnabled: Boolean): IdeBuildTypeContainerImpl {
-    fun sourceProviderContainerFrom(container: SourceProviderContainer) = sourceProviderContainerFrom(container, mlModelBindingEnabled)
+    fun sourceProviderContainerFrom(container: SourceProviderContainer) = extraSourceProviderFrom(container, mlModelBindingEnabled)
 
     return IdeBuildTypeContainerImpl(
       buildType = copyModel(container.buildType, ::buildTypeFrom),
@@ -541,11 +556,11 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       }
     }
 
-    fun populateOptionalSdkLibrariesLibraries(
+    fun populateBootclasspathLibrariesLibraries(
       bootClasspath: Collection<String>,
       visited: MutableSet<String>
     ) {
-      getOptionalBootClasspathLibraries(bootClasspath).forEach { jarFile ->
+      getUsefulBootClasspathLibraries(bootClasspath).forEach { jarFile ->
         val address = jarFile.path
         if (visited.add(jarFile.path)) {   // Any unique key identifying the library  is suitable.
           dependenciesById.computeIfAbsent(address) { libraryFrom(jarFile) }
@@ -672,7 +687,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       val visited = mutableSetOf<String>()
       populateAndroidLibraries(dependencies.libraries, visited)
       populateJavaLibraries(dependencies.javaLibraries, visited)
-      populateOptionalSdkLibrariesLibraries(bootClasspath, visited)
+      populateBootclasspathLibrariesLibraries(bootClasspath, visited)
       populateModuleDependencies(dependencies, visited, variantName, androidModuleId)
       return createInstance(visited, runtimeOnlyClasses)
     }
@@ -872,7 +887,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     androidModuleId: ModuleId
   ): ModelResult<IdeVariantWithPostProcessor> {
     val mergedFlavor = copyModel(variant.mergedFlavor, ::productFlavorFrom)
-    val buildType = androidProject.buildTypes.find { it.buildType.name == variant.buildType }?.buildType
+    val buildType = androidProject.multiVariantData?.buildTypes.orEmpty().find { it.buildType.name == variant.buildType }?.buildType
 
     fun <T> merge(f: IdeProductFlavorImpl.() -> T, b: IdeBuildTypeImpl.() -> T, combine: (T?, T?) -> T): T {
       return combine(mergedFlavor.f(), buildType?.b())
@@ -1237,7 +1252,11 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
     fun productFlavorContainerFrom(container: ProductFlavorContainer) = productFlavorContainerFrom(container, mlModelBindingEnabled)
     fun buildTypeContainerFrom(container: BuildTypeContainer) = buildTypeContainerFrom(container, mlModelBindingEnabled)
 
-    val defaultConfigCopy: IdeProductFlavorContainerImpl = copyModel(project.defaultConfig, ::productFlavorContainerFrom)
+
+    fun sourceProviderContainerFrom(container: ProductFlavorContainer) = sourceProviderContainerFrom(container, mlModelBindingEnabled)
+
+    val defaultConfigCopy: IdeProductFlavorImpl = copyModel(project.defaultConfig.productFlavor, ::productFlavorFrom)
+    val defaultConfigSourcesCopy: IdeSourceProviderContainerImpl = copyModel(project.defaultConfig, ::sourceProviderContainerFrom)
     val buildTypesCopy: Collection<IdeBuildTypeContainerImpl> = copy(project::getBuildTypes, ::buildTypeContainerFrom)
     val productFlavorCopy: Collection<IdeProductFlavorContainerImpl> = copy(project::getProductFlavors, ::productFlavorContainerFrom)
     val basicVariantsCopy: Collection<IdeBasicVariantImpl> =
@@ -1277,9 +1296,12 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
           buildName = buildName,
           projectPath = projectPath
         ),
-        defaultConfig = defaultConfigCopy,
-        buildTypes = buildTypesCopy,
-        productFlavors = productFlavorCopy,
+        defaultSourceProvider = defaultConfigSourcesCopy,
+        multiVariantData = IdeMultiVariantDataImpl(
+          defaultConfig = defaultConfigCopy,
+          buildTypes = buildTypesCopy,
+          productFlavors = productFlavorCopy,
+        ),
         basicVariants = basicVariantsCopy,
         flavorDimensions = flavorDimensionCopy,
         compileTarget = project.compileTarget,

@@ -17,7 +17,7 @@
 package com.android.tools.idea.sdk;
 
 import com.android.tools.idea.io.FilePaths;
-import com.android.tools.idea.sdk.SdkPaths.ValidationResult;
+import com.android.tools.sdk.SdkPaths.ValidationResult;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.projectRoots.JavaSdk;
@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-import static com.android.tools.idea.sdk.SdkPaths.validateAndroidSdk;
+import static com.android.tools.sdk.SdkPaths.validateAndroidSdk;
 import static com.intellij.openapi.util.io.FileUtil.toSystemIndependentName;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 

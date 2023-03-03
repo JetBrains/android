@@ -28,6 +28,7 @@ namespace screensharing {
 // Provides access to the android.hardware.display.IDisplayListener.getDisplayInfo method.
 class DisplayListenerDispatcher {
 public:
+  DisplayListenerDispatcher() = default;
   ~DisplayListenerDispatcher();
   void Start();
   void Stop();
@@ -35,11 +36,8 @@ public:
 private:
   friend class DisplayManager;
 
-  DisplayListenerDispatcher(const JClass& display_manager_class, const JObject& display_manager);
   void Run();
 
-  const JClass& display_manager_class_;
-  const JObject& display_manager_;
   Jni jni_ = nullptr;
   std::mutex mutex_;
   std::thread thread_;  // GUARDED_BY(mutex_)

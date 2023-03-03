@@ -34,26 +34,9 @@ interface IdeAndroidProject : Serializable {
    */
   val projectType: IdeAndroidProjectType
 
-  /**
-   * Returns the [IdeProductFlavorContainer] for the 'main' default config.
-   *
-   * @return the product flavor.
-   */
-  val defaultConfig: IdeProductFlavorContainer
+  val defaultSourceProvider: IdeSourceProviderContainer
 
-  /**
-   * Returns a list of all the [IdeBuildType] in their container.
-   *
-   * @return a list of build type containers.
-   */
-  val buildTypes: Collection<IdeBuildTypeContainer>
-
-  /**
-   * Returns a list of all the [IdeProductFlavor] in their container.
-   *
-   * @return a list of product flavor containers.
-   */
-  val productFlavors: Collection<IdeProductFlavorContainer>
+  val multiVariantData: IdeMultiVariantData?
 
   /**
    * Returns a list of all the variant names.

@@ -311,7 +311,8 @@ public class AttributeProcessingUtil {
       if (styleableName != null) {
         registerAttributes(facet, element, styleableName, getResourcePackage(c), callback, skipNames);
       }
-      for (PsiClass additional : getAdditionalAttributesClasses(facet, c)) {
+      PsiClass additional = getAdditionalAttributesClass(facet, c);
+      if (additional != null) {
         String additionalStyleableName = additional.getName();
         if (additionalStyleableName != null) {
           registerAttributes(facet, element, additionalStyleableName, getResourcePackage(additional), callback, skipNames);
@@ -322,15 +323,15 @@ public class AttributeProcessingUtil {
   }
 
   /**
-   * Return the classes that hold attributes used in the specified class c.
-   * This is for classes from support libaries without attrs.xml like support lib v4.
+   * Returns the class that holds attributes used in the specified class c.
+   * This is for classes from support libraries without attrs.xml like support lib v4.
    */
-  private static Collection<PsiClass> getAdditionalAttributesClasses(@NotNull AndroidFacet facet, @NotNull PsiClass c) {
+  private static @Nullable PsiClass getAdditionalAttributesClass(@NotNull AndroidFacet facet, @NotNull PsiClass c) {
     if (CLASS_NESTED_SCROLL_VIEW.isEquals(StringUtil.notNullize(c.getQualifiedName()))) {
-      return Collections.singleton(findViewValidInXMLByName(facet, SCROLL_VIEW));
+      return findViewValidInXMLByName(facet, SCROLL_VIEW);
     }
 
-    return Collections.emptySet();
+    return null;
   }
 
   @Nullable

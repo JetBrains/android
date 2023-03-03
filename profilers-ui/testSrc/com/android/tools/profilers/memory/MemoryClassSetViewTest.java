@@ -34,7 +34,6 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
@@ -50,6 +49,7 @@ import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
 import com.intellij.testFramework.ApplicationRule;
+import com.intellij.testFramework.DisposableRule;
 import com.intellij.util.containers.ImmutableList;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,11 +71,10 @@ public class MemoryClassSetViewTest {
   private static final String MOCK_CLASS_NAME = "MockClass";
 
   private final FakeTimer myTimer = new FakeTimer();
-  @NotNull private final FakeMemoryService myMemoryService = new FakeMemoryService();
   @NotNull private final FakeIdeProfilerComponents myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
-  @Rule public final FakeGrpcChannel myGrpcChannel =
-    new FakeGrpcChannel("MemoryInstanceViewTestGrpc", new FakeTransportService(myTimer), new FakeProfilerService(myTimer), myMemoryService);
+  @Rule public final FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("MemoryInstanceViewTestGrpc", new FakeTransportService(myTimer));
   @Rule public final ApplicationRule myApplicationRule = new ApplicationRule();
+  @Rule public final DisposableRule myDisposableRule = new DisposableRule();
 
   private MainMemoryProfilerStage myStage;
 
@@ -93,7 +92,7 @@ public class MemoryClassSetViewTest {
   @Before
   public void before() {
     StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), myTimer);
-    StudioProfilersView profilersView = new StudioProfilersView(profilers, myFakeIdeProfilerComponents);
+    StudioProfilersView profilersView = new StudioProfilersView(profilers, myFakeIdeProfilerComponents, myDisposableRule.getDisposable());
 
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);

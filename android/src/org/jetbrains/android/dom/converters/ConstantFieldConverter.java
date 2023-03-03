@@ -15,7 +15,6 @@
  */
 package org.jetbrains.android.dom.converters;
 
-import com.android.sdklib.IAndroidTarget;
 import com.google.common.collect.Lists;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.module.Module;
@@ -30,7 +29,7 @@ import com.intellij.util.xml.*;
 import org.jetbrains.android.dom.LookupClass;
 import org.jetbrains.android.dom.LookupPrefix;
 import org.jetbrains.android.dom.manifest.*;
-import org.jetbrains.android.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.util.AndroidUtils;

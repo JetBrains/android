@@ -34,8 +34,8 @@ class NewBaselineProfilesModuleModel(
   moduleParent: String,
   projectSyncInvoker: ProjectSyncInvoker,
 ) : ModuleModel(
-  name = "baselineProfiles",
-  commandName = "New Baseline Profiles Module",
+  name = "baselineProfile",
+  commandName = "New Baseline Profile Module",
   isLibrary = true,
   projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
   moduleParent = moduleParent,

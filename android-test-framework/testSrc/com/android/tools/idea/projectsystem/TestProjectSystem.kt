@@ -60,6 +60,10 @@ class TestProjectSystem @JvmOverloads constructor(
   private val androidLibraryDependencies: Collection<ExternalAndroidLibrary> = emptySet()
 ) : AndroidProjectSystem {
 
+  override fun getBootClasspath(module: Module): Collection<String> {
+    return emptyList()
+  }
+
   /**
    * Injects this project system into the [project] it was created for.
    */

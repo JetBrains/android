@@ -40,6 +40,7 @@ import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DisplayDetails
 import com.google.wireless.android.sdk.stats.IdePlugin
 import com.google.wireless.android.sdk.stats.IdePluginInfo
+import com.google.wireless.android.sdk.stats.IntelliJNewUIState
 import com.google.wireless.android.sdk.stats.MachineDetails
 import com.google.wireless.android.sdk.stats.ProductDetails
 import com.google.wireless.android.sdk.stats.ProductDetails.SoftwareLifeCycleChannel
@@ -55,6 +56,8 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.updateSettings.impl.ChannelStatus
 import com.intellij.openapi.updateSettings.impl.UpdateSettings
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.registry.Registry
+import com.intellij.ui.ExperimentalUI
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.channels.BroadcastChannel
@@ -222,6 +225,7 @@ object AndroidStudioUsageTracker {
 
   private fun runDailyReports() {
     processUserSentiment()
+    logNewUI()
   }
 
   private fun studioPing() {
@@ -232,6 +236,23 @@ object AndroidStudioUsageTracker {
         .setProductDetails(productDetails)
         .setMachineDetails(getMachineDetails(File(PathManager.getHomePath())))
         .setJvmDetails(CommonMetricsData.jvmDetails))
+  }
+
+  private fun logNewUI() {
+    val newUI: Boolean
+    try {
+      newUI = ExperimentalUI.isNewUI()
+    } catch (_: Throwable) {
+      // Don't send the message if the new UI check fails
+      return
+    }
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder().apply {
+        kind = EventKind.INTELLIJ_NEW_UI_STATE_EVENT
+        intellijNewUiStateEvent = IntelliJNewUIState.newBuilder().apply {
+          isEnabled = newUI
+        }.build()
+      })
   }
 
   private fun processUserSentiment() {

@@ -36,6 +36,7 @@ open class LiveEditStatus(
   private val mergePriority: Priority,
   /** When true, the refresh icon will be displayed next to the notification chip. */
   override val presentation: ComposeStatus.Presentation? = null,
+  val descriptionManualMode: String? = null,
   val redeployMode: RedeployMode = RedeployMode.NONE,
   val actionId: String? = null,
 ) : ComposeStatus {
@@ -85,15 +86,15 @@ open class LiveEditStatus(
 
     // A composition error that is not recoverable.
     @JvmStatic
-    fun createRecomposeErrorStatus(message: String): LiveEditStatus {
+    fun createRecomposeErrorStatus(name: String, message: String, recoverable: Boolean): LiveEditStatus {
       return LiveEditStatus(
         null,
         message("le.status.error.recompose.title"),
         String.format(
-          "Application encountered unexpected exception during recomposition and is reverted to last successful composition state:<br>%s",
-          if (message.length > 120) message.substring(0, 120) + "..." else message
+          "%s during recomposition and is reverted to last successful composition state:<br>%s",
+          name, if (message.length > 120) message.substring(0, 120) + "..." else message
         ),
-        UNRECOVERABLE_ERROR,
+        if (recoverable) RECOVERABLE_ERROR else UNRECOVERABLE_ERROR,
         redeployMode = RedeployMode.RERUN,
         actionId = SHOW_LOGCAT_ACTION_ID
       )
@@ -171,7 +172,8 @@ open class LiveEditStatus(
       AllIcons.General.InspectionsOK,
       message("le.status.up_to_date.title"),
       message("le.status.up_to_date.description"),
-      DEFAULT
+      DEFAULT,
+      descriptionManualMode = "App is up to date. Code changes will be applied to the running app on Refresh.",
     )
 
   object SyncNeeded :

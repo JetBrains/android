@@ -23,13 +23,13 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Energy
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Before
@@ -112,14 +112,14 @@ class EnergyDetailsViewTest {
 
   private val timer = FakeTimer()
   private val transportService = FakeTransportService(timer, true)
-  private val energyService = FakeEnergyService()
   @get:Rule
-  var grpcChannel = FakeGrpcChannel(EnergyDetailsViewTest::class.java.simpleName, transportService, energyService,
-                                    FakeProfilerService(timer))
+  var grpcChannel = FakeGrpcChannel(EnergyDetailsViewTest::class.java.simpleName, transportService)
   @get:Rule
   val edtRule = EdtRule()
   @get:Rule
   val applicationRule = ApplicationRule()
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   private lateinit var view: EnergyDetailsView
 
@@ -135,7 +135,7 @@ class EnergyDetailsViewTest {
     // in the channel, and the tick loop would not complete properly to set the process and agent status.
     profilers.stage = EnergyProfilerStage(profilers)
     // Initialize the view after the stage, otherwise it will create the views for the monitoring stage.
-    val studioProfilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    val studioProfilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     view = EnergyDetailsView(studioProfilersView.stageView as EnergyProfilerStageView)
   }
 

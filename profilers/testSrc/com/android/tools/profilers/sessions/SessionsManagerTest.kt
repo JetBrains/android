@@ -25,17 +25,14 @@ import com.android.tools.profiler.proto.Memory.AllocationsInfo
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilers.buildSessionName
 import com.android.tools.profilers.Utils.debuggableProcess
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact
-import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.AllocationSessionArtifact
-import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.HeapProfdSessionArtifact
 import com.android.tools.profilers.memory.HprofSessionArtifact
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
@@ -48,20 +45,11 @@ import org.junit.rules.ExpectedException
 class SessionsManagerTest {
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
-  private val myMemoryService = FakeMemoryService()
-  private val myCpuService = FakeCpuService()
 
   @get:Rule
   val myThrown = ExpectedException.none()
   @get:Rule
-  var myGrpcChannel = FakeGrpcChannel(
-    "SessionsManagerTestChannel",
-    myTransportService,
-    FakeProfilerService(myTimer),
-    myMemoryService,
-    myCpuService,
-    FakeEventService()
-  )
+  var myGrpcChannel = FakeGrpcChannel("SessionsManagerTestChannel", myTransportService, FakeEventService())
 
   private lateinit var myProfilers: StudioProfilers
   private lateinit var myManager: SessionsManager
@@ -70,9 +58,7 @@ class SessionsManagerTest {
 
   @Before
   fun setup() {
-    ideProfilerServices = FakeIdeProfilerServices().apply {
-      enableEventsPipeline(true)
-    }
+    ideProfilerServices = FakeIdeProfilerServices()
     myObserver = SessionsAspectObserver()
     myProfilers = StudioProfilers(
       ProfilerClient(myGrpcChannel.channel),

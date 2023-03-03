@@ -23,10 +23,7 @@ import com.android.ide.common.rendering.api.ActionBarCallback;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
-import com.android.tools.idea.model.MergedManifestSnapshot;
-import com.android.tools.idea.model.MergedManifestManager;
-import com.android.tools.idea.res.StudioResourceRepositoryManager;
-import com.android.tools.idea.ui.designer.EditorDesignSurface;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ModalityState;
@@ -42,6 +39,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -63,11 +61,24 @@ public class ActionBarHandler extends ActionBarCallback {
 
   @Nullable private final Object myCredential;
   @NotNull private final RenderTask myRenderTask;
+
+  public ResourceRepositoryManager getResourceRepositoryManager() {
+    return myResourceRepositoryManager;
+  }
+
+  @NotNull private final ResourceRepositoryManager myResourceRepositoryManager;
   @Nullable private ImmutableList<ResourceReference> myMenus;
 
-  ActionBarHandler(@NotNull RenderTask renderTask, @Nullable Object credential) {
+  @NotNull private final Supplier<RenderModelManifest> myManifestProvider;
+
+  ActionBarHandler(
+    @NotNull RenderTask renderTask,
+    @NotNull Supplier<RenderModelManifest> manifestProvider,
+    @Nullable Object credential) {
     myRenderTask = renderTask;
     myCredential = credential;
+    myResourceRepositoryManager = renderTask.getContext().getModule().getResourceRepositoryManager();
+    myManifestProvider = manifestProvider;
   }
 
   @Override
@@ -141,23 +152,20 @@ public class ActionBarHandler extends ActionBarCallback {
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
       Module module = myRenderTask.getContext().getModule().getIdeaModule();
-      StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(module);
-      if (repositoryManager != null) {
-        ResourceNamespace namespace = repositoryManager.getNamespace();
-        XmlFile xmlFile = myRenderTask.getXmlFile();
-        String commaSeparatedMenus = xmlFile == null ? null : AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_MENU, TOOLS_URI);
-        if (commaSeparatedMenus != null) {
-          List<String> names = Splitter.on(',').trimResults().omitEmptyStrings().splitToList(commaSeparatedMenus);
-          myMenus = names.stream()
-            .map(name -> new ResourceReference(namespace, ResourceType.MENU, name))
-            .collect(ImmutableList.toImmutableList());
-        } else {
-          String fqn = xmlFile == null ? null : AndroidUtils.getDeclaredContextFqcn(module, xmlFile);
-          if (fqn != null) {
-            updateMenusInBackground(xmlFile.getProject(), fqn, namespace);
-          }
+      ResourceNamespace namespace = myResourceRepositoryManager.getNamespace();
+      XmlFile xmlFile = myRenderTask.getXmlFile();
+      String commaSeparatedMenus = xmlFile == null ? null : AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_MENU, TOOLS_URI);
+      if (commaSeparatedMenus != null) {
+        List<String> names = Splitter.on(',').trimResults().omitEmptyStrings().splitToList(commaSeparatedMenus);
+        myMenus = names.stream()
+          .map(name -> new ResourceReference(namespace, ResourceType.MENU, name))
+          .collect(ImmutableList.toImmutableList());
+      } else {
+        String fqn = xmlFile == null ? null : AndroidUtils.getDeclaredContextFqcn(module, xmlFile);
+        if (fqn != null) {
+          updateMenusInBackground(xmlFile.getProject(), fqn, namespace);
         }
-      }
+       }
 
       if (myMenus == null) {
         myMenus = ImmutableList.of();
@@ -204,7 +212,7 @@ public class ActionBarHandler extends ActionBarCallback {
   private ActivityAttributesSnapshot getActivityAttributes() {
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
-      MergedManifestSnapshot manifest = MergedManifestManager.getSnapshot(myRenderTask.getContext().getModule().getIdeaModule());
+      RenderModelManifest manifest = myManifestProvider.get();
       String activity = StringUtil.notNullize(myRenderTask.getContext().getConfiguration().getActivity());
       return manifest.getActivityAttributes(activity);
     } finally {

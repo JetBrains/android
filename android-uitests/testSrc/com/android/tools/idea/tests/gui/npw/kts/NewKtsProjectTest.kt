@@ -23,6 +23,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureNewAndroidProjectStepFixture
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguage
 import com.android.tools.idea.wizard.template.Language
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
@@ -38,22 +39,12 @@ class NewKtsProjectTest {
   @get:Rule
   val guiTest = GuiTestRule()
 
-  @Before
-  fun setup() {
-    StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.NPW_SHOW_GRADLE_KTS_OPTION.clearOverride()
-  }
-
   /**
    * Verifies that a new Java Project, with kts, has the expected content and builds.
    *
    * Test Steps
-   * 1. Create New Project, with language Java and "Use Kotlin script" checkbox checked
-   * Verification
+   * 1. Create New Project, with language Java and "Kotlin script (Recommended)" item selected in the Build configuration language
+   * combo box
    * - "settings.gradle.kts" should have an entry -> include("app")
    * - "app/build.gradle.kts" should have versionCode(1)/versionName("1.0")/minifyEnabled=false instead of
    * "versionCode 1"/versionName "1.0"/"minifyEnabled false"
@@ -164,7 +155,6 @@ class NewKtsProjectTest {
 
     setSourceLanguage(language)
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
-      .setUseKtsBuildFiles(true)
       .wizard()
       .clickFinishAndWaitForSyncToFinish()
 

@@ -27,6 +27,8 @@ import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.res.addAndroidModule
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
+import com.android.tools.idea.testing.waitForUpdates
 import com.android.tools.idea.ui.resourcemanager.getPNGFile
 import com.android.tools.idea.ui.resourcemanager.getPNGResourceItem
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
@@ -61,6 +63,8 @@ import javax.swing.JLabel
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
+private const val timeoutSeconds = 10L
+
 class ResourceExplorerListViewModelImplTest {
   private val projectRule = AndroidProjectRule.onDisk()
 
@@ -88,7 +92,6 @@ class ResourceExplorerListViewModelImplTest {
     Disposer.dispose(disposable)
   }
 
-  @Ignore("b/149867299")
   @Test
   fun refreshDrawablePreviews() {
     var renderLatch = CountDownLatch(1)
@@ -102,20 +105,19 @@ class ResourceExplorerListViewModelImplTest {
 
     // Trigger a render for a drawable asset, will load generated image into cache.
     viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, JLabel(), { renderLatch.countDown() })
-    assertTrue(renderLatch.await(1, TimeUnit.SECONDS))
+    assertTrue(renderLatch.await(timeoutSeconds, TimeUnit.SECONDS))
     Truth.assertThat(uiCallbackLatch.count).isEqualTo(1)
 
     // Clear cache for all current drawable resources.
     viewModel.clearCacheForCurrentResources()
-    assertTrue(uiCallbackLatch.await(1, TimeUnit.SECONDS))
+    assertTrue(uiCallbackLatch.await(timeoutSeconds, TimeUnit.SECONDS))
 
     // Another render request for the drawable asset, should load the image into cache again, since it was recently cleared.
     renderLatch = CountDownLatch(1)
     viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, JLabel(), { renderLatch.countDown() })
-    assertTrue(renderLatch.await(1, TimeUnit.SECONDS))
+    assertTrue(renderLatch.await(timeoutSeconds, TimeUnit.SECONDS))
   }
 
-  @Ignore("b/149867299")
   @Test
   fun getDrawablePreviewAndRefresh() {
     var latch = CountDownLatch(1)
@@ -125,7 +127,7 @@ class ResourceExplorerListViewModelImplTest {
     val iconSize = 32 // To compensate the 10% margin around the icon
     whenever(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
     val emptyIcon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, JLabel(), { latch.countDown() })
-    assertTrue(latch.await(1, TimeUnit.SECONDS))
+    assertTrue(latch.await(timeoutSeconds, TimeUnit.SECONDS))
 
     val icon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, JLabel(), { /* Do nothing */ }) as ImageIcon
     val image = icon.image as BufferedImage
@@ -136,7 +138,7 @@ class ResourceExplorerListViewModelImplTest {
     viewModel.clearImageCache(asset)
     val clearedCacheIcon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, JLabel(), { latch.countDown() }) as ImageIcon
     assertSame(emptyIcon, clearedCacheIcon) // When cleared, it should return the same instance of an empty icon
-    assertTrue(latch.await(1, TimeUnit.SECONDS))
+    assertTrue(latch.await(timeoutSeconds, TimeUnit.SECONDS))
 
     val refreshedIcon = viewModel.drawablePreviewManager.getIcon(asset, iconSize, iconSize, JLabel(), { /* Do nothing */ }) as ImageIcon
     val refreshedImage = refreshedIcon.image as BufferedImage
@@ -157,7 +159,7 @@ class ResourceExplorerListViewModelImplTest {
     val emptyIcon = viewModel.assetPreviewManager
       .getPreviewProvider(ResourceType.DRAWABLE)
       .getIcon(asset, iconSize, iconSize, JLabel(), { latch.countDown() }) as ImageIcon
-    Truth.assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue()
+    Truth.assertThat(latch.await(timeoutSeconds, TimeUnit.SECONDS)).isTrue()
     val emptyImage = emptyIcon.image as BufferedImage
     Truth.assertThat(emptyImage.getRGB(0, 0)).isEqualTo(0) // No value in empty icon
 
@@ -190,6 +192,7 @@ class ResourceExplorerListViewModelImplTest {
     projectRule.fixture.copyFileToProject("res/layout/data_binding_layout.xml", "res/layout/data_binding_layout.xml")
     val layoutResource = StudioResourceRepositoryManager.getModuleResources(projectRule.module.androidFacet!!).getResources(
       ResourceNamespace.RES_AUTO, ResourceType.LAYOUT).values().first()
+    waitForResourceRepositoryUpdates(projectRule.module.androidFacet!!)
     val asset = Asset.fromResourceItem(layoutResource) as DesignAsset
     val assetSet = ResourceAssetSet(asset.name, listOf(asset))
     whenever(resourceResolver.resolveResValue(asset.resourceItem.resourceValue)).thenReturn(asset.resourceItem.resourceValue)
@@ -252,6 +255,7 @@ class ResourceExplorerListViewModelImplTest {
                       resourceDir.resolve("values/colors.xml"))
       }
     }
+    waitForResourceRepositoryUpdates(projectRule.module.androidFacet!!)
 
     // Use initial module in ViewModel
     val viewModel = createViewModel(projectRule.module, ResourceType.COLOR)
@@ -279,6 +283,7 @@ class ResourceExplorerListViewModelImplTest {
       )
     }
 
+    waitForResourceRepositoryUpdates(projectRule.module.androidFacet!!)
     var viewModel = createViewModel(projectRule.module, ResourceType.COLOR)
     Truth.assertThat(StudioResourceRepositoryManager.getModuleResources(projectRule.module)!!.allResources).isEmpty()
     viewModel.filterOptions.isShowLibraries = true
@@ -304,6 +309,7 @@ class ResourceExplorerListViewModelImplTest {
   @Test
   fun getResourceValues() {
     projectRule.fixture.copyFileToProject("res/values/colors.xml", "res/values/colors.xml")
+    waitForResourceRepositoryUpdates(projectRule.module.androidFacet!!)
     val viewModel = createViewModel(projectRule.module, ResourceType.COLOR)
 
     val values = viewModel.getCurrentModuleResourceLists().get()[0].assetSets
@@ -316,6 +322,7 @@ class ResourceExplorerListViewModelImplTest {
   @Test
   fun filterDrawableByXml() {
     projectRule.fixture.copyDirectoryToProject("res/drawable", "res/drawable")
+    waitForResourceRepositoryUpdates(projectRule.module.androidFacet!!)
     // Test Xml Tag filter for 'vector' drawables, expected resource name is 'vector_drawable'
     testTypeFilters(ResourceType.DRAWABLE, TypeFilterKind.XML_TAG, "vector", "vector_drawable")
   }
@@ -323,6 +330,7 @@ class ResourceExplorerListViewModelImplTest {
   @Test
   fun filterDrawableByFileExtension() {
     projectRule.fixture.copyDirectoryToProject("res/drawable", "res/drawable")
+    waitForResourceRepositoryUpdates(projectRule.module.androidFacet!!)
     // Test File Extension filter for '.png' files, expect resource name is 'png'.
     testTypeFilters(ResourceType.DRAWABLE, TypeFilterKind.FILE, ".png", "png")
   }
@@ -337,6 +345,7 @@ class ResourceExplorerListViewModelImplTest {
                                          "    android:layout_height=\"match_parent\">\n" +
                                          "\n" +
                                          "</LinearLayout>")
+    waitForResourceRepositoryUpdates(projectRule.module.androidFacet!!)
     testTypeFilters(ResourceType.LAYOUT, TypeFilterKind.XML_TAG, "layout", "data_binding_layout")
   }
 
@@ -357,6 +366,7 @@ class ResourceExplorerListViewModelImplTest {
                                          "        android:layout_width=\"match_parent\"\n" +
                                          "        android:layout_height=\"match_parent\" />\n" +
                                          "</layout>")
+    waitForResourceRepositoryUpdates(projectRule.module.androidFacet!!)
     testTypeFilters(ResourceType.LAYOUT, TypeFilterKind.XML_TAG, "androidx.constraintlayout.widget.ConstraintLayout", "data_binding_cl")
   }
 

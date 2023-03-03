@@ -22,7 +22,6 @@ import com.android.tools.datastore.database.DeviceProcessTable;
 import com.android.tools.datastore.database.UnifiedEventsTable;
 import com.android.tools.datastore.poller.DeviceProcessPoller;
 import com.android.tools.datastore.poller.UnifiedEventsDataPoller;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Common.Event;
@@ -70,7 +69,7 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
   @NotNull private final UnifiedEventsTable myTable;
   @NotNull private final DeviceProcessTable myLegacyTable;
   @NotNull private final DataStoreService myService;
-  private final boolean myLegacyPipelineForProfilers;
+
   /**
    * A mapping of active channels to pollers. This mapping allows us to keep track of active pollers for a channel, and clean up pollers
    * when channels are closed.
@@ -84,13 +83,11 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
 
   public TransportService(@NotNull DataStoreService service,
                           @NotNull UnifiedEventsTable unifiedTable,
-                          Consumer<Runnable> fetchExecutor,
-                          boolean legacyPipelineForProfilers) {
+                          Consumer<Runnable> fetchExecutor) {
     myService = service;
     myFetchExecutor = fetchExecutor;
     myTable = unifiedTable;
     myLegacyTable = new DeviceProcessTable();
-    myLegacyPipelineForProfilers = legacyPipelineForProfilers;
   }
 
   @NotNull
@@ -103,16 +100,11 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
   public void setBackingStore(@NotNull DataStoreService.BackingNamespace namespace, @NotNull Connection connection) {
     assert namespace == DataStoreService.BackingNamespace.DEFAULT_SHARED_NAMESPACE;
     myTable.initialize(connection);
-
-    if (myLegacyPipelineForProfilers) {
-      myLegacyTable.initialize(connection);
-    }
   }
 
   /**
-   * Connects the datastore layer to a channel. By default ths starts the {@link UnifiedEventsDataPoller} for the transport pipeline which
-   * streams Events into the database. If the profiler is using the legacy pipeline ({@link StudioFlags#PROFILER_UNIFIED_PIPELINE} flag),
-   * this also starts the {@link DeviceProcessPoller} which handles device and process information in the legacy database schema.
+   * Connects the datastore layer to a channel. By default, this starts the {@link UnifiedEventsDataPoller} for the transport pipeline which
+   * streams Events into the database.
    */
   public void connectToChannel(Stream stream, Channel channel) {
     long streamId = stream.getStreamId();
@@ -124,12 +116,6 @@ public class TransportService extends TransportServiceGrpc.TransportServiceImplB
     myChannelToStream.put(channel, stream);
     DataStoreTable.addDataStoreErrorCallback(unifiedPoller);
     myFetchExecutor.accept(unifiedPoller);
-
-    if (myLegacyPipelineForProfilers && stream.getType() == Stream.Type.DEVICE) {
-      DeviceProcessPoller legacyPoller = new DeviceProcessPoller(myLegacyTable, stub);
-      myLegacyPollers.put(channel, legacyPoller);
-      myFetchExecutor.accept(legacyPoller);
-    }
   }
 
   public void disconnectFromChannel(Channel channel) {

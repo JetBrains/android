@@ -16,7 +16,6 @@
 package com.android.tools.datastore;
 
 import static com.android.tools.datastore.DataStoreDatabase.Characteristic.DURABLE;
-import static com.android.tools.idea.flags.StudioFlags.PROFILER_UNIFIED_PIPELINE;
 
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.datastore.database.DataStoreTable;
@@ -28,7 +27,6 @@ import com.android.tools.datastore.service.MemoryService;
 import com.android.tools.datastore.service.NetworkService;
 import com.android.tools.datastore.service.ProfilerService;
 import com.android.tools.datastore.service.TransportService;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.EnergyServiceGrpc;
@@ -197,7 +195,7 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
     // TODO b/73538507 shared between all services to support inserting file content into generic byte cache (e.g. importing hprof)
     // We should be able to keep this inside TransportService after legacy pipeline removal.
     UnifiedEventsTable unifiedTable = new UnifiedEventsTable();
-    myTransportService = new TransportService(this, unifiedTable, myFetchExecutor, !PROFILER_UNIFIED_PIPELINE.get());
+    myTransportService = new TransportService(this, unifiedTable, myFetchExecutor);
     registerService(myTransportService);
     registerService(new ProfilerService(this, myLogService));
     registerService(new EventService(this, myFetchExecutor));
@@ -326,24 +324,10 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
   private static class DataStoreClient {
     @NotNull private final ManagedChannel myChannel;
     @NotNull private final TransportServiceGrpc.TransportServiceBlockingStub myTransportClient;
-    @Nullable private ProfilerServiceGrpc.ProfilerServiceBlockingStub myProfilerClient;
-    @Nullable private CpuServiceGrpc.CpuServiceBlockingStub myCpuClient;
-    @Nullable private EnergyServiceGrpc.EnergyServiceBlockingStub myEnergyClient;
-    @Nullable private EventServiceGrpc.EventServiceBlockingStub myEventClient;
-    @Nullable private MemoryServiceGrpc.MemoryServiceBlockingStub myMemoryClient;
-    @Nullable private NetworkServiceGrpc.NetworkServiceBlockingStub myNetworkClient;
 
     public DataStoreClient(@NotNull ManagedChannel channel) {
       myChannel = channel;
       myTransportClient = TransportServiceGrpc.newBlockingStub(channel);
-      if (!StudioFlags.PROFILER_UNIFIED_PIPELINE.get()) {
-        myProfilerClient = ProfilerServiceGrpc.newBlockingStub(channel);
-        myCpuClient = CpuServiceGrpc.newBlockingStub(channel);
-        myEnergyClient = EnergyServiceGrpc.newBlockingStub(channel);
-        myEventClient = EventServiceGrpc.newBlockingStub(channel);
-        myMemoryClient = MemoryServiceGrpc.newBlockingStub(channel);
-        myNetworkClient = NetworkServiceGrpc.newBlockingStub(channel);
-      }
     }
 
     @NotNull
@@ -358,32 +342,32 @@ public class DataStoreService implements DataStoreTable.DataStoreTableErrorCallb
 
     @Nullable
     public ProfilerServiceGrpc.ProfilerServiceBlockingStub getProfilerClient() {
-      return myProfilerClient;
+      return null;
     }
 
     @Nullable
     public CpuServiceGrpc.CpuServiceBlockingStub getCpuClient() {
-      return myCpuClient;
+      return null;
     }
 
     @Nullable
     public EnergyServiceGrpc.EnergyServiceBlockingStub getEnergyClient() {
-      return myEnergyClient;
+      return null;
     }
 
     @Nullable
     public EventServiceGrpc.EventServiceBlockingStub getEventClient() {
-      return myEventClient;
+      return null;
     }
 
     @Nullable
     public MemoryServiceGrpc.MemoryServiceBlockingStub getMemoryClient() {
-      return myMemoryClient;
+      return null;
     }
 
     @Nullable
     public NetworkServiceGrpc.NetworkServiceBlockingStub getNetworkClient() {
-      return myNetworkClient;
+      return null;
     }
   }
 

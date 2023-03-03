@@ -76,11 +76,10 @@ public final class StudioFlags {
     "Show fragment gallery which contains fragment based templates",
     true);
 
-  public static final Flag<Boolean> NPW_SHOW_GRADLE_KTS_OPTION = Flag.create(
-    NPW, "show.gradle.kts.option", "Show gradle kts option",
-    "Shows an option on new Project/Module to allow the use of Kotlin script",
-    false);
-
+  public static final Flag<Boolean> NPW_SHOW_KTS_GRADLE_COMBO_BOX = Flag.create(
+    NPW, "show.kts.gradle.combobox", "Show KTS/Gradle Combobox",
+    "Show KTS/Gradle Combobox to which build script is used for the generated code",
+    true);
   public static final Flag<Boolean> NPW_NEW_NATIVE_MODULE = Flag.create(
     NPW, "new.native.module", "New Android Native Module",
     "Show template to create a new Android Native module in the new module wizard.",
@@ -89,6 +88,11 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_NEW_MACRO_BENCHMARK_MODULE = Flag.create(
     NPW, "new.macro.benchmark.module", "New Macro Benchmark Module",
     "Show template to create a new Macro Benchmark module in the new module wizard.",
+    true);
+
+  public static final Flag<Boolean> NPW_NEW_BASELINE_PROFILES_MODULE = Flag.create(
+    NPW, "new.baseline.profiles.module", "New Baseline Profile Module",
+    "Show template to create a new Baseline Profile module in the new module wizard.",
     true);
   //endregion
 
@@ -104,11 +108,6 @@ public final class StudioFlags {
   //region Profiler
   private static final FlagGroup PROFILER = new FlagGroup(FLAGS, "profiler", "Android Profiler");
 
-  public static final Flag<Boolean> PROFILER_UNIFIED_PIPELINE = Flag.create(
-    PROFILER, "unified.pipeline", "Enables new event pipeline to be used for core components.",
-    "Toggles usage of gRPC apis to fetch data from perfd and the datastore.",
-    true);
-
   public static final Flag<Boolean> PROFILER_ENERGY_PROFILER_ENABLED = Flag.create(
     PROFILER, "energy", "Enable Energy profiling",
     "Enable the new energy profiler. It monitors battery usage of the selected app.", true);
@@ -121,6 +120,12 @@ public final class StudioFlags {
   public static final Flag<Boolean> PROFILER_PERFORMANCE_MONITORING = Flag.create(
     PROFILER, "performance.monitoring", "Enable Profiler Performance Monitoring Options",
     "Toggles if profiler performance metrics options are enabled.",
+    false
+  );
+
+  public static final Flag<Boolean> PROFILER_VERBOSE_LOGGING = Flag.create(
+    PROFILER, "verbose.logging", "Enable Profiler verbose logging",
+    "Toggles if profiler verbose logging is enabled for testing.",
     false
   );
 
@@ -743,15 +748,18 @@ public final class StudioFlags {
   public static final Flag<Boolean> GRADLE_SYNC_RECREATE_JDK = Flag.create(
     GRADLE_IDE, "gradle.sync.recreate.jdk", "Recreate JDK on sync", "Recreate Gradle JDK when syncing if there are changed roots.", true);
 
-  public static final Flag<Boolean> GRADLE_DSL_TOML_WRITE_SUPPORT = Flag.create(
-    GRADLE_IDE, "gradle.dsl.toml.write", "Write TOML files", "Write changes to TOML Version Catalog files.", true);
-
+  // TODO(b/200280395): when deleting this flag, check whether the dependencies associated with flags can be removed from the gradle-dsl
+  //  modules.
   public static final Flag<Boolean> GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT = Flag.create(
     GRADLE_IDE, "gradle.extended.version.catalog", "Gradle version catalog support", "Multiple TOML files, catalog variables in PSD", true);
 
-  public static final Flag<Boolean> GRADLE_VERSION_CATALOG_DISPLAY_CAVEATS =
-    Flag.create(GRADLE_IDE, "gradle.version.catalog.caveats", "IDE warnings if Version Catalogs used",
-                "Display banners and other notes in Gradle-related tools when Version Catalogs are in use", true);
+  public static final Flag<Boolean> GRADLE_VERSION_CATALOG_DISPLAY_BANNERS =
+    Flag.create(GRADLE_IDE, "gradle.version.catalog.banners", "IDE banners if Version Catalogs used",
+                "Display banners in Gradle-related tools when Version Catalogs are in use", false);
+
+  public static final Flag<Boolean> GRADLE_VERSION_CATALOG_NEW_MODULE_WARNING =
+    Flag.create(GRADLE_IDE, "gradle.version.catalog.new.module.warning", "Warning for new module if Version Catalogs used",
+                "Display a warning in the New Module wizard when Version Catalogs are in use", true);
 
   public static final Flag<Boolean> GRADLE_SAVE_LOG_TO_FILE = Flag.create(
     GRADLE_IDE, "save.log.to.file", "Save log to file", "Appends the build log to the given file", false);
@@ -785,6 +793,15 @@ public final class StudioFlags {
     "If set, files with information about heap usage such as total live objects size and the strongly reachable objects size, will be dumped" +
     "to a file at certain points during project sync.",
     ""
+  );
+
+  public static final Flag<Boolean> GRADLE_HEAP_ANALYSIS_LIGHTWEIGHT_MODE = Flag.create(
+    GRADLE_IDE,
+    "gradle.heap.analysis.lightweight.mode",
+    "Gradle heap analysis lightweight mode",
+    "If set, the analysis will only run after sync once and will only collect the strongly connected object info. This makes the " +
+    "analysis faster at the cost of losing some information.",
+    false
   );
 
   //endregion
@@ -1165,6 +1182,13 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_R8_DESUGAR = Flag.create(
+    COMPOSE, "deploy.live.edit.deploy.desugar.r8",
+    "Desugar kotlinc outputs with R8",
+    "If enabled, the outputs of kotlinc are desugared to improve the odds of matching what was produced by the Build system",
+    false
+  );
+
   public static final Flag<Integer> COMPOSE_LIVE_LITERALS_UPDATE_RATE = Flag.create(
     COMPOSE, "deploy.live.literals.updaterate",
     "Update rate of live literals edits",
@@ -1309,6 +1333,11 @@ public final class StudioFlags {
     WEAR_SURFACES, "glance.preview.tile.enabled", "Enable Glance Tile preview",
     "If enabled, a preview for annotated glance tile composable functions is displayed",
     false);
+
+  public static final Flag<Boolean> WEAR_TILE_PREVIEW = Flag.create(
+    WEAR_SURFACES, "wear.tile.preview.enabled", "Enable Wear Tile preview",
+    "If enabled, a preview for classes extending androidx.wear.tiles.TileService is displayed",
+    false);
   // endregion
 
   // region App Inspection
@@ -1386,6 +1415,13 @@ public final class StudioFlags {
     "Enable VirtualDeviceWatcher",
     "Enable VirtualDeviceWatcher to update the Virtual table based on disk changes",
     true);
+
+  public static final Flag<Boolean> UNIFIED_DEVICE_MANAGER_ENABLED = Flag.create(
+    DEVICE_MANAGER,
+    "unified.device.manager.enabled",
+    "Enable unified device manager",
+    "Enable new Device Manager UI with unified device list",
+    false);
   // endregion
 
   //region DDMLIB
@@ -1535,6 +1571,14 @@ public final class StudioFlags {
       "Enable read/write notes functionality.",
       "Add notes tab to App Quality Insights panel.",
       true);
+
+  public static final Flag<Boolean> PLAY_VITALS_ENABLED =
+    Flag.create(
+      APP_INSIGHTS,
+      "enable.play.vitals",
+      "Enable the play vitals tool window tab.",
+      "Enables the play vitals tab and its associated functionality.",
+      false);
   // endregion App Insights
 
   // region App Links Assistant

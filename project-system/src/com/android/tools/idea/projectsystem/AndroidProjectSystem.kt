@@ -44,6 +44,12 @@ import java.nio.file.Path
  * only apply to a specific [Project].
  */
 interface AndroidProjectSystem: ModuleHierarchyProvider {
+
+  /**
+   * Returns path to android.jar
+   */
+  fun getBootClasspath(module: Module): Collection<String>
+
   /**
    * Uses build-system-specific heuristics to locate the APK file produced by the given project, or null if none. The heuristics try
    * to determine the most likely APK file corresponding to the application the user is working on in the project's current configuration.

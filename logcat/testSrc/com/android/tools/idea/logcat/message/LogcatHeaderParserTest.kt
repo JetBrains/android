@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.logcat.message
 
-import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
-import com.android.tools.idea.adb.processnamemonitor.testing.FakeProcessNameMonitor
+import com.android.processmonitor.monitor.ProcessNameMonitor
+import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
 import com.android.tools.idea.logcat.message.LogLevel.INFO
 import com.android.tools.idea.logcat.message.LogcatHeaderParser.LogcatFormat.EPOCH_FORMAT
 import com.android.tools.idea.logcat.message.LogcatHeaderParser.LogcatFormat.STANDARD_FORMAT

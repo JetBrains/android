@@ -136,7 +136,6 @@ class DeviceFileExplorerControllerImpl(
   private suspend fun setActiveDevice(device: DeviceFileSystem) {
     cancelOrMoveToBackgroundPendingOperations()
     model.activeDevice = device
-    trackAction(DeviceExplorerEvent.Action.DEVICE_CHANGE)
     updateActiveDeviceState(device, device.deviceState)
   }
 

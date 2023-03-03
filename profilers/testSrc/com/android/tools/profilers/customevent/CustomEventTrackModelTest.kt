@@ -21,10 +21,8 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.CustomEventProfiler
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.energy.FakeEnergyService
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -73,8 +71,7 @@ class CustomEventTrackModelTest {
   private val transportService = FakeTransportService(timer, true)
 
   @get:Rule
-  var grpcChannel = FakeGrpcChannel("CustomEventTrackModelTest", transportService, FakeProfilerService(timer),
-                                    FakeEnergyService(eventList = USER_EVENTS))
+  var grpcChannel = FakeGrpcChannel("CustomEventTrackModelTest", transportService)
 
   private lateinit var userCounterModel: UserCounterModel
   private lateinit var customEventTrackModel: CustomEventTrackModel

@@ -31,7 +31,6 @@ import com.android.tools.profiler.proto.Memory.AllocationsInfo;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
-import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MemoryProfilerTestUtils;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
@@ -47,12 +46,10 @@ public class LegacyAllocationCaptureObjectTest {
 
   @NotNull private final FakeTimer myTimer = new FakeTimer();
   @NotNull private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
-  @NotNull private final FakeMemoryService myService = new FakeMemoryService();
-
   @NotNull private final FakeIdeProfilerServices myIdeProfilerServices = new FakeIdeProfilerServices();
 
   @Rule
-  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("LegacyAllocationCaptureObjectTest", myTransportService, myService);
+  public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("LegacyAllocationCaptureObjectTest", myTransportService);
 
   @Test
   public void testFailedAllocationsInfo() {

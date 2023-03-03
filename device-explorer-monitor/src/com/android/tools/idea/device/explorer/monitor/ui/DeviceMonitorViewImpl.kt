@@ -16,9 +16,7 @@
 package com.android.tools.idea.device.explorer.monitor.ui
 
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModel
-import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModelListener
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorViewListener
-import com.android.tools.idea.device.explorer.monitor.ProcessTreeNode
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.DebugMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.ForceStopMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.KillMenuItem
@@ -26,27 +24,24 @@ import com.android.tools.idea.device.explorer.monitor.ui.menu.item.MenuContext
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.RefreshMenuItem
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import org.jetbrains.annotations.TestOnly
+import com.intellij.ui.table.JBTable
 import java.awt.BorderLayout
 import java.util.function.Consumer
 import javax.swing.JComponent
-import javax.swing.tree.DefaultTreeModel
-import javax.swing.tree.DefaultTreeSelectionModel
-import javax.swing.tree.TreePath
 
-class DeviceMonitorViewImpl(model: DeviceMonitorModel): DeviceMonitorView, DeviceMonitorActionsListener {
+class DeviceMonitorViewImpl(
+  model: DeviceMonitorModel,
+  private val table: JBTable = ProcessListTableBuilder().build(model.tableModel)
+): DeviceMonitorView, DeviceMonitorActionsListener {
+
   private val panel = DeviceMonitorPanel()
   private val listeners = mutableListOf<DeviceMonitorViewListener>()
-  private val modelListener = ModelListener()
-
-  init {
-    model.addListener(modelListener)
-  }
 
   override val panelComponent: JComponent
     get() = panel.component
 
   override fun setup() {
+    setUpTable()
     createTreePopupMenu()
     createToolbar()
   }
@@ -58,31 +53,33 @@ class DeviceMonitorViewImpl(model: DeviceMonitorModel): DeviceMonitorView, Devic
     listeners.remove(listener)
   }
 
-  override val selectedNodes: List<ProcessTreeNode>?
+  override val numOfSelectedNodes: Int
     get() {
-      val paths = panel.tree.selectionPaths ?: return null
-      val nodes = paths.mapNotNull { path -> ProcessTreeNode.fromNode(path.lastPathComponent) }.toList()
-      return nodes.ifEmpty { null }
+      return table.selectedRowCount
     }
 
-  override fun refreshNodes(treeNodes: List<ProcessTreeNode>) {
+  override fun refreshNodes() {
     listeners.forEach(Consumer { it.refreshInvoked() })
   }
 
-  override fun killNodes(treeNodes: List<ProcessTreeNode>) {
-    listeners.forEach(Consumer { it.killNodesInvoked(treeNodes) })
+  override fun killNodes() {
+    listeners.forEach(Consumer { it.killNodesInvoked(getModelRows(table.selectedRows)) })
   }
 
-  override fun forceStopNodes(treeNodes: List<ProcessTreeNode>) {
-    listeners.forEach(Consumer { it.forceStopNodesInvoked(treeNodes) })
+  override fun forceStopNodes() {
+    listeners.forEach(Consumer { it.forceStopNodesInvoked(getModelRows(table.selectedRows)) })
   }
 
-  override fun debugNodes(treeNodes: List<ProcessTreeNode>) {
-    listeners.forEach(Consumer { it.debugNodes(treeNodes) })
+  override fun debugNodes() {
+    listeners.forEach(Consumer { it.debugNodes(getModelRows(table.selectedRows)) })
+  }
+
+  private fun setUpTable() {
+    panel.processTablePane.viewport.add(table)
   }
 
   private fun createTreePopupMenu() {
-    ComponentPopupMenu(panel.tree).apply {
+    ComponentPopupMenu(table).apply {
       addItem(KillMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
       addItem(ForceStopMenuItem(this@DeviceMonitorViewImpl, MenuContext.Popup))
       install()
@@ -101,28 +98,13 @@ class DeviceMonitorViewImpl(model: DeviceMonitorModel): DeviceMonitorView, Devic
   private fun createToolbarSubSection(group: DefaultActionGroup) {
     val actionManager = ActionManager.getInstance()
     val actionToolbar = actionManager.createActionToolbar("Device Monitor Toolbar", group, true).apply {
-      targetComponent = panel.tree
+      targetComponent = panel.processTablePane
     }
     panel.toolbar.add(actionToolbar.component, BorderLayout.WEST)
   }
 
-  inner class ModelListener : DeviceMonitorModelListener {
-    override fun treeModelChanged(newTreeModel: DefaultTreeModel?, newTreeSelectionModel: DefaultTreeSelectionModel?) {
-      val tree = panel.tree
-      tree.model = newTreeModel
-      tree.selectionModel = newTreeSelectionModel
-      if (newTreeModel != null) {
-        val rootNode = ProcessTreeNode.fromNode(newTreeModel.root)
-        if (rootNode != null) {
-          tree.isRootVisible = false
-          tree.expandPath(TreePath(rootNode.path))
-        }
-        else {
-          // Show root, since it contains an error message (ErrorNode)
-          tree.isRootVisible = true
-        }
-      }
+  private fun getModelRows(viewRows: IntArray): IntArray =
+    IntArray(viewRows.size) { index ->
+      table.convertRowIndexToModel(viewRows[index])
     }
-
-  }
 }

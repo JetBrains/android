@@ -58,5 +58,6 @@ iml_module(
         "//tools/adt/idea/android-lint:intellij.android.lint[module]",
         "//tools/adt/idea/device-manager:intellij.android.device-manager[module]",
         "//tools/adt/idea/wear-pairing:intellij.android.wear-pairing[module]",
+        "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2[module]",
     ],
 )

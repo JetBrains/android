@@ -30,6 +30,9 @@ import kotlinx.coroutines.withContext
 
 /** Builds a LocalEmulatorProvisionerPlugin with its dependencies provided by Studio. */
 class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
+  override val isEnabled: Boolean
+    get() = true
+
   override fun create(coroutineScope: CoroutineScope, project: Project): DeviceProvisionerPlugin {
     val avdManagerConnection = AvdManagerConnection.getDefaultAvdManagerConnection()
     val avdManager =

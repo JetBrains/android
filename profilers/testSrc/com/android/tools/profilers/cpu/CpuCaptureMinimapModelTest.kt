@@ -22,7 +22,6 @@ import com.android.tools.adtui.model.Range
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
@@ -37,7 +36,7 @@ class CpuCaptureMinimapModelTest {
   private val timer = FakeTimer()
 
   @get:Rule
-  var grpcChannel = FakeGrpcChannel("CpuCaptureMinimapModelTest", FakeCpuService(), FakeProfilerService(timer), FakeTransportService(timer))
+  var grpcChannel = FakeGrpcChannel("CpuCaptureMinimapModelTest", FakeTransportService(timer))
 
   private lateinit var profilers: StudioProfilers
   @Before

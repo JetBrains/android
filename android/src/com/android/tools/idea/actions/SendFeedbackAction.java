@@ -16,6 +16,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.annotations.concurrency.Slow;
+import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -27,6 +28,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.util.io.URLUtil;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,7 +59,10 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
         indicator.setText("Collecting feedback information");
         indicator.setIndeterminate(true);
         ApplicationInfoEx applicationInfo = ApplicationInfoEx.getInstanceEx();
-        String feedbackUrl = applicationInfo.getFeedbackUrl();
+        String feedbackUrl = StudioFlags.ENABLE_NEW_COLLECT_LOGS_DIALOG.get()
+                             ? getNewFeedbackUrl()
+                             : applicationInfo.getFeedbackUrl();
+
         String version = getVersion(applicationInfo);
         feedbackUrl = feedbackUrl.replace("$STUDIO_VERSION", version);
 
@@ -132,5 +137,47 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
     if (e.getPresentation().isEnabled()) {
       e.getPresentation().setEnabled(SystemInfo.isMac || SystemInfo.isLinux || SystemInfo.isWindows);
     }
+  }
+
+  private static String getNewFeedbackUrl() {
+    String instructions = """
+      ####################################################
+
+      Please provide all of the following information, otherwise we may not be able to route your bug report.
+
+      ####################################################
+
+
+      1. Describe the bug or issue that you're seeing.
+
+
+
+      2. Attach log files from Android Studio
+        2A. In the IDE, select the Help..Collect Logs and Diagnostic Data menu option.
+        2B. Create a diagnostic report and save it to your local computer.
+        2C. Attach the report to this bug using the Attach File button.
+
+      3. If you know what they are, write the steps to reproduce:
+
+         3A.
+         3B.
+         3C.
+
+      In addition to logs, please attach a screenshot or recording that illustrates the problem.
+
+      For more information on how to get your bug routed quickly, see https://developer.android.com/studio/report-bugs.html
+      """;
+
+    return "https://issuetracker.google.com/issues/new?" +
+           "component=192708" +
+           "&template=840533" +
+           "&foundIn=$STUDIO_VERSION" +
+           "&format=MARKDOWN" +
+           "&description=" +
+           "%60%60%60%0A" +
+           URLUtil.encodeURIComponent(instructions) + "%0A" +
+           "Build%3A%20__BUILD_NUMBER__%2C%20__BUILD_DATE__" +
+           "$DESCR" +
+           "%60%60%60";
   }
 }

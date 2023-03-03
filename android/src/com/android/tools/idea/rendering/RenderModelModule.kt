@@ -18,11 +18,10 @@ package com.android.tools.idea.rendering
 import com.android.ide.common.rendering.api.AssetRepository
 import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.res.ResourceIdManager
-import com.android.tools.idea.res.StudioResourceRepositoryManager
+import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
-import org.jetbrains.android.sdk.AndroidPlatform
-import org.jetbrains.android.uipreview.ModuleClassLoaderManager
+import com.android.tools.sdk.AndroidPlatform
 
 /**
  * Provides all the module-specific Android resources information required for rendering.
@@ -32,7 +31,7 @@ interface RenderModelModule : Disposable {
 
   val assetRepository: AssetRepository?
 
-  val studioResourceRepositoryManager: StudioResourceRepositoryManager
+  val resourceRepositoryManager: ResourceRepositoryManager
 
   val info: AndroidModuleInfo
 

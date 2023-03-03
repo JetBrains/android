@@ -36,10 +36,7 @@ import com.android.tools.adtui.model.legend.SeriesLegend;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.UpdatableManager;
 import com.android.tools.idea.transport.TransportFileManager;
-import com.android.tools.idea.transport.poller.TransportEventListener;
-import com.android.tools.profiler.proto.Commands;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profiler.proto.Cpu;
 import com.android.tools.profiler.proto.Trace.TraceInitiationType;
 import com.android.tools.profiler.proto.CpuServiceGrpc;
 import com.android.tools.profiler.proto.Trace;
@@ -61,7 +58,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
@@ -275,6 +271,7 @@ public class CpuProfilerStage extends StreamingStage {
 
   @Override
   public void enter() {
+    logEnterStage();
     myEventMonitor.enter();
     getStudioProfilers().getUpdater().register(myCpuUsage);
     getStudioProfilers().getUpdater().register(myTraceDurations);
@@ -345,32 +342,9 @@ public class CpuProfilerStage extends StreamingStage {
                                                    getStudioProfilers().getIdeServices().getNativeSymbolsDirectories()));
     Trace.TraceConfiguration configuration = configurationBuilder.build();
 
-    Executor poolExecutor = getStudioProfilers().getIdeServices().getPoolExecutor();
-    Commands.Command startCommand = Commands.Command.newBuilder()
-      .setStreamId(mySession.getStreamId())
-      .setPid(mySession.getPid())
-      .setType(Commands.Command.CommandType.START_TRACE)
-      .setStartTrace(Trace.StartTrace.newBuilder()
-                       .setProfilerType(Trace.ProfilerType.CPU)
-                       .setConfiguration(configuration)
-                       .build())
-      .build();
-
-    getStudioProfilers().getClient().executeAsync(startCommand, poolExecutor)
-      .thenAcceptAsync(response -> {
-        TransportEventListener statusListener = new TransportEventListener(
-          Common.Event.Kind.TRACE_STATUS,
-          getStudioProfilers().getIdeServices().getMainExecutor(),
-          event -> event.getCommandId() == response.getCommandId(),
-          mySession::getStreamId,
-          mySession::getPid,
-          event -> {
-            startCapturingCallback(event.getTraceStatus().getTraceStartStatus());
-            // unregisters the listener.
-            return true;
-          });
-        getStudioProfilers().getTransportPoller().registerListener(statusListener);
-      }, poolExecutor);
+    // Execute a start trace command for cpu-based tracing and registers a listener for event reception and handling.
+    // The startCapturingCallback with be called on event reception.
+    CpuProfiler.startTracing(getStudioProfilers(), mySession, configuration, this::startCapturingCallback);
 
     getStudioProfilers().getIdeServices().getTemporaryProfilerPreferences().setBoolean(HAS_USED_CPU_CAPTURE, true);
     myInstructionsEaseOutModel.setCurrentPercentage(1);
@@ -463,11 +437,6 @@ public class CpuProfilerStage extends StreamingStage {
   @NotNull
   public CpuCaptureParser getCaptureParser() {
     return myCaptureParser;
-  }
-
-  @NotNull
-  private CpuServiceGrpc.CpuServiceBlockingStub getCpuClient() {
-    return getStudioProfilers().getClient().getCpuClient();
   }
 
   /**

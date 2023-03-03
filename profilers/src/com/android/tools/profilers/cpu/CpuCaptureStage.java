@@ -304,6 +304,7 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
   @Override
   public void enter() {
+    logEnterStage();
     getStudioProfilers().getUpdater().register(myCpuCaptureHandler);
     getStudioProfilers().getIdeServices().getFeatureTracker().trackEnterStage(getStageType());
     myCpuCaptureHandler.parse(capture -> {

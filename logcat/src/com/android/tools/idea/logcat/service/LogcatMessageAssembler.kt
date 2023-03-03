@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat.service
 
-import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
+import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.folding.StackTraceExpander

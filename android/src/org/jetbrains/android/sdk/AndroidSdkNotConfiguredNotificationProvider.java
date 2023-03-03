@@ -1,6 +1,7 @@
 package org.jetbrains.android.sdk;
 
 import com.android.tools.idea.model.AndroidModel;
+import com.android.tools.sdk.AndroidPlatform;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileTypes.FileTypeRegistry;

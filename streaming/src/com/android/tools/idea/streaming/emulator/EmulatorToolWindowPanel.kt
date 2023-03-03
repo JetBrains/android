@@ -25,7 +25,7 @@ import com.android.tools.idea.streaming.AbstractDisplayPanel
 import com.android.tools.idea.streaming.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.DeviceId
 import com.android.tools.idea.streaming.EmulatorSettings
-import com.android.tools.idea.streaming.NUMBER_OF_DISPLAYS
+import com.android.tools.idea.streaming.NUMBER_OF_DISPLAYS_KEY
 import com.android.tools.idea.streaming.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.RunningDevicePanel
 import com.android.tools.idea.streaming.STREAMING_SECONDARY_TOOLBAR_ID
@@ -68,7 +68,7 @@ private val LOG get() = Logger.getInstance(EmulatorToolWindowPanel::class.java)
 /**
  * Provides view of one AVD in the Running Devices tool window.
  */
-class EmulatorToolWindowPanel(
+internal class EmulatorToolWindowPanel(
   private val project: Project,
   val emulator: EmulatorController
 ) : RunningDevicePanel(DeviceId.ofEmulator(emulator.emulatorId), EMULATOR_MAIN_TOOLBAR_ID, STREAMING_SECONDARY_TOOLBAR_ID),
@@ -96,7 +96,7 @@ class EmulatorToolWindowPanel(
           clipboardSynchronizer?.setDeviceClipboardAndKeepHostClipboardInSync()
         }
       }
-      else if (lost) {
+      else {
         clipboardSynchronizer?.stopKeepingHostClipboardInSync()
       }
     }
@@ -255,7 +255,7 @@ class EmulatorToolWindowPanel(
     return when (dataId) {
       EMULATOR_CONTROLLER_KEY.name -> emulator
       EMULATOR_VIEW_KEY.name, DISPLAY_VIEW_KEY.name, ZOOMABLE_KEY.name -> primaryEmulatorView
-      NUMBER_OF_DISPLAYS.name -> displayPanels.size
+      NUMBER_OF_DISPLAYS_KEY.name -> displayPanels.size
       ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name -> getScreenRecorderParameters()
       else -> super.getData(dataId)
     }

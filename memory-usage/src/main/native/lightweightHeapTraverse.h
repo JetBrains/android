@@ -10,10 +10,11 @@ extern "C" {
 /*
  * Class:     com_android_tools_memory_usage_LightweightHeapTraverse
  * Method:    collectReport
- * Signature: ()V
  */
 JNIEXPORT jobject JNICALL Java_com_android_tools_memory_usage_LightweightHeapTraverse_collectReport
-  (JNIEnv *, jclass);
+  (JNIEnv *, jclass, jboolean collectHeapObjectInfo,
+                     jboolean collectReachableObjectsInfo,
+                     jboolean collectStrongReferencedObjectsInfo);
 
 #ifdef __cplusplus
 }

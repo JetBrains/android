@@ -21,9 +21,9 @@ import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.res.AssetRepositoryImpl
 import com.android.tools.idea.res.ResourceIdManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
+import com.android.tools.sdk.AndroidPlatform
 import com.intellij.openapi.module.Module
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.android.sdk.getInstance
 
 /** Studio-specific [RenderModelModule] constructed from [AndroidFacet]. */
@@ -32,7 +32,7 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
     get() = facet.module
   override var assetRepository: AssetRepository? = AssetRepositoryImpl(facet)
     private set
-  override val studioResourceRepositoryManager: StudioResourceRepositoryManager
+  override val resourceRepositoryManager: StudioResourceRepositoryManager
     get() = StudioResourceRepositoryManager.getInstance(facet)
   override val info: AndroidModuleInfo
     get() = StudioAndroidModuleInfo.getInstance(facet)

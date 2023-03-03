@@ -22,7 +22,6 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Memory.HeapDumpInfo
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.NullMonitorStage
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
@@ -31,7 +30,6 @@ import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.Utils.debuggableProcess
 import com.android.tools.profilers.Utils.newProcess
 import com.android.tools.profilers.Utils.onlineDevice
-import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.google.common.truth.Truth
 import org.junit.Rule
@@ -43,11 +41,9 @@ class SessionItemTest {
   private val myTransportService = FakeTransportService(myTimer, false)
 
   @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("SessionItemTestChannel", myTransportService, FakeProfilerService(myTimer), FakeEventService())
+  var myGrpcChannel = FakeGrpcChannel("SessionItemTestChannel", myTransportService)
 
-  private val myIdeServices = FakeIdeProfilerServices().apply {
-    enableEventsPipeline(true)
-  }
+  private val myIdeServices = FakeIdeProfilerServices()
   private val myProfilers by lazy { StudioProfilers(ProfilerClient(myGrpcChannel.channel), myIdeServices, myTimer) }
 
   @Test

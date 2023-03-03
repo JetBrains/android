@@ -50,7 +50,6 @@ class MemoryProfilerHeapDumpTest {
 
   @Before
   fun setUp() {
-    ideServices.enableEventsPipeline(true)
     ApplicationManager.getApplication().registerServiceInstance(TransportService::class.java, TransportServiceTestImpl(transportService))
   }
 

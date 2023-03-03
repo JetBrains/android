@@ -32,16 +32,16 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidSdkData;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.intellij.internal.statistic.analytics.StudioCrashDetails;
 import com.intellij.internal.statistic.analytics.StudioCrashDetection;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.reference.SoftReference;
@@ -88,8 +88,8 @@ public class AndroidTargetData {
    * Filters attributes through the public.xml file
    */
   @NotNull
-  public AttributeDefinitions getPublicAttrDefs(@NotNull Project project) {
-    AttributeDefinitions attrDefs = getAllAttrDefs(project);
+  public AttributeDefinitions getPublicAttrDefs() {
+    AttributeDefinitions attrDefs = getAllAttrDefs();
     return new PublicAttributeDefinitions(attrDefs);
   }
 
@@ -97,7 +97,7 @@ public class AndroidTargetData {
    * Returns all attributes
    */
   @NotNull
-  public AttributeDefinitions getAllAttrDefs(@NotNull Project project) {
+  public AttributeDefinitions getAllAttrDefs() {
     synchronized (myAttrDefsLock) {
       if (myAttrDefs == null) {
         String attrsPath = FileUtil.toSystemIndependentName(myTarget.getPath(IAndroidTarget.ATTRIBUTES).toString());
@@ -134,13 +134,13 @@ public class AndroidTargetData {
 
   @Slow
   @NotNull
-  public LayoutLibrary getLayoutLibrary(@NotNull Project project) throws RenderingException {
+  public LayoutLibrary getLayoutLibrary(@NotNull Disposable parentDisposable) throws RenderingException {
     if (myLayoutLibrary == null || myLayoutLibrary.isDisposed()) {
       if (myTarget instanceof CompatibilityRenderTarget) {
         IAndroidTarget target = ((CompatibilityRenderTarget)myTarget).getRenderTarget();
         AndroidTargetData targetData = AndroidTargetData.get(mySdkData, target);
         if (targetData != this) {
-          myLayoutLibrary = targetData.getLayoutLibrary(project);
+          myLayoutLibrary = targetData.getLayoutLibrary(parentDisposable);
           return myLayoutLibrary;
         }
       }
@@ -149,7 +149,7 @@ public class AndroidTargetData {
         LOG.warn("Rendering will not use the StudioEmbeddedRenderTarget");
       }
       myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues(), AndroidTargetData::hasStudioCrash);
-      Disposer.register(((ProjectEx)project).getEarlyDisposable(), myLayoutLibrary);
+      Disposer.register(parentDisposable, myLayoutLibrary);
     }
 
     return myLayoutLibrary;
@@ -194,9 +194,9 @@ public class AndroidTargetData {
     return result;
   }
 
-  public void clearLayoutBitmapCache(Module module) {
+  public void clearLayoutBitmapCache(Object moduleKey) {
     if (myLayoutLibrary != null) {
-      myLayoutLibrary.clearResourceCaches(module);
+      myLayoutLibrary.clearResourceCaches(moduleKey);
     }
   }
 
@@ -206,9 +206,9 @@ public class AndroidTargetData {
     }
   }
 
-  public void clearAllCaches(Module module) {
+  public void clearAllCaches(Object moduleKey) {
     if (myLayoutLibrary != null) {
-      myLayoutLibrary.clearAllCaches(module);
+      myLayoutLibrary.clearAllCaches(moduleKey);
     }
   }
 
@@ -253,8 +253,7 @@ public class AndroidTargetData {
    * This method can return null when the user is changing the SDK setting in their project.
    */
   @Nullable
-  public static AndroidTargetData getTargetData(@NotNull IAndroidTarget target, @NotNull Module module) {
-    AndroidPlatform platform = AndroidPlatforms.getInstance(module);
+  public static AndroidTargetData getTargetData(@NotNull IAndroidTarget target, @Nullable AndroidPlatform platform) {
     return platform != null ? AndroidTargetData.get(platform.getSdkData(), target) : null;
   }
 

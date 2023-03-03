@@ -7,7 +7,7 @@
     ]]>
   </description>
   <category>Android</category>
-  <version>2022.3.1 Canary 7</version>
+  <version>2022.3.1 Canary 8</version>
   <vendor>JetBrains, Google</vendor>
   <depends>com.intellij.platform.images</depends>
   <depends>com.intellij.modules.java</depends>
@@ -23,6 +23,7 @@
   <xi:include href="/META-INF/android-navigator.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-room.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-dagger.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/app-insights.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/databinding.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/mlkit.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/sdk-updates.xml" xpointer="xpointer(/idea-plugin/*)"/>
@@ -57,6 +58,7 @@
   <xi:include href="/META-INF/android-lint-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/device-manager.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/threading-checker.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/device-manager-v2.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/wear-pairing.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-execution-common.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-deploy.xml" xpointer="xpointer(/idea-plugin/*)"/>

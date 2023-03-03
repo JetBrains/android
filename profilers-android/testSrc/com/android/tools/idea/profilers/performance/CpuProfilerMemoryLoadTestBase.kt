@@ -21,19 +21,16 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuCaptureStage
 import com.android.tools.profilers.cpu.CpuCaptureStageView
-import com.android.tools.profilers.cpu.FakeCpuService
 import com.android.tools.profilers.cpu.config.ImportedConfiguration
-import com.android.tools.profilers.event.FakeEventService
-import com.android.tools.profilers.memory.FakeMemoryService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.After
 import org.junit.Rule
 import java.io.File
@@ -50,20 +47,19 @@ open class CpuProfilerMemoryLoadTestBase {
   val myTimer = FakeTimer()
   val myComponents = FakeIdeProfilerComponents()
   var myIdeServices = FakeIdeProfilerServices()
-  val myCpuService = FakeCpuService()
   var myProfilersView: StudioProfilersView? = null
 
   @get:Rule
-  val myGrpcChannel = FakeGrpcChannel(
-    "CpuProfilerMemoryLoadTestBase", myCpuService, FakeTransportService(myTimer), FakeProfilerService(myTimer),
-    FakeMemoryService(), FakeEventService()
-  )
+  val myGrpcChannel = FakeGrpcChannel("CpuProfilerMemoryLoadTestBase", FakeTransportService(myTimer))
 
   /**
    * For initializing [com.intellij.ide.HelpTooltip].
    */
   @get:Rule
   val appRule = ApplicationRule()
+
+  @get:Rule
+  val disposableRule = DisposableRule()
 
   @After
   fun cleanup() {
@@ -86,7 +82,7 @@ open class CpuProfilerMemoryLoadTestBase {
     // One second must be enough for new devices (and processes) to be picked up
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     myTimingBenchmark.log(name, measureTimeMillis {
-    myProfilersView = StudioProfilersView(profilers, myComponents)
+    myProfilersView = StudioProfilersView(profilers, myComponents, disposableRule.disposable)
       // Setting the stage enters the stage and triggers the parsing of the CpuCapture
       stage.studioProfilers.stage = stage
       cpuCaptureView = CpuCaptureStageView(myProfilersView!!, stage)

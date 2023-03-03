@@ -59,6 +59,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
+        "//tools/adt/idea/streaming:intellij.android.streaming[module]",
     ],
 )
 
@@ -125,6 +126,7 @@ iml_module(
         "//tools/adt/idea/deploy:intellij.android.deploy[module, test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
+        "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
     ],
 )
 
@@ -228,6 +230,8 @@ maven_repository(
         "@maven//:com.android.library.com.android.library.gradle.plugin_7.2.0",
         "@maven//:com.android.tools.build.aapt2_7.2.0-7984345",
         "@maven//:com.android.tools.build.gradle_7.2.0",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
+        "@maven//:org.jetbrains.markdown_0.2.1",
     ],
 )
 

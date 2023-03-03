@@ -23,6 +23,7 @@ import com.android.tools.idea.naveditor.dialogs.showAndUpdateFromDialog
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import icons.StudioIcons
@@ -32,6 +33,7 @@ import org.jetbrains.android.dom.navigation.NavActionElement
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
 class AddActionToolbarAction private constructor(): AnAction() {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   override fun update(e: AnActionEvent) {
     val surface = e.getData(DESIGN_SURFACE) as? NavDesignSurface

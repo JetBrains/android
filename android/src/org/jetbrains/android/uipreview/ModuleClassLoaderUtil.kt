@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.android.tools.idea.rendering.classloading.loaders.AsmTransformingLoad
 import com.android.tools.idea.rendering.classloading.loaders.ClassBinaryCacheLoader
 import com.android.tools.idea.rendering.classloading.loaders.ClassLoaderLoader
 import com.android.tools.idea.rendering.classloading.loaders.DelegatingClassLoader
+import com.android.tools.idea.rendering.classloading.loaders.FakeSavedStateRegistryLoader
 import com.android.tools.idea.rendering.classloading.loaders.ListeningLoader
 import com.android.tools.idea.rendering.classloading.loaders.MultiLoader
 import com.android.tools.idea.rendering.classloading.loaders.MultiLoaderWithAffinity
@@ -235,19 +236,24 @@ internal class ModuleClassLoaderImpl(module: Module,
         URLUtil.splitJarUrl(path)?.first?.let { libraryPath -> fqcnToLibraryPath[fqcn] = libraryPath }
       },
       ::onDiskClassNameLookup)
+    // Loads a fake saved state registry, when [ViewTreeLifecycleOwner] requests a mocked lifecycle.
+    // See also ViewTreeLifecycleTransform to check when this fake class gets created.
+    val fakeSavedStateRegistryLoader = FakeSavedStateRegistryLoader(jarLoader)
 
+    // Tree of the class Loaders:
+    // Each node of this tree checks if it can load the current class, it delegates to its subtree otherwise.
     return ListeningLoader(
-      ClassBinaryCacheLoader(
-        ListeningLoader(
-          AsmTransformingLoader(
-            nonProjectTransforms,
-            jarLoader,
-            PseudoClassLocatorForLoader(
-              listOfNotNull(jarLoader, parentLoader).asSequence(),
-              parentClassLoader
+      delegate = ClassBinaryCacheLoader(
+        delegate = ListeningLoader(
+          delegate = AsmTransformingLoader(
+            transform = nonProjectTransforms,
+            delegate = fakeSavedStateRegistryLoader,
+            pseudoClassLocator = PseudoClassLocatorForLoader(
+              loaders = listOfNotNull(jarLoader, parentLoader).asSequence(),
+              fallbackClassloader = parentClassLoader
             ),
-            ClassWriter.COMPUTE_MAXS,
-            onClassRewrite),
+            asmFlags = ClassWriter.COMPUTE_MAXS,
+            onRewrite = onClassRewrite),
           onAfterLoad = { fqcn, bytes ->
             onClassLoaded(fqcn)
             // Map the fqcn to the library path and insert the class into the class binary cache
@@ -255,17 +261,19 @@ internal class ModuleClassLoaderImpl(module: Module,
               binaryCache.put(fqcn, nonProjectTransformationId, libraryPath, bytes)
             }
           }),
-        nonProjectTransformationId,
-        binaryCache), onBeforeLoad = {
-      if (it == "kotlinx.coroutines.android.AndroidDispatcherFactory") {
-        // Hide this class to avoid the coroutines in the project loading the AndroidDispatcherFactory for now.
-        // b/162056408
-        //
-        // Throwing an exception here (other than ClassNotFoundException) will force the FastServiceLoader to fallback
-        // to the regular class loading. This allows us to inject our own DispatcherFactory, specific to Layoutlib.
-        throw IllegalArgumentException("AndroidDispatcherFactory not supported by layoutlib");
+        transformationId = nonProjectTransformationId,
+        binaryCache = binaryCache),
+      onBeforeLoad = {
+        if (it == "kotlinx.coroutines.android.AndroidDispatcherFactory") {
+          // Hide this class to avoid the coroutines in the project loading the AndroidDispatcherFactory for now.
+          // b/162056408
+          //
+          // Throwing an exception here (other than ClassNotFoundException) will force the FastServiceLoader to fallback
+          // to the regular class loading. This allows us to inject our own DispatcherFactory, specific to Layoutlib.
+          throw IllegalArgumentException("AndroidDispatcherFactory not supported by layoutlib")
+        }
       }
-    })
+    )
   }
 
   init {
@@ -310,7 +318,8 @@ internal class ModuleClassLoaderImpl(module: Module,
 
   override fun loadClass(fqcn: String): ByteArray? {
     if (Disposer.isDisposed(this)) {
-      Logger.getInstance(ModuleClassLoaderImpl::class.java).warn("Using already disposed ModuleClassLoaderImpl", Throwable(Disposer.getDisposalTrace(this)))
+      Logger.getInstance(ModuleClassLoaderImpl::class.java).warn("Using already disposed ModuleClassLoaderImpl",
+                                                                 Throwable(Disposer.getDisposalTrace(this)))
       return null
     }
 

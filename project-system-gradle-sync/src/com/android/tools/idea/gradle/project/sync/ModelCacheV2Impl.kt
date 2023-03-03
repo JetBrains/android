@@ -95,12 +95,14 @@ import com.android.tools.idea.gradle.model.impl.IdeJavaCompileOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeLintOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeModelSyncFileImpl
+import com.android.tools.idea.gradle.model.impl.IdeMultiVariantDataImpl
 import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdePrivacySandboxSdkInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeProjectPathImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
+import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
@@ -324,8 +326,8 @@ internal fun modelCacheV2Impl(
     )
   }
 
-  fun sourceProviderContainerFrom(container: SourceProvider): IdeSourceProviderContainerImpl {
-    return IdeSourceProviderContainerImpl(
+  fun sourceProviderContainerFrom(container: SourceProvider): IdeExtraSourceProviderImpl {
+    return IdeExtraSourceProviderImpl(
       // As we no longer have ArtifactMetaData, we use hardcoded values for androidTests, unitTests and testFixtures artifacts.
 
       artifactName = if (container.name.startsWith("androidTest")) {
@@ -343,6 +345,19 @@ internal fun modelCacheV2Impl(
   ): IdeProductFlavorContainerImpl {
     return IdeProductFlavorContainerImpl(
       productFlavor = productFlavorFrom(productFlavor),
+      sourceProvider = container?.sourceProvider?.let { it: SourceProvider -> sourceProviderFrom(it) },
+      extraSourceProviders = listOfNotNull(
+        container?.androidTestSourceProvider?.let { it: SourceProvider -> sourceProviderContainerFrom(it) },
+        container?.unitTestSourceProvider?.let { it: SourceProvider -> sourceProviderContainerFrom(it) },
+        container?.testFixturesSourceProvider?.let { it: SourceProvider -> sourceProviderContainerFrom(it) }
+      )
+    )
+  }
+
+  fun sourceProviderContainerFrom(
+    container: SourceSetContainer?
+  ): IdeSourceProviderContainerImpl {
+    return IdeSourceProviderContainerImpl(
       sourceProvider = container?.sourceProvider?.let { it: SourceProvider -> sourceProviderFrom(it) },
       extraSourceProviders = listOfNotNull(
         container?.androidTestSourceProvider?.let { it: SourceProvider -> sourceProviderContainerFrom(it) },
@@ -628,7 +643,7 @@ internal fun modelCacheV2Impl(
       bootClasspath: Collection<String>,
       seenDependencies: MutableMap<String, List<String>>
     ) {
-      getOptionalBootClasspathLibraries(bootClasspath).forEach { jarFile ->
+      getUsefulBootClasspathLibraries(bootClasspath).forEach { jarFile ->
         if (!seenDependencies.contains(jarFile.path)) { // Any unique key identifying the library  is suitable.
           seenDependencies[jarFile.path] = listOf()
           librariesById.computeIfAbsent(jarFile.path) {
@@ -1007,14 +1022,16 @@ internal fun modelCacheV2Impl(
     variant: Variant,
     legacyApplicationIdModel: LegacyApplicationIdModel?
   ): ModelResult<IdeVariantCoreImpl> {
+    // Currently, all plugins going through the model cache v2 building will be of multi-variant type
+    val multiVariantData = androidProject.multiVariantData!!
     // To get merged flavors for V2, we merge flavors from default config and all the flavors.
     val mergedFlavor = mergeProductFlavorsFrom(
-      androidProject.defaultConfig.productFlavor,
-      androidProject.productFlavors.map { it.productFlavor }.filter { basicVariant.productFlavors.contains(it.name) }.toList(),
+      multiVariantData.defaultConfig,
+      multiVariantData.productFlavors.map { it.productFlavor }.filter { basicVariant.productFlavors.contains(it.name) }.toList(),
       androidProject.projectType
     )
 
-    val buildType = androidProject.buildTypes.find { it.buildType.name == basicVariant.buildType }?.buildType
+    val buildType = multiVariantData.buildTypes.find { it.buildType.name == basicVariant.buildType }?.buildType
 
     fun <T> merge(f: IdeProductFlavorImpl.() -> T, b: IdeBuildTypeImpl.() -> T, combine: (T?, T?) -> T): T {
       return combine(mergedFlavor.f(), buildType?.b())
@@ -1310,7 +1327,8 @@ internal fun modelCacheV2Impl(
     legacyApplicationIdModel: LegacyApplicationIdModel?,
     gradlePropertiesModel: GradlePropertiesModel,
   ): ModelResult<IdeAndroidProjectImpl> {
-    val defaultConfigCopy: IdeProductFlavorContainerImpl = productFlavorContainerFrom(androidDsl.defaultConfig, basicProject.mainSourceSet)
+    val defaultConfigCopy: IdeProductFlavorImpl = productFlavorFrom(androidDsl.defaultConfig)
+    val defaultConfigSourcesCopy: IdeSourceProviderContainerImpl = sourceProviderContainerFrom(basicProject.mainSourceSet)
     val buildTypesCopy: Collection<IdeBuildTypeContainerImpl> = zip(
       androidDsl.buildTypes,
       basicProject.buildTypeSourceSets,
@@ -1364,9 +1382,12 @@ internal fun modelCacheV2Impl(
           buildName = basicProject.buildName,
           projectPath = basicProject.path,
         ),
-        defaultConfig = defaultConfigCopy,
-        buildTypes = buildTypesCopy,
-        productFlavors = productFlavorCopy,
+        defaultSourceProvider = defaultConfigSourcesCopy,
+        multiVariantData = IdeMultiVariantDataImpl(
+          defaultConfig = defaultConfigCopy,
+          buildTypes = buildTypesCopy,
+          productFlavors = productFlavorCopy,
+        ),
         basicVariants = basicVariantsCopy,
         flavorDimensions = flavorDimensionCopy,
         compileTarget = androidDsl.compileTarget,

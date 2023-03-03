@@ -20,7 +20,6 @@ import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon
-import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.FILTER_ARG_BASELINE_PROFILE
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.flavorsConfigurationsBuildGradle
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.generateBuildVariants
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.FlavorNameAndDimension
@@ -40,8 +39,6 @@ import org.mockito.Mockito.verify
 import java.io.File
 
 class BaselineProfilesMacrobenchmarkCommonTest {
-  @get:Rule
-  val projectRule = AndroidGradleProjectRule()
 
   @Test
   fun createModuleTest() {
@@ -99,27 +96,15 @@ class BaselineProfilesMacrobenchmarkCommonTest {
   }
 
   @Test
-  fun runConfiguration() {
-    val task = BaselineProfilesMacrobenchmarkCommon.runConfigurationGradleTask("moduleName", "variantName", FILTER_ARG_BASELINE_PROFILE)
-    assertThat(task).run {
-      contains(":moduleName:generateVariantNameBaselineProfiles")
-      contains("-P${BaselineProfilesMacrobenchmarkCommon.FILTER_INSTR_ARG}=BaselineProfile")
-    }
-  }
-
-  @Test
-  fun runConfigurationNoFilter() {
-    val task = BaselineProfilesMacrobenchmarkCommon.runConfigurationGradleTask("moduleName", "variantName", null)
-    assertThat(task).run {
-      contains(":moduleName:generateVariantNameBaselineProfiles")
-      doesNotContain("-P${BaselineProfilesMacrobenchmarkCommon.FILTER_INSTR_ARG}")
-    }
-  }
-
-  @Test
   fun generateBuildVariants_emptyFlavors() {
     val variants = generateBuildVariants(emptyList(), emptyList())
-    assertThat(variants).containsExactlyElementsIn(listOf(null))
+    assertThat(variants).containsExactlyElementsIn(emptyList<String>())
+  }
+
+  @Test
+  fun generateBuildVariants_emptyFlavors_with_buildType() {
+    val variants = generateBuildVariants(emptyList(), emptyList(), "release")
+    assertThat(variants).containsExactlyElementsIn(listOf("release"))
   }
 
   @Test
@@ -203,6 +188,31 @@ class BaselineProfilesMacrobenchmarkCommonTest {
       "paidDemoBlue",
       "paidProdRed",
       "paidProdBlue",
+    ))
+  }
+
+  @Test
+  fun generateBuildVariants_threeDimensionFlavorsReversedWithBuildType() {
+    val dimen = listOf("tier", "env", "color")
+    val flavors = listOf(
+      FlavorNameAndDimension("demo", "env"),
+      FlavorNameAndDimension("prod", "env"),
+      FlavorNameAndDimension("free", "tier"),
+      FlavorNameAndDimension("paid", "tier"),
+      FlavorNameAndDimension("red", "color"),
+      FlavorNameAndDimension("blue", "color"),
+    )
+    val variants = generateBuildVariants(dimen, flavors, "release")
+
+    assertThat(variants).containsExactlyElementsIn(listOf(
+      "freeDemoRedRelease",
+      "freeDemoBlueRelease",
+      "freeProdRedRelease",
+      "freeProdBlueRelease",
+      "paidDemoRedRelease",
+      "paidDemoBlueRelease",
+      "paidProdRedRelease",
+      "paidProdBlueRelease",
     ))
   }
 

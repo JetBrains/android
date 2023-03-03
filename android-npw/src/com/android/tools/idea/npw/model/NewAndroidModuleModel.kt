@@ -229,7 +229,7 @@ private fun FormFactor.toModuleRenderingLoggingEvent() = when(this) {
   FormFactor.Generic -> RenderLoggingEvent.ANDROID_MODULE // TODO(b/145975555)
 }
 
-private fun Project.hasKtsUsage() : Boolean {
+internal fun Project.hasKtsUsage() : Boolean {
   return GradleUtil.projectBuildFilesTypes(this).contains(DOT_KTS)
 }
 

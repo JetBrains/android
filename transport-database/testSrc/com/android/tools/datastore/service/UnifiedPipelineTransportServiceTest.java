@@ -52,14 +52,10 @@ import org.junit.rules.TestName;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-/**
- * ProfilerServiceTest for scenarios related to the new data pipeline, which goes through the
- * {@link ProfilerService#startPolling(Stream, Channel)} instead of the old {@link ProfilerService#startMonitoring(Channel)} API.
- */
 public class UnifiedPipelineTransportServiceTest extends DataStorePollerTest {
   private DataStoreService myDataStore = mock(DataStoreService.class);
 
-  private TransportService myTransportService = new TransportService(myDataStore, new UnifiedEventsTable(), getPollTicker()::run, false);
+  private TransportService myTransportService = new TransportService(myDataStore, new UnifiedEventsTable(), getPollTicker()::run);
 
   private FakeTransportService myFakeService = new FakeTransportService();
   private Channel myChannel;

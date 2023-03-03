@@ -126,7 +126,9 @@ iml_module(
         "//tools/base/adblib:studio.android.sdktools.adblib[module]",
         "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
+        "//tools/base/process-monitor:studio.android.sdktools.process-monitor[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
+        "//prebuilts/r8",
     ],
 )
 
@@ -197,6 +199,10 @@ iml_module(
             # before it in the same shard, image assets wouldn't be rendered as they'd be DummyIcons
             "test_filter": "org.jetbrains.android.AndroidGutterIconAnnotatorTest",
             "shard_count": 1,
+        },
+        "resourcemanager": {
+            "test_filter": "com.android.tools.idea.ui.resourcemanager",
+            "shard_count": 2,
         },
         "other": {
             "shard_count": 5,
@@ -351,6 +357,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-java-coverage[test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
+        "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
     ],
 )
 
@@ -445,6 +452,8 @@ filegroup(
         ":transport-artifacts",
         "//tools/adt/idea/server-flags:server-flag-test-proto",
         "//tools/adt/idea/streaming/screen-sharing-agent:bundle",
+        "//tools/adt/idea/studio:default_user_jvm_args",
+        "//tools/adt/idea/studio:required_jvm_args",
         "//tools/adt/idea/swingp:swing-instrumenter_deploy.jarjar.jar",
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
         "//tools/base/bazel:studio-grpc",

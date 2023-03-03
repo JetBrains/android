@@ -20,11 +20,13 @@ import com.android.tools.idea.actions.DesignerActions
 import com.android.tools.idea.naveditor.scene.layout.SKIP_PERSISTED_LAYOUT
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.WriteCommandAction
 
 class AutoArrangeAction private constructor(): AnAction() {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabled = (e.getData(DESIGN_SURFACE) as? NavDesignSurface != null)

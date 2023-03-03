@@ -21,6 +21,7 @@ import com.android.tools.idea.ui.resourcemanager.InputParam
 import com.android.tools.idea.ui.resourcemanager.IntParam
 import com.android.tools.idea.ui.resourcemanager.TextParam
 import com.android.tools.idea.ui.resourcemanager.bind
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.project.DumbAwareAction
@@ -189,13 +190,15 @@ class QualifierConfigurationPanel(private val viewModel: QualifierConfigurationV
     private fun createDeleteButton(): ActionButton {
       val action = object : DumbAwareAction(CLEAR_QUALIFIER_DESC, CLEAR_QUALIFIER_DESC, StudioIcons.Common.CLOSE) {
 
+        override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
         override fun actionPerformed(e: AnActionEvent) {
           (qualifierCombo.selectedItem as? ResourceQualifierWrapper)?.qualifier?.let { viewModel.deselectQualifier(it) }
           if (parent.componentCount > 1) deleteRow() else reset()
           addQualifierButton.isEnabled = canAddConfigurationRow()
         }
       }
-      return ActionButton(action, action.templatePresentation, "Resource Explorer", ADD_BUTTON_SIZE).apply { isFocusable = true }
+      return ActionButton(action, action.templatePresentation.clone(), "Resource Explorer", ADD_BUTTON_SIZE).apply { isFocusable = true }
     }
 
     private fun deleteRow() {

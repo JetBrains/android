@@ -30,6 +30,7 @@
     <orderEntry type="module" module-name="android.sdktools.adblib.ddmlibcompatibility" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" scope="TEST" />
     <orderEntry type="module" module-name="android.sdktools.device-provisioner" scope="TEST" />
+    <orderEntry type="module" module-name="android.sdktools.process-monitor" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.logcat" />
 </module>

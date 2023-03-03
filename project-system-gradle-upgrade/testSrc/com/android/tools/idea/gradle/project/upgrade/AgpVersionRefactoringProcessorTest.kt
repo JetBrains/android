@@ -303,36 +303,24 @@ class AgpVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
 
   @Test
   fun testVersionInVersionCatalogLiteral() {
-    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
-    try {
-      writeToBuildFile(TestFileName("AgpVersion/VersionInVersionCatalog"))
-      writeToVersionCatalogFile(TestFileName("AgpVersion/VersionCatalogLiteral"))
-      val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.2.0"), AgpVersion.parse("8.0.0"))
-      assertFalse(processor.isBlocked)
-      processor.run()
-      verifyFileContents(buildFile, TestFileName("AgpVersion/VersionInVersionCatalog"))
-      verifyVersionCatalogFileContents(versionCatalogFile, TestFileName("AgpVersion/VersionCatalogLiteralExpected"))
-    }
-    finally {
-      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
-    }
+    writeToBuildFile(TestFileName("AgpVersion/VersionInVersionCatalog"))
+    writeToVersionCatalogFile(TestFileName("AgpVersion/VersionCatalogLiteral"))
+    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.2.0"), AgpVersion.parse("8.0.0"))
+    assertFalse(processor.isBlocked)
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpVersion/VersionInVersionCatalog"))
+    verifyVersionCatalogFileContents(versionCatalogFile, TestFileName("AgpVersion/VersionCatalogLiteralExpected"))
   }
 
   @Test
   fun testVersionInVersionCatalogMap() {
-    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
-    try {
-      writeToBuildFile(TestFileName("AgpVersion/VersionInVersionCatalog"))
-      writeToVersionCatalogFile(TestFileName("AgpVersion/VersionCatalogMap"))
-      val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.2.0"), AgpVersion.parse("8.0.0"))
-      assertFalse(processor.isBlocked)
-      processor.run()
-      verifyFileContents(buildFile, TestFileName("AgpVersion/VersionInVersionCatalog"))
-      verifyVersionCatalogFileContents(versionCatalogFile, TestFileName("AgpVersion/VersionCatalogMapExpected"))
-    }
-    finally {
-      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
-    }
+    writeToBuildFile(TestFileName("AgpVersion/VersionInVersionCatalog"))
+    writeToVersionCatalogFile(TestFileName("AgpVersion/VersionCatalogMap"))
+    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.2.0"), AgpVersion.parse("8.0.0"))
+    assertFalse(processor.isBlocked)
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpVersion/VersionInVersionCatalog"))
+    verifyVersionCatalogFileContents(versionCatalogFile, TestFileName("AgpVersion/VersionCatalogMapExpected"))
   }
 
   @Test
@@ -347,20 +335,13 @@ class AgpVersionRefactoringProcessorTest : UpgradeGradleFileModelTestCase() {
 
   @Test
   fun testVersionInVersionCatalogVersionRef() {
-    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
-    try {
-
-      writeToBuildFile(TestFileName("AgpVersion/VersionInVersionCatalog"))
-      writeToVersionCatalogFile(TestFileName("AgpVersion/VersionCatalogVersionRef"))
-      val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.2.0"), AgpVersion.parse("8.0.0"))
-      assertFalse(processor.isBlocked)
-      processor.run()
-      verifyFileContents(buildFile, TestFileName("AgpVersion/VersionInVersionCatalog"))
-      verifyVersionCatalogFileContents(versionCatalogFile, TestFileName("AgpVersion/VersionCatalogVersionRefExpected"))
-    }
-    finally {
-      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
-    }
+    writeToBuildFile(TestFileName("AgpVersion/VersionInVersionCatalog"))
+    writeToVersionCatalogFile(TestFileName("AgpVersion/VersionCatalogVersionRef"))
+    val processor = AgpVersionRefactoringProcessor(project, AgpVersion.parse("7.2.0"), AgpVersion.parse("8.0.0"))
+    assertFalse(processor.isBlocked)
+    processor.run()
+    verifyFileContents(buildFile, TestFileName("AgpVersion/VersionInVersionCatalog"))
+    verifyVersionCatalogFileContents(versionCatalogFile, TestFileName("AgpVersion/VersionCatalogVersionRefExpected"))
   }
 
   @Test

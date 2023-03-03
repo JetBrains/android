@@ -16,6 +16,7 @@
 @file:JvmName("AndroidPlatforms")
 package org.jetbrains.android.sdk
 
+import com.android.tools.sdk.AndroidPlatform
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ModuleRootManager

@@ -23,12 +23,14 @@ import com.android.tools.idea.naveditor.model.isStartDestination
 import com.android.tools.idea.naveditor.model.setAsStartDestination
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.WriteCommandAction
 import icons.StudioIcons
 
 class StartDestinationToolbarAction private constructor(): AnAction() {
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     // FIXME: This action should be disabled when the selected component cannot be a start destination

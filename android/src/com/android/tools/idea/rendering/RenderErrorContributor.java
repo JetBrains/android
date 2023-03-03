@@ -105,7 +105,7 @@ import org.jetbrains.android.dom.manifest.Application;
 import org.jetbrains.android.dom.manifest.Manifest;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
-import org.jetbrains.android.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -673,7 +673,7 @@ public class RenderErrorContributor {
       return false;
     }
     AndroidTargetData targetData = AndroidTargetData.get(platform.getSdkData(), target);
-    AttributeDefinitions definitionLookup = targetData.getPublicAttrDefs(mySourceFile.getProject());
+    AttributeDefinitions definitionLookup = targetData.getPublicAttrDefs();
     String attributeName = strings[0];
     String currentValue = strings[1];
     AttributeDefinition definition = definitionLookup.getAttrDefByName(attributeName);

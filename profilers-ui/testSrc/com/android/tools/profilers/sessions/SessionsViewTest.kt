@@ -30,7 +30,6 @@ import com.android.tools.profiler.proto.Memory.HeapDumpInfo
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioMonitorStage
@@ -64,12 +63,10 @@ class SessionsViewTest {
 
   private val myTimer = FakeTimer()
   private val myTransportService = FakeTransportService(myTimer, false)
-  private val myIdeProfilerServices = FakeIdeProfilerServices().apply {
-    enableEventsPipeline(true)
-  }
+  private val myIdeProfilerServices = FakeIdeProfilerServices()
 
   @get:Rule
-  var myGrpcChannel = FakeGrpcChannel("SessionsViewTestChannel", myTransportService, FakeProfilerService(myTimer), FakeEventService())
+  var myGrpcChannel = FakeGrpcChannel("SessionsViewTestChannel", myTransportService, FakeEventService())
   @get:Rule val myEdtRule = EdtRule()
 
 

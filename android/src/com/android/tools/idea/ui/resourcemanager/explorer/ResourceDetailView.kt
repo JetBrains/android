@@ -28,6 +28,7 @@ import com.android.tools.idea.ui.resourcemanager.widget.SingleAssetCard
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
@@ -89,10 +90,14 @@ class ResourceDetailView(
 
   private val backAction = object : AnAction(AllIcons.Actions.Back) {
     init {
-      templatePresentation.isEnabledAndVisible = true
       ResourceManagerTracking.logDetailViewOpened(viewModel.facet, designAssetSet.assets.firstOrNull()?.type)
     }
 
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+    override fun update(e: AnActionEvent) {
+      super.update(e)
+      e.presentation.isEnabledAndVisible = true
+    }
     override fun actionPerformed(e: AnActionEvent) = navigateBack()
     override fun isDumbAware(): Boolean = true
   }

@@ -22,12 +22,9 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.FakeCpuService
-import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.sessions.SessionArtifact
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.io.FileUtil
@@ -44,14 +41,7 @@ class HeapProfdSessionArtifactTest {
   private val transportService = FakeTransportService(timer, false)
 
   @get:Rule
-  var grpcChannel = FakeGrpcChannel(
-    "HeapProfdSessionArtifactTestChannel",
-    transportService,
-    FakeProfilerService(timer),
-    FakeMemoryService(),
-    FakeCpuService(),
-    FakeEventService()
-  )
+  var grpcChannel = FakeGrpcChannel("HeapProfdSessionArtifactTestChannel", transportService)
 
   private lateinit var profilers: StudioProfilers
 

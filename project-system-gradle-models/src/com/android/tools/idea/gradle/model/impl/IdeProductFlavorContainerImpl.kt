@@ -21,5 +21,5 @@ import java.io.Serializable
 data class IdeProductFlavorContainerImpl(
   override val productFlavor: IdeProductFlavorImpl,
   override val sourceProvider: IdeSourceProviderImpl?,
-  override val extraSourceProviders: Collection<IdeSourceProviderContainerImpl>
+  override val extraSourceProviders: Collection<IdeExtraSourceProviderImpl>
 ) : IdeProductFlavorContainer, Serializable

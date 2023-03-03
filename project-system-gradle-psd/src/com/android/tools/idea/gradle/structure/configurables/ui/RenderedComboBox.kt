@@ -98,7 +98,7 @@ abstract class RenderedComboBox<T>(
     updateWatermark()
   }
 
-  private fun updateWatermark() {
+  internal fun updateWatermark() {
     @Suppress("UNCHECKED_CAST")
     val value = selectedItem as T?
     currentStatusTriggerText = toEditorText(value)

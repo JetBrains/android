@@ -24,21 +24,24 @@ using namespace std;
 
 DisplayInfo::DisplayInfo()
     : logical_size { 0, 0 },
+      logical_density_dpi(0),
       rotation(),
       layer_stack(),
       flags() {
 }
 
-DisplayInfo::DisplayInfo(int32_t logical_width, int32_t logical_height, int32_t rotation, int32_t layer_stack, int32_t flags)
+DisplayInfo::DisplayInfo(
+    int32_t logical_width, int32_t logical_height, int32_t logical_density_dpi, int32_t rotation, int32_t layer_stack, int32_t flags)
     : logical_size { logical_width, logical_height },
+      logical_density_dpi(logical_density_dpi),
       rotation(rotation),
       layer_stack(layer_stack),
       flags(flags) {
 }
 
 string DisplayInfo::ToDebugString() const {
-  return StringPrintf("logical_size:%dx%d display_rotation:%d layer_stack:%d flags:0x%x",
-                      logical_size.width, logical_size.height, rotation, layer_stack, flags);
+  return StringPrintf("logical_size:%dx%d display_rotation:%d dpi:%d layer_stack:%d flags:0x%x",
+                      logical_size.width, logical_size.height, logical_density_dpi, rotation, layer_stack, flags);
 }
 
 }  // namespace screensharing

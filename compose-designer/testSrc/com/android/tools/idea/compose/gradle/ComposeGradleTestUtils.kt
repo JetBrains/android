@@ -23,7 +23,10 @@ import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.layout.scaledContentSize
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.testFramework.runInEdtAndWait
+import com.intellij.util.ui.UIUtil
 import javax.swing.JLabel
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
@@ -35,16 +38,32 @@ import kotlinx.coroutines.withTimeout
 /** Activates the [ComposePreviewRepresentation] and waits for scenes to complete rendering. */
 suspend fun ComposePreviewRepresentation.activateAndWaitForRender(fakeUi: FakeUi) =
   withTimeout(timeout = 30.seconds) {
+    Logger.getInstance(ComposePreviewRepresentation::class.java)
+      .debug("Activating ComposePreviewRepresentation for tests")
     onActivate()
+
+    var retryCounter = 0
 
     val sceneViewPeerPanels = mutableSetOf<SceneViewPeerPanel>()
     while (isActive && sceneViewPeerPanels.isEmpty()) {
       withContext(Dispatchers.Main) {
         delay(250)
-        invokeAndWaitIfNeeded { fakeUi.root.validate() }
+        UIUtil.invokeAndWaitIfNeeded(Runnable { fakeUi.root.validate() })
         sceneViewPeerPanels.addAll(fakeUi.findAllComponents())
+
+        if (retryCounter++ % 4 == 0) {
+          Logger.getInstance(ComposePreviewRepresentation::class.java).debug {
+            val resultsString =
+              sceneViewPeerPanels
+                .mapNotNull { it.sceneView.sceneManager as? LayoutlibSceneManager }
+                .joinToString { it.renderResult.toString() }
+            "Retry $retryCounter $resultsString"
+          }
+        }
       }
     }
+    Logger.getInstance(ComposePreviewRepresentation::class.java)
+      .debug("ComposePreviewRepresentation active")
 
     // Now wait for them to be rendered
     waitForRender(sceneViewPeerPanels)
@@ -54,12 +73,23 @@ suspend fun ComposePreviewRepresentation.waitForRender(
   sceneViewPeerPanels: Set<SceneViewPeerPanel>
 ) =
   withTimeout(timeout = 30.seconds) {
+    Logger.getInstance(ComposePreviewRepresentation::class.java).debug("Waiting for render")
+    var retryCounter = 0
     while (
       isActive &&
         sceneViewPeerPanels.any {
           (it.sceneView.sceneManager as? LayoutlibSceneManager)?.renderResult == null
         }
     ) {
+      if (retryCounter++ % 4 == 0) {
+        Logger.getInstance(ComposePreviewRepresentation::class.java).debug {
+          val resultsString =
+            sceneViewPeerPanels
+              .mapNotNull { it.sceneView.sceneManager as? LayoutlibSceneManager }
+              .joinToString { it.renderResult.toString() }
+          "Retry $retryCounter $resultsString"
+        }
+      }
       delay(250)
     }
   }

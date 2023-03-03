@@ -141,6 +141,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.function.Consumer;
 import org.jetbrains.android.facet.AndroidFacet;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -1073,7 +1074,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       if (target == null) {
         return;
       }
-      consumer.accept(AndroidTargetData.getTargetData(target, myFacet.getModule()));
+      consumer.accept(AndroidTargetData.getTargetData(target, AndroidPlatforms.getInstance(myFacet.getModule())));
     });
   }
 

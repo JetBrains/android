@@ -199,7 +199,6 @@ MODULE                        : MainActivity.app
             - AssetsDirectories           : <ROOT>/app/src/debug/assets [-]
             - ManifestFiles               : <ROOT>/app/src/localDebug/AndroidManifest.xml [-]
             - JavaDirectories             : <ROOT>/app/src/localDebug/java [-]
-            - JavaDirectories             : <ROOT>/app/build/generated/source/kapt/localDebug [-]
             - JavaDirectories             : <ROOT>/app/src/localDebug/kotlin [-]
             - ResDirectories              : <ROOT>/app/src/localDebug/res [-]
             - AssetsDirectories           : <ROOT>/app/src/localDebug/assets [-]

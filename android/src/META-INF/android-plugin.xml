@@ -38,6 +38,7 @@
     </action>
     <action id="Android.SyncProject" class="com.android.tools.idea.gradle.actions.SyncProjectAction" icon="StudioIcons.Shell.Toolbar.GRADLE_SYNC">
       <add-to-group group-id="FileMenu" anchor="after" relative-to-action="SaveAll"/>
+      <keyboard-shortcut keymap="$default" first-keystroke="control shift o" />
     </action>
     <action class="com.android.tools.idea.actions.ExportProjectZip" id="Android.ExportProjectZip" text="Export to Zip File...">
       <add-to-group group-id="FileExportGroup" anchor="last"/>
@@ -72,6 +73,7 @@
     <group id="AndroidToolsGroup" class="org.jetbrains.android.actions.AndroidToolsActionGroup" text="Android" icon="StudioIcons.Common.ANDROID_HEAD" popup="true">
       <separator/>
       <action id="Android.DeviceManager" class="com.android.tools.idea.devicemanager.DeviceManagerAction"/>
+      <action id="Android.DeviceManager2" class="com.android.tools.idea.devicemanagerv2.DeviceManager2Action"/>
       <separator/>
       <action id="ResourceExplorer.open"
               text="Resource Manager"
@@ -135,7 +137,7 @@
             class="org.jetbrains.android.actions.AndroidConnectDebuggerAction"
             text="Attach Debugger to Android Process"
             description="Attach Debugger to Android Process"
-            icon="AllIcons.Debugger.AttachToProcess">
+            icon="StudioIcons.Shell.Toolbar.ATTACH_DEBUGGER">
       <add-to-group group-id="ToolbarRunGroup" anchor="after" relative-to-action="RunnerActions"/>
       <add-to-group group-id="RunMenu"/>
     </action>
@@ -519,7 +521,8 @@
     <projectService serviceImplementation="com.android.tools.idea.run.profiler.CpuProfilerConfigsState" />
     <projectService serviceImplementation="com.android.tools.idea.logcat.AndroidLogcatPreferences"/>
     <projectService serviceImplementation="com.android.tools.idea.logcat.PersistentAndroidLogFilters"/>
-    <projectService serviceImplementation="com.android.tools.idea.configurations.ConfigurationStateManager"/>
+    <projectService serviceInterface="com.android.tools.idea.configurations.ConfigurationStateManager"
+                    serviceImplementation="com.android.tools.idea.configurations.StudioConfigurationStateManager"/>
 
     <projectService serviceImplementation="org.jetbrains.android.exportSignedPackage.GenerateSignedApkSettings"/>
     <projectService serviceImplementation="com.android.tools.idea.gradle.dependencies.GradleDependencyManager"/>
@@ -741,24 +744,24 @@
                     interface="com.android.tools.idea.structure.dialog.AndroidConfigurableContributor"/>
     <extensionPoint qualifiedName="com.android.run.androidDebugger" interface="com.android.tools.idea.execution.common.debug.AndroidDebugger" />
     <extensionPoint qualifiedName="com.android.tools.idea.run.editor.androidDebuggerInfoProvider"
-                    interface="com.android.tools.idea.run.editor.AndroidDebuggerInfoProvider" />
+                    interface="com.android.tools.idea.run.editor.AndroidDebuggerInfoProvider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.sendFeedbackDescriptionProvider"
-                    interface="com.android.tools.idea.actions.SendFeedbackDescriptionProvider" />
+                    interface="com.android.tools.idea.actions.SendFeedbackDescriptionProvider"/>
     <extensionPoint qualifiedName="com.android.logcat.filterProvider"
-                    interface="com.android.tools.idea.logcat.LogcatFilterProvider" />
+                    interface="com.android.tools.idea.logcat.LogcatFilterProvider"/>
     <extensionPoint qualifiedName="org.jetbrains.android.actions.newResourceCreationHandler"
-                    interface="org.jetbrains.android.actions.NewResourceCreationHandler" />
+                    interface="org.jetbrains.android.actions.NewResourceCreationHandler"/>
     <extensionPoint qualifiedName="com.android.run.androidLaunchTaskContributor"
-                    interface="com.android.tools.idea.run.AndroidLaunchTaskContributor" />
-    <extensionPoint qualifiedName="com.android.run.createLaunchTasksProvider"
-                    interface="com.android.tools.idea.run.tasks.LaunchTasksProvider.Provider" />
+                    interface="com.android.tools.idea.run.AndroidLaunchTaskContributor"/>
+    <extensionPoint qualifiedName="com.android.run.AndroidConfigurationExecutorProvider"
+                    interface="com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor$Provider"/>
     <extensionPoint qualifiedName="com.android.rendering.renderErrorContributor"
-                    interface="com.android.tools.idea.rendering.RenderErrorContributor$Provider" />
+                    interface="com.android.tools.idea.rendering.RenderErrorContributor$Provider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.ui.guiTestingStatusProvider"
                     interface="com.android.tools.idea.ui.GuiTestingStatusProvider"
                     dynamic="false"/>
     <extensionPoint qualifiedName="com.android.tools.idea.ui.designer.overlays.overlayProvider"
-                    interface="com.android.tools.idea.ui.designer.overlays.OverlayProvider" />
+                    interface="com.android.tools.idea.ui.designer.overlays.OverlayProvider"/>
     <extensionPoint qualifiedName="com.android.rendering.renderSecurityManagerOverrides"
                     interface="com.android.tools.idea.rendering.RenderSecurityManagerOverrides"/>
     <extensionPoint qualifiedName="com.android.tools.idea.lang.databinding.dataBindingCompletionSupport"
@@ -822,6 +825,7 @@
     <listener class="com.android.tools.idea.databinding.DataBindingTrackerSyncListener"
               topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
     <listener class="com.android.tools.idea.stats.ProjectSizeUsageTrackerListener"
+              activeInTestMode="false"
               topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
     <listener class="com.android.tools.idea.navigator.ProjectViewListener"
               activeInHeadlessMode="false"

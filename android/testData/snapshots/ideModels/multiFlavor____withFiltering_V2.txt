@@ -716,7 +716,7 @@ MODULE                        : MultiFlavor.app
                     AssetsDirectories             : <ROOT>/app/src/firstAbcSecondAbcDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/firstAbcSecondAbcDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/firstAbcSecondAbcDebug/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/firstAbcSecondAbcDebug/resources [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/firstAbcSecondAbcDebug/baselineProfiles [-]
                 MultiFlavorSourceProvider
                     Name                          : firstAbcSecondAbc
                     Manifest                      : <ROOT>/app/src/firstAbcSecondAbc/AndroidManifest.xml [-]
@@ -770,7 +770,7 @@ MODULE                        : MultiFlavor.app
                     AssetsDirectories             : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/resources [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/androidTestFirstAbcSecondAbcDebug/baselineProfiles [-]
                 MultiFlavorSourceProvider
                     Name                          : androidTestFirstAbcSecondAbc
                     Manifest                      : <ROOT>/app/src/androidTestFirstAbcSecondAbc/AndroidManifest.xml [-]
@@ -818,7 +818,7 @@ MODULE                        : MultiFlavor.app
                     AssetsDirectories             : <ROOT>/app/src/testFirstAbcSecondAbcDebug/assets [-]
                     JniLibsDirectories            : <ROOT>/app/src/testFirstAbcSecondAbcDebug/jniLibs [-]
                     ShadersDirectories            : <ROOT>/app/src/testFirstAbcSecondAbcDebug/shaders [-]
-                    BaselineProfileDirectories    : <ROOT>/app/src/testFirstAbcSecondAbcDebug/resources [-]
+                    BaselineProfileDirectories    : <ROOT>/app/src/testFirstAbcSecondAbcDebug/baselineProfiles [-]
                 MultiFlavorSourceProvider
                     Name                          : testFirstAbcSecondAbc
                     Manifest                      : <ROOT>/app/src/testFirstAbcSecondAbc/AndroidManifest.xml [-]

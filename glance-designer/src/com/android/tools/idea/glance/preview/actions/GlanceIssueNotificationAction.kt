@@ -22,10 +22,10 @@ import com.android.tools.adtui.compose.actionLink
 import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.glance.preview.GlancePreviewBundle.message
-import com.android.tools.idea.glance.preview.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.preview.actions.BuildAndRefresh
 import com.android.tools.idea.preview.actions.PreviewStatus
 import com.android.tools.idea.preview.actions.ShowProblemsPanel
+import com.android.tools.idea.preview.mvvm.PREVIEW_VIEW_MODEL_STATUS
 import com.android.tools.idea.projectsystem.needsBuild
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.RightAlignedToolbarAction

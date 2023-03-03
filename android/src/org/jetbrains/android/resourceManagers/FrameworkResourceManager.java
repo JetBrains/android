@@ -29,7 +29,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import org.jetbrains.android.dom.attrs.AttributeDefinitions;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
@@ -71,7 +71,7 @@ public class FrameworkResourceManager extends ResourceManager {
     if (platform == null) {
       return null;
     }
-    return AndroidTargetData.get(platform.getSdkData(), platform.getTarget()).getPublicAttrDefs(myProject);
+    return AndroidTargetData.get(platform.getSdkData(), platform.getTarget()).getPublicAttrDefs();
   }
 
   @Override

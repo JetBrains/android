@@ -29,7 +29,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-internal class TestPreviewElement(
+private class TestPreviewElement(
   override val methodFqcn: String,
   override val displaySettings: PreviewDisplaySettings = simplestDisplaySettings(),
   override val previewElementDefinitionPsi: SmartPsiElementPointer<PsiElement>? = null,
@@ -42,7 +42,7 @@ internal class TestModel(override var dataContext: DataContext) : DataContextHol
 
 private fun simplestDisplaySettings() = PreviewDisplaySettings("", null, false, false, null)
 
-internal class TestAdapter : GlancePreviewElementModelAdapter<TestPreviewElement, TestModel>() {
+private class TestAdapter : GlancePreviewElementModelAdapter<TestPreviewElement, TestModel>() {
   override fun toXml(previewElement: TestPreviewElement) = ""
 
   override fun createLightVirtualFile(content: String, backedFile: VirtualFile, id: Long) =

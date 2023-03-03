@@ -14,6 +14,7 @@ iml_module(
         "//tools/adt/idea/designer/customview:intellij.android.designer.customview[module]",
         "//tools/adt/idea/layoutlib:intellij.android.layoutlib[module]",
         "//tools/adt/idea/glance-designer:intellij.android.glance-designer[module]",
+        "//tools/adt/idea/wear-designer:intellij.android.wear-designer[module]",
         "//tools/adt/idea/.idea/libraries:layoutlib",
     ],
 )

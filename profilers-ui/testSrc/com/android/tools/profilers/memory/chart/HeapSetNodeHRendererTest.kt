@@ -22,11 +22,9 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.DataVisualizationColors
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader
-import com.android.tools.profilers.memory.FakeMemoryService
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.memory.MemoryCaptureObjectTestUtils
 import com.google.common.truth.Truth.assertThat
@@ -47,10 +45,7 @@ class HeapSetNodeHRendererTest {
   private val timer = FakeTimer()
 
   @get:Rule
-  var grpcChannel = FakeGrpcChannel("MEMORY_TEST_CHANNEL",
-                                    FakeTransportService(timer),
-                                    FakeProfilerService(timer),
-                                    FakeMemoryService())
+  var grpcChannel = FakeGrpcChannel("MEMORY_TEST_CHANNEL", FakeTransportService(timer))
   private lateinit var stage: MainMemoryProfilerStage
 
   @Before

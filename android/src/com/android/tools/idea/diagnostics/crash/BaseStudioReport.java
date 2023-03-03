@@ -20,6 +20,7 @@ import com.android.annotations.Nullable;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.analytics.crash.CrashReport;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.intellij.ui.ExperimentalUI;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 
 import java.util.Map;
@@ -36,5 +37,12 @@ public abstract class BaseStudioReport extends CrashReport {
   protected void serializeTo(@NonNull MultipartEntityBuilder builder) {
     AndroidStudioEvent.IdeBrand ideBrand = UsageTracker.getIdeBrand();
     builder.addTextBody("ideBrand", ideBrand.getValueDescriptor().getName());
+
+    String isNewUI = "Unknown";
+    try {
+      isNewUI = Boolean.toString(ExperimentalUI.isNewUI());
+    } catch (Throwable ignore) {
+    }
+    builder.addTextBody("isNewUI", isNewUI);
   }
 }

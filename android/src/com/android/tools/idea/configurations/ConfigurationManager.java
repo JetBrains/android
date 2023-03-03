@@ -38,14 +38,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import org.jetbrains.android.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
-import org.jetbrains.android.sdk.AndroidSdkData;
+import com.android.tools.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -65,6 +66,9 @@ import org.jetbrains.annotations.TestOnly;
  */
 public class ConfigurationManager implements Disposable {
   private static final Key<ConfigurationManager> KEY = Key.create(ConfigurationManager.class.getName());
+  private static final Key<VirtualFile> CONFIGURATION_MANAGER_PROJECT_CANONICAL_KEY = Key.create(
+    ConfigurationManager.class.getName() + "ProjectCanonicalKey"
+  );
 
   @NotNull private final Module myModule;
   private final Map<VirtualFile, Configuration> myCache = ContainerUtil.createSoftValueMap();
@@ -96,6 +100,27 @@ public class ConfigurationManager implements Disposable {
   }
 
   /**
+   * In some tests the project might not have a project file. We use this to create a per-project canonical file that can be used to
+   * associate the default project configuration to.
+   */
+  @NotNull
+  private static VirtualFile getFakeProjectFile(@NotNull Project project) {
+    VirtualFile projectFile = CONFIGURATION_MANAGER_PROJECT_CANONICAL_KEY.get(project);
+    if (projectFile == null) {
+      VirtualFile parent = new LightVirtualFile("layout");
+      projectFile = new LightVirtualFile("no-project-file") {
+        @Override
+        public VirtualFile getParent() {
+          return parent;
+        }
+      };
+      CONFIGURATION_MANAGER_PROJECT_CANONICAL_KEY.set(project, projectFile);
+    }
+
+    return projectFile;
+  }
+
+  /**
    * Gets the {@link Configuration} associated with the given module.
    *
    * @return the {@link Configuration} for the given module.
@@ -107,7 +132,9 @@ public class ConfigurationManager implements Disposable {
     ConfigurationManager configurationManager = getOrCreateInstance(module);
 
     VirtualFile projectFile = project.getProjectFile();
-    assert projectFile != null;
+    if (projectFile == null) {
+      projectFile = getFakeProjectFile(project);
+    }
 
     return configurationManager.getConfiguration(projectFile);
   }
@@ -202,7 +229,7 @@ public class ConfigurationManager implements Disposable {
    * Returns the associated persistence manager
    */
   public ConfigurationStateManager getStateManager() {
-    return ConfigurationStateManager.get(myModule.getProject());
+    return StudioConfigurationStateManager.get(myModule.getProject());
   }
 
   /**
@@ -530,7 +557,7 @@ public class ConfigurationManager implements Disposable {
         // needlessly flush the bitmap cache for the project still using it, but that just
         // means the next render will need to fetch them again; from that point on both platform
         // bitmap sets are in memory.
-        AndroidTargetData targetData = AndroidTargetData.getTargetData(myTarget, myModule);
+        AndroidTargetData targetData = AndroidTargetData.getTargetData(myTarget, AndroidPlatforms.getInstance(myModule));
         if (targetData != null) {
           targetData.clearLayoutBitmapCache(myModule);
         }

@@ -20,6 +20,7 @@ import static com.android.tools.idea.wizard.template.Language.Java;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguage;
 import org.jetbrains.annotations.NotNull;
 
 class NewProjectDescriptor {
@@ -99,6 +100,8 @@ class NewProjectDescriptor {
       .setSourceLanguage(null)
       .enterPackageName(myPkg)
       .selectMinimumSdkApi(myMinSdkApi)
+      // TODO:(b/271092042) Change the default build script as KTS
+      .selectBuildConfigurationLanguage(BuildConfigurationLanguage.Groovy)
       .wizard()
       .clickFinishAndWaitForSyncToFinish();
       // Hide Gradle tool window if needed, as it takes too much space at the right of the editors and might grab the focus (b/138841171)

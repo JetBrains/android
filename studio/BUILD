@@ -137,6 +137,7 @@ studio_plugin(
             "//tools/adt/idea/device-explorer-monitor:intellij.android.device-explorer-monitor",
             "//tools/adt/idea/device-explorer-common:intellij.android.device-explorer-common",
             "//tools/adt/idea/device-manager:intellij.android.device-manager",
+            "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2",
             "//tools/adt/idea/streaming:intellij.android.streaming",
             "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api",
             "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-impl:intellij.android.gradle-tooling.impl",
@@ -244,6 +245,7 @@ studio_plugin(
             "//tools/base/mlkit-common:studio.android.sdktools.mlkit-common",
             "//tools/base/ninepatch:studio.android.sdktools.ninepatch",
             "//tools/base/perflib:studio.android.sdktools.perflib",
+            "//tools/base/process-monitor:studio.android.sdktools.process-monitor",
             "//tools/base/resource-repository:studio.android.sdktools.resource-repository",
             "//tools/base/threading-agent-callback:studio.android.sdktools.threading-agent-callback",
             "//tools/base/tracer:studio.android.sdktools.tracer",
@@ -374,6 +376,7 @@ studio_plugin(
             "//tools/adt/idea/layoutlib:intellij.android.layoutlib",
             "//tools/adt/idea/nav/editor:intellij.android.nav.editor",
             "//tools/adt/idea/preview-designer:intellij.android.preview-designer",
+            "//tools/adt/idea/wear-designer:intellij.android.wear-designer",
         ],
     },
     resources = {
@@ -652,10 +655,10 @@ android_studio(
     searchable_options = "//tools/adt/idea/searchable-options",
     update_message_template = ":update_message.html",
     version_code_name = "Giraffe",
-    version_micro_patch = "1.7",
+    version_micro_patch = "1.8",
     # This will get added to the end of the full-version string.
     # TODO(b/240707039): automate this.
-    version_release_number = 7,
+    version_release_number = 8,
     version_type = "Canary",
     visibility = ["//visibility:public"],
 )
@@ -753,6 +756,32 @@ py_test(
 py_library(
     name = "intellij",
     srcs = ["intellij.py"],
+    visibility = ["//visibility:public"],
+)
+
+py_binary(
+    name = "jvm_args_extractor",
+    srcs = ["jvm_args_extractor.py"],
+)
+
+# Extracts the JVM args used in AS release builds.
+# The result is used by Studio dev builds and tests.
+genrule(
+    name = "required_jvm_args",
+    srcs = ["//prebuilts/studio/intellij-sdk:studio-sdk-product-info"],
+    outs = ["required_jvm_args.txt"],
+    cmd = "$(location :jvm_args_extractor) $< $@",
+    tools = [":jvm_args_extractor"],
+    visibility = ["//visibility:public"],
+)
+
+# Extracts the default user-configurable JVM args used in a fresh AS installation.
+# The result is used by Studio dev builds and tests.
+genrule(
+    name = "default_user_jvm_args",
+    srcs = ["//prebuilts/studio/intellij-sdk:studio-sdk-vm-options"],
+    outs = ["default_user_jvm_args.txt"],
+    cmd = "cp $< $@",
     visibility = ["//visibility:public"],
 )
 

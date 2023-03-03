@@ -28,7 +28,7 @@ import kotlinx.coroutines.delay
 import java.time.Duration
 
 private const val SCREEN_RECORDER_DEVICE_PATH = "/system/bin/screenrecord"
-private val COMMAND_TIMEOUT = Duration.ofSeconds(2)
+private val COMMAND_TIMEOUT = Duration.ofSeconds(5)
 private val IS_SUPPORTED_RETRY_TIMEOUT = Duration.ofSeconds(2)
 
 /**

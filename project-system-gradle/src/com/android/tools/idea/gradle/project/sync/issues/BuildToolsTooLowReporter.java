@@ -25,6 +25,7 @@ import com.android.tools.idea.gradle.project.sync.hyperlink.FixBuildToolsVersion
 import com.android.tools.idea.gradle.project.sync.hyperlink.InstallBuildToolsHyperlink;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.sdk.AndroidSdkData;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -32,7 +33,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

@@ -26,7 +26,6 @@ import com.android.server.am.Capabilities
 import com.android.tools.idea.adblib.AdbLibService
 import com.google.protobuf.InvalidProtocolBufferException
 import com.intellij.openapi.project.Project
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -34,7 +33,8 @@ import kotlinx.coroutines.withTimeout
 import java.time.Duration
 
 
-private val activityManagerCapabilitiesKey = CoroutineScopeCache.Key<ActivityManagerCapabilities.CapabilitiesResult>("ActivityManagerCapabilities")
+private val activityManagerCapabilitiesKey = CoroutineScopeCache.Key<ActivityManagerCapabilities.CapabilitiesResult>(
+  "ActivityManagerCapabilities")
 
 class ActivityManagerCapabilities(val project: Project) {
 
@@ -58,24 +58,24 @@ class ActivityManagerCapabilities(val project: Project) {
     val result = deviceCache.getOrPut(activityManagerCapabilitiesKey) { CapabilitiesResult() }
     val caps = result.mutex.withLock {
       result.capabilities ?: retrieveCapabilities(serial).also {
-        result.capabilities = it }
+        result.capabilities = it
+      }
     }
     return caps.contains(capability)
   }
 
   private suspend fun retrieveCapabilities(serialNumber: String): HashSet<String> {
-    val capabilitiesBuf = runCatching {
+    val result = runCatching {
       AdbLibService.getSession(project).deviceServices
         .shellCommand(DeviceSelector.fromSerialNumber(serialNumber), "am capabilities --protobuf")
-        .withLegacyCollector(ByteArrayShellCollector())
-        .execute()
-        .first()
+        .withCollector(ByteArrayShellCollector())
+        .executeAsSingleOutput { it }
     }.getOrElse { throwable ->
       throw Exception("Error retrieving capabilities from the device $serialNumber", throwable)
     }
 
     val protoCapabilities = try {
-      Capabilities.parseFrom(capabilitiesBuf)
+      Capabilities.parseFrom(result.stdout)
     }
     catch (e: InvalidProtocolBufferException) {
       // If "am" does not support "capabilities" command it returns something like

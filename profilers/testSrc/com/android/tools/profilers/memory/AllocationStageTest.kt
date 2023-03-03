@@ -10,12 +10,9 @@ import com.android.tools.profiler.proto.Commands
 import com.android.tools.profiler.proto.Memory
 import com.android.tools.profiler.proto.Memory.AllocationsInfo
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.WithFakeTimer
-import com.android.tools.profilers.cpu.FakeCpuService
-import com.android.tools.profilers.event.FakeEventService
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.FULL
 import com.android.tools.profilers.memory.BaseStreamingMemoryProfilerStage.LiveAllocationSamplingMode.SAMPLED
 import com.google.common.truth.Truth.assertThat
@@ -29,11 +26,9 @@ import org.junit.runners.Parameterized
 @RunWith(Parameterized::class)
 class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
   override val timer = FakeTimer()
-  private val service = FakeMemoryService()
   private val transportService = FakeTransportService(timer)
   @Rule @JvmField
-  val grpcChannel = FakeGrpcChannel("LiveAllocationStageTestChannel", service, transportService,
-                                    FakeProfilerService(timer), FakeCpuService(), FakeEventService())
+  val grpcChannel = FakeGrpcChannel("LiveAllocationStageTestChannel", transportService)
   private lateinit var profilers: StudioProfilers
   private lateinit var stage: AllocationStage
   private lateinit var mockLoader: FakeCaptureObjectLoader
@@ -45,7 +40,6 @@ class AllocationStageTest(private val isLive: Boolean): WithFakeTimer {
     ideProfilerServices = FakeIdeProfilerServices()
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), ideProfilerServices, timer)
     profilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null)
-    ideProfilerServices.enableEventsPipeline(true)
     mockLoader = FakeCaptureObjectLoader()
     stage = if (isLive) AllocationStage.makeLiveStage(profilers, mockLoader)
             else AllocationStage.makeStaticStage(profilers, minTrackingTimeUs = 1.0, maxTrackingTimeUs = 5.0)

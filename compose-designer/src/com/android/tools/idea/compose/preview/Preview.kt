@@ -71,7 +71,6 @@ import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
-import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.toDisplayString
@@ -101,6 +100,7 @@ import com.intellij.problems.ProblemListener
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
+import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
 import java.time.Duration
@@ -138,7 +138,7 @@ import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
 
 /** Background color for the surface while "Interactive" is enabled. */
-private val INTERACTIVE_BACKGROUND_COLOR = MEUI.ourInteractiveBackgroundColor
+private val INTERACTIVE_BACKGROUND_COLOR = JBColor(0xCBD2D9, 0x46454D)
 
 /** [Notification] group ID. Must match the `groupNotification` entry of `compose-designer.xml`. */
 const val PREVIEW_NOTIFICATION_GROUP_ID = "Compose Preview Notification"
@@ -676,6 +676,13 @@ class ComposePreviewRepresentation(
          */
         private var hadOutOfDateFiles = false
 
+        /**
+         * True if the animation inspection was open at the beginning of the build. If open, we will
+         * force a refresh after the build has completed since the animations preview panel
+         * refreshes only when a refresh happens.
+         */
+        private var animationInspectionsEnabled = false
+
         override fun buildSucceeded() {
           log.debug("buildSucceeded")
           module?.let {
@@ -695,13 +702,19 @@ class ComposePreviewRepresentation(
             FastPreviewManager.getInstance(project).preStartDaemon(module)
           }
 
-          afterBuildComplete(isSuccessful = true, needsRefresh = hadOutOfDateFiles)
+          afterBuildComplete(
+            isSuccessful = true,
+            needsRefresh = hadOutOfDateFiles || animationInspectionsEnabled
+          )
         }
 
         override fun buildFailed() {
           log.debug("buildFailed")
 
           afterBuildComplete(isSuccessful = false, needsRefresh = false)
+
+          // This ensures the animations panel is showed again after the build completes.
+          if (animationInspectionsEnabled) requestRefresh()
         }
 
         override fun buildCleaned() {
@@ -714,6 +727,7 @@ class ComposePreviewRepresentation(
           log.debug("buildStarted")
           hadOutOfDateFiles =
             PsiCodeFileChangeDetectorService.getInstance(project).outOfDateFiles.isNotEmpty()
+          animationInspectionsEnabled = animationInspection.get()
 
           composeWorkBench.updateProgress(message("panel.building"))
           afterBuildStarted()

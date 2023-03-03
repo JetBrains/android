@@ -131,8 +131,8 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     }
 
     if (myVersionCatalogDetector.isVersionCatalogProject()) {
-      if (StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_CAVEATS.get()) {
-        return NotificationPanel.Type.COMPLICATED_PROJECT;
+      if (StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_BANNERS.get()) {
+        return NotificationPanel.Type.VERSION_CATALOG_PROJECT;
       }
     }
 
@@ -148,16 +148,16 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
           return null;
         }
       },
-      COMPLICATED_PROJECT() {
+      VERSION_CATALOG_PROJECT() {
         @Override
         @Nullable NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
           if (!IdeInfo.getInstance().isAndroidStudio()) return null;
-          if (ComplicatedProjectNotificationPanel.userAllowsShow(project)) {
+          if (VersionCatalogProjectNotificationPanel.userAllowsShow(project)) {
             File ioFile = virtualToIoFile(file);
             if (!isDefaultGradleBuildFile(ioFile) && !isGradleSettingsFile(ioFile) && !ioFile.getName().endsWith("versions.toml")) {
               return null;
             }
-            return new ComplicatedProjectNotificationPanel(project, this);
+            return new VersionCatalogProjectNotificationPanel(project, this);
           }
           return PROJECT_STRUCTURE.create(project, file, projectInfo);
         }
@@ -270,10 +270,10 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
   }
 
   @VisibleForTesting
-  static class ComplicatedProjectNotificationPanel extends NotificationPanel {
+  static class VersionCatalogProjectNotificationPanel extends NotificationPanel {
     private static final String TEXT = "Project uses Gradle Version Catalogs: some editor tools may not work as expected";
 
-    ComplicatedProjectNotificationPanel(@NotNull Project project, @NotNull Type type) {
+    VersionCatalogProjectNotificationPanel(@NotNull Project project, @NotNull Type type) {
       super(type, TEXT);
       createActionLabel("Hide notification", () -> {
         String version = ApplicationInfo.getInstance().getShortVersion();

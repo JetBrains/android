@@ -15,55 +15,162 @@
  */
 package com.android.tools.idea.npw.module
 
-import com.android.sdklib.SdkVersionInfo
-import com.android.tools.idea.npw.baselineprofiles.NewBaselineProfilesModuleModel
-import com.android.tools.idea.npw.model.ProjectSyncInvoker
-import com.android.tools.idea.npw.platform.AndroidVersionsInfo
+import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.eq
+import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BENCHMARKS_CLASS_NAME
+import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon
+import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.GENERATOR_CLASS_NAME
+import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.RUN_CONFIGURATION_NAME
+import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.baselineProfileTaskName
+import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.createTestClasses
+import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.getModuleNameForGradleTask
+import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.runConfigurationGradleTask
+import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.setupRunConfigurations
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
 import com.android.tools.idea.testing.findAppModule
-import org.junit.Assert
-import org.junit.Ignore
+import com.android.tools.idea.wizard.template.Language
+import com.android.tools.idea.wizard.template.ModuleTemplateData
+import com.android.tools.idea.wizard.template.ProjectTemplateData
+import com.android.tools.idea.wizard.template.RecipeExecutor
+import com.google.common.truth.Truth.assertThat
+import com.intellij.execution.RunManager
+import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.openapi.module.Module
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
+import org.mockito.Mockito.verify
+import java.io.File
 
-// TODO(b/269581369): Uncomment once the prebuilts for the plugin are added.
-@Ignore
-@RunWith(Parameterized::class)
-class BaselineProfilesModuleTest(private val useGradleKtsParam: Boolean) {
-
-  companion object {
-    @JvmStatic
-    @Parameterized.Parameters(name = "useGradleKts={0}")
-    fun data() = listOf(false, true)
-  }
-
+class BaselineProfilesModuleTest {
   @get:Rule
   val projectRule = AndroidGradleProjectRule()
 
   @Test
-  fun addNewBaselineProfilesModule() {
-    projectRule.load(TestProjectPaths.SIMPLE_APPLICATION)
+  fun createTestClasses_kotlin() = createTestClasses(Language.Kotlin)
 
-    val project = projectRule.project
-    val model = NewBaselineProfilesModuleModel(
-      project = project,
-      moduleParent = ":",
-      projectSyncInvoker = ProjectSyncInvoker.DefaultProjectSyncInvoker(),
-    ).apply {
-      androidSdkInfo.value = AndroidVersionsInfo.VersionItem.fromStableVersion(SdkVersionInfo.HIGHEST_KNOWN_STABLE_API)
-      targetModule.value = project.findAppModule()
-      useGradleKts.set(useGradleKtsParam)
-      useGmd.set(true)
-    }
+  @Test
+  fun createTestClasses_java() = createTestClasses(Language.Java)
 
-    model.handleFinished() // Generate module files
+  private fun createTestClasses(language: Language) {
+    val targetApplicationId = "target_app_id"
 
-    projectRule.invokeTasks("assembleDebug").apply {
-      buildError?.printStackTrace()
-      Assert.assertTrue("Project didn't compile correctly", isBuildSuccessful)
+    val projectTemplateDataMock = MockitoKt.mock<ProjectTemplateData>()
+    whenever(projectTemplateDataMock.language).thenReturn(language)
+
+    val newModule = MockitoKt.mock<ModuleTemplateData>()
+    whenever(newModule.packageName).thenReturn("package_name")
+    whenever(newModule.projectTemplateData).thenReturn(projectTemplateDataMock)
+    whenever(newModule.srcDir).thenReturn(File(""))
+    whenever(newModule.name).thenReturn("newModule")
+
+    val targetModule = MockitoKt.mock<Module>()
+    whenever(targetModule.name).thenReturn("targetModule")
+    whenever(targetModule.project).thenReturn(projectRule.project)
+
+    val mockExecutor = MockitoKt.mock<RecipeExecutor>()
+
+    mockExecutor.createTestClasses(
+      targetModule,
+      newModule,
+      targetApplicationId
+    )
+
+    verify(mockExecutor).run {
+      val generatorFile = newModule.srcDir.resolve("$GENERATOR_CLASS_NAME.${language.extension}")
+      save(MockitoKt.any(), eq(generatorFile))
+      open(generatorFile)
+
+      val benchmarksFile = newModule.srcDir.resolve("$BENCHMARKS_CLASS_NAME.${language.extension}")
+      save(MockitoKt.any(), eq(benchmarksFile))
+      open(benchmarksFile)
     }
   }
+
+  @Test
+  fun setupRunConfigurations_emptyVariants() {
+    projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
+    val appModule = projectRule.project.findAppModule()
+
+    val runManager = RunManager.getInstance(appModule.project)
+
+    setupRunConfigurations(emptyList(), appModule, runManager)
+
+    assertConfigurationsSize(runManager.allConfigurationsList, 1)
+
+    val generateRunConfiguration = runManager.allConfigurationsList.find { it.name == RUN_CONFIGURATION_NAME }
+    assertThat(generateRunConfiguration).isNotNull()
+    assertThat(runManager.selectedConfiguration?.name).isEqualTo(generateRunConfiguration?.name)
+  }
+
+  @Test
+  fun setupRunConfigurations_oneVariant() {
+    projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
+    val appModule = projectRule.project.findAppModule()
+
+    val runManager = RunManager.getInstance(appModule.project)
+
+    val variants = listOf("release")
+
+    setupRunConfigurations(variants, appModule, runManager)
+
+    assertConfigurationsSize(runManager.allConfigurationsList, variants.size)
+
+    val generateRunConfiguration = runManager.allConfigurationsList.find { it.name == RUN_CONFIGURATION_NAME }
+    assertThat(generateRunConfiguration).isNotNull()
+    assertThat(runManager.selectedConfiguration?.name).isEqualTo(generateRunConfiguration?.name)
+  }
+
+  @Test
+  fun setupRunConfigurations_moreVariants() {
+    projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
+    val appModule = projectRule.project.findAppModule()
+    val runManager = RunManager.getInstance(appModule.project)
+
+    val variants = listOf("demoFree", "demoPaid", "prodFree", "prodPaid")
+
+    setupRunConfigurations(variants, appModule, runManager)
+
+    assertConfigurationsSize(runManager.allConfigurationsList, variants.size)
+
+    val configNames = runManager.allConfigurationsList.map { it.name }
+    variants.map { "$RUN_CONFIGURATION_NAME [$it]" }.forEach {
+      assertThat(configNames).contains(it)
+    }
+  }
+
+  @Test
+  fun getModuleNameForGradleTask() {
+    projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
+    val project = projectRule.project
+
+    val appModule = project.findAppModule()
+
+    assertThat(appModule.getModuleNameForGradleTask()).isEqualTo("app")
+  }
+
+  @Test
+  fun runConfiguration() {
+    val task = runConfigurationGradleTask("moduleName", "variantName", BaselineProfilesMacrobenchmarkCommon.FILTER_ARG_BASELINE_PROFILE)
+    assertThat(task).run {
+      contains(":moduleName:${baselineProfileTaskName("variantName")}")
+      contains("-P${BaselineProfilesMacrobenchmarkCommon.FILTER_INSTR_ARG}=BaselineProfile")
+    }
+  }
+
+  @Test
+  fun runConfigurationNoFilter() {
+    val task = runConfigurationGradleTask("moduleName", "variantName", null)
+    assertThat(task).run {
+      contains(":moduleName:${baselineProfileTaskName("variantName")}")
+      doesNotContain("-P${BaselineProfilesMacrobenchmarkCommon.FILTER_INSTR_ARG}")
+    }
+  }
+
+  /**
+   * We're checking +1 size, because of implicit app run configuration
+   */
+  private fun assertConfigurationsSize(configurationsList: List<RunConfiguration>, expectedSize: Int) =
+    assertThat(configurationsList).hasSize(expectedSize + 1)
 }

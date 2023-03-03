@@ -35,6 +35,7 @@ import com.android.tools.profiler.proto.Transport;
 import com.android.tools.profiler.proto.Transport.EventGroup;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
+import com.android.tools.profilers.LogUtils;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.cpu.CpuCaptureSessionArtifact;
 import com.android.tools.profilers.memory.AllocationSessionArtifact;
@@ -256,12 +257,16 @@ public class SessionsManager extends AspectModel<SessionAspect> {
       if (sessionItem == null) {
         sessionItem = processSessionStarted(startEvent);
         sessionStateChanged = true;
+        LogUtils.log(this.getClass(), "Session started (" + sessionItem.getName() + "), support level =" +
+                                      myProfilers.getSupportLevelForSession(sessionItem.getSession()));
       }
       // If we ended a session we process that end here.
       if (group.getEventsCount() == 2 && sessionItem.isOngoing()) {
         Common.Session session = sessionItem.getSession().toBuilder().setEndTimestamp(group.getEvents(1).getTimestamp()).build();
         sessionItem.setSession(session);
         sessionStateChanged = true;
+        LogUtils.log(this.getClass(), "Session stopped (" + sessionItem.getName() + "), support level =" +
+                                      myProfilers.getSupportLevelForSession(sessionItem.getSession()));
       }
       if (sessionStateChanged) {
         setSessionInternal(sessionItem.getSession());

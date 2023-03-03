@@ -40,7 +40,7 @@ open class ModuleSuggestionsConfigurable(
   override fun createPanel(): AbstractMainPanel = object : AbstractMainPanel(context) {
     private val panel = createInnerPanel().also {
       if (GradleVersionCatalogDetector.getInstance(context.project.ideProject).isVersionCatalogProject) {
-        if (StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_CAVEATS.get()) {
+        if (StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_BANNERS.get()) {
           add(VersionCatalogWarningHeader(), BorderLayout.NORTH)
         }
       }

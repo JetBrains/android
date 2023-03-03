@@ -29,6 +29,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
@@ -151,14 +152,15 @@ public class DrawableRenderer implements Disposable {
 
     @Override
     @Nullable
-    public ILayoutPullParser create(@NotNull PathString file, @NotNull LayoutlibCallback layoutlibCallback) {
+    public ILayoutPullParser create(@NotNull PathString file, @NotNull LayoutlibCallback layoutlibCallback,
+                                    @Nullable ResourceRepositoryManager resourceRepositoryManager) {
       String content = myFileContent.remove(file); // File contents is removed upon use to avoid leaking memory.
       if (content == null) {
         return null;
       }
 
       XmlFile xmlFile = (XmlFile)createEphemeralPsiFile(myProject, file.getFileName(), XmlFileType.INSTANCE, content);
-      return LayoutPsiPullParser.create(xmlFile, myLogger);
+      return LayoutPsiPullParser.create(xmlFile, myLogger, resourceRepositoryManager);
     }
 
     void addFileContent(@NotNull PathString file, @NotNull String content) {

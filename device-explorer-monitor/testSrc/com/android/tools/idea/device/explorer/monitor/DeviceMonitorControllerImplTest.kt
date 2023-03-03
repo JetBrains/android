@@ -20,10 +20,7 @@ import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.ClientState
 import com.android.fakeadbserver.DeviceState
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
-import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutures
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorControllerImpl.Companion.getProjectController
-import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDevice
 import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService
 import com.android.tools.idea.device.explorer.monitor.mocks.MockDeviceMonitorView
 import com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService
@@ -65,12 +62,13 @@ class DeviceMonitorControllerImplTest {
     processService = DeviceProcessService { _, client, _ ->
       client.clientData.debuggerConnectionStatus = ClientData.DebuggerStatus.ATTACHED
       // Add new client to trigger device update
-      addClient(testDevice1, 10)
+      addClient(testDevice1, 60)
     }
     model = DeviceMonitorModel(processService)
     mockView = MockDeviceMonitorView(model)
     mockView.setup()
     testDevice1 = adb.attachDevice("test_device_01", "Google", "Pix3l", "versionX", "29")
+    addClient(testDevice1, 5)
   }
 
   @After
@@ -95,7 +93,7 @@ class DeviceMonitorControllerImplTest {
 
     // Act
     controller.setup()
-    waitForCondition { service.getIDeviceFromSerialNumber(testDevice1.deviceId) != null }
+    waitForServiceToRetrieveInitialDevice()
     controller.setActiveConnectedDevice(testDevice1.deviceId)
 
     // Assert
@@ -107,16 +105,18 @@ class DeviceMonitorControllerImplTest {
     // Prepare
     val controller = createController()
     controller.setup()
-    waitForCondition { service.getIDeviceFromSerialNumber(testDevice1.deviceId) != null }
+    waitForServiceToRetrieveInitialDevice()
     controller.setActiveConnectedDevice(testDevice1.deviceId)
     checkMockViewInitialState()
 
     // Act
     val testDevice2 = adb.attachDevice("test_device_02", "Google", "Pix3l", "versionX", "29")
     controller.setActiveConnectedDevice(testDevice2.deviceId)
+    addClient(testDevice2, 10)
+    addClient(testDevice2, 20)
 
     // Assert
-    checkMockViewActiveDevice(testDevice2)
+    checkMockViewActiveDevice(2)
   }
 
   @Test
@@ -124,7 +124,7 @@ class DeviceMonitorControllerImplTest {
     // Prepare
     val controller = createController()
     controller.setup()
-    waitForCondition { service.getIDeviceFromSerialNumber(testDevice1.deviceId) != null }
+    waitForServiceToRetrieveInitialDevice()
     controller.setActiveConnectedDevice(testDevice1.deviceId)
     checkMockViewInitialState()
 
@@ -132,8 +132,7 @@ class DeviceMonitorControllerImplTest {
     controller.setActiveConnectedDevice(null)
 
     // Assert
-    val treeModel = pumpEventsAndWaitForFuture(mockView.mockModelListener.deviceTreeModelChangeTracker.consume())
-    assertThat(treeModel).isNull()
+    checkMockViewActiveDevice(0)
   }
 
   @Test
@@ -141,30 +140,21 @@ class DeviceMonitorControllerImplTest {
     // Prepare
     val controller = createController()
     controller.setup()
-    waitForCondition { service.getIDeviceFromSerialNumber(testDevice1.deviceId) != null }
+    waitForServiceToRetrieveInitialDevice()
     controller.setActiveConnectedDevice(testDevice1.deviceId)
     checkMockViewInitialState()
-    addClient(testDevice1, 5)
-    val treeModel = pumpEventsAndWaitForFutures(mockView.mockModelListener.deviceTreeModelChangeTracker.consumeMany(3)).last()
-    val rootEntry = checkNotNull(DeviceTreeNode.fromNode(treeModel?.root))
-    assertThat(rootEntry.childCount).isEqualTo(1)
 
     // Act
-    val processList = getListOfChildNodes(rootEntry)
-    val clientStopped = processList[0] as ProcessInfoTreeNode
-    val removeProcessList = listOf(clientStopped)
+    val processToKill = model.tableModel.getValueForRow(0)
     testDevice1.setActivityManager { args, _ ->
-      if ("force-stop" == args[0] && "package-${clientStopped.processInfo.pid}" == args[1]) {
-        testDevice1.stopClient(clientStopped.processInfo.pid)
+      if ("force-stop" == args[0] && "package-${processToKill.pid}" == args[1]) {
+        testDevice1.stopClient(processToKill.pid)
       }
     }
-    mockView.killNodes(removeProcessList)
+    mockView.killNodes()
 
     // Assert
-    val updatedTreeModel = pumpEventsAndWaitForFuture(mockView.mockModelListener.deviceTreeModelChangeTracker.consume())
-    val updatedRootEntry = checkNotNull(DeviceTreeNode.fromNode(updatedTreeModel?.root))
-    assertThat(updatedRootEntry.childCount).isEqualTo(0)
-    assertPidIsNotInChildNodes(updatedRootEntry, clientStopped.processInfo.pid)
+    checkMockViewActiveDevice(0)
   }
 
   @Test
@@ -172,28 +162,21 @@ class DeviceMonitorControllerImplTest {
     // Prepare
     val controller = createController()
     controller.setup()
-    waitForCondition { service.getIDeviceFromSerialNumber(testDevice1.deviceId) != null }
+    waitForServiceToRetrieveInitialDevice()
     controller.setActiveConnectedDevice(testDevice1.deviceId)
     checkMockViewInitialState()
-    val clientState = addClient(testDevice1, 5)
-    val treeModel = pumpEventsAndWaitForFutures(mockView.mockModelListener.deviceTreeModelChangeTracker.consumeMany(3)).last()
-    val rootEntry = checkNotNull(DeviceTreeNode.fromNode(treeModel?.root))
-    assertThat(rootEntry.childCount).isEqualTo(1)
     val config = RunManager.getInstance(project).createConfiguration("debugAllInDeviceMonitorTest", AndroidTestRunConfigurationType.getInstance().factory)
     RunManager.getInstance(project).addConfiguration(config)
     RunManager.getInstance(project).selectedConfiguration = config
 
     // Act
-    val processList = getListOfChildNodes(rootEntry)
-    val debugClient = processList[0] as ProcessInfoTreeNode
-    val debugProcessList = listOf(debugClient)
-    mockView.debugNodes(debugProcessList)
+    mockView.debugNodes()
 
     // Assert
-    val updatedTreeModel = pumpEventsAndWaitForFuture(mockView.mockModelListener.deviceTreeModelChangeTracker.consume())
-    val updatedRootEntry = checkNotNull(DeviceTreeNode.fromNode(updatedTreeModel?.root))
-    assertThat(updatedRootEntry.childCount).isEqualTo(2)
-    assertChildNodesIsAttachToDebugger(updatedRootEntry, clientState.processName)
+    // This assumes the first process is pid 5. Adding a new client can affect this assumption
+    waitForCondition(
+      "Row debugger status set to ${model.tableModel.getValueForRow(0).debuggerStatus} and was expecting ${ClientData.DebuggerStatus.ATTACHED}"
+    ) { model.tableModel.getValueForRow(0).debuggerStatus == ClientData.DebuggerStatus.ATTACHED }
   }
 
   @Test
@@ -201,7 +184,7 @@ class DeviceMonitorControllerImplTest {
     // Prepare
     val controller = createController()
     controller.setup()
-    waitForCondition { service.getIDeviceFromSerialNumber(testDevice1.deviceId) != null }
+    waitForServiceToRetrieveInitialDevice()
     controller.setActiveConnectedDevice(testDevice1.deviceId)
     checkMockViewInitialState()
 
@@ -210,24 +193,29 @@ class DeviceMonitorControllerImplTest {
     controller.setActiveConnectedDevice(testDevice2.deviceId)
 
     // Assert
-    checkMockViewActiveDevice(testDevice2)
+    checkMockViewActiveDevice(0)
     controller.setActiveConnectedDevice(testDevice1.deviceId)
-    checkMockViewActiveDevice(testDevice1)
+    checkMockViewActiveDevice(1)
   }
 
   private fun createController(): DeviceMonitorControllerImpl {
     return DeviceMonitorControllerImpl(project, model, mockView, service)
   }
 
-  private fun checkMockViewInitialState() {
-    checkMockViewActiveDevice(testDevice1)
+  private suspend fun checkMockViewInitialState() {
+    checkMockViewActiveDevice(1)
   }
 
-  private fun checkMockViewActiveDevice(activeDevice: DeviceState) {
-    // Check the file system tree is displaying the file system of the first device
-    val treeModel = pumpEventsAndWaitForFuture(mockView.mockModelListener.deviceTreeModelChangeTracker.consume())
-    val rootEntry = checkNotNull(DeviceTreeNode.fromNode(treeModel?.root))
-    assertThat(rootEntry.device.serialNumber).isEqualTo(activeDevice.deviceId)
+  private suspend fun checkMockViewActiveDevice(numOfClientsExpected: Int) {
+    waitForCondition(
+      "Table model has ${model.tableModel.rowCount} but expected $numOfClientsExpected"
+    ) { model.tableModel.rowCount == numOfClientsExpected }
+  }
+
+  private suspend fun waitForServiceToRetrieveInitialDevice() {
+    waitForCondition(
+      "Service failed to retrieve initial device"
+    ) { service.getIDeviceFromSerialNumber(testDevice1.deviceId) != null }
   }
 
   private fun addClient(fakeDevice: DeviceState, pid: Int): ClientState {
@@ -240,23 +228,7 @@ class DeviceMonitorControllerImplTest {
     )
   }
 
-  private fun getListOfChildNodes(rootNode: DeviceTreeNode): List<ProcessTreeNode> =
-    rootNode.children().toList().map { it as ProcessTreeNode }
-
-  private fun assertPidIsNotInChildNodes(rootNode: DeviceTreeNode, pid: Int) {
-    val children = getListOfChildNodes(rootNode)
-    for (child in children) {
-      assertThat((child as ProcessInfoTreeNode).processInfo.pid).isNotEqualTo(pid)
-    }
-  }
-
-  private fun assertChildNodesIsAttachToDebugger(rootNode: DeviceTreeNode, applicationName: String) {
-    val device = rootNode.device as? AdbDevice
-    val client = device?.device?.getClient(applicationName)
-    assertThat(client?.clientData?.debuggerConnectionStatus).isEqualTo(ClientData.DebuggerStatus.ATTACHED)
-  }
-
-  private suspend fun waitForCondition(condition: () -> Boolean) {
+  private suspend fun waitForCondition(failureMessage: String, condition: () -> Boolean) {
     val nano = TimeUnit.MILLISECONDS.toNanos(TIMEOUT_MILLISECONDS)
     val startNano = System.nanoTime()
     val endNano = startNano + nano
@@ -269,7 +241,7 @@ class DeviceMonitorControllerImplTest {
       delay(50L)
     }
 
-    throw TimeoutException()
+    throw TimeoutException(failureMessage)
   }
 
   private val TIMEOUT_MILLISECONDS: Long = 30_000

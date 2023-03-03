@@ -43,6 +43,7 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -229,11 +230,13 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
     result.add(searchField)
 
     val action: AnAction = object : AnAction("Create new destination") {
+      override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
       override fun actionPerformed(e: AnActionEvent) {
         createNewDestination()
       }
     }
-    createNewDestinationButton = ActionButtonWithText(action, action.templatePresentation, "Toolbar", JBDimension(0, 45))
+    createNewDestinationButton = ActionButtonWithText(action, action.templatePresentation.clone(), "Toolbar", JBDimension(0, 45))
     val buttonPanel = AdtSecondaryPanel(BorderLayout(0, 8))
     buttonPanel.border = CompoundBorder(JBUI.Borders.empty(1, 1), DottedRoundedBorder(JBInsets.emptyInsets(), HIGHLIGHTED_FRAME, 8.0f))
     buttonPanel.add(createNewDestinationButton, BorderLayout.CENTER)

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.logcat
 
+import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingTabsToolWindowFactory
-import com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitor
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.isAndroidEnvironment
@@ -59,7 +59,7 @@ internal class LogcatToolWindowFactory : SplittingTabsToolWindowFactory(), DumbA
         showLogcat(toolWindow, device, applicationId)
       })
 
-    ProcessNameMonitor.getInstance(project).start()
+    project.getService(ProcessNameMonitor::class.java).start()
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {

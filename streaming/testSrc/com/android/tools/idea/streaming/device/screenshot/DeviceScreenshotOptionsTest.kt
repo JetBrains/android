@@ -47,12 +47,6 @@ class DeviceScreenshotOptionsTest {
   }
 
   @Test
-  fun testApiLevelProperty() {
-    val deviceConfiguration = createDeviceConfiguration(mapOf(DevicePropertyNames.RO_BUILD_VERSION_SDK to "26"))
-    assertThat(DeviceScreenshotOptions(serialNumber, deviceConfiguration, deviceView).apiLevel).isEqualTo(26)
-  }
-
-  @Test
   fun testScreenshotViewerOptionsProperty() {
     assertThat(DeviceScreenshotOptions(serialNumber, emptyDeviceConfiguration, deviceView).screenshotViewerOptions).isEmpty()
   }

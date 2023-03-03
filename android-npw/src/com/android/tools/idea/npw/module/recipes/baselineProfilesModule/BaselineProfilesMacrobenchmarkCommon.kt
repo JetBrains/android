@@ -69,38 +69,30 @@ object BaselineProfilesMacrobenchmarkCommon {
   }
 
   /**
-   * [filterArgument] can be one of [FILTER_ARG_BASELINE_PROFILE], [FILTER_ARG_MACROBENCHMARK]
-   */
-  fun runConfigurationGradleTask(
-    moduleName: String,
-    flavorName: String?,
-    filterArgument: String?,
-  ) = buildString {
-    append(":${moduleName}:")
-    append("generate${flavorName?.capitalize() ?: ""}BaselineProfiles")
-    // Allows running only Baseline Profile generators (in case Macrobenchmarks are in the same module)
-    if (filterArgument != null) {
-      append(" -P$FILTER_INSTR_ARG=$filterArgument")
-    }
-  }
-
-  /**
    * Generates variants from product flavors.
-   * @return If no product flavors, returns list with one element - null
+   * @return If no product flavors, returns empty list
    */
-  fun generateBuildVariants(dimensionNames: List<String>, productFlavorsAndDimensions: List<FlavorNameAndDimension>): List<String?> {
-    if (dimensionNames.isEmpty() || productFlavorsAndDimensions.isEmpty()) {
-      return listOf(null)
-    }
-
+  fun generateBuildVariants(
+    dimensionNames: List<String>,
+    productFlavorsAndDimensions: List<FlavorNameAndDimension>,
+    buildType: String? = null,
+  ): List<String> {
     val dimensionsWithFlavors = dimensionNames.map { dimensionName ->
       // flavor names grouped by its dimension
       productFlavorsAndDimensions
         .filter { (_, flavorDimension) -> flavorDimension == dimensionName }
         .map { it.name }
+    }.toMutableList()
+
+    // Add buildType (if defined) as the last one
+    buildType?.let { dimensionsWithFlavors.add(listOf(it)) }
+
+    // Check if at least one item exists
+    if (dimensionsWithFlavors.isEmpty()) {
+      return emptyList()
     }
 
-    // we know that we have at least one flavor, so we use it as acc and combine with the rest of the list
+    // We know that we have at least one flavor, so we use it as acc and combine with the rest of the list
     return dimensionsWithFlavors
       .subList(1, dimensionsWithFlavors.size)
       .fold(dimensionsWithFlavors[0]) { acc, flavorsByDimensions ->

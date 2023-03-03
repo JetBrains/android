@@ -45,7 +45,6 @@ import com.android.tools.lint.detector.api.Desugaring
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.pom.java.LanguageLevel
 import com.jetbrains.rd.util.getOrCreate
 import org.assertj.core.util.VisibleForTesting
 import org.jetbrains.android.facet.AndroidFacet
@@ -55,7 +54,7 @@ import java.util.EnumSet
 /**
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
-class GradleAndroidModel constructor(
+class GradleAndroidModel(
   private val data: GradleAndroidModelData,
   val project: Project,
   private val ideLibraryModelResolver: IdeLibraryModelResolver
@@ -63,9 +62,10 @@ class GradleAndroidModel constructor(
 
   private val agpVersion: AgpVersion = AgpVersion.parse(androidProject.agpVersion) // Fail sync if the reported version cannot be parsed.
 
-  private val myBuildTypesByName: Map<String, IdeBuildTypeContainer> = androidProject.buildTypes.associateBy { it.buildType.name }
+  private val myBuildTypesByName: Map<String, IdeBuildTypeContainer> =
+    androidProject.multiVariantData?.buildTypes.orEmpty().associateBy {it.buildType.name }
   private val myProductFlavorsByName: Map<String, IdeProductFlavorContainer> =
-    androidProject.productFlavors.associateBy { it.productFlavor.name }
+    androidProject.multiVariantData?.productFlavors.orEmpty().associateBy { it.productFlavor.name }
   private val myCachedBasicVariantsByName: Map<String, IdeBasicVariant> =
     data.androidProject.basicVariants.associateBy { it.name }
   private val myCachedVariantsByName: Map<String, IdeVariantCore> = data.variants.associateBy { it.name }
@@ -88,11 +88,9 @@ class GradleAndroidModel constructor(
   val versionCode: Int? get() = selectedVariant.versionCode
   val buildTypeNames: Set<String> get() = myBuildTypesByName.keys
   val productFlavorNames: Set<String> get() = myProductFlavorsByName.keys
-  val variantNames: Collection<String> get() = androidProject.variantNames ?: myCachedVariantsByName.keys
+  val variantNames: Collection<String> get() = androidProject.variantNames
   val variants: List<IdeVariant> get() = myCachedResolvedVariantsByName.values.toList()
 
-  fun findBuildType(name: String): IdeBuildTypeContainer? = myBuildTypesByName[name]
-  fun findProductFlavor(name: String): IdeProductFlavorContainer? = myProductFlavorsByName[name]
   fun findBasicVariantByName(variantName: String): IdeBasicVariant? = myCachedBasicVariantsByName[variantName]
   fun findVariantByName(variantName: String): IdeVariant? = myCachedResolvedVariantsByName[variantName]
 
@@ -114,7 +112,7 @@ class GradleAndroidModel constructor(
   val selectedAndroidTestCompileDependencies: IdeDependencies? get() = selectedVariant.androidTestArtifact?.compileClasspath
 
   val mainArtifact: IdeAndroidArtifact get() = selectedVariant.mainArtifact
-  val defaultSourceProvider: IdeSourceProvider get() = androidProject.defaultConfig.sourceProvider!!
+  val defaultSourceProvider: IdeSourceProvider get() = androidProject.defaultSourceProvider.sourceProvider!!
   val activeSourceProviders: List<IdeSourceProvider> get() = data.activeSourceProviders
   val unitTestSourceProviders: List<IdeSourceProvider> get() = data.unitTestSourceProviders
   val androidTestSourceProviders: List<IdeSourceProvider> get() = data.androidTestSourceProviders
@@ -124,8 +122,6 @@ class GradleAndroidModel constructor(
   val allUnitTestSourceProviders: List<IdeSourceProvider> get() = data.allUnitTestSourceProviders
   val allAndroidTestSourceProviders: List<IdeSourceProvider> get() = data.allAndroidTestSourceProviders
   val allTestFixturesSourceProviders: List<IdeSourceProvider> get() = data.allTestFixturesSourceProviders
-
-  fun getJavaLanguageLevel(): LanguageLevel? = data.getJavaLanguageLevel()
 
   val getDesugarLibraryConfigFiles: List<File> = data.getDesugarLibraryConfig()
 
@@ -146,7 +142,7 @@ class GradleAndroidModel constructor(
   }
 
   override fun isDebuggable(): Boolean {
-    val buildTypeContainer = findBuildType(selectedVariant.buildType)
+    val buildTypeContainer = myBuildTypesByName[selectedVariant.buildType]
       ?: error("Build type ${selectedVariant.buildType} not found")
     return buildTypeContainer.buildType.isDebuggable
   }
@@ -154,13 +150,13 @@ class GradleAndroidModel constructor(
   private val myMinSdkVersion: AndroidVersion by lazy(LazyThreadSafetyMode.PUBLICATION) {
     var minSdkVersion = selectedVariant.minSdkVersion
     if (minSdkVersion.codename != null) {
-      val defaultConfigVersion = androidProject.defaultConfig.productFlavor.minSdkVersion
+      val defaultConfigVersion = androidProject.multiVariantData?.defaultConfig?.minSdkVersion
       if (defaultConfigVersion != null) {
         minSdkVersion = defaultConfigVersion
       }
       val flavors = selectedVariant.productFlavors
       for (flavor in flavors) {
-        val productFlavor = findProductFlavor(flavor)!!
+        val productFlavor = myProductFlavorsByName[flavor]!!
         val flavorVersion = productFlavor.productFlavor.minSdkVersion
         if (flavorVersion != null) {
           minSdkVersion = flavorVersion
@@ -197,12 +193,12 @@ class GradleAndroidModel constructor(
   }
 
   private val myOverridesManifestPackage: Boolean by lazy(LazyThreadSafetyMode.PUBLICATION) {
-    var result = androidProject.defaultConfig.productFlavor.applicationId != null
+    var result = androidProject.multiVariantData?.defaultConfig?.applicationId != null
     if (!result) {
       val variant = selectedVariant
       val flavors = variant.productFlavors
       for (flavor in flavors) {
-        val productFlavor = findProductFlavor(flavor)!!
+        val productFlavor = myProductFlavorsByName[flavor]!!
         if (productFlavor.productFlavor.applicationId != null) {
           result = true
           break
@@ -227,7 +223,7 @@ class GradleAndroidModel constructor(
   }
 
   override fun getDesugaring(): Set<Desugaring> {
-    return getGradleDesugaring(agpVersion, getJavaLanguageLevel(), androidProject.javaCompileOptions.isCoreLibraryDesugaringEnabled)
+    return getGradleDesugaring(agpVersion, data.getJavaLanguageLevel(), androidProject.javaCompileOptions.isCoreLibraryDesugaringEnabled)
   }
 
   override fun getResValues(): Map<String, DynamicResourceValue> {

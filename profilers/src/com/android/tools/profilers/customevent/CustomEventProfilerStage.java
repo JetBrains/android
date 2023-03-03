@@ -55,6 +55,7 @@ public class CustomEventProfilerStage extends StreamingStage {
 
   @Override
   public void enter() {
+    logEnterStage();
     initTrackGroupList();
   }
 

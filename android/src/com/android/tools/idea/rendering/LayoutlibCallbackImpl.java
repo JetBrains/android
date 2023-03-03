@@ -203,7 +203,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myHasLegacyAppCompat = DependencyManagementUtil.dependsOn(renderModule.getIdeaModule(), GoogleMavenArtifactId.APP_COMPAT_V7);
     myHasAndroidXAppCompat = DependencyManagementUtil.dependsOn(renderModule.getIdeaModule(), GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
 
-    myNamespacing = renderModule.getStudioResourceRepositoryManager().getNamespacing();
+    myNamespacing = renderModule.getResourceRepositoryManager().getNamespacing();
     if (myNamespacing == Namespacing.DISABLED) {
       myImplicitNamespaces = ResourceNamespace.Resolver.TOOLS_ONLY;
     } else {
@@ -212,7 +212,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
     myFontCacheService = DownloadableFontCacheService.getInstance();
     ImmutableMap.Builder<String, ResourceValue> fontBuilder = ImmutableMap.builder();
-    renderModule.getStudioResourceRepositoryManager().getAppResources().accept(
+    renderModule.getResourceRepositoryManager().getAppResources().accept(
         new ResourceVisitor() {
           @Override
           @NotNull
@@ -344,7 +344,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
         // this is a special case where we generate a synthetic font-family XML file that points
         // to the cached fonts downloaded by the DownloadableFontCacheService.
         if (myProjectFonts == null) {
-          myProjectFonts = new ProjectFonts(myRenderModule.getStudioResourceRepositoryManager());
+          myProjectFonts = new ProjectFonts(myRenderModule.getResourceRepositoryManager());
         }
 
         FontFamily family = myProjectFonts.getFont(resourceValue.getResourceUrl().toString());
@@ -470,7 +470,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myParserCount++;
 
     if (myLayoutPullParserFactory != null) {
-      ILayoutPullParser parser = myLayoutPullParserFactory.create(xml, this);
+      ILayoutPullParser parser = myLayoutPullParserFactory.create(xml, this, myRenderModule.getResourceRepositoryManager());
       if (parser != null) {
         return parser;
       }
@@ -509,8 +509,12 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
             ResourceResolver resourceResolver = myRenderTask.getContext().getConfiguration().getResourceResolver();
             // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different
             // layout so we already have a parent.
-            LayoutPsiPullParser parser =
-              LayoutPsiPullParser.create((XmlFile)psiFile, myLogger, false, resourceResolver, sampleDataCounter.getAndIncrement());
+            LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile,
+                                                                    myLogger,
+                                                                    false,
+                                                                    resourceResolver,
+                                                                    myRenderModule.getResourceRepositoryManager(),
+                                                                    sampleDataCounter.getAndIncrement());
             parser.setUseSrcCompat(myHasLegacyAppCompat || myHasAndroidXAppCompat);
             if (parentName.startsWith(FD_RES_LAYOUT)) {
               // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag.

@@ -22,7 +22,6 @@ import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
@@ -30,10 +29,9 @@ import com.android.tools.profilers.Utils
 import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuCapture
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
-import com.android.tools.profilers.cpu.FakeCpuService
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.DisposableRule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -42,7 +40,7 @@ class CpuAnalysisChartTest {
   private val timer = FakeTimer()
 
   @get:Rule
-  val grpcChannel = FakeGrpcChannel("CPuAnalysisChartTest", FakeCpuService(), FakeTransportService(timer), FakeProfilerService(timer))
+  val grpcChannel = FakeGrpcChannel("CPuAnalysisChartTest", FakeTransportService(timer))
 
   /**
    * For initializing [com.intellij.ide.HelpTooltip].
@@ -50,12 +48,15 @@ class CpuAnalysisChartTest {
   @get:Rule
   val appRule = ApplicationRule()
 
+  @get:Rule
+  val disposableRule = DisposableRule()
+
   private lateinit var profilersView: StudioProfilersView
 
   @Before
   fun setUp() {
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), timer)
-    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())
+    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
 
   }
 

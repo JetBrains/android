@@ -38,6 +38,7 @@ import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeProductFlavorImpl
 import com.android.tools.idea.gradle.model.impl.IdeSigningConfigImpl
+import com.android.tools.idea.gradle.model.impl.IdeExtraSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeSourceProviderImpl
 import com.android.tools.idea.gradle.model.impl.IdeTestOptionsImpl
@@ -326,6 +327,11 @@ class ModelSerializationTest : AndroidGradleTestCase() {
   @Test
   fun testSerializableIdeClassField() {
     Truth.assertThat(IdeClassFieldImpl::class.java).isAssignableTo(Serializable::class.java)
+  }
+
+  @Test
+  fun testSerializableIdeExtraSourceProvider() {
+    Truth.assertThat(IdeExtraSourceProviderImpl::class.java).isAssignableTo(Serializable::class.java)
   }
 
   @Test

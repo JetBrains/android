@@ -19,6 +19,7 @@ import com.android.tools.idea.common.editor.ActionManager
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.preview.actions.PreviewStatusIcon
 import com.android.tools.idea.preview.actions.createStatusIcon
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
@@ -38,5 +39,5 @@ class GlancePreviewActionManager(private val surface: DesignSurface<LayoutlibSce
   override fun getToolbarActions(selection: MutableList<NlComponent>) = DefaultActionGroup()
 
   override fun getSceneViewStatusIcon(sceneView: SceneView) =
-    createStatusIcon(GlancePreviewStatusIcon(sceneView), sceneView.surface)
+    createStatusIcon(PreviewStatusIcon(sceneView), sceneView.surface)
 }

@@ -49,11 +49,10 @@ public class HeapDumpSampleDataSeriesTest {
 
   private final FakeTimer myTimer = new FakeTimer();
   private final FakeTransportService myTransportService = new FakeTransportService(myTimer);
-  private final FakeMemoryService myService = new FakeMemoryService();
 
   @NotNull private final FakeIdeProfilerServices myIdeProfilerServices = new FakeIdeProfilerServices();
 
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("HeapDumpSampleDataSeriesTest", myTransportService, myService);
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("HeapDumpSampleDataSeriesTest", myTransportService);
 
   private MainMemoryProfilerStage myStage;
 
@@ -66,8 +65,6 @@ public class HeapDumpSampleDataSeriesTest {
 
   @Test
   public void testGetDataForXRange() {
-    myIdeProfilerServices.enableEventsPipeline(true);
-
     myTransportService.addEventToStream(ProfilersTestData.SESSION_DATA.getStreamId(),
                                         ProfilersTestData.generateMemoryHeapDumpData(INFO1.getStartTime(), INFO1.getStartTime(), INFO1)
                                           .setPid(ProfilersTestData.SESSION_DATA.getPid())

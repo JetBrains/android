@@ -18,11 +18,13 @@ package com.android.tools.idea.tests.gui.framework.fixture.npw;
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguage;
 import com.android.tools.idea.wizard.template.Language;
 import javax.swing.JComboBox;
 import javax.swing.JRadioButton;
 import javax.swing.JRootPane;
 import org.fest.swing.core.GenericTypeMatcher;
+import org.fest.swing.fixture.JComboBoxFixture;
 import org.fest.swing.fixture.JRadioButtonFixture;
 import org.jetbrains.annotations.NotNull;
 
@@ -70,8 +72,9 @@ public class ConfigureBenchmarkModuleStepFixture<W extends AbstractWizardFixture
   }
 
   @NotNull
-  public ConfigureBenchmarkModuleStepFixture<W> setUseKtsBuildFiles(boolean select) {
-    selectCheckBoxWithText("Use Kotlin script (.kts) for Gradle build files", select);
+  public ConfigureBenchmarkModuleStepFixture<W> setBuildConfigurationLanguage(@NotNull BuildConfigurationLanguage buildConfigurationLanguage) {
+    new JComboBoxFixture(robot(), robot().finder().findByName(target(), "buildConfigurationLanguageCombo", JComboBox.class, true))
+      .selectItem(buildConfigurationLanguage.toString());
     return this;
   }
 

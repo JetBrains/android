@@ -46,7 +46,6 @@ public class MemoryUsageTest {
   @Before
   public void setup() {
     myIdeProfilerServices = new FakeIdeProfilerServices();
-    myIdeProfilerServices.enableEventsPipeline(true);
     myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myIdeProfilerServices, myTimer);
 
     // insert memory data for new pipeline.

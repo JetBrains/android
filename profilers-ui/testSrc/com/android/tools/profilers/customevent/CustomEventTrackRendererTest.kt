@@ -24,11 +24,9 @@ import com.android.tools.adtui.model.trackgroup.TrackModel
 import com.android.tools.idea.transport.faketransport.FakeGrpcChannel
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerTrackRendererType
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.cpu.FakeCpuService
 import com.google.common.truth.Truth
 import org.junit.Before
 import org.junit.Rule
@@ -40,7 +38,7 @@ class CustomEventTrackRendererTest {
   private val transportService = FakeTransportService(timer, true)
 
   @get:Rule
-  var grpcChannel = FakeGrpcChannel("CustomEventTrackTestChannel", FakeCpuService(), FakeProfilerService(timer), transportService)
+  var grpcChannel = FakeGrpcChannel("CustomEventTrackTestChannel", transportService)
 
   private lateinit var profilers: StudioProfilers
 

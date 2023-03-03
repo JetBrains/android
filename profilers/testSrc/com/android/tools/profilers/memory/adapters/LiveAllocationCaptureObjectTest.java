@@ -31,12 +31,10 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profiler.proto.Memory;
 import com.android.tools.profiler.proto.Memory.MemoryAllocSamplingData;
 import com.android.tools.profilers.FakeIdeProfilerServices;
-import com.android.tools.profilers.FakeProfilerService;
 import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.memory.ClassGrouping;
-import com.android.tools.profilers.memory.FakeMemoryService;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.memory.adapters.classifiers.ClassifierSet;
 import com.android.tools.profilers.memory.adapters.classifiers.HeapSet;
@@ -91,11 +89,7 @@ public class LiveAllocationCaptureObjectTest {
 
   @NotNull private final FakeTimer myTimer = new FakeTimer();
   @NotNull protected final FakeTransportService myTransportService = new FakeTransportService(myTimer);
-  @NotNull protected final FakeMemoryService myService = new FakeMemoryService();
-  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("LiveAllocationCaptureObjectTest",
-                                                                   myTransportService,
-                                                                   new FakeProfilerService(myTimer),
-                                                                   myService);
+  @Rule public FakeGrpcChannel myGrpcChannel = new FakeGrpcChannel("LiveAllocationCaptureObjectTest", myTransportService);
   protected final int CAPTURE_START_TIME = 0;
   protected final ExecutorService LOAD_SERVICE = MoreExecutors.newDirectExecutorService();
   protected final Executor LOAD_JOINER = MoreExecutors.directExecutor();

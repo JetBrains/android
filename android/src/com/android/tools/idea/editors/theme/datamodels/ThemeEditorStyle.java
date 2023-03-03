@@ -24,6 +24,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.intellij.openapi.diagnostic.Logger;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 
@@ -101,7 +102,7 @@ public class ThemeEditorStyle {
       return false;
     }
 
-    AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, myManager.getModule());
+    AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, AndroidPlatforms.getInstance(myManager.getModule()));
     if (androidTargetData == null) {
       LOG.error("Unable to get AndroidTargetData.");
       return false;

@@ -27,7 +27,8 @@
     <projectsystem implementation="com.android.tools.idea.projectsystem.gradle.GradleProjectSystemProvider"/>
   </extensions>
   <extensions defaultExtensionNs="com.android.run">
-    <createLaunchTasksProvider implementation="com.android.tools.idea.testartifacts.instrumented.CreateLaunchTasksProvider"/>
+    <AndroidConfigurationExecutorProvider
+        implementation="com.android.tools.idea.testartifacts.instrumented.GradleAndroidTestRunConfigurationExecutorProvider"/>
   </extensions>
   <extensions defaultExtensionNs="com.intellij">
     <applicationService serviceInterface="com.android.tools.idea.gradle.dsl.api.GradleModelProvider"

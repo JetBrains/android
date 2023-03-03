@@ -21,6 +21,7 @@ iml_module(
         "//tools/adt/idea/wizard:intellij.android.wizard[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//tools/adt/idea/jps-model:intellij.android.jps.model[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/base/wizard/template-plugin:studio.intellij.android.wizardTemplate.plugin[module]",
@@ -53,6 +54,18 @@ iml_module(
         "BenchmarkModuleTest": {
             # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
             "test_filter": "com.android.tools.idea.npw.module.BenchmarkModuleTest",
+            # b/192269906 flaky on windows, taking longer than 15 minutes
+            "tags": ["no_windows"],
+        },
+        "BaselineProfilesModuleTest": {
+            # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
+            "test_filter": "com.android.tools.idea.npw.module.BaselineProfilesModuleTest",
+            # b/192269906 flaky on windows, taking longer than 15 minutes
+            "tags": ["no_windows"],
+        },
+        "AddBaselineProfilesModuleTest": {
+            # TODO(b/191881927) Test cases with a gradle KTS sync do not shard well
+            "test_filter": "com.android.tools.idea.npw.module.AddBaselineProfilesModuleTest",
             # b/192269906 flaky on windows, taking longer than 15 minutes
             "tags": ["no_windows"],
         },
@@ -121,6 +134,7 @@ maven_repository(
     # keep sorted: for buildifier
     artifacts = [
         "@maven//:androidx.appcompat.appcompat_1.3.0",
+        "@maven//:androidx.benchmark.benchmark-baseline-profile-gradle-plugin_1.2.0-SNAPSHOT",
         "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.1.1",
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
@@ -131,6 +145,7 @@ maven_repository(
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.3.1",
         "@maven//:androidx.navigation.navigation-fragment-ktx_2.3.5",
         "@maven//:androidx.navigation.navigation-ui-ktx_2.3.5",
+        "@maven//:androidx.profileinstaller.profileinstaller_1.3.0-beta01",
         "@maven//:androidx.test.espresso.espresso-core_3.1.0",
         "@maven//:androidx.test.espresso.espresso-core_3.2.0",
         "@maven//:androidx.test.ext.junit_1.1.2",
@@ -142,5 +157,8 @@ maven_repository(
         "@maven//:com.google.android.material.material_1.4.0",
         "@maven//:com.google.guava.guava_19.0",
         "@maven//:junit.junit_4.13.2",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.10",
+        "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.8.10",
     ],
 )

@@ -20,7 +20,7 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ActionBarHandler;
 import com.android.tools.idea.rendering.LayoutlibCallbackImpl;
-import com.android.tools.idea.res.StudioResourceRepositoryManager;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
 import com.intellij.openapi.module.ModuleUtilCore;
@@ -64,7 +64,7 @@ class MenuLayoutParserFactory {
     }
     ActionBarHandler actionBarHandler = layoutlibCallback.getActionBarHandler();
     if (actionBarHandler != null) {
-      StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(psiFile);
+      ResourceRepositoryManager repositoryManager = actionBarHandler.getResourceRepositoryManager();
       if (repositoryManager != null) {
         ResourceReference menuResource =
             new ResourceReference(repositoryManager.getNamespace(), ResourceType.MENU,

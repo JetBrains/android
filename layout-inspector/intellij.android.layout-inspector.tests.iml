@@ -62,5 +62,6 @@
     <orderEntry type="module" module-name="intellij.android.deploy" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.execution.common" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.projectSystem.gradle.models" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.streaming" scope="TEST" />
   </component>
 </module>

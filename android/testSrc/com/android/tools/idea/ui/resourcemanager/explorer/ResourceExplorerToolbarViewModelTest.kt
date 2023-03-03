@@ -18,7 +18,6 @@ package com.android.tools.idea.ui.resourcemanager.explorer
 import com.android.resources.ResourceType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.actions.NewResourceFileAction
-import com.android.tools.idea.ui.resourcemanager.actions.NewResourceValueAction
 import com.android.tools.idea.ui.resourcemanager.getTestDataDirectory
 import com.android.tools.idea.ui.resourcemanager.importer.ImportersProvider
 import com.android.tools.idea.ui.resourcemanager.model.FilterOptions
@@ -26,16 +25,19 @@ import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.file.PsiDirectoryFactory
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.runInEdtAndWait
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.awt.event.ActionEvent
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -65,7 +67,11 @@ class ResourceExplorerToolbarViewModelTest {
 
   @Test
   fun getImportersActions() {
-    val importers = viewModel.getImportersActions().map { it.templatePresentation.text }.sorted()
+    val importers = viewModel.getImportersActions().map {
+      val event = TestActionEvent(DataContext.EMPTY_CONTEXT, it)
+      it .update(event)
+      event.presentation.text
+    }.sorted()
     assertThat(importers).isEmpty()
   }
 
@@ -92,7 +98,7 @@ class ResourceExplorerToolbarViewModelTest {
   @Test
   fun hasResourceValueAction() {
     // For Drawable
-    assertFalse(viewModel.addActions.getChildren(null).hasValueActionOfType(ResourceType.DRAWABLE))
+    assertTrue(viewModel.addActions.getChildren(null).hasValueActionOfType(ResourceType.DRAWABLE))
 
     // For Color
     viewModel = ResourceExplorerToolbarViewModel(
@@ -108,9 +114,19 @@ class ResourceExplorerToolbarViewModelTest {
     val resourceFileActions = actions.filter { it is NewResourceFileAction }
     assertThat(resourceFileActions).hasSize(1)
 
-    assertThat(resourceFileActions.get(0).templatePresentation.text).startsWith(ResourceType.DRAWABLE.displayName)
+    val resourceFileAction = resourceFileActions.get(0)
+    val event = TestActionEvent(DataContext.EMPTY_CONTEXT, resourceFileAction)
+    resourceFileAction.update(event)
+
+    assertThat(event.presentation.text).startsWith(ResourceType.DRAWABLE.displayName)
   }
 }
 
 private fun Array<AnAction>.hasValueActionOfType(type: ResourceType): Boolean
-  = any { (it is NewResourceValueAction) && (it.templatePresentation.text.startsWith(type.displayName)) }
+  = filterIsInstance<NewResourceFileAction>()
+  .any {
+    val event = TestActionEvent(DataContext.EMPTY_CONTEXT, it)
+    it.update(event)
+
+    event.presentation.text.startsWith(type.displayName)
+  }

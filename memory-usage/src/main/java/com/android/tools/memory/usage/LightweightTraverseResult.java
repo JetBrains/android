@@ -18,15 +18,22 @@ package com.android.tools.memory.usage;
 public class LightweightTraverseResult {
   private final int totalObjectsNumber;
   private final long totalObjectsSizeBytes;
+  private final int totalReachableObjectsNumber;
+  private final long totalReachableObjectsSizeBytes;
   private final int totalStrongReferencedObjectsNumber;
   private final long totalStrongReferencedObjectsSizeBytes;
 
   public LightweightTraverseResult(int totalObjectsNumber,
                                    long totalObjectsSize,
+                                   int totalReachableObjectsNumber,
+                                   long totalReachableObjectsSize,
                                    int totalStrongReferencedObjectsNumber,
                                    long totalStrongReferencedObjectsSize) {
     this.totalObjectsNumber = totalObjectsNumber;
     this.totalObjectsSizeBytes = totalObjectsSize;
+
+    this.totalReachableObjectsNumber = totalReachableObjectsNumber;
+    this.totalReachableObjectsSizeBytes = totalReachableObjectsSize;
 
     this.totalStrongReferencedObjectsNumber = totalStrongReferencedObjectsNumber;
     this.totalStrongReferencedObjectsSizeBytes = totalStrongReferencedObjectsSize;
@@ -38,6 +45,14 @@ public class LightweightTraverseResult {
 
   public long getTotalObjectsSizeBytes() {
     return totalObjectsSizeBytes;
+  }
+
+  public long getTotalReachableObjectsSizeBytes() {
+    return totalReachableObjectsSizeBytes;
+  }
+
+  public int getTotalReachableObjectsNumber() {
+    return totalReachableObjectsNumber;
   }
 
   public long getTotalStrongReferencedObjectsSizeBytes() {
