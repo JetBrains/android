@@ -29,7 +29,7 @@ import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.internal.avd.AvdInfo;
 import com.android.sdklib.repository.targets.PlatformTarget;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.res.StudioResourceRepositoryManager;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.Disposable;
@@ -45,7 +45,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import com.android.tools.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidPlatforms;
 import com.android.tools.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.Contract;
@@ -69,6 +68,8 @@ public class ConfigurationManager implements Disposable {
   private static final Key<VirtualFile> CONFIGURATION_MANAGER_PROJECT_CANONICAL_KEY = Key.create(
     ConfigurationManager.class.getName() + "ProjectCanonicalKey"
   );
+
+  @NotNull private final ConfigurationModelModule myConfigurationModule;
 
   @NotNull private final Module myModule;
   private final Map<VirtualFile, Configuration> myCache = ContainerUtil.createSoftValueMap();
@@ -140,8 +141,10 @@ public class ConfigurationManager implements Disposable {
   }
 
   protected ConfigurationManager(@NotNull Module module) {
+    myConfigurationModule = new StudioConfigurationModelModule(module);
     myModule = module;
     Disposer.register(myModule, this);
+
   }
 
   /**
@@ -230,7 +233,7 @@ public class ConfigurationManager implements Disposable {
    * Returns the associated persistence manager
    */
   public ConfigurationStateManager getStateManager() {
-    return StudioConfigurationStateManager.get(myModule.getProject());
+    return myConfigurationModule.getConfigurationStateManager();
   }
 
   /**
@@ -239,7 +242,7 @@ public class ConfigurationManager implements Disposable {
   @Slow
   @NotNull
   public ImmutableList<Device> getDevices() {
-    AndroidPlatform platform = AndroidPlatforms.getInstance(myModule);
+    AndroidPlatform platform = myConfigurationModule.getAndroidPlatform();
     if (platform == null) {
       return ImmutableList.of();
     }
@@ -269,7 +272,7 @@ public class ConfigurationManager implements Disposable {
 
   @Nullable
   public Device createDeviceForAvd(@NotNull AvdInfo avd) {
-    AndroidPlatform platform = AndroidPlatforms.getInstance(myModule);
+    AndroidPlatform platform = myConfigurationModule.getAndroidPlatform();
     if (platform == null) {
       return null;
     }
@@ -295,7 +298,7 @@ public class ConfigurationManager implements Disposable {
    */
   @NotNull
   public IAndroidTarget[] getTargets() {
-    AndroidPlatform platform = AndroidPlatforms.getInstance(myModule);
+    AndroidPlatform platform = myConfigurationModule.getAndroidPlatform();
     if (platform != null) {
       final AndroidSdkData sdkData = platform.getSdkData();
 
@@ -342,7 +345,7 @@ public class ConfigurationManager implements Disposable {
   public String computePreferredTheme(@NotNull Configuration configuration) {
     // TODO: If we are rendering a layout in included context, pick the theme from the outer layout instead.
     String activityName = configuration.getActivity();
-    ThemeInfoProvider themeInfo = new StudioThemeInfoProvider(myModule);
+    ThemeInfoProvider themeInfo = myConfigurationModule.getThemeInfoProvider();
     if (activityName != null) {
       String activityFqcn = activityName;
       if (activityName.startsWith(".")) {
@@ -375,6 +378,11 @@ public class ConfigurationManager implements Disposable {
   @NotNull
   public Project getProject() {
     return myModule.getProject();
+  }
+
+  @NotNull
+  public ConfigurationModelModule getConfigModule() {
+    return myConfigurationModule;
   }
 
   @Override
@@ -419,14 +427,14 @@ public class ConfigurationManager implements Disposable {
 
   @NotNull
   public ImmutableList<Locale> getLocalesInProject() {
-    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myModule);
+    ResourceRepositoryManager repositoryManager = myConfigurationModule.getResourceRepositoryManager();
     assert repositoryManager != null;
     return repositoryManager.getLocalesInProject();
   }
 
   @Nullable
   public IAndroidTarget getProjectTarget() {
-    AndroidPlatform platform = AndroidPlatforms.getInstance(myModule);
+    AndroidPlatform platform = myConfigurationModule.getAndroidPlatform();
     return platform != null ? platform.getTarget() : null;
   }
 
@@ -569,9 +577,9 @@ public class ConfigurationManager implements Disposable {
         // needlessly flush the bitmap cache for the project still using it, but that just
         // means the next render will need to fetch them again; from that point on both platform
         // bitmap sets are in memory.
-        AndroidTargetData targetData = AndroidTargetData.getTargetData(myTarget, AndroidPlatforms.getInstance(myModule));
+        AndroidTargetData targetData = AndroidTargetData.getTargetData(myTarget, myConfigurationModule.getAndroidPlatform());
         if (targetData != null) {
-          targetData.clearLayoutBitmapCache(myModule);
+          targetData.clearLayoutBitmapCache(myConfigurationModule);
         }
       }
 
