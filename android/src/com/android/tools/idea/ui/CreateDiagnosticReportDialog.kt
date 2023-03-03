@@ -64,8 +64,8 @@ import kotlin.io.path.name
 
 private const val PRIVACY_TEXT =
   "Some account and system information may be sent to Google. We will use the information you give us to help address technical issues " +
-  "and to improve our services, subject to our <a href=\\\"http://www.google.com/policies/privacy/\\\">Privacy Policy</a> and " +
-  "<a href=\\\"http://www.google.com/policies/terms/\\\">Terms of Service/a>."
+  "and to improve our services, subject to our <a href='http://www.google.com/policies/privacy/'>Privacy Policy</a> and " +
+  "<a href='http://www.google.com/policies/terms/'>Terms of Service</a>."
 
 /**
  * CreateDiagnosticReportDialog displays a tree view of files to be included in a diagnostic zip file, as well as a preview pane
