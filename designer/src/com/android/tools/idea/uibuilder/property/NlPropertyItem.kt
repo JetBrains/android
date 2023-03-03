@@ -404,7 +404,7 @@ open class NlPropertyItem(
 
   protected open fun validate(text: String?): Pair<EditingErrorCategory, String> {
     val value = (text ?: rawValue).nullize() ?: return EDITOR_NO_ERROR
-    return validateEditedValue(value) ?: lintValidation() ?: EDITOR_NO_ERROR
+    return validateEditedValue(value) ?: lintValidation(value) ?: EDITOR_NO_ERROR
   }
 
   private fun validateEditedValue(text: String): Pair<EditingErrorCategory, String>? {
@@ -453,7 +453,12 @@ open class NlPropertyItem(
     return Pair(EditingErrorCategory.ERROR, message)
   }
 
-  protected fun lintValidation(): Pair<EditingErrorCategory, String>? {
+  protected fun lintValidation(value: String?): Pair<EditingErrorCategory, String>? {
+    if (value != rawValue) {
+      // Only show lint errors when the value is equal to the saved value.
+      // Otherwise, if there is a lint error, it will be shown after the user corrected the problem.
+      return null
+    }
     val component = firstComponent ?: return null
     val issue = nlModel?.lintAnnotationsModel?.findIssue(component, namespace, name) ?: return null
     return when (issue.level) {

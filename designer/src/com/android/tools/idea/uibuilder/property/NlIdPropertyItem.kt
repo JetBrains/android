@@ -91,7 +91,7 @@ open class NlIdPropertyItem(
   }
 
   override fun validate(text: String?): Pair<EditingErrorCategory, String> {
-    return lintValidation() ?: EDITOR_NO_ERROR
+    return lintValidation(text) ?: EDITOR_NO_ERROR
   }
 
   /**

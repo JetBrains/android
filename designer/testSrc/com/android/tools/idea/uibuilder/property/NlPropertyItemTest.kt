@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.property
 
+import com.android.AndroidXConstants.CLASS_MOTION_LAYOUT
 import com.android.SdkConstants.ABSOLUTE_LAYOUT
 import com.android.SdkConstants.ANDROID_URI
 import com.android.SdkConstants.ATTR_BACKGROUND
@@ -41,7 +42,6 @@ import com.android.SdkConstants.ATTR_TEXT_SIZE
 import com.android.SdkConstants.ATTR_VISIBILITY
 import com.android.SdkConstants.AUTO_URI
 import com.android.SdkConstants.BUTTON
-import com.android.AndroidXConstants.CLASS_MOTION_LAYOUT
 import com.android.SdkConstants.FRAME_LAYOUT
 import com.android.SdkConstants.IMAGE_VIEW
 import com.android.SdkConstants.LINEAR_LAYOUT
@@ -53,7 +53,8 @@ import com.android.SdkConstants.VIEW_MERGE
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
-import com.android.tools.adtui.model.stdui.EditingErrorCategory
+import com.android.tools.adtui.model.stdui.EditingErrorCategory.ERROR
+import com.android.tools.adtui.model.stdui.EditingErrorCategory.WARNING
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.MinApiLayoutTestCase
@@ -64,6 +65,7 @@ import com.android.tools.idea.uibuilder.scene.SyncLayoutlibSceneManager
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.openapi.command.impl.UndoManagerImpl
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.FileEditor
@@ -94,8 +96,6 @@ import org.mockito.Mockito.mock
 import java.awt.Color
 
 private const val HELLO_WORLD = "Hello World"
-
-private val ERROR = EditingErrorCategory.ERROR
 
 @RunsInEdt
 class NlPropertyItemTest {
@@ -150,6 +150,8 @@ class NlPropertyItemTest {
   fun testUnboundTextProperty() {
     val util = SupportTestUtil(projectRule, createTextViewWithHardcodedValue())
     val property = util.makeProperty(ANDROID_URI, ATTR_TEXT, NlPropertyType.STRING)
+    val message = "Hardcoded string \"Hardcoded string\", should use @string resource."
+    util.addIssue(property, HighlightDisplayLevel.WARNING, message)
     assertThat(property.name).isEqualTo(ATTR_TEXT)
     assertThat(property.namespace).isEqualTo(ANDROID_URI)
     assertThat(property.type).isEqualTo(NlPropertyType.STRING)
@@ -157,6 +159,8 @@ class NlPropertyItemTest {
     assertThat(property.isReference).isFalse()
     assertThat(property.resolvedValue).isEqualTo("Hardcoded string")
     assertThat(property.colorButton).isNull()
+    assertThat(property.editingSupport.validation(property.value)).isEqualTo(Pair(WARNING, message))
+    assertThat(property.editingSupport.validation("any other value")).isEqualTo(EDITOR_NO_ERROR)
     val browseButton = property.browseButton!!
     assertThat(browseButton.actionIcon).isEqualTo(StudioIcons.Common.PROPERTY_UNBOUND)
   }
