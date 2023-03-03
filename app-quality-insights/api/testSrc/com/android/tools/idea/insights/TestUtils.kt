@@ -36,7 +36,7 @@ data class TestIssue(override val issueDetails: IssueDetails, override val sampl
   Issue
 
 data class TestIssueDetails(
-  override val id: String,
+  override val id: IssueId,
   override val title: String,
   override val subtitle: String,
   override val fatality: FailureType,
@@ -51,7 +51,7 @@ data class TestIssueDetails(
 val TEST_ISSUE1 =
   TestIssue(
     TestIssueDetails(
-      "1234",
+      IssueId("1234"),
       "Issue1",
       "com.google.crash.Crash",
       FailureType.FATAL,
@@ -147,7 +147,7 @@ val TEST_ISSUE1_DETAILS =
 val TEST_ISSUE2 =
   TestIssue(
     TestIssueDetails(
-      "2345",
+      IssueId("2345"),
       "Issue2",
       "com.google.crash.Crash",
       FailureType.ANR,

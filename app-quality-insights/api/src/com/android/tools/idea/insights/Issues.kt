@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.insights
 
+@JvmInline value class IssueId(val value: String)
+
 interface Issue {
   val issueDetails: IssueDetails
   val sampleEvent: Event
@@ -22,7 +24,7 @@ interface Issue {
 
 interface IssueDetails {
   // Issue id
-  val id: String
+  val id: IssueId
 
   // Title of the issue
   val title: String
