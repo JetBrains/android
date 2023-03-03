@@ -20,6 +20,7 @@ import static android.os.Build.VERSION.SDK_INT;
 import android.content.ClipData;
 import android.os.PersistableBundle;
 import android.util.Log;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
@@ -72,29 +73,24 @@ public class ClipboardAdapter {
     }
   }
 
-  public static String getText() {
+  public static String getText() throws InvocationTargetException, IllegalAccessException {
     if (clipboard == null) {
       return "";
     }
 
-    try {
-      ClipData clipData = numberOfExtraParameters == 0 ?
-                          (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME) :
-                          numberOfExtraParameters == 1 ?
-                          (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, USER_ID) :
-                          numberOfExtraParameters == 2 ?
-                          (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID) :
-                          numberOfExtraParameters == 3 ?
-                          (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT) :
-                          null;
-      if (clipData == null || clipData.getItemCount() == 0) {
-        return "";
-      }
-      return clipData.getItemAt(0).getText().toString();
+    ClipData clipData = numberOfExtraParameters == 0 ?
+                        (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME) :
+                        numberOfExtraParameters == 1 ?
+                        (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, USER_ID) :
+                        numberOfExtraParameters == 2 ?
+                        (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID) :
+                        numberOfExtraParameters == 3 ?
+                        (ClipData)getPrimaryClipMethod.invoke(clipboard, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT) :
+                        null;
+    if (clipData == null || clipData.getItemCount() == 0) {
+      return "";
     }
-    catch (ReflectiveOperationException e) {
-      throw new RuntimeException(e);
-    }
+    return clipData.getItemAt(0).getText().toString();
   }
 
   public static void setText(String text) {

@@ -58,6 +58,11 @@ string ClipboardManager::GetText() const {
   JObject text = clipboard_adapter_class_.CallStaticObjectMethod(jni_, get_text_method_);
   Log::V("%s:%d", __FILE__, __LINE__);
   if (text.IsNull()) {
+    JObject exception = jni_.GetAndClearException();
+    if (!exception.IsNull()) {
+      Log::W("Unable to obtain clipboard text - %s", exception.ToString().c_str());
+    }
+
     Log::V("%s:%d", __FILE__, __LINE__);
     return "";
   }
