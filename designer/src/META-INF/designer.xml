@@ -21,6 +21,7 @@
     <projectService serviceImplementation="com.android.tools.idea.editors.layeredimage.LayersManager" />
     <externalAnnotator language="XML" implementationClass="com.android.tools.idea.uibuilder.lint.AtfIssueExternalAnnotator"/>
     <externalAnnotator language="XML" implementationClass="com.android.tools.idea.uibuilder.lint.VisualLintIssueExternalAnnotator"/>
+    <troubleInfoCollector implementation="com.android.tools.idea.uibuilder.troubleshooting.DesignToolsTroubleInfoCollector" />
   </extensions>
 
   <!-- Extension points -->
@@ -30,6 +31,8 @@
                     interface="com.android.tools.idea.uibuilder.handlers.ViewHandlerProvider" />
     <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.editorNotificationProvider"
                     interface="com.intellij.ui.EditorNotifications$Provider" />
+    <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.troubleshooting.infoCollector"
+                    interface="com.intellij.troubleshooting.TroubleInfoCollector"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -249,5 +252,10 @@
     <globalInspection projectType="Android" hasStaticDescription="true" displayName="Wear margins" shortName="WearMargin" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.WearMarginAnalyzerInspection"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.uibuilder.troubleshooting">
+    <infoCollector implementation="com.android.tools.idea.common.surface.DesignSurfaceTroubleInfoCollector" />
+    <infoCollector implementation="com.android.tools.idea.common.error.IssuePanelServiceTroubleInfoCollector" />
   </extensions>
 </idea-plugin>
