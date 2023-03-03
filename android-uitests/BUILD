@@ -1499,6 +1499,23 @@ java_test(
 )
 
 java_test(
+    name = "ModuleVariantConflictTest",
+    size = "large",
+    data = COMMON_DATA + [
+        "//prebuilts/studio/layoutlib/data:framework_res.jar",
+    ] + glob([
+        "testData/ModuleVariantConflicts/**",
+    ]),
+    jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.projectstructure.ModuleVariantConflictTest"],
+    tags = COMMON_TAGS + [
+        "manual",
+        "ui_test",
+    ],
+    test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",
+    runtime_deps = [":intellij.android.guiTests_testlib"],
+)
+
+java_test(
     name = "CreateCppKotlinProjectTest",
     size = "large",
     data = COMMON_DATA + [
