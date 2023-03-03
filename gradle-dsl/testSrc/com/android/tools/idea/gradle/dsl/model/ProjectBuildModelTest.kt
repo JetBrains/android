@@ -1592,6 +1592,26 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testAddPlatformDependencyReferenceToVersionCatalog() {
+    writeToBuildFile(TestFile.ADD_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG)
+    writeToVersionCatalogFile(TestFile.VERSION_CATALOG_GROUP_BOTH_NOTATION)
+
+    val pbm = projectBuildModel
+    val buildModel = pbm.projectBuildModel!!
+    val dependencies = buildModel.dependencies()
+    val versionCatalog = pbm.versionCatalogsModel
+    ReferenceTo(versionCatalog.libraries("libs").findProperty("a_dep-endency"), dependencies).let { reference ->
+      dependencies.addPlatformArtifact("api", reference, false)
+    }
+    ReferenceTo(versionCatalog.libraries("libs").findProperty("a_nother-dep_endency"), dependencies).let { reference ->
+      dependencies.addPlatformArtifact("implementation", reference, true)
+    }
+    applyChangesAndReparse(pbm)
+    verifyFileContents(myBuildFile, TestFile.ADD_PLATFORM_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG_EXPECTED)
+    verifyVersionCatalogFileContents(myVersionCatalogFile, TestFile.VERSION_CATALOG_GROUP_BOTH_NOTATION)
+  }
+
+  @Test
   fun testAddDependencyReferenceToVersionCatalogBundle() {
     writeToBuildFile(TestFile.ADD_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG)
     writeToVersionCatalogFile(TestFile.VERSION_CATALOG_GROUP_BOTH_NOTATION)
@@ -1612,6 +1632,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     ADD_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG("addDependencyReferenceToVersionCatalog"),
     ADD_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG_BUNDLE_EXPECTED("addDependencyReferenceToVersionCatalogBundleExpected"),
     ADD_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG_EXPECTED("addDependencyReferenceToVersionCatalogExpected"),
+    ADD_PLATFORM_DEPENDENCY_REFERENCE_TO_VERSION_CATALOG_EXPECTED("addPlatformDependencyReferenceToVersionCatalogExpected"),
     APPLIED_FILES_SHARED("appliedFilesShared"),
     APPLIED_FILES_SHARED_APPLIED("appliedFilesSharedApplied"),
     APPLIED_FILES_SHARED_APPLIED_EXPECTED("appliedFilesSharedAppliedExpected"),

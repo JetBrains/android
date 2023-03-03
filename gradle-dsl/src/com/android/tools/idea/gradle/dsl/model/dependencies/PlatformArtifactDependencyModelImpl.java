@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.model.dependencies;
 
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec;
 import com.android.tools.idea.gradle.dsl.api.dependencies.PlatformDependencyModel;
+import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslClosure;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpression;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral;
@@ -42,6 +43,19 @@ abstract class PlatformArtifactDependencyModelImpl extends ArtifactDependencyMod
     GradleDslMethodCall methodCall = new GradleDslMethodCall(parent, name, methodName);
     GradleDslLiteral argument = new GradleDslLiteral(methodCall, GradleNameElement.empty());
     argument.setValue(createCompactNotationForLiterals(argument, dependency));
+    methodCall.addNewArgument(argument);
+    parent.setNewElement(methodCall);
+  }
+
+  static void createNew(@NotNull GradlePropertiesDslElement parent,
+                        @NotNull String configurationName,
+                        @NotNull ReferenceTo reference,
+                        boolean enforced) {
+    GradleNameElement name = GradleNameElement.create(configurationName);
+    String methodName = enforced ? "enforcedPlatform" : "platform";
+    GradleDslMethodCall methodCall = new GradleDslMethodCall(parent, name, methodName);
+    GradleDslLiteral argument = new GradleDslLiteral(methodCall, GradleNameElement.empty());
+    argument.setValue(reference);
     methodCall.addNewArgument(argument);
     parent.setNewElement(methodCall);
   }
