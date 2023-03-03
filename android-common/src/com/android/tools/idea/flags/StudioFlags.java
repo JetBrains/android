@@ -1661,7 +1661,17 @@ public final class StudioFlags {
     "Maximum number of processes to retain after they are terminated. Changing the value of this flag requires restarting Android Studio.",
     100
   );
-  // endregion NEW_SEND_FEEDBACK_DIALOG
+  public static final Flag<Boolean> PROCESS_NAME_TRACKER_AGENT_ENABLE = Flag.create(
+    PROCESS_NAME_MONITOR, "processnamemonitor.tracker.agent.enable", "Enable process tracking agent",
+    "Enable process tracking using an agent deployed to the device. Changing the value of this flag requires restarting Android Studio.",
+    true
+  );
+  public static final Flag<Integer> PROCESS_NAME_TRACKER_AGENT_INTERVAL_MS = Flag.create(
+    PROCESS_NAME_MONITOR, "processnamemonitor.tracker.agent.interval", "Process tracking agent polling interval",
+    "Process tracking agent polling interval in milliseconds. Changing the value of this flag requires restarting Android Studio.",
+    1000
+  );
+    // endregion NEW_SEND_FEEDBACK_DIALOG
 
   private StudioFlags() { }
 }
