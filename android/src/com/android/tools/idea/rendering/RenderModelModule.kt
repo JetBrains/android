@@ -27,9 +27,7 @@ import com.intellij.openapi.project.Project
 /**
  * Provides all the module-specific Android resources information required for rendering.
  */
-interface RenderModelModule : Disposable {
-  val ideaModule: Module
-
+interface RenderModelModule : Disposable, IdeaModuleProvider {
   val assetRepository: AssetRepository?
 
   val manifest: RenderModelManifest?

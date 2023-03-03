@@ -47,14 +47,13 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
     }
   }
 
-  override val ideaModule: Module
-    get() = facet.module
+  override fun getIdeaModule(): Module = facet.module
   override var assetRepository: AssetRepository? = AssetRepositoryImpl(facet)
     private set
   override val manifest: RenderModelManifest?
     get() {
       try {
-        return RenderMergedManifest(MergedManifestManager.getMergedManifest(ideaModule).get(1, TimeUnit.SECONDS))
+        return RenderMergedManifest(MergedManifestManager.getMergedManifest(facet.module).get(1, TimeUnit.SECONDS))
       }
       catch (e: InterruptedException) {
         throw ProcessCanceledException(e)
@@ -77,16 +76,16 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
   override val info: AndroidModuleInfo
     get() = StudioAndroidModuleInfo.getInstance(facet)
   override val androidPlatform: AndroidPlatform?
-    get() = getInstance(ideaModule)
+    get() = getInstance(facet.module)
   override val resourceIdManager: ResourceIdManager
-    get() = ResourceIdManager.get(ideaModule)
+    get() = ResourceIdManager.get(facet.module)
   override val moduleKey: Any
-    get() = ideaModule
+    get() = facet.module
   override val resourcePackage: String?
-    get() = ideaModule.getModuleSystem().getPackageName()
-  override val dependencies: RenderModuleDependencies = StudioRenderModuleDependencies(ideaModule)
+    get() = facet.module.getModuleSystem().getPackageName()
+  override val dependencies: RenderModuleDependencies = StudioRenderModuleDependencies(facet.module)
   override val project: Project
-    get() = ideaModule.project
+    get() = facet.module.project
   override val isDisposed: Boolean
     get() = _isDisposed.get()
 
