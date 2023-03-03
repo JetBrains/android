@@ -61,7 +61,7 @@ import org.xmlpull.v1.XmlPullParserException;
  * single summary at the end
  */
 public class RenderLogger implements IRenderLogger {
-  public static final RenderLogger NOP_RENDER_LOGGER = new RenderLogger(null, null, null) {
+  public static final RenderLogger NOP_RENDER_LOGGER = new RenderLogger() {
     @Override
     public void addMessage(@NotNull RenderProblem message) {}
 
@@ -136,7 +136,6 @@ public class RenderLogger implements IRenderLogger {
   private static boolean ourIgnoreFragments;
 
   private final Module myModule;
-  private final String myName;
   private Set<String> myFidelityWarningStrings;
   private boolean myHaveExceptions;
   private Multiset<String> myTags;
@@ -157,8 +156,7 @@ public class RenderLogger implements IRenderLogger {
 
   private final boolean myLogFramework;
 
-  public RenderLogger(@Nullable String name, @Nullable Module module, @Nullable Object credential, boolean logFramework) {
-    myName = name;
+  public RenderLogger(@Nullable Module module, @Nullable Object credential, boolean logFramework) {
     myModule = module;
     myCredential = credential;
     myLogFramework = logFramework;
@@ -168,16 +166,13 @@ public class RenderLogger implements IRenderLogger {
    * Construct a logger for the given named layout. Don't call this method directly; obtain via {@link RenderService}.
    */
   @VisibleForTesting
-  public RenderLogger(@Nullable String name, @Nullable Module module, @Nullable Object credential) {
-    this(name, module, credential, false);
+  public RenderLogger(@Nullable Module module) {
+    this(module, null, false);
   }
 
-  /**
-   * Construct a logger for the given named layout. Don't call this method directly; obtain via {@link RenderService}.
-   */
   @VisibleForTesting
-  public RenderLogger(@Nullable String name, @Nullable Module module) {
-    this(name, module, null);
+  public RenderLogger() {
+    this(null);
   }
 
   /**

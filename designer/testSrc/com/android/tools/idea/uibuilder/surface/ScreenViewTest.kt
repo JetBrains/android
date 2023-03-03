@@ -73,7 +73,7 @@ class ScreenViewTest {
   fun `device content size policy with no content returns no content size`() {
     val screenView = mock(ScreenView::class.java)
     val sceneManager = mock(LayoutlibSceneManager::class.java)
-    val renderLogger = RenderLogger("", projectRule.module, null)
+    val renderLogger = RenderLogger()
     // Fully simulate an error to make the result invalid
     renderLogger.addBrokenClass("Broken", Throwable())
     val file = projectRule.fixture.addFileToProject("src/EmptyFile.kt", "")

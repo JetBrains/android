@@ -207,7 +207,7 @@ public class RenderResult {
     RenderResult result = new RenderResult(
       file,
       module,
-      logger != null ? logger : new RenderLogger(null, module, null, false),
+      logger != null ? logger : new RenderLogger(module, null, false),
       null,
       false,
       errorResult,

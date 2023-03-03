@@ -46,7 +46,7 @@ public class RenderLoggerTest {
     final String TAG = "TEST_WARNING";
     final String TEXT = "Test fidelity warning";
 
-    RenderLogger logger = new RenderLogger(null, null);
+    RenderLogger logger = new RenderLogger();
     logger.fidelityWarning(TAG, TEXT, null, null, null);
     // Check that duplicates are ignored
     logger.fidelityWarning(TAG, TEXT, null, null, null);
@@ -55,7 +55,7 @@ public class RenderLoggerTest {
     assertEquals(TEXT, logger.getFidelityWarnings().get(0).getClientData());
 
     // Test ignoring a single message
-    logger = new RenderLogger(null, null);
+    logger = new RenderLogger();
     RenderLogger.ignoreFidelityWarning(TEXT);
     logger.fidelityWarning(TAG, TEXT, null, null, null);
     assertEquals(0, logger.getFidelityWarnings().size());
@@ -63,7 +63,7 @@ public class RenderLoggerTest {
     assertEquals("This should't be ignored", logger.getFidelityWarnings().get(0).getClientData());
 
     // Test ignore all
-    logger = new RenderLogger(null, null);
+    logger = new RenderLogger();
     RenderLogger.ignoreAllFidelityWarnings();
     logger.fidelityWarning(TAG, TEXT, null, null, null);
     logger.fidelityWarning(TAG, "This should be ignored", null, null, null);
@@ -73,7 +73,7 @@ public class RenderLoggerTest {
 
   @Test
   public void testMessageLogging() {
-    RenderLogger logger = new RenderLogger(null, null, null);
+    RenderLogger logger = new RenderLogger();
     for (int i = 0; i < 20; i++) {
       logger.error("TAG" + i, "Message " + i, null, null, null);
     }
@@ -104,7 +104,7 @@ public class RenderLoggerTest {
    */
   @Test
   public void testStackOverflowSummarizing() {
-    RenderLogger logger = new RenderLogger(null, null, null);
+    RenderLogger logger = new RenderLogger();
     try {
       generateLongStackOverflowException(STACK_OVERFLOW_TRACE_LIMIT + 200);
     }
@@ -136,7 +136,7 @@ public class RenderLoggerTest {
    */
   @Test
   public void testStackOverflowSummarizingOnBrokenClasses() {
-    RenderLogger logger = new RenderLogger(null, null, null);
+    RenderLogger logger = new RenderLogger();
     try {
       generateLongStackOverflowException(STACK_OVERFLOW_TRACE_LIMIT + 200);
     }
@@ -157,7 +157,7 @@ public class RenderLoggerTest {
    */
   @Test
   public void testMessageOverflow() {
-    RenderLogger logger = new RenderLogger(null, null, null);
+    RenderLogger logger = new RenderLogger();
     for (int i = 0; i < RENDER_PROBLEMS_LIMIT + 150; i++) {
       logger.error("TAG", "Message " + i, null, null, null);
     }
@@ -171,7 +171,7 @@ public class RenderLoggerTest {
 
   @Test
   public void testHasErrors() {
-    RenderLogger logger = new RenderLogger(null, null, null);
+    RenderLogger logger = new RenderLogger();
 
     logger.warning("TAG_WARNING", "This is a warning", null, null);
     assertFalse(logger.hasErrors());

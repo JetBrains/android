@@ -159,7 +159,7 @@ final public class RenderService implements Disposable {
 
   @NotNull
   public RenderLogger createLogger(@NotNull Module module, boolean logFramework) {
-    return new RenderLogger(module.getName(), module, myCredential, logFramework);
+    return new RenderLogger(module, myCredential, logFramework);
   }
 
 
