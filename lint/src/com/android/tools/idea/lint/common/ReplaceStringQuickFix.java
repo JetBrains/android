@@ -22,7 +22,7 @@ import com.android.annotations.NonNull;
 import com.android.tools.lint.detector.api.LintFix.ReplaceString;
 import com.android.tools.lint.detector.api.Location;
 import com.android.tools.lint.detector.api.Position;
-import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils;
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -229,21 +229,21 @@ public class ReplaceStringQuickFix extends DefaultLintQuickFix {
   public void apply(@NotNull PsiElement startElement, @NotNull PsiElement endElement, @NotNull AndroidQuickfixContexts.Context context) {
     PsiFile file = startElement.getContainingFile();
     if (myRange != null) {
-      file = myRange.getContainingFile();
-      if (file == null) {
-        return;
+      // Handle the case where the fix is in a different file than the one being edited, while also considering
+      // that the current file may be a non-physical file synthesized during an intention preview.
+      PsiFile fileContainingRange = myRange.getContainingFile();
+      if (fileContainingRange != null && !fileContainingRange.equals(file.getOriginalFile())) {
+        file = fileContainingRange;
       }
     }
-    Project project = startElement.getProject();
+    if (file == null) {
+      return;
+    }
+
+    Project project = file.getProject();
     PsiDocumentManager documentManager = PsiDocumentManager.getInstance(project);
 
     Document document = context.getDocument(file);
-    if (IntentionPreviewUtils.isIntentionPreviewActive() && context instanceof AndroidQuickfixContexts.EditorContext) {
-      if (((AndroidQuickfixContexts.EditorContext)context).getEditor().getDocument() != document) {
-        // This is a composite fix editing other files outside of the preview; ignore those
-        return;
-      }
-    }
     if (document != null) {
       documentManager.doPostponedOperationsAndUnblockDocument(document);
       editBefore(document);
@@ -324,6 +324,16 @@ public class ReplaceStringQuickFix extends DefaultLintQuickFix {
         }
       }
     }
+  }
+
+  @Nullable
+  @Override
+  public IntentionPreviewInfo generatePreview(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
+    // Disable intention preview if the replacement range is in a different file than the one being edited.
+    if (myRange != null && !file.getOriginalFile().equals(myRange.getContainingFile())) {
+      return IntentionPreviewInfo.EMPTY;
+    }
+    return super.generatePreview(project, editor, file);
   }
 
   private static void addJavaImports(PsiJavaFile javaFile, List<String> imports) {
