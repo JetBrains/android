@@ -44,7 +44,7 @@ import javax.swing.JPanel
 
 
 private const val BASELINE_PROFILES_AGP_MIN_VERSION = "8.1.0"
-private const val GMD_LINK = "${AndroidWebHelpProvider.HELP_URL}studio/test/gradle-managed-devices"
+private const val GMD_LINK = "https://d.android.com/r/studio-ui/testing/gradle-managed-devices"
 
 class ConfigureBaselineProfilesModuleStep(
   model: NewBaselineProfilesModuleModel
