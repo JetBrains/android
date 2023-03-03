@@ -1839,7 +1839,7 @@ Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/pytho
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/install_egg_info.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/install_lib.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/install_scripts.py
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/launcher manifest.xml
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/launcher_manifest.xml
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/py36compat.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/register.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/rotate.py
@@ -1865,7 +1865,7 @@ Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/pytho
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/package_index.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/py34compat.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/sandbox.py
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/script (dev).tmpl
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/script_(dev).tmpl
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/script.tmpl
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/unicode_utils.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/version.py

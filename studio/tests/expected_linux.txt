@@ -1841,7 +1841,7 @@ android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/s
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/install_egg_info.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/install_lib.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/install_scripts.py
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/launcher manifest.xml
+android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/launcher_manifest.xml
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/py36compat.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/register.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/rotate.py
@@ -1867,7 +1867,7 @@ android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/s
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/package_index.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/py34compat.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/sandbox.py
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/script (dev).tmpl
+android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/script_(dev).tmpl
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/script.tmpl
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/unicode_utils.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/version.py
