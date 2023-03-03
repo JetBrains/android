@@ -121,21 +121,22 @@ public class RenderResult {
    * Creates a new {@link RenderResult} from a given RenderTask and RenderSession
    */
   @NotNull
-  public static RenderResult create(@NotNull RenderTask renderTask,
+  public static RenderResult create(@NotNull RenderContext renderContext,
                                     @NotNull RenderSession session,
                                     @NotNull PsiFile file,
                                     @NotNull RenderLogger logger,
-                                    @NotNull ImagePool.Image image) {
+                                    @NotNull ImagePool.Image image,
+                                    boolean hasRequestedCustomViews) {
     List<ViewInfo> rootViews = session.getRootViews();
     List<ViewInfo> systemRootViews = session.getSystemRootViews();
     Map<Object, Map<ResourceReference, ResourceValue>> defaultProperties = session.getDefaultNamespacedProperties();
     Map<Object, ResourceReference> defaultStyles = session.getDefaultNamespacedStyles();
     RenderResult result = new RenderResult(
       file,
-      renderTask.getContext().getModule().getIdeaModule(),
+      renderContext.getModule().getIdeaModule(),
       logger,
-      renderTask.getContext(),
-      renderTask.getLayoutlibCallback().isUsed(),
+      renderContext,
+      hasRequestedCustomViews,
       session.getResult(),
       rootViews != null ? ImmutableList.copyOf(rootViews) : ImmutableList.of(),
       systemRootViews != null ? ImmutableList.copyOf(systemRootViews) : ImmutableList.of(),

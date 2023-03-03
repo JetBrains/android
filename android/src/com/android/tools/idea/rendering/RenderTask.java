@@ -682,7 +682,7 @@ public class RenderTask {
           // Advance the frame time to display the material progress bars
           session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
         }
-        RenderResult result = RenderResult.create(this, session, psiFile, myLogger, myImagePool.copyOf(session.getImage()));
+        RenderResult result = RenderResult.create(context, session, psiFile, myLogger, myImagePool.copyOf(session.getImage()), myLayoutlibCallback.isUsed());
         RenderSession oldRenderSession = myRenderSession;
         myRenderSession = session;
         if (oldRenderSession != null) {
@@ -885,7 +885,7 @@ public class RenderTask {
       PsiFile psiFile = getXmlFile();
       return runAsyncRenderAction(() -> {
         myRenderSession.measure();
-        return RenderResult.create(this, renderSession, psiFile, myLogger, ImagePool.NULL_POOLED_IMAGE);
+        return RenderResult.create(myContext, renderSession, psiFile, myLogger, ImagePool.NULL_POOLED_IMAGE, myLayoutlibCallback.isUsed());
       });
     }
     catch (Exception e) {
@@ -1009,7 +1009,7 @@ public class RenderTask {
         return runAsyncRenderAction(() -> {
           myRenderSession.render();
           RenderResult result =
-            RenderResult.create(this, myRenderSession, psiFile, myLogger, myImagePool.copyOf(myRenderSession.getImage()));
+            RenderResult.create(myContext, myRenderSession, psiFile, myLogger, myImagePool.copyOf(myRenderSession.getImage()), myLayoutlibCallback.isUsed());
           Result renderResult = result.getRenderResult();
           if (renderResult.getException() != null) {
             reportException(renderResult.getException());
