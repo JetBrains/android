@@ -164,6 +164,11 @@ interface IdeAndroidProject : Serializable {
 
   val isKaptEnabled: Boolean
 
+  /**
+   * The library desugaring config files to pass to R8.
+   * The list will be empty if library desugaring is not enabled for this Gradle project,
+   * or for versions of AGP before 8.1.0-alpha05 which did not report the value
+   */
   val desugarLibraryConfigFiles: List<File>
 }
 

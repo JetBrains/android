@@ -18,11 +18,14 @@ package com.android.tools.idea.projectsystem
 import com.android.SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID
 import com.android.SdkConstants.SUPPORT_LIB_GROUP_ID
 import com.android.ide.common.repository.GradleCoordinate
+import com.android.testutils.truth.PathSubject
+import com.android.testutils.truth.PathSubject.assertThat
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProject
 import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.Companion.prepareTestProject
+import com.android.tools.idea.gradle.project.sync.snapshots.replaceContent
 import com.android.tools.idea.projectsystem.gradle.CHECK_DIRECT_GRADLE_DEPENDENCIES
 import com.android.tools.idea.projectsystem.gradle.GradleModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -262,6 +265,34 @@ class GradleModuleSystemIntegrationTest {
 
       // Verify that the module system returns a path.
       assertThat(moduleSystem.getDependencyPath(GoogleMavenArtifactId.APP_COMPAT_V7.getCoordinate("+"))).isNotNull()
+    }
+  }
+
+  @Test
+  fun testDesugarLibraryConfigFiles() {
+    val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
+    val buildGradle = preparedProject.root.resolve("app/build.gradle")
+    buildGradle.appendText("""
+      android.compileOptions.coreLibraryDesugaringEnabled = true
+      android.defaultConfig.multiDexEnabled = true
+      dependencies {
+          coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
+      }
+    """.trimIndent())
+    preparedProject.open { project ->
+
+      val moduleSystem = project.findAppModule().getModuleSystem()
+
+      assertThat(moduleSystem.desugarLibraryConfigFilesKnown).named("desugarLibraryConfigFilesKnown").isTrue()
+      assertThat(moduleSystem.desugarLibraryConfigFilesNotKnownUserMessage).named("desugarLibraryConfigFilesNotKnownUserMessage").isNull()
+      assertThat(moduleSystem.desugarLibraryConfigFiles).named("desugarLibraryConfigFiles").hasSize(1)
+      assertThat(moduleSystem.desugarLibraryConfigFiles.single()).contains("""
+        {
+          "configuration_format_version": 3,
+          "group_id" : "com.tools.android",
+          "artifact_id" : "desugar_jdk_libs",
+          "version": "1.1.5"
+      """.trimIndent()) // Asserting the beginning of the file has the expected header
     }
   }
 
