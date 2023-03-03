@@ -152,28 +152,35 @@ public abstract class ArtifactDependencyModelImpl extends DependencyModelImpl im
     versionCatalogDependency = true;
   }
 
+  private static @NotNull GradleDslLiteral createLiteral(@NotNull GradlePropertiesDslElement parent, @NotNull String configurationName) {
+    GradleNameElement name = GradleNameElement.create(configurationName);
+    GradleDslLiteral literal = new GradleDslLiteral(parent, name);
+    literal.setElementType(REGULAR);
+    parent.setNewElement(literal);
+    return literal;
+  }
+
+  private static void initializeLiteral(@NotNull GradleDslLiteral literal,
+                                        @NotNull Object value,
+                                        @NotNull List<ArtifactDependencySpec> excludes) {
+    literal.setValue(value);
+    addExcludes(literal, excludes);
+  }
+
   static void createNew(@NotNull GradlePropertiesDslElement parent,
                         @NotNull String configurationName,
                         @NotNull ReferenceTo reference,
                         @NotNull List<ArtifactDependencySpec> excludes) {
-    GradleNameElement name = GradleNameElement.create(configurationName);
-    GradleDslLiteral literal = new GradleDslLiteral(parent, name);
-    literal.setElementType(REGULAR);
-    literal.setValue(reference);
-    addExcludes(literal, excludes);
-    parent.setNewElement(literal);
+    GradleDslLiteral literal = createLiteral(parent, configurationName);
+    initializeLiteral(literal, reference, excludes);
   }
 
   static void createNew(@NotNull GradlePropertiesDslElement parent,
                         @NotNull String configurationName,
                         @NotNull ArtifactDependencySpec dependency,
                         @NotNull List<ArtifactDependencySpec> excludes) {
-    GradleNameElement name = GradleNameElement.create(configurationName);
-    GradleDslLiteral literal = new GradleDslLiteral(parent, name);
-    literal.setElementType(REGULAR);
-    literal.setValue(createCompactNotationForLiterals(literal, dependency));
-    addExcludes(literal, excludes);
-    parent.setNewElement(literal);
+    GradleDslLiteral literal = createLiteral(parent, configurationName);
+    initializeLiteral(literal, createCompactNotationForLiterals(literal, dependency), excludes);
   }
 
   private static void addExcludes(@NotNull GradleDslLiteral literal, @NotNull List<ArtifactDependencySpec> excludes) {

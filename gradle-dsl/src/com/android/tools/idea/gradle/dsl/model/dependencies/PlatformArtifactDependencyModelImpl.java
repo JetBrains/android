@@ -34,30 +34,36 @@ abstract class PlatformArtifactDependencyModelImpl extends ArtifactDependencyMod
     super(configurationElement, configurationName, maintainer);
   }
 
-  static void createNew(@NotNull GradlePropertiesDslElement parent,
-                        @NotNull String configurationName,
-                        @NotNull ArtifactDependencySpec dependency,
-                        boolean enforced) {
+  private static @NotNull GradleDslLiteral createArgument(@NotNull GradlePropertiesDslElement parent,
+                                                          @NotNull String configurationName,
+                                                          boolean enforced) {
     GradleNameElement name = GradleNameElement.create(configurationName);
     String methodName = enforced ? "enforcedPlatform" : "platform";
     GradleDslMethodCall methodCall = new GradleDslMethodCall(parent, name, methodName);
     GradleDslLiteral argument = new GradleDslLiteral(methodCall, GradleNameElement.empty());
-    argument.setValue(createCompactNotationForLiterals(argument, dependency));
     methodCall.addNewArgument(argument);
     parent.setNewElement(methodCall);
+    return argument;
+  }
+
+  private static void initializeArgument(@NotNull GradleDslLiteral argument, @NotNull Object value) {
+    argument.setValue(value);
+  }
+
+  static void createNew(@NotNull GradlePropertiesDslElement parent,
+                        @NotNull String configurationName,
+                        @NotNull ArtifactDependencySpec dependency,
+                        boolean enforced) {
+    GradleDslLiteral argument = createArgument(parent, configurationName, enforced);
+    initializeArgument(argument, createCompactNotationForLiterals(argument, dependency));
   }
 
   static void createNew(@NotNull GradlePropertiesDslElement parent,
                         @NotNull String configurationName,
                         @NotNull ReferenceTo reference,
                         boolean enforced) {
-    GradleNameElement name = GradleNameElement.create(configurationName);
-    String methodName = enforced ? "enforcedPlatform" : "platform";
-    GradleDslMethodCall methodCall = new GradleDslMethodCall(parent, name, methodName);
-    GradleDslLiteral argument = new GradleDslLiteral(methodCall, GradleNameElement.empty());
-    argument.setValue(reference);
-    methodCall.addNewArgument(argument);
-    parent.setNewElement(methodCall);
+    GradleDslLiteral argument = createArgument(parent, configurationName, enforced);
+    initializeArgument(argument, reference);
   }
 
   static class DynamicNotation extends ArtifactDependencyModelImpl.DynamicNotation implements PlatformDependencyModel{
