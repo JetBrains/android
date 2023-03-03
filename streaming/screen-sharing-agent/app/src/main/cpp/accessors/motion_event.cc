@@ -45,7 +45,7 @@ void MotionEvent::InitializeStatics(Jni jni) {
     const char* signature = android_get_device_api_level() >= 29 ?
         "(JJII[Landroid/view/MotionEvent$PointerProperties;[Landroid/view/MotionEvent$PointerCoords;IIFFIIIII)Landroid/view/MotionEvent;" :
         "(JJII[Landroid/view/MotionEvent$PointerProperties;[Landroid/view/MotionEvent$PointerCoords;IIFFIIII)Landroid/view/MotionEvent;";
-    obtain_method_ = motion_event_class_.GetStaticMethodId("obtain", signature);
+    obtain_method_ = motion_event_class_.GetStaticMethod("obtain", signature);
     motion_event_class_.MakeGlobal();
   }
 }

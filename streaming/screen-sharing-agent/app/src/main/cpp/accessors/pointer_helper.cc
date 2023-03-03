@@ -30,15 +30,15 @@ PointerHelper::PointerHelper(Jni jni)
       pointer_properties_class_(),
       pointer_coords_class_() {
   pointer_properties_class_ = jni_.GetClass("android/view/MotionEvent$PointerProperties");
-  pointer_properties_ctor_ = pointer_properties_class_.GetConstructorId("()V");
+  pointer_properties_ctor_ = pointer_properties_class_.GetConstructor("()V");
   id_field_ = pointer_properties_class_.GetFieldId("id", "I");
   tool_type_field_ = pointer_properties_class_.GetFieldId("toolType", "I");
   pointer_properties_class_.MakeGlobal();
 
   pointer_coords_class_ = jni_.GetClass("android/view/MotionEvent$PointerCoords");
-  pointer_coords_ctor_ = pointer_coords_class_.GetConstructorId("()V");
-  pointer_coords_set_axis_value_method_ = pointer_coords_class_.GetMethodId("setAxisValue", "(IF)V");
-  pointer_coords_clear_method_ = pointer_coords_class_.GetMethodId("clear", "()V");
+  pointer_coords_ctor_ = pointer_coords_class_.GetConstructor("()V");
+  pointer_coords_set_axis_value_method_ = pointer_coords_class_.GetMethod("setAxisValue", "(IF)V");
+  pointer_coords_clear_method_ = pointer_coords_class_.GetMethod("clear", "()V");
   x_field_ = pointer_coords_class_.GetFieldId("x", "F");
   y_field_ = pointer_coords_class_.GetFieldId("y", "F");
   pressure_field_ = pointer_coords_class_.GetFieldId("pressure", "F");

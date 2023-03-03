@@ -37,7 +37,7 @@ void KeyEvent::InitializeStatics(Jni jni) {
   if (!statics_initialized_) {
     statics_initialized_ = true;
     key_event_class_ = jni.GetClass("android/view/KeyEvent");
-    constructor_ = key_event_class_.GetConstructorId("(JJIIIIIIII)V");
+    constructor_ = key_event_class_.GetConstructor("(JJIIIIIIII)V");
     key_event_class_.MakeGlobal();
   }
 }

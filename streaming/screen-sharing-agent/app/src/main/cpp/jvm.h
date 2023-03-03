@@ -208,29 +208,30 @@ public:
     return GetFieldId(GetJni(), name, signature);
   }
   jfieldID GetFieldId(JNIEnv* jni_env, const char* name, const char* signature) const;
-  jmethodID GetStaticMethodId(const char* name, const char* signature) const {
-    return GetStaticMethodId(GetJni(), name, signature);
-  }
-  jmethodID GetStaticMethodId(JNIEnv* jni_env, const char* name, const char* signature) const;
-  jmethodID GetMethodId(const char* name, const char* signature) const {
-    return GetMethodId(GetJni(), name, signature);
-  }
-  jmethodID GetMethodId(JNIEnv* jni_env, const char* name, const char* signature) const;
-  jmethodID GetConstructorId(const char* signature) const {
-    return GetConstructorId(GetJni(), signature);
-  }
-  jmethodID GetConstructorId(JNIEnv* jni_env, const char* signature) const;
-  jmethodID GetDeclaredOrInheritedMethodId(const char* name, const char* signature) const {
-    return GetDeclaredOrInheritedMethodId(GetJni(), name, signature);
-  }
-  jmethodID GetDeclaredOrInheritedMethodId(JNIEnv* jni_env, const char* name, const char* signature) const;
 
-  // Similar to GetMethodId, but gracefully handles a non-existent method by returning nullptr.
+  jmethodID GetStaticMethod(const char* name, const char* signature) const {
+    return GetStaticMethod(GetJni(), name, signature);
+  }
+  jmethodID GetStaticMethod(JNIEnv* jni_env, const char* name, const char* signature) const;
+  jmethodID GetMethod(const char* name, const char* signature) const {
+    return GetMethod(GetJni(), name, signature);
+  }
+  jmethodID GetMethod(JNIEnv* jni_env, const char* name, const char* signature) const;
+  jmethodID GetConstructor(const char* signature) const {
+    return GetConstructor(GetJni(), signature);
+  }
+  jmethodID GetConstructor(JNIEnv* jni_env, const char* signature) const;
+  jmethodID GetDeclaredOrInheritedMethod(const char* name, const char* signature) const {
+    return GetDeclaredOrInheritedMethod(GetJni(), name, signature);
+  }
+  jmethodID GetDeclaredOrInheritedMethod(JNIEnv* jni_env, const char* name, const char* signature) const;
+
+  // Similar to GetMethod, but gracefully handles a non-existent method by returning nullptr.
   jmethodID FindMethod(const char* name, const char* signature) const {
     return FindMethod(GetJni(), name, signature);
   }
   jmethodID FindMethod(JNIEnv* jni_env, const char* name, const char* signature) const;
-  // Similar to GetStaticMethodId, but gracefully handles a non-existent method by returning nullptr.
+  // Similar to GetStaticMethod, but gracefully handles a non-existent method by returning nullptr.
   jmethodID FindStaticMethod(const char* name, const char* signature) const {
     return FindStaticMethod(GetJni(), name, signature);
   }

@@ -32,17 +32,17 @@ void SurfaceControl::InitializeStatics(Jni jni) {
 
   if (surface_control_class_.IsNull()) {
     surface_control_class_ = jni.GetClass("android/view/SurfaceControl");
-    close_transaction_method_ = surface_control_class_.GetStaticMethodId("closeTransaction", "()V");
-    open_transaction_method_ = surface_control_class_.GetStaticMethodId("openTransaction", "()V");
-    create_display_method_ = surface_control_class_.GetStaticMethodId("createDisplay", "(Ljava/lang/String;Z)Landroid/os/IBinder;");
-    destroy_display_method_ = surface_control_class_.GetStaticMethodId("destroyDisplay", "(Landroid/os/IBinder;)V");
-    set_display_surface_method_ = surface_control_class_.GetStaticMethodId(
+    close_transaction_method_ = surface_control_class_.GetStaticMethod("closeTransaction", "()V");
+    open_transaction_method_ = surface_control_class_.GetStaticMethod("openTransaction", "()V");
+    create_display_method_ = surface_control_class_.GetStaticMethod("createDisplay", "(Ljava/lang/String;Z)Landroid/os/IBinder;");
+    destroy_display_method_ = surface_control_class_.GetStaticMethod("destroyDisplay", "(Landroid/os/IBinder;)V");
+    set_display_surface_method_ = surface_control_class_.GetStaticMethod(
         "setDisplaySurface", "(Landroid/os/IBinder;Landroid/view/Surface;)V");
-    set_display_layer_stack_method_ = surface_control_class_.GetStaticMethodId("setDisplayLayerStack", "(Landroid/os/IBinder;I)V");
-    set_display_projection_method_ = surface_control_class_.GetStaticMethodId(
+    set_display_layer_stack_method_ = surface_control_class_.GetStaticMethod("setDisplayLayerStack", "(Landroid/os/IBinder;I)V");
+    set_display_projection_method_ = surface_control_class_.GetStaticMethod(
         "setDisplayProjection", "(Landroid/os/IBinder;ILandroid/graphics/Rect;Landroid/graphics/Rect;)V");
     rect_class_ = jni.GetClass("android/graphics/Rect");
-    rect_constructor_ = rect_class_.GetConstructorId("(IIII)V");
+    rect_constructor_ = rect_class_.GetConstructor("(IIII)V");
 
     surface_control_class_.MakeGlobal();
     rect_class_.MakeGlobal();
@@ -62,8 +62,8 @@ JObject SurfaceControl::GetInternalDisplayToken(Jni jni) {
           api_level >= 33 ?
               surface_control_class_.FindStaticMethod(jni, "getInternalDisplayToken", "()Landroid/os/IBinder;") :
           api_level >= 29 ?
-              surface_control_class_.GetStaticMethodId(jni, "getInternalDisplayToken", "()Landroid/os/IBinder;") :
-              surface_control_class_.GetStaticMethodId(jni, "getBuiltInDisplay", "(I)Landroid/os/IBinder;");
+          surface_control_class_.GetStaticMethod(jni, "getInternalDisplayToken", "()Landroid/os/IBinder;") :
+          surface_control_class_.GetStaticMethod(jni, "getBuiltInDisplay", "(I)Landroid/os/IBinder;");
       if (get_internal_display_token_method_ == nullptr) {
         get_internal_display_token_method_not_available_ = true;
         return JObject();
@@ -137,7 +137,7 @@ void SurfaceControl::SetDisplayPowerMode(Jni jni, jobject display_token, Display
   {
     scoped_lock lock(static_initialization_mutex);
     if (set_display_power_mode_method_ == nullptr) {
-      set_display_power_mode_method_ = surface_control_class_.GetStaticMethodId(jni, "setDisplayPowerMode", "(Landroid/os/IBinder;I)V");
+      set_display_power_mode_method_ = surface_control_class_.GetStaticMethod(jni, "setDisplayPowerMode", "(Landroid/os/IBinder;I)V");
     }
   }
   surface_control_class_.CallStaticVoidMethod(jni, set_display_power_mode_method_, display_token, mode);

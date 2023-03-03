@@ -142,7 +142,7 @@ string JObject::ToString() const {
   }
   Jni jni = GetJni();
   JClass clazz = GetClass(jni);
-  jmethodID method = clazz.GetDeclaredOrInheritedMethodId("toString", "()Ljava/lang/String;");
+  jmethodID method = clazz.GetDeclaredOrInheritedMethod("toString", "()Ljava/lang/String;");
   JString str = JString(jni, jni->CallObjectMethod(ref_, method));
   if (str.IsNull()) {
     JObject exception = jni.GetAndClearException();
@@ -187,7 +187,7 @@ jfieldID JClass::GetFieldId(JNIEnv* jni_env, const char* name, const char* signa
   return field;
 }
 
-jmethodID JClass::GetStaticMethodId(JNIEnv* jni_env, const char* name, const char* signature) const {
+jmethodID JClass::GetStaticMethod(JNIEnv* jni_env, const char* name, const char* signature) const {
   auto method = jni_env->GetStaticMethodID(ref(), name, signature);
   if (method == nullptr) {
     Log::Fatal("Unable to find the static %s.%s method with signature %s", GetName(jni_env).c_str(), name, signature);
@@ -195,7 +195,7 @@ jmethodID JClass::GetStaticMethodId(JNIEnv* jni_env, const char* name, const cha
   return method;
 }
 
-jmethodID JClass::GetMethodId(JNIEnv* jni_env, const char* name, const char* signature) const {
+jmethodID JClass::GetMethod(JNIEnv* jni_env, const char* name, const char* signature) const {
   auto method = jni_env->GetMethodID(ref(), name, signature);
   if (method == nullptr) {
     Log::Fatal("Unable to find the %s.%s method with signature %s", GetName(jni_env).c_str(), name, signature);
@@ -203,7 +203,7 @@ jmethodID JClass::GetMethodId(JNIEnv* jni_env, const char* name, const char* sig
   return method;
 }
 
-jmethodID JClass::GetConstructorId(JNIEnv* jni_env, const char* signature) const {
+jmethodID JClass::GetConstructor(JNIEnv* jni_env, const char* signature) const {
   auto constructor = jni_env->GetMethodID(ref(), "<init>", signature);
   if (constructor == nullptr) {
     Log::Fatal("Unable to find the %s constructor with signature %s", GetName(jni_env).c_str(), signature);
@@ -211,7 +211,7 @@ jmethodID JClass::GetConstructorId(JNIEnv* jni_env, const char* signature) const
   return constructor;
 }
 
-jmethodID JClass::GetDeclaredOrInheritedMethodId(JNIEnv* jni_env, const char* name, const char* signature) const {
+jmethodID JClass::GetDeclaredOrInheritedMethod(JNIEnv* jni_env, const char* name, const char* signature) const {
   jmethodID method = jni_env->GetMethodID(ref(), name, signature);
   if (method != nullptr) {
     return method;
@@ -376,7 +376,7 @@ void Jvm::Initialize(JNIEnv* jni_env) {
   jni_env->GetJavaVM(&jvm_);
   jni_version_ = jni_env->GetVersion();
   JClass class_class = Jni(jni_env).GetClass("java/lang/Class");
-  class_get_name_method_ = class_class.GetMethodId("getName", "()Ljava/lang/String;");
+  class_get_name_method_ = class_class.GetMethod("getName", "()Ljava/lang/String;");
 }
 
 Jni Jvm::AttachCurrentThread(const char* thread_name) {
