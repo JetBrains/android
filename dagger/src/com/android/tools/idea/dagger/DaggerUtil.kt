@@ -271,9 +271,9 @@ private object BuiltInAnnotationSearchStrategy : AnnotationSearchStrategy {
       getMethodsWithAnnotation(INJECT_ANNOTATION, scope, project) +
         getMethodsWithAnnotation(DAGGER_BINDS_ANNOTATION, scope, project) +
         getMethodsWithAnnotation(DAGGER_PROVIDES_ANNOTATION, scope, project)
-    return methodsQueries.flatMap { it.parameterList.parameters.toList() }.filter {
-      it.type.unboxed == type.unboxed
-    }
+    return methodsQueries
+      .flatMap { it.parameterList.parameters.toList() }
+      .filter { it.type.unboxed == type.unboxed }
   }
 
   override fun getDaggerProvidesMethodsForType(
@@ -515,6 +515,7 @@ private val PsiElement?.isAssistedParameter: Boolean
 
 /**
  * True if PsiElement is Dagger provider i.e @Provides/@Binds/@BindsInstance-annotated method or
+ *
  * @Inject-annotated constructor or
  * @BindsInstance-annotated parameter.
  */
@@ -644,7 +645,8 @@ private fun extractTypeAndQualifierInfo(element: PsiElement): Pair<PsiType, Qual
     }
       ?: return null
 
-  if (type is PsiClassType &&
+  if (
+    type is PsiClassType &&
       type.resolve()?.let {
         it.qualifiedName == DAGGER_LAZY || it.qualifiedName == JAVAX_INJECT_PROVIDER
       } == true
@@ -673,8 +675,7 @@ fun getDaggerComponentMethodsForProvider(provider: PsiElement): Collection<PsiMe
     // Instantiating methods doesn't have parameters.
     component ->
     ProgressManager.checkCanceled()
-    component
-      .methods
+    component.methods
       .filter { it.returnType?.unboxed == type.unboxed && !it.hasParameters() }
       .filterByQualifier(qualifierInfo)
   }
@@ -697,8 +698,7 @@ fun getDaggerEntryPointsMethodsForProvider(provider: PsiElement): Collection<Psi
     // Instantiating methods doesn't have parameters.
     component ->
     ProgressManager.checkCanceled()
-    component
-      .methods
+    component.methods
       .filter { it.returnType?.unboxed == type.unboxed && !it.hasParameters() }
       .filterByQualifier(qualifierInfo)
   }
@@ -768,7 +768,8 @@ private fun getDaggerModulesForSubcomponent(subcomponent: PsiClass): Collection<
       subcomponent.useScope
     )
   return modules.filter {
-    it.getAnnotation(DAGGER_MODULE_ANNOTATION)
+    it
+      .getAnnotation(DAGGER_MODULE_ANNOTATION)
       ?.isClassPresentedInAttribute(SUBCOMPONENTS_ATTR_NAME, subcomponent.qualifiedName!!) == true
   }
 }
@@ -835,7 +836,8 @@ fun getDependantComponentsForComponent(component: PsiClass): Collection<PsiClass
       component.useScope
     )
   return components.filter {
-    it.getAnnotation(DAGGER_COMPONENT_ANNOTATION)
+    it
+      .getAnnotation(DAGGER_COMPONENT_ANNOTATION)
       ?.isClassPresentedInAttribute(DEPENDENCIES_ATTR_NAME, component.qualifiedName!!) == true
   }
 }

@@ -67,8 +67,8 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
   private static final String VALUES_OVERLAY2_NO = "resourceRepository/valuesOverlay2No.xml";
 
   public void testStable() {
-    assertSame(ResourceRepositoryManager.getProjectResources(myFacet), ResourceRepositoryManager.getProjectResources(myFacet));
-    assertSame(ResourceRepositoryManager.getProjectResources(myFacet), ResourceRepositoryManager.getProjectResources(myModule));
+    assertSame(StudioResourceRepositoryManager.getProjectResources(myFacet), StudioResourceRepositoryManager.getProjectResources(myFacet));
+    assertSame(StudioResourceRepositoryManager.getProjectResources(myFacet), StudioResourceRepositoryManager.getProjectResources(myModule));
   }
 
   /**
@@ -137,16 +137,16 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertTrue(items.isEmpty());
 
     for (AndroidFacet facet : libraries) {
-      LocalResourceRepository moduleRepository = ResourceRepositoryManager.getModuleResources(facet);
+      LocalResourceRepository moduleRepository = StudioResourceRepositoryManager.getModuleResources(facet);
       assertNotNull(moduleRepository);
-      LocalResourceRepository moduleSetRepository = ResourceRepositoryManager.getProjectResources(facet);
+      LocalResourceRepository moduleSetRepository = StudioResourceRepositoryManager.getProjectResources(facet);
       assertNotNull(moduleSetRepository);
-      LocalResourceRepository librarySetRepository = ResourceRepositoryManager.getAppResources(facet);
+      LocalResourceRepository librarySetRepository = StudioResourceRepositoryManager.getAppResources(facet);
       assertNotNull(librarySetRepository);
     }
-    ResourceRepositoryManager.getModuleResources(myFacet);
-    ResourceRepositoryManager.getProjectResources(myFacet);
-    ResourceRepositoryManager.getAppResources(myFacet);
+    StudioResourceRepositoryManager.getModuleResources(myFacet);
+    StudioResourceRepositoryManager.getProjectResources(myFacet);
+    StudioResourceRepositoryManager.getAppResources(myFacet);
   }
 
   public void testGetResourceDirsAndUpdateRoots() {
@@ -185,7 +185,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
   }
 
   public void testRootChangeListener() {
-    MultiResourceRepository resources = (MultiResourceRepository)ResourceRepositoryManager.getProjectResources(myFacet);
+    MultiResourceRepository resources = (MultiResourceRepository)StudioResourceRepositoryManager.getProjectResources(myFacet);
     List<LocalResourceRepository> originalChildren = resources.getLocalResources();
     assertNotEmpty(originalChildren);
     Collection<VirtualFile> originalDirs = resources.getResourceDirs();
@@ -314,8 +314,8 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertNotNull(sharedLibValues);
     assertNotNull(lib2Values);
 
-    LocalResourceRepository lib1Resources = ResourceRepositoryManager.getAppResources(lib1Facet);
-    LocalResourceRepository lib2Resources = ResourceRepositoryManager.getAppResources(lib2Facet);
+    LocalResourceRepository lib1Resources = StudioResourceRepositoryManager.getAppResources(lib1Facet);
+    LocalResourceRepository lib2Resources = StudioResourceRepositoryManager.getAppResources(lib2Facet);
     assertNotNull(lib1Resources);
     assertNotNull(lib2Resources);
     assertNotSame(lib1Resources, lib2Resources);
@@ -378,7 +378,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     myFixture.addFileToProject("additionalModules/level1/res/values/strings.xml", level1Strings).getVirtualFile();
     myFixture.addFileToProject("additionalModules/level2/res/values/strings.xml", level2Strings).getVirtualFile();
 
-    ResourceRepository appResources = ResourceRepositoryManager.getAppResources(appFacet);
+    ResourceRepository appResources = StudioResourceRepositoryManager.getAppResources(appFacet);
     List<ResourceItem> resolved = appResources.getResources(RES_AUTO, ResourceType.STRING, "test_string");
     assertEquals(1, resolved.size());
     assertEquals("LEVEL 1", resolved.get(0).getResourceValue().getValue());
@@ -397,7 +397,7 @@ public class ProjectResourceRepositoryTest extends AndroidTestCase {
     assertFalse(ModuleRootManager.getInstance(app).isDependsOn(lib1));
     assertFalse(ModuleRootManager.getInstance(lib1).isDependsOn(lib2));
 
-    appResources = ResourceRepositoryManager.getAppResources(appFacet);
+    appResources = StudioResourceRepositoryManager.getAppResources(appFacet);
     resolved = appResources.getResources(RES_AUTO, ResourceType.STRING, "test_string");
     assertEquals(1, resolved.size());
     assertEquals("LEVEL 2", resolved.get(0).getResourceValue().getValue());

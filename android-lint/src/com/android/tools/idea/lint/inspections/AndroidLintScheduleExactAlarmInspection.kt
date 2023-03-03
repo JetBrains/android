@@ -19,6 +19,8 @@ import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.AlarmDetector
 
-class AndroidLintScheduleExactAlarmInspection : AndroidLintInspectionBase(
-  AndroidLintBundle.message("android.lint.inspections.schedule.exact.alarm"), AlarmDetector.SCHEDULE_EXACT_ALARM
-)
+class AndroidLintScheduleExactAlarmInspection :
+  AndroidLintInspectionBase(
+    AndroidLintBundle.message("android.lint.inspections.schedule.exact.alarm"),
+    AlarmDetector.SCHEDULE_EXACT_ALARM
+  )

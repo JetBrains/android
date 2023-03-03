@@ -91,7 +91,8 @@ class DaggerElementTest {
       package com.example
 
       class Fo<caret>o
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val psiType =
@@ -110,7 +111,8 @@ class DaggerElementTest {
       class Foo
 
       fun someFun<caret>ction() = Foo()
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val psiType =
@@ -127,7 +129,8 @@ class DaggerElementTest {
       package com.example
 
       class Foo constructo<caret>r() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val psiType =
@@ -146,7 +149,8 @@ class DaggerElementTest {
       class Foo
 
       fun someFunction(fo<caret>o: Foo) {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val psiType =
@@ -167,7 +171,8 @@ class DaggerElementTest {
       class Bar {
         val f<caret>oo: Foo
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val psiType =
@@ -184,7 +189,8 @@ class DaggerElementTest {
       package com.example;
 
       public class Fo<caret>o {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val psiType =
@@ -205,7 +211,8 @@ class DaggerElementTest {
       public class Bar {
         public Foo fo<caret>o;
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val psiType =
@@ -226,7 +233,8 @@ class DaggerElementTest {
       public class Bar {
         public Foo fo<caret>o() { return new Foo(); }
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val psiType =
@@ -247,7 +255,8 @@ class DaggerElementTest {
       public class Bar {
         public void foo(Foo f<caret>oo) {}
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val psiType =
@@ -265,7 +274,8 @@ class DaggerElementTest {
       package com.example;
 
       public class Foo {}
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     assertThrows(IllegalArgumentException::class.java) { psiFile.getPsiType() }
@@ -280,7 +290,8 @@ class DaggerElementTest {
       package com.example
 
       class Fo<caret>o
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<KtClass>(/* withSelf = */ true)!!
@@ -312,7 +323,8 @@ class DaggerElementTest {
       class Foo
 
       fun someFun<caret>ction() = Foo()
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<KtFunction>(/* withSelf = */ true)!!
@@ -342,7 +354,8 @@ class DaggerElementTest {
       package com.example
 
       class Foo construct<caret>or() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val psiElement =
@@ -373,7 +386,8 @@ class DaggerElementTest {
       package com.example
 
       class Foo construct<caret>or() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val psiElement =
@@ -406,7 +420,8 @@ class DaggerElementTest {
       class Foo
 
       fun someFunction(fo<caret>o: Foo) {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<KtParameter>(/* withSelf = */ true)!!
@@ -440,7 +455,8 @@ class DaggerElementTest {
       class Bar {
         val f<caret>oo: Foo
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<KtProperty>(/* withSelf = */ true)!!
@@ -470,7 +486,8 @@ class DaggerElementTest {
       package com.example;
 
       public class Fo<caret>o {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<PsiClass>(/* withSelf = */ true)!!
@@ -504,7 +521,8 @@ class DaggerElementTest {
       public class Bar {
         public Foo fo<caret>o;
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<PsiField>(/* withSelf = */ true)!!
@@ -538,7 +556,8 @@ class DaggerElementTest {
       public class Bar {
         public Foo fo<caret>o() { return new Foo(); }
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<PsiMethod>(/* withSelf = */ true)!!
@@ -572,7 +591,8 @@ class DaggerElementTest {
       public class Bar {
         public void foo(Foo f<caret>oo) {}
       }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val psiElement = myFixture.elementAtCaret.parentOfType<PsiParameter>(/* withSelf = */ true)!!
@@ -603,7 +623,8 @@ class DaggerElementTest {
       package com.example;
 
       public class Foo {}
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     assertThat(mockIdentifiers.getDaggerElement(psiFile)).isNull()

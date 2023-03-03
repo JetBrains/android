@@ -120,7 +120,8 @@ private class FakeShellDumpSysCommandHandler : DeviceCommandHandler("shell") {
           android.permission.ACCESS_NETWORK_STATE: granted=true
         User 0: ceDataInode=0 installed=true hidden=false suspended=false distractionFlags=0 stopped=false notLaunched=false enabled=0 instant=false virtual=false
           gids=[3003]
-    """.trimIndent()
+    """
+          .trimIndent()
       "androidx.compose.ui.test" ->
         """
       Package [androidx.compose.ui.test] (37f7072):
@@ -157,7 +158,8 @@ private class FakeShellDumpSysCommandHandler : DeviceCommandHandler("shell") {
         User 0: ceDataInode=-4294835830 installed=true hidden=false suspended=false stopped=false notLaunched=false enabled=0 instant=false virtual=false
         overlay paths:
           /product/overlay/DisplayCutoutEmulationEmu01/DisplayCutoutEmulationEmu01Overlay.apk
-      """.trimIndent()
+      """
+          .trimIndent()
       else -> ""
     }
 }

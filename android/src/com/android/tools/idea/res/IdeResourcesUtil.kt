@@ -151,6 +151,7 @@ import org.jetbrains.android.facet.AndroidRootUtil
 import org.jetbrains.android.facet.ResourceFolderManager
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import org.jetbrains.android.sdk.AndroidPlatform
+import org.jetbrains.android.sdk.getInstance
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.Contract
@@ -593,7 +594,7 @@ val PsiElement.resourceNamespace: ResourceNamespace?
     return if (getUserData(ModuleUtilCore.KEY_MODULE) != null
                || (vFile != null && (projectFileIndex.isInSource(vFile) || projectFileIndex.getModuleForFile(vFile) != null))) {
       AndroidFacet.getInstance(this)
-        ?.let { ResourceRepositoryManager.getInstance(it) }
+        ?.let { StudioResourceRepositoryManager.getInstance(it) }
         ?.namespace
     }
     else {
@@ -904,7 +905,7 @@ fun getNamespaceResolver(element: XmlElement): ResourceNamespace.Resolver {
     }
   }
 
-  val repositoryManager = ResourceRepositoryManager.getInstance(element) ?: return ResourceNamespace.Resolver.EMPTY_RESOLVER
+  val repositoryManager = StudioResourceRepositoryManager.getInstance(element) ?: return ResourceNamespace.Resolver.EMPTY_RESOLVER
 
   return if (repositoryManager.namespacing == Namespacing.DISABLED) {
     // In non-namespaced projects, framework is the only namespace, but the resource merger messes with namespaces at build time, so you
@@ -1066,7 +1067,7 @@ fun ResourceValue.isAccessibleInCode(facet: AndroidFacet): Boolean {
 // TODO(b/74324283): Build the concept of visibility level and scope (private to a given library/module)
 //                   into repositories, items and values.
 fun isAccessible(namespace: ResourceNamespace, type: ResourceType, name: String, facet: AndroidFacet): Boolean {
-  val repositoryManager = ResourceRepositoryManager.getInstance(facet)
+  val repositoryManager = StudioResourceRepositoryManager.getInstance(facet)
   val repository = repositoryManager.getResourcesForNamespace(namespace)
   // For some unclear reason nonexistent resources in the application workspace are treated differently from the framework ones.
   // This non-intuitive behavior is required for the DerivedStyleFinderTest to pass.
@@ -1949,7 +1950,7 @@ fun getReferredResourceOrManifestField(
 }
 
 fun getRClassNamespace(facet: AndroidFacet, qName: String?): ResourceNamespace {
-  return if (ResourceRepositoryManager.getInstance(facet).namespacing == Namespacing.DISABLED) {
+  return if (StudioResourceRepositoryManager.getInstance(facet).namespacing == Namespacing.DISABLED) {
     ResourceNamespace.RES_AUTO
   }
   else {
@@ -2212,9 +2213,7 @@ fun createFileResource(
   }
   if (ResourceType.LAYOUT.getName() == resourceType) {
     val module = ModuleUtilCore.findModuleForPsiElement(resSubdir)
-    val platform = if (module != null) AndroidPlatform.getInstance(
-      module)
-    else null
+    val platform = if (module != null) getInstance(module) else null
     val apiLevel = platform?.apiLevel ?: -1
     val value = if (apiLevel == -1 || apiLevel >= 8) "match_parent" else "fill_parent"
     properties.setProperty(LAYOUT_WIDTH_PROPERTY, value)

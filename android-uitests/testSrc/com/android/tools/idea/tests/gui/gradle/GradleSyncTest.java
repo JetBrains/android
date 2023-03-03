@@ -79,7 +79,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.StudioAndroidSdkData;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 import org.junit.After;
@@ -358,7 +357,7 @@ public class GradleSyncTest {
 
     Sdk sdk = ModuleRootManager.getInstance(appModule).getSdk();
 
-    AndroidSdkData sdkData = StudioAndroidSdkData.getSdkData(sdk);
+    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
 
     SdkAdditionalData data = sdk.getSdkAdditionalData();
     assertThat(data).isInstanceOf(AndroidSdkAdditionalData.class);

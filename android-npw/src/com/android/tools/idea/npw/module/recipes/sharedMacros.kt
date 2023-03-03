@@ -130,7 +130,7 @@ fun androidConfig(
   else {
     """${renderIf(explicitApplicationId) { "applicationId \"${applicationId}\"" }}
     ${toAndroidFieldVersion("minSdk", minApi, gradlePluginVersion)}
-    ${toAndroidFieldVersion("targetSdk", targetApi, gradlePluginVersion)}
+    ${renderIf(!isLibraryProject) { toAndroidFieldVersion("targetSdk", targetApi, gradlePluginVersion) }}
     ${renderIf(!isLibraryProject) { "versionCode 1" }}
     ${renderIf(!isLibraryProject) { "versionName \"1.0\"" }}
     """
@@ -190,12 +190,14 @@ fun androidConfig(
 
 private fun resource(path: String) = File("templates/module", path)
 
-fun RecipeExecutor.copyIcons(destination: File) {
+fun RecipeExecutor.copyIcons(destination: File, minApi: Int) {
+  fun apiSuffix(api: Int) =
+    if (api > minApi) "-v$api" else ""
 
   fun copyAdaptiveIcons() {
     copy(
       resource("mipmap-anydpi-v26/ic_launcher.xml"),
-      destination.resolve("mipmap-anydpi-v26/ic_launcher.xml")
+      destination.resolve("mipmap-anydpi${apiSuffix(26)}/ic_launcher.xml")
     )
     copy(
       resource("drawable/ic_launcher_background.xml"),
@@ -203,11 +205,11 @@ fun RecipeExecutor.copyIcons(destination: File) {
     )
     copy(
       resource("drawable-v24/ic_launcher_foreground.xml"),
-      destination.resolve("drawable-v24/ic_launcher_foreground.xml")
+      destination.resolve("drawable${apiSuffix(24)}/ic_launcher_foreground.xml")
     )
     copy(
       resource("mipmap-anydpi-v26/ic_launcher_round.xml"),
-      destination.resolve("mipmap-anydpi-v26/ic_launcher_round.xml")
+      destination.resolve("mipmap-anydpi${apiSuffix(26)}/ic_launcher_round.xml")
     )
   }
 

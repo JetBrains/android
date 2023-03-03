@@ -33,7 +33,7 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.utils.SparseArray;
 import com.google.common.annotations.VisibleForTesting;
@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -104,7 +105,7 @@ public class ResourceResolverCache {
                                                        @NotNull String themeStyle,
                                                        @NotNull FolderConfiguration fullConfiguration) {
     // Are caches up to date?
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myManager.getModule());
+    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myManager.getModule());
     if (repositoryManager == null) {
       return ResourceResolver.create(Collections.emptyMap(), null);
     }
@@ -217,7 +218,7 @@ public class ResourceResolverCache {
 
     AndroidTargetData targetData = getCachedTargetData(apiLevel);
     if (targetData == null) {
-      AndroidPlatform platform = AndroidPlatform.getInstance(myManager.getModule());
+      AndroidPlatform platform = AndroidPlatforms.getInstance(myManager.getModule());
       if (platform == null) {
         return null;
       }

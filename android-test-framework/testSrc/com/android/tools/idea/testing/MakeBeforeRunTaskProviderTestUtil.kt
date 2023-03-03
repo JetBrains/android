@@ -89,8 +89,9 @@ fun RunConfiguration.executeMakeBeforeRunStepInTest(deviceFutures: DeviceFutures
       override fun getRunnerId(): String = "runner_id"
       override fun canRunWithMultipleDevices(executorId: String): Boolean = false
       override val supportedConfigurationTypeIds = emptyList<String>()
-      override fun getRunner(environment: ExecutionEnvironment, state: RunProfileState) =
-        { _: ProgressIndicator -> mock<RunContentDescriptor>() }
+      override fun run(environment: ExecutionEnvironment, state: RunProfileState, indicator: ProgressIndicator): RunContentDescriptor {
+        return mock<RunContentDescriptor>()
+      }
     }
 
     val executionEnvironment = ExecutionEnvironment(

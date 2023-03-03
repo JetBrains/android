@@ -27,7 +27,7 @@ import com.android.resources.ResourceType
 import com.android.resources.ResourceUrl
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.res.ResourceFolderRepository
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.ResourceUpdateTracer
 import com.android.tools.idea.res.getDeclaringAttributeValue
 import com.android.tools.idea.res.getSourceAsVirtualFile
@@ -52,8 +52,8 @@ import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 
 object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
   override fun getGotoDeclarationFileBasedTargets(resourceReference: ResourceReference, context: PsiElement): Array<PsiFile> {
-    val resourceRepositoryManager = ResourceRepositoryManager.getInstance(context) ?: return PsiFile.EMPTY_ARRAY
-    return getRelevantResourceRepository(resourceReference, resourceRepositoryManager)
+    val studioResourceRepositoryManager = StudioResourceRepositoryManager.getInstance(context) ?: return PsiFile.EMPTY_ARRAY
+    return getRelevantResourceRepository(resourceReference, studioResourceRepositoryManager)
       ?.getResources(resourceReference)
       ?.filter { it.isFileBased }
       ?.mapNotNull { resolveToDeclaration(it, context.project) }
@@ -114,8 +114,8 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
     facet: AndroidFacet,
     includeDynamicFeatures: Boolean = false
   ): Array<out ResolveResult> {
-    val resourceRepositoryManager = ResourceRepositoryManager.getInstance(facet)
-    val resourceRepository = getRelevantResourceRepository(resourceReference, resourceRepositoryManager) ?: return ResolveResult.EMPTY_ARRAY
+    val studioResourceRepositoryManager = StudioResourceRepositoryManager.getInstance(facet)
+    val resourceRepository = getRelevantResourceRepository(resourceReference, studioResourceRepositoryManager) ?: return ResolveResult.EMPTY_ARRAY
     val allItems = mutableListOf<ResolveResult>()
     if (resourceRepository.hasResources(resourceReference.namespace, resourceReference.resourceType, resourceReference.name)) {
       allItems.add(PsiElementResolveResult(ResourceReferencePsiElement(context, resourceReference)))
@@ -124,7 +124,7 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
       val moduleSystem = context.getModuleSystem() ?: return ResolveResult.EMPTY_ARRAY
       val dynamicFeatureModules = moduleSystem.getDynamicFeatureModules()
       for (module in dynamicFeatureModules) {
-        val moduleResources = ResourceRepositoryManager.getModuleResources(module) ?: continue
+        val moduleResources = StudioResourceRepositoryManager.getModuleResources(module) ?: continue
         if (moduleResources.hasResources(resourceReference.namespace, resourceReference.resourceType, resourceReference.name)) {
           allItems.add(PsiElementResolveResult(ResourceReferencePsiElement(context, resourceReference)))
         }
@@ -175,8 +175,8 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
   }
 
   private fun getGotoDeclarationElements(resourceReference: ResourceReference, context: PsiElement): List<PsiElement> {
-    val resourceRepositoryManager = ResourceRepositoryManager.getInstance(context) ?: return emptyList()
-    val repository = getRelevantResourceRepository(resourceReference, resourceRepositoryManager) ?: return emptyList()
+    val studioResourceRepositoryManager = StudioResourceRepositoryManager.getInstance(context) ?: return emptyList()
+    val repository = getRelevantResourceRepository(resourceReference, studioResourceRepositoryManager) ?: return emptyList()
     return repository
       .getResources(resourceReference)
       .filterDefinitions(context.project)
@@ -191,7 +191,7 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
     val moduleSystem = context.getModuleSystem() ?: return emptyList()
     val dynamicFeatureModules = moduleSystem.getDynamicFeatureModules()
     for (module in dynamicFeatureModules) {
-      val moduleResources = ResourceRepositoryManager.getModuleResources(module) ?: continue
+      val moduleResources = StudioResourceRepositoryManager.getModuleResources(module) ?: continue
       resourceList.addAll(moduleResources.getResources(resourceReference).mapNotNull { resolveToDeclaration(it, context.project) })
     }
     return resourceList
@@ -233,18 +233,18 @@ object ResourceRepositoryToPsiResolver : AndroidResourceToPsiResolver {
     context: PsiElement,
     configuration: FolderConfiguration
   ): PsiElement? {
-    val resourceRepositoryManager = ResourceRepositoryManager.getInstance(context) ?: return null
+    val studioResourceRepositoryManager = StudioResourceRepositoryManager.getInstance(context) ?: return null
     val resources =
-      getRelevantResourceRepository(resourceReference, resourceRepositoryManager)?.getResources(resourceReference) ?: return null
+      getRelevantResourceRepository(resourceReference, studioResourceRepositoryManager)?.getResources(resourceReference) ?: return null
     val resourceItem = configuration.findMatchingConfigurable(resources) ?: resources.firstOrNull() ?: return null
     return resolveToDeclaration(resourceItem, context.project)
   }
 
   private fun getRelevantResourceRepository(
     resourceReference: ResourceReference,
-    resourceRepositoryManager: ResourceRepositoryManager
+    studioResourceRepositoryManager: StudioResourceRepositoryManager
   ): ResourceRepository? {
-    return resourceRepositoryManager.getResourcesForNamespace(resourceReference.namespace)
+    return studioResourceRepositoryManager.getResourcesForNamespace(resourceReference.namespace)
   }
 }
 

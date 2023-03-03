@@ -411,7 +411,6 @@ iml_test(
         "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
     ],
     module = ":intellij.android.core.integration",
-    tags = ["manual"],  # Flakiness due to b/265194288, b/265195162, and b/265310018
     tags_linux = ["block-network"],
     tags_mac = [],
     tags_windows = [

@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.lint.inspections
 
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.WatchFaceForAndroidXDetector
-import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 
-class AndroidLintWatchFaceForAndroidXInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.watch.face.for.android.x"), WatchFaceForAndroidXDetector.ISSUE
-)
+class AndroidLintWatchFaceForAndroidXInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.watch.face.for.android.x"),
+    WatchFaceForAndroidXDetector.ISSUE
+  )

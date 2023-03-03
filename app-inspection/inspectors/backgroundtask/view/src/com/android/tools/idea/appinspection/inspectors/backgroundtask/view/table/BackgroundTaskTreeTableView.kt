@@ -57,9 +57,9 @@ import kotlinx.coroutines.CoroutineScope
 @VisibleForTesting
 val CLASS_NAME_COMPARATOR =
   Comparator<DefaultMutableTreeNode> { o1, o2 ->
-    (o1.userObject as BackgroundTaskEntry).className.compareTo(
-      (o2.userObject as BackgroundTaskEntry).className
-    )
+    (o1.userObject as BackgroundTaskEntry)
+      .className
+      .compareTo((o2.userObject as BackgroundTaskEntry).className)
   }
 
 @VisibleForTesting
@@ -146,8 +146,8 @@ class BackgroundTaskTreeTableView(
           val tableBounds = Rectangle(0, bounds.y, bounds.width + bounds.x, bounds.height)
           if (tableBounds.contains(e.point)) {
             val path = tree.getPathForRow(row)
-            if ((path.lastPathComponent as? DefaultMutableTreeNode)?.userObject is
-                BackgroundTaskEntry
+            if (
+              (path.lastPathComponent as? DefaultMutableTreeNode)?.userObject is BackgroundTaskEntry
             ) {
               tab.isDetailsViewVisible = true
             }
@@ -319,7 +319,8 @@ class BackgroundTaskTreeTableView(
               hasFocus: Boolean
             ) {
               when (val data = (value as DefaultMutableTreeNode).userObject) {
-                is WorkEntry, is JobEntry -> {
+                is WorkEntry,
+                is JobEntry -> {
                   append((data as BackgroundTaskEntry).retries.toString())
                 }
                 else -> append("-")

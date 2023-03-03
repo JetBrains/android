@@ -24,9 +24,9 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.editor.zoomActionPlace
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.naveditor.model.NavComponentRegistrar
-import com.android.tools.idea.rendering.NoSecurityManagerRenderService
-import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTestUtil
+import com.android.tools.idea.rendering.StudioRenderService
+import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
@@ -54,7 +54,7 @@ class NavDesignSurfaceZoomControlsTest {
   fun setup() {
     androidProjectRule.fixture.testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/nav/editor/testData").toString()
     RenderTestUtil.beforeRenderTestCase()
-    RenderService.setForTesting(androidProjectRule.project, NoSecurityManagerRenderService(androidProjectRule.project))
+    StudioRenderService.setForTesting(androidProjectRule.project, createNoSecurityRenderService())
   }
 
   @After

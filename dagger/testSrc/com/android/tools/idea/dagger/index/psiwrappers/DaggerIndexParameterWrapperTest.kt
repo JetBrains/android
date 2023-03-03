@@ -59,9 +59,9 @@ class DaggerIndexParameterWrapperTest {
       class Foo {
         fun bar(arg: Bat): Baz {} 
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("a|rg").parentOfType<KtParameter>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -82,9 +82,9 @@ class DaggerIndexParameterWrapperTest {
       public class Foo {
         public Baz bar(Bat arg) {}
       }
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val element = myFixture.moveCaret("a|rg").parentOfType<PsiParameter>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)

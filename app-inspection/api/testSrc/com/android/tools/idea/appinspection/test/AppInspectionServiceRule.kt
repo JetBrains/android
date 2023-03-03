@@ -184,10 +184,10 @@ class AppInspectionServiceRule(
    * [payloadId] passed in here.
    *
    * @param payloadId You may pass in any unique ID you want here. Re-using an old ID will
-   * potentially overwrite a previously sent payload, so be careful not to do that! In production,
-   * this value will be generated automatically by the app inspection service, but for tests, you
-   * can just specify a value, as long as you're consistent about using it later when fetching the
-   * payload.
+   *   potentially overwrite a previously sent payload, so be careful not to do that! In production,
+   *   this value will be generated automatically by the app inspection service, but for tests, you
+   *   can just specify a value, as long as you're consistent about using it later when fetching the
+   *   payload.
    *
    * See also: [AppInspectionTestUtils.createPayloadChunks]
    */

@@ -26,6 +26,7 @@ import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.DefaultStudioProgramRunner
+import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
 import com.android.tools.idea.run.configuration.ComplicationSlot
@@ -124,7 +125,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
       override val module = myModule
     }
     val executor = Mockito.spy(
-      AndroidComplicationConfigurationExecutor(env, TestDeployTarget(device), settings, TestApplicationIdProvider(appId),
+      AndroidComplicationConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
                                                TestApksProvider(appId)))
     // Mock installation that returns app.
     val appInstaller = TestApplicationInstaller(
@@ -226,7 +227,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     }
 
     val executor = Mockito.spy(
-      AndroidComplicationConfigurationExecutor(env, TestDeployTarget(device), settings, TestApplicationIdProvider(appId),
+      AndroidComplicationConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
                                                TestApksProvider(appId)))
 
     // Mock installation that returns app.
@@ -317,7 +318,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     }
 
     val executor = Mockito.spy(
-      AndroidComplicationConfigurationExecutor(env, TestDeployTarget(device), settings, TestApplicationIdProvider(appId),
+      AndroidComplicationConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
                                                TestApksProvider(appId)))
     // Mock installation that returns app.
     val appInstaller = TestApplicationInstaller(
@@ -386,7 +387,7 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     }
 
     val executor = Mockito.spy(
-      AndroidComplicationConfigurationExecutor(env, TestDeployTarget(device), settings, TestApplicationIdProvider(appId),
+      AndroidComplicationConfigurationExecutor(env, DeviceFutures.forDevices(listOf(device)), settings, TestApplicationIdProvider(appId),
                                                TestApksProvider(appId)))
     doReturn(emptyList<String>()).whenever(executor).getComplicationSourceTypes(any())
     doReturn(listOf("SHORT_TEXT", "ICON")).whenever(executor).getComplicationSourceTypes(any())

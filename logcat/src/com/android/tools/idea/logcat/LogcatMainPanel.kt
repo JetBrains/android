@@ -490,7 +490,7 @@ internal class LogcatMainPanel @TestOnly constructor(
     val startLine = if (endMarker.isValid) document.getLineNumber(endMarker.endOffset) else 0
     endMarker.dispose()
     val endLine = max(0, document.lineCount - 1)
-    hyperlinkDetector.detectHyperlinks(startLine, endLine)
+    hyperlinkDetector.detectHyperlinks(startLine, endLine, headerPanel.getSelectedDevice()?.sdk)
     foldingDetector.detectFoldings(startLine, endLine)
 
     if (shouldStickToEnd) {

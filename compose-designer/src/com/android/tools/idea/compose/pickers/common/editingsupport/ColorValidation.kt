@@ -33,7 +33,8 @@ internal object ColorValidation : EditingValidation {
     val trimmedValue = editedValue.trim()
     val colorHexValue = trimmedValue.replace(HEX_PREFIX, "", ignoreCase = true)
 
-    if (trimmedValue.contains("0x", ignoreCase = true) &&
+    if (
+      trimmedValue.contains("0x", ignoreCase = true) &&
         !trimmedValue.startsWith("0x", ignoreCase = true)
     ) {
       return Pair(

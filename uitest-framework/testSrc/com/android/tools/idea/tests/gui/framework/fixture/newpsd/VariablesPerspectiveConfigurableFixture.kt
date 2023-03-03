@@ -44,6 +44,10 @@ class VariablesPerspectiveConfigurableFixture(
     chooseSimpleValue()
   }
 
+  fun clickAdd() {
+    clickToolButton("Add")
+  }
+
   fun clickAddList() {
     clickToolButton("Add")
     chooseList()

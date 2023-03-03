@@ -18,6 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture;
 import static com.android.tools.idea.tests.gui.framework.UiTestUtilsKt.fixupWaiting;
 import static com.android.tools.idea.tests.gui.framework.UiTestUtilsKt.waitForIdle;
 import static com.google.common.truth.Truth.assertThat;
+import static org.fest.swing.core.MouseClickInfo.leftButton;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.navigator.nodes.apk.ApkModuleNode;
@@ -39,6 +40,7 @@ import com.intellij.openapi.projectRoots.JavaSdk;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.JdkOrderEntry;
 import com.intellij.openapi.roots.LibraryOrSdkOrderEntry;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
 import com.intellij.ui.tree.AsyncTreeModel;
@@ -51,6 +53,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.tree.TreeModel;
 import org.apache.commons.lang3.StringUtils;
 import org.fest.swing.core.MouseButton;
+import org.fest.swing.core.MouseClickInfo;
 import org.fest.swing.core.Robot;
 import org.fest.swing.edt.GuiQuery;
 import org.fest.swing.edt.GuiTask;
@@ -238,13 +241,18 @@ public class ProjectViewFixture extends ToolWindowFixture {
         totalPath.append('/').append(path[i]);
       }
       Wait.seconds(10);
-      myTree.clickPath(totalPath.toString(), button);
+      if (SystemInfo.isMac) {
+        MouseClickInfo mouseClickInfo = leftButton().times(1);
+        myTree.clickPath(totalPath.toString(), mouseClickInfo);
+      } else {
+        myTree.clickPath(totalPath.toString(), button);
+      }
       return myIdeFrameFixture;
     }
 
     public IdeFrameFixture deletePath(@NotNull final String... pathSegments) {
       return clickPath(MouseButton.RIGHT_BUTTON, pathSegments)
-        .openFromContextualMenu(DeleteDialogFixture::find, "Delete...")
+        .openFromContextualMenu(DeleteDialogFixture::find, "Delete\u2026")
         .unsafeDelete();
     }
   }

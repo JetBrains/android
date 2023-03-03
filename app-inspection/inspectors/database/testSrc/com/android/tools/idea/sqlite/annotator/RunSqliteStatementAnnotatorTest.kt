@@ -86,7 +86,8 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
             String query = "select * from Foo";${caret}
           }
         }
-        """.trimIndent()
+        """
+        .trimIndent()
     )
 
     val highlightInfo = findHighlightInfo()
@@ -110,7 +111,8 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
             String query = "select * from Foo";${caret}
           }
         }
-        """.trimIndent()
+        """
+        .trimIndent()
     )
 
     val highlightInfo = findHighlightInfo()
@@ -137,7 +139,8 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
             String query = "select " +"*" +" from Foo";${caret}
           }
         }
-        """.trimIndent()
+        """
+        .trimIndent()
     )
 
     val highlightInfo = findHighlightInfo()
@@ -164,7 +167,8 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
             val query = "select * from Foo" ${caret}
           }
         }
-        """.trimIndent()
+        """
+        .trimIndent()
     )
 
     val highlightInfo = findHighlightInfo()
@@ -178,9 +182,9 @@ class RunSqliteStatementAnnotatorTest : LightJavaCodeInsightFixtureTestCase() {
     val document = myFixture.editor.document
     val lineNumberOfTarget = document.getLineNumber(myFixture.caretOffset)
     val highlightInfos = myFixture.doHighlighting()
-    return highlightInfos.filter { info -> info.gutterIconRenderer != null }.first { info ->
-      document.getLineNumber(info.startOffset) == lineNumberOfTarget
-    }
+    return highlightInfos
+      .filter { info -> info.gutterIconRenderer != null }
+      .first { info -> document.getLineNumber(info.startOffset) == lineNumberOfTarget }
   }
 
   private fun checkGutterIconRenderer(gutterIconRenderer: GutterMark?, expectedIcon: Icon) {

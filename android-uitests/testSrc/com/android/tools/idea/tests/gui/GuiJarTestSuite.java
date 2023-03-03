@@ -20,9 +20,12 @@ import com.android.testutils.TestUtils;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.XDisplayRule;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,6 +34,13 @@ import org.junit.runner.RunWith;
 
 @RunWith(ClassSuiteRunner.class)
 public class GuiJarTestSuite extends IdeaTestSuiteBase {
+
+  static {
+    // Set up the JNA library path before initializing the XvfbServer, which requires JNA.
+    System.setProperty("jna.noclasspath", "true");
+    System.setProperty("jna.nosys", "true");
+    System.setProperty("jna.boot.library.path", Paths.get(PathManager.getHomePath(), "lib", "jna", SystemInfo.OS_ARCH).toString());
+  }
 
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 

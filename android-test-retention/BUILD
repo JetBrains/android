@@ -35,7 +35,7 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
-        "//tools/adt/idea/streaming:intellij.android.streaming.tests[module, test]",
+        "//tools/adt/idea/streaming:intellij.android.streaming.testUtil[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/android-test-retention:intellij.android.testRetention[module, test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",

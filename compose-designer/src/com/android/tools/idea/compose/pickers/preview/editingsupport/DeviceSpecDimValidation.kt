@@ -26,7 +26,7 @@ import com.android.tools.idea.compose.pickers.common.editingsupport.validateFloa
  * A dimension parameter value is a float number that may have up to one decimal.
  *
  * @param strictPositive If true, [EditingErrorCategory.ERROR] will be used when the value is
- * effectively zero (<0.5f).
+ *   effectively zero (<0.5f).
  */
 internal class DeviceSpecDimValidator(private val strictPositive: Boolean) : EditingValidation {
   override fun invoke(editedValue: String?): Pair<EditingErrorCategory, String> {

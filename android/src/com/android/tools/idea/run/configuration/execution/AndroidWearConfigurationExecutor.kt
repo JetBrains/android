@@ -23,7 +23,7 @@ import com.android.tools.idea.execution.common.debug.DebugSessionStarter
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.editor.DeployTarget
+import com.android.tools.idea.run.DeviceFutures
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.RunContentDescriptor
@@ -31,10 +31,10 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.xdebugger.impl.XDebugSessionImpl
 
 abstract class AndroidWearConfigurationExecutor(environment: ExecutionEnvironment,
-                                                deployTarget: DeployTarget,
+                                                deviceFutures: DeviceFutures,
                                                 appRunSettings: AppRunSettings,
                                                 applicationIdProvider: ApplicationIdProvider,
-                                                apkProvider: ApkProvider) : AndroidConfigurationExecutorBase(environment, deployTarget,
+                                                apkProvider: ApkProvider) : AndroidConfigurationExecutorBase(environment, deviceFutures,
                                                                                                              appRunSettings,
                                                                                                              applicationIdProvider,
                                                                                                              apkProvider) {

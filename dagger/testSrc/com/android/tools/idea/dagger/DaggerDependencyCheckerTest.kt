@@ -85,7 +85,8 @@ class DaggerDependencyCheckerTest : UsefulTestCase() {
       package test;
 
       public class MyClass {}
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     assertThat(appFile.project.service<DaggerDependencyChecker>().isDaggerPresent()).isFalse()
@@ -98,7 +99,8 @@ class DaggerDependencyCheckerTest : UsefulTestCase() {
       package dagger;
 
       public @interface Module {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // We are not using a Dagger module in an App module, but isDaggerPresent checks for the

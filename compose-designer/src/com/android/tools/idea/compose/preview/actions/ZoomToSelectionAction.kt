@@ -69,9 +69,7 @@ class ZoomToSelectionAction(
 
   override fun actionPerformed(e: AnActionEvent) {
     val deepestViewInfos =
-      sceneView
-        .scene
-        .root
+      sceneView.scene.root
         ?.nlComponent
         ?.viewInfo
         ?.let { viewInfo -> parseViewInfo(viewInfo, { it }, logger) }

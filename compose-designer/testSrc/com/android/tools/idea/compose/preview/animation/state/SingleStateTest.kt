@@ -43,11 +43,12 @@ class SingleStateTest {
   fun createCard() {
     var callbacks = 0
     val state =
-      SingleState({}) { callbacks++ }.apply {
-        updateStates(setOf("One", "Two", "Three"))
-        setStartState("One")
-        callbackEnabled = true
-      }
+      SingleState({}) { callbacks++ }
+        .apply {
+          updateStates(setOf("One", "Two", "Three"))
+          setStartState("One")
+          callbackEnabled = true
+        }
     val card =
       AnimationCard(
           TestUtils.testPreviewState(),

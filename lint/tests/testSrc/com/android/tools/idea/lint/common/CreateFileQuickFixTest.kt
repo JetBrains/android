@@ -32,9 +32,10 @@ class CreateFileQuickFixTest : JavaCodeInsightFixtureTestCase() {
 
   fun testCreateFileFix() {
     // Test creating new text files, new binary files, and deleting files.
-    val keepFile = myFixture.addFileToProject(
-      "/src/android/support/annotation/Keep.java",
-      """
+    val keepFile =
+      myFixture.addFileToProject(
+        "/src/android/support/annotation/Keep.java",
+        """
           package android.support.annotation;
           import static java.lang.annotation.ElementType.METHOD;
           import static java.lang.annotation.RetentionPolicy.CLASS;
@@ -47,53 +48,46 @@ class CreateFileQuickFixTest : JavaCodeInsightFixtureTestCase() {
           public @interface CheckResult {
               String suggest() default "";
           }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
     val newFile = File(VfsUtilCore.virtualToIoFile(keepFile.virtualFile).parentFile, "new.txt")
-    val fix = CreateFileQuickFix(
-      newFile, "New file\ncontents.", null, null, true,
-      "Create ${newFile.name}", null
-    )
+    val fix =
+      CreateFileQuickFix(
+        newFile,
+        "New file\ncontents.",
+        null,
+        null,
+        true,
+        "Create ${newFile.name}",
+        null
+      )
     val context = AndroidQuickfixContexts.BatchContext.getInstance()
     assertTrue(fix.isApplicable(keepFile, keepFile, context.type))
 
-    WriteCommandAction.writeCommandAction(myFixture.project).run(
-      ThrowableRunnable {
-        fix.apply(keepFile, keepFile, context)
-      }
-    )
+    WriteCommandAction.writeCommandAction(myFixture.project)
+      .run(ThrowableRunnable { fix.apply(keepFile, keepFile, context) })
 
     assertEquals("New file\ncontents.", keepFile.parent?.findFile("new.txt")?.text ?: "<ERROR>")
 
     // Make sure deletion works too
-    val deleteFix = CreateFileQuickFix(
-      newFile, null, null, null, false,
-      "Delete", null
-    )
+    val deleteFix = CreateFileQuickFix(newFile, null, null, null, false, "Delete", null)
 
     assertTrue(deleteFix.isApplicable(keepFile, keepFile, context.type))
 
-    WriteCommandAction.writeCommandAction(myFixture.project).run(
-      ThrowableRunnable {
-        deleteFix.apply(keepFile, keepFile, context)
-      }
-    )
+    WriteCommandAction.writeCommandAction(myFixture.project)
+      .run(ThrowableRunnable { deleteFix.apply(keepFile, keepFile, context) })
 
     assertNull(keepFile.parent?.findFile("new.txt"))
 
     val binary = byteArrayOf(0, 1, 2, 3, 4)
     val binFile = File(newFile.parentFile, "new.bin")
-    val binaryFix = CreateFileQuickFix(
-      binFile, null, binary, null, true,
-      "Create ${newFile.name}", null
-    )
+    val binaryFix =
+      CreateFileQuickFix(binFile, null, binary, null, true, "Create ${newFile.name}", null)
     assertTrue(binaryFix.isApplicable(keepFile, keepFile, context.type))
 
-    WriteCommandAction.writeCommandAction(myFixture.project).run(
-      ThrowableRunnable {
-        binaryFix.apply(keepFile, keepFile, context)
-      }
-    )
+    WriteCommandAction.writeCommandAction(myFixture.project)
+      .run(ThrowableRunnable { binaryFix.apply(keepFile, keepFile, context) })
 
     val virtualBinFile = LocalFileSystem.getInstance().findFileByIoFile(binFile)
     val contents = virtualBinFile?.contentsToByteArray()

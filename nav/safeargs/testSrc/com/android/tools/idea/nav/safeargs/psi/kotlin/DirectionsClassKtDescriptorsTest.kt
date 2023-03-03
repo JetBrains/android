@@ -21,7 +21,7 @@ import com.android.tools.idea.nav.safeargs.SafeArgsRule
 import com.android.tools.idea.nav.safeargs.project.SafeArgsKtPackageProviderExtension
 import com.android.tools.idea.nav.safeargs.project.SafeArgsSyntheticPackageProvider
 import com.android.tools.idea.nav.safeargs.psi.SafeArgsFeatureVersions
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.kotlin.idea.base.projectStructure.productionSourceInfo
@@ -75,7 +75,7 @@ class DirectionsClassKtDescriptorsTest {
       """.trimIndent())
 
     // Initialize repository after creating resources, needed for codegen to work
-    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+    StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
 
     val safeArgProviderExtension = PackageFragmentProviderExtension.getInstances(safeArgsRule.project).first {
       it is SafeArgsKtPackageProviderExtension
@@ -163,7 +163,7 @@ class DirectionsClassKtDescriptorsTest {
       """.trimIndent())
 
     // Initialize repository after creating resources, needed for codegen to work
-    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+    StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
 
     val safeArgProviderExtension = PackageFragmentProviderExtension.getInstances(safeArgsRule.project).first {
       it is SafeArgsKtPackageProviderExtension
@@ -236,7 +236,7 @@ class DirectionsClassKtDescriptorsTest {
       """.trimIndent())
 
     // Initialize repository after creating resources, needed for codegen to work
-    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+    StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
 
     val safeArgProviderExtension = PackageFragmentProviderExtension.getInstances(safeArgsRule.project).first {
       it is SafeArgsKtPackageProviderExtension
@@ -316,7 +316,7 @@ class DirectionsClassKtDescriptorsTest {
       """.trimIndent())
 
     // Initialize repository after creating resources, needed for codegen to work
-    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+    StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
 
     val safeArgProviderExtension = PackageFragmentProviderExtension.getInstances(safeArgsRule.project).first {
       it is SafeArgsKtPackageProviderExtension
@@ -409,7 +409,7 @@ class DirectionsClassKtDescriptorsTest {
       """.trimIndent())
 
     // Initialize repository after creating resources, needed for codegen to work
-    ResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
+    StudioResourceRepositoryManager.getInstance(safeArgsRule.androidFacet).moduleResources
 
     val safeArgProviderExtension = PackageFragmentProviderExtension.getInstances(safeArgsRule.project).first {
       it is SafeArgsKtPackageProviderExtension

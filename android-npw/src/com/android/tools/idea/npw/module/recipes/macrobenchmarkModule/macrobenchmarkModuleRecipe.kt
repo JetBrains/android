@@ -15,19 +15,17 @@
  */
 package com.android.tools.idea.npw.module.recipes.macrobenchmarkModule
 
-import com.android.SdkConstants.FN_BUILD_GRADLE
-import com.android.SdkConstants.FN_BUILD_GRADLE_KTS
+import com.android.SdkConstants
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
+import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
-import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
-import com.android.tools.idea.npw.module.recipes.gitignore
-import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.androidManifestXml
+import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.createModule
+import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.FlavorNameAndDimension
 import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.exampleMacrobenchmarkJava
 import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.exampleMacrobenchmarkKt
-import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
-import com.android.tools.idea.util.androidFacet
+import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.template.ModuleTemplateData
 import com.android.tools.idea.wizard.template.RecipeExecutor
@@ -35,95 +33,122 @@ import com.intellij.openapi.module.Module
 import org.jetbrains.android.facet.AndroidRootUtil
 import java.io.File
 
-private const val minRev = "1.1.1"
-private const val exampleBenchmarkName = "ExampleStartupBenchmark"
+private const val EXAMPLE_BENCHMARK_NAME = "ExampleStartupBenchmark"
+private const val BENCHMARK_BUILD_TYPE_NAME = "benchmark"
+private const val MACROBENCHMARK_MIN_REV = "1.1.1"
 
 fun RecipeExecutor.generateMacrobenchmarkModule(
-  moduleData: ModuleTemplateData,
+  newModule: ModuleTemplateData,
   useGradleKts: Boolean,
   targetModule: Module,
 ) {
-  val projectData = moduleData.projectTemplateData
-  val srcOut = moduleData.srcDir
-  val packageName = moduleData.packageName
-  val moduleOut = moduleData.rootDir
-  val (buildApi, targetApi, minApi) = moduleData.apis
-  val language = projectData.language
-
-  var benchmarkBuildTypeName = "benchmark"
-  if (this is DefaultRecipeExecutor) {
-    benchmarkBuildTypeName = generateUniqueBenchmarkBuildTypeName(targetModule = targetModule)
-    targetModule.addBuildType(name = benchmarkBuildTypeName, debuggable = false)
-    addProfileableToTargetManifest(targetModule)
+  val projectBuildModel = ProjectBuildModel.getOrLog(targetModule.project)
+  val targetModuleAndroidModel = projectBuildModel?.getModuleBuildModel(targetModule)?.android() ?: return
+  val targetModuleBuildTypes = targetModuleAndroidModel.buildTypes()
+  val targetApplicationId = targetModuleAndroidModel.namespace().valueAsString() ?: "com.example.application"
+  val benchmarkBuildTypeName = getUniqueBuildTypeName(BENCHMARK_BUILD_TYPE_NAME, targetModuleBuildTypes.map { it.name() })
+  val flavorDimensionNames = targetModuleAndroidModel.flavorDimensions().toList()?.mapNotNull { it.valueAsString() } ?: emptyList()
+  val flavorNamesAndDimensions = targetModuleAndroidModel.productFlavors().map {
+    FlavorNameAndDimension(it.name(), it.dimension().forceString())
   }
 
-  val targetApplicationId =
-    AndroidModel.get(targetModule)?.applicationId?.takeUnless { it == AndroidModel.UNINITIALIZED_APPLICATION_ID }
-    ?: "com.example.application"
-
-
-  addIncludeToSettings(moduleData.name)
-
-  val bg = buildGradle(
-    packageName = packageName,
-    buildApiString = buildApi.apiString,
-    minApi = minApi.apiString,
-    targetApiString = targetApi.apiString,
-    language = language,
-    gradlePluginVersion = projectData.gradlePluginVersion,
-    useGradleKts = useGradleKts,
+  updateTargetModule(
+    projectBuildModel = projectBuildModel,
+    buildTypeName = benchmarkBuildTypeName,
     targetModule = targetModule,
-    benchmarkBuildTypeName = benchmarkBuildTypeName,
+    targetModuleAndroidModel = targetModuleAndroidModel,
   )
-  val buildFile = if (useGradleKts) FN_BUILD_GRADLE_KTS else FN_BUILD_GRADLE
 
-  save(bg, moduleOut.resolve(buildFile))
-  applyPlugin("com.android.test", projectData.gradlePluginVersion)
+  createModule(
+    newModule = newModule,
+    useGradleKts = useGradleKts,
+    macrobenchmarkMinRev = MACROBENCHMARK_MIN_REV,
+    buildGradleContent = macrobenchmarksBuildGradle(
+      newModule = newModule,
+      useGradleKts = useGradleKts,
+      targetModule = targetModule,
+      flavorDimensionNames = flavorDimensionNames,
+      flavorNamesAndDimensions = flavorNamesAndDimensions,
+      benchmarkBuildTypeName = benchmarkBuildTypeName,
+    ),
+    customizeModule = {
+      createTestClasses(newModule, targetApplicationId)
+    }
+  )
+}
 
-  addDependency("androidx.test.ext:junit:+", "implementation")
-  addDependency("androidx.test.espresso:espresso-core:3.+", "implementation")
-  addDependency("androidx.test.uiautomator:uiautomator:2.+", "implementation")
-  addDependency("androidx.benchmark:benchmark-macro-junit4:+", "implementation", minRev)
+fun RecipeExecutor.updateTargetModule(
+  projectBuildModel: ProjectBuildModel,
+  buildTypeName: String,
+  targetModule: Module,
+  targetModuleAndroidModel: AndroidModel,
+) {
+  addBuildTypeToTargetBuildGradle(
+    projectBuildModel = projectBuildModel,
+    buildTypeName = buildTypeName,
+    targetModuleModel = targetModuleAndroidModel,
+  )
 
-  save(androidManifestXml(targetApplicationId), moduleOut.resolve("src/main/AndroidManifest.xml"))
-  save(gitignore(), moduleOut.resolve(".gitignore"))
-
-  if (language == Language.Kotlin) {
-    save(exampleMacrobenchmarkKt(exampleBenchmarkName, packageName, targetApplicationId), srcOut.resolve("$exampleBenchmarkName.kt"))
-    open(srcOut.resolve("$exampleBenchmarkName.kt"))
-  }
-  else {
-    save(exampleMacrobenchmarkJava(exampleBenchmarkName, packageName, targetApplicationId), srcOut.resolve("$exampleBenchmarkName.java"))
-    open(srcOut.resolve("$exampleBenchmarkName.java"))
-  }
-
-  addKotlinIfNeeded(projectData, targetApi = targetApi.api, noKtx = true)
+  val targetModuleDir = AndroidRootUtil.getModuleDirPath(targetModule)?.let { File(it) } ?: return
+  addProfileableToTargetManifest(targetModule, targetModuleDir)
 }
 
 /**
- * Generate unique name for a new benchmark build type that this macrobenchmark module will be setup with.
- *
- * @param targetModule The existing target app module which the new buildType should not collide names with.
+ * Generates unique build type name with prefix of [buildTypeName] if already exist in [buildTypes]
  */
-private fun generateUniqueBenchmarkBuildTypeName(targetModule: Module): String {
-  val projectBuildModel = ProjectBuildModel.getOrLog(targetModule.project) ?: return "benchmark"
-  val androidBuildModel = projectBuildModel.getModuleBuildModel(targetModule)?.android() ?: return "benchmark"
-
-  var benchmarkBuildTypeSuffix: Int? = null
-  var benchmarkBuildTypeName = "benchmark${benchmarkBuildTypeSuffix ?: ""}"
-  while (androidBuildModel.signingConfigs().any { it.name() == benchmarkBuildTypeName }) {
-    benchmarkBuildTypeSuffix = benchmarkBuildTypeSuffix?.inc() ?: 1
-    benchmarkBuildTypeName = "benchmark${benchmarkBuildTypeSuffix}"
+fun getUniqueBuildTypeName(buildTypeName: String, buildTypes: List<String>): String {
+  var uniqueName = buildTypeName
+  var buildTypeSuffix = 0
+  while (buildTypes.any { it == uniqueName }) {
+    buildTypeSuffix++
+    uniqueName = "${buildTypeName}$buildTypeSuffix"
   }
 
-  return benchmarkBuildTypeName
+  return uniqueName
 }
 
-private fun RecipeExecutor.addProfileableToTargetManifest(targetModule: Module) {
-  val androidModel = AndroidModel.get(targetModule) ?: return
-  val androidFacet = targetModule.androidFacet ?: return
-  val targetModuleRootDir = AndroidRootUtil.getModuleDirPath(targetModule) ?: return
-  val targetModuleManifest = File(targetModuleRootDir, androidFacet.properties.MANIFEST_FILE_RELATIVE_PATH)
+/**
+ * Creates new build type with [buildTypeName] to the specified [targetModuleModel].
+ */
+fun RecipeExecutor.addBuildTypeToTargetBuildGradle(
+  projectBuildModel: ProjectBuildModel,
+  buildTypeName: String,
+  targetModuleModel: AndroidModel,
+) {
+  // Only do the actions for the default executor, not when just finding references.
+  if (this is FindReferencesRecipeExecutor) return
+
+  // Release buildType should implicitly exist
+  val releaseBuildType: BuildTypeModel = targetModuleModel.buildTypes().first { it.name() == "release" }
+
+  val newBuildType = targetModuleModel.addBuildType(buildTypeName, releaseBuildType)
+
+  // Apply debug signing config for the new buildType
+  val debugSigningConfig = targetModuleModel.signingConfigs().firstOrNull { it.name() == "debug" }
+  debugSigningConfig?.let {
+    val benchmarkSigningConfig = newBuildType.signingConfig()
+    benchmarkSigningConfig.setValue(ReferenceTo(debugSigningConfig, benchmarkSigningConfig))
+  }
+
+  // Add matchingFallback to release to allow building this buildType in multi-module setup
+  val fallback = newBuildType.matchingFallbacks().addListValue()
+  fallback?.setValue(releaseBuildType.name())
+
+  newBuildType.debuggable().setValue(false)
+
+  // Apply the buildType to the project
+  projectBuildModel.applyChanges()
+}
+
+/**
+ * TODO(b/269582562): Can be replaced with isProfileable since AGP 8.0
+ */
+fun RecipeExecutor.addProfileableToTargetManifest(targetModule: Module, targetModuleRootDir: File) {
+  // Only do the actions for the default executor, not when just finding references.
+  if (this is FindReferencesRecipeExecutor) return
+
+  val androidModel = com.android.tools.idea.model.AndroidModel.get(targetModule) ?: return
+  val targetModuleManifest = File(targetModuleRootDir, "/" + SdkConstants.FN_ANDROID_MANIFEST_XML)
   if (!targetModuleManifest.exists()) return
 
   // if it's older API, add targetApi flag to the manifest
@@ -132,29 +157,13 @@ private fun RecipeExecutor.addProfileableToTargetManifest(targetModule: Module) 
   mergeXml(appAndroidManifest(needsTargetFlag), targetModuleManifest)
 }
 
-private fun Module.addBuildType(name: String, debuggable: Boolean) {
-  val projectBuildModel = ProjectBuildModel.getOrLog(project) ?: return
-  val androidBuildModel = projectBuildModel.getModuleBuildModel(this)?.android() ?: return
-
-  val benchmarkBuildType = androidBuildModel.addBuildType(name)
-
-  // apply debug signingConfig
-  val debugSignConfigBuildModel = androidBuildModel.signingConfigs().firstOrNull { it.name() == "debug" }
-  debugSignConfigBuildModel?.let {
-    val benchmarkSigningConfigModel = benchmarkBuildType.signingConfig()
-    benchmarkSigningConfigModel.setValue(ReferenceTo(debugSignConfigBuildModel, benchmarkSigningConfigModel))
+fun RecipeExecutor.createTestClasses(moduleData: ModuleTemplateData, targetApplicationId: String) {
+  val language = moduleData.projectTemplateData.language
+  val benchmarksContent = when (language) {
+    Language.Kotlin -> exampleMacrobenchmarkKt(EXAMPLE_BENCHMARK_NAME, moduleData.packageName, targetApplicationId)
+    Language.Java -> exampleMacrobenchmarkJava(EXAMPLE_BENCHMARK_NAME, moduleData.packageName, targetApplicationId)
   }
-
-  // add matchingFallback to release to allow building benchmark buildType in multi-module setup
-  val existingMatchingFallbacks = benchmarkBuildType.matchingFallbacks().toList()
-  val hasReleaseFallback = existingMatchingFallbacks?.any { it.valueAsString() == "release" } ?: false
-  if (!hasReleaseFallback) {
-    val fallback = benchmarkBuildType.matchingFallbacks().addListValue()
-    fallback?.setValue("release")
-  }
-
-  // set debuggable
-  benchmarkBuildType.debuggable().setValue(debuggable)
-
-  projectBuildModel.applyChanges()
+  val benchmarksFile = moduleData.srcDir.resolve("$EXAMPLE_BENCHMARK_NAME.${language.extension}")
+  save(benchmarksContent, benchmarksFile)
+  open(benchmarksFile)
 }

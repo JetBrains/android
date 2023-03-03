@@ -31,8 +31,12 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.serviceContainer.NonInjectable;
+import com.intellij.ui.ExperimentalUI;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
+import com.intellij.util.ui.UIUtil.FontSize;
 import java.awt.Component;
+import java.awt.Font;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -270,24 +274,40 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     layout.setVerticalGroup(verticalGroup);
 
     panel.setLayout(layout);
+    panel.setOpaque(false);
+
     return panel;
   }
 
   @NotNull
   @Override
   protected ComboBoxButton createComboBoxButton(@NotNull Presentation presentation) {
-    ComboBoxButton button = new ComboBoxButton(presentation) {
-      @NotNull
-      @Override
-      protected JBPopup createPopup(@NotNull Runnable runnable) {
-        DataContext context = getDataContext();
-        return new Popup(createPopupActionGroup(this, context), context, runnable);
-      }
-    };
-
+    ComboBoxButton button = new DeviceAndSnapshotComboBoxButton(presentation);
     myUpdatableDeviceHelpTooltip.installOn(button);
-    button.setName("deviceAndSnapshotComboBoxButton");
+
     return button;
+  }
+
+  private final class DeviceAndSnapshotComboBoxButton extends ComboBoxButton {
+    private DeviceAndSnapshotComboBoxButton(@NotNull Presentation presentation) {
+      super(presentation);
+      setName("deviceAndSnapshotComboBoxButton");
+    }
+
+    @NotNull
+    @Override
+    protected JBPopup createPopup(@Nullable Runnable runnable) {
+      var context = getDataContext();
+      assert runnable != null;
+
+      return new Popup(createPopupActionGroup(this, context), context, runnable);
+    }
+
+    @NotNull
+    @Override
+    public Font getFont() {
+      return ExperimentalUI.isNewUI() ? UIUtil.getLabelFont(FontSize.NORMAL) : super.getFont();
+    }
   }
 
   @Override

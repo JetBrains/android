@@ -169,7 +169,8 @@ class AnnotationFileComposePreviewElementFinderTest(
         fun FullyQualifiedAnnotationPreview() {
 
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     // Add secondary file with Previews that should not be found when looking into composeFile
@@ -190,7 +191,8 @@ class AnnotationFileComposePreviewElementFinderTest(
         @[Composable Preview]
         fun OtherFilePreview2() {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     assertTrue(
@@ -372,7 +374,8 @@ class AnnotationFileComposePreviewElementFinderTest(
         @Composable
         @Preview
         annotation class MyValidAnnotation1
-        """.trimIndent()
+        """
+        .trimIndent()
     )
     fixture.addFileToProjectAndInvalidate(
       "src/File2.kt",
@@ -385,7 +388,8 @@ class AnnotationFileComposePreviewElementFinderTest(
         @Composable
         @Preview
         annotation class MyValidAnnotation2
-        """.trimIndent()
+        """
+        .trimIndent()
     )
     fixture.addFileToProjectAndInvalidate(
       "src/File3.kt",
@@ -398,7 +402,8 @@ class AnnotationFileComposePreviewElementFinderTest(
         @Composable
         @Preview
         annotation class MyValidAnnotation3
-        """.trimIndent()
+        """
+        .trimIndent()
     )
 
     // Add 3 files "simulating" them to be from androidx and containing a MultiPreview with an
@@ -415,7 +420,8 @@ class AnnotationFileComposePreviewElementFinderTest(
         @Composable
         @Preview
         annotation class MyInvalidAnnotation1
-        """.trimIndent()
+        """
+        .trimIndent()
     )
     fixture.addFileToProjectAndInvalidate(
       "src/File5.kt",
@@ -429,7 +435,8 @@ class AnnotationFileComposePreviewElementFinderTest(
         @Composable
         @Preview
         annotation class MyInvalidAnnotation2
-        """.trimIndent()
+        """
+        .trimIndent()
     )
     fixture.addFileToProjectAndInvalidate(
       "src/File6.kt",
@@ -443,7 +450,8 @@ class AnnotationFileComposePreviewElementFinderTest(
         @Composable
         @Preview
         annotation class MyInvalidAnnotation3
-        """.trimIndent()
+        """
+        .trimIndent()
     )
 
     val composeTest =
@@ -472,7 +480,8 @@ class AnnotationFileComposePreviewElementFinderTest(
         @MyInvalidAnnotation3
         fun Preview1() {
         }
-        """.trimIndent()
+        """
+          .trimIndent()
       )
 
     assertTrue(
@@ -558,7 +567,8 @@ class AnnotationFileComposePreviewElementFinderTest(
         @[Composable $PREVIEW_TOOLING_PACKAGE.Preview]
         fun Preview2() {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     assertTrue(
@@ -590,7 +600,8 @@ class AnnotationFileComposePreviewElementFinderTest(
         @Preview(name = "preview", apiLevel = 12)
         fun Preview1() {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val element =
@@ -613,7 +624,8 @@ class AnnotationFileComposePreviewElementFinderTest(
                                  val theme: String = "",
                                  val widthDp: Int = -1,
                                  val heightDp: Int = -1)
-       """.trimIndent()
+       """
+        .trimIndent()
     )
 
     val composeTest =
@@ -638,7 +650,8 @@ class AnnotationFileComposePreviewElementFinderTest(
         @Preview(name = "preview3", width = 1, height = 2)
         fun Preview3() {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     assertEquals(
@@ -673,7 +686,8 @@ class AnnotationFileComposePreviewElementFinderTest(
         @Preview(name = "preview2", apiLevel = 12)
         fun Preview1() {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     runInEdtAndWait {
@@ -741,7 +755,8 @@ class AnnotationFileComposePreviewElementFinderTest(
         fun MultiParameter(@PreviewParameter(provider = TestStringProvider::class) aString: String,
                            @PreviewParameter(provider = TestIntProvider::class, limit = 2) aInt: Int) {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val elements =
@@ -760,21 +775,24 @@ class AnnotationFileComposePreviewElementFinderTest(
       .forEach { (name, previewElement) ->
         assertEquals(name, previewElement.displaySettings.name)
         assertEquals(1, previewElement.parameterProviders.size)
-        previewElement.parameterProviders.single { param -> "aString" == param.name }.let {
-          parameter ->
-          assertEquals("test.TestStringProvider", parameter.providerClassFqn)
-          assertEquals(0, parameter.index)
-          assertEquals(Int.MAX_VALUE, parameter.limit)
-        }
+        previewElement.parameterProviders
+          .single { param -> "aString" == param.name }
+          .let { parameter ->
+            assertEquals("test.TestStringProvider", parameter.providerClassFqn)
+            assertEquals(0, parameter.index)
+            assertEquals(Int.MAX_VALUE, parameter.limit)
+          }
       }
     (elements[3] as ParametrizedComposePreviewElementTemplate).let {
       assertEquals("MultiParameter", it.displaySettings.name)
       assertEquals(2, it.parameterProviders.size)
-      it.parameterProviders.single { param -> "aInt" == param.name }.let { parameter ->
-        assertEquals("test.TestIntProvider", parameter.providerClassFqn)
-        assertEquals(1, parameter.index)
-        assertEquals(2, parameter.limit)
-      }
+      it.parameterProviders
+        .single { param -> "aInt" == param.name }
+        .let { parameter ->
+          assertEquals("test.TestIntProvider", parameter.providerClassFqn)
+          assertEquals(1, parameter.index)
+          assertEquals(2, parameter.limit)
+        }
     }
   }
 
@@ -812,7 +830,8 @@ class AnnotationFileComposePreviewElementFinderTest(
         @Preview
         fun TopB() {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
@@ -903,7 +922,8 @@ class AnnotationFileComposePreviewElementFinderTest(
         @Many
         fun f(){
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     AnnotationFilePreviewElementFinder.findPreviewMethods(project, composeTest.virtualFile)
@@ -974,7 +994,8 @@ class AnnotationFileComposePreviewElementFinderTest(
         @Preview(name = "preview2", group = "groupA")
         fun Preview1() {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     assertTrue(
@@ -1036,7 +1057,8 @@ class AnnotationFileComposePreviewElementFinderTest(
         fun Preview1() {
         }
 
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val otherFile =
@@ -1056,7 +1078,8 @@ class AnnotationFileComposePreviewElementFinderTest(
         @[Composable Preview]
         fun OtherFilePreview2() {
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     repeat(3) {

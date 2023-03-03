@@ -36,7 +36,8 @@ class DeviceSpecParserTest :
           PsiElement(id)('id')
           PsiElement(:)(':')
           PsiElement(STRING_T)('my_device_spec')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText("id:my_device_spec")
     )
 
@@ -46,7 +47,8 @@ class DeviceSpecParserTest :
           PsiElement(name)('name')
           PsiElement(:)(':')
           PsiElement(STRING_T)('A Device Name')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText("name:A Device Name")
     )
 
@@ -87,7 +89,8 @@ class DeviceSpecParserTest :
               PsiElement(=)('=')
               DeviceSpecOrientationTImpl(ORIENTATION_T)
                 PsiElement(portrait)('portrait')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText(
         "spec: id=an_id,name=my_device_spec,width=200dp,height=200dp,orientation=portrait"
       )
@@ -121,14 +124,16 @@ class DeviceSpecParserTest :
               PsiElement(name)('name')
               PsiElement(=)('=')
               PsiElement(STRING_T)('my_device')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText(
         """
         spec:
           width=30dp,
           height=30px,
           name=my_device
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     )
   }
@@ -142,7 +147,8 @@ class DeviceSpecParserTest :
           PsiElement(id)('id')
           PsiElement(:)(':')
           PsiElement(STRING_T)('1080.0px')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText("id:1080.0px")
     )
     assertEquals(
@@ -151,7 +157,8 @@ class DeviceSpecParserTest :
           PsiElement(name)('name')
           PsiElement(:)(':')
           PsiElement(STRING_T)('1080.0px')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText("name:1080.0px")
     )
     assertEquals(
@@ -164,7 +171,8 @@ class DeviceSpecParserTest :
               PsiElement(parent)('parent')
               PsiElement(=)('=')
               PsiElement(STRING_T)('1080.0px')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText("spec:parent=1080.0px")
     )
 
@@ -182,7 +190,8 @@ class DeviceSpecParserTest :
                 PsiElement(NUMERIC_T)('1080.0')
                 DeviceSpecUnitImpl(UNIT)
                   PsiElement(px)('px')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText("spec:width=1080.0px")
     )
     assertEquals(
@@ -198,7 +207,8 @@ class DeviceSpecParserTest :
                 PsiElement(NUMERIC_T)('1080')
                 DeviceSpecUnitImpl(UNIT)
                   PsiElement(px)('px')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText("spec:width= 1080px ")
     )
 
@@ -218,7 +228,8 @@ class DeviceSpecParserTest :
               PsiElement(=)('=')
               DeviceSpecOrientationTImpl(ORIENTATION_T)
                 PsiElement(landscape)('landscape')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText("spec:parent=1024.0px by 1800.0px Custom,orientation=landscape")
     )
 
@@ -235,7 +246,8 @@ class DeviceSpecParserTest :
           PsiElement(NUMERIC_T)('1080')
           PsiElement(px)('px')
           PsiElement(BAD_CHARACTER)('e')
-      """.trimIndent(),
+      """
+        .trimIndent(),
       toParseTreeText("spec:width=e 1080px e")
     )
   }

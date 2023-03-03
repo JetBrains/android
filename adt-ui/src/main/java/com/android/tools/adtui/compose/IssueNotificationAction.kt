@@ -74,10 +74,10 @@ interface ComposeStatus {
     val PRESENTATION = Key<Presentation>("ComposeStatus.Presentation")
 
     /**
-     * When not null, this will define the text alignment in the notification chip. One of [SwingConstants.LEADING] or
+     * When not null, this will define the text position in the notification chip. One of [SwingConstants.LEADING] or
      * [SwingConstants.TRAILING].
      */
-    val TEXT_ALIGNMENT = Key<Int>("ComposeStatus.TextAlignment")
+    val TEXT_POSITION = Key<Int>("ComposeStatus.TextPosition")
   }
 
   /**
@@ -197,7 +197,7 @@ open class IssueNotificationAction(
         description = it.description
         putClientProperty(ComposeStatus.PRESENTATION, it.presentation)
         val isErrorOrWarningIcon = it.icon == AllIcons.General.Error || it.icon == AllIcons.General.Warning
-        putClientProperty(ComposeStatus.TEXT_ALIGNMENT, if (isErrorOrWarningIcon) SwingConstants.TRAILING else SwingConstants.LEADING)
+        putClientProperty(ComposeStatus.TEXT_POSITION, if (isErrorOrWarningIcon) SwingConstants.TRAILING else SwingConstants.LEADING)
       }
     }
   }

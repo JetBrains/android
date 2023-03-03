@@ -155,8 +155,7 @@ class GradleAndroidTestApplicationLaunchTasksProvider(private val myRunConfig: A
     }
     val androidDebuggerContext = myRunConfig.androidDebuggerContext
 
-    return getBaseDebuggerTask(androidDebuggerContext, myFacet, myApplicationIdProvider, myEnv,
-                               timeoutSeconds = Int.MAX_VALUE) // No timeout. }
+    return getBaseDebuggerTask(androidDebuggerContext, myFacet, myEnv, timeoutSeconds = Int.MAX_VALUE) // No timeout. }
   }
 
 

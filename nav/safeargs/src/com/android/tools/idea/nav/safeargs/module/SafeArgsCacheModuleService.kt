@@ -29,7 +29,7 @@ import com.android.tools.idea.nav.safeargs.psi.java.LightArgsClass
 import com.android.tools.idea.nav.safeargs.psi.java.LightDirectionsClass
 import com.android.tools.idea.nav.safeargs.safeArgsMode
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.getSourceAsVirtualFile
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.diagnostic.Logger
@@ -109,7 +109,7 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
       val currVersion = facet.findNavigationVersion()
 
       if (modificationCount != lastResourcesModificationCount || currVersion != lastNavigationVersion) {
-        val moduleResources = ResourceRepositoryManager.getModuleResources(facet)
+        val moduleResources = StudioResourceRepositoryManager.getModuleResources(facet)
         val navResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.NAVIGATION)
 
         val entries = navResources.values()

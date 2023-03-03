@@ -77,6 +77,11 @@ public class PatchInstallerUtil {
   private static final String PATCH_ZIP_FN = "patch-file.zip";
 
   /**
+   * Name of the patcher jar file from the patcher package.
+   */
+  private static final String PATCHER_JAR_FN = "patcher.jar";
+
+  /**
    * Gets the installed patcher package required by our package.
    *
    * @return The patcher package that the given package depends on, or null if none was found.
@@ -164,7 +169,7 @@ public class PatchInstallerUtil {
       result = patcher.run(op.getLocation(progress), patch, progress);
     }
     catch (PatchRunner.RestartRequiredException e) {
-      askAboutRestart(patcher, op, patch, progress);
+      askAboutRestart(getPatcherFile(patcherPackage), op, patch, progress);
       result = false;
     }
     if (!result) {
@@ -182,11 +187,17 @@ public class PatchInstallerUtil {
     return true;
   }
 
+  @Nullable
+  static Path getPatcherFile(@Nullable LocalPackage patcherPackage) {
+    Path patcherFile = patcherPackage == null ? null : patcherPackage.getLocation().resolve(PATCHER_JAR_FN);
+    return patcherFile != null && CancellableFileIo.exists(patcherFile) ? patcherFile : null;
+  }
+
   /**
    * If a patch fails to install because Studio is locking some of the files, we have to restart studio. Ask if the user wants
    * to, and then move things into place so they can be picked up on restart.
    */
-  private static void askAboutRestart(@NotNull PatchRunner patchRunner,
+  private static void askAboutRestart(@NotNull Path patcherFile,
                                       @NotNull PatchOperation op,
                                       @NotNull final Path patchFile,
                                       @NotNull final ProgressIndicator progress) {
@@ -220,7 +231,7 @@ public class PatchInstallerUtil {
         progress.logInfo("Cancelled");
       }
       else {
-        if (setupPatchDir(patchFile, patchRunner.getPatcherJar(), op.getPackage(), op.getRepoManager(), progress)) {
+        if (setupPatchDir(patchFile, patcherFile, op.getPackage(), op.getRepoManager(), progress)) {
           if (result == 1 && restartable) {
             progress.logInfo("Installation will continue after restart");
           }

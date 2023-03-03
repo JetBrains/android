@@ -22,7 +22,7 @@ import com.android.ide.common.rendering.api.StyleResourceValue
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceResolver.MAX_RESOURCE_INDIRECTION
 import com.android.resources.ResourceUrl
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.getNamespacesContext
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement
 import com.android.tools.idea.res.resolve
@@ -79,7 +79,7 @@ class AttrNameConverter : ResolvingConverter<ResourceReference>() {
       return null
     }
     val facet = AndroidFacet.getInstance(context) ?: return null
-    val allResources = ResourceRepositoryManager.getInstance(facet).getResourcesForNamespace(resourceReference.namespace) ?: return null
+    val allResources = StudioResourceRepositoryManager.getInstance(facet).getResourcesForNamespace(resourceReference.namespace) ?: return null
     val hasResources = allResources.hasResources(resourceReference.namespace, resourceReference.resourceType, resourceReference.name)
     return if (hasResources) ResourceReferencePsiElement(context.xmlElement as PsiElement, resourceReference) else null
   }
@@ -99,7 +99,7 @@ class AttrNameConverter : ResolvingConverter<ResourceReference>() {
    */
   private fun getAttributesUsedByParentStyle(styleTag: XmlTag): Collection<ResourceReference> {
     val module = ModuleUtilCore.findModuleForPsiElement(styleTag) ?: return emptyList()
-    val appResources = ResourceRepositoryManager.getAppResources(module) ?: return emptyList()
+    val appResources = StudioResourceRepositoryManager.getAppResources(module) ?: return emptyList()
     var parentStyleReference: ResourceReference? = getParentStyleFromTag(styleTag) ?: return emptyList()
     val parentStyles = appResources.getResources(parentStyleReference!!)
 

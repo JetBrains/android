@@ -94,9 +94,10 @@ class UnsupportedLabel(
     companion object {
       fun findOrCreateNew(parent: JComponent): LabelPanel {
         val search =
-          parent.components.filterIsInstance<LabelPanel>().firstOrNull { !it.isVisible }.apply {
-            this?.isVisible = true
-          }
+          parent.components
+            .filterIsInstance<LabelPanel>()
+            .firstOrNull { !it.isVisible }
+            .apply { this?.isVisible = true }
         return search ?: LabelPanel(parent).apply { parent.add(this) }
       }
     }

@@ -126,10 +126,6 @@ public class StartUpTest {
         expectedPlugins.add("Emoji Picker");
       }
 
-      if (SystemUtils.IS_OS_WINDOWS) {
-        expectedPlugins.add("Windows 10 Light Theme");
-      }
-
       assertThat(plugins).asList().containsExactlyElementsIn(expectedPlugins);
 
       install.verify();

@@ -6,13 +6,17 @@ import org.junit.runner.RunWith
 
 @RunWith(JarTestSuiteRunner::class)
 @JarTestSuiteRunner.ExcludeClasses(AndroidLintTestSuite::class) // a suite mustn't contain itself
-class AndroidLintTestSuite: IdeaTestSuiteBase() {
+class AndroidLintTestSuite : IdeaTestSuiteBase() {
   companion object {
     init {
       linkIntoOfflineMavenRepo("tools/adt/idea/android-lint/test_deps.manifest")
       unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip")
-      linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest")
-      linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest")
+      linkIntoOfflineMavenRepo(
+        "tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest"
+      )
+      linkIntoOfflineMavenRepo(
+        "tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest"
+      )
     }
   }
 }

@@ -90,7 +90,8 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
     element: PsiElement,
     result: MutableCollection<in RelatedItemLineMarkerInfo<*>>
   ) {
-    if (!StudioFlags.DAGGER_SUPPORT_ENABLED.get() ||
+    if (
+      !StudioFlags.DAGGER_SUPPORT_ENABLED.get() ||
         StudioFlags.DAGGER_USING_INDEX_ENABLED.get() ||
         !element.project.service<DaggerDependencyChecker>().isDaggerPresent()
     )
@@ -144,8 +145,7 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
         { gotoTargets }
       )
     val calculationTime = System.currentTimeMillis() - startTimeMs
-    element
-      .project
+    element.project
       .service<DaggerAnalyticsTracker>()
       .trackGutterWasDisplayed(typeForMetrics, calculationTime)
     result.add(info)

@@ -237,7 +237,8 @@ class PreviewPickerValuesProviderTest(previewAnnotationPackage: String) {
         @Preview(group = "group2")
         @Composable
         fun preview3() {}
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val valuesProvider =

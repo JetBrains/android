@@ -21,6 +21,7 @@ import com.android.tools.idea.concurrency.runWriteActionAndWait
 import com.android.tools.idea.editors.fast.FastPreviewBundle.message
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.util.Disposer
@@ -29,14 +30,13 @@ import java.io.File
 import java.time.Duration
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.time.withTimeout
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
-import org.jetbrains.kotlin.idea.util.module
 
 /** Maximum amount of time to wait for a fast compilation to happen. */
 private val FAST_PREVIEW_COMPILE_TIMEOUT =
@@ -52,17 +52,17 @@ private suspend fun PsiFile.saveIfNeeded() {
 
 /**
  * Starts a new fast compilation for the current file in the Preview and returns the result of the
- * compilation.
+ * compilation. All given files must belong to the same project.
  */
 internal suspend fun fastCompile(
   parentDisposable: Disposable,
-  file: PsiFile,
-  fastPreviewManager: FastPreviewManager = FastPreviewManager.getInstance(file.project),
+  contextModule: Module,
+  files: Set<PsiFile>,
+  fastPreviewManager: FastPreviewManager = FastPreviewManager.getInstance(files.first().project),
   requestTracker: FastPreviewTrackerManager.Request =
-    FastPreviewTrackerManager.getInstance(file.project).trackRequest()
+    FastPreviewTrackerManager.getInstance(files.first().project).trackRequest()
 ): CompilationResult = coroutineScope {
-  val contextModule = file.module ?: throw Throwable("No module")
-  val project = file.project
+  val project = files.first().project
 
   val compileProgressIndicator =
     BackgroundableProcessIndicator(project, message("notification.compiling"), "", "", false)
@@ -71,11 +71,11 @@ internal suspend fun fastCompile(
   try {
     compileProgressIndicator.start()
 
-    file.saveIfNeeded()
+    files.forEach { it.saveIfNeeded() }
 
     val (result, outputAbsolutePath) =
       withTimeout(Duration.ofSeconds(FAST_PREVIEW_COMPILE_TIMEOUT)) {
-        fastPreviewManager.compileRequest(listOf(file), contextModule, tracker = requestTracker)
+        fastPreviewManager.compileRequest(files, contextModule, tracker = requestTracker)
       }
     val isSuccess = result == CompilationResult.Success
     if (isSuccess) {
@@ -98,18 +98,23 @@ internal suspend fun fastCompile(
  * Requests a "Fast Preview" compilation and invokes the [trackedForceRefresh] if successful. This
  * method tracks the time that the compilation and the execution of the [trackedForceRefresh] call
  * take in order to do statistics reporting.
+ *
+ * The given [contextModule] will be used as context for the compilation. This module or one of this
+ * module dependencies must contain all the given [files].
  */
 internal suspend fun requestFastPreviewRefreshAndTrack(
   parentDisposable: Disposable,
-  file: PsiFile,
+  contextModule: Module,
+  files: Set<PsiFile>,
   currentStatus: ComposePreviewManager.Status,
   launcher: UniqueTaskCoroutineLauncher,
-  trackedForceRefresh: () -> Job?
+  trackedForceRefresh: () -> Deferred<Unit>
 ): CompilationResult = coroutineScope {
   // We delay the reporting of compilationSucceded until we have the amount of time the refresh
   // took. Either refreshSucceeded or
   // refreshFailed should be called.
-  val delegateRequestTracker = FastPreviewTrackerManager.getInstance(file.project).trackRequest()
+  val delegateRequestTracker =
+    FastPreviewTrackerManager.getInstance(files.first().project).trackRequest()
   val requestTracker =
     object : FastPreviewTrackerManager.Request by delegateRequestTracker {
       private var compilationDurationMs: Long = -1
@@ -164,15 +169,16 @@ internal suspend fun requestFastPreviewRefreshAndTrack(
     CompletableDeferred<CompilationResult>(CompilationResult.CompilationError())
 
   launcher.launch {
-    var refreshJob: Job? = null
+    var refreshResult: Deferred<Unit>? = null
     try {
       if (!currentStatus.hasSyntaxErrors) {
-        val result = fastCompile(parentDisposable, file, requestTracker = requestTracker)
+        val result =
+          fastCompile(parentDisposable, contextModule, files, requestTracker = requestTracker)
         deferredCompilationResult.complete(result)
         if (result is CompilationResult.Success) {
           val refreshStartMs = System.currentTimeMillis()
-          refreshJob = trackedForceRefresh()
-          refreshJob?.invokeOnCompletion { throwable ->
+          refreshResult = trackedForceRefresh()
+          refreshResult.invokeOnCompletion { throwable ->
             when (throwable) {
               null -> requestTracker.refreshSucceeded(System.currentTimeMillis() - refreshStartMs)
               is CancellationException ->
@@ -180,7 +186,7 @@ internal suspend fun requestFastPreviewRefreshAndTrack(
               else -> requestTracker.refreshFailed()
             }
           }
-          refreshJob?.join()
+          refreshResult.join()
         } else {
           if (result is CompilationResult.CompilationAborted) {
             requestTracker.refreshCancelled(compilationCompleted = false)
@@ -202,7 +208,7 @@ internal suspend fun requestFastPreviewRefreshAndTrack(
       // Use NonCancellable to make sure to wait until the cancellation is completed.
       withContext(NonCancellable) {
         deferredCompilationResult.complete(CompilationResult.CompilationAborted())
-        refreshJob?.cancelAndJoin()
+        refreshResult?.cancelAndJoin()
         throw e
       }
     }

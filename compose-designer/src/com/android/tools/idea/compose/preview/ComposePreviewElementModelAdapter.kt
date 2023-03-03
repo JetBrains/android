@@ -64,7 +64,8 @@ abstract class ComposePreviewElementModelAdapter :
     """
         displayName=${previewElement.displaySettings.name}
         methodName=${previewElement.composableMethodFqn}
-  """.trimIndent()
+  """
+      .trimIndent()
 
   override fun createLightVirtualFile(
     content: String,

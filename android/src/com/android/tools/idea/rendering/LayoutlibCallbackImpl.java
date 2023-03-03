@@ -36,7 +36,7 @@ import static com.android.SdkConstants.LIST_VIEW;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.SdkConstants.VIEW_INCLUDE;
-import static com.intellij.lang.annotation.HighlightSeverity.WARNING;
+import static com.android.tools.idea.rendering.ProblemSeverity.WARNING;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.annotations.NonNull;
@@ -203,7 +203,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myHasLegacyAppCompat = DependencyManagementUtil.dependsOn(renderModule.getIdeaModule(), GoogleMavenArtifactId.APP_COMPAT_V7);
     myHasAndroidXAppCompat = DependencyManagementUtil.dependsOn(renderModule.getIdeaModule(), GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
 
-    myNamespacing = renderModule.getResourceRepositoryManager().getNamespacing();
+    myNamespacing = renderModule.getStudioResourceRepositoryManager().getNamespacing();
     if (myNamespacing == Namespacing.DISABLED) {
       myImplicitNamespaces = ResourceNamespace.Resolver.TOOLS_ONLY;
     } else {
@@ -212,7 +212,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
     myFontCacheService = DownloadableFontCacheService.getInstance();
     ImmutableMap.Builder<String, ResourceValue> fontBuilder = ImmutableMap.builder();
-    renderModule.getResourceRepositoryManager().getAppResources().accept(
+    renderModule.getStudioResourceRepositoryManager().getAppResources().accept(
         new ResourceVisitor() {
           @Override
           @NotNull
@@ -338,28 +338,27 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
+      ResourceValue resourceValue = myFontFamilies.get(fileName);
+      if (resourceValue != null) {
+        // This is a font-family XML. Now check if it defines a downloadable font. If it is,
+        // this is a special case where we generate a synthetic font-family XML file that points
+        // to the cached fonts downloaded by the DownloadableFontCacheService.
+        if (myProjectFonts == null) {
+          myProjectFonts = new ProjectFonts(myRenderModule.getStudioResourceRepositoryManager());
+        }
+
+        FontFamily family = myProjectFonts.getFont(resourceValue.getResourceUrl().toString());
+        String fontFamilyXml = myFontCacheService.toXml(family);
+        if (fontFamilyXml == null) {
+          return null;
+        }
+
+        return getParserFromText(fileName, fontFamilyXml);
+      }
       VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(fileName);
       if (virtualFile != null) {
         PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myRenderModule.getIdeaModule().getProject(), virtualFile);
         if (psiFile != null) {
-          ResourceValue resourceValue = myFontFamilies.get(fileName);
-          if (resourceValue != null) {
-            // This is a font-family XML. Now check if it defines a downloadable font. If it is,
-            // this is a special case where we generate a synthetic font-family XML file that points
-            // to the cached fonts downloaded by the DownloadableFontCacheService.
-            if (myProjectFonts == null) {
-              myProjectFonts = new ProjectFonts(myRenderModule.getResourceRepositoryManager());
-            }
-
-            FontFamily family = myProjectFonts.getFont(resourceValue.getResourceUrl().toString());
-            String fontFamilyXml = myFontCacheService.toXml(family);
-            if (fontFamilyXml == null) {
-              return null;
-            }
-
-            return getParserFromText(fileName, fontFamilyXml);
-          }
-
           String psiText = ApplicationManager.getApplication().isReadAccessAllowed()
                            ? psiFile.getText()
                            : ApplicationManager.getApplication().runReadAction((Computable<String>)psiFile::getText);

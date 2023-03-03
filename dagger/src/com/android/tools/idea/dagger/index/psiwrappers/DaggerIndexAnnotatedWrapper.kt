@@ -45,9 +45,12 @@ internal abstract class DaggerIndexAnnotatedKotlinWrapper(
   private val importHelper: KotlinImportHelper
 ) : DaggerIndexAnnotatedWrapper {
   override fun getAnnotationsByName(fqName: String) =
-    ktAnnotated.annotationEntries.asSequence().map { KtAnnotationEntryWrapper(it) }.filter {
-      importHelper.getPossibleAnnotationText(fqName).contains(it.getAnnotationNameInSource())
-    }
+    ktAnnotated.annotationEntries
+      .asSequence()
+      .map { KtAnnotationEntryWrapper(it) }
+      .filter {
+        importHelper.getPossibleAnnotationText(fqName).contains(it.getAnnotationNameInSource())
+      }
 }
 
 internal abstract class DaggerIndexAnnotatedJavaWrapper(
@@ -55,7 +58,10 @@ internal abstract class DaggerIndexAnnotatedJavaWrapper(
   private val importHelper: JavaImportHelper
 ) : DaggerIndexAnnotatedWrapper {
   override fun getAnnotationsByName(fqName: String) =
-    psiModifierListOwner.annotations.asSequence().map { PsiAnnotationWrapper(it) }.filter {
-      importHelper.getPossibleAnnotationText(fqName).contains(it.getAnnotationNameInSource())
-    }
+    psiModifierListOwner.annotations
+      .asSequence()
+      .map { PsiAnnotationWrapper(it) }
+      .filter {
+        importHelper.getPossibleAnnotationText(fqName).contains(it.getAnnotationNameInSource())
+      }
 }

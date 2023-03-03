@@ -64,7 +64,7 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -495,7 +495,7 @@ public class Configuration implements Disposable, ModificationTracker {
       FolderConfiguration currentConfig = getFolderConfig(module, selectedState, getLocale(), getTarget());
       if (currentConfig != null) {
         if (myEditedConfig.isMatchFor(currentConfig)) {
-          LocalResourceRepository resources = ResourceRepositoryManager.getAppResources(module);
+          LocalResourceRepository resources = StudioResourceRepositoryManager.getAppResources(module);
           if (resources != null && myFile != null) {
             ResourceFolderType folderType = IdeResourcesUtil.getFolderType(myFile);
             if (folderType != null) {
@@ -1350,6 +1350,7 @@ public class Configuration implements Disposable, ModificationTracker {
       .toString();
   }
 
+  @NotNull
   public Module getModule() {
     return myManager.getModule();
   }

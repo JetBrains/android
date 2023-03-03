@@ -16,7 +16,6 @@
 package com.android.tools.idea.devicemanager.virtualtab;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.android.sdklib.AndroidVersion;
@@ -51,7 +50,7 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
     List<JComponent> items = myEditor.newItems();
 
     // Assert
-    assertEquals(9, items.size());
+    assertEquals(8, items.size());
 
     AbstractButton item = (AbstractButton)items.get(0);
 
@@ -104,13 +103,7 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
     List<JComponent> items = myEditor.newItems();
 
     // Assert
-    assertEquals(9, items.size());
-
-    AbstractButton item = (AbstractButton)items.get(1);
-
-    assertFalse(item.isEnabled());
-    assertEquals("Pair Wearable", item.getText());
-    assertEquals("Wear pairing requires API level >= 30", item.getToolTipText());
+    assertEquals(8, items.size());
   }
 
   @Test
@@ -123,13 +116,7 @@ public final class VirtualDevicePopUpMenuButtonTableCellEditorTest {
     List<JComponent> items = myEditor.newItems();
 
     // Assert
-    assertEquals(9, items.size());
-
-    AbstractButton item = (AbstractButton)items.get(1);
-
-    assertFalse(item.isEnabled());
-    assertEquals("Pair Wearable", item.getText());
-    assertEquals("Wear pairing requires Google Play", item.getToolTipText());
+    assertEquals(8, items.size());
   }
 
   @Test

@@ -70,10 +70,10 @@ private val NON_MULTIPREVIEW_PREFIXES =
 /**
  * Returns true if the MultiPreview flag is enabled and one of the following is true:
  * 1. This annotation's class is defined in androidx (i.e. its fqcn starts with 'androidx.'), and it
- * contains 'preview' as one of its subpackages (e.g. 'package androidx.example.preview' or 'package
- * androidx.preview.example')
+ *    contains 'preview' as one of its subpackages (e.g. 'package androidx.example.preview' or
+ *    'package androidx.preview.example')
  * 2. This annotation's fqcn doesn't start with 'androidx.' nor with any of the prefixes in
- * [NON_MULTIPREVIEW_PREFIXES].
+ *    [NON_MULTIPREVIEW_PREFIXES].
  */
 private fun UAnnotation.couldBeMultiPreviewAnnotation(): Boolean {
   return StudioFlags.COMPOSE_MULTIPREVIEW.get() &&
@@ -123,10 +123,10 @@ internal fun getPreviewElements(uMethod: UMethod, overrideGroupName: String? = n
  * Given a Composable method, return a sequence of [PreviewNode] that are part of the method's
  * MultiPreview graph. Notes:
  * - The leaf nodes that correspond to Preview annotations will be not just a [PreviewNode], but
- * specifically a [ComposePreviewElement].
+ *   specifically a [ComposePreviewElement].
  * - When [includeAllNodes] is true, the returned sequence will also include nodes corresponding to
- * the MultiPreview annotations and the root composable [uMethod]. These nodes, will be not just a
- * [PreviewNode], but specifically a [MultiPreviewNode]
+ *   the MultiPreview annotations and the root composable [uMethod]. These nodes, will be not just a
+ *   [PreviewNode], but specifically a [MultiPreviewNode]
  */
 internal fun getPreviewNodes(
   uMethod: UMethod,

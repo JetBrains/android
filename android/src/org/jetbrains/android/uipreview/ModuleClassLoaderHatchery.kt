@@ -32,11 +32,11 @@ private const val CAPACITY = 2
 private const val COPIES = 1
 
 /**
- * A storage of [ModuleClassLoader]s of the same type responsible for their preloading and replenishment. [ModuleClassLoader]s managed by
- * this storage do not get stale after updating only the user code since module dependencies should change for these [ModuleClassLoader]s
+ * A storage of [StudioModuleClassLoader]s of the same type responsible for their preloading and replenishment. [StudioModuleClassLoader]s managed by
+ * this storage do not get stale after updating only the user code since module dependencies should change for these [StudioModuleClassLoader]s
  * to become invalid.
  */
-private class Clutch(private val cloner: (ModuleClassLoader) -> ModuleClassLoader?, donor: ModuleClassLoader, copies: Int = COPIES) {
+private class Clutch(private val cloner: (StudioModuleClassLoader) -> StudioModuleClassLoader?, donor: StudioModuleClassLoader, copies: Int = COPIES) {
   private val classesToPreload = donor.nonProjectLoadedClasses
   private val eggs = ConcurrentLinkedQueue<Preloader>()
   init {
@@ -48,7 +48,7 @@ private class Clutch(private val cloner: (ModuleClassLoader) -> ModuleClassLoade
   }
 
   /**
-   * Checks if the clutch maintains the [ModuleClassLoader]s of this type.
+   * Checks if the clutch maintains the [StudioModuleClassLoader]s of this type.
    */
   fun isCompatible(
     parent: ClassLoader?,
@@ -57,9 +57,9 @@ private class Clutch(private val cloner: (ModuleClassLoader) -> ModuleClassLoade
     eggs.peek()?.isForCompatible(parent, projectTransformations, nonProjectTransformations) ?: false
 
   /**
-   * If possible, returns a [ModuleClassLoader] from the clutch and transfers full ownership to the caller, otherwise returns null.
+   * If possible, returns a [StudioModuleClassLoader] from the clutch and transfers full ownership to the caller, otherwise returns null.
    */
-  fun retrieve(): ModuleClassLoader? {
+  fun retrieve(): StudioModuleClassLoader? {
     return generateSequence { eggs.poll()?.getClassLoader() }
       .firstOrNull {
         if (!it.isUserCodeUpToDate) {
@@ -91,7 +91,7 @@ private class Clutch(private val cloner: (ModuleClassLoader) -> ModuleClassLoade
 }
 
 /**
- * Data representing the identification of the [ModuleClassLoader] type.
+ * Data representing the identification of the [StudioModuleClassLoader] type.
  */
 private data class Request(
   val parent: ClassLoader?,
@@ -114,7 +114,7 @@ private data class Request(
 }
 
 /**
- * A data structure responsible for replenishing and providing on demand [ModuleClassLoader]s ready to use
+ * A data structure responsible for replenishing and providing on demand [StudioModuleClassLoader]s ready to use
  */
 class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private val copies: Int = COPIES) {
   // Requests for ModuleClassLoaders type that hatchery does not know how to create
@@ -127,7 +127,7 @@ class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private va
    */
   @Synchronized
   fun requestClassLoader(parent: ClassLoader?, projectTransformations: ClassTransform, nonProjectTransformations: ClassTransform):
-    ModuleClassLoader? {
+    StudioModuleClassLoader? {
     storage.find { it.isCompatible(parent, projectTransformations, nonProjectTransformations) }?.let { clutch ->
       return clutch.retrieve()
     }
@@ -137,11 +137,11 @@ class ModuleClassLoaderHatchery(private val capacity: Int = CAPACITY, private va
   }
 
   /**
-   * Create a clutch from the [donor] [ModuleClassLoader] if a clutch of this type does not exist and such type was requested. The [donor]
+   * Create a clutch from the [donor] [StudioModuleClassLoader] if a clutch of this type does not exist and such type was requested. The [donor]
    * should only be used for cloning. Returns true if donor was used for cloning and false otherwise.
    */
   @Synchronized
-  fun incubateIfNeeded(donor: ModuleClassLoader, cloner: (ModuleClassLoader) -> ModuleClassLoader?): Boolean {
+  fun incubateIfNeeded(donor: StudioModuleClassLoader, cloner: (StudioModuleClassLoader) -> StudioModuleClassLoader?): Boolean {
     if (storage.find { it.isCompatible(
         donor.parent, donor.projectClassesTransform, donor.nonProjectClassesTransform) } != null) {
       return false

@@ -29,13 +29,13 @@ import com.android.tools.idea.execution.common.WearSurfaceLaunchOptions
 import com.android.tools.idea.run.ApkInfo
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration.ChosenSlot
 import com.android.tools.idea.run.configuration.ComplicationWatchFaceInfo
 import com.android.tools.idea.run.configuration.DefaultComplicationWatchFaceInfo
 import com.android.tools.idea.run.configuration.WearBaseClasses
 import com.android.tools.idea.run.configuration.getComplicationSourceTypes
 import com.android.tools.idea.run.configuration.parseRawComplicationTypes
-import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.configurations.RuntimeConfigurationWarning
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -51,10 +51,10 @@ private const val COMPLICATION_MIN_DEBUG_SURFACE_VERSION = 2
 private const val COMPLICATION_RECOMMENDED_DEBUG_SURFACE_VERSION = 3
 
 open class AndroidComplicationConfigurationExecutor(environment: ExecutionEnvironment,
-                                                    deployTarget: DeployTarget,
+                                                    deviceFutures: DeviceFutures,
                                                     appRunSettings: AppRunSettings,
                                                     applicationIdProvider: ApplicationIdProvider,
-                                                    apkProvider: ApkProvider) : AndroidWearConfigurationExecutor(environment, deployTarget,
+                                                    apkProvider: ApkProvider) : AndroidWearConfigurationExecutor(environment, deviceFutures,
                                                                                                                  appRunSettings,
                                                                                                                  applicationIdProvider,
                                                                                                                  apkProvider) {

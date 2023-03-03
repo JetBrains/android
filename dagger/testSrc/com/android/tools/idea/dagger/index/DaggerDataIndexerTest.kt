@@ -55,7 +55,8 @@ class DaggerDataIndexerTest {
         // language=kotlin
         """
       package com.example
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val indexer =
@@ -88,7 +89,8 @@ class DaggerDataIndexerTest {
         """
       package com.example
       class CoffeeMaker() {}
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val indexer =
@@ -118,7 +120,8 @@ class DaggerDataIndexerTest {
       class CoffeeMaker() {
         constructor(arg1: Int) {}
       }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val indexer =
@@ -127,7 +130,8 @@ class DaggerDataIndexerTest {
           methodIndexers =
             listOf(
               DaggerConceptIndexer { wrapper, indexEntries ->
-                if (wrapper.getIsConstructor() &&
+                if (
+                  wrapper.getIsConstructor() &&
                     wrapper.getSimpleName() == "CoffeeMaker" &&
                     wrapper.getParameters().size == 1
                 )
@@ -151,7 +155,8 @@ class DaggerDataIndexerTest {
       class CoffeeMaker() {
         fun foo() {}
       }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val indexer =
@@ -180,7 +185,8 @@ class DaggerDataIndexerTest {
       package com.example
 
       fun foo() {}
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val indexer =
@@ -210,7 +216,8 @@ class DaggerDataIndexerTest {
       class CoffeeMaker() {
         val foo: Int = 0
       }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val indexer =
@@ -240,7 +247,8 @@ class DaggerDataIndexerTest {
       class CoffeeMaker {
         class CoffeeFilter
       }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val indexer =
@@ -272,7 +280,8 @@ class DaggerDataIndexerTest {
         // language=java
         """
       package com.example;
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val indexer =
@@ -307,7 +316,8 @@ class DaggerDataIndexerTest {
       class CoffeeMaker {
         public CoffeeMaker() {}
       }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val indexer =
@@ -337,7 +347,8 @@ class DaggerDataIndexerTest {
       class CoffeeMaker() {
         public void foo() {}
       }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val indexer =
@@ -367,7 +378,8 @@ class DaggerDataIndexerTest {
       class CoffeeMaker() {
         public int foo;
       }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val indexer =
@@ -399,7 +411,8 @@ class DaggerDataIndexerTest {
 
         public class CoffeeFilter {}
       }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val indexer =

@@ -200,7 +200,8 @@ class DatabaseRepositoryImpl(
 
       val selectOrderByStatement =
         when (orderBy) {
-          is OrderBy.Asc, is OrderBy.Desc ->
+          is OrderBy.Asc,
+          is OrderBy.Desc ->
             sqliteStatement.transform(SqliteStatementType.SELECT) {
               "SELECT * FROM ($it) ORDER BY ${AndroidSqlLexer.getValidName(targetColumnName)} $order"
             }
@@ -235,7 +236,8 @@ class DatabaseRepositoryImpl(
       val targetRowPrimaryKeyColumnNames =
         targetRow.values.filter { it.columnName in tablePrimaryKeyColumnNames }
 
-      if (tablePrimaryKeyColumnNames.isEmpty() ||
+      if (
+        tablePrimaryKeyColumnNames.isEmpty() ||
           tablePrimaryKeyColumnNames.size != targetRowPrimaryKeyColumnNames.size
       ) {
         return null

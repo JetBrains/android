@@ -44,7 +44,7 @@ import com.android.tools.idea.naveditor.model.setSingleTopAndLog
 import com.android.tools.idea.naveditor.model.singleTop
 import com.android.tools.idea.naveditor.model.uiName
 import com.android.tools.idea.naveditor.model.visibleDestinations
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.getResourceItems
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.NavEditorEvent
@@ -380,7 +380,7 @@ open class AddActionDialog(
 
     dialog.myDestinationComboBox.renderer = destinationRenderer
 
-    val repoManager = ResourceRepositoryManager.getInstance(model.module)
+    val repoManager = StudioResourceRepositoryManager.getInstance(model.module)
     val destinationListener = ActionListener {
       dialog.myEnterComboBox.removeAllItems()
       dialog.myExitComboBox.removeAllItems()
@@ -522,7 +522,7 @@ open class AddActionDialog(
   }
 
   companion object {
-    fun getAnimatorsPopupContent(repoManager: ResourceRepositoryManager, includeAnimators: Boolean): List<ValueWithDisplayString> {
+    fun getAnimatorsPopupContent(repoManager: StudioResourceRepositoryManager, includeAnimators: Boolean): List<ValueWithDisplayString> {
       // TODO: filter out interpolators
       val appResources = repoManager.appResources
       val result: MutableList<ValueWithDisplayString> = appResources

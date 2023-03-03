@@ -46,9 +46,11 @@ fun updateAnimationInspectorToolbarIcon(
   if (!previewManager.isInStaticAndNonAnimationMode) return
   try {
     val hasAnimationsMethod =
-      viewObj::class.java.declaredMethods.single { it.name == "hasAnimations" }.also {
-        it.isAccessible = true
-      }
+      viewObj::class
+        .java
+        .declaredMethods
+        .single { it.name == "hasAnimations" }
+        .also { it.isAccessible = true }
     val previewHasAnimations = hasAnimationsMethod.invoke(viewObj) as Boolean
     if (!previewElement.hasAnimations && previewHasAnimations) {
       animationToolingUsageTrackerFactory()
@@ -74,8 +76,8 @@ class ComposeSceneUpdateListener : SceneManager.SceneUpdateListener {
   override fun onUpdate(component: NlComponent, designSurface: DesignSurface<*>) {
     val previewManager = component.model.dataContext.getData(COMPOSE_PREVIEW_MANAGER) ?: return
     val previewElementInstance =
-      (component.model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE) as?
-        ComposePreviewElementInstance)
+      (component.model.dataContext.getData(COMPOSE_PREVIEW_ELEMENT_INSTANCE)
+        as? ComposePreviewElementInstance)
         ?: return
     val viewObj = component.viewInfo?.viewObject ?: return
     updateAnimationInspectorToolbarIcon(viewObj, previewManager, previewElementInstance) {

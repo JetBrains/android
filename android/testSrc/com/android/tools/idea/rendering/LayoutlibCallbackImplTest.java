@@ -29,7 +29,7 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.android.tools.idea.res.ResourceIdManager;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
@@ -96,7 +96,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       RenderModelModule module = new DefaultRenderModelModule(
         myModule,
         null,
-        ResourceRepositoryManager.getInstance(myFacet),
+        StudioResourceRepositoryManager.getInstance(myFacet),
         StudioAndroidModuleInfo.getInstance(myFacet),
         null,
         ResourceIdManager.get(myModule)
@@ -142,7 +142,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       RenderModelModule module = new DefaultRenderModelModule(
         myModule,
         null,
-        ResourceRepositoryManager.getInstance(myFacet),
+        StudioResourceRepositoryManager.getInstance(myFacet),
         StudioAndroidModuleInfo.getInstance(myFacet),
         null,
         ResourceIdManager.get(myModule)

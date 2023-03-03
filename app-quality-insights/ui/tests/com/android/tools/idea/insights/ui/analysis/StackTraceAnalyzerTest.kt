@@ -48,13 +48,11 @@ class StackTraceAnalyzerTest {
     androidProjectRule.fixture.testDataPath =
       TestUtils.resolveWorkspacePath("tools/adt/idea/app-quality-insights/ui/testData").toString()
     val mainActivityFile =
-      androidProjectRule
-        .fixture
+      androidProjectRule.fixture
         .copyFileToProject("src/com/google/firebase/assistant/test/MainActivity.kt")
         .toPsiFile(androidProjectRule.project)!!
     val runtimeInitFile =
-      androidProjectRule
-        .fixture
+      androidProjectRule.fixture
         .copyFileToProject("src/com/google/firebase/assistant/test/RuntimeInit.java")
         .toPsiFile(androidProjectRule.project)!!
 
@@ -118,10 +116,11 @@ class StackTraceAnalyzerTest {
     androidProjectRule.fixture.testDataPath =
       TestUtils.resolveWorkspacePath("tools/adt/idea/app-quality-insights/ui/testData").toString()
     val psiFile =
-      androidProjectRule.fixture.configureByFiles(
-        "src/com/google/firebase/assistant/test/MainActivity.kt",
-        "src/com/google/firebase/assistant/test/RuntimeInit.java"
-      )[0]
+      androidProjectRule.fixture
+        .configureByFiles(
+          "src/com/google/firebase/assistant/test/MainActivity.kt",
+          "src/com/google/firebase/assistant/test/RuntimeInit.java"
+        )[0]
 
     val analyzer = service<StackTraceAnalyzer>()
     runReadAction {

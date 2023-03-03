@@ -19,13 +19,13 @@ import static com.android.tools.idea.npw.assetstudio.AssetStudioUtils.getBundled
 
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
+import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.StudioAndroidModuleInfo;
-import com.android.tools.idea.rendering.DrawableRenderer;
 import com.android.tools.idea.npw.assetstudio.TvBannerGenerator;
 import com.android.tools.idea.npw.assetstudio.assets.BaseAsset;
 import com.android.tools.idea.npw.assetstudio.assets.ImageAsset;
@@ -57,8 +57,10 @@ import com.android.tools.idea.observable.ui.SelectedRadioButtonProperty;
 import com.android.tools.idea.observable.ui.SliderValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
+import com.android.tools.idea.rendering.DrawableRenderer;
+import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -234,7 +236,8 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
   private IntProperty myForegroundTextResizePercent;
   private IntProperty myBackgroundResizePercent;
   private BoolProperty myGenerateLegacyIcon;
-  private AndroidFacet myFacet;
+  private final AndroidFacet myFacet;
+  @NotNull private final IdeResourceNameValidator myNameValidator = IdeResourceNameValidator.forFilename(ResourceFolderType.DRAWABLE);
 
   /**
    * Initializes a panel which can generate Android launcher icons. The supported types passed in
@@ -358,7 +361,7 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
     // This method delays actual state loading until default icon text is obtained from the project
     // resource repository.
     ApplicationManager.getApplication().executeOnPooledThread(() -> {
-      ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myFacet);
+      StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myFacet);
       LocalResourceRepository projectResources = repositoryManager.getProjectResources();
       List<ResourceItem> items = projectResources.getResources(repositoryManager.getNamespace(), ResourceType.STRING, "app_name");
       ResourceValue resourceValue = !items.isEmpty() ? items.get(0).getResourceValue() : null;
@@ -525,8 +528,12 @@ public class ConfigureTvBannerPanel extends JPanel implements Disposable, Config
     // Validate foreground and background layer names when the panel is active.
     myValidatorPanel.registerTest(nameIsNotEmptyExpression(isActive, myForegroundLayerName),
                                   "Foreground layer name must be set");
+    myValidatorPanel.registerValidator(
+        myForegroundLayerName, name -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(name.trim())));
     myValidatorPanel.registerTest(nameIsNotEmptyExpression(isActive, myBackgroundLayerName),
                                   "Background layer name must be set");
+    myValidatorPanel.registerValidator(
+        myBackgroundLayerName, name -> Validator.Result.fromNullableMessage(myNameValidator.getErrorText(name.trim())));
     myValidatorPanel.registerTest(namesAreDistinctExpression(isActive, myOutputName, myForegroundLayerName),
                                   "Foreground layer must have a name distinct from the icon name");
     myValidatorPanel.registerTest(namesAreDistinctExpression(isActive, myOutputName, myBackgroundLayerName),

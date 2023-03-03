@@ -27,6 +27,7 @@ import static com.intellij.util.ThreeState.YES;
 import com.android.annotations.concurrency.AnyThread;
 import com.android.repository.Revision;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector;
 import com.android.tools.idea.gradle.project.sync.GradleFiles;
@@ -41,7 +42,6 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.editor.colors.EditorColors;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.keymap.KeymapUtil;
 import com.intellij.openapi.module.Module;
@@ -131,7 +131,9 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     }
 
     if (myVersionCatalogDetector.isVersionCatalogProject()) {
-      return NotificationPanel.Type.COMPLICATED_PROJECT;
+      if (StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_CAVEATS.get()) {
+        return NotificationPanel.Type.COMPLICATED_PROJECT;
+      }
     }
 
     return NotificationPanel.Type.PROJECT_STRUCTURE;
@@ -204,6 +206,7 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
         @Override
         @NotNull
         NotificationPanel create(@NotNull Project project, @NotNull VirtualFile file, @NotNull GradleProjectInfo projectInfo) {
+          if (!IdeInfo.getInstance().isAndroidStudio()) return null;
           boolean buildFilesModified = GradleFiles.getInstance(project).areExternalBuildFilesModified();
           String text = (buildFilesModified ? "External build files" : "Gradle files") +
                         " have changed since last project sync. A project sync may be necessary for the IDE to work properly.";

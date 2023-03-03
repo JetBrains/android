@@ -126,10 +126,8 @@ class PreviewFiltersTest {
       previewFilters.previewNamesArray()
     )
     previewFilters.instanceFilter =
-      (staticPreviewProvider.previewElements().first {
-        it.composableMethodFqn == "SeparatePreview"
-      } as
-        SingleComposePreviewElementInstance)
+      (staticPreviewProvider.previewElements().first { it.composableMethodFqn == "SeparatePreview" }
+        as SingleComposePreviewElementInstance)
     // This should filter and keep the group
     assertEquals("SeparatePreview", previewFilters.previewElements().single().instanceId)
     assertEquals("GroupA", previewFilters.groupNameFilter.name)

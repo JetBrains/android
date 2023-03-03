@@ -146,7 +146,8 @@ constructor(
         field = value
         if (value) {
           processesModel.selectedProcess?.let { process ->
-            if (process.isRunning &&
+            if (
+              process.isRunning &&
                 (currentProcess?.isRunning == false || process.pid != currentProcess?.pid)
             ) {
               handleProcessChanged(processesModel.selectedProcess)
@@ -414,9 +415,8 @@ constructor(
 
       val tabs =
         tabTargetsList.map { tabTargets ->
-          withContext(uiDispatcher) { AppInspectorTabShell(tabTargets) }.also { shell ->
-            launchInspectorForTab(process, shell, force)
-          }
+          withContext(uiDispatcher) { AppInspectorTabShell(tabTargets) }
+            .also { shell -> launchInspectorForTab(process, shell, force) }
         }
 
       withContext(uiDispatcher) {

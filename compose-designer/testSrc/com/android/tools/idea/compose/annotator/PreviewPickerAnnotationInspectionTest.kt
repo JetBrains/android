@@ -99,7 +99,8 @@ internal class PreviewPickerAnnotationInspectionTest(
         )
         @Composable
         fun preview1() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // No existing errors
@@ -136,7 +137,8 @@ Missing parameter: dpi.""",
         )
         @Composable
         fun preview1() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // No existing errors
@@ -178,7 +180,8 @@ Missing parameter: height.""",
         )
         @Composable
         fun preview1() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     checkInspectionErrorAndApplyFix(
@@ -201,7 +204,7 @@ Parameter: height should have Float(dp/px) value.""",
     assertEquals(affectedText, info.text)
     assertEquals(errorDescription, info.description)
 
-    val fixAction = info.findRegisteredQuickFix { desc, _ -> desc.action}
+    val fixAction = info.findRegisteredQuickFix { desc, _ -> desc.action }
     assertEquals(replaceWithMessage, fixAction.text)
 
     runUndoTransparentWriteAction {
@@ -213,10 +216,13 @@ Parameter: height should have Float(dp/px) value.""",
   }
 
   private fun annotateAndGetLintInfo(): HighlightInfo? =
-    fixture.doHighlighting().filter { it.severity == HighlightSeverity.WARNING }.let {
-      assert(it.size <= 1)
-      it.firstOrNull()
-    }
+    fixture
+      .doHighlighting()
+      .filter { it.severity == HighlightSeverity.WARNING }
+      .let {
+        assert(it.size <= 1)
+        it.firstOrNull()
+      }
 }
 
 private fun CodeInsightTestFixture.backspace(times: Int = 1) = type("\b".repeat(times))

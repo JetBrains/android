@@ -19,6 +19,8 @@ import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.WrongThreadInterproceduralDetector
 
-class AndroidLintWrongThreadInterproceduralInspection : AndroidLintInspectionBase(
-  AndroidLintBundle.message("android.lint.inspections.wrong.thread.interprocedural"),
-  WrongThreadInterproceduralDetector.ISSUE)
+class AndroidLintWrongThreadInterproceduralInspection :
+  AndroidLintInspectionBase(
+    AndroidLintBundle.message("android.lint.inspections.wrong.thread.interprocedural"),
+    WrongThreadInterproceduralDetector.ISSUE
+  )

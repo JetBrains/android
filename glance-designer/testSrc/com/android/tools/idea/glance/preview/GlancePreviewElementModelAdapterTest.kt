@@ -93,7 +93,8 @@ class GlancePreviewElementModelAdapterTest {
     android:layout_height="wrap_content"
     tools:composableName="foo" />
 
-""".trimIndent(),
+"""
+        .trimIndent(),
       AppWidgetModelAdapter.toXml(
         GlancePreviewElement(simplestDisplaySettings(), null, null, "foo")
       )
@@ -110,7 +111,8 @@ class GlancePreviewElementModelAdapterTest {
     android:layout_height="wrap_content"
     tools:composableName="foo" />
 
-""".trimIndent(),
+"""
+        .trimIndent(),
       WearTilesModelAdapter.toXml(
         GlancePreviewElement(simplestDisplaySettings(), null, null, "foo")
       )

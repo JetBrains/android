@@ -19,13 +19,10 @@ import com.android.tools.asdriver.tests.AndroidProject
 import com.android.tools.asdriver.tests.AndroidSystem
 import com.android.tools.asdriver.tests.MavenRepo
 import com.android.tools.asdriver.tests.MemoryDashboardNameProviderWatcher
-import com.jetbrains.rd.util.getLogger
-import com.jetbrains.rd.util.warn
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 
 
 class BuildAndRunInstrumentedTest {
@@ -52,8 +49,6 @@ class BuildAndRunInstrumentedTest {
           emulator.waitForBoot()
           adb.waitForDevice(emulator)
 
-          studio.executeAction("MakeGradleProject")
-          studio.waitForBuild()
           studio.executeAction("Run")
           system.installation.ideaLog.waitForMatchingLine(
             ".*AndroidProcessHandler - Adding device emulator-${emulator.portString} to monitor for launched app: com\\.example\\.instrumentedtestapp",

@@ -70,6 +70,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withTimeout
 import org.jetbrains.annotations.VisibleForTesting
+import java.lang.ref.WeakReference
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -172,6 +173,23 @@ private fun cancelJobOnDispose(disposable: Disposable, job: Job) {
       job.cancel(CancellationException("$disposable has been disposed."))
     }
   }
+}
+
+/**
+ * Returns a [Disposable] that is disposed when the [CoroutineScope] scope completes. The returned [Disposable] can be used
+ * as the root.
+ * This is analogous to [AndroidCoroutineScope] where this generates a [Disposable] for the given [CoroutineScope].
+ */
+fun CoroutineScope.scopeDisposable(): Disposable {
+  val disposable = Disposer.newDisposable()
+
+  // We use a weak reference so the disposable is not held by the coroutine if the caller ends up not
+  // using it.
+  val disposableRef = WeakReference(disposable)
+  coroutineContext.job.invokeOnCompletion {
+    disposableRef.get()?.let { Disposer.dispose(it) }
+  }
+  return disposable
 }
 
 /**

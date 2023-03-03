@@ -185,7 +185,11 @@ internal class VideoDecoder(
 
     init {
       thisLogger().debug { "Receiving $codecName video stream" }
-      val ffmpegCodecName = if (codecName == "avc") "h264" else codecName
+      val ffmpegCodecName = when (codecName) {
+        "av01" -> "av1"
+        "avc" -> "h264"
+        else -> codecName
+      }
       codec = avcodec_find_decoder_by_name(ffmpegCodecName) ?: throw VideoDecoderException("$ffmpegCodecName decoder not found")
       codecContext = avcodec_alloc_context3(codec) ?: throw VideoDecoderException("Could not allocate decoder context")
       parserContext = av_parser_init(codec.id())?.apply {

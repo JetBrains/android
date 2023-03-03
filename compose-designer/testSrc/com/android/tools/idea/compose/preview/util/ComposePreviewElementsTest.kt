@@ -95,12 +95,14 @@ class ComposePreviewElementsTest {
     val factory = DocumentBuilderFactory.newDefaultInstance()
     val documentBuilder = factory.newDocumentBuilder()
 
-    previewsToCheck.map { it.toPreviewXml().buildString() }.forEach {
-      try {
-        documentBuilder.parse(InputSource(StringReader(it)))
-      } catch (t: Throwable) {
-        fail(
-          """
+    previewsToCheck
+      .map { it.toPreviewXml().buildString() }
+      .forEach {
+        try {
+          documentBuilder.parse(InputSource(StringReader(it)))
+        } catch (t: Throwable) {
+          fail(
+            """
 Failed to parse Preview XML
 
 XML
@@ -111,9 +113,9 @@ Exception
 ----------------
 $t
 """
-        )
+          )
+        }
       }
-    }
   }
 
   @Test

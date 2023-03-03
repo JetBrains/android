@@ -29,6 +29,7 @@ import com.android.tools.idea.editors.theme.ThemeResolver
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle
 import com.android.tools.idea.model.ActivityAttributesSnapshot
 import com.android.tools.idea.model.AndroidManifestIndex
+import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.logManifestIndexQueryError
@@ -229,6 +230,13 @@ fun Module.getThemeNameForActivity(activityFqcn: String): String? {
  * Returns a default theme
  */
 fun Module.getDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String {
+  // Facet being null should not happen, but has been observed to happen in rare scenarios (such as 73332530), probably
+  // related to race condition between Gradle sync and layout rendering
+  val moduleInfo = AndroidFacet.getInstance(this)?.let { StudioAndroidModuleInfo.getInstance(it) }
+  return getDefaultTheme(moduleInfo, renderingTarget, screenSize, device)
+}
+
+fun getDefaultTheme(moduleInfo: AndroidModuleInfo?, renderingTarget: IAndroidTarget?, screenSize: ScreenSize?, device: Device?): String {
   // For Android Wear and Android TV, the defaults differ
   if (device != null) {
     if (HardwareConfigHelper.isWear(device)) {
@@ -239,12 +247,12 @@ fun Module.getDefaultTheme(renderingTarget: IAndroidTarget?, screenSize: ScreenS
     }
   }
 
-  // Facet being null should not happen, but has been observed to happen in rare scenarios (such as 73332530), probably
-  // related to race condition between Gradle sync and layout rendering
-  val facet = AndroidFacet.getInstance(this) ?: return SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Material.Light"
+  if (moduleInfo == null) {
+    return SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX + "Theme.Material.Light"
+  }
 
   // From manifest theme documentation: "If that attribute is also not set, the default system theme is used."
-  val targetSdk = StudioAndroidModuleInfo.getInstance(facet).targetSdkVersion.apiLevel
+  val targetSdk = moduleInfo.targetSdkVersion.apiLevel
 
   val renderingTargetSdk = renderingTarget?.version?.apiLevel ?: targetSdk
 

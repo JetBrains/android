@@ -160,7 +160,7 @@ public class ResourceNotificationManager {
 
   public @NotNull ResourceVersion getCurrentVersion(@NotNull AndroidFacet facet, @Nullable PsiFile file,
                                                     @Nullable Configuration configuration) {
-    LocalResourceRepository repository = ResourceRepositoryManager.getAppResources(facet);
+    LocalResourceRepository repository = StudioResourceRepositoryManager.getAppResources(facet);
     if (file != null) {
       long fileStamp = file.getModificationStamp();
       if (configuration != null) {
@@ -420,7 +420,7 @@ public class ResourceNotificationManager {
         // we want all repos to add their own variant listeners before ours (such that
         // when the variant changes, the project resources get notified and updated
         // before our own update listener attempts to re-render).
-        ResourceRepositoryManager.getProjectResources(myFacet);
+        StudioResourceRepositoryManager.getProjectResources(myFacet);
 
         assert myConnection == null;
         myConnection = myFacet.getModule().getProject().getMessageBus().connect(myFacet);
@@ -459,7 +459,7 @@ public class ResourceNotificationManager {
     }
 
     private long getAppResourcesModificationCount() {
-      LocalResourceRepository appResources = ResourceRepositoryManager.getInstance(myFacet).getCachedAppResources();
+      LocalResourceRepository appResources = StudioResourceRepositoryManager.getInstance(myFacet).getCachedAppResources();
       return appResources == null ? 0 : appResources.getModificationCount();
     }
 

@@ -298,7 +298,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     @NotNull Function<DesignSurface<T>, PositionableContentLayoutManager> positionableLayoutManagerProvider,
     @NotNull Function<DesignSurface<T>, DesignSurfaceActionHandler> designSurfaceActionHandlerProvider,
     @NotNull ZoomControlsPolicy zoomControlsPolicy) {
-    this(project, parentDisposable, actionManagerProvider, interactionProviderCreator,
+    this(project, parentDisposable, actionManagerProvider, SurfaceInteractable::new, interactionProviderCreator,
          positionableLayoutManagerProvider, designSurfaceActionHandlerProvider, new DefaultSelectionModel(), zoomControlsPolicy, Double.MAX_VALUE);
   }
 
@@ -306,6 +306,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     @NotNull Project project,
     @NotNull Disposable parentDisposable,
     @NotNull Function<DesignSurface<T>, ActionManager<? extends DesignSurface<T>>> actionManagerProvider,
+    @NotNull Function<DesignSurface<T>, Interactable> interactableProvider,
     @NotNull Function<DesignSurface<T>, InteractionHandler> interactionProviderCreator,
     @NotNull Function<DesignSurface<T>, PositionableContentLayoutManager> positionableLayoutManagerProvider,
     @NotNull Function<DesignSurface<T>, DesignSurfaceActionHandler> actionHandlerProvider,
@@ -430,7 +431,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
       }
     });
 
-    Interactable interactable = new SurfaceInteractable(this);
+    Interactable interactable = interactableProvider.apply(this);
     myGuiInputHandler = new GuiInputHandler(this, interactable, interactionProviderCreator.apply(this));
     myGuiInputHandler.startListening();
     //noinspection AbstractMethodCallInConstructor

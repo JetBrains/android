@@ -33,10 +33,12 @@ import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
 import com.android.tools.idea.run.activity.launch.DefaultActivityLaunch;
 import com.android.tools.idea.run.activity.launch.NoLaunch;
 import com.android.tools.idea.run.activity.launch.SpecificActivityLaunch;
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
 import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor;
 import com.android.tools.idea.run.editor.ApplicationRunParameters;
 import com.android.tools.idea.run.editor.DeployTargetProvider;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
+import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.ui.BaseAction;
 import com.android.tools.idea.stats.RunStats;
 import com.google.common.collect.ImmutableList;
@@ -50,11 +52,13 @@ import com.intellij.execution.RunnerIconProvider;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.configurations.RefactoringListenerProvider;
 import com.intellij.execution.configurations.RunConfiguration;
+import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.junit.RefactoringListeners;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
@@ -122,6 +126,27 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   @Override
   public @NotNull List<DeployTargetProvider> getApplicableDeployTargetProviders() {
     return getDeployTargetContext().getApplicableDeployTargetProviders(false);
+  }
+
+  @Override
+  protected AndroidConfigurationExecutor getExecutor(ExecutionEnvironment env, AndroidFacet facet, DeviceFutures deployFutures)
+    throws ExecutionException {
+    ApplicationIdProvider applicationIdProvider = getApplicationIdProvider();
+    if (applicationIdProvider == null) {
+      throw new RuntimeException("Cannot get ApplicationIdProvider");
+    }
+
+    boolean isDebugging = env.getExecutor() instanceof DefaultDebugExecutor;
+    LaunchOptions.Builder launchOptions = getLaunchOptions().setDebug(isDebugging);
+
+    ConsoleProvider consoleProvider = getConsoleProvider();
+    ApkProvider apkProvider = getApkProvider();
+    if (apkProvider == null) {
+      throw new RuntimeException("Cannot get ApkProvider");
+    }
+    LaunchTasksProvider launchTasksProvider =
+      new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions.build());
+    return new LaunchTaskRunner(consoleProvider, applicationIdProvider, env, deployFutures, launchTasksProvider);
   }
 
   @Override
@@ -231,14 +256,13 @@ public class AndroidRunConfiguration extends AndroidRunConfigurationBase impleme
   }
 
   @NotNull
-  @Override
-  protected ConsoleProvider getConsoleProvider(boolean runOnMultipleDevices) {
+  protected ConsoleProvider getConsoleProvider() {
     return new ConsoleProvider() {
       @NotNull
       @Override
       public ConsoleView createAndAttach(@NotNull Disposable parent,
                                          @NotNull ProcessHandler handler,
-                                         @NotNull Executor executor) throws ExecutionException {
+                                         @NotNull Executor executor) {
         Project project = getConfigurationModule().getProject();
         final TextConsoleBuilder builder = TextConsoleBuilderFactory.getInstance().createBuilder(project);
         ConsoleView console = builder.getConsole();

@@ -113,9 +113,11 @@ object TestUtils {
   }
 
   fun findAllCards(parent: Component): List<Card> =
-    TreeWalker(parent).descendantStream().filter { it is Card }.collect(Collectors.toList()).map {
-      it as Card
-    }
+    TreeWalker(parent)
+      .descendantStream()
+      .filter { it is Card }
+      .collect(Collectors.toList())
+      .map { it as Card }
 
   fun Component.findToolbar(place: String): ActionToolbarImpl {
     return TreeWalker(this)

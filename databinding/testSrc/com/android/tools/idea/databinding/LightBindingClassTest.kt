@@ -23,7 +23,7 @@ import com.android.tools.idea.databinding.util.LayoutBindingTypeUtil
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.databinding.utils.assertExpected
 import com.android.tools.idea.databinding.viewbinding.LightViewBindingClassTest
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findClass
 import com.android.tools.idea.util.androidFacet
@@ -582,7 +582,7 @@ class LightBindingClassTest {
     val context = fixture.addClass("public class MainActivity {}")
 
     // initialize app resources
-    ResourceRepositoryManager.getAppResources(facet)
+    StudioResourceRepositoryManager.getAppResources(facet)
 
     val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     val fields = binding.fields
@@ -611,7 +611,7 @@ class LightBindingClassTest {
     val context = fixture.addClass("public class MainActivity {}")
 
     // initialize app resources
-    ResourceRepositoryManager.getAppResources(facet)
+    StudioResourceRepositoryManager.getAppResources(facet)
 
     val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     val fields = binding.fields
@@ -644,7 +644,7 @@ class LightBindingClassTest {
     val context = fixture.addClass("public class MainActivity {}")
 
     // initialize app resources
-    ResourceRepositoryManager.getAppResources(facet)
+    StudioResourceRepositoryManager.getAppResources(facet)
 
     val binding = fixture.findClass("test.db.databinding.ActivityMainBinding", context) as LightBindingClass
     val fields = binding.fields
@@ -966,7 +966,7 @@ class LightBindingClassTest {
     fixture.addFileToProject("res/layout/activity_first.xml", sampleXml)
 
     // initialize app resources
-    ResourceRepositoryManager.getAppResources(facet)
+    StudioResourceRepositoryManager.getAppResources(facet)
 
     assertThat(LayoutBindingModuleCache.getInstance(facet).bindingLayoutGroups.map { group -> group.mainLayout.className })
       .containsExactly("ActivityFirstBinding")

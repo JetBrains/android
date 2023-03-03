@@ -19,6 +19,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.compilationError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalError
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonKotlin
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedBuildSrcChange
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedRecoverableSourceModification
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.unsupportedUnrecoverableSourceModification
@@ -89,11 +90,16 @@ internal fun checkUnsupportedPsiEvents(change: EditEvent) {
   }
 
   if (change.unsupportedPsiEvents.contains(UnsupportedPsiEvent.IMPORT_DIRECTIVES)) {
-    throw unsupportedRecoverableSourceModification("Updates to changes to import statement is not supported", change.file)
+    throw unsupportedRecoverableSourceModification("Import statement has been edited, and Live Edit is temporarily paused." +
+                                                   " Live Edit will continue on the next supported edit.", change.file)
   }
 
   if (change.unsupportedPsiEvents.contains(UnsupportedPsiEvent.FIELD_CHANGES)) {
     throw unsupportedUnrecoverableSourceModification("Field changes", change.file)
+  }
+
+  if (change.unsupportedPsiEvents.contains(UnsupportedPsiEvent.NON_KOTLIN)) {
+    throw nonKotlin(change.file)
   }
 
   if (!change.unsupportedPsiEvents.isEmpty()) {

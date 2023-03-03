@@ -55,6 +55,9 @@
     <backgroundPostStartupActivity implementation="com.android.tools.idea.diagnostics.WindowsPerformanceHintsChecker$MyProjectStartupActivity" os="windows" />
     <backgroundPostStartupActivity implementation="com.android.tools.idea.diagnostics.WindowsCRuntimeChecker" os="windows" />
     <backgroundPostStartupActivity implementation="com.android.tools.idea.diagnostics.DiagnosticsReportCleaner" />
+    <applicationService serviceInterface="com.intellij.toolWindow.DefaultToolWindowLayoutProvider"
+                        serviceImplementation="com.android.tools.idea.AndroidStudioDefaultToolWindowLayoutProvider"
+                        overrides="true"/>
   </extensions>
 
   <!--The following suppression is currently needed because PluginXmlDomInspection says, "Could not determine target platform version." -->
@@ -135,6 +138,7 @@
     <group id="Android.MainToolbarRight" >
       <reference id="MakeGradleProject" />
       <reference id="Android.InstantRunActions" />
+      <reference id="AndroidConnectDebuggerAction" />
       <reference id="Android.SyncProject" />
 
       <add-to-group group-id="MainToolbarRight" anchor="before" relative-to-action="SearchEverywhere" />

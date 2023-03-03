@@ -602,6 +602,14 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> ATTACH_ON_WAIT_FOR_DEBUGGER = Flag.create(
+    RUNDEBUG,
+    "debug.app.auto.attach.wait.for.debugger",
+    "Auto attach debugger on Debug.waitForDebugger().",
+    "If the user has Debug.waitForDebugger() calls within the app code, this will allow the debugger to automatically attach to the app.",
+    true
+  );
+
   //endregion
 
   //region Logcat
@@ -699,6 +707,10 @@ public final class StudioFlags {
     GRADLE_IDE, "build.analyzer.category.analysis", "Enable 'Group by Task Category' category task analysis",
     "Enable 'Group by Task Category' category task analysis in Build Analyzer.", true);
 
+  public static final Flag<Boolean> BUILD_OUTPUT_DOWNLOADS_INFORMATION = Flag.create(
+    GRADLE_IDE, "build.output.downloads.information", "Enable downloads information in Build/Sync View",
+    "Show separate node with downloads information in Build and Sync views.", true);
+
   public static final Flag<Boolean> DISABLE_FORCED_UPGRADES = Flag.create(
     GRADLE_IDE, "forced.agp.update", "Disable forced Android Gradle plugin upgrades",
     "This option is only respected when running Android Studio internally.", false);
@@ -736,6 +748,10 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT = Flag.create(
     GRADLE_IDE, "gradle.extended.version.catalog", "Gradle version catalog support", "Multiple TOML files, catalog variables in PSD", true);
+
+  public static final Flag<Boolean> GRADLE_VERSION_CATALOG_DISPLAY_CAVEATS =
+    Flag.create(GRADLE_IDE, "gradle.version.catalog.caveats", "IDE warnings if Version Catalogs used",
+                "Display banners and other notes in Gradle-related tools when Version Catalogs are in use", true);
 
   public static final Flag<Boolean> GRADLE_SAVE_LOG_TO_FILE = Flag.create(
     GRADLE_IDE, "save.log.to.file", "Save log to file", "Appends the build log to the given file", false);
@@ -801,6 +817,11 @@ public final class StudioFlags {
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.auto.connect.foreground", "Enable automatically connecting to foreground process",
     "When this flag is enabled, LayoutInspector will automatically connect to whatever debuggable process is in the foreground on the phone.",
     true);
+
+  public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED = Flag.create(
+    LAYOUT_INSPECTOR, "dynamic.layout.inspector.enable.running.devices", "Enable Layout Inspector in Running Devices",
+    "When this flag is enabled, LayoutInspector be integrated in the Running Devices tool window, instead of in its own tool window.",
+    false);
 
   public static final Flag<Boolean> DYNAMIC_LAYOUT_INSPECTOR_IGNORE_RECOMPOSITIONS_IN_FRAMEWORK = Flag.create(
     LAYOUT_INSPECTOR, "dynamic.layout.inspector.ignore.framework.recompositions", "Ignore recompositions in compose framework",
@@ -1062,7 +1083,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> WINDOWS_UCRT_CHECK_ENABLED = Flag.create(
     SYSTEM_HEALTH, "windows.ucrt.check.enabled", "Enable Universal C Runtime system health check",
     "If enabled, a notification will be shown if the Universal C Runtime in Windows is not installed",
-    false);
+    true);
 
   public static final Flag<Boolean> ANTIVIRUS_NOTIFICATION_ENABLED = Flag.create(
     SYSTEM_HEALTH, "antivirus.notification.enabled", "Enable antivirus system health check",
@@ -1270,6 +1291,10 @@ public final class StudioFlags {
     COMPOSE, "allocation.limiter", "If enabled, limits allocations per render",
     "If enabled, limits the number of allocations that user code can do in a single render action",
     false);
+  public static final Flag<Boolean> COMPOSE_PREVIEW_SELECTION = Flag.create(
+    COMPOSE, "compose.preview.selection", "Enable the select/deselect interaction with Previews",
+    "If enabled, Previews will be selectable, and some interactions will only be enabled for selected Previews",
+    true);
   //endregion
 
   // region Wear surfaces
@@ -1557,8 +1582,8 @@ public final class StudioFlags {
   private static final FlagGroup NEW_COLLECT_LOGS_DIALOG = new FlagGroup(FLAGS, "new.collect.logs", "New Collect Logs Dialog");
   public static final Flag<Boolean> ENABLE_NEW_COLLECT_LOGS_DIALOG = Flag.create(
     NEW_COLLECT_LOGS_DIALOG, "enable.new.collect.logs.dialog", "Enable new collect logs dialog",
-    "Enable the new send feedback dialog",
-    false
+    "Enable the collect logs dialog",
+    true
   );
   // endregion NEW_COLLECT_LOGS_DIALOG
 

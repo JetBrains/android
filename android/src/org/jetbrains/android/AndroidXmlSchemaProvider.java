@@ -34,7 +34,7 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.collect.ImmutableSet;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.application.ReadAction;
@@ -158,12 +158,12 @@ public class AndroidXmlSchemaProvider extends XmlSchemaProvider {
 
   @NotNull
   private static String getLocalXmlNamespace(@NotNull AndroidFacet facet) {
-    return ResourceRepositoryManager.getInstance(facet).getNamespace().getXmlNamespaceUri();
+    return StudioResourceRepositoryManager.getInstance(facet).getNamespace().getXmlNamespaceUri();
   }
 
   @NotNull
   private static ImmutableSet<String> getResourceNamespaces(@NotNull AndroidFacet facet) {
-    return ResourceRepositoryManager.getAppResources(facet).getNamespaces()
+    return StudioResourceRepositoryManager.getAppResources(facet).getNamespaces()
                                     .stream()
                                     .map(ResourceNamespace::getXmlNamespaceUri)
                                     .collect(toImmutableSet());

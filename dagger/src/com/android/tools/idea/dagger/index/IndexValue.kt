@@ -54,7 +54,7 @@ abstract class IndexValue(val dataType: DataType) {
    *
    * @param expectedPsiType the expected type of the Dagger element being resolved.
    * @return a list of valid [DaggerElement]s, or the empty list when no elements can be found that
-   * match the given type.
+   *   match the given type.
    */
   fun resolveToDaggerElements(
     expectedPsiType: PsiType,

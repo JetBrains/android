@@ -19,6 +19,8 @@ import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.ExportedFlagDetector
 
-class AndroidLintIntentFilterExportedReceiverInspection : AndroidLintInspectionBase(
-  AndroidLintBundle.message("android.lint.inspections.intent.filter.exported.flag"), ExportedFlagDetector.ISSUE
-)
+class AndroidLintIntentFilterExportedReceiverInspection :
+  AndroidLintInspectionBase(
+    AndroidLintBundle.message("android.lint.inspections.intent.filter.exported.flag"),
+    ExportedFlagDetector.ISSUE
+  )

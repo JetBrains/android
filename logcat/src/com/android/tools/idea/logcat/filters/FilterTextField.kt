@@ -97,6 +97,7 @@ import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.JSeparator
 import javax.swing.ListCellRenderer
+import javax.swing.ListModel
 import javax.swing.SwingConstants.HORIZONTAL
 import javax.swing.SwingConstants.VERTICAL
 import kotlin.coroutines.CoroutineContext
@@ -543,7 +544,7 @@ internal class FilterTextField(
 
       override fun mouseMoved(event: MouseEvent) {
         val index = selectedIndex
-        val item = model.getElementAt(index) as? Item
+        val item = model.getItemAt(index)
 
         if (item == null) {
           hoveredFavoriteIndex?.setIsHoveredFavorite(false)
@@ -568,6 +569,9 @@ internal class FilterTextField(
         val item = model.getElementAt(this) as? Item ?: return
         item.isFavoriteHovered = value
       }
+
+      private fun ListModel<FilterHistoryItem>.getItemAt(index: Int): Item? =
+        runCatching { model.getElementAt(index) }.getOrNull() as? Item
     }
   }
 

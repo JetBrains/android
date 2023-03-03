@@ -78,7 +78,8 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
     val schema = SqliteSchema(listOf(SqliteTable("User", emptyList(), null, false)))
 
     val sqlFile =
-      myFixture.configureByText(AndroidSqlFileType.INSTANCE, "SELECT * FROM Us<caret>er")
+      myFixture
+        .configureByText(AndroidSqlFileType.INSTANCE, "SELECT * FROM Us<caret>er")
         .virtualFile
     sqlFile.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
     myFixture.configureFromExistingVirtualFile(sqlFile)
@@ -122,7 +123,8 @@ class SqliteSchemaContextTest : JavaCodeInsightFixtureTestCase() {
         )
       )
     val sqlFile =
-      myFixture.configureByText(AndroidSqlFileType.INSTANCE, "SELECT n<caret>ame FROM User")
+      myFixture
+        .configureByText(AndroidSqlFileType.INSTANCE, "SELECT n<caret>ame FROM User")
         .virtualFile
     sqlFile.putUserData(SqliteSchemaContext.SQLITE_SCHEMA_KEY, schema)
 

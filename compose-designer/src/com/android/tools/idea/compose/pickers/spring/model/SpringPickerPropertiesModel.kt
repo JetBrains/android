@@ -72,31 +72,44 @@ private object SpringPropertiesProvider : PsiPropertiesProvider {
     model: PsiCallPropertiesModel,
     resolvedCall: ResolvedCall<*>
   ): Collection<PsiPropertyItem> = runReadAction {
-    resolvedCall.valueArguments.toList().sortedBy { (descriptor, _) -> descriptor.index }.map {
-      (descriptor, resolved) ->
-      val argumentExpression =
-        (resolved as? ExpressionValueArgument)?.valueArgument?.getArgumentExpression()
-      when (descriptor.name.asString()) {
-        PARAMETER_THRESHOLD, PARAMETER_RATIO, PARAMETER_STIFFNESS ->
-          FloatPsiCallParameter(project, model, resolvedCall, descriptor, argumentExpression, null)
-        else ->
-          PsiCallParameterPropertyItem(
-            project,
-            model,
-            resolvedCall,
-            descriptor,
-            argumentExpression,
-            null
-          )
+    resolvedCall.valueArguments
+      .toList()
+      .sortedBy { (descriptor, _) -> descriptor.index }
+      .map { (descriptor, resolved) ->
+        val argumentExpression =
+          (resolved as? ExpressionValueArgument)?.valueArgument?.getArgumentExpression()
+        when (descriptor.name.asString()) {
+          PARAMETER_THRESHOLD,
+          PARAMETER_RATIO,
+          PARAMETER_STIFFNESS ->
+            FloatPsiCallParameter(
+              project,
+              model,
+              resolvedCall,
+              descriptor,
+              argumentExpression,
+              null
+            )
+          else ->
+            PsiCallParameterPropertyItem(
+              project,
+              model,
+              resolvedCall,
+              descriptor,
+              argumentExpression,
+              null
+            )
+        }
       }
-    }
   }
 }
 
 private object SpringControlTypeProvider : PsiPropertyItemControlTypeProvider {
   override fun invoke(property: PsiPropertyItem): ControlType =
     when (property.name) {
-      PARAMETER_RATIO, PARAMETER_STIFFNESS, PARAMETER_THRESHOLD -> ControlType.COMBO_BOX
+      PARAMETER_RATIO,
+      PARAMETER_STIFFNESS,
+      PARAMETER_THRESHOLD -> ControlType.COMBO_BOX
       else -> ControlType.TEXT_EDITOR
     }
 }

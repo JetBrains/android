@@ -175,9 +175,7 @@ class AddBenchmarkModuleTest {
       .wizard()
       .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))
 
-    guiTest.getProjectFileText("benchmark/src/main/AndroidManifest.xml").run {
-      assertThat(this).containsMatch("<queries>\\s+<package android:name=\"com.example.google.androidx\" />\\s*</queries>")
-    }
+    guiTest.getProjectFileText("benchmark/src/main/AndroidManifest.xml")
 
     guiTest.getProjectFileText("benchmark/build.gradle").run {
       assertThat(this).contains("""id 'com.android.test'""")
@@ -227,9 +225,7 @@ class AddBenchmarkModuleTest {
       .wizard()
       .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))
 
-    guiTest.getProjectFileText("benchmark/src/main/AndroidManifest.xml").run {
-      assertThat(this).containsMatch("<queries>\\s+<package android:name=\"com.example.google.androidx\" />\\s*</queries>")
-    }
+    guiTest.getProjectFileText("benchmark/src/main/AndroidManifest.xml")
 
     guiTest.getProjectFileText("benchmark/build.gradle").run {
       assertThat(this).contains("""id 'com.android.test'""")

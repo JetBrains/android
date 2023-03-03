@@ -40,8 +40,7 @@ private constructor(
       positionProxy: PositionProxy
     ): PropertyCurve {
       val curves =
-        property
-          .components
+        property.components
           .mapIndexed { componentId, _ ->
             ComponentCurve.create(
               state,

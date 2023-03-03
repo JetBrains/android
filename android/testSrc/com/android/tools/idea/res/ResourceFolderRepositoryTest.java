@@ -170,7 +170,7 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
 
   private @NotNull ResourceFolderRepository createRepository(boolean createCache) {
     VirtualFile dir = getResourceDirectory();
-    ResourceNamespace namespace = ResourceRepositoryManager.getInstance(myFacet).getNamespace();
+    ResourceNamespace namespace = StudioResourceRepositoryManager.getInstance(myFacet).getNamespace();
     ResourceFolderRepositoryCachingData cachingData =
         ResourceFolderRepositoryFileCacheService.get().getCachingData(getProject(), dir, createCache ? directExecutor() : null);
     return ResourceFolderRepository.create(myFacet, dir, namespace, cachingData);

@@ -77,7 +77,7 @@ public class AndroidProjectRootListener {
 
       AndroidDependenciesCache.getInstance(module).dropCache();
       ResourceFolderManager.getInstance(facet).checkForChanges();
-      ResourceRepositoryManager.getInstance(facet).updateRootsAndLibraries();
+      StudioResourceRepositoryManager.getInstance(facet).updateRootsAndLibraries();
     }
   }
 

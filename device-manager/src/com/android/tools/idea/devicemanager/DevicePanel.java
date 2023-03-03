@@ -93,17 +93,18 @@ public abstract class DevicePanel extends JBPanel<DevicePanel> implements Dispos
     myDetailsPanelPanel.viewDetails(panel);
 
     switch (index) {
-      case DetailsPanel.DEVICE_INFO_TAB_INDEX:
-        panel.requestFocusInWindow();
-        break;
-      case DetailsPanel.PAIRED_DEVICES_TAB_INDEX:
-        panel.getPairedDevicesPanel().orElseThrow().getTable().requestFocusInWindow();
-        break;
-      default:
+      case DetailsPanel.DEVICE_INFO_TAB_INDEX -> panel.requestFocusInWindow();
+      case DetailsPanel.PAIRED_DEVICES_TAB_INDEX -> panel.getPairedDevicesPanel().orElseThrow().getTable().requestFocusInWindow();
+      default -> {
         assert false : index;
-        break;
+      }
     }
   }
 
-  protected abstract @NotNull DetailsPanel newDetailsPanel();
+  protected @NotNull DetailsPanel newDetailsPanel() {
+    var panel = new DetailsPanel("Device Details", "Select a device to view device details");
+    panel.init();
+
+    return panel;
+  }
 }

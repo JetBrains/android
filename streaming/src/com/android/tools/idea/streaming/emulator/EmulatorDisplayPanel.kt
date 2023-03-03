@@ -17,6 +17,7 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.idea.streaming.AbstractDisplayPanel
+import com.android.tools.idea.streaming.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.PRIMARY_DISPLAY_ID
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
@@ -46,7 +47,7 @@ class EmulatorDisplayPanel(
   override fun getData(dataId: String): Any? {
     return when (dataId) {
       EMULATOR_CONTROLLER_KEY.name -> displayView.emulator
-      EMULATOR_VIEW_KEY.name, ZOOMABLE_KEY.name -> displayView
+      EMULATOR_VIEW_KEY.name, DISPLAY_VIEW_KEY.name, ZOOMABLE_KEY.name -> displayView
       else -> null
     }
   }

@@ -27,15 +27,19 @@ import com.android.tools.lint.detector.api.Severity
 import com.android.tools.lint.model.LintModelLintOptions
 
 /**
- * Configuration used in IDE projects, unless it's a Gradle project with custom lint.xml or severity overrides,
- * in which case [LintIdeGradleConfiguration] is used instead
+ * Configuration used in IDE projects, unless it's a Gradle project with custom lint.xml or severity
+ * overrides, in which case [LintIdeGradleConfiguration] is used instead
  */
 class LintIdeConfiguration(
   configurations: ConfigurationHierarchy,
   project: Project,
-  private val issues: Set<Issue>)
-  : LintXmlConfiguration(configurations, project) {
-  override fun getDefinedSeverity(issue: Issue, source: Configuration, visibleDefault: Severity): Severity? {
+  private val issues: Set<Issue>
+) : LintXmlConfiguration(configurations, project) {
+  override fun getDefinedSeverity(
+    issue: Issue,
+    source: Configuration,
+    visibleDefault: Severity
+  ): Severity? {
     val known = issues.contains(issue)
     if (!known) {
       if (issue == IssueRegistry.BASELINE) {
@@ -52,13 +56,20 @@ class LintIdeConfiguration(
   }
 }
 
-/** Configuration used in Gradle projects which specify a custom lint.xml file or severity overrides or both  */
+/**
+ * Configuration used in Gradle projects which specify a custom lint.xml file or severity overrides
+ * or both
+ */
 class LintIdeGradleConfiguration(
   configurations: ConfigurationHierarchy,
   lintOptions: LintModelLintOptions,
-  private val issues: Set<Issue>)
-  : LintOptionsConfiguration(configurations, lintOptions) {
-  override fun getDefinedSeverity(issue: Issue, source: Configuration, visibleDefault: Severity): Severity? {
+  private val issues: Set<Issue>
+) : LintOptionsConfiguration(configurations, lintOptions) {
+  override fun getDefinedSeverity(
+    issue: Issue,
+    source: Configuration,
+    visibleDefault: Severity
+  ): Severity? {
     val known = issues.contains(issue)
     if (!known) {
       if (issue == IssueRegistry.BASELINE) {

@@ -273,8 +273,8 @@ class BackgroundTaskEntriesView(
   @TestOnly
   fun getFilterActionList(): List<ToggleAction> {
     val toolbar =
-      TreeWalker(this).descendantStream().filter { it is ActionToolbar }.findFirst().get() as
-        ActionToolbarImpl
+      TreeWalker(this).descendantStream().filter { it is ActionToolbar }.findFirst().get()
+        as ActionToolbarImpl
     val selectFilterAction = toolbar.actions[2] as TagsDropDownAction
     selectFilterAction.updateActions(DataContext.EMPTY_CONTEXT)
     return selectFilterAction.getChildren(null).map { it as ToggleAction }

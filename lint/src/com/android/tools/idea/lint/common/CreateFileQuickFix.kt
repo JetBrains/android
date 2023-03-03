@@ -27,10 +27,10 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleManager
-import org.jetbrains.kotlin.idea.util.application.isUnitTestMode
 import java.io.File
 import java.io.IOException
 import java.util.regex.Pattern
+import org.jetbrains.kotlin.idea.util.application.isUnitTestMode
 
 class CreateFileQuickFix(
   private val myFile: File,
@@ -52,8 +52,14 @@ class CreateFileQuickFix(
     }
     val project = startElement.project
     if (LocalFileSystem.getInstance().findFileByIoFile(myFile) != null && !isUnitTestMode()) {
-      if (Messages.showYesNoDialog(project, "${myFile.name} already exists; do you want to replace it?", "Replace File",
-                                   null) == Messages.YES) {
+      if (
+        Messages.showYesNoDialog(
+          project,
+          "${myFile.name} already exists; do you want to replace it?",
+          "Replace File",
+          null
+        ) == Messages.YES
+      ) {
         createFile(project, context)
       }
       return
@@ -108,8 +114,7 @@ class CreateFileQuickFix(
           if (matcher.groupCount() > 0) {
             selectStart = matcher.start(1)
             selectEnd = matcher.end(1)
-          }
-          else {
+          } else {
             selectStart = matcher.start()
             selectEnd = matcher.end()
           }
@@ -117,11 +122,14 @@ class CreateFileQuickFix(
           editor.selectionModel.setSelection(selectStart, selectEnd)
         }
       }
-    }
-    catch (e: IOException) {
+    } catch (e: IOException) {
       Logger.getInstance(CreateFileQuickFix::class.java).error(e)
     }
   }
 
-  override fun isApplicable(startElement: PsiElement, endElement: PsiElement, contextType: ContextType): Boolean = true
+  override fun isApplicable(
+    startElement: PsiElement,
+    endElement: PsiElement,
+    contextType: ContextType
+  ): Boolean = true
 }

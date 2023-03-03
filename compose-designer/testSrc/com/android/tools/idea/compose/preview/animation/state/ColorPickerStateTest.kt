@@ -42,9 +42,10 @@ class ColorPickerStateTest {
   @Test
   fun statesAreCorrect() {
     val state =
-      ColorPickerState({}) {}.apply {
-        setStates(ComposeUnit.Color.create(Color.red), ComposeUnit.Color.create(Color.blue))
-      }
+      ColorPickerState({}) {}
+        .apply {
+          setStates(ComposeUnit.Color.create(Color.red), ComposeUnit.Color.create(Color.blue))
+        }
     assertEquals(listOf(1f, 0f, 0f, 1f), state.getState(0))
     assertEquals(listOf(0f, 0f, 1f, 1f), state.getState(1))
   }
@@ -53,10 +54,11 @@ class ColorPickerStateTest {
   fun createCard() {
     var callbacks = 0
     val state =
-      ColorPickerState({}) { callbacks++ }.apply {
-        setStates(ComposeUnit.Color.create(Color.red), ComposeUnit.Color.create(Color.blue))
-        callbackEnabled = true
-      }
+      ColorPickerState({}) { callbacks++ }
+        .apply {
+          setStates(ComposeUnit.Color.create(Color.red), ComposeUnit.Color.create(Color.blue))
+          callbackEnabled = true
+        }
     val card =
       AnimationCard(
           TestUtils.testPreviewState(),

@@ -161,13 +161,14 @@ class IdListProvider(
             val work = (entry as WorkEntry).getWorkInfo()
             val mixedLabel = JPanel(HorizontalLayout(2))
             val actionLink =
-              ActionLink(id) { selectWork(entry) }.apply {
-                icon = entry.icon()
-                if (work.tagsCount > 0) {
-                  toolTipText =
-                    "<html><b>Tags</b><br>${work.tagsList.joinToString("<br>") { "\"$it\"" }}</html>"
+              ActionLink(id) { selectWork(entry) }
+                .apply {
+                  icon = entry.icon()
+                  if (work.tagsCount > 0) {
+                    toolTipText =
+                      "<html><b>Tags</b><br>${work.tagsList.joinToString("<br>") { "\"$it\"" }}</html>"
+                  }
                 }
-              }
             mixedLabel.add(actionLink)
             if (id == currId) {
               mixedLabel.add(JLabel("(Current)"))

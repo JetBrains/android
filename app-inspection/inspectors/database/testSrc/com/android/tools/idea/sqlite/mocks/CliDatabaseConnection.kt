@@ -92,9 +92,10 @@ const val schemaQuery =
 /**
  * Processes requests using sqlite3 CLI - targeted as a testing replacement a live device
  * connection.
+ *
  * @param columnSeparator
  * - column separator used for dealing with CLI output; use any value that is not present in the
- * data.
+ *   data.
  */
 class CliDatabaseConnection(
   private val databasePath: Path,
@@ -201,24 +202,26 @@ class CliDatabaseConnection(
         this[columnMap.getValue(columnName)] // this is a bit slow, but OK for tests
 
       val tables =
-        rawCells.dataRows.groupBy { it.getCell("tableName") }.map { (tableName, tableLines) ->
-          val columns =
-            tableLines.map { row ->
-              val name = row.getCell("columnName")
-              val type = row.getCell("columnType")
-              val affinity = SqliteAffinity.fromTypename(type)
-              val isNullable = row.getCell("notnull") == "0"
-              val isPrimaryKey = row.getCell("pk") != "0"
-              SqliteColumn(name, affinity, isNullable, isPrimaryKey)
-            }
-          val rowIdName = getRowIdName(columns)
-          val isView =
-            tableLines.first().getCell("type").let {
-              if (listOf("table", "view").contains(it)) it == "view"
-              else throw IllegalArgumentException("Unexpected type: $it")
-            }
-          SqliteTable(tableName, columns, rowIdName, isView)
-        }
+        rawCells.dataRows
+          .groupBy { it.getCell("tableName") }
+          .map { (tableName, tableLines) ->
+            val columns =
+              tableLines.map { row ->
+                val name = row.getCell("columnName")
+                val type = row.getCell("columnType")
+                val affinity = SqliteAffinity.fromTypename(type)
+                val isNullable = row.getCell("notnull") == "0"
+                val isPrimaryKey = row.getCell("pk") != "0"
+                SqliteColumn(name, affinity, isNullable, isPrimaryKey)
+              }
+            val rowIdName = getRowIdName(columns)
+            val isView =
+              tableLines.first().getCell("type").let {
+                if (listOf("table", "view").contains(it)) it == "view"
+                else throw IllegalArgumentException("Unexpected type: $it")
+              }
+            SqliteTable(tableName, columns, rowIdName, isView)
+          }
 
       SqliteSchema(tables)
     }

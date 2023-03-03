@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.project.upgrade
 
 import com.android.ide.common.repository.AgpVersion
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.VfsUtil
@@ -41,7 +42,7 @@ class NonConstantRClassDefaultRefactoringProcessorTest : UpgradeGradleFileModelT
   @Test
   fun testReadMoreUrl() {
     val processor = NonConstantRClassDefaultRefactoringProcessor(project, AgpVersion.parse("7.3.0"), AgpVersion.parse("7.4.0"))
-    assertNull(processor.getReadMoreUrl())
+    assertThat(processor.getReadMoreUrl()).isEqualTo("https://developer.android.com/r/tools/upgrade-assistant/non-constant-r-class-default")
   }
 
   @Test

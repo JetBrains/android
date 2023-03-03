@@ -78,7 +78,8 @@ class AlarmEntryTest {
         android.app.AlarmManager.setImpl(AlarmManager.java:662)
         android.app.AlarmManager.setRepeating(AlarmManager.java:438)
         android.com.java.profilertester.taskcategory.AlarmTask.execute(BackgroundTaskCategory.java:159)
-      """.trimIndent()
+      """
+        .trimIndent()
 
     val setEvent =
       BackgroundTaskInspectorProtocol.BackgroundTaskEvent.newBuilder()

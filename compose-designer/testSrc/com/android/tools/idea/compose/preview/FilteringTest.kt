@@ -122,8 +122,7 @@ class FilteringTest {
     singleElementProvider.instance =
       staticPreviewProvider.previewElements().first {
         it.composableMethodFqn == "com.sample.preview.TestClass.PreviewMethod3"
-      } as
-        SingleComposePreviewElementInstance
+      } as SingleComposePreviewElementInstance
     assertEquals(
       "PreviewMethod3",
       singleElementProvider.previewElements().single().displaySettings.name
@@ -162,8 +161,7 @@ class FilteringTest {
       staticPreviewProvider.previewElements().first {
         it.composableMethodFqn == "com.sample.preview.TestClass.PreviewMethod1" &&
           it.displaySettings.name == "Name1"
-      } as
-        SingleComposePreviewElementInstance
+      } as SingleComposePreviewElementInstance
 
     assertEquals(1, singleElementProvider.previewElements().count())
     assertEquals(

@@ -261,8 +261,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       .thenReturn(Futures.immediateFuture(testSqliteSchema1))
     runDispatching { databaseInspectorController.addSqliteDatabase(databaseId1) }
 
-    databaseInspectorView
-      .viewListeners
+    databaseInspectorView.viewListeners
       .single()
       .tableNodeActionInvoked(databaseId1, testSqliteTable)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -333,8 +332,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     runDispatching { databaseInspectorController.addSqliteDatabase(databaseId1) }
 
     // Act
-    databaseInspectorView
-      .viewListeners
+    databaseInspectorView.viewListeners
       .single()
       .tableNodeActionInvoked(databaseId1, testSqliteTable)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -378,13 +376,11 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     runDispatching { databaseInspectorController.addSqliteDatabase(databaseId1) }
 
     // Act
-    databaseInspectorView
-      .viewListeners
+    databaseInspectorView.viewListeners
       .single()
       .tableNodeActionInvoked(databaseId1, testSqliteTable)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    databaseInspectorView
-      .viewListeners
+    databaseInspectorView.viewListeners
       .single()
       .closeTabActionInvoked(TabId.TableTab(databaseId1, testSqliteTable.name))
 
@@ -425,8 +421,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     runDispatching { databaseInspectorController.addSqliteDatabase(databaseId1) }
 
     // Act
-    databaseInspectorView
-      .viewListeners
+    databaseInspectorView.viewListeners
       .single()
       .tableNodeActionInvoked(databaseId1, testSqliteTable)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -472,13 +467,11 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     runDispatching { databaseInspectorController.addSqliteDatabase(databaseId1) }
 
     // Act
-    databaseInspectorView
-      .viewListeners
+    databaseInspectorView.viewListeners
       .single()
       .tableNodeActionInvoked(databaseId1, testSqliteTable)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    databaseInspectorView
-      .viewListeners
+    databaseInspectorView.viewListeners
       .single()
       .tableNodeActionInvoked(databaseId1, testSqliteTable)
 
@@ -636,13 +629,11 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseInspectorController.addSqliteDatabase(databaseId2)
     }
 
-    databaseInspectorView
-      .viewListeners
+    databaseInspectorView.viewListeners
       .single()
       .tableNodeActionInvoked(databaseId1, testSqliteTable)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    databaseInspectorView
-      .viewListeners
+    databaseInspectorView.viewListeners
       .single()
       .tableNodeActionInvoked(databaseId2, testSqliteTable)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -666,13 +657,11 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseInspectorController.addSqliteDatabase(databaseId2)
     }
 
-    databaseInspectorView
-      .viewListeners
+    databaseInspectorView.viewListeners
       .single()
       .tableNodeActionInvoked(databaseId1, testSqliteTable)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-    databaseInspectorView
-      .viewListeners
+    databaseInspectorView.viewListeners
       .single()
       .tableNodeActionInvoked(databaseId2, testSqliteTable)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -1154,8 +1143,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       .thenReturn(executionFuture)
 
     // Act
-    databaseInspectorView
-      .viewListeners
+    databaseInspectorView.viewListeners
       .single()
       .tableNodeActionInvoked(databaseId1, testSqliteTable)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -1163,8 +1151,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     // verify that future is in use now
     verify(mockDatabaseConnection).query(any(SqliteStatement::class.java))
 
-    databaseInspectorView
-      .viewListeners
+    databaseInspectorView.viewListeners
       .single()
       .closeTabActionInvoked(TabId.TableTab(databaseId1, testSqliteTable.name))
 
@@ -1180,8 +1167,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     runDispatching { databaseInspectorController.addSqliteDatabase(databaseId1) }
 
     // Act
-    databaseInspectorView
-      .viewListeners
+    databaseInspectorView.viewListeners
       .single()
       .tableNodeActionInvoked(databaseId1, testSqliteTable)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -1220,8 +1206,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       .thenReturn(Futures.immediateFuture(SqliteSchema(listOf(testSqliteTable))))
 
     // open tabel tab
-    databaseInspectorView
-      .viewListeners
+    databaseInspectorView.viewListeners
       .single()
       .tableNodeActionInvoked(databaseId1, testSqliteTable)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -1281,8 +1266,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       .thenReturn(Futures.immediateFuture(FakeSqliteResultSet()))
     runDispatching { databaseInspectorController.addSqliteDatabase(databaseId1) }
 
-    databaseInspectorView
-      .viewListeners
+    databaseInspectorView.viewListeners
       .single()
       .tableNodeActionInvoked(databaseId1, testSqliteTable)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -1344,8 +1328,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
       databaseInspectorController.addSqliteDatabase(inMemoryDbId)
     }
 
-    databaseInspectorView
-      .viewListeners
+    databaseInspectorView.viewListeners
       .single()
       .tableNodeActionInvoked(inMemoryDbId, testSqliteTable)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -1587,8 +1570,7 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     runDispatching { databaseInspectorController.addSqliteDatabase(databaseId1) }
 
     // Act
-    databaseInspectorView
-      .viewListeners
+    databaseInspectorView.viewListeners
       .single()
       .tableNodeActionInvoked(databaseId1, SqliteTable("view", emptyList(), null, true))
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
@@ -1615,12 +1597,10 @@ class DatabaseInspectorControllerTest : HeavyPlatformTestCase() {
     }
 
     // Act
-    databaseInspectorView
-      .viewListeners
+    databaseInspectorView.viewListeners
       .single()
       .tableNodeActionInvoked(databaseId1, testSqliteTable)
-    databaseInspectorView
-      .viewListeners
+    databaseInspectorView.viewListeners
       .single()
       .tableNodeActionInvoked(databaseId2, testSqliteTable)
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()

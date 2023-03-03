@@ -545,7 +545,6 @@ android-studio/license/dev01_license.txt
 android-studio/license/dexlib2-2.0.8-NOTICE
 android-studio/license/fest-NOTICE
 android-studio/license/fetchasgoogle.jar-NOTICE
-android-studio/license/ffmpeg-LICENSE.TXT
 android-studio/license/ffmpeg-LICENSE.md
 android-studio/license/ffmpeg-LICENSE.openh264
 android-studio/license/ffmpeg-SOURCE_CODE.TXT
@@ -642,6 +641,7 @@ android-studio/plugins/Kotlin/kotlinc/lib/allopen-compiler-plugin.jar
 android-studio/plugins/Kotlin/kotlinc/lib/android-extensions-compiler.jar
 android-studio/plugins/Kotlin/kotlinc/lib/android-extensions-runtime.jar
 android-studio/plugins/Kotlin/kotlinc/lib/annotations-13.0.jar
+android-studio/plugins/Kotlin/kotlinc/lib/assignment-compiler-plugin.jar
 android-studio/plugins/Kotlin/kotlinc/lib/js.engines.jar
 android-studio/plugins/Kotlin/kotlinc/lib/jvm-abi-gen.jar
 android-studio/plugins/Kotlin/kotlinc/lib/kotlin-annotation-processing-cli.jar
@@ -721,7 +721,6 @@ android-studio/plugins/Kotlin/kotlinc/license/third_party/lombok_LICENSE.txt
 android-studio/plugins/Kotlin/kotlinc/license/third_party/maven_LICENSE.txt
 android-studio/plugins/Kotlin/kotlinc/license/third_party/mocha-teamcity-reporter_LICENSE.txt
 android-studio/plugins/Kotlin/kotlinc/license/third_party/okhttp_license.txt
-android-studio/plugins/Kotlin/kotlinc/license/third_party/pcollections_LICENSE.txt
 android-studio/plugins/Kotlin/kotlinc/license/third_party/prototype_license.txt
 android-studio/plugins/Kotlin/kotlinc/license/third_party/qunit_license.txt
 android-studio/plugins/Kotlin/kotlinc/license/third_party/rhino_LICENSE.txt
@@ -1341,9 +1340,9 @@ android-studio/plugins/android/lib/deploy_java_proto.jar
 android-studio/plugins/android/lib/dexlib2-2.5.2.jar
 android-studio/plugins/android/lib/emulator_java_proto.jar
 android-studio/plugins/android/lib/explainer.jar
-android-studio/plugins/android/lib/ffmpeg-5.0-1.5.7-windows-x86_64.jar
-android-studio/plugins/android/lib/ffmpeg-5.0-1.5.7.jar
-android-studio/plugins/android/lib/ffmpeg-platform-5.0-1.5.7.jar
+android-studio/plugins/android/lib/ffmpeg-5.1.2-1.5.8-windows-x86_64.jar
+android-studio/plugins/android/lib/ffmpeg-5.1.2-1.5.8.jar
+android-studio/plugins/android/lib/ffmpeg-platform-5.1.2-1.5.8.jar
 android-studio/plugins/android/lib/firebase_java_proto.jar
 android-studio/plugins/android/lib/flatbuffers-java-1.12.0.jar
 android-studio/plugins/android/lib/game-tools-protos.jar
@@ -1353,9 +1352,9 @@ android-studio/plugins/android/lib/google-analytics-library.jar
 android-studio/plugins/android/lib/inspectors-common.jar
 android-studio/plugins/android/lib/instantapps-api-1.8.jar
 android-studio/plugins/android/lib/jarutils.jar
-android-studio/plugins/android/lib/javacpp-1.5.7-windows-x86_64.jar
-android-studio/plugins/android/lib/javacpp-1.5.7.jar
-android-studio/plugins/android/lib/javacpp-platform-1.5.7.jar
+android-studio/plugins/android/lib/javacpp-1.5.8-windows-x86_64.jar
+android-studio/plugins/android/lib/javacpp-1.5.8.jar
+android-studio/plugins/android/lib/javacpp-platform-1.5.8.jar
 android-studio/plugins/android/lib/javapoet-1.10.0.jar
 android-studio/plugins/android/lib/javax.inject-1.jar
 android-studio/plugins/android/lib/jetifier-core-1.0.0-beta10.jar
@@ -1750,8 +1749,8 @@ android-studio/plugins/android/resources/transport/native/agent/x86/libjvmtiagen
 android-studio/plugins/android/resources/transport/native/agent/x86_64/libjvmtiagent.so
 android-studio/plugins/android/resources/transport/x86/transport
 android-studio/plugins/android/resources/transport/x86_64/transport
-android-studio/plugins/c-clangd/bin/clang/win/clang-tidy.exe
-android-studio/plugins/c-clangd/bin/clang/win/clangd.exe
+android-studio/plugins/c-clangd/bin/clang/win/x64/clang-tidy.exe
+android-studio/plugins/c-clangd/bin/clang/win/x64/clangd.exe
 android-studio/plugins/c-clangd/lib/LICENSE.txt/CIDR_LICENSE.txt
 android-studio/plugins/c-clangd/lib/c-clangd.jar
 android-studio/plugins/c-clangdBridge/lib/c-clangdBridge.jar
@@ -2060,7 +2059,6 @@ android-studio/plugins/junit/lib/junit5-rt.jar
 android-studio/plugins/keymap-eclipse/lib/keymap-eclipse.jar
 android-studio/plugins/keymap-netbeans/lib/keymap-netbeans.jar
 android-studio/plugins/keymap-visualStudio/lib/keymap-visualStudio.jar
-android-studio/plugins/laf-win10/lib/laf-win10.jar
 android-studio/plugins/markdown/lib/markdown.jar
 android-studio/plugins/maven-model/lib/maven-model.jar
 android-studio/plugins/maven-server/lib/maven-server.jar

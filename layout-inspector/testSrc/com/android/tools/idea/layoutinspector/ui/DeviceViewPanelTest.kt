@@ -96,6 +96,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.SystemInfo
@@ -184,9 +185,6 @@ class DeviceViewPanelWithFullInspectorTest {
 
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
-      {},
-      {},
-      {},
       inspectorRule.inspector,
       settings,
       projectRule.fixture.testRootDisposable
@@ -251,9 +249,6 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        {},
-        {},
-        {},
         inspectorRule.inspector,
         settings,
         projectRule.fixture.testRootDisposable)
@@ -275,9 +270,6 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        {},
-        {},
-        {},
         inspectorRule.inspector,
         settings,
         projectRule.fixture.testRootDisposable))
@@ -300,9 +292,6 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        {},
-        {},
-        {},
         inspectorRule.inspector,
         settings,
         projectRule.fixture.testRootDisposable
@@ -331,9 +320,6 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        {},
-        {},
-        {},
         inspectorRule.inspector,
         settings,
         projectRule.fixture.testRootDisposable
@@ -362,9 +348,6 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        {},
-        {},
-        {},
         inspectorRule.inspector,
         settings,
         projectRule.fixture.testRootDisposable
@@ -396,9 +379,6 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        {},
-        {},
-        {},
         inspectorRule.inspector,
         settings,
         projectRule.fixture.testRootDisposable
@@ -433,9 +413,6 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        {},
-        {},
-        {},
         inspectorRule.inspector,
         settings,
         projectRule.fixture.testRootDisposable
@@ -478,9 +455,6 @@ class DeviceViewPanelWithFullInspectorTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        {},
-        {},
-        {},
         inspectorRule.inspector,
         settings,
         projectRule.fixture.testRootDisposable
@@ -516,9 +490,6 @@ class DeviceViewPanelWithFullInspectorTest {
     }
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
-      {},
-      {},
-      {},
       inspectorRule.inspector,
       settings,
       projectRule.fixture.testRootDisposable
@@ -553,9 +524,6 @@ class DeviceViewPanelWithFullInspectorTest {
     }
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
-      {},
-      {},
-      {},
       inspectorRule.inspector,
       settings,
       projectRule.fixture.testRootDisposable,
@@ -598,9 +566,6 @@ class DeviceViewPanelWithFullInspectorTest {
   fun testSelectProcessDropDown() {
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
-      {},
-      {},
-      {},
       inspectorRule.inspector,
       settings,
       projectRule.fixture.testRootDisposable
@@ -679,9 +644,6 @@ class DeviceViewPanelWithFullInspectorTest {
     model.resourceLookup.updateConfiguration(FolderConfiguration(), 1f, context, stringTable, MODERN_PROCESS)
     inspectorRule.inspector.treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(
-      {},
-      {},
-      {},
       inspectorRule.inspector,
       FakeRenderSettings(),
       projectRule.fixture.testRootDisposable
@@ -797,9 +759,6 @@ class DeviceViewPanelTest {
     )
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(
-      {},
-      {},
-      {},
       inspector,
       viewSettings,
       disposableRule.disposable
@@ -865,9 +824,6 @@ class DeviceViewPanelTest {
     )
     treeSettings.hideSystemNodes = true
     val panel = DeviceViewPanel(
-      {},
-      {},
-      {},
       inspector,
       viewSettings,
       disposableRule.disposable
@@ -920,9 +876,6 @@ class DeviceViewPanelTest {
     )
     treeSettings.hideSystemNodes = true
     val panel = DeviceViewPanel(
-      {},
-      {},
-      {},
       inspector,
       viewSettings,
       disposableRule.disposable
@@ -976,9 +929,6 @@ class DeviceViewPanelTest {
     )
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(
-      {},
-      {},
-      {},
       inspector,
       viewSettings,
       disposableRule.disposable,
@@ -1039,9 +989,6 @@ class DeviceViewPanelTest {
     )
     treeSettings.hideSystemNodes = false
     val panel = DeviceViewPanel(
-      {},
-      {},
-      {},
       inspector,
       viewSettings,
       disposableRule.disposable,
@@ -1107,9 +1054,6 @@ class DeviceViewPanelTest {
     treeSettings.hideSystemNodes = false
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
-      {},
-      {},
-      {},
       inspector,
       settings,
       disposableRule.disposable,
@@ -1212,9 +1156,6 @@ class DeviceViewPanelTest {
     }
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
-      {},
-      {},
-      {},
       inspector,
       settings,
       disposableRule.disposable,
@@ -1294,9 +1235,6 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        {},
-        {},
-        {},
         inspectorRule.inspector,
         settings,
         projectRule.fixture.testRootDisposable,
@@ -1317,9 +1255,6 @@ class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
     val settings = EditorRenderSettings()
     val toolbar = getToolbar(
       DeviceViewPanel(
-        {},
-        {},
-        {},
         inspectorRule.inspector,
         settings,
         projectRule.fixture.testRootDisposable,
@@ -1522,9 +1457,6 @@ class DeviceViewPanelWithNoClientsTest {
     inspectorRule.launchSynchronously = false
     val settings = EditorRenderSettings()
     val panel = DeviceViewPanel(
-      {},
-      {},
-      {},
       inspectorRule.inspector,
       settings,
       projectRule.fixture.testRootDisposable,
@@ -1551,9 +1483,6 @@ class DeviceViewPanelWithNoClientsTest {
     inspectorRule.startLaunch(4)
     inspectorRule.launchSynchronously = false
     val panel = DeviceViewPanel(
-      {},
-      {},
-      {},
       inspectorRule.inspector,
       EditorRenderSettings(),
       projectRule.fixture.testRootDisposable,
@@ -1594,6 +1523,19 @@ class DeviceViewPanelWithNoClientsTest {
     // goes back to false because MODERN_PROCESS is in the process model
     assertThat(deviceViewContentPanel.showProcessNotDebuggableText).isFalse()
     assertThat(deviceViewContentPanel.showNavigateToDebuggableProcess).isFalse()
+  }
+
+  @Test
+  fun testDeviceSelectionToolbarIsImportant() {
+    val toolbar = getToolbar(
+      DeviceViewPanel(
+        inspectorRule.inspector,
+        EditorRenderSettings(),
+        projectRule.fixture.testRootDisposable
+      )
+    )
+    val isImportant = toolbar.getClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY) as? Boolean ?: false
+    assertThat(isImportant).isTrue()
   }
 }
 

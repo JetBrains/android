@@ -36,6 +36,7 @@ import javax.swing.JComponent
 
 /**
  * A button displaying the "initial to target" state. It opens a picker to select these states.
+ *
  * @see [AnimatedPropertiesModel] for more details about the picker.
  */
 class PickerButtonAction(

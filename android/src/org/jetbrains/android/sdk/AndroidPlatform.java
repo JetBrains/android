@@ -18,14 +18,8 @@ package org.jetbrains.android.sdk;
 
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.sdk.Annotations;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkAdditionalData;
-import com.intellij.openapi.roots.ModuleRootManager;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class AndroidPlatform {
   @NotNull private final AndroidSdkData mySdkData;
@@ -36,21 +30,6 @@ public class AndroidPlatform {
     myTarget = target;
   }
 
-  @Nullable
-  public static AndroidPlatform getInstance(@NotNull Module module) {
-    if (module.isDisposed()) {
-      return null;
-    }
-    Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-    return sdk != null ? getInstance(sdk) : null;
-  }
-
-  @Nullable
-  public static AndroidPlatform getInstance(@NotNull Sdk sdk) {
-    AndroidSdkAdditionalData data = AndroidSdks.getInstance().getAndroidSdkAdditionalData(sdk);
-    return data != null ? data.getAndroidPlatform() : null;
-  }
-
   @NotNull
   public AndroidSdkData getSdkData() {
     return mySdkData;
@@ -59,24 +38,6 @@ public class AndroidPlatform {
   @NotNull
   public IAndroidTarget getTarget() {
     return myTarget;
-  }
-
-  @Nullable
-  public static AndroidPlatform parse(@NotNull Sdk sdk) {
-    if (!AndroidSdks.getInstance().isAndroidSdk(sdk)) {
-      return null;
-    }
-    AndroidSdkData sdkData = StudioAndroidSdkData.getSdkData(sdk);
-    if (sdkData != null) {
-      SdkAdditionalData data = sdk.getSdkAdditionalData();
-      if (data instanceof AndroidSdkAdditionalData) {
-        IAndroidTarget target = ((AndroidSdkAdditionalData)data).getBuildTarget(sdkData);
-        if (target != null) {
-          return new AndroidPlatform(sdkData, target);
-        }
-      }
-    }
-    return null;
   }
 
   @Override

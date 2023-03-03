@@ -28,11 +28,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.util.concurrency.EdtExecutorService;
-import java.awt.Component;
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Group;
 import javax.swing.JLabel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -85,7 +81,7 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
                              @NotNull AsyncDetailsBuilder builder,
                              @NotNull WearPairingManager manager,
                              @NotNull NewInfoSectionCallback<SummarySection> newSummarySectionCallback) {
-    super(device.getName());
+    super(device.getName(), device.isOnline() ? null : "Details unavailable for offline devices");
     myOnline = device.isOnline();
 
     if (myOnline) {
@@ -134,32 +130,6 @@ final class PhysicalDeviceDetailsPanel extends DetailsPanel {
         setInfoSectionPanelLayout();
       }
     });
-  }
-
-  @Override
-  protected void setInfoSectionPanelLayout() {
-    if (myOnline) {
-      super.setInfoSectionPanelLayout();
-      return;
-    }
-
-    Component label = new JBLabel("Details unavailable for offline devices");
-    GroupLayout layout = new GroupLayout(myInfoSectionPanel);
-
-    Group horizontalGroup = layout.createSequentialGroup()
-      .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-      .addComponent(label)
-      .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-
-    Group verticalGroup = layout.createSequentialGroup()
-      .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-      .addComponent(label)
-      .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-
-    layout.setHorizontalGroup(horizontalGroup);
-    layout.setVerticalGroup(verticalGroup);
-
-    myInfoSectionPanel.setLayout(layout);
   }
 
   @NotNull

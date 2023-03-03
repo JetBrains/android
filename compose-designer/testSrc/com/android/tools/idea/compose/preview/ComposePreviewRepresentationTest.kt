@@ -67,6 +67,8 @@ internal class TestComposePreviewView(override val mainSurface: NlDesignSurface)
   override fun onRefreshCancelledByTheUser() {}
 
   override fun onRefreshCompleted() {}
+
+  override fun onLayoutlibNativeCrash(onLayoutlibReEnable: () -> Unit) {}
 }
 
 class ComposePreviewRepresentationTest {
@@ -88,8 +90,6 @@ class ComposePreviewRepresentationTest {
     Logger.getInstance(ComposePreviewRepresentation::class.java).setLevel(LogLevel.ALL)
     Logger.getInstance(FastPreviewManager::class.java).setLevel(LogLevel.ALL)
     Logger.getInstance(ProjectStatus::class.java).setLevel(LogLevel.ALL)
-    Logger.getInstance("#com.android.tools.idea.projectsystem.CodeOutOfDateTrackerImpl")
-      .setLevel(LogLevel.ALL)
     logger.info("setup")
     val testProjectSystem = TestProjectSystem(project)
     runInEdtAndWait { testProjectSystem.useInTests() }
@@ -117,7 +117,8 @@ class ComposePreviewRepresentationTest {
         @Preview(name = "preview2", apiLevel = 12, group = "groupA", showBackground = true)
         fun Preview2() {
         }
-      """.trimIndent()
+      """
+            .trimIndent()
         )
       }
 
@@ -156,7 +157,8 @@ class ComposePreviewRepresentationTest {
         modelRenderedLatch.await()
 
         while (preview.status().isRefreshing || DumbService.getInstance(project).isDumb) kotlinx
-          .coroutines.delay(250)
+          .coroutines
+          .delay(250)
       }
 
       mainSurface.models.forEach { assertContains(navigationHandler.defaultNavigationMap, it) }
@@ -171,9 +173,9 @@ class ComposePreviewRepresentationTest {
       assertFalse(debugStatus.toString(), status.isOutOfDate)
       // Ensure the only warning message is the missing Android SDK message
       assertTrue(
-        debugStatus.renderResult.flatMap { it.logger.messages }.none {
-          !it.html.contains("No Android SDK found.")
-        }
+        debugStatus.renderResult
+          .flatMap { it.logger.messages }
+          .none { !it.html.contains("No Android SDK found.") }
       )
       preview.onDeactivate()
     }

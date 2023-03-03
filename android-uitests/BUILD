@@ -121,6 +121,7 @@ maven_repository(
     # keep sorted: for buildifier
     artifacts = [
         "//tools/adt/idea/kotlin-integration:kotlin-android-extensions-runtime-for-ide-plugin",
+        "//tools/adt/idea/kotlin-integration:kotlin-gradle-plugin-api-for-ide-plugin",
         "//tools/adt/idea/kotlin-integration:kotlin-gradle-plugin-for-ide-plugin",
         "//tools/adt/idea/kotlin-integration:kotlin-reflect-for-ide-plugin",
         "//tools/adt/idea/kotlin-integration:kotlin-script-runtime-for-ide-plugin",
@@ -1354,7 +1355,6 @@ java_test(
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.uibuilder.CreateNewMobileProjectTest"],
     tags = COMMON_TAGS + [
         "ui_test",
-        "very_flaky",  # b/264602589
         "no_windows",
     ],
     test_class = "com.android.tools.idea.tests.gui.GuiJarTestSuite",

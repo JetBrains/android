@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -233,7 +234,7 @@ public class AndroidRootUtil {
     if (sdkHomePath == null) {
       return;
     }
-    AndroidPlatform platform = AndroidPlatform.getInstance(module);
+    AndroidPlatform platform = AndroidPlatforms.getInstance(module);
 
     if (platform != null && platform.needToAddAnnotationsJarToClasspath()) {
       String annotationsJarPath = toSystemIndependentName(sdkHomePath) + ANNOTATIONS_JAR_RELATIVE_PATH;

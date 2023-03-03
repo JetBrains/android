@@ -25,6 +25,7 @@ import com.android.tools.idea.common.editor.ActionsToolbar
 import com.android.tools.idea.common.error.IssuePanelSplitter
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.GuiInputHandler
+import com.android.tools.idea.common.surface.handleLayoutlibNativeCrash
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
 import com.android.tools.idea.editors.notifications.NotificationPanel
@@ -32,7 +33,6 @@ import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.projectsystem.requestBuild
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.intellij.ide.plugins.newui.VerticalLayout
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
@@ -45,6 +45,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.ui.EditorNotifications
 import com.intellij.ui.JBSplitter
+import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Point
@@ -102,6 +103,13 @@ interface ComposePreviewView {
 
   /** Called when a refresh has completed. */
   fun onRefreshCompleted()
+
+  /**
+   * Called when a Layoutlib native crash is detected. It will show a notification to the user
+   * allowing to re-enable the disabled Layoutlib. If the user chooses to re-enable layoutlib,
+   * [onLayoutlibReEnable] will be called.
+   */
+  fun onLayoutlibNativeCrash(onLayoutlibReEnable: () -> Unit)
 }
 
 fun interface ComposePreviewViewProvider {
@@ -139,9 +147,9 @@ fun interface ComposePreviewViewProvider {
  *
  * @param project the current open project
  * @param psiFilePointer an [SmartPsiElementPointer] pointing to the file being rendered within this
- * panel. Used to handle which notifications should be displayed.
+ *   panel. Used to handle which notifications should be displayed.
  * @param projectBuildStatusManager [ProjectBuildStatusManager] used to detect the current build
- * status and show/hide the correct loading message.
+ *   status and show/hide the correct loading message.
  * @param dataProvider the [DataProvider] to be used by the [mainSurface] panel.
  * @param mainDesignSurfaceBuilder a builder to create main design surface
  * @param parentDisposable the [Disposable] to use as parent disposable for this panel.
@@ -230,7 +238,7 @@ internal class ComposePreviewViewImpl(
           JPanel(VerticalLayout(0)).apply {
             isOpaque = false
             isFocusable = false
-            add(notificationPanel, VerticalLayout.FILL_HORIZONTAL)
+            add(notificationPanel, VerticalLayout.FILL)
           }
 
         val content = JPanel(BorderLayout())
@@ -314,6 +322,10 @@ internal class ComposePreviewViewImpl(
     updateVisibilityAndNotifications()
   }
 
+  override fun onLayoutlibNativeCrash(onLayoutlibReEnable: () -> Unit) {
+    workbench.handleLayoutlibNativeCrash(onLayoutlibReEnable)
+  }
+
   /**
    * Updates the surface visibility and displays the content or an error message depending on the
    * build state. This method is called after certain updates like a build or a preview refresh has
@@ -321,7 +333,8 @@ internal class ComposePreviewViewImpl(
    */
   override fun updateVisibilityAndNotifications() =
     UIUtil.invokeLaterIfNeeded {
-      if (workbench.isMessageVisible && projectBuildStatusManager.status == ProjectStatus.NeedsBuild
+      if (
+        workbench.isMessageVisible && projectBuildStatusManager.status == ProjectStatus.NeedsBuild
       ) {
         log.debug("Needs successful build")
         showNeedsToBuildErrorPanel()

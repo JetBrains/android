@@ -150,5 +150,7 @@ open class FakePopupChooserBuilder : IPopupChooserBuilder<SqliteDatabaseId> {
   override fun setVisibleRowCount(visibleRowCount: Int): IPopupChooserBuilder<SqliteDatabaseId> =
     this
 
+  override fun withFixedRendererSize(dimension: Dimension): IPopupChooserBuilder<SqliteDatabaseId> = this
+
   override fun getBackgroundUpdater(): ListComponentUpdater = mock(ListComponentUpdater::class.java)
 }

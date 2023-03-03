@@ -48,9 +48,10 @@ import java.util.Deque
 /**
  * Returns a SQLite statement where named parameters have been replaced with positional parameters
  * (?) and the list of named parameters in the original statement.
+ *
  * @param psiElement The [PsiElement] corresponding to a SQLite statement.
  * @return The text of the SQLite statement with positional parameters and the list of named
- * parameters.
+ *   parameters.
  */
 fun replaceNamedParametersWithPositionalParameters(psiElement: PsiElement): ParsedSqliteStatement {
   // Can't do psiElement.copy because cloning the view provider of the RoomSql PsiFile doesn't work.
@@ -259,7 +260,8 @@ fun getSqliteStatementType(project: Project, sqliteStatement: String): SqliteSta
  */
 fun getWrappableStatement(project: Project, sqliteStatement: String): String {
   val psiElement = AndroidSqlParserDefinition.parseSqlQuery(project, sqliteStatement)
-  if (psiElement.lastChild.elementType == AndroidSqlPsiTypes.SEMICOLON ||
+  if (
+    psiElement.lastChild.elementType == AndroidSqlPsiTypes.SEMICOLON ||
       psiElement.lastChild.elementType == AndroidSqlPsiTypes.LINE_COMMENT
   ) {
     psiElement.node.removeChild(psiElement.lastChild.node)

@@ -20,9 +20,12 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
 import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject
 import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.buildAndWait
 import com.intellij.openapi.project.Project
+import org.gradle.tooling.Failure
 import org.gradle.tooling.events.BinaryPluginIdentifier
+import org.gradle.tooling.events.FailureResult
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationDescriptor
 import org.gradle.tooling.events.PluginIdentifier
@@ -33,12 +36,17 @@ import org.gradle.tooling.events.configuration.ProjectConfigurationOperationDesc
 import org.gradle.tooling.events.configuration.ProjectConfigurationOperationResult
 import org.gradle.tooling.events.configuration.ProjectConfigurationStartEvent
 import org.gradle.tooling.events.configuration.ProjectConfigurationSuccessResult
+import org.gradle.tooling.events.download.FileDownloadFinishEvent
+import org.gradle.tooling.events.download.FileDownloadOperationDescriptor
+import org.gradle.tooling.events.download.FileDownloadResult
+import org.gradle.tooling.events.download.FileDownloadStartEvent
 import org.gradle.tooling.events.task.TaskFinishEvent
 import org.gradle.tooling.events.task.TaskOperationDescriptor
 import org.gradle.tooling.events.task.TaskSuccessResult
 import org.gradle.tooling.model.ProjectIdentifier
 import org.mockito.Mockito
 import java.io.File
+import java.net.URI
 
 fun createBinaryPluginIdentifierStub(displayName: String, className: String): BinaryPluginIdentifier {
   val pluginIdentifier = Mockito.mock(BinaryPluginIdentifier::class.java)
@@ -150,6 +158,53 @@ fun createProjectConfigurationOperationDescriptor(projectPath: String) =
   whenever(this.project).thenReturn(project)
 }
 
+// Stubs and constants for Download events
+val url1 = "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/7.3.0-alpha05/gradle-7.3.0-alpha05.pom"
+val url2 = "https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/7.3.0-alpha05/gradle-7.3.0-alpha05.jar"
+val url3 = "https://repo.maven.apache.org/maven2/com/android/tools/lint/lint-gradle/30.3.0-alpha05/lint-gradle-30.3.0-alpha05.pom"
+
+
+interface FailedDownloadResult : FileDownloadResult, FailureResult
+interface SuccessDownloadResult : FileDownloadResult, SuccessResult
+
+fun downloadStartEventStub(descriptor: FileDownloadOperationDescriptor) =
+  Mockito.mock(FileDownloadStartEvent::class.java).apply {
+    Mockito.`when`(this.descriptor).thenReturn(descriptor)
+  }
+
+
+fun downloadFinishEventStub(descriptor: FileDownloadOperationDescriptor, result: FileDownloadResult) =
+  Mockito.mock(FileDownloadFinishEvent::class.java).apply {
+    Mockito.`when`(this.descriptor).thenReturn(descriptor)
+    Mockito.`when`(this.result).thenReturn(result)
+  }
+
+fun downloadOperationDescriptorStub(url: String, parent: OperationDescriptor?) = Mockito.mock(
+  FileDownloadOperationDescriptor::class.java).apply {
+  Mockito.`when`(this.uri).thenReturn(URI(url))
+  Mockito.`when`(this.parent).thenReturn(parent)
+}
+
+fun downloadSuccessStub(start: Long, end: Long, bytes: Long) = object : SuccessDownloadResult {
+  override fun getStartTime(): Long = start
+  override fun getEndTime(): Long = end
+  override fun getBytesDownloaded(): Long = bytes
+}
+
+fun downloadFailureStub(start: Long, end: Long, bytes: Long, failures: List<Failure>) = object : FailedDownloadResult {
+  override fun getStartTime(): Long = start
+  override fun getEndTime(): Long = end
+  override fun getBytesDownloaded(): Long = bytes
+  override fun getFailures(): List<Failure> = failures
+}
+
+fun failureStub(message: String, causes: List<Failure>) = object : Failure {
+  override fun getMessage(): String = message
+  override fun getCauses(): List<Failure> = causes
+  override fun getDescription(): String = "Failure description"
+}
+
+
 fun AndroidGradleProjectRule.invokeTasksRethrowingErrors(vararg tasks: String): GradleInvocationResult {
   val invocationResult = invokeTasks(tasks = tasks)
   invocationResult.buildError?.let { throw it }
@@ -162,9 +217,12 @@ interface TestContext {
   fun invokeTasks(vararg tasks: String): GradleInvocationResult
 }
 
-fun PreparedTestProject.runTest(testAction: TestContext.() -> Unit) {
+fun PreparedTestProject.runTest(
+  updateOptions: (OpenPreparedProjectOptions) -> OpenPreparedProjectOptions = { it },
+  testAction: TestContext.() -> Unit
+) {
   val projectDir = root
-  open { project ->
+  open(updateOptions) { project ->
     testAction(
       object : TestContext {
         override val project: Project = project

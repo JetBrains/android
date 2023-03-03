@@ -27,12 +27,10 @@ import com.android.tools.idea.compose.preview.actions.StopAnimationInspectorActi
 import com.android.tools.idea.compose.preview.actions.StopInteractivePreviewAction
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeStaticPreview
 import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
-import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.FilePreviewElementFinder
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.representation.CommonRepresentationEditorFileType
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
@@ -67,7 +65,9 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
         ComposeViewControlAction(
             layoutManagerSwitcher = surface.sceneViewLayoutManager as LayoutManagerSwitcher,
             layoutManagers = PREVIEW_LAYOUT_MANAGER_OPTIONS
-          ) { !isAnyPreviewRefreshing(it.dataContext) }
+          ) {
+            !isAnyPreviewRefreshing(it.dataContext)
+          }
           .visibleOnlyInComposeStaticPreview(),
         StudioFlags.COMPOSE_DEBUG_BOUNDS.ifEnabled { ShowDebugBoundaries() },
       )
@@ -104,13 +104,6 @@ class ComposePreviewRepresentationProvider(
 
   /** Creates a [ComposePreviewRepresentation] for the input [psiFile]. */
   override fun createRepresentation(psiFile: PsiFile): ComposePreviewRepresentation {
-    val previewProvider =
-      object : PreviewElementProvider<ComposePreviewElement> {
-        override suspend fun previewElements(): Sequence<ComposePreviewElement> =
-          filePreviewElementProvider()
-            .findPreviewMethods(psiFile.project, psiFile.virtualFile)
-            .asSequence()
-      }
     val hasPreviewMethods =
       filePreviewElementProvider().hasPreviewMethods(psiFile.project, psiFile.virtualFile)
     if (LOG.isDebugEnabled) {

@@ -39,6 +39,10 @@ import com.android.tools.idea.naveditor.analytics.TestNavUsageTracker
 import com.android.tools.idea.naveditor.model.NavCoordinate
 import com.android.tools.idea.naveditor.scene.NavSceneManager
 import com.android.tools.idea.naveditor.scene.updateHierarchy
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
+import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.NavEditorEvent
 import com.intellij.openapi.application.WriteAction
@@ -79,6 +83,8 @@ import kotlin.test.assertNotEquals
  * Tests for [NavDesignSurface]
  */
 class NavDesignSurfaceTest : NavTestCase() {
+
+  lateinit var testProjectSystem: TestProjectSystem
 
   fun testOpenFileMetrics() {
     val surface = NavDesignSurface(project, project)
@@ -602,7 +608,11 @@ class NavDesignSurfaceTest : NavTestCase() {
   }
 
   private fun testDependencies(androidX: Boolean, groupId: String) {
-    WriteCommandAction.runWriteCommandAction(project) { project.setAndroidxProperties(androidX.toString()) }
+    if (androidX != testProjectSystem.useAndroidX) {
+      testProjectSystem.useAndroidX = androidX
+      project.messageBus.syncPublisher(PROJECT_SYSTEM_SYNC_TOPIC).syncEnded(ProjectSystemSyncManager.SyncResult.SUCCESS)
+      UIUtil.dispatchAllInvocationEvents()
+    }
 
     val dependencies = NavDesignSurface.getDependencies(myModule)
     val artifactIds = arrayOf("navigation-fragment", "navigation-ui")
@@ -690,5 +700,12 @@ class NavDesignSurfaceTest : NavTestCase() {
     @SwingCoordinate val y2 = Coordinates.getSwingY(sceneView, rect.y + rect.height)
 
     LayoutTestUtilities.releaseMouse(manager, MouseEvent.BUTTON1, x2, y2, 0)
+  }
+
+  override fun setUp() {
+    super.setUp()
+    testProjectSystem = TestProjectSystem(project)
+    testProjectSystem.useAndroidX = true
+    testProjectSystem.useInTests()
   }
 }

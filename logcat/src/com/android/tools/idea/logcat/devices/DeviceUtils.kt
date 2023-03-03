@@ -27,12 +27,12 @@ internal fun DeviceState.toDevice(): Device? {
   val properties = this.properties
 
   val release = properties.androidRelease ?: "Unknown"
-  val apiLevel = properties.androidVersion?.apiLevel ?: 0
+  val featureLevel = properties.androidVersion?.featureLevel ?: 0
   val manufacturer = properties.manufacturer ?: "Unknown"
   val model = properties.model ?: "Unknown"
 
   return when (properties) {
-    is LocalEmulatorProperties -> Device.createEmulator(serialNumber, true, release, apiLevel, properties.avdName)
-    else -> Device.createPhysical(serialNumber, true, release, apiLevel, manufacturer, model)
+    is LocalEmulatorProperties -> Device.createEmulator(serialNumber, true, release, featureLevel, properties.avdName)
+    else -> Device.createPhysical(serialNumber, true, release, featureLevel, manufacturer, model)
   }
 }

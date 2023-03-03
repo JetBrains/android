@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.lint.inspections
 
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.GestureBackNavDetector
-import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 
-class AndroidLintGestureBackNavigationInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.gesture.back.navigation"), GestureBackNavDetector.ISSUE
-)
+class AndroidLintGestureBackNavigationInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.gesture.back.navigation"),
+    GestureBackNavDetector.ISSUE
+  )

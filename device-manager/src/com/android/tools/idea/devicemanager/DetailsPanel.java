@@ -59,6 +59,7 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
   protected @Nullable Component myScreenDiagram;
   private @Nullable AbstractButton myCopyPropertiesToClipboardButton;
   protected final @NotNull List<Component> myInfoSections;
+  private final String myEmptyText;
   protected final @NotNull Container myInfoSectionPanel;
   private final @NotNull Component myScrollPane;
   protected @Nullable PairedDevicesPanel myPairedDevicesPanel;
@@ -67,16 +68,21 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
   private final @NotNull Supplier<Toolkit> myGetDefaultToolkit;
 
   protected DetailsPanel(@NotNull String heading) {
-    this(heading, Toolkit::getDefaultToolkit);
+    this(heading, null);
+  }
+
+  protected DetailsPanel(@NotNull String heading, @Nullable String emptyText) {
+    this(heading, emptyText, Toolkit::getDefaultToolkit);
   }
 
   @VisibleForTesting
-  DetailsPanel(@NotNull String heading, @NotNull Supplier<Toolkit> getDefaultToolkit) {
+  DetailsPanel(@NotNull String heading, @Nullable String emptyText, @NotNull Supplier<Toolkit> getDefaultToolkit) {
     super(null);
 
     myHeadingLabel = newHeadingLabel(heading);
     myCloseButton = new IconButton(StudioIcons.Common.CLOSE);
     myInfoSections = new ArrayList<>();
+    myEmptyText = emptyText;
 
     myInfoSectionPanel = new JBPanel<>(null);
     myInfoSectionPanel.setBackground(Table.BACKGROUND);
@@ -100,7 +106,14 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
   protected final void init() {
     initSummarySection();
     initCopyPropertiesToClipboardButton();
-    setInfoSectionPanelLayout();
+
+    if (myEmptyText == null) {
+      setInfoSectionPanelLayout();
+    }
+    else {
+      setEmptyTextInfoSectionPanelLayout();
+    }
+
     initTabbedPane();
     setLayout();
   }
@@ -141,7 +154,7 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
     myGetDefaultToolkit.get().getSystemClipboard().setContents(new StringSelection(builder.toString()), null);
   }
 
-  protected void setInfoSectionPanelLayout() {
+  protected final void setInfoSectionPanelLayout() {
     GroupLayout layout = new GroupLayout(myInfoSectionPanel);
 
     Group horizontalGroup = layout.createParallelGroup();
@@ -179,6 +192,26 @@ public class DetailsPanel extends JBPanel<DetailsPanel> implements Disposable {
     });
 
     layout.setAutoCreateContainerGaps(true);
+    layout.setHorizontalGroup(horizontalGroup);
+    layout.setVerticalGroup(verticalGroup);
+
+    myInfoSectionPanel.setLayout(layout);
+  }
+
+  private void setEmptyTextInfoSectionPanelLayout() {
+    var label = new JBLabel(myEmptyText);
+    var layout = new GroupLayout(myInfoSectionPanel);
+
+    var horizontalGroup = layout.createSequentialGroup()
+      .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+      .addComponent(label)
+      .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+
+    var verticalGroup = layout.createSequentialGroup()
+      .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+      .addComponent(label)
+      .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+
     layout.setHorizontalGroup(horizontalGroup);
     layout.setVerticalGroup(verticalGroup);
 

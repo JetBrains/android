@@ -41,7 +41,6 @@ import com.android.tools.profilers.memory.HprofSessionArtifact
 import com.android.tools.profilers.memory.LegacyAllocationsSessionArtifact
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.ExpectedException
@@ -536,7 +535,6 @@ class SessionsManagerTest {
     assertThat(myManager.selectedSession.sessionId).isEqualTo(1)
   }
 
-  @Ignore("b/136292864")
   @Test
   fun testImportedSessionDoesNotHaveChildren() {
     val session1Timestamp = 1L

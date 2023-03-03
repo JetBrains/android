@@ -132,8 +132,8 @@ class DatabaseInspectorControllerImpl(
   private var keepConnectionsOpen = false
     set(value) {
       databaseInspectorClientCommandsChannel?.keepConnectionsOpen(value)?.transformNullable(
-          edtExecutor
-        ) {
+        edtExecutor
+      ) {
         if (it != null) {
           field = it
           view.updateKeepConnectionOpenButton(value)
@@ -203,17 +203,19 @@ class DatabaseInspectorControllerImpl(
         val sortedNewState = newState.sortedBy { it.databaseId.name }
 
         val toAdd =
-          newState.filter { !currentState.contains(it) }.map {
-            DatabaseDiffOperation.AddDatabase(
-              it,
-              model.getDatabaseSchema(it.databaseId),
-              sortedNewState.indexOf(it)
-            )
-          }
+          newState
+            .filter { !currentState.contains(it) }
+            .map {
+              DatabaseDiffOperation.AddDatabase(
+                it,
+                model.getDatabaseSchema(it.databaseId),
+                sortedNewState.indexOf(it)
+              )
+            }
         val toRemove =
-          currentState.filter { !newState.contains(it) }.map {
-            DatabaseDiffOperation.RemoveDatabase(it)
-          }
+          currentState
+            .filter { !newState.contains(it) }
+            .map { DatabaseDiffOperation.RemoveDatabase(it) }
 
         return toAdd + toRemove
       }
@@ -343,7 +345,9 @@ class DatabaseInspectorControllerImpl(
             databasesToDownload,
             processDescriptor,
             appPackageName,
-          ) { message, throwable -> view.reportError(message, throwable) }
+          ) { message, throwable ->
+            view.reportError(message, throwable)
+          }
 
         val openDatabaseFlow =
           flow.onEach {
@@ -466,9 +470,9 @@ class DatabaseInspectorControllerImpl(
       .forEach { tabDescription ->
         when (tabDescription) {
           is TabDescription.Table ->
-            schema.tables.find { tabDescription.tableName == it.name }?.let {
-              openTableTab(databaseId, it)
-            }
+            schema.tables
+              .find { tabDescription.tableName == it.name }
+              ?.let { openTableTab(databaseId, it) }
           is TabDescription.AdHocQuery -> {
             openNewEvaluatorTab(EvaluationParams(databaseId, tabDescription.query))
           }
@@ -476,11 +480,13 @@ class DatabaseInspectorControllerImpl(
       }
 
     // open all tabs not associated with any database
-    tabsToRestore.filter { it.databasePath == null }.also { tabsToRestore.removeAll(it) }.forEach {
-      tabDescription ->
-      val adHocTabDescription = tabDescription as TabDescription.AdHocQuery
-      openNewEvaluatorTab(EvaluationParams(null, adHocTabDescription.query))
-    }
+    tabsToRestore
+      .filter { it.databasePath == null }
+      .also { tabsToRestore.removeAll(it) }
+      .forEach { tabDescription ->
+        val adHocTabDescription = tabDescription as TabDescription.AdHocQuery
+        openNewEvaluatorTab(EvaluationParams(null, adHocTabDescription.query))
+      }
   }
 
   private fun closeTab(tabId: TabId) {
@@ -527,25 +533,27 @@ class DatabaseInspectorControllerImpl(
       }
     }
 
-    newSchema.tables.sortedBy { it.name }.forEachIndexed { tableIndex, newTable ->
-      val indexedSqliteTable = IndexedSqliteTable(newTable, tableIndex)
-      val oldTable = oldSchema.tables.firstOrNull { it.name == newTable.name }
-      if (oldTable == null) {
-        val indexedColumnsToAdd =
-          newTable.columns.mapIndexed { colIndex, sqliteColumn ->
-            IndexedSqliteColumn(sqliteColumn, colIndex)
-          }
+    newSchema.tables
+      .sortedBy { it.name }
+      .forEachIndexed { tableIndex, newTable ->
+        val indexedSqliteTable = IndexedSqliteTable(newTable, tableIndex)
+        val oldTable = oldSchema.tables.firstOrNull { it.name == newTable.name }
+        if (oldTable == null) {
+          val indexedColumnsToAdd =
+            newTable.columns.mapIndexed { colIndex, sqliteColumn ->
+              IndexedSqliteColumn(sqliteColumn, colIndex)
+            }
 
-        diffOperations.add(AddTable(indexedSqliteTable, indexedColumnsToAdd))
-      } else if (oldTable != newTable) {
-        val indexedColumnsToAdd =
-          newTable.columns
-            .mapIndexed { colIndex, sqliteColumn -> IndexedSqliteColumn(sqliteColumn, colIndex) }
-            .filterNot { oldTable.columns.contains(it.sqliteColumn) }
+          diffOperations.add(AddTable(indexedSqliteTable, indexedColumnsToAdd))
+        } else if (oldTable != newTable) {
+          val indexedColumnsToAdd =
+            newTable.columns
+              .mapIndexed { colIndex, sqliteColumn -> IndexedSqliteColumn(sqliteColumn, colIndex) }
+              .filterNot { oldTable.columns.contains(it.sqliteColumn) }
 
-        diffOperations.add(AddColumns(newTable.name, indexedColumnsToAdd, newTable))
+          diffOperations.add(AddColumns(newTable.name, indexedColumnsToAdd, newTable))
+        }
       }
-    }
 
     try {
       view.updateDatabaseSchema(ViewDatabase(databaseId, true), diffOperations)

@@ -19,6 +19,8 @@ import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.SdkIntDetector
 
-class AndroidLintAnnotateVersionCheckInspection : AndroidLintInspectionBase(
-  AndroidLintBundle.message("android.lint.inspections.annotate.version.check"), SdkIntDetector.ISSUE
-)
+class AndroidLintAnnotateVersionCheckInspection :
+  AndroidLintInspectionBase(
+    AndroidLintBundle.message("android.lint.inspections.annotate.version.check"),
+    SdkIntDetector.ISSUE
+  )

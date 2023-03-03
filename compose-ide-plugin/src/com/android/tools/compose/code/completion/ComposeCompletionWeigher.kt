@@ -22,6 +22,7 @@ import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionWeigher
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtBlockExpression
@@ -82,14 +83,20 @@ private val PROMOTED_NON_COMPOSABLES_IN_ARGUMENTS = setOf(
   "androidx.compose.material3.MaterialTheme",
 )
 
+/** Set of fully-qualified name prefixes of non-Composable functions that should be promoted in a value argument. */
+private val PROMOTED_NON_COMPOSABLE_PREFIXES_IN_ARGUMENTS = setOf(
+  "androidx.compose.material.icons.",
+)
+
 private fun LookupElement.isPromotedInStatement(): Boolean {
   val fqName = (psiElement as? KtNamedDeclaration)?.fqName?.asString()
   return fqName != null && PROMOTED_NON_COMPOSABLES_IN_STATEMENTS.contains(fqName)
 }
 
 private fun LookupElement.isPromotedInArgument(): Boolean {
-  val fqName = (psiElement as? KtNamedDeclaration)?.fqName?.asString()
-  return fqName != null && PROMOTED_NON_COMPOSABLES_IN_ARGUMENTS.contains(fqName)
+  val fqName = (psiElement as? KtNamedDeclaration)?.fqName?.asString() ?: return false
+  return PROMOTED_NON_COMPOSABLES_IN_ARGUMENTS.contains(fqName) ||
+         PROMOTED_NON_COMPOSABLE_PREFIXES_IN_ARGUMENTS.any { fqName.startsWith(it) }
 }
 
 /** Checks if the proposed completion would insert a composable function. */
@@ -104,7 +111,7 @@ private fun CompletionParameters.isForStatement() =
 
 /** Checks if this completion is for a value argument, where Compose views are usually not called. */
 private fun CompletionParameters.isForValueArgument() =
-  position is LeafPsiElement && position.node.elementType == KtTokens.IDENTIFIER && position.parent?.parent is KtValueArgument
+  position is LeafPsiElement && position.node.elementType == KtTokens.IDENTIFIER && position.parentOfType<KtValueArgument>() != null
 
 /** Checks if the given completions parameters are in a Kotlin file in a Compose-enabled module. */
 private fun CompletionParameters.isInComposeEnabledModuleAndFile() =

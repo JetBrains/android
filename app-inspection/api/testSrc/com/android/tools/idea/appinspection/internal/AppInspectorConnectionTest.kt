@@ -122,8 +122,7 @@ class AppInspectorConnectionTest {
 
   // One payload event carries a single chunk of data
   private fun AppInspectionTransport.queryAllPayloads(): List<AppInspection.AppInspectionPayload> {
-    return client
-      .transportStub
+    return client.transportStub
       .getEventGroups(
         Transport.GetEventGroupsRequest.newBuilder()
           .setKind(Event.Kind.APP_INSPECTION_PAYLOAD)

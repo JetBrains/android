@@ -288,8 +288,7 @@ private object DeviceSpecParameterProvider : CompletionProvider<CompletionParame
     result: CompletionResultSet
   ) {
     val deviceSpecImplElement =
-      parameters
-        .position
+      parameters.position
         .getParentOfType<DeviceSpecPsiFile>(false)
         ?.getChildOfType<DeviceSpecSpecImpl>()
     val expectedUnit = deviceSpecImplElement?.getFirstValidUnit() ?: DeviceSpec.DEFAULT_UNIT
@@ -363,7 +362,9 @@ private object OrientationValueProvider : CompletionProvider<CompletionParameter
 private fun DeviceSpecSpecImpl.getFirstValidUnit(): DimUnit? {
   getChildrenOfType<DeviceSpecParam>().forEach loop@{ paramElement ->
     when (paramElement.firstChild.text) {
-      DeviceSpec.PARAMETER_WIDTH, DeviceSpec.PARAMETER_HEIGHT, DeviceSpec.PARAMETER_CHIN_SIZE -> {
+      DeviceSpec.PARAMETER_WIDTH,
+      DeviceSpec.PARAMETER_HEIGHT,
+      DeviceSpec.PARAMETER_CHIN_SIZE -> {
         enumValueOfOrNull<DimUnit>(paramElement.text.takeLast(2))?.let {
           return it
         }

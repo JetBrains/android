@@ -32,7 +32,6 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeFeatureTracker
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
-import com.android.tools.profilers.FakeProfilerService
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
 import com.android.tools.profilers.StudioProfilers
@@ -69,11 +68,11 @@ import javax.swing.SwingUtilities
 
 @RunsInEdt
 class CpuCaptureStageViewTest {
-  private val cpuService = FakeCpuService()
   private val timer = FakeTimer()
+  private val transportService = FakeTransportService(timer, false)
 
   @get:Rule
-  val grpcChannel = FakeGrpcChannel("FramesTest", cpuService, FakeTransportService(timer), FakeProfilerService(timer))
+  val grpcChannel = FakeGrpcChannel("FramesTest", transportService)
 
   @get:Rule
   val edtRule = EdtRule()
@@ -90,6 +89,7 @@ class CpuCaptureStageViewTest {
 
   @Before
   fun setUp() {
+    services.enableEventsPipeline(true)
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
     profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents())

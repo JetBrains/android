@@ -27,8 +27,8 @@ import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.WearSurfaceLaunchOptions
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.WearBaseClasses
-import com.android.tools.idea.run.editor.DeployTarget
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.ConsoleView
@@ -38,10 +38,10 @@ import org.jetbrains.android.util.AndroidBundle
 private const val WATCH_FACE_MIN_DEBUG_SURFACE_VERSION = 2
 
 open class AndroidWatchFaceConfigurationExecutor(environment: ExecutionEnvironment,
-                                                 deployTarget: DeployTarget,
+                                                 deviceFutures: DeviceFutures,
                                                  appRunSettings: AppRunSettings,
                                                  applicationIdProvider: ApplicationIdProvider,
-                                                 apkProvider: ApkProvider) : AndroidWearConfigurationExecutor(environment, deployTarget,
+                                                 apkProvider: ApkProvider) : AndroidWearConfigurationExecutor(environment, deviceFutures,
                                                                                                               appRunSettings,
                                                                                                               applicationIdProvider,
                                                                                                               apkProvider) {

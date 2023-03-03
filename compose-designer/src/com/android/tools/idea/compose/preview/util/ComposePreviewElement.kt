@@ -120,6 +120,7 @@ internal class ComposeAdapterLightVirtualFile(
  * Transforms a dimension given on the [PreviewConfiguration] into the string value. If the
  * dimension is [UNDEFINED_DIMENSION], the value is converted to `wrap_content`. Otherwise, the
  * value is returned concatenated with `dp`.
+ *
  * @param dimension the dimension in dp or [UNDEFINED_DIMENSION]
  * @param defaultValue the value to be used when the given dimension is [UNDEFINED_DIMENSION]
  */
@@ -138,7 +139,7 @@ private fun KtClass.hasDefaultConstructor() =
  * which can be either:
  * 1. Top-level functions
  * 2. Non-nested functions defined in top-level classes that have a default (no parameter)
- * constructor
+ *    constructor
  */
 internal fun KtNamedFunction.isValidPreviewLocation(): Boolean {
   if (isTopLevel) {
@@ -204,9 +205,9 @@ private fun Device.hasRoundFrame(): Boolean =
 private fun Device.withoutRoundScreenFrame(): Device =
   if (hasRoundFrame()) {
     Device.Builder(this).build().also { newDevice ->
-      newDevice.allStates.filter { it.hardware.screen.screenRound == ScreenRound.ROUND }.onEach {
-        it.hardware.screen.screenRound = ScreenRound.NOTROUND
-      }
+      newDevice.allStates
+        .filter { it.hardware.screen.screenRound == ScreenRound.ROUND }
+        .onEach { it.hardware.screen.screenRound = ScreenRound.NOTROUND }
     }
   } else this
 
@@ -219,11 +220,6 @@ private fun Device.withoutRoundScreenFrame(): Device =
  * specified in the [PreviewConfiguration.deviceSpec] is not available or does not exist in the
  * devices returned by [devicesProvider].
  *
- * If [useDeviceFrame] is false, the device frame configuration will be not used. For example, if
- * the frame is round, this will be ignored and a regular square frame will be applied. This can be
- * used when the `@Preview` element is not displaying the device decorations so the device frame
- * sizes and ratios would not match.
- *
  * If [customSize] is not null, the dimensions will be forced in the resulting configuration.
  */
 private fun PreviewConfiguration.applyTo(
@@ -231,11 +227,11 @@ private fun PreviewConfiguration.applyTo(
   highestApiTarget: (Configuration) -> IAndroidTarget?,
   devicesProvider: (Configuration) -> Collection<Device>,
   defaultDeviceProvider: (Configuration) -> Device?,
-  @AndroidDpCoordinate customSize: Dimension? = null,
-  useDeviceFrame: Boolean = false
+  @AndroidDpCoordinate customSize: Dimension? = null
 ) {
   fun updateRenderConfigurationTargetIfChanged(newTarget: CompatibilityRenderTarget) {
-    if ((renderConfiguration.target as? CompatibilityRenderTarget)?.hashString() !=
+    if (
+      (renderConfiguration.target as? CompatibilityRenderTarget)?.hashString() !=
         newTarget.hashString()
     ) {
       renderConfiguration.target = newTarget
@@ -276,6 +272,12 @@ private fun PreviewConfiguration.applyTo(
     // If the user is not using the device frame, we never want to use the round frame around. See
     // b/215362733
     renderConfiguration.setDevice(device, false)
+    // If there is no application theme set, we might need to change the theme when changing the
+    // device, because different devices might
+    // have different default themes.
+    renderConfiguration.setTheme(
+      renderConfiguration.configurationManager.computePreferredTheme(renderConfiguration)
+    )
   }
 
   customSize?.let {
@@ -315,8 +317,7 @@ fun ComposePreviewElement.applyTo(renderConfiguration: Configuration) {
     { it.configurationManager.highestApiTarget },
     { it.configurationManager.devices },
     { it.configurationManager.getDefaultPreviewDevice() },
-    getCustomDeviceSize(),
-    this.displaySettings.showDecoration
+    getCustomDeviceSize()
   )
 }
 
@@ -325,17 +326,9 @@ fun PreviewConfiguration.applyConfigurationForTest(
   renderConfiguration: Configuration,
   highestApiTarget: (Configuration) -> IAndroidTarget?,
   devicesProvider: (Configuration) -> Collection<Device>,
-  defaultDeviceProvider: (Configuration) -> Device?,
-  useDeviceFrame: Boolean = false
+  defaultDeviceProvider: (Configuration) -> Device?
 ) {
-  applyTo(
-    renderConfiguration,
-    highestApiTarget,
-    devicesProvider,
-    defaultDeviceProvider,
-    null,
-    useDeviceFrame
-  )
+  applyTo(renderConfiguration, highestApiTarget, devicesProvider, defaultDeviceProvider, null)
 }
 
 @TestOnly
@@ -612,12 +605,11 @@ class ParametrizedComposePreviewElementTemplate(
             val parameterProviderClass =
               classLoader.loadClass(previewParameter.providerClassFqn).kotlin
             val parameterProviderSizeMethod =
-              parameterProviderClass.functions.single { "getCount" == it.name }.also {
-                it.isAccessible = true
-              }
+              parameterProviderClass.functions
+                .single { "getCount" == it.name }
+                .also { it.isAccessible = true }
             val parameterProvider =
-              parameterProviderClass
-                .constructors
+              parameterProviderClass.constructors
                 .single { it.parameters.isEmpty() } // Find the default constructor
                 .also { it.isAccessible = true }
                 .call()

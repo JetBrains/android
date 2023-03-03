@@ -23,7 +23,13 @@ import com.android.tools.idea.assistant.datamodel.StepData;
 import com.android.tools.idea.assistant.datamodel.StepElementData;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.intellij.icons.AllIcons;
+import com.intellij.ide.actions.CopyAction;
 import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.idea.ActionsBundle;
+import com.intellij.openapi.actionSystem.ActionGroup;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.CaretState;
 import com.intellij.openapi.editor.LogicalPosition;
@@ -31,6 +37,7 @@ import com.intellij.openapi.editor.VisualPosition;
 import com.intellij.openapi.editor.event.EditorMouseAdapter;
 import com.intellij.openapi.editor.event.EditorMouseEvent;
 import com.intellij.openapi.editor.ex.EditorEx;
+import com.intellij.openapi.editor.impl.ContextMenuPopupHandler;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.ui.EditorTextField;
@@ -55,6 +62,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.io.IOException;
@@ -149,9 +157,12 @@ public class TutorialStep extends JPanel {
           JEditorPane section = new JEditorPane() {
             // Set the section to be as small as possible: this will make long lines wrap properly instead of forcing the panel to extend
             // as long as the line. When a line can't be wrapped (e.g. a long word or an image), the horizontal scrollbar should appear.
+            // Don't override the height. If this is done the scroll pane will change its height as needed when scrolling down and more
+            // JEditorPane's come into view. This causes unwanted behavior when trying to refresh a TutorialCard to a particular vertical
+            // location because it may not exist (until it's later viewed).
             @Override
             public Dimension getPreferredSize() {
-              return getMinimumSize();
+              return (new Dimension(1, (int)super.getPreferredSize().getHeight()));
             }
           };
           final DefaultCaret caret = new DefaultCaret();
@@ -372,6 +383,7 @@ public class TutorialStep extends JPanel {
 
     @Override
     public void mouseClicked(@NotNull EditorMouseEvent e) {
+      if (e.getMouseEvent().getButton() != MouseEvent.BUTTON1) return;
       if (!myIsTextSelectedOnMousePressed && isNothingSelected()) {
         selectAllText();
         e.consume();
@@ -380,6 +392,7 @@ public class TutorialStep extends JPanel {
 
     @Override
     public void mousePressed(@NotNull EditorMouseEvent e) {
+      if (e.getMouseEvent().getButton() != MouseEvent.BUTTON1) return;
       myIsTextSelectedOnMousePressed = isAnythingSelected();
       if (myIsTextSelectedOnMousePressed) {
         // This disables drag and drop, but ensures developers aren't required to click again to clear the selection before trying to select
@@ -512,6 +525,18 @@ public class TutorialStep extends JPanel {
       // Set the background manually as it appears to persist as an old color on theme change.
       editor.setBackgroundColor(UIUtils.getBackgroundColor());
       editor.addEditorMouseListener(new AutoTextSelectionListener(editor));
+      editor.installPopupHandler(new ContextMenuPopupHandler() {
+        @NotNull
+        @Override
+        public ActionGroup getActionGroup(@NotNull EditorMouseEvent event) {
+          DefaultActionGroup group = new DefaultActionGroup();
+          AnAction copyAction = new CopyAction();
+          copyAction.getTemplatePresentation().setText(ActionsBundle.message("action.EditorCopy.text"));
+          copyAction.getTemplatePresentation().setIcon(AllIcons.Actions.Copy);
+          group.add(copyAction);
+          return group;
+        }
+      });
 
       // a11y improvement, disable traversal and add custom key listener for tab/shift + tab so the Tutorial can be navigated using keyboard only
       editor.getContentComponent().setFocusTraversalKeysEnabled(false);

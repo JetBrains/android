@@ -28,7 +28,7 @@ import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
 import com.android.tools.idea.projectsystem.TestRepositories;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -68,7 +68,7 @@ public class ThemeResolverTest extends AndroidTestCase {
 
     ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = configurationManager.getConfiguration(file);
-    ResourceNamespace moduleNamespace = ResourceRepositoryManager.getInstance(myModule).getNamespace();
+    ResourceNamespace moduleNamespace = StudioResourceRepositoryManager.getInstance(myModule).getNamespace();
 
     ThemeResolver resolver = new ThemeResolver(configuration);
     assertNotNull(resolver.getTheme(ResourceReference.style(moduleNamespace, "V20OnlyTheme")));
@@ -145,7 +145,7 @@ public class ThemeResolverTest extends AndroidTestCase {
     projectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, myModule, new GradleVersion(1337, 600613));
 
     ResourceNamespace appcompatNamespace =
-      ResourceRepositoryManager.getInstance(myModule).getNamespacing() == Namespacing.DISABLED
+      StudioResourceRepositoryManager.getInstance(myModule).getNamespacing() == Namespacing.DISABLED
         ? ResourceNamespace.RES_AUTO
         : ResourceNamespace.APPCOMPAT;
     VirtualFile layoutFile = myFixture.copyFileToProject("themeEditor/layout.xml", "res/layout/layout.xml");

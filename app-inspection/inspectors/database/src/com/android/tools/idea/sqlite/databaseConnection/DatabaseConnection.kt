@@ -32,8 +32,9 @@ interface DatabaseConnection : Disposable {
 
   /**
    * Use this method for Query statements (like SELECT or EXPLAIN) that return a list of rows.
+   *
    * @return a [SqliteResultSet] for [sqliteStatement] that can be used to navigate the result of
-   * the query.
+   *   the query.
    */
   fun query(sqliteStatement: SqliteStatement): ListenableFuture<SqliteResultSet>
 

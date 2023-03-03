@@ -42,9 +42,11 @@ import com.android.tools.idea.projectsystem.ManifestOverrides
 import com.android.tools.idea.projectsystem.MergedManifestContributors
 import com.android.tools.idea.projectsystem.ModuleHierarchyProvider
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.SampleDataDirectoryProvider
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
+import com.android.tools.idea.projectsystem.androidFacetsForNonHolderModules
 import com.android.tools.idea.projectsystem.buildNamedModuleTemplatesFor
 import com.android.tools.idea.projectsystem.getAndroidTestModule
 import com.android.tools.idea.projectsystem.getFlavorAndBuildTypeManifests
@@ -70,6 +72,8 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.idea.versions.LOG
@@ -413,6 +417,52 @@ class GradleModuleSystem(
     return GradleAndroidModel.get(module)?.androidProject?.agpFlags?.let(read)
   }
 
+  private data class AgpBuildGlobalFlags(
+    val useAndroidX: Boolean
+  )
+
+  /**
+   * Returns the module that is the root for this build.
+   *
+   * This does not traverse across builds if there is a composite build,
+   * or if multiple gradle projects were imported in idea, the value is per
+   * gradle build.
+   */
+  private fun Module.getGradleBuildRootModule(): Module? {
+    val currentPath = module.getGradleProjectPath() ?: return null
+    return project.findModule(currentPath.resolve(":"))
+  }
+
+  /**
+   * For some flags, we know they are global to a build, but are only reported by android projects
+   *
+   * The value is read from any android model in this Gradle build (not traversing included builds)
+   * and cached in the module corresponding to the root of that Gradle build.
+   *
+   * Returns default values if there are no Android models in the same Gradle build as this module
+   */
+  private val agpBuildGlobalFlags: AgpBuildGlobalFlags
+    get() = module.getGradleBuildRootModule()?.let { gradleBuildRoot ->
+      CachedValuesManager.getManager(module.project).getCachedValue(gradleBuildRoot, AgpBuildGlobalFlagsProvider(gradleBuildRoot))
+    } ?: AGP_GLOBAL_FLAGS_DEFAULTS
+
+  private class AgpBuildGlobalFlagsProvider(private val gradleBuildRoot: Module) : CachedValueProvider<AgpBuildGlobalFlags> {
+    override fun compute(): CachedValueProvider.Result<AgpBuildGlobalFlags> {
+      val tracker = ProjectSyncModificationTracker.getInstance(gradleBuildRoot.project)
+      val buildRoot = gradleBuildRoot.getGradleProjectPath()?.buildRoot ?: return CachedValueProvider.Result(null, tracker)
+      val gradleAndroidModel =
+        gradleBuildRoot.project.androidFacetsForNonHolderModules()
+          .filter { it.module.getGradleProjectPath()?.buildRoot == buildRoot }
+          .mapNotNull { GradleAndroidModel.get(it) }
+          .firstOrNull()
+        ?: return CachedValueProvider.Result(null, tracker)
+      val agpBuildGlobalFlags = AgpBuildGlobalFlags(
+        useAndroidX = gradleAndroidModel.androidProject.agpFlags.useAndroidX,
+      )
+      return CachedValueProvider.Result(agpBuildGlobalFlags, tracker)
+    }
+  }
+
   override val usesCompose: Boolean
     get() = StudioFlags.COMPOSE_PROJECT_USES_COMPOSE_OVERRIDE.get() ||
             readFromAgpFlags { it.usesCompose } ?: false
@@ -460,11 +510,25 @@ class GradleModuleSystem(
 
   override val testRClassConstantIds: Boolean get() = readFromAgpFlags { it.testRClassConstantIds } ?: true
 
-  override val useAndroidX: Boolean? get() = readFromAgpFlags { it.useAndroidX }
+  /**
+   * Whether AndroidX libraries should be used instead of legacy support libraries.
+   *
+   * This property is global to the Gradle build, but only reported in Android models,
+   * so the value is read from the first found android model in the same Gradle build,
+   * and cached on the idea module corresponding to the root of that gradle build.
+   */
+  override val useAndroidX: Boolean get() = agpBuildGlobalFlags.useAndroidX
 
   override val submodules: Collection<Module>
     get() = moduleHierarchyProvider.submodules
+
+  companion object {
+    private val AGP_GLOBAL_FLAGS_DEFAULTS = AgpBuildGlobalFlags(
+      useAndroidX = true
+    )
+  }
 }
+
 
 private fun AndroidFacet.getLibraryManifests(dependencies: List<AndroidFacet>): List<VirtualFile> {
   if (isDisposed) return emptyList()

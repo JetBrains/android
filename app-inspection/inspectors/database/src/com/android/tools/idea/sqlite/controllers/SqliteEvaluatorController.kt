@@ -344,6 +344,7 @@ class SqliteEvaluatorController(
   interface Listener {
     /**
      * Called when an user-defined SQLite statement is successfully executed
+     *
      * @param databaseId The database on which the statement was executed.
      */
     fun onSqliteStatementExecuted(databaseId: SqliteDatabaseId)

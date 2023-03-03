@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.lint.inspections
 
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.GradleDetector
-import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 
-class AndroidLintPlaySdkIndexNonCompliantInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.play.sdk.index.non.compliant"), GradleDetector.PLAY_SDK_INDEX_NON_COMPLIANT
-)
+class AndroidLintPlaySdkIndexNonCompliantInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.play.sdk.index.non.compliant"),
+    GradleDetector.PLAY_SDK_INDEX_NON_COMPLIANT
+  )

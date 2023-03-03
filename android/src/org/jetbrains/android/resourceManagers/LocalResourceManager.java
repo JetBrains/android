@@ -25,7 +25,7 @@ import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
@@ -135,7 +135,7 @@ public class LocalResourceManager extends ResourceManager {
                                                boolean withDependencies) {
     Set<PsiFile> result = new LinkedHashSet<>();
     ResourceRepository repository =
-        withDependencies ? ResourceRepositoryManager.getAppResources(myFacet) : ResourceRepositoryManager.getModuleResources(myFacet);
+      withDependencies ? StudioResourceRepositoryManager.getAppResources(myFacet) : StudioResourceRepositoryManager.getModuleResources(myFacet);
     Collection<SingleNamespaceResourceRepository> repositories = repository.getLeafResourceRepositories();
     if (resourceFolderType == ResourceFolderType.VALUES) {
       for (ResourceType resourceType : FolderTypeRelationship.getRelatedResourceTypes(resourceFolderType)) {
@@ -189,6 +189,6 @@ public class LocalResourceManager extends ResourceManager {
 
   @NotNull
   private ResourceRepository getResourceRepository() {
-    return ResourceRepositoryManager.getAppResources(myFacet);
+    return StudioResourceRepositoryManager.getAppResources(myFacet);
   }
 }

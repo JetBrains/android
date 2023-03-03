@@ -219,6 +219,7 @@ iml_module(
         "//prebuilts/studio/sdk:cmake",
         "//prebuilts/studio/sdk:docs",
         "//prebuilts/studio/sdk:licenses",
+        "//prebuilts/studio/sdk:patcher/v4",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
         "//prebuilts/studio/sdk:platforms/latest-preview",
@@ -466,6 +467,7 @@ filegroup(
         "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
         "//tools/data-binding:compilerCommon.antlr.shaded",
         "//tools/vendor/google/firebase/src/proto:firebase_java_proto",
+        "//tools/vendor/google/ml/sml/aida:aida_artifacts",
         "//tools/vendor/google/url-assistant/src/proto:urlassistant_proto",
         "//tools/adt/idea/build-attribution/proto:build-analysis-results-proto",
         "//tools/base/common:version",
@@ -482,10 +484,6 @@ maven_repository(
     name = "test_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "//tools/adt/idea/kotlin-integration:kotlin-android-extensions-runtime-for-ide-plugin",
-        "//tools/adt/idea/kotlin-integration:kotlin-gradle-plugin-for-ide-plugin",
-        "//tools/adt/idea/kotlin-integration:kotlin-reflect-for-ide-plugin",
-        "//tools/adt/idea/kotlin-integration:kotlin-stdlib-jdk8-for-ide-plugin",
         "@maven//:android.arch.navigation.navigation-fragment_1.0.0",
         "@maven//:android.arch.persistence.room.runtime_1.0.0",
         "@maven//:androidx.annotation.annotation_1.2.0-rc01",

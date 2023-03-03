@@ -107,7 +107,7 @@ object ComposeUnit {
    * Parses and creates a [Unit] from [ComposeAnimatedProperty.value].
    *
    * @return a property which could 1, 2, 3 or 4 - dimensional property - [Unit1D], [Unit2D],
-   * [Unit3D], [Unit4D] respectively.
+   *   [Unit3D], [Unit4D] respectively.
    */
   fun parse(property: ComposeAnimatedProperty): NumberUnit<*>? = parseNumberUnit(property.value)
 
@@ -115,7 +115,7 @@ object ComposeUnit {
    * Parses and creates a [NumberUnit]
    *
    * @return a property which could 1, 2, 3 or 4 - dimensional property - [Unit1D], [Unit2D],
-   * [Unit3D], [Unit4D] respectively.
+   *   [Unit3D], [Unit4D] respectively.
    */
   fun parseNumberUnit(value: Any?): NumberUnit<*>? {
     if (value == null) return null
@@ -138,7 +138,7 @@ object ComposeUnit {
    * Parses and creates a [Unit]
    *
    * @return a property which could 1, 2, 3 or 4 - dimensional property - [Unit1D], [Unit2D],
-   * [Unit3D], [Unit4D] respectively.
+   *   [Unit3D], [Unit4D] respectively.
    */
   fun parseStateUnit(value: Any?): Unit<*>? {
     return parseNumberUnit(value)?.takeIf { it !is UnknownNumberUnit }
@@ -501,8 +501,10 @@ object ComposeUnit {
   }
 
   private fun findMethodByName(methodName: String, property: Any): Method? {
-    return property::class.java.methods.singleOrNull { it.name == methodName }?.apply {
-      this.isAccessible = true
-    }
+    return property::class
+      .java
+      .methods
+      .singleOrNull { it.name == methodName }
+      ?.apply { this.isAccessible = true }
   }
 }

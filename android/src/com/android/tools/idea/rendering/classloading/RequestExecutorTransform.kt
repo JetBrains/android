@@ -44,17 +44,17 @@ class RequestExecutorTransform(delegate: ClassVisitor) : ClassVisitor(Opcodes.AS
                            desc: String,
                            signature: String?,
                            exceptions: Array<String>?): MethodVisitor? {
-    val mv = super.visitMethod(access, name, desc, signature, exceptions)
+    val mv = super.visitMethod(access, name, desc, signature, exceptions) ?: return null
     if (isRequestExecutorClass && name == "execute") {
       return NoOpMethodVisitor(mv)
     }
     return mv
   }
 
-  class NoOpMethodVisitor(val mv: MethodVisitor?) : MethodVisitor(Opcodes.ASM9, null) {
+  class NoOpMethodVisitor(val delegate: MethodVisitor) : MethodVisitor(Opcodes.ASM9, null) {
     override fun visitCode() {
-      mv.visitInsn(Opcodes.RETURN)
-      mv.visitEnd()
+      delegate.visitInsn(Opcodes.RETURN)
+      delegate.visitEnd()
     }
   }
 }

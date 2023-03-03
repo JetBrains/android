@@ -182,7 +182,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           isApplyChangesFallbackToRun(),
           myLaunchOptions.getAlwaysInstallWithPm()));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
-        tasks.add(new StartLiveUpdateMonitoringTask(LiveEditService.getInstance(myProject).getCallback(packageName, device)));
+        tasks.add(new StartLiveUpdateMonitoringTask(() -> LiveEditService.getInstance(myProject).notifyAppRefresh(device)));
 
         break;
       case APPLY_CODE_CHANGES:
@@ -192,7 +192,7 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           isApplyCodeChangesFallbackToRun(),
           myLaunchOptions.getAlwaysInstallWithPm()));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
-        tasks.add(new StartLiveUpdateMonitoringTask(LiveEditService.getInstance(myProject).getCallback(packageName, device)));
+        tasks.add(new StartLiveUpdateMonitoringTask(() -> LiveEditService.getInstance(myProject).notifyAppRefresh(device)));
         break;
       case DEPLOY:
         if (myLaunchOptions.isClearAppStorage()) {
@@ -205,19 +205,13 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
           myLaunchOptions.getInstallOnAllUsers(),
           myLaunchOptions.getAlwaysInstallWithPm()));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
-        AndroidProjectSystem androidProjectSystem = ProjectSystemService.getInstance(myProject).getProjectSystem();
-        if (ProjectStructureUtilKt.allModules(myProject).stream().anyMatch(m -> androidProjectSystem.getModuleSystem(m).getUsesCompose())) {
+        if (LiveEditService.usesCompose(myProject)) {
           tasks.add(new StartLiveUpdateMonitoringTask(LiveEditService.getInstance(myProject).getCallback(packageName, device)));
         }
         break;
       default: throw new IllegalStateException("Unhandled Deploy Type");
     }
     return ImmutableList.copyOf(tasks);
-  }
-
-  @Override
-  public String getLaunchTypeDisplayName() {
-    return getDeployType().asDisplayName();
   }
 
 
@@ -250,13 +244,13 @@ public class AndroidLaunchTasksProvider implements LaunchTasksProvider {
 
   @Nullable
   @Override
-  public ConnectDebuggerTask getConnectDebuggerTask() {
+  public ConnectDebuggerTask getConnectDebuggerTask() throws ExecutionException {
     if (!myLaunchOptions.isDebug()) {
       return null;
     }
     AndroidDebuggerContext androidDebuggerContext = myRunConfig.getAndroidDebuggerContext();
 
-    return DefaultConnectDebuggerTaskKt.getBaseDebuggerTask(androidDebuggerContext, myFacet, myApplicationIdProvider, myEnv);
+    return DefaultConnectDebuggerTaskKt.getBaseDebuggerTask(androidDebuggerContext, myFacet, myEnv, 15);
   }
 
   private boolean shouldDeployAsInstant() {

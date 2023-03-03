@@ -14,8 +14,10 @@ import com.android.tools.idea.execution.common.debug.AndroidDebugger;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext;
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorRunProfileState;
 import com.android.tools.idea.run.editor.DeployTarget;
 import com.android.tools.idea.run.editor.DeployTargetContext;
@@ -24,7 +26,6 @@ import com.android.tools.idea.run.editor.DeployTargetState;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.editor.RunConfigurationWithDebugger;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
-import com.android.tools.idea.run.tasks.LaunchTasksProvider;
 import com.android.tools.idea.run.util.LaunchUtils;
 import com.android.tools.idea.stats.RunStats;
 import com.android.tools.idea.stats.RunStatsService;
@@ -55,10 +56,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import org.jdom.Element;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -98,6 +99,11 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     myIsTestConfiguration = isTestConfiguration;
     myProfilerState = new ProfilerState();
     getOptions().setAllowRunningInParallel(true);
+
+    if (StudioFlags.ATTACH_ON_WAIT_FOR_DEBUGGER.get()) {
+      // Start up debugger auto attach.
+      AttachOnWaitForDebuggerMonitor.getInstance(project);
+    }
   }
 
   @Override
@@ -168,7 +174,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
         return errors;
     }
 
-    if (AndroidPlatform.getInstance(module) == null) {
+    if (AndroidPlatforms.getInstance(module) == null) {
       errors.add(ValidationError.fatal(AndroidBundle.message("select.platform.error")));
     }
     errors.addAll(getDeployTargetContext().getCurrentDeployTargetState().validate(facet));
@@ -276,7 +282,7 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // Figure out deploy target, prompt user if needed (ignore completely if user chose to hotswap).
     DeployTarget deployTarget = getDeployTarget();
     if (deployTarget == null) { // if user doesn't select a deploy target from the dialog
-      return null;
+      throw new ExecutionException(AndroidBundle.message("deployment.target.not.found"));
     }
 
     DeployTargetState deployTargetState = context.getCurrentDeployTargetState();
@@ -285,10 +291,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     }
 
     DeviceFutures deviceFutures = deployTarget.getDevices(getProject());
-    if (deviceFutures == null) {
-      // The user deliberately canceled, or some error was encountered and exposed by the chooser. Quietly exit.
-      return null;
-    }
 
     // Record stat if we launched a device.
     stats.setLaunchedDevices(deviceFutures.getDevices().stream().anyMatch(device -> device instanceof LaunchableAndroidDevice));
@@ -310,44 +312,12 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     // Save the stats so that before-run task can access it
     env.putUserData(RunStats.KEY, stats);
 
-    ApplicationIdProvider applicationIdProvider = getApplicationIdProvider();
-    if (applicationIdProvider == null) {
-      throw new RuntimeException("Cannot get ApplicationIdProvider");
-    }
-    String packageName;
-    try {
-      packageName = applicationIdProvider.getPackageName();
-    }
-    catch (ApkProvisionException e) {
-      throw new ExecutionException(e);
-    }
-
-    LaunchOptions.Builder launchOptions = getLaunchOptions().setDebug(isDebugging);
-
-    ApkProvider apkProvider = getApkProvider();
-    if (apkProvider == null) return null;
-    LaunchTasksProvider launchTasksProvider =
-      createLaunchTasksProvider(env, facet, applicationIdProvider, apkProvider, launchOptions.build());
-
-    ConsoleProvider consoleProvider = getConsoleProvider(deviceFutures.getDevices().size() > 1);
-    LaunchTaskRunner runner = new LaunchTaskRunner(consoleProvider, applicationIdProvider, env, deployTarget, launchTasksProvider);
-    return new AndroidConfigurationExecutorRunProfileState(runner);
+    AndroidConfigurationExecutor configurationExecutor = getExecutor(env, facet, deviceFutures);
+    return new AndroidConfigurationExecutorRunProfileState(configurationExecutor);
   }
 
-  /**
-   * Subclasses should override to adjust the LaunchTaskProvider
-   */
-  private LaunchTasksProvider createLaunchTasksProvider(@NotNull ExecutionEnvironment env,
-                                                        @NotNull AndroidFacet facet,
-                                                        @NotNull ApplicationIdProvider applicationIdProvider,
-                                                        @NotNull ApkProvider apkProvider,
-                                                        @NotNull LaunchOptions launchOptions) {
-    Optional<LaunchTasksProvider> provided = LaunchTasksProvider.Provider.EP_NAME.extensions()
-      .map(it -> it.createLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions))
-      .filter(Objects::nonNull)
-      .findFirst();
-    return provided.orElseGet(() -> new AndroidLaunchTasksProvider(this, env, facet, applicationIdProvider, apkProvider, launchOptions));
-  }
+  protected abstract AndroidConfigurationExecutor getExecutor(ExecutionEnvironment env, AndroidFacet facet, DeviceFutures deployFutures)
+    throws ExecutionException;
 
   private static String canDebug(@NotNull DeviceFutures deviceFutures, @NotNull AndroidFacet facet, @NotNull String moduleName) {
     // If we are debugging on a device, then the app needs to be debuggable
@@ -391,8 +361,6 @@ public abstract class AndroidRunConfigurationBase extends ModuleBasedConfigurati
     return myIsTestConfiguration;
   }
 
-  @NotNull
-  protected abstract ConsoleProvider getConsoleProvider(boolean runOnMultipleDevices);
 
   @Nullable
   protected abstract AppLaunchTask getApplicationLaunchTask(@NotNull ApplicationIdProvider applicationIdProvider,

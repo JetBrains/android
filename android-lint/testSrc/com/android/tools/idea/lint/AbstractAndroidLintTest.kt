@@ -44,10 +44,14 @@ abstract class AbstractAndroidLintTest : AndroidTestCase() {
   public override fun setUp() {
     super.setUp()
 
-    // Create the iml file for a module on disk. This is necessary for correct Kotlin resolution of light classes,
+    // Create the iml file for a module on disk. This is necessary for correct Kotlin resolution of
+    // light classes,
     // see AndroidResolveScopeEnlarger.
     if (!SystemInfo.isWindows) {
-      VfsTestUtil.createFile(LocalFileSystem.getInstance().findFileByPath("/")!!, myModule.moduleFilePath)
+      VfsTestUtil.createFile(
+        LocalFileSystem.getInstance().findFileByPath("/")!!,
+        myModule.moduleFilePath
+      )
     }
 
     val analyticsSettings = AnalyticsSettingsData()
@@ -59,13 +63,19 @@ abstract class AbstractAndroidLintTest : AndroidTestCase() {
   }
 
   override fun getLanguageLevel(): LanguageLevel? {
-    // Higher language levels trigger JavaPlatformModuleSystem checks which fail for our light PSI classes. For now set the language level
+    // Higher language levels trigger JavaPlatformModuleSystem checks which fail for our light PSI
+    // classes. For now set the language level
     // to what real AS actually uses.
-    // TODO(b/110679859): figure out how to stop JavaPlatformModuleSystem from thinking the light classes are not accessible.
+    // TODO(b/110679859): figure out how to stop JavaPlatformModuleSystem from thinking the light
+    // classes are not accessible.
     return LanguageLevel.JDK_1_8
   }
 
-  protected fun doTestNoFix(inspection: AndroidLintInspectionBase, copyTo: String, extension: String) {
+  protected fun doTestNoFix(
+    inspection: AndroidLintInspectionBase,
+    copyTo: String,
+    extension: String
+  ) {
     doTestHighlighting(inspection, copyTo, extension)
     var action: IntentionAction? = null
     for (a in myFixture.availableIntentions) {
@@ -114,7 +124,9 @@ abstract class AbstractAndroidLintTest : AndroidTestCase() {
   ): IntentionAction {
     doTestHighlighting(inspection, copyTo, extension, false)
     return myFixture.getIntentionAction(message)
-           ?: error("Couldn't find intention action \"$message\"; options were:\n${myFixture.availableIntentions.joinToString("\n") { it.text }}")
+      ?: error(
+        "Couldn't find intention action \"$message\"; options were:\n${myFixture.availableIntentions.joinToString("\n") { it.text }}"
+      )
   }
 
   private fun getQuickfixWithoutHighlightingCheck(
@@ -159,11 +171,12 @@ abstract class AbstractAndroidLintTest : AndroidTestCase() {
     val prev = document.text
     WriteCommandAction.runWriteCommandAction(project) {
       while (true) {
-        if (!(removeTag(document, "<error", ">") ||
-              removeTag(document, "</error", ">") ||
-              removeTag(document, "<warning", ">") ||
-              removeTag(document, "</warning",
-                        ">"))) {
+        if (
+          !(removeTag(document, "<error", ">") ||
+            removeTag(document, "</error", ">") ||
+            removeTag(document, "<warning", ">") ||
+            removeTag(document, "</warning", ">"))
+        ) {
           break
         }
       }
@@ -171,7 +184,10 @@ abstract class AbstractAndroidLintTest : AndroidTestCase() {
     return prev
   }
 
-  /** Searches the given document for a prefix and suffix and deletes it if found. Caller must hold write lock. */
+  /**
+   * Searches the given document for a prefix and suffix and deletes it if found. Caller must hold
+   * write lock.
+   */
   private fun removeTag(document: Document, prefix: String, suffix: String): Boolean {
     val sequence = document.charsSequence
     val start = CharSequences.indexOf(sequence, prefix)
@@ -195,9 +211,7 @@ abstract class AbstractAndroidLintTest : AndroidTestCase() {
   }
 
   companion object {
-    @NonNls
-    const val BASE_PATH = "/lint/"
-    @NonNls
-    const val BASE_PATH_GLOBAL = BASE_PATH + "global/"
+    @NonNls const val BASE_PATH = "/lint/"
+    @NonNls const val BASE_PATH_GLOBAL = BASE_PATH + "global/"
   }
 }

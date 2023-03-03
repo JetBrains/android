@@ -34,8 +34,7 @@ class ProcessesModelTest {
   ): ProcessDescriptor {
     return TransportProcessDescriptor(
       this,
-      FakeTransportService.FAKE_PROCESS
-        .toBuilder()
+      FakeTransportService.FAKE_PROCESS.toBuilder()
         .setName(name ?: FakeTransportService.FAKE_PROCESS_NAME)
         .setPid(pid)
         .build()

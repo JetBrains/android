@@ -23,7 +23,7 @@ import com.intellij.psi.SmartPsiElementPointer
  * Information required to display the preview of a Glance UI element.
  *
  * TODO(b/239802877): Create 2 different classes instead for appwidget and tile cases with different
- * PreviewConfigurations reflecting the specifics of those.
+ *   PreviewConfigurations reflecting the specifics of those.
  */
 class GlancePreviewElement(
   override val displaySettings: PreviewDisplaySettings,

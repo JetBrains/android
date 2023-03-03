@@ -26,6 +26,7 @@ import com.google.common.truth.Truth
 import org.gradle.tooling.Failure
 import org.gradle.tooling.events.FailureResult
 import org.gradle.tooling.events.OperationDescriptor
+import org.gradle.tooling.events.SuccessResult
 import org.gradle.tooling.events.download.FileDownloadFinishEvent
 import org.gradle.tooling.events.download.FileDownloadOperationDescriptor
 import org.gradle.tooling.events.download.FileDownloadResult
@@ -259,41 +260,6 @@ class DownloadsAnalyzerUnitTest {
     )
 
     Truth.assertThat(analyzer.result).isEqualTo(expectAnalyzerResult)
-  }
-}
-
-private fun downloadFinishEventStub(descriptor: FileDownloadOperationDescriptor, result: FileDownloadResult) =
-  Mockito.mock(FileDownloadFinishEvent::class.java).apply {
-    Mockito.`when`(this.descriptor).thenReturn(descriptor)
-    Mockito.`when`(this.result).thenReturn(result)
-  }
-
-private fun downloadOperationDescriptorStub(url: String, parent: OperationDescriptor?) = Mockito.mock(
-  FileDownloadOperationDescriptor::class.java).apply {
-  Mockito.`when`(this.uri).thenReturn(URI(url))
-  Mockito.`when`(this.parent).thenReturn(parent)
-}
-
-private fun downloadSuccessStub(start: Long, end: Long, bytes: Long) = object : FileDownloadResult {
-  override fun getStartTime(): Long = start
-  override fun getEndTime(): Long = end
-  override fun getBytesDownloaded(): Long = bytes
-}
-
-private interface FailedDownloadResult : FileDownloadResult, FailureResult
-
-private fun downloadFailureStub(start: Long, end: Long, bytes: Long, failures: List<Failure>) = object : FailedDownloadResult {
-  override fun getStartTime(): Long = start
-  override fun getEndTime(): Long = end
-  override fun getBytesDownloaded(): Long = bytes
-  override fun getFailures(): List<Failure> = failures
-}
-
-private fun failureStub(message: String, causes: List<Failure>) = object : Failure {
-  override fun getMessage(): String = message
-  override fun getCauses(): List<Failure> = causes
-  override fun getDescription(): String? {
-    throw UnsupportedOperationException("Not expected to be used.")
   }
 }
 

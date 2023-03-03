@@ -80,13 +80,16 @@ internal suspend fun attachAppInspectionTarget(
           .setFromTimestamp(lastProcessEvent.timestamp + 1)
           .build()
       )
-    agentEvents.groupsList.flatMap { it.eventsList }.lastOrNull()?.let { event ->
-      lastAgentAttachedEventTimestampNs = event.timestamp + 1
-      if (event.timestamp >= lastProcessEvent.timestamp && event.agentData.status == ATTACHED) {
-        // Agent is already attached and connected, so there is no need to attach.
-        return DefaultAppInspectionTarget(transport, jarCopier, parentScope)
+    agentEvents.groupsList
+      .flatMap { it.eventsList }
+      .lastOrNull()
+      ?.let { event ->
+        lastAgentAttachedEventTimestampNs = event.timestamp + 1
+        if (event.timestamp >= lastProcessEvent.timestamp && event.agentData.status == ATTACHED) {
+          // Agent is already attached and connected, so there is no need to attach.
+          return DefaultAppInspectionTarget(transport, jarCopier, parentScope)
+        }
       }
-    }
   }
 
   // Attach transport agent command.
@@ -150,7 +153,8 @@ internal class DefaultAppInspectionTarget(
         filter = { it.appInspectionResponse.commandId == commandId }
       )
     val event = transport.executeCommand(appInspectionCommand, eventQuery)
-    if (event.appInspectionResponse.createInspectorResponse.status ==
+    if (
+      event.appInspectionResponse.createInspectorResponse.status ==
         AppInspection.CreateInspectorResponse.Status.SUCCESS
     ) {
       return AppInspectorConnection(

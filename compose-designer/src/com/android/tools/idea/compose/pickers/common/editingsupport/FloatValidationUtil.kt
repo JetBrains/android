@@ -23,7 +23,7 @@ import com.android.tools.idea.compose.preview.message
  * Validates that [editedValue] corresponds to a valid Float number.
  *
  * @return An [EditingErrorCategory] representing the validation result with its corresponding
- * display message [String].
+ *   display message [String].
  */
 fun validateFloat(
   editedValue: String,
@@ -69,9 +69,7 @@ fun validateFloat(
  * are not valid Float syntax, we issue warnings for these identified cases since we don't control
  * what the parser considers as a valid Float, or how they are parsed.
  *
- * Cases of Strings that can be parsed but are not correct syntax for Float:
- *
- * 1.
+ * Cases of Strings that can be parsed but are not correct syntax for Float: 1.
  *
  * 1.f
  *

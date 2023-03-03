@@ -254,7 +254,7 @@ public class AndroidTargetData {
    */
   @Nullable
   public static AndroidTargetData getTargetData(@NotNull IAndroidTarget target, @NotNull Module module) {
-    AndroidPlatform platform = AndroidPlatform.getInstance(module);
+    AndroidPlatform platform = AndroidPlatforms.getInstance(module);
     return platform != null ? AndroidTargetData.get(platform.getSdkData(), target) : null;
   }
 

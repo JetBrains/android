@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.project.upgrade.ui
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.plugin.LatestKnownPluginVersionProvider
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker
@@ -468,7 +469,7 @@ class UpgradeAssistantWindowModel(
     else if (!projectFilesClean) {
       uiState.set(UIState.ProjectFilesNotCleanWarning)
     }
-    else if (versionCatalogs) {
+    else if (versionCatalogs && StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_CAVEATS.get()) {
       uiState.set(UIState.ProjectUsesVersionCatalogs)
     }
     else {

@@ -103,7 +103,8 @@ internal class AppInspectionProcessDiscovery(
         if (activity is StreamConnected) {
           streamIdMap[streamChannel.stream.streamId] = streamChannel
           launch {
-            streamChannel.processesFlow(
+            streamChannel
+              .processesFlow(
                 filter = { _, process ->
                   process.exposureLevel == Common.Process.ExposureLevel.DEBUGGABLE
                 }
@@ -162,9 +163,9 @@ internal class AppInspectionProcessDiscovery(
    */
   private fun removeProcesses(streamId: Long) {
     synchronized(processData) {
-      processData.processesMap.filter { it.key.streamId == streamId }.forEach {
-        removeProcess(streamId, it.key.pid)
-      }
+      processData.processesMap
+        .filter { it.key.streamId == streamId }
+        .forEach { removeProcess(streamId, it.key.pid) }
     }
   }
 

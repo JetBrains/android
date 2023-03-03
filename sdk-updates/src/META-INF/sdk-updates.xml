@@ -18,12 +18,8 @@
   <actions>
     <action id="Android.RunAndroidSdkManager" class="com.android.tools.idea.updater.configure.RunSdkConfigAction"
             icon="StudioIcons.Shell.Toolbar.SDK_MANAGER" >
-      <add-to-group group-id="AndroidToolsGroup" anchor="after" relative-to-action="Android.DeviceManager" />
+      <add-to-group group-id="SettingsEntryPointGroup" anchor="before" relative-to-action="ShowProjectStructureSettings" />
     </action>
-    <group id="Android.MainToolBarSdkGroup">
-      <reference id="Android.RunAndroidSdkManager" />
-      <add-to-group group-id="Android.MainToolBarActionGroup" anchor="after" relative-to-action="Android.DeviceManager" />
-    </group>
   </actions>
   <extensions defaultExtensionNs="com.intellij">
     <applicationConfigurable parentId="preferences.general"

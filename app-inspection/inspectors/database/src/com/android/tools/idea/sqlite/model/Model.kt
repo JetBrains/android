@@ -69,9 +69,10 @@ fun SqliteDatabaseId.isInMemoryDatabase(): Boolean {
 
 /**
  * Groups together files necessary to open a file-based database.
+ *
  * @param mainFile the actual database file
  * @param walFiles additional files needed to open the database, in case the database is using write
- * ahead log. If not the list is empty.
+ *   ahead log. If not the list is empty.
  *
  * Note: these files need to be in the same directory of [mainFile], and are not going to be
  * accessed directly.
@@ -126,15 +127,15 @@ data class ResultSetSqliteColumn(
  *
  * @param statementType The type of the SQLite statement.
  * @param sqliteStatementText The text of the SQLite statement. It can be a complete statement (eg:
- * SELECT * FROM tab WHERE id = 1), or it can be a statement with positional templates (eg: SELECT *
- * FROM tab WHERE id = ?). If it contains positional templates, the values of the templates are
- * stored in [parametersValues].
+ *   SELECT * FROM tab WHERE id = 1), or it can be a statement with positional templates (eg:
+ *   SELECT * FROM tab WHERE id = ?). If it contains positional templates, the values of the
+ *   templates are stored in [parametersValues].
  * @param parametersValues If [sqliteStatementText] doesn't contain parameters, [parametersValues]
- * is an empty list. If it does contain parameters, [parametersValues] contains their values. Each
- * value is matched with each question mark in the order they appear in [sqliteStatementText], from
- * left to right.
+ *   is an empty list. If it does contain parameters, [parametersValues] contains their values. Each
+ *   value is matched with each question mark in the order they appear in [sqliteStatementText],
+ *   from left to right.
  * @param sqliteStatementWithInlineParameters The same string as [sqliteStatementText], but
- * positional templates have been replaced with the corresponding value in [parametersValues].
+ *   positional templates have been replaced with the corresponding value in [parametersValues].
  */
 data class SqliteStatement(
   val statementType: SqliteStatementType,

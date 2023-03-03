@@ -589,4 +589,18 @@ class CoroutineUtilsTest {
       job.join()
     }
   }
+
+  @Test
+  fun `scopeDisposable is disposed when the scope completes`() {
+    var isDisposed = false
+    val disposable = Disposable { isDisposed = true }
+
+    runBlocking {
+      val scopeDisposable = scopeDisposable()
+      Disposer.register(scopeDisposable, disposable)
+
+      assertFalse(isDisposed)
+    }
+    assertTrue("scopeDisposable should have been disposed after runBlocking ended", isDisposed)
+  }
 }

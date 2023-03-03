@@ -38,7 +38,7 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
 
   fun testNamespaceChoosing() {
     loadProject(TestProjectPaths.NAMESPACES)
-    val resourceRepositoryManager = ResourceRepositoryManager.getInstance(getMainAndroidFacet())
+    val resourceRepositoryManager = StudioResourceRepositoryManager.getInstance(getMainAndroidFacet())
     assertEquals(Namespacing.REQUIRED, resourceRepositoryManager.namespacing)
     assertEquals("com.example.app", resourceRepositoryManager.namespace.packageName)
     assertTrue(ProjectNamespacingStatusService.getInstance(project).namespacesUsed)
@@ -57,7 +57,7 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
 
   fun testNonNamespaced() {
     loadProject(TestProjectPaths.SIMPLE_APPLICATION)
-    val resourceRepositoryManager = ResourceRepositoryManager.getInstance(getMainAndroidFacet())
+    val resourceRepositoryManager = StudioResourceRepositoryManager.getInstance(getMainAndroidFacet())
     assertEquals(Namespacing.DISABLED, resourceRepositoryManager.namespacing)
     assertSame(ResourceNamespace.RES_AUTO, resourceRepositoryManager.namespace)
     assertFalse(ProjectNamespacingStatusService.getInstance(project).namespacesUsed)
@@ -68,7 +68,7 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
     val layout = VfsUtil.findRelativeFile(myFixture.project.baseDir, "app", "src", "main", "res", "layout", "simple_strings.xml")!!
     val resourceResolver = ConfigurationManager.getOrCreateInstance(getMainAndroidFacet().mainModule)
       .getConfiguration(layout).resourceResolver
-    val appNs = ResourceRepositoryManager.getInstance(getMainAndroidFacet()).namespace
+    val appNs = StudioResourceRepositoryManager.getInstance(getMainAndroidFacet()).namespace
 
     fun check(reference: String, resolvesTo: String) {
       assertEquals(
@@ -87,7 +87,7 @@ class NamespacesIntegrationTest : AndroidGradleTestCase() {
 
   fun testAppResources() {
     loadProject(TestProjectPaths.NAMESPACES)
-    val appResources = ResourceRepositoryManager.getInstance(getMainAndroidFacet()).appResources
+    val appResources = StudioResourceRepositoryManager.getInstance(getMainAndroidFacet()).appResources
 
     assertSameElements(
       appResources.namespaces,

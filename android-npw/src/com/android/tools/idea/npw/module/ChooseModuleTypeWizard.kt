@@ -235,6 +235,7 @@ fun sortModuleEntries(moduleTypeProviders: List<ModuleGalleryEntry>): List<Modul
     message("android.wizard.module.import.eclipse.title"),
     message("android.wizard.module.new.java.or.kotlin.library"),
     message("android.wizard.module.new.google.cloud"),
+    message("android.wizard.module.new.baselineprofiles.module.app"),
     message("android.wizard.module.new.benchmark.module.app"))
 
   return moduleTypeProviders.partition { it.name in orderedNames }.run {

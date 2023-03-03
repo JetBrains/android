@@ -18,6 +18,16 @@ alias(
     visibility = ["//visibility:public"],
 )
 
+# This would normally be a dependency of kotlin-gradle-plugin above. However, there is a defect
+# in the POM file for kotlin-gradle-plugin 1.8.0 in which kotlin-gradle-plugin-api is listed
+# multiple times, sometimes as an optional dependency. As a result, we must include
+# kotlin-gradle-plugin-api manually.
+alias(
+    name = "kotlin-gradle-plugin-api-for-ide-plugin",
+    actual = "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_" + KOTLIN_IDE_VERSION,
+    visibility = ["//visibility:public"],
+)
+
 alias(
     name = "kotlin-reflect-for-ide-plugin",
     actual = "@maven//:org.jetbrains.kotlin.kotlin-reflect_" + KOTLIN_IDE_VERSION,

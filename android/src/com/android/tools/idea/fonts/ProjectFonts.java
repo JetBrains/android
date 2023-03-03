@@ -29,7 +29,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.util.text.StringUtil;
@@ -55,14 +55,14 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ProjectFonts {
   private final DownloadableFontCacheService myService;
-  private final ResourceRepositoryManager myResourceRepository;
+  private final StudioResourceRepositoryManager myResourceRepository;
   private final Map<String, FontFamily> myProjectFonts;
   private final Map<String, QueryParser.ParseResult> myParseResults;
   private final List<String> myDefinitions;
 
-  public ProjectFonts(@NotNull ResourceRepositoryManager resourceRepositoryManager) {
+  public ProjectFonts(@NotNull StudioResourceRepositoryManager studioResourceRepositoryManager) {
     myService = DownloadableFontCacheService.getInstance();
-    myResourceRepository = resourceRepositoryManager;
+    myResourceRepository = studioResourceRepositoryManager;
     myProjectFonts = new TreeMap<>();
     myParseResults = new HashMap<>();
     myDefinitions = new ArrayList<>();

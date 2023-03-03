@@ -16,6 +16,8 @@
 package com.android.tools.idea.rendering;
 
 import static com.android.tools.idea.diagnostics.ExceptionTestUtils.createExceptionFromDesc;
+import static com.android.tools.idea.rendering.ProblemSeverity.ERROR;
+import static com.android.tools.idea.rendering.ProblemSeverity.WARNING;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
@@ -37,6 +39,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -135,7 +138,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
     Configuration configuration = configurationManager.getConfiguration(file);
     assertSame(target, configuration.getRealTarget());
 
-    RenderService renderService = RenderService.getInstance(myModule.getProject());
+    RenderService renderService = StudioRenderService.getInstance(myModule.getProject());
     RenderLogger logger = renderService.createLogger(myModule);
     List<RenderErrorModel.Issue> issues = new ArrayList<>();
 
@@ -683,10 +686,10 @@ public class RenderErrorContributorTest extends AndroidTestCase {
   public void testNoDuplicateIssues() {
       LogOperation operation = (logger, render) -> {
         // MANUALLY register errors
-        logger.addMessage(RenderProblem.createPlain(HighlightSeverity.ERROR, "Error 1"));
-        logger.addMessage(RenderProblem.createPlain(HighlightSeverity.WARNING, "Warning 1"));
-        logger.addMessage(RenderProblem.createPlain(HighlightSeverity.WARNING, "Warning 1"));
-        logger.addMessage(RenderProblem.createPlain(HighlightSeverity.ERROR, "Error 1"));
+        logger.addMessage(RenderProblem.createPlain(ERROR, "Error 1"));
+        logger.addMessage(RenderProblem.createPlain(WARNING, "Warning 1"));
+        logger.addMessage(RenderProblem.createPlain(WARNING, "Warning 1"));
+        logger.addMessage(RenderProblem.createPlain(ERROR, "Error 1"));
       };
 
       List<RenderErrorModel.Issue> issues =
@@ -700,8 +703,8 @@ public class RenderErrorContributorTest extends AndroidTestCase {
   public void testIssueSeverity() {
     LogOperation operation = (logger, render) -> {
       // MANUALLY register errors
-      logger.addMessage(RenderProblem.createPlain(HighlightSeverity.ERROR, "Error"));
-      logger.addMessage(RenderProblem.createPlain(HighlightSeverity.WARNING, "Warning"));
+      logger.addMessage(RenderProblem.createPlain(ERROR, "Error"));
+      logger.addMessage(RenderProblem.createPlain(WARNING, "Warning"));
     };
 
     List<RenderErrorModel.Issue> issues =
@@ -712,7 +715,7 @@ public class RenderErrorContributorTest extends AndroidTestCase {
   }
 
   private String stripSdkHome(@NotNull String html) {
-    AndroidPlatform platform = AndroidPlatform.getInstance(myModule);
+    AndroidPlatform platform = AndroidPlatforms.getInstance(myModule);
     assertNotNull(platform);
     String location = platform.getSdkData().getLocation().toString();
     location = FileUtil.toSystemIndependentName(location);

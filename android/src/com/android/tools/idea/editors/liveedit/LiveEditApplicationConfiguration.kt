@@ -27,6 +27,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.SimplePersistentStateComponent
 import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.StoragePathMacros
+import com.intellij.openapi.project.ProjectManager
 import org.jetbrains.annotations.TestOnly
 
 @com.intellij.openapi.components.State(name = "LiveEditConfiguration", storages = [(Storage(StoragePathMacros.NON_ROAMABLE_FILE))])
@@ -51,6 +52,10 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
         patchedValue = LIVE_LITERALS
       }
       if (state.mode != patchedValue) {
+        ProjectManager.getInstance().openProjects
+          .forEach {
+            LiveEditService.getInstance(it).toggleLiveEdit(state.mode, patchedValue)
+          }
         state.mode = patchedValue
         LiveLiteralsDiagnosticsManager.getApplicationWriteInstance().userChangedLiveLiteralsState(patchedValue == LIVE_LITERALS)
 
@@ -63,6 +68,10 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
   var leTriggerMode
     get() = state.leTriggerMode
     set(value) {
+        ProjectManager.getInstance().openProjects
+          .forEach {
+            LiveEditService.getInstance(it).toggleLiveEditMode(state.leTriggerMode, value)
+          }
         state.leTriggerMode = value
     }
 

@@ -63,7 +63,10 @@ public final class ProfilersTestData {
   public static final Common.AgentData DEFAULT_AGENT_ATTACHED_RESPONSE =
     Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build();
 
-  public static final Common.AgentData DEFAULT_AGENT_DETACHED_RESPONSE =
+  public static final Common.AgentData DEFAULT_AGENT_UNSPECIFIED_RESPONSE =
+    Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.UNSPECIFIED).build();
+
+  public static final Common.AgentData DEFAULT_AGENT_UNATTACHABLE_RESPONSE =
     Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.UNATTACHABLE).build();
 
   // For live allocation tracking tests - duration of each allocation event.

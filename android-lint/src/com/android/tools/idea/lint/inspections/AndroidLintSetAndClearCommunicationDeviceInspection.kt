@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.lint.inspections
 
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.CommunicationDeviceDetector
-import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 
-class AndroidLintSetAndClearCommunicationDeviceInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.set.and.clear.communication.device"), CommunicationDeviceDetector.ISSUE
-)
+class AndroidLintSetAndClearCommunicationDeviceInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.set.and.clear.communication.device"),
+    CommunicationDeviceDetector.ISSUE
+  )

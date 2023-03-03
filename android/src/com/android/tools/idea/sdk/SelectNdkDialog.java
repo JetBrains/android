@@ -36,7 +36,7 @@ import javax.swing.*;
 import java.io.File;
 import java.util.List;
 
-import static com.android.tools.idea.sdk.SdkPaths.validateAndroidNdk;
+import static com.android.tools.idea.sdk.NdkPaths.validateAndroidNdk;
 import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
 

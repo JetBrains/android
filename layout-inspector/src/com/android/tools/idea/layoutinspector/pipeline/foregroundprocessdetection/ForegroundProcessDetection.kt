@@ -48,34 +48,6 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
- * Stops LayoutInspector.
- * If a device is selected, stops foreground process detection.
- * If a device is not selected, stops process inspection by setting the selected process to null.
- *
- * A process can be selected when a device does not support foreground process detection.
- *
- * This method also resets device-level DebugViewAttributes from the device.
- */
-fun stopInspector(
-  project: Project,
-  deviceModel: DeviceModel,
-  processesModel: ProcessesModel,
-  foregroundProcessDetection: ForegroundProcessDetection?,
-) {
-  val selectedDevice = deviceModel.selectedDevice
-  if (selectedDevice != null) {
-    val debugViewAttributes = DebugViewAttributes.getInstance()
-    if (debugViewAttributes.usePerDeviceSettings()) {
-      debugViewAttributes.clear(project, selectedDevice)
-    }
-    foregroundProcessDetection?.stopPollingSelectedDevice()
-  }
-  else {
-    processesModel.selectedProcess = null
-  }
-}
-
-/**
  * This class contains information about a foreground process on an Android device.
  */
 data class ForegroundProcess(val pid: Int, val processName: String)

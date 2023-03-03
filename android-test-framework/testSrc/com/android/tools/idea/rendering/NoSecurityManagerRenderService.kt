@@ -13,21 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:JvmName("NoSecurityManagerRenderService")
 package com.android.tools.idea.rendering
 
-import com.android.tools.idea.configurations.Configuration
-import com.intellij.openapi.project.Project
-import org.jetbrains.android.facet.AndroidFacet
-
 // Disable security manager during tests (for bazel)
-class NoSecurityManagerRenderService(project: Project) : RenderService(project) {
-  override fun taskBuilder(facet: AndroidFacet, configuration: Configuration): RenderTaskBuilder {
-    return super.taskBuilder(facet, configuration)
-      .disableSecurityManager()
-  }
-
-  override fun taskBuilder(facet: AndroidFacet, configuration: Configuration, logger: RenderLogger): RenderTaskBuilder {
-    return super.taskBuilder(facet, configuration, logger)
-      .disableSecurityManager()
-  }
+fun createNoSecurityRenderService(): RenderService {
+  return RenderService { it.disableSecurityManager() }
 }

@@ -18,4 +18,5 @@
   <id>com.android.tools.idea.preview.tests</id>
 
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
+  <xi:include href="/META-INF/adt-ui.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

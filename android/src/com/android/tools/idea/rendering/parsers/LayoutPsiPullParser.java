@@ -81,7 +81,7 @@ import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.LayoutMetadata;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -396,7 +396,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
       if (root != null && root.isValid()) {
         myRootRef.set(createSnapshot(root, honorMergeParentTag, mySampleDataProcessing));
 
-        ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(root);
+        StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(root);
         if (repositoryManager != null) {
           myLayoutNamespaceRef.set(repositoryManager.getNamespace());
         }

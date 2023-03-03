@@ -54,9 +54,9 @@ class RenderErrorTest {
   @Test
   fun testSceneViewHasRenderErrors() {
     val mainFile =
-      project.guessProjectDir()!!.findFileByRelativePath(
-        SimpleComposeAppPaths.APP_RENDER_ERROR.path
-      )!!
+      project
+        .guessProjectDir()!!
+        .findFileByRelativePath(SimpleComposeAppPaths.APP_RENDER_ERROR.path)!!
     val psiMainFile = runReadAction { PsiManager.getInstance(project).findFile(mainFile)!! }
     val composePreviewRepresentation: ComposePreviewRepresentation
 

@@ -106,7 +106,9 @@ object Preview {
      */
     internal fun isDimensionParameter(parameterName: String): Boolean =
       when (parameterName) {
-        PARAMETER_WIDTH, PARAMETER_HEIGHT, PARAMETER_CHIN_SIZE -> true
+        PARAMETER_WIDTH,
+        PARAMETER_HEIGHT,
+        PARAMETER_CHIN_SIZE -> true
         else -> false
       }
   }

@@ -25,8 +25,9 @@ import com.android.tools.idea.compose.preview.util.FAKE_PREVIEW_PARAMETER_PROVID
 import com.android.tools.idea.compose.preview.util.PreviewElementTemplateInstanceProvider
 import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.android.tools.idea.preview.StaticPreviewProvider
-import com.android.tools.idea.rendering.NoSecurityManagerRenderService
 import com.android.tools.idea.rendering.RenderService
+import com.android.tools.idea.rendering.StudioRenderService
+import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.withKotlin
@@ -52,10 +53,7 @@ class ParametrizedPreviewTest {
   fun setUp() {
     RenderService.shutdownRenderExecutor(5)
     RenderService.initializeRenderExecutor()
-    RenderService.setForTesting(
-      projectRule.project,
-      NoSecurityManagerRenderService(projectRule.project)
-    )
+    StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())
     projectRule.fixture.testDataPath =
       resolveWorkspacePath("tools/adt/idea/compose-designer/testData").toString()
     projectRule.load(SIMPLE_COMPOSE_PROJECT_PATH, AGP_CURRENT.withKotlin(DEFAULT_KOTLIN_VERSION))
@@ -66,7 +64,8 @@ class ParametrizedPreviewTest {
         The project must compile correctly for the test to pass.
 
         ${gradleInvocationResult.buildError}
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     }
 
@@ -78,7 +77,7 @@ class ParametrizedPreviewTest {
 
   @After
   fun tearDown() {
-    RenderService.setForTesting(projectRule.project, null)
+    StudioRenderService.setForTesting(projectRule.project, null)
   }
 
   /** Checks the rendering of the default `@Preview` in the Compose template. */

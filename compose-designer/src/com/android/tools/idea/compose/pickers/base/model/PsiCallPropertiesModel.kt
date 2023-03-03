@@ -34,6 +34,7 @@ internal typealias PsiPropertiesProvider =
  * interact with method calls.
  *
  * For example, a theme in Compose is a method call. This model allows editing those properties.
+ *
  * ```
  * val darkThemePalette = themePalette(
  *   colorPrimary = Color(12, 13, 14)
@@ -42,6 +43,7 @@ internal typealias PsiPropertiesProvider =
  *
  * The same applies for annotations, where the parameters are considered by the PSI parsing as a
  * method call.
+ *
  * ```
  * @Preview(name = "Hello", group = "group")
  * ```

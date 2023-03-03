@@ -114,7 +114,6 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
             isOpen = false;
           }
           myProjectToListenerMap.remove(project);
-          WhatsNewMetricsTracker.getInstance().clearCachedActionKeys(myProject);
         }
       });
     }
@@ -123,7 +122,7 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
     public void toolWindowUnregistered(@NotNull String id, @NotNull ToolWindow toolWindow) {
       if (id.equals(TOOL_WINDOW_TITLE)) {
         myProjectToListenerMap.remove(myProject);
-        WhatsNewMetricsTracker.getInstance().clearCachedActionKeys(myProject);
+        WhatsNewMetricsTracker.getInstance().clearDataFor(myProject);
       }
     }
 
@@ -134,14 +133,14 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
      * even though it was only dragged.
      */
     @Override
-    public void stateChanged() {
+    public void stateChanged(@NotNull ToolWindowManager toolWindowManager) {
       ApplicationManager.getApplication().invokeLater(() -> {
         if (myProject.isDisposed()) {
           myProjectToListenerMap.remove(myProject);
           return;
         }
 
-        ToolWindow window = ToolWindowManager.getInstance(myProject).getToolWindow(TOOL_WINDOW_TITLE);
+        ToolWindow window = toolWindowManager.getToolWindow(TOOL_WINDOW_TITLE);
         if (window == null) {
           return;
         }

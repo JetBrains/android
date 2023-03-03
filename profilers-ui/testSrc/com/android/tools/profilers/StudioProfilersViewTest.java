@@ -18,7 +18,10 @@ package com.android.tools.profilers;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_ID;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_DEVICE_NAME;
+import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS;
 import static com.android.tools.idea.transport.faketransport.FakeTransportService.FAKE_PROCESS_NAME;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE;
+import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_UNSPECIFIED_RESPONSE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
@@ -83,6 +86,8 @@ public class StudioProfilersViewTest {
     .setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS * 2).setPid(1).build();
   private static final Common.SessionMetaData SESSION_O_METADATA = Common.SessionMetaData.newBuilder().setSessionId(2).setJvmtiEnabled(true)
     .setSessionName("App Device").setType(Common.SessionMetaData.SessionType.FULL).setStartTimestampEpochMs(1).build();
+  private static final int NEW_DEVICE_ID = 1;
+  private static final int NEW_PROCESS_ID = 2;
 
   private final FakeTimer myTimer = new FakeTimer();
   private final FakeTransportService myService;
@@ -93,10 +98,8 @@ public class StudioProfilersViewTest {
     myService = isTestingProfileable
                 ? new FakeTransportService(myTimer, true, AndroidVersion.VersionCodes.S, Common.Process.ExposureLevel.PROFILEABLE)
                 : new FakeTransportService(myTimer);
-    myGrpcChannel = FakeGrpcServer.createFakeGrpcServer("StudioProfilerTestChannel", getService(), myProfilerService);
+    myGrpcChannel = FakeGrpcServer.createFakeGrpcServer("StudioProfilerTestChannel", myService);
   }
-
-  private final FakeProfilerService myProfilerService = new FakeProfilerService(myTimer);
 
   @Rule public final FakeGrpcServer myGrpcChannel;
   @Rule public final EdtRule myEdtRule = new EdtRule();
@@ -107,21 +110,19 @@ public class StudioProfilersViewTest {
   private StudioProfilersView myView;
   private FakeUi myUi;
 
-  private FakeTransportService getService() {
-    return myService;
-  }
-
   @Before
   public void setUp() {
+    myProfilerServices.enableEventsPipeline(true);
     myProfilerServices.enableEnergyProfiler(true);
     myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myProfilerServices, myTimer);
     myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
-    // We setup and profile a process, we assume that process has an agent attached by default.
-    myService.setAgentStatus(Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build());
-    // Make sure a process is selected
     myView = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents());
     myView.bind(FakeStage.class, FakeView::new);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    if (myIsTestingProfileable) {
+      // We setup and profile a process, we assume that process has an agent attached by default.
+      updateAgentStatus(FAKE_PROCESS.getPid(), DEFAULT_AGENT_ATTACHED_RESPONSE);
+    }
     JLayeredPane component = myView.getComponent();
     component.setSize(1024, 450);
     myUi = new FakeUi(component);
@@ -152,7 +153,7 @@ public class StudioProfilersViewTest {
   public void testMonitorExpansion() {
     assumeFalse(myIsTestingProfileable);
     // Set session to enable Energy Monitor.
-    myProfilerService.addSession(SESSION_O, SESSION_O_METADATA);
+    myService.addSession(SESSION_O, SESSION_O_METADATA);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myProfilers.getSessionsManager().setSession(SESSION_O);
     myUi.layout();
@@ -188,7 +189,7 @@ public class StudioProfilersViewTest {
   public void testMonitorTooltip() {
     assumeFalse(myIsTestingProfileable);
     // Set Session to enable Energy monitor tooltip.
-    myProfilerService.addSession(SESSION_O, SESSION_O_METADATA);
+    myService.addSession(SESSION_O, SESSION_O_METADATA);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myProfilers.getSessionsManager().setSession(SESSION_O);
     myUi.layout();
@@ -249,7 +250,6 @@ public class StudioProfilersViewTest {
     ThreeComponentsSplitter splitter = (ThreeComponentsSplitter)profilersView.getComponent().getComponent(0);
     assertThat(splitter.getFirstSize()).isEqualTo(SessionsView.getComponentMinimizeSize(true).width);
     splitter.setSize(1024, 450);
-    FakeUi ui = new FakeUi(splitter);
     myUi.mouse.drag(splitter.getFirstSize(), 0, 10, 0);
 
     profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myProfilerServices, myTimer);
@@ -303,7 +303,7 @@ public class StudioProfilersViewTest {
     assertThat(liveButton.getToolTipText()).startsWith(StudioProfilersView.DETACH_LIVE);
 
     // Stopping the session should disable and unselect the button
-    myProfilers.getSessionsManager().endCurrentSession();
+    endSession();
     Common.Session deadSession = myProfilers.getSessionsManager().getSelectedSession();
     assertThat(myProfilers.getSessionsManager().isSessionAlive()).isFalse();
     assertThat(liveButton.isEnabled()).isFalse();
@@ -311,9 +311,10 @@ public class StudioProfilersViewTest {
     assertThat(attachItem.isEnabled()).isFalse();
     assertThat(detachItem.isEnabled()).isFalse();
 
-    Common.Device onlineDevice = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build();
-    Common.Process onlineProcess = Common.Process.newBuilder().setPid(2).setState(Common.Process.State.ALIVE).build();
-    myProfilers.getSessionsManager().beginSession(onlineDevice, onlineProcess);
+    startSessionWithNewDeviceAndProcess();
+    if (myIsTestingProfileable) {
+      updateAgentStatus(NEW_PROCESS_ID, DEFAULT_AGENT_ATTACHED_RESPONSE);
+    }
     assertThat(myProfilers.getSessionsManager().isSessionAlive()).isTrue();
     // Live button should be selected when switching to a live session.
     assertThat(liveButton.isEnabled()).isTrue();
@@ -369,7 +370,7 @@ public class StudioProfilersViewTest {
     assertThat(liveButton.isEnabled()).isTrue();
 
     // Stopping the session should disable the live control
-    myProfilers.getSessionsManager().endCurrentSession();
+    endSession();
     assertThat(zoomInButton.isEnabled()).isTrue();
     assertThat(zoomOutButton.isEnabled()).isTrue();
     assertThat(resetButton.isEnabled()).isTrue();
@@ -377,10 +378,8 @@ public class StudioProfilersViewTest {
     assertThat(liveButton.isEnabled()).isFalse();
 
     // Starting a session that is waiting for an agent to initialize should have all controls disabled.
-    Common.Device onlineDevice = Common.Device.newBuilder().setDeviceId(1).setState(Common.Device.State.ONLINE).build();
-    Common.Process onlineProcess = Common.Process.newBuilder().setPid(2).setState(Common.Process.State.ALIVE).build();
-    myService.setAgentStatus(Common.AgentData.getDefaultInstance());
-    myProfilers.getSessionsManager().beginSession(onlineDevice, onlineProcess);
+    startSessionWithNewDeviceAndProcess();
+    updateAgentStatus(NEW_PROCESS_ID, DEFAULT_AGENT_UNSPECIFIED_RESPONSE);
     assertThat(zoomInButton.isEnabled()).isFalse();
     assertThat(zoomOutButton.isEnabled()).isFalse();
     assertThat(resetButton.isEnabled()).isFalse();
@@ -388,9 +387,7 @@ public class StudioProfilersViewTest {
     assertThat(liveButton.isEnabled()).isFalse();
 
     // Controls should be enabled after agent is attached.
-    myService.setAgentStatus(
-      Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build());
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    updateAgentStatus(NEW_PROCESS_ID, DEFAULT_AGENT_ATTACHED_RESPONSE);
     assertThat(zoomInButton.isEnabled()).isTrue();
     assertThat(zoomOutButton.isEnabled()).isTrue();
     assertThat(resetButton.isEnabled()).isTrue();
@@ -412,21 +409,24 @@ public class StudioProfilersViewTest {
     assertThat(myView.getStageViewComponent().isVisible()).isTrue();
     assertThat(myView.getStageLoadingComponent().isVisible()).isFalse();
 
-    // Sets a preferred process is set, the UI should wait and show the loading panel.
-    myProfilers.getSessionsManager().endCurrentSession();
-    myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_2, null);
+    // Sets a preferred process, the UI should wait and show the loading panel.
+    endSession();
+    updatePreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_2);
     assertThat(myProfilers.getAutoProfilingEnabled()).isTrue();
     assertThat(myView.getStageViewComponent().isVisible()).isFalse();
     assertThat(myView.getStageLoadingComponent().isVisible()).isTrue();
 
     Common.Process process = Common.Process.newBuilder()
-      .setPid(2)
+      .setPid(NEW_PROCESS_ID)
       .setDeviceId(FAKE_DEVICE_ID)
       .setState(Common.Process.State.ALIVE)
       .setName(FAKE_PROCESS_2)
+      .setExposureLevel(myIsTestingProfileable ? Common.Process.ExposureLevel.PROFILEABLE : Common.Process.ExposureLevel.DEBUGGABLE)
       .build();
-    myService.addProcess(FAKE_DEVICE, process);
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    startSession(FAKE_DEVICE, process);
+    if (myIsTestingProfileable) {
+      updateAgentStatus(NEW_PROCESS_ID, DEFAULT_AGENT_ATTACHED_RESPONSE);
+    }
 
     // Preferred process is found, session begins and the loading stops.
     assertThat(myView.getStageViewComponent().isVisible()).isTrue();
@@ -440,25 +440,21 @@ public class StudioProfilersViewTest {
     assertThat(myView.getStageViewComponent().isVisible()).isTrue();
     assertThat(myView.getStageLoadingComponent().isVisible()).isFalse();
 
-    myService.setAgentStatus(
-      Common.AgentData.getDefaultInstance());
     Common.Process process = Common.Process.newBuilder()
-      .setPid(2)
+      .setPid(NEW_PROCESS_ID)
       .setDeviceId(FAKE_DEVICE_ID)
       .setState(Common.Process.State.ALIVE)
       .setName(FAKE_PROCESS_2)
+      .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
       .build();
-    myService.addProcess(FAKE_DEVICE, process);
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    myProfilers.setProcess(FAKE_DEVICE, process);
+    startSession(FAKE_DEVICE, process);
+    updateAgentStatus(NEW_PROCESS_ID, DEFAULT_AGENT_UNSPECIFIED_RESPONSE);
 
     // Agent is detached, the UI should wait and show the loading panel.
     assertThat(myView.getStageViewComponent().isVisible()).isFalse();
     assertThat(myView.getStageLoadingComponent().isVisible()).isTrue();
 
-    myService.setAgentStatus(
-      Common.AgentData.newBuilder().setStatus(Common.AgentData.Status.ATTACHED).build());
-    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+    updateAgentStatus(NEW_PROCESS_ID, DEFAULT_AGENT_ATTACHED_RESPONSE);
 
     // Attach status is detected, loading should stop.
     assertThat(myView.getStageViewComponent().isVisible()).isTrue();
@@ -485,16 +481,17 @@ public class StudioProfilersViewTest {
       .setUnsupportedReason(UNSUPPORTED_REASON)
       .build();
     Common.Process process = Common.Process.newBuilder()
-      .setPid(2)
+      .setPid(NEW_PROCESS_ID)
       .setDeviceId(device.getDeviceId())
       .setState(Common.Process.State.ALIVE)
       .setName(FAKE_PROCESS_2)
+      .setExposureLevel(myIsTestingProfileable ? Common.Process.ExposureLevel.PROFILEABLE : Common.Process.ExposureLevel.DEBUGGABLE)
       .build();
     myService.updateDevice(FAKE_DEVICE, dead_device);
 
     // Set the preferred device to the unsupported one. Loading screen will be displayed.
-    myProfilers.getSessionsManager().endCurrentSession();
-    myProfilers.setPreferredProcess(UNSUPPORTED_DEVICE_NAME, FAKE_PROCESS_2, null);
+    endSession();
+    updatePreferredProcess(UNSUPPORTED_DEVICE_NAME, FAKE_PROCESS_2);
     assertThat(myView.getStageViewComponent().isVisible()).isFalse();
     assertThat(myView.getStageLoadingComponent().isVisible()).isTrue();
 
@@ -573,6 +570,54 @@ public class StudioProfilersViewTest {
     myView.bind(stage.getClass(), FakeStageView::new);
     myProfilers.setStage(stage);
     assertThat(myProfilers.getStage()).isInstanceOf(FakeStage.class);
+  }
+
+  private void startSessionWithNewDeviceAndProcess() {
+    Common.Device onlineDevice = Common.Device.newBuilder()
+      .setDeviceId(NEW_DEVICE_ID)
+      .setFeatureLevel(AndroidVersion.VersionCodes.O)
+      .setState(Common.Device.State.ONLINE)
+      .build();
+    Common.Process onlineProcess = Common.Process.newBuilder()
+      .setPid(NEW_PROCESS_ID)
+      .setDeviceId(NEW_DEVICE_ID)
+      .setState(Common.Process.State.ALIVE)
+      .setExposureLevel(myIsTestingProfileable ? Common.Process.ExposureLevel.PROFILEABLE : Common.Process.ExposureLevel.DEBUGGABLE)
+      .build();
+    startSession(onlineDevice, onlineProcess);
+  }
+
+  private void startSession(Common.Device device, Common.Process process) {
+    myService.addDevice(device);
+    updateProcess(device, process);
+  }
+
+  private void updateProcess(Common.Device device, Common.Process process) {
+    myService.addProcess(device, process);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+
+    myProfilers.setProcess(device, process);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+  }
+
+  private void updateAgentStatus(int pid, Common.AgentData agentData) {
+    long sessionStreamId = myProfilers.getSession().getStreamId();
+    myService.addEventToStream(sessionStreamId, Common.Event.newBuilder()
+      .setPid(pid)
+      .setKind(Common.Event.Kind.AGENT)
+      .setAgentData(agentData)
+      .build());
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+  }
+
+  private void endSession() {
+    myProfilers.getSessionsManager().endCurrentSession();
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
+  }
+
+  private void updatePreferredProcess(String preferredDeviceName, String preferredProcessName) {
+    myProfilers.setPreferredProcess(preferredDeviceName, preferredProcessName, null);
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
   }
 
   private static class FakeStage extends Stage<Timeline> {

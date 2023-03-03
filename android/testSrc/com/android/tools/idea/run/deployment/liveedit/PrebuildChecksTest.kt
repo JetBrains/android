@@ -49,4 +49,27 @@ class PrebuildChecksTest {
     }
   }
 
+  @Test
+  fun bailOnJavaSrc() {
+    var file = projectRule.fixture.addFileToProject(
+      "i/am/a/java/File.java", "")
+    try {
+      checkUnsupportedPsiEvents(EditEvent(file, origin = null, unsupportedPsiEvent = UnsupportedPsiEvent.NON_KOTLIN))
+      Assert.fail("Expecting Exception")
+    } catch (e : LiveEditUpdateException) {
+      Assert.assertEquals(LiveEditUpdateException.Error.NON_KOTLIN, e.error)
+    }
+  }
+
+  @Test
+  fun bailOnXmlSrc() {
+    var file = projectRule.fixture.addFileToProject(
+      "i/am/a/java/File.XML", "")
+    try {
+      checkUnsupportedPsiEvents(EditEvent(file, origin = null, unsupportedPsiEvent = UnsupportedPsiEvent.NON_KOTLIN))
+      Assert.fail("Expecting Exception")
+    } catch (e : LiveEditUpdateException) {
+      Assert.assertEquals(LiveEditUpdateException.Error.NON_KOTLIN, e.error)
+    }
+  }
 }

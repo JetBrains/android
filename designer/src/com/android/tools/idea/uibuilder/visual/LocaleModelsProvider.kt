@@ -22,7 +22,7 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationListener
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.ConfigurationMatcher
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.intellij.openapi.Disposable
@@ -81,7 +81,7 @@ object LocaleModelsProvider: VisualizationModelsProvider {
       registerModelsProviderConfigurationListener(firstModel, currentFileConfig, defaultLocaleConfig, EFFECTIVE_FLAGS)
     }
 
-    val locales = ResourceRepositoryManager.getInstance(facet).localesInProject.sortedWith(
+    val locales = StudioResourceRepositoryManager.getInstance(facet).localesInProject.sortedWith(
       Locale.LANGUAGE_CODE_COMPARATOR)
 
     for (locale in locales) {

@@ -28,7 +28,6 @@ import kotlinx.coroutines.flow.map
  * A generic container of values that may not yet be ready with a possibility of failure.
  *
  * It can be one of the following states:
- *
  * * [Loading]: value is currently being loaded.
  * * [Ready]: the value is ready to be used.
  * * [Failure]: value failed to load for any of the below reasons:

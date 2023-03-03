@@ -26,6 +26,7 @@ import com.android.tools.adtui.model.axis.ResizingAxisComponentModel;
 import com.android.tools.adtui.model.formatter.TimeAxisFormatter;
 import com.android.tools.adtui.model.updater.Updatable;
 import com.android.tools.adtui.model.updater.Updater;
+import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import com.android.tools.idea.transport.manager.StreamQueryUtils;
 import com.android.tools.idea.transport.poller.TransportEventPoller;
 import com.android.tools.profiler.proto.Commands;
@@ -34,14 +35,9 @@ import com.android.tools.profiler.proto.Common.AgentData;
 import com.android.tools.profiler.proto.Common.Event;
 import com.android.tools.profiler.proto.Common.Stream;
 import com.android.tools.profiler.proto.Trace;
-import com.android.tools.profiler.proto.Transport.AgentStatusRequest;
 import com.android.tools.profiler.proto.Transport.EventGroup;
-import com.android.tools.profiler.proto.Transport.GetDevicesRequest;
-import com.android.tools.profiler.proto.Transport.GetDevicesResponse;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsRequest;
 import com.android.tools.profiler.proto.Transport.GetEventGroupsResponse;
-import com.android.tools.profiler.proto.Transport.GetProcessesRequest;
-import com.android.tools.profiler.proto.Transport.GetProcessesResponse;
 import com.android.tools.profiler.proto.Transport.TimeRequest;
 import com.android.tools.profiler.proto.Transport.TimeResponse;
 import com.android.tools.profilers.cpu.CpuProfiler;
@@ -64,7 +60,6 @@ import com.google.common.hash.Hashing;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
-import com.android.tools.idea.io.grpc.StatusRuntimeException;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -369,18 +364,12 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
    */
   public void setAutoProfilingEnabled(boolean enabled) {
     myAutoProfilingEnabled = enabled;
-
-    if (myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      // Do nothing. Let update() take care of which process should be selected.
-      // If setProcess() is called now, it may be confused if the process start/end events don't arrive immediately.
-      // For example, if the user ends a session (which will set myProcess null), then click the Run button.
-      // setAutoProfilingEnabled(true) will be called when Run button is clicked. If the previous process's
-      // DEAD event is delayed, setProcess() may start a new session on it (which is already dead) because
-      // the event stream shows it is still alive, and it's "new" in the perspective of StudioProfilers.
-    }
-    else if (myAutoProfilingEnabled) {
-      setProcess(findPreferredDevice(), null);
-    }
+    // Do nothing. Let update() take care of which process should be selected.
+    // If setProcess() is called now, it may be confused if the process start/end events don't arrive immediately.
+    // For example, if the user ends a session (which will set myProcess null), then click the Run button.
+    // setAutoProfilingEnabled(true) will be called when Run button is clicked. If the previous process's
+    // DEAD event is delayed, setProcess() may start a new session on it (which is already dead) because
+    // the event stream shows it is still alive, and it's "new" in the perspective of StudioProfilers.
   }
 
   @TestOnly
@@ -389,42 +378,31 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
   }
 
   private List<Common.Device> getUpToDateDevices() {
-    return getUpToDateDevices(myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled(), myClient, myDeviceToStreamIds,
-                              myStreamIdToStreams);
+    return getUpToDateDevices(myClient, myDeviceToStreamIds, myStreamIdToStreams);
   }
 
   /**
    * Returns a up-to-date list of devices including disconnected ones.
    * This method works under either new or old data pipeline.
    *
-   * @param isUnifiedPipelineEnabled The flag to control whether unified pipeline is enabled.
    * @param client                   The ProfilerClient that can call into ProfilerService.
    * @param deviceToStreamIds        An updatable cache that maps a device to its stream ID.
    * @param streamIdToStreams        An updatable cache that maps a stream ID to the stream.
    */
   @NotNull
-  public static List<Common.Device> getUpToDateDevices(boolean isUnifiedPipelineEnabled,
-                                                       @NotNull ProfilerClient client,
+  public static List<Common.Device> getUpToDateDevices(@NotNull ProfilerClient client,
                                                        @Nullable Map<Common.Device, Long> deviceToStreamIds,
                                                        @Nullable Map<Long, Common.Stream> streamIdToStreams) {
-    List<Common.Device> devices;
-    if (isUnifiedPipelineEnabled) {
-      List<Common.Stream> streams = StreamQueryUtils.queryForDevices(client.getTransportClient());
-      devices = streams.stream().map((Stream stream) -> {
-        if (deviceToStreamIds != null) {
-          deviceToStreamIds.putIfAbsent(stream.getDevice(), stream.getStreamId());
-        }
-        if (streamIdToStreams != null) {
-          streamIdToStreams.putIfAbsent(stream.getStreamId(), stream);
-        }
-        return stream.getDevice();
-      }).collect(Collectors.toList());
-    }
-    else {
-      GetDevicesResponse response = client.getTransportClient().getDevices(GetDevicesRequest.getDefaultInstance());
-      devices = response.getDeviceList();
-    }
-    return devices;
+    List<Common.Stream> streams = StreamQueryUtils.queryForDevices(client.getTransportClient());
+    return streams.stream().map((Stream stream) -> {
+      if (deviceToStreamIds != null) {
+        deviceToStreamIds.putIfAbsent(stream.getDevice(), stream.getStreamId());
+      }
+      if (streamIdToStreams != null) {
+        streamIdToStreams.putIfAbsent(stream.getStreamId(), stream);
+      }
+      return stream.getDevice();
+    }).collect(Collectors.toList());
   }
 
   private void startProfileableDiscoveryIfApplicable(Collection<Common.Device> previousDevices,
@@ -468,35 +446,18 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       List<Common.Device> devices = getUpToDateDevices();
       startProfileableDiscoveryIfApplicable(myProcesses.keySet(), devices);
 
-      if (myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-        for (Common.Device device : devices) {
-          List<Common.Process> processList = StreamQueryUtils.queryForProcesses(
-            myClient.getTransportClient(),
-            myDeviceToStreamIds.get(device),
-            (Boolean isProcessAlive, Common.Process process) -> {
-              int lastProcessId = myProcess == null ? 0 : myProcess.getPid();
-              return (isProcessAlive || process.getPid() == lastProcessId) &&
-                     (process.getExposureLevel().equals(Common.Process.ExposureLevel.DEBUGGABLE) ||
-                      process.getExposureLevel().equals(Common.Process.ExposureLevel.PROFILEABLE));
-            }
-          );
-          newProcesses.put(device, processList);
-        }
-      }
-      else {
-        for (Common.Device device : devices) {
-          GetProcessesRequest request = GetProcessesRequest.newBuilder().setDeviceId(device.getDeviceId()).build();
-          GetProcessesResponse processes = myClient.getTransportClient().getProcesses(request);
-
-          int lastProcessId = myProcess == null ? 0 : myProcess.getPid();
-          List<Common.Process> processList = processes.getProcessList()
-            .stream()
-            .filter(process -> process.getState() == Common.Process.State.ALIVE ||
-                               process.getPid() == lastProcessId)
-            .collect(Collectors.toList());
-
-          newProcesses.put(device, processList);
-        }
+      for (Common.Device device : devices) {
+        List<Common.Process> processList = StreamQueryUtils.queryForProcesses(
+          myClient.getTransportClient(),
+          myDeviceToStreamIds.get(device),
+          (Boolean isProcessAlive, Common.Process process) -> {
+            int lastProcessId = myProcess == null ? 0 : myProcess.getPid();
+            return (isProcessAlive || process.getPid() == lastProcessId) &&
+                   (process.getExposureLevel().equals(Common.Process.ExposureLevel.DEBUGGABLE) ||
+                    process.getExposureLevel().equals(Common.Process.ExposureLevel.PROFILEABLE));
+          }
+        );
+        newProcesses.put(device, processList);
       }
 
       if (!newProcesses.equals(myProcesses)) {
@@ -632,12 +593,7 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
 
       // Only start a new session if the process is valid.
       if (myProcess != null && myProcess.getState() == Common.Process.State.ALIVE) {
-        if (myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-          mySessionsManager.beginSession(myDeviceToStreamIds.get(myDevice), myDevice, myProcess);
-        }
-        else {
-          mySessionsManager.beginSession(myDevice, myProcess);
-        }
+        mySessionsManager.beginSession(myDeviceToStreamIds.get(myDevice), myDevice, myProcess);
       }
     }
   }
@@ -781,14 +737,6 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
     if (Common.Session.getDefaultInstance().equals(session)) {
       return agentData;
     }
-    if (!myIdeServices.getFeatureConfig().isUnifiedPipelineEnabled()) {
-      // In legacy pipeline we don't have streams so we set device ID to session's stream ID.
-      // No need to set package name here because this piece of code is talking to the datastore
-      // for a given session, not to a live device.
-      AgentStatusRequest statusRequest =
-        AgentStatusRequest.newBuilder().setPid(session.getPid()).setDeviceId(session.getStreamId()).build();
-      return myClient.getTransportClient().getAgentStatus(statusRequest);
-    }
     // Get agent data for requested session.
     GetEventGroupsRequest request = GetEventGroupsRequest.newBuilder()
       .setKind(Event.Kind.AGENT)
@@ -907,14 +855,13 @@ public class StudioProfilers extends AspectModel<ProfilerAspect> implements Upda
       .setKind(Event.Kind.PROCESS)
       .setStreamId(streamId)
       .setPid(pid)
-      .setFromTimestamp(timestamp)
-      .setToTimestamp(timestamp + 1)  // Any detectable process should last more than 1 nanosecond.
+      .setToTimestamp(timestamp)
       .build();
     GetEventGroupsResponse response = myClient.getTransportClient().getEventGroups(request);
     if (response.getGroupsCount() == 1) {
-      EventGroup group = response.getGroups(0);
-      if (group.getEventsCount() >= 1) {
-        return group.getEvents(0).getProcess().getProcessStarted().getProcess();
+      Common.Event processEvent = StreamQueryUtils.getHighestExposureEventForLastProcess(response.getGroups(0));
+      if (processEvent != null) {
+        return processEvent.getProcess().getProcessStarted().getProcess();
       }
     }
     if (pid != 0) {

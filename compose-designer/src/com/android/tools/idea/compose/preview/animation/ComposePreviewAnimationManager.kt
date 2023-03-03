@@ -133,10 +133,8 @@ object ComposePreviewAnimationManager {
     inspector.animationClock?.let {
       if (it.clock != clock) {
         // Make a copy of the list to prevent ConcurrentModificationException
-        synchronized(subscribedAnimationsLock) { subscribedAnimations.toSet() }.forEach {
-          animationToUnsubscribe ->
-          onAnimationUnsubscribed(animationToUnsubscribe)
-        }
+        synchronized(subscribedAnimationsLock) { subscribedAnimations.toSet() }
+          .forEach { animationToUnsubscribe -> onAnimationUnsubscribed(animationToUnsubscribe) }
         // After unsubscribing the old animations, update the clock
         inspector.animationClock = AnimationClock(clock)
       }
@@ -173,7 +171,8 @@ object ComposePreviewAnimationManager {
    */
   fun invalidate(psiFilePointer: SmartPsiElementPointer<PsiFile>) {
     currentInspector?.let {
-      if (PsiManager.getInstance(it.psiFilePointer.project)
+      if (
+        PsiManager.getInstance(it.psiFilePointer.project)
           .areElementsEquivalent(psiFilePointer.element, it.psiFilePointer.element)
       ) {
         UIUtil.invokeLaterIfNeeded { it.invalidatePanel() }

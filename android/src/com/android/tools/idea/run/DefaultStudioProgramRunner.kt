@@ -34,6 +34,7 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
+import com.intellij.util.ThreeState
 import org.jetbrains.concurrency.Promise
 
 //TODO(b/266232023): define a better way for running ComposePreviewRunConfiguration and get rid of this constant.
@@ -44,17 +45,34 @@ const val composePreviewRunConfigurationId = "ComposePreviewRunConfiguration"
  * [com.intellij.openapi.actionSystem.AnAction], such as [DefaultRunExecutor] and [DefaultDebugExecutor].
  */
 class DefaultStudioProgramRunner : AndroidConfigurationProgramRunner {
+
+  private var getGradleSyncState: (Project) -> GradleSyncState = { GradleSyncState.getInstance(it) }
+
   constructor()
 
   @VisibleForTesting
-  constructor(getGradleSyncState: (Project) -> GradleSyncState, getAndroidTarget: (Project, RunConfiguration) -> AndroidExecutionTarget?)
-    : super(getGradleSyncState, getAndroidTarget)
+  constructor(
+    getGradleSyncState: (Project) -> GradleSyncState,
+    getAndroidTarget: (Project, RunConfiguration) -> AndroidExecutionTarget?
+  ) : super(getAndroidTarget) {
+    this.getGradleSyncState = getGradleSyncState
+  }
+
 
   override fun getRunnerId() = "DefaultStudioProgramRunner"
 
   override fun canRun(executorId: String, config: RunProfile): Boolean {
-    return super.canRun(executorId, config) &&
-           (DefaultDebugExecutor.EXECUTOR_ID == executorId || DefaultRunExecutor.EXECUTOR_ID == executorId)
+    if (!super.canRun(executorId, config)) {
+      return false
+    }
+    if (config !is RunConfiguration) {
+      return false
+    }
+    if (DefaultDebugExecutor.EXECUTOR_ID != executorId && DefaultRunExecutor.EXECUTOR_ID != executorId) {
+      return false
+    }
+    val syncState = getGradleSyncState(config.project)
+    return !syncState.isSyncInProgress && syncState.isSyncNeeded() == ThreeState.NO
   }
 
   override fun canRunWithMultipleDevices(executorId: String): Boolean {
@@ -70,26 +88,23 @@ class DefaultStudioProgramRunner : AndroidConfigurationProgramRunner {
     composePreviewRunConfigurationId
   )
 
-  override fun getRunner(environment: ExecutionEnvironment, state: RunProfileState): (ProgressIndicator) -> RunContentDescriptor {
+  override fun run(environment: ExecutionEnvironment, state: RunProfileState, indicator: ProgressIndicator): RunContentDescriptor {
     val executor = state as AndroidConfigurationExecutor
 
     val swapInfo = environment.getUserData(SwapInfo.SWAP_INFO_KEY)
 
-    val runner: (ProgressIndicator) -> RunContentDescriptor =
-      if (swapInfo != null) {
-        when (swapInfo.type) {
-          SwapInfo.SwapType.APPLY_CHANGES -> executor::applyChanges
-          SwapInfo.SwapType.APPLY_CODE_CHANGES -> executor::applyCodeChanges
-        }
+    return if (swapInfo != null) {
+      when (swapInfo.type) {
+        SwapInfo.SwapType.APPLY_CHANGES -> executor.applyChanges(indicator)
+        SwapInfo.SwapType.APPLY_CODE_CHANGES -> executor.applyCodeChanges(indicator)
       }
-      else {
-        when (environment.executor.id) {
-          DefaultRunExecutor.EXECUTOR_ID -> executor::run
-          DefaultDebugExecutor.EXECUTOR_ID -> executor::debug
-          else -> throw RuntimeException("Unsupported executor")
-        }
+    } else {
+      when (environment.executor.id) {
+        DefaultRunExecutor.EXECUTOR_ID -> executor.run(indicator)
+        DefaultDebugExecutor.EXECUTOR_ID -> executor.debug(indicator)
+        else -> throw RuntimeException("Unsupported executor")
       }
-    return runner
+    }
   }
 
   override fun execute(environment: ExecutionEnvironment, state: RunProfileState): Promise<RunContentDescriptor?> {

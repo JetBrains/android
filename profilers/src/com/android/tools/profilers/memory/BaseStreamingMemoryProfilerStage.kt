@@ -51,7 +51,6 @@ import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 
 private fun Long.nanosToMicros() = TimeUnit.NANOSECONDS.toMicros(this)
-private fun Long.microsToNanos() = TimeUnit.MICROSECONDS.toNanos(this)
 private typealias DataSeriesConstructor<T> = (ProfilerClient, Common.Session, FeatureTracker, BaseMemoryProfilerStage) -> DataSeries<T>
 
 /**
@@ -68,7 +67,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   val client = profilers.client.memoryClient
   val gcStatsModel = makeModel(makeGcSeries())
 
-  val allocationSamplingRateDataSeries = AllocationSamplingRateDataSeries(profilers.client, sessionData, true)
+  val allocationSamplingRateDataSeries = AllocationSamplingRateDataSeries(profilers.client, sessionData)
   val allocationSamplingRateDurations = makeModel(allocationSamplingRateDataSeries)
 
   val detailedMemoryUsage = DetailedMemoryUsage(profilers, this)
@@ -173,7 +172,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   fun requestLiveAllocationSamplingModeUpdate(mode: LiveAllocationSamplingMode) {
     try {
       val samplingRate = MemoryAllocSamplingData.newBuilder().setSamplingNumInterval(mode.value).build()
-      val response = studioProfilers.client.transportClient.execute(
+      studioProfilers.client.transportClient.execute(
         Transport.ExecuteRequest.newBuilder().setCommand(Commands.Command.newBuilder()
                                                            .setStreamId(sessionData.streamId)
                                                            .setPid(sessionData.pid)
@@ -187,7 +186,7 @@ abstract class BaseStreamingMemoryProfilerStage(profilers: StudioProfilers,
   }
 
   fun forceGarbageCollection() {
-    val response = studioProfilers.client.transportClient.execute(
+    studioProfilers.client.transportClient.execute(
       Transport.ExecuteRequest.newBuilder()
         .setCommand(Commands.Command.newBuilder()
                       .setStreamId(sessionData.streamId)

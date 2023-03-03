@@ -15,18 +15,23 @@
  */
 package com.android.tools.compose.code.completion
 
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.compose.COMPOSABLE_FQ_NAMES_ROOT
 import com.android.tools.compose.ComposeSettings
+import com.android.tools.compose.code.completion.ComposeMaterialIconLookupElement.Companion.resourcePathFromFqName
 import com.android.tools.idea.project.DefaultModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.kotlin.psi.KtProperty
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -1089,6 +1094,127 @@ class ComposeCompletionContributorTest {
       }
       """.trimIndent()
       , true)
+  }
+
+  @Test
+  fun composeMaterialIconLookupElement_resourcePathFromFqName() {
+    assertThat("androidx.compose.material.icons.filled.AccountBox".resourcePathFromFqName())
+      .isEqualTo("images/material/icons/materialicons/account_box/baseline_account_box_24.xml")
+    assertThat("androidx.compose.material.icons.rounded.AllInbox".resourcePathFromFqName())
+      .isEqualTo("images/material/icons/materialiconsround/all_inbox/round_all_inbox_24.xml")
+    assertThat("androidx.compose.material.icons.sharp.Check".resourcePathFromFqName())
+      .isEqualTo("images/material/icons/materialiconssharp/check/sharp_check_24.xml")
+    assertThat("androidx.compose.material.icons.twotone.10k".resourcePathFromFqName())
+      .isEqualTo("images/material/icons/materialiconstwotone/10k/twotone_10k_24.xml")
+    assertThat("androidx.compose.material.icons.outlined.Adb".resourcePathFromFqName())
+      .isEqualTo("images/material/icons/materialiconsoutlined/adb/outline_adb_24.xml")
+
+    assertThat("androidx.compose.material.icons.unknown.Adb".resourcePathFromFqName()).isNull()
+    assertThat("androidx.compose.material.icons.filled.extrapackage.Adb".resourcePathFromFqName()).isNull()
+  }
+
+  @Test
+  fun composeMaterialIconLookupElement_appliesTo() {
+    myFixture.addFileToProject(
+      "src/androidx/compose/ut/graphics/vector/ImageVector.kt",
+      // language=kotlin
+      """
+      package androidx.compose.ui.graphics.vector
+
+      class ImageVector
+      """.trimIndent()
+    )
+
+    myFixture.addFileToProject(
+      "src/androidx/compose/material/icons/Icons.kt",
+      // language=kotlin
+      """
+      package androidx.compose.material.icons
+
+      object Icons {
+        object Filled
+      }
+      """.trimIndent()
+    )
+
+    myFixture.loadNewFile(
+      "src/androidx/compose/material/icons/filled/AccountBox.kt",
+      // language=kotlin
+      """
+      package androidx.compose.material.icons.filled
+
+      import androidx.compose.ui.graphics.vector.ImageVector
+
+      val androidx.compose.material.icons.Icons.Filled.Accoun<caret>tBox: ImageVector
+        get() = ImageVector()
+
+      """.trimIndent()
+    )
+
+    val accountBox = runReadAction { myFixture.elementAtCaret }
+    assertThat(accountBox).isInstanceOf(KtProperty::class.java)
+
+    val mockLookupElement: LookupElement = mock()
+    whenever(mockLookupElement.psiElement).thenReturn(accountBox)
+
+    assertThat(runReadAction { ComposeMaterialIconLookupElement.appliesTo(mockLookupElement) }).isTrue()
+  }
+
+  @Test
+  fun composeMaterialIconLookupElement_appliesToUnknownPackage() {
+    myFixture.addFileToProject(
+      "src/androidx/compose/ut/graphics/vector/ImageVector.kt",
+      // language=kotlin
+      """
+      package androidx.compose.ui.graphics.vector
+
+      class ImageVector
+      """.trimIndent()
+    )
+
+    myFixture.addFileToProject(
+      "src/androidx/compose/material/icons/Icons.kt",
+      // language=kotlin
+      """
+      package androidx.compose.material.icons
+
+      object Icons {
+        object Unknown
+      }
+      """.trimIndent()
+    )
+
+    myFixture.loadNewFile(
+      "src/androidx/compose/material/icons/unknown/AccountBox.kt",
+      // language=kotlin
+      """
+      package androidx.compose.material.icons.unknown
+
+      import androidx.compose.ui.graphics.vector.ImageVector
+
+      val androidx.compose.material.icons.Icons.Unknown.Accoun<caret>tBox: ImageVector
+        get() = ImageVector()
+
+      """.trimIndent()
+    )
+
+    val accountBox = runReadAction { myFixture.elementAtCaret }
+    assertThat(accountBox).isInstanceOf(KtProperty::class.java)
+
+    val mockLookupElement: LookupElement = mock()
+    whenever(mockLookupElement.psiElement).thenReturn(accountBox)
+
+    assertThat(runReadAction { ComposeMaterialIconLookupElement.appliesTo(mockLookupElement) }).isFalse()
+  }
+
+  @Test
+  fun composeMaterialIconLookupElement_getIcon() {
+    assertThat(
+      ComposeMaterialIconLookupElement.getIcon("images/material/icons/materialicons/account_box/baseline_account_box_24.xml"))
+      .isNotNull()
+    assertThat(
+      ComposeMaterialIconLookupElement.getIcon("images/material/icons/materialicons/account_box/unknown.xml"))
+      .isNull()
   }
 
   private val CodeInsightTestFixture.renderedLookupElements: Collection<String>

@@ -104,7 +104,8 @@ internal object DaggerTypeMapper {
     //  In<Nothing, Foo> == In<*, Foo> -> In<?, Foo>
     //  In<Nothing, Nothing> -> In
     //  Inv<in Nothing, Foo> -> Inv
-    if (signatureVisitor.skipGenericSignature() ||
+    if (
+      signatureVisitor.skipGenericSignature() ||
         hasNothingInNonContravariantPosition(type) ||
         type.arguments.isEmpty()
     ) {
@@ -156,7 +157,8 @@ internal object DaggerTypeMapper {
 
       val argument = projection.getType()
 
-      if (argument.isNullableNothing() ||
+      if (
+        argument.isNullableNothing() ||
           argument.isNothing() && typeConstructor.getParameter(i).getVariance() != TypeVariance.IN
       )
         return true
@@ -187,7 +189,8 @@ internal object DaggerTypeMapper {
     val arguments = type.arguments
 
     if (classDescriptor is FunctionClassDescriptor) {
-      if (classDescriptor.hasBigArity ||
+      if (
+        classDescriptor.hasBigArity ||
           classDescriptor.functionKind == FunctionClassKind.KFunction ||
           classDescriptor.functionKind == FunctionClassKind.KSuspendFunction
       ) {
@@ -230,7 +233,8 @@ internal object DaggerTypeMapper {
     mapType: (KotlinTypeMarker, JvmSignatureWriter, TypeMappingMode) -> Type
   ) {
     for ((parameter, argument) in parameters.zip(arguments)) {
-      if (argument.isStarProjection() ||
+      if (
+        argument.isStarProjection() ||
           // In<Nothing, Foo> == In<*, Foo> -> In<?, Foo>
           argument.getType().isNothing() && parameter.getVariance() == TypeVariance.IN
       ) {
@@ -275,13 +279,15 @@ internal object DaggerTypeMapper {
 
     if (projectionKind == Variance.INVARIANT || projectionKind == parameterVariance) {
       if (mode.skipDeclarationSiteWildcardsIfPossible && !projection.isStarProjection()) {
-        if (parameterVariance == Variance.OUT_VARIANCE &&
+        if (
+          parameterVariance == Variance.OUT_VARIANCE &&
             isMostPreciseCovariantArgument(projection.getType())
         ) {
           return Variance.INVARIANT
         }
 
-        if (parameterVariance == Variance.IN_VARIANCE &&
+        if (
+          parameterVariance == Variance.IN_VARIANCE &&
             isMostPreciseContravariantArgument(projection.getType(), parameter)
         ) {
           return Variance.INVARIANT

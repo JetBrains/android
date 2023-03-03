@@ -1,0 +1,27 @@
+plugins {
+  id 'com.android.application'
+}
+
+android {
+  namespace 'com.example.dynamicfeaturemanifest'
+  compileSdk 32
+  defaultConfig {
+    applicationId "com.example.dynamicfeaturemanifest"
+    minSdk 21
+    targetSdk 32
+    versionCode 1
+    versionName "1.0"
+  }
+
+  buildTypes {
+    release {
+      minifyEnabled false
+      proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+    }
+  }
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
+  dynamicFeatures = [':app:dynamicfeature']
+}

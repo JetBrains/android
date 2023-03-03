@@ -119,7 +119,8 @@ private object PreviewControlTypeProvider : PsiPropertyItemControlTypeProvider {
       PARAMETER_SHOW_DECORATION,
       PARAMETER_SHOW_SYSTEM_UI,
       PARAMETER_SHOW_BACKGROUND -> ControlType.THREE_STATE_BOOLEAN
-      PARAMETER_GROUP, PARAMETER_FONT_SCALE -> ControlType.COMBO_BOX
+      PARAMETER_GROUP,
+      PARAMETER_FONT_SCALE -> ControlType.COMBO_BOX
       else -> ControlType.TEXT_EDITOR
     }
 }

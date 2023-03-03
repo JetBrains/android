@@ -29,7 +29,7 @@ import com.android.tools.idea.observable.core.StringProperty;
 import com.android.tools.idea.observable.core.StringValueProperty;
 import com.android.tools.idea.observable.ui.SelectedListValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.intellij.icons.AllIcons;
@@ -85,7 +85,7 @@ public class MoreFontsDialog extends DialogWrapper {
   private final FontListModel myModel;
   private final DefaultListModel<FontDetail> myDetailModel;
   private final FontFamilyCreator myFontCreator;
-  private final ResourceRepositoryManager myResourceRepository;
+  private final StudioResourceRepositoryManager myResourceRepository;
   private final StringProperty myNewFontName;
   private final SelectedListValueProperty<FontFamily> mySelectedFontFamily;
   private SearchTextField mySearchField;
@@ -116,7 +116,7 @@ public class MoreFontsDialog extends DialogWrapper {
   public MoreFontsDialog(@NotNull AndroidFacet facet, @Nullable String currentValue, @NotNull Boolean showExistingFonts) {
     super(facet.getModule().getProject());
     setTitle("Resources");
-    myResourceRepository = ResourceRepositoryManager.getInstance(facet);
+    myResourceRepository = StudioResourceRepositoryManager.getInstance(facet);
     myContentPanel.setPreferredSize(new Dimension(DEFAULT_WIDTH, DEFAULT_HEIGHT));
     myFontList.setMinimumSize(new Dimension(MIN_FONT_LIST_WIDTH, MIN_FONT_LIST_HEIGHT));
     myFontList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

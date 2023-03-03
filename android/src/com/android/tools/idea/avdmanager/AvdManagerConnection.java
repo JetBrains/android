@@ -79,8 +79,8 @@ import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilderF
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.sdk.AndroidSdks;
-import com.android.tools.idea.streaming.EmulatorSettings;
 import com.android.tools.idea.sdk.IdeAvdManagers;
+import com.android.tools.idea.streaming.EmulatorSettings;
 import com.android.utils.ILogger;
 import com.android.utils.PathUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -275,11 +275,11 @@ public class AvdManagerConnection {
   private boolean initIfNecessary() {
     if (myAvdManager == null) {
       if (mySdkHandler == null) {
-        IJ_LOG.warn("No Android SDK Found");
+        IJ_LOG.warn("No Android SDK found");
         return false;
       }
       if (myAvdHomeFolder == null) {
-        IJ_LOG.warn("No AVD Home Folder");
+        IJ_LOG.warn("No AVD home folder");
         return false;
       }
       try {
@@ -889,12 +889,13 @@ public class AvdManagerConnection {
       CapturingAnsiEscapesAwareProcessHandler process = new CapturingAnsiEscapesAwareProcessHandler(commandLine);
       ProcessOutput output = process.runProcess();
       exitValue = output.getExitCode();
+      if (exitValue != 0) {
+        return AccelerationErrorCode.fromExitCode(exitValue);
+      }
     }
     catch (ExecutionException e) {
-      exitValue = AccelerationErrorCode.UNKNOWN_ERROR.getErrorCode();
-    }
-    if (exitValue != 0) {
-      return AccelerationErrorCode.fromExitCode(exitValue);
+      IJ_LOG.warn(e);
+      return AccelerationErrorCode.UNKNOWN_ERROR;
     }
     if (!hasPlatformToolsForQEMU2Installed()) {
       return AccelerationErrorCode.PLATFORM_TOOLS_UPDATE_ADVISED;
@@ -1014,6 +1015,15 @@ public class AvdManagerConnection {
       hardwareProperties.put(AVD_INI_ROLL_PERCENTAGES_POSTURE_DEFINITIONS, "58.55-76.45, 76.45-94.35, 94.35-100");
     }
     if (device.getId().equals("resizable")) {
+      hardwareProperties.put(AVD_INI_HINGE, "yes");
+      hardwareProperties.put(AVD_INI_HINGE_COUNT, "1");
+      hardwareProperties.put(AVD_INI_HINGE_TYPE, "1");
+      hardwareProperties.put(AVD_INI_HINGE_SUB_TYPE, "1");
+      hardwareProperties.put(AVD_INI_HINGE_RANGES, "0-180");
+      hardwareProperties.put(AVD_INI_HINGE_DEFAULTS, "180");
+      hardwareProperties.put(AVD_INI_HINGE_AREAS, "884-0-1-2208");
+      hardwareProperties.put(AVD_INI_POSTURE_LISTS, "1,2,3");
+      hardwareProperties.put(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS, "0-30, 30-150, 150-180");
       hardwareProperties.put(AVD_INI_RESIZABLE_CONFIG, "phone-0-1080-2340-420, foldable-1-1768-2208-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160");
     }
     if (currentInfo != null && !avdName.equals(currentInfo.getName()) && removePrevious) {

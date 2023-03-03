@@ -65,21 +65,29 @@ fun SceneView.selectComponentAt(@SwingCoordinate x: Int,
     component = secondarySelector!!.component
   }
 
-  if (ignoreIfAlreadySelected && secondarySelector == null && component != null && selectionModel.isSelected(component)) {
-    return component
+  if (!allowToggle && useSecondarySelector) {
+    selectionModel.setSecondarySelection(component, secondarySelector!!.constraint)
+  }
+  else {
+    selectComponent(component, allowToggle, ignoreIfAlreadySelected)
   }
 
+  return component
+}
+
+fun SceneView.selectComponent(component: NlComponent?,
+                              allowToggle: Boolean,
+                              ignoreIfAlreadySelected: Boolean) {
+  if (ignoreIfAlreadySelected && component != null && selectionModel.isSelected(component)) {
+    return
+  }
   if (component == null) {
     selectionModel.clear()
   }
   else if (allowToggle) {
     selectionModel.toggle(component)
   }
-  else if (useSecondarySelector) {
-    selectionModel.setSecondarySelection(component, secondarySelector!!.constraint)
-  }
   else {
     selectionModel.setSelection(listOf(component))
   }
-  return component
 }

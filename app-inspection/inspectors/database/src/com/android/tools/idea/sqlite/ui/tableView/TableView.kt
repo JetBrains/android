@@ -139,6 +139,7 @@ sealed class RowDiffOperation {
   data class AddRow(val row: SqliteRow) : RowDiffOperation()
   /**
    * Remove operations are applied after [UpdateCell] operations
+   *
    * @param startIndex The index from which rows should be removed from the view.
    */
   data class RemoveLastRows(val startIndex: Int) : RowDiffOperation()

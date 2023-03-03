@@ -19,6 +19,8 @@ import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.SharedPrefsDetector
 
-class AndroidLintMutatingSharedPrefsInspection : AndroidLintInspectionBase(
-  AndroidLintBundle.message("android.lint.inspections.mutating.shared.prefs"), SharedPrefsDetector.ISSUE
-)
+class AndroidLintMutatingSharedPrefsInspection :
+  AndroidLintInspectionBase(
+    AndroidLintBundle.message("android.lint.inspections.mutating.shared.prefs"),
+    SharedPrefsDetector.ISSUE
+  )

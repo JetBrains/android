@@ -232,5 +232,8 @@
             class="com.android.tools.idea.gradle.project.sync.internal.DumpProjectIdeModelAction">
       <add-to-group group-id="Internal.Android"/>
     </action>
+    <action id="NewVersionCatalogFile" class="com.android.tools.idea.actions.NewVersionCatalogAction">
+      <add-to-group group-id="NewGroup" anchor="last"/>
+    </action>
   </actions>
 </idea-plugin>

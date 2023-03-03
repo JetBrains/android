@@ -102,6 +102,7 @@ public final class AvdDeviceData {
   private OptionalProperty<File> myCustomSkinFile = new OptionalValueProperty<File>();
   private OptionalProperty<File> mySelectedSnapshotFile = new OptionalValueProperty<>(new File(""));
 
+  private BoolValueProperty myIsAutomotive = new BoolValueProperty();
   private BoolValueProperty myIsTv = new BoolValueProperty();
   private BoolValueProperty myIsWear = new BoolValueProperty();
   private BoolValueProperty myIsDesktop = new BoolValueProperty();
@@ -387,6 +388,11 @@ public final class AvdDeviceData {
   }
 
   @NotNull
+  public BoolProperty isAutomotive() {
+    return myIsAutomotive;
+  }
+
+  @NotNull
   public BoolProperty isTv() {
     return myIsTv;
   }
@@ -556,6 +562,7 @@ public final class AvdDeviceData {
     myHasGps.set(defaultHardware.getSensors().contains(Sensor.GPS));
     myHasProximitySensor.set(defaultHardware.getSensors().contains(Sensor.PROXIMITY_SENSOR));
 
+    myIsAutomotive.set(HardwareConfigHelper.isAutomotive(device));
     myIsTv.set(HardwareConfigHelper.isTv(device));
     myIsWear.set(HardwareConfigHelper.isWear(device));
     myIsDesktop.set(HardwareConfigHelper.isDesktop(device));

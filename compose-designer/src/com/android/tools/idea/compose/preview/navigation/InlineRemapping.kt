@@ -106,7 +106,7 @@ private fun matchesPackage(file: PsiClassOwner, packageHash: Int): Boolean =
  *
  * @param module the module to use for the file resolution
  * @param scope the resolution [GlobalSearchScope]. By default, files will be found in the whole
- * project but you can limit the search scope by passing a different scope.
+ *   project but you can limit the search scope by passing a different scope.
  */
 internal fun SourceLocation.asSourceLocationWithVirtualFile(
   module: Module,

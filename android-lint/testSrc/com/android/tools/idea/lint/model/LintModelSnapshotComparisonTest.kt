@@ -33,54 +33,59 @@ import org.junit.runners.Parameterized
  * Snapshot tests for 'Lint Models'.
  *
  * These tests convert Lint models to a stable text format which does not depend on local
- * environment (and ideally should not depend on the versions of irrelevant libraries) and compare them to pre-recorded golden
- * results.
+ * environment (and ideally should not depend on the versions of irrelevant libraries) and compare
+ * them to pre-recorded golden results.
  *
- * The pre-recorded sync results can be found in [snapshotDirectoryWorkspaceRelativePath] *.txt files.
+ * The pre-recorded sync results can be found in [snapshotDirectoryWorkspaceRelativePath] *.txt
+ * files.
  *
- * For instructions on how to update the snapshot files see [SnapshotComparisonTest] and if running from the command-line use
- * target as "//tools/adt/idea/android-lint:intellij.android.lint.tests_tests__all --filter=LintModelSnapshotComparisonTest".
+ * For instructions on how to update the snapshot files see [SnapshotComparisonTest] and if running
+ * from the command-line use target as
+ * "//tools/adt/idea/android-lint:intellij.android.lint.tests_tests__all
+ * --filter=LintModelSnapshotComparisonTest".
  */
-
 @RunsInEdt
 @RunWith(Parameterized::class)
 class LintModelSnapshotComparisonTest : SnapshotComparisonTest {
 
   data class TestProjectDef(val template: LintTestProject) {
-    override fun toString(): String = template.template.removePrefix("projects/") + template.pathToOpen
+    override fun toString(): String =
+      template.template.removePrefix("projects/") + template.pathToOpen
   }
 
-  @JvmField
-  @Parameterized.Parameter
-  var testProjectName: TestProjectDef? = null
+  @JvmField @Parameterized.Parameter var testProjectName: TestProjectDef? = null
 
   companion object {
     @Suppress("unused")
     @JvmStatic
     @Parameterized.Parameters(name = "{0}")
-    fun testProjects(): Collection<*> = listOf(
-      TestProjectDef(LintTestProject.SIMPLE_APPLICATION),
-      TestProjectDef(LintTestProject.BASIC_CMAKE_APP),
-      TestProjectDef(LintTestProject.PSD_SAMPLE_GROOVY),
-      TestProjectDef(LintTestProject.MULTI_FLAVOR), // TODO(b/178796251): The snapshot does not include `proguardFiles`.
-      TestProjectDef(LintTestProject.COMPOSITE_BUILD),
-      TestProjectDef(LintTestProject.NON_STANDARD_SOURCE_SETS),
-      TestProjectDef(LintTestProject.LINKED),
-      TestProjectDef(LintTestProject.KOTLIN_KAPT),
-      TestProjectDef(LintTestProject.LINT_CUSTOM_CHECKS),
-      TestProjectDef(LintTestProject.TEST_FIXTURES),
-    )
+    fun testProjects(): Collection<*> =
+      listOf(
+        TestProjectDef(LintTestProject.SIMPLE_APPLICATION),
+        TestProjectDef(LintTestProject.BASIC_CMAKE_APP),
+        TestProjectDef(LintTestProject.PSD_SAMPLE_GROOVY),
+        TestProjectDef(
+          LintTestProject.MULTI_FLAVOR
+        ), // TODO(b/178796251): The snapshot does not include `proguardFiles`.
+        TestProjectDef(LintTestProject.COMPOSITE_BUILD),
+        TestProjectDef(LintTestProject.NON_STANDARD_SOURCE_SETS),
+        TestProjectDef(LintTestProject.LINKED),
+        TestProjectDef(LintTestProject.KOTLIN_KAPT),
+        TestProjectDef(LintTestProject.LINT_CUSTOM_CHECKS),
+        TestProjectDef(LintTestProject.TEST_FIXTURES),
+      )
   }
 
   @get:Rule
-  val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
+  val projectRule: IntegrationTestEnvironmentRule =
+    AndroidProjectRule.withIntegrationTestEnvironment()
 
-  @get:Rule
-  var testName = TestName()
+  @get:Rule var testName = TestName()
 
   override fun getName(): String = testName.methodName
 
-  override val snapshotDirectoryWorkspaceRelativePath: String = "tools/adt/idea/android-lint/testData/snapshots/lintModels"
+  override val snapshotDirectoryWorkspaceRelativePath: String =
+    "tools/adt/idea/android-lint/testData/snapshots/lintModels"
 
   @Test
   fun testLintModels() {
@@ -88,7 +93,9 @@ class LintModelSnapshotComparisonTest : SnapshotComparisonTest {
     val preparedProject = projectRule.prepareTestProject(projectName.template)
     preparedProject.open { project ->
       val dump =
-        project.saveAndDump(mapOf("ROOT" to preparedProject.root)) { project, projectDumper -> projectDumper.dumpLintModels(project) }
+        project.saveAndDump(mapOf("ROOT" to preparedProject.root)) { project, projectDumper ->
+          projectDumper.dumpLintModels(project)
+        }
       assertIsEqualToSnapshot(dump)
     }
   }

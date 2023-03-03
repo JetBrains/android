@@ -19,6 +19,8 @@ import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.SplashScreenDetector
 
-class AndroidLintCustomSplashScreenInspection : AndroidLintInspectionBase(
-  AndroidLintBundle.message("android.lint.inspections.custom.splash.screen"), SplashScreenDetector.ISSUE
-)
+class AndroidLintCustomSplashScreenInspection :
+  AndroidLintInspectionBase(
+    AndroidLintBundle.message("android.lint.inspections.custom.splash.screen"),
+    SplashScreenDetector.ISSUE
+  )

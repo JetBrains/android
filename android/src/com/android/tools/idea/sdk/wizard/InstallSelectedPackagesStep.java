@@ -36,6 +36,7 @@ import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
 import com.android.tools.idea.progress.ThrottledProgressWrapper;
 import com.android.tools.idea.sdk.IdeSdks;
+import com.android.tools.idea.sdk.SdkInstallListener;
 import com.android.tools.idea.sdk.StudioSettingsController;
 import com.android.tools.idea.sdk.install.StudioSdkInstallerUtil;
 import com.android.tools.idea.wizard.WizardConstants;
@@ -51,6 +52,7 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBLabel;
@@ -217,10 +219,16 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
       myLogger = myThrottleProgress ? new ThrottledProgressWrapper(customLogger) : customLogger;
     }
 
+    @NotNull Project[] projects = ProjectManager.getInstance().getOpenProjects();
     Function<List<RepoPackage>, Void> completeCallback = failures -> {
       ModalityUiUtil.invokeLaterIfNeeded(ModalityState.any(), () -> {
         myProgressBar.setValue(100);
         myProgressOverallLabel.setText("");
+
+        for (Project project : projects) {
+          project.getMessageBus().syncPublisher(SdkInstallListener.TOPIC)
+            .installCompleted(myInstallRequests, myUninstallRequests);
+        }
 
         if (!failures.isEmpty()) {
           myInstallFailed.set(true);
@@ -245,7 +253,7 @@ public class InstallSelectedPackagesStep extends ModelWizardStep.WithoutModel {
     myBackgroundAction.setTask(task);
 
     ProgressIndicator indicator;
-    boolean hasOpenProjects = ProjectManager.getInstance().getOpenProjects().length > 0;
+    boolean hasOpenProjects = projects.length > 0;
     if (hasOpenProjects) {
       indicator = new BackgroundableProcessIndicator(task);
     }

@@ -280,7 +280,6 @@ public class RenderErrorContributor {
     if (module == null) {
       return;
     }
-    Project project = module.getProject();
     if (logger.isMissingSize()) {
       HtmlBuilder builder = new HtmlBuilder();
 
@@ -796,7 +795,7 @@ public class RenderErrorContributor {
 
       addRefreshAction(builder);
       addIssue()
-        .setSeverity(message.getSeverity())
+        .setSeverity(ProblemSeverities.toHighlightSeverity(message.getSeverity()))
         .setSummary(summary)
         .setHtmlContent(builder)
         .build();

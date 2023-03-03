@@ -24,7 +24,7 @@ import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.idea.avdmanager.SkinUtils
-import com.android.tools.idea.sdk.IdeDeviceManagers
+import com.android.tools.idea.sdk.DeviceManagers
 import com.android.tools.idea.streaming.device.DeviceConfiguration
 import com.android.tools.idea.streaming.device.DeviceView
 import com.android.tools.idea.ui.screenshot.FramingOption
@@ -71,7 +71,7 @@ internal class DeviceScreenshotOptions(
 
   override fun getFramingOptions(screenshotImage: ScreenshotImage): List<FramingOption> {
     val framingOptions = mutableListOf<DeviceFramingOption>()
-    val deviceManager = IdeDeviceManagers.getDeviceManager(
+    val deviceManager = DeviceManagers.getDeviceManager(
       AndroidSdkHandler.getInstance(AndroidLocationsSingleton, null))
     val devices = deviceManager.getDevices(EnumSet.of(DeviceFilter.USER, DeviceFilter.DEFAULT, DeviceFilter.VENDOR))
     val device = deviceModel?.let { devices.find { it.displayName == deviceModel } }

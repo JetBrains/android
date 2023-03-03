@@ -24,6 +24,7 @@ import com.android.tools.idea.projectsystem.PLATFORM_SUPPORT_LIBS
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncResult
 import com.android.tools.idea.projectsystem.TestProjectSystem
+import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.google.common.truth.Truth.assertThat
@@ -69,13 +70,15 @@ class DependencyManagerTest {
   private val dialogMessages = mutableListOf<String>()
   private val projectRule = AndroidProjectRule.onDisk()
   private val watcher = TestName()
+  private lateinit var testProjectSystem: TestProjectSystem
 
   @get:Rule
   val rule = RuleChain.outerRule(projectRule).around(watcher)!!
 
   @Before
   fun setUp() {
-    val testProjectSystem = TestProjectSystem(projectRule.project, availableDependencies = PLATFORM_SUPPORT_LIBS)
+    testProjectSystem = TestProjectSystem(projectRule.project, availableDependencies = PLATFORM_SUPPORT_LIBS)
+    testProjectSystem.useAndroidX = true
     runInEdtAndWait { testProjectSystem.useInTests() }
     panel = mock(PalettePanel::class.java)
     palette = NlPaletteModel.get(AndroidFacet.getInstance(projectRule.module)!!).getPalette(LayoutFileType)
@@ -160,32 +163,15 @@ class DependencyManagerTest {
   }
 
   @Test
-  fun testAndroidxDependencies() = runInEdtAndWait{
-    // The project has no dependencies and NELE_USE_ANDROIDX_DEFAULT is set to true
+  fun testAndroidxDependencies() {
     assertThat(dependencyManager!!.useAndroidXDependencies()).isTrue()
 
-    val project = projectRule.project
-    val gradlePropertiesFile = runWriteActionAndWait {
-      val projectDir = VfsUtil.findFileByIoFile(File(project.basePath!!), true)!!
-      projectDir.createChildData(null, FN_GRADLE_PROPERTIES)
-    }
-
-    val propertiesPsi = PsiManager.getInstance(project).findFile(gradlePropertiesFile)!!
-    val propertiesDoc = PsiDocumentManager.getInstance(project).getDocument(propertiesPsi)!!
-
-    // Check explicitly setting the variable
-    runWriteActionAndWait {
-      propertiesDoc.setText("android.useAndroidX=false")
-      PsiDocumentManager.getInstance(project).commitAllDocuments()
-    }
+    testProjectSystem.useAndroidX = false
     simulateProjectSync()
     assertThat(dependencyManager!!.useAndroidXDependencies()).isFalse()
     assertThat(dependencyUpdateCount).isEqualTo(1)
 
-    runWriteActionAndWait {
-      propertiesDoc.setText("android.useAndroidX=true")
-      PsiDocumentManager.getInstance(project).commitAllDocuments()
-    }
+    testProjectSystem.useAndroidX = true
     simulateProjectSync()
     assertThat(dependencyManager!!.useAndroidXDependencies()).isTrue()
     assertThat(dependencyUpdateCount).isEqualTo(2)

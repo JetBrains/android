@@ -165,7 +165,7 @@ public class RenderLoggerTest {
     List<RenderProblem> problems = logger.getMessages();
     assertEquals(RENDER_PROBLEMS_LIMIT + 1, problems.size());
     RenderProblem tooManyProblemsElement = problems.get(problems.size() - 1);
-    assertEquals(HighlightSeverity.WARNING, tooManyProblemsElement.getSeverity());
+    assertEquals(HighlightSeverity.WARNING, ProblemSeverities.toHighlightSeverity(tooManyProblemsElement.getSeverity()));
     assertEquals("Too many errors (150 more errors not displayed)", tooManyProblemsElement.getHtml());
   }
 

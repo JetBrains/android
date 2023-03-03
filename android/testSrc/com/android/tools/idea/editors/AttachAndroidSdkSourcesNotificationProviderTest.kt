@@ -16,9 +16,7 @@
 package com.android.tools.idea.editors
 
 import com.android.flags.junit.FlagRule
-import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.whenever
-import com.android.tools.idea.editors.AttachAndroidSdkSourcesNotificationProvider.AttachAndroidSdkSourcesCallback
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.testing.AndroidProjectRule.Companion.withSdk
@@ -40,7 +38,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mock
-import org.mockito.Mockito.verify
 import org.mockito.junit.MockitoJUnit
 
 @RunWith(JUnit4::class)
@@ -59,9 +56,6 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
   @Mock
   lateinit var myModelWizardDialog: ModelWizardDialog
-
-  @Mock
-  lateinit var myAttachAndroidSdkSourcesCallback: AttachAndroidSdkSourcesCallback
 
   private lateinit var myProvider: TestAttachAndroidSdkSourcesNotificationProvider
 
@@ -185,23 +179,8 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
   @Test
   fun createNotificationPanel_virtualFileHasRequiredSourcesKey_downloadLinkHasRequestedSources() {
-    whenever(myAttachAndroidSdkSourcesCallback.missingSourceVersion).thenReturn(AndroidVersion(30))
-
     val javaFile = myAndroidProjectRule.fixture.createFile("somefile.java", "file contents")
-    javaFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, myAttachAndroidSdkSourcesCallback)
-
-    val panel = invokeCreateNotificationPanel(javaFile)
-    ApplicationManager.getApplication().invokeAndWait { panel!!.links["Download"]!!.run() }
-
-    verify(myAttachAndroidSdkSourcesCallback).refreshAfterDownload()
-  }
-
-  @Test
-  fun createNotificationPanel_virtualFileHasRequiredSourcesKey_refreshInvokedAfterDownload() {
-    whenever(myAttachAndroidSdkSourcesCallback.missingSourceVersion).thenReturn(AndroidVersion(30))
-
-    val javaFile = myAndroidProjectRule.fixture.createFile("somefile.java", "file contents")
-    javaFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, myAttachAndroidSdkSourcesCallback)
+    javaFile.putUserData(AttachAndroidSdkSourcesNotificationProvider.REQUIRED_SOURCES_KEY, 30)
 
     val panel = invokeCreateNotificationPanel(javaFile)
     ApplicationManager.getApplication().invokeAndWait { panel!!.links["Download"]!!.run() }

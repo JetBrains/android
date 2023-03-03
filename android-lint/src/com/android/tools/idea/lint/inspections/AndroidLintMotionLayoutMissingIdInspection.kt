@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.lint.inspections
 
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.MotionLayoutIdDetector
-import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 
-class AndroidLintMotionLayoutMissingIdInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.motion.layout.missing.id"), MotionLayoutIdDetector.MISSING_ID
-)
+class AndroidLintMotionLayoutMissingIdInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.motion.layout.missing.id"),
+    MotionLayoutIdDetector.MISSING_ID
+  )

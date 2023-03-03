@@ -95,7 +95,8 @@ class JdbcDatabaseConnection(
       when (sqliteStatement.statementType) {
         SqliteStatementType.SELECT ->
           PagedJdbcSqliteResultSet(this.sequentialTaskExecutor, connection, sqliteStatement)
-        SqliteStatementType.EXPLAIN, SqliteStatementType.PRAGMA_QUERY ->
+        SqliteStatementType.EXPLAIN,
+        SqliteStatementType.PRAGMA_QUERY ->
           LazyJdbcSqliteResultSet(this.sequentialTaskExecutor, connection, sqliteStatement)
         else ->
           throw IllegalArgumentException(

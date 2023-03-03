@@ -87,8 +87,7 @@ class AppInspectionLaunchTaskContributorTest {
       val launchContext1 = LaunchContext(env, device, mock(), handler1, mock())
       task1.run(launchContext1)
       handler1.startNotify()
-      project
-        .messageBus
+      project.messageBus
         .syncPublisher(ExecutionManager.EXECUTION_TOPIC)
         .processStarted(DefaultRunExecutor.EXECUTOR_ID, env, handler1)
 
@@ -124,8 +123,7 @@ class AppInspectionLaunchTaskContributorTest {
       val launchContext2 = LaunchContext(env, device, mock(), handler2, mock())
       task2.run(launchContext2)
       handler2.startNotify()
-      project
-        .messageBus
+      project.messageBus
         .syncPublisher(ExecutionManager.EXECUTION_TOPIC)
         .processStarted(DefaultRunExecutor.EXECUTOR_ID, env, handler2)
 

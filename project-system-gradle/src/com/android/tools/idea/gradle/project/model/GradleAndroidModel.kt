@@ -56,7 +56,7 @@ import java.util.EnumSet
  * Contains Android-Gradle related state necessary for configuring an IDEA project based on a user-selected build variant.
  */
 class GradleAndroidModel constructor(
-  val data: GradleAndroidModelData,
+  private val data: GradleAndroidModelData,
   val project: Project,
   private val ideLibraryModelResolver: IdeLibraryModelResolver
 ) : AndroidModuleModel {
@@ -260,6 +260,9 @@ class GradleAndroidModel constructor(
   override fun isInstantAppCompatible(): Boolean = selectedVariant.instantAppCompatible
 
   private fun unknownSelectedVariant(): Nothing = error("Unknown selected variant: $selectedVariantName")
+
+  @VisibleForTesting
+  fun containsTheSameDataAs(that: GradleAndroidModel) = this.data == that.data
 
   companion object {
 

@@ -32,7 +32,9 @@ enum class FailureType {
       FATAL -> StudioIcons.AppQualityInsights.FATAL
       NON_FATAL -> StudioIcons.AppQualityInsights.NON_FATAL
       ANR -> StudioIcons.AppQualityInsights.ANR
-      USER_PERCEIVED_ONLY, FOREGROUND, BACKGROUND -> null // TODO: add icons
+      USER_PERCEIVED_ONLY,
+      FOREGROUND,
+      BACKGROUND -> null // TODO: add icons
       // This scenario shouldn't ever be reached.
       UNSPECIFIED -> null
     }

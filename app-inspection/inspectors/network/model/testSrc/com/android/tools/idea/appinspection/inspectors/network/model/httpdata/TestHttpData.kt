@@ -38,7 +38,8 @@ fun fakeStackTrace(id: Long): String {
   return """
             com.example.android.displayingbitmaps.util.ImageFetcher.downloadUrlToStream(ImageFetcher.java)
             com.example.android.displayingbitmaps.util.AsyncTask$2.call(AsyncTask.java:$id)
-            """.trimIndent()
+            """
+    .trimIndent()
 }
 
 fun fakeResponseFields(id: Long, contentType: String? = FAKE_CONTENT_TYPE): String {

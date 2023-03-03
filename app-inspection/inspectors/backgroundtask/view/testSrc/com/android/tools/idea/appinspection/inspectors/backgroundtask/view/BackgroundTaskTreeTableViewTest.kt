@@ -334,8 +334,8 @@ class BackgroundTaskTreeTableViewTest {
 
       withContext(uiDispatcher) {
         val tree =
-          TreeWalker(entriesView).descendantStream().filter { it is JTree }.findFirst().get() as
-            JTree
+          TreeWalker(entriesView).descendantStream().filter { it is JTree }.findFirst().get()
+            as JTree
         val root = tree.model.root as DefaultMutableTreeNode
         val model = tree.model as BackgroundTaskTreeModel
         assertThat(root.getWorksCategoryNode().childCount).isEqualTo(3)

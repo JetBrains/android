@@ -24,6 +24,7 @@ internal interface HyperlinkDetector {
    *
    * @param startLine Start line of region to process (zero based)
    * @param endLine End line of region to process (zero based)
+   * @param sdk The sdk level of the selected device or null if it is not known (should not happen)
    */
-  fun detectHyperlinks(startLine: Int, endLine: Int)
+  fun detectHyperlinks(startLine: Int, endLine: Int, sdk: Int?)
 }

@@ -111,7 +111,8 @@ class PreviewPickerLineMarkerProviderTest(
         )
         @Composable
         fun preview1() {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
   }
 

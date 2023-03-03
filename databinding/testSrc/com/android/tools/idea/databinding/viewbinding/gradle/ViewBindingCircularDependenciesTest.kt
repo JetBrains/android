@@ -19,7 +19,7 @@ import com.android.tools.idea.databinding.TestDataPaths
 import com.android.tools.idea.databinding.TestDataPaths.PROJECT_WITH_CIRCULAR_DEPENDENCIES
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
 import com.android.tools.idea.gradle.project.sync.GradleSyncState
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.JavaPsiFacade
@@ -73,7 +73,7 @@ class ViewBindingCircularDependenciesTest {
     val module2BindingClassName = "com.example.module2.databinding.ActivityMainBinding"
 
     // Trigger initialization
-    ResourceRepositoryManager.getModuleResources(facet);
+    StudioResourceRepositoryManager.getModuleResources(facet);
     val javaPsiFacade = JavaPsiFacade.getInstance(project);
 
     // Everything viewable from app module

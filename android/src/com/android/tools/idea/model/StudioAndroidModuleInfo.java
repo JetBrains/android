@@ -36,6 +36,7 @@ import com.intellij.util.concurrency.SameThreadExecutor;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidFacetScopedService;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -209,7 +210,7 @@ public class StudioAndroidModuleInfo extends AndroidFacetScopedService implement
   public AndroidVersion getBuildSdkVersion() {
     // TODO: Get this from the model! For now, we take advantage of the fact that
     // the model should have synced the right type of Android SDK to the IntelliJ facet.
-    AndroidPlatform platform = AndroidPlatform.getInstance(getModule());
+    AndroidPlatform platform = AndroidPlatforms.getInstance(getModule());
     if (platform != null) {
       return platform.getApiVersion();
     }

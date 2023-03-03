@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.databinding.project
 
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ModificationTracker
@@ -39,6 +39,6 @@ class ProjectLayoutResourcesModificationTracker(project: Project): ModificationT
 
   override fun getModificationCount(): Long {
     return enabledFacetsProvider.getAllBindingEnabledFacets()
-      .sumByLong { facet -> ResourceRepositoryManager.getModuleResources(facet).modificationCount }
+      .sumByLong { facet -> StudioResourceRepositoryManager.getModuleResources(facet).modificationCount }
   }
 }

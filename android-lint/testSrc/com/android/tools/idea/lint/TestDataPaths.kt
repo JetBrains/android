@@ -20,12 +20,13 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TemplateBasedTestPro
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.util.PathUtil
-import org.jetbrains.android.AndroidTestBase
 import java.io.File
+import org.jetbrains.android.AndroidTestBase
 
 object TestDataPaths {
   @JvmField
-  val TEST_DATA_ROOT = TestUtils.resolveWorkspacePath("tools/adt/idea/android-lint/testData").toString()
+  val TEST_DATA_ROOT =
+    TestUtils.resolveWorkspacePath("tools/adt/idea/android-lint/testData").toString()
   const val BASIC_CMAKE_APP = "projects/basicCmakeApp"
   const val COMPOSITE_BUILD = "projects/compositeBuild"
   const val KOTLIN_KAPT = "projects/kotlinKapt"
@@ -50,7 +51,6 @@ enum class LintTestProject(
   override val expectedSyncIssues: Set<Int> = emptySet(),
   override val verifyOpened: ((Project) -> Unit)? = null
 ) : TemplateBasedTestProject {
-
   BASIC_CMAKE_APP(TestDataPaths.BASIC_CMAKE_APP),
   COMPOSITE_BUILD(TestDataPaths.COMPOSITE_BUILD),
   KOTLIN_KAPT(TestDataPaths.KOTLIN_KAPT),
@@ -63,8 +63,14 @@ enum class LintTestProject(
   TEST_FIXTURES(TestDataPaths.TEST_FIXTURES),
   ;
 
-  override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"
+  override fun getTestDataDirectoryWorkspaceRelativePath(): String =
+    "tools/adt/idea/android/testData/snapshots"
 
   override fun getAdditionalRepos(): Collection<File> =
-    listOf(File(AndroidTestBase.getTestDataPath(), PathUtil.toSystemDependentName(TestDataPaths.PSD_SAMPLE_REPO)))
+    listOf(
+      File(
+        AndroidTestBase.getTestDataPath(),
+        PathUtil.toSystemDependentName(TestDataPaths.PSD_SAMPLE_REPO)
+      )
+    )
 }

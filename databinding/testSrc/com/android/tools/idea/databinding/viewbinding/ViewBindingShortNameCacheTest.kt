@@ -17,7 +17,7 @@ package com.android.tools.idea.databinding.viewbinding
 
 import com.android.tools.idea.gradle.model.impl.IdeViewBindingOptionsImpl
 import com.android.tools.idea.databinding.util.isViewBindingEnabled
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -67,7 +67,7 @@ class ViewBindingShortNameCacheTest {
     """.trimIndent())
 
     // initialize module resources
-    ResourceRepositoryManager.getInstance(facet).moduleResources
+    StudioResourceRepositoryManager.getInstance(facet).moduleResources
 
     val cache = PsiShortNamesCache.getInstance(projectRule.project)
 

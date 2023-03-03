@@ -26,7 +26,7 @@ object IntValidation : EditingValidation {
    * Validates that [editedValue] corresponds to a valid Float number.
    *
    * @return An [EditingErrorCategory] representing the validation result with its corresponding
-   * display message [String].
+   *   display message [String].
    */
   override fun invoke(editedValue: String?): Pair<EditingErrorCategory, String> {
     return when {

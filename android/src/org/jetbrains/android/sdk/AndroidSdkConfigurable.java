@@ -45,7 +45,7 @@ public class AndroidSdkConfigurable implements AdditionalDataConfigurable {
 
   @Override
   public boolean isModified() {
-    AndroidSdkAdditionalData data = AndroidSdks.getInstance().getAndroidSdkAdditionalData(mySdk);
+    AndroidSdkAdditionalData data = AndroidSdkAdditionalData.from(mySdk);
     AndroidPlatform currentAndroidPlatform = data != null ? data.getAndroidPlatform() : null;
     IAndroidTarget currentAndroidTarget = currentAndroidPlatform != null ? currentAndroidPlatform.getTarget() : null;
     IAndroidTarget selectedBuildTarget = myForm.getSelectedBuildTarget();
@@ -66,7 +66,7 @@ public class AndroidSdkConfigurable implements AdditionalDataConfigurable {
     if (mySdk == null) {
       return;
     }
-    AndroidSdkAdditionalData data = AndroidSdks.getInstance().getAndroidSdkAdditionalData(mySdk);
+    AndroidSdkAdditionalData data = AndroidSdkAdditionalData.from(mySdk);
     if (data == null) {
       return;
     }

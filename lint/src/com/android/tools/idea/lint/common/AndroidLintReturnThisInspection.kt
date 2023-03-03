@@ -18,6 +18,8 @@ package com.android.tools.idea.lint.common
 import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import com.android.tools.lint.checks.ReturnThisDetector
 
-class AndroidLintReturnThisInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.return.this"), ReturnThisDetector.ISSUE
-)
+class AndroidLintReturnThisInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.return.this"),
+    ReturnThisDetector.ISSUE
+  )

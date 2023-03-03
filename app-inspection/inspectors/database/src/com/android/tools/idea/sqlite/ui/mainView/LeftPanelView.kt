@@ -113,11 +113,14 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
       }
 
     val schemaNode = DefaultMutableTreeNode(viewDatabase)
-    schema?.tables?.sortedBy { it.name }?.forEach { table ->
-      val tableNode = DefaultMutableTreeNode(table)
-      table.columns.forEach { column -> tableNode.add(DefaultMutableTreeNode(column)) }
-      schemaNode.add(tableNode)
-    }
+    schema
+      ?.tables
+      ?.sortedBy { it.name }
+      ?.forEach { table ->
+        val tableNode = DefaultMutableTreeNode(table)
+        table.columns.forEach { column -> tableNode.add(DefaultMutableTreeNode(column)) }
+        schemaNode.add(tableNode)
+      }
 
     treeModel.insertNodeInto(schemaNode, root, index)
 
@@ -166,9 +169,9 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
               ?: error(DatabaseInspectorBundle.message("tree.node.not.found", diffOp.tableName))
 
           tableNode.userObject = diffOp.newTable
-          diffOp.columnsToRemove.map { findColumnNode(tableNode, it.name) }.forEach {
-            treeModel.removeNodeFromParent(it)
-          }
+          diffOp.columnsToRemove
+            .map { findColumnNode(tableNode, it.name) }
+            .forEach { treeModel.removeNodeFromParent(it) }
         }
       }
     }
@@ -176,6 +179,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
 
   /**
    * Removes [viewDatabase] from the schema [tree].
+   *
    * @return The number of open databases after [viewDatabase] has been removed.
    */
   fun removeDatabaseSchema(viewDatabase: ViewDatabase): Int {
@@ -382,9 +386,10 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
   ) {
     val (sqliteTable, index) = sqliteTableToAdd
     val newTableNode = DefaultMutableTreeNode(sqliteTable)
-    sqliteColumnsToAdd.sortedBy { it.index }.map { it.sqliteColumn }.forEach { column ->
-      newTableNode.add(DefaultMutableTreeNode(column))
-    }
+    sqliteColumnsToAdd
+      .sortedBy { it.index }
+      .map { it.sqliteColumn }
+      .forEach { column -> newTableNode.add(DefaultMutableTreeNode(column)) }
     treeModel.insertNodeInto(newTableNode, databaseNode, index)
   }
 
@@ -403,9 +408,11 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
 
   private fun findDatabaseNode(viewDatabase: ViewDatabase): DefaultMutableTreeNode {
     val root = tree.model.root as DefaultMutableTreeNode
-    return root.children().asSequence().map { it as DefaultMutableTreeNode }.first {
-      it.userObject == viewDatabase
-    }
+    return root
+      .children()
+      .asSequence()
+      .map { it as DefaultMutableTreeNode }
+      .first { it.userObject == viewDatabase }
   }
 
   private fun findTableNode(

@@ -643,7 +643,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
               String query = $caret"$sqlStatement";
             }
           }
-          """.trimIndent()
+          """
+        .trimIndent()
     )
   }
 
@@ -660,7 +661,8 @@ class RunSqliteStatementGutterIconActionTest : LightJavaCodeInsightFixtureTestCa
             val query = $caret"$sqlStatement"
           }
         }
-        """.trimIndent()
+        """
+          .trimIndent()
       )
 
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)

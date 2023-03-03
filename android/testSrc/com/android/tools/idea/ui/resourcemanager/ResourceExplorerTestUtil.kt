@@ -22,7 +22,7 @@ import com.android.ide.common.resources.configuration.NightModeQualifier
 import com.android.resources.Density
 import com.android.resources.NightMode
 import com.android.resources.ResourceType
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.model.StaticStringMapper
 import com.intellij.ide.BrowserUtil
@@ -95,7 +95,7 @@ fun AndroidProjectRule.getResourceItemFromPath(testFolderPath: String, fileName:
   ApplicationManager.getApplication().invokeAndWait {
     fixture.copyFileToProject("$testFolderPath/$fileName", "res/drawable/$fileName")
   }
-  return ResourceRepositoryManager
+  return StudioResourceRepositoryManager
     .getModuleResources(module)
     ?.getResources(ResourceNamespace.RES_AUTO, ResourceType.DRAWABLE, fileName.substringBefore("."))!![0]
 }

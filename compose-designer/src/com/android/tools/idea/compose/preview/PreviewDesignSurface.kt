@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.compose.preview
 
+import com.android.tools.idea.common.model.DefaultSelectionModel
 import com.android.tools.idea.common.model.NopSelectionModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.InteractionHandler
@@ -145,14 +146,19 @@ private fun createPreviewDesignSurfaceBuilder(
           surface,
           sceneComponentProvider,
           ComposeSceneUpdateListener(),
-        ) { RealTimeSessionClock() }
+        ) {
+          RealTimeSessionClock()
+        }
         .also {
           it.setListenResourceChange(false) // don't re-render on resource changes
           it.setUpdateAndRenderWhenActivated(false) // don't re-render on activation
         }
     }
     .setDelegateDataProvider(dataProvider)
-    .setSelectionModel(NopSelectionModel)
+    .setSelectionModel(
+      if (StudioFlags.COMPOSE_PREVIEW_SELECTION.get()) DefaultSelectionModel()
+      else NopSelectionModel
+    )
     .setZoomControlsPolicy(DesignSurface.ZoomControlsPolicy.AUTO_HIDE)
     .setSupportedActions(COMPOSE_SUPPORTED_ACTIONS)
     .setShouldRenderErrorsPanel(true)

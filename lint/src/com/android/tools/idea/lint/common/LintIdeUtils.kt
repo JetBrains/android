@@ -29,9 +29,7 @@ import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
 import org.jetbrains.kotlin.psi.KtProperty
 
-/**
- * Returns the [PsiFile] associated with a given lint [Context].
- */
+/** Returns the [PsiFile] associated with a given lint [Context]. */
 fun Context.getPsiFile(): PsiFile? {
   val request = driver.request
   val project = (request as LintIdeRequest).project
@@ -47,22 +45,26 @@ fun Context.getPsiFile(): PsiFile? {
 fun KtProperty.hasBackingField(): Boolean {
   allowAnalysisOnEdt {
     analyze(this) {
-      val propertySymbol = this@hasBackingField.getVariableSymbol() as? KtPropertySymbol ?: return false
+      val propertySymbol =
+        this@hasBackingField.getVariableSymbol() as? KtPropertySymbol ?: return false
       return propertySymbol.hasBackingField
     }
   }
 }
 
 /**
- * Looks up the [PsiFile] for a given [VirtualFile] in a given [Project], in
- * a safe way (meaning it will acquire a read lock first, and will check that the file is valid
+ * Looks up the [PsiFile] for a given [VirtualFile] in a given [Project], in a safe way (meaning it
+ * will acquire a read lock first, and will check that the file is valid
  */
 fun VirtualFile.getPsiFileSafely(project: Project): PsiFile? {
-  return ApplicationManager.getApplication().runReadAction((Computable {
-    when {
-      project.isDisposed -> null
-      isValid -> PsiManager.getInstance(project).findFile(this)
-      else -> null
-    }
-  }))
+  return ApplicationManager.getApplication()
+    .runReadAction(
+      (Computable {
+        when {
+          project.isDisposed -> null
+          isValid -> PsiManager.getInstance(project).findFile(this)
+          else -> null
+        }
+      })
+    )
 }

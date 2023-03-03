@@ -17,12 +17,17 @@ package com.android.tools.idea.preview.lifecycle
 
 import com.android.annotations.concurrency.GuardedBy
 import com.android.tools.idea.concurrency.createChildScope
+import com.android.tools.idea.concurrency.scopeDisposable
 import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.job
+import org.jetbrains.annotations.TestOnly
+import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -31,8 +36,6 @@ import kotlin.concurrent.withLock
  * Class that manages preview [PreviewRepresentation.onActivate]/[PreviewRepresentation.onDeactivate] lifecycle. It allows to specify
  * actions that should be executed when the lifecycle events happen and execute custom code scoped to the active mode only.
  *
- * @param project the project for the [PreviewRepresentation]
- * @param parentDisposable the owning [PreviewRepresentation]
  * @param parentScope the [PreviewRepresentation] [CoroutineScope]
  * @param onInitActivate the code that should be executed on the very first activation
  * @param onResumeActivate the code that should be executed on the following activations but not the first one
@@ -41,19 +44,41 @@ import kotlin.concurrent.withLock
  * This could be because this deactivation will make the next activation take a long time and we want to make sure that we only fully
  * deactivate when we unlikely to activate again.
  */
-class PreviewLifecycleManager(
-  project: Project,
-  private val parentDisposable: Disposable,
+class PreviewLifecycleManager private constructor(
   private val parentScope: CoroutineScope,
   private val onInitActivate: CoroutineScope.() -> Unit,
   private val onResumeActivate: CoroutineScope.() -> Unit,
   private val onDeactivate: () -> Unit,
   private val onDelayedDeactivate: () -> Unit,
-  private val scheduleDelayed: (Disposable, () -> Unit) -> Unit = project
-    .getService(PreviewDeactivationProjectService::class.java)
-    .deactivationQueue
-  ::addDelayedAction
+  private val scheduleDelayed: (Disposable, () -> Unit) -> Unit
 ) {
+
+  /**
+   * @param project the project for the [PreviewRepresentation]
+   * @param parentScope the [PreviewRepresentation] [CoroutineScope]
+   * @param onInitActivate the code that should be executed on the very first activation
+   * @param onResumeActivate the code that should be executed on the following activations but not the first one
+   * @param onDeactivate the code that should be executed right away after deactivation
+   * @param onDelayedDeactivate the deactivation code that can be delayed and not needed to be executed right away after the deactivation.
+   * This could be because this deactivation will make the next activation take a long time and we want to make sure that we only fully
+   * deactivate when we unlikely to activate again.
+   */
+  constructor(
+    project: Project,
+    parentScope: CoroutineScope,
+    onInitActivate: CoroutineScope.() -> Unit,
+    onResumeActivate: CoroutineScope.() -> Unit,
+    onDeactivate: () -> Unit,
+    onDelayedDeactivate: () -> Unit
+  ) : this(
+    parentScope, onInitActivate, onResumeActivate, onDeactivate, onDelayedDeactivate, project
+      .getService(PreviewDeactivationProjectService::class.java)
+      .deactivationQueue
+    ::addDelayedAction
+  )
+
+  private val scopeDisposable = parentScope.scopeDisposable()
+
   /**
    * [CoroutineScope] that is valid while this is active. The scope will be cancelled as soon as this becomes inactive. This scope is used to
    * launch the tasks that only make sense while in the active mode.
@@ -113,12 +138,11 @@ class PreviewLifecycleManager(
 
     onDeactivate()
 
-    if  (PreviewPowerSaveManager.isInPowerSaveMode) {
+    if (PreviewPowerSaveManager.isInPowerSaveMode) {
       // When on power saving mode, deactivate immediately to free resources.
       onDelayedDeactivate()
-    }
-    else {
-      scheduleDelayed(parentDisposable, this::delayedDeactivate)
+    } else {
+      scheduleDelayed(scopeDisposable, this::delayedDeactivate)
     }
   }
 
@@ -126,4 +150,15 @@ class PreviewLifecycleManager(
    * Allows to execute code that only makes sense in the active mode.
    */
   fun <T> executeIfActive(block: CoroutineScope.() -> T): T? = activationScope?.block()
+
+  companion object {
+    @TestOnly
+    fun createForTest(parentScope: CoroutineScope,
+                      onInitActivate: CoroutineScope.() -> Unit = {},
+                      onResumeActivate: CoroutineScope.() -> Unit = {},
+                      onDeactivate: () -> Unit = {},
+                      onDelayedDeactivate: () -> Unit = {},
+                      scheduleDelayed: (Disposable, () -> Unit) -> Unit = { _, _ -> }): PreviewLifecycleManager =
+      PreviewLifecycleManager(parentScope, onInitActivate, onResumeActivate, onDeactivate, onDelayedDeactivate, scheduleDelayed)
+  }
 }

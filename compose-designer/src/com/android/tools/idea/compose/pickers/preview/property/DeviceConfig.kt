@@ -87,11 +87,11 @@ private val referenceDeviceRealDensities =
  *
  * @param deviceId The device ID if any.
  * @param dimUnit Determines the unit of the given [width] and [height]. Ie: For [DimUnit.px] they
- * will be considered as pixels.
+ *   will be considered as pixels.
  * @param shape Shape of the device screen, may affect how the screen behaves, or it may add a
- * cutout (like with wearables).
+ *   cutout (like with wearables).
  * @param chinSize For round devices only, defines the height of the flat surface on a screen,
- * measured from the bottom.
+ *   measured from the bottom.
  * @param parentDeviceId ID of the parent device used as template for this configuration.
  */
 internal open class DeviceConfig(
@@ -140,7 +140,8 @@ internal open class DeviceConfig(
       var resolvedHeight = height
       // The original syntax does not support explicit orientation, so we have to swap the
       // width/height for the same effect
-      if (orientation == Orientation.portrait && width > height ||
+      if (
+        orientation == Orientation.portrait && width > height ||
           orientation == Orientation.landscape && height > width
       ) {
         resolvedWidth = height
@@ -191,7 +192,8 @@ internal open class DeviceConfig(
    * match the implicit orientation from the width and height.
    */
   private fun StringBuilder.addOrientationIfNeeded() {
-    if (height > width && orientation == Orientation.landscape ||
+    if (
+      height > width && orientation == Orientation.landscape ||
         width > height && orientation == Orientation.portrait
     ) {
       appendSeparator()
@@ -263,7 +265,8 @@ internal open class DeviceConfig(
               )
             }
 
-      if (!paramsMap.containsKey(PARAMETER_SHAPE) &&
+      if (
+        !paramsMap.containsKey(PARAMETER_SHAPE) &&
           StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.get()
       ) {
         return parseDeviceSpecLanguage(paramsMap, availableDevices)
@@ -304,16 +307,16 @@ internal open class DeviceConfig(
      *
      * There are two supported formats:
      * - Based on an existing [Device], given by the [PARAMETER_PARENT], with an optional
-     * [PARAMETER_ORIENTATION].
+     *   [PARAMETER_ORIENTATION].
      * - Fully custom device, requires at least [PARAMETER_WIDTH] and [PARAMETER_HEIGHT], with all
-     * other screen related parameters being optional.
+     *   other screen related parameters being optional.
      *
      * May return null if the required parameters aren't found or if there's an issue parsing any
      * found parameter.
      *
      * @param params Name-value map of the parameters to parse
      * @param availableDevices Collection used to find the [Device] referenced by [PARAMETER_PARENT]
-     * (if it's present)
+     *   (if it's present)
      */
     private fun parseDeviceSpecLanguage(
       params: Map<String, String>,
@@ -356,8 +359,8 @@ internal open class DeviceConfig(
       if (width.unit != height.unit) {
         // We currently require the units of all dimensions to match
         return null
-      } else if (params[PARAMETER_CHIN_SIZE] != null &&
-          (chinSize == null || chinSize.unit != width.unit)
+      } else if (
+        params[PARAMETER_CHIN_SIZE] != null && (chinSize == null || chinSize.unit != width.unit)
       ) {
         // If chinSize is present, but parsing failed (chinSize == null) or it doesn't match the
         // width & height unit

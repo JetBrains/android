@@ -21,19 +21,13 @@ import com.google.common.base.Stopwatch;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
 import com.google.wireless.android.sdk.stats.WhatsNewAssistantUpdateEvent;
 import com.intellij.openapi.project.Project;
-import java.util.HashMap;
-import java.util.Map;
+import com.intellij.openapi.util.Key;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public final class WhatsNewMetricsTracker {
-  @NotNull private final Map<Project, MetricsEventBuilder> myProjectToBuilderMap;
-  @NotNull private final Map<Project, ActionButtonMetricsEventBuilder> myProjectToActionBuilderMap;
-
-  WhatsNewMetricsTracker() {
-    myProjectToBuilderMap = new HashMap<>();
-    myProjectToActionBuilderMap = new HashMap<>();
-  }
+  private static final Key<MetricsEventBuilder> METRICS_BUILDER_KEY = Key.create("WhatsNewMetricsTracker");
 
   @NotNull
   public static WhatsNewMetricsTracker getInstance() {
@@ -42,76 +36,88 @@ public final class WhatsNewMetricsTracker {
 
   void open(@NotNull Project project, boolean isAutoOpened) {
     // An extra "open" can fire when the window is already open and the user manually uses the WhatsNewSidePanelAction
-    // again, so in this case just ignore the call and treat the original open as the actual beginning
-    myProjectToBuilderMap.computeIfAbsent(project, p -> {
-      MetricsEventBuilder eventBuilder = new MetricsEventBuilder();
-      eventBuilder.myBuilder.setAutoOpened(isAutoOpened);
-      getActionsMetricsBuilder(project).generateEventsForAllCreatedBeforeActions(project).forEach(eventBuilder::addActionButtonEvent);
-      return eventBuilder;
-    });
+    // again, so in this case just ignore the call and treat the original open as the actual beginning.
+    MetricsEventBuilder metrics = project.getUserData(METRICS_BUILDER_KEY);
+    if (metrics == null) {
+      metrics = new MetricsEventBuilder();
+      project.putUserData(METRICS_BUILDER_KEY, metrics);
+      metrics.myBuilder.setAutoOpened(isAutoOpened);
+      metrics.myActionButtonMetricsBuilder.generateEventsForAllCreatedBeforeActions(project).forEach(metrics::addActionButtonEvent);
+    }
   }
 
-  private ActionButtonMetricsEventBuilder getActionsMetricsBuilder(@NotNull Project project) {
-    return myProjectToActionBuilderMap.computeIfAbsent(project, p -> new ActionButtonMetricsEventBuilder());
+  private @Nullable MetricsEventBuilder getMetricsBuilder(@NotNull Project project) {
+    return project.getUserData(METRICS_BUILDER_KEY);
   }
 
-  void clearCachedActionKeys(@NotNull Project project) {
-    myProjectToActionBuilderMap.remove(project);
+  void clearDataFor(@NotNull Project project) {
+    project.putUserData(METRICS_BUILDER_KEY, null);
   }
 
   void updateFlow(@NotNull Project project) {
-    myProjectToBuilderMap.get(project).myBuilder.setUpdateFlow(true);
+    MetricsEventBuilder metrics = getMetricsBuilder(project);
+    if (metrics != null) {
+      metrics.myBuilder.setUpdateFlow(true);
+    }
   }
 
   void scrolledToBottom(@NotNull Project project) {
-    MetricsEventBuilder metricsEventBuilder = myProjectToBuilderMap.get(project);
-    if (metricsEventBuilder != null) {
-      metricsEventBuilder.scrolledToBottom();
+    MetricsEventBuilder metrics = getMetricsBuilder(project);
+    if (metrics != null) {
+      metrics.scrolledToBottom();
     }
   }
 
   public void actionButtonCreated(@NotNull Project project, @NotNull String actionKey) {
-    actionButtonEvent(project, getActionsMetricsBuilder(project).actionCreated(project, actionKey));
+    MetricsEventBuilder metrics = getMetricsBuilder(project);
+    if (metrics != null) {
+      metrics.addActionButtonEvent(metrics.myActionButtonMetricsBuilder.actionCreated(project, actionKey));
+    }
   }
 
   public void clickActionButton(@NotNull Project project, @NotNull String actionKey) {
-    actionButtonEvent(project, getActionsMetricsBuilder(project).clickAction(project, actionKey));
+    MetricsEventBuilder metrics = getMetricsBuilder(project);
+    if (metrics != null) {
+      metrics.addActionButtonEvent(metrics.myActionButtonMetricsBuilder.clickAction(project, actionKey));
+    }
   }
 
   public void stateUpdateActionButton(@NotNull Project project, @NotNull String actionKey) {
-    actionButtonEvent(project, getActionsMetricsBuilder(project).stateUpdateAction(project, actionKey));
-  }
-
-  private void actionButtonEvent(@NotNull Project project, @NotNull WhatsNewAssistantUpdateEvent.ActionButtonEvent.Builder actionButtonEvent) {
-    MetricsEventBuilder metricsEventBuilder = myProjectToBuilderMap.get(project);
-    if (metricsEventBuilder != null) {
-      metricsEventBuilder.addActionButtonEvent(actionButtonEvent);
+    MetricsEventBuilder metrics = getMetricsBuilder(project);
+    if (metrics != null) {
+      metrics.addActionButtonEvent(metrics.myActionButtonMetricsBuilder.stateUpdateAction(project, actionKey));
     }
   }
 
   public void dismissed(@NotNull Project project) {
-    myProjectToBuilderMap.get(project).myBuilder.setDismissed(true);
+    MetricsEventBuilder metrics = getMetricsBuilder(project);
+    if (metrics != null) {
+      metrics.myBuilder.setDismissed(true);
+    }
   }
 
   public void setUpdateTime(@NotNull Project project) {
-    myProjectToBuilderMap.get(project).setUpdateTime();
+    MetricsEventBuilder metrics = getMetricsBuilder(project);
+    if (metrics != null) {
+      metrics.setUpdateTime();
+    }
   }
 
   void close(@NotNull Project project) {
-    myProjectToBuilderMap.remove(project).buildAndLog();
+    MetricsEventBuilder metrics = getMetricsBuilder(project);
+    if (metrics != null) {
+      metrics.buildAndLog();
+      project.putUserData(METRICS_BUILDER_KEY, null);
+    }
   }
 
   /**
-   * Wrapper for WhatsNewAssistantUpdateEvent because we need to keep track of the time difference
+   * Wrapper for WhatsNewAssistantUpdateEvent because we need to keep track of the time difference.
    */
   private static class MetricsEventBuilder {
-    @NotNull final WhatsNewAssistantUpdateEvent.Builder myBuilder;
-    @NotNull final Stopwatch myStopwatch;
-
-    private MetricsEventBuilder() {
-      myBuilder = WhatsNewAssistantUpdateEvent.newBuilder();
-      myStopwatch = Stopwatch.createStarted();
-    }
+    final @NotNull WhatsNewAssistantUpdateEvent.Builder myBuilder = WhatsNewAssistantUpdateEvent.newBuilder();
+    final @NotNull Stopwatch myStopwatch = Stopwatch.createStarted();
+    final @NotNull ActionButtonMetricsEventBuilder myActionButtonMetricsBuilder = new ActionButtonMetricsEventBuilder();
 
     private void setUpdateTime() {
       myBuilder.setTimeToUpdateMs(myStopwatch.elapsed().toMillis());

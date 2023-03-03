@@ -81,7 +81,6 @@ class OpenProjectIntegrationTest {
   }
 
   @Test
-  @org.junit.Ignore("b/265121768")
   fun testReopenProject_withCustomEntry() {
     val preparedProject = projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION)
     val before = preparedProject.open { project ->

@@ -155,9 +155,9 @@ class BackgroundTaskInspectorClient(
     val command =
       WorkManagerInspectorProtocol.Command.newBuilder().setCancelWork(cancelCommand).build()
     scope.launch {
-      (wmiMessengerTarget as WmiMessengerTarget.Resolved).messenger.sendRawCommand(
-        command.toByteArray()
-      )
+      (wmiMessengerTarget as WmiMessengerTarget.Resolved)
+        .messenger
+        .sendRawCommand(command.toByteArray())
     }
   }
 

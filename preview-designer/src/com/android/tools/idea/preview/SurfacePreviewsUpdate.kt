@@ -143,11 +143,17 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   configureLayoutlibSceneManager: (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager): List<T> {
   val debugLogger = if (log.isDebugEnabled) PreviewElementDebugLogger(log) else null
   val facet = AndroidFacet.getInstance(psiFile) ?: return emptyList()
-  val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
+  val configurationManager = withContext(AndroidDispatchers.workerThread) {
+    ConfigurationManager.getOrCreateInstance(facet.module)
+  }
   // Retrieve the models that were previously displayed so we can reuse them instead of creating new ones.
   val existingModels = models.toMutableList()
-  val previewElementsList = previewElementProvider.previewElements().toList().sortByDisplayAndSourcePosition()
-  val modelIndices = matchElementsToModels(existingModels, previewElementsList, previewElementModelAdapter)
+  val previewElementsList = withContext(AndroidDispatchers.workerThread) {
+    previewElementProvider.previewElements().toList().sortByDisplayAndSourcePosition()
+  }
+  val modelIndices = withContext(AndroidDispatchers.workerThread) {
+    matchElementsToModels(existingModels, previewElementsList, previewElementModelAdapter)
+  }
   // Now we generate all the models (or reuse) for the PreviewElements.
   val models = previewElementsList
     .mapIndexed { idx, previewElement ->
@@ -217,7 +223,9 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
 
       (navigationHandler as? PreviewNavigationHandler)?.setDefaultLocation(model, defaultFile, offset)
 
-      previewElementModelAdapter.applyToConfiguration(previewElement, model.configuration)
+      withContext(AndroidDispatchers.workerThread) {
+        previewElementModelAdapter.applyToConfiguration(previewElement, model.configuration)
+      }
 
       model to previewElement
     }

@@ -134,7 +134,9 @@ private fun collectContentRootDataForArtifact(
   fun Collection<File>.processAs(type: ExternalSystemSourceType) = forEach { addSourceFolder(it.absolutePath, type) }
   fun Collection<String>.processAs(type: ExternalSystemSourceType) = forEach { addSourceFolder(it, type) }
 
-  val generatedSourceFolderPaths = getGeneratedSourceFoldersToUse(artifact, androidModel).map(File::getAbsolutePath).toSet()
+  val generatedSourceFolderPaths = getGeneratedSourceFoldersToUse(
+    artifact, androidModel.androidProject
+  ).map(File::getAbsolutePath).toSet()
   sourceProviderSelector(androidModel).forEach { sourceProvider ->
     sourceProvider.processAll(artifact.isTestArtifact) { path, sourceType ->
       // For b/232007221 the variant specific source provider is currently giving us a kapt generated source folder as a Java folder.

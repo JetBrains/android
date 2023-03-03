@@ -354,7 +354,7 @@ class LogcatOccurrenceNavigatorTest {
 
   private fun setEditorText(editor: Editor, text: String) {
     editor.document.setText(text.replace(CARET, ""))
-    editorHyperlinkDetector.detectHyperlinks(0, editor.document.lineCount - 1)
+    editorHyperlinkDetector.detectHyperlinks(0, editor.document.lineCount - 1, sdk = null)
     editorHyperlinkSupport.waitForPendingFilters(/* timeoutMs */ 5000)
     val caret = text.indexOf(CARET)
     if (caret >= 0) {

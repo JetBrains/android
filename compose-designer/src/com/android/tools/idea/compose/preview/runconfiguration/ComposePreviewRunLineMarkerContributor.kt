@@ -42,11 +42,13 @@ class ComposePreviewRunLineMarkerContributor : RunLineMarkerContributor() {
     if (element !is LeafPsiElement) return null
     if (element.node.elementType != KtTokens.IDENTIFIER) return null
 
-    (element.parent as? KtNamedFunction)?.takeIf { it.isValidComposePreview() }?.let {
-      return Info(StudioIcons.Compose.Toolbar.RUN_ON_DEVICE, ExecutorAction.getActions()) { _ ->
-        message("run.line.marker.text", it.name!!)
+    (element.parent as? KtNamedFunction)
+      ?.takeIf { it.isValidComposePreview() }
+      ?.let {
+        return Info(StudioIcons.Compose.Toolbar.RUN_ON_DEVICE, ExecutorAction.getActions()) { _ ->
+          message("run.line.marker.text", it.name!!)
+        }
       }
-    }
     return null
   }
 }

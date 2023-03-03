@@ -81,7 +81,7 @@ class StatefulButton(
    * @param action model parsed from xml
    * @param listener listens for click and handles action
    * @param stateManager a button can be associated with a manager that listens for updates and
-   * changes button UI. If null, button is always in default state (same as NOT_APPLICABLE)
+   *   changes button UI. If null, button is always in default state (same as NOT_APPLICABLE)
    * @param project
    */
   init {

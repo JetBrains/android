@@ -40,6 +40,7 @@ private const val COMPOSABLE_FQN_ATR_NAME = "composable-fqn"
 
 /**
  * A run configuration to launch the Compose tooling PreviewActivity to a device/emulator passing a
+ *
  * @Composable via intent parameter.
  */
 open class ComposePreviewRunConfiguration(
@@ -53,7 +54,7 @@ open class ComposePreviewRunConfiguration(
    * test artifact and .apk is used. The validations needed to make sure that is possible to provide
    * this support are already part of [AndroidRunConfigurationBase.validate]
    */
-  override fun supportsRunningLibraryProjects(facet: AndroidFacet): Pair<Boolean, String>? =
+  override fun supportsRunningLibraryProjects(facet: AndroidFacet): Pair<Boolean, String?> =
     Pair(java.lang.Boolean.TRUE, null)
 
   /**

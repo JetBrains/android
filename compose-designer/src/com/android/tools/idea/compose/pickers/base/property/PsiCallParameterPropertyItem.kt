@@ -46,15 +46,17 @@ private const val WRITE_COMMAND = "Psi Parameter Modification"
  * @param model the [PsiCallPropertiesModel] managing this property.
  * @param resolvedCall the parent [ResolvedCall] that contains this parameter.
  * @param descriptor the [ValueParameterDescriptor] of this parameter, containing the parameter
- * metadata.
+ *   metadata.
  * @param argumentExpression the initial [KtExpression] for the argument when this parameter was
- * initialized.
+ *   initialized.
  * @param defaultValue the default value string for the parameter, this is the value that the
- * parameter takes when it does not have a
+ *   parameter takes when it does not have a
+ *
  * ```
  *          user-assigned value
  * @param validation
  * ```
+ *
  * function used for input validation
  */
 internal open class PsiCallParameterPropertyItem(

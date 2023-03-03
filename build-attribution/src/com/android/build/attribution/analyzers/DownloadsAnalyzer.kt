@@ -16,6 +16,7 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.data.StudioProvidedInfo
+import com.android.build.output.DownloadsInfoUIModelNotifier
 import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
 import com.android.ide.common.repository.AgpVersion
 import com.google.wireless.android.sdk.stats.BuildDownloadsAnalysisData.RepositoryStats.RepositoryType
@@ -24,6 +25,7 @@ import org.gradle.tooling.Failure
 import org.gradle.tooling.events.FailureResult
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.download.FileDownloadFinishEvent
+import org.gradle.tooling.events.download.FileDownloadStartEvent
 import org.gradle.util.GradleVersion
 import java.net.URI
 
@@ -49,15 +51,17 @@ class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(),
                           PostBuildProcessAnalyzer {
 
   private var statsAccumulator = DownloadStatsAccumulator()
+  val eventsProcessor = DownloadEventsProcessor(statsAccumulator, null)
   private var gradleCanProvideDownloadEvents: Boolean? = null
   private var currentAgpVersionFromBuild: AgpVersion? = null
 
   override fun receiveEvent(event: ProgressEvent) {
-    statsAccumulator.receiveEvent(event)
+    eventsProcessor.receiveEvent(event)
   }
 
   override fun cleanupTempState() {
     statsAccumulator = DownloadStatsAccumulator()
+    eventsProcessor.statsAccumulator = statsAccumulator
     gradleCanProvideDownloadEvents = null
     currentAgpVersionFromBuild = null
   }
@@ -88,25 +92,44 @@ class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(),
       }
     }
 
-    fun receiveEvent(event: ProgressEvent) {
-      if (event !is FileDownloadFinishEvent) return
-      val repository = detectRepository(event.descriptor.uri)
-      val status: DownloadStatus = when {
-        event.result is FailureResult -> DownloadStatus.FAILURE
-        event.result.bytesDownloaded == 0L -> DownloadStatus.MISSED
-        else -> DownloadStatus.SUCCESS
-      }
-      val failureMessage: String? = (event.result as? FailureResult)?.let { buildFailureMessage(it.failures) }
+    fun recordNewDownloadResult(downloadResult: DownloadResult) {
       synchronized(processedEvents) {
-        processedEvents.add(DownloadResult(
-          timestamp = event.eventTime,
+        processedEvents.add(downloadResult)
+      }
+    }
+  }
+
+  class DownloadEventsProcessor(
+    var statsAccumulator: DownloadStatsAccumulator?,
+    var downloadsUiModelNotifier: DownloadsInfoUIModelNotifier?
+  ) {
+    fun receiveEvent(event: ProgressEvent) {
+      if (event is FileDownloadStartEvent) {
+        val url = event.descriptor.uri.toString()
+        val repository = detectRepository(event.descriptor.uri)
+        val startTime = event.eventTime
+        downloadsUiModelNotifier?.downloadStarted(startTime, url, repository)
+      }
+      if (event is FileDownloadFinishEvent) {
+        val startTime = event.result.startTime
+        val repository = detectRepository(event.descriptor.uri)
+        val status: DownloadStatus = when {
+          event.result is FailureResult -> DownloadStatus.FAILURE
+          event.result.bytesDownloaded == 0L -> DownloadStatus.MISSED
+          else -> DownloadStatus.SUCCESS
+        }
+        val failureMessage: String? = (event.result as? FailureResult)?.let { buildFailureMessage(it.failures) }
+        val downloadResult = DownloadResult(
+          timestamp = startTime,
           repository = repository,
           url = event.descriptor.uri.toString(),
           status = status,
           duration = event.result.let { it.endTime - it.startTime },
           bytes = event.result.bytesDownloaded,
           failureMessage = failureMessage
-        ))
+        )
+        statsAccumulator?.recordNewDownloadResult(downloadResult)
+        downloadsUiModelNotifier?.downloadFinished(downloadResult)
       }
     }
   }

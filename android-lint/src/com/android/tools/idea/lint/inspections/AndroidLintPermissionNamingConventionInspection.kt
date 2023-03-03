@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.lint.inspections
 
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.PermissionErrorDetector
-import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 
-class AndroidLintPermissionNamingConventionInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.permission.naming.convention"), PermissionErrorDetector.PERMISSION_NAMING_CONVENTION
-)
+class AndroidLintPermissionNamingConventionInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.permission.naming.convention"),
+    PermissionErrorDetector.PERMISSION_NAMING_CONVENTION
+  )

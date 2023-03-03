@@ -90,8 +90,8 @@ class ComposeViewControlAction(
         addSeparator()
         addAction(
           DefaultActionGroup.createPopupGroup {
-            message("action.scene.mode.colorblind.dropdown.title")
-          }
+              message("action.scene.mode.colorblind.dropdown.title")
+            }
             .apply {
               addAction(SetColorBlindModeAction(ColorBlindMode.PROTANOPES, surface))
               addAction(SetColorBlindModeAction(ColorBlindMode.PROTANOMALY, surface))

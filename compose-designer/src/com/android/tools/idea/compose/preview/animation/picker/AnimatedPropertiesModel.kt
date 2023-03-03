@@ -45,12 +45,14 @@ internal class AnimatedPropertiesModel(
   override val properties: PropertiesTable<PsiPropertyItem> =
     PropertiesTable.create(
       HashBasedTable.create<String, String, PsiPropertyItem>().also { table ->
-        initial.createProperties(message("animation.inspector.picker.header.initial"))
+        initial
+          .createProperties(message("animation.inspector.picker.header.initial"))
           .forEachIndexed { index, it ->
             table.put(INITIAL_PROPERTY, "$index", it)
             it.addListener { propertiesValuesChanged() }
           }
-        target.createProperties(message("animation.inspector.picker.header.target"))
+        target
+          .createProperties(message("animation.inspector.picker.header.target"))
           .forEachIndexed { index, it ->
             table.put(TARGET_PROPERTY, "$index", it)
             it.addListener { propertiesValuesChanged() }

@@ -21,8 +21,9 @@ import com.android.tools.idea.compose.preview.TEST_DATA_PATH
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.GradleInvocationResult
-import com.android.tools.idea.rendering.NoSecurityManagerRenderService
 import com.android.tools.idea.rendering.RenderService
+import com.android.tools.idea.rendering.StudioRenderService
+import com.android.tools.idea.rendering.createNoSecurityRenderService
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.NamedExternalResource
@@ -51,10 +52,7 @@ private class ComposeGradleProjectRuleImpl(
   override fun before(description: Description) {
     RenderService.shutdownRenderExecutor(5)
     RenderService.initializeRenderExecutor()
-    RenderService.setForTesting(
-      projectRule.project,
-      NoSecurityManagerRenderService(projectRule.project)
-    )
+    StudioRenderService.setForTesting(projectRule.project, createNoSecurityRenderService())
     projectRule.fixture.testDataPath = resolveWorkspacePath(TEST_DATA_PATH).toString()
     projectRule.load(projectPath, AGP_CURRENT.withKotlin(kotlinVersion))
 
@@ -68,7 +66,7 @@ private class ComposeGradleProjectRuleImpl(
   }
 
   override fun after(description: Description) {
-    RenderService.setForTesting(projectRule.project, null)
+    StudioRenderService.setForTesting(projectRule.project, null)
   }
 }
 

@@ -22,7 +22,7 @@ import com.android.resources.FolderTypeRelationship
 import com.android.resources.ResourceFolderType
 import com.android.resources.ResourceType
 import com.android.tools.idea.res.IdeResourceNameValidator
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.findStyleableAttrFieldsForAttr
 import com.android.tools.idea.res.findStyleableAttrFieldsForStyleable
 import com.android.tools.idea.res.getResourceElementFromSurroundingValuesTag
@@ -84,7 +84,7 @@ class ResourceReferenceRenameProcessor : RenamePsiElementProcessor() {
     val contextElement = element.getCopyableUserData(RESOURCE_CONTEXT_ELEMENT)
                          ?: return super.findExistingNameConflicts(element, newName, conflicts)
     val oldResourceReference = element.resourceReference
-    val repository = ResourceRepositoryManager.getInstance(contextElement)?.getResourcesForNamespace(oldResourceReference.namespace)
+    val repository = StudioResourceRepositoryManager.getInstance(contextElement)?.getResourcesForNamespace(oldResourceReference.namespace)
                      ?: return super.findExistingNameConflicts(element, newName, conflicts)
     if (repository.hasResources(oldResourceReference.namespace, oldResourceReference.resourceType, newName)) {
       val newReference = ResourceReference(oldResourceReference.namespace, oldResourceReference.resourceType, newName)

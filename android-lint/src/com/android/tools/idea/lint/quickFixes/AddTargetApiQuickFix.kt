@@ -51,6 +51,7 @@ import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
+import java.util.Locale
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.util.addAnnotation
 import org.jetbrains.kotlin.name.FqName
@@ -59,13 +60,14 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
 import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.psi.KtPropertyAccessor
-import java.util.Locale
 
 /** Fix which adds a `@TargetApi` annotation at the nearest surrounding method or class. */
-class AddTargetApiQuickFix(private val requirements: List<SdkApiConstraint>,
-                           private val requiresApi: Boolean,
-                           private val element: PsiElement,
-                           private val requireClass: Boolean = false) : DefaultLintQuickFix("") { // overriding getName() below
+class AddTargetApiQuickFix(
+  private val requirements: List<SdkApiConstraint>,
+  private val requiresApi: Boolean,
+  private val element: PsiElement,
+  private val requireClass: Boolean = false
+) : DefaultLintQuickFix("") { // overriding getName() below
 
   private fun getSdkApiString(api: Int, fullyQualified: Boolean): String {
     return AddTargetVersionCheckQuickFix.getVersionField(api, fullyQualified)
@@ -80,29 +82,42 @@ class AddTargetApiQuickFix(private val requirements: List<SdkApiConstraint>,
         // usually the better solution. So instead of "Add tools:targetApi" we use a label
         // which sorts later alphabetically.
         "Suppress with tools:targetApi attribute"
-
-      !requiresApi -> AndroidLintBundle.message("android.lint.fix.add.target.api", getSdkApiString(first.min(), false))
-
-      requirements.size > 1 -> if (requirements.any { it.sdkId == ANDROID_SDK_ID })
-        AndroidLintBundle.message("android.lint.fix.add.both.annotations")
-      else
-        AndroidLintBundle.message("android.lint.fix.add.sdk.annotation")
-
-      requiresApi && first.sdkId != ANDROID_SDK_ID -> AndroidLintBundle.message("android.lint.fix.add.requires.sdk.extension",
-                                                                          ExtensionSdk.getSdkExtensionField(first.sdkId, false),
-                                                                          first.minString())
-
-      else -> AndroidLintBundle.message("android.lint.fix.add.requires.api", getSdkApiString(first.min(),false))
+      !requiresApi ->
+        AndroidLintBundle.message(
+          "android.lint.fix.add.target.api",
+          getSdkApiString(first.min(), false)
+        )
+      requirements.size > 1 ->
+        if (requirements.any { it.sdkId == ANDROID_SDK_ID })
+          AndroidLintBundle.message("android.lint.fix.add.both.annotations")
+        else AndroidLintBundle.message("android.lint.fix.add.sdk.annotation")
+      requiresApi && first.sdkId != ANDROID_SDK_ID ->
+        AndroidLintBundle.message(
+          "android.lint.fix.add.requires.sdk.extension",
+          ExtensionSdk.getSdkExtensionField(first.sdkId, false),
+          first.minString()
+        )
+      else ->
+        AndroidLintBundle.message(
+          "android.lint.fix.add.requires.api",
+          getSdkApiString(first.min(), false)
+        )
     }
   }
 
-  override fun isApplicable(startElement: PsiElement,
-                            endElement: PsiElement,
-                            contextType: AndroidQuickfixContexts.ContextType): Boolean {
+  override fun isApplicable(
+    startElement: PsiElement,
+    endElement: PsiElement,
+    contextType: AndroidQuickfixContexts.ContextType
+  ): Boolean {
     return getAnnotationContainer(startElement) != null
   }
 
-  override fun apply(startElement: PsiElement, endElement: PsiElement, context: AndroidQuickfixContexts.Context) {
+  override fun apply(
+    startElement: PsiElement,
+    endElement: PsiElement,
+    context: AndroidQuickfixContexts.Context
+  ) {
     when (startElement.language) {
       JavaLanguage.INSTANCE -> handleJava(startElement)
       KotlinLanguage.INSTANCE -> handleKotlin(startElement)
@@ -111,7 +126,8 @@ class AddTargetApiQuickFix(private val requirements: List<SdkApiConstraint>,
   }
 
   private fun handleXml(startElement: PsiElement) {
-    // Find nearest method or class; can't add @TargetApi on modifier list owners like variable declarations
+    // Find nearest method or class; can't add @TargetApi on modifier list owners like variable
+    // declarations
     // XML file? Set attribute
     val element = getAnnotationContainer(startElement) as? XmlTag ?: return
     val file = PsiTreeUtil.getParentOfType(element, XmlFile::class.java, false)
@@ -124,7 +140,8 @@ class AddTargetApiQuickFix(private val requirements: List<SdkApiConstraint>,
   }
 
   private fun handleJava(startElement: PsiElement) {
-    // Find nearest method or class; can't add @TargetApi on modifier list owners like variable declarations
+    // Find nearest method or class; can't add @TargetApi on modifier list owners like variable
+    // declarations
     val container = getAnnotationContainer(startElement) as? PsiModifierListOwner ?: return
 
     val modifierList = container.modifierList
@@ -133,7 +150,14 @@ class AddTargetApiQuickFix(private val requirements: List<SdkApiConstraint>,
       val factory = JavaPsiFacade.getInstance(project).elementFactory
       // Reverse order: preserve order, and addAnnotationsJava will prepend
       for (requirement in requirements.reversed()) {
-        addAnnotationsJava(factory, container, requiresApi, requirement.sdkId, requirement.min(), requirement.sdkId == ANDROID_SDK_ID)
+        addAnnotationsJava(
+          factory,
+          container,
+          requiresApi,
+          requirement.sdkId,
+          requirement.min(),
+          requirement.sdkId == ANDROID_SDK_ID
+        )
       }
     }
   }
@@ -146,22 +170,21 @@ class AddTargetApiQuickFix(private val requirements: List<SdkApiConstraint>,
     api: Int,
     replace: Boolean
   ) {
-      val fqcn: String
-      val annotationText: String
-      if (requiresApi && sdkId == ANDROID_SDK_ID) {
-        val module = ModuleUtilCore.findModuleForPsiElement(container)
-        fqcn = module.mapAndroidxName(REQUIRES_API_ANNOTATION)
-        annotationText = "@" + fqcn + "(api=" + getSdkApiString(api, true) + ")"
-      } else if (requiresApi) {
-        fqcn = REQUIRES_EXTENSION_ANNOTATION
-        annotationText = "@$fqcn(extension=${getSdkId(container.project, sdkId)}, version=$api)"
-      }
-      else {
-        fqcn = FQCN_TARGET_API
-        annotationText = "@" + fqcn + "(" + getSdkApiString(api, true) + ")"
-      }
+    val fqcn: String
+    val annotationText: String
+    if (requiresApi && sdkId == ANDROID_SDK_ID) {
+      val module = ModuleUtilCore.findModuleForPsiElement(container)
+      fqcn = module.mapAndroidxName(REQUIRES_API_ANNOTATION)
+      annotationText = "@" + fqcn + "(api=" + getSdkApiString(api, true) + ")"
+    } else if (requiresApi) {
+      fqcn = REQUIRES_EXTENSION_ANNOTATION
+      annotationText = "@$fqcn(extension=${getSdkId(container.project, sdkId)}, version=$api)"
+    } else {
+      fqcn = FQCN_TARGET_API
+      annotationText = "@" + fqcn + "(" + getSdkApiString(api, true) + ")"
+    }
 
-      addAnnotationJava(elementFactory, container, fqcn, annotationText, replace)
+    addAnnotationJava(elementFactory, container, fqcn, annotationText, replace)
   }
 
   private fun addAnnotationJava(
@@ -171,26 +194,29 @@ class AddTargetApiQuickFix(private val requirements: List<SdkApiConstraint>,
     annotationText: String,
     replace: Boolean
   ) {
-      val newAnnotation = elementFactory.createAnnotationFromText(annotationText, container)
-      val annotation = if (replace) AnnotationUtil.findAnnotation(container, fqcn) else null
-      if (annotation != null && annotation.isPhysical) {
-        annotation.replace(newAnnotation)
+    val newAnnotation = elementFactory.createAnnotationFromText(annotationText, container)
+    val annotation = if (replace) AnnotationUtil.findAnnotation(container, fqcn) else null
+    if (annotation != null && annotation.isPhysical) {
+      annotation.replace(newAnnotation)
+    } else if (!replace && AnnotationUtil.findAnnotation(container, fqcn) != null) {
+      // AddAnnotationFix is hardcoded to never insert if the annotation already exists
+      // (see myHasApplicableAnnotations in AddAnnotationPsiFix), so we work around this
+      // by adding it directly.
+      val owner = container.modifierList
+      val inserted =
+        AddAnnotationPsiFix.addPhysicalAnnotationTo(
+          fqcn,
+          newAnnotation.parameterList.attributes,
+          owner
+        )
+      if (inserted != null) {
+        JavaCodeStyleManager.getInstance(inserted.project).shortenClassReferences(inserted)
       }
-      else if (!replace && AnnotationUtil.findAnnotation(container, fqcn) != null) {
-        // AddAnnotationFix is hardcoded to never insert if the annotation already exists
-        // (see myHasApplicableAnnotations in AddAnnotationPsiFix), so we work around this
-        // by adding it directly.
-        val owner = container.modifierList
-        val inserted = AddAnnotationPsiFix.addPhysicalAnnotationTo(fqcn, newAnnotation.parameterList.attributes, owner)
-        if (inserted != null) {
-          JavaCodeStyleManager.getInstance(inserted.project).shortenClassReferences(inserted)
-        }
-      }
-      else {
-        val attributes = newAnnotation.parameterList.attributes
-        val fix = AddAnnotationFix(fqcn, container, attributes)
-        fix.invoke(container.project, null, container.containingFile)
-      }
+    } else {
+      val attributes = newAnnotation.parameterList.attributes
+      val fix = AddAnnotationFix(fqcn, container, attributes)
+      fix.invoke(container.project, null, container.containingFile)
+    }
   }
 
   private fun handleKotlin(startElement: PsiElement) {
@@ -200,24 +226,38 @@ class AddTargetApiQuickFix(private val requirements: List<SdkApiConstraint>,
     }
     // Reverse order: preserve order, and addAnnotationsKotlin will prepend
     for (requirement in requirements.reversed()) {
-      addAnnotationsKotlin(annotationContainer, requiresApi, requirement.sdkId, requirement.min(), requirement.sdkId == ANDROID_SDK_ID)
+      addAnnotationsKotlin(
+        annotationContainer,
+        requiresApi,
+        requirement.sdkId,
+        requirement.min(),
+        requirement.sdkId == ANDROID_SDK_ID
+      )
     }
   }
 
-  private fun addAnnotationsKotlin(annotationContainer: PsiElement, requiresApi: Boolean, sdkId: Int, api: Int, replace: Boolean) {
-    val fqn = if (requiresApi && sdkId != ANDROID_SDK_ID) {
-      REQUIRES_EXTENSION_ANNOTATION
-    } else if (requiresApi) {
+  private fun addAnnotationsKotlin(
+    annotationContainer: PsiElement,
+    requiresApi: Boolean,
+    sdkId: Int,
+    api: Int,
+    replace: Boolean
+  ) {
+    val fqn =
+      if (requiresApi && sdkId != ANDROID_SDK_ID) {
+        REQUIRES_EXTENSION_ANNOTATION
+      } else if (requiresApi) {
         val module = ModuleUtilCore.findModuleForPsiElement(annotationContainer)
         module.mapAndroidxName(REQUIRES_API_ANNOTATION)
       } else {
         FQCN_TARGET_API
       }
-    val inner = if (requiresApi && sdkId != ANDROID_SDK_ID) {
-      "extension=${getSdkId(annotationContainer.project, sdkId)}, version=$api"
-    } else {
-      AddTargetVersionCheckQuickFix.getVersionField(api, true)
-    }
+    val inner =
+      if (requiresApi && sdkId != ANDROID_SDK_ID) {
+        "extension=${getSdkId(annotationContainer.project, sdkId)}, version=$api"
+      } else {
+        AddTargetVersionCheckQuickFix.getVersionField(api, true)
+      }
     addAnnotationKotlin(annotationContainer, fqn, inner, replace)
   }
 
@@ -226,10 +266,21 @@ class AddTargetApiQuickFix(private val requirements: List<SdkApiConstraint>,
     return ApiLookup.getSdkExtensionField(lookup, sdkId, true)
   }
 
-  private fun addAnnotationKotlin(annotationContainer: PsiElement, fqn: String, inner: String, replace: Boolean) {
+  private fun addAnnotationKotlin(
+    annotationContainer: PsiElement,
+    fqn: String,
+    inner: String,
+    replace: Boolean
+  ) {
     if (annotationContainer is KtModifierListOwner) {
       val whiteSpaceText = if (annotationContainer.isNewLineNeededForAnnotation()) "\n" else " "
-      annotationContainer.addAnnotation(FqName(fqn), inner, null, searchForExistingEntry = replace, whiteSpaceText = whiteSpaceText)
+      annotationContainer.addAnnotation(
+        FqName(fqn),
+        inner,
+        null,
+        searchForExistingEntry = replace,
+        whiteSpaceText = whiteSpaceText
+      )
     }
   }
 
@@ -237,14 +288,20 @@ class AddTargetApiQuickFix(private val requirements: List<SdkApiConstraint>,
     return when (element.language) {
       JavaLanguage.INSTANCE -> {
         var container: PsiModifierListOwner?
-        container = if (requireClass) {
-          PsiTreeUtil.getParentOfType<PsiModifierListOwner>(element, PsiClass::class.java)
-        }
-        else {
-          PsiTreeUtil.getParentOfType(element, PsiMethod::class.java, PsiClass::class.java)
-        }
+        container =
+          if (requireClass) {
+            PsiTreeUtil.getParentOfType<PsiModifierListOwner>(element, PsiClass::class.java)
+          } else {
+            PsiTreeUtil.getParentOfType(element, PsiMethod::class.java, PsiClass::class.java)
+          }
         while (container != null && container is PsiAnonymousClass) {
-          container = PsiTreeUtil.getParentOfType(container, PsiMethod::class.java, true, PsiClass::class.java)
+          container =
+            PsiTreeUtil.getParentOfType(
+              container,
+              PsiMethod::class.java,
+              true,
+              PsiClass::class.java
+            )
         }
 
         container
@@ -254,10 +311,7 @@ class AddTargetApiQuickFix(private val requirements: List<SdkApiConstraint>,
       }
       KotlinLanguage.INSTANCE -> {
         PsiTreeUtil.findFirstParent(element) {
-          if (requiresApi)
-            it.isAnnotationTarget()
-          else
-            it.isTargetApiAnnotationValidTarget()
+          if (requiresApi) it.isAnnotationTarget() else it.isTargetApiAnnotationValidTarget()
         }
       }
       else -> null
@@ -266,7 +320,7 @@ class AddTargetApiQuickFix(private val requirements: List<SdkApiConstraint>,
 
   private fun PsiElement.isTargetApiAnnotationValidTarget(): Boolean {
     return this is KtClassOrObject ||
-           (this is KtFunction && this !is KtFunctionLiteral) ||
-           this is KtPropertyAccessor
+      (this is KtFunction && this !is KtFunctionLiteral) ||
+      this is KtPropertyAccessor
   }
 }

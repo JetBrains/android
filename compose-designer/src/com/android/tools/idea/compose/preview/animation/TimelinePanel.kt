@@ -188,7 +188,8 @@ open class TimelineSliderUI(val timeline: TimelinePanel) : BasicSliderUI(timelin
   var activeElement: TimelineElement? = null
     private set(value) {
       field =
-        if (timeline.previewState.isCoordinationAvailable() &&
+        if (
+          timeline.previewState.isCoordinationAvailable() &&
             COMPOSE_ANIMATION_PREVIEW_COORDINATION_DRAG.get()
         )
           value

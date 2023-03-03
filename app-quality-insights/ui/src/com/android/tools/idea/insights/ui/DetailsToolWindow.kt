@@ -43,7 +43,9 @@ object DetailsToolWindow {
       ToolWindowDefinition.DEFAULT_SIDE_WIDTH,
       ToolWindowDefinition.DEFAULT_BUTTON_SIZE,
       ToolWindowDefinition.ALLOW_BASICS
-    ) { DetailsToolWindowContent(scope, state) }
+    ) {
+      DetailsToolWindowContent(scope, state)
+    }
   }
 }
 

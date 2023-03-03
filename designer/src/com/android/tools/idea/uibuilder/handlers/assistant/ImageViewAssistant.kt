@@ -20,7 +20,7 @@ import com.android.resources.ResourceType
 import com.android.tools.adtui.model.stdui.DefaultCommonComboBoxModel
 import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.adtui.ui.ClickableLabel
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.res.SampleDataResourceItem
 import com.android.tools.idea.res.SampleDataResourceItem.ContentType.IMAGE
 import com.android.tools.idea.res.getDrawableResources
@@ -121,7 +121,7 @@ class ImageViewAssistant(
 
     // Get SampleData drawables in background thread, then, update the widget on the EDT
     sampleDataLoaded = CompletableFuture.supplyAsync({
-      ResourceRepositoryManager.getAppResources(nlComponent.model.facet).getSampleDataOfType(IMAGE).toList()
+      StudioResourceRepositoryManager.getAppResources(nlComponent.model.facet).getSampleDataOfType(IMAGE).toList()
     }, AppExecutorUtil.getAppExecutorService()).whenCompleteAsync({ sampleDataItems, _ ->
       populateWidget(sampleDataItems)
     }, EdtExecutorService.getScheduledExecutorInstance())

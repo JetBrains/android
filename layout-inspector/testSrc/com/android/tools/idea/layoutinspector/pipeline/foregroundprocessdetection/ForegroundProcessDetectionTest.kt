@@ -514,31 +514,6 @@ class ForegroundProcessDetectionTest {
   }
 
   @Test
-  fun testStopInspector() {
-    val (deviceModel, processModel) = createDeviceModel(device1, device2)
-
-    val mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
-
-    // test has device, no process
-    deviceModel.setSelectedDevice(device1.toDeviceDescriptor())
-    processModel.selectedProcess = null
-
-    stopInspector(projectRule.project, deviceModel, processModel, mockForegroundProcessDetection)
-
-    verify(mockForegroundProcessDetection).stopPollingSelectedDevice()
-    assertThat(processModel.selectedProcess).isNull()
-
-    // test no device, has process
-    deviceModel.setSelectedDevice(null)
-    processModel.selectedProcess = device1.toDeviceDescriptor().createProcess("fake_process")
-
-    stopInspector(projectRule.project, deviceModel, processModel, mockForegroundProcessDetection)
-
-    verifyNoMoreInteractions(mockForegroundProcessDetection)
-    assertThat(processModel.selectedProcess).isNull()
-  }
-
-  @Test
   fun testDeviceViewAttributeResetAfterDeviceDisconnect() = runBlockingWithFlagState(true) {
     val onDeviceDisconnectedSyncChannel = Channel<DeviceDescriptor>()
     val onDeviceDisconnected: (DeviceDescriptor) -> Unit = {
@@ -569,44 +544,6 @@ class ForegroundProcessDetectionTest {
     disconnectDevice(device1)
     onDeviceDisconnectedSyncChannel.receive()
 
-    assertThat(adbProperties.debugViewAttributesChangesCount).isEqualTo(2)
-    assertThat(adbProperties.debugViewAttributes).isNull()
-  }
-
-  @Test
-  fun testStopInspectorResetsFlag() = runBlockingWithFlagState(true) {
-    val mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
-
-    val fakeProcess = device1.toDeviceDescriptor().createProcess("fake_process")
-    val (deviceModel, processModel) = createDeviceModel(device1)
-
-    connectDevice(device1)
-
-    val debugViewAttributes = DebugViewAttributes.getInstance()
-    val changed = debugViewAttributes.set(projectRule.project, fakeProcess)
-    assertThat(changed).isTrue()
-
-    // test has device, no process
-    deviceModel.setSelectedDevice(device1.toDeviceDescriptor())
-    processModel.selectedProcess = null
-
-    stopInspector(projectRule.project, deviceModel, processModel, mockForegroundProcessDetection)
-
-    verify(mockForegroundProcessDetection).stopPollingSelectedDevice()
-    assertThat(processModel.selectedProcess).isNull()
-
-    assertThat(adbProperties.debugViewAttributesChangesCount).isEqualTo(2)
-    assertThat(adbProperties.debugViewAttributes).isNull()
-
-    // test no device, has process
-    deviceModel.setSelectedDevice(null)
-    processModel.selectedProcess = fakeProcess
-
-    stopInspector(projectRule.project, deviceModel, processModel, mockForegroundProcessDetection)
-
-    verifyNoMoreInteractions(mockForegroundProcessDetection)
-    assertThat(processModel.selectedProcess).isNull()
-    // the device is still connected, so the global flag should not be reset
     assertThat(adbProperties.debugViewAttributesChangesCount).isEqualTo(2)
     assertThat(adbProperties.debugViewAttributes).isNull()
   }
@@ -682,7 +619,7 @@ class ForegroundProcessDetectionTest {
     assertThat(startTrackingDevice4).isEqualTo(device1)
 
     // test `stopInspector`
-    stopInspector(projectRule.project, deviceModel1, processModel1, foregroundProcessDetection)
+    foregroundProcessDetection.stopPollingSelectedDevice()
     withTimeoutOrNull<Nothing>(500) {
       stopTrackingSyncChannel.receive()
       fail()

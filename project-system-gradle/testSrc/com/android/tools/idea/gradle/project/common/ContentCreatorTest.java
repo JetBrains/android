@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.common;
 
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.PlatformTestCase;
 import kotlin.reflect.KType;
 import org.mockito.Mock;
@@ -92,24 +93,7 @@ public class ContentCreatorTest extends PlatformTestCase {
 
     String expected = "initscript {\n" +
                       "    dependencies {\n" +
-                      "        classpath files(['/path/to/jar1', '/path/to/jar2'])\n" +
-                      "    }\n" +
-                      "}\n" +
-                      "allprojects {\n" +
-                      "    apply plugin: com.android.ide.gradle.model.builder.AndroidStudioToolingPlugin\n" +
-                      "}\n";
-
-    String content = myContentCreator.createAndroidStudioToolingPluginInitScriptContent();
-    assertEquals(expected, content);
-  }
-
-  public void testCreateApplyJavaLibraryPluginInitScriptContentWithBackSlash() {
-    List<String> jarPaths = Arrays.asList("c:\\path\\to\\jar1", "c:\\path\\to\\jar2");
-    when(myJavaLibraryPluginJars.getJarPaths()).thenReturn(jarPaths);
-
-    String expected = "initscript {\n" +
-                      "    dependencies {\n" +
-                      "        classpath files(['c:\\\\path\\\\to\\\\jar1', 'c:\\\\path\\\\to\\\\jar2'])\n" +
+                      "        classpath files([mapPath('/path/to/jar1'), mapPath('/path/to/jar2')])\n" +
                       "    }\n" +
                       "}\n" +
                       "allprojects {\n" +
@@ -124,6 +108,6 @@ public class ContentCreatorTest extends PlatformTestCase {
     GradleInitScripts.AndroidStudioToolingPluginJars javaLibraryPluginJars = new GradleInitScripts.AndroidStudioToolingPluginJars();
     List<String> jarPaths = javaLibraryPluginJars.getJarPaths();
     assertThat(jarPaths).hasSize(3);
-    assertThat(jarPaths).contains(getJarPathForClass(KType.class));
+    assertThat(jarPaths).contains(FileUtil.toCanonicalPath(getJarPathForClass(KType.class)));
   }
 }

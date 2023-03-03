@@ -47,21 +47,35 @@ typically used with `ProgressWindow`.
 
 ## Progress manager
 [`ProgressManager`](../../../../idea/platform/core-api/src/com/intellij/openapi/progress/ProgressManager.java) is an application service
-used to "run tasks under progress" and managing progress indicators.
+used to "run tasks under progress" and manage progress indicators.
 
 The most basic entry point is `runProcess` which makes the IDE aware of the task and allows you to choose a custom progress indicator. The
 benefit of using it is that the IDE will ask the user for confirmation if they try to close the IDE while a task is still running.
 
-Other obvious use case is running the task in a background thread, with a responsive modal dialog in the foreground. This is done by calling
-`runProcessWithProgressSynchronously` and is the easiest way of moving expensive operations off the UI thread. Of course the modal dialog
+A common use case is running a task in a background thread, with a responsive modal dialog in the foreground. This is done by calling
+`runProcessWithProgressSynchronously` and is the easiest way of moving expensive operations off the UI thread. Of course, the modal dialog
 prevents the user from doing anything, so it's only a bit better than freezing the UI. The best way to compute something in the background
-(if possible) is to use the `*Asynchronously` methods and consider if the progress UI should start minimized.
+(if possible) is to use `runProcessWithProgressAsynchronously` and consider if the progress UI should start minimized.
 
-Note that `ProgressManager` has two equivalent APIs: you can either call methods like `runProcessWithProgressSynchronously` or create your
-own [Task](../../../../idea/platform/core-api/src/com/intellij/openapi/progress/Task.java) objects and pass them to `run`, which is
+> Note that `ProgressManager` has two equivalent APIs: you can either call `runProcessWithProgress{Synchronously,Asynchronously}` or create your
+own [Task](../../../../idea/platform/core-api/src/com/intellij/openapi/progress/Task.java) objects (`Task.Modal` or `Task.Backgroundable`) and pass them to `run`, which is
 equivalent. There are also some Kotlin extensions, like [runBackgroundableTask](../../../../idea/platform/platform-impl/src/com/intellij/openapi/progress/progress.kt).
 
-Finally, the last piece of functionality available in `ProgressManager` is running a potentially long read action under a progress indicator
+> Note that for `runProcessWithProgressSynchronously` and `run(Task.Modal)`:
+> * The call blocks the current thread.
+> * The call runs the task in a non-EDT thread while showing a progress bar.
+> * If called from the EDT, EDT events will still be processed (from within the call) while the call blocks.
+> * Write actions within the task must still be sent back to run on the EDT, and these will still freeze the UI. The progress bar UI does not update and the cancel button does not get checked while a write action is running, even if you call `checkCanceled()` frequently.
+> * Outside write actions, the IDE and progress bar update as expected; the IDE window can even be resized, updating properly.
+> * This option might work well if you can do many write actions, one after the other; the PSI is unlikely to have changed in between write actions because there is a modal dialog.
+
+> If you want to do one long write action (rather than many small write actions) without completely freezing the UI, an alternative option is `ApplicationManagerEx.getApplicationEx().runWriteActionWithCancellableProgressInDispatchThread`.
+> * The method is marked `@ApiStatus.Experimental` but is used in a few refactorings, and the implementation uses `PotemkinProgress`, which is not experimental.
+> * The method blocks and runs the write action on the EDT, showing a special progress bar (`PotemkinProgress`) that paints itself and handles cancel button events, as long as the action calls `checkCanceled()` periodically. No other Swing events are handled.
+> * During the write action, the IDE is not redrawn properly (e.g. if resized).
+> * In the future, we might see work continue on `idea.disable.implicit.read.on.edt`, which would presumably mean PSI writes could be done from any thread and so might allow for long write actions that don't freeze the UI.
+
+Another piece of functionality available in `ProgressManager` is running a potentially long read action under a progress indicator
 that will get cancelled whenever there's a pending write action, which means the action should be able to recover from earlier failures and
 the caller needs to keep submitting it in a loop. The benefit is that write lock is not blocked, so write operations like typing are more
 responsive. There are a few APIs in IntelliJ that let you do this, and they all end up calling the same code that is based on the progress

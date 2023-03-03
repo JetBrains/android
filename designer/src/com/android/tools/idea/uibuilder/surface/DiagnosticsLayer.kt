@@ -20,7 +20,7 @@ import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager
 import com.android.tools.idea.common.diagnostics.NlDiagnosticsRead
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Layer
-import com.android.tools.idea.rendering.RenderService
+import com.android.tools.idea.rendering.StudioRenderService
 import com.intellij.util.io.PagedFileStorage.MB
 import com.intellij.util.ui.JBUI
 import java.awt.Color
@@ -64,7 +64,7 @@ class DiagnosticsLayer(val surface: DesignSurface<*>) : Layer() {
     val runtime = Runtime.getRuntime()
     val freeMemPct = runtime.freeMemory().toDouble() / runtime.totalMemory() * 100
     val lastRenderMs = diagnostics.lastRenders().takeLast(1).firstOrNull() ?: -1
-    val poolStats = RenderService.getInstance(surface.project).sharedImagePool.stats
+    val poolStats = StudioRenderService.getInstance(surface.project).sharedImagePool.stats
 
     val bucketStats = poolStats?.bucketStats?.joinToString("\n") {
       " (${it.minWidth}x${it.minHeight} s=${it.maxSize()}) " +

@@ -192,7 +192,8 @@ class EntryDetailsView(
 
     val results = mutableListOf(buildKeyValuePair("Time started", alarm.startTimeMs, TimeProvider))
     alarm.latestEvent?.let { latestEvent ->
-      if (latestEvent.backgroundTaskEvent.hasAlarmFired() ||
+      if (
+        latestEvent.backgroundTaskEvent.hasAlarmFired() ||
           latestEvent.backgroundTaskEvent.hasAlarmCancelled()
       ) {
         val completeTimeMs = latestEvent.timestamp
@@ -271,15 +272,18 @@ class EntryDetailsView(
         buildKeyValuePair("Frequency", if (job.isPeriodic) "Periodic" else "OneTime"),
         buildKeyValuePair("State", jobEntry, StateProvider)
       )
-    jobEntry.targetWorkId?.let { id -> client.getEntry(id) }?.let { workEntry ->
-      executions.add(buildKeyValuePair("Related Worker", workEntry, entryIdProvider))
-    }
+    jobEntry.targetWorkId
+      ?.let { id -> client.getEntry(id) }
+      ?.let { workEntry ->
+        executions.add(buildKeyValuePair("Related Worker", workEntry, entryIdProvider))
+      }
     detailsPanel.add(buildCategoryPanel("Execution", executions))
 
     val results =
       mutableListOf(buildKeyValuePair("Time started", jobEntry.startTimeMs, TimeProvider))
     jobEntry.latestEvent?.let { latestEvent ->
-      if (latestEvent.backgroundTaskEvent.hasJobStopped() ||
+      if (
+        latestEvent.backgroundTaskEvent.hasJobStopped() ||
           latestEvent.backgroundTaskEvent.hasJobFinished()
       ) {
         val completeTimeMs = latestEvent.timestamp
@@ -438,16 +442,19 @@ class EntryDetailsView(
     labels: List<String>
   ) {
     val labelsToStackTraces =
-      (labels zip callStacks).filter { it.second.stack.isNotEmpty() }.map {
-        "${SimpleDateFormat("H:mm:ss.SSS", Locale.getDefault()).format(it.second.triggerTime)} ${it.first}" to
-          it.second.stack
-      }
+      (labels zip callStacks)
+        .filter { it.second.stack.isNotEmpty() }
+        .map {
+          "${SimpleDateFormat("H:mm:ss.SSS", Locale.getDefault()).format(it.second.triggerTime)} ${it.first}" to
+            it.second.stack
+        }
 
     if (labelsToStackTraces.isNotEmpty()) {
       val stackTraceComponents =
         labelsToStackTraces.mapIndexedNotNull { i, pair ->
           when (i) {
-            0, 1 -> {
+            0,
+            1 -> {
               stackTraceViews[i].updateTrace(pair.second)
               val hideablePanel =
                 HideablePanel.Builder(pair.first, stackTraceViews[i].component)

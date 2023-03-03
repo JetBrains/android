@@ -71,6 +71,7 @@ private fun buildState(
 private fun buildDevice(
   name: String,
   id: String = name,
+  tagId: String? = null,
   manufacturer: String = "Google",
   software: List<Software> = listOf(Software()),
   states: List<State> = listOf(buildState("default", 1000, 2000).apply { isDefaultState = true })
@@ -78,6 +79,7 @@ private fun buildDevice(
   Device.Builder()
     .apply {
       setId(id)
+      setTagId(tagId)
       setName(name)
       setManufacturer(manufacturer)
       addAllSoftware(software)
@@ -93,11 +95,11 @@ private val roundWearOsDevice =
   buildDevice(
     "Wear OS Round Device",
     "wearos_round",
+    "android-wear",
     states =
       listOf(
         buildState("default", 1000, 100, screenRound = ScreenRound.ROUND).apply {
           isDefaultState = true
-          hardware = Hardware()
         }
       )
   )
@@ -107,7 +109,7 @@ private val deviceProvider: (Configuration) -> Collection<Device> = {
 }
 
 /** Tests checking [ComposePreviewElement] being applied to a [Configuration]. */
-class ComposePreviewElementConfigurationTest() {
+class ComposePreviewElementConfigurationTest {
   @get:Rule
   val projectRule =
     ComposeProjectRule(
@@ -116,21 +118,6 @@ class ComposePreviewElementConfigurationTest() {
     )
   private val fixture
     get() = projectRule.fixture
-
-  private fun assertDeviceMatches(expectedDevice: Device?, deviceSpec: String) {
-    val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
-    Configuration.create(configManager, null, FolderConfiguration.createDefault()).also {
-      val previewConfiguration =
-        PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, deviceSpec)
-      previewConfiguration.applyConfigurationForTest(
-        it,
-        highestApiTarget = { null },
-        devicesProvider = deviceProvider,
-        defaultDeviceProvider = { defaultDevice }
-      )
-      assertEquals(expectedDevice, it.device)
-    }
-  }
 
   @Test
   fun `set device by id and name successfully`() {
@@ -208,6 +195,59 @@ class ComposePreviewElementConfigurationTest() {
       }
   }
 
+  @Test
+  fun `setting a device might set the theme as well`() {
+    val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
+    val configuration =
+      Configuration.create(configManager, null, FolderConfiguration.createDefault())
+
+    SingleComposePreviewElementInstance(
+        "WearOs",
+        PreviewDisplaySettings("Name", null, false, false, null),
+        null,
+        null,
+        PreviewConfiguration.cleanAndGet(null, null, 100, 100, null, null, null, null)
+      )
+      .let { previewElement ->
+        previewElement.applyConfigurationForTest(
+          configuration,
+          highestApiTarget = { null },
+          devicesProvider = deviceProvider,
+          defaultDeviceProvider = { roundWearOsDevice }
+        )
+        assertEquals("@android:style/Theme.DeviceDefault", configuration.theme)
+      }
+
+    SingleComposePreviewElementInstance(
+        "Pixel",
+        PreviewDisplaySettings("Name", null, false, false, null),
+        null,
+        null,
+        PreviewConfiguration.cleanAndGet(null, null, 100, 100, null, null, null, null)
+      )
+      .let { previewElement ->
+        previewElement.applyConfigurationForTest(
+          configuration,
+          highestApiTarget = { null },
+          devicesProvider = deviceProvider,
+          defaultDeviceProvider = { pixel4Device }
+        )
+        assertEquals("@android:style/Theme", configuration.theme)
+      }
+  }
+
+  @Test
+  fun testWallpaperConfiguration() {
+    assertWallpaperUpdate(null, null)
+    assertWallpaperUpdate(null, -25)
+    assertWallpaperUpdate(null, 167)
+    assertWallpaperUpdate(null, -1)
+    assertWallpaperUpdate(Wallpaper.RED.resourcePath, 0)
+    assertWallpaperUpdate(Wallpaper.GREEN.resourcePath, 1)
+    assertWallpaperUpdate(Wallpaper.BLUE.resourcePath, 2)
+    assertWallpaperUpdate(Wallpaper.YELLOW.resourcePath, 3)
+  }
+
   private fun assertWallpaperUpdate(expectedWallpaperPath: String?, wallpaperParameterValue: Int?) {
     val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
     Configuration.create(configManager, null, FolderConfiguration.createDefault()).also {
@@ -233,15 +273,18 @@ class ComposePreviewElementConfigurationTest() {
     }
   }
 
-  @Test
-  fun testWallpaperConfiguration() {
-    assertWallpaperUpdate(null, null)
-    assertWallpaperUpdate(null, -25)
-    assertWallpaperUpdate(null, 167)
-    assertWallpaperUpdate(null, -1)
-    assertWallpaperUpdate(Wallpaper.RED.resourcePath, 0)
-    assertWallpaperUpdate(Wallpaper.GREEN.resourcePath, 1)
-    assertWallpaperUpdate(Wallpaper.BLUE.resourcePath, 2)
-    assertWallpaperUpdate(Wallpaper.YELLOW.resourcePath, 3)
+  private fun assertDeviceMatches(expectedDevice: Device?, deviceSpec: String) {
+    val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
+    Configuration.create(configManager, null, FolderConfiguration.createDefault()).also {
+      val previewConfiguration =
+        PreviewConfiguration.cleanAndGet(null, null, null, null, null, null, null, deviceSpec)
+      previewConfiguration.applyConfigurationForTest(
+        it,
+        highestApiTarget = { null },
+        devicesProvider = deviceProvider,
+        defaultDeviceProvider = { defaultDevice }
+      )
+      assertEquals(expectedDevice, it.device)
+    }
   }
 }

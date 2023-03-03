@@ -56,8 +56,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
   }
 
   private fun getGotoElements(icon: GutterMark): Collection<GotoRelatedItem> {
-    return ((icon as LineMarkerInfo.LineMarkerGutterIconRenderer<*>).lineMarkerInfo as
-        RelatedItemLineMarkerInfo)
+    return ((icon as LineMarkerInfo.LineMarkerGutterIconRenderer<*>).lineMarkerInfo
+        as RelatedItemLineMarkerInfo)
       .createGotoRelatedItems()
   }
 
@@ -87,7 +87,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
         class MyModule {
           @Provides String provider() {}
         }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
 
     val providerMethod = myFixture.moveCaret("provi|der()").parentOfType<PsiMethod>()
@@ -102,7 +103,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
         class MyClass {
           @Inject String ${caret}injectedString;
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val consumerField = myFixture.elementAtCaret
@@ -129,7 +131,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
           class MyClass {
             @Inject val <caret>injectedStringKt:String
           }
-        """.trimIndent()
+        """
+        .trimIndent()
     )
 
     val consumerKtField = myFixture.elementAtCaret
@@ -158,7 +161,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
           class MyModule {
             @Provides fun providerToDisplayAsConsumer(consumer:String)
           }
-        """.trimIndent()
+        """
+        .trimIndent()
     )
 
     // Kotlin consumer as parameter
@@ -169,7 +173,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
           import javax.inject.Inject
 
           class MyClass2 @Inject constructor(injectedString:String)
-        """.trimIndent()
+        """
+        .trimIndent()
     )
 
     val parameter = myFixture.moveCaret("inj|ectedString").parentOfType<KtParameter>()!!
@@ -181,8 +186,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(icons).isNotEmpty()
 
     val icon =
-      icons.find { it.tooltipText == "Dependency Related Files for provider()" }!! as
-        LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+      icons.find { it.tooltipText == "Dependency Related Files for provider()" }!!
+        as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     gotoRelatedItems = getGotoElements(icon)
     assertThat(gotoRelatedItems).hasSize(4)
     val consumerElements = gotoRelatedItems.map { it.element }
@@ -212,7 +217,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
   fun testComponentMethodsForProvider() {
     // Provider
     val providerFile =
-      myFixture.addClass(
+      myFixture
+        .addClass(
           // language=JAVA
           """
         package test;
@@ -225,13 +231,15 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
             return "logcat.filter.save.button.tooltip";
           }
         }
-      """.trimIndent()
+      """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
 
     val componentFile =
-      myFixture.addClass(
+      myFixture
+        .addClass(
           // language=JAVA
           """
       package test;
@@ -241,7 +249,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       public interface MyComponent {
         String getString();
       }
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
@@ -250,10 +259,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     myFixture.moveCaret("getStr|ing")
 
     val iconForComponentMethod =
-      myFixture.findGuttersAtCaret().find {
-        it.tooltipText == "getString() exposes provider()"
-      }!! as
-        LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+      myFixture.findGuttersAtCaret().find { it.tooltipText == "getString() exposes provider()" }!!
+        as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     val gotoRelatedItemForComponentMethod = getGotoElements(iconForComponentMethod).first()
 
     assertThat(gotoRelatedItemForComponentMethod.group).isEqualTo("Providers")
@@ -267,8 +274,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(icons).isNotEmpty()
 
     val icon =
-      icons.find { it.tooltipText == "provider() exposed in MyComponent" }!! as
-        LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+      icons.find { it.tooltipText == "provider() exposed in MyComponent" }!!
+        as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     val gotoRelatedItems = getGotoElements(icon)
     assertThat(gotoRelatedItems).hasSize(1)
     val method = gotoRelatedItems.first()
@@ -294,7 +301,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
   fun testComponentMethodsForProvider_kotlin() {
     // Provider
     val providerFile =
-      myFixture.addFileToProject(
+      myFixture
+        .addFileToProject(
           "src/test/MyModule.java",
           // language=JAVA
           """
@@ -308,7 +316,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
             return "logcat.filter.save.button.tooltip";
           }
         }
-      """.trimIndent()
+      """
+            .trimIndent()
         )
         .virtualFile
 
@@ -323,14 +332,15 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       interface MyComponent {
         val str:String
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.moveCaret("st|r").parent as KtProperty
 
     val iconForComponentMethod =
-      myFixture.findGuttersAtCaret().find { it.tooltipText == "str exposes provider()" }!! as
-        LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+      myFixture.findGuttersAtCaret().find { it.tooltipText == "str exposes provider()" }!!
+        as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     val gotoRelatedItemForComponentMethod = getGotoElements(iconForComponentMethod).first()
 
     assertThat(gotoRelatedItemForComponentMethod.group).isEqualTo("Providers")
@@ -344,8 +354,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(icons).isNotEmpty()
 
     val icon =
-      icons.find { it.tooltipText == "provider() exposed in MyComponent" }!! as
-        LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+      icons.find { it.tooltipText == "provider() exposed in MyComponent" }!!
+        as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     val gotoRelatedItems = getGotoElements(icon)
     assertThat(gotoRelatedItems).hasSize(1)
     val method = gotoRelatedItems.first()
@@ -378,7 +388,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
   fun testComponentForModules() {
     val moduleFile =
-      myFixture.configureByText(
+      myFixture
+        .configureByText(
           // language=JAVA
           JavaFileType.INSTANCE,
           """
@@ -388,7 +399,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
         @Module
         class MyModule {
         }
-      """.trimIndent()
+      """
+            .trimIndent()
         )
         .virtualFile
 
@@ -401,7 +413,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       @Component(modules = { MyModule.class })
       public interface MyComponent {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     // Java Module
@@ -413,7 +426,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
         @Module(includes = { MyModule.class })
         class MyModule2 {}
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.configureFromExistingVirtualFile(moduleFile)
@@ -423,8 +437,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(icons).isNotEmpty()
 
     val icon =
-      icons.find { it.tooltipText == "Dependency Related Files for MyModule" }!! as
-        LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+      icons.find { it.tooltipText == "Dependency Related Files for MyModule" }!!
+        as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     val gotoRelatedItems = getGotoElements(icon)
     assertThat(gotoRelatedItems).hasSize(2)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
@@ -445,7 +459,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
   fun testDependantComponentsForComponent() {
     // Java Component
     val componentFile =
-      myFixture.addClass(
+      myFixture
+        .addClass(
           // language=JAVA
           """
       package test;
@@ -453,7 +468,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
       @Component
       public interface MyComponent {}
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
@@ -468,7 +484,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
       @Component(dependencies = [MyComponent::class])
       interface MyDependantComponent
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.configureFromExistingVirtualFile(componentFile)
@@ -476,8 +493,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
     val icons = myFixture.findGuttersAtCaret()
     val icon =
-      icons.find { it.tooltipText == "MyDependantComponent is parent of MyComponent" }!! as
-        LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+      icons.find { it.tooltipText == "MyDependantComponent is parent of MyComponent" }!!
+        as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     assertThat(icons).isNotEmpty()
 
     val gotoRelatedItems = getGotoElements(icon)
@@ -504,7 +521,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
   fun testParentsForSubcomponent() {
     // Java Subomponent
     val subcomponentFile =
-      myFixture.addClass(
+      myFixture
+        .addClass(
           // language=JAVA
           """
       package test;
@@ -512,7 +530,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
       @Subcomponent
       public interface MySubcomponent {}
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
@@ -526,7 +545,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
         @Module(subcomponents = { MySubcomponent.class })
         class MyModule { }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Java Component
@@ -538,7 +558,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
       @Component(modules = { MyModule.class })
       public interface MyComponent {}
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     // Kotlin Component
@@ -551,7 +572,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
       @Component(modules = [ MyModule::class])
       interface MyComponentKt
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.configureFromExistingVirtualFile(subcomponentFile)
@@ -579,7 +601,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
       @Subcomponent
       public interface MySubcomponent {}
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     // Kotlin Subcomponent
@@ -592,7 +615,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
       @Subcomponent
       interface MySubcomponent2
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.addClass(
@@ -604,12 +628,14 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
         @Module(subcomponents = { MySubcomponent.class, MySubcomponent2.class })
         class MyModule { }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Java Component
     val file =
-      myFixture.addClass(
+      myFixture
+        .addClass(
           // language=JAVA
           """
       package test;
@@ -617,7 +643,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
       @Component(modules = { MyModule.class })
       public interface MyComponent {}
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
@@ -648,10 +675,12 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       import javax.inject.Inject
 
       class Repository @Inject constructor()
-    """.trimIndent()
+    """
+        .trimIndent()
     )
     val assistedFactory =
-      myFixture.addFileToProject(
+      myFixture
+        .addFileToProject(
           "test/AssistedFactory.kt",
           // language=kotlin
           """
@@ -669,13 +698,15 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
           // Gutter icon with 'up arrow' to Foo's constructor with @AssistedInject
           fun create(id: String): Foo
       }
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
 
     val assistedInject =
-      myFixture.addFileToProject(
+      myFixture
+        .addFileToProject(
           "test/AssistedInject.kt",
           // language=kotlin
           """
@@ -694,7 +725,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
           // @AssistedInject constructor links to the assisted factory.
           @Assisted val id: String
       )
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
@@ -707,8 +739,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       assertThat(icons).isNotEmpty()
 
       val icon =
-        icons.find { it.tooltipText == "Foo(Repository, String) is created by create" }!! as
-          LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+        icons.find { it.tooltipText == "Foo(Repository, String) is created by create" }!!
+          as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
       val gotoRelatedItems = getGotoElements(icon)
       assertThat(gotoRelatedItems).hasSize(1)
       val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiNamedElement).name}" }
@@ -740,8 +772,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       assertThat(icons).isNotEmpty()
 
       val icon =
-        icons.find { it.tooltipText == "create(String) is defined by Foo" }!! as
-          LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+        icons.find { it.tooltipText == "create(String) is defined by Foo" }!!
+          as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
       val gotoRelatedItems = getGotoElements(icon)
       assertThat(gotoRelatedItems).hasSize(1)
       val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiNamedElement).name}" }
@@ -768,7 +800,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
   fun testAssistedInjectProducersAndConsumers() {
     val repository =
-      myFixture.addFileToProject(
+      myFixture
+        .addFileToProject(
           "test/Repository.kt",
           // language=kotlin
           """
@@ -776,12 +809,14 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       import javax.inject.Inject
 
       class Repository @Inject constructor()
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
     val assistedFactory =
-      myFixture.addFileToProject(
+      myFixture
+        .addFileToProject(
           "test/AssistedFactory.kt",
           // language=kotlin
           """
@@ -800,13 +835,15 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
           fun create(id: String): Foo
       }
 
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
 
     val assistedInject =
-      myFixture.addFileToProject(
+      myFixture
+        .addFileToProject(
           "test/AssistedInject.kt",
           // language=kotlin
           """
@@ -825,13 +862,15 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
           // @AssistedInject constructor links to the assisted factory.
           @Assisted val id: String
       )
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
 
     val consumingClass =
-      myFixture.addClass(
+      myFixture
+        .addClass(
           // language=JAVA
           """
       package test;
@@ -841,7 +880,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
         @Inject FooFactory myFooFactory;
       }
 
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
@@ -908,7 +948,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
   fun testObjectClassInKotlin() {
     val moduleFile =
-      myFixture.addFileToProject(
+      myFixture
+        .addFileToProject(
           "test/MyModule.kt",
           // language=kotlin
           """
@@ -917,13 +958,15 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
         @Module
         object MyModule
-      """.trimIndent()
+      """
+            .trimIndent()
         )
         .virtualFile
 
     // Enum shouldn't be treated as dagger entity.
     val notModuleFile =
-      myFixture.addFileToProject(
+      myFixture
+        .addFileToProject(
           "test/NotMyModule.kt",
           // language=kotlin
           """
@@ -934,7 +977,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
           @Module
           ONE
         }
-      """.trimIndent()
+      """
+            .trimIndent()
         )
         .virtualFile
 
@@ -947,7 +991,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       @Component(modules = { MyModule.class })
       public interface MyComponent {
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.configureFromExistingVirtualFile(moduleFile)
@@ -980,7 +1025,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
       @Qualifier
       public @interface MyQualifier {}
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.addClass(
@@ -994,7 +1040,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
         @Inject @MyQualifier String injectedStringWithQualifier;
       }
 
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.loadNewFile(
@@ -1010,7 +1057,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
         class MyModule {
            fun bindString(@BindsInstance @MyQualifier str:String):String
         }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.moveCaret("st|r")
@@ -1019,8 +1067,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(icons).isNotEmpty()
 
     val icon =
-      icons.find { it.tooltipText == "str provides for MyClass" }!! as
-        LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+      icons.find { it.tooltipText == "str provides for MyClass" }!!
+        as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     val gotoRelatedItems = getGotoElements(icon)
     assertThat(gotoRelatedItems).hasSize(1)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiNamedElement).name}" }
@@ -1051,11 +1099,13 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
         @Module
         class MyModule { }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
     // Java Subomponent
     val file =
-      myFixture.addClass(
+      myFixture
+        .addClass(
           // language=JAVA
           """
       package test;
@@ -1063,7 +1113,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
       @Subcomponent(modules = { MyModule.class })
       public interface MySubcomponent {}
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
@@ -1090,7 +1141,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
       @Subcomponent
       public interface MySubcomponent {}
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     myFixture.addClass(
@@ -1102,12 +1154,14 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
         @Module(subcomponents = { MySubcomponent.class })
         class MyModule { }
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     // Java parent Subcomponent
     val file =
-      myFixture.addClass(
+      myFixture
+        .addClass(
           // language=JAVA
           """
       package test;
@@ -1115,7 +1169,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
 
       @Subcomponent(modules = { MyModule.class })
       public interface MyParentSubcomponent {}
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
@@ -1124,8 +1179,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     myFixture.moveCaret("MyParent|Subcomponent")
     val icons = myFixture.findGuttersAtCaret()
     val icon =
-      icons.find { it.tooltipText == "Dependency Related Files for MyParentSubcomponent" }!! as
-        LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+      icons.find { it.tooltipText == "Dependency Related Files for MyParentSubcomponent" }!!
+        as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     val gotoRelatedItems = getGotoElements(icon)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiNamedElement).name}" }
     assertThat(result).contains("Subcomponents: MySubcomponent")
@@ -1140,7 +1195,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
   fun testEntryPointMethodsForProvider() {
     // Provider
     val providerFile =
-      myFixture.configureByText(
+      myFixture
+        .configureByText(
           // language=JAVA
           JavaFileType.INSTANCE,
           """
@@ -1152,7 +1208,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
         class MyModule {
           @Provides String provider() {}
         }
-      """.trimIndent()
+      """
+            .trimIndent()
         )
         .virtualFile
 
@@ -1166,11 +1223,13 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       public interface MyComponent {
         String getString();
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     val entryPointFile =
-      myFixture.addClass(
+      myFixture
+        .addClass(
           // language=JAVA
           """
       package test;
@@ -1180,7 +1239,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       public interface MyEntryPoint {
         String getStringInEntryPoint();
       }
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .containingFile
         .virtualFile
@@ -1191,8 +1251,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val iconForComponentMethod =
       myFixture.findGuttersAtCaret().find {
         it.tooltipText == "getStringInEntryPoint() exposes provider()"
-      }!! as
-        LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+      }!!
+        as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     val gotoRelatedItemForComponentMethod = getGotoElements(iconForComponentMethod).first()
 
     assertThat(gotoRelatedItemForComponentMethod.group).isEqualTo("Providers")
@@ -1206,8 +1266,8 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(icons).isNotEmpty()
 
     val icon =
-      icons.find { it.tooltipText == "Dependency Related Files for provider()" }!! as
-        LineMarkerInfo.LineMarkerGutterIconRenderer<*>
+      icons.find { it.tooltipText == "Dependency Related Files for provider()" }!!
+        as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     val gotoRelatedItems = getGotoElements(icon)
     assertThat(gotoRelatedItems).hasSize(2)
     val method = gotoRelatedItems.find { it.group == "Exposed by entry points" }!!

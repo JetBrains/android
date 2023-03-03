@@ -33,8 +33,8 @@ interface UiComponentsProvider {
    * data's content type, if known, to render it correctly.
    *
    * @param styleHint A style which the viewer will attempt to apply; however, this may fail in some
-   * cases, so you are encouraged to check [DataViewer.getStyle] if you need to confirm the style
-   * was actually accepted.
+   *   cases, so you are encouraged to check [DataViewer.getStyle] if you need to confirm the style
+   *   was actually accepted.
    */
   fun createDataViewer(
     bytes: ByteArray,

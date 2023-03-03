@@ -21,9 +21,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 private fun ComposeViewInfo.serializeHits(x: Int, y: Int): String =
-  findHitWithDepth(x, y).sortedBy { it.first }.joinToString("\n") {
-    "${it.first}: ${it.second.sourceLocation.className}"
-  }
+  findHitWithDepth(x, y)
+    .sortedBy { it.first }
+    .joinToString("\n") { "${it.first}: ${it.second.sourceLocation.className}" }
 
 class ComposeViewInfoTest {
   private data class TestSourceLocation(
@@ -74,14 +74,16 @@ class ComposeViewInfoTest {
     assertEquals("0: root".trimMargin(), root.serializeHits(0, 0))
     assertEquals(
       """0: root
-                   |1: child2""".trimMargin(),
+                   |1: child2"""
+        .trimMargin(),
       root.serializeHits(125, 125)
     )
     assertEquals("child2", root.findDeepestHits(125, 125).single().sourceLocation.className)
     assertEquals(
       """0: root
                    |1: child2
-                   |2: child2.2""".trimMargin(),
+                   |2: child2.2"""
+        .trimMargin(),
       root.serializeHits(260, 260)
     )
     assertEquals("child2.2", root.findDeepestHits(260, 260).single().sourceLocation.className)
@@ -89,7 +91,8 @@ class ComposeViewInfoTest {
       """0: root
                    |1: child2
                    |1: child3
-                   |2: child2.2""".trimMargin(),
+                   |2: child2.2"""
+        .trimMargin(),
       root.serializeHits(450, 260)
     )
     assertEquals("child2.2", root.findDeepestHits(450, 260).single().sourceLocation.className)

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.ui
 
-import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.ZOOMABLE_KEY
@@ -26,12 +25,6 @@ import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
-import com.android.tools.idea.appinspection.ide.ui.ICON_EMULATOR
-import com.android.tools.idea.appinspection.ide.ui.ICON_PHONE
-import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
-import com.android.tools.idea.appinspection.ide.ui.buildDeviceName
-import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
-import com.android.tools.idea.appinspection.inspector.api.process.ProcessDescriptor
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
@@ -42,11 +35,9 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capabilit
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.matchToProcessDescriptor
-import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotAction
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
-import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -59,8 +50,8 @@ import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
 import com.intellij.openapi.actionSystem.ex.TooltipLinkProvider
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.ui.LayeredIcon
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBLoadingPanelListener
 import com.intellij.ui.components.JBScrollPane
@@ -95,12 +86,6 @@ private const val MIN_ZOOM = 10
 
 private const val TOOLBAR_INSET = 14
 
-@VisibleForTesting
-val ICON_LEGACY_PHONE = LayeredIcon(ICON_PHONE, AllIcons.General.WarningDecorator)
-
-@VisibleForTesting
-val ICON_LEGACY_EMULATOR = LayeredIcon(ICON_EMULATOR, AllIcons.General.WarningDecorator)
-
 @TestOnly
 const val DEVICE_VIEW_ACTION_TOOLBAR_NAME = "DeviceViewPanel.ActionToolbar"
 
@@ -109,13 +94,8 @@ const val PERFORMANCE_WARNING_HIDDEN = "performance.warning.hidden"
 
 /**
  * Panel that shows the device screen in the layout inspector.
- *
- * @param onDeviceSelected is only invoked when [deviceModel] is used.
  */
 class DeviceViewPanel(
-  onDeviceSelected: (newDevice: DeviceDescriptor) -> Unit,
-  onProcessSelected: (newProcess: ProcessDescriptor) -> Unit,
-  val onStopInspector: () -> Unit,
   val layoutInspector: LayoutInspector,
   private val viewSettings: RenderSettings,
   disposableParent: Disposable,
@@ -135,52 +115,7 @@ class DeviceViewPanel(
   private var lastPanMouseLocation: Point? = null
   private var performanceWarningGiven = false
 
-  private val selectDeviceAction: SelectDeviceAction? = if (layoutInspector.deviceModel != null) {
-    SelectDeviceAction(
-      deviceModel = layoutInspector.deviceModel,
-      onDeviceSelected = onDeviceSelected,
-      onProcessSelected = onProcessSelected,
-      onDetachAction = { stopInspectors() },
-      customDeviceAttribution = ::deviceAttribution
-    )
-  }
-  else {
-    null
-  }
-
-  private val selectProcessAction: SelectProcessAction? = if (layoutInspector.processModel != null) {
-    SelectProcessAction(
-      model = layoutInspector.processModel,
-      supportsOffline = false,
-      createProcessLabel = (SelectProcessAction)::createCompactProcessLabel,
-      stopPresentation = SelectProcessAction.StopPresentation(
-        "Stop Inspector",
-        "Stop running the layout inspector against the current process"),
-      onStopAction = { stopInspectors() },
-      customDeviceAttribution = ::deviceAttribution
-    )
-  }
-  else {
-    null
-  }
-
-  // TODO remove [selectedProcessAction] once the flag DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED is removed
-  private val targetSelectedAction: DropDownActionWithButton? = if (LayoutInspectorSettings.getInstance().autoConnectEnabled) {
-    if (selectDeviceAction == null) {
-      null
-    }
-    else {
-      DropDownActionWithButton(selectDeviceAction) { selectDeviceAction.button }
-    }
-  }
-  else {
-    if (selectProcessAction == null) {
-      null
-    }
-    else {
-      DropDownActionWithButton(selectProcessAction) { selectProcessAction.button }
-    }
-  }
+  private val targetSelectedAction = TargetSelectionActionFactory.getAction(layoutInspector)
 
   private val contentPanel = DeviceViewContentPanel(
     inspectorModel = layoutInspector.inspectorModel,
@@ -195,22 +130,6 @@ class DeviceViewPanel(
     isCurrentForegroundProcessDebuggable = { isCurrentForegroundProcessDebuggable },
     hasForegroundProcess = { hasForegroundProcess }
   )
-
-  private fun deviceAttribution(device: DeviceDescriptor, event: AnActionEvent) = when {
-    device.apiLevel < AndroidVersion.VersionCodes.M -> {
-      event.presentation.isEnabled = false
-      event.presentation.text = "${device.buildDeviceName()} (Unsupported for API < ${AndroidVersion.VersionCodes.M})"
-    }
-    device.apiLevel < AndroidVersion.VersionCodes.Q -> {
-      event.presentation.icon = device.toLegacyIcon()
-      event.presentation.text = "${device.buildDeviceName()} (Live inspection disabled for API < ${AndroidVersion.VersionCodes.Q})"
-    }
-    else -> {
-    }
-  }
-
-  private fun DeviceDescriptor?.toLegacyIcon() =
-    if (this?.isEmulator == true) ICON_LEGACY_EMULATOR else ICON_LEGACY_PHONE
 
   private fun showGrab() {
     cursor = if (isPanning) {
@@ -300,6 +219,10 @@ class DeviceViewPanel(
   }
 
   init {
+    layoutInspector.stopInspectorListeners.add {
+      loadingPane.stopLoading()
+    }
+
     layoutInspector.deviceModel?.newSelectedDeviceListeners?.add { _ ->
       // as soon as a new device is connected default to the process not being debuggable.
       // this will change as soon as an actual process shows up
@@ -480,12 +403,6 @@ class DeviceViewPanel(
     }
   }
 
-  fun stopInspectors() {
-    loadingPane.stopLoading()
-    layoutInspector.processModel?.stop()
-    onStopInspector.invoke()
-  }
-
   private fun updateLayeredPaneSize() {
     scrollPane.size = layeredPane.size
     val floatingToolbar = deviceViewPanelActionsToolbar.floatingToolbar
@@ -593,7 +510,8 @@ class DeviceViewPanel(
     val actionToolbar = ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorLeft", leftGroup, true)
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
     actionToolbar.component.name = DEVICE_VIEW_ACTION_TOOLBAR_NAME
-    actionToolbar.setTargetComponent(this)
+    actionToolbar.component.putClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY, true)
+    actionToolbar.targetComponent = this
     actionToolbar.updateActionsImmediately()
     return actionToolbar
   }

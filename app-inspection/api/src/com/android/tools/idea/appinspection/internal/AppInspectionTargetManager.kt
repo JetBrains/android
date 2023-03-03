@@ -99,11 +99,13 @@ internal constructor(private val transportClient: TransportClient, parentScope: 
   // Remove all current clients that belong to the provided project.
   // We dispose targets that were done and attempt to cancel those that are not.
   internal suspend fun disposeClients(project: String) {
-    targets.filterValues { targetInfo -> targetInfo.projectName == project }.keys.forEach { process
-      ->
-      val deferred = targets.remove(process)?.targetDeferred ?: return@forEach
-      deferred.cancel()
-      deferred.getCompletedOrNull()?.dispose()
-    }
+    targets
+      .filterValues { targetInfo -> targetInfo.projectName == project }
+      .keys
+      .forEach { process ->
+        val deferred = targets.remove(process)?.targetDeferred ?: return@forEach
+        deferred.cancel()
+        deferred.getCompletedOrNull()?.dispose()
+      }
   }
 }

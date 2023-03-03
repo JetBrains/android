@@ -37,7 +37,7 @@ val AGP_UPGRADE_NOTIFICATION_GROUP = NotificationGroup("Android Gradle Upgrade N
 
 private val LOG = Logger.getInstance(LOG_CATEGORY)
 
-abstract class ProjectUpgradeNotification(title: String, content: String, type: NotificationType)
+sealed class ProjectUpgradeNotification(title: String, content: String, type: NotificationType)
   : Notification(AGP_UPGRADE_NOTIFICATION_GROUP.displayId, title, content, type) {
   var callToActionDismissed = false
   var studioEventSent = false
@@ -45,28 +45,28 @@ abstract class ProjectUpgradeNotification(title: String, content: String, type: 
   abstract val currentAgpVersion: AgpVersion
 
   init {
-    addAction(object : AnAction("Start AGP Upgrade Assistant") {
+    this.addAction(object : AnAction("Start AGP Upgrade Assistant") {
       override fun actionPerformed(e: AnActionEvent) {
         this@ProjectUpgradeNotification.expire(false)
         LOG.info("Starting AGP Upgrade Assistant")
         e.project?.let { performRecommendedPluginUpgrade(it) }
       }
     })
-    addAction(object : AnAction("Remind me tomorrow") {
+    this.addAction(object : AnAction("Remind me tomorrow") {
       override fun actionPerformed(e: AnActionEvent) {
         this@ProjectUpgradeNotification.expire(false)
         LOG.info("AGP Upgrade notification postponed for 24 hours")
         e.project?.let { RecommendedUpgradeReminder(it).updateLastTimestamp() }
       }
     })
-    addAction(object : AnAction("Don't ask for this project") {
+    this.addAction(object : AnAction("Don't ask for this project") {
       override fun actionPerformed(e: AnActionEvent) {
         this@ProjectUpgradeNotification.expire(true)
         LOG.info("AGP Upgrade notification disabled for this project")
         e.project?.let { RecommendedUpgradeReminder(it).doNotAskForProject = true }
       }
     })
-    addAction(object : AnAction("Don't show again") {
+    this.addAction(object : AnAction("Don't show again") {
       override fun actionPerformed(e: AnActionEvent) {
         this@ProjectUpgradeNotification.expire(true)
         LOG.info("AGP Upgrade notification disabled application-wide")

@@ -31,6 +31,7 @@ import com.android.tools.idea.testing.findAppModule
 import com.android.tools.idea.testing.findModule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Ignore
 import org.junit.Rule
@@ -144,6 +145,34 @@ class GradleModuleSystemIntegrationTest {
           GradleCoordinate(SUPPORT_LIB_GROUP_ID, "BAD", "25.4.0")
         )
       ).isNull()
+    }
+  }
+
+  @Test
+  fun `test use androidx in all modules of a non-androidx project`() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    preparedProject.open { project ->
+      val modules = project.modules.toList()
+      assertThat(modules).isNotEmpty()
+      for (module in modules) {
+        assertThat(module.getModuleSystem().useAndroidX)
+          .named("module[%s].moduleSystem.useAndroidx", module.name)
+          .isFalse()
+      }
+    }
+  }
+
+  @Test
+  fun `test use androidx in all modules of a androidx project`() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.ANDROIDX_SIMPLE)
+    preparedProject.open { project ->
+      val modules = project.modules.toList()
+      assertThat(modules).isNotEmpty()
+      for (module in modules) {
+        assertThat(module.getModuleSystem().useAndroidX)
+          .named("module[\"{}\"].moduleSystem.useAndroidx", module.name)
+          .isTrue()
+      }
     }
   }
 

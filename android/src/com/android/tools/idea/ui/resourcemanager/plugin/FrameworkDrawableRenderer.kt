@@ -18,8 +18,9 @@ package com.android.tools.idea.ui.resourcemanager.plugin
 import com.android.ide.common.rendering.api.ResourceValue
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.RenderTask
+import com.android.tools.idea.rendering.StudioRenderService
+import com.android.tools.idea.rendering.taskBuilder
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
@@ -37,7 +38,7 @@ private val FRAMEWORK_DRAWABLE_KEY = Key.create<FrameworkDrawableRenderer>(Frame
 
 private fun createRenderTask(facet: AndroidFacet,
                              configuration: Configuration): CompletableFuture<RenderTask?> {
-  return RenderService.getInstance(facet.module.project)
+  return StudioRenderService.getInstance(facet.module.project)
     .taskBuilder(facet, configuration)
     .build()
 }

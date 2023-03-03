@@ -21,12 +21,13 @@ import com.android.tools.adtui.model.stdui.EditorCompletion
 import com.intellij.openapi.module.Module
 import org.jetbrains.android.sdk.AndroidPlatform
 import org.jetbrains.android.sdk.AndroidTargetData
+import org.jetbrains.android.sdk.getInstance
 
 class ActionTextFieldModel : DefaultCommonTextFieldModel("", "e.g. ACTION_SEND") {
   private lateinit var actions: List<String>
 
   fun populateCompletions(module: Module) {
-    val platform = AndroidPlatform.getInstance(module) ?: return
+    val platform = getInstance(module) ?: return
     val targetData = AndroidTargetData.get(platform.sdkData, platform.target)
     val activityActions = targetData.staticConstantsData.activityActions ?: return
     actions = activityActions

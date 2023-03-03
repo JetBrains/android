@@ -71,6 +71,7 @@ import com.google.common.base.Charsets
 import com.intellij.diff.comparison.ComparisonManager
 import com.intellij.diff.comparison.ComparisonPolicy.IGNORE_WHITESPACES
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.ReadonlyStatusHandler
@@ -189,9 +190,20 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
   }
 
   override fun applyPlugin(plugin: String, revision: String?, minRev: String?) {
-    referencesExecutor.applyPlugin(plugin, revision)
+    referencesExecutor.applyPlugin(plugin, revision, minRev)
 
     val buildModel = moduleGradleBuildModel ?: return
+    applyPluginInBuildModel(plugin, buildModel, revision, minRev)
+  }
+
+  override fun applyPluginInModule(plugin: String, module: Module, revision: String?, minRev: String?) {
+    referencesExecutor.applyPluginInModule(plugin, module, revision, minRev)
+
+    val buildModel = projectBuildModel?.getModuleBuildModel(module) ?: return
+    applyPluginInBuildModel(plugin, buildModel, revision, minRev)
+  }
+
+  private fun applyPluginInBuildModel(plugin: String, buildModel: GradleBuildModel, revision: String?, minRev: String?) {
     buildModel.applyPluginIfNone(plugin)
 
     if (revision != null) {
@@ -199,8 +211,8 @@ class DefaultRecipeExecutor(private val context: RenderingContext) : RecipeExecu
                                               ?: maybeGetPluginsFromProject()?.let { Pair(it, false) }
                                               ?: return
 
-      val pluginCoordinate =  "$plugin:$plugin.gradle.plugin:$revision"
-      val resolvedVersion = resolveDependency(repositoryUrlManager, pluginCoordinate, minRev).lowerBoundVersion?.toString() ?: revision
+      val pluginCoordinate = "$plugin:$plugin.gradle.plugin:$revision"
+      val resolvedVersion = resolveDependency(repositoryUrlManager, pluginCoordinate, minRev).lowerBoundVersion.toString()
       val targetPluginModel = pluginsBlockToModify.plugins().firstOrNull { it.name().toString() == plugin }
 
       if (targetPluginModel == null) {

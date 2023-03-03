@@ -111,7 +111,9 @@ class AppInspectionToolWindowManagerListenerTest {
           ideServices,
           appInspectionServiceRule.scope,
           uiDispatcher
-        ) { it.name == FakeTransportService.FAKE_PROCESS_NAME }
+        ) {
+          it.name == FakeTransportService.FAKE_PROCESS_NAME
+        }
       }
     Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
     lateinit var toolWindow: ToolWindow

@@ -24,12 +24,13 @@ private const val CURVES_SIMILARITY = 0.015
  * * [startMs] start point of the animation
  * * [endMs] end point of the animation
  * * [grouped] true if all components have the same curve, in that case [dimension] is 1 and
- * [components] only contain the first component, regardless of the original number of the
- * [components].
+ *   [components] only contain the first component, regardless of the original number of the
+ *   [components].
  * * [dimension] of the property, for example 4 for Rect or Color, 2 for Offset
  * * [components] animation information for each of the components of the property for example for
- * Rect it includes [AnimatedComponent] for left, top, right, bottom components. Each of the
- * [AnimatedComponent] includes
+ *   Rect it includes [AnimatedComponent] for left, top, right, bottom components. Each of the
+ *   [AnimatedComponent] includes
+ *
  * ```
  *    * [AnimatedComponent.maxValue] and [AnimatedComponent.minValue] of that component
  *    * [AnimatedComponent.linkToNext] true if it's not the last component

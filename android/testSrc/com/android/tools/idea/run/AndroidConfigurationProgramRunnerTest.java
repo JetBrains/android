@@ -21,7 +21,6 @@ import static org.mockito.Mockito.mock;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
-import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner;
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorRunProfileState;
@@ -45,7 +44,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.Icon;
-import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -97,7 +95,7 @@ public class AndroidConfigurationProgramRunnerTest {
         .getFactory());
     FakeExecutionTarget target = new FakeExecutionTarget();
     AndroidConfigurationProgramRunner runner =
-      new AndroidConfigurationProgramRunner(GradleSyncState::getInstance, (project, profileState) -> target) {
+      new AndroidConfigurationProgramRunner((project, profileState) -> target) {
         @NotNull
         @Override
         protected List<String> getSupportedConfigurationTypeIds() {
@@ -116,9 +114,10 @@ public class AndroidConfigurationProgramRunnerTest {
 
         @NotNull
         @Override
-        protected Function1<ProgressIndicator, RunContentDescriptor> getRunner(@NotNull ExecutionEnvironment environment,
-                                                                               @NotNull RunProfileState state) {
-          return (ProgressIndicator x) -> mock(RunContentDescriptor.class);
+        protected RunContentDescriptor run(@NotNull ExecutionEnvironment environment,
+                                           @NotNull RunProfileState state,
+                                           @NotNull ProgressIndicator indicator) throws ExecutionException {
+          return mock(RunContentDescriptor.class);
         }
       };
     target.setAvailableDeviceCount(2);
@@ -131,7 +130,7 @@ public class AndroidConfigurationProgramRunnerTest {
       RunManager.getInstance(projectRule.getProject()).createConfiguration("app", AndroidRunConfigurationType.getInstance().getFactory());
     FakeExecutionTarget target = new FakeExecutionTarget();
     AndroidConfigurationProgramRunner runner =
-      new AndroidConfigurationProgramRunner(GradleSyncState::getInstance, (project, profileState) -> target) {
+      new AndroidConfigurationProgramRunner((project, profileState) -> target) {
         @NotNull
         @Override
         protected List<String> getSupportedConfigurationTypeIds() {
@@ -150,11 +149,10 @@ public class AndroidConfigurationProgramRunnerTest {
 
         @NotNull
         @Override
-        protected Function1<ProgressIndicator, RunContentDescriptor> getRunner(@NotNull ExecutionEnvironment environment,
-                                                                               @NotNull RunProfileState state) {
-          return (ProgressIndicator x) -> {
-            throw new RuntimeException("Exception in Runner");
-          };
+        protected RunContentDescriptor run(@NotNull ExecutionEnvironment environment,
+                                           @NotNull RunProfileState state,
+                                           @NotNull ProgressIndicator indicator) throws ExecutionException {
+          throw new RuntimeException("Exception in Runner");
         }
       };
     ExecutionEnvironment env =
@@ -182,12 +180,13 @@ public class AndroidConfigurationProgramRunnerTest {
       new AndroidRunConfiguration(projectRule.getProject(), AndroidRunConfigurationType.getInstance().getFactory());
     FakeExecutionTarget target = new FakeExecutionTarget();
     AndroidConfigurationProgramRunner runner =
-      new AndroidConfigurationProgramRunner(GradleSyncState::getInstance, (project, profileState) -> target) {
+      new AndroidConfigurationProgramRunner((project, profileState) -> target) {
         @NotNull
         @Override
-        protected Function1<ProgressIndicator, RunContentDescriptor> getRunner(@NotNull ExecutionEnvironment environment,
-                                                                               @NotNull RunProfileState state) {
-          return (ProgressIndicator x) -> mock(RunContentDescriptor.class);
+        protected RunContentDescriptor run(@NotNull ExecutionEnvironment environment,
+                                           @NotNull RunProfileState state,
+                                           @NotNull ProgressIndicator indicator) throws ExecutionException {
+          return mock(RunContentDescriptor.class);
         }
 
         @NotNull

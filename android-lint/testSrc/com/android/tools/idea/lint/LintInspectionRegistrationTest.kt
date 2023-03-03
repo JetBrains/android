@@ -19,8 +19,8 @@ import com.android.SdkConstants.DOT_JAVA
 import com.android.SdkConstants.DOT_KT
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase.LINT_INSPECTION_PREFIX
-import com.android.tools.idea.lint.common.LintIdeIssueRegistry
 import com.android.tools.idea.lint.common.LintIdeClient.SUPPORT_CLASS_FILES
+import com.android.tools.idea.lint.common.LintIdeIssueRegistry
 import com.android.tools.lint.checks.CheckResultDetector
 import com.android.tools.lint.checks.PermissionDetector
 import com.android.tools.lint.checks.ViewTypeDetector
@@ -36,9 +36,6 @@ import com.google.common.base.Joiner
 import com.google.common.collect.Lists
 import com.google.common.collect.Sets
 import com.intellij.psi.PsiElement
-import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
-import org.junit.Assert
 import java.io.File
 import java.lang.String.CASE_INSENSITIVE_ORDER
 import java.lang.reflect.Modifier
@@ -47,13 +44,18 @@ import java.util.Calendar
 import java.util.Comparator
 import java.util.Locale
 import kotlin.text.Charsets.UTF_8
+import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
+import org.junit.Assert
 
 /**
  * Ensures that all relevant lint checks are available and registered
+ *
  * <p>
+ *
  * TODO: For inspections that have safe fixes, mark the inspections with the interface
- * com.intellij.codeInspection.CleanupLocalInspectionTool . However, that also requires
- * it to provide a LocalInspectionTool via getSharedLocalInspectionToolWrapper.
+ *   com.intellij.codeInspection.CleanupLocalInspectionTool . However, that also requires it to
+ *   provide a LocalInspectionTool via getSharedLocalInspectionToolWrapper.
  */
 class LintInspectionRegistrationTest : AndroidTestCase() {
   init {
@@ -63,22 +65,25 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
   fun testAllLintChecksRegistered() {
     assertTrue(
       "Not all lint checks have been registered. See the standard output for instructions on how to register the missing checks.",
-      checkAllLintChecksRegistered())
+      checkAllLintChecksRegistered()
+    )
   }
 
   companion object {
     private fun findSourceTree(): File? {
       val sourceTree =
         System.getenv(ADT_SOURCE_TREE)
-        ?: System.getProperty(ADT_SOURCE_TREE)
-        // Tip: you can temporarily set your own path here:
-        // ?: "/your/path"
-        ?: return null
+          ?: System.getProperty(ADT_SOURCE_TREE)
+          // Tip: you can temporarily set your own path here:
+          // ?: "/your/path"
+          ?: return null
 
       return if (sourceTree.isNotBlank()) {
         File(sourceTree).apply {
           if (!File(this, ".repo").isDirectory) {
-            Assert.fail("Invalid directory $this: should be pointing to the root of a tools checkout directory")
+            Assert.fail(
+              "Invalid directory $this: should be pointing to the root of a tools checkout directory"
+            )
           }
         }
       } else null
@@ -106,12 +111,19 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
 
       // Spit out registration information for the missing elements
       val sb = StringBuilder(1000)
-      sb.append("Missing registration for ").append(missing.size).append(" issues (out of a total issue count of ")
-        .append(allIssues.size).append(")")
+      sb
+        .append("Missing registration for ")
+        .append(missing.size)
+        .append(" issues (out of a total issue count of ")
+        .append(allIssues.size)
+        .append(")")
       if (root == null) {
         sb.append(
-          "\n***If you set the environment variable " + ADT_SOURCE_TREE + " (or set it as a system property in the test run " +
-          "config) this test can automatically create/edit the files for you!***\n")
+          "\n***If you set the environment variable " +
+            ADT_SOURCE_TREE +
+            " (or set it as a system property in the test run " +
+            "config) this test can automatically create/edit the files for you!***\n"
+        )
       }
       insertMissingRegistrations(missing, root, sb, androidSpecific = false)
       insertMissingRegistrations(missing, root, sb, androidSpecific = true)
@@ -119,20 +131,26 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
       writeMissingInspectionClasses(sb, missing, root, androidSpecific = true)
       insertMissingMessages(sb, missing, root, androidSpecific = false)
       insertMissingMessages(sb, missing, root, androidSpecific = true)
-      sb.append("\nAdded registrations for ").append(missing.size).append(" issues (out of a total issue count of ")
-        .append(allIssues.size).append(")\n")
+      sb
+        .append("\nAdded registrations for ")
+        .append(missing.size)
+        .append(" issues (out of a total issue count of ")
+        .append(allIssues.size)
+        .append(")\n")
       println(sb.toString())
       return false
     }
 
-    private fun insertMissingMessages(sb: StringBuilder,
-                                      missing: List<Issue>,
-                                      root: File?,
-                                      androidSpecific: Boolean) {
-      val suffix = if (androidSpecific)
-        "tools/adt/idea/android-lint/resources/messages/AndroidLintBundle.properties"
-      else
-        "tools/adt/idea/lint/resources/messages/LintBundle.properties"
+    private fun insertMissingMessages(
+      sb: StringBuilder,
+      missing: List<Issue>,
+      root: File?,
+      androidSpecific: Boolean
+    ) {
+      val suffix =
+        if (androidSpecific)
+          "tools/adt/idea/android-lint/resources/messages/AndroidLintBundle.properties"
+        else "tools/adt/idea/lint/resources/messages/LintBundle.properties"
       if (root == null) {
         sb.append("\nAdd to $suffix (and try to preserve alphabetical order):\n")
       }
@@ -142,8 +160,12 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
         }
         val messageKey = getMessageKey(issue)
         val desc = StringBuilder()
-        desc.append("android.lint.inspections.").append(messageKey).append("=")
-          .append(SdkUtils.escapePropertyValue(getBriefDescription(issue))).append("\n")
+        desc
+          .append("android.lint.inspections.")
+          .append(messageKey)
+          .append("=")
+          .append(SdkUtils.escapePropertyValue(getBriefDescription(issue)))
+          .append("\n")
         var performed = false
         if (root != null) {
           val insert = desc.toString()
@@ -161,17 +183,24 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
                 break
               }
               val line = original.substring(begin, end)
-              if (line.startsWith("android.lint.inspections.") &&
+              if (
+                line.startsWith("android.lint.inspections.") &&
                   !line.startsWith("android.lint.inspections.group.name") &&
                   !line.startsWith("android.lint.inspections.subgroup.name") &&
                   // Passed all lint keys: insert it here (must be newly last alphabetical issue)
                   line.compareTo(insert, ignoreCase = true) > 0 ||
                   line.startsWith("android.lint.fix.") ||
-                  !original.contains("android.lint.inspections")) {
+                  !original.contains("android.lint.inspections")
+              ) {
                 performed = true
                 val contents = original.substring(0, begin) + insert + original.substring(begin)
                 propertyFile.writeText(contents, UTF_8)
-                desc.append(" <automatically updated ").append(propertyFile.name).append(" in ").append(root).append(">\n")
+                desc
+                  .append(" <automatically updated ")
+                  .append(propertyFile.name)
+                  .append(" in ")
+                  .append(root)
+                  .append(">\n")
                 break
               }
               begin = end + 1
@@ -184,14 +213,16 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
       }
     }
 
-    private fun writeMissingInspectionClasses(sb: StringBuilder,
-                                              missing: List<Issue>,
-                                              root: File?,
-                                              androidSpecific: Boolean) {
-      val suffix = if (androidSpecific)
-        "tools/adt/idea/android-lint/src/com/android/tools/idea/lint/inspections"
-      else
-        "tools/adt/idea/lint/src/com/android/tools/idea/lint/common"
+    private fun writeMissingInspectionClasses(
+      sb: StringBuilder,
+      missing: List<Issue>,
+      root: File?,
+      androidSpecific: Boolean
+    ) {
+      val suffix =
+        if (androidSpecific)
+          "tools/adt/idea/android-lint/src/com/android/tools/idea/lint/inspections"
+        else "tools/adt/idea/lint/src/com/android/tools/idea/lint/common"
       if (root == null) {
         sb.append("\nCreate the following classes in $suffix:\n")
       }
@@ -204,7 +235,8 @@ class LintInspectionRegistrationTest : AndroidTestCase() {
         val detectorName = getDetectorClass(issue).simpleName
         val issueName = getIssueFieldName(issue)
         val messageKey = getMessageKey(issue)
-        val code = """
+        val code =
+          """
 /*
  * Copyright (C) ${Calendar.getInstance()[Calendar.YEAR]} The Android Open Source Project
  *
@@ -232,10 +264,13 @@ import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.LintBundle.Companion.message
 import $detectorClass
 """}
-class $LINT_INSPECTION_PREFIX${id}Inspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.$messageKey"), $detectorName.$issueName
-)
-""".trim()
+class $LINT_INSPECTION_PREFIX${id}Inspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.$messageKey"),
+    $detectorName.$issueName
+  )
+"""
+            .trim()
         if (root != null) {
           val packageDir = File(root, suffix)
           assertTrue(packageDir.toString(), packageDir.exists())
@@ -243,28 +278,35 @@ class $LINT_INSPECTION_PREFIX${id}Inspection : AndroidLintInspectionBase(
           if (!to.isFile && !File(to.path.removeSuffix(DOT_KT) + DOT_JAVA).exists()) {
             to.writeText(code, UTF_8)
             sb.append(" <automatically created ").append(to).append(">\n")
-          }
-          else {
+          } else {
             sb.append(" <already exists: ").append(to).append(">\n")
           }
-        }
-        else {
-          sb.append(suffix).append("/").append(LINT_INSPECTION_PREFIX).append(id).append("Inspection.kt").append(":\n")
+        } else {
+          sb
+            .append(suffix)
+            .append("/")
+            .append(LINT_INSPECTION_PREFIX)
+            .append(id)
+            .append("Inspection.kt")
+            .append(":\n")
           sb.append(code)
         }
       }
     }
 
-    private fun insertMissingRegistrations(missing: List<Issue>,
-                                           root: File?,
-                                           sb: StringBuilder,
-                                           androidSpecific: Boolean) {
-      val suffix = if (androidSpecific)
-        "tools/adt/idea/android-lint/src/META-INF/android-lint-plugin.xml"
-      else
-        "tools/adt/idea/lint/src/META-INF/lint-plugin.xml"
+    private fun insertMissingRegistrations(
+      missing: List<Issue>,
+      root: File?,
+      sb: StringBuilder,
+      androidSpecific: Boolean
+    ) {
+      val suffix =
+        if (androidSpecific) "tools/adt/idea/android-lint/src/META-INF/android-lint-plugin.xml"
+        else "tools/adt/idea/lint/src/META-INF/lint-plugin.xml"
       if (root == null) {
-        sb.append("\nRegister the following inspections in $suffix (and try to preserve case insensitive alphabetical order):\n")
+        sb.append(
+          "\nRegister the following inspections in $suffix (and try to preserve case insensitive alphabetical order):\n"
+        )
       }
       for (issue in missing.sortedBy { it.id.toLowerCaseAsciiOnly() }) {
         if (issue.isAndroidSpecific() != androidSpecific) {
@@ -287,17 +329,14 @@ class $LINT_INSPECTION_PREFIX${id}Inspection : AndroidLintInspectionBase(
         desc.append("\" bundle=\"messages.$bundle\" enabledByDefault=\"")
         desc.append(issue.isEnabledByDefault())
         desc.append("\" level=\"")
-        val severityString = if (issue.defaultSeverity === Severity.ERROR || issue.defaultSeverity === Severity.FATAL)
-          "ERROR"
-        else if (issue.defaultSeverity === Severity.WARNING)
-          "WARNING"
-        else
-          "INFO"
+        val severityString =
+          if (issue.defaultSeverity === Severity.ERROR || issue.defaultSeverity === Severity.FATAL)
+            "ERROR"
+          else if (issue.defaultSeverity === Severity.WARNING) "WARNING" else "INFO"
         desc.append(severityString)
-        val packagePrefix = if (androidSpecific)
-          "com.android.tools.idea.lint.inspections."
-        else
-          "com.android.tools.idea.lint.common."
+        val packagePrefix =
+          if (androidSpecific) "com.android.tools.idea.lint.inspections."
+          else "com.android.tools.idea.lint.common."
         desc.append("\" implementationClass=\"")
         desc.append(packagePrefix)
         desc.append(LINT_INSPECTION_PREFIX)
@@ -321,14 +360,18 @@ class $LINT_INSPECTION_PREFIX${id}Inspection : AndroidLintInspectionBase(
               }
               val line = original.substring(begin, end)
               val trimmed = line.trim()
-              if (trimmed.startsWith(
-                  "<globalInspection hasStaticDescription=\"true\" shortName=\"$LINT_INSPECTION_PREFIX") &&
-                  trimmed.compareTo(insert,
-                                    ignoreCase = true) > 0 ||  // Passed all lint registration entries: insert it here (must be newly last alphabetical issue)
-                  trimmed.startsWith("<globalInspection hasStaticDescription=\"true\" shortName=\"PermissionUsageInspection\"") ||
+              if (
+                trimmed.startsWith(
+                  "<globalInspection hasStaticDescription=\"true\" shortName=\"$LINT_INSPECTION_PREFIX"
+                ) && trimmed.compareTo(insert, ignoreCase = true) > 0 ||
+                  trimmed.startsWith(
+                    "<globalInspection hasStaticDescription=\"true\" shortName=\"PermissionUsageInspection\""
+                  ) ||
                   trimmed.startsWith("</extensions>") ||
-                  !original.contains("<globalInspection")) {
-                val contents = original.substring(0, begin) + "    " + insert + original.substring(begin)
+                  !original.contains("<globalInspection")
+              ) {
+                val contents =
+                  original.substring(0, begin) + "    " + insert + original.substring(begin)
                 plugin.writeText(contents, UTF_8)
                 sb.append(" <automatically updated $suffix in ").append(root).append(">\n")
                 performed = true
@@ -357,13 +400,15 @@ class $LINT_INSPECTION_PREFIX${id}Inspection : AndroidLintInspectionBase(
         var hasQuickFix = true
         try {
           provider.javaClass.getDeclaredMethod("getQuickFixes", String::class.java)
-        }
-        catch (e1: NoSuchMethodException) {
+        } catch (e1: NoSuchMethodException) {
           try {
-            provider.javaClass.getDeclaredMethod("getQuickFixes", PsiElement::class.java, PsiElement::class.java,
-                                                 String::class.java)
-          }
-          catch (e2: NoSuchMethodException) {
+            provider.javaClass.getDeclaredMethod(
+              "getQuickFixes",
+              PsiElement::class.java,
+              PsiElement::class.java,
+              String::class.java
+            )
+          } catch (e2: NoSuchMethodException) {
             hasQuickFix = false
           }
         }
@@ -397,7 +442,9 @@ class $LINT_INSPECTION_PREFIX${id}Inspection : AndroidLintInspectionBase(
         println("import $cls;")
       }
       println()
-      println("ourStudioFixes = Sets.newHashSet(\n    " + Joiner.on(",\n    ").join(fields) + "\n);\n")
+      println(
+        "ourStudioFixes = Sets.newHashSet(\n    " + Joiner.on(",\n    ").join(fields) + "\n);\n"
+      )
     }
 
     /** Returns the known issues that have not been registered as inspections */
@@ -405,14 +452,18 @@ class $LINT_INSPECTION_PREFIX${id}Inspection : AndroidLintInspectionBase(
       // For some reason*, I can't just use
       //   AndroidLintInspectionBase.getInspectionShortNameByIssue
       // to iterate the available inspections from unit tests; at runtime this will enumerate all
-      // the available inspections, but from unit tests (even when extending IdeaTestCase) it's empty.
-      // So instead we take advantage of the knowledge that all our inspections are named in a particular
+      // the available inspections, but from unit tests (even when extending IdeaTestCase) it's
+      // empty.
+      // So instead we take advantage of the knowledge that all our inspections are named in a
+      // particular
       // way from the lint issue id's, so we can use reflection to find the classes.
-      // This won't catch cases if we declare a class there and forget to register in the plugin, but
+      // This won't catch cases if we declare a class there and forget to register in the plugin,
+      // but
       // it's better than nothing.
       //
       // *: This is probably because the inspection registration file is only depended on by
-      // the android-plugin's plugin.xml file. To fix this (TODO), I likely only have to also reference it
+      // the android-plugin's plugin.xml file. To fix this (TODO), I likely only have to also
+      // reference it
       // from android/testSrc/META-INF/plugin.xml!
       val registered: MutableSet<String> = HashSet(400)
       val fullRegistry = LintIdeIssueRegistry.get()
@@ -431,50 +482,64 @@ class $LINT_INSPECTION_PREFIX${id}Inspection : AndroidLintInspectionBase(
           continue
         }
         val implementation = issue.implementation
-        if (implementation.scope.contains(Scope.CLASS_FILE) ||
+        if (
+          implementation.scope.contains(Scope.CLASS_FILE) ||
             implementation.scope.contains(Scope.ALL_CLASS_FILES) ||
-            implementation.scope.contains(Scope.JAVA_LIBRARIES)) {
-          assertFalse(SUPPORT_CLASS_FILES) // When enabled, adjust this to register class based registrations
+            implementation.scope.contains(Scope.JAVA_LIBRARIES)
+        ) {
+          assertFalse(
+            SUPPORT_CLASS_FILES
+          ) // When enabled, adjust this to register class based registrations
           var isOk = false
           for (analysisScope in implementation.analysisScopes) {
-            if (!analysisScope.contains(Scope.CLASS_FILE)
-                && !analysisScope.contains(Scope.ALL_CLASS_FILES)
-                && !analysisScope.contains(Scope.JAVA_LIBRARIES)) {
+            if (
+              !analysisScope.contains(Scope.CLASS_FILE) &&
+                !analysisScope.contains(Scope.ALL_CLASS_FILES) &&
+                !analysisScope.contains(Scope.JAVA_LIBRARIES)
+            ) {
               isOk = true
               break
             }
           }
           if (!isOk) {
-            println("Skipping issue $issue because it requires classfile analysis. Consider rewriting in IDEA.")
+            println(
+              "Skipping issue $issue because it requires classfile analysis. Consider rewriting in IDEA."
+            )
             continue
           }
         }
         missing.add(issue)
       }
 
-      missing.sortWith(Comparator { issue1: Issue, issue2: Issue -> CASE_INSENSITIVE_ORDER.compare(issue1.id, issue2.id) })
+      missing.sortWith(
+        Comparator { issue1: Issue, issue2: Issue ->
+          CASE_INSENSITIVE_ORDER.compare(issue1.id, issue2.id)
+        }
+      )
 
       return missing
     }
 
     private fun findInspectionClass(issue: Issue): Class<*>? {
       val base = "com.android.tools.idea.lint"
-      val className = "$base.${if (issue.isAndroidSpecific()) "inspections." else "common."}$LINT_INSPECTION_PREFIX${issue.id}Inspection"
+      val className =
+        "$base.${if (issue.isAndroidSpecific()) "inspections." else "common."}$LINT_INSPECTION_PREFIX${issue.id}Inspection"
       try {
         val c = Class.forName(className)
-        if (AndroidLintInspectionBase::class.java.isAssignableFrom(c) && c.modifiers and Modifier.ABSTRACT == 0) {
+        if (
+          AndroidLintInspectionBase::class.java.isAssignableFrom(c) &&
+            c.modifiers and Modifier.ABSTRACT == 0
+        ) {
           return c
         }
-      }
-      catch (ignore: ClassNotFoundException) {
-      }
+      } catch (ignore: ClassNotFoundException) {}
       return null
     }
 
     private fun getIssueFieldName(issue: Issue): String {
-      val detectorClass = getDetectorClass(
-        issue)
-      // Use reflection on the detector class, check all field instances and compare id's to locate the right one
+      val detectorClass = getDetectorClass(issue)
+      // Use reflection on the detector class, check all field instances and compare id's to locate
+      // the right one
       for (field in detectorClass.declaredFields) {
         if (field.modifiers and Modifier.STATIC != 0) {
           try {
@@ -484,8 +549,7 @@ class $LINT_INSPECTION_PREFIX${id}Inspection : AndroidLintInspectionBase(
                 return field.name
               }
             }
-          }
-          catch (e: IllegalAccessException) { // pass; use default instead
+          } catch (e: IllegalAccessException) { // pass; use default instead
           }
         }
       }

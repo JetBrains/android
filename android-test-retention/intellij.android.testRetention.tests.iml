@@ -12,7 +12,7 @@
     <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.core" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.streaming" scope="TEST" />
-    <orderEntry type="module" module-name="intellij.android.streaming.tests" scope="TEST" />
+    <orderEntry type="module" module-name="intellij.android.streaming.testUtil" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testFramework" scope="TEST" />
     <orderEntry type="module" module-name="intellij.android.testRetention" scope="TEST" />
     <orderEntry type="library" scope="TEST" name="truth" level="project" />

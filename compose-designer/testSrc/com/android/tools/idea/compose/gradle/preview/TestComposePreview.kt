@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.gradle.preview
 
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
+import com.android.tools.idea.common.surface.SurfaceInteractable
 import com.android.tools.idea.compose.preview.ComposePreviewView
 import com.android.tools.idea.compose.preview.createMainDesignSurfaceBuilder
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
@@ -39,15 +40,24 @@ internal class TestComposePreviewView(
   project: Project,
   navigationHandler: NavigationHandler = ComposePreviewNavigationHandler()
 ) : ComposePreviewView, JPanel() {
+  var interactionPaneProvider: () -> JComponent? = { null }
+  val delegateInteractionHandler = DelegateInteractionHandler()
+
   override val mainSurface: NlDesignSurface =
     createMainDesignSurfaceBuilder(
         project,
         navigationHandler,
-        DelegateInteractionHandler(),
+        delegateInteractionHandler,
         { null },
         parentDisposable,
         ComposeSceneComponentProvider()
       )
+      .setInteractableProvider {
+        object : SurfaceInteractable(it) {
+          override val interactionPane: JComponent
+            get() = interactionPaneProvider() ?: super.interactionPane
+        }
+      }
       .build()
   override val component: JComponent
     get() = this
@@ -90,4 +100,6 @@ internal class TestComposePreviewView(
       if (nextRefreshListener == null) nextRefreshListener = CompletableDeferred()
       nextRefreshListener!!
     }
+
+  override fun onLayoutlibNativeCrash(onLayoutlibReEnable: () -> Unit) {}
 }

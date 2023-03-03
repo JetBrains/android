@@ -52,7 +52,7 @@ internal object PsiPickerManager {
    * @param location the location on screen from which the Picker popup will be shown
    * @param displayTitle Title displayed at the top of the Picker popup
    * @param model model used to drive the picker, defines how properties are edited and how the UI
-   * is built
+   *   is built
    * @param balloonPosition position of the picker
    */
   fun show(

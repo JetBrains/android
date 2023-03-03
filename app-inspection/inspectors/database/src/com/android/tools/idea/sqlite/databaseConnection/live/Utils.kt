@@ -126,7 +126,8 @@ internal fun handleError(
   // Ignore race conditions for short-lived dbs.
   // Short lived dbs can be closed after the "db open" event is received and before the next command
   // is executed.
-  if (errorContent.errorCode ==
+  if (
+    errorContent.errorCode ==
       SqliteInspectorProtocol.ErrorContent.ErrorCode.ERROR_NO_OPEN_DATABASE_WITH_REQUESTED_ID ||
       errorContent.errorCode ==
         SqliteInspectorProtocol.ErrorContent.ErrorCode.ERROR_DB_CLOSED_DURING_OPERATION
@@ -185,11 +186,11 @@ internal fun getErrorMessage(errorContent: SqliteInspectorProtocol.ErrorContent)
   /**
    * Errors can be "recoverable", "unrecoverable" or "unknown if recoverable".
    * 1. "Recoverable" errors are errors after which execution can continue as normal (eg. typo in
-   * query).
+   *    query).
    * 2. "Unrecoverable" errors are errors after which the state of on-device inspector is corrupted
-   * and app needs restart.
+   *    and app needs restart.
    * 3. "Unknown if recoverable" means the on-device inspector doesn't have enough information to
-   * decide if the error is recoverable or not.
+   *    decide if the error is recoverable or not.
    *
    * `errorContent.recoverability.isRecoverable` is:
    * 1. true for "recoverable" errors
@@ -220,6 +221,7 @@ private fun SqliteInspectorProtocol.Column.toSqliteColumn(): SqliteColumn {
 
 /**
  * An exception from the on-device inspector.
+ *
  * @param message The error message of the exception.
  * @param onDeviceStackTrace The stack trace of the exception, captured on the device.
  */

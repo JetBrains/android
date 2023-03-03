@@ -22,11 +22,10 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.DeviceManager;
 import com.android.sdklib.repository.AndroidSdkHandler;
-import com.android.tools.idea.io.FilePaths;
 import com.android.tools.idea.sdk.AndroidSdkPath;
-import com.android.tools.idea.sdk.IdeDeviceManagers;
-import com.android.tools.idea.progress.StudioLoggerProgressIndicator;
+import com.android.tools.idea.sdk.DeviceManagers;
 import com.google.common.collect.Maps;
+import com.intellij.openapi.projectRoots.Sdk;
 import java.lang.ref.SoftReference;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -79,12 +78,21 @@ public class AndroidSdkData {
 
   @Nullable
   public static AndroidSdkData getSdkData(@NotNull String sdkPath) {
-    return getSdkData(FilePaths.stringToFile(sdkPath));
+    return getSdkData(new File(sdkPath));
+  }
+
+  @Nullable
+  public static AndroidSdkData getSdkData(@NotNull Sdk sdk) {
+    String sdkHomePath = sdk.getHomePath();
+    if (sdkHomePath != null) {
+      return getSdkData(sdk.getHomePath());
+    }
+    return null;
   }
 
   private AndroidSdkData(@NotNull File localSdk) {
     mySdkHandler = AndroidSdkHandler.getInstance(AndroidLocationsSingleton.INSTANCE, localSdk.toPath());
-    myDeviceManager = IdeDeviceManagers.getDeviceManager(mySdkHandler);
+    myDeviceManager = DeviceManagers.getDeviceManager(mySdkHandler);
   }
 
   @NotNull
@@ -108,7 +116,7 @@ public class AndroidSdkData {
 
   @Nullable
   public BuildToolInfo getLatestBuildTool(boolean allowPreview) {
-    return mySdkHandler.getLatestBuildTool(new StudioLoggerProgressIndicator(getClass()), allowPreview);
+    return mySdkHandler.getLatestBuildTool(new LoggerProgressIndicator(getClass()), allowPreview);
   }
 
   @NotNull
@@ -119,7 +127,7 @@ public class AndroidSdkData {
 
   @NotNull
   private Collection<IAndroidTarget> getTargetCollection() {
-    ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+    ProgressIndicator progress = new LoggerProgressIndicator(getClass());
     return mySdkHandler.getAndroidTargetManager(progress).getTargets(progress);
   }
 
@@ -156,7 +164,7 @@ public class AndroidSdkData {
 
   @Nullable
   public IAndroidTarget findTargetByHashString(@NotNull String hashString) {
-    ProgressIndicator progress = new StudioLoggerProgressIndicator(getClass());
+    ProgressIndicator progress = new LoggerProgressIndicator(getClass());
     return mySdkHandler.getAndroidTargetManager(progress).getTargetFromHashString(hashString, progress);
   }
 

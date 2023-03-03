@@ -148,7 +148,7 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
   }
 
   override fun getLightRClassesAccessibleFromModule(module: Module, includeTestClasses: Boolean): Collection<PsiClass> {
-    val namespacing = ResourceRepositoryManager.getInstance(module)?.namespacing ?: return emptySet()
+    val namespacing = StudioResourceRepositoryManager.getInstance(module)?.namespacing ?: return emptySet()
     val androidFacet = module.androidFacet ?: return emptySet()
 
     val result = mutableListOf<ResourceClasses>()

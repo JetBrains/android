@@ -15,11 +15,16 @@
  */
 package com.android.tools.idea.compose.gradle
 
+import com.android.tools.adtui.swing.FakeKeyboard
+import com.android.tools.adtui.swing.FakeMouse
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.surface.layout.scaledContentSize
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.testFramework.runInEdtAndWait
+import javax.swing.JLabel
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -49,10 +54,35 @@ suspend fun ComposePreviewRepresentation.waitForRender(
   sceneViewPeerPanels: Set<SceneViewPeerPanel>
 ) =
   withTimeout(timeout = 30.seconds) {
-    while (isActive &&
-      sceneViewPeerPanels.any {
-        (it.sceneView.sceneManager as? LayoutlibSceneManager)?.renderResult == null
-      }) {
+    while (
+      isActive &&
+        sceneViewPeerPanels.any {
+          (it.sceneView.sceneManager as? LayoutlibSceneManager)?.renderResult == null
+        }
+    ) {
       delay(250)
     }
   }
+
+internal fun FakeUi.clickPreviewName(sceneViewPanel: SceneViewPeerPanel) {
+  val nameLabel = sceneViewPanel.sceneViewTopPanel.components.single { it is JLabel }
+  runInEdtAndWait { clickRelativeTo(nameLabel, 1, 1) }
+}
+
+internal fun FakeUi.clickPreviewImage(
+  sceneViewPanel: SceneViewPeerPanel,
+  rightClick: Boolean = false,
+  pressingShift: Boolean = false
+) {
+  sceneViewPanel.positionableAdapter.let {
+    runInEdtAndWait {
+      if (pressingShift) keyboard.press(FakeKeyboard.Key.SHIFT)
+      mouse.click(
+        it.x + it.scaledContentSize.width / 2,
+        it.y + it.scaledContentSize.height / 2,
+        if (rightClick) FakeMouse.Button.RIGHT else FakeMouse.Button.LEFT
+      )
+      if (pressingShift) keyboard.release(FakeKeyboard.Key.SHIFT)
+    }
+  }
+}

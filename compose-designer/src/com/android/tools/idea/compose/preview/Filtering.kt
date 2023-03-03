@@ -26,7 +26,7 @@ import com.google.common.annotations.VisibleForTesting
  *
  * @param delegate the source [PreviewElementProvider] to be filtered.
  * @param groupName the name of the group that will be used to filter the [ComposePreviewElement]s
- * returned from the [delegate].
+ *   returned from the [delegate].
  */
 @VisibleForTesting
 class GroupNameFilteredPreviewProvider<P : ComposePreviewElement>(

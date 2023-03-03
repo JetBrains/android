@@ -90,7 +90,7 @@ class ModuleRClass(
     private val transitivity: Transitivity,
     val _fieldModifier: AndroidLightField.FieldModifier
   ) : ResourcesSource {
-    override fun getResourceNamespace() = ResourceRepositoryManager.getInstance(facet).namespace
+    override fun getResourceNamespace() = StudioResourceRepositoryManager.getInstance(facet).namespace
 
     override fun getFieldModifier() = _fieldModifier
 
@@ -99,12 +99,12 @@ class ModuleRClass(
       TEST -> facet.getModuleSystem().getTestPackageName()
     }
 
-    override fun getResourceRepositoryManager(): ResourceRepositoryManager {
-      return ResourceRepositoryManager.getInstance(facet)
+    override fun getResourceRepositoryManager(): StudioResourceRepositoryManager {
+      return StudioResourceRepositoryManager.getInstance(facet)
     }
 
     override fun getResourceRepository(): LocalResourceRepository {
-      val repoManager = ResourceRepositoryManager.getInstance(facet)
+      val repoManager = StudioResourceRepositoryManager.getInstance(facet)
       return when (sourceSet) {
         MAIN -> when (transitivity) {
           TRANSITIVE -> repoManager.appResources

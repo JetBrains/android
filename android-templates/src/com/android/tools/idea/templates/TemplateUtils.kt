@@ -29,6 +29,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
@@ -226,9 +227,6 @@ fun getAppNameForTheme(appName: String): String {
     .joinToString("") {
       it.usLocaleCapitalize()
     }
-    .filter {
-      // The characters need to be valid characters for Java because name is used for resource names
-      Character.isJavaIdentifierPart(it)
-    }
-  return if (result.isEmpty()) { "App" } else result
+  // The characters need to be valid characters for Kotlin because name is used for resource names
+  return StringUtil.sanitizeJavaIdentifier(result).takeIf { it.isNotEmpty() } ?: "App"
 }

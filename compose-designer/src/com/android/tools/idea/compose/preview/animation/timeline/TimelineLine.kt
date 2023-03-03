@@ -29,6 +29,7 @@ import java.awt.RenderingHints
 
 /**
  * The animation line in [TimelinePanel].
+ *
  * @param minX left position of the line - center of the left circle.
  * @param maxX right position of the the line - center of the right circle.
  * @param rowMinY minimum y when row with animation line start.
@@ -123,6 +124,7 @@ class TimelineLine(
 
   /**
    * Paint circle shape.
+   *
    * @param x coordinate of the center of the circle
    * @param y coordinate of the center of the circle
    */

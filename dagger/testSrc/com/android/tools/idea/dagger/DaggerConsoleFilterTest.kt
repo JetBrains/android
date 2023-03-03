@@ -49,8 +49,10 @@ class DaggerConsoleFilterTest : DaggerTestCase() {
 
     val methodText = "a.b()"
     result =
-      filter.applyFilter(methodText, ERROR_PREFIX.length + classText.length + methodText.length)!!
-        .resultItems.first()!!
+      filter
+        .applyFilter(methodText, ERROR_PREFIX.length + classText.length + methodText.length)!!
+        .resultItems
+        .first()!!
     assertThat(result.highlightStartOffset).isEqualTo(ERROR_PREFIX.length + classText.length)
     assertThat(result.highlightEndOffset).isEqualTo(ERROR_PREFIX.length + classText.length + 3)
   }
@@ -65,7 +67,8 @@ class DaggerConsoleFilterTest : DaggerTestCase() {
       class MyClass {
         class Inner {}
       }
-    """.trimIndent()
+    """
+          .trimIndent()
       )
 
     val innerClass = clazz.findInnerClassByName("Inner", false)!!
@@ -112,7 +115,8 @@ class DaggerConsoleFilterTest : DaggerTestCase() {
           Inner() {}
         }
       }
-    """.trimIndent()
+    """
+            .trimIndent()
         )
         .findMethodsByName("myMethod", true)
         .first()!!
@@ -147,8 +151,9 @@ class DaggerConsoleFilterTest : DaggerTestCase() {
     elementAtCaret = myFixture.elementAtCaret as? PsiMethod
     val innerClassConstructor =
       JavaPsiFacade.getInstance(project)
-          .findClass("example.MyClass.Inner", GlobalSearchScope.allScope(project))!!
-        .constructors.first()
+        .findClass("example.MyClass.Inner", GlobalSearchScope.allScope(project))!!
+        .constructors
+        .first()
     assertThat(elementAtCaret).isEqualTo(innerClassConstructor)
   }
 
@@ -163,7 +168,8 @@ class DaggerConsoleFilterTest : DaggerTestCase() {
           fun myMethod() {}
           class Inner {}
         }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
 
     val filter = DaggerConsoleFilter()

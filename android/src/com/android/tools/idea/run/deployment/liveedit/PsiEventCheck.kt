@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtImportList
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtSecondaryConstructor
@@ -36,6 +37,7 @@ enum class UnsupportedPsiEvent {
   IMPORT_DIRECTIVES,
   CONSTRUCTORS,
   FIELD_CHANGES,
+  NON_KOTLIN,
 }
 
 fun isImportChanges(target: PsiElement?) : Boolean {
@@ -52,14 +54,17 @@ fun isImportChanges(target: PsiElement?) : Boolean {
 
 fun isClassFieldChanges(target: PsiElement?) : Boolean {
   var cur = target
-  var partOfPropertyStatement = false
+  var partOfPropertyStatementOrDeclaration = false
   while(cur != null) {
     when(cur) {
       is KtFunction -> return false
-      is KtClass -> return partOfPropertyStatement
-      is KtFile -> return partOfPropertyStatement
+      is KtClass -> return partOfPropertyStatementOrDeclaration
+      is KtFile -> return partOfPropertyStatementOrDeclaration
       is KtProperty -> {
-        partOfPropertyStatement = true
+        partOfPropertyStatementOrDeclaration = true
+      }
+      is KtObjectDeclaration -> {
+        partOfPropertyStatementOrDeclaration = true
       }
     }
     cur = cur.parent

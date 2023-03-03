@@ -55,6 +55,7 @@ private fun Throwable?.isCompilationError(): Boolean =
     LiveEditUpdateException.Error.ANALYSIS_ERROR -> message?.startsWith("Analyze Error.") ?: false
     LiveEditUpdateException.Error.COMPILATION_ERROR -> true
     LiveEditUpdateException.Error.UNABLE_TO_INLINE,
+    LiveEditUpdateException.Error.NON_KOTLIN,
     LiveEditUpdateException.Error.NON_PRIVATE_INLINE_FUNCTION,
     LiveEditUpdateException.Error.INTERNAL_ERROR,
     LiveEditUpdateException.Error.UNABLE_TO_LOCATE_COMPOSE_GROUP,

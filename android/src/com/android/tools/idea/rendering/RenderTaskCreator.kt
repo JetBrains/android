@@ -49,7 +49,7 @@ fun createRenderTaskFuture(
     )
   configure(configuration)
 
-  return RenderService.getInstance(project)
+  return StudioRenderService.getInstance(project)
     .taskBuilder(facet, configuration)
     .withPsiFile(psiFile)
     .disableDecorations()

@@ -113,12 +113,12 @@ val Module.externalLibraries: List<Path>
 
 /**
  * Package name used to "re-package" certain classes that would conflict with the ones in the Studio class loader.
- * This applies to all packages defined in [ModuleClassLoader.PACKAGES_TO_RENAME].
+ * This applies to all packages defined in [StudioModuleClassLoader.PACKAGES_TO_RENAME].
  */
 internal const val INTERNAL_PACKAGE = "_layoutlib_._internal_."
 
 /**
- * Method uses to remap type names using [ModuleClassLoader.INTERNAL_PACKAGE] as prefix to its original name so they original
+ * Method uses to remap type names using [StudioModuleClassLoader.INTERNAL_PACKAGE] as prefix to its original name so they original
  * class can be loaded from the file system correctly.
  */
 private fun onDiskClassNameLookup(name: String): String = StringUtil.trimStart(name, INTERNAL_PACKAGE)

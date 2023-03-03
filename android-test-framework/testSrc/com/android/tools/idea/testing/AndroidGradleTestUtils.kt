@@ -17,7 +17,6 @@ package com.android.tools.idea.testing
 
 import com.android.builder.model.AndroidProject
 import com.android.builder.model.SyncIssue
-import com.android.builder.model.v2.ide.AndroidGradlePluginProjectFlags
 import com.android.projectmodel.ARTIFACT_NAME_ANDROID_TEST
 import com.android.projectmodel.ARTIFACT_NAME_MAIN
 import com.android.projectmodel.ARTIFACT_NAME_TEST_FIXTURES
@@ -693,7 +692,7 @@ fun AndroidProjectStubBuilder.buildAgpProjectFlagsStub(): IdeAndroidGradlePlugin
     usesCompose = false,
     mlModelBindingEnabled = mlModelBindingEnabled,
     unifiedTestPlatformEnabled = true,
-    useAndroidX = AndroidGradlePluginProjectFlags.BooleanFlag.USE_ANDROID_X.legacyDefault,
+    useAndroidX = false,
   )
 
 fun AndroidProjectStubBuilder.buildDefaultConfigStub() = IdeProductFlavorContainerImpl(
@@ -821,7 +820,7 @@ fun AndroidProjectStubBuilder.buildMainArtifactStub(
     unresolvedDependencies = emptyList(),
     applicationId = applicationId(variant),
     signingConfigName = "defaultConfig",
-    isSigned = false,
+    isSigned = variant == "release",
     generatedResourceFolders = listOfNotNull(
       if (includeRenderScriptSources) buildPath.resolve("generated/res/rs/${variant}") else null,
       buildPath.resolve("generated/res/resValues/${variant}"),
@@ -887,7 +886,7 @@ fun AndroidProjectStubBuilder.buildAndroidTestArtifactStub(
     unresolvedDependencies = emptyList(),
     applicationId = applicationId,
     signingConfigName = "defaultConfig",
-    isSigned = false,
+    isSigned = true,
     generatedResourceFolders = listOfNotNull(
       if (includeRenderScriptSources) buildPath.resolve("generated/res/rs/androidTest/${variant}") else null,
       buildPath.resolve("generated/res/resValues/androidTest/${variant}"),
@@ -2100,6 +2099,7 @@ data class OpenPreparedProjectOptions @JvmOverloads constructor(
     println(e.message)
     e.printStackTrace()
   },
+  val syncViewEventHandler: (BuildEvent) -> Unit = {},
   val subscribe: (MessageBusConnection) -> Unit = {},
   val disableKtsRelatedIndexing: Boolean = false,
   val overrideProjectJdk: Sdk? = null
@@ -2188,7 +2188,7 @@ private fun <T> openPreparedProject(
           if (outputHandler != null || syncExceptionHandler != null) {
             injectSyncOutputDumper(project, project, options.outputHandler ?: {}, options.syncExceptionHandler ?: {})
           }
-          fixDummySyncViewManager(project, disposable)
+          fixDummySyncViewManager(project, disposable, options.syncViewEventHandler)
         }
 
         // NOTE: `::afterCreate` is passed to both `withAfterCreate` and `openOrImport` because, unfortunately, `openOrImport` does not
@@ -2419,7 +2419,7 @@ fun injectBuildOutputDumpingBuildViewManager(
 }
 
 @Suppress("UnstableApiUsage")
-private fun fixDummySyncViewManager(project: Project, disposable: Disposable) {
+private fun fixDummySyncViewManager(project: Project, disposable: Disposable, eventHandler: (BuildEvent) -> Unit = {}) {
   if (project.getService(SyncViewManager::class.java) is DummySyncViewManager) {
     val listeners = CopyOnWriteArrayList<BuildProgressListener>()
     project.replaceService(
@@ -2437,6 +2437,7 @@ private fun fixDummySyncViewManager(project: Project, disposable: Disposable) {
           if (event is MessageEvent) {
             println(event.result.details)
           }
+          eventHandler(event)
           listeners.forEach {
             it.onEvent(buildId, event)
           }

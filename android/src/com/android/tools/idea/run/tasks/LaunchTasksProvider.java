@@ -51,11 +51,7 @@ public interface LaunchTasksProvider {
     throws ExecutionException;
 
   @Nullable
-  ConnectDebuggerTask getConnectDebuggerTask();
+  ConnectDebuggerTask getConnectDebuggerTask() throws ExecutionException;
 
   default void fillStats(RunStats stats) { }
-
-  default String getLaunchTypeDisplayName() {
-    return "Launch";
-  }
 }

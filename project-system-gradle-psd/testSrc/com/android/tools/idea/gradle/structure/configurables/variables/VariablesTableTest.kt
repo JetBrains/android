@@ -43,6 +43,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.wireless.android.sdk.stats.PSDEvent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.ui.ComponentValidator
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.TestDialog
 import com.intellij.openapi.ui.TestDialogManager
@@ -57,7 +58,6 @@ import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.awt.event.KeyEvent
 import javax.swing.JPanel
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
@@ -911,6 +911,45 @@ class VariablesTableTest {
     }
   }
 
+  @Test
+  fun testValidationVariableName() {
+    StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.override(true)
+    StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.override(true)
+    try {
+      val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
+      preparedProject.open { project ->
+        val psProject = PsProjectImpl(project)
+        val variablesTable = VariablesTable(project, contextFor(psProject), psProject, projectRule.testRootDisposable)
+
+        val versionCatalogNode: VersionCatalogNode = (variablesTable.tableModel.root as DefaultMutableTreeNode).children().asSequence().find {
+          it.toString().contains("libs")
+        } as VersionCatalogNode
+        assertThat(versionCatalogNode.children().asSequence().map { it.toString() }.toSet(),
+                   equalTo(setOf("constraint-layout", "guava", "junit", "")))
+        assertThat(versionCatalogNode.children().asSequence().map { it.toString() }.toSet(), not(hasItem("newVersion")))
+
+        //create variable
+        variablesTable.selectNode(versionCatalogNode)
+        variablesTable.createAddVariableStrategy().addVariable(ValueType.STRING)
+        emulateInputAndAssertWarning(variablesTable, " ", "Variable name cannot have whitespaces.")
+        variablesTable.editCellAt(variablesTable.getRowByNode(versionCatalogNode) + 4, 0)
+        emulateInputAndAssertWarning(variablesTable, "", "Variable name cannot be empty.")
+        variablesTable.editCellAt(variablesTable.getRowByNode(versionCatalogNode) + 4, 0)
+        emulateInputAndAssertWarning(variablesTable, "guava", "Duplicate variable name: 'guava'")
+      }
+    }
+    finally {
+      StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.clearOverride()
+      StudioFlags.GRADLE_DSL_TOML_WRITE_SUPPORT.clearOverride()
+    }
+  }
+
+  private fun emulateInputAndAssertWarning(variablesTable: VariablesTable, input:String, expectedMessage:String){
+    variablesTable.simulateTextInput(input) { textBox ->
+      assertThat(textBox.getWarningMessage(), equalTo(expectedMessage))
+    }
+  }
+
   // regression b/258243668
   @Test
   fun testAddVersionCatalogVariableAfterMultipleSelections() {
@@ -1241,9 +1280,14 @@ private fun PsProject.applyAllChanges() {
 }
 
 private fun VariablesTable.simulateTextInput(input: String) {
+  simulateTextInput(input) {}
+}
+
+private fun VariablesTable.simulateTextInput(input: String, f:(JBTextField) -> Unit) {
   val editorComp = editorComponent as JPanel
   val textBox = editorComp.components.first { it is JBTextField } as JBTextField
   textBox.text = input
+  f.invoke(textBox)
   editingStopped(null)
 }
 
@@ -1258,6 +1302,15 @@ private fun VariablesTable.editNode(node: VariablesBaseNode) {
 
 private fun VariablesTable.getRowByNode(node: VariablesBaseNode): Int =
   tree.getRowForPath(TreePath(node.path))
+
+private fun JBTextField.getWarningMessage(): String? {
+  val maybeComponentValidator = ComponentValidator.getInstance(this)
+  if(maybeComponentValidator.isPresent){
+    val info = maybeComponentValidator.get().validationInfo
+    return info?.message
+  }
+  return null
+}
 
 private fun PsVariable.isList() = value.maybeLiteralValue is List<*>
 private fun PsVariable.isMap() = value.maybeLiteralValue is Map<*, *>

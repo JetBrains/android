@@ -224,8 +224,10 @@ class NetworkInspectorTab(
               if (isSelected) detachAction.defaultToolTipText else attachAction.defaultToolTipText
           }
           model.timeline.addDependency(this@NetworkInspectorTab).onChange(
-              StreamingTimeline.Aspect.STREAMING
-            ) { goLiveButton.isSelected = model.timeline.isStreaming }
+            StreamingTimeline.Aspect.STREAMING
+          ) {
+            goLiveButton.isSelected = model.timeline.isStreaming
+          }
           goLiveToolbar.add(goLiveButton)
           actionsToolBar.add(goLiveToolbar)
 

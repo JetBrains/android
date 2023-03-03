@@ -73,23 +73,27 @@ val ICON_EMULATOR =
  *
  * @param createProcessLabel
  * ```
+ *
  * A callback that allows customizing the display label of the top-level
+ *
  * ```
  *     process text, particularly useful for supporting compact modes as necessary. The default
  *     option doesn't worry about consuming horizontal space.
  *
  * @param stopPresentation
  * ```
+ *
  * Optional overrides for the "stop" action that shows up in the list, in case
+ *
  * ```
  *     a particular component needs to show a uniquely customized message.
  *
  * @param onStopAction
  * ```
+ *
  * A callback triggered when the user presses the stop button.
  *
  * @param customDeviceAttribution A callback that allows customization of the device.
- *
  * @param customProcessAttribution A callback that allows customization of a process.
  */
 class SelectProcessAction(
@@ -209,8 +213,7 @@ class SelectProcessAction(
 
     init {
       val (preferredProcesses, otherProcesses) =
-        model
-          .processes
+        model.processes
           .sortedBy { it.name }
           .filter { (it.isRunning || supportsOffline) && (it.device.serial == device.serial) }
           .partition { model.isProcessPreferred(it, includeDead = supportsOffline) }

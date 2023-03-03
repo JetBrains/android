@@ -28,7 +28,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
         Class<?>[] includes() default {};
         Class<?>[] subcomponents() default {};
       }
-      """.trimIndent()
+      """
+      .trimIndent()
   )
   fixture.addFileToProject(
     "dagger/Provides.java",
@@ -37,7 +38,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       package dagger;
 
       public @interface Provides {}
-      """.trimIndent()
+      """
+      .trimIndent()
   )
   fixture.addFileToProject(
     "dagger/Binds.java",
@@ -46,7 +48,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       package dagger;
 
       public @interface Binds {}
-      """.trimIndent()
+      """
+      .trimIndent()
   )
   fixture.addFileToProject(
     "dagger/BindsInstance.java",
@@ -55,7 +58,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       package dagger;
 
       public @interface BindsInstance {}
-      """.trimIndent()
+      """
+      .trimIndent()
   )
   fixture.addFileToProject(
     "javax/inject/Inject.java",
@@ -64,7 +68,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       package javax.inject;
 
       public @interface Inject {}
-      """.trimIndent()
+      """
+      .trimIndent()
   )
 
   fixture.addFileToProject(
@@ -74,7 +79,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       package javax.inject;
 
       public @interface Qualifier {}
-      """.trimIndent()
+      """
+      .trimIndent()
   )
   fixture.addFileToProject(
     "dagger/Component.java",
@@ -86,7 +92,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
          Class<?>[] modules() default {};
          Class<?>[] dependencies() default {};
       }
-      """.trimIndent()
+      """
+      .trimIndent()
   )
   fixture.addFileToProject(
     "dagger/Subcomponent.java",
@@ -99,7 +106,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
          @interface Factory {}
          Class<?>[] modules() default {};
       }
-      """.trimIndent()
+      """
+      .trimIndent()
   )
   fixture.addFileToProject(
     "dagger/hilt/EntryPoint.java",
@@ -108,7 +116,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       package dagger.hilt;
 
       public @interface EntryPoint {}
-      """.trimIndent()
+      """
+      .trimIndent()
   )
   fixture.addFileToProject(
     "androidx/hilt/work/WorkerInject.java",
@@ -117,7 +126,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       package androidx.hilt.work;
 
       public @interface WorkerInject {}
-      """.trimIndent()
+      """
+      .trimIndent()
   )
   fixture.addFileToProject(
     "androidx/hilt/lifecycle/ViewModelInject.java",
@@ -126,7 +136,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       package androidx.hilt.lifecycle;
 
       public @interface ViewModelInject {}
-      """.trimIndent()
+      """
+      .trimIndent()
   )
   fixture.addFileToProject(
     "dagger/Lazy.java",
@@ -137,7 +148,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       public interface Lazy<T> {
         T get();
       }
-      """.trimIndent()
+      """
+      .trimIndent()
   )
   fixture.addFileToProject(
     "javax/inject/Provider.java",
@@ -148,7 +160,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       public interface Provider<T> {
         T get();
       }
-      """.trimIndent()
+      """
+      .trimIndent()
   )
   fixture.addFileToProject(
     "dagger/assisted/AssistedInject.java",
@@ -157,7 +170,8 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       package dagger.assisted;
 
       public @interface AssistedInject {}
-      """.trimIndent()
+      """
+      .trimIndent()
   )
   fixture.addFileToProject(
     "dagger/assisted/AssistedFactory.java",
@@ -166,6 +180,7 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       package dagger.assisted;
 
       public @interface AssistedFactory {}
-      """.trimIndent()
+      """
+      .trimIndent()
   )
 }

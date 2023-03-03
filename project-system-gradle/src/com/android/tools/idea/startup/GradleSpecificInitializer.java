@@ -53,6 +53,7 @@ import java.io.File;
 import java.util.List;
 import javax.swing.event.HyperlinkEvent;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -225,7 +226,7 @@ public class GradleSpecificInitializer implements ActionConfigurationCustomizer 
       return;
     }
 
-    AndroidPlatform platform = AndroidPlatform.getInstance(sdk);
+    AndroidPlatform platform = AndroidPlatforms.getInstance(sdk);
     if (platform != null) {
       if (ApplicationManager.getApplication().isWriteThread()) {
         setSources(sdk, platform);

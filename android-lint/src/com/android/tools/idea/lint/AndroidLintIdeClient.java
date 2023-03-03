@@ -46,7 +46,7 @@ import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndexKt;
 import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.idea.res.FrameworkResourceRepositoryManager;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.lint.client.api.PlatformLookup;
 import com.android.tools.lint.client.api.ResourceRepositoryScope;
@@ -433,13 +433,13 @@ public class AndroidLintIdeClient extends LintIdeClient {
             return super.getResources(project, scope); // can't find framework: empty repository
           }
         } else if (scope.includesLibraries()) {
-          return ResourceRepositoryManager.getAppResources(facet);
+          return StudioResourceRepositoryManager.getAppResources(facet);
         }
         else if (scope.includesDependencies()) {
-          return ResourceRepositoryManager.getProjectResources(facet);
+          return StudioResourceRepositoryManager.getProjectResources(facet);
         }
         else {
-          return ResourceRepositoryManager.getModuleResources(facet);
+          return StudioResourceRepositoryManager.getModuleResources(facet);
         }
       }
     }

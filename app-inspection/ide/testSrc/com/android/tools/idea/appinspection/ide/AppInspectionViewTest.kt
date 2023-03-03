@@ -150,7 +150,9 @@ class AppInspectionViewTest {
             ideServices,
             appInspectionServiceRule.scope,
             uiDispatcher
-          ) { it.name == FakeTransportService.FAKE_PROCESS_NAME }
+          ) {
+            it.name == FakeTransportService.FAKE_PROCESS_NAME
+          }
         Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
         inspectionView.tabsChangedFlow.first {
@@ -185,7 +187,9 @@ class AppInspectionViewTest {
             appInspectionServiceRule.scope,
             uiDispatcher,
             TestInspectorArtifactService()
-          ) { it.name == FakeTransportService.FAKE_PROCESS_NAME }
+          ) {
+            it.name == FakeTransportService.FAKE_PROCESS_NAME
+          }
         Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
         inspectionView.tabsChangedFlow.first {
           assertThat(inspectionView.inspectorTabs.size).isEqualTo(1)
@@ -217,7 +221,9 @@ class AppInspectionViewTest {
             ideServices,
             appInspectionServiceRule.scope,
             uiDispatcher
-          ) { it.name == FakeTransportService.FAKE_PROCESS_NAME }
+          ) {
+            it.name == FakeTransportService.FAKE_PROCESS_NAME
+          }
         Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
         inspectionView.tabsChangedFlow.take(2).collectIndexed { i, _ ->
@@ -225,9 +231,11 @@ class AppInspectionViewTest {
             assertThat(inspectionView.inspectorTabs.size).isEqualTo(2)
             inspectionView.inspectorTabs.forEach { it.waitForContent() }
             tabs =
-              inspectionView.inspectorTabs.mapNotNull { it.getUserData(TAB_KEY) }.filter {
-                it.messengers.iterator().hasNext()
-              } // If a tab is "dead", it won't have any messengers
+              inspectionView.inspectorTabs
+                .mapNotNull { it.getUserData(TAB_KEY) }
+                .filter {
+                  it.messengers.iterator().hasNext()
+                } // If a tab is "dead", it won't have any messengers
 
             assertThat(tabs).hasSize(1)
             inspectionView.processesModel.selectedProcess =
@@ -242,8 +250,7 @@ class AppInspectionViewTest {
 
       // Launch two processes and wait for them to show up in combobox
       val fakeDevice =
-        FakeTransportService.FAKE_DEVICE
-          .toBuilder()
+        FakeTransportService.FAKE_DEVICE.toBuilder()
           .setDeviceId(1)
           .setModel("fakeModel")
           .setManufacturer("fakeMan")
@@ -263,8 +270,7 @@ class AppInspectionViewTest {
     runBlocking<Unit> {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val fakeDevice =
-        FakeTransportService.FAKE_DEVICE
-          .toBuilder()
+        FakeTransportService.FAKE_DEVICE.toBuilder()
           .apply {
             deviceId = 1
             model = "fakeModel"
@@ -273,8 +279,7 @@ class AppInspectionViewTest {
           .build()
 
       val fakeProcess =
-        FakeTransportService.FAKE_PROCESS
-          .toBuilder()
+        FakeTransportService.FAKE_PROCESS.toBuilder()
           .apply {
             pid = 1
             deviceId = 1
@@ -292,7 +297,9 @@ class AppInspectionViewTest {
             appInspectionServiceRule.scope,
             uiDispatcher,
             TestInspectorArtifactService()
-          ) { it.name == FakeTransportService.FAKE_PROCESS_NAME }
+          ) {
+            it.name == FakeTransportService.FAKE_PROCESS_NAME
+          }
         Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
         // Test initial tabs added.
@@ -392,7 +399,9 @@ class AppInspectionViewTest {
             appInspectionServiceRule.scope,
             uiDispatcher,
             TestInspectorArtifactService()
-          ) { it.name == FakeTransportService.FAKE_PROCESS_NAME }
+          ) {
+            it.name == FakeTransportService.FAKE_PROCESS_NAME
+          }
         Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
         var previousTabs = mutableListOf<AppInspectorTabShell>()
         inspectionView.tabsChangedFlow.take(3).collectIndexed { i, _ ->
@@ -416,7 +425,12 @@ class AppInspectionViewTest {
               // Verify regardless of tab's offline capability, all messengers are disposed.
               previousTabs.forEach { tab ->
                 assertThat(
-                    tab.getUserData(TAB_KEY)!!.messengers.first().scope.coroutineContext[Job]!!
+                    tab
+                      .getUserData(TAB_KEY)!!
+                      .messengers
+                      .first()
+                      .scope
+                      .coroutineContext[Job]!!
                       .isCancelled
                   )
                   .isTrue()
@@ -452,8 +466,7 @@ class AppInspectionViewTest {
     runBlocking<Unit> {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
       val fakeDevice =
-        FakeTransportService.FAKE_DEVICE
-          .toBuilder()
+        FakeTransportService.FAKE_DEVICE.toBuilder()
           .setDeviceId(1)
           .setModel("fakeModel")
           .setManufacturer("fakeMan")
@@ -471,7 +484,9 @@ class AppInspectionViewTest {
             ideServices,
             appInspectionServiceRule.scope,
             uiDispatcher
-          ) { it.name == FakeTransportService.FAKE_PROCESS_NAME }
+          ) {
+            it.name == FakeTransportService.FAKE_PROCESS_NAME
+          }
         Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
         // Test initial tabs added.
@@ -535,8 +550,7 @@ class AppInspectionViewTest {
       val uiDispatcher = EdtExecutorService.getInstance().asCoroutineDispatcher()
 
       val fakeDevice =
-        FakeTransportService.FAKE_DEVICE
-          .toBuilder()
+        FakeTransportService.FAKE_DEVICE.toBuilder()
           .setDeviceId(1)
           .setModel("fakeModel")
           .setManufacturer("fakeMan")
@@ -579,7 +593,9 @@ class AppInspectionViewTest {
             appInspectionServiceRule.scope,
             uiDispatcher,
             TestInspectorArtifactService()
-          ) { it.name == FakeTransportService.FAKE_PROCESS_NAME }
+          ) {
+            it.name == FakeTransportService.FAKE_PROCESS_NAME
+          }
         Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
         inspectionView.tabsChangedFlow.first {
@@ -641,7 +657,9 @@ class AppInspectionViewTest {
           appInspectionServiceRule.scope,
           uiDispatcher,
           TestInspectorArtifactService()
-        ) { it.name == FakeTransportService.FAKE_PROCESS_NAME }
+        ) {
+          it.name == FakeTransportService.FAKE_PROCESS_NAME
+        }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
       inspectionView.tabsChangedFlow.take(2).collectIndexed { i, _ ->
         if (i == 0) {
@@ -695,7 +713,9 @@ class AppInspectionViewTest {
           appInspectionServiceRule.scope,
           uiDispatcher,
           TestInspectorArtifactService()
-        ) { it.name == FakeTransportService.FAKE_PROCESS_NAME }
+        ) {
+          it.name == FakeTransportService.FAKE_PROCESS_NAME
+        }
       Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
       inspectionView.tabsChangedFlow.take(2).collectIndexed { i, _ ->
         if (i == 0) {
@@ -749,7 +769,9 @@ class AppInspectionViewTest {
             appInspectionServiceRule.scope,
             uiDispatcher,
             TestInspectorArtifactService()
-          ) { it.name == FakeTransportService.FAKE_PROCESS_NAME }
+          ) {
+            it.name == FakeTransportService.FAKE_PROCESS_NAME
+          }
         Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
         inspectionView.tabsChangedFlow.first {
           assertThat(inspectionView.inspectorTabs.size).isEqualTo(1)
@@ -762,7 +784,8 @@ class AppInspectionViewTest {
               AppInspectionBundle.message(
                 "incompatible.version",
                 (provider.launchConfigs.single().params as LibraryInspectorLaunchParams)
-                  .minVersionLibraryCoordinate.toString()
+                  .minVersionLibraryCoordinate
+                  .toString()
               )
             )
 
@@ -809,7 +832,9 @@ class AppInspectionViewTest {
             appInspectionServiceRule.scope,
             uiDispatcher,
             TestInspectorArtifactService()
-          ) { it.name == FakeTransportService.FAKE_PROCESS_NAME }
+          ) {
+            it.name == FakeTransportService.FAKE_PROCESS_NAME
+          }
         Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
         inspectionView.tabsChangedFlow.first {
           assertThat(inspectionView.inspectorTabs.size).isEqualTo(1)
@@ -859,7 +884,9 @@ class AppInspectionViewTest {
             appInspectionServiceRule.scope,
             uiDispatcher,
             TestInspectorArtifactService()
-          ) { it.name == FakeTransportService.FAKE_PROCESS_NAME }
+          ) {
+            it.name == FakeTransportService.FAKE_PROCESS_NAME
+          }
         Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
         inspectionView.tabsChangedFlow.first {
           assertThat(inspectionView.inspectorTabs.size).isEqualTo(1)
@@ -923,7 +950,9 @@ class AppInspectionViewTest {
             appInspectionServiceRule.scope,
             uiDispatcher,
             TestInspectorArtifactService()
-          ) { it.name == FakeTransportService.FAKE_PROCESS_NAME }
+          ) {
+            it.name == FakeTransportService.FAKE_PROCESS_NAME
+          }
         Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
         inspectionView.tabsChangedFlow.first {
           assertThat(inspectionView.inspectorTabs).isEmpty()
@@ -961,7 +990,9 @@ class AppInspectionViewTest {
             appInspectionServiceRule.scope,
             uiDispatcher,
             TestInspectorArtifactService()
-          ) { it.name == FakeTransportService.FAKE_PROCESS_NAME }
+          ) {
+            it.name == FakeTransportService.FAKE_PROCESS_NAME
+          }
         Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
         inspectionView.tabsChangedFlow.first {
           assertThat(inspectionView.inspectorTabs.size).isEqualTo(1)
@@ -973,7 +1004,8 @@ class AppInspectionViewTest {
               AppInspectionBundle.message(
                 "incompatible.version",
                 (provider.launchConfigs.single().params as LibraryInspectorLaunchParams)
-                  .minVersionLibraryCoordinate.toString()
+                  .minVersionLibraryCoordinate
+                  .toString()
               )
             )
 
@@ -1016,7 +1048,9 @@ class AppInspectionViewTest {
           ideServices,
           appInspectionServiceRule.scope,
           uiDispatcher
-        ) { it.name == FakeTransportService.FAKE_PROCESS_NAME }
+        ) {
+          it.name == FakeTransportService.FAKE_PROCESS_NAME
+        }
       }
     Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
@@ -1106,7 +1140,9 @@ class AppInspectionViewTest {
                 }
               }
             }
-          ) { it.name == FakeTransportService.FAKE_PROCESS_NAME }
+          ) {
+            it.name == FakeTransportService.FAKE_PROCESS_NAME
+          }
         Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
         inspectionView.tabsChangedFlow.first {
           assertThat(inspectionView.inspectorTabs.size).isEqualTo(3)
@@ -1119,9 +1155,10 @@ class AppInspectionViewTest {
                   .isEqualTo(
                     AppInspectionBundle.message(
                       "incompatible.version",
-                      (inspectorTab.provider.launchConfigs.single().params as
-                          LibraryInspectorLaunchParams)
-                        .minVersionLibraryCoordinate.toString()
+                      (inspectorTab.provider.launchConfigs.single().params
+                          as LibraryInspectorLaunchParams)
+                        .minVersionLibraryCoordinate
+                        .toString()
                     )
                   )
               }
@@ -1131,9 +1168,10 @@ class AppInspectionViewTest {
                   .isEqualTo(
                     AppInspectionBundle.message(
                       "unresolved.inspector",
-                      (inspectorTab.provider.launchConfigs.single().params as
-                          LibraryInspectorLaunchParams)
-                        .minVersionLibraryCoordinate.toString()
+                      (inspectorTab.provider.launchConfigs.single().params
+                          as LibraryInspectorLaunchParams)
+                        .minVersionLibraryCoordinate
+                        .toString()
                     )
                   )
               }
@@ -1195,7 +1233,9 @@ class AppInspectionViewTest {
           ideServices,
           appInspectionServiceRule.scope,
           uiDispatcher
-        ) { it.name == FakeTransportService.FAKE_PROCESS_NAME }
+        ) {
+          it.name == FakeTransportService.FAKE_PROCESS_NAME
+        }
       }
     Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
@@ -1205,8 +1245,7 @@ class AppInspectionViewTest {
     val fakeProcesses =
       (1..3)
         .map { i ->
-          FakeTransportService.FAKE_PROCESS
-            .toBuilder()
+          FakeTransportService.FAKE_PROCESS.toBuilder()
             .setPid(i)
             .setDeviceId(fakeDevice.deviceId)
             .build()
@@ -1305,7 +1344,9 @@ class AppInspectionViewTest {
           appInspectionServiceRule.scope,
           uiDispatcher,
           TestInspectorArtifactService()
-        ) { it.name == FakeTransportService.FAKE_PROCESS_NAME }
+        ) {
+          it.name == FakeTransportService.FAKE_PROCESS_NAME
+        }
       }
     Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 
@@ -1359,7 +1400,9 @@ class AppInspectionViewTest {
           appInspectionServiceRule.scope,
           uiDispatcher,
           TestInspectorArtifactService()
-        ) { it.name == FakeTransportService.FAKE_PROCESS_NAME }
+        ) {
+          it.name == FakeTransportService.FAKE_PROCESS_NAME
+        }
       }
     Disposer.register(projectRule.fixture.testRootDisposable, inspectionView)
 

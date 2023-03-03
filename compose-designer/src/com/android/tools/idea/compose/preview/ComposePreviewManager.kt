@@ -44,6 +44,7 @@ interface ComposePreviewManager : Disposable {
    * Enum that determines the current status of the interactive preview.
    *
    * The transitions are are like: DISABLED -> STARTED -> READY -> STOPPING
+   *
    * ```
    *    ^                               +
    *    |                               |
@@ -67,12 +68,12 @@ interface ComposePreviewManager : Disposable {
    * Status of the preview.
    *
    * @param hasRuntimeErrors true if the project has any runtime errors that prevent the preview
-   * being up to date. For example missing classes.
+   *   being up to date. For example missing classes.
    * @param hasSyntaxErrors true if the preview is displaying content of a file that has syntax
-   * errors.
+   *   errors.
    * @param isOutOfDate true if the preview needs a refresh to be up to date.
    * @param areResourcesOutOfDate true if the preview needs a build to be up to date because
-   * resources are out of date.
+   *   resources are out of date.
    * @param isRefreshing true if the view is currently refreshing.
    * @param interactiveMode represents current state of preview interactivity.
    */
@@ -89,11 +90,6 @@ interface ComposePreviewManager : Disposable {
   }
 
   fun status(): Status
-
-  /**
-   * Mark the preview as stale, so that a refresh is enforced when the next successful build happens
-   */
-  fun invalidateSavedBuildStatus()
 
   /**
    * List of available groups in this preview. The editor can contain multiple groups and only will
@@ -142,6 +138,12 @@ interface ComposePreviewManager : Disposable {
 
   /** Stops the interactive preview. */
   fun stopInteractivePreview()
+
+  /**
+   * Invalidates the cached preview status. This ensures that the @Preview annotations lookup
+   * happens again to find any possible new annotations.
+   */
+  fun invalidate()
 }
 
 val ComposePreviewManager.isInStaticAndNonAnimationMode: Boolean

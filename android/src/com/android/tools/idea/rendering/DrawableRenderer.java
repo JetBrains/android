@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering;
 
+import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 
 import com.android.ide.common.rendering.api.ILayoutPullParser;
@@ -84,8 +85,8 @@ public class DrawableRenderer implements Disposable {
     myParserFactory = new MyLayoutPullParserFactory(module.getProject(), logger);
     // The ThemeEditorUtils.getConfigurationForModule and RenderService.createTask calls are pretty expensive.
     // Executing them off the UI thread.
-    RenderService service = RenderService.getInstance(module.getProject());
-    myRenderTaskFuture = service.taskBuilder(facet, configuration, logger)
+    RenderService service = StudioRenderService.getInstance(module.getProject());
+    myRenderTaskFuture = taskBuilder(service, facet, configuration, logger)
       .withParserFactory(myParserFactory)
       .build()
       .whenComplete((task, ex) -> {

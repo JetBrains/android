@@ -34,7 +34,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderTestUtil;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -363,7 +363,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     withRenderTask(drawableFile, task -> assertEquals(RES_AUTO, LayoutPullParsers.create(task).getLayoutNamespace()));
 
     // Framework XML: API28 has two default app icons: res/drawable-watch/sym_def_app_icon.xml and res/drawable/sym_def_app_icon.xml
-    List<ResourceItem> frameworkResourceItems = ResourceRepositoryManager.getInstance(myFacet)
+    List<ResourceItem> frameworkResourceItems = StudioResourceRepositoryManager.getInstance(myFacet)
       .getFrameworkResources(ImmutableSet.of())
       .getResources(ANDROID, ResourceType.DRAWABLE, "sym_def_app_icon");
 

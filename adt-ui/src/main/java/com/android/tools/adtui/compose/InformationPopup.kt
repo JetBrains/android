@@ -139,7 +139,7 @@ class InformationPopupImpl(
       .setCancelOnMouseOutCallback { e ->
         if (!hasEnteredPopup) {
           // We can't rely on AbstractPopup$Canceller because it doesn't take into account of the padding between the button and the popup.
-          val padding = JBUIScale.scale(POPUP_PADDING)
+          val padding = (JBUIScale.sysScale() * POPUP_PADDING).toInt()
           val popupParent = event.component
           val point = SwingUtilities.convertPoint(e.component, e.point, popupParent)
           // We add padding around the parent, because we added a gap (POPUP_PADDING) between the parent and the popup.

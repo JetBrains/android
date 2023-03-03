@@ -32,27 +32,29 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureTestCase() {
 
   fun testImportsJava() {
     // Unit test for [ReplaceStringQuickFix]' import handling of Java files.
-    val lintFix = LintFix.create().replace().text("oldName").with("newName")
-      // Import class, method and field respectively
-      .imports(
-        "java.util.ArrayList",
-        "java.lang.Math.abs",
-        "java.lang.Integer.MAX_VALUE"
-      )
-      .build()
+    val lintFix =
+      LintFix.create()
+        .replace()
+        .text("oldName")
+        .with("newName")
+        // Import class, method and field respectively
+        .imports("java.util.ArrayList", "java.lang.Math.abs", "java.lang.Integer.MAX_VALUE")
+        .build()
 
     // Test Java
-    val file = myFixture.addFileToProject(
-      "src/p1/p2/ImportTest.java",
-      //language=Java
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/p1/p2/ImportTest.java",
+        // language=Java
+        """
       package p1.p2;
       public class ImportTest {
           public void oldName() {
           }
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
     val fix = ReplaceStringQuickFix.create(file, lintFix as LintFix.ReplaceString)
@@ -61,11 +63,8 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureTestCase() {
 
     assertTrue(fix.isApplicable(element, element, context.type))
 
-    WriteCommandAction.writeCommandAction(myFixture.project).run(
-      ThrowableRunnable {
-        fix.apply(element, element, context)
-      }
-    )
+    WriteCommandAction.writeCommandAction(myFixture.project)
+      .run(ThrowableRunnable { fix.apply(element, element, context) })
 
     assertEquals(
       """
@@ -80,28 +79,30 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureTestCase() {
           public void newName() {
           }
       }
-      """.trimIndent(),
+      """
+        .trimIndent(),
       file.text
     )
 
     // Try importing again and make sure we don't double-import
     val vFile = file.virtualFile
     val afterFirst = file.text
-    WriteCommandAction.writeCommandAction(myFixture.project).run(
-      ThrowableRunnable {
-        val manager = PsiDocumentManager.getInstance(project)
-        val document = manager.getDocument(file)!!
-        // Revert source text back from newName to oldName such that fix can work again
-        val start = document.text.indexOf("newName")
-        val end = start + "newName".length
-        document.replaceString(start, end, "oldName")
-        manager.commitAllDocuments()
+    WriteCommandAction.writeCommandAction(myFixture.project)
+      .run(
+        ThrowableRunnable {
+          val manager = PsiDocumentManager.getInstance(project)
+          val document = manager.getDocument(file)!!
+          // Revert source text back from newName to oldName such that fix can work again
+          val start = document.text.indexOf("newName")
+          val end = start + "newName".length
+          document.replaceString(start, end, "oldName")
+          manager.commitAllDocuments()
 
-        val sameFile = PsiManager.getInstance(project).findFile(vFile)!!
-        assertTrue(fix.isApplicable(sameFile, sameFile, context.type))
-        fix.apply(sameFile, sameFile, context)
-      }
-    )
+          val sameFile = PsiManager.getInstance(project).findFile(vFile)!!
+          assertTrue(fix.isApplicable(sameFile, sameFile, context.type))
+          fix.apply(sameFile, sameFile, context)
+        }
+      )
 
     assertEquals(afterFirst, file.text)
   }
@@ -111,40 +112,46 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureTestCase() {
     // code has completely separate implementations for Java and Kotlin).
     // Same scenario: we test importing classes, methods and fields, into
     // a Kotlin file this time.
-    val lintFix = LintFix.create().replace().text("oldName").with("newName")
-      // Import class, method and field respectively
-      .imports(
-        "java.util.ArrayList",
-        "java.lang.Math.abs",
-        "java.lang.Integer.MAX_VALUE",
-        "test.pkg.MyTest",
-        "test.pkg.MyTest.MY_CONSTANT",
-        // Extension methods. For now, work around this
-        // by supplying the actual class containing the declaration
-        // since the search doesn't find methods from packages on its
-        // own.
-        "test.pkg.MyUtil.myMethod",
-        "test.pkg.Kotlin2Kt.myMethod2",
-        "test.pkg.myMethod3"
-      )
-      .build()
+    val lintFix =
+      LintFix.create()
+        .replace()
+        .text("oldName")
+        .with("newName")
+        // Import class, method and field respectively
+        .imports(
+          "java.util.ArrayList",
+          "java.lang.Math.abs",
+          "java.lang.Integer.MAX_VALUE",
+          "test.pkg.MyTest",
+          "test.pkg.MyTest.MY_CONSTANT",
+          // Extension methods. For now, work around this
+          // by supplying the actual class containing the declaration
+          // since the search doesn't find methods from packages on its
+          // own.
+          "test.pkg.MyUtil.myMethod",
+          "test.pkg.Kotlin2Kt.myMethod2",
+          "test.pkg.myMethod3"
+        )
+        .build()
 
     // Test Java
-    val file = myFixture.configureByText(
-      "/src/p1/p2/ImportTest.kt",
-      //language=Kt
-      """
+    val file =
+      myFixture.configureByText(
+        "/src/p1/p2/ImportTest.kt",
+        // language=Kt
+        """
       package p1.p2
       class ImportTest {
           fun oldName() {
           }
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
 
     myFixture.addFileToProject(
       "/src/test/pkg/kotlin.kt",
-      //language=Kt
+      // language=Kt
       """
       @file:JvmName("MyUtil")
       package test.pkg
@@ -154,28 +161,27 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureTestCase() {
         }
       }
       fun String.myMethod(): String = this
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     myFixture.addFileToProject(
       "/src/test/pkg/kotlin2.kt",
-      //language=Kt
+      // language=Kt
       """
       package test.pkg
       class MyTest2
       fun String.myMethod2(): String = this
       fun String.myMethod3(): String = this
-      """.trimIndent()
+      """
+        .trimIndent()
     )
 
     val fix = ReplaceStringQuickFix.create(file, lintFix as LintFix.ReplaceString)
     val context = AndroidQuickfixContexts.BatchContext.getInstance()
     assertTrue(fix.isApplicable(file, file, context.type))
-    WriteCommandAction.writeCommandAction(myFixture.project).run(
-      ThrowableRunnable {
-        fix.apply(file, file, context)
-      }
-    )
+    WriteCommandAction.writeCommandAction(myFixture.project)
+      .run(ThrowableRunnable { fix.apply(file, file, context) })
 
     assertEquals(
       """
@@ -194,46 +200,51 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureTestCase() {
           fun newName() {
           }
       }
-      """.trimIndent(),
+      """
+        .trimIndent(),
       file.text
     )
 
     // Try importing again and make sure we don't double-import
     val afterFirst = file.text
-    WriteCommandAction.writeCommandAction(myFixture.project).run(
-      ThrowableRunnable {
-        val manager = PsiDocumentManager.getInstance(project)
-        val document = manager.getDocument(file)!!
-        // Revert source text back from newName to oldName such that fix can work again
-        val start = document.text.indexOf("newName")
-        val end = start + "newName".length
-        document.replaceString(start, end, "oldName")
-        manager.commitAllDocuments()
+    WriteCommandAction.writeCommandAction(myFixture.project)
+      .run(
+        ThrowableRunnable {
+          val manager = PsiDocumentManager.getInstance(project)
+          val document = manager.getDocument(file)!!
+          // Revert source text back from newName to oldName such that fix can work again
+          val start = document.text.indexOf("newName")
+          val end = start + "newName".length
+          document.replaceString(start, end, "oldName")
+          manager.commitAllDocuments()
 
-        assertTrue(fix.isApplicable(file, file, context.type))
-        fix.apply(file, file, context)
-      }
-    )
+          assertTrue(fix.isApplicable(file, file, context.type))
+          fix.apply(file, file, context)
+        }
+      )
 
     assertEquals(afterFirst, file.text)
   }
 
   fun testImportEdited() {
     // Unit test for [ReplaceStringQuickFix]'s support for importing and shortening in the same fix
-    val lintFix = LintFix.create().replace()
-      .text("println()")
-      .with("println(java.lang.Integer.MAX_VALUE)")
-      .imports("java.lang.Integer.MAX_VALUE")
-      .shortenNames()
-      .reformat(true)
-      .build()
+    val lintFix =
+      LintFix.create()
+        .replace()
+        .text("println()")
+        .with("println(java.lang.Integer.MAX_VALUE)")
+        .imports("java.lang.Integer.MAX_VALUE")
+        .shortenNames()
+        .reformat(true)
+        .build()
 
     // Test Java
     @Suppress("StringOperationCanBeSimplified")
-    val file = myFixture.addFileToProject(
-      "src/p1/p2/ShortenTest.java",
-      //language=Java
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/p1/p2/ShortenTest.java",
+        // language=Java
+        """
       package p1.p2;
       import static System.out.println;
       public class ShortenTest {
@@ -241,8 +252,9 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureTestCase() {
               println();
           }
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
     val fix = ReplaceStringQuickFix.create(file, lintFix as LintFix.ReplaceString)
@@ -252,11 +264,8 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureTestCase() {
 
     assertTrue(fix.isApplicable(element, element, context.type))
 
-    WriteCommandAction.writeCommandAction(myFixture.project).run(
-      ThrowableRunnable {
-        fix.apply(element, element, context)
-      }
-    )
+    WriteCommandAction.writeCommandAction(myFixture.project)
+      .run(ThrowableRunnable { fix.apply(element, element, context) })
 
     // Like the original file, but String replaced with java.util.ArrayList and
     // then ArrayList imported and the fully qualified name replaced with the simple name.
@@ -271,32 +280,39 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureTestCase() {
               println(MAX_VALUE);
           }
       }
-      """.trimIndent(),
+      """
+        .trimIndent(),
       file.text
     )
   }
 
   fun testShortenJava() {
     // Unit test for [ReplaceStringQuickFix]'s support for symbol shortening in Java
-    val lintFix = LintFix.create().replace().text("new String").with("new java.util.ArrayList")
-      .shortenNames()
-      .reformat(true)
-      .build()
+    val lintFix =
+      LintFix.create()
+        .replace()
+        .text("new String")
+        .with("new java.util.ArrayList")
+        .shortenNames()
+        .reformat(true)
+        .build()
 
     // Test Java
     @Suppress("StringOperationCanBeSimplified")
-    val file = myFixture.addFileToProject(
-      "src/p1/p2/ShortenTest.java",
-      //language=Java
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/p1/p2/ShortenTest.java",
+        // language=Java
+        """
       package p1.p2;
       public class ShortenTest {
           public void test() {
               Object o = new String();
           }
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
     val fix = ReplaceStringQuickFix.create(file, lintFix as LintFix.ReplaceString)
@@ -306,11 +322,8 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureTestCase() {
 
     assertTrue(fix.isApplicable(element, element, context.type))
 
-    WriteCommandAction.writeCommandAction(myFixture.project).run(
-      ThrowableRunnable {
-        fix.apply(element, element, context)
-      }
-    )
+    WriteCommandAction.writeCommandAction(myFixture.project)
+      .run(ThrowableRunnable { fix.apply(element, element, context) })
 
     // Like the original file, but String replaced with java.util.ArrayList and
     // then ArrayList imported and the fully qualified name replaced with the simple name.
@@ -325,30 +338,37 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureTestCase() {
               Object o = new ArrayList();
           }
       }
-      """.trimIndent(),
+      """
+        .trimIndent(),
       file.text
     )
   }
 
   fun testShortenKotlin() {
     // Unit test for [ReplaceStringQuickFix]'s support for symbol shortening in Kotlin
-    val lintFix = LintFix.create().replace().text("String").with("java.util.ArrayList")
-      .shortenNames()
-      .reformat(true)
-      .build()
+    val lintFix =
+      LintFix.create()
+        .replace()
+        .text("String")
+        .with("java.util.ArrayList")
+        .shortenNames()
+        .reformat(true)
+        .build()
 
     // Test Java
     @Suppress("StringOperationCanBeSimplified")
-    val file = myFixture.addFileToProject(
-      "src/p1/p2/ShortenTest.kt",
-      //language=KT
-      """
+    val file =
+      myFixture.addFileToProject(
+        "src/p1/p2/ShortenTest.kt",
+        // language=KT
+        """
       package p1.p2
       fun test() {
         val o = String()
       }
-      """.trimIndent()
-    )
+      """
+          .trimIndent()
+      )
     myFixture.configureFromExistingVirtualFile(file.virtualFile)
 
     val fix = ReplaceStringQuickFix.create(file, lintFix as LintFix.ReplaceString)
@@ -358,11 +378,8 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureTestCase() {
 
     assertTrue(fix.isApplicable(element, element, context.type))
 
-    WriteCommandAction.writeCommandAction(myFixture.project).run(
-      ThrowableRunnable {
-        fix.apply(element, element, context)
-      }
-    )
+    WriteCommandAction.writeCommandAction(myFixture.project)
+      .run(ThrowableRunnable { fix.apply(element, element, context) })
 
     // Like the original file, but String replaced with java.util.ArrayList and
     // then ArrayList imported and the fully qualified name replaced with the simple name.
@@ -375,7 +392,8 @@ class ReplaceStringQuickFixTest : JavaCodeInsightFixtureTestCase() {
       fun test() {
         val o = ArrayList()
       }
-      """.trimIndent(),
+      """
+        .trimIndent(),
       file.text
     )
   }

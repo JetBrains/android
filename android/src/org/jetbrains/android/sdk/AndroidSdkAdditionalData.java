@@ -16,6 +16,7 @@
 package org.jetbrains.android.sdk;
 
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
 import org.jdom.Element;
@@ -70,10 +71,34 @@ public class AndroidSdkAdditionalData implements SdkAdditionalData {
   }
 
   @Nullable
+  private static AndroidPlatform parse(@NotNull Sdk sdk) {
+    if (!AndroidSdks.getInstance().isAndroidSdk(sdk)) {
+      return null;
+    }
+    AndroidSdkData sdkData = AndroidSdkData.getSdkData(sdk);
+    if (sdkData != null) {
+      SdkAdditionalData data = sdk.getSdkAdditionalData();
+      if (data instanceof AndroidSdkAdditionalData) {
+        IAndroidTarget target = ((AndroidSdkAdditionalData)data).getBuildTarget(sdkData);
+        if (target != null) {
+          return new AndroidPlatform(sdkData, target);
+        }
+      }
+    }
+    return null;
+  }
+
+  @Nullable
   public AndroidPlatform getAndroidPlatform() {
     if (myAndroidPlatform == null) {
-      myAndroidPlatform = AndroidPlatform.parse(myAndroidSdk);
+      myAndroidPlatform = parse(myAndroidSdk);
     }
     return myAndroidPlatform;
+  }
+
+  @Nullable
+  public static AndroidSdkAdditionalData from(@NotNull Sdk sdk) {
+    SdkAdditionalData data = sdk.getSdkAdditionalData();
+    return data instanceof AndroidSdkAdditionalData ? (AndroidSdkAdditionalData)data : null;
   }
 }

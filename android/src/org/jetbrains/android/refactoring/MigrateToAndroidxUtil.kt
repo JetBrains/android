@@ -18,6 +18,9 @@
 package org.jetbrains.android.refactoring
 
 import com.android.support.AndroidxName
+import com.android.tools.idea.projectsystem.cacheInvalidatingOnSyncModifications
+import com.android.tools.idea.projectsystem.getAndroidFacets
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.lang.properties.IProperty
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.Project
@@ -40,18 +43,11 @@ fun Project.disableJetifier(runAfterDisabling: (IProperty?) -> Unit) {
   }
 }
 
-/**
- * Checks that the "useAndroidx" is set explicitly. This method does not say anything about its value.
- */
-fun Project.hasAndroidxProperty(): Boolean = runReadAction {
-  getProjectProperties()?.findPropertyByKey(USE_ANDROIDX_PROPERTY) != null
-}
-
-/**
- * Checks that the "useAndroidx" property is set to true
- */
-fun Project.isAndroidx(): Boolean = runReadAction {
-  getProjectProperties()?.findPropertyByKey(USE_ANDROIDX_PROPERTY)?.value?.toBoolean() ?: false
+/** Returns the value of [USE_ANDROIDX_PROPERTY]. */
+@Suppress("DeprecatedCallableAddReplaceWith")
+@Deprecated("Migrate to AndroidModuleSystem.useAndroidX")
+fun Project.isAndroidx(): Boolean = cacheInvalidatingOnSyncModifications {
+  getAndroidFacets().firstOrNull()?.getModuleSystem()?.useAndroidX ?: false
 }
 
 /**

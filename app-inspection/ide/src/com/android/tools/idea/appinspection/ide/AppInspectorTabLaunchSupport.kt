@@ -60,18 +60,20 @@ class AppInspectorTabLaunchSupport(
    * See also: [InspectorJarTarget]
    */
   suspend fun getInspectorTabJarTargets(process: ProcessDescriptor): List<InspectorTabJarTargets> {
-    return getTabProviders().filter { provider -> provider.isApplicable() }.map { provider ->
-      val (frameworkConfigs, libraryConfigs) =
-        provider.launchConfigs.partition { config ->
-          config.params is FrameworkInspectorLaunchParams
-        }
+    return getTabProviders()
+      .filter { provider -> provider.isApplicable() }
+      .map { provider ->
+        val (frameworkConfigs, libraryConfigs) =
+          provider.launchConfigs.partition { config ->
+            config.params is FrameworkInspectorLaunchParams
+          }
 
-      InspectorTabJarTargets(
-        provider,
-        frameworkConfigs.getFrameworkJarTargets() +
-          libraryConfigs.getLibraryJarTargets(process, provider)
-      )
-    }
+        InspectorTabJarTargets(
+          provider,
+          frameworkConfigs.getFrameworkJarTargets() +
+            libraryConfigs.getLibraryJarTargets(process, provider)
+        )
+      }
   }
 
   private fun List<AppInspectorLaunchConfig>.getFrameworkJarTargets():

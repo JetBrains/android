@@ -78,7 +78,8 @@ private fun CoroutineScope.commandSender(
   val pendingCommands =
     ConcurrentHashMap<Int, CompletableDeferred<AppInspection.AppInspectionResponse>>()
   launch {
-    transport.eventFlow(
+    transport
+      .eventFlow(
         eventKind = APP_INSPECTION_RESPONSE,
         filter = { it.hasAppInspectionResponse() },
         startTimeNs = { connectionStartTimeNs }
@@ -275,8 +276,7 @@ internal class AppInspectorConnection(
     )
 
     val chunks =
-      response
-        .groupsList
+      response.groupsList
         // payload ID is globally unique so there should only be one matching group, but we take
         // most recent just in case
         .last()

@@ -23,7 +23,7 @@ import com.android.ide.common.resources.ResourceResolver
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.model.Asset
 import com.android.tools.idea.ui.resourcemanager.model.BaseAsset
@@ -68,9 +68,9 @@ class MultipleColorIconProviderTest {
   @Test
   fun getStateListColorIcon() {
     rule.fixture.addFileToProject("res/color/my_statelist_color.xml", STATELIST_COLOR_FILE_CONTENTS)
-    val statelistResource = ResourceRepositoryManager.getInstance(rule.module)!!.appResources.getResources(ResourceNamespace.RES_AUTO,
-                                                                                                           ResourceType.COLOR,
-                                                                                                           "my_statelist_color").first()
+    val statelistResource = StudioResourceRepositoryManager.getInstance(rule.module)!!.appResources.getResources(ResourceNamespace.RES_AUTO,
+                                                                                                                                                               ResourceType.COLOR,
+                                                                                                                                                               "my_statelist_color").first()
     val statelistAsset = Asset.fromResourceItem(statelistResource, ResourceType.COLOR)
 
     val colorIconProvider = createColorIconProvider()
@@ -84,9 +84,9 @@ class MultipleColorIconProviderTest {
   @Test
   fun getColorIconFromResourceFile() {
     rule.fixture.addFileToProject("res/values/values.xml", COLOR_RESOURCE_FILE_CONTENTS)
-    val colorResource = ResourceRepositoryManager.getInstance(rule.module)!!.appResources.getResources(ResourceNamespace.RES_AUTO,
-                                                                                                       ResourceType.COLOR,
-                                                                                                       "my_color").first()
+    val colorResource = StudioResourceRepositoryManager.getInstance(rule.module)!!.appResources.getResources(ResourceNamespace.RES_AUTO,
+                                                                                                                                                           ResourceType.COLOR,
+                                                                                                                                                           "my_color").first()
     val colorAsset = Asset.fromResourceItem(colorResource, ResourceType.COLOR)
 
     val colorIconProvider = createColorIconProvider()
@@ -98,7 +98,7 @@ class MultipleColorIconProviderTest {
 
   @Test
   fun getColorFromNonDesignAsset() {
-    ResourceRepositoryManager.getInstance(rule.module)!!
+    StudioResourceRepositoryManager.getInstance(rule.module)!!
     val asset = BaseAsset(ResourceType.COLOR, "my_color")
     ResourceFile.createSingle(File("source"), asset.resourceItem as ResourceMergerItem, "")
 

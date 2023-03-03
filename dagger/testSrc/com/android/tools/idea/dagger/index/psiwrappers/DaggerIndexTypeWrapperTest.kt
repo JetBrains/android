@@ -58,9 +58,9 @@ class DaggerIndexTypeWrapperTest {
       class Foo {
         fun bar(): Baz {} 
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("Ba|z {}").parentOfType<KtTypeReference>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -81,9 +81,9 @@ class DaggerIndexTypeWrapperTest {
       class Foo {
         fun bar(): Baz {} 
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("Ba|z {}").parentOfType<KtTypeReference>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -104,9 +104,9 @@ class DaggerIndexTypeWrapperTest {
       class Foo {
         fun bar(): Baz {} 
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("Ba|z {}").parentOfType<KtTypeReference>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -126,9 +126,9 @@ class DaggerIndexTypeWrapperTest {
       class Foo {
         fun bar(): com.other.Baz {} 
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("Ba|z {}").parentOfType<KtTypeReference>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -149,9 +149,9 @@ class DaggerIndexTypeWrapperTest {
       class Foo {
         fun bar(): Baz.InnerClass {} 
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("Ba|z.InnerClass {}").parentOfType<KtTypeReference>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -172,9 +172,9 @@ class DaggerIndexTypeWrapperTest {
       class Foo {
         fun bar(): Baz.InnerClass {} 
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("Ba|z.InnerClass {}").parentOfType<KtTypeReference>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -195,9 +195,9 @@ class DaggerIndexTypeWrapperTest {
       class Foo {
         fun bar(): Baz {} 
       }
-      """.trimIndent()
-      ) as
-        KtFile
+      """
+          .trimIndent()
+      ) as KtFile
 
     val element = myFixture.moveCaret("Ba|z {}").parentOfType<KtTypeReference>()!!
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
@@ -216,9 +216,9 @@ class DaggerIndexTypeWrapperTest {
       public class Foo {
         public Baz bar() {}
       }
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val element = myFixture.moveCaret("Ba|z bar()").parentOfType<PsiTypeElement>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
@@ -239,9 +239,9 @@ class DaggerIndexTypeWrapperTest {
       public class Foo {
         public Baz bar() {}
       }
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val element = myFixture.moveCaret("Ba|z bar()").parentOfType<PsiTypeElement>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
@@ -260,9 +260,9 @@ class DaggerIndexTypeWrapperTest {
       public class Foo {
         public com.other.Baz bar() {}
       }
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val element = myFixture.moveCaret("Ba|z bar()").parentOfType<PsiTypeElement>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
@@ -283,9 +283,9 @@ class DaggerIndexTypeWrapperTest {
       public class Foo {
         public Baz.InnerClass bar() {}
       }
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val element = myFixture.moveCaret("Ba|z.InnerClass bar()").parentOfType<PsiTypeElement>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
@@ -306,9 +306,9 @@ class DaggerIndexTypeWrapperTest {
       public class Foo {
         public Baz bar() {}
       }
-      """.trimIndent()
-      ) as
-        PsiJavaFile
+      """
+          .trimIndent()
+      ) as PsiJavaFile
 
     val element = myFixture.moveCaret("Ba|z bar()").parentOfType<PsiTypeElement>()!!
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)

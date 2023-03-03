@@ -27,6 +27,8 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.resolve.calls.components.hasDefaultValue
 import org.jetbrains.kotlin.types.KotlinType
 import org.objectweb.asm.ClassReader
+import java.nio.file.Files
+import java.nio.file.Paths
 
 const val SLOTS_PER_INT = 10
 const val BITS_PER_INT = 31
@@ -85,7 +87,8 @@ fun getGroupKey(compilerOutput: List<OutputFile>, function: KtFunction, parentGr
 
     val (file, groupsOffSets) = computeGroups(ClassReader(c.asByteArray()))
 
-    if (!function.containingFile.virtualFile.canonicalPath.equals(file)) {
+    // On Mac OS, canonicalPath return paths under `/Volumes/google/src` instead of `/google/src` as its internally a symlink, so it causes a mismatch. Fix is to check if the files at both paths are the same. Refer b/152076083.
+    if (!Files.isSameFile(Paths.get(function.containingFile.virtualFile.canonicalPath), Paths.get(file))) {
       continue
     }
 

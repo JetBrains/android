@@ -216,6 +216,10 @@ internal class FakePopupChooserBuilder<T>(
     TODO("Not yet implemented")
   }
 
+  override fun withFixedRendererSize(dimension: Dimension): IPopupChooserBuilder<T> {
+    TODO("Not yet implemented")
+  }
+
   override fun getBackgroundUpdater(): ListComponentUpdater {
     TODO("Not yet implemented")
   }

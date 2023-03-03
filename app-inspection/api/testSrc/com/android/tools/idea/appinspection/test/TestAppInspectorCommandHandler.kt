@@ -32,6 +32,7 @@ import com.android.tools.profiler.proto.Common
  * (it is an empty message) RawInspectorCommand - RawInspectorResponse with content set to the same
  * content in the command GetLibraryVersionsCommand - GetLibraryVersionsResponse where each
  * LibraryVersionResponse is of status COMPATIBLE with version set to
+ *
  * ```
  *                               the minVersion provided in the command. This will signal all inspectors are compatible.
  * ```
@@ -40,7 +41,8 @@ class TestAppInspectorCommandHandler(
   timer: FakeTimer,
   private val getLibraryVersionsResponse:
     ((
-      AppInspection.GetLibraryCompatibilityInfoCommand) -> AppInspection.GetLibraryCompatibilityInfoResponse)? =
+      AppInspection.GetLibraryCompatibilityInfoCommand
+    ) -> AppInspection.GetLibraryCompatibilityInfoResponse)? =
     null,
   private val rawInspectorResponse:
     ((AppInspection.RawCommand) -> AppInspection.AppInspectionResponse.Builder)? =

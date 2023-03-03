@@ -62,7 +62,7 @@ class NewBenchmarkModuleModel(
             useGradleKts = useGradleKts.get()
           )
           MACROBENCHMARK -> generateMacrobenchmarkModule(
-            moduleData = td as ModuleTemplateData,
+            newModule = td as ModuleTemplateData,
             useGradleKts = useGradleKts.get(),
             targetModule = targetModule.value,
           )

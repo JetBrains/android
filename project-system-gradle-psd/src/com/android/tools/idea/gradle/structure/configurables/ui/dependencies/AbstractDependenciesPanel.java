@@ -22,6 +22,7 @@ import static com.intellij.util.PlatformIcons.LIBRARY_ICON;
 import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector;
 import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.details.DependencyDetails;
@@ -122,7 +123,9 @@ public abstract class AbstractDependenciesPanel extends JPanel implements Place.
     Project project = context.getProject().getIdeProject();
     boolean projectUsesVersionCatalogs = GradleVersionCatalogDetector.getInstance(project).isVersionCatalogProject();
     if (projectUsesVersionCatalogs) {
-      add(new VersionCatalogWarningHeader());
+      if (StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_CAVEATS.get()) {
+        add(new VersionCatalogWarningHeader());
+      }
     }
 
     JBSplitter splitter = new JBSplitter(true, "psd.editable.dependencies.main.horizontal.splitter.proportion", 0.55f);

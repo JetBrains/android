@@ -11,7 +11,13 @@
         "issue.svg": "studio/icons/app-quality-insights/issue.svg",
         "non-fatal-inline.svg": "studio/icons/app-quality-insights/non-fatal-inline.svg",
         "non-fatal-with-note.svg": "studio/icons/app-quality-insights/non-fatal-with-note.svg",
-        "non-fatal.svg": "studio/icons/app-quality-insights/non-fatal.svg"
+        "non-fatal.svg": "studio/icons/app-quality-insights/non-fatal.svg",
+        "early-signal.svg": "studio/icons/app-quality-insights/early-signal.svg",
+        "fresh-signal.svg": "studio/icons/app-quality-insights/fresh-signal.svg",
+        "note.svg": "studio/icons/app-quality-insights/note.svg",
+        "regressed-signal.svg": "studio/icons/app-quality-insights/regressed-signal.svg",
+        "repetitive-signal.svg": "studio/icons/app-quality-insights/repetitive-signal.svg",
+        "send.svg": "studio/icons/app-quality-insights/send.svg"
       },
       "avd": {
         "connection-generic.svg": "studio/icons/avd/connection-generic.svg",
@@ -87,15 +93,6 @@
           "run-on-device.svg": "studio/icons/compose/toolbar/run-on-device.svg",
           "stop-interactive-mode.svg": "studio/icons/compose/toolbar/stop-interactive-mode.svg"
         }
-      },
-      "cursors": {
-        "ew-resize.svg": "studio/icons/cursors/ew-resize.svg",
-        "grab.svg": "studio/icons/cursors/grab.svg",
-        "grabbing.svg": "studio/icons/cursors/grabbing.svg",
-        "move.svg": "studio/icons/cursors/move.svg",
-        "nesw-resize.svg": "studio/icons/cursors/nesw-resize.svg",
-        "ns-resize.svg": "studio/icons/cursors/ns-resize.svg",
-        "nwse-resize.svg": "studio/icons/cursors/nwse-resize.svg"
       },
       "database-inspector": {
         "allow-databases-to-close.svg": "studio/icons/database-inspector/allow-databases-to-close.svg",
@@ -708,7 +705,8 @@
           "profiler.svg": "studio/icons/shell/toolbar/profiler.svg",
           "run-with-coverage.svg": "studio/icons/shell/toolbar/run-with-coverage.svg",
           "sdk-manager.svg": "studio/icons/shell/toolbar/sdk-manager.svg",
-          "user-profile.svg": "studio/icons/shell/toolbar/user-profile.svg"
+          "user-profile.svg": "studio/icons/shell/toolbar/user-profile.svg",
+          "user-profile-active.svg": "studio/icons/shell/toolbar/user-profile-active.svg"
         }
       },
       "test": {

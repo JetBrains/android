@@ -170,12 +170,12 @@ import com.intellij.psi.PsiManager
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
 import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.testFramework.fixtures.TestFixtureBuilder
-import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.facet.AndroidRootUtil
-import org.jetbrains.android.util.AndroidBundle
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 import java.util.stream.Collectors
+import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.facet.AndroidRootUtil
+import org.jetbrains.android.util.AndroidBundle
 
 class AndroidLintTest : AbstractAndroidLintTest() {
   override fun configureAdditionalModules(
@@ -183,14 +183,36 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     modules: List<MyAdditionalModuleData>
   ) {
     if ("testImlFileOutsideContentRoot" == name) {
-      addModuleWithAndroidFacet(projectBuilder, modules, "module1", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
-      addModuleWithAndroidFacet(projectBuilder, modules, "module2", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
-    }
-    else if ("testAppCompatMethod" == name || "testExtendAppCompatWidgets" == name) {
-      addModuleWithAndroidFacet(projectBuilder, modules, "appcompat", AndroidProjectTypes.PROJECT_TYPE_APP)
-    }
-    else if ("testAddSdkIntJava" == name || "testAddSdkIntKotlin" == name || name.startsWith("testPartialResultsGlobalAnalysis")) {
-      addModuleWithAndroidFacet(projectBuilder, modules, "module1", AndroidProjectTypes.PROJECT_TYPE_LIBRARY)
+      addModuleWithAndroidFacet(
+        projectBuilder,
+        modules,
+        "module1",
+        AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+      )
+      addModuleWithAndroidFacet(
+        projectBuilder,
+        modules,
+        "module2",
+        AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+      )
+    } else if ("testAppCompatMethod" == name || "testExtendAppCompatWidgets" == name) {
+      addModuleWithAndroidFacet(
+        projectBuilder,
+        modules,
+        "appcompat",
+        AndroidProjectTypes.PROJECT_TYPE_APP
+      )
+    } else if (
+      "testAddSdkIntJava" == name ||
+        "testAddSdkIntKotlin" == name ||
+        name.startsWith("testPartialResultsGlobalAnalysis")
+    ) {
+      addModuleWithAndroidFacet(
+        projectBuilder,
+        modules,
+        "module1",
+        AndroidProjectTypes.PROJECT_TYPE_LIBRARY
+      )
     }
   }
 
@@ -229,25 +251,27 @@ class AndroidLintTest : AbstractAndroidLintTest() {
 
   fun testHardcodedString() {
     doTestHighlighting(AndroidLintHardcodedTextInspection(), "/res/layout/layout.xml", "xml")
-    // Make sure we only have the extract quickfix and the suppress quickfix: not the disable inspection fix, and
+    // Make sure we only have the extract quickfix and the suppress quickfix: not the disable
+    // inspection fix, and
     // the edit inspection settings quickfix (they are suppressed in AndroidLintExternalAnnotator)
-    assertEquals("" +
-                 "Extract string resource\n" +
-                 "Suppress: Add tools:ignore=\"HardcodedText\" attribute\n",
-                 listAvailableFixes())
+    assertEquals(
+      "" + "Extract string resource\n" + "Suppress: Add tools:ignore=\"HardcodedText\" attribute\n",
+      listAvailableFixes()
+    )
   }
 
   private fun doTestHardcodedQuickfix() {
     val copyTo = if (false) "AndroidManifest.xml" else "/res/layout/layout.xml"
     doTestHighlighting(AndroidLintHardcodedTextInspection(), copyTo, "xml")
-    val action = myFixture.getIntentionAction(
-      AndroidAddStringResourceQuickFix::class.java, AndroidBundle.message("add.string.resource.intention.text"))
+    val action =
+      myFixture.getIntentionAction(
+        AndroidAddStringResourceQuickFix::class.java,
+        AndroidBundle.message("add.string.resource.intention.text")
+      )
     assertNotNull(action)
     assertTrue(action!!.isAvailable(myFixture.project, myFixture.editor, myFixture.file))
-    WriteCommandAction.runWriteCommandAction(myFixture.project
-    ) {
-      action.invokeIntention(myFixture.project, myFixture.editor,
-                             myFixture.file, "hello")
+    WriteCommandAction.runWriteCommandAction(myFixture.project) {
+      action.invokeIntention(myFixture.project, myFixture.editor, myFixture.file, "hello")
     }
     myFixture.checkResultByFile(BASE_PATH + getTestName(true) + "_after.xml")
   }
@@ -264,12 +288,19 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       val lint = LintIdeSupport.Companion.get() as AndroidLintIdeSupport
       lint.random.setSeed(5356)
 
-      doTestWithFix(AndroidLintContentDescriptionInspection(),
-                    "Set contentDescription",
-                    "/res/layout/layout.xml", "xml")
-      val loggedLintSessions = usageTracker.usages.stream()
-        .filter { usage: LoggedUsage -> usage.studioEvent.kind == AndroidStudioEvent.EventKind.LINT_SESSION }
-        .collect(Collectors.toList())
+      doTestWithFix(
+        AndroidLintContentDescriptionInspection(),
+        "Set contentDescription",
+        "/res/layout/layout.xml",
+        "xml"
+      )
+      val loggedLintSessions =
+        usageTracker.usages
+          .stream()
+          .filter { usage: LoggedUsage ->
+            usage.studioEvent.kind == AndroidStudioEvent.EventKind.LINT_SESSION
+          }
+          .collect(Collectors.toList())
       if (!AnalyticsSettings.optedIn) {
         assertThat(loggedLintSessions).isEmpty()
         return
@@ -303,13 +334,27 @@ class AndroidLintTest : AbstractAndroidLintTest() {
            public static class Inner extends android.app.Activity {
            };
         }
-        """.trimIndent()
+        """
+          .trimIndent()
       val mainFile = myFixture.addFileToProject("/src/test/pkg/MyActivity.java", source)
 
       val lint = LintIdeSupport.Companion.get() as AndroidLintIdeSupport
       lint.random.setSeed(0)
-      val result = LintEditorResult(myModule, mainFile.virtualFile, source, setOf(HardcodedValuesDetector.ISSUE))
-      val data = LintProblemData(HardcodedValuesDetector.ISSUE, "Sample issue", TextRange.EMPTY_RANGE, Severity.WARNING, null)
+      val result =
+        LintEditorResult(
+          myModule,
+          mainFile.virtualFile,
+          source,
+          setOf(HardcodedValuesDetector.ISSUE)
+        )
+      val data =
+        LintProblemData(
+          HardcodedValuesDetector.ISSUE,
+          "Sample issue",
+          TextRange.EMPTY_RANGE,
+          Severity.WARNING,
+          null
+        )
       (result.problems as MutableList).add(data)
       val client = lint.createEditorClient(result)
       val driver = LintDriver(lint.getIssueRegistry(), client, LintRequest(client, emptyList()))
@@ -317,15 +362,24 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       for (i in 0..rolls) {
         lint.logSession(driver, result)
       }
-      val loggedLintSessions = usageTracker.usages.stream()
-        .filter { usage: LoggedUsage -> usage.studioEvent.kind == AndroidStudioEvent.EventKind.LINT_SESSION }
-        .collect(Collectors.toList())
+      val loggedLintSessions =
+        usageTracker.usages
+          .stream()
+          .filter { usage: LoggedUsage ->
+            usage.studioEvent.kind == AndroidStudioEvent.EventKind.LINT_SESSION
+          }
+          .collect(Collectors.toList())
 
       // Make sure we're submitting around 1% of reports.
       // This test is not flaky because we're using a fixed seed to the random generator!
       val percentage = loggedLintSessions.size * 100.0 / rolls
       val expectedPercentage = if (AnalyticsSettings.optedIn) 1.047 else 0.0
-      assertEquals("Unexpected percentage of reports submitted", expectedPercentage, percentage, 0.001)
+      assertEquals(
+        "Unexpected percentage of reports submitted",
+        expectedPercentage,
+        percentage,
+        0.001
+      )
     } finally {
       usageTracker.close()
       cleanAfterTesting()
@@ -333,16 +387,23 @@ class AndroidLintTest : AbstractAndroidLintTest() {
   }
 
   fun testContentDescription1() {
-    doTestNoFix(AndroidLintContentDescriptionInspection(),
-                "/res/layout/layout.xml", "xml")
-    // Also test the other lint infrastructure, where we produce an error report instead of overlaying
-    // XML-like tags for error ranges into an existing XML doc (which makes it syntactically invalid)
-    myFixture.checkLint(myFixture.file, AndroidLintContentDescriptionInspection(), "TODO|", """
+    doTestNoFix(AndroidLintContentDescriptionInspection(), "/res/layout/layout.xml", "xml")
+    // Also test the other lint infrastructure, where we produce an error report instead of
+    // overlaying
+    // XML-like tags for error ranges into an existing XML doc (which makes it syntactically
+    // invalid)
+    myFixture.checkLint(
+      myFixture.file,
+      AndroidLintContentDescriptionInspection(),
+      "TODO|",
+      """
       Warning: Empty `contentDescription` attribute on image
           android:contentDescription="TODO"/>
           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
           Fix: Suppress: Add tools:ignore="ContentDescription" attribute
-    """.trimIndent())
+    """
+        .trimIndent()
+    )
   }
 
   fun PsiFile.findCaretOffset(caret: String): Int {
@@ -354,13 +415,19 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     return index + delta
   }
 
-  fun JavaCodeInsightTestFixture.checkLint(psiFile: PsiFile, inspection: AndroidLintInspectionBase, caret: String, expected: String) {
+  fun JavaCodeInsightTestFixture.checkLint(
+    psiFile: PsiFile,
+    inspection: AndroidLintInspectionBase,
+    caret: String,
+    expected: String
+  ) {
     AndroidLintInspectionBase.setRegisterDynamicToolsFromTests(false)
     enableInspections(inspection)
     val fileText = psiFile.text
     val sb = StringBuilder()
     val target = psiFile.findCaretOffset(caret)
-    val highlights = doHighlighting(HighlightSeverity.WARNING).asSequence().sortedBy { it.startOffset }
+    val highlights =
+      doHighlighting(HighlightSeverity.WARNING).asSequence().sortedBy { it.startOffset }
     for (highlight in highlights) {
       val startIndex = highlight.startOffset
       val endOffset = highlight.endOffset
@@ -386,8 +453,7 @@ class AndroidLintTest : AbstractAndroidLintTest() {
         if (action.isAvailable(project, editor, psiFile)) {
           sb.append("Fix: ")
           sb.append(action.text)
-        }
-        else {
+        } else {
           sb.append("Disabled Fix: ")
           sb.append(action.text)
         }
@@ -400,32 +466,36 @@ class AndroidLintTest : AbstractAndroidLintTest() {
       sb.append("No warnings.")
     }
 
-    AndroidGradleTestCase.assertEquals(expected.trimIndent().trim(), sb.toString().trimIndent().trim())
+    AndroidGradleTestCase.assertEquals(
+      expected.trimIndent().trim(),
+      sb.toString().trimIndent().trim()
+    )
   }
 
   fun testAdapterViewChildren() {
-    doTestNoFix(AndroidLintAdapterViewChildrenInspection(),
-                "/res/layout/layout.xml", "xml")
+    doTestNoFix(AndroidLintAdapterViewChildrenInspection(), "/res/layout/layout.xml", "xml")
   }
 
   fun testScrollViewChildren() {
-    doTestNoFix(
-      AndroidLintScrollViewCountInspection(),
-      "/res/layout/layout.xml", "xml")
+    doTestNoFix(AndroidLintScrollViewCountInspection(), "/res/layout/layout.xml", "xml")
   }
 
   fun testMissingPrefix() {
     doTestWithFix(
       AndroidLintMissingPrefixInspection(),
       AndroidLintBundle.message("android.lint.fix.add.android.prefix"),
-      "/res/layout/layout.xml", "xml")
+      "/res/layout/layout.xml",
+      "xml"
+    )
   }
 
   fun testMissingPrefix1() {
     doTestWithFix(
       AndroidLintMissingPrefixInspection(),
       AndroidLintBundle.message("android.lint.fix.add.android.prefix"),
-      "/res/layout/layout.xml", "xml")
+      "/res/layout/layout.xml",
+      "xml"
+    )
   }
 
   fun testMissingPrefix2() { // lint.xml which disables the missing prefix
@@ -444,142 +514,179 @@ class AndroidLintTest : AbstractAndroidLintTest() {
   }
 
   fun testActions() { // Regression test for issue 79120601
-    doTestNoFix(AndroidLintValidActionsXmlInspection(),
-                "/res/xml/actions.xml", "xml")
+    doTestNoFix(AndroidLintValidActionsXmlInspection(), "/res/xml/actions.xml", "xml")
   }
 
   fun testDuplicatedIds() {
-    doTestNoFix(AndroidLintDuplicateIdsInspection(),
-                "/res/layout/layout.xml", "xml")
+    doTestNoFix(AndroidLintDuplicateIdsInspection(), "/res/layout/layout.xml", "xml")
   }
 
   fun testParcelCreator() {
-    doTestNoFix(
-      AndroidLintParcelCreatorInspection(),
-      "/src/test/pkg/ParcelableDemo.java", "java")
+    doTestNoFix(AndroidLintParcelCreatorInspection(), "/src/test/pkg/ParcelableDemo.java", "java")
   }
 
   fun testAuthString() {
-    doTestNoFix(AndroidLintAuthLeakInspection(),
-                "/src/test/pkg/AuthDemo.java", "java")
+    doTestNoFix(AndroidLintAuthLeakInspection(), "/src/test/pkg/AuthDemo.java", "java")
   }
 
   fun testColors() {
     addColorRes()
     addColorInt()
-    doTestNoFix(
-      AndroidLintResourceAsColorInspection(),
-      "/src/test/pkg/Colors.kt", "kt")
+    doTestNoFix(AndroidLintResourceAsColorInspection(), "/src/test/pkg/Colors.kt", "kt")
   }
 
   fun testInefficientWeight() {
     doTestWithFix(
       AndroidLintInefficientWeightInspection(),
       AndroidLintBundle.message("android.lint.fix.replace.with.zero.dp"),
-      "/res/layout/layout.xml", "xml")
+      "/res/layout/layout.xml",
+      "xml"
+    )
   }
 
   fun testBaselineWeights() {
-    doTestWithFix(AndroidLintDisableBaselineAlignmentInspection(),
-                  "Set baselineAligned=\"false\"",
-                  "/res/layout/layout.xml", "xml")
+    doTestWithFix(
+      AndroidLintDisableBaselineAlignmentInspection(),
+      "Set baselineAligned=\"false\"",
+      "/res/layout/layout.xml",
+      "xml"
+    )
   }
 
   fun testObsoleteLayoutParams() {
     doTestWithFix(
       AndroidLintObsoleteLayoutParamInspection(),
       AndroidLintBundle.message("android.lint.fix.remove.attribute"),
-      "/res/layout/layout.xml", "xml")
+      "/res/layout/layout.xml",
+      "xml"
+    )
   }
 
   fun testConvertToDp() {
     doTestWithFix(
       AndroidLintPxUsageInspection(),
       AndroidLintBundle.message("android.lint.fix.convert.to.dp"),
-      "/res/layout/layout.xml", "xml")
+      "/res/layout/layout.xml",
+      "xml"
+    )
   }
 
   fun testConvertToDp1() {
     doTestWithFix(
       AndroidLintPxUsageInspection(),
       AndroidLintBundle.message("android.lint.fix.convert.to.dp"),
-      "/res/values/convertToDp.xml", "xml")
+      "/res/values/convertToDp.xml",
+      "xml"
+    )
   }
 
   fun testScrollViewSize() {
     doTestWithFix(
       AndroidLintScrollViewSizeInspection(),
       AndroidLintBundle.message("android.lint.fix.set.to.wrap.content"),
-      "/res/layout/layout.xml", "xml")
+      "/res/layout/layout.xml",
+      "xml"
+    )
   }
 
   fun testUnusedAttribute() {
-    doTestWithFix(AndroidLintUnusedAttributeInspection(),
-                  "Suppress with tools:targetApi attribute",
-                  "/res/layout/layout.xml", "xml")
+    doTestWithFix(
+      AndroidLintUnusedAttributeInspection(),
+      "Suppress with tools:targetApi attribute",
+      "/res/layout/layout.xml",
+      "xml"
+    )
   }
 
   fun testSuppressInitJava() {
     // Regression test for https://issuetracker.google.com/151164628
-    doTestWithFix(AndroidLintSdCardPathInspection(),
-                  "Suppress SdCardPath with an annotation",
-                  "/src/p1/p2/Foo.java", "java")
+    doTestWithFix(
+      AndroidLintSdCardPathInspection(),
+      "Suppress SdCardPath with an annotation",
+      "/src/p1/p2/Foo.java",
+      "java"
+    )
   }
 
   fun testSuppressInit() {
     // Regression test for https://issuetracker.google.com/151164628 (Kotlin)
-    doTestWithFix(AndroidLintClickableViewAccessibilityInspection(),
-                  "Suppress ClickableViewAccessibility with an annotation",
-                  "/src/p1/p2/suppressInit.kt", "kt")
+    doTestWithFix(
+      AndroidLintClickableViewAccessibilityInspection(),
+      "Suppress ClickableViewAccessibility with an annotation",
+      "/src/p1/p2/suppressInit.kt",
+      "kt"
+    )
   }
 
   fun testSuppressImportJava() {
     // Regression test for https://issuetracker.google.com/216663026 (Java)
-    doTestWithFix(AndroidLintSuspiciousImportInspection(),
-                  "Suppress SuspiciousImport with a comment",
-                  "/src/p1/p2/SuppressImportJava.java", "java")
+    doTestWithFix(
+      AndroidLintSuspiciousImportInspection(),
+      "Suppress SuspiciousImport with a comment",
+      "/src/p1/p2/SuppressImportJava.java",
+      "java"
+    )
   }
 
   fun testSuppressImportJavaCombine() {
     // Like testSuppressImportJava, but here there is already an existing //noinspection
     // comment on the line; verifies that we simply add the id to the list, not doubling
     // up comments etc.
-    doTestWithFix(AndroidLintSuspiciousImportInspection(),
-                  "Suppress SuspiciousImport with a comment",
-                  "/src/p1/p2/SuppressImportJava.java", "java")
+    doTestWithFix(
+      AndroidLintSuspiciousImportInspection(),
+      "Suppress SuspiciousImport with a comment",
+      "/src/p1/p2/SuppressImportJava.java",
+      "java"
+    )
   }
 
   fun testSuppressImportKotlin() {
     // Regression test for https://issuetracker.google.com/216663026 (Kotlin)
-    doTestWithFix(AndroidLintSuspiciousImportInspection(),
-                  "Suppress SuspiciousImport with a comment",
-                  "/src/p1/p2/SuppressImportKotlin.kt", "kt")
+    doTestWithFix(
+      AndroidLintSuspiciousImportInspection(),
+      "Suppress SuspiciousImport with a comment",
+      "/src/p1/p2/SuppressImportKotlin.kt",
+      "kt"
+    )
   }
 
   fun testExportedService() {
     deleteManifest()
-    doTestWithFix(AndroidLintExportedServiceInspection(),
-                  "Set permission",
-                  "AndroidManifest.xml", "xml")
+    doTestWithFix(
+      AndroidLintExportedServiceInspection(),
+      "Set permission",
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   fun testExportedContentProvider() {
     deleteManifest()
-    doTestWithFix(AndroidLintExportedContentProviderInspection(),
-                  "Set exported=\"false\"", "AndroidManifest.xml", "xml")
+    doTestWithFix(
+      AndroidLintExportedContentProviderInspection(),
+      "Set exported=\"false\"",
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   fun testExportedReceiver() {
     deleteManifest()
-    doTestWithFix(AndroidLintExportedReceiverInspection(),
-                  "Set permission", "AndroidManifest.xml", "xml")
+    doTestWithFix(
+      AndroidLintExportedReceiverInspection(),
+      "Set permission",
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   fun testEditText() {
     doTestWithFix(
       AndroidLintTextFieldsInspection(),
       "Set inputType",
-      "/res/layout/layout.xml", "xml")
+      "/res/layout/layout.xml",
+      "xml"
+    )
   }
 
   fun testInvalidPermission() {
@@ -587,7 +694,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintInvalidPermissionInspection(),
       AndroidLintBundle.message("android.lint.fix.remove.attribute"),
-      "AndroidManifest.xml", "xml")
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   fun testMissingPermissionJava() {
@@ -595,7 +704,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintMissingPermissionInspection(),
       "Add permission check",
-      "/src/p1/p2/LocationTestJava.java", "java")
+      "/src/p1/p2/LocationTestJava.java",
+      "java"
+    )
   }
 
   fun testMissingPermissionKotlin() {
@@ -603,70 +714,100 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintMissingPermissionInspection(),
       "Add permission check",
-      "/src/p1/p2/LocationTest.kt", "kt")
+      "/src/p1/p2/LocationTest.kt",
+      "kt"
+    )
   }
 
   fun testNotificationPermission() {
-    val manifest = myFixture.addFileToProject("AndroidManifest.xml", """
+    val manifest =
+      myFixture.addFileToProject(
+        "AndroidManifest.xml",
+        """
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="p1.p2">
           <uses-sdk android:minSdkVersion="14" android:targetSdkVersion="33" />
           <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
       </manifest>
-      """.trimIndent())
+      """
+          .trimIndent()
+      )
     doTestWithFix(
       AndroidLintNotificationPermissionInspection(),
       "Add Permission POST_NOTIFICATIONS",
-      "/src/test/pkg/notificationPermission.kt", "kt")
+      "/src/test/pkg/notificationPermission.kt",
+      "kt"
+    )
     val updatedManifest = manifest.text
-    assertEquals("""
+    assertEquals(
+      """
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="p1.p2">
           <uses-sdk android:minSdkVersion="14" android:targetSdkVersion="33" />
           <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
           <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
       </manifest>
-    """.trimIndent(), updatedManifest)
+    """
+        .trimIndent(),
+      updatedManifest
+    )
   }
 
   fun testUselessLeaf() {
-    doTestWithFix(AndroidLintUselessLeafInspection(),
-                  AndroidLintBundle.message("android.lint.fix.remove.unnecessary.view"),
-                  "/res/layout/layout.xml", "xml")
+    doTestWithFix(
+      AndroidLintUselessLeafInspection(),
+      AndroidLintBundle.message("android.lint.fix.remove.unnecessary.view"),
+      "/res/layout/layout.xml",
+      "xml"
+    )
   }
 
   fun testUselessParent() {
-    doTestNoFix(AndroidLintUselessParentInspection(),
-                "/res/layout/layout.xml", "xml")
+    doTestNoFix(AndroidLintUselessParentInspection(), "/res/layout/layout.xml", "xml")
   }
 
   fun testTypographyDashes() {
     doTestWithFix(
       AndroidLintTypographyDashesInspection(),
       "Replace with –",
-      "/res/values/typography.xml", "xml")
+      "/res/values/typography.xml",
+      "xml"
+    )
   }
 
   fun testTypographyQuotes() { // Re-enable typography quotes, normally off
     myFixture.copyFileToProject("$globalTestDir/lint.xml", "lint.xml")
-    doTestWithFix(AndroidLintTypographyQuotesInspection(),
-                  "Replace with ‘aba’",
-                  "/res/values/typography.xml", "xml")
+    doTestWithFix(
+      AndroidLintTypographyQuotesInspection(),
+      "Replace with ‘aba’",
+      "/res/values/typography.xml",
+      "xml"
+    )
   }
 
   fun testGridLayoutAttribute() {
-    doTestWithFix(AndroidLintGridLayoutInspection(),
-                  "Update to myns:layout_column",
-                  "/res/layout/grid_layout.xml", "xml")
+    doTestWithFix(
+      AndroidLintGridLayoutInspection(),
+      "Update to myns:layout_column",
+      "/res/layout/grid_layout.xml",
+      "xml"
+    )
   }
 
   fun testGridLayoutAttributeMissing() {
-    doTestWithFix(AndroidLintGridLayoutInspection(),
-                  "Update to app:layout_column",
-                  "/res/layout/grid_layout.xml", "xml")
+    doTestWithFix(
+      AndroidLintGridLayoutInspection(),
+      "Update to app:layout_column",
+      "/res/layout/grid_layout.xml",
+      "xml"
+    )
   }
 
   fun testAlwaysShowAction() {
-    doTestWithFix(AndroidLintAlwaysShowActionInspection(),
-                  "Replace with ifRoom", "/res/menu/menu.xml", "xml")
+    doTestWithFix(
+      AndroidLintAlwaysShowActionInspection(),
+      "Replace with ifRoom",
+      "/res/menu/menu.xml",
+      "xml"
+    )
   }
 
   fun testPaddingStartQuickFix() {
@@ -674,7 +815,10 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     myFixture.copyFileToProject("$globalTestDir/AndroidManifest.xml", "AndroidManifest.xml")
     doTestWithFix(
       AndroidLintRtlCompatInspection(),
-      "Set paddingLeft=\"12sp\"", "/res/layout/layout.xml", "xml")
+      "Set paddingLeft=\"12sp\"",
+      "/res/layout/layout.xml",
+      "xml"
+    )
   }
 
   fun testAppCompatMethod() {
@@ -686,17 +830,34 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     }
     val testProjectSystem = TestProjectSystem(project)
     testProjectSystem.useInTests()
-    testProjectSystem.addDependency(GoogleMavenArtifactId.APP_COMPAT_V7, myFixture.module,
-                                    GradleVersion.parse("+"))
-    myFixture.copyFileToProject("$globalTestDir/AppCompatActivity.java.txt", "src/android/support/v7/app/AppCompatActivity.java")
-    myFixture.copyFileToProject("$globalTestDir/ActionMode.java.txt", "src/android/support/v7/view/ActionMode.java")
-    doTestWithFix(AndroidLintAppCompatMethodInspection(),
-                  "Replace with getSupportActionBar()", "/src/test/pkg/AppCompatTest.java", "java")
+    testProjectSystem.addDependency(
+      GoogleMavenArtifactId.APP_COMPAT_V7,
+      myFixture.module,
+      GradleVersion.parse("+")
+    )
+    myFixture.copyFileToProject(
+      "$globalTestDir/AppCompatActivity.java.txt",
+      "src/android/support/v7/app/AppCompatActivity.java"
+    )
+    myFixture.copyFileToProject(
+      "$globalTestDir/ActionMode.java.txt",
+      "src/android/support/v7/view/ActionMode.java"
+    )
+    doTestWithFix(
+      AndroidLintAppCompatMethodInspection(),
+      "Replace with getSupportActionBar()",
+      "/src/test/pkg/AppCompatTest.java",
+      "java"
+    )
   }
 
   fun testEditEncoding() {
-    doTestWithFix(AndroidLintEnforceUTF8Inspection(),
-                  "Replace with utf-8", "/res/layout/layout.xml", "xml")
+    doTestWithFix(
+      AndroidLintEnforceUTF8Inspection(),
+      "Replace with utf-8",
+      "/res/layout/layout.xml",
+      "xml"
+    )
   }
 
   /* Inspection disabled; these tests make network connection to MavenCentral and can change every time there
@@ -709,109 +870,155 @@ class AndroidLintTest : AbstractAndroidLintTest() {
   }
   */
   fun testGradlePlus() {
-    val cache: Map<String, String> = ImmutableMap.of(
-      "master-index.xml",
-      "<metadata>\n" +
-      "  <com.android.support/>\n" +
-      "</metadata>",
-      "com/android/support/group-index.xml",
-      "<com.android.support>\n" +
-      "  <support-v4 versions=\"26.0.2,26.0.2\"/>\n" +
-      "  <appcompat-v7 versions=\"18.0.0,19.0.0,19.0.1,19.1.0,20.0.0,21.0.0,21.0.2,22.0.0-alpha1\"/>\n" +
-      "</com.android.support>\n")
+    val cache: Map<String, String> =
+      ImmutableMap.of(
+        "master-index.xml",
+        "<metadata>\n" + "  <com.android.support/>\n" + "</metadata>",
+        "com/android/support/group-index.xml",
+        "<com.android.support>\n" +
+          "  <support-v4 versions=\"26.0.2,26.0.2\"/>\n" +
+          "  <appcompat-v7 versions=\"18.0.0,19.0.0,19.0.1,19.1.0,20.0.0,21.0.0,21.0.2,22.0.0-alpha1\"/>\n" +
+          "</com.android.support>\n"
+      )
     val repository = StubGoogleMavenRepository(cache)
     val disposable = Disposer.newDisposable()
-    IdeComponents(null, disposable).replaceApplicationService(
-      RepositoryUrlManager::class.java,
-      RepositoryUrlManager(repository, repository, true, false)
+    IdeComponents(null, disposable)
+      .replaceApplicationService(
+        RepositoryUrlManager::class.java,
+        RepositoryUrlManager(repository, repository, true, false)
+      )
+    doTestWithFix(
+      AndroidLintGradleDynamicVersionInspection(),
+      "Replace with specific version",
+      "build.gradle",
+      "gradle"
     )
-    doTestWithFix(AndroidLintGradleDynamicVersionInspection(),
-                  "Replace with specific version", "build.gradle", "gradle")
     Disposer.dispose(disposable)
   }
 
   fun testGradleDeprecation() {
-    doTestWithFix(AndroidLintGradleDeprecatedInspection(),
-                  "Replace with com.android.library", "build.gradle", "gradle")
+    doTestWithFix(
+      AndroidLintGradleDeprecatedInspection(),
+      "Replace with com.android.library",
+      "build.gradle",
+      "gradle"
+    )
   }
 
   fun testMissingAppIcon() {
     deleteManifest()
     doTestWithFix(
       AndroidLintMissingApplicationIconInspection(),
-      "Set icon", "AndroidManifest.xml", "xml")
+      "Set icon",
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   fun testMissingLeanbackSupport() {
     deleteManifest()
     doTestWithFix(
       AndroidLintMissingLeanbackSupportInspection(),
-      "Add uses-feature tag", "AndroidManifest.xml", "xml")
+      "Add uses-feature tag",
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   fun testPermissionImpliesHardware() {
     deleteManifest()
     doTestWithFix(
       AndroidLintPermissionImpliesUnsupportedHardwareInspection(),
-      "Add uses-feature tag", "AndroidManifest.xml", "xml")
+      "Add uses-feature tag",
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   fun testMissingTvBanner() {
     deleteManifest()
     doTestWithFix(
       AndroidLintMissingTvBannerInspection(),
-      "Set banner", "AndroidManifest.xml", "xml")
+      "Set banner",
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   fun testInvalidUsesTagAttribute() {
     doTestWithFix(
       AndroidLintInvalidUsesTagAttributeInspection(),
       "Replace with \"media\"",
-      "res/xml/automotive_app_desc.xml", "xml")
+      "res/xml/automotive_app_desc.xml",
+      "xml"
+    )
   }
 
   fun testVectorScientificNotation() {
     doTestWithFix(
       AndroidLintInvalidVectorPathInspection(),
-      "Replace with 67", "res/drawable/vector.xml", "xml")
+      "Replace with 67",
+      "res/drawable/vector.xml",
+      "xml"
+    )
   }
 
   fun testUnsupportedChromeOsHardware() {
     deleteManifest()
-    doTestWithFix(AndroidLintUnsupportedChromeOsHardwareInspection(),
-                  "Set required=\"false\"", "AndroidManifest.xml", "xml")
+    doTestWithFix(
+      AndroidLintUnsupportedChromeOsHardwareInspection(),
+      "Set required=\"false\"",
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   fun testPermissionImpliesChromeOsHardware() {
     deleteManifest()
     doTestWithFix(
       AndroidLintPermissionImpliesUnsupportedChromeOsHardwareInspection(),
-      "Add uses-feature tag", "AndroidManifest.xml", "xml")
+      "Add uses-feature tag",
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   fun testInvalidOrientationSetOnActivity() {
     deleteManifest()
     doTestWithFix(
       AndroidLintLockedOrientationActivityInspection(),
-      "Set screenOrientation=\"fullSensor\"", "AndroidManifest.xml", "xml")
+      "Set screenOrientation=\"fullSensor\"",
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   fun testNonResizeableActivity() {
     deleteManifest()
     doTestWithFix(
       AndroidLintNonResizeableActivityInspection(),
-      "Set resizeableActivity=\"true\"", "AndroidManifest.xml", "xml")
+      "Set resizeableActivity=\"true\"",
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   fun testActivityLockedOrientationSource() {
     doTestWithFix(
       AndroidLintSourceLockedOrientationActivityInspection(),
-      "Set the orientation to SCREEN_ORIENTATION_UNSPECIFIED", "/src/test/pkg/TestActivity.java", "java")
+      "Set the orientation to SCREEN_ORIENTATION_UNSPECIFIED",
+      "/src/test/pkg/TestActivity.java",
+      "java"
+    )
   }
 
   fun testUnsupportedChromeOsCameraSystemFeature() {
-    doTestWithFix(AndroidLintUnsupportedChromeOsCameraSystemFeatureInspection(),
-                  "Switch to look for FEATURE_CAMERA_ANY", "/src/test/pkg/TestActivity.java", "java")
+    doTestWithFix(
+      AndroidLintUnsupportedChromeOsCameraSystemFeatureInspection(),
+      "Switch to look for FEATURE_CAMERA_ANY",
+      "/src/test/pkg/TestActivity.java",
+      "java"
+    )
   }
 
   /* Disabled: The mipmap check now only warns about mipmap usage in Gradle projects that use
@@ -844,8 +1051,12 @@ class AndroidLintTest : AbstractAndroidLintTest() {
   */
 
   fun testRemoveByteOrderMarks() {
-    doTestWithFix(AndroidLintByteOrderMarkInspection(),
-                  "Remove byte order marks", "/res/layout/layout.xml", "xml")
+    doTestWithFix(
+      AndroidLintByteOrderMarkInspection(),
+      "Remove byte order marks",
+      "/res/layout/layout.xml",
+      "xml"
+    )
   }
 
   fun testBomManifest() {
@@ -864,46 +1075,72 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     deleteManifest()
     // Need to use targetSdkVersion 9
     myFixture.copyFileToProject("$globalTestDir/AndroidManifest.xml", "AndroidManifest.xml")
-    doTestWithFix(AndroidLintApplySharedPrefInspection(),
-                  "Replace commit() with apply()", "/src/test/pkg/CommitToApply.java", "java")
+    doTestWithFix(
+      AndroidLintApplySharedPrefInspection(),
+      "Replace commit() with apply()",
+      "/src/test/pkg/CommitToApply.java",
+      "java"
+    )
   }
 
   fun testMissingIntDefSwitch() {
     addIntDef()
     doTestWithFix(
       AndroidLintSwitchIntDefInspection(),
-      "Add Missing @IntDef Constants", "/src/p1/p2/MissingIntDefSwitch.java", "java")
+      "Add Missing @IntDef Constants",
+      "/src/p1/p2/MissingIntDefSwitch.java",
+      "java"
+    )
   }
 
   fun testMissingIntDefSwitchKotlin() {
     addIntDef()
     doTestWithFix(
       AndroidLintSwitchIntDefInspection(),
-      "Add Missing @IntDef Constants", "/src/p1/p2/MissingIntDefSwitch.kt", "kt")
+      "Add Missing @IntDef Constants",
+      "/src/p1/p2/MissingIntDefSwitch.kt",
+      "kt"
+    )
   }
 
   fun testAddKeepJava() {
     addKeep()
-    doTestWithFix(AndroidLintAnimatorKeepInspection(),
-                  "Annotate with @Keep", "/src/p1/p2/AnimatorTest.java", "java")
+    doTestWithFix(
+      AndroidLintAnimatorKeepInspection(),
+      "Annotate with @Keep",
+      "/src/p1/p2/AnimatorTest.java",
+      "java"
+    )
   }
 
   fun testAddKeepKotlin() {
     addKeep()
-    doTestWithFix(AndroidLintAnimatorKeepInspection(),
-                  "Annotate with @Keep", "/src/p1/p2/AnimatorTest.kt", "kt")
+    doTestWithFix(
+      AndroidLintAnimatorKeepInspection(),
+      "Annotate with @Keep",
+      "/src/p1/p2/AnimatorTest.kt",
+      "kt"
+    )
   }
 
   fun testJavaCheckResultTest2() {
     addCheckResult()
-    doTestWithFix(AndroidLintUseCheckPermissionInspection(),
-                  "Call enforceFooPermission instead", "/src/p1/p2/JavaCheckResultTest2.java", "java")
+    doTestWithFix(
+      AndroidLintUseCheckPermissionInspection(),
+      "Call enforceFooPermission instead",
+      "/src/p1/p2/JavaCheckResultTest2.java",
+      "java"
+    )
   }
 
   fun testKotlinCheckResultTest2() {
     addCheckResult()
-    doTestWithFix(AndroidLintUseCheckPermissionInspection(),
-                  "Call enforceFooPermission instead", "/src/p1/p2/KotlinCheckResultTest2.kt", "kt")
+    doTestWithFix(
+      AndroidLintUseCheckPermissionInspection(),
+      "Call enforceFooPermission instead",
+      "/src/p1/p2/KotlinCheckResultTest2.kt",
+      "kt"
+    )
   }
 
   fun testJavaRemoveObsoleteSdkCheck() {
@@ -912,7 +1149,10 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     addRequiresApi()
     doTestWithFix(
       AndroidLintObsoleteSdkIntInspection(),
-      "Unwrap 'if' statement", "/src/p1/p2/JavaRemoveObsoleteSdkCheckTest.java", "java")
+      "Unwrap 'if' statement",
+      "/src/p1/p2/JavaRemoveObsoleteSdkCheckTest.java",
+      "java"
+    )
   }
 
   fun testKotlinRemoveObsoleteSdkCheck() {
@@ -921,18 +1161,25 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     addRequiresApi()
     doTestWithFix(
       AndroidLintObsoleteSdkIntInspection(),
-      "Remove obsolete SDK version check", "/src/p1/p2/KotlinRemoveObsoleteSdkCheckTest.kt", "kt")
+      "Remove obsolete SDK version check",
+      "/src/p1/p2/KotlinRemoveObsoleteSdkCheckTest.kt",
+      "kt"
+    )
   }
 
   fun testKotlinRemoveObsoleteSdkCheck2() {
-    // Unlike previous test, checks that the quickfix keeps the else clause instead if the check is always false instead
+    // Unlike previous test, checks that the quickfix keeps the else clause instead if the check is
+    // always false instead
     // of always true
     deleteManifest()
     addMinSdkManifest(19)
     addRequiresApi()
     doTestWithFix(
       AndroidLintObsoleteSdkIntInspection(),
-      "Remove obsolete SDK version check", "/src/p1/p2/KotlinRemoveObsoleteSdkCheckTest2.kt", "kt")
+      "Remove obsolete SDK version check",
+      "/src/p1/p2/KotlinRemoveObsoleteSdkCheckTest2.kt",
+      "kt"
+    )
   }
 
   fun testKotlinRemoveObsoleteSdkCheck3() {
@@ -942,52 +1189,63 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     addRequiresApi()
     doTestWithFix(
       AndroidLintObsoleteSdkIntInspection(),
-      "Remove obsolete SDK version check", "/src/p1/p2/kotlinRemoveObsoleteSdkCheck3.kt", "kt")
+      "Remove obsolete SDK version check",
+      "/src/p1/p2/kotlinRemoveObsoleteSdkCheck3.kt",
+      "kt"
+    )
   }
 
   fun testIncludeParams() {
     doTestWithFix(
       AndroidLintIncludeLayoutParamInspection(),
-      "Set layout_height", "/res/layout/layout.xml", "xml")
+      "Set layout_height",
+      "/res/layout/layout.xml",
+      "xml"
+    )
   }
 
   fun testInnerclassSeparator() {
     deleteManifest()
-    myFixture.addFileToProject("/src/test/pkg/MyActivity.java",
-                               """
+    myFixture.addFileToProject(
+      "/src/test/pkg/MyActivity.java",
+      """
                                package test.pkg;
                                public class MyActivity {
                                    public static class Inner extends android.app.Activity {
                                    };
                                }
-                               """.trimIndent())
+                               """
+        .trimIndent()
+    )
     doTestWithFix(
       AndroidLintInnerclassSeparatorInspection(),
-      "Replace with .MyActivity\$Inner", "AndroidManifest.xml", "xml")
+      "Replace with .MyActivity\$Inner",
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   fun testMenuTitle() {
     deleteManifest()
     // Need to use targetSdkVersion 11
     myFixture.copyFileToProject("$globalTestDir/AndroidManifest.xml", "AndroidManifest.xml")
-    doTestWithFix(
-      AndroidLintMenuTitleInspection(),
-      "Set title", "/res/menu/menu.xml", "xml")
+    doTestWithFix(AndroidLintMenuTitleInspection(), "Set title", "/res/menu/menu.xml", "xml")
   }
 
   fun testFragmentIds() {
-    doTestWithFix(
-      AndroidLintMissingIdInspection(),
-      "Set id", "/res/layout/layout.xml", "xml")
+    doTestWithFix(AndroidLintMissingIdInspection(), "Set id", "/res/layout/layout.xml", "xml")
   }
 
   fun testOldTargetApi() {
     deleteManifest()
-    val expectedTarget = Integer.toString(
-      AndroidLintIdeClient(project, LintIgnoredResult()).highestKnownApiLevel)
+    val expectedTarget =
+      Integer.toString(AndroidLintIdeClient(project, LintIgnoredResult()).highestKnownApiLevel)
     doTestWithFix(
       AndroidLintOldTargetApiInspection(),
-      "Update targetSdkVersion to $expectedTarget", "AndroidManifest.xml", "xml")
+      "Update targetSdkVersion to $expectedTarget",
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   /*
@@ -1001,7 +1259,10 @@ class AndroidLintTest : AbstractAndroidLintTest() {
   fun testReferenceTypes() {
     doTestWithFix(
       AndroidLintReferenceTypeInspection(),
-      "Replace with @string/", "/res/values/strings.xml", "xml")
+      "Replace with @string/",
+      "/res/values/strings.xml",
+      "xml"
+    )
   }
 
   fun testSelectableText() {
@@ -1010,48 +1271,76 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     // Need to use targetSdkVersion 11
     myFixture.copyFileToProject("$globalTestDir/AndroidManifest.xml", "AndroidManifest.xml")
     doTestWithFix(
-      AndroidLintSelectableTextInspection(), "Set textIsSelectable=\"true\"",
-      "/res/layout/layout.xml", "xml")
+      AndroidLintSelectableTextInspection(),
+      "Set textIsSelectable=\"true\"",
+      "/res/layout/layout.xml",
+      "xml"
+    )
   }
 
   fun testSignatureOrSystem() {
     deleteManifest()
     doTestWithFix(
       AndroidLintSignatureOrSystemPermissionsInspection(),
-      "Replace with signature", "AndroidManifest.xml", "xml")
+      "Replace with signature",
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   fun testSp() {
     doTestWithFix(
       AndroidLintSpUsageInspection(),
-      "Replace with sp", "/res/values/styles.xml", "xml")
+      "Replace with sp",
+      "/res/values/styles.xml",
+      "xml"
+    )
   }
 
   fun testStringToInt() {
     doTestWithFix(
       AndroidLintStringShouldBeIntInspection(),
-      "Replace with integer", "build.gradle", "gradle")
+      "Replace with integer",
+      "build.gradle",
+      "gradle"
+    )
   }
 
   fun testStringTypos() {
-    doTestWithFix(AndroidLintTyposInspection(),
-                  "Replace with \"Android\"", "/res/values-nb/strings.xml", "xml")
+    doTestWithFix(
+      AndroidLintTyposInspection(),
+      "Replace with \"Android\"",
+      "/res/values-nb/strings.xml",
+      "xml"
+    )
   }
 
   // Regression test for http://b.android.com/186465
   fun testStringTyposCDATA() {
-    doTestWithFix(AndroidLintTyposInspection(),
-                  "Replace with \"Android\"", "/res/values-nb/strings.xml", "xml")
+    doTestWithFix(
+      AndroidLintTyposInspection(),
+      "Replace with \"Android\"",
+      "/res/values-nb/strings.xml",
+      "xml"
+    )
   }
 
   fun testWrongViewCall() {
-    doTestWithFix(AndroidLintWrongCallInspection(),
-                  "Replace call with draw()", "/src/test/pkg/WrongViewCall.java", "java")
+    doTestWithFix(
+      AndroidLintWrongCallInspection(),
+      "Replace call with draw()",
+      "/src/test/pkg/WrongViewCall.java",
+      "java"
+    )
   }
 
   fun testWrongCase() {
-    doTestWithFix(AndroidLintWrongCaseInspection(),
-                  "Replace with merge", "/res/layout/layout.xml", "xml")
+    doTestWithFix(
+      AndroidLintWrongCaseInspection(),
+      "Replace with merge",
+      "/res/layout/layout.xml",
+      "xml"
+    )
   }
 
   fun testProguard() {
@@ -1076,9 +1365,15 @@ class AndroidLintTest : AbstractAndroidLintTest() {
 
   fun testViewTypeStub() { // Regression test for 183136: don't take id references to imply a
     // view type of the referencing type
-    myFixture.copyFileToProject("$globalTestDir/stub_inflated_layout.xml", "res/layout/stub_inflated_layout.xml")
+    myFixture.copyFileToProject(
+      "$globalTestDir/stub_inflated_layout.xml",
+      "res/layout/stub_inflated_layout.xml"
+    )
     myFixture.copyFileToProject("$globalTestDir/main.xml", "res/layout/main.xml")
-    myFixture.copyFileToProject("$globalTestDir/WrongCastActivity.java", "src/p1/p2/WrongCastActivity.java")
+    myFixture.copyFileToProject(
+      "$globalTestDir/WrongCastActivity.java",
+      "src/p1/p2/WrongCastActivity.java"
+    )
     doGlobalInspectionTest(AndroidLintWrongViewCastInspection())
   }
 
@@ -1105,23 +1400,23 @@ class AndroidLintTest : AbstractAndroidLintTest() {
 
     lintXml = moduleDir.findChild("lint.xml")
     assertThat(lintXml).isNotNull()
-    assertThat(String(lintXml!!.contentsToByteArray(), StandardCharsets.UTF_8)).isEqualTo(
-      "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-      "<lint>\n" +
-      "    <issue id=\"IconDuplicates\">\n" +
-      "        <ignore path=\"res/drawable/dup1.png\" />\n" +
-      "    </issue>\n" +
-      "</lint>")
+    assertThat(String(lintXml!!.contentsToByteArray(), StandardCharsets.UTF_8))
+      .isEqualTo(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+          "<lint>\n" +
+          "    <issue id=\"IconDuplicates\">\n" +
+          "        <ignore path=\"res/drawable/dup1.png\" />\n" +
+          "    </issue>\n" +
+          "</lint>"
+      )
   }
 
   fun testSuppressingInXml1() {
-    doTestNoFix(AndroidLintHardcodedTextInspection(),
-                "/res/layout/layout.xml", "xml")
+    doTestNoFix(AndroidLintHardcodedTextInspection(), "/res/layout/layout.xml", "xml")
   }
 
   fun testSuppressingInXml2() {
-    doTestNoFix(AndroidLintHardcodedTextInspection(),
-                "/res/layout/layout.xml", "xml")
+    doTestNoFix(AndroidLintHardcodedTextInspection(), "/res/layout/layout.xml", "xml")
   }
 
   fun testSuppressingInXml3() {
@@ -1141,7 +1436,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintNewApiInspection(),
       "Add @TargetApi(HONEYCOMB) Annotation",
-      "/src/p1/p2/MyActivity.java", "java")
+      "/src/p1/p2/MyActivity.java",
+      "java"
+    )
   }
 
   fun testApiCheck1c() { // Check adding a @SuppressLint annotation in a Java file to suppress
@@ -1149,7 +1446,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintNewApiInspection(),
       "Suppress NewApi with an annotation",
-      "/src/p1/p2/MyActivity.java", "java")
+      "/src/p1/p2/MyActivity.java",
+      "java"
+    )
   }
 
   fun testApiCheck1d() { // Check adding a tools:targetApi attribute in an XML file to suppress
@@ -1157,7 +1456,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintNewApiInspection(),
       "Suppress with tools:targetApi attribute",
-      "/res/layout/layout.xml", "xml")
+      "/res/layout/layout.xml",
+      "xml"
+    )
   }
 
   fun testApiCheck1e() { // Check adding a tools:suppress attribute in an XML file to suppress
@@ -1165,7 +1466,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintNewApiInspection(),
       "Suppress: Add tools:ignore=\"NewApi\" attribute",
-      "/res/layout/layout.xml", "xml")
+      "/res/layout/layout.xml",
+      "xml"
+    )
   }
 
   fun testExtensionSuppress() {
@@ -1173,7 +1476,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintNewApiInspection(),
       "Surround with if (SdkExtensions.getExtensionVersion(R)) >= 4) { ... }",
-      "/src/androidx/annotation/RequiresExtension.java", "java")
+      "/src/androidx/annotation/RequiresExtension.java",
+      "java"
+    )
   }
 
   fun testExtensionSuppressKotlin() {
@@ -1181,7 +1486,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintNewApiInspection(),
       "Surround with if (SdkExtensions.getExtensionVersion(R)) >= 1) { ... }",
-      "/src/androidx/annotation/RequiresExtension.kt", "kt")
+      "/src/androidx/annotation/RequiresExtension.kt",
+      "kt"
+    )
   }
 
   fun testExtensionSuppressKotlinOnR() {
@@ -1189,7 +1496,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintNewApiInspection(),
       "Surround with if (SdkExtensions.getExtensionVersion(R)) >= 4) { ... }",
-      "/src/androidx/annotation/RequiresExtension.kt", "kt")
+      "/src/androidx/annotation/RequiresExtension.kt",
+      "kt"
+    )
   }
 
   fun testRequiresExtensionKotlin() {
@@ -1197,7 +1506,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintNewApiInspection(),
       "Add @RequiresExtension(extension=R, version=4) Annotation",
-      "/src/androidx/annotation/RequiresExtension.kt", "kt")
+      "/src/androidx/annotation/RequiresExtension.kt",
+      "kt"
+    )
   }
 
   fun testRequiresExtensionKotlinSingle() {
@@ -1205,7 +1516,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintNewApiInspection(),
       "Add @RequiresExtension(extension=R, version=4) Annotation",
-      "/src/androidx/annotation/RequiresExtension.kt", "kt")
+      "/src/androidx/annotation/RequiresExtension.kt",
+      "kt"
+    )
   }
 
   fun testRequiresExtensionJava() {
@@ -1213,7 +1526,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintNewApiInspection(),
       "Add @RequiresExtension(extension=R, version=4) Annotation",
-      "/src/androidx/annotation/RequiresExtension.java", "java")
+      "/src/androidx/annotation/RequiresExtension.java",
+      "java"
+    )
   }
 
   fun testRequiresExtensionJavaSingle() {
@@ -1221,7 +1536,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintNewApiInspection(),
       "Add @RequiresExtension(extension=R, version=4) Annotation",
-      "/src/androidx/annotation/RequiresExtension.java", "java")
+      "/src/androidx/annotation/RequiresExtension.java",
+      "java"
+    )
   }
 
   fun testMissingExtension() {
@@ -1229,7 +1546,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintNewApiInspection(),
       "Add @RequiresExtension(extension=1000000, version=4) Annotation",
-      "/src/androidx/annotation/RequiresExtension.kt", "kt")
+      "/src/androidx/annotation/RequiresExtension.kt",
+      "kt"
+    )
   }
 
   fun testApiCheck1f() { // Check adding a version-check conditional in a Java file
@@ -1237,7 +1556,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintNewApiInspection(),
       "Surround with if (VERSION.SDK_INT >= VERSION_CODES.HONEYCOMB) { ... }",
-      "/src/p1/p2/MyActivity.java", "java")
+      "/src/p1/p2/MyActivity.java",
+      "java"
+    )
   }
 
   fun testApiCheck1Kotlin() { // Check adding a version-check conditional in a Kotlin file
@@ -1245,26 +1566,35 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintNewApiInspection(),
       "Surround with if (VERSION.SDK_INT >= VERSION_CODES.HONEYCOMB) { ... }",
-      "/src/p1/p2/MyActivity.kt", "kt")
+      "/src/p1/p2/MyActivity.kt",
+      "kt"
+    )
   }
 
   fun testAddSdkIntJava() {
     // Check adding a version-checking annotation in a Java File
-    // This lint check only triggers in a library, so place it there instead of normal src/ location:
+    // This lint check only triggers in a library, so place it there instead of normal src/
+    // location:
     val srcRoot = "/additionalModules/module1/src"
     addChecksSdkIntAtLeast(srcRoot)
-    doTestWithFix(AndroidLintAnnotateVersionCheckInspection(),
-                  "Annotate with @ChecksSdkIntAtLeast",
-                  "$srcRoot/p1/p2/JavaSdkIntTest.java", "java")
+    doTestWithFix(
+      AndroidLintAnnotateVersionCheckInspection(),
+      "Annotate with @ChecksSdkIntAtLeast",
+      "$srcRoot/p1/p2/JavaSdkIntTest.java",
+      "java"
+    )
   }
 
   fun testAddSdkIntKotlin() {
     // Like testAddSdkIntJava but for Kotlin
     val srcRoot = "/additionalModules/module1/src"
     addChecksSdkIntAtLeast(srcRoot)
-    doTestWithFix(AndroidLintAnnotateVersionCheckInspection(),
-                  "Annotate with @ChecksSdkIntAtLeast",
-                  "$srcRoot/p1/p2/SdkIntTest.kt", "kt")
+    doTestWithFix(
+      AndroidLintAnnotateVersionCheckInspection(),
+      "Annotate with @ChecksSdkIntAtLeast",
+      "$srcRoot/p1/p2/SdkIntTest.kt",
+      "kt"
+    )
   }
 
   fun testJava8FeaturesWithoutDesugaring() {
@@ -1272,21 +1602,37 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     deleteManifest()
     addMinSdkManifest(minSdk)
     // Set desugaring level to DEFAULT which does not include java 8 desugaring.
-    AndroidModel.set(myFacet, TestAndroidModel(minSdkVersion = AndroidVersion(minSdk), desugaringLevel = Desugaring.DEFAULT))
+    AndroidModel.set(
+      myFacet,
+      TestAndroidModel(minSdkVersion = AndroidVersion(minSdk), desugaringLevel = Desugaring.DEFAULT)
+    )
 
-    val highlights = doTestHighlighting(AndroidLintNewApiInspection(), "src/com/example/test/TestActivity.java", "java", true)
+    val highlights =
+      doTestHighlighting(
+        AndroidLintNewApiInspection(),
+        "src/com/example/test/TestActivity.java",
+        "java",
+        true
+      )
     // All Java8 features should be flagged as errors
-    val errors = highlights.filter { it.severity == HighlightSeverity.ERROR || it.severity == HighlightSeverity.WARNING }.toList()
+    val errors =
+      highlights
+        .filter {
+          it.severity == HighlightSeverity.ERROR || it.severity == HighlightSeverity.WARNING
+        }
+        .toList()
     assertThat(errors).hasSize(6)
 
     val errorDescriptions = errors.map { it.description }
-    assertThat(
-      errorDescriptions).containsExactly("Call requires API level 24 (current min is 16): `java.util.stream.IntStream#range`",
-                                         "Call requires API level 24 (current min is 16): `java.util.stream.IntStream#filter`",
-                                         "Method reference requires API level 24 (current min is 16): `isEven::test`",
-                                         "Call requires API level 24 (current min is 16): `java.util.stream.IntStream#boxed`",
-                                         "Call requires API level 24 (current min is 16): `java.util.stream.Stream#collect`",
-                                         "Call requires API level 24 (current min is 16): `java.util.stream.Collectors#toList`")
+    assertThat(errorDescriptions)
+      .containsExactly(
+        "Call requires API level 24 (current min is 16): `java.util.stream.IntStream#range`",
+        "Call requires API level 24 (current min is 16): `java.util.stream.IntStream#filter`",
+        "Method reference requires API level 24 (current min is 16): `isEven::test`",
+        "Call requires API level 24 (current min is 16): `java.util.stream.IntStream#boxed`",
+        "Call requires API level 24 (current min is 16): `java.util.stream.Stream#collect`",
+        "Call requires API level 24 (current min is 16): `java.util.stream.Collectors#toList`"
+      )
   }
 
   fun testJava8FeaturesWithDesugaring() {
@@ -1294,33 +1640,62 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     deleteManifest()
     addMinSdkManifest(minSdk)
     // Explicitly enable full desugaring
-    AndroidModel.set(myFacet, TestAndroidModel(minSdkVersion = AndroidVersion(minSdk), desugaringLevel = Desugaring.FULL))
+    AndroidModel.set(
+      myFacet,
+      TestAndroidModel(minSdkVersion = AndroidVersion(minSdk), desugaringLevel = Desugaring.FULL)
+    )
 
-    val highlights = doTestHighlighting(AndroidLintNewApiInspection(), "src/com/example/test/TestActivity.java", "java", true)
+    val highlights =
+      doTestHighlighting(
+        AndroidLintNewApiInspection(),
+        "src/com/example/test/TestActivity.java",
+        "java",
+        true
+      )
     // Java8 features should not be flagged as issues
-    val errors = highlights.filter { it.severity == HighlightSeverity.ERROR || it.severity == HighlightSeverity.WARNING }.toList()
+    val errors =
+      highlights
+        .filter {
+          it.severity == HighlightSeverity.ERROR || it.severity == HighlightSeverity.WARNING
+        }
+        .toList()
     assertThat(errors).hasSize(0)
   }
 
   fun testImlFileOutsideContentRoot() {
-    myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, "additionalModules/module1/" + SdkConstants.FN_ANDROID_MANIFEST_XML)
-    myFixture.copyFileToProject(SdkConstants.FN_ANDROID_MANIFEST_XML, "additionalModules/module2/" + SdkConstants.FN_ANDROID_MANIFEST_XML)
+    myFixture.copyFileToProject(
+      SdkConstants.FN_ANDROID_MANIFEST_XML,
+      "additionalModules/module1/" + SdkConstants.FN_ANDROID_MANIFEST_XML
+    )
+    myFixture.copyFileToProject(
+      SdkConstants.FN_ANDROID_MANIFEST_XML,
+      "additionalModules/module2/" + SdkConstants.FN_ANDROID_MANIFEST_XML
+    )
     val testDir = BASE_PATH_GLOBAL + "apiCheck1"
-    myFixture.copyFileToProject("$testDir/MyActivity.java", "additionalModules/module1/src/p1/p2/MyActivity.java")
+    myFixture.copyFileToProject(
+      "$testDir/MyActivity.java",
+      "additionalModules/module1/src/p1/p2/MyActivity.java"
+    )
     doGlobalInspectionTest(AndroidLintNewApiInspection(), testDir, AnalysisScope(project))
   }
 
   fun testUnusedResource() {
     // This test checks 3 things.
-    // First, it runs the unused resources global inspection and checks that it gets it right (the results are checked
+    // First, it runs the unused resources global inspection and checks that it gets it right (the
+    // results are checked
     // against unusedResources/expected.xml).
     //
-    // Then, it checks that *all* the quickfixes associated with this use a unique family name. This checks that
-    // we don't get into the scenario described in issue 235641, where a *single* action is created to run all 3
-    // quickfixes (both adding tools/keep, which is taken as the display name, as well as the removal refactoring).
+    // Then, it checks that *all* the quickfixes associated with this use a unique family name. This
+    // checks that
+    // we don't get into the scenario described in issue 235641, where a *single* action is created
+    // to run all 3
+    // quickfixes (both adding tools/keep, which is taken as the display name, as well as the
+    // removal refactoring).
     //
-    // Finally, it actually performs the unused refactoring fix. This verifies that this works without the crash
-    // also reported in issue 235641 (where the unused refactoring is invoked under a write lock, which quickfixes
+    // Finally, it actually performs the unused refactoring fix. This verifies that this works
+    // without the crash
+    // also reported in issue 235641 (where the unused refactoring is invoked under a write lock,
+    // which quickfixes
     // normally are, but which is forbidden by the refactoring framework.)
     val file = myFixture.copyFileToProject("$globalTestDir/strings.xml", "res/values/strings.xml")
     myFixture.configureFromExistingVirtualFile(file)
@@ -1328,7 +1703,8 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     var targetDescriptor: CommonProblemDescriptor? = null
     var targetFix: QuickFix<CommonProblemDescriptor?>? = null
 
-    // Ensure family names are unique; if not quickfixes get collapsed. Set.add only returns true if it wasn't already in the set.
+    // Ensure family names are unique; if not quickfixes get collapsed. Set.add only returns true if
+    // it wasn't already in the set.
     for (refEntity in map.keys()) {
       for (descriptor in map[refEntity]) {
         val familyNames: MutableSet<String> = Sets.newHashSet()
@@ -1386,7 +1762,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
 
           manager.setCommunicationDevice(info);
         }
-      }""".trimIndent())
+      }"""
+        .trimIndent()
+    )
 
     myFixture.addFileToProject("AndroidManifest.xml", manifestContents(32, 32))
 
@@ -1412,9 +1790,14 @@ class AndroidLintTest : AbstractAndroidLintTest() {
 
           manager.setCommunicationDevice(info);
         }
-      }""".trimIndent())
+      }"""
+        .trimIndent()
+    )
 
-    myFixture.addFileToProject("additionalModules/module1/AndroidManifest.xml", manifestContents(32, 32))
+    myFixture.addFileToProject(
+      "additionalModules/module1/AndroidManifest.xml",
+      manifestContents(32, 32)
+    )
 
     val inspection = AndroidLintSetAndClearCommunicationDeviceInspection()
     myFixture.enableInspections(inspection)
@@ -1449,7 +1832,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
 
           manager.setCommunicationDevice(info);
         }
-      }""".trimIndent())
+      }"""
+        .trimIndent()
+    )
 
     myFixture.addFileToProject("AndroidManifest.xml", manifestContents(32, 32))
 
@@ -1474,9 +1859,14 @@ class AndroidLintTest : AbstractAndroidLintTest() {
 
           manager.clearCommunicationDevice();
         }
-      }""".trimIndent())
+      }"""
+        .trimIndent()
+    )
 
-    myFixture.addFileToProject("additionalModules/module1/AndroidManifest.xml", manifestContents(32, 32))
+    myFixture.addFileToProject(
+      "additionalModules/module1/AndroidManifest.xml",
+      manifestContents(32, 32)
+    )
 
     val inspection = AndroidLintSetAndClearCommunicationDeviceInspection()
     myFixture.enableInspections(inspection)
@@ -1485,21 +1875,48 @@ class AndroidLintTest : AbstractAndroidLintTest() {
 
   fun testMergeObsoleteFolders() { // Force minSdkVersion to v14:
     deleteManifest()
-    addMinSdkManifest(14)
+    addMinSdkManifest(26)
 
-    val mainFile = myFixture.copyFileToProject("$globalTestDir/values-strings.xml", "res/values/strings.xml")
-    val v8strings = myFixture.copyFileToProject("$globalTestDir/values-v8-strings.xml", "res/values-v8/strings.xml")
-    val v10strings = myFixture.copyFileToProject("$globalTestDir/values-v10-strings.xml", "res/values-v10/strings.xml")
+    val mainFile =
+      myFixture.copyFileToProject("$globalTestDir/values-strings.xml", "res/values/strings.xml")
+    val v8strings =
+      myFixture.copyFileToProject(
+        "$globalTestDir/values-v8-strings.xml",
+        "res/values-v8/strings.xml"
+      )
+    val v10strings =
+      myFixture.copyFileToProject(
+        "$globalTestDir/values-v10-strings.xml",
+        "res/values-v10/strings.xml"
+      )
+    val mipmap =
+      myFixture.copyFileToProject(
+        "$globalTestDir/mipmap-anydpi-v26-ic_launcher.xml",
+        "res/mipmap-anydpi-v26/ic_launcher.xml"
+      )
 
-    myFixture.copyFileToProject("$globalTestDir/layout-v11-activity_main.xml", "res/layout-v11/activity_main.xml")
-    myFixture.copyFileToProject("$globalTestDir/layout-activity_main.xml", "res/layout/activity_main.xml")
+    myFixture.copyFileToProject(
+      "$globalTestDir/layout-v11-activity_main.xml",
+      "res/layout-v11/activity_main.xml"
+    )
+    myFixture.copyFileToProject(
+      "$globalTestDir/layout-activity_main.xml",
+      "res/layout/activity_main.xml"
+    )
 
     myFixture.configureFromExistingVirtualFile(mainFile)
 
     val inspection = AndroidLintObsoleteSdkIntInspection()
-    val actionLabel = "Merge resources from -v8 and -v10 into values"
-    doGlobalInspectionWithFix(inspection, actionLabel)
+    val actionLabel1 = "Merge resources from -v8 and -v10 into values"
+    val actionLabel2 = "Merge resources from -anydpi-v26 into mipmap-anydpi"
+    doGlobalInspectionWithFixes(inspection, actionLabel1, actionLabel2)
     myFixture.checkResultByFile("$globalTestDir/values-strings_after.xml")
+    myFixture.checkResultByFile(
+      "res/mipmap-anydpi/ic_launcher.xml",
+      "$globalTestDir/mipmap-anydpi-v26-ic_launcher.xml",
+      true
+    )
+
     // check that the other folders don't exist
     assertFalse(v8strings.isValid)
     assertFalse(v10strings.isValid)
@@ -1509,7 +1926,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintImpliedTouchscreenHardwareInspection(),
       "Add uses-feature tag",
-      "AndroidManifest.xml", "xml")
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   fun testApiInlined() {
@@ -1522,27 +1941,35 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintParcelClassLoaderInspection(),
       "Use getClass().getClassLoader()",
-      "/src/test/pkg/ParcelClassLoaderTest.java", "java")
+      "/src/test/pkg/ParcelClassLoaderTest.java",
+      "java"
+    )
   }
 
   fun testParcelLoader2() {
     doTestWithFix(
       AndroidLintParcelClassLoaderInspection(),
       "Use getClass().getClassLoader()",
-      "/src/test/pkg/ParcelClassLoaderTest.java", "java")
+      "/src/test/pkg/ParcelClassLoaderTest.java",
+      "java"
+    )
   }
 
-  fun testDeprecation() { // Need to use minSdkVersion >= 3 to get all the deprecation warnings to kick in
+  fun testDeprecation() {
+    // Need to use minSdkVersion >= 3 to get all the deprecation warnings to kick in
     deleteManifest()
     addMinSdkManifest(3)
-    doTestNoFix(AndroidLintDeprecatedInspection(),
-                "/res/layout/deprecation.xml", "xml")
+    doTestNoFix(AndroidLintDeprecatedInspection(), "/res/layout/deprecation.xml", "xml")
   }
 
   fun testUnprotectedSmsBroadcastReceiver() {
     deleteManifest()
-    doTestWithFix(AndroidLintUnprotectedSMSBroadcastReceiverInspection(),
-                  "Set permission=\"android.permission.BROADCAST_SMS\"", "AndroidManifest.xml", "xml")
+    doTestWithFix(
+      AndroidLintUnprotectedSMSBroadcastReceiverInspection(),
+      "Set permission=\"android.permission.BROADCAST_SMS\"",
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   fun testActivityRegistered() {
@@ -1557,7 +1984,10 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     createManifest()
     doTestWithFix(
       AndroidLintNetworkSecurityConfigInspection(),
-      "Use domain-config", "res/xml/network-config.xml", "xml")
+      "Use domain-config",
+      "res/xml/network-config.xml",
+      "xml"
+    )
   }
 
   /** Check typos in network-security-config attribute. */
@@ -1565,12 +1995,19 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     createManifest()
     doTestWithFix(
       AndroidLintNetworkSecurityConfigInspection(),
-      "Use includeSubdomains", "res/xml/network-config.xml", "xml")
+      "Use includeSubdomains",
+      "res/xml/network-config.xml",
+      "xml"
+    )
   }
 
   fun testDeleteRepeatedWords() {
-    doTestWithFix(AndroidLintTyposInspection(),
-                  "Delete repeated word", "res/values/strings.xml", "xml")
+    doTestWithFix(
+      AndroidLintTyposInspection(),
+      "Delete repeated word",
+      "res/values/strings.xml",
+      "xml"
+    )
   }
 
   fun testInvalidPinDigestAlg() {
@@ -1578,25 +2015,34 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintNetworkSecurityConfigInspection(),
       "Set digest to \"SHA-256\"",
-      "res/xml/network-config.xml", "xml")
+      "res/xml/network-config.xml",
+      "xml"
+    )
   }
 
   fun testResourceTypes() {
     createManifest()
     addDrawableRes()
-    doTestNoFix(
-      AndroidLintResourceTypeInspection(),
-      "/src/p1/p2/ResourceTypes.java", "java")
+    doTestNoFix(AndroidLintResourceTypeInspection(), "/src/p1/p2/ResourceTypes.java", "java")
   }
 
-  fun testStringEscapes() { // Regression test for https://code.google.com/p/android/issues/detail?id=224150
+  fun testStringEscapes() {
+    // Regression test for
+    // https://code.google.com/p/android/issues/detail?id=224150
     doTestWithFix(
       AndroidLintStringEscapingInspection(),
-      "Escape Apostrophe", "/res/values/strings.xml", "xml")
+      "Escape Apostrophe",
+      "/res/values/strings.xml",
+      "xml"
+    )
   }
 
   fun testRegistration() {
-    doTestHighlighting(AndroidLintRegisteredInspection(), "/src/p1/p2/RegistrationTest.java", "java")
+    doTestHighlighting(
+      AndroidLintRegisteredInspection(),
+      "/src/p1/p2/RegistrationTest.java",
+      "java"
+    )
   }
 
   fun testExtendAppCompatWidgets() { // Configure appcompat dependency
@@ -1608,37 +2054,56 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     }
     val testProjectSystem = TestProjectSystem(project)
     testProjectSystem.useInTests()
-    testProjectSystem.addDependency(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7, myFixture.module,
-                                    GradleVersion.parse("+"))
-    doTestWithFix(AndroidLintAppCompatCustomViewInspection(),
-                  "Extend AppCompat widget instead", "/src/p1/p2/MyButton.java", "java")
+    testProjectSystem.addDependency(
+      GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7,
+      myFixture.module,
+      GradleVersion.parse("+")
+    )
+    doTestWithFix(
+      AndroidLintAppCompatCustomViewInspection(),
+      "Extend AppCompat widget instead",
+      "/src/p1/p2/MyButton.java",
+      "java"
+    )
   }
 
   fun testExif() {
-    doTestWithFix(AndroidLintExifInterfaceInspection(),
-                  "Update all references in this file",
-                  "/src/test/pkg/ExifUsage.java", "java")
+    doTestWithFix(
+      AndroidLintExifInterfaceInspection(),
+      "Update all references in this file",
+      "/src/test/pkg/ExifUsage.java",
+      "java"
+    )
   }
 
   fun testMissingWearStandaloneAppFlag() {
     deleteManifest()
-    doTestWithFix(AndroidLintWearStandaloneAppFlagInspection(),
-                  "Add meta-data element for 'com.google.android.wearable.standalone'",
-                  "AndroidManifest.xml", "xml")
+    doTestWithFix(
+      AndroidLintWearStandaloneAppFlagInspection(),
+      "Add meta-data element for 'com.google.android.wearable.standalone'",
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   fun testInvalidWearStandaloneAppAttrValue() {
     deleteManifest()
-    doTestWithFix(AndroidLintWearStandaloneAppFlagInspection(),
-                  "Replace with true",
-                  "AndroidManifest.xml", "xml")
+    doTestWithFix(
+      AndroidLintWearStandaloneAppFlagInspection(),
+      "Replace with true",
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   fun testMissingWearStandaloneAppFlagValueAttr() {
     deleteManifest()
-    doTestWithFix(AndroidLintWearStandaloneAppFlagInspection(),
-                  "Set value=\"true\"",
-                  "AndroidManifest.xml", "xml")
+    doTestWithFix(
+      AndroidLintWearStandaloneAppFlagInspection(),
+      "Set value=\"true\"",
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   fun testInvalidWearFeatureAttr() {
@@ -1646,14 +2111,19 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintInvalidWearFeatureAttributeInspection(),
       "Remove attribute",
-      "AndroidManifest.xml", "xml")
+      "AndroidManifest.xml",
+      "xml"
+    )
   }
 
   fun testWakelockTimeout() {
     deleteManifest()
-    doTestWithFix(AndroidLintWakelockTimeoutInspection(),
-                  "Set timeout to 10 minutes",
-                  "/src/test/pkg/WakelockTest.java", "java")
+    doTestWithFix(
+      AndroidLintWakelockTimeoutInspection(),
+      "Set timeout to 10 minutes",
+      "/src/test/pkg/WakelockTest.java",
+      "java"
+    )
   }
 
   fun testWifiManagerLeak() {
@@ -1661,15 +2131,16 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     // Set minSdkVersion to pre-N:
     deleteManifest()
     addMinSdkManifest(14)
-    doTestWithFix(AndroidLintWifiManagerLeakInspection(),
-                  "Add getApplicationContext()",
-                  "/src/test/pkg/WifiManagerLeak.java", "java")
+    doTestWithFix(
+      AndroidLintWifiManagerLeakInspection(),
+      "Add getApplicationContext()",
+      "/src/test/pkg/WifiManagerLeak.java",
+      "java"
+    )
   }
 
   fun testInvalidImeActionId() {
-    doTestNoFix(
-      AndroidLintInvalidImeActionIdInspection(),
-      "/res/layout/layout.xml", "xml")
+    doTestNoFix(AndroidLintInvalidImeActionIdInspection(), "/res/layout/layout.xml", "xml")
   }
 
   fun testLintNonAndroid() { // See LintIdeTest; this is the opposite check
@@ -1679,10 +2150,14 @@ class AndroidLintTest : AbstractAndroidLintTest() {
   }
 
   fun testOldBetaPlugin() {
-    // note: the test file needs updating when major/minor versions of AGP are removed from the offline
-    // Google Maven cache, and in particular there may be no way to get this test to pass (i.e. to show a
-    // warning) if the only stable AGP version in the offline Google Maven cache is a .0 patchlevel version.
-    // Check changes in tools/base/sdk-common/src/main/resources/versions-offline/com/android/tools/build/group-index.xml
+    // note: the test file needs updating when major/minor versions of AGP are removed from the
+    // offline
+    // Google Maven cache, and in particular there may be no way to get this test to pass (i.e. to
+    // show a
+    // warning) if the only stable AGP version in the offline Google Maven cache is a .0 patchlevel
+    // version.
+    // Check changes in
+    // tools/base/sdk-common/src/main/resources/versions-offline/com/android/tools/build/group-index.xml
     // and update adt/idea/android-lint/testData/lint/oldBetaPlugin.gradle
     doTestHighlighting(AndroidLintAndroidGradlePluginVersionInspection(), "build.gradle", "gradle")
   }
@@ -1695,7 +2170,8 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintMotionSceneFileValidationErrorInspection(),
       "Set attributeName",
-      "/res/xml/customTagWithoutName.xml", "xml"
+      "/res/xml/customTagWithoutName.xml",
+      "xml"
     )
   }
 
@@ -1703,7 +2179,8 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintMotionSceneFileValidationErrorInspection(),
       "Delete this custom attribute",
-      "/res/xml/customTagWithDuplicateName.xml", "xml"
+      "/res/xml/customTagWithDuplicateName.xml",
+      "xml"
     )
   }
 
@@ -1711,30 +2188,39 @@ class AndroidLintTest : AbstractAndroidLintTest() {
     doTestWithFix(
       AndroidLintMotionLayoutInvalidSceneFileReferenceInspection(),
       "Generate MotionScene file",
-      "/res/layout/motionLayoutWithoutLayoutDescription.xml", "xml"
+      "/res/layout/motionLayoutWithoutLayoutDescription.xml",
+      "xml"
     )
 
     val sceneFile = "${getTestName(true)}_scene.xml"
     myFixture.checkResultByFile("res/xml/$sceneFile", "$BASE_PATH/$sceneFile", false)
   }
 
-  private fun doGlobalInspectionTest(inspection: GlobalInspectionTool): SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> {
+  private fun doGlobalInspectionTest(
+    inspection: GlobalInspectionTool
+  ): SynchronizedBidiMultiMap<RefEntity, CommonProblemDescriptor> {
     myFixture.enableInspections(inspection)
     return doGlobalInspectionTest(inspection, globalTestDir, AnalysisScope(myModule))
   }
 
-  private fun doGlobalInspectionWithFix(inspection: GlobalInspectionTool, actionLabel: String) {
+  private fun doGlobalInspectionWithFixes(
+    inspection: GlobalInspectionTool,
+    vararg actionLabels: String
+  ) {
     val map = doGlobalInspectionTest(inspection)
-    // Ensure family names are unique; if not quickfixes get collapsed. Set.add only returns true if it wasn't already in the set.
+    // Ensure family names are unique; if not quickfixes get collapsed. Set.add only returns true if
+    // it wasn't already in the set.
     for (refEntity in map.keys()) {
       for (descriptor in map[refEntity]) {
         val fixes = descriptor.fixes
         if (fixes != null) {
           for (fix in fixes) {
             val name = fix.name
-            if (actionLabel == name) {
+            if (actionLabels.contains(name)) {
               if (fix.startInWriteAction()) {
-                WriteCommandAction.runWriteCommandAction(project) { fix.applyFix(project, descriptor) }
+                WriteCommandAction.runWriteCommandAction(project) {
+                  fix.applyFix(project, descriptor)
+                }
               } else {
                 fix.applyFix(project, descriptor)
               }
@@ -1754,8 +2240,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
   }
 
   private fun addRequiresApi() {
-    myFixture.addFileToProject("/src/android/support/annotation/RequiresApi.java",
-                               """
+    myFixture.addFileToProject(
+      "/src/android/support/annotation/RequiresApi.java",
+      """
                                  package android.support.annotation;\n" +
                                  import static java.lang.annotation.ElementType.CONSTRUCTOR;
                                  import static java.lang.annotation.ElementType.FIELD;
@@ -1771,12 +2258,15 @@ class AndroidLintTest : AbstractAndroidLintTest() {
                                      int value() default 1;
                                      int api() default 1;
                                  }
-                               """.trimIndent())
+                               """
+        .trimIndent()
+    )
   }
 
   private fun addIntDef() {
-    myFixture.addFileToProject("/src/android/support/annotation/IntDef.java",
-                               """
+    myFixture.addFileToProject(
+      "/src/android/support/annotation/IntDef.java",
+      """
                                  package android.support.annotation;
                                  import java.lang.annotation.Retention;
                                  import java.lang.annotation.RetentionPolicy;
@@ -1794,12 +2284,15 @@ class AndroidLintTest : AbstractAndroidLintTest() {
                                      long[] value() default {};
                                      boolean flag() default false;
                                  }
-                               """.trimIndent())
+                               """
+        .trimIndent()
+    )
   }
 
   private fun addKeep() {
-    myFixture.addFileToProject("/src/androidx/annotation/Keep.java",
-                               """
+    myFixture.addFileToProject(
+      "/src/androidx/annotation/Keep.java",
+      """
                                  package androidx.annotation;
                                  import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
                                  import static java.lang.annotation.ElementType.CONSTRUCTOR;
@@ -1814,12 +2307,15 @@ class AndroidLintTest : AbstractAndroidLintTest() {
                                  @Target({PACKAGE,TYPE,ANNOTATION_TYPE,CONSTRUCTOR,METHOD,FIELD})
                                  public @interface Keep {
                                  }
-                               """.trimIndent())
+                               """
+        .trimIndent()
+    )
   }
 
   private fun addCheckResult() {
-    myFixture.addFileToProject("/src/android/support/annotation/Keep.java",
-                               """
+    myFixture.addFileToProject(
+      "/src/android/support/annotation/Keep.java",
+      """
                                  package android.support.annotation;
                                  import static java.lang.annotation.ElementType.METHOD;
                                  import static java.lang.annotation.RetentionPolicy.CLASS;
@@ -1832,12 +2328,15 @@ class AndroidLintTest : AbstractAndroidLintTest() {
                                  public @interface CheckResult {
                                      String suggest() default "";
                                  }
-                               """.trimIndent())
+                               """
+        .trimIndent()
+    )
   }
 
   private fun addDrawableRes() {
-    myFixture.addFileToProject("/src/android/support/annotation/DrawableRes.java",
-                               """
+    myFixture.addFileToProject(
+      "/src/android/support/annotation/DrawableRes.java",
+      """
                                  package android.support.annotation;
                                  import static java.lang.annotation.ElementType.FIELD;
                                  import static java.lang.annotation.ElementType.LOCAL_VARIABLE;
@@ -1853,13 +2352,16 @@ class AndroidLintTest : AbstractAndroidLintTest() {
                                  @Target({METHOD, PARAMETER, FIELD, LOCAL_VARIABLE})
                                  public @interface DrawableRes {
                                  }
-                               """.trimIndent())
+                               """
+        .trimIndent()
+    )
   }
 
   // --- AndroidX ---
   private fun addColorInt() {
-    myFixture.addFileToProject("/src/androidx/annotation/ColorInt.java",
-                               """
+    myFixture.addFileToProject(
+      "/src/androidx/annotation/ColorInt.java",
+      """
                                  package androidx.annotation;
 
                                  import static java.lang.annotation.ElementType.FIELD;
@@ -1874,12 +2376,15 @@ class AndroidLintTest : AbstractAndroidLintTest() {
                                  @Target({PARAMETER,METHOD,LOCAL_VARIABLE,FIELD})
                                  public @interface ColorInt {
                                  }
-                               """.trimIndent())
+                               """
+        .trimIndent()
+    )
   }
 
   private fun addColorRes() {
-    myFixture.addFileToProject("/src/androidx/annotation/ColorRes.java",
-                               """
+    myFixture.addFileToProject(
+      "/src/androidx/annotation/ColorRes.java",
+      """
                                  package androidx.annotation;
                                  import static java.lang.annotation.ElementType.FIELD;
                                  import static java.lang.annotation.ElementType.LOCAL_VARIABLE;
@@ -1895,12 +2400,15 @@ class AndroidLintTest : AbstractAndroidLintTest() {
                                  @Target({METHOD, PARAMETER, FIELD, LOCAL_VARIABLE})
                                  public @interface ColorRes {
                                  }
-                               """.trimIndent())
+                               """
+        .trimIndent()
+    )
   }
 
   private fun addChecksSdkIntAtLeast(targetDir: String = "/src/") {
-    myFixture.addFileToProject("$targetDir/androidx/annotation/ChecksSdkIntAtLeast.java",
-             """
+    myFixture.addFileToProject(
+      "$targetDir/androidx/annotation/ChecksSdkIntAtLeast.java",
+      """
             package androidx.annotation;
             import static java.lang.annotation.ElementType.FIELD;
             import static java.lang.annotation.ElementType.METHOD;
@@ -1917,7 +2425,8 @@ class AndroidLintTest : AbstractAndroidLintTest() {
                 int parameter() default -1;
                 int lambda() default -1;
             }
-            """.trimIndent()
+            """
+        .trimIndent()
     )
   }
 
@@ -1929,7 +2438,8 @@ class AndroidLintTest : AbstractAndroidLintTest() {
             package="test.pkg" >
             <uses-sdk android:minSdkVersion="$minSdk" android:targetSdkVersion="$targetSdk" />
         </manifest>"
-       """.trimIndent()
+       """
+        .trimIndent()
     }
   }
 }

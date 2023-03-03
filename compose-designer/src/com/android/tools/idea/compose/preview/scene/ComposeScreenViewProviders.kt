@@ -21,6 +21,7 @@ import com.android.tools.idea.common.surface.SceneLayer
 import com.android.tools.idea.common.surface.SceneView.DEVICE_CONFIGURATION_SHAPE_POLICY
 import com.android.tools.idea.common.surface.SceneView.SQUARE_SHAPE_POLICY
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
+import com.android.tools.idea.compose.preview.util.isRootComponentSelected
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.BorderLayer
@@ -46,10 +47,23 @@ internal val COMPOSE_SCREEN_VIEW_PROVIDER =
           ImmutableList.builder<Layer>()
             .apply {
               if (it.hasBorderLayer()) {
-                add(BorderLayer(it, true))
+                add(
+                  BorderLayer(it, true) { sceneView ->
+                    StudioFlags.COMPOSE_PREVIEW_SELECTION.get() &&
+                      sceneView.isRootComponentSelected()
+                  }
+                )
               }
               add(ScreenViewLayer(it))
-              add(SceneLayer(it.surface, it, false).apply { isShowOnHover = true })
+              add(
+                SceneLayer(it.surface, it, false).apply {
+                  isShowOnHover = true
+                  setShowOnHoverFilter { sceneView ->
+                    !StudioFlags.COMPOSE_PREVIEW_SELECTION.get() ||
+                      sceneView.isRootComponentSelected()
+                  }
+                }
+              )
               StudioFlags.NELE_CLASS_PRELOADING_DIAGNOSTICS.ifEnabled {
                 add(ClassLoadingDebugLayer(surface.models.first().facet.module))
               }
@@ -58,7 +72,8 @@ internal val COMPOSE_SCREEN_VIEW_PROVIDER =
             .build()
         }
         .withShapePolicy {
-          (if (COMPOSE_PREVIEW_ELEMENT_INSTANCE.getData(manager.model.dataContext)
+          (if (
+              COMPOSE_PREVIEW_ELEMENT_INSTANCE.getData(manager.model.dataContext)
                 ?.displaySettings
                 ?.showDecoration == true
             )

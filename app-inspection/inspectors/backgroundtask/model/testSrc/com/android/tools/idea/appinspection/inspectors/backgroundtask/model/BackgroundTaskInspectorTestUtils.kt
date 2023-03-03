@@ -120,8 +120,8 @@ object BackgroundTaskInspectorTestUtils {
   }
 
   private fun DefaultMutableTreeNode.getCategoryNode(type: String): BackgroundTaskCategoryNode {
-    return children().asSequence().first { (it as BackgroundTaskCategoryNode).name == type } as
-      BackgroundTaskCategoryNode
+    return children().asSequence().first { (it as BackgroundTaskCategoryNode).name == type }
+      as BackgroundTaskCategoryNode
   }
 
   fun DefaultMutableTreeNode.getWorksCategoryNode() = getCategoryNode("Workers")

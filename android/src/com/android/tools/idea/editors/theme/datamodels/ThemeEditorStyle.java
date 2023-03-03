@@ -22,7 +22,7 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
@@ -58,7 +58,7 @@ public class ThemeEditorStyle {
    */
   @NotNull
   public String getQualifiedName() {
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myManager.getModule());
+    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myManager.getModule());
     if (repositoryManager == null || repositoryManager.getNamespace().equals(myStyleReference.getNamespace())) {
       return myStyleReference.getName();
     }
@@ -81,7 +81,7 @@ public class ThemeEditorStyle {
     if (isFramework()) {
       return false;
     }
-    ResourceRepositoryManager repositoryManager = ResourceRepositoryManager.getInstance(myManager.getModule());
+    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myManager.getModule());
     assert repositoryManager != null;
     LocalResourceRepository repository = repositoryManager.getProjectResources();
     return repository.hasResources(myStyleReference.getNamespace(), myStyleReference.getResourceType(), myStyleReference.getName());

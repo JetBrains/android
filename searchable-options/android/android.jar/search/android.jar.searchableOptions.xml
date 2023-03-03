@@ -179,6 +179,12 @@
     <option name="object" path="ActionManager" hit="Create a new Android object from the Other category" />
     <option name="other" path="ActionManager" hit="Create a new Android object from the Other category" />
     <option name="the" path="ActionManager" hit="Create a new Android object from the Other category" />
+    <option name="a" path="ActionManager" hit="Create a new Version Catalog file" />
+    <option name="catalog" path="ActionManager" hit="Create a new Version Catalog file" />
+    <option name="create" path="ActionManager" hit="Create a new Version Catalog file" />
+    <option name="file" path="ActionManager" hit="Create a new Version Catalog file" />
+    <option name="new" path="ActionManager" hit="Create a new Version Catalog file" />
+    <option name="version" path="ActionManager" hit="Create a new Version Catalog file" />
     <option name="create" path="ActionManager" hit="Create new resource file" />
     <option name="file" path="ActionManager" hit="Create new resource file" />
     <option name="new" path="ActionManager" hit="Create new resource file" />
@@ -767,6 +773,8 @@
     <option name="where" path="ActionManager" hit="Use Style Where Possible..." />
     <option name="asset" path="ActionManager" hit="Vector Asset" />
     <option name="vector" path="ActionManager" hit="Vector Asset" />
+    <option name="catalog" path="ActionManager" hit="Version Catalog" />
+    <option name="version" path="ActionManager" hit="Version Catalog" />
     <option name="device" path="ActionManager" hit="Virtual Device Manager" />
     <option name="manager" path="ActionManager" hit="Virtual Device Manager" />
     <option name="virtual" path="ActionManager" hit="Virtual Device Manager" />
@@ -959,40 +967,39 @@
     <option name="using" hit="Run Android Instrumented Tests using Gradle." />
     <option name="testing" hit="Testing" />
   </configurable>
-  <configurable id="live.edit.configurable" configurable_name="Compose Live Edit">
-    <option name="" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="a" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="and" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="android" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="app" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="application" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="changes" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="code" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="composable" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="device" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="devices" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="emulator" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="emulators" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="experimental" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="feature" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="functions" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="instantaneously" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="learn" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="made" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="more" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="of" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="on" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="physical" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="re" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="reflects" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="require" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="run" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="running" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="settings" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="that" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="to" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="will" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
-    <option name="within" hit=" Experimental feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+  <configurable id="live.edit.configurable" configurable_name="Live Edit">
+    <option name="" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="a" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="and" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="android" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="app" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="application" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="changes" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="code" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="composable" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="device" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="devices" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="emulator" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="emulators" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="feature" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="functions" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="instantaneously" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="learn" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="made" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="more" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="of" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="on" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="physical" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="re" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="reflects" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="require" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="run" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="running" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="settings" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="that" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="to" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="will" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
+    <option name="within" hit=" Feature that instantaneously reflects code changes made within composable functions of a running Android app on emulators and physical devices. Settings changes to device/emulator will require application re-run. Learn more." />
     <option name="" hit=" Turn both features off." />
     <option name="both" hit=" Turn both features off." />
     <option name="features" hit=" Turn both features off." />
@@ -1026,13 +1033,14 @@
     <option name="updates" hit=" Updates literals used in composables in the emulators and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly. Learn more." />
     <option name="used" hit=" Updates literals used in composables in the emulators and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly. Learn more." />
     <option name="work" hit=" Updates literals used in composables in the emulators and physical devices in real time. Building is required after enabling Live Edit of literals so the feature can work properly. Learn more." />
-    <option name="compose" hit="Compose Live Edit" />
-    <option name="edit" hit="Compose Live Edit" />
-    <option name="live" hit="Compose Live Edit" />
-    <option name="edit" hit="Live Edit of literals" />
-    <option name="literals" hit="Live Edit of literals" />
-    <option name="live" hit="Live Edit of literals" />
-    <option name="of" hit="Live Edit of literals" />
+    <option name="" hit="(deprecated) Live Edit of literals" />
+    <option name="deprecated" hit="(deprecated) Live Edit of literals" />
+    <option name="edit" hit="(deprecated) Live Edit of literals" />
+    <option name="literals" hit="(deprecated) Live Edit of literals" />
+    <option name="live" hit="(deprecated) Live Edit of literals" />
+    <option name="of" hit="(deprecated) Live Edit of literals" />
+    <option name="edit" hit="Live Edit" />
+    <option name="live" hit="Live Edit" />
     <option name="none" hit="None" />
     <option name="automatically" hit="Push Edits Automatically" />
     <option name="edits" hit="Push Edits Automatically" />
@@ -1527,7 +1535,7 @@
     <option name="sync" hit="Use new dependency mechanism during Gradle sync" />
     <option name="use" hit="Use new dependency mechanism during Gradle sync" />
   </configurable>
-  <configurable id="gradle.compiler" configurable_name="Compiler">
+  <configurable id="gradle.compiler" configurable_name="Gradle-Android Compiler">
     <option name="" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
     <option name="android" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
     <option name="are" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
@@ -1553,11 +1561,13 @@
     <option name="parallel" hit="Compile independent modules in parallel (may require larger heap size)" />
     <option name="require" hit="Compile independent modules in parallel (may require larger heap size)" />
     <option name="size" hit="Compile independent modules in parallel (may require larger heap size)" />
-    <option name="compiler" hit="Compiler" />
     <option name="after" hit="Continue the build after failures" />
     <option name="build" hit="Continue the build after failures" />
     <option name="continue" hit="Continue the build after failures" />
     <option name="failures" hit="Continue the build after failures" />
     <option name="the" hit="Continue the build after failures" />
+    <option name="android" hit="Gradle-Android Compiler" />
+    <option name="compiler" hit="Gradle-Android Compiler" />
+    <option name="gradle" hit="Gradle-Android Compiler" />
   </configurable>
 </options>

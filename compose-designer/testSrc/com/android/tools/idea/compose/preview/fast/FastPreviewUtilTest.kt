@@ -31,6 +31,7 @@ import kotlin.random.Random
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.kotlin.idea.util.projectStructure.module
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -53,7 +54,8 @@ class FastPreviewUtilTest {
       fun testB() {
         testA()
       }
-    """.trimIndent()
+    """
+        .trimIndent()
     )
   }
 
@@ -61,7 +63,10 @@ class FastPreviewUtilTest {
   fun `fast compile call`() {
     projectRule.module.loadComposeRuntimeInClassPath()
     runBlocking(workerThread) {
-      assertEquals(CompilationResult.Success, fastCompile(projectRule.testRootDisposable, testFile))
+      assertEquals(
+        CompilationResult.Success,
+        fastCompile(projectRule.testRootDisposable, testFile.module!!, setOf(testFile))
+      )
     }
   }
 
@@ -80,8 +85,13 @@ class FastPreviewUtilTest {
           launch(workerThread) {
             try {
               assertTrue(
-                fastCompile(projectRule.testRootDisposable, testFile, testPreviewManager) is
-                  CompilationResult.CompilationAborted
+                fastCompile(
+                  projectRule.testRootDisposable,
+                  testFile.module!!,
+                  setOf(testFile),
+                  testPreviewManager
+                )
+                  is CompilationResult.CompilationAborted
               )
             } catch (_: CancellationException) {}
             launchedCompileRequests.incrementAndGet()

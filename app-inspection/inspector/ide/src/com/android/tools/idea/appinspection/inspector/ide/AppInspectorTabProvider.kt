@@ -89,14 +89,14 @@ interface AppInspectorTabProvider : Comparable<AppInspectorTabProvider> {
    *
    * @param ideServices Various functions which clients may use to request IDE-specific behaviors
    * @param processDescriptor Information about the process and device that the associated inspector
-   * that will drive this UI is attached to
+   *   that will drive this UI is attached to
    * @param messengerTargets A list of inspector messenger targets, one generated per config
-   * specified in [launchConfigs]. Children should check if the target is
-   * [AppInspectorMessengerTarget.Resolved] or, if not, may want to consider showing the wrapped
-   * error to users. Furthermore, resolved messengers can be individually checked for disposal using
-   * [AppInspectorMessenger.awaitForDisposal]. For inspector tabs that host multiple inspector
-   * agents, this can be a useful method to determine which inspector terminated and show an
-   * appropriate error message to user.
+   *   specified in [launchConfigs]. Children should check if the target is
+   *   [AppInspectorMessengerTarget.Resolved] or, if not, may want to consider showing the wrapped
+   *   error to users. Furthermore, resolved messengers can be individually checked for disposal
+   *   using [AppInspectorMessenger.awaitForDisposal]. For inspector tabs that host multiple
+   *   inspector agents, this can be a useful method to determine which inspector terminated and
+   *   show an appropriate error message to user.
    */
   fun createTab(
     project: Project,

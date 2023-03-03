@@ -38,8 +38,8 @@ import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.util.parentOfType
 import com.intellij.ui.awt.RelativePoint
-import org.jetbrains.kotlin.idea.base.util.module
 import javax.swing.Icon
+import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.idea.util.CommentSaver.Companion.tokenType
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -94,8 +94,10 @@ class PreviewPickerLineMarkerProvider : LineMarkerProviderDescriptor() {
 
   /**
    * Creates a [LineMarkerInfo] that when clicked/selected, opens the Properties panel for the
+   *
    * @Preview annotation, this [LineMarkerInfo] should be available for the entire annotation entry,
-   * including parameters. I.e: Invoking the [LineMarkerInfo] from a parameter should also show the
+   *   including parameters. I.e: Invoking the [LineMarkerInfo] from a parameter should also show
+   *   the
    * @Preview picker option.
    */
   private fun createInfo(

@@ -30,7 +30,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.escape.Escaper;
 import com.google.common.escape.Escapers;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.serviceContainer.NonInjectable;
 import java.io.File;
 import java.io.IOException;
@@ -222,7 +224,7 @@ public class GradleInitScripts {
       int pathCount = paths.size();
       for (int i = 0; i < pathCount; i++) {
         String jarPath = escapeGroovyStringLiteral(paths.get(i));
-        classpath.append("'").append(jarPath).append("'");
+        classpath.append("mapPath('").append(jarPath).append("')");
         if (i < pathCount - 1) {
           classpath.append(", ");
         }
@@ -240,6 +242,10 @@ public class GradleInitScripts {
         getJarPathForClass(GradlePluginModel.class), getJarPathForClass(AndroidStudioToolingPlugin.class), getJarPathForClass(KType.class))
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
+    }
+
+    private static String getJarPathForClass(@NotNull Class<?> aClass) {
+      return FileUtil.toCanonicalPath(PathManager.getJarPathForClass(aClass));
     }
   }
 }

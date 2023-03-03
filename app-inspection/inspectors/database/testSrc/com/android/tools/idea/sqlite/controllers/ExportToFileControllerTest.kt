@@ -269,10 +269,12 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
     val dstPath = tempDirTestFixture.toNioPath().resolve(outputFileName)
     val exportRequest = ExportQueryResultsRequest(database, statement, CSV(VERTICAL_BAR), dstPath)
 
-    values.filter { (c1, _) -> c1 > "5" }.let { expectedValues ->
-      assertThat(expectedValues).isNotEmpty()
-      testExport(exportRequest, expectedValues.toCsvOutputLines(exportRequest.delimiter))
-    }
+    values
+      .filter { (c1, _) -> c1 > "5" }
+      .let { expectedValues ->
+        assertThat(expectedValues).isNotEmpty()
+        testExport(exportRequest, expectedValues.toCsvOutputLines(exportRequest.delimiter))
+      }
   }
 
   @Test
@@ -680,9 +682,10 @@ class ExportToFileControllerTest(private val testConfig: TestConfig) {
         assertThat(exportProcessedListener.scenario).isEqualTo(ERROR)
         assertThat(exportProcessedListener.capturedRequest).isEqualTo(exportRequest)
         val sqlException =
-          generateSequence(exportProcessedListener.capturedError) { it.cause }.firstOrNull {
-            it.message?.contains("no such table.*${exportRequest.srcTable}".toRegex()) ?: false
-          }
+          generateSequence(exportProcessedListener.capturedError) { it.cause }
+            .firstOrNull {
+              it.message?.contains("no such table.*${exportRequest.srcTable}".toRegex()) ?: false
+            }
         assertWithMessage("Expecting a SQLite exception caused by an invalid query.")
           .that(sqlException)
           .isNotNull()

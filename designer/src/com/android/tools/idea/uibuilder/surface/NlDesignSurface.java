@@ -41,10 +41,12 @@ import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceActionHandler;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.DesignSurfaceListener;
+import com.android.tools.idea.common.surface.Interactable;
 import com.android.tools.idea.common.surface.InteractionHandler;
 import com.android.tools.idea.common.surface.LayoutScannerControl;
 import com.android.tools.idea.common.surface.LayoutScannerEnabled;
 import com.android.tools.idea.common.surface.SceneView;
+import com.android.tools.idea.common.surface.SurfaceInteractable;
 import com.android.tools.idea.common.surface.SurfaceScale;
 import com.android.tools.idea.common.surface.SurfaceScreenScalingFactor;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport;
@@ -96,6 +98,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 /**
  * The {@link DesignSurface} for the layout editor, which contains the full background, rulers, one
@@ -134,6 +137,12 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
      */
     private Function<DesignSurface<LayoutlibSceneManager>, ActionManager<? extends DesignSurface<LayoutlibSceneManager>>> myActionManagerProvider =
       NlDesignSurface::defaultActionManagerProvider;
+
+    /**
+     * Factory to create an {@link Interactable} for the NlDesignSurface.
+     * It should only be modified for tests.
+     */
+    private Function<DesignSurface<LayoutlibSceneManager>, Interactable> myInteractableProvider = SurfaceInteractable::new;
 
     /**
      * Factory to create an {@link InteractionHandler} for the {@link DesignSurface}.
@@ -189,6 +198,17 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     @NotNull
     public Builder setActionManagerProvider(@NotNull Function<DesignSurface<LayoutlibSceneManager>, ActionManager<? extends DesignSurface<LayoutlibSceneManager>>> actionManagerProvider) {
       myActionManagerProvider = actionManagerProvider;
+      return this;
+    }
+
+    /**
+     * Allows to define the {@link Interactable} factory that will later be used to generate
+     * the {@link Interactable} over which the {@link InteractionHandler} will be placed.
+     */
+    @TestOnly
+    @NotNull
+    public Builder setInteractableProvider(@NotNull Function<DesignSurface<LayoutlibSceneManager>, Interactable> interactableProvider) {
+      myInteractableProvider = interactableProvider;
       return this;
     }
 
@@ -338,6 +358,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
         mySceneManagerProvider,
         layoutManager,
         myActionManagerProvider,
+        myInteractableProvider,
         myInteractionHandlerProvider,
         myNavigationHandler,
         myMinScale,
@@ -416,6 +437,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
                           @NotNull BiFunction<NlDesignSurface, NlModel, LayoutlibSceneManager> sceneManagerProvider,
                           @NotNull SurfaceLayoutManager defaultLayoutManager,
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, ActionManager<? extends DesignSurface<LayoutlibSceneManager>>> actionManagerProvider,
+                          @NotNull Function<DesignSurface<LayoutlibSceneManager>, Interactable> interactableProvider,
                           @NotNull Function<DesignSurface<LayoutlibSceneManager>, InteractionHandler> interactionHandlerProvider,
                           @Nullable NavigationHandler navigationHandler,
                           @SurfaceScale double minScale,
@@ -428,7 +450,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
                           @NotNull Set<NlSupportedActions> supportedActions,
                           boolean shouldRenderErrorsPanel,
                           double maxFitIntoZoomLevel) {
-    super(project, parentDisposable, actionManagerProvider, interactionHandlerProvider,
+    super(project, parentDisposable, actionManagerProvider, interactableProvider, interactionHandlerProvider,
           (surface) -> new NlDesignSurfacePositionableContentLayoutManager((NlDesignSurface)surface, defaultLayoutManager),
           actionHandlerProvider,
           selectionModel,

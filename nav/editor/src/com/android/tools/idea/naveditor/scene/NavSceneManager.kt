@@ -67,9 +67,10 @@ import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.android.dom.navigation.NavigationSchema
 import java.awt.Rectangle
+import java.awt.event.ComponentAdapter
+import java.awt.event.ComponentEvent
 import java.util.concurrent.CompletableFuture
 import kotlin.math.max
-import kotlin.streams.toList
 
 @NavCoordinate
 private val SCREEN_LONG = JBUIScale.scale(256f)
@@ -115,6 +116,11 @@ open class NavSceneManager(
     updateHierarchy(getModel(), null)
     getModel().addListener(ModelChangeListener())
     designSurface.selectionModel.addListener(SelectionListener { _, _ -> scene.needsRebuildList() })
+    designSurface.addComponentListener(object : ComponentAdapter() {
+      override fun componentResized(event: ComponentEvent?) {
+        update()
+      }
+    })
   }
 
   override fun getDesignSurface() = super.getDesignSurface() as NavDesignSurface

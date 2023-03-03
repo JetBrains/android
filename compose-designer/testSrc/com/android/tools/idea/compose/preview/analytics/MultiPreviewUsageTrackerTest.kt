@@ -102,7 +102,8 @@ class MultiPreviewUsageTrackerTest {
                                listOf(Pair(0, 1), Pair(1, 2), Pair(1, 3), Pair(2, 4), Pair(2, 5), Pair(3, 6), Pair(3, 7)),
                                setOf(0, 2, 4, 6))
       }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     val multiPreviewUsageTracker = runReadAction {
       MultiPreviewUsageTracker.getInstance(psiFile.androidFacet)
@@ -171,7 +172,8 @@ class MultiPreviewUsageTrackerTest {
                                       Pair(4, 7), Pair(5, 8), Pair(5, 9), Pair(6, 10), Pair(7, 11), Pair(8, 12), Pair(9, 12)),
                                setOf(0, 2, 4, 6, 12))
       }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     val multiPreviewUsageTracker = runReadAction {
       MultiPreviewUsageTracker.getInstance(psiFile.androidFacet)
@@ -261,7 +263,8 @@ class MultiPreviewUsageTrackerTest {
                                       Pair(7, 11), Pair(8, 12), Pair(9, 12), Pair(11, 3), Pair(11, 4)),
                                setOf(0, 2, 4, 6, 12))
       }
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     val multiPreviewUsageTracker = runReadAction {
       MultiPreviewUsageTracker.getInstance(psiFile.androidFacet)
@@ -447,7 +450,8 @@ class MultiPreviewUsageTrackerTest {
     fileContent: String
   ): MultiPreviewEvent {
     val vFile =
-      fixture.addFileToProjectAndInvalidate("src/$fileName.kt", fileContent.trimIndent())
+      fixture
+        .addFileToProjectAndInvalidate("src/$fileName.kt", fileContent.trimIndent())
         .virtualFile
 
     // Don't use the real file nor composable names, so that they don't affect the hashCode
@@ -470,15 +474,17 @@ class MultiPreviewUsageTrackerTest {
 
 /**
  * @param nComposable number of composable methods (their ids will be the numbers in the range [0,
- * nComposable))
- * @param nAnnotClasses number of annotation classes (their ids will be the numbers in the range
- * [nComposable, nComposable+nAnnotClasses))
+ *   nComposable))
+ * @param nAnnotClasses number of annotation classes (their ids will be the numbers in the
+ *   range [nComposable, nComposable+nAnnotClasses))
  * @param edges list of directed edges from [Pair.first] to [Pair.second], where the elements of
- * each Pair must correspond to a
+ *   each Pair must correspond to a
+ *
  * ```
  *        valid node id according to the values of nComposable and nAnnotClasses
  * @param idsWithPreview
  * ```
+ *
  * set of ids corresponding to the Composable methods and annotation classes that should be
  * annotated with Preview
  */

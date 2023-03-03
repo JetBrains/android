@@ -20,7 +20,8 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.rendering.RenderService
+import com.android.tools.idea.rendering.StudioRenderService
+import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.ui.resourcemanager.rendering.ImageCache
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel
@@ -141,7 +142,7 @@ class LayoutRendererTest {
 }
 
 private fun createRenderTaskForTest(facet: AndroidFacet, xmlFile: XmlFile, configuration: Configuration) =
-  RenderService.getInstance(facet.module.project).taskBuilder(facet, configuration)
+  StudioRenderService.getInstance(facet.module.project).taskBuilder(facet, configuration)
     .withPsiFile(xmlFile)
     .withQuality(QUALITY)
     .withMaxRenderSize(MAX_RENDER_WIDTH, MAX_RENDER_HEIGHT)

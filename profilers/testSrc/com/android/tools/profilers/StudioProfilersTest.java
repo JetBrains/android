@@ -39,48 +39,26 @@ import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.google.common.collect.ImmutableList;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-@RunWith(Parameterized.class)
 public final class StudioProfilersTest {
-  @Parameterized.Parameters
-  public static Collection<Boolean> useNewEventPipelineParameter() {
-    return Arrays.asList(false, true);
-  }
-
   private final FakeTimer myTimer = new FakeTimer();
   private final FakeTransportService myTransportService = new FakeTransportService(myTimer, false);
-  private final FakeProfilerService myProfilerService = new FakeProfilerService(myTimer);
   @Rule public FakeGrpcServer myGrpcServer =
-    FakeGrpcServer.createFakeGrpcServer("StudioProfilerTestChannel", myTransportService, myProfilerService);
-  private final FakeGrpcServer.CpuService myCpuService = myGrpcServer.getCpuService();
-  private final FakeIdeProfilerServices myIdeProfilerServices;
-  private final boolean myNewEventPipeline;
-
-  private ProfilerClient myProfilerClient;
+    FakeGrpcServer.createFakeGrpcServer("StudioProfilerTestChannel", myTransportService);
+  private final FakeIdeProfilerServices myIdeProfilerServices = new FakeIdeProfilerServices();
   private StudioProfilers myProfilers;
-
-  public StudioProfilersTest(boolean useNewEventPipeline) {
-    myIdeProfilerServices = new FakeIdeProfilerServices();
-    myIdeProfilerServices.enableEventsPipeline(useNewEventPipeline);
-    myNewEventPipeline = useNewEventPipeline;
-  }
 
   @Before
   public void setUp() {
-    myProfilerClient = new ProfilerClient(myGrpcServer.getChannel());
-    myProfilers = new StudioProfilers(myProfilerClient, myIdeProfilerServices, myTimer);
+    myIdeProfilerServices.enableEventsPipeline(true);
+    myProfilers = new StudioProfilers(new ProfilerClient(myGrpcServer.getChannel()), myIdeProfilerServices, myTimer);
   }
 
   @Test
@@ -210,9 +188,7 @@ public final class StudioProfilersTest {
   }
 
   @Test
-  public void testDebuggableProcessNotReportedAsProfileable() {
-    Assume.assumeTrue(myNewEventPipeline);
-
+  public void testDebuggableProcessReportedAsDebuggable() {
     Common.Device device = FAKE_DEVICE;
     myTransportService.addDevice(device);
 
@@ -233,6 +209,33 @@ public final class StudioProfilersTest {
     assertThat(myProfilers.getDeviceProcessMap().get(device)).hasSize(1);
     assertThat(myProfilers.getDeviceProcessMap().get(device).get(0).getExposureLevel()).
       isEqualTo(Common.Process.ExposureLevel.DEBUGGABLE);
+  }
+
+  @Test
+  public void testDebuggableProcessPresentedAsDebuggable() {
+    myProfilers.setPreferredProcess(null, FAKE_PROCESS.getName(), null);
+
+    Common.Device device = FAKE_DEVICE;
+    myTransportService.addDevice(device);
+
+    Common.Process debuggableEvent = FAKE_PROCESS.toBuilder()
+      .setStartTimestampNs(5)
+      .setExposureLevel(Common.Process.ExposureLevel.DEBUGGABLE)
+      .build();
+    myTransportService.addProcess(device, debuggableEvent);
+
+    Common.Process profileableEvent = debuggableEvent.toBuilder()
+      .setStartTimestampNs(10)
+      .setExposureLevel(Common.Process.ExposureLevel.PROFILEABLE)
+      .build();
+    myTransportService.addProcess(device, profileableEvent);
+
+    myTimer.setCurrentTimeNs(20);
+    myProfilers.setProcess(device, null);  // Will start a new session on the preferred process
+    myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);  // Wait for the session to auto start and select.
+
+    assertThat(myProfilers.getSession().getPid()).isEqualTo(FAKE_PROCESS.getPid());
+    assertThat(myProfilers.getSelectedSessionSupportLevel()).isEqualTo(SupportLevel.DEBUGGABLE);
   }
 
   @Test
@@ -324,7 +327,6 @@ public final class StudioProfilersTest {
 
   @Test
   public void TestDiscoverProfileableCommand() {
-    Assume.assumeTrue(myNewEventPipeline);
     // Devices that have executed the DISCOVER_PROFILEABLE command.
     List<Long> discoveringStreamIds = myTransportService.getDiscoveringProfileableStreamIds();
     assertThat(discoveringStreamIds).isEmpty();
@@ -370,7 +372,6 @@ public final class StudioProfilersTest {
 
   @Test
   public void testAgentUnattachableAfterMaxRetries() {
-    Assume.assumeTrue(myNewEventPipeline);
     ((BeginSession)myTransportService.getRegisteredCommand(Commands.Command.CommandType.BEGIN_SESSION))
       .setAgentStatus(AgentData.Status.UNSPECIFIED);
     myProfilers.getSessionsManager().endCurrentSession();
@@ -396,7 +397,6 @@ public final class StudioProfilersTest {
 
   @Test
   public void testAgentStatusRetryCachedForSession() {
-    Assume.assumeTrue(myNewEventPipeline);
     ((BeginSession)myTransportService.getRegisteredCommand(Commands.Command.CommandType.BEGIN_SESSION))
       .setAgentStatus(AgentData.Status.UNSPECIFIED);
     myProfilers.getSessionsManager().endCurrentSession();
@@ -519,9 +519,6 @@ public final class StudioProfilersTest {
 
   @Test
   public void testRestartedPreferredProcessNotSelected() {
-    Assume.assumeTrue(myNewEventPipeline);
-    //int nowInSeconds = 42;
-    //myTransportService.setTimestampNs(TimeUnit.SECONDS.toNanos(nowInSeconds));
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     Common.Device device =
@@ -641,7 +638,6 @@ public final class StudioProfilersTest {
 
   @Test
   public void shouldOpenCpuProfileStageIfStartupProfilingStarted() {
-    Assume.assumeTrue(myNewEventPipeline);
     Common.Device device = createDevice(AndroidVersion.VersionCodes.BASE, "FakeDevice", Common.Device.State.ONLINE);
     Common.Process process = createProcess(device.getDeviceId(), 20, "FakeProcess", Common.Process.State.ALIVE);
 
@@ -651,18 +647,13 @@ public final class StudioProfilersTest {
       .setConfiguration(Trace.TraceConfiguration.newBuilder()
                           .setInitiationType(Trace.TraceInitiationType.INITIATED_BY_STARTUP))
       .build();
-    if (myNewEventPipeline) {
-      myTransportService.addEventToStream(device.getDeviceId(), Common.Event.newBuilder()
-        .setGroupId(myTimer.getCurrentTimeNs())
-        .setPid(process.getPid())
-        .setKind(Common.Event.Kind.CPU_TRACE)
-        .setTraceData(Trace.TraceData.newBuilder()
-                       .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(traceInfo).build()))
-        .build());
-    }
-    else {
-      myCpuService.addTraceInfo(traceInfo);
-    }
+    myTransportService.addEventToStream(device.getDeviceId(), Common.Event.newBuilder()
+      .setGroupId(myTimer.getCurrentTimeNs())
+      .setPid(process.getPid())
+      .setKind(Common.Event.Kind.CPU_TRACE)
+      .setTraceData(Trace.TraceData.newBuilder()
+                     .setTraceEnded(Trace.TraceData.TraceEnded.newBuilder().setTraceInfo(traceInfo).build()))
+      .build());
 
     // To make sure that StudioProfilers#update is called, which in a consequence polls devices and processes,
     // and starts a new session with the preferred process name.
@@ -971,7 +962,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDevice()).isEqualTo(device);
     assertThat(myProfilers.getProcess()).isEqualTo(process1);
-    assertThat(myNewEventPipeline ? myTransportService.getAgentAttachCalled() : myProfilerService.getAgentAttachCalled()).isTrue();
+    assertThat(myTransportService.getAgentAttachCalled()).isTrue();
   }
 
   @Test
@@ -986,7 +977,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDevice()).isEqualTo(device);
     assertThat(myProfilers.getProcess()).isEqualTo(process1);
-    assertThat(myNewEventPipeline ? myTransportService.getAgentAttachCalled() : myProfilerService.getAgentAttachCalled()).isFalse();
+    assertThat(myTransportService.getAgentAttachCalled()).isFalse();
   }
 
   /**
@@ -1008,7 +999,7 @@ public final class StudioProfilersTest {
 
     assertThat(myProfilers.getDevice()).isEqualTo(device);
     assertThat(myProfilers.getProcess()).isEqualTo(process1);
-    assertThat(myNewEventPipeline ? myTransportService.getAgentAttachCalled() : myProfilerService.getAgentAttachCalled()).isTrue();
+    assertThat(myTransportService.getAgentAttachCalled()).isTrue();
   }
 
   @Test
@@ -1337,12 +1328,7 @@ public final class StudioProfilersTest {
     Common.SessionMetaData sessionPreOMetadata = Common.SessionMetaData.newBuilder()
       .setSessionId(1).setType(Common.SessionMetaData.SessionType.FULL).setJvmtiEnabled(false).setStartTimestampEpochMs(1).build();
 
-    if (myNewEventPipeline) {
-      myTransportService.addSession(sessionPreO, sessionPreOMetadata);
-    }
-    else {
-      myProfilerService.addSession(sessionPreO, sessionPreOMetadata);
-    }
+    myTransportService.addSession(sessionPreO, sessionPreOMetadata);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myProfilers.getSessionsManager().setSession(myProfilers.getSessionsManager().getSessionArtifacts().get(0).getSession());
     assertThat(myProfilers.getSessionsManager().getSelectedSessionMetaData().getJvmtiEnabled()).isFalse();
@@ -1356,12 +1342,7 @@ public final class StudioProfilersTest {
       .setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS).setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS * 2).build();
     Common.SessionMetaData sessionOMetadata = Common.SessionMetaData.newBuilder()
       .setSessionId(2).setType(Common.SessionMetaData.SessionType.FULL).setJvmtiEnabled(true).setStartTimestampEpochMs(1).build();
-    if (myNewEventPipeline) {
-      myTransportService.addSession(sessionO, sessionOMetadata);
-    }
-    else {
-      myProfilerService.addSession(sessionO, sessionOMetadata);
-    }
+    myTransportService.addSession(sessionO, sessionOMetadata);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     myProfilers.getSessionsManager().setSession(myProfilers.getSessionsManager().getSessionArtifacts().get(0).getSession());
     assertThat(myProfilers.getSessionsManager().getSelectedSessionMetaData().getJvmtiEnabled()).isTrue();
@@ -1478,19 +1459,9 @@ public final class StudioProfilersTest {
     Common.SessionMetaData ongoingSessionMetadata = Common.SessionMetaData.newBuilder()
       .setSessionId(2).setType(Common.SessionMetaData.SessionType.FULL)
       .setStartTimestampEpochMs(2).build();
-    if (myNewEventPipeline) {
-      myTransportService.addSession(finishedSession, finishedSessionMetadata);
-    }
-    else {
-      myProfilerService.addSession(finishedSession, finishedSessionMetadata);
-    }
+    myTransportService.addSession(finishedSession, finishedSessionMetadata);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    if (myNewEventPipeline) {
-      myTransportService.addSession(ongoingSession, ongoingSessionMetadata);
-    }
-    else {
-      myProfilerService.addSession(ongoingSession, ongoingSessionMetadata);
-    }
+    myTransportService.addSession(ongoingSession, ongoingSessionMetadata);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     // Arbitrary view range min/max to be set for each session
@@ -1551,19 +1522,9 @@ public final class StudioProfilersTest {
     Common.SessionMetaData ongoingSessionMetadata = Common.SessionMetaData.newBuilder()
       .setSessionId(2).setType(Common.SessionMetaData.SessionType.FULL)
       .setStartTimestampEpochMs(2).build();
-    if (myNewEventPipeline) {
-      myTransportService.addSession(finishedSession, finishedSessionMetadata);
-    }
-    else {
-      myProfilerService.addSession(finishedSession, finishedSessionMetadata);
-    }
+    myTransportService.addSession(finishedSession, finishedSessionMetadata);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-    if (myNewEventPipeline) {
-      myTransportService.addSession(ongoingSession, ongoingSessionMetadata);
-    }
-    else {
-      myProfilerService.addSession(ongoingSession, ongoingSessionMetadata);
-    }
+    myTransportService.addSession(ongoingSession, ongoingSessionMetadata);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
 
     myProfilers.getSessionsManager().setSession(myProfilers.getSessionsManager().getSessionArtifacts().get(0).getSession());

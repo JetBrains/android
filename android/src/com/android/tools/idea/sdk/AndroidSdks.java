@@ -74,6 +74,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidSdkAdditionalData;
 import org.jetbrains.android.sdk.AndroidSdkData;
 import org.jetbrains.android.sdk.AndroidSdkType;
@@ -105,7 +106,7 @@ public class AndroidSdks {
   @Nullable
   public Sdk findSuitableAndroidSdk(@NotNull String targetHash) {
     for (Sdk sdk : getAllAndroidSdks()) {
-      AndroidSdkAdditionalData originalData = getAndroidSdkAdditionalData(sdk);
+      AndroidSdkAdditionalData originalData = AndroidSdkAdditionalData.from(sdk);
       if (originalData == null) {
         continue;
       }
@@ -115,12 +116,6 @@ public class AndroidSdks {
     }
 
     return null;
-  }
-
-  @Nullable
-  public AndroidSdkAdditionalData getAndroidSdkAdditionalData(@NotNull Sdk sdk) {
-    SdkAdditionalData data = sdk.getSdkAdditionalData();
-    return data instanceof AndroidSdkAdditionalData ? (AndroidSdkAdditionalData)data : null;
   }
 
   public void setSdkData(@Nullable AndroidSdkData data) {
@@ -167,7 +162,7 @@ public class AndroidSdks {
   public Collection<File> getAndroidSdkPathsFromExistingPlatforms() {
     List<File> result = new ArrayList<>();
     for (Sdk androidSdk : getAllAndroidSdks()) {
-      AndroidPlatform androidPlatform = AndroidPlatform.getInstance(androidSdk);
+      AndroidPlatform androidPlatform = AndroidPlatforms.getInstance(androidSdk);
       if (androidPlatform != null) {
         // Put default platforms in the list before non-default ones so they'll be looked at first.
         File sdkPath = androidPlatform.getSdkData().getLocationFile();

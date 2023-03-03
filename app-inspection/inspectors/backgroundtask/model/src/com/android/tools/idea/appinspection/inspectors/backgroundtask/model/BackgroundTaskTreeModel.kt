@@ -89,11 +89,13 @@ class BackgroundTaskTreeModel(
                   entry.targetWorkId?.let { workIdJobMap[it] = entry }
                 } else if (entry is WorkEntry) {
                   // Find affiliated jobs for the work.
-                  workIdJobMap[entry.id]?.let { jobEntry -> nodeMap[jobEntry] }?.let { jobNode ->
-                    jobsNode.remove(jobNode)
-                    nodeStructureChanged(jobsNode)
-                    newNode.add(jobNode)
-                  }
+                  workIdJobMap[entry.id]
+                    ?.let { jobEntry -> nodeMap[jobEntry] }
+                    ?.let { jobNode ->
+                      jobsNode.remove(jobNode)
+                      nodeStructureChanged(jobsNode)
+                      newNode.add(jobNode)
+                    }
                 }
                 nodeStructureChanged(parent)
               }
@@ -140,9 +142,9 @@ class BackgroundTaskTreeModel(
   private fun refreshTree() {
     categoryRoots.forEach { it.removeAllChildren() }
     val groupedByParentNode =
-      nodeMap.entries.filter { entry -> entry.key.acceptedByFilter() }.groupBy { entry ->
-        parentFinder(entry.key)
-      }
+      nodeMap.entries
+        .filter { entry -> entry.key.acceptedByFilter() }
+        .groupBy { entry -> parentFinder(entry.key) }
 
     (currentSortComparator?.let { comparator ->
         groupedByParentNode.mapValues { entry ->
@@ -155,9 +157,8 @@ class BackgroundTaskTreeModel(
           result
         }
       }
-        ?: groupedByParentNode).forEach { (parent, children) ->
-      children.forEach { parent.add(it.value) }
-    }
+        ?: groupedByParentNode)
+      .forEach { (parent, children) -> children.forEach { parent.add(it.value) } }
 
     nodeStructureChanged(root)
   }

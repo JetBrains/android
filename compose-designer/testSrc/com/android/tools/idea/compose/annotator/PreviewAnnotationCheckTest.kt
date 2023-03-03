@@ -73,7 +73,8 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320,id=fooBar 123")
         @Composable
         fun myFun() {}
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     assert(result.issues.isEmpty())
 
@@ -87,7 +88,8 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "   ")
         @Composable
         fun myFun() {}
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     assert(result.issues.isEmpty())
   }
@@ -104,7 +106,8 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "spec:shape=Tablet,shape=Normal,width=qwe,unit=sp,dpi=320,madeUpParam")
         @Composable
         fun myFun() {}
-""".trimIndent()
+"""
+          .trimIndent()
       )
     assertEquals(6, result.issues.size)
     assertEquals(
@@ -130,7 +133,8 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = " abc ")
         @Composable
         fun myFun() {}
-""".trimIndent()
+"""
+          .trimIndent()
       )
     assertEquals(1, result.issues.size)
     assertEquals(Unknown::class, result.issues[0]::class)
@@ -156,7 +160,8 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "spec:width=100,isRound=no")
         @Composable
         fun myFun() {}
-""".trimIndent()
+"""
+          .trimIndent()
       )
     assertEquals(
       listOf(BadType::class, BadType::class, Missing::class),
@@ -175,7 +180,8 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "spec:width=100dp,height=400.56px,chinSize=30")
         @Composable
         fun myFun() {}
-""".trimIndent()
+"""
+          .trimIndent()
       )
     assertEquals(listOf(BadType::class, BadType::class), result.issues.map { it::class })
     assertEquals("spec:width=100dp,height=400.6dp,chinSize=30dp", result.proposedFix)
@@ -184,7 +190,8 @@ internal class PreviewAnnotationCheckTest {
   @Test
   fun testFailure() {
     val vFile =
-      rule.fixture.addFileToProject(
+      rule.fixture
+        .addFileToProject(
           "test.kt",
           // language=kotlin
           """
@@ -195,7 +202,8 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320")
         @Composable
         fun myFun() {}
-""".trimIndent()
+"""
+            .trimIndent()
         )
         .virtualFile
 
@@ -222,7 +230,8 @@ internal class PreviewAnnotationCheckTest {
 
         @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320")
         class myNotAnnotation() {}
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     assertEquals(1, result.issues.size)
     assertEquals(Failure::class, result.issues[0]::class)
@@ -243,7 +252,8 @@ internal class PreviewAnnotationCheckTest {
 
         @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320")
         annotation class myAnnotation() {}
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     assert(result.issues.isEmpty())
   }
@@ -259,7 +269,8 @@ internal class PreviewAnnotationCheckTest {
 
         @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320")
         annotation class myAnnotation() {}
-      """.trimIndent()
+      """
+          .trimIndent()
       )
     assertEquals(1, result.issues.size)
     assertEquals(Failure::class, result.issues[0]::class)
@@ -283,7 +294,8 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "id:device_1")
         @Composable
         fun myFun() {}
-""".trimIndent()
+"""
+          .trimIndent()
       )
     assertEquals(1, result.issues.size)
     assertEquals(Failure::class, result.issues[0]::class)
@@ -306,7 +318,8 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "id:device_1")
         @Composable
         fun myFun() {}
-""".trimIndent()
+"""
+          .trimIndent()
       )
     assertEquals(1, result.issues.size)
     assertEquals(Unknown::class, result.issues[0]::class)
@@ -322,7 +335,8 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "id:pixel_4")
         @Composable
         fun myFun() {}
-""".trimIndent()
+"""
+          .trimIndent()
       )
     assertFalse(result.hasIssues)
   }
@@ -342,7 +356,8 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "name:Nexus 11")
         @Composable
         fun myFun() {}
-""".trimIndent()
+"""
+          .trimIndent()
       )
     assertEquals(1, result.issues.size)
     assertEquals(Unknown::class, result.issues[0]::class)
@@ -358,7 +373,8 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "name:Nexus 10")
         @Composable
         fun myFun() {}
-""".trimIndent()
+"""
+          .trimIndent()
       )
     assertFalse(result.hasIssues)
   }
@@ -377,7 +393,8 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "name:Nexus 11")
         @Composable
         fun myFun() {}
-""".trimIndent()
+"""
+          .trimIndent()
       )
     assertEquals(1, result.issues.size)
     assertEquals("Default Device: pixel_5 not found", (result.issues[0] as Failure).failureMessage)
@@ -399,7 +416,8 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "spec:parent=device_1")
         @Composable
         fun myFun() {}
-""".trimIndent()
+"""
+          .trimIndent()
       )
     assertEquals(1, result.issues.size)
     assertEquals(BadType::class, result.issues[0]::class)
@@ -416,7 +434,8 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "spec:parent=pixel_4,orientation=portrait")
         @Composable
         fun myFun() {}
-""".trimIndent()
+"""
+          .trimIndent()
       )
     assertEquals(0, result.issues.size)
 
@@ -431,7 +450,8 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "spec:parent=pixel_6,orientation=portrait,foo=bar")
         @Composable
         fun myFun() {}
-""".trimIndent()
+"""
+          .trimIndent()
       )
     assertEquals(1, result.issues.size)
     assertEquals(Unknown::class, result.issues[0]::class)
@@ -448,7 +468,8 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "spec:parent=pixel_4_xl,width=1080px,height=1920px,isRound=true,dpi=320,chinSize=20px,orientation=portrait")
         @Composable
         fun myFun() {}
-""".trimIndent()
+"""
+          .trimIndent()
       )
     assertEquals(5, result.issues.size)
     assertEquals(Unknown::class, result.issues[0]::class)
@@ -469,7 +490,8 @@ internal class PreviewAnnotationCheckTest {
         @Preview(device = "spec:width=1080px,parent=pixel_4_xl")
         @Composable
         fun myFun() {}
-""".trimIndent()
+"""
+          .trimIndent()
       )
     assertEquals(1, result.issues.size)
     assertEquals(Unknown::class, result.issues[0]::class)

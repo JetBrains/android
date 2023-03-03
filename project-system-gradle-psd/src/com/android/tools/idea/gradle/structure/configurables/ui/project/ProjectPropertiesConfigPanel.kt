@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.ui.project
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.projectPropertiesModel
@@ -47,7 +48,9 @@ class ProjectPropertiesConfigPanel(project: PsProject, context: PsContext) :
     uiComponent.minimumSize = Dimension(500, 300)
     uiComponent.preferredSize = Dimension(1050, 440)
     if (GradleVersionCatalogDetector.getInstance(project.ideProject).isVersionCatalogProject) {
-      uiComponent.add(VersionCatalogWarningHeader(), BorderLayout.NORTH)
+      if (StudioFlags.GRADLE_VERSION_CATALOG_DISPLAY_CAVEATS.get()) {
+        uiComponent.add(VersionCatalogWarningHeader(), BorderLayout.NORTH)
+      }
     }
   }
 

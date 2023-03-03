@@ -44,11 +44,12 @@ class FromToStateTest {
   fun createCard() {
     var callbacks = 0
     val state =
-      FromToState({}) { callbacks++ }.apply {
-        updateStates(setOf("One", "Two", "Three"))
-        setStartState("One")
-        callbackEnabled = true
-      }
+      FromToState({}) { callbacks++ }
+        .apply {
+          updateStates(setOf("One", "Two", "Three"))
+          setStartState("One")
+          callbackEnabled = true
+        }
     val card =
       AnimationCard(
           TestUtils.testPreviewState(),

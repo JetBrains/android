@@ -21,9 +21,11 @@ import com.android.SdkConstants.TEXT_VIEW
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.common.LayoutTestUtilities
 import com.android.tools.idea.common.fixtures.ModelBuilder
+import com.android.tools.idea.common.scene.SceneComponent.DrawState
 import com.android.tools.idea.common.scene.target.CommonDragTarget
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.SceneTest
+import org.junit.Assert.assertNotEquals
 
 open class SceneComponentTest: SceneTest() {
 
@@ -72,6 +74,39 @@ open class SceneComponentTest: SceneTest() {
     assertSize(1, childCommonDragTargets)
 
     StudioFlags.NELE_DRAG_PLACEHOLDER.clearOverride()
+  }
+
+  fun testDrawStates() {
+    val root = myScene.getSceneComponent("parent")!!
+
+    val statesWithoutSelected = DrawState.values().filter { it != DrawState.SELECTED }
+    for (isSelected in listOf(true, false)) {
+      for(prioritizeSelected in listOf(true, false)) {
+        // Test how the change of isSelected affects the drawState
+        root.setPrioritizeSelectedDrawState(prioritizeSelected)
+        root.isSelected = isSelected
+        if (!isSelected || !prioritizeSelected) {
+          assertNotEquals(DrawState.SELECTED, root.drawState)
+        } else {
+          assertEquals(DrawState.SELECTED, root.drawState)
+        }
+
+        // Test forcing selected state
+        // i.e. the "prioritize" flag won't affect a "forced" selected state
+        root.drawState = DrawState.SELECTED
+        assertEquals(DrawState.SELECTED, root.drawState)
+
+        // Test all but selected state
+        for (state in statesWithoutSelected) {
+          root.drawState = state
+          if (!isSelected || !prioritizeSelected) {
+            assertEquals(state, root.drawState)
+          } else {
+            assertEquals(DrawState.SELECTED, root.drawState)
+          }
+        }
+      }
+    }
   }
 
   override fun createModel(): ModelBuilder {

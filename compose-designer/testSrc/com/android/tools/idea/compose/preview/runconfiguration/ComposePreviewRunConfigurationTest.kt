@@ -59,8 +59,7 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
         false,
         noApksProvider,
         device
-      ) as
-        ActivityLaunchTask
+      ) as ActivityLaunchTask
     assertEquals(
       "am start -n \"com.example.myapp/androidx.compose.ui.tooling.PreviewActivity\" " +
         "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER " +
@@ -92,12 +91,13 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
     assertNull(runConfiguration.composableMethodFqn)
 
     val testConfig =
-    // language=xml
-    """
+      // language=xml
+      """
         <root>
           <compose-preview-run-configuration composable-fqn="com.example.MyClassKt.ExampleComposable"/>
         </root>
-      """.trimIndent()
+      """
+        .trimIndent()
 
     runConfiguration.readExternal(JDOMUtil.load(testConfig))
 

@@ -111,8 +111,8 @@ private fun createAndroidManifest(dir: File, packageName: String) {
 /**
  * Adds a library dependency to the given module and runs the given function to add resources to it.
  *
- * [ResourceRepositoryManager] will find the newly added library and create a separate repository for it when
- * [ResourceRepositoryManager.getCachedAppResources] is called.
+ * [StudioResourceRepositoryManager] will find the newly added library and create a separate repository for it when
+ * [StudioResourceRepositoryManager.getCachedAppResources] is called.
  *
  * @param module module to add the dependency to.
  * @param libraryName name of the newly created [LibraryOrderEntry].

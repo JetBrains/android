@@ -77,11 +77,14 @@ class DeviceSpecSyntaxHighlighter : SyntaxHighlighterBase() {
       DeviceSpecTypes.SPEC_KEYWORD,
       DeviceSpecTypes.NAME_KEYWORD,
       DeviceSpecTypes.COLON -> prefix
-      DeviceSpecTypes.NUMERIC_T, DeviceSpecTypes.TRUE, DeviceSpecTypes.FALSE -> primitive
+      DeviceSpecTypes.NUMERIC_T,
+      DeviceSpecTypes.TRUE,
+      DeviceSpecTypes.FALSE -> primitive
       DeviceSpecTypes.PORTRAIT_KEYWORD,
       DeviceSpecTypes.LANDSCAPE_KEYWORD,
       DeviceSpecTypes.STRING_T -> string
-      DeviceSpecTypes.PX, DeviceSpecTypes.DP -> unit
+      DeviceSpecTypes.PX,
+      DeviceSpecTypes.DP -> unit
       DeviceSpecTypes.COMMA -> separator
       DeviceSpecTypes.EQUALS -> operator
       DeviceSpecTypes.PARENT_KEYWORD,

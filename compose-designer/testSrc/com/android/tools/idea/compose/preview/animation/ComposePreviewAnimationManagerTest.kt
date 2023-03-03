@@ -209,7 +209,9 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
       surface,
       parentDisposable,
       psiFilePointer
-    ) { callbackCalls++ }
+    ) {
+      callbackCalls++
+    }
     ComposePreviewAnimationManager.onAnimationInspectorOpened()
     ComposePreviewAnimationManager.onAnimationInspectorOpened()
     assertEquals(2, callbackCalls)
@@ -560,14 +562,16 @@ class ComposePreviewAnimationManagerTest(private val clockType: ClockType) : Ins
         "src/main/NewTest.kt",
         """
       fun main() {}
-    """.trimIndent()
+    """
+          .trimIndent()
       )
     val anotherPsiFile =
       projectRule.fixture.addFileToProject(
         "src/main/AnotherTest.kt",
         """
       fun main() {}
-    """.trimIndent()
+    """
+          .trimIndent()
       )
 
     lateinit var psiPointerOne: SmartPsiElementPointer<PsiFile>

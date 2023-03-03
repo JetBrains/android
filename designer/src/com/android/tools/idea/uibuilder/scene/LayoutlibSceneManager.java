@@ -19,7 +19,8 @@ import static com.android.SdkConstants.ATTR_SHOW_IN;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.common.surface.SceneView.SQUARE_SHAPE_POLICY;
-import static com.intellij.lang.annotation.HighlightSeverity.ERROR;
+import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
+import static com.android.tools.idea.rendering.ProblemSeverity.ERROR;
 import static com.intellij.util.ui.update.Update.HIGH_PRIORITY;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
@@ -53,13 +54,13 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager;
 import com.android.tools.idea.rendering.ExecuteCallbacksResult;
+import com.android.tools.idea.rendering.InteractionEventResult;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderProblem;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.rendering.InteractionEventResult;
-import com.android.tools.idea.rendering.classloading.ClassTransform;
+import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.ResourceNotificationManager;
@@ -353,23 +354,6 @@ public class LayoutlibSceneManager extends SceneManager {
    * Compose has its own mechanism to track out of date files so it will disable this reporting.
    */
   private boolean reportOutOfDateUserClasses = false;
-
-  /**
-   * Additional bytecode transform to apply to project classes when loaded.
-   */
-  private ClassTransform myAdditionalProjectTransform = ClassTransform.getIdentity();
-
-  /**
-   * Additional bytecode transform to apply to non project classes when loaded.
-   */
-  private ClassTransform myAdditionalNonProjectTransform = ClassTransform.getIdentity();
-
-  /**
-   * Handler called when a new class loader has been instantiated. This allows resetting some state that
-   * might be specific to the classes currently loaded.
-   */
-  @NotNull
-  private Runnable myOnNewModuleClassLoader = () -> {};
 
   /**
    * When true, this will force the current {@link RenderTask} to be disposed and re-created on the next render. This will also
@@ -1111,9 +1095,9 @@ public class LayoutlibSceneManager extends SceneManager {
     AndroidFacet facet = getModel().getFacet();
     myRenderedVersion = resourceNotificationManager.getCurrentVersion(facet, getModel().getFile(), configuration);
 
-    RenderService renderService = RenderService.getInstance(getModel().getProject());
+    RenderService renderService = StudioRenderService.getInstance(getModel().getProject());
     RenderLogger logger = myLogRenderErrors ? renderService.createLogger(facet.getModule()) : renderService.getNopLogger();
-    RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(facet, configuration, logger)
+    RenderService.RenderTaskBuilder renderTaskBuilder = taskBuilder(renderService, facet, configuration, logger)
       .withPsiFile(getModel().getFile())
       .withLayoutScanner(myLayoutScannerConfig.isLayoutScannerEnabled());
     return setupRenderTaskBuilder(renderTaskBuilder).build()
@@ -1251,11 +1235,6 @@ public class LayoutlibSceneManager extends SceneManager {
     if (!reportOutOfDateUserClasses) {
       taskBuilder.doNotReportOutOfDateUserClasses();
     }
-
-    taskBuilder
-      .setProjectClassesTransform(myAdditionalProjectTransform)
-      .setNonProjectClassesTransform(myAdditionalNonProjectTransform)
-      .setOnNewClassLoader(myOnNewModuleClassLoader);
 
     return taskBuilder;
   }
@@ -1698,30 +1677,6 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   public boolean isUsePrivateClassLoader() {
     return myUsePrivateClassLoader;
-  }
-
-  /**
-   * Sets an additional Java bytecode transformation to be applied to the loaded project classes.
-   */
-  @NotNull
-  public void setProjectClassesTransform(@NotNull ClassTransform transform) {
-    myAdditionalProjectTransform = transform;
-  }
-
-  /**
-   * Sets an additional Java bytecode transformation to be applied to the loaded non project classes.
-   */
-  @NotNull
-  public void setNonProjectClassesTransform(@NotNull ClassTransform transform) {
-    myAdditionalNonProjectTransform = transform;
-  }
-
-  /**
-   * Sets a callback to be notified when a new class loader has been instantiated.
-   */
-  @NotNull
-  public void setOnNewClassLoader(@NotNull Runnable runnable) {
-    myOnNewModuleClassLoader = runnable;
   }
 
   @Override

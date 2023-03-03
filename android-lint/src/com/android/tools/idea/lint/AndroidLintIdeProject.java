@@ -82,6 +82,7 @@ import org.jetbrains.android.facet.AndroidFacetProperties;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.sdk.AndroidPlatform;
+import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -498,7 +499,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
       gradleProject = false;
       library = myFacet.getConfiguration().isLibraryProject();
 
-      AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getMainModule());
+      AndroidPlatform platform = AndroidPlatforms.getInstance(myFacet.getMainModule());
       if (platform != null) {
         buildSdk = platform.getApiLevel();
       }
@@ -714,7 +715,7 @@ public class AndroidLintIdeProject extends LintIdeProject {
         return version.getFeatureLevel();
       }
 
-      AndroidPlatform platform = AndroidPlatform.getInstance(myFacet.getModule());
+      AndroidPlatform platform = AndroidPlatforms.getInstance(myFacet.getModule());
       if (platform != null) {
         return platform.getApiVersion().getFeatureLevel();
       }

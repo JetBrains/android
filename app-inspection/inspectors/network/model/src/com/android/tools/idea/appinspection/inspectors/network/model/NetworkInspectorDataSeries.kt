@@ -37,7 +37,8 @@ class NetworkInspectorDataSeries<T>(
 
   override fun getDataForRange(range: Range): List<SeriesData<T>> {
     return runBlocking {
-      dataSource.queryForSpeedData(Range(range.min - TIME_BUFFER_US, range.max + TIME_BUFFER_US))
+      dataSource
+        .queryForSpeedData(Range(range.min - TIME_BUFFER_US, range.max + TIME_BUFFER_US))
         .map { event ->
           SeriesData(TimeUnit.NANOSECONDS.toMicros(event.timestamp), transform(event))
         }

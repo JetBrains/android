@@ -90,9 +90,9 @@ class ComposePreviewSettingsEditor(
 
   override fun resetEditorFrom(runConfiguration: ComposePreviewRunConfiguration) {
     resetComboBoxModules()
-    runConfiguration.modules.takeUnless { it.isEmpty() }?.let {
-      modulesComboBox.selectedModule = it[0]
-    }
+    runConfiguration.modules
+      .takeUnless { it.isEmpty() }
+      ?.let { modulesComboBox.selectedModule = it[0] }
     composableField.text = runConfiguration.composableMethodFqn
     debuggerTab?.resetFrom(runConfiguration.androidDebuggerContext)
   }

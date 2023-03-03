@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.lint.inspections
 
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.PermissionErrorDetector
-import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 
-class AndroidLintCustomPermissionTypoInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.custom.permission.typo"), PermissionErrorDetector.CUSTOM_PERMISSION_TYPO
-)
+class AndroidLintCustomPermissionTypoInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.custom.permission.typo"),
+    PermissionErrorDetector.CUSTOM_PERMISSION_TYPO
+  )

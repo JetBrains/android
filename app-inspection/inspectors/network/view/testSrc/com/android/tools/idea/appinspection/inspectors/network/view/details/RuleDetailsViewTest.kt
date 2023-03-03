@@ -364,8 +364,8 @@ class RuleDetailsViewTest {
     val newCodeTextField =
       findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
     val isActiveCheckBox =
-      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as
-        JCheckBox
+      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle()
+        as JCheckBox
     findCodeTextField.text = "200"
     findCodeTextField.onFocusLost()
 
@@ -404,8 +404,8 @@ class RuleDetailsViewTest {
     val savedNewCodeTextField =
       findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
     val savedIsActiveCheckBox =
-      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as
-        JCheckBox
+      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle()
+        as JCheckBox
     assertThat(savedFindCodeTextField.text).isEqualTo("200")
     assertThat(savedFindCodeTextField.isEnabled).isTrue()
     assertThat(savedNewCodeTextField.text).isEqualTo("404")
@@ -968,8 +968,8 @@ class RuleDetailsViewTest {
     val findCodeWarningLabel =
       findComponentWithUniqueName(ruleDetailsView, "findCodeWarningLabel") as JBLabel
     val isActiveCheckBox =
-      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as
-        JCheckBox
+      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle()
+        as JCheckBox
 
     findCodeTextField.text = "ABC"
     findCodeTextField.onFocusLost()
@@ -1009,8 +1009,8 @@ class RuleDetailsViewTest {
     val newCodeWarningLabel =
       findComponentWithUniqueName(ruleDetailsView, "newCodeWarningLabel") as JBLabel
     val isActiveCheckBox =
-      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as
-        JCheckBox
+      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle()
+        as JCheckBox
     isActiveCheckBox.doClick()
 
     // Warning label is visible since the current input is "" which is invalid
@@ -1035,8 +1035,8 @@ class RuleDetailsViewTest {
     val newCodeTextField =
       findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
     val isActiveCheckBox =
-      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as
-        JCheckBox
+      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle()
+        as JCheckBox
 
     findCodeTextField.text = "123"
     isActiveCheckBox.doClick()
@@ -1060,8 +1060,8 @@ class RuleDetailsViewTest {
     val newCodeWarningLabel =
       findComponentWithUniqueName(ruleDetailsView, "newCodeWarningLabel") as JBLabel
     val isActiveCheckBox =
-      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as
-        JCheckBox
+      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle()
+        as JCheckBox
 
     isActiveCheckBox.doClick()
 
@@ -1088,8 +1088,8 @@ class RuleDetailsViewTest {
     val newCodeWarningLabel =
       findComponentWithUniqueName(ruleDetailsView, "newCodeWarningLabel") as JBLabel
     val isActiveCheckBox =
-      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as
-        JCheckBox
+      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle()
+        as JCheckBox
 
     findCodeTextField.text = "ABC"
     findCodeTextField.onFocusLost()
@@ -1141,8 +1141,8 @@ class RuleDetailsViewTest {
     val newCodeTextField =
       findComponentWithUniqueName(ruleDetailsView, "newCodeTextField") as JTextField
     val isActiveCheckBox =
-      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle() as
-        JCheckBox
+      TreeWalker(ruleDetailsView).descendantStream().filter { it is JCheckBox }.getIfSingle()
+        as JCheckBox
 
     // Assert checkbox is unselected by default
     assertThat(isActiveCheckBox.isSelected).isFalse()

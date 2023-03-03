@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.lint.inspections
 
+import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.lint.checks.LocaleConfigDetector
-import com.android.tools.idea.lint.AndroidLintBundle.Companion.message
 
-class AndroidLintUnusedTranslationInspection : AndroidLintInspectionBase(
-  message("android.lint.inspections.unused.translation"), LocaleConfigDetector.ISSUE
-)
+class AndroidLintUnusedTranslationInspection :
+  AndroidLintInspectionBase(
+    message("android.lint.inspections.unused.translation"),
+    LocaleConfigDetector.ISSUE
+  )

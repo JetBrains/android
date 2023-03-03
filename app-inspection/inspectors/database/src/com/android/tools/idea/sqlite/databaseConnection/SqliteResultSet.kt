@@ -50,6 +50,7 @@ interface SqliteResultSet : Disposable {
 
   /**
    * Returns a list of [SqliteRow]s.
+   *
    * @param rowOffset The row from which the returned list of rows should start. Must be >= 0
    * @param rowBatchSize The maximum amount of rows returned. Must be > 0
    */

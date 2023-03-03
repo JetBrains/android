@@ -41,8 +41,8 @@ class LaunchInspectorsTest {
    * 5. Click Run
    * 6. From the device chooser dialog, select the running emulator and click Ok
    * 7. Open the App Inspection tool window again Verify: Project builds successfully and runs on
-   * the emulator Find specific UI components for all inspectors Find specific logs for all
-   * inspector deployments </pre>
+   *    the emulator Find specific UI components for all inspectors Find specific logs for all
+   *    inspector deployments </pre>
    */
   @Test
   fun openAppInspectionToolWindow() {

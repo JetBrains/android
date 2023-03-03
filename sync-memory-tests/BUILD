@@ -16,10 +16,13 @@ iml_module(
         },
         "Benchmark500": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark500MemoryTest",
-            "exec_properties": LARGE_MACHINE,
         },
         "Benchmark1000": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark1000MemoryTest",
+            "exec_properties": LARGE_MACHINE,
+        },
+        "Benchmark2000": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark2000MemoryTest",
             "exec_properties": LARGE_MACHINE,
         },
     },

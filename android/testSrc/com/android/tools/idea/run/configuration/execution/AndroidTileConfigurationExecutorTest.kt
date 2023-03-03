@@ -27,6 +27,7 @@ import com.android.tools.idea.execution.common.AppRunSettings
 import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
 import com.android.tools.idea.run.DefaultStudioProgramRunner
+import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ExecutionException
@@ -95,7 +96,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
-    val deployTarget = TestDeployTarget(device)
+    val deviceFutures = DeviceFutures.forDevices(listOf(device))
     val settings = object : AppRunSettings {
       override val deployOptions = DeployOptions(emptyList(), "", true, true)
       override val componentLaunchOptions = TileLaunchOptions().apply {
@@ -105,7 +106,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     }
 
     val executor = Mockito.spy(
-      AndroidTileConfigurationExecutor(env, deployTarget, settings, TestApplicationIdProvider(appId), TestApksProvider(appId)))
+      AndroidTileConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId)))
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
@@ -165,7 +166,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
-    val deployTarget = TestDeployTarget(device)
+    val deviceFutures = DeviceFutures.forDevices(listOf(device))
     val settings = object : AppRunSettings {
       override val deployOptions = DeployOptions(emptyList(), "", true, true)
       override val componentLaunchOptions = TileLaunchOptions().apply {
@@ -175,7 +176,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     }
 
     val executor = Mockito.spy(
-      AndroidTileConfigurationExecutor(env, deployTarget, settings, TestApplicationIdProvider(appId), TestApksProvider(appId)))
+      AndroidTileConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId)))
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app) // Mock app installation.
@@ -210,7 +211,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
-    val deployTarget = TestDeployTarget(device)
+    val deviceFutures = DeviceFutures.forDevices(listOf(device))
     val settings = object : AppRunSettings {
       override val deployOptions = DeployOptions(emptyList(), "", true, true)
       override val componentLaunchOptions = TileLaunchOptions().apply {
@@ -220,7 +221,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     }
 
     val executor = Mockito.spy(
-      AndroidTileConfigurationExecutor(env, deployTarget, settings, TestApplicationIdProvider(appId), TestApksProvider(appId)))
+      AndroidTileConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId)))
 
     val app = Mockito.mock(App::class.java)
     Mockito.doThrow(DeployerException.componentActivationException(failedResponse))
@@ -270,7 +271,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
 
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
 
-    val deployTarget = TestDeployTarget(device)
+    val deviceFutures = DeviceFutures.forDevices(listOf(device))
     val settings = object : AppRunSettings {
       override val deployOptions = DeployOptions(emptyList(), "", true, true)
       override val componentLaunchOptions = TileLaunchOptions().apply {
@@ -280,7 +281,7 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     }
 
     val executor = Mockito.spy(
-      AndroidTileConfigurationExecutor(env, deployTarget, settings, TestApplicationIdProvider(appId), TestApksProvider(appId)))
+      AndroidTileConfigurationExecutor(env, deviceFutures, settings, TestApplicationIdProvider(appId), TestApksProvider(appId)))
 
     val app = createApp(device, appId, servicesName = listOf(componentName), activitiesName = emptyList())
     val appInstaller = TestApplicationInstaller(appId, app)
