@@ -27,7 +27,6 @@ import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTestUtil;
-import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.intellij.openapi.module.Module;
@@ -82,14 +81,14 @@ public class ViewLoaderTest extends AndroidTestCase {
 
   public void testMissingClass() throws Exception {
     Project project = myModule.getProject();
-    RenderLogger logger = StudioRenderService.getInstance(project).createLogger(myModule);
+    RenderLogger logger = new RenderLogger();
     ViewLoader viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null, myClassLoader);
 
     assertNull(viewLoader.loadClass("broken.brokenclass", true));
     assertTrue(logger.hasErrors());
     assertThat(logger.getMissingClasses(), hasItem("broken.brokenclass"));
 
-    logger = StudioRenderService.getInstance(project).createLogger(myModule);
+    logger = new RenderLogger();
     viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null, myClassLoader);
 
     try {
@@ -99,14 +98,14 @@ public class ViewLoaderTest extends AndroidTestCase {
     catch (ClassNotFoundException ignored) {
     }
 
-    logger = StudioRenderService.getInstance(project).createLogger(myModule);
+    logger = new RenderLogger();
     viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null, myClassLoader);
     assertNull(viewLoader.loadClass("broken.brokenclass", false));
     assertFalse(logger.hasErrors());
   }
 
   public void testRClassLoad() throws ClassNotFoundException {
-    RenderLogger logger = StudioRenderService.getInstance(myModule.getProject()).createLogger(myModule);
+    RenderLogger logger = new RenderLogger();
     ViewLoader viewLoader = new ViewLoader(myLayoutLib, new AndroidFacetRenderModelModule(myFacet), logger, null, myClassLoader);
     ResourceIdManager idManager = ResourceIdManager.get(myModule);
     assertNotNull(idManager);
