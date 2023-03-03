@@ -276,10 +276,6 @@ public class RenderErrorContributor {
   private void reportMissingSizeAttributes(@NotNull final RenderLogger logger,
                                            @NotNull RenderContext renderTaskContext,
                                            @Nullable XmlFile psiFile) {
-    Module module = logger.getModule();
-    if (module == null) {
-      return;
-    }
     if (logger.isMissingSize()) {
       HtmlBuilder builder = new HtmlBuilder();
 
@@ -293,7 +289,7 @@ public class RenderErrorContributor {
       }
 
       // See whether we should offer match_parent instead of fill_parent
-      AndroidModuleInfo moduleInfo = StudioAndroidModuleInfo.getInstance(module);
+      AndroidModuleInfo moduleInfo = StudioAndroidModuleInfo.getInstance(myModule);
       final String fill = moduleInfo == null
                           || moduleInfo.getBuildSdkVersion() == null
                           || moduleInfo.getBuildSdkVersion().getApiLevel() >= 8
@@ -369,15 +365,14 @@ public class RenderErrorContributor {
   }
 
   private void reportRelevantCompilationErrors(@NotNull RenderLogger logger) {
-    Module module = logger.getModule();
-    if (module == null || module.isDisposed()) {
+    if (myModule.isDisposed()) {
       return;
     }
 
-    Project project = module.getProject();
+    Project project = myModule.getProject();
     WolfTheProblemSolver wolfgang = WolfTheProblemSolver.getInstance(project);
 
-    if (!wolfgang.hasProblemFilesBeneath(module)) {
+    if (!wolfgang.hasProblemFilesBeneath(myModule)) {
       return;
     }
 
@@ -611,12 +606,7 @@ public class RenderErrorContributor {
         return false;
       }
 
-      Module module = logger.getModule();
-      if (module == null) {
-        return false;
-      }
-
-      AndroidFacet facet = AndroidFacet.getInstance(module);
+      AndroidFacet facet = AndroidFacet.getInstance(myModule);
       Manifest manifest = facet != null ? Manifest.getMainManifest(facet) : null;
       Application application = manifest != null ? manifest.getApplication() : null;
       if (application == null) {
@@ -949,22 +939,20 @@ public class RenderErrorContributor {
 
     Collection<String> customViews = null;
     Collection<String> androidViewClassNames = null;
-    Module module = logger.getModule();
-    if (module != null) {
-      Ref<Collection<String>> viewsRef = new Ref<>(Collections.emptyList());
-      // We yield to write actions here because UI responsiveness takes priority over typo suggestions.
-      ProgressIndicatorUtils.runWithWriteActionPriority(() -> viewsRef.set(getAllViews(module)), new EmptyProgressIndicator());
-      Collection<String> views = viewsRef.get();
-      if (!views.isEmpty()) {
-        customViews = Lists.newArrayListWithExpectedSize(Math.max(10, views.size() - 80)); // most will be framework views
-        androidViewClassNames = Lists.newArrayListWithExpectedSize(views.size());
-        for (String fqcn : views) {
-          if (fqcn.startsWith("android.") && !isViewPackageNeeded(fqcn, -1)) {
-            androidViewClassNames.add(fqcn);
-          }
-          else {
-            customViews.add(fqcn);
-          }
+
+    Ref<Collection<String>> viewsRef = new Ref<>(Collections.emptyList());
+    // We yield to write actions here because UI responsiveness takes priority over typo suggestions.
+    ProgressIndicatorUtils.runWithWriteActionPriority(() -> viewsRef.set(getAllViews(myModule)), new EmptyProgressIndicator());
+    Collection<String> views = viewsRef.get();
+    if (!views.isEmpty()) {
+      customViews = Lists.newArrayListWithExpectedSize(Math.max(10, views.size() - 80)); // most will be framework views
+      androidViewClassNames = Lists.newArrayListWithExpectedSize(views.size());
+      for (String fqcn : views) {
+        if (fqcn.startsWith("android.") && !isViewPackageNeeded(fqcn, -1)) {
+          androidViewClassNames.add(fqcn);
+        }
+        else {
+          customViews.add(fqcn);
         }
       }
     }

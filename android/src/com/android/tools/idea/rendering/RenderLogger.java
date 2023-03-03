@@ -227,11 +227,6 @@ public class RenderLogger implements IRenderLogger {
     return false;
   }
 
-  @Nullable
-  public Module getModule() {
-    return myModule;
-  }
-
   // ---- extends ILayoutLog ----
 
   @Nullable
