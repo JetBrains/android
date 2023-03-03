@@ -33,6 +33,7 @@ import com.android.tools.idea.editors.shortcuts.asString
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.projectsystem.requestBuild
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.diagnostic.Logger
@@ -270,6 +271,9 @@ internal class ComposePreviewViewImpl(
     }
     workbench.focusTraversalPolicy = LayoutFocusTraversalPolicy()
     workbench.isFocusCycleRoot = true
+
+    DataManager.registerDataProvider(workbench) { getData(it) }
+    Disposer.register(parentDisposable) { DataManager.removeDataProvider(workbench) }
   }
 
   override fun updateProgress(message: String) =

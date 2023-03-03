@@ -22,14 +22,19 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceType
 import com.android.tools.adtui.stdui.ActionData
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.npw.assetstudio.IconGenerator
 import com.android.tools.idea.npw.assetstudio.MaterialDesignIcons
 import com.android.tools.idea.res.StudioResourceRepositoryManager
+import com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodePreview
 import com.google.common.io.CharStreams
+import com.intellij.ide.DataManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.SystemInfo
@@ -171,3 +176,16 @@ fun DesignSurface<*>.updateSceneViewVisibilities(visibilityFunc: (SceneView) -> 
   sceneViews.forEach { view -> view.isVisible = visibilityFunc(view) }
   revalidateScrollArea()
 }
+
+/**
+ * Obtain the [DesignSurface] associated to a [FileEditor] if any.
+ */
+fun FileEditor.getDesignSurface(): DesignSurface<*>? =
+  when (this) {
+    is TextEditorWithPreview -> previewEditor.getDesignSurface()
+    // Check if there is a design surface in the context of presentation. For example, Compose and CustomView preview.
+    is SourceCodePreview -> currentRepresentation?.component?.let {
+      DataManager.getInstance().getDataContext(it).getData(DESIGN_SURFACE)
+    }
+    else -> DataManager.getInstance().getDataContext(component).getData(DESIGN_SURFACE)
+  }
