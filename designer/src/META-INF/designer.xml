@@ -258,4 +258,8 @@
     <infoCollector implementation="com.android.tools.idea.common.surface.DesignSurfaceTroubleInfoCollector" />
     <infoCollector implementation="com.android.tools.idea.common.error.IssuePanelServiceTroubleInfoCollector" />
   </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.diagnostics.report">
+    <logsProvider implementation="com.android.tools.idea.uibuilder.troubleshooting.DesignToolsDiagnosticsSummaryFileProvider" />
+  </extensions>
 </idea-plugin>
