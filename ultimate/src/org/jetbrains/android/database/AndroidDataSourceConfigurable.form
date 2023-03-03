@@ -23,7 +23,7 @@
             </constraints>
             <properties>
               <labelFor value="c901"/>
-              <text value="Device:"/>
+              <text resource-bundle="messages/AndroidUltimateBundle" key="android.data.source.device.label"/>
             </properties>
           </component>
           <component id="c901" class="com.intellij.openapi.ui.ComboBox" binding="myDeviceComboBox">
@@ -37,7 +37,7 @@
               <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text value="Package name:"/>
+              <text resource-bundle="messages/AndroidUltimateBundle" key="android.data.source.package.name.label"/>
             </properties>
           </component>
           <component id="7f37f" class="com.intellij.openapi.ui.ComboBox" binding="myPackageNameComboBox">
@@ -53,7 +53,7 @@
               <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text value="Database:"/>
+              <text resource-bundle="messages/AndroidUltimateBundle" key="android.data.source.database.label"/>
             </properties>
           </component>
           <component id="d4006" class="com.intellij.openapi.ui.ComboBox" binding="myDataBaseComboBox">
@@ -69,7 +69,7 @@
               <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text value="Storage:"/>
+              <text resource-bundle="messages/AndroidUltimateBundle" key="android.data.source.storage.label"/>
             </properties>
           </component>
           <hspacer id="e934e">
@@ -83,7 +83,7 @@
             </constraints>
             <properties>
               <selected value="true"/>
-              <text value="Internal"/>
+              <text resource-bundle="messages/AndroidUltimateBundle" key="android.data.source.internal.storage.label"/>
             </properties>
           </component>
           <component id="422ad" class="com.intellij.ui.components.JBRadioButton" binding="myExternalStorageRadioButton">
@@ -91,7 +91,7 @@
               <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text value="External"/>
+              <text resource-bundle="messages/AndroidUltimateBundle" key="android.data.source.external.storage.label"/>
             </properties>
           </component>
           <vspacer id="8f09b">
