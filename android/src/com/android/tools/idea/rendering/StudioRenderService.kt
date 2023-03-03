@@ -72,4 +72,4 @@ fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration,
  * Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask].
  */
 fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration): RenderService.RenderTaskBuilder =
-  taskBuilder(facet, configuration, createLogger(facet.module, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get()))
+  taskBuilder(facet, configuration, createLogger(facet.module.project, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get()))

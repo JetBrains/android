@@ -178,7 +178,7 @@ public class RenderResult {
     RenderResult result = new RenderResult(
       file,
       renderModule.getIdeaModule(),
-      new RenderLogger(renderModule.getIdeaModule(), null, false),
+      new RenderLogger(renderModule.getProject(), null, false),
       null,
       false,
       Result.Status.ERROR_RENDER_TASK.createResult("Render error", throwable),

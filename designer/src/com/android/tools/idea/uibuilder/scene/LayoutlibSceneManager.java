@@ -1129,7 +1129,7 @@ public class LayoutlibSceneManager extends SceneManager {
     myRenderedVersion = resourceNotificationManager.getCurrentVersion(facet, getModel().getFile(), configuration);
 
     RenderService renderService = StudioRenderService.getInstance(getModel().getProject());
-    RenderLogger logger = myLogRenderErrors ? renderService.createLogger(facet.getModule()) : renderService.getNopLogger();
+    RenderLogger logger = myLogRenderErrors ? renderService.createLogger(project) : renderService.getNopLogger();
     RenderModelModule renderModule = createRenderModule(facet);
     RenderConfiguration renderConfiguration = new StudioRenderConfiguration(configuration);
     RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(renderModule, renderConfiguration, logger)

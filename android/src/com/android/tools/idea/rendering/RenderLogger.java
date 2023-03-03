@@ -34,7 +34,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
@@ -135,7 +134,7 @@ public class RenderLogger implements IRenderLogger {
   private static boolean ourIgnoreAllFidelityWarnings;
   private static boolean ourIgnoreFragments;
 
-  private final Module myModule;
+  private final Project myProject;
   private Set<String> myFidelityWarningStrings;
   private boolean myHaveExceptions;
   private Multiset<String> myTags;
@@ -156,8 +155,8 @@ public class RenderLogger implements IRenderLogger {
 
   private final boolean myLogFramework;
 
-  public RenderLogger(@Nullable Module module, @Nullable Object credential, boolean logFramework) {
-    myModule = module;
+  public RenderLogger(@Nullable Project project, @Nullable Object credential, boolean logFramework) {
+    myProject = project;
     myCredential = credential;
     myLogFramework = logFramework;
   }
@@ -166,7 +165,7 @@ public class RenderLogger implements IRenderLogger {
    * Construct a logger for the given named layout. Don't call this method directly; obtain via {@link RenderService}.
    */
   @VisibleForTesting
-  public RenderLogger(@Nullable Module module) {
+  public RenderLogger(@Nullable Project module) {
     this(module, null, false);
   }
 
@@ -231,10 +230,7 @@ public class RenderLogger implements IRenderLogger {
 
   @Nullable
   public Project getProject() {
-    if (myModule != null) {
-      return myModule.getProject();
-    }
-    return null;
+    return myProject;
   }
 
   private void logMessageToIdeaLog(@NotNull String message, @Nullable Throwable t) {

@@ -27,8 +27,6 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
-import com.android.tools.idea.model.MergedManifestException;
-import com.android.tools.idea.model.MergedManifestManager;
 import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
@@ -42,7 +40,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
@@ -55,12 +52,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import com.android.tools.sdk.AndroidPlatform;
 import java.util.function.Supplier;
 import org.jetbrains.android.sdk.AndroidPlatforms;
@@ -164,14 +157,14 @@ final public class RenderService implements Disposable {
   }
 
   @NotNull
-  public RenderLogger createLogger(@NotNull Module module, boolean logFramework) {
-    return new RenderLogger(module, myCredential, logFramework);
+  public RenderLogger createLogger(@NotNull Project project, boolean logFramework) {
+    return new RenderLogger(project, myCredential, logFramework);
   }
 
 
   @NotNull
-  public RenderLogger createLogger(@NotNull Module module) {
-    return createLogger(module, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get());
+  public RenderLogger createLogger(@NotNull Project project) {
+    return createLogger(project, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get());
   }
 
   @NotNull
