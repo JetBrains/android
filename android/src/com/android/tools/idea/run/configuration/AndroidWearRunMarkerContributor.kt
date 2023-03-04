@@ -22,7 +22,9 @@ import com.intellij.execution.lineMarker.RunLineMarkerContributor
 import com.intellij.icons.AllIcons
 import com.intellij.psi.JavaTokenType
 import com.intellij.psi.PsiElement
+import com.intellij.psi.tree.java.IJavaElementType
 import org.jetbrains.android.util.AndroidBundle
+import org.jetbrains.kotlin.lexer.KtToken
 import org.jetbrains.kotlin.lexer.KtTokens
 
 /**
@@ -35,7 +37,10 @@ class AndroidWearRunMarkerContributor : RunLineMarkerContributor() {
     if (!StudioFlags.ALLOW_RUN_WEAR_CONFIGURATIONS_FROM_GUTTER.get()) {
       return null
     }
-    if (e.node.elementType != KtTokens.CLASS_KEYWORD && e.node.elementType != JavaTokenType.CLASS_KEYWORD) {
+
+    val elementType = e.node.elementType
+    if (!(elementType is KtToken && elementType == KtTokens.CLASS_KEYWORD) // do not force loading of KtTokens in Java files
+        && !(elementType is IJavaElementType && elementType == JavaTokenType.CLASS_KEYWORD)) {
       return null
     }
 
