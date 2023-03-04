@@ -19,6 +19,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.openPsd
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectGradleSetting
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectIdeSdksLocationConfigurable
+import com.android.tools.idea.tests.util.WizardUtils
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.junit.Rule
@@ -53,16 +54,14 @@ class StudioDefaultJDKTest {
   @JvmField
   val guiTest = GuiTestRule().withTimeout(7, TimeUnit.MINUTES)
 
+  private val ACTIVITY_TEMPLATE: String = "Empty Views Activity"
+
   @Test
   fun verifyDefaultJDK(){
-    val ide = guiTest.welcomeFrame()
-      .createNewProject()
-      .chooseAndroidProjectStep
-      .chooseActivity("Empty Activity")
-      .wizard()
-      .clickNext()
-      .clickFinishAndWaitForSyncToFinish()
+    WizardUtils.createNewProject(guiTest, ACTIVITY_TEMPLATE)
+    guiTest.robot().waitForIdle()
 
+    val ide = guiTest.ideFrame()
 
     ide.openPsd().run{
       selectIdeSdksLocationConfigurable().run{
@@ -77,5 +76,4 @@ class StudioDefaultJDKTest {
       clickCancel()
     }
   }
-
 }

@@ -25,6 +25,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFix
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.CppStandardType;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguage;
 import com.intellij.openapi.util.SystemInfo;
 import java.util.Arrays;
 import java.util.Optional;
@@ -62,6 +63,7 @@ public class NewCppProjectTestUtil {
       .clickNext()
       .getConfigureNewAndroidProjectStep()
       .setSourceLanguage(Java)
+      .selectBuildConfigurationLanguage(BuildConfigurationLanguage.Groovy)
       .enterPackageName("com.example.myapplication")
       .wizard()
       .clickNext()
