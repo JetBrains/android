@@ -332,6 +332,7 @@
       <module fileurl="file://$PROJECT_DIR$/utp/utp.iml" filepath="$PROJECT_DIR$/utp/utp.iml" />
       <module fileurl="file://$PROJECT_DIR$/whats-new-assistant/whats-new-assistant.iml" filepath="$PROJECT_DIR$/whats-new-assistant/whats-new-assistant.iml" />
       <module fileurl="file://$PROJECT_DIR$/whats-new-assistant/whats-new-assistant-test.iml" filepath="$PROJECT_DIR$/whats-new-assistant/whats-new-assistant-test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/gmd-code-completion/intellij.android.gmd-code-completion.iml" filepath="$PROJECT_DIR$/gmd-code-completion/intellij.android.gmd-code-completion.iml" />
     </modules>
   </component>
 </project>

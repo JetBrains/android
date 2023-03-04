@@ -68,5 +68,6 @@
     <orderEntry type="library" name="studio-plugin-vcs-hg" level="project" />
     <orderEntry type="library" name="studio-plugin-vcs-svn" level="project" />
     <orderEntry type="library" name="studio-plugin-webp" level="project" />
+    <orderEntry type="module" module-name="intellij.android.gmd-code-completion" />
   </component>
 </module>

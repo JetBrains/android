@@ -84,6 +84,7 @@ public class StartUpTest {
         "Google Developers Samples",
         "Google Login",
         "Gradle",
+        "Gradle managed device code completion",
         "Gradle-Java",
         "Groovy",
         "IDEA CORE",

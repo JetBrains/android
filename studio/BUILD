@@ -570,6 +570,24 @@ studio_plugin(
 )
 
 studio_plugin(
+    name = "com.android.gmdcodecompletion",
+    directory = "gmd-code-completion",
+    libs = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//tools/adt/idea/.idea/libraries:mockito",
+        "//tools/studio/google/cloud/testing/firebase-testing/lib:google-api-services-testing-v1-revsnapshot-1.20.0",
+    ],
+    modules = {"gmd-code-completion.jar": ["//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion"]},
+    visibility = ["//visibility:public"],
+    deps = [
+        ":com.google.gct.login",
+        ":com.google.gct.testing",
+        ":org.jetbrains.android",
+    ],
+)
+
+studio_plugin(
     name = "com.google.gct.test.recorder",
     directory = "test-recorder",
     libs = [
@@ -635,6 +653,7 @@ android_studio(
     platform = "//prebuilts/studio/intellij-sdk:studio-sdk",
     plugins = [
         ":org.jetbrains.android",
+        ":com.android.gmdcodecompletion",
         ":com.android.tools.apk",
         ":com.android.tools.ndk",
         ":com.android.tools.design",
@@ -889,6 +908,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-hg",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-svn",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp",
+        "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion[module]",
     ],
 )
 
