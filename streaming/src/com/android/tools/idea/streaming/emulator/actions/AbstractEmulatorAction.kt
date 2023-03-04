@@ -36,10 +36,11 @@ import java.util.function.Predicate
 abstract class AbstractEmulatorAction(private val configFilter: Predicate<EmulatorConfiguration>? = null) : AnAction(), DumbAware {
 
   override fun update(event: AnActionEvent) {
-    event.presentation.isEnabled = isEnabled(event)
+    val presentation = event.presentation
     if (configFilter != null) {
-      event.presentation.isVisible = getEmulatorConfig(event)?.let(configFilter::test) ?: false
+      presentation.isVisible = getEmulatorConfig(event)?.let(configFilter::test) ?: false
     }
+    presentation.isEnabled = presentation.isVisible && isEnabled(event)
   }
 
   protected open fun isEnabled(event: AnActionEvent): Boolean =

@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.streaming.device.actions
 
-import com.android.tools.idea.streaming.device.DEVICE_CONFIGURATION_KEY
+import com.android.tools.idea.streaming.device.DEVICE_CLIENT_KEY
 import com.android.tools.idea.streaming.device.DEVICE_CONTROLLER_KEY
 import com.android.tools.idea.streaming.device.DEVICE_VIEW_KEY
 import com.android.tools.idea.streaming.device.DeviceConfiguration
@@ -37,10 +37,10 @@ internal abstract class AbstractDeviceAction(private val configFilter: Predicate
 
   override fun update(event: AnActionEvent) {
     val presentation = event.presentation
-    presentation.isEnabled = isEnabled(event)
     if (configFilter != null) {
       presentation.isVisible = getDeviceConfig(event)?.let(configFilter::test) ?: false
     }
+    presentation.isEnabled = presentation.isVisible && isEnabled(event)
   }
 
   protected open fun isEnabled(event: AnActionEvent): Boolean =
@@ -57,7 +57,7 @@ internal fun getDeviceView(event: AnActionEvent): DeviceView? =
   event.dataContext.getData(DEVICE_VIEW_KEY)
 
 internal fun getDeviceConfig(event: AnActionEvent): DeviceConfiguration? =
-  event.dataContext.getData(DEVICE_CONFIGURATION_KEY)
+  event.dataContext.getData(DEVICE_CLIENT_KEY)?.deviceConfig
 
 internal fun isDeviceConnected(event: AnActionEvent) =
   getDeviceView(event)?.isConnected == true

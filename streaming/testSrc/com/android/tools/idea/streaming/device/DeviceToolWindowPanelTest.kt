@@ -28,6 +28,7 @@ import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
+import com.android.tools.idea.streaming.updateAndGetActionPresentation
 import com.android.tools.idea.testing.registerServiceInstance
 import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
 import com.google.common.truth.Truth.assertThat
@@ -211,6 +212,15 @@ class DeviceToolWindowPanelTest {
     assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Rotate Right" }).isNull()
     assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Home" }).isNull()
     assertThat(fakeUi.findComponent<ActionButton> { it.action.templateText == "Overview" }).isNull()
+
+    // Check that the actions not applicable to Wear OS 3 cannot be invoked by keyboard shortcuts.
+    assertThat(updateAndGetActionPresentation("android.device.power.button", panel.deviceView!!, project).isEnabled).isFalse()
+    assertThat(updateAndGetActionPresentation("android.device.volume.up.button", panel.deviceView!!, project).isEnabled).isFalse()
+    assertThat(updateAndGetActionPresentation("android.device.volume.down.button", panel.deviceView!!, project).isEnabled).isFalse()
+    assertThat(updateAndGetActionPresentation("android.device.rotate.left", panel.deviceView!!, project).isEnabled).isFalse()
+    assertThat(updateAndGetActionPresentation("android.device.rotate.right", panel.deviceView!!, project).isEnabled).isFalse()
+    assertThat(updateAndGetActionPresentation("android.device.home.button", panel.deviceView!!, project).isEnabled).isFalse()
+    assertThat(updateAndGetActionPresentation("android.device.overview.button", panel.deviceView!!, project).isEnabled).isFalse()
 
     panel.destroyContent()
     assertThat(panel.deviceView).isNull()

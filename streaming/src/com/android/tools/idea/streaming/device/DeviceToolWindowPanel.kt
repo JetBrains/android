@@ -144,8 +144,8 @@ internal class DeviceToolWindowPanel(
   override fun getData(dataId: String): Any? {
     return when (dataId) {
       DEVICE_VIEW_KEY.name, DISPLAY_VIEW_KEY.name, ZOOMABLE_KEY.name -> primaryDeviceView
+      DEVICE_CLIENT_KEY.name -> deviceClient
       DEVICE_CONTROLLER_KEY.name -> deviceClient.deviceController
-      DEVICE_CONFIGURATION_KEY.name -> deviceConfig
       ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name ->
           primaryDeviceView?.let { if (it.isConnected) DeviceScreenshotOptions(deviceSerialNumber, deviceConfig, it) else null }
       ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name ->

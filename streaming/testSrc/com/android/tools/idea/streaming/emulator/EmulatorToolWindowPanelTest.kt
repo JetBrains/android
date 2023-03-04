@@ -35,6 +35,7 @@ import com.android.tools.idea.streaming.PRIMARY_DISPLAY_ID
 import com.android.tools.idea.streaming.emulator.EmulatorToolWindowPanel.MultiDisplayStateStorage
 import com.android.tools.idea.streaming.emulator.FakeEmulator.GrpcCallRecord
 import com.android.tools.idea.streaming.executeDeviceAction
+import com.android.tools.idea.streaming.updateAndGetActionPresentation
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.mockStatic
 import com.android.tools.idea.testing.registerServiceInstance
@@ -115,8 +116,8 @@ class EmulatorToolWindowPanelTest {
     get() = nullableEmulator ?: throw IllegalStateException()
     set(value) { nullableEmulator = value }
 
-  private val testRootDisposable
-    get() = projectRule.testRootDisposable
+  private val project get() = projectRule.project
+  private val testRootDisposable get() = projectRule.testRootDisposable
 
   @Before
   fun setUp() {
@@ -204,6 +205,9 @@ class EmulatorToolWindowPanelTest {
     call = emulator.getNextGrpcCall(2, TimeUnit.SECONDS)
     assertThat(call.methodName).isEqualTo("android.emulation.control.EmulatorController/sendKey")
     assertThat(shortDebugString(call.request)).isEqualTo("""eventType: keyup key: "AudioVolumeDown"""")
+
+    // Check that the Fold/Unfold action is disabled because the device is not foldable.
+    assertThat(updateAndGetActionPresentation("android.emulator.folding.controls", emulatorView, project).isEnabled).isFalse()
 
     // Ensures that LiveEditAction starts off hidden since it's disconnected.
     assertThat(ui.findComponent<LiveEditNotificationGroup>()).isNull()
