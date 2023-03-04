@@ -648,7 +648,6 @@
         implementation="com.android.tools.idea.editors.strings.StringResourceSafeDeleteProcessorDelegate"/>
 
     <usageGroupingRuleProvider implementation="org.jetbrains.android.refactoring.namespaces.ResourcePackageGroupingRuleProvider"/>
-    <projectService serviceImplementation="com.android.tools.idea.stats.ToolWindowTrackerService"/>
 
     <consoleFilterProvider implementation="com.android.tools.idea.gradle.project.build.output.GenericFileFilterProvider"
                            order="first"/>
@@ -787,8 +786,6 @@
   </applicationListeners>
 
   <projectListeners>
-    <listener class="com.android.tools.idea.stats.ToolWindowTrackerService$Companion$LazyListener"
-              topic="com.intellij.openapi.wm.ex.ToolWindowManagerListener"/>
     <listener class="com.android.tools.idea.project.SyncTimestampListener"
               topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
     <listener class="com.android.tools.idea.databinding.DataBindingTrackerSyncListener"
