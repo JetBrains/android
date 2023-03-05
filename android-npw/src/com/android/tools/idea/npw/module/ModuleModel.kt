@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.npw.module
 
+import com.android.SdkConstants
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createDefaultModuleTemplate
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.createSampleTemplate
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate.getModuleRootForNewModule
@@ -44,6 +46,7 @@ import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.Recipe
 import com.android.tools.idea.wizard.template.ViewBindingSupport
+import com.android.utils.FileUtils
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.TemplateType.NO_ACTIVITY
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.TemplatesUsage.TemplateComponent.WizardUiContext
 import com.intellij.openapi.command.WriteCommandAction
@@ -51,6 +54,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.DumbService
 import java.io.File
+import java.io.IOException
 
 private val log: Logger get() = logger<ModuleModel>()
 
@@ -163,6 +167,19 @@ abstract class ModuleModel(
       } else null
 
       val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
+
+      if (StudioFlags.NPW_ENABLE_GRADLE_VERSION_CATALOG.get() && isNewProject) {
+        // Create a conventional default toml file for the new project because GradleVersionCatalogModel expects
+        // the toml file already exists. This needs to be before start rendering the template.
+        WriteCommandAction.writeCommandAction(project).run<IOException> {
+          executor.copy(
+            File(FileUtils.join("fileTemplates", "internal", "Version Catalog File.versions.toml.ft")),
+            File(project.basePath, FileUtils.join("gradle", SdkConstants.FN_VERSION_CATALOG)))
+          if (executor is DefaultRecipeExecutor) {
+            executor.applyChanges()
+          }
+        }
+      }
       return recipe.render(context, executor, loggingEvent, metrics).also {
         if (!dryRun) {
           createdFiles.addAll(context.filesToOpen)

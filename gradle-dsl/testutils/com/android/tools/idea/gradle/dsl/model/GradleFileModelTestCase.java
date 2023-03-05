@@ -124,6 +124,7 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   protected VirtualFile mySettingsFile;
   protected VirtualFile myBuildFile;
+  protected VirtualFile myProjectBuildFile;
   protected VirtualFile myPropertiesFile;
   protected VirtualFile mySubModuleBuildFile;
   protected VirtualFile mySubModulePropertiesFile;
@@ -218,6 +219,8 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
       VirtualFile moduleVirtualDir = fs.refreshAndFindFileByNioFile(moduleDirPath);
       myBuildFile = moduleVirtualDir.createChildData(this, getBuildFileName());
       assertTrue(myBuildFile.isWritable());
+      myProjectBuildFile = myProjectBasePath.createChildData(this, getBuildFileName());
+      assertTrue(myProjectBuildFile.isWritable());
       myPropertiesFile = moduleVirtualDir.createChildData(this, FN_GRADLE_PROPERTIES);
       assertTrue(myPropertiesFile.isWritable());
 
@@ -311,6 +314,10 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
 
   protected void writeToBuildFile(@NotNull TestFileName fileName) throws IOException {
     prepareAndInjectInformationForTest(fileName, myBuildFile);
+  }
+
+  protected void writeToProjectBuildFile(@NotNull TestFileName fileName) throws IOException {
+    prepareAndInjectInformationForTest(fileName, myProjectBuildFile);
   }
 
   protected void writeToBuildSrcBuildFile(@NotNull TestFileName fileName) throws IOException {

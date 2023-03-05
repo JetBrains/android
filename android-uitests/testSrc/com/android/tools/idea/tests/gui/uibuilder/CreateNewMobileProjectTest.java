@@ -68,7 +68,7 @@ public class CreateNewMobileProjectTest {
       .contains("@Composable");
 
     assertThat(guiTest.getProjectFileText("app/build.gradle"))
-      .contains("implementation 'androidx.compose.material3:material3'");
+      .contains("implementation libs.material3");
 
     // Make sure that the activity registration uses the relative syntax
     // (regression test for https://code.google.com/p/android/issues/detail?id=76716)

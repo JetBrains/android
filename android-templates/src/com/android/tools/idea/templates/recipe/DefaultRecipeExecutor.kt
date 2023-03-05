@@ -120,7 +120,7 @@ class DefaultRecipeExecutor(
     }
   }
   private val useVersionCatalog: Boolean by lazy {
-    determineVersionCatalogUseForNewModule(project, versionCatalogDetector)
+    determineVersionCatalogUseForNewModule(project, projectTemplateData.isNewProject, versionCatalogDetector)
   }
 
   override fun hasDependency(mavenCoordinate: String, moduleDir: File?): Boolean {
@@ -440,6 +440,12 @@ class DefaultRecipeExecutor(
       return // we do not override property value if it exists.
     }
     property.setValue(value)
+  }
+
+  override fun getExtVar(name: String, valueIfNotFound: String): String {
+    val buildModel = projectGradleBuildModel ?: return valueIfNotFound
+    val property = buildModel.buildscript().ext().findProperty(name)
+    return property.valueAsString() ?: valueIfNotFound
   }
 
   override fun getClasspathDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) : String {

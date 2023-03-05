@@ -91,14 +91,12 @@ class TemplateTest {
       RepositoryUrlManager::class.java,
       RepositoryUrlManager(IdeGoogleMavenRepository, OfflineIdeGoogleMavenRepository, true)
     )
-    StudioFlags.NPW_ENABLE_GRADLE_VERSION_CATALOG.override(false)
   }
 
   @After
   fun tearDown() {
     usageTracker.close()
     UsageTracker.cleanAfterTesting()
-    StudioFlags.NPW_ENABLE_GRADLE_VERSION_CATALOG.clearOverride()
   }
 
   /**

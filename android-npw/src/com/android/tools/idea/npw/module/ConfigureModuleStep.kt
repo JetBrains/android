@@ -139,7 +139,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
       AndroidCoroutineScope(this).launch(Dispatchers.IO) {
         val agpVersionValue = determineAgpVersion(model.project, false)
         val versionCatalogUseValue = determineVersionCatalogUse(model.project)
-        val versionCatalogUseForNewModuleValue = determineVersionCatalogUseForNewModule(model.project)
+        val versionCatalogUseForNewModuleValue = determineVersionCatalogUseForNewModule(model.project, model.isNewProject)
 
         // ValueProperty's need to be set on the UI thread.
         withContext(AndroidDispatchers.uiThread(ModalityState.any())) {
