@@ -259,6 +259,24 @@ compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = 
     verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_ADD_PLATFORM_DEPENDENCY)
   }
 
+  @Test
+  fun testGetExtVar_valueFound() {
+    writeToProjectBuildFile(TestFile.GET_EXT_VAR_INITIAL)
+
+    val version = recipeExecutor.getExtVar("wear_compose_version", "1.0.0")
+
+    assertEquals("3.0.0", version)
+  }
+
+  @Test
+  fun testGetExtVar_valueNotFound() {
+    writeToProjectBuildFile(TestFile.GET_EXT_VAR_INITIAL)
+
+    val version = recipeExecutor.getExtVar("fake_variable", "1.0.0")
+
+    assertEquals("1.0.0", version)
+  }
+
   enum class TestFile(private val path: @SystemDependent String) : TestFileName {
     VERSION_CATALOG_ADD_DEPENDENCY("versionCatalogAddDependency"),
     VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME("versionCatalogAddDependencyAvoidSameName"),
@@ -266,6 +284,7 @@ compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = 
     VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_FINAL_FALLBACK("versionCatalogAddDependencyAvoidSameNameFinalFallback"),
     VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_FINAL_FALLBACK_SECOND_LOOP("versionCatalogAddDependencyAvoidSameNameFinalFallbackSecondLoop"),
     VERSION_CATALOG_ADD_PLATFORM_DEPENDENCY("versionCatalogAddPlatformDependency"),
+    GET_EXT_VAR_INITIAL("getExtVarInitial"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

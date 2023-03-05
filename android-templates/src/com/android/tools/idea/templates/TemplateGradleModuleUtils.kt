@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,6 @@ import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.intellij.openapi.project.Project
-import com.intellij.platform.PlatformProjectOpenProcessor.Companion.isNewProject
-
 
 /**
  * Determine if the new module's dependencies are managed by Version Catalogs.
@@ -28,9 +26,10 @@ import com.intellij.platform.PlatformProjectOpenProcessor.Companion.isNewProject
 @Slow
 fun determineVersionCatalogUseForNewModule(
   project: Project,
+  isNewProject: Boolean,
   detector: GradleVersionCatalogDetector = GradleVersionCatalogDetector.getInstance(project)): Boolean {
   return StudioFlags.NPW_ENABLE_GRADLE_VERSION_CATALOG.get() &&
-         (project.isNewProject() ||
+         (isNewProject ||
           when (detector.versionCatalogDetectorResult) {
             GradleVersionCatalogDetector.DetectorResult.IMPLICIT_LIBS_VERSIONS -> true
             GradleVersionCatalogDetector.DetectorResult.EXPLICIT_CALL -> project.baseDir?.findChild("gradle")?.findChild(

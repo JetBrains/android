@@ -85,6 +85,8 @@ class FindReferencesRecipeExecutor(private val context: RenderingContext) : Reci
   override fun setExtVar(name: String, value: String) {
   }
 
+  override fun getExtVar(name: String, valueIfNotFound: String): String = valueIfNotFound
+
   override fun getClasspathDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) = valueIfNotFound
   override fun getDependencyVarName(mavenCoordinate: String, valueIfNotFound: String) = valueIfNotFound
 
