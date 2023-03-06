@@ -36,13 +36,6 @@ fun Project.setAndroidxProperties(value: String = "true") {
   }
 }
 
-fun Project.disableJetifier(runAfterDisabling: (IProperty?) -> Unit) {
-  getProjectProperties(true)?.findPropertyByKey(ENABLE_JETIFIER_PROPERTY).let {
-    it?.setValue("false")
-    runAfterDisabling(it)
-  }
-}
-
 /** Returns the value of [USE_ANDROIDX_PROPERTY]. */
 @Suppress("DeprecatedCallableAddReplaceWith")
 @Deprecated("Migrate to AndroidModuleSystem.useAndroidX")

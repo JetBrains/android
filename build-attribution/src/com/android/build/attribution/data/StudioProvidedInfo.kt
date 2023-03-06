@@ -25,6 +25,7 @@ import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import org.gradle.util.GradleVersion
+import org.jetbrains.android.refactoring.ENABLE_JETIFIER_PROPERTY
 import org.jetbrains.android.refactoring.getProjectProperties
 import org.jetbrains.android.refactoring.isAndroidx
 import org.jetbrains.android.refactoring.isEnableJetifier
@@ -61,14 +62,25 @@ data class StudioProvidedInfo(
     )
 
     fun turnOnConfigurationCacheInProperties(project: Project, useStableFeatureProperty: Boolean) {
-      project.getProjectProperties(createIfNotExists = true)?.apply {
+      project.getProjectProperties(createIfNotExists = true)?.let { propertiesFile ->
         val propertyName = if (useStableFeatureProperty) CONFIGURATION_CACHE_PROPERTY_NAME else CONFIGURATION_CACHE_UNSAFE_PROPERTY_NAME
-        val property = WriteCommandAction.writeCommandAction(project, this.containingFile).compute<IProperty, Throwable> {
-          findPropertyByKey(propertyName)?.apply { setValue("true") }
-          ?: addProperty(propertyName, "true")
+        val property = WriteCommandAction.writeCommandAction(project, propertiesFile.containingFile).compute<IProperty, Throwable> {
+          propertiesFile.findPropertyByKey(propertyName)?.apply { setValue("true") }
+          ?: propertiesFile.addProperty(propertyName, "true")
         }
         val propertyOffset = property?.psiElement?.textOffset ?: -1
-        OpenFileDescriptor(project, virtualFile, propertyOffset).navigate(true)
+        OpenFileDescriptor(project, propertiesFile.virtualFile, propertyOffset).navigate(true)
+      }
+    }
+
+    fun disableJetifier(project: Project, runAfterDisabling: (IProperty?) -> Unit) {
+      project.getProjectProperties(createIfNotExists = true)?.let { propertiesFile ->
+        WriteCommandAction.writeCommandAction(project, propertiesFile.containingFile).run<Throwable> {
+          propertiesFile.findPropertyByKey(ENABLE_JETIFIER_PROPERTY).let {
+            it?.setValue("false")
+            runAfterDisabling(it)
+          }
+        }
       }
     }
 
