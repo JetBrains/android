@@ -206,11 +206,27 @@ androidx-lifecycle-lifecycle-runtime-ktx2312 = { group = "androidx.lifecycle", n
     verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_FINAL_FALLBACK)
   }
 
+  @Test
+  fun testAddPlatformDependencyWithVersionCatalog() {
+    recipeExecutor.addPlatformDependency("androidx.compose:compose-bom:2022.10.00")
+
+    applyChanges(recipeExecutor.projectBuildModel!!)
+
+    verifyFileContents(myVersionCatalogFile, """
+[versions]
+compose-bom = "2022.10.00"
+[libraries]
+compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
+    """)
+    verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_ADD_PLATFORM_DEPENDENCY)
+  }
+
   enum class TestFile(private val path: @SystemDependent String) : TestFileName {
     VERSION_CATALOG_ADD_DEPENDENCY("versionCatalogAddDependency"),
     VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME("versionCatalogAddDependencyAvoidSameName"),
     VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_WITH_GROUP("versionCatalogAddDependencyAvoidSameNameWithGroup"),
     VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_FINAL_FALLBACK("versionCatalogAddDependencyAvoidSameNameFinalFallback"),
+    VERSION_CATALOG_ADD_PLATFORM_DEPENDENCY("versionCatalogAddPlatformDependency"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

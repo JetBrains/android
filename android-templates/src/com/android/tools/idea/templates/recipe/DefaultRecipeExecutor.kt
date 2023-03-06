@@ -327,7 +327,13 @@ class DefaultRecipeExecutor(
     // Note that unlike in addDependency, we allow adding a dependency to multiple configurations,
     // e.g. "implementation" and "androidTestImplementation". This is necessary to apply BOM versions
     // to dependencies in each configuration.
-    buildModel.dependencies().addPlatformArtifact(configuration, resolvedMavenCoordinate, enforced)
+    if (useVersionCatalog) {
+      val catalogModel = projectBuildModel?.versionCatalogsModel?.getVersionCatalogModel("libs")
+      val referenceToDepToAdd = addDependencyToVersionCatalog(catalogModel, resolvedMavenCoordinate)
+      buildModel.dependencies().addPlatformArtifact(configuration, referenceToDepToAdd, enforced)
+    } else {
+      buildModel.dependencies().addPlatformArtifact(configuration, resolvedMavenCoordinate, enforced)
+    }
   }
 
   override fun addModuleDependency(configuration: String, moduleName: String, toModule: File) {
