@@ -27,6 +27,7 @@ import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.Arrays
 import java.util.EnumMap
+import java.util.function.Consumer
 
 private const val FIRST_PACKAGE_ID: Byte = 0x02
 
@@ -157,14 +158,6 @@ open class ResourceIdManagerBase(private val module: ResourceIdManagerModelModul
   @Synchronized
   override fun getGeneration(): Long = generationCounter
 
-  @Synchronized
-  override fun loadCompiledIds(klass: Class<*>) {
-    if (compiledIds == null) {
-      compiledIds = SingleNamespaceIdMapping(ResourceNamespace.RES_AUTO)
-    }
-    loadIdsFromResourceClass(klass, into = compiledIds!!)
-  }
-
   private fun loadFrameworkIds(): SingleNamespaceIdMapping {
     val frameworkIds = SingleNamespaceIdMapping(ResourceNamespace.ANDROID).apply {
       // These are the counts around the S time frame, to allocate roughly the right amount of space upfront.
@@ -278,8 +271,18 @@ open class ResourceIdManagerBase(private val module: ResourceIdManagerModelModul
     }
   }
 
-  override fun resetCompiledIds() {
-    compiledIds = null
+  override fun resetCompiledIds(rClassProvider: Consumer<ResourceIdManager.RClassParser>) {
+    val temporaryCompileIds = SingleNamespaceIdMapping(ResourceNamespace.RES_AUTO)
+    try {
+      rClassProvider.accept {
+        klass -> loadIdsFromResourceClass(klass, into = temporaryCompileIds)
+      }
+    }
+    finally {
+      synchronized(this) {
+        compiledIds = temporaryCompileIds
+      }
+    }
   }
 
   /**

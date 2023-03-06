@@ -54,6 +54,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -445,25 +446,28 @@ public class ViewLoader {
   public void loadAndParseRClassSilently() {
     // All the ids are loaded into the idManager for the "app module".
     ResourceIdManager idManager = myModule.getResourceIdManager();
-    idManager.resetCompiledIds();
+    idManager.resetCompiledIds(this::loadRClasses);
+  }
+
+  private void loadRClasses(@NotNull ResourceIdManager.RClassParser rClassParser) {
     getRClassesNames(myModule.getIdeaModule()).forEach((rClassName) -> {
-        try {
-          if (rClassName == null) {
-            LOG.info(
-              String.format("loadAndParseRClass: failed to find manifest package for project %1$s", myModule.getProject().getName()));
-            return;
-          }
-          myLogger.setResourceClass(rClassName);
-          loadAndParseRClass(rClassName, idManager);
+      try {
+        if (rClassName == null) {
+          LOG.info(
+            String.format("loadAndParseRClass: failed to find manifest package for project %1$s", myModule.getProject().getName()));
+          return;
         }
-        catch (ClassNotFoundException | NoClassDefFoundError e) {
-          myLogger.setMissingResourceClass();
-        }
-      });
+        myLogger.setResourceClass(rClassName);
+        loadAndParseRClass(rClassName, rClassParser);
+      }
+      catch (ClassNotFoundException | NoClassDefFoundError e) {
+        myLogger.setMissingResourceClass();
+      }
+    });
   }
 
   @VisibleForTesting
-  void loadAndParseRClass(@NotNull String className, @NotNull ResourceIdManager idManager) throws ClassNotFoundException {
+  void loadAndParseRClass(@NotNull String className, @NotNull ResourceIdManager.RClassParser rClassParser) throws ClassNotFoundException {
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("loadAndParseRClass(%s)", anonymizeClassName(className)));
     }
@@ -497,7 +501,7 @@ public class ViewLoader {
       myLogger.setHasLoadedClasses();
     }
 
-    idManager.loadCompiledIds(aClass);
+    rClassParser.parse(aClass);
 
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("END loadAndParseRClass(%s)", anonymizeClassName(className)));

@@ -17,6 +17,7 @@ package com.android.tools.idea.res
 
 import com.android.ide.common.rendering.api.ResourceReference
 import com.intellij.openapi.module.Module
+import java.util.function.Consumer
 
 /**
  * Module service responsible for tracking the numeric resource ids we assign to resources, in an attempt to emulate aapt.
@@ -31,17 +32,20 @@ interface ResourceIdManager : ResourceClassGenerator.NumericIdProvider {
 
   fun findById(id: Int): ResourceReference?
 
-  fun loadCompiledIds(klass: Class<*>)
-
   /**
-   * Resets the currently loaded compiled ids. Call this method before start loading new compiled ids via [loadCompiledIds].
+   * Resets the currently loaded compiled ids. Accepts a procedure ([Consumer]) that should call the passed [RClassParser] on every class
+   * the ids should be extracted from.
    */
-  fun resetCompiledIds()
+  fun resetCompiledIds(rClassProvider: Consumer<RClassParser>)
 
   fun resetDynamicIds()
 
   companion object {
     @JvmStatic
     fun get(module: Module) = module.getService(ResourceIdManager::class.java)!!
+  }
+
+  fun interface RClassParser {
+    fun parse(rClass: Class<*>)
   }
 }
