@@ -56,7 +56,7 @@ public final class PreferenceScreenHandler extends ViewGroupHandler {
 
     ViewInfo scrollView = ViewInfoUtils.findViewWithName(editor.getRootViews(), SdkConstants.FQCN_SCROLL_VIEW);
     if (scrollView != null) {
-      return ScrollViewHandler.createScrollHandler((ScrollView)scrollView.getViewObject());
+      return ScrollViewHandler.createScrollHandler((ScrollView)scrollView.getViewObject(), preference);
     }
 
     return null;

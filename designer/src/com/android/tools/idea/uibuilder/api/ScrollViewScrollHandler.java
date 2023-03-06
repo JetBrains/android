@@ -17,7 +17,9 @@ package com.android.tools.idea.uibuilder.api;
 
 import android.view.View;
 import android.view.ViewGroup;
+import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import java.util.function.Function;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,13 +57,22 @@ public final class ScrollViewScrollHandler implements ScrollHandler {
    */
   @NotNull
   public static ScrollViewScrollHandler createHandler(@NotNull ViewGroup viewGroup,
+                                                      NlComponent component,
                                                       int maxScrollableSize,
                                                       int scrollUnitSize,
                                                       @NotNull Orientation orientation) {
     return new ScrollViewScrollHandler(
       maxScrollableSize,
       scrollUnitSize,
-      orientation == Orientation.VERTICAL ? viewGroup::setScrollY : viewGroup::setScrollX,
+      orientation == Orientation.VERTICAL ?
+      i -> {
+        viewGroup.setScrollY(i);
+        NlComponentHelperKt.setScrollY(component, i);
+      } :
+      i -> {
+        viewGroup.setScrollX(i);
+        NlComponentHelperKt.setScrollX(component, i);
+      },
       orientation == Orientation.VERTICAL ? viewGroup::getScrollY : viewGroup::getScrollX,
       () -> handleScrolling(viewGroup)
     );

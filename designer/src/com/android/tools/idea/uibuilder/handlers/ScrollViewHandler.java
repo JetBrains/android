@@ -89,12 +89,12 @@ public class ScrollViewHandler extends ViewGroupHandler {
   }
 
   @Nullable
-  public static ScrollHandler createScrollHandler(@NotNull ViewGroup viewGroup) {
+  public static ScrollHandler createScrollHandler(@NotNull ViewGroup viewGroup, NlComponent component) {
     int maxScrollableHeight = ScrollViewScrollHandler.getMaxScrollable(viewGroup, ViewGroup::getHeight, View::getMeasuredHeight);
 
     if (maxScrollableHeight > 0) {
       // There is something to scroll
-      return ScrollViewScrollHandler.createHandler(viewGroup, maxScrollableHeight, 10, ScrollViewScrollHandler.Orientation.VERTICAL);
+      return ScrollViewScrollHandler.createHandler(viewGroup, component, maxScrollableHeight, 10, ScrollViewScrollHandler.Orientation.VERTICAL);
     }
 
     return null;
@@ -107,7 +107,7 @@ public class ScrollViewHandler extends ViewGroupHandler {
     if (viewGroup == null) {
       return null;
     }
-    return createScrollHandler(viewGroup);
+    return createScrollHandler(viewGroup, component);
   }
 
   /**
