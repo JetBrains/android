@@ -32,6 +32,7 @@
   </extensions>
   <actions>
     <action id="WelcomeScreen.Configure.ProjectStructure" class="com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction" overrides="true" />
+    <action id="ChangeGradleJdkLocation" class="com.android.tools.idea.gradle.actions.ChangeGradleJdkLocationAction"/>
     <action id="GenerateSourcesModuleAction" class="com.android.tools.idea.gradle.actions.GenerateSourcesModuleAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleModule" />
     </action>
