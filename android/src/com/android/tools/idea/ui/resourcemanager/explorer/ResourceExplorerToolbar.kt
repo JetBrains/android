@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
+import com.android.tools.idea.ui.resourcemanager.actions.HeaderAction
 import com.android.tools.idea.ui.resourcemanager.model.TypeFilter
 import com.android.tools.idea.ui.resourcemanager.rendering.SlowResource.Companion.isSlowResource
 import com.android.utils.usLocaleCapitalize
@@ -318,7 +319,8 @@ private fun DefaultActionGroup.addRelatedTypeFilterActions(viewModel: ResourceEx
   val supportedFilters = viewModel.typeFiltersModel.getSupportedFilters(viewModel.resourceType).groupBy { it.displayName }
   if (StudioFlags.EXTENDED_TYPE_FILTERS.get() && supportedFilters.isNotEmpty()) {
     addSeparator()
-    addSeparator("By ${viewModel.resourceType.displayName} Type")
+    val header = "By ${viewModel.resourceType.displayName} Type"
+    add(HeaderAction(header, header))
     val visibleFilters = supportedFilters.entries.take(FILTERS_DISPLAY_LIMIT)
     val remainingFilters = supportedFilters.entries.drop(FILTERS_DISPLAY_LIMIT)
     addVisibleTypeFilters(viewModel, visibleFilters)
