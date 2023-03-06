@@ -75,16 +75,7 @@ class ResourceExplorerToolbar private constructor(
   : JPanel(), DataProvider by toolbarViewModel {
 
   private val searchAction = createSearchField()
-  private val refreshActionToolbar =
-    ActionManager.getInstance().createActionToolbar(
-      "ResourceExplorer",
-      DefaultActionGroup(RefreshAction(toolbarViewModel)),
-      true
-    ).apply {
-      targetComponent = this@ResourceExplorerToolbar
-    }
-
-  private val refreshActionComponent = refreshActionToolbar.component
+  private val refreshAction = action(RefreshAction(toolbarViewModel))
 
   init {
     layout = GroupLayout(this)
@@ -95,7 +86,7 @@ class ResourceExplorerToolbar private constructor(
 
     val sequentialGroup = groupLayout.createSequentialGroup()
       .addFixedSizeComponent(addAction, true)
-      .addComponent(refreshActionComponent, ACTION_BTN_SIZE, ACTION_BTN_SIZE, ACTION_BTN_SIZE)
+      .addFixedSizeComponent(refreshAction, true)
       .addFixedSizeComponent(separator)
       .addComponent(moduleSelectionCombo, MIN_FIELD_SIZE, PREF_FIELD_SIZE, MAX_FIELD_SIZE)
       .addComponent(searchAction, MIN_FIELD_SIZE, PREF_FIELD_SIZE, Int.MAX_VALUE)
@@ -103,7 +94,7 @@ class ResourceExplorerToolbar private constructor(
 
     val verticalGroup = groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
       .addComponent(addAction)
-      .addComponent(refreshActionComponent)
+      .addComponent(refreshAction)
       .addComponent(separator)
       .addComponent(moduleSelectionCombo)
       .addComponent(searchAction)
@@ -119,7 +110,7 @@ class ResourceExplorerToolbar private constructor(
 
   private fun update() {
     moduleSelectionCombo.selectedItem = toolbarViewModel.currentModuleName
-    refreshActionToolbar.updateActionsImmediately()
+    refreshAction.update()
   }
 
   private fun createSearchField() = SearchTextField(true).apply {
@@ -191,7 +182,7 @@ private class AddAction internal constructor(val viewModel: ResourceExplorerTool
  * Action to refresh the previews of a particular type of resources.
  */
 private class RefreshAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
-  : AnAction("Refresh previews", "Refresh previews for ${viewModel.resourceType.displayName}s", AllIcons.Actions.Refresh) {
+  : AnAction("Refresh Previews", "Refresh previews for ${viewModel.resourceType.displayName}s", AllIcons.Actions.Refresh) {
   override fun actionPerformed(e: AnActionEvent) {
     // TODO: update tracking to support this action.
     viewModel.refreshResourcesPreviewsCallback()
