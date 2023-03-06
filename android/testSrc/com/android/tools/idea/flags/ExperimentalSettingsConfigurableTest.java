@@ -48,7 +48,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = true;
     assertFalse(myConfigurable.isModified());
 
-    myConfigurable.setSkipGradleTasksList(true);
+    myConfigurable.setConfigureAllGradleTasks(false);
     mySettings.SKIP_GRADLE_TASKS_LIST = false;
     assertTrue(myConfigurable.isModified());
     mySettings.SKIP_GRADLE_TASKS_LIST = true;
@@ -87,7 +87,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
 
   public void testApply() throws ConfigurationException {
     myConfigurable.setUseL2DependenciesInSync(true);
-    myConfigurable.setSkipGradleTasksList(true);
+    myConfigurable.setConfigureAllGradleTasks(false);
     myConfigurable.setTraceGradleSync(true);
     myConfigurable.setTraceProfileLocation("/tmp/text1.profile");
     myConfigurable.setTraceProfileSelection(DEFAULT);
@@ -106,7 +106,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     assertTrue(mySettings.ENABLE_GRADLE_API_OPTIMIZATION);
 
     myConfigurable.setUseL2DependenciesInSync(false);
-    myConfigurable.setSkipGradleTasksList(false);
+    myConfigurable.setConfigureAllGradleTasks(true);
     myConfigurable.setTraceGradleSync(false);
     myConfigurable.setTraceProfileLocation("/tmp/text2.profile");
     myConfigurable.setTraceProfileSelection(SPECIFIED_LOCATION);
@@ -138,7 +138,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     myConfigurable.reset();
 
     assertTrue(myConfigurable.isUseL2DependenciesInSync());
-    assertTrue(myConfigurable.skipGradleTasksList());
+    assertFalse(myConfigurable.isConfigureAllGradleTasksEnabled());
     assertTrue(myConfigurable.traceGradleSync());
     assertEquals("/tmp/text1.profile", myConfigurable.getTraceProfileLocation());
     assertEquals(DEFAULT, myConfigurable.getTraceProfileSelection());
@@ -156,7 +156,7 @@ public class ExperimentalSettingsConfigurableTest extends LightPlatformTestCase 
     myConfigurable.reset();
 
     assertFalse(myConfigurable.isUseL2DependenciesInSync());
-    assertFalse(myConfigurable.skipGradleTasksList());
+    assertTrue(myConfigurable.isConfigureAllGradleTasksEnabled());
     assertFalse(myConfigurable.traceGradleSync());
     assertEquals("/tmp/text2.profile", myConfigurable.getTraceProfileLocation());
     assertEquals(SPECIFIED_LOCATION, myConfigurable.getTraceProfileSelection());

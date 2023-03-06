@@ -1475,6 +1475,16 @@
     <option name="settings" hit=" Note: These settings are for features that are considered experimental." />
     <option name="that" hit=" Note: These settings are for features that are considered experimental." />
     <option name="these" hit=" Note: These settings are for features that are considered experimental." />
+    <option name="all" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
+    <option name="can" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
+    <option name="configure" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
+    <option name="during" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
+    <option name="gradle" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
+    <option name="make" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
+    <option name="slower" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
+    <option name="sync" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
+    <option name="tasks" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
+    <option name="this" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
     <option name="default" hit="Default profile" />
     <option name="profile" hit="Default profile" />
     <option name="enable" hit="Enable @Preview picker" />
@@ -1490,18 +1500,6 @@
     <option name="jetpack" hit="Jetpack Compose" />
     <option name="editor" hit="Layout Editor" />
     <option name="layout" hit="Layout Editor" />
-    <option name="during" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="generated" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="gradle" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="in" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="include" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="list" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="only" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="sync" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="task" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="tasks" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="test" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="the" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
     <option name="api" hit="Optimize build for target device API level only" />
     <option name="build" hit="Optimize build for target device API level only" />
     <option name="device" hit="Optimize build for target device API level only" />

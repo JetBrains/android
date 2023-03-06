@@ -65,12 +65,12 @@
           <text value="Layout Editor"/>
         </properties>
       </component>
-      <component id="7a499" class="javax.swing.JCheckBox" binding="mySkipGradleTasksList">
+      <component id="7a499" class="javax.swing.JCheckBox" binding="myConfigureAllGradleTasks">
         <constraints>
           <grid row="4" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text value="Only include test tasks in the Gradle task list generated during Gradle Sync"/>
+          <text value="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)"/>
         </properties>
       </component>
       <component id="c5310" class="javax.swing.JCheckBox" binding="myTraceGradleSyncCheckBox">

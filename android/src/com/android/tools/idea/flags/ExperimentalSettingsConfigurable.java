@@ -55,7 +55,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   private JPanel myPanel;
   private JCheckBox myUseL2DependenciesCheckBox;
   private JSlider myLayoutEditorQualitySlider;
-  private JCheckBox mySkipGradleTasksList;
+  private JCheckBox myConfigureAllGradleTasks;
   private JCheckBox myTraceGradleSyncCheckBox;
   private JComboBox<TraceProfileItem> myTraceProfileComboBox;
   private TextFieldWithBrowseButton myTraceProfilePathField;
@@ -127,7 +127,8 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   @Override
   public boolean isModified() {
     return mySettings.USE_L2_DEPENDENCIES_ON_SYNC != isUseL2DependenciesInSync() ||
-           mySettings.SKIP_GRADLE_TASKS_LIST != skipGradleTasksList() ||
+           // SKIP_GRADLE_TASK_LIST is reversed since original text implies the opposite action.
+           mySettings.SKIP_GRADLE_TASKS_LIST == isConfigureAllGradleTasksEnabled() ||
            mySettings.TRACE_GRADLE_SYNC != traceGradleSync() ||
            mySettings.TRACE_PROFILE_SELECTION != getTraceProfileSelection() ||
            !mySettings.TRACE_PROFILE_LOCATION.equals(getTraceProfileLocation()) ||
@@ -145,7 +146,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   @Override
   public void apply() throws ConfigurationException {
     mySettings.USE_L2_DEPENDENCIES_ON_SYNC = isUseL2DependenciesInSync();
-    mySettings.SKIP_GRADLE_TASKS_LIST = skipGradleTasksList();
+    mySettings.SKIP_GRADLE_TASKS_LIST = !isConfigureAllGradleTasksEnabled();
     mySettings.ENABLE_PARALLEL_SYNC = enableParallelSync();
     mySettings.ENABLE_GRADLE_API_OPTIMIZATION = isGradleApiOptimization();
 
@@ -174,13 +175,13 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     myUseL2DependenciesCheckBox.setSelected(value);
   }
 
-  boolean skipGradleTasksList() {
-    return mySkipGradleTasksList.isSelected();
+  boolean isConfigureAllGradleTasksEnabled() {
+    return myConfigureAllGradleTasks.isSelected();
   }
 
   @TestOnly
-  void setSkipGradleTasksList(boolean value) {
-    mySkipGradleTasksList.setSelected(value);
+  void setConfigureAllGradleTasks(boolean value) {
+    myConfigureAllGradleTasks.setSelected(value);
   }
 
   boolean traceGradleSync() {
@@ -216,13 +217,13 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
     return myEnableParallelSync.isSelected();
   }
 
-  boolean isGradleApiOptimization() {
-    return myEnableDeviceApiOptimization.isSelected();
-  }
-
   @TestOnly
   void setEnableParallelSync(boolean value) {
     myEnableParallelSync.setSelected(value);
+  }
+
+  boolean isGradleApiOptimization() {
+    return myEnableDeviceApiOptimization.isSelected();
   }
 
   @TestOnly
@@ -315,7 +316,7 @@ public class ExperimentalSettingsConfigurable implements SearchableConfigurable,
   @Override
   public void reset() {
     myUseL2DependenciesCheckBox.setSelected(mySettings.USE_L2_DEPENDENCIES_ON_SYNC);
-    mySkipGradleTasksList.setSelected(mySettings.SKIP_GRADLE_TASKS_LIST);
+    myConfigureAllGradleTasks.setSelected(!mySettings.SKIP_GRADLE_TASKS_LIST);
     myLayoutEditorQualitySlider.setValue((int)(myRenderSettings.getQuality() * 100));
     myTraceGradleSyncCheckBox.setSelected(mySettings.TRACE_GRADLE_SYNC);
     myTraceProfileComboBox.setSelectedItem(mySettings.TRACE_PROFILE_SELECTION);
