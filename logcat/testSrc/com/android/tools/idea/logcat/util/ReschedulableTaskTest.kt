@@ -16,7 +16,6 @@
 package com.android.tools.idea.logcat.util
 
 import com.android.testutils.MockitoKt.mock
-import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.mockito.Mockito.never
@@ -37,7 +36,8 @@ class ReschedulableTaskTest {
     reschedulableTask.reschedule(1000, task)
 
     verify(mockTask, never()).run()
-    advanceTimeBy(1010)
+    testScheduler.advanceTimeBy(1010)
+    testScheduler.runCurrent()
     verify(mockTask).run()
   }
 
@@ -47,10 +47,12 @@ class ReschedulableTaskTest {
     val mockTask = mock<Runnable>()
 
     reschedulableTask.reschedule(1000, mockTask::run)
-    advanceTimeBy(500)
+    testScheduler.advanceTimeBy(500)
+    testScheduler.runCurrent()
     reschedulableTask.reschedule(1000, mockTask::run)
 
-    advanceTimeBy(1010)
+    testScheduler.advanceTimeBy(1010)
+    testScheduler.runCurrent()
     verify(mockTask).run()
   }
 }

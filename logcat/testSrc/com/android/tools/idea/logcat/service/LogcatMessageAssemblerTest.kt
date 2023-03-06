@@ -35,7 +35,6 @@ import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.channels.toList
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -325,7 +324,8 @@ class LogcatMessageAssemblerTest {
     )
     assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag1", 1619900000L, 123L, "Message 1"))
     assertThat(channel.isEmpty)
-    advanceTimeBy(100)
+    testScheduler.advanceTimeBy(100)
+    testScheduler.runCurrent()
     assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag2", 1619900000L, 123L, "Message 2"))
 
     assembler.processNewLines(
@@ -340,7 +340,8 @@ class LogcatMessageAssemblerTest {
     )
     assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag3", 1619900000L, 123L, "Message 3"))
     assertThat(channel.isEmpty)
-    advanceTimeBy(100)
+    testScheduler.advanceTimeBy(100)
+    testScheduler.runCurrent()
     assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag4", 1619900000L, 123L, "Message 4"))
 
     assembler.processNewLines(
@@ -355,7 +356,8 @@ class LogcatMessageAssemblerTest {
     )
     assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag5", 1619900000L, 123L, "Message 5"))
     assertThat(channel.isEmpty)
-    advanceTimeBy(100)
+    testScheduler.advanceTimeBy(100)
+    testScheduler.runCurrent()
     assertThat(channel.receive()).containsExactly(logcatMessage(DEBUG, 1, 2000, "app-1.1", "process-1.1", "Tag6", 1619900000L, 123L, "Message 6"))
     channel.close()
     advanceUntilIdle()
