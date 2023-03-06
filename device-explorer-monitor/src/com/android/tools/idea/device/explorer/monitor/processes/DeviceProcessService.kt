@@ -126,7 +126,7 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
 
     if (process.device.serialNumber == device.serialNumber) {
       withContext(workerThreadDispatcher) {
-        val client = device.getClient(process.processName)
+        val client = device.getClient(process.safeProcessName)
         val config = RunManager.getInstance(project).selectedConfiguration?.configuration as? AndroidRunConfigurationBase
         val debugger = config?.androidDebuggerContext?.androidDebugger
 

@@ -24,6 +24,8 @@ import com.android.tools.idea.device.explorer.monitor.DeviceMonitorControllerImp
 import com.android.tools.idea.device.explorer.monitor.adbimpl.AdbDeviceService
 import com.android.tools.idea.device.explorer.monitor.mocks.MockDeviceMonitorView
 import com.android.tools.idea.device.explorer.monitor.processes.DeviceProcessService
+import com.android.tools.idea.device.explorer.monitor.processes.isPidOnly
+import com.android.tools.idea.device.explorer.monitor.processes.safeProcessName
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigurationType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -165,6 +167,7 @@ class DeviceMonitorControllerImplTest {
     waitForServiceToRetrieveInitialDevice()
     controller.setActiveConnectedDevice(testDevice1.deviceId)
     checkMockViewInitialState()
+    waitForCondition("Client ${model.tableModel.getValueForRow(0).safeProcessName} has an unknown name") { !model.tableModel.getValueForRow(0).isPidOnly }
     val config = RunManager.getInstance(project).createConfiguration("debugAllInDeviceMonitorTest", AndroidTestRunConfigurationType.getInstance().factory)
     RunManager.getInstance(project).addConfiguration(config)
     RunManager.getInstance(project).selectedConfiguration = config
@@ -175,7 +178,7 @@ class DeviceMonitorControllerImplTest {
     // Assert
     checkMockViewActiveDevice(2)
     waitForCondition(
-      "Row debugger status set to ${model.tableModel.getValueForRow(0).debuggerStatus} and was expecting ${ClientData.DebuggerStatus.ATTACHED}"
+      "No client has debugger status as ${ClientData.DebuggerStatus.ATTACHED}"
     ) {
       for (index in 0 until model.tableModel.rowCount) {
         val processInfo = model.tableModel.getValueForRow(index)
