@@ -37,7 +37,7 @@ class SVGAssetRenderer : DesignAssetRenderer {
     return CompletableFuture.supplyAsync {
       try {
         file.inputStream.use { inputStream ->
-          renderSvg(inputStream = inputStream, overriddenWidth = dimension.width.toFloat(), overriddenHeight = dimension.height.toFloat())
+          renderSvg(inputStream = inputStream, baseWidth = dimension.width.toFloat(), baseHeight = dimension.height.toFloat())
         }
       }
       catch (e: IOException) {
