@@ -314,8 +314,9 @@
       <module fileurl="file://$PROJECT_DIR$/kotlin-integration/kotlin-integration-tests.iml" filepath="$PROJECT_DIR$/kotlin-integration/kotlin-integration-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/lldb-integration-tests/lldb-integration-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/lldb-integration-tests/lldb-integration-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/memory-usage/memory-usage.iml" filepath="$PROJECT_DIR$/memory-usage/memory-usage.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/sml-core/ml.sml-plugin.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/sml-core/ml.sml-plugin.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/sml-core/ml.sml-plugin-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/sml-core/ml.sml-plugin-tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/sml-android/ml.sml-android.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/sml-android/ml.sml-android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/sml-core/ml.sml-core.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/sml-core/ml.sml-core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/sml-core/ml.sml-core-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/sml-core/ml.sml-core-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/native-symbolizer/native-symbolizer.iml" filepath="$PROJECT_DIR$/native-symbolizer/native-symbolizer.iml" />
       <module fileurl="file://$PROJECT_DIR$/native-symbolizer/native-symbolizer.tests.iml" filepath="$PROJECT_DIR$/native-symbolizer/native-symbolizer.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/observable-demo/observable-demo.iml" filepath="$PROJECT_DIR$/observable-demo/observable-demo.iml" />
