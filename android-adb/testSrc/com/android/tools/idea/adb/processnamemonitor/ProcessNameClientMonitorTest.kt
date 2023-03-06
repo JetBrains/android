@@ -24,7 +24,6 @@ import com.intellij.openapi.util.use
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import kotlinx.coroutines.test.TestCoroutineScope
-import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Before
 import org.junit.Rule
@@ -185,7 +184,8 @@ class ProcessNameClientMonitorTest {
 
         flows.sendClientEvents(device.serialNumber, clientsAddedEvent(process1))
 
-        advanceTimeBy(2000)
+        testScheduler.advanceTimeBy(2000)
+        testScheduler.runCurrent()
         assertThat(monitor.getProcessNames(1)).isEqualTo(process1.names)
         assertThat(monitor.getProcessNames(2)).isEqualTo(ProcessNames("", "process2-from-ps"))
         assertThat(monitor.getProcessNames(3)).isEqualTo(ProcessNames("", "process3-from-ps"))
@@ -207,7 +207,8 @@ class ProcessNameClientMonitorTest {
 
         flows.sendClientEvents(device.serialNumber, clientsAddedEvent(process1))
 
-        advanceTimeBy(2000)
+        testScheduler.advanceTimeBy(2000)
+        testScheduler.runCurrent()
         assertThat(monitor.getProcessNames(1)).isEqualTo(process1.names)
       }
     }
@@ -226,7 +227,8 @@ class ProcessNameClientMonitorTest {
           3 process3-from-ps
 
         """.trimIndent())
-        advanceTimeBy(2000)
+        testScheduler.advanceTimeBy(2000)
+        testScheduler.runCurrent()
 
         fakeAdbDeviceServices.configureShellCommand(
           DeviceSelector.fromSerialNumber(device.serialNumber),
@@ -236,7 +238,8 @@ class ProcessNameClientMonitorTest {
           4 process4-from-ps
 
         """.trimIndent())
-        advanceTimeBy(2000)
+        testScheduler.advanceTimeBy(2000)
+        testScheduler.runCurrent()
 
         assertThat(monitor.getProcessNames(2)).isNull()
         assertThat(monitor.getProcessNames(3)).isEqualTo(ProcessNames("", "new-process3-from-ps"))
