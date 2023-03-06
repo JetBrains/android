@@ -36,6 +36,7 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_72
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_73
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_74
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_80
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.Companion.AGP_CURRENT
 import com.android.tools.idea.testing.gradleModule
 import com.google.common.truth.Expect
@@ -446,9 +447,9 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
         target = TestTargetRunConfiguration("com.example.feature1.ExampleInstrumentedTest"),
       ),
       // Do not run with the current version of the AGP.
-      IGNORE = { if (agpVersion == AGP_CURRENT) TODO("b/189202602") },
+      IGNORE = { if (agpVersion == AGP_CURRENT || agpVersion == AGP_80) TODO("b/189202602") },
       expectApks = mapOf(
-        AGP_CURRENT to """
+        *(arrayOf(AGP_80, AGP_CURRENT) eachTo """
               ApplicationId: google.simpleapplication
               Files:
                 base -> project/app/build/intermediates/extracted_apks/debug/base-master.apk
@@ -463,7 +464,8 @@ internal val APK_PROVIDER_TESTS: List<ProviderTestDefinition> =
               Files:
                  -> project/feature1/build/outputs/apk/androidTest/debug/feature1-debug-androidTest.apk
               RequiredInstallationOptions: []
-            """,
+            """
+        ),
         *(arrayOf(AGP_42, AGP_70, AGP_72, AGP_73, AGP_74) eachTo """
               ApplicationId: google.simpleapplication
               Files:

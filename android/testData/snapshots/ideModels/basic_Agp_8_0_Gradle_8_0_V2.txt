@@ -1,0 +1,1556 @@
+CompositeBuildMap             : IdeCompositeBuildMapImpl
+    - builds                      : <ROOT> (IdeBuildImpl)
+        buildName                     : :
+    gradleSupportsDirectTaskInvocation      : true
+LIBRARY_TABLE
+    - library                     : com.android.support:support-v4:28.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v4-28.0.0/aidl [-]
+        artifact                      : <M2>/com/android/support/support-v4/28.0.0/support-v4-28.0.0.aar
+        artifactAddress               : com.android.support:support-v4:28.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v4-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v4-28.0.0/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v4-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v4-28.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v4-28.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v4-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v4-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v4-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v4-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v4-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v4-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v4-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v4-28.0.0/R.txt
+    - library                     : com.android.support:support-compat:28.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/aidl
+        artifact                      : <M2>/com/android/support/support-compat/28.0.0/support-compat-28.0.0.aar
+        artifactAddress               : com.android.support:support-compat:28.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/annotations.zip
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/proguard.txt
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/public.txt
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/res
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-compat-28.0.0/R.txt
+    - library                     : android.arch.lifecycle:runtime:1.1.1@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/aidl [-]
+        artifact                      : <M2>/android/arch/lifecycle/runtime/1.1.1/runtime-1.1.1.aar
+        artifactAddress               : android.arch.lifecycle:runtime:1.1.1@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/proguard.txt
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/R.txt
+    - library                     : com.android.support:versionedparcelable:28.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/aidl
+        artifact                      : <M2>/com/android/support/versionedparcelable/28.0.0/versionedparcelable-28.0.0.aar
+        artifactAddress               : com.android.support:versionedparcelable:28.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/proguard.txt
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/versionedparcelable-28.0.0/R.txt
+    - library                     : com.android.support:support-media-compat:28.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-media-compat-28.0.0/aidl
+        artifact                      : <M2>/com/android/support/support-media-compat/28.0.0/support-media-compat-28.0.0.aar
+        artifactAddress               : com.android.support:support-media-compat:28.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-media-compat-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-media-compat-28.0.0/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-media-compat-28.0.0/annotations.zip
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-media-compat-28.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-media-compat-28.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-media-compat-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-media-compat-28.0.0/proguard.txt
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-media-compat-28.0.0/public.txt
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-media-compat-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-media-compat-28.0.0/res
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-media-compat-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-media-compat-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-media-compat-28.0.0/R.txt
+    - library                     : com.android.support:support-core-utils:28.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/aidl [-]
+        artifact                      : <M2>/com/android/support/support-core-utils/28.0.0/support-core-utils-28.0.0.aar
+        artifactAddress               : com.android.support:support-core-utils:28.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-utils-28.0.0/R.txt
+    - library                     : com.android.support:documentfile:28.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/aidl [-]
+        artifact                      : <M2>/com/android/support/documentfile/28.0.0/documentfile-28.0.0.aar
+        artifactAddress               : com.android.support:documentfile:28.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/documentfile-28.0.0/R.txt
+    - library                     : com.android.support:loader:28.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/aidl [-]
+        artifact                      : <M2>/com/android/support/loader/28.0.0/loader-28.0.0.aar
+        artifactAddress               : com.android.support:loader:28.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/loader-28.0.0/R.txt
+    - library                     : android.arch.lifecycle:livedata:1.1.1@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/aidl [-]
+        artifact                      : <M2>/android/arch/lifecycle/livedata/1.1.1/livedata-1.1.1.aar
+        artifactAddress               : android.arch.lifecycle:livedata:1.1.1@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-1.1.1/R.txt
+    - library                     : android.arch.core:runtime:1.1.1@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/aidl [-]
+        artifact                      : <M2>/android/arch/core/runtime/1.1.1/runtime-1.1.1.aar
+        artifactAddress               : android.arch.core:runtime:1.1.1@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/runtime-1.1.1/R.txt
+    - library                     : android.arch.lifecycle:livedata-core:1.1.1@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/aidl [-]
+        artifact                      : <M2>/android/arch/lifecycle/livedata-core/1.1.1/livedata-core-1.1.1.aar
+        artifactAddress               : android.arch.lifecycle:livedata-core:1.1.1@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/livedata-core-1.1.1/R.txt
+    - library                     : android.arch.lifecycle:viewmodel:1.1.1@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/aidl [-]
+        artifact                      : <M2>/android/arch/lifecycle/viewmodel/1.1.1/viewmodel-1.1.1.aar
+        artifactAddress               : android.arch.lifecycle:viewmodel:1.1.1@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/proguard.txt
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewmodel-1.1.1/R.txt
+    - library                     : com.android.support:localbroadcastmanager:28.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/aidl [-]
+        artifact                      : <M2>/com/android/support/localbroadcastmanager/28.0.0/localbroadcastmanager-28.0.0.aar
+        artifactAddress               : com.android.support:localbroadcastmanager:28.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/localbroadcastmanager-28.0.0/R.txt
+    - library                     : com.android.support:print:28.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/aidl [-]
+        artifact                      : <M2>/com/android/support/print/28.0.0/print-28.0.0.aar
+        artifactAddress               : com.android.support:print:28.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/annotations.zip
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/print-28.0.0/R.txt
+    - library                     : com.android.support:support-core-ui:28.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/aidl [-]
+        artifact                      : <M2>/com/android/support/support-core-ui/28.0.0/support-core-ui-28.0.0.aar
+        artifactAddress               : com.android.support:support-core-ui:28.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-core-ui-28.0.0/R.txt
+    - library                     : com.android.support:customview:28.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/aidl [-]
+        artifact                      : <M2>/com/android/support/customview/28.0.0/customview-28.0.0.aar
+        artifactAddress               : com.android.support:customview:28.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/customview-28.0.0/R.txt
+    - library                     : com.android.support:viewpager:28.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/aidl [-]
+        artifact                      : <M2>/com/android/support/viewpager/28.0.0/viewpager-28.0.0.aar
+        artifactAddress               : com.android.support:viewpager:28.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/viewpager-28.0.0/R.txt
+    - library                     : com.android.support:coordinatorlayout:28.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/aidl [-]
+        artifact                      : <M2>/com/android/support/coordinatorlayout/28.0.0/coordinatorlayout-28.0.0.aar
+        artifactAddress               : com.android.support:coordinatorlayout:28.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/annotations.zip
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/proguard.txt
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/public.txt
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/res
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/coordinatorlayout-28.0.0/R.txt
+    - library                     : com.android.support:drawerlayout:28.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/aidl [-]
+        artifact                      : <M2>/com/android/support/drawerlayout/28.0.0/drawerlayout-28.0.0.aar
+        artifactAddress               : com.android.support:drawerlayout:28.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/annotations.zip
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/drawerlayout-28.0.0/R.txt
+    - library                     : com.android.support:slidingpanelayout:28.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/aidl [-]
+        artifact                      : <M2>/com/android/support/slidingpanelayout/28.0.0/slidingpanelayout-28.0.0.aar
+        artifactAddress               : com.android.support:slidingpanelayout:28.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/slidingpanelayout-28.0.0/R.txt
+    - library                     : com.android.support:interpolator:28.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/aidl [-]
+        artifact                      : <M2>/com/android/support/interpolator/28.0.0/interpolator-28.0.0.aar
+        artifactAddress               : com.android.support:interpolator:28.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/interpolator-28.0.0/R.txt
+    - library                     : com.android.support:swiperefreshlayout:28.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/aidl [-]
+        artifact                      : <M2>/com/android/support/swiperefreshlayout/28.0.0/swiperefreshlayout-28.0.0.aar
+        artifactAddress               : com.android.support:swiperefreshlayout:28.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/annotations.zip
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/swiperefreshlayout-28.0.0/R.txt
+    - library                     : com.android.support:asynclayoutinflater:28.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/aidl [-]
+        artifact                      : <M2>/com/android/support/asynclayoutinflater/28.0.0/asynclayoutinflater-28.0.0.aar
+        artifactAddress               : com.android.support:asynclayoutinflater:28.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/asynclayoutinflater-28.0.0/R.txt
+    - library                     : com.android.support:cursoradapter:28.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/aidl [-]
+        artifact                      : <M2>/com/android/support/cursoradapter/28.0.0/cursoradapter-28.0.0.aar
+        artifactAddress               : com.android.support:cursoradapter:28.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/cursoradapter-28.0.0/R.txt
+    - library                     : com.android.support:support-fragment:28.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/aidl [-]
+        artifact                      : <M2>/com/android/support/support-fragment/28.0.0/support-fragment-28.0.0.aar
+        artifactAddress               : com.android.support:support-fragment:28.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/annotations.zip
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-fragment-28.0.0/R.txt
+    - library                     : com.android.support:support-v13:28.0.0@aar (IdeAndroidLibraryImpl)
+        aidlFolder                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v13-28.0.0/aidl [-]
+        artifact                      : <M2>/com/android/support/support-v13/28.0.0/support-v13-28.0.0.aar
+        artifactAddress               : com.android.support:support-v13:28.0.0@aar
+        assetsFolder                  : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v13-28.0.0/assets [-]
+        - compileJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v13-28.0.0/jars/classes.jar
+        externalAnnotations           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v13-28.0.0/annotations.zip [-]
+        folder                        : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v13-28.0.0
+        jniFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v13-28.0.0/jni [-]
+        manifest                      : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v13-28.0.0/AndroidManifest.xml
+        proguardRules                 : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v13-28.0.0/proguard.txt [-]
+        publicResources               : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v13-28.0.0/public.txt [-]
+        renderscriptFolder            : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v13-28.0.0/rs [-]
+        resFolder                     : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v13-28.0.0/res [-]
+        resStaticLibrary              : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v13-28.0.0/res.apk [-]
+        - runtimeJarFiles             : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v13-28.0.0/jars/classes.jar
+        symbolFile                    : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/support-v13-28.0.0/R.txt
+    - library                     : com.android.support:support-annotations:28.0.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/com/android/support/support-annotations/<VERSION>/support-annotations-<VERSION>.jar
+        artifactAddress               : com.android.support:support-annotations:28.0.0@jar
+    - library                     : com.android.support:collections:28.0.0 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/com/android/support/collections/<VERSION>/collections-<VERSION>.jar
+        artifactAddress               : com.android.support:collections:28.0.0@jar
+    - library                     : android.arch.lifecycle:common:1.1.1 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/android/arch/lifecycle/common/1.1.1/common-1.1.1.jar
+        artifactAddress               : android.arch.lifecycle:common:1.1.1@jar
+    - library                     : android.arch.core:common:1.1.1 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/android/arch/core/common/1.1.1/common-1.1.1.jar
+        artifactAddress               : android.arch.core:common:1.1.1@jar
+    - library                     : org.jacoco:org.jacoco.agent:0.8.8 (IdeJavaLibraryImpl)
+        artifact                      : <M2>/org/jacoco/org.jacoco.agent/0.8.8/org.jacoco.agent-0.8.8-runtime.jar
+        artifactAddress               : org.jacoco:org.jacoco.agent:0.8.8@jar
+    - library                     : <ROOT>::@debug (IdeModuleLibraryImpl)
+        buildId                       : <ROOT>
+        projectPath                   : :
+        sourceSet                     : MAIN
+        variant                       : debug
+MODULE                        : project
+    GradleModuleModel
+        agpVersion                    : 8.0.0-beta04
+        gradlePath                    : :
+        gradleVersion                 : <GRADLE_VERSION>
+        buildFile                     : <ROOT>/build.gradle
+        buildFilePath                 : <ROOT>/build.gradle
+        rootFolderPath                : <ROOT>
+        hasSafeArgsJava               : false
+        hasSafeArgsKotlin             : false
+    CurrentVariantReportedVersions
+        minSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        runtimeMinSdk
+            ApiLevel                      : 16
+            ApiString                     : 16
+        targetSdk
+            ApiLevel                      : <SDK_VERSION>
+            ApiString                     : <SDK_VERSION>
+    RootBuildId                   : <ROOT>
+    BuildId                       : <ROOT>
+    BuildName                     : :
+    ProjectPath                   : :
+    ModelVersion                  : 8.0.0-beta04
+    ProjectType                   : PROJECT_TYPE_APP
+    CompileTarget                 : android-<SDK_VERSION>
+    BuildFolder                   : <ROOT>/build [-]
+    buildToolsVersion             : 30.0.3
+    IsBaseSplit                   : true
+    GroupId                       :
+    Namespace                     : com.android.tests.basic
+    TestNamespace                 : com.android.tests.basic.test
+    AaptOptions
+        NameSpacing                   : DISABLED
+    LintOptions
+        LintConfig                    : <ROOT>/default-lint.xml [-]
+        IsCheckTestSources            : false
+        IsCheckDependencies           : false
+        IsAbortOnError                : false
+        IsAbsolutePaths               : true
+        IsNoLines                     : true
+        IsQuiet                       : true
+        IsCheckAllWarnings            : true
+        IsIgnoreWarnings              : true
+        IsWarningsAsErrors            : true
+        IsIgnoreTestSources           : false
+        IsIgnoreTestFixturesSources   : false
+        IsCheckGeneratedSources       : false
+        IsCheckReleaseBuilds          : true
+        IsExplainIssues               : true
+        IsShowAll                     : true
+        TextReport                    : true
+        TextOutput                    : stdout [-]
+        HtmlReport                    : true
+        HtmlOutput                    : <ROOT>/lint-report.html [-]
+        XmlReport                     : true
+        XmlOutput                     : <ROOT>/lint-report.xml [-]
+        SarifReport                   : false
+        - Disable                     : TypographyFractions
+        - Disable                     : TypographyQuotes
+        - Enable                      : RtlHardcoded
+        - Enable                      : RtlCompat
+        - Enable                      : RtlEnabled
+        - Check                       : NewApi
+        - Check                       : InlinedApi
+        SeverityOverrides
+            TypographyFractions           : 5
+            TypographyQuotes              : 5
+            RtlHardcoded                  : 6
+            RtlCompat                     : 6
+            RtlEnabled                    : 6
+    JavaCompileOptions
+        Encoding                      : UTF-8
+        SourceCompatibility           : 1.8
+        TargetCompatibility           : 1.8
+        IsCoreLibraryDesugaringEnabled          : false
+    AgpFlags
+        ApplicationRClassConstantIds  : false
+        AestRClassConstantIds         : false
+        TransitiveRClasses            : false
+        UseAndroidX                   : false
+        UsesCompose                   : false
+        MlModelBindingEnabled         : false
+    - basicVariant:               : debug
+        applicationId                 : com.android.tests.basic.debug
+        testApplicationId             : com.android.tests.basic.debug.test
+    - basicVariant:               : release
+        applicationId                 : com.android.tests.basic
+    BootClassPath                 : <ANDROID_SDK>/platforms/android-<SDK_VERSION>/android.jar
+    ViewBindingOptions
+        Enabled                       : false
+    DependenciesInfo
+        IncludeInApk                  : true
+        IncludeInBundle               : true
+    DefaultConfig
+        ProductFlavor
+            Name                          : main
+            ResValues
+                string/foo                    : (string, foo, foo)
+            VersionCode                   : 12
+            VersionName                   : 2.0
+            TestInstrumentationRunner     : android.test.InstrumentationTestRunner
+            TestHandleProfiling           : false
+            resourceConfigurations        : en
+            resourceConfigurations        : nodpi
+            resourceConfigurations        : hdpi
+            MinSdkVersion
+                ApiLevel                      : 16
+                ApiString                     : 16
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
+            VectorDrawables
+                UseSupportLibrary             : false
+        SourceProvider
+            Name                          : main
+            Manifest                      : <ROOT>/src/main/AndroidManifest.xml
+            JavaDirectories               : <ROOT>/src/main/java
+            KotlinDirectories             : <ROOT>/src/main/java
+            KotlinDirectories             : <ROOT>/src/main/kotlin [-]
+            ResourcesDirectories          : <ROOT>/src/main/resources [-]
+            ResDirectories                : <ROOT>/src/main/res
+            AssetsDirectories             : <ROOT>/src/main/assets [-]
+            JniLibsDirectories            : <ROOT>/src/main/jniLibs [-]
+            ShadersDirectories            : <ROOT>/src/main/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/src/main/baselineProfiles [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTest
+                    Manifest                      : <ROOT>/src/androidTest/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/src/androidTest/java
+                    KotlinDirectories             : <ROOT>/src/androidTest/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/src/androidTest/resources [-]
+                    ResDirectories                : <ROOT>/src/androidTest/res [-]
+                    AssetsDirectories             : <ROOT>/src/androidTest/assets [-]
+                    JniLibsDirectories            : <ROOT>/src/androidTest/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/src/androidTest/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/src/androidTest/baselineProfiles [-]
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : test
+                    Manifest                      : <ROOT>/src/test/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/src/test/java [-]
+                    KotlinDirectories             : <ROOT>/src/test/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/src/test/resources [-]
+                    ResDirectories                : <ROOT>/src/test/res [-]
+                    AssetsDirectories             : <ROOT>/src/test/assets [-]
+                    JniLibsDirectories            : <ROOT>/src/test/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/src/test/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/src/test/baselineProfiles [-]
+    BuildTypes
+        BuildType
+            Name                          : debug
+            ApplicationIdSuffix           : .debug
+            ResValues
+                string/foo                    : (string, foo, foo2)
+            IsDebuggable                  : true
+            IsJniDebuggable               : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : 3
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : true
+        SourceProvider
+            Name                          : debug
+            Manifest                      : <ROOT>/src/debug/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/src/debug/java [-]
+            KotlinDirectories             : <ROOT>/src/debug/kotlin [-]
+            ResourcesDirectories          : <ROOT>/src/debug/resources [-]
+            ResDirectories                : <ROOT>/src/debug/res [-]
+            AssetsDirectories             : <ROOT>/src/debug/assets [-]
+            JniLibsDirectories            : <ROOT>/src/debug/jniLibs [-]
+            ShadersDirectories            : <ROOT>/src/debug/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/src/debug/baselineProfiles [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _android_test_
+                SourceProvider
+                    Name                          : androidTestDebug
+                    Manifest                      : <ROOT>/src/androidTestDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/src/androidTestDebug/java [-]
+                    KotlinDirectories             : <ROOT>/src/androidTestDebug/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/src/androidTestDebug/resources [-]
+                    ResDirectories                : <ROOT>/src/androidTestDebug/res [-]
+                    AssetsDirectories             : <ROOT>/src/androidTestDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/src/androidTestDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/src/androidTestDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/src/androidTestDebug/baselineProfiles [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : testDebug
+                    Manifest                      : <ROOT>/src/testDebug/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/src/testDebug/java [-]
+                    KotlinDirectories             : <ROOT>/src/testDebug/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/src/testDebug/resources [-]
+                    ResDirectories                : <ROOT>/src/testDebug/res [-]
+                    AssetsDirectories             : <ROOT>/src/testDebug/assets [-]
+                    JniLibsDirectories            : <ROOT>/src/testDebug/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/src/testDebug/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/src/testDebug/baselineProfiles [-]
+        BuildType
+            Name                          : release
+            IsDebuggable                  : false
+            IsJniDebuggable               : false
+            IsRenderscriptDebuggable      : false
+            RenderscriptOptimLevel        : 3
+            IsMinifyEnabled               : false
+            IsZipAlignEnabled             : true
+        SourceProvider
+            Name                          : release
+            Manifest                      : <ROOT>/src/release/AndroidManifest.xml [-]
+            JavaDirectories               : <ROOT>/src/release/java [-]
+            KotlinDirectories             : <ROOT>/src/release/java [-]
+            KotlinDirectories             : <ROOT>/src/release/kotlin [-]
+            ResourcesDirectories          : <ROOT>/src/release/resources [-]
+            ResDirectories                : <ROOT>/src/release/res
+            AssetsDirectories             : <ROOT>/src/release/assets [-]
+            JniLibsDirectories            : <ROOT>/src/release/jniLibs [-]
+            ShadersDirectories            : <ROOT>/src/release/shaders [-]
+            BaselineProfileDirectories    : <ROOT>/src/release/baselineProfiles [-]
+        ExtraSourceProviders
+            ExtraSourceProvider
+                ArtifactName                  : _unit_test_
+                SourceProvider
+                    Name                          : testRelease
+                    Manifest                      : <ROOT>/src/testRelease/AndroidManifest.xml [-]
+                    JavaDirectories               : <ROOT>/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/src/testRelease/java [-]
+                    KotlinDirectories             : <ROOT>/src/testRelease/kotlin [-]
+                    ResourcesDirectories          : <ROOT>/src/testRelease/resources [-]
+                    ResDirectories                : <ROOT>/src/testRelease/res [-]
+                    AssetsDirectories             : <ROOT>/src/testRelease/assets [-]
+                    JniLibsDirectories            : <ROOT>/src/testRelease/jniLibs [-]
+                    ShadersDirectories            : <ROOT>/src/testRelease/shaders [-]
+                    BaselineProfileDirectories    : <ROOT>/src/testRelease/baselineProfiles [-]
+    SigningConfigs
+        SigningConfig
+            Name                          : debug
+            StoreFile                     : debug.keystore
+            StorePassword                 : android
+            KeyAlias                      : AndroidDebugKey
+        SigningConfig
+            Name                          : myConfig
+            StoreFile                     : debug.keystore
+            StorePassword                 : android
+            KeyAlias                      : androiddebugkey
+    VariantBuildInformation
+        VariantBuildInformation
+            VariantName                   : debug
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleDebug
+                AssembleTaskOutputListingFile : <ROOT>/build/intermediates/apk_ide_redirect_file/debug/redirect.txt [-]
+                BundleTaskName                : bundleDebug
+                BundleTaskOutputListingFile   : <ROOT>/build/intermediates/bundle_ide_redirect_file/debug/redirect.txt [-]
+                ApkFromBundleTaskName         : extractApksForDebug
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
+        VariantBuildInformation
+            VariantName                   : release
+            BuildTasksAndOutputInformation
+                AssembleTaskName              : assembleRelease
+                AssembleTaskOutputListingFile : <ROOT>/build/intermediates/apk_ide_redirect_file/release/redirect.txt [-]
+                BundleTaskName                : bundleRelease
+                BundleTaskOutputListingFile   : <ROOT>/build/intermediates/bundle_ide_redirect_file/release/redirect.txt [-]
+                ApkFromBundleTaskName         : extractApksForRelease
+                ApkFromBundleTaskOutputListingFile      : <ROOT>/build/intermediates/apk_from_bundle_ide_redirect_file/release/redirect.txt [-]
+    IdeVariants
+        IdeVariant
+            Name                          : debug
+            BuildType                     : debug
+            DisplayName                   : debug
+            InstantAppCompatible          : false
+            MinSdkVersion
+                ApiLevel                      : 16
+                ApiString                     : 16
+            TargetSdkVersion
+                ApiLevel                      : <SDK_VERSION>
+                ApiString                     : <SDK_VERSION>
+            VersionCode                   : 12
+            VersionNameWithSuffix         : 2.0
+            ResourceConfigurations        : en
+            ResourceConfigurations        : nodpi
+            ResourceConfigurations        : hdpi
+            TestInstrumentationRunner     : android.test.InstrumentationTestRunner
+            ResValues
+                string/foo                    : (string, foo, foo2)
+            MainArtifact
+                Name                          : MAIN
+                CompileTaskName               : compileDebugSources
+                AssembleTaskName              : assembleDebug
+                IsTestArtifact                : false
+                IdeSetupTaskNames             : generateDebugSources
+                GeneratedSourceFolders        : <ROOT>/build/generated/ap_generated_sources/debug/out [-]
+                GeneratedSourceFolders        : <ROOT>/build/generated/source/buildConfig/debug [-]
+                ClassesFolder                 : <ROOT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/build/intermediates/javac/debug/classes [-]
+                Dependencies
+                    compileClasspath
+                        androidLibrary                : com.android.support:support-v4:28.0.0@aar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-media-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                            androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                        androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : com.android.support:collections:28.0.0@jar
+                            androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                            androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : com.android.support:collections:28.0.0@jar
+                        androidLibrary                : com.android.support:support-media-compat:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                            androidLibrary                : com.android.support:loader:28.0.0@aar
+                            androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                            androidLibrary                : com.android.support:print:28.0.0@aar
+                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:loader:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                            androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                            androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:print:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                            androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                            androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                            androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                            androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                            androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                            androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                            androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                            androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                        androidLibrary                : com.android.support:customview:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                        androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:loader:28.0.0@aar
+                            androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : com.android.support:support-v13:28.0.0@aar
+                            androidLibrary                : com.android.support:support-v4:28.0.0@aar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : com.android.support:collections:28.0.0@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                    runtimeClasspath
+                        androidLibrary                : com.android.support:support-v4:28.0.0@aar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-media-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                            androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                        androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : com.android.support:collections:28.0.0@jar
+                            androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                            androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : com.android.support:collections:28.0.0@jar
+                        androidLibrary                : com.android.support:support-media-compat:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                            androidLibrary                : com.android.support:loader:28.0.0@aar
+                            androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                            androidLibrary                : com.android.support:print:28.0.0@aar
+                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:loader:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                            androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                            androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:print:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                            androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                            androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                            androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                            androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                            androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                            androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                            androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                            androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                        androidLibrary                : com.android.support:customview:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                        androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:loader:28.0.0@aar
+                            androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : com.android.support:support-v13:28.0.0@aar
+                            androidLibrary                : com.android.support:support-v4:28.0.0@aar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : com.android.support:collections:28.0.0@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : org.jacoco:org.jacoco.agent:0.8.8@jar
+                RuntimeOnlyClasses
+                    - class                       : <M2>/org/jacoco/org.jacoco.agent/0.8.8/org.jacoco.agent-0.8.8-runtime.jar
+                ApplicationId                 : com.android.tests.basic.debug
+                SigningConfigName             : myConfig
+                IsSigned                      : true
+                CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebug
+                    AssembleTaskOutputListingFile : <ROOT>/build/intermediates/apk_ide_redirect_file/debug/redirect.txt [-]
+                    BundleTaskName                : bundleDebug
+                    BundleTaskOutputListingFile   : <ROOT>/build/intermediates/bundle_ide_redirect_file/debug/redirect.txt [-]
+                    ApkFromBundleTaskName         : extractApksForDebug
+                    ApkFromBundleTaskOutputListingFile      : <ROOT>/build/intermediates/apk_from_bundle_ide_redirect_file/debug/redirect.txt [-]
+                GeneratedResourceFolders      : <ROOT>/build/generated/res/resValues/debug [-]
+                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                ModelSyncFile
+                    Type                          : BASIC
+                    TaskName                      : createDebugVariantModel
+                    File                          : <ROOT>/build/intermediates/variant_model/debug/variant_model.json [-]
+            AndroidTestArtifact
+                Name                          : ANDROID_TEST
+                CompileTaskName               : compileDebugAndroidTestSources
+                AssembleTaskName              : assembleDebugAndroidTest
+                IsTestArtifact                : true
+                IdeSetupTaskNames             : generateDebugAndroidTestSources
+                GeneratedSourceFolders        : <ROOT>/build/generated/ap_generated_sources/debugAndroidTest/out [-]
+                GeneratedSourceFolders        : <ROOT>/build/generated/source/buildConfig/androidTest/debug [-]
+                ClassesFolder                 : <ROOT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debugAndroidTest/R.jar [-]
+                ClassesFolder                 : <ROOT>/build/intermediates/javac/debugAndroidTest/classes [-]
+                Dependencies
+                    compileClasspath
+                        androidLibrary                : com.android.support:support-v4:28.0.0@aar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-media-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                            androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                        androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : com.android.support:collections:28.0.0@jar
+                            androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                            androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : com.android.support:collections:28.0.0@jar
+                        androidLibrary                : com.android.support:support-media-compat:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                            androidLibrary                : com.android.support:loader:28.0.0@aar
+                            androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                            androidLibrary                : com.android.support:print:28.0.0@aar
+                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:loader:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                            androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                            androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:print:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                            androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                            androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                            androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                            androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                            androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                            androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                            androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                            androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                        androidLibrary                : com.android.support:customview:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                        androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:loader:28.0.0@aar
+                            androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : com.android.support:support-v13:28.0.0@aar
+                            androidLibrary                : com.android.support:support-v4:28.0.0@aar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : com.android.support:collections:28.0.0@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        module                        : <ROOT>-:-MAIN
+                            androidLibrary                : com.android.support:support-v4:28.0.0@aar
+                            androidLibrary                : com.android.support:support-v13:28.0.0@aar
+                    runtimeClasspath
+                ProvidedDependencies
+                    - provided                    : android.arch.core:common:1.1.1
+                    - provided                    : android.arch.core:runtime:1.1.1@aar
+                    - provided                    : android.arch.lifecycle:common:1.1.1
+                    - provided                    : android.arch.lifecycle:livedata-core:1.1.1@aar
+                    - provided                    : android.arch.lifecycle:livedata:1.1.1@aar
+                    - provided                    : android.arch.lifecycle:runtime:1.1.1@aar
+                    - provided                    : android.arch.lifecycle:viewmodel:1.1.1@aar
+                    - provided                    : com.android.support:asynclayoutinflater:28.0.0@aar
+                    - provided                    : com.android.support:collections:28.0.0
+                    - provided                    : com.android.support:coordinatorlayout:28.0.0@aar
+                    - provided                    : com.android.support:cursoradapter:28.0.0@aar
+                    - provided                    : com.android.support:customview:28.0.0@aar
+                    - provided                    : com.android.support:documentfile:28.0.0@aar
+                    - provided                    : com.android.support:drawerlayout:28.0.0@aar
+                    - provided                    : com.android.support:interpolator:28.0.0@aar
+                    - provided                    : com.android.support:loader:28.0.0@aar
+                    - provided                    : com.android.support:localbroadcastmanager:28.0.0@aar
+                    - provided                    : com.android.support:print:28.0.0@aar
+                    - provided                    : com.android.support:slidingpanelayout:28.0.0@aar
+                    - provided                    : com.android.support:support-annotations:28.0.0
+                    - provided                    : com.android.support:support-compat:28.0.0@aar
+                    - provided                    : com.android.support:support-core-ui:28.0.0@aar
+                    - provided                    : com.android.support:support-core-utils:28.0.0@aar
+                    - provided                    : com.android.support:support-fragment:28.0.0@aar
+                    - provided                    : com.android.support:support-media-compat:28.0.0@aar
+                    - provided                    : com.android.support:support-v13:28.0.0@aar
+                    - provided                    : com.android.support:support-v4:28.0.0@aar
+                    - provided                    : com.android.support:swiperefreshlayout:28.0.0@aar
+                    - provided                    : com.android.support:versionedparcelable:28.0.0@aar
+                    - provided                    : com.android.support:viewpager:28.0.0@aar
+                ApplicationId                 : com.android.tests.basic.debug.test
+                SigningConfigName             : myConfig
+                IsSigned                      : true
+                CodeShrinker                  : null
+                BuildTasksAndOutputInformation
+                    AssembleTaskName              : assembleDebugAndroidTest
+                    AssembleTaskOutputListingFile : <ROOT>/build/intermediates/apk_ide_redirect_file/debugAndroidTest/redirect.txt [-]
+                GeneratedResourceFolders      : <ROOT>/build/generated/res/resValues/androidTest/debug [-]
+                DesugaredMethodFiles          : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/D8BackportedDesugaredMethods.txt
+                TestOptions
+                    AnimationsDisabled            : false
+                    Execution                     : HOST
+            UnitTestArtifact
+                Name                          : UNIT_TEST
+                CompileTaskName               : compileDebugUnitTestSources
+                AssembleTaskName              : assembleDebugUnitTest
+                IsTestArtifact                : true
+                IdeSetupTaskNames             : createMockableJar
+                GeneratedSourceFolders        : <ROOT>/build/generated/ap_generated_sources/debugUnitTest/out [-]
+                ClassesFolder                 : <ROOT>/build/intermediates/compile_and_runtime_not_namespaced_r_class_jar/debug/R.jar [-]
+                ClassesFolder                 : <ROOT>/build/intermediates/javac/debugUnitTest/classes [-]
+                Dependencies
+                    compileClasspath
+                        androidLibrary                : com.android.support:support-v4:28.0.0@aar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-media-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                            androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                        androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : com.android.support:collections:28.0.0@jar
+                            androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                            androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : com.android.support:collections:28.0.0@jar
+                        androidLibrary                : com.android.support:support-media-compat:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                            androidLibrary                : com.android.support:loader:28.0.0@aar
+                            androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                            androidLibrary                : com.android.support:print:28.0.0@aar
+                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:loader:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                            androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                            androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:print:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                            androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                            androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                            androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                            androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                            androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                            androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                            androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                            androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                        androidLibrary                : com.android.support:customview:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                        androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:loader:28.0.0@aar
+                            androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : com.android.support:support-v13:28.0.0@aar
+                            androidLibrary                : com.android.support:support-v4:28.0.0@aar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : com.android.support:collections:28.0.0@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        module                        : <ROOT>-:-MAIN
+                            androidLibrary                : com.android.support:support-v4:28.0.0@aar
+                            androidLibrary                : com.android.support:support-v13:28.0.0@aar
+                    runtimeClasspath
+                        androidLibrary                : com.android.support:support-v4:28.0.0@aar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-media-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                            androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                        androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : com.android.support:collections:28.0.0@jar
+                            androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                            androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : android.arch.lifecycle:runtime:1.1.1@aar
+                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : com.android.support:collections:28.0.0@jar
+                        androidLibrary                : com.android.support:support-media-compat:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:versionedparcelable:28.0.0@aar
+                        androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                            androidLibrary                : com.android.support:loader:28.0.0@aar
+                            androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                            androidLibrary                : com.android.support:print:28.0.0@aar
+                        androidLibrary                : com.android.support:documentfile:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:loader:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                            androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:livedata:1.1.1@aar
+                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                            androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                        androidLibrary                : android.arch.lifecycle:livedata-core:1.1.1@aar
+                            javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            androidLibrary                : android.arch.core:runtime:1.1.1@aar
+                        androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:localbroadcastmanager:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:print:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                            androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                            androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                            androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                            androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                            androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                            androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                            androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                            androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                        androidLibrary                : com.android.support:customview:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:viewpager:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:coordinatorlayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:drawerlayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:slidingpanelayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:customview:28.0.0@aar
+                        androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:swiperefreshlayout:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:interpolator:28.0.0@aar
+                        androidLibrary                : com.android.support:asynclayoutinflater:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                        androidLibrary                : com.android.support:cursoradapter:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        androidLibrary                : com.android.support:support-fragment:28.0.0@aar
+                            androidLibrary                : com.android.support:support-compat:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-ui:28.0.0@aar
+                            androidLibrary                : com.android.support:support-core-utils:28.0.0@aar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                            androidLibrary                : com.android.support:loader:28.0.0@aar
+                            androidLibrary                : android.arch.lifecycle:viewmodel:1.1.1@aar
+                        androidLibrary                : com.android.support:support-v13:28.0.0@aar
+                            androidLibrary                : com.android.support:support-v4:28.0.0@aar
+                        javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : com.android.support:collections:28.0.0@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : android.arch.lifecycle:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : android.arch.core:common:1.1.1@jar
+                            javaLibrary                   : com.android.support:support-annotations:28.0.0@jar
+                        javaLibrary                   : org.jacoco:org.jacoco.agent:0.8.8@jar
+                        module                        : <ROOT>-:-MAIN
+                            androidLibrary                : com.android.support:support-v4:28.0.0@aar
+                            androidLibrary                : com.android.support:support-v13:28.0.0@aar
+                            javaLibrary                   : org.jacoco:org.jacoco.agent:0.8.8@jar
+                RuntimeOnlyClasses
+                    - class                       : <M2>/org/jacoco/org.jacoco.agent/0.8.8/org.jacoco.agent-0.8.8-runtime.jar
+                MockablePlatformJar           : <GRADLE>/caches/transforms-3/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx/transformed/android.jar
+    externalProject               : project (DefaultExternalProject)
+        name                          : project
+        qName                         : project
+        version                       : unspecified
+        sourceCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+        targetCompatibility           : <PROJECT_JDK_FEATURE_LEVEL>
+        projectDir                    : <ROOT>
+        buildDir                      : <ROOT>/build [-]
+        buildFile                     : <ROOT>/build.gradle
+        tasks
+            testDebugUnitTest             : testDebugUnitTest (DefaultExternalTask)
+                qName                         : :testDebugUnitTest
+            testReleaseUnitTest           : testReleaseUnitTest (DefaultExternalTask)
+                qName                         : :testReleaseUnitTest
+        externalSystemId              : GRADLE
+        artifactsByConfiguration
+            androidApis                   : <empty>
+            androidJacocoAnt              : <empty>
+            androidJdkImage               : <empty>
+            androidTestAnnotationProcessor          : <empty>
+            androidTestCompileOnly        : <empty>
+            androidTestDebugAnnotationProcessor     : <empty>
+            androidTestDebugCompileOnly   : <empty>
+            androidTestDebugImplementation          : <empty>
+            androidTestDebugRuntimeOnly   : <empty>
+            androidTestDebugWearApp       : <empty>
+            androidTestImplementation     : <empty>
+            androidTestReleaseAnnotationProcessor   : <empty>
+            androidTestReleaseCompileOnly : <empty>
+            androidTestReleaseImplementation        : <empty>
+            androidTestReleaseRuntimeOnly : <empty>
+            androidTestReleaseWearApp     : <empty>
+            androidTestRuntimeOnly        : <empty>
+            androidTestUtil               : <empty>
+            androidTestWearApp            : <empty>
+            annotationProcessor           : <empty>
+            api                           : <empty>
+            archives                      : <empty>
+            compileOnly                   : <empty>
+            coreLibraryDesugaring         : <empty>
+            debugAndroidTestAnnotationProcessorClasspath      : <empty>
+            debugAndroidTestCompileClasspath        : <empty>
+            debugAndroidTestRuntimeClasspath        : <empty>
+            debugAnnotationProcessor      : <empty>
+            debugAnnotationProcessorClasspath       : <empty>
+            debugApi                      : <empty>
+            debugApiElements              : <empty>
+            debugCompileClasspath         : <empty>
+            debugCompileOnly              : <empty>
+            debugImplementation           : <empty>
+            debugReverseMetadataValues    : <empty>
+            debugRuntimeClasspath         : <empty>
+            debugRuntimeElements          : <empty>
+            debugRuntimeOnly              : <empty>
+            debugUnitTestAnnotationProcessorClasspath         : <empty>
+            debugUnitTestCompileClasspath : <empty>
+            debugUnitTestRuntimeClasspath : <empty>
+            debugWearApp                  : <empty>
+            debugWearBundling             : <empty>
+            default                       : <empty>
+            implementation                : <empty>
+            jacocoAgent                   : <empty>
+            jacocoAnt                     : <empty>
+            lintChecks                    : <empty>
+            lintPublish                   : <empty>
+            releaseAnnotationProcessor    : <empty>
+            releaseAnnotationProcessorClasspath     : <empty>
+            releaseApi                    : <empty>
+            releaseApiElements            : <empty>
+            releaseCompileClasspath       : <empty>
+            releaseCompileOnly            : <empty>
+            releaseImplementation         : <empty>
+            releaseReverseMetadataValues  : <empty>
+            releaseRuntimeClasspath       : <empty>
+            releaseRuntimeElements        : <empty>
+            releaseRuntimeOnly            : <empty>
+            releaseUnitTestAnnotationProcessorClasspath       : <empty>
+            releaseUnitTestCompileClasspath         : <empty>
+            releaseUnitTestRuntimeClasspath         : <empty>
+            releaseWearApp                : <empty>
+            releaseWearBundling           : <empty>
+            runtimeOnly                   : <empty>
+            testAnnotationProcessor       : <empty>
+            testCompileOnly               : <empty>
+            testDebugAnnotationProcessor  : <empty>
+            testDebugCompileOnly          : <empty>
+            testDebugImplementation       : <empty>
+            testDebugRuntimeOnly          : <empty>
+            testDebugWearApp              : <empty>
+            testFixturesAnnotationProcessor         : <empty>
+            testFixturesApi               : <empty>
+            testFixturesCompileOnly       : <empty>
+            testFixturesDebugAnnotationProcessor    : <empty>
+            testFixturesDebugApi          : <empty>
+            testFixturesDebugCompileOnly  : <empty>
+            testFixturesDebugImplementation         : <empty>
+            testFixturesDebugRuntimeOnly  : <empty>
+            testFixturesDebugWearApp      : <empty>
+            testFixturesImplementation    : <empty>
+            testFixturesReleaseAnnotationProcessor  : <empty>
+            testFixturesReleaseApi        : <empty>
+            testFixturesReleaseCompileOnly          : <empty>
+            testFixturesReleaseImplementation       : <empty>
+            testFixturesReleaseRuntimeOnly          : <empty>
+            testFixturesReleaseWearApp    : <empty>
+            testFixturesRuntimeOnly       : <empty>
+            testFixturesWearApp           : <empty>
+            testImplementation            : <empty>
+            testReleaseAnnotationProcessor          : <empty>
+            testReleaseCompileOnly        : <empty>
+            testReleaseImplementation     : <empty>
+            testReleaseRuntimeOnly        : <empty>
+            testReleaseWearApp            : <empty>
+            testRuntimeOnly               : <empty>
+            testWearApp                   : <empty>
+            wearApp                       : <empty>
+MODULE                        : project.androidTest
+MODULE                        : project.main
+MODULE                        : project.unitTest
