@@ -829,7 +829,7 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon APPLY_ALL_CHANGES = load("studio/icons/shell/toolbar/apply-all-changes.svg", -1578220239, 2);
       /** 16x16 */ public static final @NotNull Icon APPLY_CODE_SWAP = load("studio/icons/shell/toolbar/apply-code-swap.svg", -1225074599, 2);
       /** 16x16 */ public static final @NotNull Icon ATTACH_DEBUGGER = load("studio/icons/shell/toolbar/attach-debugger.svg", 1846058903, 2);
-      /** 16x16 */ public static final @NotNull Icon BUILD = load("studio/icons/shell/toolbar/build.svg", -285315614, 2);
+      /** 16x16 */ public static final @NotNull Icon BUILD_MODULE = load("studio/icons/shell/toolbar/build-module.svg", 787138311, 2);
       /** 16x16 */ public static final @NotNull Icon DEBUG = load("studio/icons/shell/toolbar/debug.svg", 610847801, 2);
       /** 16x16 */ public static final @NotNull Icon DEVICE_MANAGER = load("studio/icons/shell/toolbar/device-manager.svg", 375911769, 2);
       /** 16x16 */ public static final @NotNull Icon GRADLE_SYNC = load("studio/icons/shell/toolbar/gradle-sync.svg", -736458769, 2);
