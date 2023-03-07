@@ -34,6 +34,7 @@ import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.ScrollPaneFactory
+import com.intellij.ui.TableViewSpeedSearch
 import com.intellij.ui.components.BrowserLink
 import com.intellij.ui.table.TableView
 import com.intellij.util.ui.JBUI
@@ -64,6 +65,10 @@ class DownloadsInfoExecutionConsole(
     setShowGrid(false)
     tableHeader.reorderingAllowed = false
     setEmptyState("No download requests")
+    val speedSearch = object : TableViewSpeedSearch<DownloadRequestItem>(this) {
+      override fun getItemText(element: DownloadRequestItem): String = element.requestKey.url
+    }
+    speedSearch.setFilteringMode(true)
   }
 
   val reposTable = TableView(uiModel.repositoriesTableModel).apply {
