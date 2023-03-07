@@ -41,6 +41,7 @@ import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import java.awt.Color
 import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.GridBagConstraints
@@ -148,7 +149,7 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
       val privacy = JEditorPane("text/html", PRIVACY_TEXT).apply {
         isEditable = false
         background = JBColor(UIUtil.TRANSPARENT_COLOR, UIUtil.TRANSPARENT_COLOR)
-        preferredSize = Dimension(1100, 100)
+        preferredSize = Dimension(1100, 40)
         putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true)
 
         addHyperlinkListener { e ->
