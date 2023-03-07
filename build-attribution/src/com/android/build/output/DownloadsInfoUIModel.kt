@@ -36,6 +36,7 @@ import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CopyOnWriteArrayList
+import javax.swing.Icon
 import javax.swing.JTable
 import javax.swing.SwingConstants
 import javax.swing.event.TableModelEvent
@@ -315,37 +316,35 @@ class RequestsTableModel : ListTableModel<DownloadRequestItem>() {
     override fun getPreferredStringValue() = "123.45 MB/s"
     override fun getMaxStringValue(): String = preferredStringValue
   }
-  val statusColumn = object : ColumnInfo<DownloadRequestItem, DownloadRequestItem>("Status") {
+
+  class Status(
+    val text: String,
+    val icon: Icon,
+    val tooltip: String
+  ) {
+    override fun toString(): String = text
+  }
+
+  val statusColumn = object : ColumnInfo<DownloadRequestItem, Status>("Status") {
     val columnCellRenderer = object : ColoredTableCellRenderer() {
       override fun customizeCellRenderer(table: JTable, value: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
-        if (value is DownloadRequestItem) {
-          toolTipText = ""
-          when {
-            !value.completed -> {
-              icon = AnimatedIcon.Default.INSTANCE
-              append("Running", SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES)
-            }
-            value.failed -> {
-              icon = AllIcons.General.Warning
-              append("Failed", SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES)
-              toolTipText = value.failureMessage?.replace("\n", "<br/>")
-            }
-            else -> {
-              icon = AllIcons.RunConfigurations.TestPassed
-              append("Finished", SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES)
-            }
-          }
-
+        if (value is Status) {
+          toolTipText = value.tooltip
+          icon = value.icon
+          append(value.text, SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES)
+          setTextAlign(SwingConstants.RIGHT)
         }
-        setTextAlign(SwingConstants.RIGHT)
       }
     }
-    override fun valueOf(item: DownloadRequestItem): DownloadRequestItem = item
+    override fun valueOf(item: DownloadRequestItem): Status = when {
+      !item.completed -> Status("Running", AnimatedIcon.Default.INSTANCE, "")
+      item.failed -> Status("Failed", AllIcons.General.Warning, item.failureMessage?.replace("\n", "<br/>") ?: "")
+      else -> Status("Finished", AllIcons.RunConfigurations.TestPassed, "")
+    }
     override fun getRenderer(item: DownloadRequestItem): TableCellRenderer = columnCellRenderer
     override fun getPreferredStringValue() = "Download Failed"
     override fun getMaxStringValue(): String = preferredStringValue
   }
-
 
   init{
     columnInfos = arrayOf(
