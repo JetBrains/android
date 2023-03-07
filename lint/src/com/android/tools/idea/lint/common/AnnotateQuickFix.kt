@@ -25,12 +25,20 @@ import com.intellij.psi.PsiClassInitializer
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.util.PsiTreeUtil
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated
+import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.util.findAnnotation
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtFunctionLiteral
@@ -88,8 +96,14 @@ class AnnotateQuickFix(
         if (container !is KtModifierListOwner) return
         val psiFactory = KtPsiFactory(container)
         val annotationEntry = psiFactory.createAnnotationEntry(annotationSource)
-        val fqName = annotationSource.removePrefix("@").substringAfter(':').substringBefore('(')
-        val existing = container.findAnnotation(FqName(fqName))
+        val fqName =
+          FqName(annotationSource.removePrefix("@").substringAfter(':').substringBefore('('))
+        val existing =
+          if (isK2Plugin()) {
+            (container as? KtDeclaration)?.findAnnotation(fqName)
+          } else {
+            container.findAnnotation(fqName)
+          }
         val addedAnnotation =
           if (existing != null && existing.isPhysical && replace) {
             existing.replace(annotationEntry) as KtAnnotationEntry
@@ -97,6 +111,17 @@ class AnnotateQuickFix(
             container.addAnnotationEntry(annotationEntry)
           }
         ShortenReferencesFacility.getInstance().shorten(addedAnnotation)
+      }
+    }
+  }
+
+  @OptIn(KtAllowAnalysisOnEdt::class)
+  private fun KtDeclaration.findAnnotation(fqName: FqName): KtAnnotationEntry? {
+    allowAnalysisOnEdt {
+      analyze(this) {
+        val annotatedSymbol = this@findAnnotation.getSymbol() as? KtAnnotated
+        val annotations = annotatedSymbol?.annotationsByClassId(ClassId.topLevel(fqName))
+        return annotations?.singleOrNull()?.psi as? KtAnnotationEntry
       }
     }
   }
