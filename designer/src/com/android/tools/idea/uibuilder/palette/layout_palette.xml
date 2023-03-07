@@ -388,6 +388,8 @@
           materialReference="https://material.io/guidelines/components/tabs.html"/>
 
     <item tag="ViewStub"/>
+    <item tag="ViewAnimator" icon="StudioIcons.LayoutEditor.Palette.VIEW_ANIMATOR" />
+    <item tag="ViewSwitcher" icon="StudioIcons.LayoutEditor.Palette.VIEW_SWITCHER" />
     <item tag="include"/>
     <item tag="androidx.fragment.app.FragmentContainerView" />
     <item tag="androidx.fragment.app.FragmentContainerView" title="NavHostFragment" suggested="true" id="NavHostFragment"
