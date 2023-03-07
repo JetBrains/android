@@ -48,4 +48,36 @@ class AdbLibServiceTest {
     // Assert
     Truth.assertThat(version).isGreaterThan(1)
   }
+
+  @Test
+  fun adbSessionInstanceShouldBeTheSameAsTheApplicationInstance() {
+    // Act
+    val applicationSession = AdbLibApplicationService.instance.session
+    val projectSession = AdbLibService.getSession(project)
+
+    // Assert
+    Truth.assertThat(projectSession).isSameAs(applicationSession)
+  }
+
+  @Test
+  fun applicationAdbSessionInstanceShouldBeTheSameAsTheProjectInstance() {
+    // Act
+    val projectSession = AdbLibService.getSession(project)
+    val applicationSession = AdbLibApplicationService.instance.session
+
+    // Assert
+    Truth.assertThat(applicationSession).isSameAs(projectSession)
+  }
+
+  @Test
+  fun projectShouldBeRegisteredIfUsingAdbLibService() {
+    // Prepare
+    val applicationService = AdbLibApplicationService.instance
+
+    // Act
+    AdbLibService.getSession(project)
+
+    // Assert
+    Truth.assertThat(applicationService.registerProject(project)).isFalse()
+  }
 }

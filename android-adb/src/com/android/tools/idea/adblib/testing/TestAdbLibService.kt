@@ -21,6 +21,4 @@ import com.android.tools.idea.adblib.AdbLibService
 /**
  * A test implementation of [AdbLibService]. Can be given any [AdbSession].
  */
-class TestAdbLibService(override val session: AdbSession) : AdbLibService {
-  override fun dispose() {}
-}
+class TestAdbLibService(override val session: AdbSession) : AdbLibService
