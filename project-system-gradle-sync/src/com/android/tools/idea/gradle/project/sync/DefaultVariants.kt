@@ -36,7 +36,7 @@ fun List<VariantDef>.getDefaultVariant(
   userPreferredBuildTypes: Set<String>,
   userPreferredProductFlavors: Set<String>,
 ): String? {
-  val effectiveFlavorDimensions = this.minOf { it.productFlavors.size }
+  val effectiveFlavorDimensions = this.minOfOrNull { it.productFlavors.size } ?: return null
   val availableDimensionIndices = 0 until effectiveFlavorDimensions
   fun <T: Comparable<T>> Comparator<VariantDef>.thenByProductFlavor(selector: (flavor: String) -> T) =
     availableDimensionIndices.fold(this) { acc, index -> acc.thenBy {

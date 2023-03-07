@@ -125,6 +125,17 @@ class DefaultVariantsTest {
 
     assertThat(default).isEqualTo("fooDebug")
   }
+
+  @Test
+  fun onEmpty() {
+    val variants = listOf<VariantDef>()
+    val default = variants.getDefaultVariant(
+      userPreferredBuildTypes = setOf(),
+      userPreferredProductFlavors = setOf("abc")
+    )
+
+    assertThat(default).isEqualTo(null)
+  }
 }
 
 private fun variant(buildType: String?, vararg productFlavors: String): VariantDef =
