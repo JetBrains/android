@@ -2439,8 +2439,8 @@ Android Studio Preview.app/Contents/plugins/android/resources/transport/native/a
 Android Studio Preview.app/Contents/plugins/android/resources/transport/native/agent/x86_64/libjvmtiagent.so
 Android Studio Preview.app/Contents/plugins/android/resources/transport/x86/transport
 Android Studio Preview.app/Contents/plugins/android/resources/transport/x86_64/transport
-Android Studio Preview.app/Contents/plugins/c-clangd/bin/clang/mac/x64/clang-tidy
-Android Studio Preview.app/Contents/plugins/c-clangd/bin/clang/mac/x64/clangd
+Android Studio Preview.app/Contents/plugins/c-clangd/bin/clang/mac/clang-tidy
+Android Studio Preview.app/Contents/plugins/c-clangd/bin/clang/mac/clangd
 Android Studio Preview.app/Contents/plugins/c-clangd/lib/LICENSE.txt/CIDR_LICENSE.txt
 Android Studio Preview.app/Contents/plugins/c-clangd/lib/c-clangd.jar
 Android Studio Preview.app/Contents/plugins/c-clangdBridge/lib/c-clangdBridge.jar
