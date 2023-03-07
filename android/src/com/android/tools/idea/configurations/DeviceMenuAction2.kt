@@ -223,8 +223,6 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
     val group = createSubMenuGroup { title }
     add(group)
 
-    val template = group.templatePresentation
-    template.isEnabled = true
     for (device in devices) {
       val label = getDeviceLabel(device)
       val selected = device == renderContext.configuration?.device
