@@ -100,6 +100,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
     val values = support.values
 
     val expectedDisplays = listOf("none",
+                                  "AbstractFragment (mytest.navtest)",
                                   "BlankFragment (mytest.navtest)",
                                   "dynamicFragment (mytest.navtest)",
                                   "fragment1 (mytest.navtest)",
@@ -109,6 +110,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
     testDisplays(expectedDisplays, values)
 
     val expectedValues = listOf(null,
+                                "mytest.navtest.AbstractFragment",
                                 "mytest.navtest.BlankFragment",
                                 "mytest.navtest.dynamicFragment",
                                 "mytest.navtest.fragment1",
@@ -117,7 +119,7 @@ class NavEnumSupportProviderTest : NavTestCase() {
 
     testValues(expectedValues, values)
 
-    val expectedNames = listOf(null, null, dynamicFeatureModuleName, null, null, null)
+    val expectedNames = listOf(null, null, null, dynamicFeatureModuleName, null, null, null)
     assertThat(values.map { (it as? ClassEnumValue)?.moduleName }).containsExactlyElementsIn(expectedNames).inOrder()
     assertThat(support.createValue("mytest.navtest.ImportantFragment"))
       .isEqualTo(EnumValue.item("mytest.navtest.ImportantFragment", "ImportantFragment (mytest.navtest)"))
