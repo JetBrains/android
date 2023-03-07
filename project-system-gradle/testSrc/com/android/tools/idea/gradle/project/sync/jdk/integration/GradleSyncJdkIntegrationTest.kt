@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.gradle.project.sync.jdk.integration
 
+import com.android.testutils.junit4.OldAgpTest
+import com.android.testutils.junit4.SeparateOldAgpTestsRule
 import com.android.tools.idea.gradle.project.sync.constants.JDK_11
 import com.android.tools.idea.gradle.project.sync.constants.JDK_11_PATH
 import com.android.tools.idea.gradle.project.sync.constants.JDK_17
@@ -25,6 +27,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest.T
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkTestProject.SimpleApplication
 import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils.Jdk
 import com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_74
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Expect
@@ -34,7 +37,6 @@ import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUt
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_PROJECT_JDK
 import com.intellij.testFramework.RunsInEdt
 import org.jetbrains.plugins.gradle.util.USE_GRADLE_JAVA_HOME
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -42,6 +44,9 @@ import org.junit.rules.TemporaryFolder
 @RunsInEdt
 @Suppress("UnstableApiUsage")
 class GradleSyncJdkIntegrationTest {
+
+  @get:Rule
+  val separateOldAgpTestsRule = SeparateOldAgpTestsRule()
 
   @get:Rule
   val projectRule: IntegrationTestEnvironmentRule = AndroidProjectRule.withIntegrationTestEnvironment()
@@ -78,16 +83,44 @@ class GradleSyncJdkIntegrationTest {
       sync()
     }
 
-  @Ignore("b/264754896")
-  @Test(expected = ExternalSystemJdkException::class)
-  fun `Given invalid STUDIO_GRADLE_JDK env variable When import project Then throw exception`() =
+  @Test
+  fun `Given invalid STUDIO_GRADLE_JDK env variable When import project Then sync ignored it and use the project jdk configuration`() {
+    val invalidJdkPath = temporaryFolder.newFolder(JDK_INVALID_PATH)
     jdkIntegrationTest.run(
-      project = SimpleApplication(),
+      project = SimpleApplication(
+        ideaGradleJdk = JDK_17,
+      ),
       environment = TestEnvironment(
-        environmentVariables = mapOf(JDK_LOCATION_ENV_VARIABLE_NAME to "/invalid/jdk/path")
+        jdkTable = listOf(Jdk(JDK_17, JDK_17_PATH)),
+        environmentVariables = mapOf(JDK_LOCATION_ENV_VARIABLE_NAME to invalidJdkPath.path)
       )
     ) {
-      sync()
+      syncWithAssertion(
+        expectedGradleJdkName = JDK_17,
+        expectedProjectJdkName = JDK_17,
+        expectedJdkPath = JDK_17_PATH
+      )
+    }
+  }
+
+  @Test
+  @OldAgpTest(agpVersions = ["7.4.0"], gradleVersions = ["7.5"])
+  fun `Given valid STUDIO_GRADLE_JDK env variable When import project Then sync used its path and the gradle jdk configuration doesn't change`() =
+    jdkIntegrationTest.run(
+      project = SimpleApplication(
+        ideaGradleJdk = JDK_17,
+        agpVersion = AGP_74, // Later versions of AGP (8.0 and beyond) require JDK17
+      ),
+      environment = TestEnvironment(
+        jdkTable = listOf(Jdk(JDK_17, JDK_17_PATH)),
+        environmentVariables = mapOf(JDK_LOCATION_ENV_VARIABLE_NAME to JDK_11_PATH)
+      )
+    ) {
+      syncWithAssertion(
+        expectedGradleJdkName = JDK_17,
+        expectedProjectJdkName = JDK_11,
+        expectedJdkPath = JDK_11_PATH
+      )
     }
 
   @Test
