@@ -206,10 +206,7 @@ internal class ComposeMaterialIconLookupElement(private val original: LookupElem
     super.renderElement(presentation)
 
     val resourcePath = original.psiElement?.kotlinFqName?.asString()?.resourcePathFromFqName() ?: return
-    val icon = getIcon(resourcePath)
-
-    if (icon != null) presentation.icon = icon
-    else Logger.getInstance(ComposeMaterialIconLookupElement::class.java).error("Missing icon for ${original.psiElement?.kotlinFqName}")
+    getIcon(resourcePath)?.let { presentation.icon = it }
   }
 
   companion object {
