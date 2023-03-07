@@ -24,10 +24,11 @@ import org.jetbrains.android.util.AndroidBundle.message
 /**
  * Expand/collapse action.
  */
- open class ExpandAction :
+open class ExpandAction :
   AnActionButton(message("resource.manager.collapse.section"), AllIcons.Ide.Notification.Expand) {
 
-  open var expanded = true
+  var expanded = true
+    private set
   override fun actionPerformed(e: AnActionEvent) {
     expanded = !expanded
   }
@@ -41,7 +42,7 @@ import org.jetbrains.android.util.AndroidBundle.message
         text = message("resource.manager.collapse.section")
       }
       else {
-        icon = AllIcons.Ide.Notification.CollapseHover
+        icon = AllIcons.Ide.Notification.Collapse
         text = message("resource.manager.expand.section")
       }
     }

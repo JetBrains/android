@@ -718,19 +718,17 @@ class ResourceExplorerListView(
       isOpaque = false
 
       val expandAction = object : ExpandAction() {
-        override var expanded: Boolean = true
-          set(value) {
-            field = value
-            list.isVisible = value
-            // Clear selection to avoid interaction issues.
-            list.selectionModel.clearSelection()
-          }
+        override fun actionPerformed(e: AnActionEvent) {
+          super.actionPerformed(e)
+          list.isVisible = expanded
+          // Clear selection to avoid interaction issues.
+          list.selectionModel.clearSelection()
+        }
       }
 
       val toolbar = ActionToolbarImpl("AssetSection", DefaultActionGroup(expandAction), true).apply {
         layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
       }
-      expandAction.expanded = true
 
       add(headerNameLabel, BorderLayout.WEST)
       add(toolbar.component, BorderLayout.EAST)
