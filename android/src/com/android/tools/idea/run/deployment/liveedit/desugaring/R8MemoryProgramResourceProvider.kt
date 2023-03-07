@@ -20,7 +20,7 @@ import com.android.tools.r8.ProgramResource
 import com.android.tools.r8.ProgramResourceProvider
 import com.android.tools.r8.origin.Origin
 
-class R8MemoryProgramResourceProvider(private val classes: List<LiveEditCompiledClass>, private val logger: DesugarLogger) : ProgramResourceProvider {
+internal class R8MemoryProgramResourceProvider(private val classes: List<LiveEditCompiledClass>, private val logger: DesugarLogger) : ProgramResourceProvider {
   override fun getProgramResources(): MutableCollection<ProgramResource> {
     return classes.stream().map {
       ProgramResource.fromBytes(Origin.root(), ProgramResource.Kind.CF, it.data, mutableSetOf())

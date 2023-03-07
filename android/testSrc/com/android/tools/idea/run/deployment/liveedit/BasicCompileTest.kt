@@ -143,7 +143,7 @@ class BasicCompileTest {
   @Test
   fun lambdaChange() {
     var output = compile(files["HasLambda.kt"], "hasLambda")
-    Assert.assertEquals(1, output.supportClasses.size)
+    Assert.assertEquals(1, output.supportClassesMap.size)
     var returnedValue = invokeStatic("hasLambda", loadClass(output))
     Assert.assertEquals("y", returnedValue)
   }
@@ -151,7 +151,7 @@ class BasicCompileTest {
   @Test
   fun samChange() {
     val output = compile(files["HasSAM.kt"], "hasSAM")
-    Assert.assertEquals(1, output.supportClasses.size)
+    Assert.assertEquals(1, output.supportClassesMap.size)
     // Can't test invocation of the method since the functional interface "A" is not loaded.
   }
 
