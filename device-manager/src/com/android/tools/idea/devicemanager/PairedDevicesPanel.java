@@ -112,7 +112,7 @@ public final class PairedDevicesPanel extends JBPanel<PairedDevicesPanel> implem
     Object phone = pair.getPhone();
 
     String message = "This will disconnect " + wearOs + " from " + phone + ". To completely unpair the two devices, remove " + wearOs +
-                     " from the list of devices in the Wear OS app on " + phone + " and wipe data from " + wearOs + '.';
+                     " from the list of devices in the Wear OS companion app on " + phone + " and wipe data from " + wearOs + '.';
 
     boolean disconnect = MessageDialogBuilder.okCancel("Disconnect " + wearOs + " from " + phone + '?', message)
       .asWarning()
