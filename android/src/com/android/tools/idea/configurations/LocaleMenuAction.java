@@ -125,7 +125,7 @@ public class LocaleMenuAction extends DropDownAction {
     if (configuration == null) {
       return Collections.emptyList();
     }
-    Module module = configuration.getConfigurationManager().getModule();
+    ConfigurationModelModule module = configuration.getConfigurationManager().getConfigModule();
     LocaleQualifier specificLocale = configuration.getEditedConfig().getLocaleQualifier();
 
     // If the layout exists in a non-locale specific folder, then offer all locales, since
@@ -143,7 +143,7 @@ public class LocaleMenuAction extends DropDownAction {
       }
     }
 
-    LocalResourceRepository projectResources = StudioResourceRepositoryManager.getProjectResources(module);
+    LocalResourceRepository projectResources = module.getResourceRepositoryManager().getProjectResources();
     Set<LocaleQualifier> languages = projectResources != null ? ResourceRepositoryUtil.getLocales(projectResources) : Collections.emptySet();
     for (LocaleQualifier l : languages) {
       if (specificLocale != null && !specificLocale.isMatchFor(l)) {

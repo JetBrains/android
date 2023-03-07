@@ -474,7 +474,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
       addCategory(topLevel, ThemeCategory.MANIFEST);
       addCategory(topLevel, ThemeCategory.PROJECT);
-      AndroidModuleInfo info = StudioAndroidModuleInfo.getInstance(myConfiguration.getConfigurationManager().getModule());
+      AndroidModuleInfo info = myConfiguration.getConfigurationManager().getConfigModule().getAndroidModuleInfo();
       if (info != null && info.getBuildSdkVersion() != null && info.getBuildSdkVersion().getFeatureLevel() >= 21) {
         addCategory(topLevel, ThemeCategory.MATERIAL);
         addCategory(topLevel, ThemeCategory.MATERIAL_LIGHT);

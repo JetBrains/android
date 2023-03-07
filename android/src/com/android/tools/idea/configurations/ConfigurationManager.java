@@ -381,7 +381,7 @@ public class ConfigurationManager implements Disposable {
   }
 
   @NotNull
-  public ConfigurationModelModule getConfigModule() {
+  public final ConfigurationModelModule getConfigModule() {
     return myConfigurationModule;
   }
 

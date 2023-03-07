@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.configurations
 
+import com.android.tools.idea.model.AndroidModuleInfo
+import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.sdk.AndroidPlatform
@@ -30,6 +32,7 @@ class StudioConfigurationModelModule(private val module: Module): ConfigurationM
   override val configurationStateManager: ConfigurationStateManager
     get() = StudioConfigurationStateManager.get(module.getProject())
   override val themeInfoProvider: ThemeInfoProvider = StudioThemeInfoProvider(module)
+  override val androidModuleInfo: AndroidModuleInfo? = StudioAndroidModuleInfo.getInstance(module)
 
   override fun dispose() {
   }

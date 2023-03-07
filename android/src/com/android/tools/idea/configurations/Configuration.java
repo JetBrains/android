@@ -348,7 +348,7 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   public void save() {
-    ConfigurationStateManager stateManager = StudioConfigurationStateManager.get(myManager.getModule().getProject());
+    ConfigurationStateManager stateManager = myManager.getConfigModule().getConfigurationStateManager();
 
     if (myFile != null) {
       ConfigurationFileState fileState = new ConfigurationFileState();
