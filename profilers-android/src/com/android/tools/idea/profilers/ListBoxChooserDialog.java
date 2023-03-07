@@ -101,7 +101,15 @@ public class ListBoxChooserDialog<T> extends DialogWrapper {
   @Override
   protected JComponent createCenterPanel() {
     // Create a panel with our message, and combo box to show what option the user has currently selected.
-    JPanel panel = new JPanel(new TabularLayout("*", "Fit-,5px,*,5px"));
+    JPanel panel = new JPanel(new TabularLayout("*", "Fit-,5px,*,5px")) {
+
+      // To prevent the "Select a process" popup dialog from hiding the selection dropdown when the height
+      // is too small, a minimum height is set.
+      @Override
+      public Dimension getMinimumSize() {
+        return new Dimension(super.getMinimumSize().width, super.getPreferredSize().height);
+      }
+    };
     if (myMessage != null) {
       panel.add(new JLabel(myMessage), new TabularLayout.Constraint(0, 0));
     }
