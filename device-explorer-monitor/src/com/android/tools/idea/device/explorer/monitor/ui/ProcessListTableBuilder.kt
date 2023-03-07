@@ -45,7 +45,6 @@ class ProcessListTableBuilder {
       autoCreateRowSorter = true
       setSelectionMode(DefaultListSelectionModel.MULTIPLE_INTERVAL_SELECTION)
       rowSelectionAllowed = true
-      isFocusable = false
       background = UIUtil.getTableBackground()
     }
     val tableSpeedSearch = TableSpeedSearch(table)
