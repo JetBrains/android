@@ -34,6 +34,7 @@ import com.intellij.util.Alarm
 import com.intellij.util.messages.Topic
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
+import java.util.Comparator
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.swing.Icon
@@ -297,18 +298,21 @@ class RequestsTableModel : ListTableModel<DownloadRequestItem>() {
   val fileNameColumn = object : ColumnInfo<DownloadRequestItem, String>("File") {
     override fun valueOf(item: DownloadRequestItem): String = item.requestKey.url
     override fun getRenderer(item: DownloadRequestItem): TableCellRenderer = cellRenderer
+    override fun getComparator(): Comparator<DownloadRequestItem> = Comparator.comparing { it.requestKey.url }
   }
   val timeColumn = object : ColumnInfo<DownloadRequestItem, String>("Time") {
     override fun valueOf(item: DownloadRequestItem): String = StringUtil.formatDuration(item.duration)
     override fun getRenderer(item: DownloadRequestItem): TableCellRenderer = cellRenderer
     override fun getPreferredStringValue() = "12 s 123 ms"
     override fun getMaxStringValue(): String = preferredStringValue
+    override fun getComparator(): Comparator<DownloadRequestItem> = Comparator.comparing { it.duration }
   }
   val sizeColumn = object : ColumnInfo<DownloadRequestItem, String>("Size") {
     override fun valueOf(item: DownloadRequestItem): String = StringUtil.formatFileSize(item.receivedBytes)
     override fun getRenderer(item: DownloadRequestItem): TableCellRenderer = cellRenderer
     override fun getPreferredStringValue() = "123.45 MB"
     override fun getMaxStringValue(): String = preferredStringValue
+    override fun getComparator(): Comparator<DownloadRequestItem> = Comparator.comparing { it.receivedBytes }
   }
   val speedColumn = object : ColumnInfo<DownloadRequestItem, String>("Avg Speed") {
     override fun valueOf(item: DownloadRequestItem): String = formatAvgDownloadSpeed(item.receivedBytes, item.duration)
@@ -344,6 +348,7 @@ class RequestsTableModel : ListTableModel<DownloadRequestItem>() {
     override fun getRenderer(item: DownloadRequestItem): TableCellRenderer = columnCellRenderer
     override fun getPreferredStringValue() = "Download Failed"
     override fun getMaxStringValue(): String = preferredStringValue
+    override fun getComparator(): Comparator<DownloadRequestItem> = Comparator.comparing { valueOf(it).text }
   }
 
   init{
@@ -354,7 +359,7 @@ class RequestsTableModel : ListTableModel<DownloadRequestItem>() {
       sizeColumn,
       speedColumn
     )
-    isSortable = false
+    isSortable = true
   }
 
   fun addOrUpdate(requestItem: DownloadRequestItem) {

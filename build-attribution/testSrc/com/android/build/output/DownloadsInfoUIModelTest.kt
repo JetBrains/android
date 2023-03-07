@@ -67,7 +67,7 @@ class DownloadsInfoUIModelTest {
     model.repositoriesTableModel.summaryItem.assertRepositoryItemState(0, 0, 0, 0, 0)
 
     assertThat(model.requestsTableModel.items).isEmpty()
-    assertThat(model.requestsTableModel.isSortable).isFalse()
+    assertThat(model.requestsTableModel.isSortable).isTrue()
     assertThat(model.requestsTableModel.columnInfos.map { it.name }).isEqualTo(listOf(
       "Status",
       "File",
