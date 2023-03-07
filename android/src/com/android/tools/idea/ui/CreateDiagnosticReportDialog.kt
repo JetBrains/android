@@ -185,6 +185,8 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
       add(checkBox, constraints)
     }
 
+    updateContents(null)
+
     init()
   }
 
@@ -242,12 +244,11 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
         Files.readString(it.source)
       }
       catch (e: IOException) {
-        null
+        "Unable to load file contents"
       }
-    } ?: ""
+    } ?: "Select a file to preview its contents"
 
     contents.select(0, 0)
-
   }
 
   private fun addFilesToTree(root: DefaultMutableTreeNode, file: FileInfo) {
