@@ -65,7 +65,7 @@ iml_module(
             "data": [
                 "//prebuilts/studio/jdk/jdk11",
             ],
-            "test_filter": "com.android.tools.idea.gradle.project.sync.jdk",
+            "test_filter": "com.android.tools.idea.gradle.project.sync.jdk.integration",
         },
         "other": {
             "shard_count": 27,

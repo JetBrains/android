@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.jdk
+package com.android.tools.idea.gradle.project.sync.jdk.integration
 
 import com.android.testutils.junit4.OldAgpTest
 import com.android.testutils.junit4.SeparateOldAgpTestsRule
@@ -27,12 +27,13 @@ import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest.TestEnvironment
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkTestProject.SimpleApplicationMultipleRoots
 import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils.Jdk
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
+import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_74
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Expect
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkException
-import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.JAVA_HOME
+import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_JAVA_HOME
 import com.intellij.testFramework.RunsInEdt
 import org.junit.Rule
 import org.junit.Test
@@ -82,14 +83,14 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
       project = SimpleApplicationMultipleRoots(
         roots = listOf(
           GradleRoot("project_root1", JDK_11),
-          GradleRoot("project_root2", ExternalSystemJdkUtil.USE_JAVA_HOME)
+          GradleRoot("project_root2", USE_JAVA_HOME)
         )
       ),
       environment = TestEnvironment(
         jdkTable = listOf(Jdk(JDK_11, JDK_11_PATH)),
-        environmentVariables = mapOf(ExternalSystemJdkUtil.JAVA_HOME to JDK_17_PATH)
+        environmentVariables = mapOf(JAVA_HOME to JDK_17_PATH)
       ),
-      agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_74 // Later versions of AGP (8.0 and beyond) require JDK17
+      agpVersion = AGP_74 // Later versions of AGP (8.0 and beyond) require JDK17
     ) {
       sync(
         assertInMemoryConfig = { assertProjectJdkAndValidateTableEntry(JDK_17, JDK_17_PATH) },
@@ -116,7 +117,7 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
           Jdk(JDK_11, JDK_11_PATH)
         )
       ),
-      agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_74 // Later versions of AGP (8.0 and beyond) require JDK17
+      agpVersion = AGP_74 // Later versions of AGP (8.0 and beyond) require JDK17
     ) {
       sync(
         assertInMemoryConfig = { assertProjectJdkAndValidateTableEntry(JDK_17, JDK_17_PATH) },
@@ -208,7 +209,7 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
           Jdk(JDK_11, JDK_11_PATH)
         )
       ),
-      agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_74 // Later versions of AGP (8.0 and beyond) require JDK17
+      agpVersion = AGP_74 // Later versions of AGP (8.0 and beyond) require JDK17
     ) {
       sync(
         assertOnDiskConfig = { assertProjectJdk(JDK_11) },

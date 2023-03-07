@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.gradle.project.sync.jdk
+package com.android.tools.idea.gradle.project.sync.jdk.integration
 
 import com.android.tools.idea.gradle.project.sync.constants.JDK_11_PATH
 import com.android.tools.idea.gradle.project.sync.constants.JDK_17
@@ -23,8 +23,10 @@ import com.android.tools.idea.gradle.project.sync.listeners.ANDROID_STUDIO_JAVA_
 import com.android.tools.idea.gradle.project.sync.listeners.EMBEDDED_JDK_NAME
 import com.android.tools.idea.gradle.project.sync.model.GradleRoot
 import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest
-import com.android.tools.idea.gradle.project.sync.snapshots.JdkTestProject
-import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils
+import com.android.tools.idea.gradle.project.sync.snapshots.JdkIntegrationTest.TestEnvironment
+import com.android.tools.idea.gradle.project.sync.snapshots.JdkTestProject.SimpleApplication
+import com.android.tools.idea.gradle.project.sync.snapshots.JdkTestProject.SimpleApplicationMultipleRoots
+import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils.Jdk
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Expect
@@ -53,14 +55,14 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
   @Test
   fun `Given projectJdk as 'Embedded JDK' When pre-sync project Then this was migrated to vendor plus version JDK naming`() =
     jdkIntegrationTest.run(
-      project = JdkTestProject.SimpleApplication(
+      project = SimpleApplication(
         ideaGradleJdk = JDK_17,
         ideaProjectJdk = EMBEDDED_JDK_NAME
       ),
-      environment = JdkIntegrationTest.TestEnvironment(
+      environment = TestEnvironment(
         jdkTable = listOf(
-          JdkTableUtils.Jdk(JDK_17, JDK_17_PATH),
-          JdkTableUtils.Jdk(EMBEDDED_JDK_NAME, JDK_11_PATH)
+          Jdk(JDK_17, JDK_17_PATH),
+          Jdk(EMBEDDED_JDK_NAME, JDK_11_PATH)
         )
       )
     ) {
@@ -74,12 +76,12 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
   @Test
   fun `Given gradleJdk as 'Embedded JDK' When pre-sync project Then this was migrated to vendor plus version JDK naming`() =
     jdkIntegrationTest.run(
-      project = JdkTestProject.SimpleApplication(
+      project = SimpleApplication(
         ideaGradleJdk = EMBEDDED_JDK_NAME,
         ideaProjectJdk = JDK_17
       ),
-      environment = JdkIntegrationTest.TestEnvironment(
-        jdkTable = listOf(JdkTableUtils.Jdk(EMBEDDED_JDK_NAME, JDK_17_PATH))
+      environment = TestEnvironment(
+        jdkTable = listOf(Jdk(EMBEDDED_JDK_NAME, JDK_17_PATH))
       )
     ) {
       syncWithAssertion(
@@ -92,12 +94,12 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
   @Test
   fun `Given gradleJdk and projectJdk as 'Embedded JDK' When pre-sync project Then this was migrated to vendor plus version JDK naming`() =
     jdkIntegrationTest.run(
-      project = JdkTestProject.SimpleApplication(
+      project = SimpleApplication(
         ideaGradleJdk = EMBEDDED_JDK_NAME,
         ideaProjectJdk = EMBEDDED_JDK_NAME
       ),
-      environment = JdkIntegrationTest.TestEnvironment(
-        jdkTable = listOf(JdkTableUtils.Jdk(EMBEDDED_JDK_NAME, JDK_11_PATH))
+      environment = TestEnvironment(
+        jdkTable = listOf(Jdk(EMBEDDED_JDK_NAME, JDK_11_PATH))
       )
     ) {
       syncWithAssertion(
@@ -110,7 +112,7 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
   @Test
   fun `Given gradleJdk 'Embedded JDK' When pre-sync failure project Then this was migrated to vendor plus version JDK naming`() =
     jdkIntegrationTest.run(
-      project = JdkTestProject.SimpleApplication(
+      project = SimpleApplication(
         ideaGradleJdk = EMBEDDED_JDK_NAME
       ),
     ) {
@@ -124,14 +126,14 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
   @Test
   fun `Given projectJdk as 'Android Studio java home' When pre-sync project Then this was migrated to #JAVA_HOME macro`() =
     jdkIntegrationTest.run(
-      project = JdkTestProject.SimpleApplication(
+      project = SimpleApplication(
         ideaGradleJdk = JDK_17,
         ideaProjectJdk = ANDROID_STUDIO_JAVA_HOME_NAME
       ),
-      environment = JdkIntegrationTest.TestEnvironment(
+      environment = TestEnvironment(
         jdkTable = listOf(
-          JdkTableUtils.Jdk(JDK_17, JDK_17_PATH),
-          JdkTableUtils.Jdk(EMBEDDED_JDK_NAME, JDK_11_PATH)
+          Jdk(JDK_17, JDK_17_PATH),
+          Jdk(EMBEDDED_JDK_NAME, JDK_11_PATH)
         )
       )
     ) {
@@ -145,13 +147,13 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
   @Test
   fun `Given gradleJdk as 'Android Studio java home' When pre-sync project Then this was migrated to #JAVA_HOME macro`() =
     jdkIntegrationTest.run(
-      project = JdkTestProject.SimpleApplication(
+      project = SimpleApplication(
         ideaGradleJdk = ANDROID_STUDIO_JAVA_HOME_NAME,
         ideaProjectJdk = JDK_17
       ),
-      environment = JdkIntegrationTest.TestEnvironment(
+      environment = TestEnvironment(
         jdkTable = listOf(
-          JdkTableUtils.Jdk(ANDROID_STUDIO_JAVA_HOME_NAME, JDK_17_PATH)
+          Jdk(ANDROID_STUDIO_JAVA_HOME_NAME, JDK_17_PATH)
         ),
         environmentVariables = mapOf(JAVA_HOME to JDK_17_PATH)
       )
@@ -166,7 +168,7 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
   @Test
   fun `Given gradleJdk 'Android Studio java home' When pre-sync failure project Then this was migrated to #JAVA_HOME macro`() =
     jdkIntegrationTest.run(
-      project = JdkTestProject.SimpleApplication(
+      project = SimpleApplication(
         ideaGradleJdk = ANDROID_STUDIO_JAVA_HOME_NAME
       ),
     ) {
@@ -180,12 +182,12 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
   @Test
   fun `Given gradleJdk and projectJdk as 'Android Studio java home' When pre-sync project Then this was migrated to #JAVA_HOME macro`() =
     jdkIntegrationTest.run(
-      project = JdkTestProject.SimpleApplication(
+      project = SimpleApplication(
         ideaGradleJdk = ANDROID_STUDIO_JAVA_HOME_NAME,
         ideaProjectJdk = ANDROID_STUDIO_JAVA_HOME_NAME
       ),
-      environment = JdkIntegrationTest.TestEnvironment(
-        jdkTable = listOf(JdkTableUtils.Jdk(ANDROID_STUDIO_JAVA_HOME_NAME, JDK_17_PATH)),
+      environment = TestEnvironment(
+        jdkTable = listOf(Jdk(ANDROID_STUDIO_JAVA_HOME_NAME, JDK_17_PATH)),
         environmentVariables = mapOf(JAVA_HOME to JDK_17_PATH)
       ),
     ) {
@@ -199,14 +201,14 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
   @Test
   fun `Given projectJdk as 'Android Studio default JDK' When pre-sync project Then this was migrated to vendor plus version JDK naming`() =
     jdkIntegrationTest.run(
-      project = JdkTestProject.SimpleApplication(
+      project = SimpleApplication(
         ideaGradleJdk = JDK_17,
         ideaProjectJdk = ANDROID_STUDIO_DEFAULT_JDK_NAME
       ),
-      environment = JdkIntegrationTest.TestEnvironment(
+      environment = TestEnvironment(
         jdkTable = listOf(
-          JdkTableUtils.Jdk(JDK_17, JDK_17_PATH),
-          JdkTableUtils.Jdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, JDK_11_PATH)
+          Jdk(JDK_17, JDK_17_PATH),
+          Jdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, JDK_11_PATH)
         )
       )
     ) {
@@ -220,12 +222,12 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
   @Test
   fun `Given gradleJdk as 'Android Studio default JDK' When pre-sync project Then this was migrated to vendor plus version JDK naming`() =
     jdkIntegrationTest.run(
-      project = JdkTestProject.SimpleApplication(
+      project = SimpleApplication(
         ideaGradleJdk = ANDROID_STUDIO_DEFAULT_JDK_NAME,
         ideaProjectJdk = JDK_17
       ),
-      environment = JdkIntegrationTest.TestEnvironment(
-        jdkTable = listOf(JdkTableUtils.Jdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, JDK_17_PATH))
+      environment = TestEnvironment(
+        jdkTable = listOf(Jdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, JDK_17_PATH))
       )
     ) {
       syncWithAssertion(
@@ -238,12 +240,12 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
   @Test
   fun `Given gradleJdk and projectJdk as 'Android Studio default JDK' When pre-sync project Then this was migrated to vendor plus version JDK naming`() =
     jdkIntegrationTest.run(
-      project = JdkTestProject.SimpleApplication(
+      project = SimpleApplication(
         ideaGradleJdk = ANDROID_STUDIO_DEFAULT_JDK_NAME,
         ideaProjectJdk = ANDROID_STUDIO_DEFAULT_JDK_NAME
       ),
-      environment = JdkIntegrationTest.TestEnvironment(
-        jdkTable = listOf(JdkTableUtils.Jdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, JDK_11_PATH))
+      environment = TestEnvironment(
+        jdkTable = listOf(Jdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, JDK_11_PATH))
       )
     ) {
       syncWithAssertion(
@@ -256,7 +258,7 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
   @Test
   fun `Given gradleJdk 'Android Studio default JDK' When pre-sync failure project Then this was migrated to vendor plus version JDK naming`() =
     jdkIntegrationTest.run(
-      project = JdkTestProject.SimpleApplication(
+      project = SimpleApplication(
         ideaGradleJdk = ANDROID_STUDIO_DEFAULT_JDK_NAME
       ),
     ) {
@@ -270,18 +272,18 @@ class MigrateProjectGradleHardcodedJdkNamingIntegrationTest {
   @Test
   fun `Given multiple roots project using hardcore gradleJvm naming When pre-sync project Then those were migrated away from hardcoded naming`() =
     jdkIntegrationTest.run(
-      project = JdkTestProject.SimpleApplicationMultipleRoots(
+      project = SimpleApplicationMultipleRoots(
         roots = listOf(
           GradleRoot("project_root1", EMBEDDED_JDK_NAME),
           GradleRoot("project_root2", ANDROID_STUDIO_JAVA_HOME_NAME),
           GradleRoot("project_root3", ANDROID_STUDIO_DEFAULT_JDK_NAME)
         )
       ),
-      environment = JdkIntegrationTest.TestEnvironment(
+      environment = TestEnvironment(
         jdkTable = listOf(
-          JdkTableUtils.Jdk(EMBEDDED_JDK_NAME, JDK_17_PATH),
-          JdkTableUtils.Jdk(ANDROID_STUDIO_JAVA_HOME_NAME, JDK_11_PATH),
-          JdkTableUtils.Jdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, JDK_11_PATH),
+          Jdk(EMBEDDED_JDK_NAME, JDK_17_PATH),
+          Jdk(ANDROID_STUDIO_JAVA_HOME_NAME, JDK_11_PATH),
+          Jdk(ANDROID_STUDIO_DEFAULT_JDK_NAME, JDK_11_PATH),
         ),
         environmentVariables = mapOf(JAVA_HOME to JDK_17_PATH)
       )
