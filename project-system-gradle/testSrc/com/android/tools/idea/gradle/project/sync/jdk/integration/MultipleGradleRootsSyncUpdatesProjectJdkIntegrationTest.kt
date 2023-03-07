@@ -81,6 +81,7 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
   fun `Given root using gradleJdk #JAVA_HOME pointing to JDK_17 When synced project successfully Then projectJdk is updated with JDK_17`() =
     jdkIntegrationTest.run(
       project = SimpleApplicationMultipleRoots(
+        agpVersion = AGP_74, // Later versions of AGP (8.0 and beyond) require JDK17
         roots = listOf(
           GradleRoot("project_root1", JDK_11),
           GradleRoot("project_root2", USE_JAVA_HOME)
@@ -89,8 +90,7 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
       environment = TestEnvironment(
         jdkTable = listOf(Jdk(JDK_11, JDK_11_PATH)),
         environmentVariables = mapOf(JAVA_HOME to JDK_17_PATH)
-      ),
-      agpVersion = AGP_74 // Later versions of AGP (8.0 and beyond) require JDK17
+      )
     ) {
       sync(
         assertInMemoryConfig = { assertProjectJdkAndValidateTableEntry(JDK_17, JDK_17_PATH) },
@@ -103,6 +103,7 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
   fun `Given multiple roots using different gradleJdk versions When synced project successfully Then projectJdk is updated with greatest JDK version JDK_17`() =
     jdkIntegrationTest.run(
       project = SimpleApplicationMultipleRoots(
+        agpVersion = AGP_74, // Later versions of AGP (8.0 and beyond) require JDK17
         roots = listOf(
           GradleRoot("project_root1", JDK_11),
           GradleRoot("project_root2", JDK_11),
@@ -116,8 +117,7 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
           Jdk(JDK_17, JDK_17_PATH),
           Jdk(JDK_11, JDK_11_PATH)
         )
-      ),
-      agpVersion = AGP_74 // Later versions of AGP (8.0 and beyond) require JDK17
+      )
     ) {
       sync(
         assertInMemoryConfig = { assertProjectJdkAndValidateTableEntry(JDK_17, JDK_17_PATH) },
@@ -197,6 +197,7 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
   fun `Given multiple roots with invalid and valid jdkTable entry When sync partially succeed Then projectJdk is updated with greatest JDK synced version JDK_11`() =
     jdkIntegrationTest.run(
       project = SimpleApplicationMultipleRoots(
+        agpVersion = AGP_74, // Later versions of AGP (8.0 and beyond) require JDK17
         roots = listOf(
           GradleRoot("project_root1", JDK_17),
           GradleRoot("project_root2", JDK_11)
@@ -208,8 +209,7 @@ class MultipleGradleRootsSyncUpdatesProjectJdkIntegrationTest {
           Jdk(JDK_17, JDK_INVALID_PATH),
           Jdk(JDK_11, JDK_11_PATH)
         )
-      ),
-      agpVersion = AGP_74 // Later versions of AGP (8.0 and beyond) require JDK17
+      )
     ) {
       sync(
         assertOnDiskConfig = { assertProjectJdk(JDK_11) },

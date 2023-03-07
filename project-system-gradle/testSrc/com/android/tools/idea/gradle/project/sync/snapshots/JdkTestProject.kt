@@ -35,14 +35,17 @@ sealed class JdkTestProject(
   override val expectedSyncIssues: Set<Int> = emptySet(),
   override val verifyOpened: ((Project) -> Unit)? = null,
   override val switchVariant: TemplateBasedTestProject.VariantSelection? = null,
+  val agpVersion: AgpVersionSoftwareEnvironmentDescriptor
 ) : TemplateBasedTestProject {
 
   class SimpleApplication(
+    agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
     ideaGradleJdk: String? = null,
     ideaProjectJdk: String? = null,
     localPropertiesJdkPath: String? = null,
     gradlePropertiesJdkPath: String? = null
   ) : JdkTestProject(
+    agpVersion = agpVersion,
     template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
     patch = { projectRoot ->
       ideaGradleJdk?.let {
@@ -64,9 +67,11 @@ sealed class JdkTestProject(
   )
 
   class SimpleApplicationMultipleRoots(
+    agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
     roots: List<GradleRoot>,
     ideaProjectJdk: String? = null
   ) : JdkTestProject(
+    agpVersion = agpVersion,
     template = TestProjectToSnapshotPaths.SIMPLE_APPLICATION,
     patch = { projectRoot ->
       cloneProjectRootIntoMultipleGradleRoots(
