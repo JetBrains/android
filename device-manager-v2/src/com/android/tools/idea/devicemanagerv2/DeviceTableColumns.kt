@@ -16,12 +16,15 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.adblib.deviceInfo
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceType
+import com.android.sdklib.devices.Abi
 import com.android.tools.adtui.categorytable.Attribute
 import com.android.tools.adtui.categorytable.Attribute.Companion.stringAttribute
 import com.android.tools.adtui.categorytable.Column
 import com.android.tools.adtui.categorytable.LabelColumn
+import com.android.tools.idea.wearpairing.WearPairingManager
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBLabel
 import icons.StudioIcons
@@ -31,7 +34,8 @@ internal data class DeviceRowData(
   val handle: DeviceHandle,
   val name: String,
   val type: DeviceType,
-  val api: String,
+  val androidVersion: AndroidVersion?,
+  val abi: Abi?,
   val status: String,
   val isVirtual: Boolean,
 ) {
@@ -45,7 +49,8 @@ internal data class DeviceRowData(
         handle = handle,
         name = properties.title,
         type = properties.deviceType ?: DeviceType.HANDHELD,
-        api = properties.androidVersion?.apiString ?: "",
+        androidVersion = properties.androidVersion,
+        abi = properties.abi,
         status = state.connectedDevice?.deviceInfo?.deviceState?.toString()?.titlecase()
             ?: "Disconnected",
         isVirtual = properties.isVirtual ?: false,
@@ -58,12 +63,16 @@ internal data class DeviceRowData(
 
 internal object DeviceTableColumns {
 
-  object Name :
-    LabelColumn<DeviceRowData>(
-      DeviceManagerBundle.message("column.title.name"),
-      Column.SizeConstraint(min = 200, preferred = 400),
-      stringAttribute(isGroupable = false) { it.name }
-    )
+  class Name(private val wearPairingManager: WearPairingManager) :
+    Column<DeviceRowData, String, DeviceNamePanel> {
+    override val name = DeviceManagerBundle.message("column.title.name")
+    override val widthConstraint = Column.SizeConstraint(min = 200, preferred = 400)
+    override val attribute = stringAttribute<DeviceRowData>(isGroupable = false) { it.name }
+    override fun createUi(rowValue: DeviceRowData) = DeviceNamePanel(wearPairingManager)
+
+    override fun updateValue(rowValue: DeviceRowData, component: DeviceNamePanel, value: String) =
+      component.update(rowValue)
+  }
 
   object TypeAttribute : Attribute<DeviceRowData, DeviceType> {
     override val sorter: Comparator<DeviceType> = compareBy { it.name }
@@ -111,7 +120,7 @@ internal object DeviceTableColumns {
     LabelColumn<DeviceRowData>(
       DeviceManagerBundle.message("column.title.api"),
       Column.SizeConstraint(min = 20, max = 65),
-      stringAttribute { it.api }
+      stringAttribute { it.androidVersion?.apiString ?: "" }
     )
 
   object IsVirtual :
@@ -150,5 +159,6 @@ internal object DeviceTableColumns {
       Column.SizeConstraint.exactly((StudioIcons.Avd.RUN.iconWidth + 7) * 3)
   }
 
-  fun columns(project: Project) = listOf(Type, Name, Api, IsVirtual, Status, Actions(project))
+  fun columns(project: Project) =
+    listOf(Type, Name(WearPairingManager.getInstance()), Api, IsVirtual, Status, Actions(project))
 }
