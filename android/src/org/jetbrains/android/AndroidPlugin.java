@@ -6,6 +6,7 @@ import com.android.tools.analytics.AnalyticsSettings;
 import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.StudioFlags;
+import com.android.tools.idea.modes.EssentialModeMessenger;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.startup.Actions;
 import com.android.tools.idea.util.VirtualFileSystemOpener;
@@ -20,6 +21,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.actionSystem.IdeActions;
 import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import org.jetbrains.annotations.NotNull;
 
@@ -103,6 +105,8 @@ public final class AndroidPlugin {
     private final ToggleEssentialHighlightingAction delegate = new ToggleEssentialHighlightingAction();
     private final Flag<Boolean> enabled;
 
+    private final EssentialModeMessenger applicationService =
+      ApplicationManager.getApplication().getService(EssentialModeMessenger.class);
     private StudioToggleEssentialHighlightingAction(Flag<Boolean> enabled) {
       super("Essential Highlighting");
       this.enabled = enabled;
@@ -110,6 +114,7 @@ public final class AndroidPlugin {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
+      applicationService.sendMessage();
       delegate.actionPerformed(e);
     }
 
