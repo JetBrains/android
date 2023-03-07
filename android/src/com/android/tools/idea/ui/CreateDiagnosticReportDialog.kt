@@ -97,7 +97,7 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
 
 
   init {
-    title = "Create Diagnostic Report"
+    title = "Collect Logs and Diagnostics Data"
     isResizable = false
     isModal = true
 
