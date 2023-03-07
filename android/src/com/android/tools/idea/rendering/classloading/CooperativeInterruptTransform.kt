@@ -65,7 +65,7 @@ class CooperativeInterruptTransform @JvmOverloads constructor(
           push(100)
           invokeStatic(threadLocalRandomType, threadLocalRandomNextIntMethod)
           push(checkPercentage)
-          ifICmp(GE, skipCheck)
+          ifICmp(GT, skipCheck)
           invokeStatic(loopBreakerType, loopCheckMethod)
           visitLabel(skipCheck)
 
