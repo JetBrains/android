@@ -16,12 +16,10 @@
 package com.android.tools.idea.npw.module.recipes.baselineProfilesModule
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.FILTER_ARG_BASELINE_PROFILE
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.FILTER_ARG_MACROBENCHMARK
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.createModule
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.generateBuildVariants
-import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.getTargetModelProductFlavors
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.src.baselineProfileBenchmarksJava
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.src.baselineProfileBenchmarksKt
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.src.baselineProfileGeneratorJava
@@ -57,7 +55,6 @@ fun RecipeExecutor.generateBaselineProfilesModule(
 ) {
   val projectBuildModel = ProjectBuildModel.getOrLog(targetModule.project) ?: return
   val targetModuleAndroidModel = projectBuildModel.getModuleBuildModel(targetModule)?.android() ?: return
-  val targetModuleIdeProject = GradleAndroidModel.get(targetModule)?.androidProject
   val targetApplicationId = targetModuleAndroidModel.namespace().valueAsString() ?: "com.example.application"
 
   // TODO(b/269581369): Remove once alpha build of the plugin is released.
@@ -71,8 +68,12 @@ fun RecipeExecutor.generateBaselineProfilesModule(
 
   val gmdSpec = if (useGmd) GmdSpec(GMD_DEVICE, GMD_API) else null
 
-  val flavors = getTargetModelProductFlavors(targetModuleIdeProject, targetModuleAndroidModel)
-  val variants = generateBuildVariants(flavors, "release")
+  val flavorDimensionNames = targetModuleAndroidModel.flavorDimensions().toList()?.mapNotNull { it.valueAsString() } ?: emptyList()
+  val flavorNamesAndDimensions = targetModuleAndroidModel.productFlavors().map {
+    FlavorNameAndDimension(it.name(), it.dimension().forceString())
+  }
+
+  val variants = generateBuildVariants(flavorDimensionNames, flavorNamesAndDimensions, "release")
 
   createModule(
     newModule = newModule,
@@ -80,7 +81,8 @@ fun RecipeExecutor.generateBaselineProfilesModule(
     macrobenchmarkMinRev = MACROBENCHMARK_MIN_REV,
     buildGradleContent = baselineProfilesBuildGradle(
       newModule = newModule,
-      flavors = flavors,
+      flavorDimensionNames = flavorDimensionNames,
+      flavorNamesAndDimensions = flavorNamesAndDimensions,
       useGradleKts = useGradleKts,
       targetModule = targetModule,
       useGmd = gmdSpec,

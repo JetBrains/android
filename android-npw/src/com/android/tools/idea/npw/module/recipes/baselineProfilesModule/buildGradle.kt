@@ -28,7 +28,8 @@ import com.intellij.openapi.module.Module
 
 fun baselineProfilesBuildGradle(
   newModule: ModuleTemplateData,
-  flavors: ProductFlavorsWithDimensions,
+  flavorDimensionNames: List<String>,
+  flavorNamesAndDimensions: List<FlavorNameAndDimension>,
   useGradleKts: Boolean,
   targetModule: Module,
   useGmd: GmdSpec?,
@@ -39,7 +40,7 @@ fun baselineProfilesBuildGradle(
   val gradlePluginVersion = newModule.projectTemplateData.gradlePluginVersion
   // TODO(b/149203281): Fix support for composite builds.
   val targetModuleGradlePath = targetModule.getGradleProjectPath()?.path
-  val flavorsConfiguration = flavorsConfigurationsBuildGradle(flavors, useGradleKts)
+  val flavorsConfiguration = flavorsConfigurationsBuildGradle(flavorDimensionNames, flavorNamesAndDimensions, useGradleKts)
 
   val kotlinOptionsBlock = renderIf(language == Language.Kotlin) {
     """

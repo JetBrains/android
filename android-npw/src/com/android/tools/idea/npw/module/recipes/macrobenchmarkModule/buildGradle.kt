@@ -18,7 +18,7 @@ package com.android.tools.idea.npw.module.recipes.macrobenchmarkModule
 
 import com.android.tools.idea.npw.module.recipes.androidModule.gradleToKtsIfKts
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.flavorsConfigurationsBuildGradle
-import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.ProductFlavorsWithDimensions
+import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.FlavorNameAndDimension
 import com.android.tools.idea.npw.module.recipes.emptyPluginsBlock
 import com.android.tools.idea.npw.module.recipes.toAndroidFieldVersion
 import com.android.tools.idea.projectsystem.gradle.getGradleProjectPath
@@ -29,7 +29,8 @@ import com.intellij.openapi.module.Module
 
 fun macrobenchmarksBuildGradle(
   newModule: ModuleTemplateData,
-  flavors: ProductFlavorsWithDimensions,
+  flavorDimensionNames: List<String>,
+  flavorNamesAndDimensions: List<FlavorNameAndDimension>,
   useGradleKts: Boolean,
   targetModule: Module,
   benchmarkBuildTypeName: String,
@@ -40,7 +41,7 @@ fun macrobenchmarksBuildGradle(
   val gradlePluginVersion = newModule.projectTemplateData.gradlePluginVersion
   // TODO(b/149203281): Fix support for composite builds.
   val targetModuleGradlePath = targetModule.getGradleProjectPath()?.path
-  val flavorsConfiguration = flavorsConfigurationsBuildGradle(flavors, useGradleKts)
+  val flavorsConfiguration = flavorsConfigurationsBuildGradle(flavorDimensionNames, flavorNamesAndDimensions, useGradleKts)
 
   val benchmarkBuildType: String
   val debugSigningConfig: String

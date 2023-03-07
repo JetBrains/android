@@ -21,9 +21,8 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
 import com.android.tools.idea.gradle.dsl.api.android.BuildTypeModel
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.createModule
-import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon.getTargetModelProductFlavors
+import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.FlavorNameAndDimension
 import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.exampleMacrobenchmarkJava
 import com.android.tools.idea.npw.module.recipes.macrobenchmarkModule.src.main.exampleMacrobenchmarkKt
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
@@ -48,10 +47,11 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
   val targetModuleAndroidModel = projectBuildModel?.getModuleBuildModel(targetModule)?.android() ?: return
   val targetModuleBuildTypes = targetModuleAndroidModel.buildTypes()
   val targetApplicationId = targetModuleAndroidModel.namespace().valueAsString() ?: "com.example.application"
-  val targetModuleIdeProject = GradleAndroidModel.get(targetModule)?.androidProject
   val benchmarkBuildTypeName = getUniqueBuildTypeName(BENCHMARK_BUILD_TYPE_NAME, targetModuleBuildTypes.map { it.name() })
-
-  val flavors = getTargetModelProductFlavors(targetModuleIdeProject, targetModuleAndroidModel)
+  val flavorDimensionNames = targetModuleAndroidModel.flavorDimensions().toList()?.mapNotNull { it.valueAsString() } ?: emptyList()
+  val flavorNamesAndDimensions = targetModuleAndroidModel.productFlavors().map {
+    FlavorNameAndDimension(it.name(), it.dimension().forceString())
+  }
 
   updateTargetModule(
     projectBuildModel = projectBuildModel,
@@ -68,7 +68,8 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
       newModule = newModule,
       useGradleKts = useGradleKts,
       targetModule = targetModule,
-      flavors = flavors,
+      flavorDimensionNames = flavorDimensionNames,
+      flavorNamesAndDimensions = flavorNamesAndDimensions,
       benchmarkBuildTypeName = benchmarkBuildTypeName,
     ),
     customizeModule = {

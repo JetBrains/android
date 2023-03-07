@@ -16,9 +16,6 @@
 package com.android.tools.idea.npw.module.recipes.baselineProfilesModule
 
 import com.android.SdkConstants
-import com.android.tools.idea.gradle.dsl.api.android.AndroidModel
-import com.android.tools.idea.gradle.model.IdeAndroidProject
-import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
 import com.android.tools.idea.npw.module.recipes.gitignore
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -76,10 +73,16 @@ object BaselineProfilesMacrobenchmarkCommon {
    * @return If no product flavors, returns empty list
    */
   fun generateBuildVariants(
-    flavors: ProductFlavorsWithDimensions,
+    dimensionNames: List<String>,
+    productFlavorsAndDimensions: List<FlavorNameAndDimension>,
     buildType: String? = null,
   ): List<String> {
-    val dimensionsWithFlavors = flavors.flavorNamesGroupedByDimension.toMutableList()
+    val dimensionsWithFlavors = dimensionNames.map { dimensionName ->
+      // flavor names grouped by its dimension
+      productFlavorsAndDimensions
+        .filter { (_, flavorDimension) -> flavorDimension == dimensionName }
+        .map { it.name }
+    }.toMutableList()
 
     // Add buildType (if defined) as the last one
     buildType?.let { dimensionsWithFlavors.add(listOf(it)) }
@@ -103,12 +106,13 @@ object BaselineProfilesMacrobenchmarkCommon {
   }
 
   fun flavorsConfigurationsBuildGradle(
-    flavors: ProductFlavorsWithDimensions,
+    flavorDimensionNames: List<String>,
+    flavorNamesAndDimensions: List<FlavorNameAndDimension>,
     useGradleKts: Boolean
   ): String {
     return buildString {
-      if (flavors.dimensions.isNotEmpty()) {
-        val dimenString = flavors.dimensions.joinToString(",") { "\"$it\"" }
+      if (flavorDimensionNames.isNotEmpty()) {
+        val dimenString = flavorDimensionNames.joinToString(",") { "\"$it\"" }
 
         if (useGradleKts) {
           appendLine("flavorDimensions += listOf(${dimenString})")
@@ -118,43 +122,15 @@ object BaselineProfilesMacrobenchmarkCommon {
         }
       }
 
-      if (flavors.flavors.isNotEmpty()) {
+      if (flavorNamesAndDimensions.isNotEmpty()) {
         appendLine("productFlavors {")
-        flavors.flavors.forEach { flavor ->
-          append(if (useGradleKts) "create(\"${flavor.name}\")" else flavor.name)
-          flavor.dimension?.let { appendLine("""{ dimension = "$it" }""") }
+        flavorNamesAndDimensions.forEach {
+          append(if (useGradleKts) "create(\"${it.name}\")" else it.name)
+          appendLine("""{ dimension = "${it.dimension}" }""")
         }
         append("}")
       }
     }
-  }
-
-  /**
-   * Tries to get the product flavors from [GradleAndroidModel] IDE model first and fall backs to the [AndroidModel] DSL model.
-   * The DSL model currently doesn't support loading flavors that aren't set in the build.gradle directly, for example, when using convention plugins.
-   */
-  fun getTargetModelProductFlavors(
-    targetModuleIdeAndroidProject: IdeAndroidProject?,
-    targetModuleAndroidModel: AndroidModel
-  ): ProductFlavorsWithDimensions {
-    // Try to get the flavors from the IDE project first
-    var flavorDimensionNames: List<String> = targetModuleIdeAndroidProject?.flavorDimensions?.toList() ?: emptyList()
-    var flavorNamesAndDimensions: List<ProductFlavorsWithDimensions.Item> = targetModuleIdeAndroidProject?.multiVariantData?.productFlavors?.map {
-      ProductFlavorsWithDimensions.Item(it.productFlavor.name, it.productFlavor.dimension)
-    } ?: emptyList()
-
-    // If none found, try to parse it from Gradle DSL
-    if (flavorDimensionNames.isEmpty()) {
-      flavorDimensionNames = targetModuleAndroidModel.flavorDimensions().toList()?.mapNotNull { it.valueAsString() } ?: emptyList()
-    }
-
-    if (flavorNamesAndDimensions.isEmpty()) {
-      flavorNamesAndDimensions = targetModuleAndroidModel.productFlavors().map {
-        ProductFlavorsWithDimensions.Item(it.name(), it.dimension().valueAsString())
-      }
-    }
-
-    return ProductFlavorsWithDimensions(flavorDimensionNames, flavorNamesAndDimensions)
   }
 }
 
@@ -168,17 +144,4 @@ data class GmdSpec(val deviceName: String, val apiLevel: Int) {
 
 }
 
-class ProductFlavorsWithDimensions(
-  val dimensions: List<String>,
-  val flavors: List<Item>
-) {
-
-  data class Item(val name: String, val dimension: String?)
-
-  val flavorNamesGroupedByDimension = dimensions.map { dimensionName ->
-    flavors
-      .filter { it.dimension == dimensionName }
-      .map { it.name }
-  }
-
-}
+data class FlavorNameAndDimension(val name: String, val dimension: String)
