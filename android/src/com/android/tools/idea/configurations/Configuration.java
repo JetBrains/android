@@ -485,7 +485,7 @@ public class Configuration implements Disposable, ModificationTracker {
   @Slow
   @Nullable
   private Device computeBestDevice() {
-    for (Device device : myManager.getRecentDevices()) {
+    for (Device device : myManager.getRecentDevices(DeviceUtils.getAvdDevices(this))) {
       String stateName = myStateName;
       if (stateName == null) {
         stateName = device.getDefaultState().getName();

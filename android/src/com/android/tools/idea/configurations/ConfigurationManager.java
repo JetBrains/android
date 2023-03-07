@@ -183,11 +183,12 @@ public class ConfigurationManager implements Disposable {
     }
     Configuration configuration = Configuration.create(this, file, fileState, config);
     ConfigurationMatcher matcher = new ConfigurationMatcher(configuration, file);
-    if (fileState != null) {
-      matcher.adaptConfigSelection(true);
+    if (stateManager.getProjectState().getDeviceIds().isEmpty()) {
+      matcher.findAndSetCompatibleConfig(false);
     }
     else {
-      matcher.findAndSetCompatibleConfig(false);
+      // If there are devices stored in the ConfigurationProjectState, we try to adapt the configuration to preserve the selected device.
+      matcher.adaptConfigSelection(true);
     }
 
     return configuration;
@@ -254,7 +255,12 @@ public class ConfigurationManager implements Disposable {
 
   @Nullable
   public Device getDeviceById(@NotNull String id) {
-    return getDevices()
+    return getDeviceById(id, getDevices());
+  }
+
+  @Nullable
+  public Device getDeviceById(@NotNull String id, List<Device> inputList) {
+    return inputList
       .stream()
       .filter(device -> device.getId().equals(id))
       .findFirst()
@@ -453,7 +459,7 @@ public class ConfigurationManager implements Disposable {
   /**
    * Returns the most recently used devices, in MRU order
    */
-  public List<Device> getRecentDevices() {
+  public List<Device> getRecentDevices(List<Device> avdDevices) {
     List<String> deviceIds = getStateManager().getProjectState().getDeviceIds();
     if (deviceIds.isEmpty()) {
       return Collections.emptyList();
@@ -464,6 +470,11 @@ public class ConfigurationManager implements Disposable {
     while (iterator.hasNext()) {
       String id = iterator.next();
       Device device = getDeviceById(id);
+      if (device == null) {
+        // Couldn't find device in the list of predefined devices. We should try the AVD list next.
+        device = getDeviceById(id, avdDevices);
+      }
+
       if (device != null) {
         devices.add(device);
       }
