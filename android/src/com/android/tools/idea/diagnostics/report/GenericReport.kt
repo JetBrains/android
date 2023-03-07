@@ -20,9 +20,14 @@ import com.android.tools.analytics.crash.GoogleCrashReporter
 import com.google.gson.stream.JsonWriter
 import org.apache.http.entity.mime.MultipartEntityBuilder
 
-class JfrBasedReport(type: String, val fields: Map<String, String>, baseProperties: DiagnosticReportProperties = DiagnosticReportProperties()): DiagnosticReport(type, baseProperties) {
+class GenericReport(
+  type: String,
+  val fields: Map<String, String>,
+  baseProperties: DiagnosticReportProperties = DiagnosticReportProperties()
+) : DiagnosticReport(type, baseProperties) {
+
   override fun serializeReportProperties(writer: JsonWriter) {
-    fields.forEach { (fieldName, value) ->
+    for ((fieldName, value) in fields) {
       writer.name(fieldName).value(value)
     }
   }
@@ -31,7 +36,7 @@ class JfrBasedReport(type: String, val fields: Map<String, String>, baseProperti
     return object: DiagnosticCrashReport(type, properties) {
       override fun serialize(builder: MultipartEntityBuilder) {
         super.serialize(builder)
-        fields.forEach { (fieldName, value) ->
+        for ((fieldName, value) in fields) {
           GoogleCrashReporter.addBodyToBuilder(builder, fieldName, value)
         }
       }
@@ -39,11 +44,16 @@ class JfrBasedReport(type: String, val fields: Map<String, String>, baseProperti
   }
 
   companion object {
-    fun deserialize(type: String, baseReportProperties: DiagnosticReportProperties, fieldNames: List<String>, properties: HashMap<String, String>, format: Long): JfrBasedReport {
+    fun deserialize(type: String,
+                    baseReportProperties: DiagnosticReportProperties,
+                    fieldNames: List<String>,
+                    properties: Map<String, String>,
+                    format: Long): GenericReport {
       val fields = mutableMapOf<String, String>()
-      fieldNames.forEach { fieldName -> fields[fieldName] = properties[fieldName] ?: "" }
-      return JfrBasedReport(type, fields, baseReportProperties)
+      for (fieldName in fieldNames) {
+        fields[fieldName] = properties[fieldName] ?: ""
+      }
+      return GenericReport(type, fields, baseReportProperties)
     }
   }
-
 }

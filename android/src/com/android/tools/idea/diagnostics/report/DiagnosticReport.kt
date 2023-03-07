@@ -102,7 +102,7 @@ constructor(val type: String,
             baseReportProperties, properties, format)
           "UnanalyzedHeap" -> UnanalyzedHeapReport.deserialize(baseReportProperties, properties, format)
           else -> if (type in typesToFields.keys)
-            JfrBasedReport.deserialize(type!!, baseReportProperties, typesToFields[type]!!, properties, format)
+            GenericReport.deserialize(type!!, baseReportProperties, typesToFields[type]!!, properties, format)
           else null
         }
       }
