@@ -101,7 +101,7 @@ class CallGraphTest : AndroidTestCase() {
     // In K1, `it` is of `It`, the explicit type, since assignments of `Impl` and `SubImpl` are aggregated.
     // Therefore, the resolution of `it.f()` started from `It#f` and traced all the overrides: `Impl#f` and `SubImpl#f`.
     // In contrast, in K2, the last assignment is tracked properly in DFA, so the resolution goes directly to `SubImpl#f`.
-    if (isK2Plugin()) {
+    if (isK2Plugin() && ext == ".kt") {
       "SimpleLocal#typeEvidencedBoth".assertCalls("Impl#Impl", "SubImpl#SubImpl", "SubImpl#f")
     } else {
       "SimpleLocal#typeEvidencedBoth".assertCalls("Impl#Impl", "SubImpl#SubImpl", "SubImpl#f", "Impl#f")
