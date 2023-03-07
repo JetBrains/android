@@ -15,13 +15,6 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.desugaring
 
-import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
+import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerOutput
 
-class DesugarLogger {
-  internal fun log(message: String) {
-    if (!LiveEditAdvancedConfiguration.getInstance().useDebugMode) {
-      return
-    }
-    println("LE Desugar: " + message)
-  }
-}
+internal class LiveEditDesugarRequest(val compilerOutput: LiveEditCompilerOutput, val apiVersions: Set<MinApiLevel>)

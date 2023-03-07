@@ -26,6 +26,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor
 import com.android.tools.idea.run.deployment.liveedit.EditEvent
 import com.android.tools.idea.run.deployment.liveedit.LiveEditAdbEventsListener
+import com.android.tools.idea.run.deployment.liveedit.LiveEditApp
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
 import com.android.tools.idea.run.deployment.liveedit.PsiListener
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
@@ -205,8 +206,8 @@ class LiveEditService constructor(val project: Project,
   /**
    * Called from Android Studio when an app is deployed (a.k.a Installed / IWIed / Delta-installed) to a device
    */
-  fun notifyAppDeploy(packageName: String, device: IDevice): Boolean {
-    return deployMonitor.notifyAppDeploy(packageName, device)
+  fun notifyAppDeploy(packageName: String, device: IDevice, app: LiveEditApp): Boolean {
+    return deployMonitor.notifyAppDeploy(packageName, device, app)
   }
 
   fun toggleLiveEdit(oldMode: LiveEditApplicationConfiguration.LiveEditMode, newMode: LiveEditApplicationConfiguration.LiveEditMode) {

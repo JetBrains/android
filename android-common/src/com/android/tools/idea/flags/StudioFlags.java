@@ -1212,7 +1212,7 @@ public final class StudioFlags {
     "LiveEdit: Desugar kotlinc outputs with R8",
     "If enabled, the outputs of kotlinc are desugared before being sent to LiveEdit engine. This improves " +
     "the odds of matching what was produced by the Build system",
-    false // False by default until we can gracefully fail if AGP < 8.1.0-alpha
+    true
   );
 
   public static final Flag<Integer> COMPOSE_LIVE_LITERALS_UPDATE_RATE = Flag.create(

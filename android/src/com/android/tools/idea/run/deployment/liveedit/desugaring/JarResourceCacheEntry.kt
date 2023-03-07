@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.desugaring
 
+import com.android.tools.idea.run.deployment.liveedit.LiveEditLogger
 import com.android.tools.r8.ClassFileResourceProvider
 import com.android.tools.r8.DiagnosticsHandler
 import com.android.tools.r8.ProgramResource
@@ -28,7 +29,7 @@ import java.nio.file.Path
 // Ideally we would keep the ZipRepo open as long as the cache entry lives. However that would prevent jars to be
 // updated on Windows since it also locks files and prevent deletion. To solve this issue, we close the zip
 // repo (and re-open without parsing via ZipMap) once desugar ends (signaled by finished()).
-internal class JarResourceCacheEntry(val path : Path, val logger: DesugarLogger) : ClassFileResourceProvider{
+internal class JarResourceCacheEntry(val path : Path, val logger: LiveEditLogger) : ClassFileResourceProvider{
 
   private val origin = PathOrigin(path)
 

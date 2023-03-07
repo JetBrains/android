@@ -13,19 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.liveedit.desugaring
+package com.android.tools.idea.run.deployment.liveedit
 
-import com.android.tools.idea.run.deployment.liveedit.LiveEditLogger
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.desugarFailure
-import com.android.tools.r8.Diagnostic
-import com.android.tools.r8.DiagnosticsHandler
+import com.android.tools.idea.run.deployment.liveedit.desugaring.MinApiLevel
+import com.android.tools.r8.MarkerInfoConsumer
+import com.android.tools.r8.MarkerInfoConsumerData
 
-class R8DiagnosticHandler(private val logger: LiveEditLogger) : DiagnosticsHandler{
-  override fun error(error: Diagnostic?) {
-    super.error(error)
-    error?.let {
-      logger.log(it.diagnosticMessage)
-      desugarFailure(it.diagnosticMessage)
+class LiveEditMarkerInfoConsumer : MarkerInfoConsumer {
+
+  var foundMinAPI = false;
+  var minApi : MinApiLevel = 0
+
+  override fun acceptMarkerInfo(info: MarkerInfoConsumerData?) {
+    val minApis : MutableSet<MinApiLevel> = mutableSetOf()
+
+    info?.markers?.forEach{
+      minApis.add(it.minApi)
     }
+
+    if (minApis.size != 1) {
+      desugarFailure("Multiple MinAPI detected")
+    }
+
+    foundMinAPI = true
+    minApi = minApis.first()
+  }
+
+  override fun finished() {
   }
 }
