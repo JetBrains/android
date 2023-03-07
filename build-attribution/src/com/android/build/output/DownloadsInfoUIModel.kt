@@ -260,10 +260,10 @@ class RepositoriesTableModel : ListTableModel<RepositoryTableItem>() {
         else totalRequests.toString()
       },
       column("Data", "Total amount of data downloaded.") { Formats.formatFileSize(it.totalAmountOfData()) },
-      column("Time", "Total amount of time taken to execute requests.") { durationString(it.totalAmountOfTime()) },
+      column("Time", "Total amount of time taken to execute requests.") { StringUtil.formatDuration(it.totalAmountOfTime()) },
       column("Avg Speed", "Average download speed.") { formatAvgDownloadSpeed(it.totalAmountOfData(), it.totalAmountOfTime()) },
       column("Failed Requests", "Number of failed requests.") { it.numberOfFailed().toString() },
-      column("Failed Requests Time", "Total amount of time taken to execute failed requests.") { durationString(it.timeOfFailed()) },
+      column("Failed Requests Time", "Total amount of time taken to execute failed requests.") { StringUtil.formatDuration(it.timeOfFailed()) },
     )
     addRow(summaryItem)
   }

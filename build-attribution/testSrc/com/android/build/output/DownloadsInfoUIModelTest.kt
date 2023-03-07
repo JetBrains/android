@@ -298,9 +298,9 @@ class DownloadsInfoUITableModelsTest {
       }
     }
     val expectedContent = """
-      All repositories | 4 (1 running) | 2.48 kB | 8.3s | 299 B/s | 1 | 5.7s
-      Google | 3 (1 running) | 1.25 kB | 7.0s | 177 B/s | 1 | 5.7s
-      Maven Central | 1 | 1.23 kB | 1.2s | 1 kB/s | 0 | 0.0s
+      All repositories | 4 (1 running) | 2.48 kB | 8 s 269 ms | 299 B/s | 1 | 5 s 678 ms
+      Google | 3 (1 running) | 1.25 kB | 7 s 35 ms | 177 B/s | 1 | 5 s 678 ms
+      Maven Central | 1 | 1.23 kB | 1 s 234 ms | 1 kB/s | 0 | 0 ms
     """.trimIndent()
     assertThat(content).isEqualTo(expectedContent)
   }
