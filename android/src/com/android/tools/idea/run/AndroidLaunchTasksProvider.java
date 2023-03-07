@@ -23,6 +23,7 @@ import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LIN
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.deploy.DeploymentConfiguration;
 import com.android.tools.idea.editors.literals.LiveEditService;
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp;
@@ -267,10 +268,19 @@ public class AndroidLaunchTasksProvider {
   }
 
   private boolean shouldDebugSandboxSdk(IDevice device) {
-    return LAUNCH_SANDBOX_SDK_PROCESS_WITH_DEBUGGER_ATTACHED_ON_DEBUG.get() &&
+    return hasDebugSandboxSdkEnabled() &&
            device.getVersion().isGreaterOrEqualThan(TIRAMISU) &&
            myDebug &&
            hasPrivacySandboxSdk(device);
+  }
+
+  private boolean hasDebugSandboxSdkEnabled() {
+    AndroidDebuggerState state = myRunConfig.getAndroidDebuggerContext().getAndroidDebuggerState();
+    if (state != null) {
+      return LAUNCH_SANDBOX_SDK_PROCESS_WITH_DEBUGGER_ATTACHED_ON_DEBUG.get() && state.DEBUG_SANDBOX_SDK;
+    }
+
+    return false;
   }
 
   private boolean hasPrivacySandboxSdk(IDevice device) {
