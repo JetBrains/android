@@ -212,7 +212,7 @@ class MigrateToAndroidxGradleKtsTest : MigrateToAndroidxGradleTestBase() {
     val mainActivityKt = "app/src/main/java/com/example/google/migratetoandroidxkts/MainActivity.kt"
     val expectedSequence = """
     val testVariable = "com.google.android.material:material:V.V.V"
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:V.V.V") // TODO(263236464): Revert to `+` instead of `V.V.V`
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:+")
     implementation(mapOf("group" to "androidx.appcompat", "name" to "appcompat", "version" to "V.V.V"))
     implementation("androidx.constraintlayout:constraintlayout:V.V.V")
     implementation(testVariable)
@@ -256,7 +256,7 @@ class MigrateToAndroidxGradleGroovyTest : MigrateToAndroidxGradleTestBase() {
     val mainActivityKt = "app/src/main/java/com/example/google/migratetoandroidx/MainActivity.kt"
     val expectedSequence = """
     def testVariable = 'com.google.android.material:material:V.V.V'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:V.V.V" // TODO(263236464): Revert to `+` instead of `V.V.V`
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:+"
     implementation group: 'androidx.appcompat', name: 'appcompat', version: 'V.V.V'
     implementation 'androidx.constraintlayout:constraintlayout:V.V.V'
     implementation testVariable
