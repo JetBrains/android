@@ -207,6 +207,44 @@ androidx-lifecycle-lifecycle-runtime-ktx2312 = { group = "androidx.lifecycle", n
   }
 
   @Test
+  fun testAddDependencyWithVersionCatalog_sameNameExist_finalFallback_secondLoop() {
+    writeToVersionCatalogFile("""
+[versions]
+lifecycle-runtime-ktx = "2.3.1"
+androidx-lifecycle-lifecycle-runtime-ktx = "2.3.1"
+androidx-lifecycle-lifecycle-runtime-ktx231 = "2.3.1"
+androidx-lifecycle-lifecycle-runtime-ktx2312 = "2.3.1"
+[libraries]
+lifecycle-runtime-ktx = { group = "group", name = "name", version.ref = "lifecycle-runtime-ktx" }
+androidx-lifecycle-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
+androidx-lifecycle-lifecycle-runtime-ktx231 = { group = "fake.group2", name = "fake.name2", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx231" }
+androidx-lifecycle-lifecycle-runtime-ktx2312 = { group = "fake.group3", name = "fake.name3", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx2312" }
+    """)
+
+    recipeExecutor.addDependency("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
+
+    applyChanges(recipeExecutor.projectBuildModel!!)
+
+    // Verify avoiding the same name with different module.
+    // The final fallback loop when picking the name in the catalog goes into the second loop
+    verifyFileContents(myVersionCatalogFile, """
+[versions]
+lifecycle-runtime-ktx = "2.3.1"
+androidx-lifecycle-lifecycle-runtime-ktx = "2.3.1"
+androidx-lifecycle-lifecycle-runtime-ktx231 = "2.3.1"
+androidx-lifecycle-lifecycle-runtime-ktx2312 = "2.3.1"
+androidx-lifecycle-lifecycle-runtime-ktx2313 = "2.3.1"
+[libraries]
+lifecycle-runtime-ktx = { group = "group", name = "name", version.ref = "lifecycle-runtime-ktx" }
+androidx-lifecycle-lifecycle-runtime-ktx = { group = "fake.group", name = "fake.name", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
+androidx-lifecycle-lifecycle-runtime-ktx231 = { group = "fake.group2", name = "fake.name2", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx231" }
+androidx-lifecycle-lifecycle-runtime-ktx2312 = { group = "fake.group3", name = "fake.name3", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx2312" }
+androidx-lifecycle-lifecycle-runtime-ktx2313 = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx2313" }
+    """)
+    verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_FINAL_FALLBACK_SECOND_LOOP)
+  }
+
+  @Test
   fun testAddPlatformDependencyWithVersionCatalog() {
     recipeExecutor.addPlatformDependency("androidx.compose:compose-bom:2022.10.00")
 
@@ -226,6 +264,7 @@ compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = 
     VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME("versionCatalogAddDependencyAvoidSameName"),
     VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_WITH_GROUP("versionCatalogAddDependencyAvoidSameNameWithGroup"),
     VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_FINAL_FALLBACK("versionCatalogAddDependencyAvoidSameNameFinalFallback"),
+    VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_FINAL_FALLBACK_SECOND_LOOP("versionCatalogAddDependencyAvoidSameNameFinalFallbackSecondLoop"),
     VERSION_CATALOG_ADD_PLATFORM_DEPENDENCY("versionCatalogAddPlatformDependency"),
     ;
 
