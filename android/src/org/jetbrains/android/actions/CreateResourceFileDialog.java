@@ -75,7 +75,6 @@ public class CreateResourceFileDialog extends CreateResourceFileDialogBase {
                                   boolean chooseFileName,
                                   boolean chooseModule,
                                   @Nullable PsiDirectory resDirectory,
-                                  @Nullable DataContext dataContext,
                                   @NotNull CreateResourceFileDialogBase.ValidatorFactory validatorFactory) {
     super(facet.getModule().getProject());
     Module module = facet.getModule();

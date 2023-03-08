@@ -19,6 +19,8 @@ package org.jetbrains.android.actions;
 
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceFolderType;
+import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.google.common.collect.Maps;
 import com.intellij.CommonBundle;
 import com.intellij.ide.highlighter.XmlFileType;
@@ -40,8 +42,12 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import java.io.File;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.ResourceFolderManager;
 import org.jetbrains.android.util.AndroidBundle;
@@ -189,7 +195,24 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
   public PsiElement[] invokeDialog(@NotNull final Project project, @NotNull final DataContext dataContext) {
     Module module = PlatformCoreDataKeys.MODULE.getData(dataContext);
     if (module == null) {
-      return PsiElement.EMPTY_ARRAY;
+      // In some cases, like resources folders with multiple files in different source sets, we might get multiple files selected.
+      PsiElement[] elements = PlatformCoreDataKeys.PSI_ELEMENT_ARRAY.getData(dataContext);
+      if (elements == null) return PsiElement.EMPTY_ARRAY;
+      // Prioritize selecting the file in the main module if any or the test module otherwise.
+      module = Arrays.stream(elements)
+        .map(AndroidPsiUtils::getModuleSafely)
+        .filter(Objects::nonNull)
+        .distinct()
+        .min(Comparator
+               .<Module>comparingInt((comparingModule) -> {
+                 if (ModuleSystemUtil.isMainModule(comparingModule)) return 0;
+                 if (ModuleSystemUtil.isAndroidTestModule(comparingModule)) return 1;
+                 return 2;
+               })
+               .thenComparing(Module::getName))
+        .orElse(null);
+
+      if (module == null) return PsiElement.EMPTY_ARRAY;
     }
     final AndroidFacet facet = AndroidFacet.getInstance(module);
     LOG.assertTrue(facet != null);
@@ -204,7 +227,7 @@ public class CreateResourceFileAction extends CreateResourceActionBase {
     NewResourceCreationHandler newResourceHandler = NewResourceCreationHandler.getInstance(project);
     final CreateResourceFileDialogBase dialog = newResourceHandler.createNewResourceFileDialog(
       facet, mySubactions.values(), folderType, null, null, config, true,
-      false, CreateResourceDialogUtils.findResourceDirectory(dataContext), dataContext, createValidatorFactory(project));
+      true, CreateResourceDialogUtils.findResourceDirectory(dataContext), dataContext, createValidatorFactory(project));
     if (!dialog.showAndGet()) {
       return PsiElement.EMPTY_ARRAY;
     }

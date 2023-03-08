@@ -70,7 +70,7 @@ class DefaultNewResourceCreationHandler implements NewResourceCreationHandler {
     @Nullable DataContext dataContext,
     @NotNull CreateResourceFileDialogBase.ValidatorFactory validatorFactory) {
     return new CreateResourceFileDialog(facet, actions, folderType, filename, rootElement, folderConfiguration,
-                                        chooseFileName, chooseModule, resDirectory, dataContext, validatorFactory);
+                                        chooseFileName, chooseModule, resDirectory, validatorFactory);
   }
 
   @Override
