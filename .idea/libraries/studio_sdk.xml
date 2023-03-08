@@ -16,6 +16,7 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/intellij-coverage-agent-1.0.682.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/intellij-test-discovery.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/jps-model.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/jsp-base.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/junit.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/junit4.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/platform-objectSerializer-annotations.jar!/" />
@@ -24,8 +25,11 @@
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/rd.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/resources.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/stats.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/tools-testsBootstrap.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/util.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/util_rt.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/xml-dom-impl.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/lib/xml-dom.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/plugins/java/lib/aether-dependency-resolver.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/plugins/java/lib/debugger-memory-agent.jar!/" />
       <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-223/$SDK_PLATFORM$/plugins/java/lib/java-impl.jar!/" />

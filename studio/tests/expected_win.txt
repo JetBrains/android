@@ -523,6 +523,7 @@ android-studio/lib/intellij-coverage-agent-1.0.682.jar
 android-studio/lib/intellij-test-discovery.jar
 android-studio/lib/jna/amd64/jnidispatch.dll
 android-studio/lib/jps-model.jar
+android-studio/lib/jsp-base.jar
 android-studio/lib/junit.jar
 android-studio/lib/junit4.jar
 android-studio/lib/platform-objectSerializer-annotations.jar
@@ -536,8 +537,11 @@ android-studio/lib/rd.jar
 android-studio/lib/resources.jar
 android-studio/lib/stats.jar
 android-studio/lib/testFramework.jar
+android-studio/lib/tools-testsBootstrap.jar
 android-studio/lib/util.jar
 android-studio/lib/util_rt.jar
+android-studio/lib/xml-dom-impl.jar
+android-studio/lib/xml-dom.jar
 android-studio/license/antlr4-runtime-4.5.3.jar-NOTICE
 android-studio/license/bouncycastle-1.48-NOTICE
 android-studio/license/commons-compress-NOTICE

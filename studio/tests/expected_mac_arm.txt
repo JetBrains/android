@@ -462,6 +462,7 @@ Android Studio Preview.app/Contents/lib/intellij-coverage-agent-1.0.682.jar
 Android Studio Preview.app/Contents/lib/intellij-test-discovery.jar
 Android Studio Preview.app/Contents/lib/jna/aarch64/libjnidispatch.jnilib
 Android Studio Preview.app/Contents/lib/jps-model.jar
+Android Studio Preview.app/Contents/lib/jsp-base.jar
 Android Studio Preview.app/Contents/lib/junit.jar
 Android Studio Preview.app/Contents/lib/junit4.jar
 Android Studio Preview.app/Contents/lib/platform-objectSerializer-annotations.jar
@@ -472,8 +473,11 @@ Android Studio Preview.app/Contents/lib/rd.jar
 Android Studio Preview.app/Contents/lib/resources.jar
 Android Studio Preview.app/Contents/lib/stats.jar
 Android Studio Preview.app/Contents/lib/testFramework.jar
+Android Studio Preview.app/Contents/lib/tools-testsBootstrap.jar
 Android Studio Preview.app/Contents/lib/util.jar
 Android Studio Preview.app/Contents/lib/util_rt.jar
+Android Studio Preview.app/Contents/lib/xml-dom-impl.jar
+Android Studio Preview.app/Contents/lib/xml-dom.jar
 Android Studio Preview.app/Contents/license/antlr4-runtime-4.5.3.jar-NOTICE
 Android Studio Preview.app/Contents/license/bouncycastle-1.48-NOTICE
 Android Studio Preview.app/Contents/license/commons-compress-NOTICE
