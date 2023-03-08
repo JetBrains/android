@@ -115,7 +115,7 @@ final class VirtualDeviceDetailsPanel extends DetailsPanel {
   @Override
   protected void initSummarySection() {
     SummarySection summarySection = new SummarySection();
-    InfoSection.setText(summarySection.myApiLevelLabel, myDevice.getAndroidVersion().getApiString());
+    InfoSection.setText(summarySection.myApiLevelLabel, myDevice.getAndroidVersion().getApiStringWithExtension());
 
     AvdInfo device = myDevice.getAvdInfo();
 
