@@ -32,6 +32,7 @@ import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckedTreeNode
@@ -41,7 +42,6 @@ import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import java.awt.Color
 import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.GridBagConstraints
@@ -193,6 +193,11 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
   override fun createCenterPanel(): JComponent = grid
 
   override fun doOKAction() {
+    if (!visitAllNodes(fileTree.model.root as FileTreeNode).any { it.isChecked }) {
+      Messages.showErrorDialog(project, "No files are currently selected.", "Collect Logs and Diagnostics Data")
+      return
+    }
+
     val saveFile = getSaveFile(project) ?: return
     createZipFile(saveFile)
     showNotification(saveFile)
@@ -273,19 +278,23 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
   }
 
   private fun buildList(): List<FileInfo> {
-    val root = fileTree.model.root as FileTreeNode
     val list = mutableListOf<FileInfo>()
-    addFilesToList(root, list)
+
+    for (node in visitAllNodes(fileTree.model.root as FileTreeNode)) {
+      if (node.isChecked) {
+        node.fileInfo?.let { list.add(it) }
+      }
+    }
+
     return list
   }
 
-  private fun addFilesToList(node: FileTreeNode, list: MutableList<FileInfo>) {
-    if (node.isChecked) {
-      node.fileInfo?.let { list.add(it) }
-    }
-
-    for (child in node.children()) {
-      addFilesToList(child as FileTreeNode, list)
+  private fun visitAllNodes(current: FileTreeNode): Sequence<FileTreeNode> = sequence {
+    yield(current)
+    for (child in current.children()) {
+      for (node in visitAllNodes(child as FileTreeNode)) {
+        yield(node)
+      }
     }
   }
 
@@ -299,7 +308,7 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
 
     val notification =
       notificationGroup.createNotification(
-        "Diagnostic report created",
+        "Collect Logs and Diagnostics Data",
         "The diagnostic report has been created.",
         NotificationType.INFORMATION
       )
