@@ -1645,7 +1645,7 @@ public final class StudioFlags {
   // region TargetSDKVersion Upgrade Assistant
   private static final FlagGroup TSDKVUA = new FlagGroup(FLAGS, "tsdkvua", "Android SDK Upgrade Assistant");
   public static final Flag<Boolean> TSDKVUA_ENABLE = Flag.create(TSDKVUA, "enable", "Enable the Android SDK Upgrade Assistant", "Enable the Android SDK Upgrade Assistant", true);
-  public static final Flag<Boolean> TSDKVUA_FILTERS = Flag.create(TSDKVUA, "filters", "Enable relevance filtering", "Enable relevance filtering", false);
+  public static final Flag<Boolean> TSDKVUA_FILTERS = Flag.create(TSDKVUA, "filters", "Enable relevance filtering", "Enable relevance filtering", true);
   public static final Flag<Boolean> TSDKVUA_FILTERS_WIP = Flag.create(TSDKVUA, "filters.wip", "Enable WIP relevance filters", "Enable WIP relevance filters", false);
   // endregion TargetSDKVersion Upgrade Assistant
 
