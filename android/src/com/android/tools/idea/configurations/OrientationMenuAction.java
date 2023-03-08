@@ -34,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class OrientationMenuAction extends DropDownAction {
   private final ConfigurationHolder myRenderContext;
+  private final boolean myIncludeUiMode;
 
   /**
    * Create a Menu to switch the orientation and UI mode of the preview.
@@ -41,9 +42,14 @@ public class OrientationMenuAction extends DropDownAction {
    * @param renderContext The render context to get the configuration
    */
   // TODO The surface is probably no needed, createVariationAction should be able to use the renderContext configuration
-  public OrientationMenuAction(@NotNull ConfigurationHolder renderContext) {
+  public OrientationMenuAction(@NotNull ConfigurationHolder renderContext, boolean includeUiMode) {
     super("Orientation for Preview", "Orientation for Preview", StudioIcons.LayoutEditor.Toolbar.ROTATE_BUTTON);
     myRenderContext = renderContext;
+    myIncludeUiMode = includeUiMode;
+  }
+
+  public void updateActionsImmediately() {
+    updateActions(DataContext.EMPTY_CONTEXT);
   }
 
   @Override
@@ -76,15 +82,17 @@ public class OrientationMenuAction extends DropDownAction {
         }
       }
 
-      addSeparator();
-      DefaultActionGroup uiModeGroup = createSubMenuGroup(() -> "_UI Mode");
-      UiMode currentUiMode = configuration.getUiMode();
-      for (UiMode uiMode : UiMode.values()) {
-        String title = uiMode.getShortDisplayValue();
-        boolean checked = uiMode == currentUiMode;
-        uiModeGroup.add(new SetUiModeAction(myRenderContext, title, uiMode, checked));
+      if (myIncludeUiMode) {
+        addSeparator();
+        DefaultActionGroup uiModeGroup = createSubMenuGroup(() -> "_UI Mode");
+        UiMode currentUiMode = configuration.getUiMode();
+        for (UiMode uiMode : UiMode.values()) {
+          String title = uiMode.getShortDisplayValue();
+          boolean checked = uiMode == currentUiMode;
+          uiModeGroup.add(new SetUiModeAction(myRenderContext, title, uiMode, checked));
+        }
+        add(uiModeGroup);
       }
-      add(uiModeGroup);
     }
     return true;
   }

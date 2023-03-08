@@ -27,6 +27,7 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.actions.GotoComponentAction
 import com.android.tools.idea.common.util.NlTreeDumper
+import com.android.tools.idea.configurations.OrientationMenuAction
 import com.android.tools.idea.naveditor.NavModelBuilderUtil.navigation
 import com.android.tools.idea.naveditor.NavTestCase
 import com.android.tools.idea.naveditor.actions.ActivateComponentAction
@@ -336,16 +337,17 @@ class NavActionManagerTest : NavTestCase() {
 
     val items = menuGroup.getChildren(null)
 
-    assertEquals(9, items.size)
+    assertEquals(10, items.size)
     validateItem(items[0], SelectAllAction::class.java, "Select All", true)
     validateItem(items[1], Separator::class.java, null, true)
-    validateItem(items[2], AutoArrangeAction::class.java, "Auto Arrange", true)
-    validateItem(items[3], Separator::class.java, null, true)
-    validateItem(items[4], ZoomInAction::class.java, "Zoom In", true)
-    validateItem(items[5], ZoomOutAction::class.java, "Zoom Out", false)
-    validateItem(items[6], ZoomToFitAction::class.java, "Zoom to Fit Screen", true)
-    validateItem(items[7], Separator::class.java, null, true)
-    validateItem(items[8], GotoComponentAction::class.java, "Go to XML", true)
+    validateItem(items[2], OrientationMenuAction::class.java, "Orientation for Preview", true)
+    validateItem(items[3], AutoArrangeAction::class.java, "Auto Arrange", true)
+    validateItem(items[4], Separator::class.java, null, true)
+    validateItem(items[5], ZoomInAction::class.java, "Zoom In", true)
+    validateItem(items[6], ZoomOutAction::class.java, "Zoom Out", false)
+    validateItem(items[7], ZoomToFitAction::class.java, "Zoom to Fit Screen", true)
+    validateItem(items[8], Separator::class.java, null, true)
+    validateItem(items[9], GotoComponentAction::class.java, "Go to XML", true)
   }
 
   fun testMultiSelectContextMenu() {

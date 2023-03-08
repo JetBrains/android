@@ -97,7 +97,7 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     group.add(designModeAction);
     group.addSeparator();
 
-    OrientationMenuAction orientationMenuAction = new OrientationMenuAction(mySurface::getConfiguration);
+    OrientationMenuAction orientationMenuAction = new OrientationMenuAction(mySurface::getConfiguration, true);
     appendShortcutText(orientationMenuAction, ToggleDeviceOrientationAction.getInstance());
     group.add(orientationMenuAction);
 
