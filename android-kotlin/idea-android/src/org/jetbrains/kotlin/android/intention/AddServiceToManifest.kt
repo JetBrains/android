@@ -17,11 +17,15 @@
 package org.jetbrains.kotlin.android.intention
 
 import com.android.SdkConstants
-import org.jetbrains.android.dom.manifest.Manifest
 import com.android.tools.idea.kotlin.isSubclassOf
-import com.intellij.openapi.application.runWriteAction
+import org.jetbrains.android.dom.manifest.Manifest
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.android.isSubclassOf
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.psi.KtClass
 
@@ -30,8 +34,8 @@ class AddServiceToManifest : AbstractRegisterComponentAction("Add service to man
     override fun isApplicableTo(element: KtClass, manifest: Manifest): Boolean =
             element.isSubclassOfService() && !element.isRegisteredService(manifest)
 
-    override fun applyTo(element: KtClass, manifest: Manifest) = runWriteAction {
-        val psiClass = element.toLightClass() ?: return@runWriteAction
+    override fun applyTo(element: KtClass, manifest: Manifest) {
+        val psiClass = element.toLightClass() ?: return
         manifest.application.addService().serviceClass.value = psiClass
     }
 
@@ -39,6 +43,15 @@ class AddServiceToManifest : AbstractRegisterComponentAction("Add service to man
         it.serviceClass.value?.qualifiedName == fqName?.asString()
     }
 
-    private fun KtClass.isSubclassOfService() =
-            (descriptor as? ClassDescriptor)?.defaultType?.isSubclassOf(SdkConstants.CLASS_SERVICE, true) ?: false
+    @OptIn(KtAllowAnalysisOnEdt::class)
+    private fun KtClass.isSubclassOfService() = if (isK2Plugin()) {
+        allowAnalysisOnEdt {
+            analyze(this@isSubclassOfService) {
+                isSubclassOf(this@isSubclassOfService, SdkConstants.CLASS_SERVICE, strict = true)
+            }
+        }
+    }
+    else {
+        (descriptor as? ClassDescriptor)?.defaultType?.isSubclassOf(SdkConstants.CLASS_SERVICE, strict = true) ?: false
+    }
 }

@@ -17,21 +17,25 @@
 package org.jetbrains.kotlin.android.intention
 
 import com.android.SdkConstants
-import org.jetbrains.android.dom.manifest.Manifest
 import com.android.tools.idea.kotlin.isSubclassOf
-import com.intellij.openapi.application.runWriteAction
+import org.jetbrains.android.dom.manifest.Manifest
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.android.isSubclassOf
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.psi.KtClass
 
 
 class AddBroadcastReceiverToManifest : AbstractRegisterComponentAction("Add broadcast receiver to manifest") {
     override fun isApplicableTo(element: KtClass, manifest: Manifest): Boolean =
-        element.isSubclassOfBroadcastReceiver() && !element.isRegisteredBroadcastReceiver(manifest)
+            element.isSubclassOfBroadcastReceiver() && !element.isRegisteredBroadcastReceiver(manifest)
 
-    override fun applyTo(element: KtClass, manifest: Manifest) = runWriteAction {
-        val psiClass = element.toLightClass() ?: return@runWriteAction
+    override fun applyTo(element: KtClass, manifest: Manifest) {
+        val psiClass = element.toLightClass() ?: return
         manifest.application.addReceiver().receiverClass.value = psiClass
     }
 
@@ -39,6 +43,15 @@ class AddBroadcastReceiverToManifest : AbstractRegisterComponentAction("Add broa
         it.receiverClass.value?.qualifiedName == fqName?.asString()
     }
 
-    private fun KtClass.isSubclassOfBroadcastReceiver() =
-            (descriptor as? ClassDescriptor)?.defaultType?.isSubclassOf(SdkConstants.CLASS_BROADCASTRECEIVER, true) ?: false
+    @OptIn(KtAllowAnalysisOnEdt::class)
+    private fun KtClass.isSubclassOfBroadcastReceiver() = if (isK2Plugin()) {
+        allowAnalysisOnEdt {
+            analyze(this@isSubclassOfBroadcastReceiver) {
+                isSubclassOf(this@isSubclassOfBroadcastReceiver, SdkConstants.CLASS_BROADCASTRECEIVER, strict = true)
+            }
+        }
+    }
+    else {
+        (descriptor as? ClassDescriptor)?.defaultType?.isSubclassOf(SdkConstants.CLASS_BROADCASTRECEIVER, strict = true) ?: false
+    }
 }

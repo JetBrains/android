@@ -23,12 +23,16 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType.APP
 import com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType.FRAMEWORK
 import com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType.NONE
+import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.components.buildClassType
+import org.jetbrains.kotlin.analysis.api.symbols.KtClassLikeSymbol
+import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.load.java.descriptors.JavaClassDescriptor
 import org.jetbrains.kotlin.load.java.descriptors.JavaPropertyDescriptor
-import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtQualifiedExpression
-import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelector
+import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.psi.KtClassOrObject
 
 internal fun JavaPropertyDescriptor.getAndroidResourceType(): ResourceType? {
     if (getResourceReferenceType() == NONE) {
@@ -53,4 +57,13 @@ internal fun JavaPropertyDescriptor.getResourceReferenceType(): AndroidPsiUtils.
     }
 
     return NONE
+}
+
+internal fun KtAnalysisSession.isSubclassOf(subClass: KtClassOrObject, superClassName: String, strict: Boolean = false): Boolean {
+    val classSymbol = subClass.getSymbol() as? KtClassLikeSymbol ?: return false
+    val classType = buildClassType(classSymbol) as? KtNonErrorClassType ?: return false
+
+    val superClassType = buildClassType(ClassId.topLevel(FqName(superClassName)))
+    if (!strict && classType.isEqualTo(superClassType)) return true
+    return classType.isSubTypeOf(superClassType)
 }

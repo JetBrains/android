@@ -20,18 +20,23 @@ import com.android.SdkConstants
 import org.jetbrains.android.dom.manifest.Manifest
 import com.android.tools.idea.kotlin.isSubclassOf
 import com.intellij.openapi.application.runWriteAction
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.android.isSubclassOf
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.asJava.toLightClass
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 
 
 class AddActivityToManifest : AbstractRegisterComponentAction("Add activity to manifest") {
     override fun isApplicableTo(element: KtClass, manifest: Manifest): Boolean =
             element.isSubclassOfActivity() && !element.isRegisteredActivity(manifest)
 
-    override fun applyTo(element: KtClass, manifest: Manifest) = runWriteAction {
-        val psiClass = element.toLightClass() ?: return@runWriteAction
+    override fun applyTo(element: KtClass, manifest: Manifest) {
+        val psiClass = element.toLightClass() ?: return
         manifest.application.addActivity().activityClass.value = psiClass
     }
 
@@ -39,6 +44,15 @@ class AddActivityToManifest : AbstractRegisterComponentAction("Add activity to m
         it.activityClass.value?.qualifiedName == fqName?.asString()
     }
 
-    private fun KtClass.isSubclassOfActivity() =
-            (descriptor as? ClassDescriptor)?.defaultType?.isSubclassOf(SdkConstants.CLASS_ACTIVITY, true) ?: false
+    @OptIn(KtAllowAnalysisOnEdt::class)
+    private fun KtClass.isSubclassOfActivity() = if (isK2Plugin()) {
+        allowAnalysisOnEdt {
+            analyze(this@isSubclassOfActivity) {
+                isSubclassOf(this@isSubclassOfActivity, SdkConstants.CLASS_ACTIVITY, strict = true)
+            }
+        }
+    }
+    else {
+        (descriptor as? ClassDescriptor)?.defaultType?.isSubclassOf(SdkConstants.CLASS_ACTIVITY, strict = true) ?: false
+    }
 }
