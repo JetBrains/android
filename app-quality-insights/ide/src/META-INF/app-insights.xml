@@ -22,6 +22,9 @@
                 icon="StudioIcons.Shell.ToolWindows.APP_QUALITY_INSIGHTS"
                 factoryClass="com.android.tools.idea.insights.ui.AppInsightsToolWindowFactory"
                 doNotActivateOnStart="false"/>
+    <projectService
+        serviceInterface="com.android.tools.idea.insights.analytics.AppInsightsTracker"
+        serviceImplementation="com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl" />
   </extensions>
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.insights.ui.appInsightsTabProvider"

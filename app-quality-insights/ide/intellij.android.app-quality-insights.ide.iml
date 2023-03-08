@@ -12,5 +12,9 @@
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.ui" />
+    <orderEntry type="module" module-name="intellij.android.app-quality-insights.api" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="module" module-name="analytics-tracker" />
+    <orderEntry type="module" module-name="intellij.android.core" />
   </component>
 </module>
