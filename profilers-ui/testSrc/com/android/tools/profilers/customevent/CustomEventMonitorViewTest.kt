@@ -25,8 +25,8 @@ import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
@@ -57,7 +57,7 @@ class CustomEventMonitorViewTest {
     transportService.setAgentStatus(DEFAULT_AGENT_ATTACHED_RESPONSE)
     timer.tick(TimeUnit.SECONDS.toNanos(1))
 
-    val profilerView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
+    val profilerView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     monitorView = CustomEventMonitorView(profilerView, CustomEventMonitor(profilers))
   }
 

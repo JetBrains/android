@@ -24,6 +24,7 @@ import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
@@ -64,7 +65,7 @@ class EnergyProfilerStageViewTest {
     // in the channel, and the tick loop would not complete properly to set the process and agent status.
     profilers.stage = EnergyProfilerStage(profilers)
     // Initialize the view after the stage, otherwise it will create the views for the monitoring stage.
-    view = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
+    view = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
   }
 
   @Test

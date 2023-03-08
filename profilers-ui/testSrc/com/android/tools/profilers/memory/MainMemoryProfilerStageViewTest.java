@@ -50,6 +50,7 @@ import com.android.tools.profilers.ProfilerClient;
 import com.android.tools.profilers.ProfilersTestData;
 import com.android.tools.profilers.RecordingOptionsModel;
 import com.android.tools.profilers.RecordingOptionsView;
+import com.android.tools.profilers.SessionProfilersView;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.SupportLevel;
@@ -112,7 +113,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
 
   @Override
   protected void onProfilersCreated(StudioProfilers profilers) {
-    myProfilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents(), myDisposableRule.getDisposable());
+    myProfilersView = new SessionProfilersView(profilers, new FakeIdeProfilerComponents(), myDisposableRule.getDisposable());
   }
 
   @Before

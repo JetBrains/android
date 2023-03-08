@@ -23,9 +23,9 @@ import com.android.tools.profiler.proto.Interaction
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StageView
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
@@ -57,7 +57,7 @@ class LifecycleTooltipViewTest {
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), FakeIdeProfilerServices(), timer)
     timer.tick(TimeUnit.SECONDS.toNanos(1))
     monitor = EventMonitor(profilers)
-    val view = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
+    val view = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     activityTooltipView = FakeLifecycleTooltipView(view.stageView!!, LifecycleTooltip(monitor.timeline, monitor.lifecycleEvents))
     view.stageView!!.component.setBounds(0, 0, 1024, 256)
     profilers.timeline.viewRange.min = 0.0

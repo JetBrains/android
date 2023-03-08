@@ -34,6 +34,7 @@ import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.Utils
@@ -95,7 +96,7 @@ class CpuCaptureStageViewTest {
   fun setUp() {
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     profilers.setPreferredProcess(FakeTransportService.FAKE_DEVICE_NAME, FakeTransportService.FAKE_PROCESS_NAME, null)
-    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
+    profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
     stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                    resolveWorkspacePath(CpuProfilerUITestUtils.VALID_TRACE_PATH).toFile(), 123L)
@@ -246,15 +247,16 @@ class CpuCaptureStageViewTest {
     captureNode.startGlobal = 0
     captureNode.endGlobal = 10
 
-    assertThat(profilersView.zoomToSelectionButton.isEnabled).isFalse()
+    val zoomToSelectionButton = (profilersView as SessionProfilersView).zoomToSelectionButton
+    assertThat(zoomToSelectionButton.isEnabled).isFalse()
     stage.multiSelectionModel.setSelection(captureNode, setOf(CaptureNodeAnalysisModel(captureNode, stage.capture, Utils::runOnUi)))
-    assertThat(profilersView.zoomToSelectionButton.isEnabled).isTrue()
+    assertThat(zoomToSelectionButton.isEnabled).isTrue()
     assertThat(stage.timeline.selectionRange.isSameAs(Range(0.0, 10.0))).isTrue()
 
     // Validate feature tracking
     val featureTracker = profilersView.studioProfilers.ideServices.featureTracker as FakeFeatureTracker
     featureTracker.resetZoomToSelectionCallCount()
-    profilersView.zoomToSelectionButton.doClick()
+    zoomToSelectionButton.doClick()
     assertThat(featureTracker.zoomToSelectionCallCount).isEqualTo(1)
   }
 
@@ -269,9 +271,10 @@ class CpuCaptureStageViewTest {
                                           PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
                                           PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
                                           false, false, 0)
-    assertThat(profilersView.zoomToSelectionButton.isEnabled).isFalse()
+    val zoomToSelectionButton = (profilersView as SessionProfilersView).zoomToSelectionButton
+    assertThat(zoomToSelectionButton.isEnabled).isFalse()
     stage.multiSelectionModel.setSelection(frame, setOf(JankAnalysisModel(frame, capture, Utils::runOnUi)))
-    assertThat(profilersView.zoomToSelectionButton.isEnabled).isTrue()
+    assertThat(zoomToSelectionButton.isEnabled).isTrue()
     assertThat(stage.timeline.selectionRange.isSameAs(Range(0.0, 30.0))).isTrue()
   }
 

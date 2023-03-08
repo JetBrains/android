@@ -80,7 +80,7 @@ import org.junit.runners.Parameterized;
 
 @RunsInEdt
 @RunWith(Parameterized.class)
-public class StudioProfilersViewTest {
+public class SessionProfilersViewTest {
 
   private static final Common.Session SESSION_O = Common.Session.newBuilder().setSessionId(2).setStartTimestamp(FakeTimer.ONE_SECOND_IN_NS)
     .setEndTimestamp(FakeTimer.ONE_SECOND_IN_NS * 2).setPid(1).build();
@@ -93,7 +93,7 @@ public class StudioProfilersViewTest {
   private final FakeTransportService myService;
   private final boolean myIsTestingProfileable;
 
-  public StudioProfilersViewTest(boolean isTestingProfileable) {
+  public SessionProfilersViewTest(boolean isTestingProfileable) {
     myIsTestingProfileable = isTestingProfileable;
     myService = isTestingProfileable
                 ? new FakeTransportService(myTimer, true, AndroidVersion.VersionCodes.S, Common.Process.ExposureLevel.PROFILEABLE)
@@ -108,7 +108,7 @@ public class StudioProfilersViewTest {
 
   private StudioProfilers myProfilers;
   private FakeIdeProfilerServices myProfilerServices = new FakeIdeProfilerServices();
-  private StudioProfilersView myView;
+  private SessionProfilersView myView;
   private FakeUi myUi;
 
   @Before
@@ -116,7 +116,7 @@ public class StudioProfilersViewTest {
     myProfilerServices.enableEnergyProfiler(true);
     myProfilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myProfilerServices, myTimer);
     myProfilers.setPreferredProcess(FAKE_DEVICE_NAME, FAKE_PROCESS_NAME, null);
-    myView = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents(), myDisposableRule.getDisposable());
+    myView = new SessionProfilersView(myProfilers, new FakeIdeProfilerComponents(), myDisposableRule.getDisposable());
     myView.bind(FakeStage.class, FakeView::new);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
     if (myIsTestingProfileable) {
@@ -242,7 +242,7 @@ public class StudioProfilersViewTest {
     // Fake a collapse action and re-create the StudioProfilerView, the session UI should now remain collapsed.
     myView.getSessionsView().getCollapseButton().doClick();
     StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myProfilerServices, myTimer);
-    StudioProfilersView profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents(), myDisposableRule.getDisposable());
+    SessionProfilersView profilersView = new SessionProfilersView(profilers, new FakeIdeProfilerComponents(), myDisposableRule.getDisposable());
     assertThat(profilersView.getSessionsView().getCollapsed()).isTrue();
 
     // Fake a resize and re-create the StudioProfilerView, the session UI should maintain the previous dimension
@@ -253,7 +253,7 @@ public class StudioProfilersViewTest {
     myUi.mouse.drag(splitter.getFirstSize(), 0, 10, 0);
 
     profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), myProfilerServices, myTimer);
-    profilersView = new StudioProfilersView(profilers, new FakeIdeProfilerComponents(), myDisposableRule.getDisposable());
+    profilersView = new SessionProfilersView(profilers, new FakeIdeProfilerComponents(), myDisposableRule.getDisposable());
     assertThat(profilersView.getSessionsView().getCollapsed()).isFalse();
     assertThat(((ThreeComponentsSplitter)profilersView.getComponent().getComponent(0)).getFirstSize()).isEqualTo(splitter.getFirstSize());
   }
@@ -266,10 +266,10 @@ public class StudioProfilersViewTest {
     ContextMenuItem attachItem = null;
     ContextMenuItem detachItem = null;
     for (ContextMenuItem item : contextMenuItems) {
-      if (item.getText().equals(StudioProfilersView.ATTACH_LIVE)) {
+      if (item.getText().equals(SessionProfilersView.ATTACH_LIVE)) {
         attachItem = item;
       }
-      else if (item.getText().equals(StudioProfilersView.DETACH_LIVE)) {
+      else if (item.getText().equals(SessionProfilersView.DETACH_LIVE)) {
         detachItem = item;
       }
     }
@@ -290,7 +290,7 @@ public class StudioProfilersViewTest {
     assertThat(attachItem.isEnabled()).isTrue();
     assertThat(detachItem.isEnabled()).isFalse();
     assertThat(liveButton.getIcon()).isEqualTo(StudioIcons.Profiler.Toolbar.GOTO_LIVE);
-    assertThat(liveButton.getToolTipText()).startsWith(StudioProfilersView.ATTACH_LIVE);
+    assertThat(liveButton.getToolTipText()).startsWith(SessionProfilersView.ATTACH_LIVE);
 
     // Attaching to live should select the button again.
     attachItem.run();
@@ -300,7 +300,7 @@ public class StudioProfilersViewTest {
     assertThat(attachItem.isEnabled()).isFalse();
     assertThat(detachItem.isEnabled()).isTrue();
     assertThat(liveButton.getIcon()).isEqualTo(StudioIcons.Profiler.Toolbar.PAUSE_LIVE);
-    assertThat(liveButton.getToolTipText()).startsWith(StudioProfilersView.DETACH_LIVE);
+    assertThat(liveButton.getToolTipText()).startsWith(SessionProfilersView.DETACH_LIVE);
 
     // Stopping the session should disable and unselect the button
     endSession();
@@ -337,12 +337,12 @@ public class StudioProfilersViewTest {
     myProfilers.getTimeline().setStreaming(false);
     assertThat(liveButton.isSelected()).isFalse();
     assertThat(liveButton.getIcon()).isEqualTo(StudioIcons.Profiler.Toolbar.GOTO_LIVE);
-    assertThat(liveButton.getToolTipText()).startsWith(StudioProfilersView.ATTACH_LIVE);
+    assertThat(liveButton.getToolTipText()).startsWith(SessionProfilersView.ATTACH_LIVE);
 
     myProfilers.getTimeline().setStreaming(true);
     assertThat(liveButton.isSelected()).isTrue();
     assertThat(liveButton.getIcon()).isEqualTo(StudioIcons.Profiler.Toolbar.PAUSE_LIVE);
-    assertThat(liveButton.getToolTipText()).startsWith(StudioProfilersView.DETACH_LIVE);
+    assertThat(liveButton.getToolTipText()).startsWith(SessionProfilersView.DETACH_LIVE);
   }
 
   @Test
@@ -650,7 +650,7 @@ public class StudioProfilersViewTest {
   }
 
   private static class FakeStageView extends StageView<FakeStage> {
-    public FakeStageView(@NotNull StudioProfilersView view, @NotNull FakeStage stage) {
+    public FakeStageView(@NotNull SessionProfilersView view, @NotNull FakeStage stage) {
       super(view, stage);
     }
 
@@ -662,7 +662,7 @@ public class StudioProfilersViewTest {
 
   static class FakeView extends StageView<FakeStage> {
 
-    public FakeView(@NotNull StudioProfilersView profilersView, @NotNull FakeStage stage) {
+    public FakeView(@NotNull SessionProfilersView profilersView, @NotNull FakeStage stage) {
       super(profilersView, stage);
     }
 

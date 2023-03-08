@@ -22,6 +22,7 @@ import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.IdeProfilerComponents
 import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.sessions.SessionAspect
@@ -67,7 +68,7 @@ class StudioProfilersWrapper constructor(private val project: Project,
     }
 
     val profilerComponents: IdeProfilerComponents = IntellijProfilerComponents(project, profilers.ideServices.featureTracker)
-    profilersView = StudioProfilersView(profilers, profilerComponents, this)
+    profilersView = SessionProfilersView(profilers, profilerComponents, this)
 
     project.messageBus.connect(this).subscribe(ToolWindowManagerListener.TOPIC,
                                                AndroidProfilerWindowManagerListener(project, profilers, profilersView))

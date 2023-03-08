@@ -30,6 +30,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
+import com.android.tools.profilers.SessionProfilersView;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
@@ -64,7 +65,7 @@ public class MemoryNavigationTest {
     FakeIdeProfilerServices profilerServices = new FakeIdeProfilerServices();
     StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), profilerServices, myTimer);
     myFakeIdeProfilerComponents = new FakeIdeProfilerComponents();
-    StudioProfilersView profilersView = new StudioProfilersView(profilers, myFakeIdeProfilerComponents, myDisposableRule.getDisposable());
+    StudioProfilersView profilersView = new SessionProfilersView(profilers, myFakeIdeProfilerComponents, myDisposableRule.getDisposable());
 
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);
