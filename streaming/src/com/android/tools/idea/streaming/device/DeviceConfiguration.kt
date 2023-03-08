@@ -40,7 +40,7 @@ class DeviceConfiguration(val deviceProperties: DeviceProperties, useTitleAsName
   val isAutomotive: Boolean
     get() = deviceProperties.deviceType == DeviceType.AUTOMOTIVE
 
-  val deviceName: String?
+  val deviceName: String
 
   val hasOrientationSensors: Boolean = true // TODO Obtain sensor info from the device.
 

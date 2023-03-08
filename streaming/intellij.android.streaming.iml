@@ -10,6 +10,7 @@
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="analytics" />
+    <orderEntry type="module" module-name="analytics-crash" />
     <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="android.sdktools.adblib" />

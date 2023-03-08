@@ -13,6 +13,7 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-gradle",
+        "//tools/analytics-library/crash:analytics-crash[module, test]",
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/android-lang-databinding:intellij.android.lang-databinding[module, test]",
         "//tools/adt/idea/android-common:intellij.android.common[module]",

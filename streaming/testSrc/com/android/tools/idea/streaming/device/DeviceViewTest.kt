@@ -26,6 +26,8 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.replaceKeyboardFocusManager
+import com.android.tools.analytics.UsageTrackerRule
+import com.android.tools.analytics.crash.CrashReport
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.executeCapturingLoggedErrors
@@ -38,8 +40,10 @@ import com.android.tools.idea.streaming.device.DeviceView.Companion.ANDROID_SCRO
 import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.executeDeviceAction
 import com.android.tools.idea.testing.AndroidExecutorsRule
+import com.android.tools.idea.testing.CrashReporterRule
 import com.android.tools.idea.testing.mockStatic
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE_MIRRORING_ABNORMAL_AGENT_TERMINATION
 import com.intellij.ide.ClipboardSynchronizer
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_COPY
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_CUT
@@ -76,6 +80,7 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ConcurrencyUtil
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
 import kotlinx.coroutines.runBlocking
+import org.apache.http.entity.mime.MultipartEntityBuilder
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -127,8 +132,12 @@ import kotlin.time.Duration.Companion.seconds
 internal class DeviceViewTest {
   private val agentRule = FakeScreenSharingAgentRule()
   private val androidExecutorsRule = AndroidExecutorsRule(workerThreadExecutor = Executors.newCachedThreadPool())
+  private val crashReporterRule = CrashReporterRule()
   @get:Rule
-  val ruleChain = RuleChain(ApplicationRule(), ClipboardSynchronizationDisablementRule(), androidExecutorsRule, agentRule, EdtRule())
+  val ruleChain =
+      RuleChain(ApplicationRule(), crashReporterRule, ClipboardSynchronizationDisablementRule(), androidExecutorsRule, agentRule, EdtRule())
+  @get:Rule
+  val usageTrackerRule = UsageTrackerRule()
   private lateinit var device: FakeScreenSharingAgentRule.FakeDevice
   private lateinit var view: DeviceView
   private lateinit var fakeUi: FakeUi
@@ -562,10 +571,44 @@ internal class DeviceViewTest {
     assertThat(view.displayOrientationQuadrants).isEqualTo(0)
 
     // Simulate crash of the screen sharing agent.
-    runBlocking { agent.crash() }
+    runBlocking {
+      agent.writeToStderr("Crash is near\n")
+      agent.writeToStderr("Kaput\n")
+      agent.crash()
+    }
     val errorMessage = fakeUi.getComponent<JLabel>()
     waitForCondition(2, TimeUnit.SECONDS) { fakeUi.isShowing(errorMessage) }
     assertThat(errorMessage.text).isEqualTo("Lost connection to the device. See the error log.")
+    var events = usageTrackerRule.agentTerminationEventsAsStrings()
+    assertThat(events.size).isEqualTo(1)
+    val eventPattern = Regex(
+      "kind: DEVICE_MIRRORING_ABNORMAL_AGENT_TERMINATION\n" +
+      "studio_session_id: \".+\"\n" +
+      "product_details \\{\n" +
+      "\\s*version: \".*\"\n" +
+      "}\n" +
+      "device_info \\{\n" +
+      "\\s*build_version_release: \"Sweet dessert\"\n" +
+      "\\s*cpu_abi: ARM64_V8A_ABI\n" +
+      "\\s*manufacturer: \"Google\"\n" +
+      "\\s*model: \"Pixel 5\"\n" +
+      "\\s*device_type: LOCAL_PHYSICAL\n" +
+      "\\s*build_api_level_full: \"30\"\n" +
+      "\\s*mdns_connection_type: MDNS_NONE\n" +
+      "}\n" +
+      "ide_brand: ANDROID_STUDIO\n" +
+      "idea_is_internal: \\w+\n" +
+      "device_mirroring_abnormal_agent_termination \\{\n" +
+      "\\s*exit_code: 139\n" +
+      "\\s*run_duration_millis: \\d+\n" +
+      "}\n"
+    )
+    assertThat(eventPattern.matches(events[0])).isTrue()
+    var crashReports = crashReporterRule.reports
+    assertThat(crashReports.size).isEqualTo(1)
+    val crashReportPattern1 =
+        Regex("\\{exitCode=\"139\", runDurationMillis=\"\\d+\", agentMessages=\"Crash is near\nKaput\", device=\"Pixel 5 API 30\"}")
+    assertThat(crashReportPattern1.matches(crashReports[0].toPartMap().toString())).isTrue()
 
     fakeUi.layoutAndDispatchEvents()
     val button = fakeUi.getComponent<JButton>()
@@ -586,6 +629,15 @@ internal class DeviceViewTest {
     assertThat(errorMessage.text).isEqualTo("Failed to initialize the device agent. See the error log.")
     assertThat(button.text).isEqualTo("Retry")
     assertThat(loggedErrors).containsExactly("Failed to initialize the screen sharing agent")
+
+    events = usageTrackerRule.agentTerminationEventsAsStrings()
+    assertThat(events.size).isEqualTo(2)
+    assertThat(eventPattern.matches(events[1])).isTrue()
+
+    crashReports = crashReporterRule.reports
+    assertThat(crashReports.size).isEqualTo(2)
+    val crashReportPattern2 = Regex("\\{exitCode=\"139\", runDurationMillis=\"\\d+\", agentMessages=\"\", device=\"Pixel 5 API 30\"}")
+    assertThat(crashReportPattern2.matches(crashReports[1].toPartMap().toString())).isTrue()
 
     // Check reconnection.
     agent.crashOnStart = false
@@ -662,5 +714,24 @@ internal class DeviceViewTest {
 
 private fun getKeyStroke(action: String) =
   KeymapUtil.getKeyStroke(KeymapUtil.getActiveKeymapShortcuts(action))!!
+
+private fun UsageTrackerRule.agentTerminationEventsAsStrings(): List<String> {
+  return usages.filter { it.studioEvent.kind == DEVICE_MIRRORING_ABNORMAL_AGENT_TERMINATION }.map { it.studioEvent.toString() }
+}
+
+private fun CrashReport.toPartMap(): Map<String, String> {
+  val parts = linkedMapOf<String, String>()
+  val mockBuilder: MultipartEntityBuilder = mock()
+  serialize(mockBuilder)
+  val keyCaptor = ArgumentCaptor.forClass(String::class.java)
+  val valueCaptor = ArgumentCaptor.forClass(String::class.java)
+  Mockito.verify(mockBuilder, Mockito.atLeast(1)).addTextBody(keyCaptor.capture(), valueCaptor.capture(), any())
+  val keys = keyCaptor.allValues
+  val values = valueCaptor.allValues
+  for ((i, key) in keys.withIndex()) {
+    parts[key] = "\"${values[i]}\""
+  }
+  return parts
+}
 
 private const val GOLDEN_FILE_PATH = "tools/adt/idea/streaming/testData/DeviceViewTest/golden"
