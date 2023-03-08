@@ -140,6 +140,7 @@
       <module fileurl="file://$PROJECT_DIR$/swingp/intellij.android.adt.swingp.iml" filepath="$PROJECT_DIR$/swingp/intellij.android.adt.swingp.iml" />
       <module fileurl="file://$PROJECT_DIR$/adt-testutils/intellij.android.adt.testutils.iml" filepath="$PROJECT_DIR$/adt-testutils/intellij.android.adt.testutils.iml" />
       <module fileurl="file://$PROJECT_DIR$/adt-ui/intellij.android.adt.ui.iml" filepath="$PROJECT_DIR$/adt-ui/intellij.android.adt.ui.iml" />
+      <module fileurl="file://$PROJECT_DIR$/adt-ui-compose/intellij.android.adt.ui.compose.iml" filepath="$PROJECT_DIR$/adt-ui-compose/intellij.android.adt.ui.compose.iml" />
       <module fileurl="file://$PROJECT_DIR$/adt-ui-model/intellij.android.adt.ui.model.iml" filepath="$PROJECT_DIR$/adt-ui-model/intellij.android.adt.ui.model.iml" />
       <module fileurl="file://$PROJECT_DIR$/androidx-integration-tests/intellij.android.androidx-integration-tests.iml" filepath="$PROJECT_DIR$/androidx-integration-tests/intellij.android.androidx-integration-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/apkanalyzer/intellij.android.apkanalyzer.iml" filepath="$PROJECT_DIR$/apkanalyzer/intellij.android.apkanalyzer.iml" />
