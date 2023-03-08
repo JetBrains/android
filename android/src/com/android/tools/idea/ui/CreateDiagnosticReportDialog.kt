@@ -36,13 +36,11 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckedTreeNode
-import com.intellij.ui.JBColor
+import com.intellij.ui.components.BrowserLink
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
-import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -56,20 +54,24 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import javax.swing.Action
 import javax.swing.JComponent
-import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.JTree
-import javax.swing.event.HyperlinkEvent
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreeSelectionModel
 import kotlin.io.path.name
 
-private const val PRIVACY_TEXT =
+private const val PRIVACY_TEXT_1 =
   "Some account and system information may be sent to Google. We will use the information you give us to help address technical issues " +
-  "and to improve our services, subject to our <a href='http://www.google.com/policies/privacy/'>Privacy Policy</a> and " +
-  "<a href='http://www.google.com/policies/terms/'>Terms of Service</a>."
+  "and to improve our services,"
+
+private const val PRIVACY_TEXT_2 =
+  "subject to our privacy policy and terms of service."
+
+private const val PRIVACY_HYPERLINK = "http://www.google.com/policies/privacy/"
+private const val TOS_HYPERLINK = "http://www.google.com/policies/terms/"
+private const val TITLE = "Collect Logs and Diagnostics Data"
 
 /**
  * CreateDiagnosticReportDialog displays a tree view of files to be included in a diagnostic zip file, as well as a preview pane
@@ -100,7 +102,7 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
 
 
   init {
-    title = "Collect Logs and Diagnostics Data"
+    title = TITLE
     isResizable = false
     isModal = true
 
@@ -154,19 +156,8 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
 
       add(contentsScrollPane, constraints)
 
-      val privacy = JEditorPane("text/html", PRIVACY_TEXT).apply {
-        isEditable = false
-        background = JBColor(UIUtil.TRANSPARENT_COLOR, UIUtil.TRANSPARENT_COLOR)
-        preferredSize = Dimension(1100, 40)
-        putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true)
-
-        addHyperlinkListener { e ->
-          if (e.eventType == HyperlinkEvent.EventType.ACTIVATED) {
-            if (Desktop.isDesktopSupported()) {
-              Desktop.getDesktop().browse(e.url.toURI());
-            }
-          }
-        }
+      val privacy1 = JLabel().apply {
+        text = PRIVACY_TEXT_1
       }
 
       constraints.apply {
@@ -175,7 +166,36 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
         gridwidth = 2
       }
 
-      add(privacy, constraints)
+      add(privacy1, constraints)
+
+      val privacy2 = JLabel().apply {
+        text = PRIVACY_TEXT_2
+      }
+
+      val oldInsets = constraints.insets
+      constraints.apply {
+        gridy = 3
+        insets = JBUI.insets(insets.top - 10, insets.left, insets.bottom, insets.right)
+      }
+
+      add(privacy2, constraints)
+
+      val privacyLink = BrowserLink("Privacy Policy", PRIVACY_HYPERLINK)
+
+      constraints.apply {
+        gridy = 4
+        insets = oldInsets
+      }
+
+      add(privacyLink, constraints)
+
+      val termsOfServiceLink = BrowserLink("Terms of Service", TOS_HYPERLINK)
+
+      constraints.apply {
+        gridy = 5
+      }
+
+      add(termsOfServiceLink, constraints)
 
       checkBox = JBCheckBox().apply {
         text = "I agree to the terms above."
@@ -186,7 +206,7 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
 
       constraints.apply {
         gridx = 0
-        gridy = 3
+        gridy = 6
         gridwidth = 1
       }
 
@@ -202,7 +222,7 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
 
   override fun doOKAction() {
     if (!visitAllNodes(fileTree.model.root as FileTreeNode).any { it.isChecked }) {
-      Messages.showErrorDialog(project, "No files are currently selected.", "Collect Logs and Diagnostics Data")
+      Messages.showErrorDialog(project, "No files are currently selected.", TITLE)
       return
     }
 
@@ -317,7 +337,7 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
 
     val notification =
       notificationGroup.createNotification(
-        "Collect Logs and Diagnostics Data",
+        TITLE,
         "The diagnostic report has been created.",
         NotificationType.INFORMATION
       )
