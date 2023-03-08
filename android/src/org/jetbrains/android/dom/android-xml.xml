@@ -135,5 +135,9 @@
                      key="android.inspections.unresolvable.tag" groupKey="android.inspections.group.name" enabledByDefault="true"
                      level="ERROR" implementationClass="org.jetbrains.android.dom.inspections.AndroidUnresolvableTagInspection"/>
 
+    <localInspection language="XML" shortName="NavigationFile" bundle="messages.AndroidBundle"
+                     key="android.inspections.nav.file" groupKey="android.inspections.group.name" enabledByDefault="true"
+                     level="ERROR" implementationClass="org.jetbrains.android.dom.inspections.NavFileInspection"/>
+
   </extensions>
 </idea-plugin>
