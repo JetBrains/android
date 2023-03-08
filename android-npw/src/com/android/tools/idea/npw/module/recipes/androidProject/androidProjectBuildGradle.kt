@@ -15,34 +15,9 @@
  */
 package com.android.tools.idea.npw.module.recipes.androidProject
 
-import com.android.tools.idea.wizard.template.GradlePluginVersion
-import com.android.tools.idea.wizard.template.renderIf
-
-
-fun androidProjectBuildGradle(
-  generateKotlin: Boolean,
-  kotlinVersion: String,
-  gradlePluginVersion: GradlePluginVersion): String {
-  return """
+// Each plugin is requested from module recipe. Only the empty plugins block is needed from the project recipe
+fun androidProjectBuildGradle() = """
     // Top-level build file where you can add configuration options common to all sub-projects/modules.
     plugins {
-        id 'com.android.application' version '$gradlePluginVersion' apply false
-        id 'com.android.library' version '$gradlePluginVersion' apply false
-        ${renderIf(generateKotlin) { "id 'org.jetbrains.kotlin.android' version '$kotlinVersion' apply false" }}
     }
-    """
-}
-
-fun androidProjectBuildGradleKts(
-  generateKotlin: Boolean,
-  kotlinVersion: String,
-  gradlePluginVersion: GradlePluginVersion): String {
-  return """
-    // Top-level build file where you can add configuration options common to all sub-projects/modules.
-    plugins {
-        id("com.android.application") version "$gradlePluginVersion" apply false
-        id("com.android.library") version "$gradlePluginVersion" apply false
-        ${renderIf(generateKotlin) { "id(\"org.jetbrains.kotlin.android\") version \"$kotlinVersion\" apply false" }}
-    }
-    """
-}
+"""

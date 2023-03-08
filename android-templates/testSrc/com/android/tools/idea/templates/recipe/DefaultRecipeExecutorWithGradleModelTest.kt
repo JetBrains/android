@@ -301,6 +301,30 @@ compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = 
     assertEquals("1.0.0", version)
   }
 
+  @Test
+  fun testApplyPluginWithVersionCatalog() {
+    writeToSettingsFile("""
+pluginManagement {
+  plugins {
+  }
+}
+    """)
+
+    recipeExecutor.applyPlugin("org.jetbrains.kotlin.android", "1.7.20")
+
+    applyChanges(recipeExecutor.projectBuildModel!!)
+
+    verifyFileContents(myVersionCatalogFile, """
+[versions]
+org-jetbrains-kotlin-android = "1.7.20"
+[libraries]
+[plugins]
+org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "org-jetbrains-kotlin-android" }
+    """)
+    verifyFileContents(mySettingsFile, TestFile.APPLY_PLUGIN_SETTING_FILE)
+    verifyFileContents(myBuildFile, TestFile.APPLY_PLUGIN_BUILD_FILE)
+  }
+
   enum class TestFile(private val path: @SystemDependent String) : TestFileName {
     VERSION_CATALOG_ADD_DEPENDENCY("versionCatalogAddDependency"),
     VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME("versionCatalogAddDependencyAvoidSameName"),
@@ -309,6 +333,8 @@ compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = 
     VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_FINAL_FALLBACK_SECOND_LOOP("versionCatalogAddDependencyAvoidSameNameFinalFallbackSecondLoop"),
     VERSION_CATALOG_ADD_PLATFORM_DEPENDENCY("versionCatalogAddPlatformDependency"),
     GET_EXT_VAR_INITIAL("getExtVarInitial"),
+    APPLY_PLUGIN_BUILD_FILE("versionCatalogApplyPlugin"),
+    APPLY_PLUGIN_SETTING_FILE("versionCatalogApplyPlugin.settings"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

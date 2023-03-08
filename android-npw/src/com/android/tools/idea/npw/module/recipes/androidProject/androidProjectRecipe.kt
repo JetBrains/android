@@ -39,16 +39,9 @@ fun RecipeExecutor.androidProjectRecipe(
   val topOut = data.rootDir
 
   if (useGradleKts) {
-    save(
-      androidProjectBuildGradleKts(language == Language.Kotlin, data.kotlinVersion, data.gradlePluginVersion),
-      topOut.resolve(FN_BUILD_GRADLE_KTS)
-    )
-  }
-  else {
-    save(
-      androidProjectBuildGradle(language == Language.Kotlin, data.kotlinVersion, data.gradlePluginVersion),
-      topOut.resolve(FN_BUILD_GRADLE)
-    )
+    save(androidProjectBuildGradle(), topOut.resolve(FN_BUILD_GRADLE_KTS))
+  } else {
+    save(androidProjectBuildGradle(), topOut.resolve(FN_BUILD_GRADLE))
   }
 
   if (makeIgnore) {

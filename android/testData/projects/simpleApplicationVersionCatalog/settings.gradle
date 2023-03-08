@@ -1,7 +1,9 @@
 pluginManagement {
-  plugins {
-    id 'com.android.application' version '1.5.0'
+  repositories {
+    // This will be populated by AndroidGradleTestCase
   }
+}
+dependencyResolutionManagement {
   repositories {
     // This will be populated by AndroidGradleTestCase
   }
