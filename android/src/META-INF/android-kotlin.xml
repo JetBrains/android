@@ -8,6 +8,7 @@
     </extensionPoints>
 
     <extensions defaultExtensionNs="com.intellij">
+        <externalAnnotator language="kotlin" implementationClass="org.jetbrains.kotlin.android.AndroidKotlinResourceExternalAnnotator" />
 
         <completion.contributor language="kotlin" implementationClass="org.jetbrains.kotlin.android.AndroidKotlinCompletionContributor" order="first, before KotlinCompletionContributor"/>
 
@@ -94,6 +95,4 @@
     <extensions defaultExtensionNs="com.android.tools.idea.lint.common">
         <lintQuickFixProvider implementation="org.jetbrains.kotlin.android.quickfix.KotlinAndroidQuickFixProvider" />
     </extensions>
-
-  <xi:include href="/META-INF/android-kotlin.k1.xml" xpointer="xpointer(/idea-plugin/*)" includeUnless="idea.kotlin.plugin.use.k2"/>
 </idea-plugin>
