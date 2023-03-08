@@ -16,12 +16,7 @@
 package com.android.tools.idea.profilers
 
 import com.android.tools.adtui.model.AspectObserver
-import com.android.tools.idea.model.StudioAndroidModuleInfo
-import com.android.tools.idea.transport.TransportService.Companion.channelName
-import com.android.tools.profiler.proto.Common
 import com.android.tools.profilers.IdeProfilerComponents
-import com.android.tools.profilers.ProfilerAspect
-import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
@@ -29,43 +24,19 @@ import com.android.tools.profilers.sessions.SessionAspect
 import com.android.tools.profilers.sessions.SessionsManager
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import icons.StudioIcons
-import java.util.function.Supplier
 
-class StudioProfilersWrapper constructor(private val project: Project,
-                                         private val window: ToolWindowWrapper,
-                                         ideProfilerServices: IntellijProfilerServices) : AspectObserver(), Disposable {
-  val profilers: StudioProfilers
+class StudioProfilersWrapper(private val profilers: StudioProfilers,
+                             private val window: ToolWindowWrapper,
+                             project: Project) : AspectObserver(), Disposable {
   val profilersView: StudioProfilersView
 
   init {
-    val client = ProfilerClient(channelName)
-    profilers = StudioProfilers(client, ideProfilerServices)
-    val navigator = ideProfilerServices.codeNavigator
-    // CPU ABI architecture, when needed by the code navigator, should be retrieved from StudioProfiler selected session.
-    navigator.cpuArchSource = Supplier { profilers.sessionsManager.selectedSessionMetaData.processAbi }
-
-    profilers.addDependency(this).onChange(ProfilerAspect.STAGE) { stageChanged() }
     profilers.sessionsManager.addDependency(this)
       .onChange(SessionAspect.SELECTED_SESSION) { selectedSessionChanged() }
       .onChange(SessionAspect.PROFILING_SESSION) { profilingSessionChanged() }
-
-    // Attempt to find the last-run process and start profiling it. This covers the case where the user presses "Run" (without profiling),
-    // but then opens the profiling window manually.
-    val processInfo = project.getUserData(AndroidProfilerToolWindow.LAST_RUN_APP_INFO)
-    if (processInfo != null) {
-      profilers.setPreferredProcess(processInfo.deviceName,
-                                    processInfo.processName) { p: Common.Process? -> processInfo.processFilter.invoke(p!!) }
-      project.putUserData(AndroidProfilerToolWindow.LAST_RUN_APP_INFO, null)
-    }
-    else {
-      StartupManager.getInstance(project).runWhenProjectIsInitialized { profilers.preferredProcessName = getPreferredProcessName(project) }
-    }
 
     val profilerComponents: IdeProfilerComponents = IntellijProfilerComponents(project, profilers.ideServices.featureTracker)
     profilersView = SessionProfilersView(profilers, profilerComponents, this)
@@ -74,15 +45,7 @@ class StudioProfilersWrapper constructor(private val project: Project,
                                                AndroidProfilerWindowManagerListener(project, profilers, profilersView))
   }
 
-  override fun dispose() {
-    profilers.stop()
-  }
-
-  private fun stageChanged() {
-    if (profilers.isStopped) {
-      window.removeContent()
-    }
-  }
+  override fun dispose() {}
 
   private fun selectedSessionChanged() {
     val metaData = profilers.sessionsManager.selectedSessionMetaData
@@ -98,29 +61,6 @@ class StudioProfilersWrapper constructor(private val project: Project,
     }
     else {
       window.icon = StudioIcons.Shell.ToolWindows.ANDROID_PROFILER
-    }
-  }
-
-  companion object {
-    private fun getPreferredProcessName(project: Project): String? {
-      for (module in ModuleManager.getInstance(project).modules) {
-        val moduleName = getModuleName(module)
-        if (moduleName != null) {
-          return moduleName
-        }
-      }
-      return null
-    }
-
-    private fun getModuleName(module: Module): String? {
-      val moduleInfo = StudioAndroidModuleInfo.getInstance(module)
-      if (moduleInfo != null) {
-        val pkg = moduleInfo.packageName
-        if (pkg != null) {
-          return pkg
-        }
-      }
-      return null
     }
   }
 }
