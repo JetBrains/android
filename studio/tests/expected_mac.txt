@@ -2092,6 +2092,9 @@ Android Studio Preview.app/Contents/plugins/android/lib/sdk-common.jar
 Android Studio Preview.app/Contents/plugins/android/lib/sdk-tools.jar
 Android Studio Preview.app/Contents/plugins/android/lib/sdklib.jar
 Android Studio Preview.app/Contents/plugins/android/lib/shared.jar
+Android Studio Preview.app/Contents/plugins/android/lib/smali-baksmali-3.0.0.jar
+Android Studio Preview.app/Contents/plugins/android/lib/smali-dexlib2-3.0.0.jar
+Android Studio Preview.app/Contents/plugins/android/lib/smali-util-3.0.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/spantable.jar
 Android Studio Preview.app/Contents/plugins/android/lib/sqlite-jdbc-3.34.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/sqlite_inspector_proto.jar

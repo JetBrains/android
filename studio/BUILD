@@ -27,6 +27,8 @@ studio_plugin(
         "//tools/adt/idea/.idea/libraries:emulator-proto",
         "//tools/adt/idea/.idea/libraries:ffmpeg",
         "//tools/adt/idea/.idea/libraries:firebase_java_proto",
+        "//tools/adt/idea/.idea/libraries:google-baksmali",
+        "//tools/adt/idea/.idea/libraries:google-dexlib2",
         "//tools/adt/idea/.idea/libraries:HdrHistogram",
         "//tools/adt/idea/.idea/libraries:javax-inject",
         "//tools/adt/idea/.idea/libraries:kotlinx-coroutines-guava",
