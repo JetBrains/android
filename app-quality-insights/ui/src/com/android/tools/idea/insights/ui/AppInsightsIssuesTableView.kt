@@ -20,9 +20,8 @@ import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.AppInsightsProjectLevelController
-import com.android.tools.idea.insights.AppInsightsState
-import com.android.tools.idea.insights.Issue
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.NoDevicesSelectedException
 import com.android.tools.idea.insights.NoOperatingSystemsSelectedException
@@ -53,9 +52,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
-class AppInsightsIssuesTableView<IssueT : Issue, StateT : AppInsightsState<IssueT>>(
-  model: AppInsightsIssuesTableModel<IssueT>,
-  controller: AppInsightsProjectLevelController<IssueT, StateT>,
+class AppInsightsIssuesTableView(
+  model: AppInsightsIssuesTableModel,
+  controller: AppInsightsProjectLevelController,
   private val renderer: AppInsightsTableCellRenderer,
   private val handleException: (LoadingState.Failure) -> Boolean = { false }
 ) : Disposable {
@@ -75,7 +74,7 @@ class AppInsightsIssuesTableView<IssueT : Issue, StateT : AppInsightsState<Issue
     speedSearch =
       TableSpeedSearch(
         table,
-        Convertor { if (it is Issue) convertToSearchText(it) else it.toString() }
+        Convertor { if (it is AppInsightsIssue) convertToSearchText(it) else it.toString() }
       )
     tableHeader = table.tableHeader
     tableHeader.reorderingAllowed = false
@@ -258,8 +257,8 @@ class AppInsightsIssuesTableView<IssueT : Issue, StateT : AppInsightsState<Issue
 
   override fun dispose() = Unit
 
-  inner class IssuesTableView(model: AppInsightsIssuesTableModel<IssueT>) :
-    TableView<IssueT>(model) {
+  inner class IssuesTableView(model: AppInsightsIssuesTableModel) :
+    TableView<AppInsightsIssue>(model) {
     val tableEmptyText = AppInsightsStatusText(this) { isEmpty && !loadingPanel.isLoading }
 
     init {

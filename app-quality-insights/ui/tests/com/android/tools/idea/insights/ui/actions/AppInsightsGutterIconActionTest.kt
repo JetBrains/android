@@ -20,9 +20,9 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.FakeComponentPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.concurrency.AndroidDispatchers
+import com.android.tools.idea.insights.AppInsight
 import com.android.tools.idea.insights.TEST_ISSUE1
 import com.android.tools.idea.insights.TEST_ISSUE2
-import com.android.tools.idea.insights.TestAppInsight
 import com.android.tools.idea.insights.analysis.Cause
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
@@ -43,7 +43,7 @@ private val FRAME2 =
   TEST_ISSUE2.sampleEvent.stacktraceGroup.exceptions.first().stacktrace.frames.first()
 
 @RunWith(value = Parameterized::class)
-class AppInsightsGutterIconActionTest(private val insights: List<TestAppInsight>) {
+class AppInsightsGutterIconActionTest(private val insights: List<AppInsight>) {
   private val projectRule = AndroidProjectRule.inMemory()
   private val popupRule = JBPopupRule()
 
@@ -88,10 +88,10 @@ class AppInsightsGutterIconActionTest(private val insights: List<TestAppInsight>
     @Parameterized.Parameters(name = "{index}: shows correct info for {0}")
     fun data() =
       listOf(
-        listOf(TestAppInsight(1, TEST_ISSUE1, FRAME1, Cause.Frame(FRAME1)) {}),
+        listOf(AppInsight(1, TEST_ISSUE1, FRAME1, Cause.Frame(FRAME1)) {}),
         listOf(
-          TestAppInsight(1, TEST_ISSUE1, FRAME1, Cause.Frame(FRAME1)) {},
-          TestAppInsight(1, TEST_ISSUE2, FRAME2, Cause.Frame(FRAME2)) {}
+          AppInsight(1, TEST_ISSUE1, FRAME1, Cause.Frame(FRAME1)) {},
+          AppInsight(1, TEST_ISSUE2, FRAME2, Cause.Frame(FRAME2)) {}
         ),
       )
   }

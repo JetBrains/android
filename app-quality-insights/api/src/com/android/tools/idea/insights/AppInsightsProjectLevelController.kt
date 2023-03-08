@@ -21,13 +21,13 @@ import com.intellij.psi.PsiFile
 import kotlinx.coroutines.flow.Flow
 
 /** Provides lifecycle and App Insights state data. */
-interface AppInsightsProjectLevelController<IssueT : Issue, out StateT : AppInsightsState<IssueT>> {
+interface AppInsightsProjectLevelController {
 
   /**
    * This flow represents the App Insights state of a host Android app module.
    *
    * The state includes:
-   * * Active and available [FirebaseConnection]s of a project.
+   * * Active and available [Connection]s of a project.
    * * Active and available issues of the app(crashes).
    * * Active and available filters used to fetch the above issues.
    *
@@ -41,11 +41,11 @@ interface AppInsightsProjectLevelController<IssueT : Issue, out StateT : AppInsi
    * val selectedIssue: Flow<Issue?> = issues.mapReady { it.selected }.readyOrNull()
    * ```
    */
-  val state: Flow<StateT>
+  val state: Flow<AppInsightsState>
 
   // events
   fun refresh()
-  fun selectIssue(value: IssueT?, selectionSource: IssueSelectionSource)
+  fun selectIssue(value: AppInsightsIssue?, selectionSource: IssueSelectionSource)
   fun selectVersions(values: Set<Version>)
 
   fun selectDevices(values: Set<Device>)
@@ -54,7 +54,7 @@ interface AppInsightsProjectLevelController<IssueT : Issue, out StateT : AppInsi
   fun toggleFailureType(value: FailureType)
 
   fun enterOfflineMode()
-  fun retrieveLineMatches(file: PsiFile): List<AppInsight<IssueT>>
+  fun retrieveLineMatches(file: PsiFile): List<AppInsight>
   fun insightsInFile(
     file: PsiFile,
     analyzer: StackTraceAnalyzer,

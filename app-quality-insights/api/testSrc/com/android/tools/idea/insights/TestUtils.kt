@@ -30,27 +30,9 @@ suspend fun waitForCondition(timeoutMs: Long = 500, condition: () -> Boolean) {
   throw TimeoutException()
 }
 
-typealias TestAppInsight = AppInsight<TestIssue>
-
-data class TestIssue(override val issueDetails: IssueDetails, override val sampleEvent: Event) :
-  Issue
-
-data class TestIssueDetails(
-  override val id: IssueId,
-  override val title: String,
-  override val subtitle: String,
-  override val fatality: FailureType,
-  override val sampleEvent: String,
-  override val firstSeenVersion: String,
-  override val lastSeenVersion: String,
-  override val impactedDevicesCount: Long,
-  override val eventsCount: Long,
-  override val uri: String,
-) : IssueDetails
-
 val TEST_ISSUE1 =
-  TestIssue(
-    TestIssueDetails(
+  AppInsightsIssue(
+    IssueDetails(
       IssueId("1234"),
       "Issue1",
       "com.google.crash.Crash",
@@ -60,7 +42,9 @@ val TEST_ISSUE1 =
       "1.2.3",
       5L,
       50L,
-      "https://url.for-crash.com"
+      emptySet(),
+      "https://url.for-crash.com",
+      0
     ),
     Event(
       eventData =
@@ -145,8 +129,8 @@ val TEST_ISSUE1_DETAILS =
   )
 
 val TEST_ISSUE2 =
-  TestIssue(
-    TestIssueDetails(
+  AppInsightsIssue(
+    IssueDetails(
       IssueId("2345"),
       "Issue2",
       "com.google.crash.Crash",
@@ -156,7 +140,9 @@ val TEST_ISSUE2 =
       "2.0.0",
       10L,
       100L,
-      "https://url.for-crash.com/2"
+      emptySet(),
+      "https://url.for-crash.com/2",
+      0
     ),
     Event(
       eventData =

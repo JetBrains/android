@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.common.ColoredIconGenerator
-import com.android.tools.idea.insights.Issue
+import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.ui.AppInsightsIssuesTableView.Companion.LOGGER
 import com.intellij.icons.AllIcons
@@ -75,7 +75,7 @@ fun IssueDetails.getDisplayTitle(): Pair<String, String> {
 }
 
 // This should return a plain-text version of what's shown in the cell.
-internal fun convertToSearchText(issue: Issue): String {
+internal fun convertToSearchText(issue: AppInsightsIssue): String {
   val (className, methodName) = issue.issueDetails.getDisplayTitle()
   return if (methodName.isEmpty()) {
     className

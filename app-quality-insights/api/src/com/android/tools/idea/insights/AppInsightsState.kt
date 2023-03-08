@@ -2,35 +2,94 @@ package com.android.tools.idea.insights
 
 import java.time.Instant
 
-interface Filters {
+/** Represents the state of filters applied to a module. */
+data class Filters(
   /** Selection of [Version]s. */
-  val versions: MultiSelection<WithCount<Version>>
-
+  val versions: MultiSelection<WithCount<Version>>,
   /** Selection of [TimeIntervalFilter]s. */
-  val timeInterval: Selection<TimeIntervalFilter>
+  val timeInterval: Selection<TimeIntervalFilter>,
+  /**
+   * A list of [Fatality] toggles.
+   *
+   * TODO(b/228076042): add ANR back in the toggle list
+   */
+  val failureTypeToggles: MultiSelection<FailureType>,
+  val devices: MultiSelection<WithCount<Device>> = MultiSelection.emptySelection(),
+  val operatingSystems: MultiSelection<WithCount<OperatingSystemInfo>> =
+    MultiSelection.emptySelection(),
+  val signal: Selection<SignalType> = selectionOf(SignalType.SIGNAL_UNSPECIFIED)
+) {
+  fun withVersions(value: Set<Version>) =
+    copy(versions = versions.selectMatching { it.value in value })
+  fun withTimeInterval(value: TimeIntervalFilter?) = copy(timeInterval = timeInterval.select(value))
+  fun withFatalityToggle(vararg toggles: FailureType) =
+    copy(
+      failureTypeToggles =
+        toggles.fold(failureTypeToggles) { acc, fatality -> acc.toggle(fatality) }
+    )
 
-  /** A list of error types. */
-  val failureTypeToggles: MultiSelection<FailureType>
-  val devices: MultiSelection<WithCount<Device>>
-  val operatingSystems: MultiSelection<WithCount<OperatingSystemInfo>>
+  fun withDevices(value: Set<Device>) = copy(devices = devices.selectMatching { it.value in value })
+
+  fun withOperatingSystems(value: Set<OperatingSystemInfo>) =
+    copy(operatingSystems = operatingSystems.selectMatching { it.value in value })
+
+  fun withSignal(value: SignalType) = copy(signal = signal.select(value))
 }
 
 data class Timed<out V>(val value: V, val time: Instant)
 
-interface AppInsightsState<IssueT : Issue> {
+/** Represents the App Insights state model. */
+data class AppInsightsState(
+  /** Available Connections. */
+  val connections: Selection<VariantConnection>,
+
   /** Available time interval filter values. */
-  val filters: Filters
+  val filters: Filters,
 
   /**
    * Data whose state depends on the above selections and is loaded asynchronously over the network.
    */
-  val issues: LoadingState<Timed<Selection<IssueT>>>
+  val issues: LoadingState<Timed<Selection<AppInsightsIssue>>>,
 
   /**
    * Issue details whose state depends on the above selection and is loaded asynchronously over the
    * network.
    */
-  val currentIssueDetails: LoadingState<DetailedIssueStats?>
+  val currentIssueDetails: LoadingState<DetailedIssueStats?> = LoadingState.Ready(null),
 
-  val mode: ConnectionMode
+  /**
+   * Notes whose state depends on the issue selection and is loaded asynchronously over the network.
+   */
+  val currentNotes: LoadingState<List<Note>?> = LoadingState.Ready(null),
+
+  /** Access level of the currently logged-in user has on Crashlytics */
+  val permission: Permission = Permission.NONE,
+  val mode: ConnectionMode = ConnectionMode.ONLINE
+) {
+  val selectedIssue: AppInsightsIssue?
+    get() = if (issues is LoadingState.Ready) issues.value.value.selected else null
+
+  /** Returns a new state with a new [TimeIntervalFilter] selected. */
+  fun selectTimeInterval(value: TimeIntervalFilter?): AppInsightsState =
+    copy(filters = filters.withTimeInterval(value))
+
+  /** Returns a new state with the specified [Version]s selected. */
+  fun selectVersions(value: Set<Version>): AppInsightsState =
+    copy(filters = filters.withVersions(value))
+
+  fun selectDevices(value: Set<Device>): AppInsightsState =
+    copy(filters = filters.withDevices(value))
+
+  fun selectOperatingSystems(value: Set<OperatingSystemInfo>): AppInsightsState =
+    copy(filters = filters.withOperatingSystems(value))
+
+  fun selectSignal(value: SignalType): AppInsightsState = copy(filters = filters.withSignal(value))
+
+  /** Returns a new state with a new [Fatality] toggled. */
+  fun toggleFatality(value: FailureType): AppInsightsState =
+    copy(filters = filters.withFatalityToggle(value))
+
+  /** Returns a new state with a new [FirebaseConnection] selected. */
+  fun selectConnection(value: VariantConnection): AppInsightsState =
+    copy(connections = connections.select(value))
 }
