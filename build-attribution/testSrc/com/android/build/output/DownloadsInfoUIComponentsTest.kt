@@ -161,7 +161,8 @@ class DownloadsInfoExecutionConsoleTest {
 
   @Test
   fun testEmptyUi() {
-    assertThat(reposTable.rowCount).isEqualTo(1)
+    assertThat(reposTable.rowCount).isEqualTo(0)
+    assertThat(reposTable.emptyText.text).isEqualTo("No download requests")
     assertThat(requestsTable.rowCount).isEqualTo(0)
     assertThat(requestsTable.emptyText.text).isEqualTo("No download requests")
   }
@@ -173,7 +174,6 @@ class DownloadsInfoExecutionConsoleTest {
 
     assertThat(reposTable.rowCount).isEqualTo(2)
     assertThat(requestsTable.rowCount).isEqualTo(1)
-    assertThat(requestsTable.emptyText.text).isEqualTo("No download requests")
   }
 
   @Test

@@ -53,7 +53,7 @@ class DownloadsInfoUIModelTest {
   fun testModelInit() {
     val model = DownloadsInfoUIModel(buildId, projectRule.testRootDisposable)
 
-    assertThat(model.repositoriesTableModel.items).hasSize(1)
+    assertThat(model.repositoriesTableModel.items).hasSize(0)
     assertThat(model.repositoriesTableModel.isSortable).isFalse()
     assertThat(model.repositoriesTableModel.columnInfos.map { it.name }).isEqualTo(listOf(
       "Repository",

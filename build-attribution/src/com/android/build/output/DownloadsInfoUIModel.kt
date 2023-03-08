@@ -266,10 +266,10 @@ class RepositoriesTableModel : ListTableModel<RepositoryTableItem>() {
       column("Failed Requests", "Number of failed requests.") { it.numberOfFailed().toString() },
       column("Failed Requests Time", "Total amount of time taken to execute failed requests.") { StringUtil.formatDuration(it.timeOfFailed()) },
     )
-    addRow(summaryItem)
   }
 
   fun update(downloadRequest: DownloadRequestItem) {
+    if (items.isEmpty()) addRow(summaryItem)
     val repository = downloadRequest.repository
     val repoTableItem = reposData.computeIfAbsent(repository) { RepositoryTableItem(it) }
     repoTableItem.requests[downloadRequest.requestKey] = downloadRequest

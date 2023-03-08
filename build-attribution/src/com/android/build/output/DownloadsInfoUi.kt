@@ -59,7 +59,7 @@ class DownloadsInfoExecutionConsole(
   // TODO (b/271258614): In an unlikely case when build is finished before running this code this will result in an error.
   private val listenBuildEventsDisposable = Disposer.newDisposable(buildFinishedDisposable, "DownloadsInfoExecutionConsole")
   val uiModel = DownloadsInfoUIModel(buildId, listenBuildEventsDisposable)
-  val table = TableView(uiModel.requestsTableModel).apply {
+  val requestsTable = TableView(uiModel.requestsTableModel).apply {
     name = "requests table"
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
     setShowGrid(false)
@@ -75,6 +75,7 @@ class DownloadsInfoExecutionConsole(
     name = "repositories table"
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
     setShowGrid(false)
+    setEmptyState("No download requests")
     tableHeader.reorderingAllowed = false
     selectionModel.addListSelectionListener {
       if (it.valueIsAdjusting) return@addListSelectionListener
@@ -97,7 +98,7 @@ class DownloadsInfoExecutionConsole(
     }
     val splitter = OnePixelSplitter(true).apply {
       firstComponent = ScrollPaneFactory.createScrollPane(reposTable)
-      secondComponent = ScrollPaneFactory.createScrollPane(table)
+      secondComponent = ScrollPaneFactory.createScrollPane(requestsTable)
     }
     add(browserLink, BorderLayout.NORTH)
     add(splitter, BorderLayout.CENTER)
@@ -113,7 +114,7 @@ class DownloadsInfoExecutionConsole(
     Disposer.dispose(listenBuildEventsDisposable)
   }
   override fun getComponent(): JComponent = panel
-  override fun getPreferredFocusableComponent(): JComponent = table
+  override fun getPreferredFocusableComponent(): JComponent = requestsTable
 
   private fun logUserEvent(reportedInteraction: BuildOutputDownloadsInfoEvent.Interaction) {
     buildId.findProject()?.let { project: Project ->
