@@ -335,6 +335,7 @@ class RequestsTableModel : ListTableModel<DownloadRequestItem>() {
         if (value is Status) {
           toolTipText = value.tooltip
           icon = value.icon
+          isTransparentIconBackground = true
           append(value.text, SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES)
           setTextAlign(SwingConstants.RIGHT)
         }
