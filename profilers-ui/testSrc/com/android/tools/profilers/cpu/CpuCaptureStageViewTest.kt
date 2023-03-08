@@ -110,9 +110,9 @@ class CpuCaptureStageViewTest {
     stage.studioProfilers.stage = stage
     assertThat(profilersView.stageView).isInstanceOf(CpuCaptureStageView::class.java)
     // Streaming controls should be disabled for the capture stage.
-    assertThat(profilersView.stageView.supportsStreaming()).isFalse()
+    assertThat(profilersView.stageView?.supportsStreaming()).isFalse()
     // Stage navigation should be disabled for an imported trace.
-    assertThat(profilersView.stageView.supportsStageNavigation()).isFalse()
+    assertThat(profilersView.stageView?.supportsStageNavigation()).isFalse()
   }
 
   @Test
@@ -249,7 +249,7 @@ class CpuCaptureStageViewTest {
     assertThat(profilersView.zoomToSelectionButton.isEnabled).isFalse()
     stage.multiSelectionModel.setSelection(captureNode, setOf(CaptureNodeAnalysisModel(captureNode, stage.capture, Utils::runOnUi)))
     assertThat(profilersView.zoomToSelectionButton.isEnabled).isTrue()
-    assertThat(profilersView.stageView.stage.timeline.selectionRange.isSameAs(Range(0.0, 10.0))).isTrue()
+    assertThat(stage.timeline.selectionRange.isSameAs(Range(0.0, 10.0))).isTrue()
 
     // Validate feature tracking
     val featureTracker = profilersView.studioProfilers.ideServices.featureTracker as FakeFeatureTracker
@@ -272,7 +272,7 @@ class CpuCaptureStageViewTest {
     assertThat(profilersView.zoomToSelectionButton.isEnabled).isFalse()
     stage.multiSelectionModel.setSelection(frame, setOf(JankAnalysisModel(frame, capture, Utils::runOnUi)))
     assertThat(profilersView.zoomToSelectionButton.isEnabled).isTrue()
-    assertThat(profilersView.stageView.stage.timeline.selectionRange.isSameAs(Range(0.0, 30.0))).isTrue()
+    assertThat(stage.timeline.selectionRange.isSameAs(Range(0.0, 30.0))).isTrue()
   }
 
   @Test

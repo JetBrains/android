@@ -25,7 +25,6 @@ import static java.awt.event.InputEvent.META_DOWN_MASK;
 
 import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.flat.FlatSeparator;
-import com.android.tools.adtui.model.AspectObserver;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.StreamingTimeline;
 import com.android.tools.adtui.model.Timeline;
@@ -94,18 +93,10 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 
-public class StudioProfilersView extends AspectObserver implements Disposable {
-  private final static String LOADING_VIEW_CARD = "LoadingViewCard";
-  private final static String STAGE_VIEW_CARD = "StageViewCard";
+public class StudioProfilersView extends BaseStudioProfilersView {
   private static final int SHORTCUT_MODIFIER_MASK_NUMBER = SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK;
-  @NotNull public static final String ATTACH_LIVE = "Attach to live";
-  @NotNull public static final String DETACH_LIVE = "Detach live";
-  @NotNull public static final String ZOOM_IN = "Zoom in";
-  @NotNull public static final String ZOOM_OUT = "Zoom out";
 
-  private final StudioProfilers myProfiler;
   private final ViewBinder<StudioProfilersView, Stage, StageView> myBinder;
-  private StageView myStageView;
 
   @NotNull
   private final TooltipLayeredPane myLayeredPane;
@@ -132,13 +123,10 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   private CommonButton myBack;
   private DefaultContextMenuItem myZoomToSelectionAction;
 
-  @NotNull
-  private final IdeProfilerComponents myIdeProfilerComponents;
-
-  public StudioProfilersView(@NotNull StudioProfilers profiler, @NotNull IdeProfilerComponents ideProfilerComponents, @NotNull Disposable parentDisposable) {
-    myProfiler = profiler;
-    myIdeProfilerComponents = ideProfilerComponents;
-    myStageView = null;
+  public StudioProfilersView(@NotNull StudioProfilers profiler,
+                             @NotNull IdeProfilerComponents ideProfilerComponents,
+                             @NotNull Disposable parentDisposable) {
+    super(profiler, ideProfilerComponents);
     myStageComponent = new JPanel(new BorderLayout());
     myStageCenterCardLayout = new CardLayout();
     myStageCenterComponent = new JPanel(myStageCenterCardLayout);
@@ -228,11 +216,6 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   }
 
   @VisibleForTesting
-  public StageView getStageView() {
-    return myStageView;
-  }
-
-  @VisibleForTesting
   @NotNull
   SessionsView getSessionsView() {
     return mySessionsView;
@@ -242,11 +225,6 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   @NotNull
   JPanel getRightToolbar() {
     return myRightToolbar;
-  }
-
-  @NotNull
-  public StudioProfilers getStudioProfilers() {
-    return myProfiler;
   }
 
   private void initializeSessionUi() {
@@ -580,6 +558,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
     toggleTimelineButtons();
   }
 
+  @Override
   @NotNull
   public JComponent getComponent() {
     return myLayeredPane;
@@ -590,6 +569,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
    *
    * @param component
    */
+  @Override
   public void installCommonMenuItems(@NotNull JComponent component) {
     ContextMenuInstaller contextMenuInstaller = getIdeProfilerComponents().createContextMenuInstaller();
     ProfilerContextMenu.createIfAbsent(myStageComponent).getContextMenuItems()
@@ -597,7 +577,8 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   }
 
   @VisibleForTesting
-  final JPanel getStageComponent() {
+  @Override
+  public final JPanel getStageComponent() {
     return myStageComponent;
   }
 
@@ -625,12 +606,6 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
       String name = CLASS_TO_NAME.get(value);
       append(name == null ? "[UNKNOWN]" : name, SimpleTextAttributes.REGULAR_ATTRIBUTES);
     }
-  }
-
-
-  @NotNull
-  public IdeProfilerComponents getIdeProfilerComponents() {
-    return myIdeProfilerComponents;
   }
 
   @VisibleForTesting

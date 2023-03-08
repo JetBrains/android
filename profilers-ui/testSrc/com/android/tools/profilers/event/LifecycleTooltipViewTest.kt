@@ -58,8 +58,8 @@ class LifecycleTooltipViewTest {
     timer.tick(TimeUnit.SECONDS.toNanos(1))
     monitor = EventMonitor(profilers)
     val view = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
-    activityTooltipView = FakeLifecycleTooltipView(view.stageView, LifecycleTooltip(monitor.timeline, monitor.lifecycleEvents))
-    view.stageView.component.setBounds(0, 0, 1024, 256)
+    activityTooltipView = FakeLifecycleTooltipView(view.stageView!!, LifecycleTooltip(monitor.timeline, monitor.lifecycleEvents))
+    view.stageView!!.component.setBounds(0, 0, 1024, 256)
     profilers.timeline.viewRange.min = 0.0
     profilers.timeline.viewRange.max = TimeUnit.SECONDS.toMicros(10).toDouble()
     val tooltipTime = TimeUnit.SECONDS.toMicros(1) + TimeUnit.MILLISECONDS.toMicros(1)

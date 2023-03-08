@@ -57,10 +57,10 @@ class UserEventTooltipViewTest {
     val view = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     // Need to set the view range, and component bounds as they are used by the view in determining how much time
     // around an event should be considered when determining if the tooltip range overlaps the icon.
-    view.stageView.component.setBounds(0, 0, 1024, 1024)
+    view.stageView!!.component.setBounds(0, 0, 1024, 1024)
     profilers.timeline.viewRange.min = 0.0
     profilers.timeline.viewRange.max = TimeUnit.SECONDS.toMicros(10).toDouble()
-    simpleEventTooltipView = FakeUserEventTooltipView(view.stageView, UserEventTooltip(monitor.timeline, monitor.userEvents))
+    simpleEventTooltipView = FakeUserEventTooltipView(view.stageView!!, UserEventTooltip(monitor.timeline, monitor.userEvents))
     val tooltipTime = TimeUnit.SECONDS.toMicros(1) + TimeUnit.MILLISECONDS.toMicros(1)
     val timelineRange = TimeUnit.SECONDS.toMicros(5)
     monitor.timeline.dataRange.set(0.0, timelineRange.toDouble())
