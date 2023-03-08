@@ -133,6 +133,7 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
 
       contents = JBTextArea().apply {
         isEditable = false
+        border = fileTree.border
       }
 
       val contentsScrollPane = JScrollPane(contents).apply {
