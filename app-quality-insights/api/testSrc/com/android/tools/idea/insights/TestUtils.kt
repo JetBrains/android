@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.insights
 
+import java.time.Duration
+import java.time.Instant
 import java.util.concurrent.TimeoutException
 import kotlinx.coroutines.delay
 
@@ -30,7 +32,25 @@ suspend fun waitForCondition(timeoutMs: Long = 500, condition: () -> Boolean) {
   throw TimeoutException()
 }
 
-val TEST_ISSUE1 =
+val CONNECTION1 = Connection("app1", "app-id1", "project1", "123")
+val CONNECTION2 = Connection("app2", "app-id2", "project2", "456")
+val VARIANT1 = VariantConnection("app1", "variant1", CONNECTION1)
+val VARIANT2 = VariantConnection("app2", "variant2", CONNECTION2)
+val PLACEHOLDER_CONNECTION = VariantConnection("app3", "", null)
+
+val DEFAULT_FETCHED_VERSIONS = WithCount(10, Version("1", "1.0"))
+
+val DEFAULT_FETCHED_DEVICES = WithCount(10, Device("Google", "Pixel 6"))
+val DEFAULT_FETCHED_OSES = WithCount(10, OperatingSystemInfo("11", "Android (11)"))
+
+val DEFAULT_FETCHED_PERMISSIONS = Permission.FULL
+
+const val NOTE1_BODY = "I don't know how to reproduce this issue."
+const val NOTE2_BODY = "Update: I managed to reproduce this issue."
+
+val NOW = Instant.parse("2022-06-08T10:00:00Z")
+
+val ISSUE1 =
   AppInsightsIssue(
     IssueDetails(
       IssueId("1234"),
@@ -42,7 +62,7 @@ val TEST_ISSUE1 =
       "1.2.3",
       5L,
       50L,
-      emptySet(),
+      setOf(SignalType.SIGNAL_FRESH),
       "https://url.for-crash.com",
       0
     ),
@@ -98,7 +118,7 @@ val TEST_ISSUE1 =
         )
     )
   )
-val TEST_ISSUE1_DETAILS =
+val ISSUE1_DETAILS =
   DetailedIssueStats(
     IssueStats(
       topValue = "Pixel 4a",
@@ -128,19 +148,19 @@ val TEST_ISSUE1_DETAILS =
     )
   )
 
-val TEST_ISSUE2 =
+val ISSUE2 =
   AppInsightsIssue(
     IssueDetails(
       IssueId("2345"),
       "Issue2",
       "com.google.crash.Crash",
-      FailureType.ANR,
+      FailureType.NON_FATAL,
       "Sample Event 2",
       "1.0.0",
       "2.0.0",
       10L,
       100L,
-      emptySet(),
+      setOf(SignalType.SIGNAL_REGRESSED),
       "https://url.for-crash.com/2",
       0
     ),
@@ -227,4 +247,22 @@ val TEST_ISSUE2 =
             )
         )
     )
+  )
+
+val NOTE1 =
+  Note(
+    id = NoteId(issueId = ISSUE1.id, noteId = "note_id_1"),
+    timestamp = NOW,
+    author = "Jane@google.com",
+    body = NOTE1_BODY,
+    state = NoteState.CREATED
+  )
+
+val NOTE2 =
+  Note(
+    id = NoteId(issueId = ISSUE1.id, noteId = "note_id_2"),
+    timestamp = NOW.plusMillis(Duration.ofHours(2).toMillis()),
+    author = "Jane@google.com",
+    body = NOTE2_BODY,
+    state = NoteState.CREATED
   )
