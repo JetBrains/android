@@ -61,6 +61,7 @@ import javax.swing.JScrollPane
 import javax.swing.JTree
 import javax.swing.event.HyperlinkEvent
 import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.TreeSelectionModel
 import kotlin.io.path.name
 
 private const val PRIVACY_TEXT =
@@ -116,7 +117,6 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
       add(filesLabel, constraints)
 
       fileTree = buildTree(files)
-      fileTree.preferredSize = null
 
       val treeScrollPane = JScrollPane(fileTree).apply {
         preferredSize = Dimension(300, 300)
@@ -214,7 +214,8 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
     }
 
     return CheckboxTree(FileTreeRenderer(), root).apply {
-      preferredSize = Dimension(300, 200)
+      setSelectionRow(0)
+      selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
       addTreeSelectionListener { selectionEvent ->
         val node = selectionEvent.newLeadSelectionPath?.lastPathComponent as? FileTreeNode
         updateContents(node)
