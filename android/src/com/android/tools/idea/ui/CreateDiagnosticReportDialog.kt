@@ -47,6 +47,8 @@ import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.ActionEvent
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -134,6 +136,11 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
       contents = JBTextArea().apply {
         isEditable = false
         border = fileTree.border
+        addFocusListener(object : FocusAdapter() {
+          override fun focusGained(e: FocusEvent?) {
+            caret.isVisible = true
+          }
+        })
       }
 
       val contentsScrollPane = JScrollPane(contents).apply {
@@ -256,6 +263,7 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
     } ?: "Select a file to preview its contents"
 
     contents.select(0, 0)
+    contents.caretPosition = 0
   }
 
   private fun addFilesToTree(root: DefaultMutableTreeNode, file: FileInfo) {
