@@ -55,6 +55,7 @@ import org.jetbrains.kotlin.idea.util.CallType
 import org.jetbrains.kotlin.idea.util.CallTypeAndReceiver
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
 import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
@@ -177,16 +178,22 @@ private class ComposableFunctionLookupElement(original: LookupElement) : LookupE
   }
 
   override fun handleInsert(context: InsertionContext) {
-    val descriptor = getFunctionDescriptor()
+    val handler = getInsertHandler(context)
+    if (handler == null) super.handleInsert(context) else handler.handleInsert(context, this)
+  }
+
+  private fun getInsertHandler(context: InsertionContext): ComposeInsertHandler? {
+    if (!ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled) return null
+
     val parent = context.getParent()
-    val callType by lazy { parent.inferCallType() }
-    return when {
-      !ComposeSettings.getInstance().state.isComposeInsertHandlerEnabled -> super.handleInsert(context)
-      parent.isKdoc() -> super.handleInsert(context)
-      descriptor == null -> super.handleInsert(context)
-      !validCallTypes.contains(callType) -> super.handleInsert(context)
-      else -> ComposeInsertHandler(descriptor, callType).handleInsert(context, this)
-    }
+    if (parent.isKdoc() || parent !is KtNameReferenceExpression) return null
+
+    val descriptor = getFunctionDescriptor() ?: return null
+
+    val callType = parent.inferCallType()
+    if (!validCallTypes.contains(callType)) return null
+
+    return ComposeInsertHandler(descriptor, callType)
   }
 
   private fun rewriteSignature(descriptor: FunctionDescriptor, presentation: LookupElementPresentation) {

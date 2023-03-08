@@ -1096,6 +1096,59 @@ class ComposeCompletionContributorTest {
       , true)
   }
 
+  /**
+   * Regression test for b/271675885. Autocomplete changes should apply to function invocations, not function definitions.
+   */
+  @Test
+  fun testInsertHandler_functionDefinition() {
+    // Given:
+    val file = myFixture.addFileToProject(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      interface MyComposables {
+          @Composable
+          fun FoobarOne()
+      }
+
+      class MyComposablesImpl : MyComposables {
+          override fun Foo${caret}
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      interface MyComposables {
+          @Composable
+          fun FoobarOne()
+      }
+
+      class MyComposablesImpl : MyComposables {
+          override fun FoobarOne() {
+              TODO("Not yet implemented")
+          }
+      }
+      """.trimIndent()
+    )
+  }
+
   @Test
   fun composeMaterialIconLookupElement_resourcePathFromFqName() {
     assertThat("androidx.compose.material.icons.filled.AccountBox".resourcePathFromFqName())
