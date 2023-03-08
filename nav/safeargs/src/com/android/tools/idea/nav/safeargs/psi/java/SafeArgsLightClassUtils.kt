@@ -202,5 +202,5 @@ internal fun PsiClass.createMethod(
     }
 }
 
-internal fun String.toCamelCase() = this.toUpperCamelCase().usLocaleDecapitalize()
-internal fun String.toUpperCamelCase() = this.split("_").joinToString("") { it.usLocaleCapitalize() }
+internal fun String.toCamelCase() = this.split("_").mapIndexed { index, s -> if (index > 0) s.usLocaleCapitalize() else s }.joinToString("")
+internal fun String.toUpperCamelCase() = this.toCamelCase().usLocaleCapitalize()
