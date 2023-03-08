@@ -70,13 +70,13 @@ internal const val SCREEN_SHARING_AGENT_JAR_NAME = "screen-sharing-agent.jar"
 internal const val SCREEN_SHARING_AGENT_SO_NAME = "libscreen-sharing-agent.so"
 internal const val SCREEN_SHARING_AGENT_SOURCE_PATH = "tools/adt/idea/streaming/screen-sharing-agent"
 internal const val DEVICE_PATH_BASE = "/data/local/tmp/.studio"
-const val MAX_BIT_RATE_EMULATOR = 2000000
-const val DEFAULT_AGENT_LOG_LEVEL = "info"
-const val VIDEO_CHANNEL_MARKER = 'V'.code.toByte()
-const val CONTROL_CHANNEL_MARKER = 'C'.code.toByte()
+private const val MAX_BIT_RATE_EMULATOR = 2000000
+private const val DEFAULT_AGENT_LOG_LEVEL = "info"
+private const val VIDEO_CHANNEL_MARKER = 'V'.code.toByte()
+private const val CONTROL_CHANNEL_MARKER = 'C'.code.toByte()
 // Flag definitions. Keep in sync with flags.h
-const val START_VIDEO_STREAM = 0x01
-const val TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x02
+internal const val START_VIDEO_STREAM = 0x01
+internal const val TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x02
 /** Maximum cumulative length of agent messages to remember. */
 private const val MAX_TOTAL_AGENT_MESSAGE_LENGTH = 10_000
 private const val MAX_ERROR_MESSAGE_AGE_MILLIS = 1000L
