@@ -47,7 +47,7 @@ import javax.swing.JPanel
 class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private val project: Project) : AspectObserver(), Disposable {
   private val ideProfilerServices: IntellijProfilerServices
   val profilers: StudioProfilers
-  private val profilersWrapper: StudioProfilersWrapper
+  private val profilersTab: StudioProfilersTab
   private val panel: JPanel
 
   init {
@@ -79,12 +79,12 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
       StartupManager.getInstance(project).runWhenProjectIsInitialized { profilers.preferredProcessName = getPreferredProcessName(project) }
     }
 
-    profilersWrapper = StudioProfilersWrapper(profilers, window, project)
-    Disposer.register(this, profilersWrapper)
+    profilersTab = StudioProfilersSessionTab(profilers, window, project)
+    Disposer.register(this, profilersTab)
 
     panel = JPanel(BorderLayout())
     panel.removeAll()
-    panel.add(profilersWrapper.profilersView.component)
+    panel.add(profilersTab.view.component)
     panel.revalidate()
     panel.repaint()
   }

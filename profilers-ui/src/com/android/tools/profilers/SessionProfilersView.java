@@ -93,6 +93,9 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * A view containing a sessions panel, toolbar, and stage view.
+ */
 public class SessionProfilersView extends StudioProfilersView {
   private static final int SHORTCUT_MODIFIER_MASK_NUMBER = SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK;
 

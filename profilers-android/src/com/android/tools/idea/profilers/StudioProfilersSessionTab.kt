@@ -23,15 +23,18 @@ import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.sessions.SessionAspect
 import com.android.tools.profilers.sessions.SessionsManager
 import com.intellij.execution.runners.ExecutionUtil
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import icons.StudioIcons
 
-class StudioProfilersWrapper(private val profilers: StudioProfilers,
-                             private val window: ToolWindowWrapper,
-                             project: Project) : AspectObserver(), Disposable {
-  val profilersView: StudioProfilersView
+/**
+ * A tab in the Profiler window containing a [SessionProfilersView] (i.e. view with a sessions panel).
+ */
+class StudioProfilersSessionTab(private val profilers: StudioProfilers,
+                                private val window: ToolWindowWrapper,
+                                project: Project) : AspectObserver(), StudioProfilersTab {
+
+  override val view: StudioProfilersView
 
   init {
     profilers.sessionsManager.addDependency(this)
@@ -39,10 +42,10 @@ class StudioProfilersWrapper(private val profilers: StudioProfilers,
       .onChange(SessionAspect.PROFILING_SESSION) { profilingSessionChanged() }
 
     val profilerComponents: IdeProfilerComponents = IntellijProfilerComponents(project, profilers.ideServices.featureTracker)
-    profilersView = SessionProfilersView(profilers, profilerComponents, this)
+    view = SessionProfilersView(profilers, profilerComponents, this)
 
     project.messageBus.connect(this).subscribe(ToolWindowManagerListener.TOPIC,
-                                               AndroidProfilerWindowManagerListener(project, profilers, profilersView))
+                                               AndroidProfilerWindowManagerListener(project, profilers, view))
   }
 
   override fun dispose() {}
