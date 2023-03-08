@@ -279,14 +279,14 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
    * @return true if multi-deploy is detected, false otherwise (this will be removed once multi-deploy is supported)
    */
   public boolean notifyExecution(@NotNull Collection<IDevice> devices) {
-    Set<IDevice> deviceSet = new HashSet<>(devices);
-    deviceSet.removeIf(d -> !supportLiveEdits(d));
+    Set<IDevice> newDevices = new HashSet<>(devices);
+    newDevices.removeIf(d -> !supportLiveEdits(d));
     Ref<Boolean> multiDeploy = new Ref<>(false);
-    deviceStatusManager.update((device, status) -> {
-      if (deviceSet.contains(device)) {
-        if (status == LiveEditStatus.NoMultiDeploy.INSTANCE) {
-          return LiveEditStatus.Disabled.INSTANCE;
-        }
+    deviceStatusManager.update((oldDevice, status) -> {
+      if (newDevices.contains(oldDevice)) {
+        return (status == LiveEditStatus.NoMultiDeploy.INSTANCE) ? LiveEditStatus.Disabled.INSTANCE : status;
+      }
+      if (status == LiveEditStatus.Disabled.INSTANCE) {
         return status;
       }
       multiDeploy.set(true);
