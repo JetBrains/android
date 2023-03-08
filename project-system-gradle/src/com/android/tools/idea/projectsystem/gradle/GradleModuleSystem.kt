@@ -294,7 +294,7 @@ class GradleModuleSystem(
     val moduleRootDir = AndroidProjectRootUtil.getModuleDirPath(module)?.let { File(it) }
     val sourceProviders = module.androidFacet?.sourceProviders ?: return listOf()
     val selectedSourceProviders = targetDirectory?.let { sourceProviders.getForFile(targetDirectory) }
-      ?: sourceProviders.currentAndSomeFrequentlyUsedInactiveSourceProviders
+      ?: (sourceProviders.currentAndSomeFrequentlyUsedInactiveSourceProviders + sourceProviders.currentAndroidTestSourceProviders)
     return sourceProviders.buildNamedModuleTemplatesFor(moduleRootDir, selectedSourceProviders)
   }
 

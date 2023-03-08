@@ -420,6 +420,13 @@ enum class ScopeType {
       MAIN, TEST_FIXTURES -> false
       ANDROID_TEST, UNIT_TEST, SHARED_TEST -> true
     }
+
+  /** Returns true if this [ScopeType] can contain Android resources. */
+  val canHaveAndroidResources
+    get() = when (this) {
+      TEST_FIXTURES, UNIT_TEST, SHARED_TEST -> false
+      MAIN, ANDROID_TEST -> true
+    }
 }
 
 fun AndroidModuleSystem.getScopeType(file: VirtualFile, project: Project): ScopeType {
