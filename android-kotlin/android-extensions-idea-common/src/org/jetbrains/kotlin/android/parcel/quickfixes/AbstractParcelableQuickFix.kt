@@ -20,7 +20,7 @@ import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.diagnostics.Diagnostic
-import org.jetbrains.kotlin.idea.core.ShortenReferences
+import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.quickfixes.KotlinQuickFixAction
 import org.jetbrains.kotlin.idea.quickfix.KotlinSingleIntentionActionFactory
 import org.jetbrains.kotlin.psi.KtElement
@@ -30,7 +30,7 @@ import org.jetbrains.kotlin.psi.psiUtil.getNonStrictParentOfType
 
 abstract class AbstractParcelableQuickFix<T: KtElement>(element: T) : KotlinQuickFixAction<T>(element) {
     protected companion object {
-        fun <T : KtElement> T.shortenReferences() = ShortenReferences.DEFAULT.process(this)
+        fun <T : KtElement> T.shortenReferences() = ShortenReferencesFacility.getInstance().shorten(this)
     }
 
     override fun getFamilyName() = text
