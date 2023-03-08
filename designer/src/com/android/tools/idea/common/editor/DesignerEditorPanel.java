@@ -402,8 +402,8 @@ public class DesignerEditorPanel extends JPanel implements Disposable {
     if (myAccessoryPanel != null) {
       boolean verticalSplitter = StudioFlags.NELE_MOTION_HORIZONTAL.get();
       float initialProportion = PropertiesComponent.getInstance().getFloat(ACCESSORY_PROPORTION, 0.5f);
-      OnePixelSplitter splitter = new OnePixelSplitter(verticalSplitter, initialProportion, 0.1f, 0.9f);
-      splitter.setHonorComponentsMinimumSize(true);
+      OnePixelSplitter splitter = new OnePixelSplitter(verticalSplitter, initialProportion, 0.05f, 0.95f);
+      splitter.setHonorComponentsMinimumSize(false);
       splitter.setFirstComponent(mySurface);
       splitter.setSecondComponent(myAccessoryPanel);
       mySurface.addComponentListener(new ComponentAdapter() {
