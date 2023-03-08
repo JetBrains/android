@@ -101,6 +101,12 @@
     <option name="build" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
     <option name="bundle" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
     <option name="s" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
+    <option name="build" path="ActionManager" hit="Build Entire Project" />
+    <option name="entire" path="ActionManager" hit="Build Entire Project" />
+    <option name="project" path="ActionManager" hit="Build Entire Project" />
+    <option name="build" path="ActionManager" hit="Build selected modules" />
+    <option name="modules" path="ActionManager" hit="Build selected modules" />
+    <option name="selected" path="ActionManager" hit="Build selected modules" />
     <option name="button" path="ActionManager" hit="Button 1" />
     <option name="button" path="ActionManager" hit="Button 2" />
     <option name="a" path="ActionManager" hit="Change display size to match a typical foldable" />

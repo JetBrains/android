@@ -18,28 +18,91 @@ package com.android.tools.idea.gradle.actions
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Companion.getInstance
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
+import com.android.tools.idea.projectsystem.AndroidModuleSystem
+import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
+import com.android.tools.idea.projectsystem.androidProjectType
+import com.android.tools.idea.projectsystem.isMainModule
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.compiler.CompilerManager
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
 import icons.StudioIcons
+import org.jetbrains.kotlin.idea.base.util.isGradleModule
 
-class MakeGradleModuleAction : AndroidStudioGradleAction("Make Module(s)", "Build Selected Module(s)", StudioIcons.Shell.Toolbar.BUILD_MODULE) {
-  override fun doUpdate(e: AnActionEvent, project: Project) {
-    updatePresentation(e, project)
+/** Action added to the "Build" menu. If the new UI is used, it is also added to the toolbar. */
+class MakeGradleModuleAction : AbstractMakeGradleModuleAction()
+
+/** If the new UI is not used, this action is added to the toolbar in the split button. */
+class MakeGradleModuleActionFromGroupAction : AbstractMakeGradleModuleAction() {
+
+  private var moduleNamesToBuildFromGroupAction: List<String>? = null
+
+  internal fun setModuleNamesExternally(value: List<String>) {
+    moduleNamesToBuildFromGroupAction = value
   }
 
-  public override fun doPerform(e: AnActionEvent, project: Project) {
-    val modules = GradleProjectInfo.getInstance(project).getModulesToBuildFromSelection(e.dataContext)
+  override fun getModuleNamesToBuild(e: AnActionEvent, project: Project): List<String> {
+    return moduleNamesToBuildFromGroupAction ?: emptyList()
+  }
+
+  override fun getModulesToBuild(e: AnActionEvent, project: Project): Array<Module> {
+    val moduleManager = ModuleManager.getInstance(project)
+    return moduleNamesToBuildFromGroupAction?.let {
+      it.mapNotNull { name -> moduleManager.findModuleByName(name) }.toTypedArray()
+    } ?: emptyArray()
+  }
+}
+
+abstract class AbstractMakeGradleModuleAction :
+  AndroidStudioGradleAction("Make Module(s)", "Build selected modules", StudioIcons.Shell.Toolbar.BUILD_MODULE) {
+
+  open fun getModuleNamesToBuild(e: AnActionEvent, project: Project): List<String> = extractModuleNames(e, project)
+
+  open fun getModulesToBuild(e: AnActionEvent, project: Project): Array<Module> =
+    GradleProjectInfo.getInstance(project).getModulesToBuildFromSelection(e.dataContext)
+
+  final override fun doUpdate(e: AnActionEvent, project: Project) {
+    val modules = getModuleNamesToBuild(e, project).ifEmpty {
+      listOfNotNull(getDefaultModuleToBuild(project)).map { it.name }
+    }
+    updatePresentation(e, project, modules)
+  }
+
+  final override fun doPerform(e: AnActionEvent, project: Project) {
+    val modules = getModulesToBuild(e, project).ifEmpty {
+      listOfNotNull(getDefaultModuleToBuild(project)).toTypedArray()
+    }
     getInstance(project).assemble(modules, TestCompileType.ALL)
+  }
+
+  /**
+   *  When the project is opened, there will not be selected modules until user trigger a focus action.
+   *  In order not to have this action disabled, we try to select the first application.
+   */
+  private fun getDefaultModuleToBuild(project: Project): Module? {
+    return CachedValuesManager.getManager(project).getCachedValue(project, CachedValueProvider {
+      val firstApp =
+        project.modules.firstOrNull { it.isMainModule() && it.isGradleModule && it.androidProjectType() == AndroidModuleSystem.Type.TYPE_APP }
+      return@CachedValueProvider CachedValueProvider.Result(firstApp, ProjectSyncModificationTracker.getInstance(project))
+    })
   }
 
   companion object {
     @JvmStatic
     fun updatePresentation(e: AnActionEvent, project: Project) {
-      val dataContext = e.dataContext
-      val modules = GradleProjectInfo.getInstance(project).getModulesToBuildFromSelection(dataContext)
-      val moduleCount = modules.size
+      updatePresentation(e, project, extractModuleNames(e, project))
+    }
+
+    private fun extractModuleNames(e: AnActionEvent, project: Project): List<String> =
+      GradleProjectInfo.getInstance(project).getModulesToBuildFromSelection(e.dataContext).map { it.name }
+
+    private fun updatePresentation(e: AnActionEvent, project: Project, moduleNames: List<String?>) {
+      val moduleCount = moduleNames.size
       val presentation = e.presentation
       val isCompilationActive = CompilerManager.getInstance(project).isCompilationActive
       presentation.isEnabled = moduleCount > 0 && !isCompilationActive
@@ -54,15 +117,15 @@ class MakeGradleModuleAction : AndroidStudioGradleAction("Make Module(s)", "Buil
             text = StringBuilder("Make Selected Modules")
             break
           }
-          val toMake = modules[i]
+          val toMake = moduleNames[i]
           if (i != 0) {
             text.append(",")
           }
-          text.append(" '").append(toMake.name).append("'")
+          text.append(" '").append(toMake).append("'")
         }
         presentationText = text.toString()
       } else {
-        presentationText = "Make"
+        presentationText = "Make (No Modules Selected)"
       }
       presentation.text = presentationText
       presentation.isVisible = moduleCount > 0 || ActionPlaces.PROJECT_VIEW_POPUP != e.place

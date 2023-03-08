@@ -118,7 +118,7 @@
     </action>
 
     <group id="AndroidToolbarMakeGroup">
-      <reference ref="MakeGradleProject"/>
+      <action id="MakeTypeSelectionGroup" class="com.android.tools.idea.gradle.actions.MakeTypeSelectionGroupAction"/>
       <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="before"/>
     </group>
     <action id="WelcomeScreen.RunDeviceManager"
@@ -136,7 +136,7 @@
     </group>
 
     <group id="Android.MainToolbarRight" >
-      <reference id="MakeGradleProject" />
+      <action id="Android.MakeGradleModule" class="com.android.tools.idea.gradle.actions.MakeGradleModuleAction" />
       <reference id="Android.InstantRunActions" />
       <reference id="AndroidConnectDebuggerAction" />
       <reference id="Android.SyncProject" />
