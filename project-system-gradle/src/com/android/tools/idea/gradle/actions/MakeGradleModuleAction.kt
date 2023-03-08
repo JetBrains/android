@@ -20,9 +20,11 @@ import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker.Co
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.compiler.CompilerManager
 import com.intellij.openapi.project.Project
+import icons.StudioIcons
 
-class MakeGradleModuleAction : AndroidStudioGradleAction("Make Module(s)") {
+class MakeGradleModuleAction : AndroidStudioGradleAction("Make Module(s)", "Build Selected Module(s)", StudioIcons.Shell.Toolbar.BUILD_MODULE) {
   override fun doUpdate(e: AnActionEvent, project: Project) {
     updatePresentation(e, project)
   }
@@ -39,7 +41,8 @@ class MakeGradleModuleAction : AndroidStudioGradleAction("Make Module(s)") {
       val modules = GradleProjectInfo.getInstance(project).getModulesToBuildFromSelection(dataContext)
       val moduleCount = modules.size
       val presentation = e.presentation
-      presentation.isEnabled = moduleCount > 0
+      val isCompilationActive = CompilerManager.getInstance(project).isCompilationActive
+      presentation.isEnabled = moduleCount > 0 && !isCompilationActive
       val presentationText: String
       if (moduleCount > 0) {
         var text = StringBuilder("Make Module")
