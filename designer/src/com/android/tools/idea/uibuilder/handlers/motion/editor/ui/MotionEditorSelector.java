@@ -68,15 +68,4 @@ public class MotionEditorSelector {
     public void command(TimeLineCmd cmd, float pos);
   }
 
-  ArrayList<TimeLineListener> mTimeLineListeners = new ArrayList<>();
-
-  public void addTimeLineListener(TimeLineListener listener) {
-    mTimeLineListeners.add(listener);
-  }
-
-  public void notifyTimeLineListeners(TimeLineCmd type, float pos) {
-    for (TimeLineListener listener : mTimeLineListeners) {
-      listener.command(type, pos);
-    }
-  }
 }

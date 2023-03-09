@@ -89,10 +89,6 @@ public class TimeLineRowData {
   }
 
   ArrayList<MTag> mKeyFrames = new ArrayList<>();
-  MTag mStartConstraintSet;
-  MTag mEndConstraintSet;
-  MTag mLayoutView;
-  boolean mInTransition = true;
 
   public void buildTargetStrings(MTag keyFrame) {
     String target = keyFrame.getAttributeValue("motionTarget");

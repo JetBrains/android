@@ -42,7 +42,6 @@ import java.util.Arrays;
  */
 public class BaseCreatePanel extends JPanel {
   public static final boolean DEBUG = false;
-  protected Popup myPopup;
   MEUI.Popup myDialog;
   Icon icon = MEIcons.CREATE_TRANSITION;
   protected MotionEditor mMotionEditor;
@@ -59,15 +58,6 @@ public class BaseCreatePanel extends JPanel {
         ((JComponent)c).updateUI();
       }
     }
-  }
-
-  public JButton createButton() {
-    JButton button = new JButton(icon);
-    button.setContentAreaFilled(false);
-    button.setToolTipText("create " + getName());
-    button.addActionListener(e -> showPopup(button, 0, 0));
-    button.setBorder(null);
-    return button;
   }
 
   BaseCreatePanel() {
@@ -97,14 +87,6 @@ public class BaseCreatePanel extends JPanel {
     gbc.gridx = x;
     gbc.gridwidth = w;
     gbc.gridheight = h;
-  }
-
-  protected JTextField newTextField(String xxx) {
-    JTextField ret = new JTextField();
-    ret.setText(xxx);
-    ret.setPreferredSize(ret.getPreferredSize());
-    ret.setText("");
-    return ret;
   }
 
   protected JComboBox<String> newComboBox(String... choices) {

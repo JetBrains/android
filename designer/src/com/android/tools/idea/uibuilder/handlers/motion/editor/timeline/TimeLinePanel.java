@@ -724,50 +724,6 @@ public class TimeLinePanel extends JPanel {
     return views;
   }
 
-  boolean matches(String target, TimeLineRowData view) {
-    if (target == null) {
-      return false;
-    }
-    if (target.startsWith("@id") || target.startsWith("@+id")) {
-      return Utils.stripID(target).equals(view.mKey);
-    }
-    String tag = view.mStartConstraintSet.getAttributeValue("layout_constraintTag");
-    if (tag == null) { // TODO walk derived constraints
-      System.err.println(
-        view.mKey + " " + view.mLayoutView + " id = " + ((view.mLayoutView == null)
-                                                         ? view.mLayoutView.getAttributeValue("id") : ""));
-      tag = view.mLayoutView.getAttributeValue("layout_constraintTag");
-    }
-    if (tag.matches(target)) {
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * Get and create if does not exist.
-   */
-  TimeLineRowData addRow(List<TimeLineRowData> views, String viewId) {
-    for (TimeLineRowData view : views) {
-      if (view.mKey.equals(viewId)) {
-        return view;
-      }
-    }
-    TimeLineRowData view = new TimeLineRowData();
-    view.mKey = viewId;
-    views.add(view);
-    return view;
-  }
-
-  TimeLineRowData get(List<TimeLineRowData> views, String viewId) {
-    for (TimeLineRowData view : views) {
-      if (view.mKey.equals(viewId)) {
-        return view;
-      }
-    }
-    return null;
-  }
-
   /**
    * Draws the cursor
    *

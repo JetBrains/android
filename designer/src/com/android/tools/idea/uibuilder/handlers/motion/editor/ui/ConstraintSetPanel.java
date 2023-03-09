@@ -535,19 +535,6 @@ class ConstraintSetPanel extends JPanel {
     return "???";
   }
 
-  private String getMask(ArrayList<MTag> children, HashMap<String, Attribute> attrs, String id) {
-    if (children.size() == 0 || attrs.size() > 1 && id != null) {
-      return "all";
-    }
-    else {
-      String mask = "";
-      for (MTag child : children) {
-        mask += (mask.isEmpty() ? "" : "|") + child.getTagName();
-      }
-      return mask;
-    }
-  }
-
   public void setMTag(@Nullable MTag constraintSet, @NotNull MeModel meModel) {
     if (DEBUG) {
       if (constraintSet == null) {

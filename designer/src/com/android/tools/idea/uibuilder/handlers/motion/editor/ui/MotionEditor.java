@@ -22,7 +22,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.NlComponentTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEList;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScrollPane;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.METabbedPane;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
@@ -51,7 +50,6 @@ import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -61,8 +59,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -401,10 +397,6 @@ public class MotionEditor extends JPanel {
     return selection instanceof NlComponentTag ? selection : null;
   }
 
-  public void clearSelectedTags() {
-    mSelectedTag = null;
-  }
-
   public void setMTag(MeModel model) {
     mUpdatingModel = true;
     try {
@@ -675,157 +667,6 @@ public class MotionEditor extends JPanel {
       gbc.weighty = 0;
       add(new JComponent() {
       }, gbc);
-    }
-  }
-
-  // ======================== Base class for both List ==============================
-  class BaseListPanel extends JPanel {
-
-    MTag mMotionScene;
-    MTag mMotionLayout;
-    ListSelectionListener mListSelectionListener;
-
-    BaseListPanel() {
-      super(new BorderLayout());
-    }
-
-    void setSelectionListener(ListSelectionListener l) {
-      mListSelectionListener = l;
-    }
-
-    void fireSelection(ListSelectionEvent e) {
-      mListSelectionListener.valueChanged(e);
-    }
-  }
-
-  // ======================== Transition List ==============================
-
-  class TransitionListPanel extends BaseListPanel {
-
-    boolean building = false;
-    String[] mTransitionStrings = {
-      "<html> <b> Transition_A </b><br>base -> first_state </html>"
-    };
-    JList<String> mTransitionJList = new JList<>(mTransitionStrings);
-    JScrollPane mTListPane = new JScrollPane(mTransitionJList);
-
-    TransitionListPanel() {
-      add(mTListPane, BorderLayout.CENTER);
-      add(new JLabel("Transitions"), BorderLayout.NORTH);
-      mTransitionJList.addListSelectionListener(e -> {
-        if (e.getValueIsAdjusting() || building) {
-          return;
-        }
-        select(e);
-      });
-    }
-
-    void select(ListSelectionEvent e) {
-      fireSelection(e);
-    }
-
-    String buildListString(MTag tag) {
-      String tid = tag.getAttributeValue("id");
-      tid = (tid == null) ? "T" : Utils.stripID(tid);
-      String start = Utils.stripID(tag.getAttributeValue("constraintSetStart"));
-      String end = Utils.stripID(tag.getAttributeValue("constraintSetEnd"));
-      return "<html> <b> " + tid + "</b>(" + start + " -> " + end + ") </html>";
-    }
-
-    public void setMTag(MTag motionScene) {
-      building = true;
-      mMotionScene = motionScene;
-      int selected = mTransitionJList.getSelectedIndex();
-      selected = Math.max(0, selected);
-      MTag[] transitions = motionScene.getChildTags("Transition");
-      String[] tStrings = new String[transitions.length];
-      for (int i = 0; i < tStrings.length; i++) {
-        tStrings[i] = buildListString(transitions[i]);
-      }
-      selected = Math.min(tStrings.length - 1, selected);
-      if (selected == -1) {
-        selected = 0;
-      }
-      mTransitionJList.setListData(tStrings);
-      mTransitionJList.setSelectedIndex(selected);
-      building = false;
-    }
-
-    public void clearSelection() {
-      building = true;
-      mTransitionJList.clearSelection();
-      building = false;
-    }
-
-    public int getSelected() {
-      return mTransitionJList.getSelectedIndex();
-    }
-
-    public void setSelectedIndex(int index) {
-      mTransitionJList.setSelectedIndex(index);
-    }
-  }
-
-  // ======================== ConstraintSet List ==============================
-  class ConstraintSetListPanel extends BaseListPanel {
-
-    boolean building = false;
-    JList<String> mConstraintSetList = new MEList<>();
-    JScrollPane mTListPane = new MEScrollPane(mConstraintSetList);
-
-    ConstraintSetListPanel() {
-      add(mTListPane, BorderLayout.CENTER);
-      mConstraintSetList.addListSelectionListener(e -> {
-        if (e.getValueIsAdjusting() || building) {
-          return;
-        }
-        select(e);
-      });
-
-      add(new JLabel("States"), BorderLayout.NORTH);
-    }
-
-    void select(ListSelectionEvent e) {
-      fireSelection(e);
-    }
-
-    String buildListString(MTag tag) {
-      String cid = Utils.stripID(tag.getAttributeValue("id"));
-      int noc = tag.getChildTags().length;
-      String end = tag.getAttributeValue("constraintSetEnd");
-      return "<html> <b> " + cid + "(" + noc + ")</html>";
-    }
-
-    public void setMTag(MTag motionScene, MTag layout) {
-      building = true;
-      mMotionScene = motionScene;
-      mMotionLayout = layout;
-      int selected = mConstraintSetList.getSelectedIndex();
-      selected = Math.max(0, selected);
-      MTag[] sets = motionScene.getChildTags("ConstraintSet");
-      String[] tStrings = new String[sets.length + 1];
-      for (int i = 0; i < tStrings.length - 1; i++) {
-        tStrings[i] = buildListString(sets[i]);
-      }
-      int count = (mMotionLayout == null) ? -1 : mMotionLayout.getChildTags().length;
-      tStrings[tStrings.length - 1] = (count == -1) ? "layout" : "layout(" + count + ")";
-      selected = Math.min(tStrings.length - 1, selected);
-      if (selected == -1) {
-        selected = 0;
-      }
-      mConstraintSetList.setListData(tStrings);
-      mConstraintSetList.setSelectedIndex(selected);
-      building = false;
-    }
-
-    public void clearSelection() {
-      building = true;
-      mConstraintSetList.clearSelection();
-      building = false;
-    }
-
-    public int getSelected() {
-      return mConstraintSetList.getSelectedIndex();
     }
   }
 
