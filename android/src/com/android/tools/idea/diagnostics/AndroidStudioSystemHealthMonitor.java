@@ -90,6 +90,7 @@ import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
+import com.intellij.openapi.actionSystem.ToggleAction;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationInfo;
 import com.intellij.openapi.application.ApplicationManager;
@@ -586,8 +587,8 @@ public final class AndroidStudioSystemHealthMonitor {
     myListener = new AndroidStudioSystemHealthMonitorAdapter.EventsListener() {
 
       @Override
-      public void countActionInvocation(Class<? extends AnAction> aClass, Presentation presentation, AnActionEvent event) {
-        AndroidStudioSystemHealthMonitor.countActionInvocation(aClass, presentation, event);
+      public void countActionInvocation(AnAction anAction, Presentation presentation, AnActionEvent event) {
+        AndroidStudioSystemHealthMonitor.countActionInvocation(anAction, presentation, event);
       }
 
       @Override
@@ -969,8 +970,9 @@ public final class AndroidStudioSystemHealthMonitor {
   /**
    * Collect usage stats for action invocations.
    */
-  public static void countActionInvocation(@NotNull Class actionClass, @NotNull Presentation templatePresentation, @NotNull AnActionEvent event) {
+  public static void countActionInvocation(@NotNull AnAction anAction, @NotNull Presentation templatePresentation, @NotNull AnActionEvent event) {
     ourStudioActionCount.incrementAndGet();
+    Class actionClass = anAction.getClass();
     synchronized (ACTION_INVOCATIONS_LOCK) {
       String actionName = getActionName(actionClass, templatePresentation);
       InvocationKind invocationKind = getInvocationKindFromEvent(event);
@@ -985,19 +987,25 @@ public final class AndroidStudioSystemHealthMonitor {
         }
         invocations.add(invocationKind);
       } else {
-        UsageTracker.log(AndroidStudioEvent.newBuilder()
-            .setCategory(EventCategory.STUDIO_UI)
-            .setKind(EventKind.STUDIO_UI_ACTION_STATS)
-            .setUiActionStats(UIActionStats.newBuilder()
-                .setActionClassName(actionName)
-                .setInvocationKind(invocationKind)
-                .setInvocations(1)
-                .setDirect(true)
-                .setUiPlace(event.getPlace())));
+        UIActionStats.Builder uiActionStatbuilder = UIActionStats.newBuilder()
+          .setActionClassName(actionName)
+          .setInvocationKind(invocationKind)
+          .setInvocations(1)
+          .setDirect(true)
+          .setUiPlace(event.getPlace());
+        if (anAction instanceof ToggleAction) {
+          ToggleAction toggleAction = (ToggleAction)anAction;
+          // events are tracked right before they occur, therefore take the negation of the current state
+          uiActionStatbuilder.setTogglingOn(!toggleAction.isSelected(event));
+        }
+        AndroidStudioEvent.Builder builder = AndroidStudioEvent.newBuilder()
+          .setCategory(EventCategory.STUDIO_UI)
+          .setKind(EventKind.STUDIO_UI_ACTION_STATS)
+          .setUiActionStats(uiActionStatbuilder);
+        UsageTracker.log(builder);
       }
     }
   }
-
   /**
    * Checks if the action is one we need to aggregate.
    * We only aggregate actions the user takes many times in the course of editing code (key events, copy/paste etc...).

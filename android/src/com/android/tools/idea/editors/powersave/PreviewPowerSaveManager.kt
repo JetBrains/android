@@ -17,11 +17,15 @@ package com.android.tools.idea.editors.powersave
 
 import com.android.tools.idea.flags.StudioFlags.DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT
 import com.intellij.ide.PowerSaveMode
+import com.intellij.openapi.util.registry.RegistryManager
 
 object PreviewPowerSaveManager {
   /**
    * Same as [PowerSaveMode] but obeys to the [DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT] to allow disabling the functionality.
    */
   val isInPowerSaveMode: Boolean
-    get() = DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT.get() && PowerSaveMode.isEnabled()
+    get() = DESIGN_TOOLS_POWER_SAVE_MODE_SUPPORT.get() && (PowerSaveMode.isEnabled() || isGlobalEssentialHighlightingModeEnabled )
+
+  private val isGlobalEssentialHighlightingModeEnabled: Boolean
+    get() = RegistryManager.getInstance().`is`("ide.highlighting.mode.essential")
 }
