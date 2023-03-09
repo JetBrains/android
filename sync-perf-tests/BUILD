@@ -164,6 +164,7 @@ maven_repository(
         "@maven//:com.google.guava.guava_19.0",
         "@maven//:com.jakewharton.auto.value.auto-value-annotations_1.2-update1",
         "@maven//:io.opentracing.opentracing-impl_0.13.0",
+        "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
     ],
     visibility = ["//visibility:public"],
 )
