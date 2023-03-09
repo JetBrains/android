@@ -6,6 +6,7 @@ android-studio/bin/appletviewer.policy
 android-studio/bin/breakgen.dll
 android-studio/bin/breakgen64.dll
 android-studio/bin/brokenPlugins.db
+android-studio/bin/defender-exclusions.ps1
 android-studio/bin/elevator.exe
 android-studio/bin/format.bat
 android-studio/bin/fsnotifier-wsl
@@ -2062,6 +2063,7 @@ android-studio/plugins/junit/lib/junit5-rt.jar
 android-studio/plugins/keymap-eclipse/lib/keymap-eclipse.jar
 android-studio/plugins/keymap-netbeans/lib/keymap-netbeans.jar
 android-studio/plugins/keymap-visualStudio/lib/keymap-visualStudio.jar
+android-studio/plugins/laf-win10/lib/laf-win10.jar
 android-studio/plugins/markdown/lib/markdown.jar
 android-studio/plugins/maven-model/lib/maven-model.jar
 android-studio/plugins/maven-server/lib/maven-server.jar
