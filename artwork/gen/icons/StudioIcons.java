@@ -52,6 +52,8 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon DEVICE_AUTOMOTIVE = load("studio/icons/avd/device-automotive.svg", 1513901274, 2);
     /** 32x32 */ public static final @NotNull Icon DEVICE_CAR_LARGE = load("studio/icons/avd/device-car-large.svg", 1338436672, 2);
     /** 16x16 */ public static final @NotNull Icon DEVICE_CAR = load("studio/icons/avd/device-car.svg", -315060683, 2);
+    /** 32x32 */ public static final @NotNull Icon DEVICE_DESKTOP_LARGE = load("studio/icons/avd/device-desktop-large.svg", -838134725, 2);
+    /** 16x16 */ public static final @NotNull Icon DEVICE_DESKTOP = load("studio/icons/avd/device-desktop.svg", -1195957136, 2);
     /** 32x32 */ public static final @NotNull Icon DEVICE_GLASS_LARGE = load("studio/icons/avd/device-glass-large.svg", 920393697, 2);
     /** 16x16 */ public static final @NotNull Icon DEVICE_GLASS = load("studio/icons/avd/device-glass.svg", 1807995575, 2);
     /** 32x32 */ public static final @NotNull Icon DEVICE_MOBILE_LARGE = load("studio/icons/avd/device-mobile-large.svg", 1553721490, 2);
@@ -212,6 +214,7 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon SD_CARD_FOLDER = load("studio/icons/device-explorer/sd-card-folder.svg", -1893473714, 2);
     /** 16x16 */ public static final @NotNull Icon SHARED_PREFS = load("studio/icons/device-explorer/shared-prefs.svg", -1436294942, 2);
     /** 16x16 */ public static final @NotNull Icon VIRTUAL_DEVICE_CAR = load("studio/icons/device-explorer/virtual-device-car.svg", -312287722, 2);
+    /** 16x16 */ public static final @NotNull Icon VIRTUAL_DEVICE_DESKTOP = load("studio/icons/device-explorer/virtual-device-desktop.svg", 494859733, 2);
     /** 16x16 */ public static final @NotNull Icon VIRTUAL_DEVICE_PHONE = load("studio/icons/device-explorer/virtual-device-phone.svg", -1407351788, 2);
     /** 16x16 */ public static final @NotNull Icon VIRTUAL_DEVICE_TV = load("studio/icons/device-explorer/virtual-device-tv.svg", -1171150317, 2);
     /** 16x16 */ public static final @NotNull Icon VIRTUAL_DEVICE_WEAR = load("studio/icons/device-explorer/virtual-device-wear.svg", 1828714812, 2);
@@ -224,7 +227,7 @@ public final class StudioIcons {
 
   public static final class Emulator {
     public static final class Menu {
-      /** 16x16 */ public static final @NotNull Icon MODE_DESKTOP = load("studio/icons/emulator/menu/mode-desktop.svg", 1180515926, 2);
+      /** 16x16 */ public static final @NotNull Icon MODE_DESKTOP = load("studio/icons/emulator/menu/mode-desktop.svg", -1712289805, 2);
       /** 16x16 */ public static final @NotNull Icon MODE_FOLDABLE = load("studio/icons/emulator/menu/mode-foldable.svg", -1830628784, 2);
       /** 16x16 */ public static final @NotNull Icon MODE_PHONE = load("studio/icons/emulator/menu/mode-phone.svg", 1290962538, 2);
       /** 16x16 */ public static final @NotNull Icon MODE_TABLET = load("studio/icons/emulator/menu/mode-tablet.svg", 134067503, 2);
@@ -240,6 +243,7 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon FOLD = load("studio/icons/emulator/toolbar/fold.svg", -944414979, 2);
       /** 16x16 */ public static final @NotNull Icon HOME = load("studio/icons/emulator/toolbar/home.svg", 1294962473, 2);
       /** 16x16 */ public static final @NotNull Icon OVERVIEW = load("studio/icons/emulator/toolbar/overview.svg", -1503486826, 2);
+      /** 16x16 */ public static final @NotNull Icon POWER_MENU = load("studio/icons/emulator/toolbar/power-menu.svg", -1630646577, 2);
       /** 16x16 */ public static final @NotNull Icon POWER = load("studio/icons/emulator/toolbar/power.svg", 2105026113, 2);
       /** 16x16 */ public static final @NotNull Icon ROTATE_LEFT = load("studio/icons/emulator/toolbar/rotate-left.svg", -713974916, 2);
       /** 16x16 */ public static final @NotNull Icon ROTATE_RIGHT = load("studio/icons/emulator/toolbar/rotate-right.svg", 1834195537, 2);

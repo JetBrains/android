@@ -25,6 +25,7 @@
         "connection-wifi.svg": "studio/icons/avd/connection-wifi.svg",
         "device-automotive.svg": "studio/icons/avd/device-automotive.svg",
         "device-car.svg": "studio/icons/avd/device-car.svg",
+        "device-desktop.svg": "studio/icons/avd/device-desktop.svg",
         "device-glass.svg": "studio/icons/avd/device-glass.svg",
         "device-mobile.svg": "studio/icons/avd/device-mobile.svg",
         "device-phone.svg": "studio/icons/avd/device-phone.svg",
@@ -141,6 +142,7 @@
         "sd-card-folder.svg": "studio/icons/device-explorer/sd-card-folder.svg",
         "shared-prefs.svg": "studio/icons/device-explorer/shared-prefs.svg",
         "virtual-device-car.svg": "studio/icons/device-explorer/virtual-device-car.svg",
+        "virtual-device-desktop.svg": "studio/icons/device-explorer/virtual-device-desktop.svg",
         "virtual-device-phone.svg": "studio/icons/device-explorer/virtual-device-phone.svg",
         "virtual-device-tv.svg": "studio/icons/device-explorer/virtual-device-tv.svg",
         "virtual-device-wear.svg": "studio/icons/device-explorer/virtual-device-wear.svg"
@@ -165,6 +167,7 @@
           "home.svg": "studio/icons/emulator/toolbar/home.svg",
           "overview.svg": "studio/icons/emulator/toolbar/overview.svg",
           "power.svg": "studio/icons/emulator/toolbar/power.svg",
+          "power-menu.svg": "studio/icons/emulator/toolbar/power-menu.svg",
           "rotate-left.svg": "studio/icons/emulator/toolbar/rotate-left.svg",
           "rotate-right.svg": "studio/icons/emulator/toolbar/rotate-right.svg",
           "screenshot.svg": "studio/icons/emulator/toolbar/screenshot.svg",
