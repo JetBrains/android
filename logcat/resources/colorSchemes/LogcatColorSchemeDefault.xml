@@ -23,15 +23,15 @@
 
   <option name="LOGCAT_V2_LEVEL_DEBUG">
     <value>
-      <option name="FOREGROUND" value="414d41"/>
-      <option name="BACKGROUND" value="e9f5e6"/>
+      <option name="FOREGROUND" value="000000"/>
+      <option name="BACKGROUND" value="cfe7ff"/>
     </value>
   </option>
 
   <option name="LOGCAT_V2_LEVEL_INFO">
     <value>
-      <option name="FOREGROUND" value="000000"/>
-      <option name="BACKGROUND" value="cfe7ff"/>
+      <option name="FOREGROUND" value="414d41"/>
+      <option name="BACKGROUND" value="e9f5e6"/>
     </value>
   </option>
 
@@ -64,13 +64,13 @@
 
   <option name="LOGCAT_V2_MESSAGE_DEBUG">
     <value>
-      <option name="FOREGROUND" value="000000"/>
+      <option name="FOREGROUND" value="389FD6"/>
     </value>
   </option>
 
   <option name="LOGCAT_V2_MESSAGE_INFO">
     <value>
-      <option name="FOREGROUND" value="000000"/>
+      <option name="FOREGROUND" value="59A869"/>
     </value>
   </option>
 
