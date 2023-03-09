@@ -16,7 +16,7 @@
 package com.android.tools.adtui.ui
 
 import com.android.annotations.concurrency.WorkerThread
-import com.intellij.openapi.util.CachedImageIcon
+import com.intellij.ui.icons.CachedImageIcon
 import com.intellij.ui.scale.ScaleContext
 import com.intellij.util.SVGLoader
 import java.awt.Image

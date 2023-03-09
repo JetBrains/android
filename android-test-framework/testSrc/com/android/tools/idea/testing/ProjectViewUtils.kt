@@ -27,7 +27,7 @@ import com.intellij.ide.projectView.impl.ProjectViewImpl
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.ide.util.treeView.AbstractTreeStructure
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.CachedImageIcon
+import com.intellij.ui.icons.CachedImageIcon
 import com.intellij.ui.DeferredIconImpl
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.RetrievableIcon

@@ -19,8 +19,8 @@ import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.res.RESOURCE_ICON_SIZE
 import com.android.tools.idea.uibuilder.structure.NlVisibilityModel.Visibility
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
-import com.intellij.ui.IconReplacer
 import com.intellij.ui.RetrievableIcon
+import com.intellij.ui.icons.IconReplacer
 import com.intellij.util.ui.EmptyIcon
 import com.intellij.util.ui.JBInsets
 import com.intellij.util.ui.JBUI

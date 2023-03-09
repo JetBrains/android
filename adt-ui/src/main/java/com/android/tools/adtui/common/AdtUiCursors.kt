@@ -17,7 +17,7 @@ package com.android.tools.adtui.common
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.util.CachedImageIcon
+import com.intellij.ui.icons.CachedImageIcon
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import java.awt.Cursor
