@@ -245,6 +245,30 @@ androidx-lifecycle-lifecycle-runtime-ktx2313 = { group = "androidx.lifecycle", n
   }
 
   @Test
+  fun testAddDependencyWithVersionCatalog_differentName_between_versionAndLibrary() {
+    // Only the version has the name that results in having different names between the versions and libraries section
+    // after addDependency is called
+    writeToVersionCatalogFile("""
+[versions]
+lifecycle-runtime-ktx = "2.5.0"
+[libraries]
+    """)
+
+    recipeExecutor.addDependency("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
+
+    applyChanges(recipeExecutor.projectBuildModel!!)
+
+    verifyFileContents(myVersionCatalogFile, """
+[versions]
+lifecycle-runtime-ktx = "2.5.0"
+androidx-lifecycle-lifecycle-runtime-ktx = "2.3.1"
+[libraries]
+lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
+    """)
+    verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_ADD_DEPENDENCY)
+  }
+
+  @Test
   fun testAddPlatformDependencyWithVersionCatalog() {
     recipeExecutor.addPlatformDependency("androidx.compose:compose-bom:2022.10.00")
 

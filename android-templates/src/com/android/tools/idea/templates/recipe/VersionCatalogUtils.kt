@@ -30,7 +30,7 @@ import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 fun addDependencyToVersionCatalog(
   catalogModel: GradleVersionCatalogModel?,
   resolvedMavenCoordinate: String,
-): ReferenceTo {
+): ReferenceTo? {
   val splitCoordinate = resolvedMavenCoordinate.split(":")
   val groupName = splitCoordinate[0]
   val libraryName = splitCoordinate[1]
@@ -52,12 +52,16 @@ fun addDependencyToVersionCatalog(
     val libProperty = libraries?.findProperty(pickedNameForLib)
     libProperty?.getMapValue("group")?.setValue(groupName)
     libProperty?.getMapValue("name")?.setValue(libraryName)
+
     if (resolvedVersion != null) {
       val versionProperty = versions?.findProperty(pickedNameForVersion)
       versionProperty?.setValue(resolvedVersion)
-      libProperty?.getMapValue("version")?.setValue(ReferenceTo(versions?.findProperty(pickedNameForLib)!!))
+
+      if (versionProperty != null) {
+        libProperty?.getMapValue("version")?.setValue(ReferenceTo(versionProperty))
+      }
     }
-    ReferenceTo(libraries?.findProperty(pickedNameForLib)!!)
+    return if (libProperty != null) ReferenceTo(libProperty) else null
   }
 }
 

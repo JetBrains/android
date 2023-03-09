@@ -304,7 +304,7 @@ class DefaultRecipeExecutor(
     if (useVersionCatalog) {
       val catalogModel = projectBuildModel?.versionCatalogsModel?.getVersionCatalogModel("libs")
       val referenceToDepToAdd = addDependencyToVersionCatalog(catalogModel, resolvedMavenCoordinate)
-      if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) == null) {
+      if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) == null && referenceToDepToAdd != null) {
         buildModel.dependencies().addArtifact(resolvedConfiguration, referenceToDepToAdd)
       }
     } else {
@@ -330,7 +330,9 @@ class DefaultRecipeExecutor(
     if (useVersionCatalog) {
       val catalogModel = projectBuildModel?.versionCatalogsModel?.getVersionCatalogModel("libs")
       val referenceToDepToAdd = addDependencyToVersionCatalog(catalogModel, resolvedMavenCoordinate)
-      buildModel.dependencies().addPlatformArtifact(configuration, referenceToDepToAdd, enforced)
+      if (referenceToDepToAdd != null) {
+        buildModel.dependencies().addPlatformArtifact(configuration, referenceToDepToAdd, enforced)
+      }
     } else {
       buildModel.dependencies().addPlatformArtifact(configuration, resolvedMavenCoordinate, enforced)
     }
