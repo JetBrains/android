@@ -237,25 +237,7 @@ class DownloadsInfoUITableModelsTest {
     val table = TableView(model)
     assertThat(table.rowCount).isEqualTo(3)
     assertThat(table.columnCount).isEqualTo(5)
-    val content = (0 until table.rowCount).joinToString(separator = "\n") { row ->
-      (0 until table.columnCount).joinToString(separator = " | ") { column ->
-        val renderer = table.getCellRenderer(row, column)
-        val component = table.prepareRenderer(renderer, row, column)
-        if (component is ColoredTableCellRenderer) {
-          val icon = when (component.icon) {
-            AnimatedIcon.Default.INSTANCE -> "[Load]"
-            AllIcons.General.Error -> "[Err]"
-            AllIcons.General.Warning -> "[Warn]"
-            AllIcons.RunConfigurations.TestPassed -> "[Ok]"
-            null -> ""
-            else -> "[unexpected icon]"
-          }
-          val text = component.getCharSequence(false)
-          "$icon$text"
-        }
-        else "Unexpected cell renderer: ${renderer.javaClass}"
-      }
-    }
+    val content = printTableContent(table)
 
     val expectedContent = """
       [Ok]Finished | https://dl.google.com/dl/android/maven2/com/android/tools/build/gradle/7.3.0-alpha05/gradle-7.3.0-alpha05.pom | 1 s 234 ms | 1.23 kB | 1 kB/s
@@ -278,11 +260,22 @@ class DownloadsInfoUITableModelsTest {
     val table = TableView(model)
     assertThat(table.rowCount).isEqualTo(3)
     assertThat(table.columnCount).isEqualTo(7)
+    val content = printTableContent(table)
+
+    val expectedContent = """
+      Total | 4 (1 running) | 2.48 kB | 8 s 269 ms | 299 B/s | 1 | 5 s 678 ms
+      Google | 3 (1 running) | 1.25 kB | 7 s 35 ms | 177 B/s | 1 | 5 s 678 ms
+      Maven Central | 1 | 1.23 kB | 1 s 234 ms | 1 kB/s | 0 | 0 ms
+    """.trimIndent()
+    assertThat(content).isEqualTo(expectedContent)
+  }
+
+  private fun printTableContent(table: TableView<*>): String {
     val content = (0 until table.rowCount).joinToString(separator = "\n") { row ->
       (0 until table.columnCount).joinToString(separator = " | ") { column ->
         val renderer = table.getCellRenderer(row, column)
         val component = table.prepareRenderer(renderer, row, column)
-        if (component is DefaultTableCellRenderer) {
+        if (component is ColoredTableCellRenderer) {
           val icon = when (component.icon) {
             AnimatedIcon.Default.INSTANCE -> "[Load]"
             AllIcons.General.Error -> "[Err]"
@@ -291,17 +284,12 @@ class DownloadsInfoUITableModelsTest {
             null -> ""
             else -> "[unexpected icon]"
           }
-          val text = component.text
+          val text = component.getCharSequence(false)
           "$icon$text"
         }
         else "Unexpected cell renderer: ${renderer.javaClass}"
       }
     }
-    val expectedContent = """
-      All repositories | 4 (1 running) | 2.48 kB | 8 s 269 ms | 299 B/s | 1 | 5 s 678 ms
-      Google | 3 (1 running) | 1.25 kB | 7 s 35 ms | 177 B/s | 1 | 5 s 678 ms
-      Maven Central | 1 | 1.23 kB | 1 s 234 ms | 1 kB/s | 0 | 0 ms
-    """.trimIndent()
-    assertThat(content).isEqualTo(expectedContent)
+    return content
   }
 }

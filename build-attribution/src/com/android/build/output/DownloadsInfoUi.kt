@@ -63,6 +63,7 @@ class DownloadsInfoExecutionConsole(
     name = "requests table"
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
     setShowGrid(false)
+    columnSelectionAllowed = false
     tableHeader.reorderingAllowed = false
     setEmptyState("No download requests")
     val speedSearch = object : TableViewSpeedSearch<DownloadRequestItem>(this) {
@@ -75,6 +76,7 @@ class DownloadsInfoExecutionConsole(
     name = "repositories table"
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
     setShowGrid(false)
+    columnSelectionAllowed = false
     setEmptyState("No download requests")
     tableHeader.reorderingAllowed = false
     selectionModel.addListSelectionListener {

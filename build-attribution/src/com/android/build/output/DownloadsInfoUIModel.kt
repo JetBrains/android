@@ -238,18 +238,31 @@ class RepositoryTableItem(
 class RepositoriesTableModel : ListTableModel<RepositoryTableItem>() {
   val summaryItem = RepositoryTableItem(null)
   val reposData = mutableMapOf<DownloadsAnalyzer.Repository, RepositoryTableItem>()
+
   init {
+    // Cell renderer that will highlight first summary line
+    val cellRenderer = object : ColoredTableCellRenderer() {
+      override fun customizeCellRenderer(table: JTable, value: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
+        if (value is String) {
+          if (row == 0) {
+            append(value, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES)
+          }
+          else {
+            append(value, SimpleTextAttributes.REGULAR_ATTRIBUTES)
+          }
+        }
+      }
+    }
     fun column(title: String, tooltip: String? = null, valueOf: (RepositoryTableItem) -> String) =
       object : ColumnInfo<RepositoryTableItem, String>(title) {
         override fun valueOf(found: RepositoryTableItem): String = valueOf(found)
         override fun getPreferredStringValue() = title
-        override fun getTooltipText(): String? {
-          return tooltip
-        }
+        override fun getTooltipText(): String? = tooltip
+        override fun getRenderer(item: RepositoryTableItem): TableCellRenderer = cellRenderer
       }
     columnInfos = arrayOf(
       column("Repository") { repoItem -> when {
-        repoItem.repository == null -> "All repositories"
+        repoItem.repository == null -> "Total"
         repoItem.repository is DownloadsAnalyzer.KnownRepository -> repoItem.repository.presentableName
         repoItem.repository is DownloadsAnalyzer.OtherRepository -> repoItem.repository.host
         else -> error("Unexpected repository table item.")
