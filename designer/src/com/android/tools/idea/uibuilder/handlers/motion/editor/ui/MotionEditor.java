@@ -19,6 +19,8 @@ import static com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel
 
 import com.android.tools.idea.uibuilder.handlers.motion.editor.MotionSceneTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.NlComponentTag;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.actions.PanelAction;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.actions.ClickOrSwipeAction;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
@@ -34,6 +36,10 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.Cre
 import com.android.tools.idea.uibuilder.handlers.motion.editor.createDialogs.CreateTransition;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector.TimeLineListener;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
+import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.ui.AnActionButton;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
@@ -82,18 +88,22 @@ public class MotionEditor extends JPanel {
   JScrollPane mOverviewScrollPane = new MEScrollPane(mOverviewPanel);
   CardLayout mCardLayout = new CardLayout();
   JPanel mCenterPanel = new JPanel(mCardLayout);
-  JButton mCreateGestureToolbarButton;
-  JButton mCreateTransitionToolbarButton;
   private static final String LAYOUT_PANEL = "Layout";
   private static final String TRANSITION_PANEL = "Transition";
   private static final String CONSTRAINTSET_PANEL = "ConstraintSet";
   private String mCurrentlyDisplaying = CONSTRAINTSET_PANEL;
   private final List<Command> myCommandListeners = new ArrayList<>();
 
-  CreateConstraintSet mCreateConstraintSet = new CreateConstraintSet();
-  CreateOnClick mCreateOnClick = new CreateOnClick();
-  CreateOnSwipe mCreateOnSwipe = new CreateOnSwipe();
-  CreateTransition mCreateTransition = new CreateTransition();
+  PanelAction createConstrainSet = new PanelAction(new CreateConstraintSet(), this);
+  PanelAction createTransition = new PanelAction(new CreateTransition(), this);
+  AnActionButton clickOrSwipe = new ClickOrSwipeAction(this);
+  AnActionButton cycleAction = new AnActionButton("Cycle between layouts", MEIcons.CYCLE_LAYOUT) {
+    @Override
+    public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
+      layoutTop();
+    }
+  };
+
   JSplitPane mTopPanel;
   boolean mUpdatingModel;
   JPopupMenu myPopupMenu = new JPopupMenu();
@@ -268,42 +278,12 @@ public class MotionEditor extends JPanel {
     mOverviewPanel.setActionListener(mTagActionListener);
     mTransitionPanel.setActionListener(mTagActionListener);
     mMainPanel.add(ui);
-    JPanel toolbarLeft = new JPanel(new FlowLayout(FlowLayout.LEFT));
-    JPanel toolbarRight = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    JPanel toolbarLeft = new DefaultToolbarImpl(this, "MotionEditorLeft", ImmutableList.of(createConstrainSet, createTransition, clickOrSwipe));
+    JPanel toolbarRight = new DefaultToolbarImpl(this, "MotionEditorRight", ImmutableList.of(cycleAction));
     JPanel toolbar = new JPanel(new BorderLayout());
     toolbar.add(toolbarLeft, BorderLayout.WEST);
     toolbar.add(toolbarRight, BorderLayout.EAST);
-
-    JButton create_constraintSet = MEUI.createToolBarButton(MEIcons.CREATE_MENU, "Create ConstraintSet");
-    toolbarLeft.add(create_constraintSet);
-    mCreateTransitionToolbarButton = MEUI.createToolBarButton(MEIcons.CREATE_TRANSITION, MEIcons.LIST_TRANSITION, "Create Transition between ConstraintSets");
-    toolbarLeft.add(mCreateTransitionToolbarButton);
-    mCreateGestureToolbarButton = MEUI.createToolBarButton(MEIcons.CREATE_ON_STAR, MEIcons.GESTURE, "Create click or swipe handler");
-    toolbarLeft.add(mCreateGestureToolbarButton);
-    create_constraintSet.setAction(mCreateConstraintSet.getAction(create_constraintSet, this));
-    mCreateTransitionToolbarButton.setAction(mCreateTransition.getAction(mCreateTransitionToolbarButton, this));
-    create_constraintSet.setHideActionText(true);
-    mCreateTransitionToolbarButton.setHideActionText(true);
-    mCreateGestureToolbarButton.setHideActionText(true);
-
-
-    myPopupMenu.add(mCreateOnClick.getAction(mCreateGestureToolbarButton, this));
-    myPopupMenu.add(mCreateOnSwipe.getAction(mCreateGestureToolbarButton, this));
-
-    mCreateGestureToolbarButton.addActionListener(e -> {
-      myPopupMenu.show(create_constraintSet, 0, 0);
-    });
-
-    JButton cycle = MEUI.createToolBarButton(MEIcons.CYCLE_LAYOUT, "Cycle between layouts");
-
-    toolbarRight.add(cycle);
-
-    cycle.addActionListener(e -> {
-      layoutTop();
-    });
-
     mMainPanel.add(toolbar, BorderLayout.NORTH);
-
     layoutTop();
   }
 
@@ -412,9 +392,9 @@ public class MotionEditor extends JPanel {
       mTransitionPanel.setMTag(asTransition(newSelection), mMeModel);
       mSelectedTag = newSelection;
       MTag[] mtags = model.motionScene.getChildTags("ConstraintSet");
-      mCreateTransitionToolbarButton.setEnabled(mtags.length >= 2);
+      createTransition.setEnabled(mtags.length >= 2);
       mtags = model.motionScene.getChildTags("Transition");
-      mCreateGestureToolbarButton.setEnabled(mtags.length >= 1);
+      clickOrSwipe.setEnabled(mtags.length >= 1);
     }
     finally {
       mUpdatingModel = false;

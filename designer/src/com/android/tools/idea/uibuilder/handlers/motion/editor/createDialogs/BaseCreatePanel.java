@@ -43,7 +43,7 @@ import java.util.Arrays;
 public class BaseCreatePanel extends JPanel {
   public static final boolean DEBUG = false;
   MEUI.Popup myDialog;
-  Icon icon = MEIcons.CREATE_TRANSITION;
+  public Icon icon = MEIcons.CREATE_TRANSITION;
   protected MotionEditor mMotionEditor;
   protected boolean inSubPopup = false;
   private Component mSourceComponent;
@@ -251,6 +251,18 @@ public class BaseCreatePanel extends JPanel {
     };
     aa.putValue(Action.SHORT_DESCRIPTION, component.getToolTipText());
     return aa;
+  }
+
+  public void doAction(JComponent component, MotionEditor motionEditor) {
+    mMotionEditor = motionEditor;
+    mSourceComponent = component;
+    boolean ok = populateDialog();
+    if (ok) {
+      MEUI.invokeLater(() -> {
+        showPopup(component, 0, 0);
+        motionEditor.dataChanged();
+      });
+    }
   }
 
   String addIdPrefix(String str) {

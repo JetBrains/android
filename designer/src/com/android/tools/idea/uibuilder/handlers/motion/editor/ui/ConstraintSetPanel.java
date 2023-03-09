@@ -26,7 +26,12 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag.Att
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.StringMTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
+import com.android.tools.idea.uibuilder.handlers.motion.editor.actions.ModifyMenuAction;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
+import com.google.common.collect.ImmutableList;
+import com.intellij.openapi.actionSystem.AnAction;
+import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.ui.AnActionButton;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -44,6 +49,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Vector;
@@ -75,8 +81,6 @@ class ConstraintSetPanel extends JPanel {
   ArrayList<MTag> mParent; // mParent.get(0) is the direct parent
   MTag mConstraintSet; // The currently displayed constraintSet
   ArrayList<MTag> mDisplayedRows = new ArrayList<>();
-  JPopupMenu myPopupMenu = new JPopupMenu();
-
   DefaultTableModel mConstraintSetModel = new DefaultTableModel(
     new String[]{"Constraint", "ID", "Source"}, 0) {
 
@@ -96,56 +100,68 @@ class ConstraintSetPanel extends JPanel {
   boolean showAll = true;
   private MeModel mMeModel;
   private final JLabel mTitle;
-  JButton mModifyMenu;
   boolean mBuildingTable;
 
-  AbstractAction createConstraint = new AbstractAction("Create Constraint") {
+  AnActionButton createConstraint = new AnActionButton("Create Constraint") {
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       Track.createConstraint(mMeModel.myTrack);
       ConstraintSetPanelCommands.createConstraint(mSelectedTag, mConstraintSet);
       buildTable();
     }
   };
 
-  AbstractAction createAllConstraints = new AbstractAction("Create All Constraints") {
+  AnActionButton createAllConstraints = new AnActionButton("Create All Constraints") {
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       Track.createConstraint(mMeModel.myTrack);
       ConstraintSetPanelCommands.createAllConstraints(mDisplayedRows, mConstraintSet);
       buildTable();
     }
   };
 
-  AbstractAction createSectionedConstraint = new AbstractAction("Create Sectioned Constraint") {
+  AnActionButton createSectionedConstraint = new AnActionButton("Create Sectioned Constraint") {
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       ConstraintSetPanelCommands.createSectionedConstraint(mMultiSelectedTag, mConstraintSet);
       buildTable();
     }
   };
 
-  AbstractAction clearConstraint = new AbstractAction("Clear Constraint") {
+  AnActionButton clearConstraint = new AnActionButton("Clear Constraint") {
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       Track.clearConstraint(mMeModel.myTrack);
       ConstraintSetPanelCommands.clearConstraint(mSelectedTag, mConstraintSet);
       buildTable();
     }
   };
-  AbstractAction moveConstraint = new AbstractAction("Move Constraints to layout") {
+  AnActionButton moveConstraint = new AnActionButton("Move Constraints to layout") {
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e) {
       ConstraintSetPanelCommands.moveConstraint(mSelectedTag, mConstraintSet);
     }
   };
 
-  AbstractAction overrideConstraint = new AbstractAction("Convert from sectioned constraints") {
+  AnActionButton overrideConstraint = new AnActionButton("Convert from sectioned constraints") {
     @Override
-    public void actionPerformed(ActionEvent e) {
+    public void actionPerformed(@org.jetbrains.annotations.NotNull AnActionEvent e)  {
       ConstraintSetPanelCommands.convertFromSectioned(mSelectedTag, mConstraintSet);
     }
   };
+
+  ModifyMenuAction mModifyMenu = new ModifyMenuAction() {
+    @org.jetbrains.annotations.NotNull
+    @Override
+    public List<AnAction> getActions() {
+      if (DEBUG) {
+        return List.of(createConstraint, createAllConstraints, clearConstraint,
+                       moveConstraint, createSectionedConstraint, overrideConstraint);
+      }
+      else return List.of(createConstraint, createAllConstraints, clearConstraint);
+    }
+  };
+
 
   private String mConstraintSetId;
 
@@ -390,35 +406,9 @@ class ConstraintSetPanel extends JPanel {
   }
 
   private void makeRightMenu(JPanel right) {
-    mModifyMenu = MEUI.createToolBarButton(MEIcons.EDIT_MENU, MEIcons.EDIT_MENU_DISABLED, "modify constraint set");
-    right.add(mModifyMenu);
+    JPanel toolbar = new DefaultToolbarImpl(this, "ModifyMenu", ImmutableList.of(mModifyMenu));
+    right.add(toolbar);
     mModifyMenu.setEnabled(false);
-    myPopupMenu.add(createConstraint);
-    myPopupMenu.add(createAllConstraints);
-    myPopupMenu.add(clearConstraint);
-    if (DEBUG) {
-      myPopupMenu.add(moveConstraint);
-      myPopupMenu.add(createSectionedConstraint);
-      myPopupMenu.add(overrideConstraint);
-    }
-    mModifyMenu.addActionListener(e -> {
-      myPopupMenu.show(mModifyMenu, 0, 0);
-    });
-  }
-
-  @Override
-  public void updateUI() {
-    super.updateUI();
-    if (myPopupMenu != null) { // any are not null they have been initialized
-      myPopupMenu.updateUI();
-      int n = myPopupMenu.getComponentCount();
-      for (int i = 0; i < n; i++) {
-        Component component = myPopupMenu.getComponent(i);
-        if (component instanceof JComponent) {
-          ((JComponent)component).updateUI();
-        }
-      }
-    }
   }
 
   public void buildTable() {
