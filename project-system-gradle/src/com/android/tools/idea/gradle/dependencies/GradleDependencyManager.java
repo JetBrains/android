@@ -21,7 +21,6 @@ import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIG
 import static com.intellij.openapi.roots.ModuleRootModificationUtil.updateModel;
 
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
@@ -52,7 +51,7 @@ public class GradleDependencyManager {
 
   /**
    * Returns the dependencies that are NOT defined in the build files.
-   *
+   * <p>
    * Note: A dependency is still regarded as missing even if it's available
    * by a transitive dependency.
    * Also: the version of the dependency is disregarded.
@@ -75,14 +74,14 @@ public class GradleDependencyManager {
     // Record current version of support library; if used, prefer that for other dependencies
     // (e.g. if you're using appcompat-v7 version 25.3.1, and you drag in a recyclerview-v7
     // library, we should also use 25.3.1, not whatever happens to be latest
-    GradleVersion appCompatVersion = null;
+    String appCompatVersion = null;
     if (compileDependencies != null) {
       for (ArtifactDependencyModel dependency : compileDependencies) {
         if (Objects.equal(SUPPORT_LIB_GROUP_ID, dependency.group().toString()) &&
             !Objects.equal("multidex", dependency.name().forceString())) {
           String s = dependency.version().toString();
           if (s != null) {
-            appCompatVersion = GradleVersion.tryParse(s);
+            appCompatVersion = s;
           }
           break;
         }
@@ -95,11 +94,6 @@ public class GradleDependencyManager {
     for (GradleCoordinate coordinate : dependencies) {
       String groupId = coordinate.getGroupId();
       String artifactId = coordinate.getArtifactId();
-      if (artifactId == null || groupId == null) {
-        // We don't have enough info to continue. Skip.
-        continue;
-      }
-
       GradleCoordinate resolvedCoordinate = manager.resolveDynamicCoordinate(coordinate, project, null);
 
       // If we're adding a support library with a dynamic version (+), and we already have a resolved
@@ -109,7 +103,7 @@ public class GradleDependencyManager {
           && coordinate.acceptsGreaterRevisions() && SUPPORT_LIB_GROUP_ID.equals(groupId)
           // The only library in groupId=SUPPORT_LIB_GROUP_ID which doesn't follow the normal version numbering scheme
           && !artifactId.equals("multidex")) {
-        resolvedCoordinate = GradleCoordinate.parseCoordinateString(groupId + ":" + artifactId + ":" + appCompatVersion.toString());
+        resolvedCoordinate = GradleCoordinate.parseCoordinateString(groupId + ":" + artifactId + ":" + appCompatVersion);
       }
 
       if (resolvedCoordinate != null) {
@@ -164,7 +158,7 @@ public class GradleDependencyManager {
    *
    * @param module       the module to add dependencies to
    * @param dependencies the dependencies of interest
-   * @param nameMapper   a factory to produce configuration names and artifact specsc
+   * @param nameMapper   a factory to produce configuration names and artifact specs
    * @return true if the dependencies were successfully added or were already present in the module.
    */
   public boolean addDependenciesWithoutSync(
@@ -233,9 +227,7 @@ public class GradleDependencyManager {
     assert !coordinates.isEmpty();
 
     Project project = module.getProject();
-    WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY).run(() -> {
-      updateDependencies(buildModel, module, coordinates);
-    });
+    WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY).run(() -> updateDependencies(buildModel, module, coordinates));
   }
 
   private static void requestProjectSync(@NotNull Project project, @NotNull GradleSyncStats.Trigger trigger) {
@@ -251,8 +243,8 @@ public class GradleDependencyManager {
       for (GradleCoordinate gc : coordinates) {
         List<ArtifactDependencyModel> artifacts = new ArrayList<>(dependenciesModel.artifacts());
         for (ArtifactDependencyModel m : artifacts) {
-          if (gc.getGroupId() != null && gc.getGroupId().equals(m.group().toString())
-              && gc.getArtifactId() != null && gc.getArtifactId().equals(m.name().forceString())
+          if (gc.getGroupId().equals(m.group().toString())
+              && gc.getArtifactId().equals(m.name().forceString())
               && !gc.getRevision().equals(m.version().toString())) {
             dependenciesModel.remove(m);
             dependenciesModel.addArtifact(m.configurationName(), gc.toString());
