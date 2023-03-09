@@ -57,6 +57,7 @@ import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.ui.LoadingDecorator;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Disposer;
@@ -157,7 +158,7 @@ public final class GenerateImageAssetPanel extends JPanel implements Disposable,
                                  @NotNull AndroidModulePaths defaultPaths, @NotNull File resFolder,
                                  @NotNull AndroidIconType... supportedTypes) {
     super(new BorderLayout());
-
+    FileDocumentManager.getInstance().saveAllDocuments();
     myLoadingPanel = new JBLoadingPanel(new BorderLayout(), panel -> new LoadingDecorator(panel, this, -1) {
       @Override
       protected NonOpaquePanel customizeLoadingLayer(JPanel parent, JLabel text, AsyncProcessIcon icon) {
