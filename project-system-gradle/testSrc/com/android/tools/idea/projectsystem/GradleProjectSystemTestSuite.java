@@ -20,8 +20,8 @@ import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
 import com.android.tools.tests.LeakCheckerRule;
 import com.intellij.openapi.util.IconLoader;
-import com.intellij.ui.CoreIconManager;
 import com.intellij.ui.IconManager;
+import com.intellij.ui.icons.CoreIconManager;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 

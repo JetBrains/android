@@ -25,7 +25,6 @@ import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AG
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT_V1
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.IntegrationTestEnvironment
 import com.android.tools.idea.testing.ModelVersion
 import com.android.tools.idea.testing.OpenPreparedProjectOptions
 import com.android.tools.idea.testing.onEdt
@@ -36,8 +35,8 @@ import com.intellij.openapi.util.IconLoader
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.RunsInEdt
-import com.intellij.ui.CoreIconManager
 import com.intellij.ui.IconManager
+import com.intellij.ui.icons.CoreIconManager
 import org.junit.Assume
 import org.junit.Ignore
 import org.junit.Rule
