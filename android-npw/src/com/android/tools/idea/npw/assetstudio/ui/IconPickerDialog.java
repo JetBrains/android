@@ -18,10 +18,10 @@ package com.android.tools.idea.npw.assetstudio.ui;
 import static com.intellij.openapi.actionSystem.IdeActions.ACTION_FIND;
 
 import com.android.ide.common.vectordrawable.VdIcon;
-import com.android.tools.idea.npw.assetstudio.material.icons.common.MaterialIconsMetadataUrlProvider;
-import com.android.tools.idea.npw.assetstudio.material.icons.common.MaterialIconsUrlProvider;
-import com.android.tools.idea.npw.assetstudio.material.icons.MaterialVdIcons;
-import com.android.tools.idea.npw.assetstudio.MaterialVdIconsProvider;
+import com.android.tools.idea.MaterialVdIconsProvider;
+import com.android.tools.idea.material.icons.MaterialVdIcons;
+import com.android.tools.idea.material.icons.common.MaterialIconsMetadataUrlProvider;
+import com.android.tools.idea.material.icons.common.MaterialIconsUrlProvider;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.DataManager;
 import com.intellij.openapi.actionSystem.ActionManager;

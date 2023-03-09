@@ -18,8 +18,8 @@ package com.android.tools.idea.npw.assetstudio.ui;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.ide.common.vectordrawable.VdIcon;
-import com.android.tools.idea.npw.assetstudio.material.icons.common.MaterialIconsMetadataUrlProvider;
-import com.android.tools.idea.npw.assetstudio.material.icons.common.MaterialIconsUrlProvider;
+import com.android.tools.idea.material.icons.common.MaterialIconsMetadataUrlProvider;
+import com.android.tools.idea.material.icons.common.MaterialIconsUrlProvider;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.testFramework.LightPlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;

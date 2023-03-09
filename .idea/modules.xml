@@ -244,6 +244,8 @@
       <module fileurl="file://$PROJECT_DIR$/nav/editor/intellij.android.nav.editor.tests.iml" filepath="$PROJECT_DIR$/nav/editor/intellij.android.nav.editor.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/nav/safeargs/intellij.android.nav.safeargs.iml" filepath="$PROJECT_DIR$/nav/safeargs/intellij.android.nav.safeargs.iml" />
       <module fileurl="file://$PROJECT_DIR$/nav/safeargs/intellij.android.nav.safeargs.tests.iml" filepath="$PROJECT_DIR$/nav/safeargs/intellij.android.nav.safeargs.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android-material/intellij.android.android-material.iml" filepath="$PROJECT_DIR$/android-material/intellij.android.android-material.iml" />
+      <module fileurl="file://$PROJECT_DIR$/android-material/intellij.android.android-material.tests.iml" filepath="$PROJECT_DIR$/android-material/intellij.android.android-material.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-navigator/intellij.android.navigator.iml" filepath="$PROJECT_DIR$/android-navigator/intellij.android.navigator.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-navigator/intellij.android.navigator.testutils.iml" filepath="$PROJECT_DIR$/android-navigator/intellij.android.navigator.testutils.iml" />
       <module fileurl="file://$PROJECT_DIR$/android-npw/intellij.android.newProjectWizard.iml" filepath="$PROJECT_DIR$/android-npw/intellij.android.newProjectWizard.iml" />

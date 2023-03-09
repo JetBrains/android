@@ -156,6 +156,7 @@ studio_plugin(
             "//tools/adt/idea/mlkit:intellij.android.mlkit",
             "//tools/adt/idea/nav/safeargs:intellij.android.nav.safeargs",
             "//tools/adt/idea/android-npw:intellij.android.newProjectWizard",
+            "//tools/adt/idea/android-material:intellij.android.android-material",
             "//tools/adt/idea/observable-ui:intellij.android.observable.ui",
             "//tools/adt/idea/observable:intellij.android.observable",
             "//tools/adt/idea/android-plugin:intellij.android.plugin",
