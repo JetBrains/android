@@ -21,6 +21,11 @@ import com.intellij.codeInspection.*
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElementVisitor
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
+import org.jetbrains.kotlin.analysis.api.calls.symbol
+import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionSymbol
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.inspections.AbstractKotlinInspection
 import org.jetbrains.kotlin.psi.*
@@ -47,9 +52,18 @@ class TypeParameterFindViewByIdInspection : AbstractKotlinInspection(), CleanupL
 
                 val parentCast = (expression.parent as? KtBinaryExpressionWithTypeRHS)?.takeIf { isUnsafeCast(it) } ?: return
                 val typeText = parentCast.right?.getTypeTextWithoutQuestionMark() ?: return
-                val callableDescriptor = expression.resolveToCall()?.resultingDescriptor ?: return
-                if (callableDescriptor.name.asString() != "findViewById" || callableDescriptor.typeParameters.size != 1) {
-                    return
+                if (isK2Plugin()) {
+                    analyze(expression) {
+                        val calleeSymbol = expression.resolveCall().singleFunctionCallOrNull()?.symbol as? KtFunctionSymbol ?: return
+                        if (calleeSymbol.name.asString() != "findViewById" || calleeSymbol.typeParameters.size != 1) {
+                            return
+                        }
+                    }
+                } else {
+                    val callableDescriptor = expression.resolveToCall()?.resultingDescriptor ?: return
+                    if (callableDescriptor.name.asString() != "findViewById" || callableDescriptor.typeParameters.size != 1) {
+                        return
+                    }
                 }
 
                 holder.registerProblem(
