@@ -567,7 +567,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       }
     }
     else {
-      physicalDeviceWatcher?.dispose()
+      physicalDeviceWatcher?.let { Disposer.dispose(it) }
       physicalDeviceWatcher = null
       removeAllPhysicalDevicePanels()
     }
