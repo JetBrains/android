@@ -15,6 +15,15 @@
  */
 package com.android.tools.idea.diagnostics.crash;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
 import com.android.annotations.NonNull;
 import com.android.annotations.Nullable;
 import com.android.tools.analytics.NullUsageTracker;
@@ -33,18 +42,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
-import com.intellij.ide.plugins.PluginUtil;
-import com.intellij.ide.plugins.PluginUtilImpl;
-import com.intellij.testFramework.PlatformLiteFixture;
-import java.util.HashMap;
-import java.util.TreeMap;
-import org.apache.http.HttpEntity;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.hamcrest.core.SubstringMatcher;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
-import org.junit.Test;
-
+import com.intellij.testFramework.ApplicationRule;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -52,20 +50,22 @@ import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.http.HttpEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.hamcrest.core.SubstringMatcher;
+import org.jetbrains.annotations.NotNull;
+import org.junit.ClassRule;
+import org.junit.Test;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.when;
-
-public class StudioCrashReporterTest extends PlatformLiteFixture {
+public class StudioCrashReporterTest {
   public static final String STACK_TRACE =
     "\tat com.android.tools.analytics.crash.GoogleCrashReporter.submit(GoogleCrashReporter.java:161)\n" +
     "\tat com.android.tools.analytics.crash.GoogleCrashReporter.submit(GoogleCrashReporter.java:145)\n" +
@@ -80,15 +80,8 @@ public class StudioCrashReporterTest extends PlatformLiteFixture {
   private static final Throwable ourException =
     createExceptionFromDesc(SAMPLE_EXCEPTION, new RuntimeException("This is a test exception message"));
 
-  @Before
-  public void setUp() throws Exception {
-    super.setUp();
-    initApplication();
-
-    getApplication().registerService(ExceptionDataConfiguration.class, new ExceptionDataConfigurationImpl());
-    getApplication().registerService(ExceptionDataCollection.class, new ExceptionDataCollection());
-    getApplication().registerService(PluginUtil.class, new PluginUtilImpl());
-  }
+  @ClassRule
+  public static ApplicationRule appRule = new ApplicationRule();
 
   @Test
   public void testIdeBrandIncludedInExceptionReport() throws Exception {
