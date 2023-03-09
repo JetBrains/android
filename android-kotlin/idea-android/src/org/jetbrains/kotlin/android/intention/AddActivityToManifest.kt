@@ -19,7 +19,6 @@ package org.jetbrains.kotlin.android.intention
 import com.android.SdkConstants
 import org.jetbrains.android.dom.manifest.Manifest
 import com.android.tools.idea.kotlin.isSubclassOf
-import com.intellij.openapi.application.runWriteAction
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
