@@ -124,7 +124,7 @@ public class LocaleMenuAction extends DropDownAction {
     if (configuration == null) {
       return Collections.emptyList();
     }
-    ConfigurationModelModule module = configuration.getConfigurationManager().getConfigModule();
+    ConfigurationModelModule module = configuration.getConfigModule();
     LocaleQualifier specificLocale = configuration.getEditedConfig().getLocaleQualifier();
 
     // If the layout exists in a non-locale specific folder, then offer all locales, since

@@ -377,7 +377,7 @@ public class ConfigurationManager implements Disposable {
 
   @NotNull
   public Project getProject() {
-    return myModule.getProject();
+    return myConfigurationModule.getProject();
   }
 
   @NotNull

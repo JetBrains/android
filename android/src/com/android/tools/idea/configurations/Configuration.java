@@ -1354,6 +1354,11 @@ public class Configuration implements Disposable, ModificationTracker {
     return myManager.getModule();
   }
 
+  @NotNull
+  public ConfigurationModelModule getConfigModule() {
+    return myManager.getConfigModule();
+  }
+
   @Override
   public void dispose() {
   }

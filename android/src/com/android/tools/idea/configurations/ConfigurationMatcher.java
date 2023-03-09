@@ -702,7 +702,7 @@ public class ConfigurationMatcher {
       }
       FolderConfiguration currentConfig = Configuration.getFolderConfig(module, selectedState, locale, target);
       if (currentConfig != null) {
-        ResourceRepositoryManager repositoryManager = configuration.getConfigurationManager().getConfigModule().getResourceRepositoryManager();
+        ResourceRepositoryManager repositoryManager = configuration.getConfigModule().getResourceRepositoryManager();
         if (repositoryManager != null) {
           ResourceRepository resources = repositoryManager.getAppResources();
           ResourceFolderType folderType = ResourceFilesUtil.getFolderType(file);

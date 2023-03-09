@@ -19,6 +19,7 @@ import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.sdk.AndroidPlatform
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 
 /**
  * Provides all module specific resources required for configuration
@@ -33,4 +34,6 @@ interface ConfigurationModelModule : Disposable {
   val themeInfoProvider: ThemeInfoProvider
 
   val androidModuleInfo: AndroidModuleInfo?
+
+  val project: Project
 }
