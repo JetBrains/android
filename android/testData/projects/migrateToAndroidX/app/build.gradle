@@ -18,7 +18,7 @@ def testVariable = 'com.android.support:design:+'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.0-Beta" // TODO(263236464): Revert to `+` instead of `1.8.0-Beta`
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:+"
     implementation group: 'com.android.support', name:'appcompat-v7', version:'+'
     implementation "com.android.support.constraint:constraint-layout:+"
     implementation testVariable

@@ -309,8 +309,10 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   }
 
   fun createIdeModuleLibrary(library: AndroidLibrary, projectPath: String): LibraryReference {
+    val rootBuildFile = File(copyNewProperty(library::getBuildId) ?: buildFolderPaths.rootBuildId!!)
+    val buildId = BuildId(rootBuildFile)
     val moduleLibrary = IdePreResolvedModuleLibraryImpl(
-      buildId = copyNewProperty(library::getBuildId) ?: buildFolderPaths.rootBuildId!!,
+      buildId = buildId.asString,
       projectPath = projectPath,
       variant = copyNewProperty(library::getProjectVariant),
       lintJar = copyNewProperty(library::getLintJar)?.path?.let(::File),
@@ -320,8 +322,10 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   }
 
   fun createIdeModuleLibrary(library: JavaLibrary, projectPath: String): LibraryReference {
+    val rootBuildFile = File(copyNewProperty(library::getBuildId) ?: buildFolderPaths.rootBuildId!!)
+    val buildId = BuildId(rootBuildFile)
     val moduleLibrary = IdePreResolvedModuleLibraryImpl(
-      buildId = copyNewProperty(library::getBuildId) ?: buildFolderPaths.rootBuildId!!,
+      buildId = buildId.asString,
       projectPath = projectPath,
       variant = null,
       lintJar = null,
@@ -485,8 +489,9 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
   }
 
   fun libraryFrom(projectPath: String, buildId: String, variantName: String?): IdeDependencyCoreAndIsProvided {
+    val buildIdFile = File(buildId)
     val core = IdePreResolvedModuleLibraryImpl(
-      buildId = buildId,
+      buildId = BuildId(buildIdFile).asString,
       projectPath = projectPath,
       variant = variantName,
       lintJar = null,

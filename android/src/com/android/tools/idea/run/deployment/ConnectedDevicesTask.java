@@ -26,7 +26,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import com.intellij.util.concurrency.EdtExecutorService;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
@@ -61,7 +60,7 @@ final class ConnectedDevicesTask implements AsyncSupplier<Collection<ConnectedDe
   @Override
   public ListenableFuture<Collection<ConnectedDevice>> get() {
     // noinspection UnstableApiUsage
-    return Futures.transformAsync(myAndroidDebugBridge.getConnectedDevices(), this::toList, EdtExecutorService.getInstance());
+    return Futures.transformAsync(myAndroidDebugBridge.getConnectedDevices(), this::toList, AppExecutorUtil.getAppExecutorService());
   }
 
   @NotNull
@@ -72,7 +71,9 @@ final class ConnectedDevicesTask implements AsyncSupplier<Collection<ConnectedDe
       .toList();
 
     // noinspection UnstableApiUsage
-    return Futures.transform(Futures.successfulAsList(futures), ConnectedDevicesTask::filterNonNull, EdtExecutorService.getInstance());
+    return Futures.transform(Futures.successfulAsList(futures),
+                             ConnectedDevicesTask::filterNonNull,
+                             AppExecutorUtil.getAppExecutorService());
   }
 
   @NotNull
@@ -85,11 +86,11 @@ final class ConnectedDevicesTask implements AsyncSupplier<Collection<ConnectedDe
 
     // noinspection UnstableApiUsage
     return Futures.whenAllComplete(nameFuture, keyFuture, compatibilityFuture)
-      .call(() -> build(androidDevice, nameFuture, keyFuture, compatibilityFuture), EdtExecutorService.getInstance());
+      .call(() -> build(androidDevice, nameFuture, keyFuture, compatibilityFuture), AppExecutorUtil.getAppExecutorService());
   }
 
   private static @NotNull ListenableFuture<String> getNameAsync(@NotNull IDevice device) {
-    var executor = EdtExecutorService.getInstance();
+    var executor = AppExecutorUtil.getAppExecutorService();
 
     if (device.isEmulator()) {
       // noinspection UnstableApiUsage
@@ -131,7 +132,7 @@ final class ConnectedDevicesTask implements AsyncSupplier<Collection<ConnectedDe
     }
 
     // noinspection UnstableApiUsage
-    return Futures.transform(device.getAvdData(), d -> getKey(d, serialNumber), EdtExecutorService.getInstance());
+    return Futures.transform(device.getAvdData(), d -> getKey(d, serialNumber), AppExecutorUtil.getAppExecutorService());
   }
 
   @NotNull

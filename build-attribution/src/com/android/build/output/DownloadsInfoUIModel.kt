@@ -34,8 +34,10 @@ import com.intellij.util.Alarm
 import com.intellij.util.messages.Topic
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
+import java.util.Comparator
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CopyOnWriteArrayList
+import javax.swing.Icon
 import javax.swing.JTable
 import javax.swing.SwingConstants
 import javax.swing.event.TableModelEvent
@@ -106,6 +108,8 @@ class DownloadsInfoUIModel(val taskId: ExternalSystemTaskId, val buildFinishedDi
 
   init {
     taskId.findProject()?.let { project: Project ->
+      // TODO (b/271258614): in the case this UI is created after events start coming, these events will be missed.
+      //    To avoid this probably need to re-read data from some data accumulator.
       project.messageBus.connect(buildFinishedDisposable).subscribe(DownloadsInfoUIModelNotifier.DOWNLOADS_OUTPUT_TOPIC, object : DownloadsInfoUIModelNotifier.Listener {
         override fun updateDownloadRequest(taskId: ExternalSystemTaskId, downloadRequest: DownloadRequestItem) {
           if (this@DownloadsInfoUIModel.taskId != taskId) return
@@ -257,15 +261,15 @@ class RepositoriesTableModel : ListTableModel<RepositoryTableItem>() {
         else totalRequests.toString()
       },
       column("Data", "Total amount of data downloaded.") { Formats.formatFileSize(it.totalAmountOfData()) },
-      column("Time", "Total amount of time taken to execute requests.") { durationString(it.totalAmountOfTime()) },
+      column("Time", "Total amount of time taken to execute requests.") { StringUtil.formatDuration(it.totalAmountOfTime()) },
       column("Avg Speed", "Average download speed.") { formatAvgDownloadSpeed(it.totalAmountOfData(), it.totalAmountOfTime()) },
       column("Failed Requests", "Number of failed requests.") { it.numberOfFailed().toString() },
-      column("Failed Requests Time", "Total amount of time taken to execute failed requests.") { durationString(it.timeOfFailed()) },
+      column("Failed Requests Time", "Total amount of time taken to execute failed requests.") { StringUtil.formatDuration(it.timeOfFailed()) },
     )
-    addRow(summaryItem)
   }
 
   fun update(downloadRequest: DownloadRequestItem) {
+    if (items.isEmpty()) addRow(summaryItem)
     val repository = downloadRequest.repository
     val repoTableItem = reposData.computeIfAbsent(repository) { RepositoryTableItem(it) }
     repoTableItem.requests[downloadRequest.requestKey] = downloadRequest
@@ -294,18 +298,21 @@ class RequestsTableModel : ListTableModel<DownloadRequestItem>() {
   val fileNameColumn = object : ColumnInfo<DownloadRequestItem, String>("File") {
     override fun valueOf(item: DownloadRequestItem): String = item.requestKey.url
     override fun getRenderer(item: DownloadRequestItem): TableCellRenderer = cellRenderer
+    override fun getComparator(): Comparator<DownloadRequestItem> = Comparator.comparing { it.requestKey.url }
   }
   val timeColumn = object : ColumnInfo<DownloadRequestItem, String>("Time") {
     override fun valueOf(item: DownloadRequestItem): String = StringUtil.formatDuration(item.duration)
     override fun getRenderer(item: DownloadRequestItem): TableCellRenderer = cellRenderer
     override fun getPreferredStringValue() = "12 s 123 ms"
     override fun getMaxStringValue(): String = preferredStringValue
+    override fun getComparator(): Comparator<DownloadRequestItem> = Comparator.comparing { it.duration }
   }
   val sizeColumn = object : ColumnInfo<DownloadRequestItem, String>("Size") {
     override fun valueOf(item: DownloadRequestItem): String = StringUtil.formatFileSize(item.receivedBytes)
     override fun getRenderer(item: DownloadRequestItem): TableCellRenderer = cellRenderer
     override fun getPreferredStringValue() = "123.45 MB"
     override fun getMaxStringValue(): String = preferredStringValue
+    override fun getComparator(): Comparator<DownloadRequestItem> = Comparator.comparing { it.receivedBytes }
   }
   val speedColumn = object : ColumnInfo<DownloadRequestItem, String>("Avg Speed") {
     override fun valueOf(item: DownloadRequestItem): String = formatAvgDownloadSpeed(item.receivedBytes, item.duration)
@@ -313,37 +320,37 @@ class RequestsTableModel : ListTableModel<DownloadRequestItem>() {
     override fun getPreferredStringValue() = "123.45 MB/s"
     override fun getMaxStringValue(): String = preferredStringValue
   }
-  val statusColumn = object : ColumnInfo<DownloadRequestItem, DownloadRequestItem>("Status") {
+
+  class Status(
+    val text: String,
+    val icon: Icon,
+    val tooltip: String
+  ) {
+    override fun toString(): String = text
+  }
+
+  val statusColumn = object : ColumnInfo<DownloadRequestItem, Status>("Status") {
     val columnCellRenderer = object : ColoredTableCellRenderer() {
       override fun customizeCellRenderer(table: JTable, value: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
-        if (value is DownloadRequestItem) {
-          toolTipText = ""
-          when {
-            !value.completed -> {
-              icon = AnimatedIcon.Default.INSTANCE
-              append("Running", SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES)
-            }
-            value.failed -> {
-              icon = AllIcons.General.Warning
-              append("Failed", SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES)
-              toolTipText = value.failureMessage?.replace("\n", "<br/>")
-            }
-            else -> {
-              icon = AllIcons.RunConfigurations.TestPassed
-              append("Finished", SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES)
-            }
-          }
-
+        if (value is Status) {
+          toolTipText = value.tooltip
+          icon = value.icon
+          isTransparentIconBackground = true
+          append(value.text, SimpleTextAttributes.GRAY_SMALL_ATTRIBUTES)
+          setTextAlign(SwingConstants.RIGHT)
         }
-        setTextAlign(SwingConstants.RIGHT)
       }
     }
-    override fun valueOf(item: DownloadRequestItem): DownloadRequestItem = item
+    override fun valueOf(item: DownloadRequestItem): Status = when {
+      !item.completed -> Status("Running", AnimatedIcon.Default.INSTANCE, "")
+      item.failed -> Status("Failed", AllIcons.General.Warning, item.failureMessage?.replace("\n", "<br/>") ?: "")
+      else -> Status("Finished", AllIcons.RunConfigurations.TestPassed, "")
+    }
     override fun getRenderer(item: DownloadRequestItem): TableCellRenderer = columnCellRenderer
     override fun getPreferredStringValue() = "Download Failed"
     override fun getMaxStringValue(): String = preferredStringValue
+    override fun getComparator(): Comparator<DownloadRequestItem> = Comparator.comparing { valueOf(it).text }
   }
-
 
   init{
     columnInfos = arrayOf(
@@ -353,7 +360,7 @@ class RequestsTableModel : ListTableModel<DownloadRequestItem>() {
       sizeColumn,
       speedColumn
     )
-    isSortable = false
+    isSortable = true
   }
 
   fun addOrUpdate(requestItem: DownloadRequestItem) {

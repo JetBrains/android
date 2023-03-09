@@ -146,10 +146,6 @@ interface AndroidProjectSystem: ModuleHierarchyProvider {
    */
   fun supportsProfilingMode() = false
 
-  /**
-   * @return the desugar library config files in json format.
-   */
-  fun desugarLibraryConfigFiles(project: Project): List<File>
 }
 
 val EP_NAME = ExtensionPointName<AndroidProjectSystemProvider>("com.android.project.projectsystem")

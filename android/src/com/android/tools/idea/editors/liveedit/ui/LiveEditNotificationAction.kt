@@ -150,10 +150,6 @@ class LiveEditIssueNotificationAction(
     }
   }
 
-  override fun insets(): Insets {
-    return JBUI.insets(1)
-  }
-
   override fun margins(): Insets {
     return JBUI.insets(2)
   }

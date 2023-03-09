@@ -279,14 +279,13 @@ class ProvidesMethodDaggerConceptTest {
     val provideHeaterFunction =
       myFixture.moveCaret("fun provideHe|ater").parentOfType<KtFunction>()!!
 
-    assertThat(
-        indexValue1.resolveToDaggerElements(
-          heaterPsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .containsExactly(DaggerElement(provideHeaterFunction, DaggerElement.Type.PROVIDER))
+    val resolvedIndexValue1 =
+      indexValue1
+        .resolveToDaggerElements(heaterPsiType, myFixture.project, myFixture.project.projectScope())
+        .single()
+    assertThat(resolvedIndexValue1.psiElement).isEqualTo(provideHeaterFunction)
+    assertThat(resolvedIndexValue1.daggerType).isEqualTo(DaggerElement.Type.PROVIDER)
+
     assertThat(
         indexValue1.resolveToDaggerElements(
           otherPsiType,
@@ -352,14 +351,13 @@ class ProvidesMethodDaggerConceptTest {
     val provideHeaterFunction =
       myFixture.moveCaret("Heater provideHe|ater").parentOfType<PsiMethod>()!!
 
-    assertThat(
-        indexValue1.resolveToDaggerElements(
-          heaterPsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .containsExactly(DaggerElement(provideHeaterFunction, DaggerElement.Type.PROVIDER))
+    val resolvedIndexValue1 =
+      indexValue1
+        .resolveToDaggerElements(heaterPsiType, myFixture.project, myFixture.project.projectScope())
+        .single()
+    assertThat(resolvedIndexValue1.psiElement).isEqualTo(provideHeaterFunction)
+    assertThat(resolvedIndexValue1.daggerType).isEqualTo(DaggerElement.Type.PROVIDER)
+
     assertThat(
         indexValue1.resolveToDaggerElements(
           otherPsiType,
@@ -443,14 +441,17 @@ class ProvidesMethodDaggerConceptTest {
         .moveCaret("provideHeater(elect|ricHeater: ElectricHeater")
         .parentOfType<KtParameter>()!!
 
-    assertThat(
-        indexValue1.resolveToDaggerElements(
+    val resolvedIndexValue1 =
+      indexValue1
+        .resolveToDaggerElements(
           electricHeaterPsiType,
           myFixture.project,
           myFixture.project.projectScope()
         )
-      )
-      .containsExactly(DaggerElement(electricHeaterParameter, DaggerElement.Type.CONSUMER))
+        .single()
+    assertThat(resolvedIndexValue1.psiElement).isEqualTo(electricHeaterParameter)
+    assertThat(resolvedIndexValue1.daggerType).isEqualTo(DaggerElement.Type.CONSUMER)
+
     assertThat(
         indexValue1.resolveToDaggerElements(
           otherPsiType,
@@ -528,14 +529,17 @@ class ProvidesMethodDaggerConceptTest {
         .moveCaret("provideHeater(ElectricHeater elec|tricHeater")
         .parentOfType<PsiParameter>()!!
 
-    assertThat(
-        indexValue1.resolveToDaggerElements(
+    val resolvedIndexValue1 =
+      indexValue1
+        .resolveToDaggerElements(
           electricHeaterPsiType,
           myFixture.project,
           myFixture.project.projectScope()
         )
-      )
-      .containsExactly(DaggerElement(electricHeaterParameter, DaggerElement.Type.CONSUMER))
+        .single()
+    assertThat(resolvedIndexValue1.psiElement).isEqualTo(electricHeaterParameter)
+    assertThat(resolvedIndexValue1.daggerType).isEqualTo(DaggerElement.Type.CONSUMER)
+
     assertThat(
         indexValue1.resolveToDaggerElements(
           otherPsiType,

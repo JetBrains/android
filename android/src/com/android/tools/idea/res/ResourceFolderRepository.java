@@ -691,7 +691,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   void scheduleScan(@NotNull VirtualFile virtualFile) {
-    ResourceFolderType folderType = IdeResourcesUtil.getFolderType(virtualFile);
+    ResourceFolderType folderType = ResourceFilesUtil.getFolderType(virtualFile);
     if (folderType != null) {
       scheduleScan(virtualFile, folderType);
     }
@@ -966,7 +966,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   }
 
   private void scan(@NotNull VirtualFile file) {
-    ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
+    ResourceFolderType folderType = ResourceFilesUtil.getFolderType(file);
     if (folderType == null || !isResourceFile(file) || !isRelevantFile(file)) {
       return;
     }
@@ -1307,7 +1307,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
           }
 
           // Some child was removed within a file.
-          ResourceFolderType folderType = IdeResourcesUtil.getFolderType(virtualFile);
+          ResourceFolderType folderType = ResourceFilesUtil.getFolderType(virtualFile);
           if (folderType != null && isResourceFile(virtualFile)) {
             PsiElement child = event.getChild();
             PsiElement parent = event.getParent();
@@ -1444,7 +1444,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
             // That's the case if the XML edited is not a resource file (e.g. the manifest file),
             // or if it's within a file that is not a value file or an id-generating file (layouts and menus),
             // such as editing the content of a drawable XML file.
-            ResourceFolderType folderType = IdeResourcesUtil.getFolderType(virtualFile);
+            ResourceFolderType folderType = ResourceFilesUtil.getFolderType(virtualFile);
             if (folderType != null && FolderTypeRelationship.isIdGeneratingFolderType(folderType) &&
                 psiFile.getFileType() == XmlFileType.INSTANCE) {
               // The only way the edit affected the set of resources was if the user added or removed an
@@ -1988,7 +1988,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       invalidateParentCaches(this, ResourceType.values());
     }
 
-    ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
+    ResourceFolderType folderType = ResourceFilesUtil.getFolderType(file);
     if (folderType != null) {
       clearLayoutlibCaches(file, folderType);
     }

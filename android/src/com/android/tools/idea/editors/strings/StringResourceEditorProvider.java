@@ -19,8 +19,8 @@ import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.res.ResourceFilesUtil;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.fileEditor.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbAware;
@@ -40,7 +40,7 @@ public class StringResourceEditorProvider implements FileEditorProvider, DumbAwa
   public static final String ID = "string-resource-editor";
 
   public static boolean canViewTranslations(@NotNull Project project, @NotNull VirtualFile file) {
-    if (IdeResourcesUtil.getFolderType(file) != ResourceFolderType.VALUES) {
+    if (ResourceFilesUtil.getFolderType(file) != ResourceFolderType.VALUES) {
       return false;
     }
 

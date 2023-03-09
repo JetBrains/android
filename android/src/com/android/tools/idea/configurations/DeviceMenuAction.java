@@ -565,6 +565,9 @@ public class DeviceMenuAction extends DropDownAction {
 
     @Override
     protected void updateConfiguration(@NotNull Configuration configuration, boolean commit) {
+      if (commit) {
+        configuration.getConfigurationManager().selectDevice(myAvdDevice);
+      }
       // TODO: force set orientation for virtual wear os device
       configuration.setDevice(myAvdDevice, false);
       myDeviceChangeListener.onDeviceChanged(configuration.getCachedDevice(), myAvdDevice);

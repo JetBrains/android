@@ -22,6 +22,7 @@ import com.android.tools.adtui.device.FormFactor;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.CppStandardType;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguage;
 import com.android.tools.idea.wizard.template.Language;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import org.fest.swing.timing.Wait;
@@ -56,6 +57,7 @@ public final class WizardUtils {
       .getConfigureNewAndroidProjectStep()
       .selectMinimumSdkApi(MIN_SDK_API)
       .setSourceLanguage(language)
+      .selectBuildConfigurationLanguage(BuildConfigurationLanguage.Groovy)
       .enterPackageName("com.google.myapplication")
       .wizard()
       .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))
@@ -82,6 +84,7 @@ public final class WizardUtils {
       .enterPackageName(appPackageName)
       .selectMinimumSdkApi(minSdkApi)
       .setSourceLanguage(language)
+      .selectBuildConfigurationLanguage(BuildConfigurationLanguage.Groovy)
       .wizard()
       .clickFinishAndWaitForSyncToFinish(Wait.seconds(180))
       .getProjectView()
@@ -117,6 +120,7 @@ public final class WizardUtils {
       .clickNext()
       .getConfigureNewAndroidProjectStep()
       .setSourceLanguage(Java)
+      .selectBuildConfigurationLanguage(BuildConfigurationLanguage.Groovy)
       .enterPackageName("com.example.myapplication")
       .wizard()
       .clickNext()
@@ -142,6 +146,7 @@ public final class WizardUtils {
       .enterPackageName(appPackageName)
       .selectMinimumSdkApi(minSdkApi)
       .setSourceLanguage(language)
+      .selectBuildConfigurationLanguage(BuildConfigurationLanguage.Groovy)
       .wizard()
       .clickNext()
       .clickFinishAndWaitForSyncToFinish(Wait.seconds(150))

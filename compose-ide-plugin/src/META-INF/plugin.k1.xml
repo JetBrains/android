@@ -15,6 +15,9 @@
   -->
 
 <idea-plugin>
+  <extensions defaultExtensionNs="org.jetbrains.kotlin">
+    <quickFixContributor implementation="com.android.tools.compose.intentions.ComposeUnresolvedFunctionFixContributor"/>
+  </extensions>
   <extensions defaultExtensionNs="com.intellij">
     <!-- b/266912797: KDockLinkResolutionService extension point not implemented in K2 -->
     <projectService serviceInterface="org.jetbrains.kotlin.idea.kdoc.KDocLinkResolutionService"

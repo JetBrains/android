@@ -409,5 +409,10 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     public boolean isComposeTracingNavigateToSourceEnabled() {
       return StudioFlags.COMPOSE_TRACING_NAVIGATE_TO_SOURCE.get();
     }
+
+    @Override
+    public boolean isTaskBasedUxEnabled() {
+      return StudioFlags.PROFILER_TASK_BASED_UX.get();
+    }
   }
 }

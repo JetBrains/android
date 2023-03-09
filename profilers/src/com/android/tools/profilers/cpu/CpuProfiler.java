@@ -154,6 +154,7 @@ public class CpuProfiler implements StudioProfiler {
       stopTracing(profilers,
                   session,
                   mostRecentTrace.getConfiguration(),
+                  null,
                   null);
     }
   }
@@ -322,7 +323,8 @@ public class CpuProfiler implements StudioProfiler {
   public static void startTracing(@NotNull StudioProfilers profilers,
                                   @NotNull Common.Session session,
                                   @NotNull Trace.TraceConfiguration configuration,
-                                  @NotNull Consumer<Trace.TraceStartStatus> responseHandler) {
+                                  @NotNull Consumer<Trace.TraceStartStatus> statusResponseHandler,
+                                  @Nullable Consumer<Trace.TraceInfo> cpuTraceResponseHandler) {
     Executor poolExecutor = profilers.getIdeServices().getPoolExecutor();
     Commands.Command startCommand = Commands.Command.newBuilder()
       .setStreamId(session.getStreamId())
@@ -343,18 +345,37 @@ public class CpuProfiler implements StudioProfiler {
           session::getStreamId,
           session::getPid,
           event -> {
-            responseHandler.accept(event.getTraceStatus().getTraceStartStatus());
+            statusResponseHandler.accept(event.getTraceStatus().getTraceStartStatus());
             // unregisters the listener.
             return true;
           });
         profilers.getTransportPoller().registerListener(statusListener);
+
+        if (cpuTraceResponseHandler != null) {
+          TransportEventListener cpuTraceListener = new TransportEventListener(
+            Common.Event.Kind.CPU_TRACE,
+            profilers.getIdeServices().getMainExecutor(),
+            event -> event.getCommandId() == response.getCommandId(),
+            session::getStreamId,
+            session::getPid,
+            event -> {
+              if (event.getTraceData().hasTraceStarted()) {
+                cpuTraceResponseHandler.accept(event.getTraceData().getTraceStarted().getTraceInfo());
+              }
+              // unregisters the listener.
+              return true;
+            });
+          profilers.getTransportPoller().registerListener(cpuTraceListener);
+        }
       }, poolExecutor);
   }
 
   public static void stopTracing(@NotNull StudioProfilers profilers,
                                  @NotNull Common.Session session,
                                  @NotNull Trace.TraceConfiguration configuration,
-                                 @Nullable Consumer<Trace.TraceStopStatus> responseHandler) {
+                                 @Nullable Consumer<Trace.TraceStopStatus> statusResponseHandler,
+                                 @Nullable Consumer<Trace.TraceInfo> cpuTraceResponseHandler) {
+    Executor poolExecutor = profilers.getIdeServices().getPoolExecutor();
     Commands.Command stopCommand = Commands.Command.newBuilder()
       .setStreamId(session.getStreamId())
       .setPid(session.getPid())
@@ -362,23 +383,42 @@ public class CpuProfiler implements StudioProfiler {
       .setStopTrace(Trace.StopTrace.newBuilder()
                       .setProfilerType(Trace.ProfilerType.CPU)
                       .setConfiguration(configuration)
-                      .setNeedTraceResponse(responseHandler != null))
+                      .setNeedTraceResponse(statusResponseHandler != null))
       .build();
-    Transport.ExecuteResponse response = profilers.getClient().getTransportClient().execute(
-      Transport.ExecuteRequest.newBuilder().setCommand(stopCommand).build());
-    if (responseHandler != null) {
-      TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.TRACE_STATUS,
-                                                                         profilers.getIdeServices().getMainExecutor(),
-                                                                         event -> event.getCommandId() == response.getCommandId(),
-                                                                         () -> session.getStreamId(),
-                                                                         () -> session.getPid(),
-                                                                         event -> {
-                                                                           responseHandler
-                                                                             .accept(event.getTraceStatus().getTraceStopStatus());
-                                                                           // return true to unregister the listener.
-                                                                           return true;
-                                                                         });
-      profilers.getTransportPoller().registerListener(statusListener);
-    }
+
+    profilers.getClient().executeAsync(stopCommand, poolExecutor)
+      .thenAcceptAsync(response -> {
+        if (statusResponseHandler != null) {
+          TransportEventListener statusListener = new TransportEventListener(Common.Event.Kind.TRACE_STATUS,
+                                                                             profilers.getIdeServices().getMainExecutor(),
+                                                                             event -> event.getCommandId() == response.getCommandId(),
+                                                                             () -> session.getStreamId(),
+                                                                             () -> session.getPid(),
+                                                                             event -> {
+                                                                               statusResponseHandler
+                                                                                 .accept(event.getTraceStatus().getTraceStopStatus());
+                                                                               // return true to unregister the listener.
+                                                                               return true;
+                                                                             });
+          profilers.getTransportPoller().registerListener(statusListener);
+        }
+
+        if (cpuTraceResponseHandler != null) {
+          TransportEventListener cpuTraceListener = new TransportEventListener(
+            Common.Event.Kind.CPU_TRACE,
+            profilers.getIdeServices().getMainExecutor(),
+            event -> event.getCommandId() == response.getCommandId(),
+            session::getStreamId,
+            session::getPid,
+            event -> {
+              if (event.getTraceData().hasTraceEnded()) {
+                cpuTraceResponseHandler.accept(event.getTraceData().getTraceEnded().getTraceInfo());
+              }
+              // unregisters the listener.
+              return true;
+            });
+          profilers.getTransportPoller().registerListener(cpuTraceListener);
+        }
+      }, poolExecutor);
   }
 }

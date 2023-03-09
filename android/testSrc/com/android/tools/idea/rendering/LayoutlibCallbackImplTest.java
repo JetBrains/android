@@ -27,9 +27,6 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.model.StudioAndroidModuleInfo;
-import com.android.tools.idea.res.ResourceIdManager;
-import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;
@@ -93,14 +90,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
 
       ModuleRenderContext renderContext = ModuleRenderContext.forFile(psiFile);
       ModuleClassLoader classLoader = StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext, this);
-      RenderModelModule module = new DefaultRenderModelModule(
-        myModule,
-        null,
-        StudioResourceRepositoryManager.getInstance(myFacet),
-        StudioAndroidModuleInfo.getInstance(myFacet),
-        null,
-        ResourceIdManager.get(myModule)
-      );
+      RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
       LayoutlibCallbackImpl layoutlibCallback =
         new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
       ILayoutPullParser parser = layoutlibCallback.getParser(new ResourceValueImpl(
@@ -139,14 +129,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
 
       ModuleRenderContext renderContext = ModuleRenderContext.forFile(psiFile);
       ModuleClassLoader classLoader = StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext, this);
-      RenderModelModule module = new DefaultRenderModelModule(
-        myModule,
-        null,
-        StudioResourceRepositoryManager.getInstance(myFacet),
-        StudioAndroidModuleInfo.getInstance(myFacet),
-        null,
-        ResourceIdManager.get(myModule)
-      );
+      RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
       LayoutlibCallbackImpl layoutlibCallback =
         new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
 

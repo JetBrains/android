@@ -55,9 +55,7 @@ class LogFileProvider(private val pathProvider: PathProvider) : DiagnosticsSumma
       val customOptionsPath = Paths.get(it)
       val propertiesFileName = Paths.get(PathManager.PROPERTIES_FILE_NAME)
       val propertiesFilePath = customOptionsPath.resolve(propertiesFileName)
-      if (propertiesFilePath.toFile().exists()) {
-        fileInfo.add(FileInfo(propertiesFilePath, propertiesFileName))
-      }
+      fileInfo.add(FileInfo(propertiesFilePath, propertiesFileName))
     }
 
     pathProvider.homeDir?.let {

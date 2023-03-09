@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.adb.processnamemonitor
 
+import com.android.processmonitor.agenttracker.AgentProcessTrackerConfig
+import com.android.processmonitor.agenttracker.AgentSourcePaths.AGENT_RESOURCE_PROD
+import com.android.processmonitor.agenttracker.AgentSourcePaths.AGENT_SOURCE_DEV
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.processmonitor.monitor.ddmlib.AdbAdapterImpl
 import com.android.processmonitor.monitor.ddmlib.ProcessNameMonitorDdmlib
@@ -22,18 +25,30 @@ import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.AndroidAdbLogger
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.PluginPathManager
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /** A trivial [ProcessNameMonitor] that delegates to [ProcessNameMonitorDdmlib] */
 internal class ProcessNameMonitorService(project: Project) : ProcessNameMonitor, Disposable {
-  private val delegate = ProcessNameMonitorDdmlib(
-    AndroidCoroutineScope(this),
-    AdbLibService.getSession(project),
-    AdbAdapterImpl(AdbService.getInstance().getDebugBridge(project)),
-    AndroidAdbLogger(thisLogger()),
-  )
+  private val delegate = let {
+    val parentScope = AndroidCoroutineScope(this)
+    val adbSession = AdbLibService.getSession(project)
+    val adbLogger = AndroidAdbLogger(thisLogger())
+    val adbAdapter = AdbAdapterImpl(AdbService.getInstance().getDebugBridge(project))
+    val trackerAgentConfig = when (StudioFlags.PROCESS_NAME_TRACKER_AGENT_ENABLE.get()) {
+      true ->AgentProcessTrackerConfig(getAgentPath(), StudioFlags.PROCESS_NAME_TRACKER_AGENT_INTERVAL_MS.get())
+      false -> null
+    }
+    val config = ProcessNameMonitor.Config(StudioFlags.PROCESS_NAME_MONITOR_MAX_RETENTION.get(), trackerAgentConfig)
+
+    ProcessNameMonitorDdmlib(parentScope, adbSession, adbAdapter, config, adbLogger)
+  }
 
   override fun start() = delegate.start()
 
@@ -41,5 +56,13 @@ internal class ProcessNameMonitorService(project: Project) : ProcessNameMonitor,
 
   override fun dispose() {
     delegate.close()
+  }
+
+  private fun getAgentPath(): Path {
+    return when (StudioPathManager.isRunningFromSources()) {
+      true -> Paths.get(StudioPathManager.getBinariesRoot()).resolve(AGENT_SOURCE_DEV)
+      false -> PluginPathManager.getPluginHome("android").toPath().resolve(AGENT_RESOURCE_PROD)
+    }
+
   }
 }

@@ -78,7 +78,7 @@ class AndroidProjectBuilderTest {
       InternedModels(null)
     )
 
-    expect.that(model.androidProject.flavorDimensions).containsExactly("dim1", "dim2")
+    expect.that(model.androidProject.flavorDimensions).containsExactly("dim1", "dim2").inOrder()
     expect.that(model.variants.map { it.name })
       .containsAllOf("firstAbcSecondAbcDebug", "firstAbcSecondAbcRelease", "firstAbcSecondXyzDebug", "firstAbcSecondXyzRelease",
                      "firstXyzSecondAbcDebug", "firstXyzSecondAbcRelease", "firstXyzSecondXyzDebug", "firstXyzSecondXyzRelease")

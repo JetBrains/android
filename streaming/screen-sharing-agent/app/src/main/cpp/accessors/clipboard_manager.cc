@@ -35,10 +35,10 @@ ClipboardManager::ClipboardManager(Jni jni)
     : jni_(jni),
       clipboard_adapter_class_(jni.GetClass("com/android/tools/screensharing/ClipboardAdapter")),
       clipboard_listeners_(new vector<ClipboardListener*>()) {
-  get_text_method_ = clipboard_adapter_class_.GetStaticMethodId("getText", "()Ljava/lang/String;");
-  set_text_method_ = clipboard_adapter_class_.GetStaticMethodId("setText", "(Ljava/lang/String;)V");
-  enable_primary_clip_changed_listener_method_ = clipboard_adapter_class_.GetStaticMethodId("enablePrimaryClipChangedListener", "()V");
-  disable_primary_clip_changed_listener_method_ = clipboard_adapter_class_.GetStaticMethodId("disablePrimaryClipChangedListener", "()V");
+  get_text_method_ = clipboard_adapter_class_.GetStaticMethod("getText", "()Ljava/lang/String;");
+  set_text_method_ = clipboard_adapter_class_.GetStaticMethod("setText", "(Ljava/lang/String;)V");
+  enable_primary_clip_changed_listener_method_ = clipboard_adapter_class_.GetStaticMethod("enablePrimaryClipChangedListener", "()V");
+  disable_primary_clip_changed_listener_method_ = clipboard_adapter_class_.GetStaticMethod("disablePrimaryClipChangedListener", "()V");
   clipboard_adapter_class_.MakeGlobal();
 }
 
@@ -58,6 +58,11 @@ string ClipboardManager::GetText() const {
   JObject text = clipboard_adapter_class_.CallStaticObjectMethod(jni_, get_text_method_);
   Log::V("%s:%d", __FILE__, __LINE__);
   if (text.IsNull()) {
+    JObject exception = jni_.GetAndClearException();
+    if (!exception.IsNull()) {
+      Log::W("Unable to obtain clipboard text - %s", exception.ToString().c_str());
+    }
+
     Log::V("%s:%d", __FILE__, __LINE__);
     return "";
   }

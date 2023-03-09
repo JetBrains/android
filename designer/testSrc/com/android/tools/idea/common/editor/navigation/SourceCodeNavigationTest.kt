@@ -27,7 +27,6 @@ class SourceCodeNavigationTest : CodeInsightFixtureTestCase<ModuleFixtureBuilder
 
   override fun setUp() {
     super.setUp()
-    val project = project
     val manager = FileEditorManagerExImpl(project)
     project.registerComponentInstance(FileEditorManager::class.java, manager, testRootDisposable)
   }

@@ -22,6 +22,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.Module
 import com.android.tools.sdk.AndroidPlatform
+import com.intellij.openapi.project.Project
 
 /**
  * Provides all the module-specific Android resources information required for rendering.
@@ -31,6 +32,8 @@ interface RenderModelModule : Disposable {
 
   val assetRepository: AssetRepository?
 
+  val manifest: RenderModelManifest?
+
   val resourceRepositoryManager: ResourceRepositoryManager
 
   val info: AndroidModuleInfo
@@ -38,4 +41,17 @@ interface RenderModelModule : Disposable {
   val androidPlatform: AndroidPlatform?
 
   val resourceIdManager: ResourceIdManager
+
+  /** An object uniquely identifying the module. Used for caching. */
+  val moduleKey: Any
+
+  /** If found, returns the module's resource package name. */
+  val resourcePackage: String?
+
+  val dependencies: RenderDependencyInfo
+
+  /** The project current module belongs to. */
+  val project: Project
+
+  val isDisposed: Boolean
 }

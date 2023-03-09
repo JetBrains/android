@@ -17,7 +17,6 @@ package com.android.tools.idea.insights.ui.actions
 
 import com.android.tools.adtui.common.ColoredIconGenerator.generateColoredIcon
 import com.android.tools.idea.insights.AppInsight
-import com.android.tools.idea.insights.Issue
 import com.android.tools.idea.insights.ui.getDisplayTitle
 import com.android.tools.idea.insights.ui.ifZero
 import com.intellij.openapi.actionSystem.AnAction
@@ -43,9 +42,9 @@ import javax.swing.ListCellRenderer
 import javax.swing.ListSelectionModel
 import org.jetbrains.annotations.VisibleForTesting
 
-class AppInsightsGutterIconAction<IssueT : Issue>(
-  private val insights: List<AppInsight<IssueT>>,
-  private val itemChosenCallback: (AppInsight<IssueT>) -> Unit
+class AppInsightsGutterIconAction(
+  private val insights: List<AppInsight>,
+  private val itemChosenCallback: (AppInsight) -> Unit
 ) : AnAction() {
   private val logger: Logger
     get() = Logger.getInstance(javaClass)
@@ -116,11 +115,10 @@ class AppInsightsGutterIconAction<IssueT : Issue>(
   }
 }
 
-private class AppInsightsGutterListCellRenderer<IssueT : Issue> :
-  ListCellRenderer<AppInsight<IssueT>> {
+private class AppInsightsGutterListCellRenderer : ListCellRenderer<AppInsight> {
   override fun getListCellRendererComponent(
-    list: JList<out AppInsight<IssueT>>,
-    value: AppInsight<IssueT>,
+    list: JList<out AppInsight>,
+    value: AppInsight,
     index: Int,
     isSelected: Boolean,
     cellHasFocus: Boolean

@@ -16,7 +16,7 @@
 package com.android.tools.idea.tests.gui.editing;
 
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.res.ResourceFilesUtil;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.google.common.base.Strings;
@@ -77,6 +77,6 @@ public class EditorFixtureTest {
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.EDITOR)
       .open("app/src/main/res/layout/activity_my.xml", EditorFixture.Tab.DESIGN)
       .getCurrentFile();
-    assertThat(IdeResourcesUtil.getFolderType(file)).isEqualTo(ResourceFolderType.LAYOUT);
+    assertThat(ResourceFilesUtil.getFolderType(file)).isEqualTo(ResourceFolderType.LAYOUT);
   }
 }

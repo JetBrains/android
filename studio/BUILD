@@ -121,6 +121,8 @@ studio_plugin(
             "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:app-inspection.inspectors.backgroundtask.view",
             "//tools/adt/idea/app-quality-insights/api:intellij.android.app-quality-insights.api",
             "//tools/adt/idea/app-quality-insights/ui:intellij.android.app-quality-insights.ui",
+            "//tools/adt/idea/app-quality-insights/play-vitals/model:intellij.android.app-quality-insights.play-vitals.model",
+            "//tools/adt/idea/app-quality-insights/play-vitals/view:intellij.android.app-quality-insights.play-vitals.view",
             "//tools/adt/idea/build-attribution:intellij.android.build-attribution",
             "//tools/adt/idea/intellij.android.compose-common:intellij.android.compose-common",
             "//tools/adt/idea/intellij.android.device",
@@ -497,7 +499,6 @@ studio_plugin(
         "//tools/studio/google/cloud/tools/android-studio-plugin/lib:gradle-appengine-builder-model-0.1.0",
         "//tools/studio/google/cloud/tools/android-studio-plugin/lib:samplesindex-v1-1.0-SNAPSHOT",
         "//tools/studio/google/cloud/tools/android-studio-plugin/lib:google-api-services-source",
-        "//tools/studio/google/cloud/tools/android-studio-plugin/lib:google-api-services-debugger",
     ],
     licenses = [
         "//tools/studio/google/cloud/tools/android-studio-plugin/lib:licenses",
@@ -524,7 +525,6 @@ studio_plugin(
         "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0",
         "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-appengine-v1-rev9-1.22.0",
         "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-source",
-        "//tools/studio/google/cloud/tools/core-plugin/lib:google-api-services-debugger",
     ],
     licenses = [
         "//tools/studio/google/cloud/tools/core-plugin/lib:licenses",
@@ -567,6 +567,24 @@ studio_plugin(
     directory = "smali",
     modules = {"smali.jar": ["//tools/adt/idea/smali:intellij.android.smali"]},
     visibility = ["//visibility:public"],
+)
+
+studio_plugin(
+    name = "com.android.gmdcodecompletion",
+    directory = "gmd-code-completion",
+    libs = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
+        "//tools/adt/idea/.idea/libraries:mockito",
+        "//tools/studio/google/cloud/testing/firebase-testing/lib:google-api-services-testing-v1-revsnapshot-1.20.0",
+    ],
+    modules = {"gmd-code-completion.jar": ["//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion"]},
+    visibility = ["//visibility:public"],
+    deps = [
+        ":com.google.gct.login",
+        ":com.google.gct.testing",
+        ":org.jetbrains.android",
+    ],
 )
 
 studio_plugin(
@@ -635,6 +653,7 @@ android_studio(
     platform = "//prebuilts/studio/intellij-sdk:studio-sdk",
     plugins = [
         ":org.jetbrains.android",
+        ":com.android.gmdcodecompletion",
         ":com.android.tools.apk",
         ":com.android.tools.ndk",
         ":com.android.tools.design",
@@ -655,10 +674,10 @@ android_studio(
     searchable_options = "//tools/adt/idea/searchable-options",
     update_message_template = ":update_message.html",
     version_code_name = "Giraffe",
-    version_micro_patch = "1.8",
+    version_micro_patch = "1.9",
     # This will get added to the end of the full-version string.
     # TODO(b/240707039): automate this.
-    version_release_number = 8,
+    version_release_number = 9,
     version_type = "Canary",
     visibility = ["//visibility:public"],
 )
@@ -889,6 +908,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-hg",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-svn",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp",
+        "//tools/adt/idea/gmd-code-completion:intellij.android.gmd-code-completion[module]",
     ],
 )
 

@@ -17,6 +17,7 @@ package com.android.tools.idea.diagnostics.report
 
 import com.android.tools.idea.diagnostics.DIAGNOSTICS_REPORTS_DIR
 import com.intellij.openapi.project.Project
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -47,12 +48,13 @@ interface DiagnosticsSummaryFileProvider {
        relative to the name associated with the provider that created it.
      */
     @JvmStatic
-    fun buildFileList(project: Project? = null): List<FileInfo> {
+    fun buildFileList(project: Project? = null,
+                      providers: Map<String, DiagnosticsSummaryFileProvider> = DiagnosticSummaryFileProviders): List<FileInfo> {
       val list = mutableListOf<FileInfo>()
-      for ((name, provider) in DiagnosticSummaryFileProviders.entries) {
-        val files = provider.getFiles(project).map {
-          FileInfo(it.source, Paths.get(name).resolve(it.destination))
-        }
+      for ((name, provider) in providers.entries) {
+        val files = provider.getFiles(project)
+          .filter { Files.exists(it.source) }
+          .map { FileInfo(it.source, Paths.get(name).resolve(it.destination)) }
         list.addAll(files)
       }
       return list.sortedBy { it.destination }

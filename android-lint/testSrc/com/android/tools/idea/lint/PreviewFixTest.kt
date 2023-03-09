@@ -22,7 +22,9 @@ import com.android.tools.idea.lint.common.LintIdeQuickFix
 import com.android.tools.idea.lint.intentions.AndroidAddStringResourceQuickFix
 import com.android.tools.idea.lint.quickFixes.AddTargetVersionCheckQuickFix
 import com.android.tools.idea.lint.quickFixes.ConvertToDpQuickFix
+import com.android.tools.idea.util.toIoFile
 import com.android.tools.lint.detector.api.ApiConstraint
+import com.android.tools.lint.detector.api.DefaultPosition
 import com.android.tools.lint.detector.api.ExtensionSdk
 import com.android.tools.lint.detector.api.LintFix
 import com.android.tools.lint.detector.api.Location
@@ -188,7 +190,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
     // Test that the intention preview for ReplaceStringQuickfix works as expected
     val file =
       myFixture.configureByText(
-        "states.xml", /*language=KT */
+        "foo.kt", /*language=KT */
         """
       fun test() {
         val foo = "bar"
@@ -211,12 +213,51 @@ class PreviewFixTest : AbstractAndroidLintTest() {
     )
   }
 
+  fun testReplaceExplicitRangePreview() {
+    // Regression test for b/271575376.
+    val file =
+      myFixture.configureByText(
+        "foo.kt", /*language=KT */
+        """
+      fun test() {
+        val foo = "bar"
+      }
+      """
+          .trimIndent()
+      )
+
+    val fooOffset = file.text.indexOf("foo = ")
+    val startPos = DefaultPosition(-1, -1, fooOffset)
+    val endPos = DefaultPosition(-1, -1, fooOffset + "foo".length)
+
+    checkPreviewFix(
+      file,
+      "val f^oo =",
+      {
+        val fix =
+          fix()
+            .replace()
+            .range(Location.create(file.virtualFile.toIoFile(), startPos, endPos))
+            .pattern("foo")
+            .with("foo:   Foo  ")
+            .reformat(true)
+            .build()
+        lintToIdeFix(file, fix)
+      },
+      """
+      @@ -2 +2
+      -   val foo = "bar"
+      +   val foo: Foo = "bar"
+      """
+    )
+  }
+
   fun testPreviewComposite() {
     // Test that a composite fix which targets multiple files is treated properly:
     // we only show a preview for the current preview file and ignore the other diffs
     val file =
       myFixture.configureByText(
-        "states.xml", /*language=KT */
+        "foo.kt", /*language=KT */
         """
       fun test() {
         val foo = "bar"
@@ -258,7 +299,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
     // is ignored.
     val file =
       myFixture.configureByText(
-        "states.xml", /*language=KT */
+        "foo.kt", /*language=KT */
         """
       fun test() {
         val foo = "bar"
@@ -288,7 +329,7 @@ class PreviewFixTest : AbstractAndroidLintTest() {
     // involved.)
     val file =
       myFixture.configureByText(
-        "states.xml", /*language=KT */
+        "foo.kt", /*language=KT */
         """
       fun test() {
         val foo = "bar"
@@ -374,7 +415,11 @@ class PreviewFixTest : AbstractAndroidLintTest() {
       val preview = intentionAction.generatePreview(project, editorCopy, psiFileCopy)
       val documentManager = PsiDocumentManager.getInstance(project)
       documentManager.commitDocument(editorCopy.document)
-      assertEquals(IntentionPreviewInfo.DIFF, preview)
+      if (expected.isEmpty()) {
+        assertEquals(IntentionPreviewInfo.EMPTY, preview)
+      } else {
+        assertEquals(IntentionPreviewInfo.DIFF, preview)
+      }
     }
     assertEquals(
       expected.trimIndent().trim(),

@@ -43,6 +43,9 @@ private val PARENT_COMPONENTS_USAGE_TYPE = UsageType { message("parent.component
 private val SUBCOMPONENTS_USAGE_TYPE = UsageType { message("subcomponents") }
 private val INCLUDED_IN_COMPONENTS_USAGE_TYPE = UsageType { message("included.in.components") }
 private val INCLUDED_IN_MODULES_USAGE_TYPE = UsageType { message("included.in.modules") }
+private val INCLUDED_IN_SUBCOMPONENTS_USAGE_TYPE = UsageType {
+  message("included.in.subcomponents")
+}
 private val MODULES_USAGE_TYPE = UsageType { message("modules.included") }
 private val ASSISTED_INJECT_CONSTRUCTOR_USAGE_TYPE = UsageType { message("assisted.inject") }
 private val ASSISTED_FACTORY_METHOD_USAGE_TYPE = UsageType { message("assisted.factory") }
@@ -64,6 +67,7 @@ class DaggerUsageTypeProvider : UsageTypeProviderEx {
         EXPOSED_BY_ENTRY_POINT_USAGE_TYPE
       target.isDaggerModule && element.isDaggerComponent -> INCLUDED_IN_COMPONENTS_USAGE_TYPE
       target.isDaggerModule && element.isDaggerModule -> INCLUDED_IN_MODULES_USAGE_TYPE
+      target.isDaggerModule && element.isDaggerSubcomponent -> INCLUDED_IN_SUBCOMPONENTS_USAGE_TYPE
       target.isDaggerComponent && element.isDaggerComponent -> PARENT_COMPONENTS_USAGE_TYPE
       target.isDaggerComponent && element.isDaggerModule -> MODULES_USAGE_TYPE
       target.isDaggerComponent && element.isDaggerSubcomponent -> SUBCOMPONENTS_USAGE_TYPE

@@ -49,7 +49,6 @@ interface GradleAndroidModelData : ModuleModel {
   fun selectedVariant(resolver: IdeLibraryModelResolver): IdeVariant
   fun getTestSourceProviders(artifactName: IdeArtifactName): List<IdeSourceProvider>
   fun findVariantCoreByName(variantName: String): IdeVariantCore?
-  fun getDesugarLibraryConfig(): List<File>
 }
 
 data class GradleAndroidModelDataImpl(
@@ -94,10 +93,6 @@ data class GradleAndroidModelDataImpl(
     val compileOptions = androidProject.javaCompileOptions
     val sourceCompatibility = compileOptions.sourceCompatibility
     return LanguageLevel.parse(sourceCompatibility)
-  }
-
-  override fun getDesugarLibraryConfig(): List<File> {
-    return androidProject.desugarLibraryConfigFiles
   }
 
   override fun getTestSourceProviders(artifactName: IdeArtifactName): List<IdeSourceProvider> {

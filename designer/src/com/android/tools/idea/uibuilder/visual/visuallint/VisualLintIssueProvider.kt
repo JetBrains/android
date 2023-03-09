@@ -59,8 +59,8 @@ class VisualLintIssueProvider(parentDisposable: Disposable) : IssueProvider(), D
   fun clear() = issues.clear()
 
   class VisualLintIssueSource(models: Set<NlModel>, components: List<NlComponent>) : IssueSource {
-    private val modelRefs = models.map { WeakReference(it) }.toList()
-    private val componentRefs = components.map { WeakReference(it) }.toList()
+    private val modelRefs = models.map { WeakReference(it) }.toMutableList()
+    private val componentRefs = components.map { WeakReference(it) }.toMutableList()
 
     val models: Set<NlModel>
       get() = modelRefs.mapNotNull { it.get() }.toSet()
@@ -69,6 +69,14 @@ class VisualLintIssueProvider(parentDisposable: Disposable) : IssueProvider(), D
 
     override val file: VirtualFile? = null
     override val displayText = ""
+
+    fun addComponent(component: NlComponent) {
+      componentRefs.add(WeakReference(component))
+    }
+
+    fun addModel(model: NlModel) {
+      modelRefs.add(WeakReference(model))
+    }
   }
 }
 

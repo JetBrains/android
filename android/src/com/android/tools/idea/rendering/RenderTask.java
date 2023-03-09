@@ -47,12 +47,10 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.analytics.crash.CrashReporter;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
@@ -60,7 +58,6 @@ import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -95,7 +92,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
 import org.jetbrains.android.uipreview.ClassLoaderPreloaderKt;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
@@ -174,7 +170,6 @@ public class RenderTask {
   private final List<CompletableFuture<?>> myRunningFutures = new LinkedList<>();
   @NotNull private final AtomicBoolean isDisposed = new AtomicBoolean(false);
   @Nullable private XmlFile myXmlFile;
-  @NotNull private final Supplier<RenderModelManifest> myManifestProvider;
   @NotNull private final ModuleClassLoader myModuleClassLoader;
 
   /**
@@ -201,7 +196,6 @@ public class RenderTask {
              boolean isSecurityManagerEnabled,
              float quality,
              @NotNull StackTraceCapture stackTraceCaptureElement,
-             @NotNull Supplier<RenderModelManifest> manifestProvider,
              boolean privateClassLoader,
              @NotNull ClassTransform additionalProjectTransform,
              @NotNull ClassTransform additionalNonProjectTransform,
@@ -235,7 +229,7 @@ public class RenderTask {
                                     ScreenOrientation.PORTRAIT;
     myHardwareConfigHelper.setOrientation(orientation);
     myLayoutLib = layoutLib;
-    ActionBarHandler actionBarHandler = new ActionBarHandler(this, manifestProvider, myCredential);
+    ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
     WeakReference<RenderTask> xmlFileProvider = new WeakReference<>(this);
     ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(renderContext.getModule().getIdeaModule(), () -> {
       RenderTask task = xmlFileProvider.get();
@@ -289,7 +283,6 @@ public class RenderTask {
         myDownScaledImageMaxBytes = DEFAULT_DOWNSCALED_IMAGE_MAX_BYTES;
       }
       restoreDefaultQuality();
-      myManifestProvider = manifestProvider;
 
       stackTraceCaptureElement.bind(this);
     } catch (Exception ex) {
@@ -411,7 +404,7 @@ public class RenderTask {
         clearClassLoader();
       }
       myImageFactoryDelegate = null;
-      myContext.getModule().dispose();
+      Disposer.dispose(myContext.getModule());
 
       return null;
     });
@@ -422,7 +415,7 @@ public class RenderTask {
    * the {@link #setRenderingMode(RenderingMode)} is {@link RenderingMode#FULL_EXPAND}.
    * <p/>
    * A value of -1 will make the rendering use the normal width and height coming from the
-   * {@link Configuration#getDevice()} object.
+   * {@link RenderConfiguration#getDevice()} object.
    *
    * @param overrideRenderWidth  the width in pixels of the layout to be rendered
    * @param overrideRenderHeight the height in pixels of the layout to be rendered
@@ -440,7 +433,7 @@ public class RenderTask {
    * the {@link #setRenderingMode(RenderingMode)} is {@link RenderingMode#FULL_EXPAND}.
    * <p/>
    * A value of -1 will make the rendering use the normal width and height coming from the
-   * {@link Configuration#getDevice()} object.
+   * {@link RenderConfiguration#getDevice()} object.
    *
    * @param maxRenderWidth  the max width in pixels of the layout to be rendered
    * @param maxRenderHeight the max height in pixels of the layout to be rendered
@@ -537,7 +530,7 @@ public class RenderTask {
   @Nullable
   private RenderResult createRenderSession(@NotNull IImageFactory factory) {
     RenderContext context = getContext();
-    Module module = context.getModule().getIdeaModule();
+    RenderModelModule module = context.getModule();
     if (module.isDisposed()) {
       return null;
     }
@@ -550,7 +543,7 @@ public class RenderTask {
       return null;
     }
 
-    Configuration configuration = context.getConfiguration();
+    RenderConfiguration configuration = context.getConfiguration();
     ResourceResolver resolver = ResourceResolver.copy(configuration.getResourceResolver());
     if (resolver == null) {
       // Abort the rendering if the resources are not found.
@@ -566,8 +559,8 @@ public class RenderTask {
 
     if (modelParser instanceof LayoutPsiPullParser) {
       // For regular layouts, if we use appcompat, we have to emulat the app:srcCompat attribute behaviour.
-      boolean useSrcCompat = DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.APP_COMPAT_V7) ||
-                             DependencyManagementUtil.dependsOn(module, GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
+      boolean useSrcCompat = context.getModule().getDependencies().getDependsOnAppCompat() ||
+                             context.getModule().getDependencies().getDependsOnAndroidXAppCompat();
       ((LayoutPsiPullParser)modelParser).setUseSrcCompat(useSrcCompat);
       myLayoutlibCallback.setAaptDeclaredResources(((LayoutPsiPullParser)modelParser).getAaptDeclaredAttrs());
     }
@@ -582,7 +575,7 @@ public class RenderTask {
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
     SessionParams params =
-      new SessionParams(modelParser, myRenderingMode, module /* projectKey */, hardwareConfig, resolver,
+      new SessionParams(modelParser, myRenderingMode, context.getModule().getModuleKey(), hardwareConfig, resolver,
                         myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
                         myLogger, simulatedPlatform);
     params.setAssetRepository(context.getModule().getAssetRepository());
@@ -614,7 +607,7 @@ public class RenderTask {
       params.setLocale(myLocale.toLocaleId());
     }
     try {
-      @Nullable RenderModelManifest manifestInfo = myManifestProvider.get();
+      @Nullable RenderModelManifest manifestInfo = context.getModule().getManifest();
       params.setRtlSupport(manifestInfo != null && manifestInfo.isRtlSupported());
     }
     catch (Exception e) {
@@ -628,7 +621,7 @@ public class RenderTask {
     }
     else {
       try {
-        @Nullable RenderModelManifest manifestInfo = myManifestProvider.get();
+        @Nullable RenderModelManifest manifestInfo = context.getModule().getManifest();
         ResourceValue appLabel = manifestInfo != null
                                  ? manifestInfo.getApplicationLabel()
                                  : new ResourceValueImpl(ResourceNamespace.RES_AUTO, ResourceType.STRING, "appName", "");
@@ -688,7 +681,7 @@ public class RenderTask {
           // Advance the frame time to display the material progress bars
           session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
         }
-        RenderResult result = RenderResult.create(this, session, psiFile, myLogger, myImagePool.copyOf(session.getImage()));
+        RenderResult result = RenderResult.create(context, session, psiFile, myLogger, myImagePool.copyOf(session.getImage()), myLayoutlibCallback.isUsed());
         RenderSession oldRenderSession = myRenderSession;
         myRenderSession = session;
         if (oldRenderSession != null) {
@@ -745,7 +738,7 @@ public class RenderTask {
       myLayoutlibCallback.setLayoutParser(queryLayoutName, modelParser);
 
       // Attempt to read from PSI.
-      PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(getContext().getModule().getIdeaModule().getProject(), layoutVirtualFile);
+      PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(getContext().getModule().getProject(), layoutVirtualFile);
       if (psiFile instanceof XmlFile) {
         LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger,
                                                                 myContext.getModule().getResourceRepositoryManager());
@@ -865,7 +858,7 @@ public class RenderTask {
         }
         else {
           if (xmlFile.isValid()) {
-            return RenderResult.createRenderTaskErrorResult(xmlFile, ex);
+            return RenderResult.createRenderTaskErrorResult(myContext.getModule(), xmlFile, ex);
           }
           else {
             LOG.warn("Invalid file " + xmlFile);
@@ -891,7 +884,7 @@ public class RenderTask {
       PsiFile psiFile = getXmlFile();
       return runAsyncRenderAction(() -> {
         myRenderSession.measure();
-        return RenderResult.create(this, renderSession, psiFile, myLogger, ImagePool.NULL_POOLED_IMAGE);
+        return RenderResult.create(myContext, renderSession, psiFile, myLogger, ImagePool.NULL_POOLED_IMAGE, myLayoutlibCallback.isUsed());
       });
     }
     catch (Exception e) {
@@ -1015,7 +1008,7 @@ public class RenderTask {
         return runAsyncRenderAction(() -> {
           myRenderSession.render();
           RenderResult result =
-            RenderResult.create(this, myRenderSession, psiFile, myLogger, myImagePool.copyOf(myRenderSession.getImage()));
+            RenderResult.create(myContext, myRenderSession, psiFile, myLogger, myImagePool.copyOf(myRenderSession.getImage()), myLayoutlibCallback.isUsed());
           Result renderResult = result.getRenderResult();
           if (renderResult.getException() != null) {
             reportException(renderResult.getException());
@@ -1047,7 +1040,7 @@ public class RenderTask {
           message = e.toString();
         }
         myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e));
-        return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(psiFile, e));
+        return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(myContext.getModule(), psiFile, e));
       }
     });
   }
@@ -1121,10 +1114,9 @@ public class RenderTask {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
     RenderContext context = getContext();
-    Module module = getContext().getModule().getIdeaModule();
-    Configuration configuration = context.getConfiguration();
+    RenderConfiguration configuration = context.getConfiguration();
     DrawableParams params =
-      new DrawableParams(drawableResourceValue, module, hardwareConfig, configuration.getResourceResolver(),
+      new DrawableParams(drawableResourceValue, context.getModule().getModuleKey(), hardwareConfig, configuration.getResourceResolver(),
                          myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
                          myLogger);
     params.setForceNoDecor();
@@ -1176,10 +1168,9 @@ public class RenderTask {
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
 
     RenderContext context = getContext();
-    Module module = context.getModule().getIdeaModule();
-    Configuration configuration = context.getConfiguration();
+    RenderConfiguration configuration = context.getConfiguration();
     DrawableParams params =
-      new DrawableParams(drawableResourceValue, module, hardwareConfig, configuration.getResourceResolver(),
+      new DrawableParams(drawableResourceValue, context.getModule().getModuleKey(), hardwareConfig, configuration.getResourceResolver(),
                          myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
                          myLogger);
     params.setForceNoDecor();
@@ -1309,16 +1300,15 @@ public class RenderTask {
   @Nullable
   private RenderSession measure(ILayoutPullParser parser) {
     RenderContext context = getContext();
-    Configuration configuration = context.getConfiguration();
+    RenderConfiguration configuration = context.getConfiguration();
     ResourceResolver resolver = configuration.getResourceResolver();
 
     myLayoutlibCallback.reset();
 
     HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
-    Module module = getContext().getModule().getIdeaModule();
     SessionParams params = new SessionParams(parser,
                                              RenderingMode.NORMAL,
-                                             module /* projectKey */,
+                                             context.getModule().getModuleKey(),
                                              hardwareConfig,
                                              resolver,
                                              myLayoutlibCallback,
@@ -1332,7 +1322,7 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
     params.setFlag(RenderParamsFlags.FLAG_KEY_USE_THEMED_ICON, configuration.getUseThemedIcon());
     params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
-    @Nullable RenderModelManifest manifestInfo = myManifestProvider.get();
+    @Nullable RenderModelManifest manifestInfo = context.getModule().getManifest();
     params.setRtlSupport(manifestInfo != null && manifestInfo.isRtlSupported());
 
     try {

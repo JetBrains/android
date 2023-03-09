@@ -20,7 +20,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.diagnostics.report.DiagnosticReport
 import com.android.tools.idea.diagnostics.report.DiagnosticReportProperties
-import com.android.tools.idea.diagnostics.report.JfrBasedReport
+import com.android.tools.idea.diagnostics.report.GenericReport
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ProjectRule
@@ -190,7 +190,7 @@ class JfrReportGeneratorTest {
 
     assertThat(success).isTrue()
     assertThat(callbackInvocations).isEqualTo(1)
-    with(callbackReport as JfrBasedReport) {
+    with(callbackReport as GenericReport) {
       assertThat(type).isEqualTo(REPORT_TYPE)
       val defaultProperties = DiagnosticReportProperties()
       // properties.uptime and properties.reportTime can't be tested. Just get the other values.

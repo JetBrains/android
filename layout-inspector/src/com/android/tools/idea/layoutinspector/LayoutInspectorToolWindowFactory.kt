@@ -23,7 +23,6 @@ import com.android.tools.idea.layoutinspector.properties.LayoutInspectorProperti
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
-import com.android.tools.idea.layoutinspector.ui.InspectorRenderSettings
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.ide.DataManager
@@ -87,7 +86,6 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
   private fun createDevicePanel(disposable: Disposable, layoutInspector: LayoutInspector): DeviceViewPanel {
     val deviceViewPanel = DeviceViewPanel(
       layoutInspector = layoutInspector,
-      viewSettings = InspectorRenderSettings(),
       disposableParent = disposable
     )
 

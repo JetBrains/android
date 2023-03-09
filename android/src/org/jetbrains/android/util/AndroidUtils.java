@@ -26,6 +26,7 @@ import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.apk.ApkFacet;
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
+import com.android.tools.idea.rendering.AndroidXmlFiles;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
 import com.android.tools.idea.run.TargetSelectionMode;
@@ -678,17 +679,7 @@ public class AndroidUtils extends CommonAndroidUtil {
    */
   @Nullable
   public static String getDeclaredContextFqcn(@NotNull Module module, @NotNull XmlFile xmlFile) {
-    String context = AndroidPsiUtils.getRootTagAttributeSafely(xmlFile, ATTR_CONTEXT, TOOLS_URI);
-    if (context != null && !context.isEmpty()) {
-      boolean startsWithDot = context.charAt(0) == '.';
-      if (startsWithDot || context.indexOf('.') == -1) {
-        // Prepend application package
-        String pkg = ProjectSystemUtil.getModuleSystem(module).getPackageName();
-        return startsWithDot ? pkg + context : pkg + '.' + context;
-      }
-      return context;
-    }
-    return null;
+    return AndroidXmlFiles.getDeclaredContextFqcn(ProjectSystemUtil.getModuleSystem(module).getPackageName(), xmlFile);
   }
 
   /**

@@ -26,6 +26,8 @@ interface AppInsightsTabProvider {
   /** Populates the provided [tabPanel] with content. */
   fun populateTab(project: Project, tabPanel: AppInsightsTabPanel)
 
+  fun isApplicable(): Boolean = true
+
   companion object {
     @JvmField
     val EP_NAME =

@@ -17,6 +17,7 @@ package com.android.tools.idea.ui.resourcemanager.explorer
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
+import com.android.tools.idea.ui.resourcemanager.actions.HeaderAction
 import com.android.tools.idea.ui.resourcemanager.model.TypeFilter
 import com.android.tools.idea.ui.resourcemanager.rendering.SlowResource.Companion.isSlowResource
 import com.android.utils.usLocaleCapitalize
@@ -75,16 +76,7 @@ class ResourceExplorerToolbar private constructor(
   : JPanel(), DataProvider by toolbarViewModel {
 
   private val searchAction = createSearchField()
-  private val refreshActionToolbar =
-    ActionManager.getInstance().createActionToolbar(
-      "ResourceExplorer",
-      DefaultActionGroup(RefreshAction(toolbarViewModel)),
-      true
-    ).apply {
-      targetComponent = this@ResourceExplorerToolbar
-    }
-
-  private val refreshActionComponent = refreshActionToolbar.component
+  private val refreshAction = action(RefreshAction(toolbarViewModel))
 
   init {
     layout = GroupLayout(this)
@@ -95,7 +87,7 @@ class ResourceExplorerToolbar private constructor(
 
     val sequentialGroup = groupLayout.createSequentialGroup()
       .addFixedSizeComponent(addAction, true)
-      .addComponent(refreshActionComponent, ACTION_BTN_SIZE, ACTION_BTN_SIZE, ACTION_BTN_SIZE)
+      .addFixedSizeComponent(refreshAction, true)
       .addFixedSizeComponent(separator)
       .addComponent(moduleSelectionCombo, MIN_FIELD_SIZE, PREF_FIELD_SIZE, MAX_FIELD_SIZE)
       .addComponent(searchAction, MIN_FIELD_SIZE, PREF_FIELD_SIZE, Int.MAX_VALUE)
@@ -103,7 +95,7 @@ class ResourceExplorerToolbar private constructor(
 
     val verticalGroup = groupLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
       .addComponent(addAction)
-      .addComponent(refreshActionComponent)
+      .addComponent(refreshAction)
       .addComponent(separator)
       .addComponent(moduleSelectionCombo)
       .addComponent(searchAction)
@@ -119,7 +111,7 @@ class ResourceExplorerToolbar private constructor(
 
   private fun update() {
     moduleSelectionCombo.selectedItem = toolbarViewModel.currentModuleName
-    refreshActionToolbar.updateActionsImmediately()
+    refreshAction.update()
   }
 
   private fun createSearchField() = SearchTextField(true).apply {
@@ -191,7 +183,7 @@ private class AddAction internal constructor(val viewModel: ResourceExplorerTool
  * Action to refresh the previews of a particular type of resources.
  */
 private class RefreshAction internal constructor(val viewModel: ResourceExplorerToolbarViewModel)
-  : AnAction("Refresh previews", "Refresh previews for ${viewModel.resourceType.displayName}s", AllIcons.Actions.Refresh) {
+  : AnAction("Refresh Previews", "Refresh previews for ${viewModel.resourceType.displayName}s", AllIcons.Actions.Refresh) {
   override fun actionPerformed(e: AnActionEvent) {
     // TODO: update tracking to support this action.
     viewModel.refreshResourcesPreviewsCallback()
@@ -327,7 +319,8 @@ private fun DefaultActionGroup.addRelatedTypeFilterActions(viewModel: ResourceEx
   val supportedFilters = viewModel.typeFiltersModel.getSupportedFilters(viewModel.resourceType).groupBy { it.displayName }
   if (StudioFlags.EXTENDED_TYPE_FILTERS.get() && supportedFilters.isNotEmpty()) {
     addSeparator()
-    addSeparator("By ${viewModel.resourceType.displayName} Type")
+    val header = "By ${viewModel.resourceType.displayName} Type"
+    add(HeaderAction(header, header))
     val visibleFilters = supportedFilters.entries.take(FILTERS_DISPLAY_LIMIT)
     val remainingFilters = supportedFilters.entries.drop(FILTERS_DISPLAY_LIMIT)
     addVisibleTypeFilters(viewModel, visibleFilters)

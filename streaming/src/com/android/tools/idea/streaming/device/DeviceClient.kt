@@ -22,11 +22,17 @@ import com.android.adblib.ShellCommandOutputElement
 import com.android.adblib.SocketSpec
 import com.android.adblib.shellAsLines
 import com.android.adblib.syncSend
+import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.diagnostics.crash.StudioCrashReporter
+import com.android.tools.idea.diagnostics.report.GenericReport
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.util.StudioPathManager
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DeviceInfo
+import com.google.wireless.android.sdk.stats.DeviceMirroringAbnormalAgentTermination
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.PluginPathManager
 import com.intellij.openapi.diagnostic.Logger
@@ -64,13 +70,21 @@ internal const val SCREEN_SHARING_AGENT_JAR_NAME = "screen-sharing-agent.jar"
 internal const val SCREEN_SHARING_AGENT_SO_NAME = "libscreen-sharing-agent.so"
 internal const val SCREEN_SHARING_AGENT_SOURCE_PATH = "tools/adt/idea/streaming/screen-sharing-agent"
 internal const val DEVICE_PATH_BASE = "/data/local/tmp/.studio"
-const val MAX_BIT_RATE_EMULATOR = 2000000
-const val DEFAULT_AGENT_LOG_LEVEL = "info"
-const val VIDEO_CHANNEL_MARKER = 'V'.code.toByte()
-const val CONTROL_CHANNEL_MARKER = 'C'.code.toByte()
+private const val MAX_BIT_RATE_EMULATOR = 2000000
+private const val DEFAULT_AGENT_LOG_LEVEL = "info"
+private const val VIDEO_CHANNEL_MARKER = 'V'.code.toByte()
+private const val CONTROL_CHANNEL_MARKER = 'C'.code.toByte()
 // Flag definitions. Keep in sync with flags.h
-const val START_VIDEO_STREAM = 0x01
-const val TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x02
+internal const val START_VIDEO_STREAM = 0x01
+internal const val TURN_OFF_DISPLAY_WHILE_MIRRORING = 0x02
+/** Maximum cumulative length of agent messages to remember. */
+private const val MAX_TOTAL_AGENT_MESSAGE_LENGTH = 10_000
+private const val MAX_ERROR_MESSAGE_AGE_MILLIS = 1000L
+private const val CRASH_REPORT_TYPE = "Screen Sharing Agent termination"
+private const val REPORT_FIELD_EXIT_CODE = "exitCode"
+private const val REPORT_FIELD_RUN_DURATION_MILLIS = "runDurationMillis"
+private const val REPORT_FIELD_AGENT_MESSAGES = "agentMessages"
+private const val REPORT_FIELD_DEVICE = "device"
 
 internal class DeviceClient(
   disposableParent: Disposable,
@@ -80,7 +94,7 @@ internal class DeviceClient(
   private val project: Project
 ) : Disposable {
 
-  val deviceName: String = deviceConfig.deviceName ?: deviceSerialNumber
+  val deviceName: String = deviceConfig.deviceName
   @Volatile
   var videoDecoder: VideoDecoder? = null
     private set
@@ -341,14 +355,26 @@ internal class DeviceClient(
     // be killed by adb.
     CoroutineScope(Dispatchers.Unconfined).launch {
       val log = Logger.getInstance("ScreenSharingAgent $deviceName")
+      val agentStartTime = System.currentTimeMillis()
+      val errors = OutputAccumulator(MAX_TOTAL_AGENT_MESSAGE_LENGTH, MAX_ERROR_MESSAGE_AGE_MILLIS)
       try {
         adb.shellAsLines(deviceSelector, command).collect {
           when (it) {
             is ShellCommandOutputElement.StdoutLine -> if (it.contents.isNotBlank()) log.info(it.contents)
-            is ShellCommandOutputElement.StderrLine -> if (it.contents.isNotBlank()) log.warn(it.contents)
+            is ShellCommandOutputElement.StderrLine -> {
+              if (it.contents.isNotBlank()) {
+                log.warn(it.contents)
+                errors.addMessage(it.contents.trimEnd())
+              }
+            }
             is ShellCommandOutputElement.ExitCode -> {
               onDisconnection()
-              if (it.exitCode == 0) log.info("terminated") else log.warn("terminated with code ${it.exitCode}")
+              if (it.exitCode == 0) {
+                log.info("terminated")
+              } else {
+                log.warn("terminated with code ${it.exitCode}")
+                recordAbnormalAgentTermination(it.exitCode, System.currentTimeMillis() - agentStartTime, errors)
+              }
               for (listener in agentTerminationListeners) {
                 listener.agentTerminated(it.exitCode)
               }
@@ -365,6 +391,39 @@ internal class DeviceClient(
           listener.deviceDisconnected()
         }
       }
+    }
+  }
+
+  private fun recordAbnormalAgentTermination(exitCode: Int, runDurationMillis: Long, errors: OutputAccumulator) {
+    // Log a metrics event.
+    val studioEvent = AndroidStudioEvent.newBuilder()
+      .setKind(AndroidStudioEvent.EventKind.DEVICE_MIRRORING_ABNORMAL_AGENT_TERMINATION)
+      .setDeviceMirroringAbnormalAgentTermination(
+        DeviceMirroringAbnormalAgentTermination.newBuilder()
+          .setExitCode(exitCode)
+          .setRunDurationMillis(runDurationMillis)
+      )
+      .setDeviceInfo(
+        DeviceInfo.newBuilder()
+          .fillFrom(deviceConfig)
+          .fillMdnsConnectionType(deviceSerialNumber)
+      )
+
+    UsageTracker.log(studioEvent)
+
+    // Create and submit a Crash report.
+    val fields = mapOf(
+      REPORT_FIELD_EXIT_CODE to exitCode.toString(),
+      REPORT_FIELD_RUN_DURATION_MILLIS to runDurationMillis.toString(),
+      REPORT_FIELD_AGENT_MESSAGES to errors.getMessages(),
+      REPORT_FIELD_DEVICE to deviceConfig.deviceName,
+    )
+    val report = GenericReport(CRASH_REPORT_TYPE, fields)
+    try {
+      StudioCrashReporter.getInstance().submit(report.asCrashReport())
+    }
+    catch (ignore: RuntimeException) {
+      // May happen due to exceeded quota.
     }
   }
 
@@ -399,5 +458,32 @@ internal class DeviceClient(
         adb.reverseKillForward(deviceSelector, deviceSocket)
       }
     }
+  }
+
+  private class OutputAccumulator(private val maxSize: Int, private val maxAgeMillis: Long) {
+
+    private val messages = ArrayDeque<Message>()
+    private var totalSize = 0
+
+    fun addMessage(text: String) {
+      val time = System.currentTimeMillis()
+      prune(maxSize - text.length, time)
+      messages.add(Message(time, text))
+      totalSize += text.length
+    }
+
+    fun getMessages(): String {
+      prune(maxSize, System.currentTimeMillis())
+      return messages.joinToString("\n", transform = Message::text)
+    }
+
+    private fun prune(size: Int, time: Long) {
+      val cutoff = time - maxAgeMillis
+      while (totalSize > size || messages.isNotEmpty() && messages.first().timestamp < cutoff) {
+        totalSize -= messages.removeFirst().text.length
+      }
+    }
+
+    private data class Message(val timestamp: Long, val text: String)
   }
 }

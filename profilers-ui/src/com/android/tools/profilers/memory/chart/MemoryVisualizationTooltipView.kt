@@ -22,14 +22,14 @@ import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.profilers.ChartTooltipViewBase
 import com.android.tools.profilers.ProfilerColors
 import com.android.tools.profilers.memory.adapters.classifiers.NativeCallStackSet
+import javax.swing.JComponent
 import javax.swing.JLabel
-import javax.swing.JLayeredPane
 
 /**
  * When the user mouses over an element in the {@link MemoryVisualizationView} this class represents the tooltip to be displayed.
  */
 class MemoryVisualizationTooltipView(chart: HTreeChart<ClassifierSetHNode>,
-                                     tooltipRoot: JLayeredPane,
+                                     tooltipRoot: JComponent,
                                      private val model: VisualizationTooltipModel) : ChartTooltipViewBase<ClassifierSetHNode>(
   chart, tooltipRoot) {
 

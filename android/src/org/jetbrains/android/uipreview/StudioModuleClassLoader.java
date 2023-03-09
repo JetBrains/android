@@ -69,7 +69,8 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
   private static final ImmutableList<String> PACKAGES_TO_RENAME = ImmutableList.of(
     "kotlin.",
     "kotlinx.",
-    "android.support.constraint.solver."
+    "android.support.constraint.solver.",
+    "okio."
   );
 
   /**

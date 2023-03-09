@@ -530,6 +530,11 @@ public class DependenciesModelImpl extends GradleDslBlockModel implements Depend
   }
 
   @Override
+  public void addPlatformArtifact(@NotNull String configurationName, @NotNull ReferenceTo reference, boolean enforced) {
+    PlatformArtifactDependencyModelImpl.createNew(myDslElement, configurationName, reference, enforced);
+  }
+
+  @Override
   public void addPlatformArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency, boolean enforced) {
     PlatformArtifactDependencyModelImpl.createNew(myDslElement, configurationName, dependency, enforced);
   }

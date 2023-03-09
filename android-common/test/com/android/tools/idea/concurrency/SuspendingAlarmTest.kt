@@ -16,7 +16,9 @@
 package com.android.tools.idea.concurrency
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.registerServiceInstance
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -47,6 +49,7 @@ class SuspendingAlarmTest {
 
   @Before
   fun setUp() {
+    ApplicationManager.getApplication().registerServiceInstance(AndroidIoManager::class.java, StudioIoManager())
     alarm = SuspendingAlarm(projectRule.project.earlyDisposable, testScope.coroutineContext)
   }
 

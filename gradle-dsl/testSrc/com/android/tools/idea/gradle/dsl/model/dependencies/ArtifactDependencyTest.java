@@ -2260,6 +2260,24 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
   }
 
   @Test
+  public void testAddPlatformDependencyReference() throws IOException {
+    writeToBuildFile(TestFile.ADD_DEPENDENCY_REFERENCE);
+
+    GradleBuildModel buildModel = getGradleBuildModel();
+    GradlePropertyModel foo = buildModel.ext().findProperty("dep");
+    DependenciesModel dependencies = buildModel.dependencies();
+    dependencies.addPlatformArtifact("api", new ReferenceTo(foo, dependencies), false);
+    assertTrue(buildModel.isModified());
+    ArtifactDependencyModel artifact = buildModel.dependencies().artifacts().get(0);
+    assertThat(artifact.configurationName()).isEqualTo("api");
+    verifyPropertyModel(artifact.group(), STRING_TYPE, "com.example", STRING, FAKE, 0);
+    verifyPropertyModel(artifact.name(), STRING_TYPE, "foo", STRING, FAKE, 0);
+    verifyPropertyModel(artifact.version(), STRING_TYPE, "1.2.3", STRING, FAKE, 0);
+    applyChangesAndReparse(buildModel);
+    verifyFileContents(myBuildFile, TestFile.ADD_PLATFORM_DEPENDENCY_REFERENCE_EXPECTED);
+  }
+
+  @Test
   public void testSetConfigurationToEmpty() throws IOException {
     writeToBuildFile(TestFile.SET_CONFIGURATION_TO_EMPTY);
 
@@ -2428,6 +2446,7 @@ public class ArtifactDependencyTest extends GradleFileModelTestCase {
     ADD_DEPENDENCY_WITH_CONFIGURATION_CLOSURE_EXPECTED("addDependencyWithConfigurationClosureExpected"),
     ADD_DEPENDENCY_REFERENCE("addDependencyReference"),
     ADD_DEPENDENCY_REFERENCE_EXPECTED("addDependencyReferenceExpected"),
+    ADD_PLATFORM_DEPENDENCY_REFERENCE_EXPECTED("addPlatformDependencyReferenceExpected"),
     SET_VERSION_ON_DEPENDENCY_WITH_COMPACT_NOTATION("setVersionOnDependencyWithCompactNotation"),
     SET_VERSION_ON_DEPENDENCY_WITH_COMPACT_NOTATION_EXPECTED("setVersionOnDependencyWithCompactNotationExpected"),
     SET_VERSION_ON_DEPENDENCY_WITH_MAP_NOTATION("setVersionOnDependencyWithMapNotation"),

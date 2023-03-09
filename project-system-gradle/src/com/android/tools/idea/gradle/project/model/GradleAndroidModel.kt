@@ -88,6 +88,11 @@ class GradleAndroidModel(
   val versionCode: Int? get() = selectedVariant.versionCode
   val buildTypeNames: Set<String> get() = myBuildTypesByName.keys
   val productFlavorNames: Set<String> get() = myProductFlavorsByName.keys
+  val productFlavorNamesByFlavorDimension: Map<String, List<String>>
+    get() = myProductFlavorsByName
+      .mapNotNull { it.value.productFlavor.dimension?.let { dimension -> dimension to it.key } }
+      .sortedBy { androidProject.flavorDimensions.indexOf(it.first) }
+      .groupBy({ it.first }, { it.second })
   val variantNames: Collection<String> get() = androidProject.variantNames
   val variants: List<IdeVariant> get() = myCachedResolvedVariantsByName.values.toList()
 
@@ -122,8 +127,6 @@ class GradleAndroidModel(
   val allUnitTestSourceProviders: List<IdeSourceProvider> get() = data.allUnitTestSourceProviders
   val allAndroidTestSourceProviders: List<IdeSourceProvider> get() = data.allAndroidTestSourceProviders
   val allTestFixturesSourceProviders: List<IdeSourceProvider> get() = data.allTestFixturesSourceProviders
-
-  val getDesugarLibraryConfigFiles: List<File> = data.getDesugarLibraryConfig()
 
   override fun getAgpVersion(): AgpVersion = agpVersion
 

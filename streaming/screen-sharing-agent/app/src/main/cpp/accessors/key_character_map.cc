@@ -34,8 +34,8 @@ void KeyCharacterMap::Initialize() {
   if (!initialized_) {
     initialized_ = true;
     JClass key_character_map_class = jni_.GetClass("android/view/KeyCharacterMap");
-    jmethodID load_method = key_character_map_class.GetStaticMethodId("load", "(I)Landroid/view/KeyCharacterMap;");
-    get_events_method_ = key_character_map_class.GetMethodId("getEvents", "([C)[Landroid/view/KeyEvent;");
+    jmethodID load_method = key_character_map_class.GetStaticMethod("load", "(I)Landroid/view/KeyCharacterMap;");
+    get_events_method_ = key_character_map_class.GetMethod("getEvents", "([C)[Landroid/view/KeyEvent;");
     java_object_ = key_character_map_class.CallStaticObjectMethod(load_method, VIRTUAL_KEYBOARD);
     if (java_object_.IsNull()) {
       Log::Fatal("Unable to load a android.view.KeyCharacterMap");

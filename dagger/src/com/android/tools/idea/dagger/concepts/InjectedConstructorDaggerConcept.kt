@@ -16,7 +16,6 @@
 package com.android.tools.idea.dagger.concepts
 
 import com.android.tools.idea.dagger.concepts.DaggerAnnotations.INJECT
-import com.android.tools.idea.dagger.concepts.DaggerElement.Type
 import com.android.tools.idea.dagger.index.DaggerConceptIndexer
 import com.android.tools.idea.dagger.index.DaggerConceptIndexers
 import com.android.tools.idea.dagger.index.IndexEntries
@@ -83,8 +82,9 @@ private object InjectedConstructorIndexer : DaggerConceptIndexer<DaggerIndexMeth
 }
 
 @VisibleForTesting
-internal data class InjectedConstructorIndexValue(val classFqName: String) :
-  IndexValue(DataType.INJECTED_CONSTRUCTOR) {
+internal data class InjectedConstructorIndexValue(val classFqName: String) : IndexValue() {
+  override val dataType = Reader.supportedType
+
   override fun save(output: DataOutput) {
     output.writeString(classFqName)
   }
@@ -97,12 +97,12 @@ internal data class InjectedConstructorIndexValue(val classFqName: String) :
   companion object {
     private val identifyInjectedConstructorKotlin =
       DaggerElementIdentifier<KtConstructor<*>> {
-        if (it.hasAnnotation(INJECT)) DaggerElement(it, Type.PROVIDER) else null
+        if (it.hasAnnotation(INJECT)) ProviderDaggerElement(it) else null
       }
 
     private val identifyInjectedConstructorJava =
       DaggerElementIdentifier<PsiMethod> {
-        if (it.isConstructor && it.hasAnnotation(INJECT)) DaggerElement(it, Type.PROVIDER) else null
+        if (it.isConstructor && it.hasAnnotation(INJECT)) ProviderDaggerElement(it) else null
       }
 
     internal val identifiers =
@@ -123,7 +123,9 @@ internal data class InjectedConstructorIndexValue(val classFqName: String) :
 internal data class InjectedConstructorParameterIndexValue(
   val classFqName: String,
   val parameterName: String
-) : IndexValue(DataType.INJECTED_CONSTRUCTOR_PARAMETER) {
+) : IndexValue() {
+  override val dataType = Reader.supportedType
+
   override fun save(output: DataOutput) {
     output.writeString(classFqName)
     output.writeString(parameterName)
@@ -140,14 +142,13 @@ internal data class InjectedConstructorParameterIndexValue(
       DaggerElementIdentifier<KtParameter> { psiElement ->
         val parent =
           psiElement.parentOfType<KtConstructor<*>>() ?: return@DaggerElementIdentifier null
-        if (parent.hasAnnotation(INJECT)) DaggerElement(psiElement, Type.CONSUMER) else null
+        if (parent.hasAnnotation(INJECT)) ConsumerDaggerElement(psiElement) else null
       }
 
     private val identifyInjectedConstructorParameterJava =
       DaggerElementIdentifier<PsiParameter> { psiElement ->
         val parent = psiElement.parentOfType<PsiMethod>() ?: return@DaggerElementIdentifier null
-        if (parent.isConstructor && parent.hasAnnotation(INJECT))
-          DaggerElement(psiElement, Type.CONSUMER)
+        if (parent.isConstructor && parent.hasAnnotation(INJECT)) ConsumerDaggerElement(psiElement)
         else null
       }
 

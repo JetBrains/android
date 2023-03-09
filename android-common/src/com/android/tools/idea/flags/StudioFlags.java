@@ -94,6 +94,11 @@ public final class StudioFlags {
     NPW, "new.baseline.profiles.module", "New Baseline Profile Module",
     "Show template to create a new Baseline Profile module in the new module wizard.",
     true);
+
+  public static final Flag<Boolean> NPW_ENABLE_GRADLE_VERSION_CATALOG = Flag.create(
+    NPW, "enable.version.catalog", "Enable Gradle Version Catalog",
+    "Use Gradle Version Catalogs for dependencies added in the new project/module wizard. (when existing project already uses Version Catalogs for new modules)",
+    true);
   //endregion
 
   //region Memory Usage Reporting
@@ -171,6 +176,9 @@ public final class StudioFlags {
     PROFILER, "perfetto.sdk.tracing.compose.navigation", "Navigate-to-source action for Compose Tracing",
     "Enables navigate-to-source action in Profiler for Compose Tracing slices",
     true);
+
+  public static final Flag<Boolean> PROFILER_TASK_BASED_UX = Flag.create(PROFILER, "task.based.ux", "Task-based UX",
+    "Enables a simpler profilers UX, with tabs for specific tasks which an app developer usually performs (e.g. Reduce jank)", false);
   //endregion
 
   //region ML
@@ -757,10 +765,6 @@ public final class StudioFlags {
     Flag.create(GRADLE_IDE, "gradle.version.catalog.banners", "IDE banners if Version Catalogs used",
                 "Display banners in Gradle-related tools when Version Catalogs are in use", false);
 
-  public static final Flag<Boolean> GRADLE_VERSION_CATALOG_NEW_MODULE_WARNING =
-    Flag.create(GRADLE_IDE, "gradle.version.catalog.new.module.warning", "Warning for new module if Version Catalogs used",
-                "Display a warning in the New Module wizard when Version Catalogs are in use", true);
-
   public static final Flag<Boolean> GRADLE_SAVE_LOG_TO_FILE = Flag.create(
     GRADLE_IDE, "save.log.to.file", "Save log to file", "Appends the build log to the given file", false);
 
@@ -1184,9 +1188,10 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> COMPOSE_DEPLOY_LIVE_EDIT_R8_DESUGAR = Flag.create(
     COMPOSE, "deploy.live.edit.deploy.desugar.r8",
-    "Desugar kotlinc outputs with R8",
-    "If enabled, the outputs of kotlinc are desugared to improve the odds of matching what was produced by the Build system",
-    false
+    "LiveEdit: Desugar kotlinc outputs with R8",
+    "If enabled, the outputs of kotlinc are desugared before being sent to LiveEdit engine. This improves " +
+    "the odds of matching what was produced by the Build system",
+    false // False by default until we can gracefully fail if AGP < 8.1.0-alpha
   );
 
   public static final Flag<Integer> COMPOSE_LIVE_LITERALS_UPDATE_RATE = Flag.create(
@@ -1235,7 +1240,14 @@ public final class StudioFlags {
     COMPOSE, "view.inspector",
     "Show the switch of view inspection tool in Compose",
     "If enabled, the user can toggle the mouse inspection tool in the dropdown menu of Compose Preview. The tools is disabled by default",
-    true
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_VIEW_FILTER = Flag.create(
+    COMPOSE, "view.filter",
+    "Support filter the previews in Compose",
+    "If enabled, the user can find the filter actions to filter the visible previews in compose preview",
+    false
   );
 
   public static final Flag<Boolean> COMPOSE_CONSTRAINT_VISUALIZATION = Flag.create(
@@ -1634,17 +1646,28 @@ public final class StudioFlags {
   // region TargetSDKVersion Upgrade Assistant
   private static final FlagGroup TSDKVUA = new FlagGroup(FLAGS, "tsdkvua", "Android SDK Upgrade Assistant");
   public static final Flag<Boolean> TSDKVUA_ENABLE = Flag.create(TSDKVUA, "enable", "Enable the Android SDK Upgrade Assistant", "Enable the Android SDK Upgrade Assistant", true);
-  public static final Flag<Boolean> TSDKVUA_FILTERS = Flag.create(TSDKVUA, "filters", "Enable relevance filtering", "Enable relevance filtering", false);
+  public static final Flag<Boolean> TSDKVUA_FILTERS = Flag.create(TSDKVUA, "filters", "Enable relevance filtering", "Enable relevance filtering", true);
+  public static final Flag<Boolean> TSDKVUA_FILTERS_WIP = Flag.create(TSDKVUA, "filters.wip", "Enable WIP relevance filters", "Enable WIP relevance filters", false);
   // endregion TargetSDKVersion Upgrade Assistant
 
   // region PROCESS_NAME_MONITOR
   private static final FlagGroup PROCESS_NAME_MONITOR = new FlagGroup(FLAGS, "processnamemonitor", "Process Name Monitor");
-  public static final Flag<Boolean> ENABLE_PROCESS_NAME_POLLING = Flag.create(
-    PROCESS_NAME_MONITOR, "processnamemonitor.enable.process.name.polling", "Enable process name polling",
-    "Enable process name polling. Changing the value of this flag requires restarting Android Studio.",
-    false
+  public static final Flag<Integer> PROCESS_NAME_MONITOR_MAX_RETENTION = Flag.create(
+    PROCESS_NAME_MONITOR, "processnamemonitor.max.retention", "Set max process retention",
+    "Maximum number of processes to retain after they are terminated. Changing the value of this flag requires restarting Android Studio.",
+    100
   );
-  // endregion NEW_SEND_FEEDBACK_DIALOG
+  public static final Flag<Boolean> PROCESS_NAME_TRACKER_AGENT_ENABLE = Flag.create(
+    PROCESS_NAME_MONITOR, "processnamemonitor.tracker.agent.enable", "Enable process tracking agent",
+    "Enable process tracking using an agent deployed to the device. Changing the value of this flag requires restarting Android Studio.",
+    true
+  );
+  public static final Flag<Integer> PROCESS_NAME_TRACKER_AGENT_INTERVAL_MS = Flag.create(
+    PROCESS_NAME_MONITOR, "processnamemonitor.tracker.agent.interval", "Process tracking agent polling interval",
+    "Process tracking agent polling interval in milliseconds. Changing the value of this flag requires restarting Android Studio.",
+    1000
+  );
+    // endregion NEW_SEND_FEEDBACK_DIALOG
 
   private StudioFlags() { }
 }

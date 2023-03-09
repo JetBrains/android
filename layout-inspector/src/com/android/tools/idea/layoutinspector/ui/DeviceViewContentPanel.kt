@@ -71,7 +71,8 @@ class DeviceViewContentPanel(
   val inspectorModel: InspectorModel,
   val deviceModel: DeviceModel?,
   val treeSettings: TreeSettings,
-  val renderSettings: RenderSettings,
+  val renderModel: RenderModel,
+  val renderLogic: RenderLogic,
   val currentClient: () -> InspectorClient?,
   val pannable: Pannable,
   @VisibleForTesting val selectTargetAction: DropDownActionWithButton?,
@@ -81,8 +82,7 @@ class DeviceViewContentPanel(
   val hasForegroundProcess: () -> Boolean
 ) : AdtPrimaryPanel() {
 
-  val renderModel = RenderModel(inspectorModel, treeSettings, currentClient)
-  val renderLogic = RenderLogic(renderModel, renderSettings)
+  private val renderSettings get() = renderLogic.renderSettings
 
   @get:VisibleForTesting
   val showEmptyText get() = !renderModel.isActive && !isLoading() && deviceModel?.selectedDevice == null

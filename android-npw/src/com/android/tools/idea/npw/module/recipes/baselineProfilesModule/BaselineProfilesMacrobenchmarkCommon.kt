@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.module.recipes.baselineProfilesModule
 
 import com.android.SdkConstants
+import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.npw.module.recipes.addKotlinIfNeeded
 import com.android.tools.idea.npw.module.recipes.gitignore
 import com.android.tools.idea.wizard.template.ModuleTemplateData
@@ -73,16 +74,10 @@ object BaselineProfilesMacrobenchmarkCommon {
    * @return If no product flavors, returns empty list
    */
   fun generateBuildVariants(
-    dimensionNames: List<String>,
-    productFlavorsAndDimensions: List<FlavorNameAndDimension>,
+    flavors: ProductFlavorsWithDimensions,
     buildType: String? = null,
   ): List<String> {
-    val dimensionsWithFlavors = dimensionNames.map { dimensionName ->
-      // flavor names grouped by its dimension
-      productFlavorsAndDimensions
-        .filter { (_, flavorDimension) -> flavorDimension == dimensionName }
-        .map { it.name }
-    }.toMutableList()
+    val dimensionsWithFlavors = flavors.flavorNamesGroupedByDimension.toMutableList()
 
     // Add buildType (if defined) as the last one
     buildType?.let { dimensionsWithFlavors.add(listOf(it)) }
@@ -106,13 +101,12 @@ object BaselineProfilesMacrobenchmarkCommon {
   }
 
   fun flavorsConfigurationsBuildGradle(
-    flavorDimensionNames: List<String>,
-    flavorNamesAndDimensions: List<FlavorNameAndDimension>,
+    flavors: ProductFlavorsWithDimensions,
     useGradleKts: Boolean
   ): String {
     return buildString {
-      if (flavorDimensionNames.isNotEmpty()) {
-        val dimenString = flavorDimensionNames.joinToString(",") { "\"$it\"" }
+      if (flavors.dimensions.isNotEmpty()) {
+        val dimenString = flavors.dimensions.joinToString(",") { "\"$it\"" }
 
         if (useGradleKts) {
           appendLine("flavorDimensions += listOf(${dimenString})")
@@ -122,16 +116,29 @@ object BaselineProfilesMacrobenchmarkCommon {
         }
       }
 
-      if (flavorNamesAndDimensions.isNotEmpty()) {
+      if (flavors.flavors.isNotEmpty()) {
         appendLine("productFlavors {")
-        flavorNamesAndDimensions.forEach {
-          append(if (useGradleKts) "create(\"${it.name}\")" else it.name)
-          appendLine("""{ dimension = "${it.dimension}" }""")
+        flavors.flavors.forEach { flavor ->
+          append(if (useGradleKts) "create(\"${flavor.name}\")" else flavor.name)
+          flavor.dimension?.let { appendLine("""{ dimension = "$it" }""") }
         }
         append("}")
       }
     }
   }
+
+  /**
+   * Retrieves the product flavors from [GradleAndroidModel].
+   * We don't retrieve it from the DSL model, because it doesn't support loading flavors that aren't set in the build.gradle directly,
+   * for example, when using convention plugins.
+   */
+  fun getTargetModelProductFlavors(targetModuleGradleModel: GradleAndroidModel): ProductFlavorsWithDimensions =
+    ProductFlavorsWithDimensions(
+      targetModuleGradleModel.productFlavorNamesByFlavorDimension.keys,
+      targetModuleGradleModel.productFlavorNamesByFlavorDimension.flatMap { (dimension, flavors) ->
+        flavors.map { flavorName -> ProductFlavorsWithDimensions.Item(flavorName, dimension) }
+      }
+    )
 }
 
 data class GmdSpec(val deviceName: String, val apiLevel: Int) {
@@ -144,4 +151,17 @@ data class GmdSpec(val deviceName: String, val apiLevel: Int) {
 
 }
 
-data class FlavorNameAndDimension(val name: String, val dimension: String)
+class ProductFlavorsWithDimensions(
+  val dimensions: Collection<String>,
+  val flavors: List<Item>
+) {
+
+  data class Item(val name: String, val dimension: String?)
+
+  val flavorNamesGroupedByDimension = dimensions.map { dimensionName ->
+    flavors
+      .filter { it.dimension == dimensionName }
+      .map { it.name }
+  }
+
+}

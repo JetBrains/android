@@ -37,15 +37,12 @@ const val APP_INSIGHTS_ID = "App Quality Insights"
 
 class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
   companion object {
-    fun setActiveTab(project: Project, tabName: String) {
-      val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(APP_INSIGHTS_ID)
-      toolWindow?.contentManager?.setSelectedContent(toolWindow.contentManager.findContent(tabName))
-    }
-
     fun show(project: Project, tabName: String, callback: (() -> Unit)?) {
       val toolWindowManager = ToolWindowManager.getInstance(project).getToolWindow(APP_INSIGHTS_ID)
       toolWindowManager?.show {
-        setActiveTab(project, tabName)
+        toolWindowManager.contentManager.setSelectedContent(
+          toolWindowManager.contentManager.findContent(tabName)
+        )
         callback?.invoke()
       }
     }
@@ -88,17 +85,19 @@ class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
   fun createTabs(project: Project, toolWindow: ToolWindow) {
     val contentFactory = ContentFactory.getInstance()
 
-    AppInsightsTabProvider.EP_NAME.extensionList.forEach { tabProvider ->
-      val tabPanel = AppInsightsTabPanel()
-      tabProvider.populateTab(project, tabPanel)
-      val tabContent =
-        contentFactory.createContent(tabPanel, tabProvider.tabDisplayName, false).apply {
-          putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
-          icon = tabProvider.tabIcon
-        }
-      tabContent.setDisposer(tabPanel)
-      toolWindow.contentManager.addContent(tabContent)
-    }
+    AppInsightsTabProvider.EP_NAME.extensionList
+      .filter { it.isApplicable() }
+      .forEach { tabProvider ->
+        val tabPanel = AppInsightsTabPanel()
+        tabProvider.populateTab(project, tabPanel)
+        val tabContent =
+          contentFactory.createContent(tabPanel, tabProvider.tabDisplayName, false).apply {
+            putUserData(ToolWindow.SHOW_CONTENT_ICON, true)
+            icon = tabProvider.tabIcon
+          }
+        tabContent.setDisposer(tabPanel)
+        toolWindow.contentManager.addContent(tabContent)
+      }
 
     toolWindow.setDefaultContentUiType(ToolWindowContentUiType.TABBED)
     toolWindow.show()

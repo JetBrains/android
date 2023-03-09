@@ -21,7 +21,6 @@ import com.android.tools.adtui.workbench.Split
 import com.android.tools.adtui.workbench.ToolContent
 import com.android.tools.adtui.workbench.ToolWindowDefinition
 import com.android.tools.idea.insights.AppInsightsState
-import com.android.tools.idea.insights.Issue
 import icons.StudioIcons
 import java.awt.BorderLayout
 import javax.swing.JPanel
@@ -29,9 +28,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
 object DetailsToolWindow {
-  fun <IssueT : Issue, StateT : AppInsightsState<IssueT>> create(
+  fun create(
     scope: CoroutineScope,
-    state: Flow<StateT>
+    state: Flow<AppInsightsState>
   ): ToolWindowDefinition<AppInsightsToolWindowContext> {
     return ToolWindowDefinition(
       "Details",
@@ -49,10 +48,8 @@ object DetailsToolWindow {
   }
 }
 
-private class DetailsToolWindowContent<IssueT : Issue, StateT : AppInsightsState<IssueT>>(
-  scope: CoroutineScope,
-  state: Flow<StateT>
-) : ToolContent<AppInsightsToolWindowContext> {
+private class DetailsToolWindowContent(scope: CoroutineScope, state: Flow<AppInsightsState>) :
+  ToolContent<AppInsightsToolWindowContext> {
   private val component = JPanel(BorderLayout())
 
   init {

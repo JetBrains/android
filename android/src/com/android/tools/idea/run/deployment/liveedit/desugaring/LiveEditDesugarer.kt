@@ -13,162 +13,218 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.deployment.liveedit
+package com.android.tools.idea.run.deployment.liveedit.desugaring
 
-import com.android.tools.idea.editors.liveedit.LiveEditAdvancedConfiguration
 import com.android.tools.idea.model.StudioAndroidModuleInfo
+import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.run.deployment.liveedit.desugaring.R8DiagnosticHandler
-import com.android.tools.idea.run.deployment.liveedit.desugaring.R8MemoryClassFileConsumer
-import com.android.tools.idea.run.deployment.liveedit.desugaring.R8MemoryProgramResourceProvider
+import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiledClass
+import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerOutput
+import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.desugarFailure
+import com.android.tools.r8.ClassFileResourceProvider
 import com.android.tools.r8.D8
 import com.android.tools.r8.D8Command
 import org.jetbrains.android.facet.AndroidFacet
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.Paths
+import com.intellij.openapi.module.Module;
 
-private fun log(message: String) {
-  if (!LiveEditAdvancedConfiguration.getInstance().useDebugMode) {
-    return
-  }
-  println("LE Desugar: " + message)
-}
+internal class LiveEditDesugar : AutoCloseable{
 
-private fun getMinApiLevel(module: com.intellij.openapi.module.Module?) : Int {
-  if (module == null) {
-    log("Cannot retrieve min API (no module)")
-    return 0
-  }
+  private val logger = DesugarLogger()
+  private val jarResourceCacheManager = JarResourceCacheManager(logger)
 
-  val facet: AndroidFacet? = AndroidFacet.getInstance(module)
-  if (facet == null) {
-    log("Cannot retrieve min API (no facet)")
-    return 0
-  }
-
-  val minAPI = StudioAndroidModuleInfo.getInstance(facet).minSdkVersion.apiLevel
-
-  log("Target API = $minAPI")
-  return minAPI
-}
-
-
-private fun getClassPath(module: com.intellij.openapi.module.Module?) : List<Path> {
-  if (module == null) {
-    log("Cannot retrieve classpath (no module)")
-    return emptyList()
-  }
-  val classPath = module.project.getProjectSystem().getClassJarProvider().getModuleExternalLibraries(module).mapNotNull { it.toPath() }
-
-  log("Classpath = $classPath")
-  return classPath
-}
-
-private fun getAndroidJar(module: com.intellij.openapi.module.Module?) : Collection<Path> {
-  if (module == null) {
-    log("Cannot retrieve android.jar (no module)")
-    return emptyList()
-  }
-
-  val paths = mutableListOf<Path>()
-  val strings = module.project.getProjectSystem().getBootClasspath(module)
-  strings.forEach{
-      paths.add(Paths.get(it))
-  }
-
-  log("Android.jar = $paths")
-  return paths
-}
-
-private fun getDesugarConfig(module: com.intellij.openapi.module.Module?): String? {
-  if (module == null) {
-    log("Cannot retrieve desugar config (no module)")
-    return null
-  }
-
-  val jsonConfigs = module.project.getProjectSystem().desugarLibraryConfigFiles(module.project)
-  if (jsonConfigs.isEmpty()) {
-    log("Not Library Config from Build System")
-    return null
-  }
-
-  // R8 only requires a single json config file. Gradle returns a list if R8 even decides to return several.
-  // We only get the first one.
-  val path = jsonConfigs[0].toPath()
-  val config = String(Files.readAllBytes(path))
-  log("Library Config = $path")
-  return config
-}
-
-
-
-// Desugar classes in place
-private fun desugarClasses(classes : List<LiveEditCompiledClass>) {
-  classes.forEach{
-    val memClassFileProvider = R8MemoryProgramResourceProvider(it.data)
-    val memClassFileConsumer = R8MemoryClassFileConsumer()
-
-    // Don't use a diagnosis handler for now?
-    val diagnosticHandler = R8DiagnosticHandler()
-    val command = D8Command.builder(diagnosticHandler)
-      // Var args Path of files to compile.
-      .addProgramResourceProvider(memClassFileProvider)
-
-      // The minimum would be to pass classes up in the hierarchy and the rest of the nest.
-      .addClasspathFiles(getClassPath(it.module))
-
-      // Pass android.jar of the target device (not the min-api)
-      .addLibraryFiles(getAndroidJar(it.module))
-
-      // Pass the min API.
-      .setMinApiLevel(getMinApiLevel(it.module))
-
-      // Set output to Cf in memory consumer
-      .setProgramConsumer(memClassFileConsumer)
-
-    /* If build.gradle enable library desugaring via,
-       compileOptions {
-         sourceCompatibility JavaVersion.VERSION_1_8
-         targetCompatibility JavaVersion.VERSION_1_8
-         coreLibraryDesugaringEnabled true
-       }
-       dependencies {
-         coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:X.X.X'
-       }
-
-       then, we do get a json config file that we should forward to our own invocation.
-    */
-    // Enable desugared library if it was used.
-    val desugarConfig = getDesugarConfig(it.module)
-    if (desugarConfig != null) {
-      command.addDesugaredLibraryConfiguration(desugarConfig)
-    }
-
-    // Run on current thread (no executorService)
-    D8.run(command.build())
-    if (diagnosticHandler.hasError) {
-      diagnosticHandler.diagnosticError?.let {
-        LiveEditUpdateException.desugarFailure(it.diagnosticMessage)
-      }
-    }
-
-    it.data = memClassFileConsumer.data
-  }
-}
-
-class LiveEditDesugar() {
-  fun desugar(compiledFiles: LiveEditCompilerOutput) {
+  internal fun desugar(compiledFiles: LiveEditCompilerOutput) {
     val now = System.nanoTime()
     try {
-      desugarClasses(compiledFiles.classes)
-      desugarClasses(compiledFiles.supportClasses)
-
-      val durationMs = (System.nanoTime() - now) / 1000000
-      log("Runtime = $durationMs")
+      desugarClasses(compiledFiles.classes, compiledFiles.supportClasses)
     }
     catch (e: Exception) {
       e.printStackTrace()
+    } finally {
+      jarResourceCacheManager.done()
+    }
+    val durationMs = (System.nanoTime() - now) / 1000000
+    logger.log("Runtime = $durationMs")
+  }
+
+
+  private fun getMinApiLevel(module: Module?) : Int {
+    if (module == null) {
+      logger.log("Cannot retrieve min API (no module)")
+      return 0
+    }
+
+    val facet: AndroidFacet? = AndroidFacet.getInstance(module)
+    if (facet == null) {
+      logger.log("Cannot retrieve min API (no facet)")
+      return 0
+    }
+
+    val minAPI = StudioAndroidModuleInfo.getInstance(facet).minSdkVersion.apiLevel
+
+    logger.log("Target API = $minAPI")
+    return minAPI
+  }
+
+  private fun getDesugarConfig(module: Module?): String? {
+    if (module == null) {
+      logger.log("Cannot retrieve desugar config (no module)")
+      return null
+    }
+
+    val jsonConfigs = module.getModuleSystem().desugarLibraryConfigFiles
+    if (jsonConfigs.isEmpty()) {
+      logger.log("Not Library Config from Build System")
+      return null
+    }
+
+    // R8 only requires a single json config file. Gradle returns a list if R8 even decides to return several.
+    // We only get the first one.
+    val path = jsonConfigs[0]
+    val config = String(Files.readAllBytes(path))
+    logger.log("Library Config = $path")
+    return config
+  }
+
+  private fun getAndroidJar(module: Module?) : List<ClassFileResourceProvider> {
+    if (module == null) {
+      logger.log("Cannot retrieve android.jar (no module)")
+      return emptyList()
+    }
+
+    val strings = module.project.getProjectSystem().getBootClasspath(module)
+
+    logger.log("Android.jar = $strings")
+
+    return strings.map{
+      jarResourceCacheManager.getResourceCache(Paths.get(it))
     }
   }
+
+  private fun getClassPathResourceProvider(module: Module?) : List<ClassFileResourceProvider> {
+    if (module == null) {
+      desugarFailure("Cannot retrieve classpath (no module)")
+    }
+    val classPath = module!!.project.getProjectSystem().getClassJarProvider().getModuleExternalLibraries(module).mapNotNull { it.toPath() }
+
+    logger.log("Classpath = $classPath")
+
+    // Go through classpath entries and build ClassFileResourceProvider for each jar encountered.
+    return classPath.stream().map {
+      jarResourceCacheManager.getResourceCache(it)
+    }.toList()
+  }
+
+  private fun desugarClasses(classes : List<LiveEditCompiledClass>, supportClasses : List<LiveEditCompiledClass>) {
+
+    // We batch class desugaring on a per-module basis to re-use common class desugaring configuration.
+    // 1/ Flattened lists into a single one.
+    // 2/ Group classes per-module name and desugar via R8
+    // 3/ Write back desugared classes where they belong
+
+    // 1
+    logger.log("Request for:")
+    val flattenedClasses = mutableMapOf<String, LiveEditCompiledClass>()
+    flatten(classes, flattenedClasses, "classes")
+    flatten(supportClasses, flattenedClasses, "support_classes")
+
+    // 2
+    val modulesSet = mutableMapOf<String, MutableList<LiveEditCompiledClass>>()
+    flattenedClasses.forEach{
+      if (it.value.module == null) {
+        desugarFailure("Cannot process class '${it.value.name}' without module")
+        return@forEach
+      }
+      val moduleName = it.value.module!!.name
+      if (!modulesSet.contains(moduleName)) {
+        modulesSet[moduleName] = ArrayList()
+      }
+      modulesSet[moduleName]!!.add(it.value)
+    }
+
+    // We store all desugared classes in there.
+    val allDesugaredClasses = HashMap<String, ByteArray>()
+    modulesSet.forEach{
+      logger.log("Batch for module: ${it.key}")
+      val module = it.value[0].module
+      val desugaredModuleClasses = desugarClassesForModule(it.value, module)
+      allDesugaredClasses.putAll(desugaredModuleClasses)
+    }
+
+    // 3
+    replaceWithDesugared(allDesugaredClasses, flattenedClasses)
+  }
+
+  private fun flatten(classes: List<LiveEditCompiledClass>, flattenedClasses: MutableMap<String, LiveEditCompiledClass>, name: String) {
+    logger.log(name)
+    classes.forEach{
+      logger.log(it.name)
+      flattenedClasses[it.name] = it
+    }
+  }
+
+  private fun desugarClassesForModule(classes : List<LiveEditCompiledClass>, module: Module?) : Map<String, ByteArray>{
+      val memClassFileProvider = R8MemoryProgramResourceProvider(classes, logger)
+      val memClassFileConsumer = R8MemoryClassFileConsumer(logger)
+
+      val diagnosticHandler = R8DiagnosticHandler(logger)
+      val command = D8Command.builder(diagnosticHandler)
+        // Path of files to compile.
+        .addProgramResourceProvider(memClassFileProvider)
+
+        // Pass the min API.
+        .setMinApiLevel(getMinApiLevel(module))
+
+        // Set output to Cf in memory consumer
+        .setProgramConsumer(memClassFileConsumer)
+
+      // Pass android.jar of the target device (not the min-api)
+      getAndroidJar(module).forEach {
+        command.addLibraryResourceProvider(it)
+      }
+
+      // Pass the classpaths
+      getClassPathResourceProvider(module).forEach{
+        command.addClasspathResourceProvider(it)
+      }
+
+      /* If build.gradle enable library desugaring via,
+         compileOptions {
+           sourceCompatibility JavaVersion.VERSION_1_8
+           targetCompatibility JavaVersion.VERSION_1_8
+           coreLibraryDesugaringEnabled true
+         }
+         dependencies {
+           coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:X.X.X'
+         }
+
+         then, we do get a json config file that we should forward to our own invocation.
+      */
+      // Enable desugared library if it was used.
+      val desugarConfig = getDesugarConfig(module)
+      if (desugarConfig != null) {
+        command.addDesugaredLibraryConfiguration(desugarConfig)
+      }
+
+      // By default, D8 run on an executor with one thread per core
+      D8.run(command.build())
+      return memClassFileConsumer.classes
+  }
+
+  fun Map<String, Any>.toList() = this.map{it.key}.toList()
+
+  private fun replaceWithDesugared(desugared: Map<String, ByteArray>, target: Map<String, LiveEditCompiledClass>) {
+    target.forEach{
+      if (!desugared.contains(it.key)) {
+        desugarFailure("R8 did not desugar ${it.key}, desugared=${desugared.toList()}, target=${target.toList()}")
+      }
+      target[it.key]!!.data = desugared[it.key]!!
+    }
+  }
+
+  override fun close() {
+    jarResourceCacheManager.close();
+  }
+
 }

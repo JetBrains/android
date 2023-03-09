@@ -17,7 +17,7 @@ package com.android.tools.idea.actions.annotations
 
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.core.ShortenReferences
+import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -58,7 +58,7 @@ fun KtModifierListOwner.addAnnotationWithUsageSite(
 
   if (modifierList == null) {
     val addedAnnotation = addAnnotationEntry(psiFactory.createAnnotationEntry(annotationText))
-    ShortenReferences.DEFAULT.process(addedAnnotation)
+    ShortenReferencesFacility.getInstance().shorten(addedAnnotation)
     return true
   }
 
@@ -73,7 +73,7 @@ fun KtModifierListOwner.addAnnotationWithUsageSite(
     val whiteSpace = psiFactory.createWhiteSpace(whiteSpaceText)
     modifierList.addAfter(whiteSpace, addedAnnotation)
 
-    ShortenReferences.DEFAULT.process(addedAnnotation)
+    ShortenReferencesFacility.getInstance().shorten(addedAnnotation)
     return true
   }
 

@@ -281,6 +281,13 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
     });
   }
 
+  protected void createCatalogFile(String name) throws IOException {
+    VirtualFile gradlePath = myProjectBasePath.findChild("gradle");
+    runWriteAction(() ->
+      gradlePath.createChildData(this, name)
+    );
+  }
+
   protected void prepareAndInjectInformationForTest(@NotNull TestFileName testFileName, @NotNull VirtualFile destination)
     throws IOException {
     final File testFile = testFileName.toFile(myTestDataResolvedPath, myTestDataExtension);
@@ -451,6 +458,11 @@ public abstract class GradleFileModelTestCase extends PlatformTestCase {
   protected void applyChanges(@NotNull final GradleBuildModel buildModel) {
     runWriteCommandAction(myProject, buildModel::applyChanges);
     assertFalse(buildModel.isModified());
+  }
+
+  protected void applyChanges(@NotNull final GradleSettingsModel settingsModel) {
+    runWriteCommandAction(myProject, () -> settingsModel.applyChanges());
+    assertFalse(settingsModel.isModified());
   }
 
   protected void applyChanges(@NotNull final ProjectBuildModel buildModel) {

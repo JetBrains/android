@@ -174,13 +174,11 @@ open class IssueNotificationAction(
   }
 
   /**
-   * Override this method to add padding between the button and its borders.
+   * Defines the padding between the button and its borders.
    */
-  open fun insets(): Insets {
-    return JBUI.emptyInsets()
+  fun insets(): Insets {
+    return JBUI.insets(1)
   }
-
-  open fun iconTextSpace(component: ActionButtonWithText): Int = 3
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent = IssueNotificationActionButton(this, presentation, place)
 

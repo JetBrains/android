@@ -123,6 +123,7 @@ class AndroidDynamicFeatureNavTest {
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsExactly(
+      "mytest.navtest.AbstractFragment",
       "mytest.navtest.BlankFragment",
       "mytest.navtest.fragment1",
       "mytest.navtest.fragment2",
@@ -164,6 +165,7 @@ class AndroidDynamicFeatureNavTest {
     myFixture.configureFromExistingVirtualFile(psiFile.virtualFile)
     myFixture.completeBasic()
     assertThat(myFixture.lookupElementStrings).containsExactly(
+      "mytest.navtest.AbstractActivity",
       "mytest.navtest.MainActivity",
       "mytest.navtest.activity1"
     )

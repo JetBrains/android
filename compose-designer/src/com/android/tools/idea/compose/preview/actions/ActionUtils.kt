@@ -65,6 +65,11 @@ fun List<AnAction>.disabledIfRefreshingOrRenderErrors(sceneView: SceneView): Lis
   }
 }
 
+/** Hide the given actions if the [sceneView] contains render errors. */
+fun List<AnAction>.hideIfRenderErrors(sceneView: SceneView): List<AnAction> = map {
+  ShowUnderConditionWrapper(it) { !sceneView.hasRenderErrors() }
+}
+
 /**
  * Wrapper that delegates whether the given action is enabled or not to the passed condition. If
  * [isEnabled] returns true, the `delegate` action will be shown as disabled.
@@ -78,6 +83,20 @@ private class EnableUnderConditionWrapper(
     super.update(e)
     val delegateEnabledStatus = e.presentation.isEnabled
     e.presentation.isEnabled = delegateEnabledStatus && isEnabled(e.dataContext)
+  }
+
+  override fun createCustomComponent(presentation: Presentation, place: String) =
+    ActionButtonWithToolTipDescription(delegate, presentation, place)
+}
+
+/** Wrapper that delegates whether the given action is visible or not to the passed condition. */
+private class ShowUnderConditionWrapper(delegate: AnAction, private val isVisible: () -> Boolean) :
+  AnActionWrapper(delegate), CustomComponentAction {
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    val curVisibleStatus = e.presentation.isVisible
+    e.presentation.isVisible = curVisibleStatus && isVisible()
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String) =

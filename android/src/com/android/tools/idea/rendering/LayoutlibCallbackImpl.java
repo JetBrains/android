@@ -66,15 +66,12 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.FilenameConstants;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.parsers.AaptAttrParser;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.FileResourceReader;
-import com.android.tools.idea.util.DependencyManagementUtil;
 import com.android.tools.idea.util.FileExtensions;
 import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.HtmlBuilder;
@@ -197,11 +194,11 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myRenderModule = renderModule;
     myLogger = logger;
     myCredential = credential;
-    myClassLoader = new ViewLoader(myLayoutLib, renderModule.getIdeaModule(), logger, credential, moduleClassLoader);
+    myClassLoader = new ViewLoader(myLayoutLib, renderModule, logger, credential, moduleClassLoader);
     myActionBarHandler = actionBarHandler;
     myLayoutPullParserFactory = parserFactory;
-    myHasLegacyAppCompat = DependencyManagementUtil.dependsOn(renderModule.getIdeaModule(), GoogleMavenArtifactId.APP_COMPAT_V7);
-    myHasAndroidXAppCompat = DependencyManagementUtil.dependsOn(renderModule.getIdeaModule(), GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7);
+    myHasLegacyAppCompat = renderModule.getDependencies().getDependsOnAppCompat();
+    myHasAndroidXAppCompat = renderModule.getDependencies().getDependsOnAndroidXAppCompat();
 
     myNamespacing = renderModule.getResourceRepositoryManager().getNamespacing();
     if (myNamespacing == Namespacing.DISABLED) {
@@ -357,7 +354,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       }
       VirtualFile virtualFile = LocalFileSystem.getInstance().findFileByPath(fileName);
       if (virtualFile != null) {
-        PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myRenderModule.getIdeaModule().getProject(), virtualFile);
+        PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myRenderModule.getProject(), virtualFile);
         if (psiFile != null) {
           String psiText = ApplicationManager.getApplication().isReadAccessAllowed()
                            ? psiFile.getText()
@@ -504,7 +501,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
           && (parentName.startsWith(FD_RES_LAYOUT) || parentName.startsWith(FD_RES_DRAWABLE) || parentName.startsWith(FD_RES_MENU))) {
         VirtualFile file = FileExtensions.toVirtualFile(xml);
         if (file != null) {
-          PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myRenderModule.getIdeaModule().getProject(), file);
+          PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(myRenderModule.getProject(), file);
           if (psiFile instanceof XmlFile) {
             ResourceResolver resourceResolver = myRenderTask.getContext().getConfiguration().getResourceResolver();
             // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different
@@ -824,7 +821,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
   @Nullable
   public String getResourcePackage() {
-    return ProjectSystemUtil.getModuleSystem(myRenderModule.getIdeaModule()).getPackageName();
+    return myRenderModule.getResourcePackage();
   }
 
   @Nullable

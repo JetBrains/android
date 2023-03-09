@@ -483,7 +483,6 @@ android-studio/license/ffmpeg-LICENSE.openh264
 android-studio/license/ffmpeg-SOURCE_CODE.TXT
 android-studio/license/freemarker-NOTICE
 android-studio/license/google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0.jar-NOTICE
-android-studio/license/google-api-services-debugger.jar-NOTICE
 android-studio/license/google-api-services-mobilesdk-v1.jar-NOTICE
 android-studio/license/google-api-services-source.jar-NOTICE
 android-studio/license/google-api-services-storage.jar-NOTICE
@@ -1842,7 +1841,7 @@ android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/s
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/install_egg_info.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/install_lib.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/install_scripts.py
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/launcher manifest.xml
+android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/launcher_manifest.xml
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/py36compat.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/register.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/rotate.py
@@ -1868,7 +1867,7 @@ android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/s
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/package_index.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/py34compat.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/sandbox.py
-android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/script (dev).tmpl
+android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/script_(dev).tmpl
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/script.tmpl
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/unicode_utils.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/version.py
@@ -2667,16 +2666,20 @@ android-studio/plugins/firebase-testing/lib/tightvnc.jar
 android-studio/plugins/firebase/lib/firebase.jar
 android-studio/plugins/firebase/lib/google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0.jar
 android-studio/plugins/firebase/lib/google-api-services-mobilesdk-v1.jar
+android-studio/plugins/gmd-code-completion/lib/byte-buddy-1.12.14.jar
+android-studio/plugins/gmd-code-completion/lib/byte-buddy-agent-1.12.14.jar
+android-studio/plugins/gmd-code-completion/lib/gmd-code-completion.jar
+android-studio/plugins/gmd-code-completion/lib/google-api-services-testing-v1-revsnapshot-1.20.0.jar
+android-studio/plugins/gmd-code-completion/lib/mockito-core-4.8.0.jar
+android-studio/plugins/gmd-code-completion/lib/mockito-inline-4.8.0.jar
 android-studio/plugins/google-appindexing/lib/fetchasgoogle.jar
 android-studio/plugins/google-appindexing/lib/google-appindexing.jar
-android-studio/plugins/google-cloud-tools-as/lib/google-api-services-debugger.jar
 android-studio/plugins/google-cloud-tools-as/lib/google-api-services-source.jar
 android-studio/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.jar
 android-studio/plugins/google-cloud-tools-as/lib/gradle-appengine-builder-model-0.1.0.jar
 android-studio/plugins/google-cloud-tools-as/lib/samplesindex-v1-1.0-SNAPSHOT.jar
 android-studio/plugins/google-cloud-tools-core-as/lib/google-api-services-appengine-v1-rev9-1.22.0.jar
 android-studio/plugins/google-cloud-tools-core-as/lib/google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0.jar
-android-studio/plugins/google-cloud-tools-core-as/lib/google-api-services-debugger.jar
 android-studio/plugins/google-cloud-tools-core-as/lib/google-api-services-source.jar
 android-studio/plugins/google-cloud-tools-core-as/lib/google-cloud-tools-core-as.jar
 android-studio/plugins/google-cloud-tools-core-as/lib/gradle-appengine-builder-model-0.1.0.jar

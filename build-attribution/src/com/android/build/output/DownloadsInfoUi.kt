@@ -34,6 +34,7 @@ import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.ScrollPaneFactory
+import com.intellij.ui.TableViewSpeedSearch
 import com.intellij.ui.components.BrowserLink
 import com.intellij.ui.table.TableView
 import com.intellij.util.ui.JBUI
@@ -55,19 +56,26 @@ class DownloadsInfoExecutionConsole(
   val buildFinishedDisposable: CheckedDisposable,
   val buildStartTimestampMs: Long
 ) : ExecutionConsole {
-  val uiModel = DownloadsInfoUIModel(buildId, buildFinishedDisposable)
-  val table = TableView(uiModel.requestsTableModel).apply {
+  // TODO (b/271258614): In an unlikely case when build is finished before running this code this will result in an error.
+  private val listenBuildEventsDisposable = Disposer.newDisposable(buildFinishedDisposable, "DownloadsInfoExecutionConsole")
+  val uiModel = DownloadsInfoUIModel(buildId, listenBuildEventsDisposable)
+  val requestsTable = TableView(uiModel.requestsTableModel).apply {
     name = "requests table"
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
     setShowGrid(false)
     tableHeader.reorderingAllowed = false
     setEmptyState("No download requests")
+    val speedSearch = object : TableViewSpeedSearch<DownloadRequestItem>(this) {
+      override fun getItemText(element: DownloadRequestItem): String = element.requestKey.url
+    }
+    speedSearch.setFilteringMode(true)
   }
 
   val reposTable = TableView(uiModel.repositoriesTableModel).apply {
     name = "repositories table"
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
     setShowGrid(false)
+    setEmptyState("No download requests")
     tableHeader.reorderingAllowed = false
     selectionModel.addListSelectionListener {
       if (it.valueIsAdjusting) return@addListSelectionListener
@@ -90,7 +98,7 @@ class DownloadsInfoExecutionConsole(
     }
     val splitter = OnePixelSplitter(true).apply {
       firstComponent = ScrollPaneFactory.createScrollPane(reposTable)
-      secondComponent = ScrollPaneFactory.createScrollPane(table)
+      secondComponent = ScrollPaneFactory.createScrollPane(requestsTable)
     }
     add(browserLink, BorderLayout.NORTH)
     add(splitter, BorderLayout.CENTER)
@@ -103,10 +111,10 @@ class DownloadsInfoExecutionConsole(
   }}
 
   override fun dispose() {
-    Disposer.dispose(buildFinishedDisposable)
+    Disposer.dispose(listenBuildEventsDisposable)
   }
   override fun getComponent(): JComponent = panel
-  override fun getPreferredFocusableComponent(): JComponent = table
+  override fun getPreferredFocusableComponent(): JComponent = requestsTable
 
   private fun logUserEvent(reportedInteraction: BuildOutputDownloadsInfoEvent.Interaction) {
     buildId.findProject()?.let { project: Project ->

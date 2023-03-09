@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.ui.resourcemanager.explorer
 
+import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.ui.resourcemanager.ResourceManagerTracking
+import com.android.tools.idea.ui.resourcemanager.actions.ExpandAction
 import com.android.tools.idea.ui.resourcemanager.actions.RefreshDesignAssetAction
 import com.android.tools.idea.ui.resourcemanager.explorer.ResourceExplorerListViewModel.UpdateUiReason
 import com.android.tools.idea.ui.resourcemanager.findCompatibleFacets
@@ -38,12 +40,14 @@ import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.SystemInfo
@@ -53,8 +57,6 @@ import com.intellij.ui.CollectionListModel
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
 import com.intellij.ui.components.JBLabel
-import com.intellij.ui.components.labels.LinkLabel
-import com.intellij.ui.components.labels.LinkListener
 import com.intellij.ui.speedSearch.NameFilteringListModel
 import com.intellij.util.ModalityUiUtil
 import com.intellij.util.concurrency.EdtExecutorService
@@ -701,7 +703,6 @@ class ResourceExplorerListView(
     override var list: JList<T>
   ) : Section<T> {
 
-    private var listIsExpanded = true
     private val headerNameLabel = JBLabel(buildName(size)).apply {
       font = SECTION_HEADER_LABEL_FONT
       border = JBUI.Borders.empty(8, 0)
@@ -715,19 +716,22 @@ class ResourceExplorerListView(
 
     private fun createHeaderComponent() = JPanel(BorderLayout()).apply {
       isOpaque = false
-      val linkLabel = LinkLabel(null, AllIcons.Ide.Notification.Collapse, LinkListener<String> { source, _ ->
-        // Create a clickable label that toggles the expand/collapse icon every time is clicked, and hides/shows the list in this section.
-        source.icon = if (listIsExpanded) AllIcons.Ide.Notification.Expand else AllIcons.Ide.Notification.Collapse
-        source.setHoveringIcon(if (listIsExpanded) AllIcons.Ide.Notification.ExpandHover else AllIcons.Ide.Notification.CollapseHover)
-        listIsExpanded = !listIsExpanded
-        list.isVisible = listIsExpanded
-        // Clear selection to avoid interaction issues.
-        list.selectionModel.clearSelection()
-      }).apply {
-        setHoveringIcon(AllIcons.Ide.Notification.CollapseHover)
+
+      val expandAction = object : ExpandAction() {
+        override fun actionPerformed(e: AnActionEvent) {
+          super.actionPerformed(e)
+          list.isVisible = expanded
+          // Clear selection to avoid interaction issues.
+          list.selectionModel.clearSelection()
+        }
       }
+
+      val toolbar = ActionToolbarImpl("AssetSection", DefaultActionGroup(expandAction), true).apply {
+        layoutPolicy = ActionToolbar.NOWRAP_LAYOUT_POLICY
+      }
+
       add(headerNameLabel, BorderLayout.WEST)
-      add(linkLabel, BorderLayout.EAST)
+      add(toolbar.component, BorderLayout.EAST)
       border = SECTION_HEADER_BORDER
     }
 

@@ -10,6 +10,8 @@
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="analytics" />
+    <orderEntry type="module" module-name="analytics-crash" />
+    <orderEntry type="module" module-name="analytics-shared" />
     <orderEntry type="module" module-name="analytics-tracker" />
     <orderEntry type="module" module-name="android.sdktools.adblib" />
     <orderEntry type="module" module-name="android.sdktools.adblib.tools" />
@@ -23,6 +25,7 @@
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="module" module-name="intellij.android.jps.model" />
     <orderEntry type="module" module-name="intellij.android.layout-ui" />
+    <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="library" name="emulator-proto" level="project" />
     <orderEntry type="library" name="ffmpeg" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="ffmpeg-platform" level="project" />
@@ -30,6 +33,5 @@
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
     <orderEntry type="library" name="studio-grpc" level="project" />
     <orderEntry type="library" name="studio-proto" level="project" />
-    <orderEntry type="module" module-name="intellij.android.render-resources" />
   </component>
 </module>

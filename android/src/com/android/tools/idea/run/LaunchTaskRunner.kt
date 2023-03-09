@@ -61,7 +61,7 @@ class LaunchTaskRunner(
 ) : AndroidConfigurationExecutor {
 
   val project = env.project
-  override val configuration = env.runProfile as RunConfiguration
+  override val configuration = env.runProfile as AndroidRunConfiguration
   private val LOG = Logger.getInstance(this::class.java)
 
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {

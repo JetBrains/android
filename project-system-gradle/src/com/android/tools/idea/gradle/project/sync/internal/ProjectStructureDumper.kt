@@ -484,7 +484,7 @@ private fun String.nullizePrefixedWith(vararg prefixes: String): String? = if (p
 
 private fun ProjectDumper.dump(compilerSettings: CompilerSettings) {
   nest {
-    prop("additionalArguments") { compilerSettings.additionalArguments }
+    prop("additionalArguments") { compilerSettings.additionalArguments.replaceKnownPaths() }
     prop("copyJsLibraryFiles") { compilerSettings.copyJsLibraryFiles.takeIf { it }?.toString() }
     prop("outputDirectoryForJsLibraryFiles") { compilerSettings.outputDirectoryForJsLibraryFiles }
     prop("scriptTemplates") { compilerSettings.scriptTemplates.nullize() }

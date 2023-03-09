@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering
 
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
@@ -65,10 +66,10 @@ open class StudioRenderService {
  * Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask].
  */
 fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration, logger: RenderLogger): RenderService.RenderTaskBuilder =
-  taskBuilder(AndroidFacetRenderModelModule(facet), configuration, logger)
+  taskBuilder(AndroidFacetRenderModelModule(facet), StudioRenderConfiguration(configuration), logger)
 
 /**
  * Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask].
  */
 fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration): RenderService.RenderTaskBuilder =
-  taskBuilder(facet, configuration, createLogger(facet.module))
+  taskBuilder(facet, configuration, createLogger(facet.module, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get()))

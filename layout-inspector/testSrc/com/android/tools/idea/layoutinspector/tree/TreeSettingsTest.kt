@@ -22,6 +22,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.testing.registerServiceInstance
@@ -29,21 +30,14 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
+import com.intellij.testFramework.ProjectRule
 import org.junit.Before
-import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.doAnswer
 
 class InspectorTreeSettingsTest {
-
-  companion object {
-    @JvmField
-    @ClassRule
-    val rule = ApplicationRule()
-  }
 
   @get:Rule
   val cleaner = MockitoCleanerRule()
@@ -54,6 +48,9 @@ class InspectorTreeSettingsTest {
 
   @get:Rule
   val disposableRule = DisposableRule()
+
+  @get:Rule
+  val projectRule = ProjectRule()
 
   private val client: InspectorClient = mock()
   private val capabilities = mutableSetOf<Capability>()
@@ -66,7 +63,8 @@ class InspectorTreeSettingsTest {
     val application = ApplicationManager.getApplication()
     application.registerServiceInstance(PropertiesComponent::class.java, PropertiesComponentMock(), disposableRule.disposable)
     settings = InspectorTreeSettings { client }
-    inspector = LayoutInspector(mock(), mock(), mock(), mock(), mock(), mock (), mock(), settings, MoreExecutors.directExecutor())
+    val model = InspectorModel( projectRule.project)
+    inspector = LayoutInspector(mock(), mock(), mock(), mock(), mock(), mock (), model, settings, MoreExecutors.directExecutor())
     doAnswer { capabilities }.whenever(client).capabilities
     doAnswer { isConnected }.whenever(client).isConnected
   }

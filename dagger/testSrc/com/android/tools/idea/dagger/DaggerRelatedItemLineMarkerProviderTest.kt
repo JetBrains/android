@@ -430,6 +430,19 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
         .trimIndent()
     )
 
+    // Subcomponent
+    myFixture.addClass(
+      // language=JAVA
+      """
+        package test;
+        import dagger.Subcomponent;
+
+        @Subcomponent(modules = { MyModule.class })
+        class MySubcomponent {}
+      """
+        .trimIndent()
+    )
+
     myFixture.configureFromExistingVirtualFile(moduleFile)
     myFixture.moveCaret("class MyMod|ule")
 
@@ -440,10 +453,13 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       icons.find { it.tooltipText == "Dependency Related Files for MyModule" }!!
         as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     val gotoRelatedItems = getGotoElements(icon)
-    assertThat(gotoRelatedItems).hasSize(2)
     val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
     assertThat(result)
-      .containsAllOf("Included in components: MyComponent", "Included in modules: MyModule2")
+      .containsExactly(
+        "Included in components: MyComponent",
+        "Included in modules: MyModule2",
+        "Included in subcomponents: MySubcomponent"
+      )
 
     clickOnIcon(icon)
     assertThat(trackerService.calledMethods).hasSize(2)

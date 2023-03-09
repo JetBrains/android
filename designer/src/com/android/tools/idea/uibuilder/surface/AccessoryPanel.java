@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.uibuilder.surface;
 
+import static com.android.SdkConstants.TAG_DATA;
+import static com.android.SdkConstants.TAG_LAYOUT;
+
 import com.android.tools.idea.common.model.ModelListener;
 import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
@@ -126,7 +129,7 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
         parent = selected.getParent();
         if (newSelection.size() == 1 && selected.isRoot() && (parent == null || parent.isRoot())) {
           // If you select a root layout, offer selection actions on it as well
-          return selected;
+          return skipDataBindingLayout(selected);
         }
       }
       else if (parent != selected.getParent()) {
@@ -134,7 +137,7 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
         break;
       }
     }
-    return parent;
+    return skipDataBindingLayout(parent);
   }
 
   @Nullable
@@ -145,6 +148,21 @@ public class AccessoryPanel extends JPanel implements DesignSurfaceListener, Mod
     }
     NlModel mainModel = models.get(0);
     List<NlComponent> roots = mainModel.getComponents();
+    if (roots.size() != 1) {
+      return null;
+    }
+    return skipDataBindingLayout(roots.get(0));
+  }
+
+  @Nullable
+  private static NlComponent skipDataBindingLayout(@Nullable NlComponent root) {
+    if (root == null) {
+      return null;
+    }
+    if (!TAG_LAYOUT.equals(root.getTagName())) {
+      return root;
+    }
+    List<NlComponent> roots = root.getChildren().stream().filter(component -> !TAG_DATA.equals(component.getTagName())).toList();
     if (roots.size() != 1) {
       return null;
     }

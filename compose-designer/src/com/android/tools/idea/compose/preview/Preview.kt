@@ -124,6 +124,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
@@ -528,6 +529,8 @@ class ComposePreviewRepresentation(
 
   override var isInspectionTooltipEnabled: Boolean = false
 
+  override var isFilterEnabled: Boolean = false
+
   private val dataProvider = DataProvider {
     when (it) {
       COMPOSE_PREVIEW_MANAGER.name -> this@ComposePreviewRepresentation
@@ -725,8 +728,7 @@ class ComposePreviewRepresentation(
 
         override fun buildStarted() {
           log.debug("buildStarted")
-          hadOutOfDateFiles =
-            PsiCodeFileChangeDetectorService.getInstance(project).outOfDateFiles.isNotEmpty()
+          hadOutOfDateFiles = psiCodeFileChangeDetectorService.outOfDateFiles.isNotEmpty()
           animationInspectionsEnabled = animationInspection.get()
 
           composeWorkBench.updateProgress(message("panel.building"))
@@ -750,13 +752,9 @@ class ComposePreviewRepresentation(
             result: CompilationResult,
             files: Collection<PsiFile>
           ) {
-            psiFilePointer.element?.let { editorFile ->
-              if (files.any { it.isEquivalentTo(editorFile) }) {
-                // Fast Preview builds are only triggered when there were out of date files so we
-                // always pass needsRefresh to true.
-                afterBuildComplete(result == CompilationResult.Success, true)
-              }
-            }
+            // Notify on any Fast Preview compilation to ensure we refresh all the previews
+            // correctly.
+            afterBuildComplete(result == CompilationResult.Success, true)
           }
         }
       )
@@ -792,7 +790,8 @@ class ComposePreviewRepresentation(
         previewElementFlowForFile(this@ComposePreviewRepresentation, psiFilePointer).collect {
           log.debug("PreviewElements updated $it")
           previewElementsFlow.value = it
-          requestRefresh(true)
+
+          requestRefresh()
         }
       }
 
@@ -819,6 +818,7 @@ class ComposePreviewRepresentation(
               )
               .also { log.debug("${value.requestId} bundled into ${accumulator.requestId}") }
           }
+          .distinctUntilChanged()
           .collect { refreshRequest ->
             log.debug("refreshFlow, request=$refreshRequest")
             refreshFlow
@@ -974,14 +974,12 @@ class ComposePreviewRepresentation(
     }
 
     val anyKtFilesOutOfDate = psiCodeFileChangeDetectorService.outOfDateFiles.any { it is KtFile }
-    if (anyKtFilesOutOfDate) {
+    if (FastPreviewManager.getInstance(project).isAvailable && anyKtFilesOutOfDate) {
       // If any files are out of date, we force a refresh when re-activating. This allows us to
       // compile the changes if Fast Preview is enabled OR to refresh the preview elements in case
       // the annotations have changed.
-      if (FastPreviewManager.getInstance(project).isAvailable)
-        launch { requestFastPreviewRefreshAndTrack() }
-      else requestRefresh()
-    }
+      launch { requestFastPreviewRefreshAndTrack() }
+    } else if (invalidated.get()) requestRefresh()
   }
 
   override fun onDeactivate() {
@@ -1206,7 +1204,9 @@ class ComposePreviewRepresentation(
    */
   private fun refresh(refreshRequest: RefreshRequest): Job {
     val requestLogger = LoggerWithFixedInfo(log, mapOf("requestId" to refreshRequest.requestId))
-    requestLogger.debug("Refresh triggered. quickRefresh: ${refreshRequest.quickRefresh}")
+    requestLogger.debug(
+      "Refresh triggered editor=${psiFilePointer.containingFile?.name}. quickRefresh: ${refreshRequest.quickRefresh}"
+    )
     val refreshTriggers: List<Throwable> = refreshRequest.requestSources
     val startTime = System.nanoTime()
     // Start a progress indicator so users are aware that a long task is running. Stop it by calling
@@ -1366,6 +1366,9 @@ class ComposePreviewRepresentation(
   override fun invalidate() {
     invalidated.set(true)
   }
+
+  /** Returns if this representation has been invalidated. Only for use in tests. */
+  @TestOnly internal fun isInvalid(): Boolean = invalidated.get()
 
   /**
    * Same as [requestRefresh] but does a previous [invalidate] to ensure the preview definitions are

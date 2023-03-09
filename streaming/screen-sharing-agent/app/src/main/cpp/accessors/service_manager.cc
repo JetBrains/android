@@ -30,7 +30,7 @@ ServiceManager::ServiceManager(Jni jni)
   service_manager_class_ = jni.GetClass("android/os/ServiceManager");
   // The waitForService method was introduced only in API 30. Fall back to getService on earlier versions.
   const char* method_name = android_get_device_api_level() >= 30 ? "waitForService" : "getService";
-  wait_for_service_method_ = service_manager_class_.GetStaticMethodId(method_name, "(Ljava/lang/String;)Landroid/os/IBinder;");
+  wait_for_service_method_ = service_manager_class_.GetStaticMethod(method_name, "(Ljava/lang/String;)Landroid/os/IBinder;");
   service_manager_class_.MakeGlobal();
 }
 
@@ -47,7 +47,7 @@ JObject ServiceManager::GetServiceAsInterface(Jni jni, const char* name, const c
   string stub_class_name = string(type) + "$Stub";
   JClass stub_class = jni.GetClass(stub_class_name.c_str());
   string method_signature = string("(Landroid/os/IBinder;)L") + type + ";";
-  jmethodID as_interface_method = stub_class.GetStaticMethodId("asInterface", method_signature.c_str());
+  jmethodID as_interface_method = stub_class.GetStaticMethod("asInterface", method_signature.c_str());
   auto service = stub_class.CallStaticObjectMethod(as_interface_method, binder.ref());
   if (service.IsNull() && !allow_null) {
     auto last_slash = strrchr(type, '/');

@@ -48,7 +48,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
   }
 
   public void testAction() {
-    OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder);
+    OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, true);
     action.updateActions(DataContext.EMPTY_CONTEXT);
     AnAction[] actions = action.getChildren(null);
     int index = 0;
@@ -59,10 +59,20 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     assertThat(actions).hasLength(index);
   }
 
+  public void testActionWithoutUIMode() {
+    OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, false);
+    action.updateActions(DataContext.EMPTY_CONTEXT);
+    AnAction[] actions = action.getChildren(null);
+    int index = 0;
+    checkAction(actions[index++], OrientationMenuAction.SetDeviceStateAction.class, "Portrait");
+    checkAction(actions[index++], OrientationMenuAction.SetDeviceStateAction.class, "Landscape");
+    assertThat(actions).hasLength(index);
+  }
+
   public void testActionWithExistingLandscapeVariation() throws Exception {
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-land/layout1.xml");
     waitForResourceRepositoryUpdates();
-    OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder);
+    OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, true);
     action.updateActions(DataContext.EMPTY_CONTEXT);
     AnAction[] actions = action.getChildren(null);
     int index = 0;
@@ -78,7 +88,7 @@ public class OrientationMenuActionTest extends AndroidTestCase {
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-land/layout1.xml");
     myFixture.copyFileToProject("configurations/layout1.xml", "res/layout-sw600dp/layout1.xml");
     waitForResourceRepositoryUpdates();
-    OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder);
+    OrientationMenuAction action = new OrientationMenuAction(myConfigurationHolder, true);
     action.updateActions(DataContext.EMPTY_CONTEXT);
     AnAction[] actions = action.getChildren(null);
     int index = 0;

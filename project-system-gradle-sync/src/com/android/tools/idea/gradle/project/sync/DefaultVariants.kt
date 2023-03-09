@@ -25,7 +25,6 @@ fun List<BasicVariant>.getDefaultVariant(buildTypes: List<BuildType>, productFla
     .getDefaultVariant(
       userPreferredBuildTypes = buildTypes.filter { it.isDefault == true }.map { it.name }.toSet(),
       userPreferredProductFlavors = productFlavors.filter { it.isDefault == true }.map { it.name }.toSet(),
-      effectiveFlavorDimensions = productFlavors.asSequence().map { it.dimension }.distinct().count()
     )
 }
 
@@ -36,11 +35,13 @@ class VariantDef(val name: String, val buildType: String?, val productFlavors: L
 fun List<VariantDef>.getDefaultVariant(
   userPreferredBuildTypes: Set<String>,
   userPreferredProductFlavors: Set<String>,
-  effectiveFlavorDimensions: Int,
 ): String? {
+  val effectiveFlavorDimensions = this.minOfOrNull { it.productFlavors.size } ?: return null
   val availableDimensionIndices = 0 until effectiveFlavorDimensions
   fun <T: Comparable<T>> Comparator<VariantDef>.thenByProductFlavor(selector: (flavor: String) -> T) =
-    availableDimensionIndices.fold(this) { acc, index -> acc.thenBy { selector(it.productFlavors[index])}}
+    availableDimensionIndices.fold(this) { acc, index -> acc.thenBy {
+      selector(it.productFlavors[index])
+    }}
 
   fun prefer(condition: Boolean): Int = if (condition) 0 else 1
 

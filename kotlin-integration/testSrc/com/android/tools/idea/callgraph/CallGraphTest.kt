@@ -30,6 +30,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import junit.framework.TestCase
 import org.jetbrains.android.AndroidTestCase
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.uast.UFile
 import org.jetbrains.uast.UastContext
 import org.jetbrains.uast.convertWithParent
@@ -97,7 +98,14 @@ class CallGraphTest : AndroidTestCase() {
     "SimpleLocal#unique".assertCalls("Impl#implUnique")
     "SimpleLocal#typeEvidencedSubImpl".assertCalls("SubImpl#f", "SubImpl#SubImpl")
     "SimpleLocal#typeEvidencedImpl".assertCalls("Impl#f", "Impl#Impl")
-    "SimpleLocal#typeEvidencedBoth".assertCalls("SubImpl#f", "Impl#f", "SubImpl#SubImpl", "Impl#Impl")
+    // In K1, `it` is of `It`, the explicit type, since assignments of `Impl` and `SubImpl` are aggregated.
+    // Therefore, the resolution of `it.f()` started from `It#f` and traced all the overrides: `Impl#f` and `SubImpl#f`.
+    // In contrast, in K2, the last assignment is tracked properly in DFA, so the resolution goes directly to `SubImpl#f`.
+    if (isK2Plugin() && ext == ".kt") {
+      "SimpleLocal#typeEvidencedBoth".assertCalls("Impl#Impl", "SubImpl#SubImpl", "SubImpl#f")
+    } else {
+      "SimpleLocal#typeEvidencedBoth".assertCalls("Impl#Impl", "SubImpl#SubImpl", "SubImpl#f", "Impl#f")
+    }
 
     // Check calls through fields and array elements.
     for (kind in listOf("Field", "Array")) {

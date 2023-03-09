@@ -68,7 +68,6 @@ import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import org.jetbrains.annotations.NotNull;
@@ -124,7 +123,7 @@ public class StudioProfilersViewTest {
       // We setup and profile a process, we assume that process has an agent attached by default.
       updateAgentStatus(FAKE_PROCESS.getPid(), DEFAULT_AGENT_ATTACHED_RESPONSE);
     }
-    JLayeredPane component = myView.getComponent();
+    JComponent component = myView.getComponent();
     component.setSize(1024, 450);
     myUi = new FakeUi(component);
   }

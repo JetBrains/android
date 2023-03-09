@@ -24,12 +24,12 @@ import com.intellij.openapi.diagnostic.Logger
  * Do not keep references to instances of this class any longer that you would to for plain
  * [PsiElement]s.
  */
-data class AppInsight<IssueT : Issue>(
+data class AppInsight(
   /** [line] where the Insight was found. */
   val line: Int,
 
   /** [Issue] found in this element. */
-  val issue: IssueT,
+  val issue: AppInsightsIssue,
 
   /** The stack frame referencing this [element]. */
   val stackFrame: Frame,
@@ -44,7 +44,7 @@ data class AppInsight<IssueT : Issue>(
    * to mark one of them as the currently active/selected one. This action modifies the state this
    * Insight belongs to mark it as selected.
    */
-  private val markAsSelectedCallback: (IssueT) -> Unit,
+  private val markAsSelectedCallback: (AppInsightsIssue) -> Unit,
 ) {
   fun markAsSelected() {
     Logger.getInstance(AppInsight::class.java).info("Mark issue as selected $issue")

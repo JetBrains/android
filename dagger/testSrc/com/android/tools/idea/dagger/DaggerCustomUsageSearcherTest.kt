@@ -765,6 +765,19 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         .trimIndent()
     )
 
+    // Subcomponent
+    myFixture.addClass(
+      // language=JAVA
+      """
+        package test;
+        import dagger.Subcomponent;
+
+        @Subcomponent(modules = { MyModule.class })
+        class MySubcomponent {}
+      """
+        .trimIndent()
+    )
+
     myFixture.configureFromExistingVirtualFile(moduleFile)
     val module = myFixture.moveCaret("class MyMod|ule {}").parentOfType<PsiClass>()!!
     val presentation = myFixture.getUsageViewTreeTextRepresentation(module)
@@ -784,6 +797,11 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       |    test (1)
       |     MyModule2.java (1)
       |      5class MyModule2 {}
+      |  Included in subcomponents (1)
+      |   ${myFixture.module.name} (1)
+      |    test (1)
+      |     MySubcomponent.java (1)
+      |      5class MySubcomponent {}
       """
           .trimMargin()
       )

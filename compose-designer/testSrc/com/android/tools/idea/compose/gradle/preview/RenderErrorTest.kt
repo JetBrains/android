@@ -26,7 +26,9 @@ import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
@@ -34,6 +36,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiManager
+import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
@@ -41,6 +44,7 @@ import java.awt.Dimension
 import javax.swing.JPanel
 import junit.framework.Assert.assertFalse
 import junit.framework.Assert.assertTrue
+import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -56,15 +60,13 @@ class RenderErrorTest {
     get() = projectRule.fixture
 
   private val log = Logger.getInstance(RenderErrorTest::class.java)
+  private lateinit var panels: List<SceneViewPeerPanel>
 
   @Before
   fun setup() {
     log.setLevel(LogLevel.ALL)
     Logger.getInstance(ComposePreviewRepresentation::class.java).setLevel(LogLevel.ALL)
-  }
 
-  @Test
-  fun testSceneViewHasRenderErrors() {
     val mainFile =
       project
         .guessProjectDir()!!
@@ -98,14 +100,19 @@ class RenderErrorTest {
 
     runBlocking { composePreviewRepresentation.activateAndWaitForRender(fakeUi) }
 
-    val panels = fakeUi.findAllComponents<SceneViewPeerPanel>()
+    panels = fakeUi.findAllComponents<SceneViewPeerPanel>()
 
     panels.forEach { log.debug("Found SceneViewPeerPanel ${it.displayName}") }
     fakeUi.findAllComponents<SceneViewErrorsPanel>().forEach {
       log.debug("Found SceneViewErrorsPanel $it")
     }
+  }
+
+  @Test
+  fun testSceneViewWithRenderErrors() {
     val sceneViewPanelWithErrors = panels.single { it.displayName == "PreviewWithRenderErrors" }
     assertTrue(sceneViewPanelWithErrors.sceneView.hasRenderErrors())
+
     val visibleErrorsPanel =
       TreeWalker(sceneViewPanelWithErrors)
         .descendants()
@@ -113,14 +120,59 @@ class RenderErrorTest {
         .single()
     assertTrue(visibleErrorsPanel.isVisible)
 
+    val actions = sceneViewPanelWithErrors.getToolbarActions()
+    // 3 actions expected: animation, interactive and deploy to device
+    assertEquals(3, actions.size)
+    // The visible/invisible state before the update shouldn't affect the final result
+    for (visibleBefore in listOf(true, false)) {
+      // All actions should be invisible when there are render errors
+      assertEquals(0, countVisibleActions(actions, visibleBefore))
+    }
+  }
+
+  @Test
+  fun testSceneViewWithoutRenderErrors() {
     val sceneViewPanelWithoutErrors =
       panels.single { it.displayName == "PreviewWithoutRenderErrors" }
     assertFalse(sceneViewPanelWithoutErrors.sceneView.hasRenderErrors())
+
     val invisibleErrorsPanel =
       TreeWalker(sceneViewPanelWithoutErrors)
         .descendants()
         .filterIsInstance<SceneViewErrorsPanel>()
         .single()
     assertFalse(invisibleErrorsPanel.isVisible)
+
+    val actions = sceneViewPanelWithoutErrors.getToolbarActions()
+    // 3 actions expected: animation, interactive and deploy to device
+    assertEquals(3, actions.size)
+    // The visible/invisible state before the update shouldn't affect the final result
+    for (visibleBefore in listOf(true, false)) {
+      // The animation preview action shouldn't be visible because the preview being used doesn't
+      // contain animations, but the interactive and deploy to device actions should be visible as
+      // there are no render errors.
+      assertEquals(2, countVisibleActions(actions, visibleBefore))
+    }
   }
+
+  private fun countVisibleActions(actions: List<AnAction>, visibleBefore: Boolean): Int {
+    var visibleAfterCount = 0
+    for (action in actions) {
+      val event = TestActionEvent()
+      event.presentation.isVisible = visibleBefore
+      action.update(event)
+      if (event.presentation.isVisible) visibleAfterCount++
+    }
+    return visibleAfterCount
+  }
+
+  private fun SceneViewPeerPanel.getToolbarActions(): List<AnAction> =
+    sceneViewTopPanel.components
+      .filterIsInstance<ActionToolbarImpl>()
+      .single()
+      .actions
+      .filterIsInstance<DefaultActionGroup>()
+      .single()
+      .childActionsOrStubs
+      .toList()
 }

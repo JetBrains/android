@@ -20,6 +20,7 @@ import android.widget.TextView
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.Configuration
+import com.android.tools.idea.rendering.RenderConfiguration
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.parsers.TagSnapshot
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
@@ -77,7 +78,7 @@ class LocaleAnalyzer(private val baseConfigIssues: VisualLintBaseConfigIssues) :
   }
 
   /** Returns true if the configuration is the base configuration. */
-  private fun isBaseConfig(config: Configuration?): Boolean {
+  private fun isBaseConfig(config: RenderConfiguration?): Boolean {
     // TODO: Follow up and investigate if there's better way to detect base config.
     return config?.locale?.toString() == "__"
   }

@@ -96,7 +96,7 @@ object ComposeRenderErrorContributor {
                                 .addLink("You can ", "read more", " about preview limitations in our external documentation.",
                                           // TODO(b/199834697): add correct header once the ViewModel documentation is published on DAC
                                          "https://developer.android.com/jetpack/compose/tooling")
-                                .addShowException(linkManager, logger.module?.project, it.throwable)
+                                .addShowException(linkManager, logger.project, it.throwable)
               )
           }
           isCompositionLocalStackTrace(it.throwable) -> {
@@ -107,7 +107,7 @@ object ComposeRenderErrorContributor {
                                 .addLink("This preview was unable to find a ", "CompositionLocal", ". ",
                                          "https://developer.android.com/jetpack/compose/compositionlocal")
                                 .add("You might need to define it so it can render correctly.")
-                                .addShowException(linkManager, logger.module?.project, it.throwable)
+                                .addShowException(linkManager, logger.project, it.throwable)
               )
           }
           isComposeNotFoundThrowable(it.throwable) -> {

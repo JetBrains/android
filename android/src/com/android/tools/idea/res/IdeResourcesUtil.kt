@@ -244,8 +244,6 @@ fun getFolderType(file: PsiFile?): ResourceFolderType? {
   }
 }
 
-fun getFolderType(file: VirtualFile?): ResourceFolderType? = file?.parent?.let { ResourceFolderType.getFolderType(it.name) }
-
 fun getFolderType(file: ResourceFile): ResourceFolderType? = file.file.parentFile?.let { ResourceFolderType.getFolderType(it.name) }
 
 fun getFolderConfiguration(file: PsiFile?): FolderConfiguration? {
@@ -829,16 +827,6 @@ fun RenderResources.resolveLayout(layout: ResourceValue?): VirtualFile? {
 
   return null
 }
-
-/**
- * Checks if the given path points to a file resource. The resource path can point
- * to either file on disk, or a ZIP file entry. If the candidate path contains
- * "file:" or "apk:" scheme prefix, the method returns true without doing any I/O.
- * Otherwise, the local file system is checked for existence of the file.
- */
-fun isFileResource(candidatePath: String): Boolean =
-  candidatePath.startsWith("file:") || candidatePath.startsWith("apk:") || candidatePath.startsWith("jar:") ||
-  File(candidatePath).isFile
 
 /**
  * Returns the given resource name, and possibly prepends a project-configured prefix to the name

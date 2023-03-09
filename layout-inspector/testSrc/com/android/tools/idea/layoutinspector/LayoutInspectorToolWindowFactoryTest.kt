@@ -207,7 +207,7 @@ class LayoutInspectorToolWindowFactoryTest {
       LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
     assertThat(inspector.treeSettings).isInstanceOf(InspectorTreeSettings::class.java)
     val contentPanel = ComponentUtil.flatten(component).firstIsInstance<DeviceViewContentPanel>()
-    assertThat(contentPanel.renderSettings).isInstanceOf(InspectorRenderSettings::class.java)
+    assertThat(inspector.renderLogic.renderSettings).isInstanceOf(InspectorRenderSettings::class.java)
   }
 }
 

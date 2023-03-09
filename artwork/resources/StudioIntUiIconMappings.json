@@ -625,9 +625,6 @@
           "stop-session.svg": "studio/icons/profiler/toolbar/stop-session.svg"
         }
       },
-      "resource-picker": {
-        "web-font.svg": "studio/icons/resource-picker/web-font.svg"
-      },
       "shell": {
         "filetree": {
           "activity.svg": "studio/icons/shell/filetree/activity.svg",

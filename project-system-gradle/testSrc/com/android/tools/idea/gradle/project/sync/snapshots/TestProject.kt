@@ -379,9 +379,7 @@ open class TestProjectTest {
     expect.that(root.resolve("app/src/main/AndroidManifest.xml").readText()).contains(packageSubstring)
   }
 
-  @Test
-  @OldAgpTest(agpVersions = ["LATEST"], gradleVersions = ["LATEST"])
-  fun testMigratePackageAttribute_agp80() {
+  open fun testMigratePackageAttribute_agp80() {
     val preparedProject80 =
       projectRule.prepareTestProject(TestProject.SIMPLE_APPLICATION, agpVersion = AgpVersionSoftwareEnvironmentDescriptor.AGP_80)
     val root = preparedProject80.root

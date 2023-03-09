@@ -50,10 +50,10 @@ void DisplayListenerDispatcher::Start() {
 
 void DisplayListenerDispatcher::Run() {
   JClass looper_class = jni_.GetClass("android/os/Looper");
-  looper_class.CallStaticVoidMethod(looper_class.GetStaticMethodId("prepare", "()V"));
+  looper_class.CallStaticVoidMethod(looper_class.GetStaticMethod("prepare", "()V"));
 
   // Store the looper so that it can be stopped later.
-  JObject looper = looper_class.CallStaticObjectMethod(looper_class.GetStaticMethodId("myLooper", "()Landroid/os/Looper;"));
+  JObject looper = looper_class.CallStaticObjectMethod(looper_class.GetStaticMethod("myLooper", "()Landroid/os/Looper;"));
   looper.MakeGlobal();
   looper_promise_.set_value(std::move(looper));
 
@@ -62,9 +62,9 @@ void DisplayListenerDispatcher::Run() {
       "(Landroid/hardware/display/DisplayManager$DisplayListener;Landroid/os/Handler;J)V" :
       "(Landroid/hardware/display/DisplayManager$DisplayListener;Landroid/os/Handler;)V";
   jmethodID register_display_listener_method =
-      DisplayManager::display_manager_global_class_.GetMethodId(jni_, "registerDisplayListener", signature);
+      DisplayManager::display_manager_global_class_.GetMethod(jni_, "registerDisplayListener", signature);
   JClass display_listener_class = jni_.GetClass("com/android/tools/screensharing/DisplayListener");
-  JObject listener = display_listener_class.NewObject(display_listener_class.GetConstructorId("()V"));
+  JObject listener = display_listener_class.NewObject(display_listener_class.GetConstructor("()V"));
   if (api_level >= 31) {
     DisplayManager::display_manager_global_.CallVoidMethod(
         jni_, register_display_listener_method, listener.ref(), nullptr,
@@ -72,7 +72,7 @@ void DisplayListenerDispatcher::Run() {
   } else {
     DisplayManager::display_manager_global_.CallVoidMethod(jni_, register_display_listener_method, listener.ref(), nullptr);
   }
-  looper_class.CallStaticVoidMethod(looper_class.GetStaticMethodId("loop", "()V"));
+  looper_class.CallStaticVoidMethod(looper_class.GetStaticMethod("loop", "()V"));
 }
 
 void DisplayListenerDispatcher::Stop() {
@@ -81,7 +81,7 @@ void DisplayListenerDispatcher::Stop() {
     Jni jni = Jvm::GetJni();
     JObject looper = looper_promise_.get_future().get();
     Log::V("%s:%d", __FILE__, __LINE__);
-    looper.CallVoidMethod(jni, looper.GetClass(jni).GetMethodId("quit", "()V"));
+    looper.CallVoidMethod(jni, looper.GetClass(jni).GetMethod("quit", "()V"));
     thread_.join();
   }
 }

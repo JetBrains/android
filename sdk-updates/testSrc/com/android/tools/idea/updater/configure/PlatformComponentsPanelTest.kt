@@ -61,6 +61,8 @@ class PlatformComponentsPanelTest {
       Root
        Android Codename Preview
        Android 11.0 ("R")
+       Android 11.0 ("R")
+       Android 11.0 ("R")
     """.trimIndent(), panel.myPlatformSummaryRootNode.asString())
 
     assertEquals("""

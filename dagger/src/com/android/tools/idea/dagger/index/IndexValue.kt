@@ -34,7 +34,11 @@ import org.jetbrains.annotations.VisibleForTesting
  * An index value for the Dagger index. Each [DaggerConcept] is responsible for defining the exact
  * data that it needs to store for its entries.
  */
-abstract class IndexValue(val dataType: DataType) {
+abstract class IndexValue {
+
+  /** The [DataType] represented by this [IndexValue] instance. */
+  abstract val dataType: DataType
+
   /**
    * Type of value being stored. This is required to be centralized to ensure that each type has a
    * unique integer representation that can be used for serialization and storage.
@@ -45,6 +49,11 @@ abstract class IndexValue(val dataType: DataType) {
     PROVIDES_METHOD(DaggerElement.Type.PROVIDER),
     PROVIDES_METHOD_PARAMETER(DaggerElement.Type.CONSUMER),
     INJECTED_FIELD(DaggerElement.Type.CONSUMER),
+    COMPONENT_WITH_MODULE(DaggerElement.Type.COMPONENT),
+    COMPONENT_WITH_DEPENDENCY(DaggerElement.Type.COMPONENT),
+    SUBCOMPONENT_WITH_MODULE(DaggerElement.Type.SUBCOMPONENT),
+    MODULE_WITH_INCLUDE(DaggerElement.Type.MODULE),
+    MODULE_WITH_SUBCOMPONENT(DaggerElement.Type.MODULE),
   }
 
   abstract fun save(output: DataOutput)
@@ -52,18 +61,22 @@ abstract class IndexValue(val dataType: DataType) {
   /**
    * Resolve the Dagger element represented by this [IndexValue] into one or more [DaggerElement]s.
    *
-   * @param expectedPsiType the expected type of the Dagger element being resolved.
+   * @param indexKeyPsiType the related type of the Dagger element being resolved.
    * @return a list of valid [DaggerElement]s, or the empty list when no elements can be found that
    *   match the given type.
    */
   fun resolveToDaggerElements(
-    expectedPsiType: PsiType,
+    indexKeyPsiType: PsiType,
     project: Project,
     scope: GlobalSearchScope
   ): List<DaggerElement> {
-    val unboxedExpectedType = expectedPsiType.unboxed
+    val unboxedIndexKeyPsiType = indexKeyPsiType.unboxed
     return getResolveCandidates(project, scope)
-      .filter { it.getPsiType().unboxed == unboxedExpectedType }
+      .filter { resolveCandidate ->
+        getMatchingIndexKeyPsiTypes(resolveCandidate).any { type ->
+          type.unboxed == unboxedIndexKeyPsiType
+        }
+      }
       .mapNotNull { daggerElementIdentifiers.getDaggerElement(it.navigationElement) }
   }
 
@@ -91,6 +104,18 @@ abstract class IndexValue(val dataType: DataType) {
     project: Project,
     scope: GlobalSearchScope
   ): List<PsiElement>
+
+  /**
+   * Returns the set of [PsiType]s for a given resolve candidate element that can match a
+   * corresponding index key.
+   *
+   * The default implementation assumes that the [PsiType] of the candidate itself should match the
+   * key's [PsiType]. This is not the case for all [IndexValue]s (see
+   * [com.android.tools.idea.dagger.concepts.ClassIndexValue] for a counterexample), but it is
+   * common to enough other cases that it is the default implementation.
+   */
+  protected open fun getMatchingIndexKeyPsiTypes(resolveCandidate: PsiElement): Set<PsiType> =
+    setOf(resolveCandidate.getPsiType())
 
   /**
    * Identifiers that search specifically for the types of [DaggerElement]s represented by this

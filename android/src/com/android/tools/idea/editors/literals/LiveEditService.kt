@@ -18,21 +18,26 @@ package com.android.tools.idea.editors.literals
 
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
-import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.ui.EmulatorLiveEditAdapter
 import com.android.tools.idea.editors.liveedit.ui.LiveEditIssueNotificationAction
+import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.run.deployment.liveedit.AdbConnection
 import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditDeployMonitor
 import com.android.tools.idea.run.deployment.liveedit.DeviceConnection
 import com.android.tools.idea.run.deployment.liveedit.EditEvent
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
-import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.createRerunnableErrorStatus
 import com.android.tools.idea.run.deployment.liveedit.PsiListener
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
+import com.intellij.execution.ExecutionListener
+import com.intellij.execution.ExecutionManager
+import com.intellij.execution.runners.ExecutionEnvironment
+import com.intellij.notification.BrowseNotificationAction
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
@@ -105,6 +110,10 @@ class LiveEditService constructor(val project: Project,
 
   private val deployMonitor: AndroidLiveEditDeployMonitor
 
+  private var showMultiDeviceNotification = true
+
+  private var showMultiDeployNotification = true
+
   init {
     // TODO: Deactivate this when not needed.
     val listener = PsiListener(this::onPsiChanged)
@@ -112,6 +121,36 @@ class LiveEditService constructor(val project: Project,
     deployMonitor = AndroidLiveEditDeployMonitor(this, project)
     // TODO: Delete if it turns our we don't need Hard-refresh trigger.
     //bindKeyMapShortcut(LiveEditApplicationConfiguration.getInstance().leTriggerMode)
+
+    // Listen for when the user starts a Run/Debug.
+    project.messageBus.connect(this).subscribe(ExecutionManager.EXECUTION_TOPIC, object: ExecutionListener {
+      override fun processStarting(executorId: String, env: ExecutionEnvironment) {
+        val executionTarget = (env.executionTarget as? AndroidExecutionTarget) ?: return
+        val devices = executionTarget.runningDevices
+
+        val multiDeploy = deployMonitor.notifyExecution(devices)
+
+        if (devices.size > 1 && showMultiDeviceNotification) {
+          NotificationGroupManager.getInstance().getNotificationGroup("Deploy")
+            .createNotification(
+              "Live Edit works with multi-device deployments but this is not officially supported.",
+              NotificationType.INFORMATION)
+            .addAction(BrowseNotificationAction("Learn more", "https://developer.android.com/studio/run#limitations"))
+            .notify(project)
+          showMultiDeviceNotification = false
+        }
+
+        if (multiDeploy && showMultiDeployNotification) {
+          NotificationGroupManager.getInstance().getNotificationGroup("Deploy")
+            .createNotification(
+              "Live Edit does not work with previous deployments on different devices.",
+              NotificationType.INFORMATION)
+            .addAction(BrowseNotificationAction("Learn more", "https://developer.android.com/studio/run#limitations"))
+            .notify(project)
+          showMultiDeployNotification = false
+        }
+      }
+    })
   }
 
   companion object {

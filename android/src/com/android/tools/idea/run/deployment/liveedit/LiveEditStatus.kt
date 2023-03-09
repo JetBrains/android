@@ -20,10 +20,11 @@ import com.android.tools.idea.editors.liveedit.ui.MANUAL_LIVE_EDIT_ACTION_ID
 import com.android.tools.idea.editors.liveedit.ui.SHOW_LOGCAT_ACTION_ID
 import com.android.tools.idea.run.deployment.liveedit.LiveEditBundle.message
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.DEFAULT
-import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.LOWEST
+import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.DISABLED
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.RECOVERABLE_ERROR
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.REFRESHING
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.REFRESH_NEEDED
+import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.DISABLED_WITH_MESSAGE
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.UNRECOVERABLE_ERROR
 import com.intellij.icons.AllIcons
 import com.intellij.ui.AnimatedIcon
@@ -44,12 +45,13 @@ open class LiveEditStatus(
     // A simple priority system that is used when multiple LiveEditStatus need to be merged.
     // The high the value is, the more important the status is, and thus takes precedence.
     enum class Priority(val value: Int) {
-      LOWEST(0), // This should remain as the first item in the enum.
-      DEFAULT(1),
-      REFRESHING(2),
-      REFRESH_NEEDED(3),
-      RECOVERABLE_ERROR(4),
-      UNRECOVERABLE_ERROR(5),
+      DISABLED(0), // This should remain as the first item in the enum.
+      DISABLED_WITH_MESSAGE(1),
+      DEFAULT(2),
+      REFRESHING(3),
+      REFRESH_NEEDED(4),
+      RECOVERABLE_ERROR(5),
+      UNRECOVERABLE_ERROR(6),
     }
 
     enum class RedeployMode {
@@ -121,7 +123,7 @@ open class LiveEditStatus(
     }
   }
 
-  object Disabled : LiveEditStatus(null, "", "", LOWEST)
+  object Disabled : LiveEditStatus(null, "", "", DISABLED)
 
   object UnrecoverableError :
     LiveEditStatus(
@@ -149,6 +151,14 @@ open class LiveEditStatus(
       REFRESH_NEEDED,
       redeployMode = RedeployMode.REFRESH,
       actionId = MANUAL_LIVE_EDIT_ACTION_ID
+    )
+
+  object NoMultiDeploy :
+    LiveEditStatus(
+      AllIcons.General.Warning,
+      message("le.status.out_of_date.title"),
+      message("le.status.no_multi_deploy.description"),
+      DISABLED_WITH_MESSAGE
     )
 
   object Loading :

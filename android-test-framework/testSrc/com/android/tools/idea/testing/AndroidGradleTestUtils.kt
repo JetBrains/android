@@ -1315,7 +1315,6 @@ fun setupTestProjectFromAndroidModel(
 
     override fun supportsProfilingMode(): Boolean = gradleProjectSystem.supportsProfilingMode()
 
-    override fun desugarLibraryConfigFiles(project: Project) = gradleProjectSystem.desugarLibraryConfigFiles(project)
   })
   setupTestProjectFromAndroidModelCore(project, rootProjectBasePath, moduleBuilders, setupAllVariants, cacheExistingVariants = false)
 }

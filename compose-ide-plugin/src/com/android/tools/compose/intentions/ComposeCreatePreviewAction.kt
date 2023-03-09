@@ -25,7 +25,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.parentOfType
-import org.jetbrains.kotlin.idea.core.ShortenReferences
+import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
@@ -73,6 +73,6 @@ class ComposeCreatePreviewAction : IntentionAction {
     val composableFunction = composableAnnotationEntry.parentOfType<KtFunction>() ?: return
     val previewAnnotationEntry = KtPsiFactory(project).createAnnotationEntry("@${COMPOSE_PREVIEW_ANNOTATION_FQN}")
 
-    ShortenReferences.DEFAULT.process(composableFunction.addAnnotationEntry(previewAnnotationEntry))
+    ShortenReferencesFacility.getInstance().shorten(composableFunction.addAnnotationEntry(previewAnnotationEntry))
   }
 }

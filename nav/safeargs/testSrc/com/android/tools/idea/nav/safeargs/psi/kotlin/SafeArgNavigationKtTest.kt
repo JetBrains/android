@@ -67,7 +67,7 @@ class SafeArgNavigationKtTest {
               android:name="test.safeargs.Fragment2"
               android:label="Fragment2">
           <argument
-                android:name="arg_two"
+                android:name="Arg_two"
                 app:argType="string" />
           </fragment>
         </navigation>
@@ -120,6 +120,7 @@ class SafeArgNavigationKtTest {
                         android:name="arg_one"
                         app:argType="string" />
                 """.trimIndent())
+              assertThat(descriptor.name.asString()).isEqualTo("argOne")
             }
             is SimpleFunctionDescriptorImpl -> {
               val resolvedNavigationElement = descriptor.source.getPsi()!!
@@ -159,9 +160,10 @@ class SafeArgNavigationKtTest {
               assertThat((resolvedNavigationElement as XmlTag).text).isEqualTo(
                 """
                 <argument
-                        android:name="arg_two"
+                        android:name="Arg_two"
                         app:argType="string" />
                 """.trimIndent())
+              assertThat(descriptor.name.asString()).isEqualTo("ArgTwo")
             }
             is SimpleFunctionDescriptorImpl -> {
               val resolvedNavigationElement = descriptor.source.getPsi()!!
@@ -171,7 +173,7 @@ class SafeArgNavigationKtTest {
                 assertThat((resolvedNavigationElement as XmlTag).text).isEqualTo(
                   """
                 <argument
-                        android:name="arg_two"
+                        android:name="Arg_two"
                         app:argType="string" />
                 """.trimIndent())
               }

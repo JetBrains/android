@@ -314,8 +314,8 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) : Propertie
         }
         else null
       }
-      val tableModel = FilteredPTableModel(model, filter, insertOp, deleteOp, alphabeticalSortOrder, emptyList(), true, true, { true },
-                                           { false })
+      val tableModel = FilteredPTableModel(model, filter, insertOp, deleteOp, alphabeticalSortOrder, emptyList(), true, true,
+                                           { it !is MotionIdPropertyItem }, { false })
       val controlAction = SubSectionControlAction(any)
       val addFieldAction = AddMotionFieldAction(this.model, model.properties)
       val deleteFieldAction = DeleteMotionFieldAction()

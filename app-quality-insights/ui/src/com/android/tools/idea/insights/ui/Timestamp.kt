@@ -63,7 +63,7 @@ data class Timestamp(val time: Instant?, val state: TimestampState) {
   }
 }
 
-fun Flow<AppInsightsState<*>>.toTimestamp(clock: Clock): Flow<Timestamp> {
+fun Flow<AppInsightsState>.toTimestamp(clock: Clock): Flow<Timestamp> {
   return map { state ->
     when (val issues = state.issues) {
       is LoadingState.Ready -> {

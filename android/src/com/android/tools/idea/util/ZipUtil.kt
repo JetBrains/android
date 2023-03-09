@@ -16,6 +16,7 @@
 package com.android.tools.idea.util
 
 import java.io.FileOutputStream
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.zip.ZipEntry
@@ -28,7 +29,11 @@ fun zipFiles(files: Array<ZipData>, destination: String) {
     ZipOutputStream(output).use { zip ->
       for (zipData in files) {
         zip.putNextEntry(ZipEntry(zipData.name))
-        Files.copy(Paths.get(zipData.path), zip)
+        try {
+          Files.copy(Paths.get(zipData.path), zip)
+        }
+        catch (_: IOException) {
+        }
         zip.closeEntry()
       }
     }

@@ -209,6 +209,12 @@ internal class FakeScreenSharingAgent(
     }
   }
 
+  suspend fun writeToStderr(message: String) {
+    withContext(singleThreadedDispatcher) {
+      shellProtocol?.writeStderr(message)
+    }
+  }
+
   private fun parseArgs(command: String) {
     val args = command.split(Regex("\\s+"))
     for (arg in args) {

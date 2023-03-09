@@ -17,11 +17,14 @@ package com.android.tools.idea.ui.resourcemanager.widget
 
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTabbedPaneUI
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import com.intellij.openapi.project.DumbAwareAction
-import com.intellij.openapi.ui.JBPopupMenu
+import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.ui.popup.ListPopup
 import com.intellij.util.ui.JBUI
 import java.awt.AWTEvent
 import java.awt.Dimension
@@ -117,15 +120,15 @@ class OverflowingTabbedPaneWrapper : JComponent() {
 
 private class OverflowingTabbedPaneUI : DarculaTabbedPaneUI() {
 
-  private var overflowPopup: JBPopupMenu? = null
+  private var overflowPopup: ListPopup? = null
   private val resizeListener = object : ComponentAdapter() {
     override fun componentResized(e: ComponentEvent?) {
-      overflowPopup?.isVisible = false
+      overflowPopup?.cancel()
     }
   }
   private val hiddenTab = mutableListOf<Int>()
 
-  private val overFlowPopupAction = createOverflowPopupAction()
+  private val overFlowPopupAction = OverflowPopupAction()
 
   val overflowButton = ActionButton(overFlowPopupAction,
                                     PresentationFactory().getPresentation(overFlowPopupAction),
@@ -134,21 +137,19 @@ private class OverflowingTabbedPaneUI : DarculaTabbedPaneUI() {
     border = JBUI.Borders.emptyRight(2)
   }
 
-  private fun createOverflowPopupAction() = object : DumbAwareAction("Show Hidden Tabs", "Show hidden tab",
+  private inner class OverflowPopupAction : DumbAwareAction("Show Hidden Tabs", "Show hidden tab",
                                                                      AllIcons.Actions.More) {
-
-    override fun actionPerformed(e: AnActionEvent) = createAndShowOverflowMenu()
-
-    private fun createAndShowOverflowMenu() {
-      val menu = JBPopupMenu()
-      hiddenTab.forEach { tabIndex ->
-        menu.add(tabPane.getTitleAt(tabIndex)).addActionListener { tabPane.selectedIndex = tabIndex }
+    override fun actionPerformed(e: AnActionEvent) {
+      val actions = hiddenTab.map { tabIndex ->
+        object : AnAction(tabPane.getTitleAt(tabIndex)) {
+          override fun actionPerformed(e: AnActionEvent) {
+            tabPane.selectedIndex = tabIndex
+          }
+        }
       }
-
-      // Display the popup below the overflow button with their right sides aligned
-      val x = tabPane.x + tabPane.width - menu.preferredSize.width
-      val y = tabPane.height - tabPane.insets.bottom - tabPane.insets.top
-      menu.show(tabPane, x, y)
+      val menu = JBPopupFactory.getInstance().createActionGroupPopup(
+        null, DefaultActionGroup(actions), e.dataContext, null, true)
+      menu.showInBestPositionFor(e.dataContext)
       overflowPopup = menu
     }
   }

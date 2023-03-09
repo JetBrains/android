@@ -59,12 +59,12 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.RenderService;
-import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.res.ResourceFilesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
+import com.android.tools.idea.res.ResourceUtils;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -485,7 +485,7 @@ public class Configuration implements Disposable, ModificationTracker {
   @Slow
   @Nullable
   private Device computeBestDevice() {
-    for (Device device : myManager.getRecentDevices()) {
+    for (Device device : myManager.getRecentDevices(DeviceUtils.getAvdDevices(this))) {
       String stateName = myStateName;
       if (stateName == null) {
         stateName = device.getDefaultState().getName();
@@ -497,7 +497,7 @@ public class Configuration implements Disposable, ModificationTracker {
         if (myEditedConfig.isMatchFor(currentConfig)) {
           LocalResourceRepository resources = StudioResourceRepositoryManager.getAppResources(module);
           if (resources != null && myFile != null) {
-            ResourceFolderType folderType = IdeResourcesUtil.getFolderType(myFile);
+            ResourceFolderType folderType = ResourceFilesUtil.getFolderType(myFile);
             if (folderType != null) {
               if (ResourceFolderType.VALUES.equals(folderType)) {
                 // If it's a file in the values folder, ResourceRepository.getMatchingFiles won't work.
@@ -1171,7 +1171,7 @@ public class Configuration implements Disposable, ModificationTracker {
         return;
       }
 
-      myTheme = ResolutionUtils.getStyleResourceUrl(myTheme);
+      myTheme = ResourceUtils.getStyleResourceUrl(myTheme);
     }
   }
 

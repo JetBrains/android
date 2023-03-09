@@ -814,7 +814,7 @@ class EmulatorView(
         addKeystrokesForAction(ACTION_CUT, EmulatorKeyStroke("Cut"))
         addKeystrokesForAction(ACTION_COPY, EmulatorKeyStroke("Copy"))
         addKeystrokesForAction(ACTION_PASTE, EmulatorKeyStroke("Paste"))
-        addKeystrokesForAction(ACTION_SELECT_ALL, EmulatorKeyStroke("KeyA", CTRL_DOWN_MASK))
+        addKeystrokesForAction(ACTION_SELECT_ALL, EmulatorKeyStroke("a", CTRL_DOWN_MASK))
         addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_LEFT, EmulatorKeyStroke("ArrowLeft"))
         addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_RIGHT, EmulatorKeyStroke("ArrowRight"))
         addKeystrokesForAction(ACTION_EDITOR_MOVE_CARET_LEFT_WITH_SELECTION, EmulatorKeyStroke("ArrowLeft", SHIFT_DOWN_MASK))
@@ -839,8 +839,8 @@ class EmulatorView(
         addKeystrokesForAction(ACTION_EDITOR_TEXT_END, EmulatorKeyStroke("End", CTRL_DOWN_MASK))
         addKeystrokesForAction(ACTION_EDITOR_TEXT_START_WITH_SELECTION, EmulatorKeyStroke("Home", CTRL_SHIFT_DOWN_MASK))
         addKeystrokesForAction(ACTION_EDITOR_TEXT_END_WITH_SELECTION, EmulatorKeyStroke("End", CTRL_SHIFT_DOWN_MASK))
-        addKeystrokesForAction(ACTION_UNDO, EmulatorKeyStroke("KeyZ", CTRL_DOWN_MASK))
-        addKeystrokesForAction(ACTION_REDO, EmulatorKeyStroke("KeyZ", CTRL_SHIFT_DOWN_MASK))
+        addKeystrokesForAction(ACTION_UNDO, EmulatorKeyStroke("z", CTRL_DOWN_MASK))
+        addKeystrokesForAction(ACTION_REDO, EmulatorKeyStroke("z", CTRL_SHIFT_DOWN_MASK))
       }
     }
 

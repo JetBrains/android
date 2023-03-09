@@ -62,6 +62,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassOwner
+import com.intellij.psi.PsiModifier
 import com.intellij.psi.util.PsiUtil
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.CollectionListModel
@@ -167,7 +168,9 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       val hosts = findReferences(model.file, module).map { it.containingFile }
 
       for (tag in schema.allTags) {
-        for ((psiClass, dynamicModule) in getClassesForTag(module, tag).filterKeys { !existingClasses.contains(it.qualifiedName) }) {
+        for ((psiClass, dynamicModule) in getClassesForTag(module, tag).filterKeys {
+          !existingClasses.contains(it.qualifiedName) && it.modifierList?.hasModifierProperty(PsiModifier.ABSTRACT) != true
+        }) {
           val layoutFile = layoutFiles[psiClass]
           if (layoutFile !in hosts) {
             val inProject = psiClass.isInProject()

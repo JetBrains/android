@@ -21,6 +21,7 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -65,9 +66,8 @@ class ComposeUnresolvedFunctionFixContributorTest {
       action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
     }
 
-    myFixture.checkResult(
-      // language=kotlin
-      """
+    // language=kotlin
+    val expectedText = """
       package com.example
 
       import androidx.compose.Composable
@@ -81,9 +81,79 @@ class ComposeUnresolvedFunctionFixContributorTest {
       fun UnresolvedFunction() {
           TODO("Not yet implemented")
       }
+    """
+    val expectedTextForFE10 = expectedText + '\n'
+
+    // TODO(b/267429486): Revisit after implementing the K2 version of `CreateCallableFromUsageFix`.
+    if (isK2Plugin()) myFixture.checkResult(expectedText.trimIndent())
+    else myFixture.checkResult(expectedTextForFE10.trimIndent())
+  }
+
+  @Test
+  fun testCreateComposableFunctionWithTypeAndValueParameters() {
+    myFixture.loadNewFile(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun NewsStory() {
+          <caret>UnresolvedFunction<Int>(45, f = { 43 }, "OK".length)
+      }
+      """.trimIndent()
+    )
+
+    val action = myFixture.availableIntentions.find { it.text == "Create @Composable function 'UnresolvedFunction'" }
+    assertThat(action).isNotNull()
+
+    WriteCommandAction.runWriteCommandAction(myFixture.project) {
+      action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
+    }
+
+    // TODO(b/267429486): Revisit after implementing the K2 version of `CreateCallableFromUsageFix`.
+    if (isK2Plugin()) {
+      myFixture.checkResult(
+        // language=kotlin
+        """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun NewsStory() {
+          UnresolvedFunction<Int>(45, f = { 43 }, "OK".length)
+      }
+
+      @Composable
+      fun <T0> UnresolvedFunction(x0: Int, f: () -> Int, x2: Int) {
+          TODO("Not yet implemented")
+      }
+    """.trimIndent()
+      )
+    } else {
+      myFixture.checkResult(
+        // language=kotlin
+        """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun NewsStory() {
+          UnresolvedFunction<Int>(45, f = { 43 }, "OK".length)
+      }
+
+      @Composable
+      fun <T> UnresolvedFunction(t: T, f: () -> T, length: T) {
+          TODO("Not yet implemented")
+      }
 
     """.trimIndent()
-    )
+      )
+    }
   }
 
   @Test
@@ -152,9 +222,30 @@ class ComposeUnresolvedFunctionFixContributorTest {
       action!!.invoke(myFixture.project, myFixture.editor, myFixture.file)
     }
 
-    myFixture.checkResult(
-      // language=kotlin
-      """
+    // TODO(b/267429486): Revisit after implementing the K2 version of `CreateCallableFromUsageFix`.
+    if (isK2Plugin()) {
+      myFixture.checkResult(
+        // language=kotlin
+        """
+      package com.example
+
+      import androidx.compose.Composable
+
+      @Composable
+      fun NewsStory() {
+          UnresolvedFunction {}
+      }
+
+      @Composable
+      fun UnresolvedFunction(x0: () -> Unit) {
+          TODO("Not yet implemented")
+      }
+    """.trimIndent()
+      )
+    } else {
+      myFixture.checkResult(
+        // language=kotlin
+        """
       package com.example
 
       import androidx.compose.Composable
@@ -170,6 +261,7 @@ class ComposeUnresolvedFunctionFixContributorTest {
       }
 
     """.trimIndent()
-    )
+      )
+    }
   }
 }

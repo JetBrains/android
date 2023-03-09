@@ -30,7 +30,6 @@ class DefaultVariantsTest {
     val default = variants.getDefaultVariant(
       userPreferredBuildTypes = setOf(),
       userPreferredProductFlavors = setOf(),
-      effectiveFlavorDimensions = 1
     )
     assertThat(default).isEqualTo("fooDebug")
   }
@@ -44,7 +43,6 @@ class DefaultVariantsTest {
     val default = variants.getDefaultVariant(
       userPreferredBuildTypes = setOf(),
       userPreferredProductFlavors = setOf(),
-      effectiveFlavorDimensions = 1
     )
     assertThat(default).isEqualTo("fooDebug")
   }
@@ -58,7 +56,6 @@ class DefaultVariantsTest {
     val default = variants.getDefaultVariant(
       userPreferredBuildTypes = setOf("release"),
       userPreferredProductFlavors = setOf(),
-      effectiveFlavorDimensions = 1
     )
     assertThat(default).isEqualTo("fooRelease")
   }
@@ -73,7 +70,6 @@ class DefaultVariantsTest {
     val default = variants.getDefaultVariant(
       userPreferredBuildTypes = setOf(),
       userPreferredProductFlavors = setOf("bar"),
-      effectiveFlavorDimensions = 1
     )
     assertThat(default).isEqualTo("barRelease")
   }
@@ -93,7 +89,6 @@ class DefaultVariantsTest {
     val default = variants.getDefaultVariant(
       userPreferredBuildTypes = setOf(),
       userPreferredProductFlavors = setOf("bar", "abc"),
-      effectiveFlavorDimensions = 1
     )
     assertThat(default).isEqualTo("barAbcDebug")
   }
@@ -113,9 +108,33 @@ class DefaultVariantsTest {
     val default = variants.getDefaultVariant(
       userPreferredBuildTypes = setOf(),
       userPreferredProductFlavors = setOf("abc"),
-      effectiveFlavorDimensions = 1
     )
     assertThat(default).isEqualTo("barAbcDebug")
+  }
+
+  @Test
+  fun mismatchedProductFlavourLength() {
+    val variants = listOf(
+      variant("debug", "foo"),
+      variant("release", "foo", "abc"),
+    )
+    val default = variants.getDefaultVariant(
+      userPreferredBuildTypes = setOf(),
+      userPreferredProductFlavors = setOf("abc")
+    )
+
+    assertThat(default).isEqualTo("fooDebug")
+  }
+
+  @Test
+  fun onEmpty() {
+    val variants = listOf<VariantDef>()
+    val default = variants.getDefaultVariant(
+      userPreferredBuildTypes = setOf(),
+      userPreferredProductFlavors = setOf("abc")
+    )
+
+    assertThat(default).isEqualTo(null)
   }
 }
 

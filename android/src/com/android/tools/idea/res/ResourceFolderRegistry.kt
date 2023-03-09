@@ -16,7 +16,7 @@
 package com.android.tools.idea.res
 
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.tools.idea.concurrency.AndroidIoManager.Companion.getInstance
+import com.android.tools.idea.concurrency.AndroidIoManager
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.res.ResourceUpdateTracer.pathForLogging
 import com.android.tools.idea.res.ResourceUpdateTracer.pathsForLogging
@@ -170,7 +170,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
   private fun createRepository(facet: AndroidFacet, dir: VirtualFile, namespace: ResourceNamespace): ResourceFolderRepository {
     // Don't create a persistent cache in tests to avoid unnecessary overhead.
     val executor = if (ApplicationManager.getApplication().isUnitTestMode) Executor { _: Runnable? -> }
-    else getInstance().getBackgroundDiskIoExecutor()
+    else AndroidIoManager.getInstance().getBackgroundDiskIoExecutor()
     val cachingData = ResourceFolderRepositoryFileCacheService.get().getCachingData(facet.module.project, dir, executor)
     return ResourceFolderRepository.create(facet, dir, namespace, cachingData)
   }
@@ -214,7 +214,7 @@ class ResourceFolderRegistry(val project: Project) : Disposable {
       val application = ApplicationManager.getApplication()
       assert(!application.isWriteAccessAllowed)
       var numDone = 0
-      val parallelExecutor = getInstance().getBackgroundDiskIoExecutor()
+      val parallelExecutor = AndroidIoManager.getInstance().getBackgroundDiskIoExecutor()
       val repositoryJobs: MutableList<Future<ResourceFolderRepository>> = ArrayList()
       for ((dir, facet) in resDirectories) {
         val registry = getInstance(myProject)

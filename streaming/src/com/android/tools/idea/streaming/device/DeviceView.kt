@@ -124,7 +124,7 @@ import kotlin.math.min
  */
 internal class DeviceView(
   disposableParent: Disposable,
-  private val deviceClient: DeviceClient,
+  val deviceClient: DeviceClient,
   private val initialDisplayOrientation: Int,
   private val project: Project,
 ) : AbstractDisplayView(PRIMARY_DISPLAY_ID), Disposable, DeviceMirroringSettingsListener {

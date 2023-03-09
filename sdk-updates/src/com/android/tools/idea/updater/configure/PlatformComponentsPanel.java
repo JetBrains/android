@@ -133,7 +133,7 @@ public class PlatformComponentsPanel {
         myPlatformDetailsRootNode.add(marker);
       }
       SummaryTreeNode node = SummaryTreeNode.createNode(version, versionNodes);
-      if (node != null && version.isBaseExtension()) {
+      if (node != null) {
         myPlatformSummaryRootNode.add(node);
       }
     }

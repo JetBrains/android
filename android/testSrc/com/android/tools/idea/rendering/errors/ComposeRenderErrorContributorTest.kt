@@ -72,7 +72,7 @@ class ComposeRenderErrorContributorTest {
       	at java.base/java.lang.Thread.run(Thread.java:834)
 
       """.trimIndent())
-    val logger = RenderLogger("test", androidProjectRule.module).apply {
+    val logger = RenderLogger(androidProjectRule.module).apply {
       error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
     }
     assertTrue(isHandledByComposeContributor(throwable))
@@ -109,7 +109,7 @@ class ComposeRenderErrorContributorTest {
       	at java.base/java.lang.Thread.run(Thread.java:834)
 
       """.trimIndent())
-    val logger = RenderLogger("test", androidProjectRule.module).apply {
+    val logger = RenderLogger(androidProjectRule.module).apply {
       error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
     }
 
@@ -159,7 +159,7 @@ class ComposeRenderErrorContributorTest {
       	at java.base/java.lang.Thread.run(Thread.java:829)
 
       """.trimIndent())
-    val logger = RenderLogger("test", androidProjectRule.module).apply {
+    val logger = RenderLogger(androidProjectRule.module).apply {
       error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
     }
 
@@ -221,7 +221,7 @@ class ComposeRenderErrorContributorTest {
       	at java.base/java.lang.Thread.run(Thread.java:829)
 
       """.trimIndent())
-    val logger = RenderLogger("test", androidProjectRule.module).apply {
+    val logger = RenderLogger(androidProjectRule.module).apply {
       error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
     }
 
@@ -263,7 +263,7 @@ class ComposeRenderErrorContributorTest {
       	at androidx.compose.ui.platform.ComposeView.Content(ComposeView.android.kt:402)
 
       """.trimIndent())
-    val logger = RenderLogger("test", androidProjectRule.module).apply {
+    val logger = RenderLogger(androidProjectRule.module).apply {
       error(ILayoutLog.TAG_INFLATE, "Error", throwable, null, null)
     }
 

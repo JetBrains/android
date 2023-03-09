@@ -135,8 +135,8 @@ AMediaFormat* CreateMediaFormat(const string& mime_type) {
 CodecInfo* SelectVideoEncoder(const string& mime_type) {
   Jni jni = Jvm::GetJni();
   JClass clazz = jni.GetClass("com/android/tools/screensharing/CodecInfo");
-  jmethodID method = clazz.GetStaticMethodId("selectVideoEncoderForType",
-                                             "(Ljava/lang/String;)Lcom/android/tools/screensharing/CodecInfo;");
+  jmethodID method = clazz.GetStaticMethod("selectVideoEncoderForType",
+                                           "(Ljava/lang/String;)Lcom/android/tools/screensharing/CodecInfo;");
   JObject codec_info = clazz.CallStaticObjectMethod(method, JString(jni, mime_type).ref());
   if (codec_info.IsNull()) {
     Log::Fatal("No video encoder is available for %s", mime_type.c_str());
@@ -153,7 +153,7 @@ CodecInfo* SelectVideoEncoder(const string& mime_type) {
 string GetVideoEncoderDetails(const string& codec_name, const string& mime_type, int32_t width, int32_t height) {
   Jni jni = Jvm::GetJni();
   JClass clazz = jni.GetClass("com/android/tools/screensharing/CodecInfo");
-  jmethodID method = clazz.GetStaticMethodId("getVideoEncoderDetails", "(Ljava/lang/String;Ljava/lang/String;II)Ljava/lang/String;");
+  jmethodID method = clazz.GetStaticMethod("getVideoEncoderDetails", "(Ljava/lang/String;Ljava/lang/String;II)Ljava/lang/String;");
   Log::V("%s:%d", __FILE__, __LINE__);
   return clazz.CallStaticObjectMethod(method, JString(jni, codec_name).ref(), JString(jni, mime_type).ref(), width, height).ToString();
 }
@@ -379,6 +379,11 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
     end_of_stream = codec_buffer.IsEndOfStream();
     if (!IsCodecRunning()) {
       return false;
+    }
+    // Skip an AV1-specific data packet that is not a part of AV1 bitstream.
+    // See https://aomediacodec.github.io/av1-spec/#obu-header-semantics.
+    if (codec_info_->mime_type == "video/av01" && (*codec_buffer.buffer & 0x80) != 0) {
+      continue;
     }
     if (first_frame_after_start) {
       // Request another sync frame to prevent a green bar that sometimes appears at the bottom

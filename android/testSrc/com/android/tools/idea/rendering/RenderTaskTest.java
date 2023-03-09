@@ -251,7 +251,7 @@ public class RenderTaskTest extends AndroidTestCase {
       .getVirtualFile();
 
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, layoutFile);
-    RenderLogger logger = new RenderLogger(null, null);
+    RenderLogger logger = new RenderLogger();
 
     RenderTestUtil.withRenderTask(myFacet, layoutFile, configuration, logger, task -> {
       try {

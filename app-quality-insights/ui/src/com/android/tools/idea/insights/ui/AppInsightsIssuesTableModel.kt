@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.insights.ui
 
-import com.android.tools.idea.insights.Issue
+import com.android.tools.idea.insights.AppInsightsIssue
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
@@ -26,41 +26,44 @@ import javax.swing.JTable
 import javax.swing.table.DefaultTableCellRenderer
 import javax.swing.table.TableCellRenderer
 
-class AppInsightsIssuesTableModel<IssueT : Issue>(renderer: AppInsightsTableCellRenderer) :
-  ListTableModel<IssueT>() {
+class AppInsightsIssuesTableModel(renderer: AppInsightsTableCellRenderer) :
+  ListTableModel<AppInsightsIssue>() {
   init {
     columnInfos =
       arrayOf(
-        object : ColumnInfo<IssueT, IssueT>("Issues") {
-          override fun valueOf(item: IssueT) = item
+        object : ColumnInfo<AppInsightsIssue, AppInsightsIssue>("Issues") {
+          override fun valueOf(item: AppInsightsIssue) = item
 
-          override fun getComparator(): Comparator<IssueT> {
+          override fun getComparator(): Comparator<AppInsightsIssue> {
             return Comparator.comparing { it.issueDetails.title }
           }
 
-          override fun getRenderer(item: IssueT) = renderer
+          override fun getRenderer(item: AppInsightsIssue) = renderer
         },
-        object : ColumnInfo<IssueT, Int>("Events") {
-          override fun valueOf(item: IssueT) = item.issueDetails.eventsCount.toInt()
+        object : ColumnInfo<AppInsightsIssue, Int>("Events") {
+          override fun valueOf(item: AppInsightsIssue) = item.issueDetails.eventsCount.toInt()
 
-          override fun getComparator(): Comparator<IssueT> {
+          override fun getComparator(): Comparator<AppInsightsIssue> {
             return Comparator.comparingInt { it.issueDetails.eventsCount.toInt() }
           }
 
           override fun getWidth(table: JTable?) = 60
 
-          override fun getRenderer(item: IssueT?): TableCellRenderer = NumberColumnRenderer
+          override fun getRenderer(item: AppInsightsIssue?): TableCellRenderer =
+            NumberColumnRenderer
         },
-        object : ColumnInfo<IssueT, Int>("Users") {
-          override fun valueOf(item: IssueT) = item.issueDetails.impactedDevicesCount.toInt()
+        object : ColumnInfo<AppInsightsIssue, Int>("Users") {
+          override fun valueOf(item: AppInsightsIssue) =
+            item.issueDetails.impactedDevicesCount.toInt()
 
-          override fun getComparator(): Comparator<IssueT> {
+          override fun getComparator(): Comparator<AppInsightsIssue> {
             return Comparator.comparingInt { it.issueDetails.impactedDevicesCount.toInt() }
           }
 
           override fun getWidth(table: JTable?) = 60
 
-          override fun getRenderer(item: IssueT?): TableCellRenderer = NumberColumnRenderer
+          override fun getRenderer(item: AppInsightsIssue?): TableCellRenderer =
+            NumberColumnRenderer
         }
       )
   }

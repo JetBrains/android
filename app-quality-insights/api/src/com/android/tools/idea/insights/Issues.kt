@@ -15,39 +15,69 @@
  */
 package com.android.tools.idea.insights
 
-interface Issue {
-  val issueDetails: IssueDetails
-  val sampleEvent: Event
+import icons.StudioIcons
+import javax.swing.Icon
+
+@JvmInline value class IssueId(val value: String)
+
+enum class IssueState {
+  OPEN,
+  OPENING,
+  CLOSED,
+  CLOSING
 }
 
-interface IssueDetails {
+/** Represents an issue found by Crashlytics, including one representative event for it. */
+data class AppInsightsIssue(
+  val issueDetails: IssueDetails,
+  val sampleEvent: Event,
+  val state: IssueState = IssueState.OPEN,
+  val pendingRequests: Int = 0
+) {
+  val id: IssueId = issueDetails.id
+  fun incrementPendingRequests() = copy(pendingRequests = pendingRequests.inc())
+  fun decrementPendingRequests() = copy(pendingRequests = pendingRequests.dec().coerceAtLeast(0))
+  fun incrementNotesCount() =
+    copy(issueDetails = issueDetails.copy(notesCount = issueDetails.notesCount.inc()))
+  fun decrementNotesCount() =
+    copy(
+      issueDetails = issueDetails.copy(notesCount = issueDetails.notesCount.dec().coerceAtLeast(0))
+    )
+}
+
+enum class SignalType(private val readableName: String, val icon: Icon?) {
+  SIGNAL_UNSPECIFIED("All signal states", null),
+  SIGNAL_EARLY("Early", StudioIcons.AppQualityInsights.EARLY_SIGNAL),
+  SIGNAL_FRESH("Fresh", StudioIcons.AppQualityInsights.FRESH_SIGNAL),
+  SIGNAL_REGRESSED("Regressed", StudioIcons.AppQualityInsights.REGRESSED_SIGNAL),
+  SIGNAL_REPETITIVE("Repetitive", StudioIcons.AppQualityInsights.REPETITIVE_SIGNAL);
+
+  override fun toString() = readableName
+}
+
+data class IssueDetails(
   // Issue id
-  val id: String
-
+  val id: IssueId,
   // Title of the issue
-  val title: String
-
+  val title: String,
   // Subtitle of the issue
-  val subtitle: String
-
+  val subtitle: String,
   // Fatal/non-fatal/ANR
-  val fatality: FailureType
-
+  val fatality: FailureType,
   // The resource name for a sample event in this issue
-  val sampleEvent: String
-
+  val sampleEvent: String,
   // Version that this issue was first seen
-  val firstSeenVersion: String
-
+  val firstSeenVersion: String,
   // Version that this version was most recently seen
-  val lastSeenVersion: String
-
+  val lastSeenVersion: String,
   // Number of unique devices.
-  val impactedDevicesCount: Long
-
+  val impactedDevicesCount: Long,
   // number of unique events that occur for this issue
-  val eventsCount: Long
-
-  // Provides a link to the containing issue.
-  val uri: String
-}
+  val eventsCount: Long,
+  // Issue signals.
+  val signals: Set<SignalType>,
+  // Provides a link to the containing issue on the Firebase console.
+  // please note the link will be configured with the same time interval and filters as the request.
+  val uri: String,
+  val notesCount: Long
+)

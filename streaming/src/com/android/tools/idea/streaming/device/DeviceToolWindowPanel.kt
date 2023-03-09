@@ -28,6 +28,7 @@ import com.android.tools.idea.streaming.device.screenshot.DeviceScreenshotOption
 import com.android.tools.idea.streaming.installFileDropHandler
 import com.android.tools.idea.ui.screenrecording.ScreenRecorderAction
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
+import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DeviceMirroringSession
 import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.openapi.Disposable
@@ -77,6 +78,13 @@ internal class DeviceToolWindowPanel(
 
   override fun setDeviceFrameVisible(visible: Boolean) {
     // Showing device frame is not supported for physical devices.
+  }
+
+  override fun getDeviceInfo(): DeviceInfo {
+    return DeviceInfo.newBuilder()
+        .fillFrom(deviceConfig)
+        .fillMdnsConnectionType(deviceSerialNumber)
+        .build()
   }
 
   /**
@@ -136,8 +144,8 @@ internal class DeviceToolWindowPanel(
   override fun getData(dataId: String): Any? {
     return when (dataId) {
       DEVICE_VIEW_KEY.name, DISPLAY_VIEW_KEY.name, ZOOMABLE_KEY.name -> primaryDeviceView
+      DEVICE_CLIENT_KEY.name -> deviceClient
       DEVICE_CONTROLLER_KEY.name -> deviceClient.deviceController
-      DEVICE_CONFIGURATION_KEY.name -> deviceConfig
       ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name ->
           primaryDeviceView?.let { if (it.isConnected) DeviceScreenshotOptions(deviceSerialNumber, deviceConfig, it) else null }
       ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name ->

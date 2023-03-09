@@ -25,6 +25,7 @@ import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.parentOfType
+import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
@@ -37,6 +38,12 @@ fun PsiElement.isComposableFunction(): Boolean = this.getComposableAnnotation() 
 
 fun PsiElement.getComposableAnnotation(): KtAnnotationEntry? =
   (this as? KtNamedFunction)?.getAnnotationWithCaching(composableFunctionKey) { it.isComposableAnnotation() }
+
+/**
+ * K2 version of [isComposableFunction].
+ */
+fun KtAnalysisSession.isComposableFunction(element: PsiElement): Boolean =
+  (element as? KtNamedFunction)?.getAnnotationWithCaching(composableFunctionKey) { isComposableAnnotation(it) } != null
 
 fun PsiElement.isDeprecated(): Boolean =
   (this as? KtAnnotated)?.getAnnotationWithCaching(deprecatedKey) { it.isDeprecatedAnnotation() } != null
@@ -59,8 +66,16 @@ private fun KtAnnotated.getAnnotationWithCaching(key: Key<CachedValue<KtAnnotati
 fun PsiElement.isComposableAnnotation(): Boolean {
   if (this !is KtAnnotationEntry) return false
 
-  // fqNameMatches is expensive, so we first verify that the short name of the annotation matches.
-  return shortName?.identifier == COMPOSABLE_ANNOTATION_NAME && fqNameMatches(COMPOSABLE_FQ_NAMES)
+  return fqNameMatches(COMPOSABLE_FQ_NAMES)
+}
+
+/**
+ * K2 version of [isComposableAnnotation].
+ */
+fun KtAnalysisSession.isComposableAnnotation(element: PsiElement): Boolean {
+  if (element !is KtAnnotationEntry) return false
+
+  return fqNameMatches(element, COMPOSABLE_FQ_NAMES)
 }
 
 private const val DEPRECATED_ANNOTATION_NAME = "Deprecated"

@@ -32,6 +32,7 @@ import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckedTreeNode
@@ -46,6 +47,8 @@ import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.ActionEvent
+import java.awt.event.FocusAdapter
+import java.awt.event.FocusEvent
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -60,12 +63,13 @@ import javax.swing.JScrollPane
 import javax.swing.JTree
 import javax.swing.event.HyperlinkEvent
 import javax.swing.tree.DefaultMutableTreeNode
+import javax.swing.tree.TreeSelectionModel
 import kotlin.io.path.name
 
 private const val PRIVACY_TEXT =
   "Some account and system information may be sent to Google. We will use the information you give us to help address technical issues " +
-  "and to improve our services, subject to our <a href=\\\"http://www.google.com/policies/privacy/\\\">Privacy Policy</a> and " +
-  "<a href=\\\"http://www.google.com/policies/terms/\\\">Terms of Service/a>."
+  "and to improve our services, subject to our <a href='http://www.google.com/policies/privacy/'>Privacy Policy</a> and " +
+  "<a href='http://www.google.com/policies/terms/'>Terms of Service</a>."
 
 /**
  * CreateDiagnosticReportDialog displays a tree view of files to be included in a diagnostic zip file, as well as a preview pane
@@ -96,7 +100,7 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
 
 
   init {
-    title = "Create Diagnostic Report"
+    title = "Collect Logs and Diagnostics Data"
     isResizable = false
     isModal = true
 
@@ -115,7 +119,6 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
       add(filesLabel, constraints)
 
       fileTree = buildTree(files)
-      fileTree.preferredSize = null
 
       val treeScrollPane = JScrollPane(fileTree).apply {
         preferredSize = Dimension(300, 300)
@@ -132,6 +135,12 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
 
       contents = JBTextArea().apply {
         isEditable = false
+        border = fileTree.border
+        addFocusListener(object : FocusAdapter() {
+          override fun focusGained(e: FocusEvent?) {
+            caret.isVisible = true
+          }
+        })
       }
 
       val contentsScrollPane = JScrollPane(contents).apply {
@@ -148,7 +157,7 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
       val privacy = JEditorPane("text/html", PRIVACY_TEXT).apply {
         isEditable = false
         background = JBColor(UIUtil.TRANSPARENT_COLOR, UIUtil.TRANSPARENT_COLOR)
-        preferredSize = Dimension(1100, 100)
+        preferredSize = Dimension(1100, 40)
         putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true)
 
         addHyperlinkListener { e ->
@@ -184,12 +193,19 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
       add(checkBox, constraints)
     }
 
+    updateContents(null)
+
     init()
   }
 
   override fun createCenterPanel(): JComponent = grid
 
   override fun doOKAction() {
+    if (!visitAllNodes(fileTree.model.root as FileTreeNode).any { it.isChecked }) {
+      Messages.showErrorDialog(project, "No files are currently selected.", "Collect Logs and Diagnostics Data")
+      return
+    }
+
     val saveFile = getSaveFile(project) ?: return
     createZipFile(saveFile)
     showNotification(saveFile)
@@ -211,7 +227,8 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
     }
 
     return CheckboxTree(FileTreeRenderer(), root).apply {
-      preferredSize = Dimension(300, 200)
+      setSelectionRow(0)
+      selectionModel.selectionMode = TreeSelectionModel.SINGLE_TREE_SELECTION
       addTreeSelectionListener { selectionEvent ->
         val node = selectionEvent.newLeadSelectionPath?.lastPathComponent as? FileTreeNode
         updateContents(node)
@@ -241,12 +258,12 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
         Files.readString(it.source)
       }
       catch (e: IOException) {
-        null
+        "Unable to load file contents"
       }
-    } ?: ""
+    } ?: "Select a file to preview its contents"
 
     contents.select(0, 0)
-
+    contents.caretPosition = 0
   }
 
   private fun addFilesToTree(root: DefaultMutableTreeNode, file: FileInfo) {
@@ -270,19 +287,23 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
   }
 
   private fun buildList(): List<FileInfo> {
-    val root = fileTree.model.root as FileTreeNode
     val list = mutableListOf<FileInfo>()
-    addFilesToList(root, list)
+
+    for (node in visitAllNodes(fileTree.model.root as FileTreeNode)) {
+      if (node.isChecked) {
+        node.fileInfo?.let { list.add(it) }
+      }
+    }
+
     return list
   }
 
-  private fun addFilesToList(node: FileTreeNode, list: MutableList<FileInfo>) {
-    if (node.isChecked) {
-      node.fileInfo?.let { list.add(it) }
-    }
-
-    for (child in node.children()) {
-      addFilesToList(child as FileTreeNode, list)
+  private fun visitAllNodes(current: FileTreeNode): Sequence<FileTreeNode> = sequence {
+    yield(current)
+    for (child in current.children()) {
+      for (node in visitAllNodes(child as FileTreeNode)) {
+        yield(node)
+      }
     }
   }
 
@@ -296,7 +317,7 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
 
     val notification =
       notificationGroup.createNotification(
-        "Diagnostic report created",
+        "Collect Logs and Diagnostics Data",
         "The diagnostic report has been created.",
         NotificationType.INFORMATION
       )

@@ -53,13 +53,18 @@ import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager;
+import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
 import com.android.tools.idea.rendering.ExecuteCallbacksResult;
 import com.android.tools.idea.rendering.InteractionEventResult;
+import com.android.tools.idea.rendering.RenderConfiguration;
 import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.RenderModelModule;
 import com.android.tools.idea.rendering.RenderProblem;
 import com.android.tools.idea.rendering.RenderResult;
+import com.android.tools.idea.rendering.RenderResults;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.StudioRenderConfiguration;
 import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
@@ -1059,6 +1064,11 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
+  @VisibleForTesting
+  protected RenderModelModule createRenderModule(AndroidFacet facet) {
+    return new AndroidFacetRenderModelModule(facet);
+  }
+
   /**
    * Synchronously inflates the model and updates the view hierarchy
    *
@@ -1097,7 +1107,9 @@ public class LayoutlibSceneManager extends SceneManager {
 
     RenderService renderService = StudioRenderService.getInstance(getModel().getProject());
     RenderLogger logger = myLogRenderErrors ? renderService.createLogger(facet.getModule()) : renderService.getNopLogger();
-    RenderService.RenderTaskBuilder renderTaskBuilder = taskBuilder(renderService, facet, configuration, logger)
+    RenderModelModule renderModule = createRenderModule(facet);
+    RenderConfiguration renderConfiguration = new StudioRenderConfiguration(configuration);
+    RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(renderModule, renderConfiguration, logger)
       .withPsiFile(getModel().getFile())
       .withLayoutScanner(myLayoutScannerConfig.isLayoutScannerEnabled());
     return setupRenderTaskBuilder(renderTaskBuilder).build()
@@ -1146,14 +1158,14 @@ public class LayoutlibSceneManager extends SceneManager {
           })
             .handle((result, exception) -> {
               if (project.isDisposed()) return null;
-              return result != null ? result : RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception);
+              return result != null ? result : RenderResults.createRenderTaskErrorResult(getModel().getFile(), exception);
             });
         }
         else {
           updateRenderTask(null);
 
           if (project.isDisposed()) return CompletableFuture.completedFuture(null);
-          return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(getModel().getFile(), logger));
+          return CompletableFuture.completedFuture(RenderResults.createRenderTaskErrorResult(getModel().getFile(), logger));
         }
       })
       .thenApply(this::updateCachedRenderResultIfNotNull)
@@ -1437,7 +1449,7 @@ public class LayoutlibSceneManager extends SceneManager {
       })
       .handle((result, exception) -> {
         if (exception != null) {
-          return RenderResult.createRenderTaskErrorResult(getModel().getFile(), exception);
+          return RenderResults.createRenderTaskErrorResult(getModel().getFile(), exception);
         }
         return result;
       });

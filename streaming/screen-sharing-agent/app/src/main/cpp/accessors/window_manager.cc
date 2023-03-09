@@ -41,16 +41,16 @@ WindowManager::WindowManager(Jni jni)
   // The getDefaultDisplayRotation method was called getRotation before API 26.
   // See https://android.googlesource.com/platform/frameworks/base/+/5406e7ade87c33f70c83a283781dcc48fb67cdb9%5E%21/#F2.
   const char* method_name = api_level >= 26 ? "getDefaultDisplayRotation" : "getRotation";
-  get_default_display_rotation_method_ = window_manager_class.GetMethodId(method_name, "()I");
-  freeze_rotation_method_ = window_manager_class.GetMethodId("freezeRotation", "(I)V");
-  thaw_rotation_method_ = window_manager_class.GetMethodId("thawRotation", "()V");
-  is_rotation_frozen_method_ = window_manager_class.GetMethodId("isRotationFrozen", "()Z");
+  get_default_display_rotation_method_ = window_manager_class.GetMethod(method_name, "()I");
+  freeze_rotation_method_ = window_manager_class.GetMethod("freezeRotation", "(I)V");
+  thaw_rotation_method_ = window_manager_class.GetMethod("thawRotation", "()V");
+  is_rotation_frozen_method_ = window_manager_class.GetMethod("isRotationFrozen", "()Z");
   // The second parameter was added in API 26.
   // See https://android.googlesource.com/platform/frameworks/base/+/35fa3c26adcb5f6577849fd0df5228b1f67cf2c6%5E%21/#F4.
   const char* signature = api_level >= 26 ? "(Landroid/view/IRotationWatcher;I)I" : "(Landroid/view/IRotationWatcher;)I";
-  jmethodID watch_rotation_method_ = window_manager_class.GetMethodId("watchRotation", signature);
+  jmethodID watch_rotation_method_ = window_manager_class.GetMethod("watchRotation", signature);
   JClass rotation_watcher_class = jni.GetClass("com/android/tools/screensharing/RotationWatcher");
-  jmethodID rotation_watcher_constructor = rotation_watcher_class.GetConstructorId("()V");
+  jmethodID rotation_watcher_constructor = rotation_watcher_class.GetConstructor("()V");
   watcher_object_ = rotation_watcher_class.NewObject(rotation_watcher_constructor);
   rotation_ = api_level >= 26 ?
       window_manager_.CallIntMethod(watch_rotation_method_, watcher_object_.ref(), DEFAULT_DISPLAY) :
@@ -64,7 +64,7 @@ WindowManager::~WindowManager() {
   Log::V("%s:%d", __FILE__, __LINE__);
   JClass window_manager_class(window_manager_.GetClass(jni));
   jmethodID remove_rotation_watcher_method =
-      window_manager_class.GetMethodId("removeRotationWatcher", "(Landroid/view/IRotationWatcher;)V");
+      window_manager_class.GetMethod("removeRotationWatcher", "(Landroid/view/IRotationWatcher;)V");
   window_manager_.CallVoidMethod(jni, remove_rotation_watcher_method);
 }
 

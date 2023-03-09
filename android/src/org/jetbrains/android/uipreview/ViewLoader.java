@@ -32,6 +32,7 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.projectsystem.DependencyScopeType;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.IRenderLogger;
+import com.android.tools.idea.rendering.RenderModelModule;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.ResourceIdManager;
@@ -53,6 +54,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
@@ -69,7 +71,7 @@ public class ViewLoader {
   /** Number of instances of a custom view that are allowed to nest inside itself. */
   private static final int ALLOWED_NESTED_VIEWS = 100;
 
-  @NotNull private final Module myModule;
+  @NotNull private final RenderModelModule myModule;
   @NotNull private final Map<String, Class<?>> myLoadedClasses = Maps.newHashMap();
   /** Classes that are being loaded currently. */
   @NotNull private final Multiset<Class<?>> myLoadingClasses = HashMultiset.create(5);
@@ -80,7 +82,7 @@ public class ViewLoader {
   @NotNull private IRenderLogger myLogger;
   @NotNull private final ClassLoader myClassLoader;
 
-  public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull Module module, @NotNull IRenderLogger logger,
+  public ViewLoader(@NotNull LayoutLibrary layoutLib, @NotNull RenderModelModule module, @NotNull IRenderLogger logger,
                     @Nullable Object credential,
                     @NotNull ClassLoader classLoader) {
     myLayoutLibrary = layoutLib;
@@ -367,7 +369,7 @@ public class ViewLoader {
     try {
       return DumbService.getInstance(myModule.getProject()).runReadActionInSmartMode(() -> {
         final JavaPsiFacade facade = JavaPsiFacade.getInstance(myModule.getProject());
-        PsiClass psiClass = facade.findClass(className, myModule.getModuleWithDependenciesAndLibrariesScope(false));
+        PsiClass psiClass = facade.findClass(className, myModule.getIdeaModule().getModuleWithDependenciesAndLibrariesScope(false));
 
         if (psiClass == null) {
           return null;
@@ -443,26 +445,29 @@ public class ViewLoader {
    */
   public void loadAndParseRClassSilently() {
     // All the ids are loaded into the idManager for the "app module".
-    ResourceIdManager idManager = ResourceIdManager.get(myModule);
-    idManager.resetCompiledIds();
-    getRClassesNames(myModule).forEach((rClassName) -> {
-        try {
-          if (rClassName == null) {
-            LOG.info(
-              String.format("loadAndParseRClass: failed to find manifest package for project %1$s", myModule.getProject().getName()));
-            return;
-          }
-          myLogger.setResourceClass(rClassName);
-          loadAndParseRClass(rClassName, idManager);
+    ResourceIdManager idManager = myModule.getResourceIdManager();
+    idManager.resetCompiledIds(this::loadRClasses);
+  }
+
+  private void loadRClasses(@NotNull ResourceIdManager.RClassParser rClassParser) {
+    getRClassesNames(myModule.getIdeaModule()).forEach((rClassName) -> {
+      try {
+        if (rClassName == null) {
+          LOG.info(
+            String.format("loadAndParseRClass: failed to find manifest package for project %1$s", myModule.getProject().getName()));
+          return;
         }
-        catch (ClassNotFoundException | NoClassDefFoundError e) {
-          myLogger.setMissingResourceClass();
-        }
-      });
+        myLogger.setResourceClass(rClassName);
+        loadAndParseRClass(rClassName, rClassParser);
+      }
+      catch (ClassNotFoundException | NoClassDefFoundError e) {
+        myLogger.setMissingResourceClass();
+      }
+    });
   }
 
   @VisibleForTesting
-  void loadAndParseRClass(@NotNull String className, @NotNull ResourceIdManager idManager) throws ClassNotFoundException {
+  void loadAndParseRClass(@NotNull String className, @NotNull ResourceIdManager.RClassParser rClassParser) throws ClassNotFoundException {
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("loadAndParseRClass(%s)", anonymizeClassName(className)));
     }
@@ -479,12 +484,12 @@ public class ViewLoader {
 
       if (!isClassLoaded) {
         if (LOG.isDebugEnabled()) {
-          LOG.debug(String.format("  Class found in module %s, first time load.", anonymize(myModule)));
+          LOG.debug(String.format("  Class found in module %s, first time load.", anonymize(myModule.getIdeaModule())));
         }
       }
       else {
         if (LOG.isDebugEnabled()) {
-          LOG.debug(String.format("  Class already loaded in module %s.", anonymize(myModule)));
+          LOG.debug(String.format("  Class already loaded in module %s.", anonymize(myModule.getIdeaModule())));
         }
       }
 
@@ -496,7 +501,7 @@ public class ViewLoader {
       myLogger.setHasLoadedClasses();
     }
 
-    idManager.loadCompiledIds(aClass);
+    rClassParser.parse(aClass);
 
     if (LOG.isDebugEnabled()) {
       LOG.debug(String.format("END loadAndParseRClass(%s)", anonymizeClassName(className)));

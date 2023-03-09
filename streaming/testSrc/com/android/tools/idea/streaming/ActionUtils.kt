@@ -16,15 +16,14 @@
 package com.android.tools.idea.streaming
 
 import com.android.tools.adtui.ZOOMABLE_KEY
-import com.android.tools.idea.streaming.device.DEVICE_CONFIGURATION_KEY
+import com.android.tools.idea.streaming.device.DEVICE_CLIENT_KEY
 import com.android.tools.idea.streaming.device.DEVICE_CONTROLLER_KEY
 import com.android.tools.idea.streaming.device.DEVICE_VIEW_KEY
 import com.android.tools.idea.streaming.device.DeviceView
-import com.android.tools.idea.streaming.device.emptyDeviceConfiguration
 import com.android.tools.idea.streaming.emulator.EMULATOR_CONTROLLER_KEY
 import com.android.tools.idea.streaming.emulator.EMULATOR_VIEW_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorView
-import com.google.common.truth.Truth
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -39,18 +38,28 @@ import java.awt.event.KeyEvent.KEY_RELEASED
 import java.awt.event.KeyEvent.VK_E
 
 /**
- * Executes an action related to device mirroring.
+ * Executes an action related to device streaming.
  */
 internal fun executeDeviceAction(
     actionId: String, displayView: AbstractDisplayView, project: Project, place: String = ActionPlaces.TOOLBAR) {
-  val actionManager = ActionManager.getInstance()
-  val action = actionManager.getAction(actionId)
-  val inputEvent = KeyEvent(displayView, KEY_RELEASED, System.currentTimeMillis(), CTRL_DOWN_MASK, VK_E, CHAR_UNDEFINED)
-  val presentation = Presentation()
-  val event = AnActionEvent(inputEvent, TestDataContext(displayView, project), place, presentation, actionManager, 0)
+  val action = ActionManager.getInstance().getAction(actionId)
+  val event = createTestEvent(displayView, project, place)
   action.update(event)
-  Truth.assertThat(event.presentation.isEnabledAndVisible).isTrue()
+  assertThat(event.presentation.isEnabledAndVisible).isTrue()
   action.actionPerformed(event)
+}
+
+internal fun updateAndGetActionPresentation(
+    actionId: String, displayView: AbstractDisplayView, project: Project, place: String = ActionPlaces.KEYBOARD_SHORTCUT): Presentation {
+  val action = ActionManager.getInstance().getAction(actionId)
+  val event = createTestEvent(displayView, project, place)
+  action.update(event)
+  return event.presentation
+}
+
+private fun createTestEvent(displayView: AbstractDisplayView, project: Project, place: String): AnActionEvent {
+  val inputEvent = KeyEvent(displayView, KEY_RELEASED, System.currentTimeMillis(), CTRL_DOWN_MASK, VK_E, CHAR_UNDEFINED)
+  return AnActionEvent(inputEvent, TestDataContext(displayView, project), place, Presentation(), ActionManager.getInstance(), 0)
 }
 
 private class TestDataContext(private val displayView: AbstractDisplayView, private val project: Project) : DataContext {
@@ -62,7 +71,7 @@ private class TestDataContext(private val displayView: AbstractDisplayView, priv
       EMULATOR_VIEW_KEY.name -> emulatorView
       EMULATOR_CONTROLLER_KEY.name -> emulatorView?.emulator
       DEVICE_VIEW_KEY.name -> deviceView
-      DEVICE_CONFIGURATION_KEY.name -> emptyDeviceConfiguration
+      DEVICE_CLIENT_KEY.name -> deviceView?.deviceClient
       DEVICE_CONTROLLER_KEY.name -> deviceView?.deviceController
       DISPLAY_VIEW_KEY.name -> displayView
       ZOOMABLE_KEY.name -> displayView

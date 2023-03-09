@@ -68,7 +68,7 @@ public final class RangeTooltipComponent extends AnimatedComponent {
 
   public RangeTooltipComponent(@NotNull Timeline timeline,
                                @NotNull JComponent component,
-                               @NotNull JLayeredPane parent,
+                               @NotNull JComponent parent,
                                @NotNull Supplier<Boolean> showSeekComponent) {
     myTimeline = timeline;
     myShowSeekComponent = showSeekComponent;

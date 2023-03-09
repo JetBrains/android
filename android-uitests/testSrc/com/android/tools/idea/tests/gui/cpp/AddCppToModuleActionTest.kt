@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.fixture.AddCppToModuleDialogFixture
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.util.toIoFile
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguage
 import com.android.tools.idea.wizard.template.DEFAULT_CMAKE_VERSION
 import com.google.common.truth.Truth
 import com.intellij.openapi.project.guessProjectDir
@@ -164,7 +165,7 @@ class AddCppToModuleActionTest {
       // selection does not exist
       enabledTextField.setText("/blah")
       Truth.assertThat(okButton.isEnabled).isFalse()
-      // selection exists but it's not a CMakeLists.txt or *.mk file
+      // selection exists, but it's not a CMakeLists.txt or *.mk file
       enabledTextField.setText(projectRoot.resolve("build.gradle").absolutePath)
       Truth.assertThat(okButton.isEnabled).isFalse()
       // selection is valid
@@ -184,6 +185,7 @@ class AddCppToModuleActionTest {
       .configureNewAndroidProjectStep
       .enterName("AddCppToModuleTestProject")
       .enterPackageName("dev.tools")
+      .selectBuildConfigurationLanguage(BuildConfigurationLanguage.Groovy)
       .wizard()
       .clickFinishAndWaitForSyncToFinish()
   }

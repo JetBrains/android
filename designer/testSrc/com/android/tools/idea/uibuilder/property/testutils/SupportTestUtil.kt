@@ -26,8 +26,11 @@ import com.android.SdkConstants.XMLNS_PREFIX
 import com.android.ide.common.rendering.api.AttributeFormat
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.common.SyncNlModel
 import com.android.tools.idea.common.fixtures.ComponentDescriptor
+import com.android.tools.idea.common.lint.AttributeKey
+import com.android.tools.idea.common.lint.LintAnnotationsModel
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
@@ -39,6 +42,7 @@ import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.property.panel.api.PropertiesModel
 import com.android.tools.property.panel.api.PropertiesModelListener
+import com.intellij.codeHighlighting.HighlightDisplayLevel
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.update.MergingUpdateQueue
@@ -158,6 +162,13 @@ open class SupportTestUtil(facet: AndroidFacet, val fixture: CodeInsightTestFixt
   fun clearSnapshots(): SupportTestUtil {
     nlModel.flattenComponents().forEach { it.snapshot = null }
     return this
+  }
+
+  fun addIssue(property: NlPropertyItem, level: HighlightDisplayLevel, message: String) {
+    val lintModel = nlModel.lintAnnotationsModel ?: LintAnnotationsModel().apply { nlModel.lintAnnotationsModel = this }
+    val component = property.components.single()
+    lintModel.addIssue(component, AttributeKey(component, property.namespace, property.name), mock(), message,
+                       mock(), level, mock(), mock(), mock())
   }
 
   private fun findDefinition(namespace: String, name: String): AttributeDefinition? {

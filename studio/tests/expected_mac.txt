@@ -494,7 +494,6 @@ Android Studio Preview.app/Contents/license/ffmpeg-LICENSE.openh264
 Android Studio Preview.app/Contents/license/ffmpeg-SOURCE_CODE.TXT
 Android Studio Preview.app/Contents/license/freemarker-NOTICE
 Android Studio Preview.app/Contents/license/google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0.jar-NOTICE
-Android Studio Preview.app/Contents/license/google-api-services-debugger.jar-NOTICE
 Android Studio Preview.app/Contents/license/google-api-services-mobilesdk-v1.jar-NOTICE
 Android Studio Preview.app/Contents/license/google-api-services-source.jar-NOTICE
 Android Studio Preview.app/Contents/license/google-api-services-storage.jar-NOTICE
@@ -1840,7 +1839,7 @@ Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/pytho
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/install_egg_info.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/install_lib.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/install_scripts.py
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/launcher manifest.xml
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/launcher_manifest.xml
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/py36compat.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/register.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/command/rotate.py
@@ -1866,7 +1865,7 @@ Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/pytho
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/package_index.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/py34compat.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/sandbox.py
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/script (dev).tmpl
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/script_(dev).tmpl
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/script.tmpl
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/unicode_utils.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/version.py
@@ -2440,8 +2439,8 @@ Android Studio Preview.app/Contents/plugins/android/resources/transport/native/a
 Android Studio Preview.app/Contents/plugins/android/resources/transport/native/agent/x86_64/libjvmtiagent.so
 Android Studio Preview.app/Contents/plugins/android/resources/transport/x86/transport
 Android Studio Preview.app/Contents/plugins/android/resources/transport/x86_64/transport
-Android Studio Preview.app/Contents/plugins/c-clangd/bin/clang/mac/x64/clang-tidy
-Android Studio Preview.app/Contents/plugins/c-clangd/bin/clang/mac/x64/clangd
+Android Studio Preview.app/Contents/plugins/c-clangd/bin/clang/mac/clang-tidy
+Android Studio Preview.app/Contents/plugins/c-clangd/bin/clang/mac/clangd
 Android Studio Preview.app/Contents/plugins/c-clangd/lib/LICENSE.txt/CIDR_LICENSE.txt
 Android Studio Preview.app/Contents/plugins/c-clangd/lib/c-clangd.jar
 Android Studio Preview.app/Contents/plugins/c-clangdBridge/lib/c-clangdBridge.jar
@@ -2689,16 +2688,20 @@ Android Studio Preview.app/Contents/plugins/firebase-testing/lib/tightvnc.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/google-api-services-mobilesdk-v1.jar
+Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/byte-buddy-1.12.14.jar
+Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/byte-buddy-agent-1.12.14.jar
+Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/gmd-code-completion.jar
+Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/google-api-services-testing-v1-revsnapshot-1.20.0.jar
+Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/mockito-core-4.8.0.jar
+Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/mockito-inline-4.8.0.jar
 Android Studio Preview.app/Contents/plugins/google-appindexing/lib/fetchasgoogle.jar
 Android Studio Preview.app/Contents/plugins/google-appindexing/lib/google-appindexing.jar
-Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-api-services-debugger.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-api-services-source.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-cloud-tools-as.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/gradle-appengine-builder-model-0.1.0.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/samplesindex-v1-1.0-SNAPSHOT.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-core-as/lib/google-api-services-appengine-v1-rev9-1.22.0.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-core-as/lib/google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0.jar
-Android Studio Preview.app/Contents/plugins/google-cloud-tools-core-as/lib/google-api-services-debugger.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-core-as/lib/google-api-services-source.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-core-as/lib/google-cloud-tools-core-as.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-core-as/lib/gradle-appengine-builder-model-0.1.0.jar

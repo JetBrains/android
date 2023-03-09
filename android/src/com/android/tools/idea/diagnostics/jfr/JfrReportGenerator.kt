@@ -17,7 +17,7 @@ package com.android.tools.idea.diagnostics.jfr
 
 import com.android.tools.idea.diagnostics.jfr.JfrReportGenerator.Capture
 import com.android.tools.idea.diagnostics.report.DiagnosticReportProperties
-import com.android.tools.idea.diagnostics.report.JfrBasedReport
+import com.android.tools.idea.diagnostics.report.GenericReport
 import com.intellij.openapi.diagnostic.thisLogger
 import jdk.jfr.consumer.RecordedEvent
 import java.time.Clock
@@ -68,7 +68,7 @@ abstract class JfrReportGenerator(
       if (isFinished)  {
         try {
           val report = generateReport()
-          if (report.isNotEmpty()) reportCallback(JfrBasedReport(reportType, report, DiagnosticReportProperties()))
+          if (report.isNotEmpty()) reportCallback(GenericReport(reportType, report, DiagnosticReportProperties()))
         }
         catch (e: Exception) {
           thisLogger().warn(e)

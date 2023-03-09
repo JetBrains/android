@@ -16,15 +16,14 @@
 package com.android.tools.idea.insights.ui
 
 import com.android.tools.idea.insights.AppInsight
-import com.android.tools.idea.insights.Issue
 import com.android.tools.idea.insights.ui.actions.AppInsightsGutterIconAction
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import icons.StudioIcons
 import javax.swing.Icon
 
-data class AppInsightsGutterRenderer<IssueT : Issue>(
-  val insights: List<AppInsight<IssueT>>,
-  val itemChosenCallback: (AppInsight<IssueT>) -> Unit
+data class AppInsightsGutterRenderer(
+  val insights: List<AppInsight>,
+  val itemChosenCallback: (AppInsight) -> Unit
 ) : GutterIconRenderer() {
 
   override fun getIcon(): Icon = StudioIcons.AppQualityInsights.ISSUE

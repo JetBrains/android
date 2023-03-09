@@ -23,8 +23,8 @@ import com.android.tools.idea.common.model.NlComponent;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
-import com.android.tools.idea.model.MergedManifestManager;
-import com.android.tools.idea.rendering.RenderMergedManifest;
+import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
+import com.android.tools.idea.rendering.RenderModelModule;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.google.wireless.android.sdk.stats.LayoutEditorRenderResult;
@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -137,11 +138,14 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
 
   @Override
   @NotNull
+  protected RenderModelModule createRenderModule(AndroidFacet facet) {
+    return new TestRenderModelModule(new AndroidFacetRenderModelModule(facet));
+  }
+
+  @Override
+  @NotNull
   protected RenderService.RenderTaskBuilder setupRenderTaskBuilder(@NotNull RenderService.RenderTaskBuilder taskBuilder) {
-    return super.setupRenderTaskBuilder(taskBuilder)
-      .disableSecurityManager()
-      // For testing, we do not need to wait for the full merged manifest
-      .setManifestProvider(module -> new RenderMergedManifest(MergedManifestManager.getMergedManifestSupplier(module).getNow()));
+    return super.setupRenderTaskBuilder(taskBuilder).disableSecurityManager();
   }
 
   @Override

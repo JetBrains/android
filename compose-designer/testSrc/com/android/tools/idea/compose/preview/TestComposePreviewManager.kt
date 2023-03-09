@@ -58,5 +58,7 @@ class TestComposePreviewManager(
 
   override var isInspectionTooltipEnabled: Boolean = false
 
+  override var isFilterEnabled: Boolean = false
+
   override fun dispose() {}
 }

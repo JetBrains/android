@@ -23,7 +23,7 @@ import com.android.tools.idea.configurations.Configuration
  */
 class RenderContext(
   val module: RenderModelModule,
-  val configuration: Configuration,
+  val configuration: RenderConfiguration,
 ) {
   val minSdkVersion = module.info.minSdkVersion
   val targetSdkVersion = module.info.targetSdkVersion

@@ -49,7 +49,6 @@ open class NlIdPropertyItem(
   // modifies the XML attributes directly i.e. not through an NlComponent.
   // The RenameProcessor used here is one example.
   // Workaround for now: read the attribute directly from the XmlAttribute.
-  @Suppress("DEPRECATION")
   override val rawValue: String?
     get() = readIdFromPsi()
 
@@ -91,7 +90,7 @@ open class NlIdPropertyItem(
   }
 
   override fun validate(text: String?): Pair<EditingErrorCategory, String> {
-    return lintValidation() ?: EDITOR_NO_ERROR
+    return lintValidation(text) ?: EDITOR_NO_ERROR
   }
 
   /**
@@ -105,14 +104,12 @@ open class NlIdPropertyItem(
     }
 
     val action = RenameElementAction()
-    val simpleContext = SimpleDataContext.getSimpleContext(
-      mapOf(
-        NEW_NAME_RESOURCE.name to newId,
-        CommonDataKeys.PSI_FILE.name to value.containingFile,
-        CommonDataKeys.PSI_ELEMENT.name to value,
-        CommonDataKeys.PROJECT.name to value.project),
-      null
-    )
+    val simpleContext = SimpleDataContext.builder()
+      .add(NEW_NAME_RESOURCE, newId)
+      .add(CommonDataKeys.PSI_FILE, value.containingFile)
+      .add(CommonDataKeys.PSI_ELEMENT, value)
+      .add(CommonDataKeys.PROJECT, value.project)
+      .build()
     ActionUtil.invokeAction(action, simpleContext, ActionPlaces.UNKNOWN, null, null)
 
     // The RenameProcessor will change the value of the ID here (may happen later if previewing first).

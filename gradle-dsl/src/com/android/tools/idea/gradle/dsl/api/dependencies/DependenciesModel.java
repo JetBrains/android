@@ -46,6 +46,7 @@ public interface DependenciesModel extends GradleBlockModel {
                    @NotNull List<ArtifactDependencySpec> excludes);
 
   void addPlatformArtifact(@NotNull String configurationName, @NotNull String compactNotation, boolean enforced);
+  void addPlatformArtifact(@NotNull String configurationName, @NotNull ReferenceTo reference, boolean enforced);
   void addPlatformArtifact(@NotNull String configurationName, @NotNull ArtifactDependencySpec dependency, boolean enforced);
   // TODO(xof): consider supporting excludes, as in addArtifact() above.
 

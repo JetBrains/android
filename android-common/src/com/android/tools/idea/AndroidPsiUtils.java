@@ -163,28 +163,6 @@ public class AndroidPsiUtils {
   }
 
   /**
-   * Get the value of an attribute in the {@link XmlFile} safely (meaning it will acquire the read lock first).
-   */
-  @Nullable
-  public static String getRootTagAttributeSafely(@NotNull final XmlFile file,
-                                                 @NotNull final String attribute,
-                                                 @Nullable final String namespace) {
-    Application application = ApplicationManager.getApplication();
-    if (!application.isReadAccessAllowed()) {
-      return application.runReadAction((Computable<String>)() -> getRootTagAttributeSafely(file, attribute, namespace));
-    } else {
-      XmlTag tag = file.getRootTag();
-      if (tag != null) {
-        XmlAttribute attr = namespace != null ? tag.getAttribute(attribute, namespace) : tag.getAttribute(attribute);
-        if (attr != null) {
-          return attr.getValue();
-        }
-      }
-      return null;
-    }
-  }
-
-  /**
    * Returns the {@link PsiDirectory} for the given {@link VirtualFile}, with a read lock.
    *
    * @param dir the file to look up the PSI directory for

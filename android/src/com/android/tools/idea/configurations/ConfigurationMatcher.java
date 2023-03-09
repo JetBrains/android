@@ -34,7 +34,6 @@ import com.android.ide.common.resources.configuration.ScreenOrientationQualifier
 import com.android.ide.common.resources.configuration.ScreenSizeQualifier;
 import com.android.ide.common.resources.configuration.UiModeQualifier;
 import com.android.ide.common.resources.configuration.VersionQualifier;
-import com.android.io.IAbstractFile;
 import com.android.resources.Density;
 import com.android.resources.FolderTypeRelationship;
 import com.android.resources.NightMode;
@@ -49,6 +48,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceFilesUtil;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseIntArray;
@@ -61,9 +61,7 @@ import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -73,7 +71,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.jetbrains.android.uipreview.VirtualFileWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -193,7 +190,7 @@ public class ConfigurationMatcher {
     if (parent != null) {
       String parentName = parent.getName();
       if (!parentName.startsWith(FD_RES_LAYOUT)) {
-        ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
+        ResourceFolderType folderType = ResourceFilesUtil.getFolderType(file);
         if (folderType != null) {
           List<ResourceType> related = FolderTypeRelationship.getRelatedResourceTypes(folderType);
           if (!related.isEmpty()) {
@@ -659,7 +656,7 @@ public class ConfigurationMatcher {
         FileDocumentManager documentManager = FileDocumentManager.getInstance();
         VirtualFile file = documentManager.getFile(activeEditor.getDocument());
         if (file != null && !file.equals(myFile) && file.getFileType() == XmlFileType.INSTANCE
-            && IdeResourcesUtil.getFolderType(myFile) == IdeResourcesUtil.getFolderType(file)) {
+            && ResourceFilesUtil.getFolderType(myFile) == ResourceFilesUtil.getFolderType(file)) {
           Configuration configuration = myManager.getConfiguration(file);
           FolderConfiguration fullConfig = configuration.getFullConfig();
           for (ConfigMatch match : matches) {
@@ -708,7 +705,7 @@ public class ConfigurationMatcher {
         StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(module);
         if (repositoryManager != null) {
           LocalResourceRepository resources = repositoryManager.getAppResources();
-          ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
+          ResourceFolderType folderType = ResourceFilesUtil.getFolderType(file);
           if (folderType != null) {
             List<ResourceType> types = FolderTypeRelationship.getRelatedResourceTypes(folderType);
             if (!types.isEmpty()) {

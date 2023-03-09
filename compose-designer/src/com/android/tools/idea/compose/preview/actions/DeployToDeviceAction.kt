@@ -60,6 +60,7 @@ internal class DeployToDeviceAction(private val dataContextProvider: () -> DataC
       previewElement()?.previewBodyPsi?.let { isTestFile(it.project, it.virtualFile) } ?: false
     e.presentation.apply {
       isEnabled = !isTestFile
+      isVisible = true
       description =
         if (isTestFile) message("action.run.description.test.files")
         else message("action.run.description")

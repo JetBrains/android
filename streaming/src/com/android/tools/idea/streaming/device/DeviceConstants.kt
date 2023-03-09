@@ -24,7 +24,7 @@ import com.intellij.openapi.actionSystem.DataKey
 
 @JvmField internal val DEVICE_VIEW_KEY = DataKey.create<DeviceView>("DeviceView")
 
-@JvmField internal val DEVICE_CONFIGURATION_KEY = DataKey.create<DeviceConfiguration>("DeviceConfiguration")
+@JvmField internal val DEVICE_CLIENT_KEY = DataKey.create<DeviceClient>("DeviceClient")
 
 internal const val DEVICE_MAIN_TOOLBAR_ID = "StreamingToolbarPhysicalDevice"
 

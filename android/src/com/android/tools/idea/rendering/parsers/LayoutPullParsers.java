@@ -58,12 +58,13 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
+import com.android.tools.idea.rendering.AndroidXmlFiles;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.idea.res.ResourceFilesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -86,7 +87,6 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Attr;
@@ -249,14 +249,14 @@ public class LayoutPullParsers {
     // Allow tools:background in drawable XML files to manually set the render background.
     // Useful for example when dealing with vectors or shapes where the color happens to
     // be close to the IDE default background.
-    String background = AndroidPsiUtils.getRootTagAttributeSafely(file, ATTR_BACKGROUND, TOOLS_URI);
+    String background = AndroidXmlFiles.getRootTagAttributeSafely(file, ATTR_BACKGROUND, TOOLS_URI);
     if (background != null && !background.isEmpty()) {
       setAndroidAttr(imageView, ATTR_BACKGROUND, background);
     }
 
     // Allow tools:scaleType in drawable XML files to manually set the scale type. This is useful
     // when the drawable looks poor in the default scale type. (http://b.android.com/76267)
-    String scaleType = AndroidPsiUtils.getRootTagAttributeSafely(file, ATTR_SCALE_TYPE, TOOLS_URI);
+    String scaleType = AndroidXmlFiles.getRootTagAttributeSafely(file, ATTR_SCALE_TYPE, TOOLS_URI);
     if (scaleType != null && !scaleType.isEmpty()) {
       setAndroidAttr(imageView, ATTR_SCALE_TYPE, scaleType);
     }
@@ -389,7 +389,7 @@ public class LayoutPullParsers {
   }
 
   public static void saveFileIfNecessary(PsiFile psiFile) {
-    if (!needSave(IdeResourcesUtil.getFolderType(psiFile.getVirtualFile()))) { // Avoid need for read lock in get parent
+    if (!needSave(ResourceFilesUtil.getFolderType(psiFile.getVirtualFile()))) { // Avoid need for read lock in get parent
       return;
     }
 

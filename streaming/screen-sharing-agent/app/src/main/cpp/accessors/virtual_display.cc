@@ -29,9 +29,9 @@ VirtualDisplay::VirtualDisplay(Jni jni, JObject&& virtual_display)
       virtual_display_(std::move(virtual_display)) {
   JClass virtual_display_class = virtual_display_.GetClass();
   if (set_surface_method_ == nullptr) {
-    set_surface_method_ = virtual_display_class.GetMethodId("setSurface", "(Landroid/view/Surface;)V");
-    resize_method_ = virtual_display_class.GetMethodId("resize", "(III)V");
-    release_method_ = virtual_display_class.GetMethodId("release", "()V");
+    set_surface_method_ = virtual_display_class.GetMethod("setSurface", "(Landroid/view/Surface;)V");
+    resize_method_ = virtual_display_class.GetMethod("resize", "(III)V");
+    release_method_ = virtual_display_class.GetMethod("release", "()V");
   }
 }
 

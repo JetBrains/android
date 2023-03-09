@@ -85,7 +85,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JLayeredPane;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
@@ -582,7 +581,7 @@ public class StudioProfilersView extends AspectObserver implements Disposable {
   }
 
   @NotNull
-  public JLayeredPane getComponent() {
+  public JComponent getComponent() {
     return myLayeredPane;
   }
 

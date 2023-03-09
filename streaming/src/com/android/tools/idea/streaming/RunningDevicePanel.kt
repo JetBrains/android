@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.analytics.UsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.DeviceInfo
 import com.google.wireless.android.sdk.stats.DeviceMirroringSession
 import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.actionSystem.ActionManager
@@ -89,6 +90,8 @@ internal abstract class RunningDevicePanel(
   abstract fun createContent(deviceFrameVisible: Boolean, savedUiState: UiState? = null)
   abstract fun destroyContent(): UiState
   abstract fun setDeviceFrameVisible(visible: Boolean)
+  /** Returns device information for metrics collection. */
+  protected abstract fun getDeviceInfo(): DeviceInfo
 
   /**
    * Records the start of a device mirroring session.
@@ -111,6 +114,7 @@ internal abstract class RunningDevicePanel(
           .setDeviceKind(deviceKind)
           .setDurationSec(durationSec)
       )
+      .setDeviceInfo(getDeviceInfo())
 
     UsageTracker.log(studioEvent)
   }
