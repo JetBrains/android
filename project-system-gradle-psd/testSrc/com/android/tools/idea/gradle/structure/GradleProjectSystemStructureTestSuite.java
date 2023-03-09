@@ -25,9 +25,7 @@ import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses({
-  GradleProjectSystemStructureTestSuite.class
-})
+@JarTestSuiteRunner.ExcludeClasses(GradleProjectSystemStructureTestSuite.class)
 public class GradleProjectSystemStructureTestSuite extends IdeaTestSuiteBase {
   @ClassRule public static LeakCheckerRule checker = new LeakCheckerRule();
 
@@ -40,7 +38,7 @@ public class GradleProjectSystemStructureTestSuite extends IdeaTestSuiteBase {
     linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest");
     // Avoid depending on the execution order and initializing icons with dummies.
     try {
-      IconManager.activate(new CoreIconManager());
+      IconManager.Companion.activate(new CoreIconManager());
     }
     catch (Throwable e) {
       e.printStackTrace();

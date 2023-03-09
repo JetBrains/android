@@ -66,7 +66,7 @@ public class OldAgpTests extends IdeaTestSuiteBase {
   static {
     IconLoader.activate();
     try {
-      IconManager.activate(new CoreIconManager());
+      IconManager.Companion.activate(new CoreIconManager());
     }
     catch (Throwable e) {
       e.printStackTrace();

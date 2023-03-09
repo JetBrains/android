@@ -54,13 +54,13 @@ public final class SnapshotActionGroupTest {
 
   @Before
   public void activateIconLoader() throws Throwable {
-    IconManager.activate(null);
+    IconManager.Companion.activate(null);
     IconLoader.activate();
   }
 
   @After
   public void deactivateIconLoader()  {
-    IconManager.deactivate();
+    IconManager.Companion.deactivate();
     IconLoader.deactivate();
     IconLoader.clearCacheInTests();
   }

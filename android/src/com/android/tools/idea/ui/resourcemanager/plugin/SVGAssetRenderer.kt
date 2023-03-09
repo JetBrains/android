@@ -18,7 +18,7 @@ package com.android.tools.idea.ui.resourcemanager.plugin
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.ui.svg.renderSvg
+import com.intellij.ui.svg.renderSvgWithSize
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.io.IOException
@@ -37,7 +37,7 @@ class SVGAssetRenderer : DesignAssetRenderer {
     return CompletableFuture.supplyAsync {
       try {
         file.inputStream.use { inputStream ->
-          renderSvg(inputStream = inputStream, baseWidth = dimension.width.toFloat(), baseHeight = dimension.height.toFloat())
+          renderSvgWithSize(inputStream = inputStream, width = dimension.width.toFloat(), height = dimension.height.toFloat())
         }
       }
       catch (e: IOException) {

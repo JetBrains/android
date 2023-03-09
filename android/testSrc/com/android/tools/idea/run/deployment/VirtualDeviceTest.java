@@ -55,7 +55,7 @@ import org.mockito.Mockito;
 public final class VirtualDeviceTest {
   private static final Key DEVICE_KEY = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
 
-  private void assertIconSimilar(Icon expectedIcon, Icon actualIcon) throws IOException {
+  private static void assertIconSimilar(Icon expectedIcon, Icon actualIcon) throws IOException {
     BufferedImage expectedIconImage = ImageUtil.toBufferedImage(IconUtil.toImage(expectedIcon, ScaleContext.createIdentity()));
     BufferedImage actualIconImage = ImageUtil.toBufferedImage(IconUtil.toImage(actualIcon, ScaleContext.createIdentity()));
     ImageDiffUtil.assertImageSimilar("icon", expectedIconImage, actualIconImage, 0);
@@ -63,13 +63,13 @@ public final class VirtualDeviceTest {
 
   @Before
   public void activateIconLoader() throws Throwable {
-    IconManager.activate(null);
+    IconManager.Companion.activate(null);
     IconLoader.activate();
   }
 
   @After
   public void deactivateIconLoader() {
-    IconManager.deactivate();
+    IconManager.Companion.deactivate();
     IconLoader.deactivate();
     IconLoader.clearCacheInTests();
   }

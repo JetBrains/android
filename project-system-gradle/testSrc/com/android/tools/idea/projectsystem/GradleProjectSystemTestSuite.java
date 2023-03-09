@@ -42,7 +42,7 @@ public class GradleProjectSystemTestSuite extends IdeaTestSuiteBase {
     // Avoid depending on the execution order and initializing icons with dummies.
     IconLoader.activate();
     try {
-      IconManager.activate(new CoreIconManager());
+      IconManager.Companion.activate(new CoreIconManager());
     }
     catch (Throwable e) {
       e.printStackTrace();

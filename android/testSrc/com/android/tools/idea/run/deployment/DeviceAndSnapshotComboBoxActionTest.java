@@ -56,12 +56,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import javax.swing.UIManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
-import javax.swing.UIManager;
 
 public final class DeviceAndSnapshotComboBoxActionTest {
   @Rule
@@ -107,14 +107,14 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   }
 
   @Before
-  public void activateIconLoader() throws Throwable {
-    IconManager.activate(null);
+  public void activateIconLoader() {
+    IconManager.Companion.activate(null);
     IconLoader.activate();
   }
 
   @After
   public void deactivateIconLoader()  {
-    IconManager.deactivate();
+    IconManager.Companion.deactivate();
     IconLoader.deactivate();
     IconLoader.clearCacheInTests();
   }
@@ -434,7 +434,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
 
     Mockito.when(myDevicesGetter.get()).thenReturn(Optional.of(devices));
 
-    Set<Target> targets = new HashSet();
+    Set<Target> targets = new HashSet<>();
     targets.add(new QuickBootTarget(key1));
     targets.add(new QuickBootTarget(key2));
 
