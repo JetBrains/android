@@ -139,10 +139,10 @@ class DownloadsInfoPresentableEvent(
   val buildFinishedDisposable: CheckedDisposable,
   val buildStartTimestampMs: Long
 ) : PresentableBuildEvent {
-  override fun getId(): Any = "Downloads info"
+  override fun getId(): Any = "Download info"
   override fun getParentId(): Any = buildId
   override fun getEventTime(): Long = 0
-  override fun getMessage(): String = "Downloads info"
+  override fun getMessage(): String = "Download info"
   override fun getHint(): String? = null
   override fun getDescription(): String? = null
   override fun getPresentationData(): BuildEventPresentationData = object : BuildEventPresentationData {

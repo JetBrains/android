@@ -76,7 +76,7 @@ class DownloadsInfoPresentableEventTest {
     //Time is not used for this type of event. 0 is a default value for such case.
     assertThat(event.eventTime).isEqualTo(0)
     //This is what is shown as tree item.
-    assertThat(event.message).isEqualTo("Downloads info")
+    assertThat(event.message).isEqualTo("Download info")
     //Description is text output on execution console. Since we have custom console, we don't have it.
     assertThat(event.description).isNull()
     //Hint is an additional text shown in grey after node name. Is not updatable currently, so do not use.
