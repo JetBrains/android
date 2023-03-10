@@ -17,11 +17,9 @@ package com.android.tools.idea.insights.analytics
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.insights.ConnectionMode
-import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.stats.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.Resolution
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
@@ -237,22 +235,6 @@ class AppInsightsTrackerImpl(private val project: Project) : AppInsightsTracker 
     val md = MessageDigest.getInstance("SHA-256")
     val digest = md.digest(bytes)
     return digest.fold("") { str, it -> str + "%02x".format(it) }
-  }
-}
-
-fun convertSeverityList(fatalities: List<FailureType>): SeverityFilter {
-  if (fatalities.size < 1 || fatalities.size > 2) {
-    return SeverityFilter.UNKNOWN_SEVERITY
-  }
-  if (fatalities.size == 2) {
-    return SeverityFilter.ALL
-  }
-  return when (fatalities[0]) {
-    FailureType.ANR -> SeverityFilter.UNKNOWN_SEVERITY
-    FailureType.FATAL -> SeverityFilter.FATAL
-    FailureType.NON_FATAL -> SeverityFilter.NON_FATAL
-    FailureType.UNSPECIFIED -> SeverityFilter.UNKNOWN_SEVERITY
-    else -> SeverityFilter.UNKNOWN_SEVERITY
   }
 }
 

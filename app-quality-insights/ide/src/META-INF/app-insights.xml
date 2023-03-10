@@ -28,9 +28,17 @@
     <applicationService
         serviceInterface="com.android.tools.idea.insights.AppInsightsService"
         serviceImplementation="com.android.tools.idea.insights.AppInsightsServiceImpl" />
+    <applicationService
+        serviceInterface="com.android.tools.idea.insights.client.AppInsightsCache"
+        serviceImplementation="com.android.tools.idea.insights.client.AppInsightsCacheImpl"  />
   </extensions>
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.insights.ui.appInsightsTabProvider"
                     interface="com.android.tools.idea.insights.ui.AppInsightsTabProvider"/>
   </extensionPoints>
+  <actions>
+    <action internal="true" id="Android.EnterOfflineModeInternalAction" class="com.android.tools.idea.insights.events.EnterOfflineModeInternalAction">
+      <add-to-group group-id="Internal.Android"/>
+    </action>
+  </actions>
 </idea-plugin>

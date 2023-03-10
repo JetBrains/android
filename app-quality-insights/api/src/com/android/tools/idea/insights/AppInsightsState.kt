@@ -1,5 +1,9 @@
 package com.android.tools.idea.insights
 
+import com.android.tools.idea.insights.client.Interval
+import com.android.tools.idea.insights.client.IssueRequest
+import com.android.tools.idea.insights.client.QueryFilters
+import java.time.Duration
 import java.time.Instant
 
 /** Represents the state of filters applied to a module. */
@@ -92,4 +96,34 @@ data class AppInsightsState(
   /** Returns a new state with a new [FirebaseConnection] selected. */
   fun selectConnection(value: VariantConnection): AppInsightsState =
     copy(connections = connections.select(value))
+}
+
+fun AppInsightsState.toIssueRequest(): IssueRequest? {
+  if (connections.selected?.connection == null || filters.timeInterval.selected == null) {
+    return null
+  }
+  return IssueRequest(
+    connection = connections.selected?.connection!!,
+    filters =
+      QueryFilters(
+        interval =
+          Instant.now().let {
+            Interval(
+              startTime = it.minus(Duration.ofDays(filters.timeInterval.selected!!.numDays)),
+              endTime = it
+            )
+          },
+        versions =
+          if (filters.versions.allSelected()) setOf(Version.ALL)
+          else filters.versions.selected.asSequence().map { it.value }.toSet(),
+        devices =
+          if (filters.devices.allSelected()) setOf(Device.ALL)
+          else filters.devices.selected.asSequence().map { it.value }.toSet(),
+        operatingSystems =
+          if (filters.operatingSystems.allSelected()) setOf(OperatingSystemInfo.ALL)
+          else filters.operatingSystems.selected.asSequence().map { it.value }.toSet(),
+        eventTypes = filters.failureTypeToggles.selected.toList(),
+        signal = filters.signal.selected ?: SignalType.SIGNAL_UNSPECIFIED
+      )
+  )
 }

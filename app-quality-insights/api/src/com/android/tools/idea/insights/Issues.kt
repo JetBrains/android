@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights
 
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import icons.StudioIcons
 import javax.swing.Icon
 
@@ -53,6 +54,20 @@ enum class SignalType(private val readableName: String, val icon: Icon?) {
   SIGNAL_REPETITIVE("Repetitive", StudioIcons.AppQualityInsights.REPETITIVE_SIGNAL);
 
   override fun toString() = readableName
+
+  fun toLogProto() =
+    when (this) {
+      SIGNAL_EARLY ->
+        AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SignalFilter.EARLY_SIGNAL
+      SIGNAL_FRESH ->
+        AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SignalFilter.FRESH_SIGNAL
+      SIGNAL_REGRESSED ->
+        AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SignalFilter.REGRESSIVE_SIGNAL
+      SIGNAL_REPETITIVE ->
+        AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SignalFilter.REPETITIVE_SIGNAL
+      SIGNAL_UNSPECIFIED ->
+        AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SignalFilter.UNKNOWN_SIGNAL
+    }
 }
 
 data class IssueDetails(
