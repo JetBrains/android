@@ -51,8 +51,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.text.StringUtil;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -145,11 +143,11 @@ import org.jetbrains.annotations.NotNull;
  * originating from the same file, and performs de-duplication logic to
  * ensure that the same file is not re-compiled multiple times.
  */
-public class AndroidLiveEditDeployMonitor implements Disposable {
+public class LiveEditProjectMonitor implements Disposable {
 
   // TODO: The logging is overly excessive for now given we have no UI to provide feedback to the user
   // when things go wrong. This will be changed in the final product.
-  private static final LogWrapper LOGGER = new LogWrapper(Logger.getInstance(AndroidLiveEditDeployMonitor.class));
+  private static final LogWrapper LOGGER = new LogWrapper(Logger.getInstance(LiveEditProjectMonitor.class));
 
   private final @NotNull Project project;
 
@@ -157,7 +155,10 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
 
   private final ScheduledExecutorService methodChangesExecutor = Executors.newSingleThreadScheduledExecutor();
 
-  private final DeviceStatusManager deviceStatusManager = new DeviceStatusManager();
+  /**
+   * Track the state of the project {@link #project} on devices it has been deployed on as {@link #applicationId}
+   */
+  private final LiveEditDevices liveEditDevices = new LiveEditDevices();
 
   private final DeviceEventWatcher deviceWatcher = new DeviceEventWatcher();
 
@@ -190,12 +191,12 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
 
   @NotNull
   public Set<IDevice> devices() {
-    return deviceStatusManager.devices();
+    return liveEditDevices.devices();
   }
 
   @NotNull
   public LiveEditStatus status(@NotNull IDevice device) {
-    LiveEditStatus status = deviceStatusManager.get(device);
+    LiveEditStatus status = liveEditDevices.get(device);
     return status == null ? LiveEditStatus.Disabled.INSTANCE : status;
   }
 
@@ -213,7 +214,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
       return;
     }
 
-    if (deviceStatusManager.isUnrecoverable() || deviceStatusManager.isDisabled()) {
+    if (liveEditDevices.isUnrecoverable() || liveEditDevices.isDisabled()) {
       return;
     }
 
@@ -248,22 +249,22 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     }
   }
 
-  public AndroidLiveEditDeployMonitor(@NotNull LiveEditService liveEditService, @NotNull Project project) {
+  public LiveEditProjectMonitor(@NotNull LiveEditService liveEditService, @NotNull Project project) {
     this.project = project;
     this.compiler = new LiveEditCompiler(project);
     gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
     Disposer.register(liveEditService, this);
 
-    deviceWatcher.addListener(this::handleAdbEvents);
+    deviceWatcher.addListener(liveEditDevices::handleDeviceLifecycleEvents);
     liveEditService.getDeviceConnection().addClientChangeListener(deviceWatcher);
     liveEditService.getDeviceConnection().addDeviceChangeListener(deviceWatcher);
 
-    deviceStatusManager.addListener(this::handleDeviceStatusChange);
+    liveEditDevices.addListener(this::handleDeviceStatusChange);
   }
 
   @Override
   public void dispose() {
-    deviceStatusManager.clear();
+    liveEditDevices.clear();
     deviceWatcher.clearListeners();
     methodChangesExecutor.shutdownNow();
   }
@@ -282,7 +283,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     Set<IDevice> newDevices = new HashSet<>(devices);
     newDevices.removeIf(d -> !supportLiveEdits(d));
     Ref<Boolean> multiDeploy = new Ref<>(false);
-    deviceStatusManager.update((oldDevice, status) -> {
+    liveEditDevices.update((oldDevice, status) -> {
       if (newDevices.contains(oldDevice)) {
         return (status == LiveEditStatus.NoMultiDeploy.INSTANCE) ? LiveEditStatus.Disabled.INSTANCE : status;
       }
@@ -299,7 +300,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit() || !supportLiveEdits(device)) {
       return false;
     }
-    deviceStatusManager.update(device, LiveEditStatus.UpToDate.INSTANCE);
+    liveEditDevices.update(device, LiveEditStatus.UpToDate.INSTANCE);
     return true;
   }
 
@@ -311,14 +312,14 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
 
     if (!supportLiveEdits(device)) {
       LOGGER.info("Live edit not support for device %s targeting app %s", project.getName(), applicationId);
-      deviceStatusManager.addDevice(device, LiveEditStatus.UnsupportedVersion.INSTANCE);
+      liveEditDevices.addDevice(device, LiveEditStatus.UnsupportedVersion.INSTANCE);
       return null;
     }
 
     LOGGER.info("Creating monitor for project %s targeting app %s", project.getName(), applicationId);
 
     // Initialize EditStatus for current device.
-    deviceStatusManager.addDevice(device, LiveEditStatus.Loading.INSTANCE);
+    liveEditDevices.addDevice(device, LiveEditStatus.Loading.INSTANCE);
 
     return () -> methodChangesExecutor
       .schedule(
@@ -335,8 +336,8 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
 
   @VisibleForTesting
   @NotNull
-  public DeviceStatusManager getDeviceStatusManager() {
-    return deviceStatusManager;
+  public LiveEditDevices getLiveEditDevices() {
+    return liveEditDevices;
   }
 
   // Triggered from LiveEdit manual mode. Use buffered changes.
@@ -461,7 +462,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     // This is triggered when Live Edit is just toggled on. Since the last deployment didn't start the Live Edit service,
     // we will fetch all the running devices and change every one of them to be outdated.
     for (IDevice device : AndroidDebugBridge.getBridge().getDevices()) {
-      deviceStatusManager.addDevice(device, LiveEditStatus.createRerunnableErrorStatus("Re-run application to start Live Edit updates."));
+      liveEditDevices.addDevice(device, LiveEditStatus.createRerunnableErrorStatus("Re-run application to start Live Edit updates."));
     }
   }
 
@@ -479,7 +480,7 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
   }
 
   public void clearDevices() {
-    deviceStatusManager.clear();
+    liveEditDevices.clear();
   }
 
 
@@ -522,15 +523,15 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
   }
 
   private void updateEditStatus(@NotNull IDevice device, @NotNull LiveEditStatus status) {
-    deviceStatusManager.update(device, status);
+    liveEditDevices.update(device, status);
   }
 
   private void updateEditStatus(@NotNull LiveEditStatus status) {
-    deviceStatusManager.update(status);
+    liveEditDevices.update(status);
   }
 
   private void updateEditableStatus(@NotNull LiveEditStatus newStatus) {
-    deviceStatusManager.update((device, prevStatus) -> (prevStatus.unrecoverable() || prevStatus == LiveEditStatus.Disabled.INSTANCE) ? prevStatus : newStatus);
+    liveEditDevices.update((device, prevStatus) -> (prevStatus.unrecoverable() || prevStatus == LiveEditStatus.Disabled.INSTANCE) ? prevStatus : newStatus);
   }
 
   private void handleDeviceStatusChange(Map<IDevice, LiveEditStatus> map) {
@@ -538,34 +539,8 @@ public class AndroidLiveEditDeployMonitor implements Disposable {
     ActivityTracker.getInstance().inc();
   }
 
-  private void handleAdbEvents(IDevice device, DeviceEvent event) {
-    if (!deviceStatusManager.devices().contains(device)) {
-      return;
-    }
-
-    switch (event) {
-      case DEVICE_DISCONNECT ->
-        deviceStatusManager.clear(device);
-      case APPLICATION_CONNECT ->
-        // If the device was previously in LOADING state, we are now ready to receive live edits.
-        deviceStatusManager.update(device, (d, status) -> status == LiveEditStatus.Loading.INSTANCE ? LiveEditStatus.UpToDate.INSTANCE : status);
-      case APPLICATION_DISCONNECT ->
-        // If the application disconnects while in the Loading status (if it's the current session that disconnected while loading, we
-        // would've gotten an APPLICATION_CONNECT event first before the Client disconnected), that means it is the disconnect from the
-        // previous session that has finally arrived in Studio through ADB. Ignore the event in this case.
-        deviceStatusManager.update(device, (d, status) -> status != LiveEditStatus.Loading.INSTANCE ? LiveEditStatus.Disabled.INSTANCE : status);
-      case DEBUGGER_CONNECT ->
-        deviceStatusManager.update(device, LiveEditStatus.DebuggerAttached.INSTANCE);
-      case DEBUGGER_DISCONNECT ->
-        // Don't return to up-to-date state if another state transition has taken place since.
-        deviceStatusManager.update(device, (d, status) -> status == LiveEditStatus.DebuggerAttached.INSTANCE
-                                                          ? LiveEditStatus.UpToDate.INSTANCE
-                                                          : status);
-    }
-  }
-
   private Stream<IDevice> editableDeviceIterator() {
-    return deviceStatusManager.devices().stream().filter(IDevice::isOnline).filter(device -> deviceStatusManager.get(device) != LiveEditStatus.Disabled.INSTANCE);
+    return liveEditDevices.devices().stream().filter(IDevice::isOnline).filter(device -> liveEditDevices.get(device) != LiveEditStatus.Disabled.INSTANCE);
   }
 
   private static Installer newInstaller(IDevice device) {

@@ -46,7 +46,7 @@ import org.mockito.Mockito.`when`
 class BasicAndroidMonitorTest {
 
   private lateinit var project: Project
-  private lateinit var monitor: AndroidLiveEditDeployMonitor
+  private lateinit var monitor: LiveEditProjectMonitor
   private lateinit var service: LiveEditService
   private lateinit var client: ClientImpl
   private lateinit var connection: FakeDeviceConnection
@@ -68,7 +68,8 @@ class BasicAndroidMonitorTest {
 
   @Before
   fun setUp() {
-    Logger.getInstance(AndroidLiveEditDeployMonitor::class.java).setLevel(LogLevel.ALL)
+    Logger.getInstance(
+      LiveEditProjectMonitor::class.java).setLevel(LogLevel.ALL)
     project = projectRule.project
     client = MockitoKt.mock()
     `when`(client.device).thenReturn(device)

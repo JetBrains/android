@@ -32,7 +32,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 
 @RunWith(JUnit4::class)
-class AndroidLiveEditDeployMonitorTest {
+class LiveEditProjectMonitorTest {
   private lateinit var myProject: Project
 
   @get:Rule
@@ -46,7 +46,8 @@ class AndroidLiveEditDeployMonitorTest {
 
   @Test
   fun manualModeCompileError() {
-    var monitor = AndroidLiveEditDeployMonitor(LiveEditService.getInstance(myProject), myProject);
+    var monitor = LiveEditProjectMonitor(
+      LiveEditService.getInstance(myProject), myProject);
     var file = projectRule.fixture.configureByText("A.kt", "fun foo() : String { return 1}")
     var foo = findFunction(file, "foo")
     monitor.handleChangedMethods(myProject, listOf(EditEvent(file, foo)))
@@ -56,7 +57,8 @@ class AndroidLiveEditDeployMonitorTest {
 
   @Test
   fun autoModeCompileSuccess() {
-    var monitor = AndroidLiveEditDeployMonitor(LiveEditService.getInstance(myProject), myProject);
+    var monitor = LiveEditProjectMonitor(
+      LiveEditService.getInstance(myProject), myProject);
     var file = projectRule.fixture.configureByText("A.kt", "fun foo() : Int { return 1}")
     var foo = findFunction(file, "foo")
     monitor.processChanges(myProject, listOf(EditEvent(file, foo)), LiveEditEvent.Mode.AUTO)
@@ -66,7 +68,8 @@ class AndroidLiveEditDeployMonitorTest {
 
   @Test
   fun autoModeCompileError() {
-    var monitor = AndroidLiveEditDeployMonitor(LiveEditService.getInstance(myProject), myProject);
+    var monitor = LiveEditProjectMonitor(
+      LiveEditService.getInstance(myProject), myProject);
     var file = projectRule.fixture.configureByText("A.kt", "fun foo() : String { return 1}")
     var foo = findFunction(file, "foo")
     monitor.processChanges(myProject, listOf(EditEvent(file, foo)), LiveEditEvent.Mode.AUTO)
@@ -76,7 +79,8 @@ class AndroidLiveEditDeployMonitorTest {
 
   @Test
   fun autoModeCompileErrorInOtherFile() {
-    var monitor = AndroidLiveEditDeployMonitor(LiveEditService.getInstance(myProject), myProject);
+    var monitor = LiveEditProjectMonitor(
+      LiveEditService.getInstance(myProject), myProject);
     var file = projectRule.fixture.configureByText("A.kt", "fun foo() : String { return 1}")
     var foo = findFunction(file, "foo")
     monitor.processChanges(myProject, listOf(EditEvent(file, foo)), LiveEditEvent.Mode.AUTO)
@@ -91,7 +95,8 @@ class AndroidLiveEditDeployMonitorTest {
 
   @Test
   fun `Auto Mode with Private and Public Inline`() {
-    var monitor = AndroidLiveEditDeployMonitor(LiveEditService.getInstance(myProject), myProject);
+    var monitor = LiveEditProjectMonitor(
+      LiveEditService.getInstance(myProject), myProject);
     var file = projectRule.fixture.configureByText("A.kt", "public inline fun foo() : Int { return 1}")
     var foo = findFunction(file, "foo")
     monitor.processChanges(myProject, listOf(EditEvent(file, foo)), LiveEditEvent.Mode.AUTO)
@@ -109,13 +114,13 @@ class AndroidLiveEditDeployMonitorTest {
    */
   @Test
   fun testMultiDeploy() {
-    val monitor = AndroidLiveEditDeployMonitor(LiveEditService.getInstance(myProject), myProject)
+    val monitor = LiveEditProjectMonitor(LiveEditService.getInstance(myProject), myProject)
     val device1: IDevice = MockitoKt.mock()
     MockitoKt.whenever(device1.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
     val device2: IDevice = MockitoKt.mock()
     MockitoKt.whenever(device2.version).thenReturn(AndroidVersion(AndroidVersion.VersionCodes.R))
 
-    val manager = monitor.deviceStatusManager
+    val manager = monitor.liveEditDevices
     manager.addDevice(device1, LiveEditStatus.UpToDate)
     assertFalse(manager.isDisabled())
 

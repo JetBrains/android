@@ -24,7 +24,7 @@ import com.android.tools.idea.editors.liveedit.ui.LiveEditIssueNotificationActio
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.run.deployment.liveedit.AdbConnection
-import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditDeployMonitor
+import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor
 import com.android.tools.idea.run.deployment.liveedit.DeviceConnection
 import com.android.tools.idea.run.deployment.liveedit.EditEvent
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
@@ -108,7 +108,7 @@ class LiveEditService constructor(val project: Project,
     return deployMonitor.compiler.inlineCandidateCache
   }
 
-  private val deployMonitor: AndroidLiveEditDeployMonitor
+  private val deployMonitor: LiveEditProjectMonitor
 
   private var showMultiDeviceNotification = true
 
@@ -118,7 +118,7 @@ class LiveEditService constructor(val project: Project,
     // TODO: Deactivate this when not needed.
     val listener = PsiListener(this::onPsiChanged)
     PsiManager.getInstance(project).addPsiTreeChangeListener(listener, this)
-    deployMonitor = AndroidLiveEditDeployMonitor(this, project)
+    deployMonitor = LiveEditProjectMonitor(this, project)
     // TODO: Delete if it turns our we don't need Hard-refresh trigger.
     //bindKeyMapShortcut(LiveEditApplicationConfiguration.getInstance().leTriggerMode)
 
@@ -181,13 +181,13 @@ class LiveEditService constructor(val project: Project,
     }
 
     fun hasLiveEditSupportedDeviceConnected() = AndroidDebugBridge.getBridge()!!.devices.any { device ->
-      AndroidLiveEditDeployMonitor.supportLiveEdits(device)
+      LiveEditProjectMonitor.supportLiveEdits(device)
     }
   }
 
   // TODO: Refactor this away when AndroidLiveEditDeployMonitor functionality is moved to LiveEditService/other classes.
   @VisibleForTesting
-  fun getDeployMonitor(): AndroidLiveEditDeployMonitor {
+  fun getDeployMonitor(): LiveEditProjectMonitor {
     return deployMonitor
   }
 

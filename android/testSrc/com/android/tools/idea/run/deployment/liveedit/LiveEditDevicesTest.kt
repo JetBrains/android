@@ -26,14 +26,14 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @RunWith(JUnit4::class)
-class DeviceStatusManagerTest {
+class LiveEditDevicesTest {
 
   val device1: IDevice = MockitoKt.mock()
   val device2: IDevice = MockitoKt.mock()
 
   @Test
   fun testDeviceAdd() {
-    val map = DeviceStatusManager()
+    val map = LiveEditDevices()
 
     val events = mutableMapOf<IDevice, LiveEditStatus>()
     map.addListener { events.putAll(it) }
@@ -54,7 +54,7 @@ class DeviceStatusManagerTest {
 
   @Test
   fun testUpdateAll() {
-    val map = DeviceStatusManager()
+    val map = LiveEditDevices()
     map.addDevice(device1, LiveEditStatus.UpToDate)
     map.addDevice(device2, LiveEditStatus.UnrecoverableError)
 
@@ -75,7 +75,7 @@ class DeviceStatusManagerTest {
 
   @Test
   fun testUpdateAllWithFunction() {
-    val map = DeviceStatusManager()
+    val map = LiveEditDevices()
     map.addDevice(device1, LiveEditStatus.UpToDate)
     map.addDevice(device2, LiveEditStatus.UnrecoverableError)
 
@@ -94,7 +94,7 @@ class DeviceStatusManagerTest {
 
   @Test
   fun testUpdateOne() {
-    val map = DeviceStatusManager()
+    val map = LiveEditDevices()
     map.addDevice(device1, LiveEditStatus.UpToDate)
     map.addDevice(device2, LiveEditStatus.UnrecoverableError)
 
@@ -116,7 +116,7 @@ class DeviceStatusManagerTest {
 
   @Test
   fun testUpdateOneWithFunction() {
-    val map = DeviceStatusManager()
+    val map = LiveEditDevices()
     map.addDevice(device1, LiveEditStatus.UpToDate)
     map.addDevice(device2, LiveEditStatus.UnrecoverableError)
 
@@ -138,7 +138,7 @@ class DeviceStatusManagerTest {
 
   @Test
   fun testDisabled() {
-    val map = DeviceStatusManager()
+    val map = LiveEditDevices()
     assertTrue(map.isDisabled())
 
     map.addDevice(device1, LiveEditStatus.UpToDate)
