@@ -48,9 +48,9 @@
               class="com.android.tools.adtui.actions.ZoomActualAction"
               text="Zoom to Actual Size (100%)"
               description="Zoom to actual size of preview">
-        <keyboard-shortcut keymap="$default" first-keystroke="control 0" />
+        <keyboard-shortcut keymap="$default" first-keystroke="control PERIOD" />
         <keyboard-shortcut keymap="$default" first-keystroke="control NUMPAD0" />
-        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta 0" replace-all="true"/>
+        <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta PERIOD" replace-all="true"/>
         <keyboard-shortcut keymap="Mac OS X 10.5+" first-keystroke="meta NUMPAD0" />
       </action>
       <action id="Adtui.ZoomToFitAction"
