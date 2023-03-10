@@ -26,6 +26,7 @@ import com.android.adblib.testingutils.FakeAdbServerProvider
 import com.android.adblib.testingutils.TestingAdbSessionHost
 import com.android.fakeadbserver.DeviceFileState
 import com.android.fakeadbserver.DeviceState
+import com.android.fakeadbserver.ShellProtocolType
 import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
@@ -40,7 +41,6 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.TestApplicationManager
 import com.intellij.testFramework.UsefulTestCase.assertThrows
 import com.intellij.util.concurrency.AppExecutorUtil
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
@@ -82,7 +82,7 @@ class AdbDeviceFileSystemTest {
     closeables.register(
       FakeAdbServerProvider()
         .installDefaultCommandHandlers()
-        .installDeviceHandler(TestShellCommandHandler(shellCommands))
+        .installDeviceHandler(TestShellCommandHandler(ShellProtocolType.SHELL, shellCommands))
         .installDeviceHandler(SyncCommandHandler())
         .build()
     )
@@ -97,7 +97,6 @@ class AdbDeviceFileSystemTest {
   val provisioner = DeviceProvisioner.create(session, emptyList())
 
   val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
-  val coroutineScope = CoroutineScope(dispatcher)
 
   @Before
   fun setUp() {

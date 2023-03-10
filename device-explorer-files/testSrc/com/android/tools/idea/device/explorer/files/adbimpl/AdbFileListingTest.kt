@@ -24,6 +24,7 @@ import com.android.adblib.testingutils.FakeAdbServerProvider
 import com.android.adblib.testingutils.TestingAdbSessionHost
 import com.android.ddmlib.DdmPreferences
 import com.android.ddmlib.ShellCommandUnresponsiveException
+import com.android.fakeadbserver.ShellProtocolType
 import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
 import com.android.tools.idea.device.explorer.files.adbimpl.AdbFileListingEntry.EntryKind
 import com.google.common.truth.Truth.assertThat
@@ -59,7 +60,7 @@ class AdbFileListingTest {
   val closeables = CloseablesRule()
 
   val fakeAdb = closeables.register(FakeAdbServerProvider()
-                                      .installDeviceHandler(TestShellCommandHandler(commands))
+                                      .installDeviceHandler(TestShellCommandHandler(ShellProtocolType.SHELL, commands))
                                       .installDeviceHandler(SyncCommandHandler())
                                       .buildDefault())
   val host = closeables.register(TestingAdbSessionHost())

@@ -19,46 +19,46 @@ import com.android.ddmlib.DdmPreferences
 import com.android.ddmlib.ShellCommandUnresponsiveException
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
-import com.android.fakeadbserver.shellcommandhandlers.ShellHandler
+import com.android.fakeadbserver.ShellProtocolType
+import com.android.fakeadbserver.services.ServiceOutput
+import com.android.fakeadbserver.shellv2commandhandlers.ShellV2Handler
+import com.android.fakeadbserver.shellv2commandhandlers.StatusWriter
 import java.lang.Thread.sleep
-import java.net.Socket
 
 /**
  * Handler for FakeAdbServer that handles shell commands using the given TestShellCommands
  * (i.e. predefined commands and responses).
  */
-class TestShellCommandHandler(val shellCommands: TestShellCommands) : ShellHandler() {
-  override fun accept(server: FakeAdbServer, socket: Socket, device: DeviceState, command: String, args: String): Boolean {
-    if (command == "shell" && shellCommands.get(args) != null) {
-      invoke(server, socket, device, args)
-      return true
-    }
-    return false
+class TestShellCommandHandler(shellProtocolType: ShellProtocolType, val shellCommands: TestShellCommands) : ShellV2Handler(
+  shellProtocolType) {
+
+  override fun shouldExecute(shellCommand: String, shellCommandArgs: String?): Boolean {
+    return shellCommands.get("$shellCommand $shellCommandArgs") != null
   }
 
-  override fun invoke(server: FakeAdbServer, socket: Socket, device: DeviceState, args: String) {
-    val result = shellCommands.get(args)
-    val outputStream = socket.getOutputStream()
-    if (result == null) {
-      writeFail(outputStream)
-      writeString(outputStream, "Command not configured")
-      return
-    }
+  override fun execute(fakeAdbServer: FakeAdbServer,
+                       statusWriter: StatusWriter,
+                       serviceOutput: ServiceOutput,
+                       device: DeviceState,
+                       shellCommand: String,
+                       shellCommandArgs: String?) {
+    val result = shellCommands.get("$shellCommand $shellCommandArgs")
+    assert(result != null)
 
     when (result.error) {
       is ShellCommandUnresponsiveException -> {
-        writeOkay(outputStream)
-        writeString(outputStream, "Starting output...")
+        statusWriter.writeOk()
+        serviceOutput.writeStdout("Starting output...")
         sleep(DdmPreferences.getTimeOut() + 1000L)
         return
       }
       null -> {
-        writeOkay(outputStream)
-        writeString(outputStream, checkNotNull(result.output))
+        statusWriter.writeOk()
+        serviceOutput.writeStdout(checkNotNull(result.output))
       }
       else -> {
-        writeFail(outputStream)
-        writeString(outputStream, result.error.toString())
+        statusWriter.writeFail()
+        serviceOutput.writeStdout(result.error.toString())
       }
     }
   }
