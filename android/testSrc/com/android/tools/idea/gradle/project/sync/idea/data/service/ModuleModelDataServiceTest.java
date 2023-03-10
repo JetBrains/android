@@ -6,9 +6,8 @@ import static com.android.tools.idea.testing.TestProjectPaths.SIMPLE_APPLICATION
 import com.android.tools.idea.gradle.project.facet.gradle.GradleFacet;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.intellij.facet.ProjectFacetManager;
+import com.intellij.openapi.util.io.NioPathUtil;
 import java.io.File;
-import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil;
@@ -22,13 +21,14 @@ public class ModuleModelDataServiceTest extends AndroidGradleTestCase {
     prepareProjectForImport(SIMPLE_APPLICATION, linkedProject1);
     prepareProjectForImport(SIMPLE_APPLICATION, linkedProject2);
 
-    List<Path> projectsToReload = Arrays.asList(linkedProject1.toPath(), linkedProject2.toPath());
-    GradleImportingTestUtil.waitForMultipleProjectsReload(projectsToReload,
-      () -> {
+    var linkedProjectPath1 = NioPathUtil.toCanonicalPath(linkedProject1.toPath());
+    var linkedProjectPath2 = NioPathUtil.toCanonicalPath(linkedProject2.toPath());
+    GradleImportingTestUtil.waitForProjectReload(linkedProjectPath1, () ->
+      GradleImportingTestUtil.waitForProjectReload(linkedProjectPath2, () -> {
         GradleProjectImportUtil.linkAndRefreshGradleProject(linkedProject1.getAbsolutePath(), getProject());
         GradleProjectImportUtil.linkAndRefreshGradleProject(linkedProject2.getAbsolutePath(), getProject());
         return null;
-      }
+      })
     );
 
     List<AndroidFacet> androidFacets = ProjectFacetManager.getInstance(getProject()).getFacets(AndroidFacet.ID);
@@ -45,19 +45,15 @@ public class ModuleModelDataServiceTest extends AndroidGradleTestCase {
     prepareProjectForImport(SIMPLE_APPLICATION, linkedProject1);
     prepareProjectForImport(SIMPLE_APPLICATION, linkedProject2);
 
-    GradleImportingTestUtil.waitForProjectReload(
-      () -> {
-        GradleProjectImportUtil.linkAndRefreshGradleProject(linkedProject1.getAbsolutePath(), getProject());
-        return null;
-      }
-    );
+    GradleImportingTestUtil.waitForProjectReload(() -> {
+      GradleProjectImportUtil.linkAndRefreshGradleProject(linkedProject1.getAbsolutePath(), getProject());
+      return null;
+    });
 
-    GradleImportingTestUtil.waitForProjectReload(
-      () -> {
-        GradleProjectImportUtil.linkAndRefreshGradleProject(linkedProject2.getAbsolutePath(), getProject());
-        return null;
-      }
-    );
+    GradleImportingTestUtil.waitForProjectReload(() -> {
+      GradleProjectImportUtil.linkAndRefreshGradleProject(linkedProject2.getAbsolutePath(), getProject());
+      return null;
+    });
 
     List<AndroidFacet> androidFacets = ProjectFacetManager.getInstance(getProject()).getFacets(AndroidFacet.ID);
     assertEquals(8, androidFacets.size());
