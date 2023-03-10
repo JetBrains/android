@@ -45,6 +45,9 @@ import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.ListSelectionModel
+import javax.swing.SortOrder
+import javax.swing.table.TableModel
+import javax.swing.table.TableRowSorter
 
 /**
  * This execution console is installed to build output window and is shown when "Download info" node is selected.
@@ -59,7 +62,24 @@ class DownloadsInfoExecutionConsole(
   // TODO (b/271258614): In an unlikely case when build is finished before running this code this will result in an error.
   private val listenBuildEventsDisposable = Disposer.newDisposable(buildFinishedDisposable, "DownloadsInfoExecutionConsole")
   val uiModel = DownloadsInfoUIModel(buildId, listenBuildEventsDisposable)
-  val requestsTable = TableView(uiModel.requestsTableModel).apply {
+
+  val requestsTable = object : TableView<DownloadRequestItem>(uiModel.requestsTableModel) {
+    override fun createRowSorter(model: TableModel?): TableRowSorter<TableModel?> {
+      return object : DefaultColumnInfoBasedRowSorter(model) {
+        override fun toggleSortOrder(column: Int) {
+          if (isSortable(column)) {
+            val oldOrder = sortKeys.firstOrNull()?.takeIf { it.column == column }?.sortOrder ?: SortOrder.UNSORTED
+            sortKeys = listOf(SortKey(column, oldOrder.nextSortOrder()))
+          }
+        }
+      }
+    }
+    private fun SortOrder.nextSortOrder(): SortOrder = when(this) {
+      SortOrder.ASCENDING -> SortOrder.DESCENDING
+      SortOrder.DESCENDING -> SortOrder.UNSORTED
+      SortOrder.UNSORTED -> SortOrder.ASCENDING
+    }
+  }.apply {
     name = "requests table"
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
     setShowGrid(false)

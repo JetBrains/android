@@ -30,6 +30,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildOutputDownloadsInfoEvent
+import com.intellij.codeInsight.codeVision.ui.popup.layouter.getCenter
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
@@ -212,6 +213,27 @@ class DownloadsInfoExecutionConsoleTest {
       .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_DOWNLOADS_INFO_USER_INTERACTION }
       .map { use -> use.studioEvent.buildOutputDownloadsInfoEvent.interaction }
     assertThat(interactions).isEqualTo(listOf(BuildOutputDownloadsInfoEvent.Interaction.OPEN_DOWNLOADS_INFO_UI))
+  }
+
+  @Test
+  fun testSortToggle() {
+    val downloadProcess1 = DownloadRequestItem(DownloadRequestKey(1000, url1), GOOGLE, completed = true, duration = 200)
+    val downloadProcess2 = DownloadRequestItem(DownloadRequestKey(2000, url2), GOOGLE, completed = true, duration = 100)
+    val downloadProcess3 = DownloadRequestItem(DownloadRequestKey(3000, url3), MAVEN_CENTRAL, completed = true, duration = 300)
+    executionConsole.uiModel.updateDownloadRequest(downloadProcess1)
+    executionConsole.uiModel.updateDownloadRequest(downloadProcess2)
+    executionConsole.uiModel.updateDownloadRequest(downloadProcess3)
+
+    // Test three-state-sorting based on duration column.
+    // First toggle should sort by duration in ascending order
+    requestsTable.rowSorter.toggleSortOrder(2)
+    assertThat((0..2).map { requestsTable.getRow(it) }).isEqualTo(listOf(downloadProcess2, downloadProcess1, downloadProcess3))
+    // Second toggle should sort by duration in descending order
+    requestsTable.rowSorter.toggleSortOrder(2)
+    assertThat((0..2).map { requestsTable.getRow(it) }).isEqualTo(listOf(downloadProcess3, downloadProcess1, downloadProcess2))
+    // Third toggle should reset sorting to original order
+    requestsTable.rowSorter.toggleSortOrder(2)
+    assertThat((0..2).map { requestsTable.getRow(it) }).isEqualTo(listOf(downloadProcess1, downloadProcess2, downloadProcess3))
   }
 
   @Test
