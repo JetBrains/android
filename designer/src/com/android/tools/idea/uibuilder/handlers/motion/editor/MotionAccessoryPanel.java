@@ -378,6 +378,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
     myUpdatingSelectionInLayoutEditor = true;
     try {
       myDesignSurface.getSelectionModel().setSelection(selected);
+      myDesignSurface.repaint();
     }
     finally {
       myUpdatingSelectionInLayoutEditor = false;
