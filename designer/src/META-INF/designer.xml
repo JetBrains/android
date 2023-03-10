@@ -215,6 +215,10 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <notificationGroup displayType="BALLOON" id="Motion Editor" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
     <globalInspection projectType="Android" hasStaticDescription="true" displayName="Bounds" shortName="Bounds" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BoundsAnalyzerInspection"/>
