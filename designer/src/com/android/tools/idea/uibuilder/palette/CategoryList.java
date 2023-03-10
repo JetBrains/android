@@ -110,6 +110,7 @@ public class CategoryList extends ListWithMargin<Palette.Group> {
       myMatchCount.setVisible(categoryList.displayMatchCounts());
       myMatchCount.setForeground(hasFocus ? UIUtil.getTreeSelectionForeground(true) : JBColor.GRAY);
 
+      myPanel.setToolTipText(group.getName());
       return myPanel;
     }
   }
