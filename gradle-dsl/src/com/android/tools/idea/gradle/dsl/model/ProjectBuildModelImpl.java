@@ -54,7 +54,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
    */
   public ProjectBuildModelImpl(@NotNull Project project, @Nullable VirtualFile file, @NotNull BuildModelContext buildModelContext) {
     myBuildModelContext = buildModelContext;
-    myProjectBuildFile = myBuildModelContext.parseProjectBuildFile(project, file);
+    myProjectBuildFile = myBuildModelContext.initializeContext(project, file);
   }
 
   @Override
@@ -200,7 +200,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   public @NotNull GradleVersionCatalogsModel getVersionCatalogsModel() {
     Collection<GradleVersionCatalogFile> files;
     if (StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.get()) {
-      files = myProjectBuildFile.getVersionCatalogFiles();
+      files = getContext().getVersionCatalogFiles();
     }
     else {
       // this whole section will be deleted once extended catalog support is enabled

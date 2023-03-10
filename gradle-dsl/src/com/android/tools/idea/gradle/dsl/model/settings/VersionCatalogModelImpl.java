@@ -38,8 +38,8 @@ public class VersionCatalogModelImpl extends GradleDslBlockModel implements Vers
   @Override
   public @NotNull ResolvedPropertyModel from() {
     GradlePropertyModelBuilder builder = GradlePropertyModelBuilder.create(myDslElement, FROM);
-    if (myDslElement.getName().equals("libs")) {
-      builder = builder.withDefault("gradle/libs.versions.toml");
+    if (myDslElement.getName().equals(DEFAULT_CATALOG_NAME)) {
+      builder = builder.withDefault(DEFAULT_CATALOG_FILE);
     }
     return builder.addTransform(new SingleArgumentMethodTransform("files")).buildResolved();
   }

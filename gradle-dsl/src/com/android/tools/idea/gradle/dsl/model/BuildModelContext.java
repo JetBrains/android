@@ -54,8 +54,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.SystemIndependent;
@@ -94,6 +97,8 @@ public final class BuildModelContext {
   private GradleBuildFile myRootProjectFile;
   @Nullable
   private AndroidGradlePluginVersion agpVersion;
+  @NotNull
+  private final Set<GradleVersionCatalogFile> myVersionCatalogFiles = new LinkedHashSet<>();
 
   public void setRootProjectFile(@NotNull GradleBuildFile rootProjectFile) {
     myRootProjectFile = rootProjectFile;
@@ -226,7 +231,8 @@ public final class BuildModelContext {
     return buildDslFile;
   }
 
-  public GradleBuildFile parseProjectBuildFile(@NotNull Project project, @Nullable VirtualFile file) {
+  @Nullable
+  public GradleBuildFile initializeContext(@NotNull Project project, @Nullable VirtualFile file) {
     // First parse the main project build file.
     GradleBuildFile result = file != null ? new GradleBuildFile(file, project, ":", this) : null;
     if (result != null) {
@@ -235,10 +241,20 @@ public final class BuildModelContext {
         GradleSettingsModel gradleSettingsModel = getSettingsModel(result);
         populateWithParentModuleSubProjectsProperties(result, gradleSettingsModel);
         populateSiblingDslFileWithGradlePropertiesFile(result);
-        populateVersionCatalogFiles(result, gradleSettingsModel);
+        populateVersionCatalogFiles(gradleSettingsModel);
         result.parse();
       });
       putBuildFile(file.getUrl(), result);
+    }
+    else {
+      // in case root build file is not there, we still need to parse settings for catalogs
+      ApplicationManager.getApplication().runReadAction(() -> {
+        VirtualFile maybeSettingsFile = getProjectSettingsFile();
+        if (maybeSettingsFile != null) {
+          GradleSettingsFile settingsFile = getOrCreateSettingsFile(maybeSettingsFile);
+          populateVersionCatalogFiles(new GradleSettingsModelImpl(settingsFile));
+        }
+      });
     }
     return result;
   }
@@ -252,20 +268,32 @@ public final class BuildModelContext {
     return myFileCache.getAllFiles();
   }
 
-  private void populateVersionCatalogFiles(@NotNull GradleBuildFile buildFile, @Nullable GradleSettingsModel gradleSettingsModel) {
-    if (gradleSettingsModel == null) return;
+  @NotNull
+  public Set<GradleVersionCatalogFile> getVersionCatalogFiles() {
+    return myVersionCatalogFiles;
+  }
+
+  private void populateVersionCatalogFiles(@Nullable GradleSettingsModel gradleSettingsModel) {
     if (!GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled()) return;
-    for (VersionCatalogModel versionCatalogModel: gradleSettingsModel.dependencyResolutionManagement().versionCatalogs()) {
+    if (gradleSettingsModel == null) {
+      checkVersionCatalog(VersionCatalogModel.DEFAULT_CATALOG_FILE, VersionCatalogModel.DEFAULT_CATALOG_NAME)
+        .ifPresent(myVersionCatalogFiles::add);
+      return;
+    }
+    for (VersionCatalogModel versionCatalogModel : gradleSettingsModel.dependencyResolutionManagement().versionCatalogs()) {
       String from = versionCatalogModel.from().getValue(GradlePropertyModel.STRING_TYPE);
       if (from == null) continue;
-      @SystemIndependent String fromPath = toSystemIndependentName(from);
-      @SystemIndependent String rootPath = myResolvedConfigurationFileLocationProvider.getGradleProjectRootPath(getProject());
-      @SystemIndependent String path = String.join("/", rootPath, fromPath);
-      VirtualFile versionCatalogFile = findFileByIoFile(new File(toSystemDependentName(path)), false);
-      if (versionCatalogFile == null) continue;
-      GradleVersionCatalogFile parsedVersionCatalog = getOrCreateVersionCatalogFile(versionCatalogFile, versionCatalogModel.getName());
-      buildFile.getVersionCatalogFiles().add(parsedVersionCatalog);
+      checkVersionCatalog(from, versionCatalogModel.getName()).ifPresent(myVersionCatalogFiles::add);
     }
+  }
+
+  private Optional<GradleVersionCatalogFile> checkVersionCatalog(String filePath, String name) {
+    @SystemIndependent String fromPath = toSystemIndependentName(filePath);
+    @SystemIndependent String rootPath = myResolvedConfigurationFileLocationProvider.getGradleProjectRootPath(getProject());
+    @SystemIndependent String path = String.join("/", rootPath, fromPath);
+    VirtualFile versionCatalogFile = findFileByIoFile(new File(toSystemDependentName(path)), false);
+    if (versionCatalogFile == null) return Optional.empty();
+    return Optional.of(getOrCreateVersionCatalogFile(versionCatalogFile, name));
   }
 
   private void populateSiblingDslFileWithGradlePropertiesFile(@NotNull GradleBuildFile buildDslFile) {

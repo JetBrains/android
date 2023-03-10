@@ -115,6 +115,28 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
   }
 
   @Test
+  fun testCatalogVisibilityNoRootBuildFile() {
+    writeToSubModuleBuildFile(TestFile.APPLY_NO_ROOT_BUILD_FILE)
+    writeToSettingsFile(subModuleSettingsText)
+    writeToVersionCatalogFile("")
+
+    // Delete the main build file
+    runWriteAction<Unit, IOException> { myBuildFile.delete(this) }
+
+    val pbm = projectBuildModel
+    assertEquals(setOf("libs"), pbm.versionCatalogsModel.catalogNames())
+  }
+
+  @Test
+  fun testCatalogVisibilityNoSettingsFile() {
+    writeToVersionCatalogFile("")
+    runWriteAction<Unit, IOException> { mySettingsFile.delete(this) }
+
+    val pbm = projectBuildModel
+    assertEquals(setOf("libs"), pbm.versionCatalogsModel.catalogNames())
+  }
+
+  @Test
   fun testMultipleModelsPersistChanges() {
     writeToBuildFile(TestFile.MULTIPLE_MODELS_PERSIST_CHANGES)
     writeToSubModuleBuildFile(TestFile.MULTIPLE_MODELS_PERSIST_CHANGES_SUB)
@@ -520,6 +542,20 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
 
     val pbm = projectBuildModel
     val buildModel = pbm.projectBuildModel!!
+    val dependencies = buildModel.dependencies()
+    val artifacts = dependencies.artifacts()
+    assertSize(1, artifacts)
+    assertEquals("com.example:example:1.2.3", artifacts[0].compactNotation())
+  }
+
+  @Test
+  fun testVersionCatalogSubModuleNotationVariableResolution() {
+    writeToSubModuleBuildFile(TestFile.VERSION_CATALOG_BUILD_FILE)
+    writeToVersionCatalogFile(TestFile.VERSION_CATALOG_MODULE_NOTATION)
+    writeToSettingsFile(subModuleSettingsText)
+
+    val pbm = projectBuildModel
+    val buildModel = pbm.getModuleBuildModel(mySubModule)!!
     val dependencies = buildModel.dependencies()
     val artifacts = dependencies.artifacts()
     assertSize(1, artifacts)
