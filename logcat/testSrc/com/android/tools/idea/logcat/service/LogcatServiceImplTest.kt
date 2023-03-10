@@ -22,7 +22,10 @@ import com.android.adblib.testingutils.CoroutineTestUtils.yieldUntil
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
+import com.android.fakeadbserver.ShellProtocolType
+import com.android.fakeadbserver.services.ServiceOutput
 import com.android.fakeadbserver.shellcommandhandlers.LogcatCommandHandler
+import com.android.fakeadbserver.shellv2commandhandlers.StatusWriter
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
 import com.android.testutils.TestResources
@@ -304,13 +307,18 @@ class LogcatServiceImplTest {
     return LogcatServiceImpl(project, lastMessageDelayMs)
   }
 
-  private class CheckFormatLogcatHandler : LogcatCommandHandler() {
+  private class CheckFormatLogcatHandler : LogcatCommandHandler(ShellProtocolType.SHELL) {
     var lastDeviceId: String? = null
     var lastArgs: String? = null
-    override fun execute(fakeAdbServer: FakeAdbServer, responseSocket: Socket, device: DeviceState, args: String?) {
+    override fun execute(fakeAdbServer: FakeAdbServer,
+                         statusWriter: StatusWriter,
+                         serviceOutput: ServiceOutput,
+                         device: DeviceState,
+                         shellCommand: String,
+                         shellCommandArgs: String?) {
       lastDeviceId = device.deviceId
-      lastArgs = args
-      super.execute(fakeAdbServer, responseSocket, device, args)
+      lastArgs = shellCommandArgs
+      super.execute(fakeAdbServer, statusWriter, serviceOutput, device, shellCommand, shellCommandArgs)
     }
   }
 }
