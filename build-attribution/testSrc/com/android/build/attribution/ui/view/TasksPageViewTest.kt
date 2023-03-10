@@ -24,6 +24,7 @@ import com.android.build.attribution.ui.model.TasksDataPageModelImpl
 import com.android.build.attribution.ui.model.TasksPageId
 import com.android.build.attribution.ui.model.TasksTreeNode
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
@@ -31,7 +32,10 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.HyperlinkLabel
+import com.intellij.ui.SimpleColoredComponent
+import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.tree.TreePathUtil
+import com.intellij.util.ui.StatusText
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -39,6 +43,8 @@ import org.junit.Test
 import org.mockito.Mockito
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.Point
+import java.awt.Rectangle
 
 class TasksPageViewTest {
   @get:Rule
@@ -170,23 +176,30 @@ class TasksPageViewTest {
 
   @Test
   @RunsInEdt
-  // Empty state tested here is when there are no tasks to be shown thus tree would be completely empty.
-  // It is replaced with special message instead.
   fun testEmptyState() {
     val data = MockUiData(tasksList = emptyList())
     val model = TasksDataPageModelImpl(data)
     view = TasksPageView(model, mockHandlers, disposableRule.disposable).apply {
       component.size = Dimension(600, 200)
     }
+    val fakeUi = FakeUi(view.component)
+    fakeUi.layoutAndDispatchEvents()
 
-    val emptyStatePanel = view.component.components.single()
-    assertThat(emptyStatePanel.isVisible).isTrue()
-    assertThat(emptyStatePanel.name).isEqualTo("empty-state")
-    val links = TreeWalker(emptyStatePanel).descendants().filterIsInstance(HyperlinkLabel::class.java)
-    assertThat(links).hasSize(1)
+    assertThat(view.component.components.any { it.isVisible }).isFalse()
 
-    // Act / assert links handling
-    links[0].doClick()
+    val emptyStatusText = (view.component as JBPanelWithEmptyText).emptyText
+    assertThat(emptyStatusText.toStringState()).isEqualTo("""
+      java.awt.Rectangle[x=55,y=45,width=489,height=64]
+      This build ran without any tasks to process, or all tasks were already up to date.| width=489 height=20
+      Learn more about this build's performance:| width=268 height=20
+      All warnings| width=79 height=20
+    """.trimIndent())
+    // Try click on row centers. Only last row should react being a link.
+    fakeUi.clickRelativeTo(view.component, 300, 45 + 10)
+    Mockito.verifyNoInteractions(mockHandlers)
+    fakeUi.clickRelativeTo(view.component, 300, 45 + 32)
+    Mockito.verifyNoInteractions(mockHandlers)
+    fakeUi.clickRelativeTo(view.component, 300, 45 + 55)
     Mockito.verify(mockHandlers).changeViewToWarningsLinkClicked()
   }
 

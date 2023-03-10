@@ -29,12 +29,14 @@ import com.android.build.attribution.ui.model.WarningsTreeNode
 import com.android.build.attribution.ui.view.details.WarningsViewDetailPagesFactory
 import com.android.buildanalyzer.common.TaskCategory
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.HyperlinkLabel
+import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.tree.TreePathUtil
 import org.junit.Before
 import org.junit.Rule
@@ -169,17 +171,24 @@ class WarningsPageViewTest {
       component.size = Dimension(600, 200)
     }
 
-    val emptyStatePanel = view.component.components.single()
-    assertThat(emptyStatePanel.isVisible).isTrue()
-    assertThat(emptyStatePanel.name).isEqualTo("empty-state")
-    val links = TreeWalker(emptyStatePanel).descendants().filterIsInstance(HyperlinkLabel::class.java)
-    assertThat(links).hasSize(2)
+    val fakeUi = FakeUi(view.component)
+    fakeUi.layoutAndDispatchEvents()
 
-    // Act / assert links handling
-    links[0].doClick()
+    assertThat(view.component.components.any { it.isVisible }).isFalse()
+
+    val emptyStatusText = (view.component as JBPanelWithEmptyText).emptyText
+    assertThat(emptyStatusText.toStringState()).isEqualTo("""
+      java.awt.Rectangle[x=29,y=45,width=542,height=64]
+      This build has no warnings. To learn more about its performance, check out these views:| width=542 height=20
+      Tasks impacting build duration| width=193 height=20
+      Plugins with tasks impacting build duration| width=268 height=20
+    """.trimIndent())
+    // Try click on row centers. Only second and third rows should react being links.
+    fakeUi.clickRelativeTo(view.component, 300, 45 + 10)
+    Mockito.verifyNoInteractions(mockHandlers)
+    fakeUi.clickRelativeTo(view.component, 300, 45 + 32)
     Mockito.verify(mockHandlers).changeViewToTasksLinkClicked(null)
-
-    links[1].doClick()
+    fakeUi.clickRelativeTo(view.component, 300, 45 + 55)
     Mockito.verify(mockHandlers).changeViewToTasksLinkClicked(TasksDataPageModel.Grouping.BY_PLUGIN)
   }
 }

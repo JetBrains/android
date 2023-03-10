@@ -27,16 +27,16 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.CardLayoutPanel
 import com.intellij.ui.CollectionComboBoxModel
-import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.SimpleListCellRenderer
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SpeedSearchComparator
 import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
+import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.panels.HorizontalLayout
-import com.intellij.ui.components.panels.VerticalLayout
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.JBUI
@@ -189,13 +189,16 @@ class TasksPageView(
     setHonorComponentsMinimumSize(true)
   }
 
-  override val component: JPanel = JPanel(BorderLayout()).apply {
+  override val component: JPanel = JBPanelWithEmptyText(BorderLayout()).apply {
     name = "tasks-view"
-    if (model.isEmpty) {
-      add(createEmptyStatePanel(), BorderLayout.CENTER)
-    }
-    else {
-      add(componentsSplitter, BorderLayout.CENTER)
+    add(componentsSplitter, BorderLayout.CENTER)
+    componentsSplitter.isVisible = !model.isEmpty
+    emptyText.apply {
+      appendLine("This build ran without any tasks to process, or all tasks were already up to date.")
+      appendLine("Learn more about this build's performance:")
+      appendLine("All warnings", SimpleTextAttributes.LINK_ATTRIBUTES) {
+        actionHandlers.changeViewToWarningsLinkClicked()
+      }
     }
   }
 
@@ -243,22 +246,5 @@ class TasksPageView(
       }
     }
     fireActionHandlerEvents = true
-  }
-
-  private fun createEmptyStatePanel() = JPanel().apply {
-    name = "empty-state"
-    border = JBUI.Borders.empty(20)
-    layout = VerticalLayout(0, SwingConstants.LEFT)
-
-    add(JBLabel("This build did not run any tasks or all of the tasks were up to date."))
-    add(JBLabel("To continue exploring this build's performance, consider these views into this build."))
-    add(JPanel().apply {
-      name = "links"
-      border = JBUI.Borders.emptyTop(20)
-      layout = VerticalLayout(0, SwingConstants.LEFT)
-      add(HyperlinkLabel("All warnings").apply {
-        addHyperlinkListener { actionHandlers.changeViewToWarningsLinkClicked() }
-      })
-    })
   }
 }
