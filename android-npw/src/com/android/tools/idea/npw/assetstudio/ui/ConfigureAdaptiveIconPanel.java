@@ -115,6 +115,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
   private static final String GENERATE_LEGACY_ICON_PROPERTY = "generateLegacyIcon";
   private static final String GENERATE_ROUND_ICON_PROPERTY = "generateRoundIcon";
   private static final String GENERATE_PLAY_STORE_ICON_PROPERTY = "generatePlayStoreIcon";
+  private static final String GENERATE_WEBP_ICONS_PROPERTY = "generateWebpIcons";
   private static final String LEGACY_ICON_SHAPE_PROPERTY = "legacyIconShape";
   private static final String SHOW_GRID_PROPERTY = "showGrid";
   private static final String SHOW_SAFE_ZONE_PROPERTY = "showSafeZone";
@@ -246,6 +247,11 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
   private JPanel myGeneratePlayStoreIconRadioButtonsPanel;
   private JRadioButton myGeneratePlayStoreIconYesRadioButton;
   private JRadioButton myBackgroundTrimNoRadioButton;
+  private TitledSeparator myIconFormatTitle;
+  private JBLabel myIconFormatLabel;
+  private JPanel myIconFormatRowPanel;
+  private JRadioButton myIconFormatWebpRadioButton;
+  private JPanel myIconFormatRadioButtonsPanel;
 
   @NotNull private final AndroidIconType myIconType;
   @NotNull private final String myDefaultOutputName;
@@ -292,6 +298,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
   private BoolProperty myGenerateLegacyIcon;
   private BoolProperty myGenerateRoundIcon;
   private BoolProperty myGeneratePlayStoreIcon;
+  private BoolProperty myGenerateWebpIcons;
   private AbstractProperty<Shape> myLegacyIconShape;
   @NotNull private final IdeResourceNameValidator myNameValidator = IdeResourceNameValidator.forFilename(ResourceFolderType.DRAWABLE);
 
@@ -437,6 +444,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     state.set(GENERATE_LEGACY_ICON_PROPERTY, myGenerateLegacyIcon.get(), true);
     state.set(GENERATE_ROUND_ICON_PROPERTY, myGenerateRoundIcon.get(), true);
     state.set(GENERATE_PLAY_STORE_ICON_PROPERTY, myGeneratePlayStoreIcon.get(), true);
+    state.set(GENERATE_WEBP_ICONS_PROPERTY, myGenerateWebpIcons.get(), true);
     state.set(LEGACY_ICON_SHAPE_PROPERTY, myLegacyIconShape.get(), DEFAULT_ICON_SHAPE);
     state.set(SHOW_GRID_PROPERTY, myShowGrid.get(), false);
     state.set(SHOW_SAFE_ZONE_PROPERTY, myShowSafeZone.get(), true);
@@ -462,6 +470,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myGenerateLegacyIcon.set(state.get(GENERATE_LEGACY_ICON_PROPERTY, true));
     myGenerateRoundIcon.set(state.get(GENERATE_ROUND_ICON_PROPERTY, true));
     myGeneratePlayStoreIcon.set(state.get(GENERATE_PLAY_STORE_ICON_PROPERTY, true));
+    myGenerateWebpIcons.set(state.get(GENERATE_WEBP_ICONS_PROPERTY, true));
     myLegacyIconShape.set(state.get(LEGACY_ICON_SHAPE_PROPERTY, DEFAULT_ICON_SHAPE));
     myShowGrid.set(state.get(SHOW_GRID_PROPERTY, false));
     myShowSafeZone.set(state.get(SHOW_SAFE_ZONE_PROPERTY, true));
@@ -494,6 +503,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
     myGenerateLegacyIcon = new SelectedProperty(myGenerateLegacyIconYesRadioButton);
     myGenerateRoundIcon = new SelectedProperty(myGenerateRoundIconYesRadioButton);
     myGeneratePlayStoreIcon = new SelectedProperty(myGeneratePlayStoreIconYesRadioButton);
+    myGenerateWebpIcons = new SelectedProperty(myIconFormatWebpRadioButton);
 
     myLegacyIconShape = ObjectProperty.wrap(new SelectedItemProperty<>(myLegacyIconShapeComboBox));
 
@@ -527,7 +537,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
         .listenAll(myForegroundTrimmed, myForegroundResizePercent, myForegroundColor,
                    myBackgroundTrimmed, myBackgroundResizePercent, myBackgroundColor,
                    myGenerateLegacyIcon, myLegacyIconShape,
-                   myGenerateRoundIcon, myGeneratePlayStoreIcon)
+                   myGenerateRoundIcon, myGeneratePlayStoreIcon, myGenerateWebpIcons)
         .with(onAssetModified);
 
     BoolValueProperty foregroundIsResizable = new BoolValueProperty();
@@ -731,6 +741,7 @@ public class ConfigureAdaptiveIconPanel extends JPanel implements Disposable, Co
       LauncherIconGenerator iconGenerator = (LauncherIconGenerator)myIconGenerator;
       myGeneralBindings.bindTwoWay(iconGenerator.generateRoundIcon(), myGenerateRoundIcon);
       myGeneralBindings.bindTwoWay(iconGenerator.generatePlayStoreIcon(), myGeneratePlayStoreIcon);
+      myGeneralBindings.bindTwoWay(iconGenerator.generateWebpIcons(), myGenerateWebpIcons);
       myGeneralBindings.bindTwoWay(iconGenerator.legacyIconShape(), myLegacyIconShape);
       myGeneralBindings.bindTwoWay(iconGenerator.showGrid(), myShowGrid);
       myGeneralBindings.bindTwoWay(iconGenerator.previewDensity(), myPreviewDensity);

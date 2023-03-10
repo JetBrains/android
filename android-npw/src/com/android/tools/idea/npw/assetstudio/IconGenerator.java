@@ -291,6 +291,9 @@ public abstract class IconGenerator implements Disposable {
           if (FileUtilRt.extensionEquals(file.getName(), "png")) {
             writePngToDisk(file, ((GeneratedImageIcon)icon).getImage());
           }
+          else if (FileUtilRt.extensionEquals(file.getName(), "webp")) {
+            writeWebpToDisk(file, ((GeneratedImageIcon)icon).getImage());
+          }
           else {
             getLog().error("Please report this error. Unable to create icon for invalid file: " + file.getAbsolutePath());
           }
@@ -319,6 +322,22 @@ public abstract class IconGenerator implements Disposable {
       }
       try (OutputStream outputStream = virtualFile.getOutputStream(this)) {
         ImageIO.write(image, "PNG", outputStream);
+      }
+    }
+    catch (IOException e) {
+      getLog().error(e);
+    }
+  }
+
+  private void writeWebpToDisk(@NotNull File file, @NotNull BufferedImage image) {
+    try {
+      VirtualFile directory = VfsUtil.createDirectories(file.getParentFile().getAbsolutePath());
+      VirtualFile virtualFile = directory.findChild(file.getName());
+      if (virtualFile == null || !virtualFile.exists()) {
+        virtualFile = directory.createChildData(this, file.getName());
+      }
+      try (OutputStream outputStream = virtualFile.getOutputStream(this)) {
+        ImageIO.write(image, "WEBP", outputStream);
       }
     }
     catch (IOException e) {
@@ -550,6 +569,9 @@ public abstract class IconGenerator implements Disposable {
   private static String getIconFileName(@NotNull IconOptions options, @NotNull String iconName) {
     if (options.density == Density.ANYDPI) {
       return iconName + SdkConstants.DOT_XML;
+    }
+    if (options.generateWebpIcons) {
+      return iconName + SdkConstants.DOT_WEBP;
     }
     return iconName + SdkConstants.DOT_PNG;
   }
@@ -783,6 +805,9 @@ public abstract class IconGenerator implements Disposable {
 
     /** Whether to actual preview icons. */
     public boolean generatePreviewIcons;
+
+    /** Whether to use the WebP format to generate icons. */
+    public boolean generateWebpIcons;
 
     /** The contents of the source image and scaling parameters. */
     @Nullable public TransformedImageAsset image;
