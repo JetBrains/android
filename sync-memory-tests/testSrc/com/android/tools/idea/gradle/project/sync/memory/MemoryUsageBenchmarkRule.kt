@@ -53,7 +53,7 @@ class MemoryUsageBenchmarkRule (
   private val memoryAgentPath = System.getProperty("memory.agent.path")
   private val analysisFlag =
   // This can be specified via --jvmopt="-Dkeep_snapshots=true" in bazel test invocation and  will collect hprofs in the bazel output.
-    // It won't do any measurements since it takes extra time, and it's to be used for manual inspection via a profiler.
+  // It won't do any measurements since it takes extra time, and it's to be used for manual inspection via a profiler.
     if (System.getProperty("keep_snapshots").toBoolean())
       StudioFlags.GRADLE_HPROF_OUTPUT_DIRECTORY
     else
@@ -85,53 +85,42 @@ class MemoryUsageBenchmarkRule (
       testDataPath = MemoryBenchmarkTestSuite.TEST_DATA.toString())) {
       // Free up some memory by closing the Gradle Daemon
       DefaultGradleConnector.close()
+      recordIdeMeasurements()
+      recordGradleMeasurements()
+    }
+  }
 
-      // Wait for the IDE to "settle" before taking a measurement. There will be indexing
-      // and caching related cleanup jobs still running for a while. This allows them to
-      // finish and results in much more reliable values.
-      Thread.sleep(Duration.ofSeconds(30).toMillis())
+  private fun recordIdeMeasurements() {
+    // Wait for the IDE to "settle" before taking a measurement. There will be indexing
+    // and caching related cleanup jobs still running for a while. This allows them to
+    // finish and results in much more reliable values.
+    Thread.sleep(Duration.ofSeconds(30).toMillis())
 
-      val metricIdeAfterSync = Metric("${projectName}_IDE_After_Sync")
-      val metricIdeAfterSyncTotal = Metric("${projectName}_IDE_After_Sync_Total")
-      val metricBeforeSync = Metric("${projectName}_Before_Sync")
-      val metricBeforeSyncTotal = Metric("${projectName}_Before_Sync_Total")
-      val metricAfterSync = Metric("${projectName}_After_Sync")
-      val metricAfterSyncTotal = Metric("${projectName}_After_Sync_Total")
+    var result: LightweightTraverseResult?
 
-      val currentTime = Instant.now().toEpochMilli()
-      var result: LightweightTraverseResult?
+    val elapsedTimeAfterSync = measureTimeMillis {
+      result = LightweightHeapTraverse.collectReport(LightweightHeapTraverseConfig(false, true, true))
+    }
+    println("Heap traversal for IDE after sync finished in $elapsedTimeAfterSync milliseconds")
 
-      val elapsedTimeAfterSync = measureTimeMillis {
-        result = LightweightHeapTraverse.collectReport(LightweightHeapTraverseConfig(false, true, true))
-      }
-      println("Heap traversal for IDE after sync finished in $elapsedTimeAfterSync milliseconds")
+    recordMeasurement("IDE_After_Sync_Total", result!!.totalReachableObjectsSizeBytes)
+    recordMeasurement("IDE_After_Sync", result!!.totalStrongReferencedObjectsSizeBytes)
 
-      metricIdeAfterSyncTotal.addSamples(MemoryBenchmarkTestSuite.BENCHMARK,
-                                         Metric.MetricSample(currentTime, result!!.totalReachableObjectsSizeBytes))
-      metricIdeAfterSync.addSamples(MemoryBenchmarkTestSuite.BENCHMARK,
-                                    Metric.MetricSample(currentTime, result!!.totalStrongReferencedObjectsSizeBytes))
-      println("IDE total size MBs: ${result!!.totalReachableObjectsSizeBytes shr 20} ")
-      println("IDE total object count: ${result!!.totalReachableObjectsNumber} ")
-      println("IDE strong size MBs: ${result!!.totalStrongReferencedObjectsSizeBytes shr 20} ")
-      println("IDE strong object count: ${result!!.totalStrongReferencedObjectsNumber} ")
+    println("IDE total size MBs: ${result!!.totalReachableObjectsSizeBytes shr 20} ")
+    println("IDE total object count: ${result!!.totalReachableObjectsNumber} ")
+    println("IDE strong size MBs: ${result!!.totalStrongReferencedObjectsSizeBytes shr 20} ")
+    println("IDE strong object count: ${result!!.totalStrongReferencedObjectsNumber} ")
+  }
 
-
-      for (metricFilePath in File(outputDirectory).walk().filter { !it.isDirectory }.asIterable()) {
-        when {
-          metricFilePath.name.endsWith("before_sync_strong") -> metricBeforeSync
-          metricFilePath.name.endsWith("before_sync_total") -> metricBeforeSyncTotal
-          metricFilePath.name.endsWith("after_sync_strong") -> metricAfterSync
-          metricFilePath.name.endsWith("after_sync_total") -> metricAfterSyncTotal
-          else -> null
-        }?.addSamples(MemoryBenchmarkTestSuite.BENCHMARK, Metric.MetricSample(currentTime, metricFilePath.readText().toLong()))
-      }
-
-      metricBeforeSync.commit()
-      metricBeforeSyncTotal.commit()
-      metricAfterSync.commit()
-      metricAfterSyncTotal.commit()
-      metricIdeAfterSync.commit()
-      metricIdeAfterSyncTotal.commit()
+  private fun recordGradleMeasurements() {
+    for (metricFilePath in File(outputDirectory).walk().filter { !it.isDirectory }.asIterable()) {
+      when {
+        metricFilePath.name.endsWith("before_sync_strong") -> "Before_Sync"
+        metricFilePath.name.endsWith("before_sync_total") -> "Before_Sync_Total"
+        metricFilePath.name.endsWith("after_sync_strong") -> "After_Sync"
+        metricFilePath.name.endsWith("after_sync_total") -> "After_Sync_Total"
+        else -> null
+      }?.let { recordMeasurement(it, metricFilePath.readText().toLong()) }
     }
   }
 
@@ -141,6 +130,14 @@ class MemoryUsageBenchmarkRule (
       setJvmArgs(jvmArgs.orEmpty().replace("-Xmx60g", "-Xmx${memoryLimitMb}m"))
       setJvmArgs("$jvmArgs -agentpath:${File(memoryAgentPath).absolutePath}")
       save()
+    }
+  }
+
+  private fun recordMeasurement(suffix: String, value: Long) {
+    val currentTime = Instant.now().toEpochMilli()
+    Metric("${projectName}_$suffix").apply {
+      addSamples(MemoryBenchmarkTestSuite.BENCHMARK, Metric.MetricSample(currentTime, value))
+      commit() // There is only one measurement per type, so we can commit immediately.
     }
   }
 }
