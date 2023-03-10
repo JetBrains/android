@@ -23,6 +23,7 @@ import com.android.tools.idea.lint.AndroidLintBundle
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.android.tools.idea.lint.common.LintIdeClient
+import com.android.tools.idea.lint.common.addAnnotation
 import com.android.tools.idea.lint.common.isAnnotationTarget
 import com.android.tools.idea.lint.common.isNewLineNeededForAnnotation
 import com.android.tools.idea.res.ensureNamespaceImported
@@ -53,7 +54,6 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import java.util.Locale
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.util.addAnnotation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
