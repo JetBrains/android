@@ -40,7 +40,7 @@ class ArgumentInspectorBuilder
     component.parent?.let { invokeDialog(component, it) }
   }
 
-  override fun isApplicable(component: NlComponent) = component.supportsArguments && !component.isAction && !component.isNavigation
+  override fun isApplicable(component: NlComponent) = component.supportsArguments && !component.isAction
 
   private fun invokeDialog(component: NlComponent?, parent: NlComponent) {
     val argumentDialog = AddArgumentDialog(component, parent)
