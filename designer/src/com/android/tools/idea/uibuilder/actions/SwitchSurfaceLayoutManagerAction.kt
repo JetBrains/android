@@ -55,7 +55,8 @@ data class SurfaceLayoutManagerOption(val displayName: String,
  */
 class SwitchSurfaceLayoutManagerAction(private val layoutManagerSwitcher: LayoutManagerSwitcher,
                                        private val layoutManagers: List<SurfaceLayoutManagerOption>,
-                                       private val isActionEnabled: (AnActionEvent) -> Boolean = { true }
+                                       private val isActionEnabled: (AnActionEvent) -> Boolean = { true },
+                                       private val onLayoutSelected: (SurfaceLayoutManagerOption) -> Unit
 ) : DropDownAction(
   "Switch Layout",
   "Changes the layout of the preview elements.",
@@ -73,6 +74,9 @@ class SwitchSurfaceLayoutManagerAction(private val layoutManagerSwitcher: Layout
   inner class SetSurfaceLayoutManagerAction(private val option: SurfaceLayoutManagerOption) : ToggleAction(option.displayName) {
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       layoutManagerSwitcher.setLayoutManager(option.layoutManager, option.sceneViewAlignment)
+      if (state) {
+        onLayoutSelected(option)
+      }
     }
 
     override fun isSelected(e: AnActionEvent): Boolean = layoutManagerSwitcher.isLayoutManagerSelected(option.layoutManager)

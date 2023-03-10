@@ -21,6 +21,7 @@ import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.actions.SetColorBlindModeAction
+import com.android.tools.idea.compose.preview.analytics.PreviewCanvasTracker
 import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
 import com.android.tools.idea.compose.preview.message
@@ -80,7 +81,9 @@ class ComposeViewControlAction(
           layoutManagerSwitcher,
           layoutManagers,
           isSurfaceLayoutActionEnabled
-        )
+        ) { selectedOption ->
+          PreviewCanvasTracker.getInstance().logSwitchLayout(selectedOption.layoutManager)
+        }
         .apply {
           isPopup = false
           templatePresentation.isMultiChoice = false
