@@ -110,8 +110,22 @@ class TomlDslParser(
     return when (literal) {
       is TomlLiteral -> when (val kind = literal.kind) {
         is TomlLiteralKind.String -> kind.value
-        // TODO(b/238982591): handle the other kinds too!  (TomlLiteralKind is sealed so this should be easy(!))
-        else -> literal.text
+        is TomlLiteralKind.Boolean -> literal.text == "true"
+        is TomlLiteralKind.Number -> literal.text.replace("_", "").let { text ->
+          when {
+            text.startsWith("0x") -> text.substring(2).toLong(radix = 16)
+            text.startsWith("0o") -> text.substring(2).toLong(radix = 8)
+            text.startsWith("0b") -> text.substring(2).toLong(radix = 2)
+            text == "inf" || text == "+inf" -> Double.POSITIVE_INFINITY
+            text == "-inf" -> Double.NEGATIVE_INFINITY
+            text == "nan" || text == "+nan" -> Double.NaN
+            text == "-nan" -> Double.NaN // no distinct NaN value available
+            text.contains("[eE.]".toRegex()) -> text.toDouble()
+            else -> text.replace("_", "").toLong(10)
+          }
+        }
+        is TomlLiteralKind.DateTime -> literal.text // No Gradle Dsl representation of Toml DateTime
+        null -> literal.text
       }
       else -> literal.text
     }
