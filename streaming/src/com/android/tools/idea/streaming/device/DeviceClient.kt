@@ -304,7 +304,7 @@ internal class DeviceClient(
 
     coroutineScope {
       // "chown shell:shell" ensures proper ownership of /data/local/tmp/.studio if adb is rooted.
-      val command = "mkdir -p $DEVICE_PATH_BASE; chmod 700 $DEVICE_PATH_BASE; chown shell:shell $DEVICE_PATH_BASE"
+      val command = "mkdir -p $DEVICE_PATH_BASE; chmod 755 $DEVICE_PATH_BASE; chown shell:shell $DEVICE_PATH_BASE"
       adb.shellAsLines(deviceSelector, command).collect {
         if (it is ShellCommandOutputElement.ExitCode && it.exitCode != 0) {
           logger.warn("Unable to create $DEVICE_PATH_BASE directory: ${it.exitCode}")
