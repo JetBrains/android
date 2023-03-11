@@ -152,6 +152,13 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
 
   private class MyScrollPane : JBScrollPane(0) {
 
+    init {
+      setupCorners()
+      verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
+      horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+      viewport.background = background
+    }
+
     override fun createVerticalScrollBar(): JScrollBar =
       MyScrollBar(Adjustable.VERTICAL)
 
@@ -162,18 +169,24 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
       // Don't allow borders to be set by the UI framework.
     }
 
-    init {
-      setupCorners()
-      verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
-      horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
-      viewport.background = background
-      viewport.addChangeListener {
-        val view = viewport.view
-        // Remove the explicitly set preferred view size if it does not exceed the viewport size.
-        if (view != null && view.isPreferredSizeSet &&
-            view.preferredSize.width <= viewport.width && view.preferredSize.height <= viewport.height) {
-          view.preferredSize = null
-        }
+    override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
+      val oldWidth = this.width
+      val oldHeight = this.height
+      super.setBounds(x, y, width, height)
+      val view = viewport.view
+      val viewPreferredSize = view.preferredSize
+      if ((
+            viewPreferredSize.width <= oldWidth && viewPreferredSize.height <= oldHeight &&
+            (viewPreferredSize.width >= width || viewPreferredSize.height >= height)
+          ) ||
+          (
+            (viewPreferredSize.width >= oldWidth || viewPreferredSize.height >= oldHeight) &&
+            viewPreferredSize.width <= width && width < viewPreferredSize.width * 2 &&
+            viewPreferredSize.height <= height && height < viewPreferredSize.height * 2
+          )) {
+        // The size of the scroll pane crossed the point where it matched the preferred size of the view.
+        // Reset the preferred size of the view so that it starts resizing with the scroll pane.
+        view.preferredSize = null
       }
     }
   }
@@ -181,6 +194,10 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
   private class MyScrollBar(@AdjustableOrientation orientation: Int) : JBScrollBar(orientation) {
 
     private var persistentUI: ScrollBarUI? = null
+
+    init {
+      isOpaque = false
+    }
 
     override fun setUI(ui: ScrollBarUI) {
       if (persistentUI == null) {
@@ -193,9 +210,5 @@ abstract class AbstractDisplayPanel<T : AbstractDisplayView>(
     override fun getUnitIncrement(direction: Int): Int = 5
 
     override fun getBlockIncrement(direction: Int): Int = 1
-
-    init {
-      isOpaque = false
-    }
   }
 }

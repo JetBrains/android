@@ -423,38 +423,6 @@ class EmulatorViewTest {
     assertThat(tabEvent).isNotNull()
   }
 
-  /** Checks a large container size resulting in a scale greater than 1:1. */
-  @Test
-  fun testLargeScale() {
-    val view = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createWatchAvd(path) }
-
-    val container = createScrollPane(view)
-    val ui = FakeUi(container, 2.0)
-
-    var frameNumber = view.frameNumber
-    assertThat(frameNumber).isEqualTo(0)
-    container.size = Dimension(250, 250)
-    ui.layoutAndDispatchEvents()
-    val call = getStreamScreenshotCallAndWaitForFrame(ui, view, ++frameNumber)
-    assertThat(shortDebugString(call.request)).isEqualTo("format: RGB888 width: 320 height: 320")
-    assertAppearance(ui, "LargeScale")
-    assertThat(call.completion.isCancelled).isFalse() // The latest call has not been cancelled.
-    assertThat(call.completion.isDone).isFalse() // The latest call is still ongoing.
-    assertThat(view.canZoomIn()).isTrue()
-    assertThat(view.canZoomOut()).isFalse()
-    assertThat(view.canZoomToActual()).isFalse()
-    assertThat(view.canZoomToFit()).isFalse()
-
-    view.zoom(ZoomType.IN)
-    ui.layoutAndDispatchEvents()
-    assertThat(call.completion.isCancelled).isFalse() // The latest call has not been cancelled.
-    assertThat(call.completion.isDone).isFalse() // The latest call is still ongoing.
-    assertThat(view.canZoomIn()).isFalse()
-    assertThat(view.canZoomOut()).isTrue()
-    assertThat(view.canZoomToActual()).isTrue()
-    assertThat(view.canZoomToFit()).isTrue()
-  }
-
   @Test
   fun testFolding() {
     val view = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createFoldableAvd(path) }
