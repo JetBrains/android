@@ -223,7 +223,7 @@ class LiveEditService constructor(val project: Project,
     if (oldMode == newMode) {
       return
     } else if (newMode == LiveEditTriggerMode.LE_TRIGGER_AUTOMATIC) {
-      deployMonitor.onManualLETrigger(project)
+      deployMonitor.onManualLETrigger()
     }
   }
 
@@ -237,6 +237,6 @@ class LiveEditService constructor(val project: Project,
   }
 
   fun triggerLiveEdit() {
-    deployMonitor.onManualLETrigger(project)
+    deployMonitor.onManualLETrigger()
   }
 }

@@ -342,7 +342,7 @@ public class LiveEditProjectMonitor implements Disposable {
 
   // Triggered from LiveEdit manual mode. Use buffered changes.
   @Trace
-  public void onManualLETrigger(Project project) {
+  public void onManualLETrigger() {
     methodChangesExecutor.schedule(this::doOnManualLETrigger, 0, TimeUnit.MILLISECONDS);
   }
 
