@@ -17,7 +17,6 @@
 package com.android.tools.idea.kotlin
 
 import com.android.tools.idea.AndroidPsiUtils
-import com.google.common.annotations.VisibleForTesting
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiParameter
@@ -26,6 +25,8 @@ import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated as KtAnnotatedSymbol
+import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
 import org.jetbrains.kotlin.analysis.api.base.KtConstantValue.KtErrorConstantValue
 import org.jetbrains.kotlin.analysis.api.components.KtConstantEvaluationMode
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
@@ -45,11 +46,13 @@ import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeFe10
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
-import org.jetbrains.kotlin.idea.util.findAnnotation
+import org.jetbrains.kotlin.idea.util.findAnnotation as findAnnotationK1
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
@@ -276,3 +279,20 @@ val KtParameter.psiType get() = toLightElements().filterIsInstance(PsiParameter:
 val KtFunction.psiType get() = LightClassUtil.getLightClassMethod(this)?.returnType
 fun KtClass.toPsiType() = toLightElements().filterIsInstance(PsiClass::class.java).firstOrNull()?.let { AndroidPsiUtils.toPsiType(it) }
 fun KtAnnotated.hasAnnotation(fqn: String) = findAnnotation(FqName(fqn)) != null
+
+// TODO(jsjeon): Once available, use upstream util in `AnnotationModificationUtils`
+@OptIn(KtAllowAnalysisOnEdt::class)
+fun KtAnnotated.findAnnotation(fqName: FqName): KtAnnotationEntry? =
+  if (isK2Plugin()) {
+    allowAnalysisOnEdt {
+      analyze(this) {
+        val annotatedSymbol =
+          (this@findAnnotation as? KtDeclaration)?.getSymbol() as? KtAnnotatedSymbol
+        val annotations = annotatedSymbol?.annotationsByClassId(ClassId.topLevel(fqName))
+        annotations?.singleOrNull()?.psi as? KtAnnotationEntry
+      }
+    }
+  } else {
+    findAnnotationK1(fqName)
+  }
+
