@@ -24,6 +24,7 @@ import com.android.tools.idea.actions.annotations.InferredConstraints.Companion.
 import com.android.tools.idea.actions.annotations.InferredConstraints.Companion.inheritParameterAnnotation
 import com.android.tools.idea.actions.annotations.InferredConstraints.Companion.transferArgumentToParameter
 import com.android.tools.idea.actions.annotations.InferredConstraints.Companion.transferReturnToMethod
+import com.android.tools.idea.lint.common.findAnnotation
 import com.android.tools.idea.lint.common.isNewLineNeededForAnnotation
 import com.android.tools.lint.checks.ObjectAnimatorDetector.Companion.KEEP_ANNOTATION
 import com.android.tools.lint.checks.PermissionDetector.Companion.handlesException
@@ -83,7 +84,6 @@ import org.jetbrains.android.util.AndroidUtils
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.asJava.unwrapped
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
-import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClass
