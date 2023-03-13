@@ -57,7 +57,7 @@ class AddCustomConfigurationSetAction(private val onAdd: (String) -> Unit) : AnA
       dialog.close()
       onAdd(id)
     }
-    val owner = e.inputEvent.component
+    val owner = e.inputEvent!!.component
     val location = owner.locationOnScreen
     location.translate(owner.width / 2, owner.height)
 
@@ -110,7 +110,7 @@ class AddCustomConfigurationAction(private val file: PsiFile,
       provider.addCustomConfigurationAttributes(attributes)
       dialog.close()
     }
-    val owner = e.inputEvent.component
+    val owner = e.inputEvent!!.component
     val location = owner.locationOnScreen
     location.translate(owner.width / 2, owner.height)
 

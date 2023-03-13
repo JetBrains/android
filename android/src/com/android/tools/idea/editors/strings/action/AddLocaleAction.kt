@@ -59,7 +59,7 @@ internal constructor(private val stringResourceWriter: StringResourceWriter) :
               label.text = Locale.getLocaleLabel(value, /* brief= */ false)
             })
         .createPopup()
-        .showUnderneathOf(event.inputEvent.component)
+        .showUnderneathOf(event.inputEvent!!.component)
   }
 
   companion object {

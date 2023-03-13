@@ -45,7 +45,7 @@ abstract class NavToolbarMenu(protected val surface: NavDesignSurface, descripti
     }
     else {
       e.presentation.putClientProperty(Toggleable.SELECTED_PROPERTY, true)
-      show(e.inputEvent.source as JComponent)
+      show(e.inputEvent!!.source as JComponent)
     }
   }
 

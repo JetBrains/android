@@ -471,7 +471,7 @@ class ComposeIssueNotificationAction(
     val project = e.project ?: return
     popup = createInformationPopup(project, composePreviewManager, e.dataContext).also { newPopup ->
       Disposer.register(this, newPopup)
-      newPopup.showPopup(e.inputEvent)
+      newPopup.showPopup(e.inputEvent!!)
     }
   }
 

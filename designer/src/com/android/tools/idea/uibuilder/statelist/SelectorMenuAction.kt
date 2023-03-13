@@ -73,7 +73,7 @@ class SelectorMenuAction: AnAction("State Selector", null, StudioIcons.LayoutEdi
 
   override fun actionPerformed(e: AnActionEvent) {
     val surface = e.getRequiredData(DESIGN_SURFACE)
-    val button = e.inputEvent.component
+    val button = e.inputEvent!!.component
 
     // Setup callback to reset the animated selector toolbar when state is changed.
     val toolbar = DataManager.getDataProvider(surface)?.let { ANIMATION_TOOLBAR.getData(it) } as? AnimatedSelectorToolbar
