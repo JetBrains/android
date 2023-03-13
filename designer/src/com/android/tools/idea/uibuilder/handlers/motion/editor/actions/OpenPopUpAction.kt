@@ -31,10 +31,10 @@ abstract class OpenPopUpAction : AnActionButton {
   override fun actionPerformed(e: AnActionEvent) {
     // Context should be set to actions in popup as otherwise it will use component which already
     // could be not available.
-    actions.forEach { it.context = e.inputEvent.component }
+    actions.forEach { it.context = e.inputEvent!!.component }
     val menu =
       JBPopupFactory.getInstance()
         .createActionGroupPopup(null, DefaultActionGroup(actions), e.dataContext, null, true)
-    menu.showUnderneathOf(e.inputEvent.component)
+    menu.showUnderneathOf(e.inputEvent!!.component)
   }
 }

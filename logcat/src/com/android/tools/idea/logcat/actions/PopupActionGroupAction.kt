@@ -35,7 +35,7 @@ internal abstract class PopupActionGroupAction(
   override fun actionPerformed(e: AnActionEvent) {
     JBPopupFactory.getInstance()
       .createActionGroupPopup(null, DefaultActionGroup(getPopupActions()), e.dataContext, null, true)
-      .showUnderneathOf(e.inputEvent.component)
+      .showUnderneathOf(e.inputEvent!!.component)
   }
 
   abstract fun getPopupActions() : List<AnAction>

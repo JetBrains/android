@@ -31,6 +31,6 @@ abstract class ModifyMenuAction : AnActionButton("Modify Constraint Set", MEIcon
     val menu =
       JBPopupFactory.getInstance()
         .createActionGroupPopup(null, DefaultActionGroup(actions), e.dataContext, null, true)
-    menu.showUnderneathOf(e.inputEvent.component)
+    menu.showUnderneathOf(e.inputEvent!!.component)
   }
 }

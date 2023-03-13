@@ -424,7 +424,7 @@ internal class DeviceView(
 
   override fun hardwareInputStateChanged(event: AnActionEvent, enabled: Boolean) {
     super.hardwareInputStateChanged(event, enabled)
-    updateMultiTouchMode(event.inputEvent)
+    updateMultiTouchMode(event.inputEvent!!)
   }
 
   private fun startClipboardSynchronization() {

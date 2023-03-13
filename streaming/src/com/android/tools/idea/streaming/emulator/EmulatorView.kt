@@ -703,7 +703,7 @@ class EmulatorView(
 
   override fun hardwareInputStateChanged(event: AnActionEvent, enabled: Boolean) {
     super.hardwareInputStateChanged(event, enabled)
-    updateCameraPromptAndMultiTouchFeedback(event.inputEvent)
+    updateCameraPromptAndMultiTouchFeedback(event.inputEvent!!)
   }
 
   private inner class NotificationReceiver : EmptyStreamObserver<EmulatorNotification>() {

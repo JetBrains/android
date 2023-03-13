@@ -117,7 +117,7 @@ class TreeDropDownAction<ValueT, ValueGroupT : GroupAware<ValueGroupT>>(
       }
     )
 
-    val owner = eve.inputEvent.component
+    val owner = eve.inputEvent!!.component
     val location = getLocationOnScreen(owner)
     location.translate(0, owner.height)
     popup.showInScreenCoordinates(owner, location)
