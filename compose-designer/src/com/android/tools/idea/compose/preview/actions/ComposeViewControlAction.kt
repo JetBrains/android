@@ -40,6 +40,12 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.util.IconLoader
 import org.assertj.core.util.VisibleForTesting
 
+// When using [AllIcons.Debugger.RestoreLayout] as the icon, this action is considered as a
+// multi-choice group, even
+// Presentation.setMultiChoice() sets to false. (See
+// [com.intellij.openapi.actionSystem.impl.Utils.isMultiChoiceGroup])
+//
+// We clone the icon here so we can control the multi-choice state of this action ourselves.
 class ComposeViewControlAction(
   private val layoutManagerSwitcher: LayoutManagerSwitcher,
   private val layoutManagers: List<SurfaceLayoutManagerOption>,
@@ -48,19 +54,8 @@ class ComposeViewControlAction(
   DropDownAction(
     message("action.scene.view.control.title"),
     message("action.scene.view.control.description"),
-    null
+    IconLoader.copy(AllIcons.Debugger.RestoreLayout, null, true)
   ) {
-
-  init {
-    // When using [AllIcons.Debugger.RestoreLayout] as the icon, this action is considered as a
-    // multi-choice group, even
-    // Presentation.setMultiChoice() sets to false. (See
-    // [com.intellij.openapi.actionSystem.impl.Utils.isMultiChoiceGroup])
-    //
-    // We clone the icon here so we can control the multi-choice state of this action ourselves.
-    templatePresentation.icon = IconLoader.copy(AllIcons.Debugger.RestoreLayout, null, true)
-  }
-
   override fun update(e: AnActionEvent) {
     super.update(e)
     e.presentation.isEnabled = !isAnyPreviewRefreshing(e.dataContext)

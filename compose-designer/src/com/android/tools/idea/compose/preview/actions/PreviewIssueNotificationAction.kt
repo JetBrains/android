@@ -42,6 +42,7 @@ import com.android.tools.idea.projectsystem.needsBuild
 import com.android.tools.idea.projectsystem.requestBuild
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -266,13 +267,15 @@ class PreviewIssueNotificationAction(
  */
 @Suppress("ComponentNotRegistered") // Register in compose-designer.xml already.
 class ForceCompileAndRefreshActionForNotification private constructor() :
-  AnAction(), RightAlignedToolbarAction, CustomComponentAction {
+  AnAction(
+    message("action.build.and.refresh.title"),
+    message("action.build.and.refresh.description"),
+    REFRESH_BUTTON
+  ),
+  RightAlignedToolbarAction,
+  CustomComponentAction {
 
-  init {
-    templatePresentation.text = message("action.build.and.refresh.title")
-    templatePresentation.description = message("action.build.and.refresh.description")
-    templatePresentation.icon = REFRESH_BUTTON
-  }
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
   companion object {
     private const val ACTION_ID =

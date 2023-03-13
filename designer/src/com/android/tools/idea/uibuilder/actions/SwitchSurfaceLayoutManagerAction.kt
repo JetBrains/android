@@ -20,6 +20,7 @@ import com.android.tools.idea.common.actions.ActionButtonWithToolTipDescription
 import com.android.tools.idea.common.surface.DesignSurface.SceneViewAlignment
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -72,6 +73,8 @@ class SwitchSurfaceLayoutManagerAction(private val layoutManagerSwitcher: Layout
   private val disabledIcon = IconLoader.getDisabledIcon(AllIcons.Debugger.RestoreLayout)
 
   inner class SetSurfaceLayoutManagerAction(private val option: SurfaceLayoutManagerOption) : ToggleAction(option.displayName) {
+    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
     override fun setSelected(e: AnActionEvent, state: Boolean) {
       layoutManagerSwitcher.setLayoutManager(option.layoutManager, option.sceneViewAlignment)
       if (state) {
@@ -84,11 +87,14 @@ class SwitchSurfaceLayoutManagerAction(private val layoutManagerSwitcher: Layout
 
   init {
     templatePresentation.isHideGroupIfEmpty = true
+
     // We will only add the actions and be visible if there are more than one option
     if (layoutManagers.size > 1) {
       layoutManagers.forEach { add(SetSurfaceLayoutManagerAction(it)) }
     }
   }
+
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   override fun createCustomComponent(presentation: Presentation, place: String) =
     ActionButtonWithToolTipDescription(this, presentation, place).apply { border = JBUI.Borders.empty(1, 2) }
