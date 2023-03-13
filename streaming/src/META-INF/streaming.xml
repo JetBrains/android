@@ -50,7 +50,8 @@
         <keyboard-shortcut first-keystroke="meta shift P" keymap="Mac OS X 10.5+"/>
       </action>
       <action id="android.device.power.and.volume.up.button" class="com.android.tools.idea.streaming.actions.StreamingPowerAndVolumeUpButtonAction"
-              text="Power + Volume Up (Power Menu)" description="Press the Power and Volume Up buttons together of the device">
+              icon="StudioIcons.Emulator.Toolbar.POWER_MENU" text="Power + Volume Up (Power Menu)"
+              description="Press the Power and Volume Up buttons together of the device">
         <keyboard-shortcut first-keystroke="alt shift P" keymap="$default"/>
       </action>
       <action id="android.device.volume.up.button" class="com.android.tools.idea.streaming.actions.StreamingVolumeUpButtonAction"
