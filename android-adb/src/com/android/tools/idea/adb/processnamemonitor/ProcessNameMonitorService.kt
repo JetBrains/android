@@ -19,16 +19,18 @@ import com.android.processmonitor.agenttracker.AgentProcessTrackerConfig
 import com.android.processmonitor.agenttracker.AgentSourcePaths.AGENT_RESOURCE_PROD
 import com.android.processmonitor.agenttracker.AgentSourcePaths.AGENT_SOURCE_DEV
 import com.android.processmonitor.monitor.ProcessNameMonitor
-import com.android.processmonitor.monitor.ddmlib.AdbAdapterImpl
 import com.android.processmonitor.monitor.ProcessNameMonitorImpl
+import com.android.processmonitor.monitor.ddmlib.AdbAdapterImpl
 import com.android.tools.idea.adb.AdbService
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.AndroidAdbLogger
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.PluginPathManager
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import java.nio.file.Path
@@ -39,6 +41,7 @@ internal class ProcessNameMonitorService(project: Project) : ProcessNameMonitor,
   private val delegate = let {
     val parentScope = AndroidCoroutineScope(this)
     val adbSession = AdbLibService.getSession(project)
+    val deviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner
     val adbLogger = AndroidAdbLogger(thisLogger())
     val adbAdapter = AdbAdapterImpl(AdbService.getInstance().getDebugBridge(project))
     val trackerAgentConfig = when (StudioFlags.PROCESS_NAME_TRACKER_AGENT_ENABLE.get()) {
@@ -47,7 +50,10 @@ internal class ProcessNameMonitorService(project: Project) : ProcessNameMonitor,
     }
     val config = ProcessNameMonitor.Config(StudioFlags.PROCESS_NAME_MONITOR_MAX_RETENTION.get(), trackerAgentConfig)
 
-    ProcessNameMonitorImpl.forDdmlib(parentScope, adbSession, adbAdapter, config, adbLogger)
+    when (StudioFlags.PROCESS_NAME_MONITOR_ADBLIB_ENABLED.get() && StudioFlags.ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER.get()) {
+      true -> ProcessNameMonitorImpl.forAdblib(parentScope, adbSession, deviceProvisioner, config, adbLogger)
+      false -> ProcessNameMonitorImpl.forDdmlib(parentScope, adbSession, adbAdapter, config, adbLogger)
+    }
   }
 
   override fun start() = delegate.start()

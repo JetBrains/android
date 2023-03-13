@@ -1674,7 +1674,16 @@ public final class StudioFlags {
     "Process tracking agent polling interval in milliseconds. Changing the value of this flag requires restarting Android Studio.",
     1000
   );
-    // endregion NEW_SEND_FEEDBACK_DIALOG
+  public static final Flag<Boolean> PROCESS_NAME_MONITOR_ADBLIB_ENABLED = Flag.create(
+    PROCESS_NAME_MONITOR, "processnamemonitor.adblib.enable", "Enable Adblib monitor",
+    "Enable the Adblib version of the process name monitor. " +
+    "Note that adblib process tracking can not work concurrently with ddmlib process tracking because only one concurrent JDWP " +
+    "session can be open per process per device. Therefore, this feature is only enabled if the flag " +
+    "ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER is also true. " +
+    "Changing the value of this flag requires restarting Android Studio.",
+    true
+  );
+  // endregion NEW_SEND_FEEDBACK_DIALOG
 
   private StudioFlags() { }
 }
