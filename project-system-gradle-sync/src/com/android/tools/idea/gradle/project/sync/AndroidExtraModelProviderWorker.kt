@@ -123,7 +123,8 @@ internal class AndroidExtraModelProviderWorker(
     return safeActionRunner.runActions(
       buildInfo.projects.map { gradleProject ->
         val buildId = BuildId(gradleProject.projectIdentifier.buildIdentifier.rootDir)
-        val buildName = buildInfo.buildIdMap[buildId] ?: error("Build not found: $buildId")
+        val buildName = buildInfo.buildIdMap[buildId] ?: error("Build not found: $buildId \n" +
+                                                               "available builds ${buildInfo.buildIdMap}")
         ActionToRun(
           fun(controller: BuildController): BasicIncompleteGradleModule {
             // Request V2 models if flag is enabled.
