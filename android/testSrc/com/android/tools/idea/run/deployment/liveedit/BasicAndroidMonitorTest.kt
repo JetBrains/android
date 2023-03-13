@@ -94,9 +94,7 @@ class BasicAndroidMonitorTest {
     LiveEditApplicationConfiguration.getInstance().leTriggerMode = LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_AUTOMATIC
     LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 
-    val callback = monitor.getCallback(appId, device)
-
-    callback.call()
+    monitor.notifyAppDeploy(appId, device)
   }
 
   @Test

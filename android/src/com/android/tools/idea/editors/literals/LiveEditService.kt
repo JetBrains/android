@@ -197,12 +197,18 @@ class LiveEditService constructor(val project: Project,
     return deployMonitor.status(device)
   }
 
+  /**
+   * Called from Android Studio when an app is "Refreshed" (namely Apply Changes or Apply Code Changes) to a device
+   */
   fun notifyAppRefresh(device: IDevice): Boolean {
     return deployMonitor.notifyAppRefresh(device)
   }
 
-  fun getCallback(packageName: String, device: IDevice) : Callable<*>? {
-    return deployMonitor.getCallback(packageName, device)
+  /**
+   * Called from Android Studio when an app is deployed (a.k.a Installed / IWIed / Delta-installed) to a device
+   */
+  fun notifyAppDeploy(packageName: String, device: IDevice): Boolean {
+    return deployMonitor.notifyAppDeploy(packageName, device)
   }
 
   fun toggleLiveEdit(oldMode: LiveEditApplicationConfiguration.LiveEditMode, newMode: LiveEditApplicationConfiguration.LiveEditMode) {

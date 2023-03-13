@@ -63,6 +63,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -153,6 +154,10 @@ public class LiveEditProjectMonitor implements Disposable {
 
   private @Nullable String applicationId;
 
+  // TODO: This is the Thread where we process keystroke but also where we receive appDeploy.
+  //       1. A better name would be "mainThreadExecutor".
+  //       2. We should also run appRefresh notifications on this thread.
+  //       3. We should also run ADB events on this thread.
   private final ScheduledExecutorService methodChangesExecutor = Executors.newSingleThreadScheduledExecutor();
 
   /**
@@ -305,6 +310,7 @@ public class LiveEditProjectMonitor implements Disposable {
     return multiDeploy.get();
   }
 
+  // Called from Android Studio when an app is "Refreshed" (namely Apply Changes or Apply Code Changes) to a device
   public boolean notifyAppRefresh(@NotNull IDevice device) {
     if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit() || !supportLiveEdits(device)) {
       return false;
@@ -313,16 +319,17 @@ public class LiveEditProjectMonitor implements Disposable {
     return true;
   }
 
-  public Callable<?> getCallback(String applicationId, IDevice device) {
+  // Called from Android Studio when an app is deployed (a.k.a Installed / IWIed / Delta-installed) to a device
+  public boolean notifyAppDeploy(String applicationId, IDevice device) throws ExecutionException, InterruptedException {
     if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit()) {
       LOGGER.info("Live Edit on device disabled via settings.");
-      return null;
+      return false;
     }
 
     if (!supportLiveEdits(device)) {
       LOGGER.info("Live edit not support for device %s targeting app %s", project.getName(), applicationId);
       liveEditDevices.addDevice(device, LiveEditStatus.UnsupportedVersion.INSTANCE);
-      return null;
+      return false;
     }
 
     LOGGER.info("Creating monitor for project %s targeting app %s", project.getName(), applicationId);
@@ -330,18 +337,21 @@ public class LiveEditProjectMonitor implements Disposable {
     // Initialize EditStatus for current device.
     liveEditDevices.addDevice(device, LiveEditStatus.Loading.INSTANCE);
 
-    return () -> methodChangesExecutor
-      .schedule(
-        () -> {
-          this.applicationId = applicationId;
-          this.gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
-          resetState();
-          deviceWatcher.setApplicationId(applicationId);
-        },
-        0L,
-        TimeUnit.NANOSECONDS)
-      .get();
+    // This method (notifyAppDeploy) is called from Studio on a random Worker thread. We schedule the data update on the same Executor
+    // we process our keystrokes {@link #methodChangesExecutor}
+    methodChangesExecutor.schedule(
+      () -> {
+        this.applicationId = applicationId;
+        this.gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
+        resetState();
+        deviceWatcher.setApplicationId(applicationId);
+      },
+      0L,
+      TimeUnit.NANOSECONDS).get();
+
+    return true;
   }
+
 
   @VisibleForTesting
   @NotNull

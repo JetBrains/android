@@ -98,7 +98,6 @@ class LiveEditDevices {
     listeners.add(listener)
   }
 
-
   fun handleDeviceLifecycleEvents(device: IDevice, event: DeviceEvent) {
     if (!devices().contains(device)) {
       return
