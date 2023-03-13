@@ -17,19 +17,16 @@ package com.android.tools.idea.naveditor.inspections
 
 import com.android.tools.idea.naveditor.NavEditorRule
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.DisposableRule
-import com.intellij.testFramework.EdtRule
 import org.jetbrains.android.dom.inspections.NavFileInspection
+import org.jetbrains.android.dom.navigation.NavigationSchema
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
 class NavFileInspectionTest {
-  @get:Rule
-  val edtRule = EdtRule()
-
   private val disposableRule = DisposableRule()
   private val projectRule = AndroidProjectRule.withSdk()
   private val navRule = NavEditorRule(projectRule)
@@ -38,6 +35,9 @@ class NavFileInspectionTest {
 
   @Before
   fun setUp() {
+    runReadAction {
+      NavigationSchema.createIfNecessary(projectRule.module)
+    }
     projectRule.fixture.enableInspections(NavFileInspection::class.java)
   }
 
@@ -131,7 +131,6 @@ class NavFileInspectionTest {
     projectRule.fixture.checkHighlighting()
   }
 
-  @Ignore("b/273206407")
   @Test
   fun testCompatibleClassesNames() {
     val psiFile = projectRule.fixture.addFileToProject(
