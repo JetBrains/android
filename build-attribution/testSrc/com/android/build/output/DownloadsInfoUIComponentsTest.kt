@@ -43,6 +43,7 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.table.TableView
+import com.intellij.util.ui.ComponentWithEmptyText
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.After
 import org.junit.Before
@@ -162,10 +163,9 @@ class DownloadsInfoExecutionConsoleTest {
 
   @Test
   fun testEmptyUi() {
-    assertThat(reposTable.rowCount).isEqualTo(0)
-    assertThat(reposTable.emptyText.text).isEqualTo("No download requests")
-    assertThat(requestsTable.rowCount).isEqualTo(0)
-    assertThat(requestsTable.emptyText.text).isEqualTo("No download requests")
+    assertThat((executionConsole.component as ComponentWithEmptyText).emptyText.text).isEqualTo("No download requests")
+    assertWithMessage("None of the component should be visible.")
+      .that (executionConsole.component.components.any { it.isVisible }).isFalse()
   }
 
   @Test
@@ -173,6 +173,8 @@ class DownloadsInfoExecutionConsoleTest {
     val downloadProcessKey = DownloadRequestKey(1000, url1)
     executionConsole.uiModel.updateDownloadRequest(DownloadRequestItem(downloadProcessKey, GOOGLE))
 
+    assertWithMessage("Components should become visible on data arrival.")
+      .that(executionConsole.component.components.all { it.isVisible }).isTrue()
     assertThat(reposTable.rowCount).isEqualTo(2)
     assertThat(requestsTable.rowCount).isEqualTo(1)
   }

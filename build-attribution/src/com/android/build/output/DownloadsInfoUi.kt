@@ -36,6 +36,7 @@ import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.TableViewSpeedSearch
 import com.intellij.ui.components.BrowserLink
+import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.table.TableView
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
@@ -85,7 +86,6 @@ class DownloadsInfoExecutionConsole(
     setShowGrid(false)
     columnSelectionAllowed = false
     tableHeader.reorderingAllowed = false
-    setEmptyState("No download requests")
     val speedSearch = object : TableViewSpeedSearch<DownloadRequestItem>(this) {
       override fun getItemText(element: DownloadRequestItem): String = element.requestKey.url
     }
@@ -97,7 +97,6 @@ class DownloadsInfoExecutionConsole(
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
     setShowGrid(false)
     columnSelectionAllowed = false
-    setEmptyState("No download requests")
     tableHeader.reorderingAllowed = false
     selectionModel.addListSelectionListener {
       if (it.valueIsAdjusting) return@addListSelectionListener
@@ -106,9 +105,10 @@ class DownloadsInfoExecutionConsole(
     }
   }
 
-  private val panel by lazy { JPanel().apply {
+  private val panel by lazy { JBPanelWithEmptyText().apply {
     layout = BorderLayout()
     name = "downloads info build output panel"
+    withEmptyText("No download requests")
     reposTable.visibleRowCount = 5
     val browserLink = BrowserLink(
       "Read more on repositories optimization",
@@ -130,6 +130,11 @@ class DownloadsInfoExecutionConsole(
         logUserEvent(BuildOutputDownloadsInfoEvent.Interaction.OPEN_DOWNLOADS_INFO_UI)
       }
     })
+
+    uiModel.addAndFireDataUpdateListener {
+      val isEmpty = uiModel.repositoriesTableModel.summaryItem.requests.isEmpty()
+      components.forEach { it.isVisible = !isEmpty }
+    }
   }}
 
   override fun dispose() {
