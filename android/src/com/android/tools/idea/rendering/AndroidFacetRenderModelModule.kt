@@ -94,4 +94,7 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
     _isDisposed.set(true)
     assetRepository = null
   }
+
+  override val name: String
+    get() = facet.module.name
 }

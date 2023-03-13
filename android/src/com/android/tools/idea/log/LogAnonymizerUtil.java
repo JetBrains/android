@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.log;
 
+import com.android.tools.idea.rendering.RenderModelModule;
 import com.google.common.hash.Hashing;
-import com.intellij.openapi.module.Module;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,7 +68,7 @@ public class LogAnonymizerUtil {
    * the hash for the module will change.
    */
   @NotNull
-  public static String anonymize(@Nullable Module module) {
+  public static String anonymize(@Nullable RenderModelModule module) {
     if (module == null) {
       return "null";
     }

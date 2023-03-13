@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.log;
 
+import com.android.tools.idea.rendering.RenderModelModule;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import org.junit.Test;
@@ -66,7 +67,7 @@ public class LogAnonymizerUtilTest {
 
   @Test
   public void testAnonymizeModuleName() {
-    Module module = mock(Module.class);
+    RenderModelModule module = mock(RenderModelModule.class);
 
     when(module.getName())
       .thenReturn("moduleName")

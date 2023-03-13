@@ -483,12 +483,12 @@ public class ViewLoader {
 
       if (!isClassLoaded) {
         if (LOG.isDebugEnabled()) {
-          LOG.debug(String.format("  Class found in module %s, first time load.", anonymize(myModule.getIdeaModule())));
+          LOG.debug(String.format("  Class found in module %s, first time load.", anonymize(myModule)));
         }
       }
       else {
         if (LOG.isDebugEnabled()) {
-          LOG.debug(String.format("  Class already loaded in module %s.", anonymize(myModule.getIdeaModule())));
+          LOG.debug(String.format("  Class already loaded in module %s.", anonymize(myModule)));
         }
       }
 

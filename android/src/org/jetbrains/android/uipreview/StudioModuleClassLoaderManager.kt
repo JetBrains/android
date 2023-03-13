@@ -19,8 +19,10 @@ import com.android.tools.idea.log.LogAnonymizerUtil.anonymize
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.getHolderModule
+import com.android.tools.idea.rendering.AndroidFacetRenderModelModule
 import com.android.tools.idea.rendering.classloading.ClassTransform
 import com.android.tools.idea.rendering.classloading.combine
+import com.android.tools.idea.util.androidFacet
 import com.android.utils.reflection.qualifiedName
 import com.google.common.base.Charsets
 import com.google.common.hash.Hashing
@@ -230,7 +232,9 @@ class StudioModuleClassLoaderManager : ModuleClassLoaderManager {
     if (moduleClassLoader == null) {
       // Make sure the helper service is initialized
       moduleRenderContext.module.project.getService(ModuleClassLoaderProjectHelperService::class.java)
-      LOG.debug { "Loading new class loader for module ${anonymize(module)}" }
+      if (LOG.isDebugEnabled) {
+        LOG.debug { "Loading new class loader for module ${anonymize(AndroidFacetRenderModelModule(module.androidFacet!!))}" }
+      }
       val preloadedClassLoader: StudioModuleClassLoader? =
         moduleRenderContext.module.getOrCreateHatchery().requestClassLoader(
           parent, combinedProjectTransformations, combinedNonProjectTransformations)

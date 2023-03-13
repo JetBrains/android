@@ -54,4 +54,6 @@ interface RenderModelModule : Disposable {
   val project: Project
 
   val isDisposed: Boolean
+
+  val name: String
 }
