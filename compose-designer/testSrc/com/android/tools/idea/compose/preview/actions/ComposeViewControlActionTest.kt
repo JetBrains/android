@@ -61,11 +61,56 @@ class ComposeViewControlActionTest {
     StudioFlags.COMPOSE_VIEW_INSPECTOR.clearOverride()
     StudioFlags.COMPOSE_COLORBLIND_MODE.clearOverride()
     StudioFlags.COMPOSE_VIEW_FILTER.clearOverride()
+    StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.clearOverride()
   }
 
   @Suppress("SpellCheckingInspection")
   @Test
-  fun testZoomActions() {
+  fun testZoomActionsWithFlagDisabled() {
+    StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.override(false)
+    val options =
+      listOf(
+        createOption("Layout A", EmptySurfaceLayoutManager()),
+        createOption("Layout B", EmptySurfaceLayoutManager()),
+        createOption("Layout C", EmptySurfaceLayoutManager())
+      )
+
+    val context = DataContext {
+      when {
+        ZOOMABLE_KEY.`is`(it) -> TestZoomable()
+        DESIGN_SURFACE.`is`(it) -> mock<NlDesignSurface>()
+        else -> null
+      }
+    }
+
+    val viewControlAction = ComposeViewControlAction(EmptyLayoutManagerSwitcher, options)
+    viewControlAction.updateActions(context)
+
+    val expected =
+      """View Control
+    Switch Layout
+    Layout A
+    Layout B
+    Layout C
+    ------------------------------------------------------
+    Show Inspection Tooltips
+    ------------------------------------------------------
+    Color Blind Modes
+        Protanopes
+        Protanomaly
+        Deuteranopes
+        Deuteranomaly
+        Tritanopes
+"""
+
+    val actionContent = prettyPrintActions(viewControlAction)
+    assertEquals(expected, actionContent)
+  }
+
+  @Suppress("SpellCheckingInspection")
+  @Test
+  fun testZoomActionsWithFlagEnabled() {
+    StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.override(true)
     val options =
       listOf(
         createOption("Layout A", EmptySurfaceLayoutManager()),

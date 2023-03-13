@@ -84,10 +84,12 @@ class ComposeViewControlAction(
           templatePresentation.isMultiChoice = false
         }
     )
-    addSeparator()
-    add(WrappedZoomAction(ZoomInAction.getInstance(), context))
-    add(WrappedZoomAction(ZoomOutAction.getInstance(), context))
-    add(WrappedZoomAction(ZoomActualAction.getInstance(), context, "Zoom to 100%"))
+    if (StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.get()) {
+      addSeparator()
+      add(WrappedZoomAction(ZoomInAction.getInstance(), context))
+      add(WrappedZoomAction(ZoomOutAction.getInstance(), context))
+      add(WrappedZoomAction(ZoomActualAction.getInstance(), context, "Zoom to 100%"))
+    }
     // TODO(263038548): Implement Zoom-to-selection when preview is selectable.
     addSeparator()
     add(ShowInspectionTooltipsAction(context))

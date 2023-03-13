@@ -1250,6 +1250,13 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> COMPOSE_ZOOM_CONTROLS_DROPDOWN = Flag.create(
+    COMPOSE, "preview.zoom.controls.dropdown",
+    "Include Zoom Controls in the Compose Preview dropdown action",
+    "If enabled, the zoom controls will also be displayed in the Compose Preview dropdown action, located on the top-left corner",
+    false
+  );
+
   public static final Flag<Boolean> COMPOSE_CONSTRAINT_VISUALIZATION = Flag.create(
     COMPOSE, "constraint.visualization",
     "Enable ConstraintLayout visualization in Compose previews",
