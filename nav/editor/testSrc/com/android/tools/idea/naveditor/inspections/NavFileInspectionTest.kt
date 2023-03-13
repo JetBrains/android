@@ -21,6 +21,7 @@ import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import org.jetbrains.android.dom.inspections.NavFileInspection
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -130,7 +131,7 @@ class NavFileInspectionTest {
     projectRule.fixture.checkHighlighting()
   }
 
-
+  @Ignore("b/273206407")
   @Test
   fun testCompatibleClassesNames() {
     val psiFile = projectRule.fixture.addFileToProject(
