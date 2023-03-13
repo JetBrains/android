@@ -63,10 +63,9 @@ class FastPreviewUtilTest {
   fun `fast compile call`() {
     projectRule.module.loadComposeRuntimeInClassPath()
     runBlocking(workerThread) {
-      assertEquals(
-        CompilationResult.Success,
+      val (result, _) =
         fastCompile(projectRule.testRootDisposable, testFile.module!!, setOf(testFile))
-      )
+      assertEquals(CompilationResult.Success, result)
     }
   }
 
@@ -84,15 +83,14 @@ class FastPreviewUtilTest {
         val job =
           launch(workerThread) {
             try {
-              assertTrue(
+              val (result, _) =
                 fastCompile(
                   projectRule.testRootDisposable,
                   testFile.module!!,
                   setOf(testFile),
                   testPreviewManager
                 )
-                  is CompilationResult.CompilationAborted
-              )
+              assertTrue(result is CompilationResult.CompilationAborted)
             } catch (_: CancellationException) {}
             launchedCompileRequests.incrementAndGet()
           }

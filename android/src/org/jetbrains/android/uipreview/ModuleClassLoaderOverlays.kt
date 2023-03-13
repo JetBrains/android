@@ -58,7 +58,13 @@ class ModuleClassLoaderOverlays private constructor(private val maxNumOverlays: 
    * A [DelegatingClassLoader.Loader] that finds classes in the current overlay.
    */
   val classLoaderLoader: DelegatingClassLoader.Loader = object : DelegatingClassLoader.Loader {
-    override fun loadClass(fqcn: String): ByteArray? = overlayClassLoader?.loadClass(fqcn)
+    override fun loadClass(fqcn: String): ByteArray? {
+      val loader = synchronized(this@ModuleClassLoaderOverlays) {
+        overlayClassLoader
+      } ?: return null
+
+      return loader.loadClass(fqcn)
+    }
   }
 
   private val overlayPaths = ArrayDeque<Path>(10)
