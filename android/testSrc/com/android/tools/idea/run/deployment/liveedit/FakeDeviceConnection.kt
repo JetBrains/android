@@ -30,6 +30,14 @@ class FakeDeviceConnection: DeviceConnection {
     deviceChangeListeners.add(listener)
   }
 
+  override fun removeClientChangeListener(listener: AndroidDebugBridge.IClientChangeListener) {
+    clientChangeListeners.remove(listener)
+  }
+
+  override fun removeDeviceChangeListener(listener: AndroidDebugBridge.IDeviceChangeListener) {
+    deviceChangeListeners.remove(listener)
+  }
+
   fun clientChanged(client: Client, changeMask: Int) {
     clientChangeListeners.forEach { it.clientChanged(client, changeMask) }
   }

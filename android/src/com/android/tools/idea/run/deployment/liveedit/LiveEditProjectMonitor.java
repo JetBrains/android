@@ -177,6 +177,9 @@ public class LiveEditProjectMonitor implements Disposable {
   private final double LE_LOG_FRACTION = 0.1;
   private boolean hasLoggedSinceReset = false;
 
+  // Bridge to ADB event (either ddmlib or adblib). We use it to receive device lifecycle events and app (a.k.a Client) lifecycle events.
+  private final DeviceConnection deviceConnetion;
+
   public void resetState() {
     bufferedEvents.clear();
     filesWithCompilationErrors.clear();
@@ -252,18 +255,24 @@ public class LiveEditProjectMonitor implements Disposable {
   public LiveEditProjectMonitor(@NotNull LiveEditService liveEditService, @NotNull Project project) {
     this.project = project;
     this.compiler = new LiveEditCompiler(project);
+    this.deviceConnetion = liveEditService.getDeviceConnection();
+
     gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
     Disposer.register(liveEditService, this);
 
     deviceWatcher.addListener(liveEditDevices::handleDeviceLifecycleEvents);
-    liveEditService.getDeviceConnection().addClientChangeListener(deviceWatcher);
-    liveEditService.getDeviceConnection().addDeviceChangeListener(deviceWatcher);
+    deviceConnetion.addClientChangeListener(deviceWatcher);
+    deviceConnetion.addDeviceChangeListener(deviceWatcher);
 
     liveEditDevices.addListener(this::handleDeviceStatusChange);
   }
 
   @Override
   public void dispose() {
+    // Don't leak deviceWatcher in our ADB bridge listeners.
+    deviceConnetion.removeDeviceChangeListener(deviceWatcher);
+    deviceConnetion.removeClientChangeListener(deviceWatcher);
+
     liveEditDevices.clear();
     deviceWatcher.clearListeners();
     methodChangesExecutor.shutdownNow();

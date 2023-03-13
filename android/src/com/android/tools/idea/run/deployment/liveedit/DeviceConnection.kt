@@ -22,10 +22,16 @@ import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
 interface DeviceConnection {
   fun addClientChangeListener(listener: IClientChangeListener)
   fun addDeviceChangeListener(listener: IDeviceChangeListener)
+
+  fun removeClientChangeListener(listener: IClientChangeListener)
+  fun removeDeviceChangeListener(listener: IDeviceChangeListener)
 }
 
 // Wrapper around the static AndroidDebugBridge interface to allow us to mock it out.
 object AdbConnection: DeviceConnection {
   override fun addClientChangeListener(listener: IClientChangeListener) = AndroidDebugBridge.addClientChangeListener(listener)
   override fun addDeviceChangeListener(listener: IDeviceChangeListener) = AndroidDebugBridge.addDeviceChangeListener(listener)
+
+  override fun removeClientChangeListener(listener: IClientChangeListener) = AndroidDebugBridge.removeClientChangeListener(listener)
+  override fun removeDeviceChangeListener(listener: IDeviceChangeListener) = AndroidDebugBridge.removeDeviceChangeListener(listener)
 }
