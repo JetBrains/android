@@ -18,43 +18,31 @@ package org.jetbrains.android.uipreview;
 import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
 import static com.android.SdkConstants.CLASS_ATTRIBUTE_SET;
 import static com.android.AndroidXConstants.CLASS_RECYCLER_VIEW_ADAPTER;
-import static com.android.SdkConstants.R_CLASS;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.tools.idea.log.LogAnonymizerUtil.anonymize;
 import static com.android.tools.idea.log.LogAnonymizerUtil.anonymizeClassName;
 
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ILayoutLog;
-import com.android.ide.common.resources.AndroidManifestPackageNameUtils;
-import com.android.ide.common.util.PathString;
-import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.projectsystem.DependencyScopeType;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.RenderModelModule;
 import com.android.tools.idea.rendering.RenderSecurityManager;
-import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
-import com.intellij.facet.Facet;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Ref;
-import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.util.ArrayUtil;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -98,33 +86,6 @@ public class ViewLoader {
    */
   public void setLogger(@NotNull IRenderLogger logger) {
     myLogger = logger;
-  }
-
-  @Nullable
-  private static String getRClassName(@NotNull final Module module) {
-    String packageName = ProjectSystemUtil.getModuleSystem(module).getPackageName();
-    return packageName == null ? null : packageName + '.' + R_CLASS;
-  }
-
-  @Nullable
-  private static String getPackageName(ExternalAndroidLibrary library) {
-    String packageName = library.getPackageName();
-    if (packageName == null) {
-      // Try the manifest if the package name is not directly set.
-      PathString manifest = library.getManifestFile();
-      if (manifest != null) {
-        try {
-          packageName = AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(manifest);
-        }
-        catch (IOException e) {
-          LOG.info(String.format("getPackageName: failed to find packageName for library %1$s", library.libraryName()));
-        }
-      }
-      if (packageName == null) {
-        return null;
-      }
-    }
-    return packageName + '.' + R_CLASS;
   }
 
   /**
@@ -367,8 +328,7 @@ public class ViewLoader {
     token.set(RenderSecurityManager.enterSafeRegion(myCredential));
     try {
       return DumbService.getInstance(myModule.getProject()).runReadActionInSmartMode(() -> {
-        final JavaPsiFacade facade = JavaPsiFacade.getInstance(myModule.getProject());
-        PsiClass psiClass = facade.findClass(className, myModule.getIdeaModule().getModuleWithDependenciesAndLibrariesScope(false));
+        PsiClass psiClass = myModule.getDependencies().findPsiClassInModuleAndDependencies(className);
 
         if (psiClass == null) {
           return null;
@@ -421,20 +381,6 @@ public class ViewLoader {
     }
   }
 
-  private static Stream<String> getRClassesNames(@NotNull Module module) {
-    return Stream.concat(
-      Stream.concat(
-          Stream.of(module),
-          // Get all project (not external libraries) dependencies
-          AndroidDependenciesCache.getAllAndroidDependencies(module, false).stream().map(Facet::getModule)
-        )
-        .map(ViewLoader::getRClassName),
-      // Get all external (libraries) dependencies
-      ProjectSystemUtil.getModuleSystem(module).getAndroidLibraryDependencies(DependencyScopeType.MAIN).stream()
-        .map(ViewLoader::getPackageName)
-    );
-  }
-
   /**
    * Load and parse the R class such that resource references in the layout rendering can refer
    * to local resources properly. Only needed if views are compiled against an R class with
@@ -449,7 +395,7 @@ public class ViewLoader {
   }
 
   private void loadRClasses(@NotNull ResourceIdManager.RClassParser rClassParser) {
-    getRClassesNames(myModule.getIdeaModule()).forEach((rClassName) -> {
+    myModule.getDependencies().getRClassesNames().forEach((rClassName) -> {
       try {
         if (rClassName == null) {
           LOG.info(

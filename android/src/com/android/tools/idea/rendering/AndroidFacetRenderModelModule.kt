@@ -84,7 +84,7 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
     get() = ideaModule
   override val resourcePackage: String?
     get() = ideaModule.getModuleSystem().getPackageName()
-  override val dependencies: RenderDependencyInfo = StudioRenderDependencyInfo(ideaModule)
+  override val dependencies: RenderModuleDependencies = StudioRenderModuleDependencies(ideaModule)
   override val project: Project
     get() = ideaModule.project
   override val isDisposed: Boolean

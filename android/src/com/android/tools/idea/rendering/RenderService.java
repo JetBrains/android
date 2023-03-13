@@ -558,7 +558,7 @@ final public class RenderService implements Disposable {
           return null;
         }
         catch (NoAndroidPlatformException e) {
-          myContext.getModule().getDependencies().reportMissingSdk(myLogger);
+          myContext.getModule().getDependencies().reportMissingSdkDependency(myLogger);
           return null;
         }
 

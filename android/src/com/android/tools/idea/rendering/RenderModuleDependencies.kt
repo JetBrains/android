@@ -15,11 +15,18 @@
  */
 package com.android.tools.idea.rendering
 
+import com.intellij.psi.PsiClass
+
 /** Information about module dependencies required for rendering. */
-interface RenderDependencyInfo {
+interface RenderModuleDependencies {
   val dependsOnAppCompat: Boolean
 
   val dependsOnAndroidXAppCompat: Boolean
 
-  fun reportMissingSdk(logger: IRenderLogger)
+  fun reportMissingSdkDependency(logger: IRenderLogger)
+
+  /** Returns a list R-classes fqcns from the module and all of its dependencies. */
+  val rClassesNames: List<String>
+
+  fun findPsiClassInModuleAndDependencies(fqcn: String): PsiClass?
 }
