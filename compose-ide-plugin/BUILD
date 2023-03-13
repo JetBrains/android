@@ -22,6 +22,7 @@ iml_module(
         "//tools/adt/idea/compose-ide-plugin:compiler-hosted-1.4.0-SNAPSHOT",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
+        "//tools/adt/idea/android-material:intellij.android.android-material[module]",
     ],
 )
 
@@ -69,6 +70,7 @@ iml_module(
         "//tools/adt/idea/intellij.android.compose-common[module, test]",
         "//tools/adt/idea/compose-ide-plugin:compiler-hosted-1.4.0-SNAPSHOT",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/android-material:intellij.android.android-material[module, test]",
     ],
 )
 

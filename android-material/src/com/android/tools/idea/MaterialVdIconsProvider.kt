@@ -82,9 +82,9 @@ class MaterialVdIconsProvider {
      */
     @JvmStatic
     fun loadMaterialVdIcons(refreshUiCallback: (MaterialVdIcons, Status) -> Unit,
-                            metadataUrlProvider: MaterialIconsMetadataUrlProvider?,
-                            iconsUrlProvider: MaterialIconsUrlProvider?,
-                            parentDisposable: Disposable) {
+                            parentDisposable: Disposable,
+                            metadataUrlProvider: MaterialIconsMetadataUrlProvider? = null,
+                            iconsUrlProvider: MaterialIconsUrlProvider? = null) {
       val metadataUrl = (metadataUrlProvider ?: getMetadataUrlProvider()).getMetadataUrl()
       val metadata = metadataUrl?.let { getMetadata(it) }
       when {

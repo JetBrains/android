@@ -1271,10 +1271,10 @@ class ComposeCompletionContributorTest {
   @Test
   fun composeMaterialIconLookupElement_getIcon() {
     assertThat(
-      ComposeMaterialIconLookupElement.getIcon("images/material/icons/materialicons/account_box/baseline_account_box_24.xml"))
+      ComposeMaterialIconLookupElement.getIcon("androidx.compose.material.icons.filled.AccountBox"))
       .isNotNull()
     assertThat(
-      ComposeMaterialIconLookupElement.getIcon("images/material/icons/materialicons/account_box/unknown.xml"))
+      ComposeMaterialIconLookupElement.getIcon("androidx.compose.material.icons.filled.Unknown"))
       .isNull()
   }
 

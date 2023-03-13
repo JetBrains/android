@@ -34,6 +34,7 @@ import com.intellij.codeInsight.template.Template
 import com.intellij.codeInsight.template.TemplateEditingAdapter
 import com.intellij.codeInsight.template.TemplateManager
 import com.intellij.codeInsight.template.impl.ConstantNode
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiDocumentManager
@@ -134,8 +135,11 @@ class ComposeCompletionContributor : CompletionContributor() {
     }
 
     // Decorate Compose material icons with the actual icons.
-    if (ComposeMaterialIconLookupElement.appliesTo(lookupElement))
+    if (ComposeMaterialIconLookupElement.appliesTo(lookupElement)) {
+      // We know we'll want material icons, so start warming up the cache.
+      ComposeMaterialIconService.getInstance(ApplicationManager.getApplication()).ensureIconsLoaded()
       return completionResult.withLookupElement(ComposeMaterialIconLookupElement(lookupElement))
+    }
 
     // No transformation needed.
     return completionResult
@@ -212,25 +216,25 @@ internal class ComposeMaterialIconLookupElement(private val original: LookupElem
   override fun renderElement(presentation: LookupElementPresentation) {
     super.renderElement(presentation)
 
-    val resourcePath = original.psiElement?.kotlinFqName?.asString()?.resourcePathFromFqName() ?: return
-    getIcon(resourcePath)?.let { presentation.icon = it }
+    val fqName = original.psiElement?.kotlinFqName?.asString() ?: return
+    getIcon(fqName)?.let { presentation.icon = it }
   }
 
   companion object {
     /**
-     * Map of known Compose material icon packages.
+     * Map of naming patterns for known Compose material icon themes.
      *
-     * The key is the package name.
+     * The key is the package name, coming from a fully-qualified icon name.
      *
-     * The value identifies where to find the package in Android Studio resources. The first string in each pair represents part of a
-     * directory name, and the second part represents a prefix on the file name.
+     * The value is a pair that identifies how to construct names that represent these icons. The first string in each pair represents part
+     * of a directory name where the theme's icons are stored. The second string value represents the prefix of each image's file name.
      */
-    private val resourcePathMap = mapOf(
-      "androidx.compose.material.icons.filled" to Pair("", "baseline"),
-      "androidx.compose.material.icons.rounded" to Pair("round", "round"),
-      "androidx.compose.material.icons.sharp" to Pair("sharp", "sharp"),
-      "androidx.compose.material.icons.twotone" to Pair("twotone", "twotone"),
-      "androidx.compose.material.icons.outlined" to Pair("outlined", "outline"),
+    private val themeNamingPatterns = mapOf(
+      "androidx.compose.material.icons.filled" to Pair("materialicons", "baseline"),
+      "androidx.compose.material.icons.rounded" to Pair("materialiconsround", "round"),
+      "androidx.compose.material.icons.sharp" to Pair("materialiconssharp", "sharp"),
+      "androidx.compose.material.icons.twotone" to Pair("materialiconstwotone", "twotone"),
+      "androidx.compose.material.icons.outlined" to Pair("materialiconsoutlined", "outline"),
     )
 
     /** Whether ComposeMaterialIconLookupElement can apply to the given [LookupElement]. */
@@ -242,41 +246,60 @@ internal class ComposeMaterialIconLookupElement(private val original: LookupElem
       if (!fqName.startsWith("androidx.compose.material.icons") ||
           psiElement.typeReference?.text?.endsWith("ImageVector") != true) return false
 
-      return resourcePathMap.containsKey(fqName.substringBeforeLast('.'))
+      return themeNamingPatterns.containsKey(fqName.substringBeforeLast('.'))
     }
 
     /**
-     * Converts the fully-qualified name of a Compose material icon property to an Android Studio resource path.
+     * Converts the property name of a Compose material icon to the snake-case equivalent used in file names.
      *
-     * eg: "androidx.compose.material.icons.filled.AccountBox" ->
-     *        "images/material/icons/materialicons/account_box/baseline_account_box_24.xml"
+     * eg: "AccountBox" -> "account_box"
      *
      * If a material icon's name starts with a number, the property name has an underscore prepended to make it a valid identifier, even
      * though the underscore doesn't appear in the file path and name.
      *
-     * eg: "androidx.compose.material.icons.filled._1kPlus" ->
-     *        "images/material/icons/materialicons/1k_plus/baseline_1k_plus_24.xml"
+     * eg: "_1kPlus" -> "1k_plus"
      */
-    @VisibleForTesting
-    internal fun String.resourcePathFromFqName(): String? {
-      val (directorySuffix, filePrefix) = resourcePathMap[substringBeforeLast('.')] ?: return null
-
-      val camelName = substringAfterLast('.').trimStart('_')
-      val iconName = camelName.withIndex().joinToString("") { (i, ch) ->
+    private fun String.camelCaseToSnakeCase(): String {
+      val camelName = trimStart('_')
+      return camelName.withIndex().joinToString("") { (i, ch) ->
         when {
           i == 0 -> ch.lowercaseChar().toString()
           ch.isUpperCase() -> "_${ch.lowercaseChar()}"
-          ch.isDigit() && !camelName[i-1].isDigit() -> "_$ch"
+          ch.isDigit() && !camelName[i - 1].isDigit() -> "_$ch"
           else -> ch.toString()
         }
       }
+    }
 
-      return "images/material/icons/materialicons${directorySuffix}/${iconName}/${filePrefix}_${iconName}_24.xml"
+    @VisibleForTesting
+    internal fun String.resourcePathFromFqName(): String? {
+      val (directory, filePrefix) = themeNamingPatterns[substringBeforeLast('.')] ?: return null
+
+      val snakeCaseName = substringAfterLast('.').camelCaseToSnakeCase()
+      return "images/material/icons/${directory}/${snakeCaseName}/${filePrefix}_${snakeCaseName}_24.xml"
+    }
+
+    private fun String.iconFileNameFromFqName(): String? {
+      val (_, filePrefix) = themeNamingPatterns[substringBeforeLast('.')] ?: return null
+
+      val snakeCaseName = substringAfterLast('.').camelCaseToSnakeCase()
+      return "${filePrefix}_${snakeCaseName}_24.xml"
     }
 
     /** Returns an [Icon] given an Android Studio resource path. */
     @VisibleForTesting
-    internal fun getIcon(resourcePath: String): Icon? {
+    internal fun getIcon(fqName: String): Icon? {
+      return getIconFromMaterialIconsProvider(fqName) ?: getIconFromResources(fqName)
+    }
+
+    private fun getIconFromMaterialIconsProvider(fqName: String): Icon? {
+      val iconFileName = fqName.iconFileNameFromFqName() ?: return null
+      return ComposeMaterialIconService.getInstance(ApplicationManager.getApplication()).getIcon(iconFileName)
+    }
+
+    private fun getIconFromResources(fqName: String): Icon? {
+      val resourcePath = fqName.resourcePathFromFqName() ?: return null
+
       return ComposeMaterialIconLookupElement::class.java.classLoader.getResourceAsStream(resourcePath)?.use { inputStream ->
         val content = inputStream.bufferedReader().use(BufferedReader::readText)
         val errorLog = StringBuilder()
