@@ -70,4 +70,16 @@ interface ResourceRepositoryManager {
    * @return the computed repository
    */
   val moduleResources: ResourceRepository
+  /**
+   * Returns the resource repository with framework resources
+   *
+   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time.
+   *
+   * @param languages the set of ISO 639 language codes determining the subset of resources to load.
+   *     May be empty to load only the language-neutral resources. The returned repository may contain resources
+   *     for more languages than was requested.
+   * @return the framework repository, or null if the SDK resources directory cannot be determined for the module
+   */
+  @Slow
+  fun getFrameworkResources(languages: Set<String>): ResourceRepository?
 }

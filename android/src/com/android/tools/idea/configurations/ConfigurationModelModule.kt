@@ -36,4 +36,6 @@ interface ConfigurationModelModule : Disposable {
   val androidModuleInfo: AndroidModuleInfo?
 
   val project: Project
+
+  val name: String
 }

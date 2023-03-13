@@ -24,6 +24,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.StyleResourceValue;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.ResourceRepositoryUtil;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ResourceValueMap;
@@ -38,6 +39,7 @@ import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.collect.ImmutableList;
@@ -71,9 +73,9 @@ public class ThemeResolver {
   public ThemeResolver(@NotNull Configuration configuration) {
     myConfiguration = configuration;
 
-    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(configuration.getModule());
+    ResourceRepositoryManager repositoryManager = configuration.getConfigModule().getResourceRepositoryManager();
     if (repositoryManager == null) {
-      throw new IllegalArgumentException("\"" + configuration.getModule().getName() + "\" is not an Android module");
+      throw new IllegalArgumentException("\"" + configuration.getConfigModule().getName() + "\" is not an Android module");
     }
 
     myResolver = configuration.getResourceResolver();
@@ -153,11 +155,11 @@ public class ThemeResolver {
    */
   @NotNull
   private List<StyleResourceValue> resolveNonFrameworkThemes() {
-    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myConfiguration.getModule());
+    ResourceRepositoryManager repositoryManager = myConfiguration.getConfigModule().getResourceRepositoryManager();
     if (repositoryManager == null) {
       return Collections.emptyList();
     }
-    LocalResourceRepository repository = repositoryManager.getAppResources();
+    ResourceRepository repository = repositoryManager.getAppResources();
     ResourceValueMap configuredResources =
         ResourceRepositoryUtil.getConfiguredResources(repository, repositoryManager.getNamespace(), ResourceType.STYLE,
                                                       myConfiguration.getFullConfig());

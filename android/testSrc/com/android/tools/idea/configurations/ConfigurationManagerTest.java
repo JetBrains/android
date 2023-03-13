@@ -59,7 +59,6 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     assertNotNull(manager);
     assertSame(manager, ConfigurationManager.getOrCreateInstance(myModule));
-    assertSame(myModule, manager.getModule());
 
     Configuration configuration1 = manager.getConfiguration(file1);
     Configuration configuration2 = manager.getConfiguration(file2);

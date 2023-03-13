@@ -26,6 +26,8 @@ interface ThemeInfoProvider {
   @get:Slow
   val appThemeName: String?
 
+  val allActivityThemeNames: Set<String>
+
   /** If found, returns a theme name corresponding the [activityFqcn] activity. */
   @Slow
   fun getThemeNameForActivity(activityFqcn: String): String?

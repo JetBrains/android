@@ -18,21 +18,19 @@ package com.android.tools.idea.configurations;
 import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.adtui.actions.DropDownAction;
-import com.android.tools.idea.model.StudioAndroidModuleInfo;
+import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.Presentation;
 import com.intellij.openapi.actionSystem.Toggleable;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import icons.StudioIcons;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.VisibleForTesting;
@@ -98,13 +96,10 @@ public class TargetMenuAction extends DropDownAction {
    */
   private int getMinSdkVersion() {
     Configuration configuration = myRenderContext.getConfiguration();
-    if (configuration != null) {
-      Module module = configuration.getModule();
-      if (module != null) {
-        AndroidFacet facet = AndroidFacet.getInstance(module);
-        if (facet != null) {
-          return StudioAndroidModuleInfo.getInstance(facet).getMinSdkVersion().getFeatureLevel();
-        }
+    if (configuration != null ) {
+      AndroidModuleInfo moduleInfo = configuration.getConfigModule().getAndroidModuleInfo();
+      if (moduleInfo != null) {
+        return moduleInfo.getMinSdkVersion().getFeatureLevel();
       }
     }
     return -1;

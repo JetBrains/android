@@ -251,7 +251,7 @@ public class LocaleMenuAction extends DropDownAction {
     public void actionPerformed(@NotNull AnActionEvent e) {
       Configuration configuration = myRenderContext.getConfiguration();
       if (configuration != null) {
-        Module module = configuration.getConfigurationManager().getModule();
+        Module module = configuration.getModule();
         StringResourceEditorProvider.openEditor(module);
       }
     }

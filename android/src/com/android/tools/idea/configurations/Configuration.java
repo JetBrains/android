@@ -490,7 +490,7 @@ public class Configuration implements Disposable, ModificationTracker {
         stateName = device.getDefaultState().getName();
       }
       State selectedState = ConfigurationFileState.getState(device, stateName);
-      Module module = myManager.getModule();
+      Module module = getModule();
       FolderConfiguration currentConfig = getFolderConfig(module, selectedState, getLocale(), getTarget());
       if (currentConfig != null) {
         if (myEditedConfig.isMatchFor(currentConfig)) {

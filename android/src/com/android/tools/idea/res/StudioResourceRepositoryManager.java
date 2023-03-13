@@ -471,6 +471,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    */
   @Slow
   @Nullable
+  @Override
   public ResourceRepository getFrameworkResources(@NotNull Set<String> languages) {
     AndroidPlatform androidPlatform = AndroidPlatforms.getInstance(myFacet.getModule());
     if (androidPlatform == null) {

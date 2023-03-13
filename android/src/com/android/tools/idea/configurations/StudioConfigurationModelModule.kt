@@ -35,6 +35,7 @@ class StudioConfigurationModelModule(private val module: Module): ConfigurationM
   override val themeInfoProvider: ThemeInfoProvider = StudioThemeInfoProvider(module)
   override val androidModuleInfo: AndroidModuleInfo? = StudioAndroidModuleInfo.getInstance(module)
   override val project: Project = module.project
+  override val name: String = module.name
 
   override fun dispose() {
   }

@@ -128,13 +128,6 @@ public class ResolutionUtils {
   }
 
   @Nullable
-  public static AttributeDefinition getAttributeDefinition(@NotNull Configuration configuration,
-                                                           @NotNull StyleItemResourceValue itemResValue) {
-    ResourceReference attr = itemResValue.getAttr();
-    return attr == null ? null : getAttributeDefinition(configuration.getModule(), attr);
-  }
-
-  @Nullable
   public static AttributeDefinition getAttributeDefinition(@NotNull Module module, @NotNull ResourceReference attr) {
     AndroidFacet facet = AndroidFacet.getInstance(module);
     assert facet != null : String.format("Module %s is not an Android module", module.getName());
