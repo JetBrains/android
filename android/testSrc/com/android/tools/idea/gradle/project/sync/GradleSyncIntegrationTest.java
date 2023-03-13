@@ -114,6 +114,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ContentEntry;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.libraries.Library;
+import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -606,7 +607,7 @@ public final class GradleSyncIntegrationTest extends GradleSyncIntegrationTestCa
     Collection<DataNode<ContentRootData>> testRoots = ExternalSystemApiUtil.findAll(test, ProjectKeys.CONTENT_ROOT);
 
     File buildSrcDir = new File(getProject().getBasePath(), "buildSrc");
-    String buildSrcDirPath = buildSrcDir.getPath();
+    String buildSrcDirPath = FileUtil.toSystemIndependentName(buildSrcDir.getPath());
     assertThat(ContainerUtil.map(mainRoots, e -> e.getData().getRootPath())).containsExactly(
       buildSrcDirPath + "/src/main"
     );

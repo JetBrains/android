@@ -482,7 +482,8 @@ internal fun modelCacheV2Impl(internedModels: InternedModels, lock: ReentrantLoc
     // if it's available, don't create new one, simple add reference to it. If it's not available, create new instance and save
     // to this map, so it can be reused the next time when the same library is added.
     val librariesById = mutableMapOf<String, IdeDependencyCoreImpl>()
-    fun buildNameToBuildId(buildName: String) = buildNameMap[buildName] ?: error("Unknown build name: '$buildName'")
+    fun buildNameToBuildId(buildName: String) = buildNameMap[buildName] ?: error("Unknown build name: '$buildName'." +
+                                                                                 " Known names ${buildNameMap}")
 
     fun createModuleDependency(
       visited: MutableSet<String>,
