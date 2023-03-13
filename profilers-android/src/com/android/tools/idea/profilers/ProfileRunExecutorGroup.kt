@@ -17,14 +17,11 @@ package com.android.tools.idea.profilers
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getProjectSystem
-import com.android.tools.idea.run.ExecutorIconProvider
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup
 import com.android.tools.idea.run.profiler.ProfilingMode
-import com.android.tools.profilers.sessions.SessionsManager
 import com.intellij.execution.Executor
 import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.configurations.RunProfile
-import com.intellij.execution.runners.ExecutionUtil
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -38,7 +35,7 @@ import javax.swing.Icon
 /**
  * Executor group to support profiling app as profileable or debuggable in a dropdown menu.
  */
-class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutorGroup.ProfilerSetting>(), ExecutorIconProvider {
+class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutorGroup.ProfilerSetting>() {
   /**
    * A setting maps to a child executor in the group, containing metadata for the child executor.
    */
@@ -71,7 +68,7 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
     /**
      * @return true if the Profileable Builds feature flag is true and the project's build system supports profiling mode (e.g. Gradle).
      */
-    override fun groupShouldBeVisible(e: AnActionEvent) : Boolean {
+    override fun groupShouldBeVisible(e: AnActionEvent): Boolean {
       val isProfilingModeSupported = e.project?.getProjectSystem()?.supportsProfilingMode() ?: false
       return isProfilingModeSupported && StudioFlags.PROFILEABLE_BUILDS.get()
     }
@@ -105,15 +102,6 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
   override fun getContextActionId(): String = "ProfileGroupRunClass"
 
   override fun getHelpId(): String? = null
-
-  override fun getExecutorIcon(project: Project, executor: Executor): Icon {
-    AndroidProfilerToolWindowFactory.getProfilerToolWindow(project)?.profilers?.let {
-      if (SessionsManager.isSessionAlive(it.sessionsManager.profilingSession)) {
-        return ExecutionUtil.getLiveIndicator(icon)
-      }
-    }
-    return icon
-  }
 
   override fun isApplicable(project: Project): Boolean = AndroidUtils.hasAndroidFacets(project)
 

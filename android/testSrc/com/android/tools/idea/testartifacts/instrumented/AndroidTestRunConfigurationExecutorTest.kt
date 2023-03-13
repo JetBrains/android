@@ -234,10 +234,6 @@ class AndroidTestRunConfigurationExecutorTest {
         override fun getId() = "TestTarget"
         override fun getDisplayName() = "TestTarget"
         override fun getIcon() = null
-        override fun isApplicationRunning(appPackage: String): Boolean {
-          throw UnsupportedOperationException()
-        }
-
         override fun getAvailableDeviceCount() = devices.size
         override fun getRunningDevices() = devices
       })

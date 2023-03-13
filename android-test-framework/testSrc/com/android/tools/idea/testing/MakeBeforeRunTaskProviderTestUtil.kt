@@ -77,7 +77,6 @@ fun RunConfiguration.executeMakeBeforeRunStepInTest(deviceFutures: DeviceFutures
         override fun getId(): String = "target"
         override fun getDisplayName(): String = "target"
         override fun getIcon(): Icon? = null
-        override fun isApplicationRunning(packageName: String): Boolean = false
         override fun getAvailableDeviceCount(): Int = 1
         override fun getRunningDevices(): Collection<IDevice> = emptyList()
         override fun canRun(configuration: RunConfiguration): Boolean = configuration === this@executeMakeBeforeRunStepInTest

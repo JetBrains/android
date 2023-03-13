@@ -67,9 +67,6 @@ import org.jetbrains.concurrency.Promise;
 import org.jetbrains.concurrency.Promises;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 public class AndroidConfigurationProgramRunnerTest {
 
@@ -377,11 +374,6 @@ public class AndroidConfigurationProgramRunnerTest {
 
     private void setAvailableDeviceCount(int availableDeviceCount) {
       myAvailableDeviceCount = availableDeviceCount;
-    }
-
-    @Override
-    public boolean isApplicationRunning(@NotNull String packageName) {
-      return false;
     }
 
     @Override

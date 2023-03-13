@@ -24,6 +24,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.util.UserDataHolderBase;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import icons.StudioIcons;
 import java.awt.EventQueue;
 import java.util.Collection;
@@ -55,21 +56,9 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
       .map(device -> device.isRunningAsync(appPackage))
       .collect(Collectors.toList());
 
-    // The EDT and Action Updater (Common) threads call into this. Ideally we'd use the respective executors here instead of the direct
-    // executor. But we don't have access to the Action Updater (Common) executor.
-
     // noinspection UnstableApiUsage, SpellCheckingInspection
-    return Futures.transform(Futures.successfulAsList(futures), runnings -> runnings.contains(true), MoreExecutors.directExecutor());
-  }
-
-  @Override
-  public boolean isApplicationRunning(@NotNull String appPackage) {
-    if (Thread.currentThread().getName().equals("Action Updater (Common)") || EventQueue.isDispatchThread()) {
-      Loggers.errorConditionally(DeviceAndSnapshotComboBoxExecutionTarget.class,
-                                 "Blocking Future::get call on an Action Updater (Common) thread or the EDT http://b/261501171");
-    }
-
-    return Futures.getUnchecked(isApplicationRunningAsync(appPackage));
+    return Futures.transform(Futures.successfulAsList(futures), runnings -> runnings.contains(true),
+                             AppExecutorUtil.getAppExecutorService());
   }
 
   @Override
