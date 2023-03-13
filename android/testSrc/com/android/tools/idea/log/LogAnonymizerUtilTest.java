@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea;
+package com.android.tools.idea.log;
 
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.util.List;
 
