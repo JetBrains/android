@@ -1164,6 +1164,14 @@ class ComposeCompletionContributorTest {
 
     assertThat("androidx.compose.material.icons.unknown.Adb".resourcePathFromFqName()).isNull()
     assertThat("androidx.compose.material.icons.filled.extrapackage.Adb".resourcePathFromFqName()).isNull()
+
+    // Ensure numbers in camel case are converted as expected.
+    assertThat("androidx.compose.material.icons.filled.Shop2".resourcePathFromFqName())
+      .isEqualTo("images/material/icons/materialicons/shop_2/baseline_shop_2_24.xml")
+    assertThat("androidx.compose.material.icons.filled._1kPlus".resourcePathFromFqName())
+      .isEqualTo("images/material/icons/materialicons/1k_plus/baseline_1k_plus_24.xml")
+    assertThat("androidx.compose.material.icons.filled.Battery0Bar".resourcePathFromFqName())
+      .isEqualTo("images/material/icons/materialicons/battery_0_bar/baseline_battery_0_bar_24.xml")
   }
 
   @Test

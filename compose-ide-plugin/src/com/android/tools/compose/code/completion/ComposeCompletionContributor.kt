@@ -250,14 +250,23 @@ internal class ComposeMaterialIconLookupElement(private val original: LookupElem
      *
      * eg: "androidx.compose.material.icons.filled.AccountBox" ->
      *        "images/material/icons/materialicons/account_box/baseline_account_box_24.xml"
+     *
+     * If a material icon's name starts with a number, the property name has an underscore prepended to make it a valid identifier, even
+     * though the underscore doesn't appear in the file path and name.
+     *
+     * eg: "androidx.compose.material.icons.filled._1kPlus" ->
+     *        "images/material/icons/materialicons/1k_plus/baseline_1k_plus_24.xml"
      */
     @VisibleForTesting
     internal fun String.resourcePathFromFqName(): String? {
       val (directorySuffix, filePrefix) = resourcePathMap[substringBeforeLast('.')] ?: return null
-      val iconName = substringAfterLast('.').withIndex().joinToString("") { (i, ch) ->
+
+      val camelName = substringAfterLast('.').trimStart('_')
+      val iconName = camelName.withIndex().joinToString("") { (i, ch) ->
         when {
           i == 0 -> ch.lowercaseChar().toString()
           ch.isUpperCase() -> "_${ch.lowercaseChar()}"
+          ch.isDigit() && !camelName[i-1].isDigit() -> "_$ch"
           else -> ch.toString()
         }
       }
