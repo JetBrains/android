@@ -696,7 +696,9 @@
           "profiler.svg": "studio/icons/shell/toolbar/profiler.svg",
           "sdk-manager.svg": "studio/icons/shell/toolbar/sdk-manager.svg",
           "user-profile.svg": "studio/icons/shell/toolbar/user-profile.svg",
-          "user-profile-active.svg": "studio/icons/shell/toolbar/user-profile-active.svg"
+          "user-profile-active.svg": "studio/icons/shell/toolbar/user-profile-active.svg",
+          "profiler-detailed.svg": "studio/icons/shell/toolbar/profiler-detailed.svg",
+          "profiler-low-overhead.svg": "studio/icons/shell/toolbar/profiler-low-overhead.svg"
         }
       },
       "test": {
