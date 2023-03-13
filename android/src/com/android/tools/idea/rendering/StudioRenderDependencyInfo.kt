@@ -15,9 +15,13 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.tools.idea.projectsystem.AndroidProjectSettingsService
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
+import com.android.tools.idea.projectsystem.requiresAndroidModel
 import com.android.tools.idea.util.dependsOn
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
+import org.jetbrains.android.sdk.AndroidSdkUtils
 
 /** Studio specific implementation of [RenderDependencyInfo]. */
 class StudioRenderDependencyInfo(private val module: Module) : RenderDependencyInfo {
@@ -26,4 +30,19 @@ class StudioRenderDependencyInfo(private val module: Module) : RenderDependencyI
 
   override val dependsOnAndroidXAppCompat: Boolean
     get() = module.dependsOn(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7)
+
+  override fun reportMissingSdk(logger: IRenderLogger) {
+    val message = RenderProblem.create(ProblemSeverity.ERROR)
+    logger.addMessage(message)
+    message.htmlBuilder.addLink("No Android SDK found. Please ", "configure", " an Android SDK.",
+                                logger.linkManager.createRunnableLink {
+                                  val project = module.project
+                                  val service = ProjectSettingsService.getInstance(project)
+                                  if (project.requiresAndroidModel() && service is AndroidProjectSettingsService) {
+                                    (service as AndroidProjectSettingsService).openSdkSettings()
+                                    return@createRunnableLink
+                                  }
+                                  AndroidSdkUtils.openModuleDependenciesConfigurable(module)
+                                })
+  }
 }

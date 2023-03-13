@@ -20,4 +20,6 @@ interface RenderDependencyInfo {
   val dependsOnAppCompat: Boolean
 
   val dependsOnAndroidXAppCompat: Boolean
+
+  fun reportMissingSdk(logger: IRenderLogger)
 }

@@ -27,8 +27,6 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
-import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
@@ -42,7 +40,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ex.ProjectEx;
-import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -57,7 +54,6 @@ import java.util.function.Consumer;
 import com.android.tools.sdk.AndroidPlatform;
 import java.util.function.Supplier;
 import org.jetbrains.android.sdk.AndroidPlatforms;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.android.util.AndroidBundle;
@@ -187,21 +183,6 @@ final public class RenderService implements Disposable {
   @Override
   public void dispose() {
     myImagePool.dispose();
-  }
-
-  private static void reportMissingSdk(@NotNull RenderLogger logger, @NotNull Module module) {
-    RenderProblem.Html message = RenderProblem.create(ERROR);
-    logger.addMessage(message);
-    message.getHtmlBuilder().addLink("No Android SDK found. Please ", "configure", " an Android SDK.",
-      logger.getLinkManager().createRunnableLink(() -> {
-        Project project = module.getProject();
-        ProjectSettingsService service = ProjectSettingsService.getInstance(project);
-        if (ProjectSystemUtil.requiresAndroidModel(project) && service instanceof AndroidProjectSettingsService) {
-          ((AndroidProjectSettingsService)service).openSdkSettings();
-          return;
-        }
-        AndroidSdkUtils.openModuleDependenciesConfigurable(module);
-      }));
   }
 
   /**
@@ -600,7 +581,7 @@ final public class RenderService implements Disposable {
           return null;
         }
         catch (NoAndroidPlatformException e) {
-          reportMissingSdk(myLogger, myContext.getModule().getIdeaModule());
+          myContext.getModule().getDependencies().reportMissingSdk(myLogger);
           return null;
         }
 
