@@ -530,7 +530,8 @@ internal fun modelCacheV2Impl(
     // if it's available, don't create new one, simple add reference to it. If it's not available, create new instance and save
     // to this map, so it can be reused the next time when the same library is added.
     val librariesById = mutableMapOf<String, LibraryReference>()
-    fun buildNameToBuildId(buildName: String) = buildNameMap[buildName] ?: error("Unknown build name: '$buildName'")
+    fun buildNameToBuildId(buildName: String) = buildNameMap[buildName] ?: error("Unknown build name: '$buildName'." +
+                                                                                 " Known names ${buildNameMap}")
 
     data class LibraryWithDependencies(val library: Library, val dependencies: List<String>)
 

@@ -1,7 +1,9 @@
 package com.android.ide.gradle.model.composites
 
 import org.gradle.api.Project
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.tooling.provider.model.ToolingModelBuilder
+import org.gradle.util.GradleVersion
 import java.io.File
 
 class BuildMapModelBuilder : ToolingModelBuilder {
@@ -19,6 +21,11 @@ class BuildMapModelBuilder : ToolingModelBuilder {
   private fun buildBuildMap(project: Project): BuildMap = BuildMapImpl(getBuildMap(project))
 
   private fun getBuildMap(project: Project): Map<String, File> {
-    return project.gradle.includedBuilds.associate { it.name to it.projectDir }
+    if (GradleVersion.version(project.gradle.gradleVersion) < GradleVersion.version("3.3")) {
+      return mapOf(project.name to project.projectDir)
+    }
+    val projectInternal = project as? ProjectInternal ?: return emptyMap()
+    val name = projectInternal.identityPath.name ?: return emptyMap()
+    return mapOf(name to project.projectDir)
   }
 }
