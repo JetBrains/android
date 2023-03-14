@@ -504,7 +504,7 @@ public class RenderLogger implements IRenderLogger {
       addMessage(RenderProblem.createPlain(ERROR, description).tag(tag).throwable(throwable));
     }
     else {
-      addMessage(RenderProblem.createPlain(ERROR, description, getProject(), getLinkManager(), throwable).tag(tag));
+      addMessage(RenderProblem.createPlain(ERROR, description, getProject(), getLinkManager(), throwable, new ShowFixLinkFactory()).tag(tag));
     }
   }
 

@@ -27,4 +27,6 @@ interface EnvironmentContext {
   val parentDisposable: Disposable
 
   fun hasLayoutlibCrash(): Boolean
+
+  val runnableLinkFactory: RenderProblem.RunnableLinkFactory
 }

@@ -15,14 +15,8 @@
  */
 package com.android.tools.idea.rendering
 
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ex.ProjectEx
 
-/** Studio-specific implementation of [EnvironmentContext]. */
-class StudioEnvironmentContext(private val project: Project) : EnvironmentContext {
-  override val parentDisposable: Disposable
-    get() = (project as ProjectEx).earlyDisposable
-  override fun hasLayoutlibCrash(): Boolean = hasStudioLayoutlibCrash()
-  override val runnableLinkFactory: RenderProblem.RunnableLinkFactory = ShowFixLinkFactory()
+class ShowFixLinkFactory : RenderProblem.RunnableLinkFactory {
+  override fun create(project: Project, problem: RenderProblem): Runnable = ShowExceptionFix(project, problem)
 }

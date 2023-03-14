@@ -846,7 +846,8 @@ public class RenderTask {
           if (message == null) {
             message = ex.toString();
           }
-          myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), ex));
+          RenderProblem.RunnableLinkFactory linkFactory = myContext.getModule().getEnvironment().getRunnableLinkFactory();
+          myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), ex, linkFactory));
         }
 
         if (result != null) {
@@ -1039,7 +1040,8 @@ public class RenderTask {
         if (message == null) {
           message = e.toString();
         }
-        myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e));
+        RenderProblem.RunnableLinkFactory linkFactory = myContext.getModule().getEnvironment().getRunnableLinkFactory();
+        myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e, linkFactory));
         return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(myContext.getModule(), psiFile, e));
       }
     });

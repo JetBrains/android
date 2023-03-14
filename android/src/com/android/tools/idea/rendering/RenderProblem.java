@@ -57,13 +57,14 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
                                           @NotNull String message,
                                           @Nullable Project project,
                                           @NotNull HtmlLinkManager linkManager,
-                                          @Nullable Throwable throwable) {
+                                          @Nullable Throwable throwable,
+                                          @NotNull RunnableLinkFactory linkFactory) {
     Html problem = new Html(severity, ourNextOrdinal++);
     HtmlBuilder builder = problem.getHtmlBuilder();
     builder.add(message);
     if (throwable != null) {
       problem.throwable(throwable);
-      String url = linkManager.createRunnableLink(new ShowExceptionFix(project, problem));
+      String url = linkManager.createRunnableLink(linkFactory.create(project, problem));
       builder.add(" (").addLink("Details", url).add(")");
       if (message.equals(throwable.getMessage())) {
         problem.myIsDefaultHtml = true;
@@ -240,5 +241,9 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
     public String getHtml() {
       return new HtmlBuilder().add(myText).getHtml();
     }
+  }
+
+  public interface RunnableLinkFactory {
+    Runnable create(Project project, RenderProblem problem);
   }
 }

@@ -555,7 +555,9 @@ final public class RenderService implements Disposable {
         catch (RenderingException e) {
           String message = e.getPresentableMessage();
           message = message != null ? message : AndroidBundle.message("android.layout.preview.default.error.message");
-          myLogger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), myLogger.getLinkManager(), e));
+          myLogger.addMessage(
+            RenderProblem.createPlain(
+              ERROR, message, module.getProject(), myLogger.getLinkManager(), e, module.getEnvironment().getRunnableLinkFactory()));
           return null;
         }
         catch (NoAndroidTargetException e) {
