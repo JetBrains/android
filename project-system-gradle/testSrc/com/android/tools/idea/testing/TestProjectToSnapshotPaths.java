@@ -45,4 +45,5 @@ public final class TestProjectToSnapshotPaths {
   public static final String TWO_JARS = "projects/two_jars";
   public static final String WITH_GRADLE_METADATA = "projects/withGradleMetadata";
   public static final String PRIVACY_SANDBOX_SDK = "projects/privacySandboxSdk/libraryAndConsumer";
+  public static final String DEPENDENT_MODULES = "projects/dependentModules";
 }
