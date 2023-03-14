@@ -85,7 +85,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, psiFile.getVirtualFile());
     RenderLogger logger = mock(RenderLogger.class);
     RenderTestUtil.withRenderTask(myFacet, psiFile.getVirtualFile(), configuration, logger, task -> {
-      LayoutLibrary layoutlib = RenderService.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
+      LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
       ModuleRenderContext renderContext = ModuleRenderContext.forFile(psiFile);
@@ -124,7 +124,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
     Configuration configuration = RenderTestUtil.getConfiguration(myModule, psiFile.getVirtualFile());
     RenderLogger logger = mock(RenderLogger.class);
     RenderTestUtil.withRenderTask(myFacet, psiFile.getVirtualFile(), configuration, logger, task -> {
-      LayoutLibrary layoutlib = RenderService.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
+      LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
       ModuleRenderContext renderContext = ModuleRenderContext.forFile(psiFile);

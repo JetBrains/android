@@ -61,6 +61,7 @@ import com.android.sdklib.devices.State;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.StudioRenderServiceKt;
 import com.android.tools.idea.res.ResourceFilesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceUtils;
@@ -468,7 +469,7 @@ public class Configuration implements Disposable, ModificationTracker {
         currentConfig.setLocaleQualifier(locale.qualifier);
 
         if (locale.hasLanguage()) {
-          LayoutLibrary layoutLib = RenderService.getLayoutLibrary(module, target);
+          LayoutLibrary layoutLib = StudioRenderServiceKt.getLayoutLibrary(module, target);
           if (layoutLib != null) {
             if (layoutLib.isRtl(locale.toLocaleId())) {
               currentConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));
@@ -1101,7 +1102,7 @@ public class Configuration implements Disposable, ModificationTracker {
       // Avoid getting the layout library if the locale doesn't have any language.
       myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.LTR));
     } else {
-      LayoutLibrary layoutLib = RenderService.getLayoutLibrary(getModule(), getTarget());
+      LayoutLibrary layoutLib = StudioRenderServiceKt.getLayoutLibrary(getModule(), getTarget());
       if (layoutLib != null) {
         if (layoutLib.isRtl(locale.toLocaleId())) {
           myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));

@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.strings.StringResourceEditorProvider;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.FlagManager;
 import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.StudioRenderServiceKt;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
@@ -103,7 +104,7 @@ public class LocaleMenuAction extends DropDownAction {
    * Returns whether any of the passed locales is RTL
    */
   private static boolean hasAnyRtlLocales(@NotNull Configuration configuration, @NotNull List<Locale> locales) {
-    LayoutLibrary layoutlib = RenderService.getLayoutLibrary(configuration.getModule(), configuration.getTarget());
+    LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(configuration.getModule(), configuration.getTarget());
     if (layoutlib == null) {
       return false;
     }

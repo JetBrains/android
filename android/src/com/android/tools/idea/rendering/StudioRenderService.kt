@@ -15,13 +15,19 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.sdklib.IAndroidTarget
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutlib.LayoutLibrary
+import com.android.tools.idea.layoutlib.RenderingException
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ShutDownTracker
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.sdk.getInstance
 import org.jetbrains.annotations.TestOnly
 
 /** Studio-specific [RenderService] management. */
@@ -73,3 +79,16 @@ fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration,
  */
 fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration): RenderService.RenderTaskBuilder =
   taskBuilder(facet, configuration, createLogger(facet.module.project, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get()))
+
+fun getLayoutLibrary(module: Module, target: IAndroidTarget?): LayoutLibrary? {
+  val environment = StudioEnvironmentContext(module.project)
+  return try {
+    RenderService.getLayoutLibrary(target, getInstance(module), environment)
+  }
+  catch (e: RenderingException) {
+    null
+  }
+  catch (e: InsufficientDataException) {
+    null
+  }
+}

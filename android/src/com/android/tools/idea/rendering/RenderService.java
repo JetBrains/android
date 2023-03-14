@@ -37,9 +37,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ex.ProjectEx;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -53,7 +51,6 @@ import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import com.android.tools.sdk.AndroidPlatform;
 import java.util.function.Supplier;
-import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.android.util.AndroidBundle;
@@ -114,25 +111,10 @@ final public class RenderService implements Disposable {
   }
 
   @Nullable
-  public static LayoutLibrary getLayoutLibrary(@NotNull Module module, @Nullable IAndroidTarget target) {
-    try {
-      return getLayoutLibrary(
-        target,
-        AndroidPlatforms.getInstance(module),
-        ((ProjectEx)module.getProject()).getEarlyDisposable(),
-        StudioCrash::hasStudioLayoutlibCrash
-      );
-    } catch (RenderingException | InsufficientDataException e) {
-      return null;
-    }
-  }
-
-  @Nullable
   public static LayoutLibrary getLayoutLibrary(
     @Nullable IAndroidTarget target,
     @Nullable AndroidPlatform platform,
-    @NotNull Disposable parentDisposable,
-    @NotNull Supplier<Boolean> hasLayoutlibCrash
+    @NotNull EnvironmentContext environment
   ) throws RenderingException, NoAndroidTargetException, NoAndroidPlatformException {
     if (platform == null) {
       throw new NoAndroidPlatformException();
@@ -140,7 +122,8 @@ final public class RenderService implements Disposable {
     if (target == null) {
       throw new NoAndroidTargetException();
     }
-    return AndroidTargetData.get(platform.getSdkData(), target).getLayoutLibrary(parentDisposable, hasLayoutlibCrash);
+    return AndroidTargetData.get(platform.getSdkData(), target)
+      .getLayoutLibrary(environment.getParentDisposable(), environment::hasLayoutlibCrash);
   }
 
   /** Returns true if the given file can be rendered */
@@ -554,12 +537,11 @@ final public class RenderService implements Disposable {
           getLogger().warn("Module was already disposed");
           return null;
         }
-        AndroidPlatform platform = myContext.getModule().getAndroidPlatform();
         IAndroidTarget target = myContext.getConfiguration().getTarget();
 
         LayoutLibrary layoutLib;
         try {
-          layoutLib = getLayoutLibrary(target, platform, ((ProjectEx)module.getProject()).getEarlyDisposable(), StudioCrash::hasStudioLayoutlibCrash);
+          layoutLib = getLayoutLibrary(target, module.getAndroidPlatform(), module.getEnvironment());
         }
         catch (UnsupportedJavaRuntimeException e) {
           RenderProblem.Html javaVersionProblem = RenderProblem.create(ERROR);

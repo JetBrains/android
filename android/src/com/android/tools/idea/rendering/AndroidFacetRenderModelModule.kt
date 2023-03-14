@@ -97,4 +97,5 @@ class AndroidFacetRenderModelModule(private val facet: AndroidFacet) : RenderMod
 
   override val name: String
     get() = facet.module.name
+  override val environment: EnvironmentContext = StudioEnvironmentContext(facet.module.project)
 }

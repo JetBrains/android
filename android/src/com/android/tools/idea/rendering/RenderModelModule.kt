@@ -56,4 +56,6 @@ interface RenderModelModule : Disposable {
   val isDisposed: Boolean
 
   val name: String
+
+  val environment: EnvironmentContext
 }
