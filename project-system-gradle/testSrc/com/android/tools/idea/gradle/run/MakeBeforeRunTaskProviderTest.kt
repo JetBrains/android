@@ -51,6 +51,7 @@ import com.intellij.util.ThreeState
 import org.apache.commons.io.FileUtils
 import org.mockito.ArgumentMatchers
 import org.mockito.Mock
+import org.mockito.Mockito
 import org.mockito.Mockito.doAnswer
 import org.mockito.Mockito.mock
 import org.mockito.MockitoAnnotations.initMocks
@@ -329,6 +330,26 @@ class MakeBeforeRunTaskProviderTest : PlatformTestCase() {
     assertThat(provider.isSyncNeeded(myProject, notAvailable1, notAvailable2)).isEqualTo(SyncNeeded.NOT_NEEDED)
     assertThat(provider.isSyncNeeded(myProject, notAvailable1, selected)).isEqualTo(SyncNeeded.NOT_NEEDED)
 
+  }
+
+  fun `test when device serials injection`() {
+    StudioFlags.INJECT_DEVICE_SERIAL_ENABLED.override(true)
+    setUpTestProject()
+    whenever(myDevice.version).thenReturn(AndroidVersion(20, null))
+    whenever(myDevice.serial).thenReturn("device_1")
+    val device2 = mock(AndroidDevice::class.java)
+    whenever(device2.version).thenReturn(AndroidVersion(20, null))
+    whenever(device2.serial).thenReturn("device_2")
+    val arguments = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
+                                                                         myRunConfiguration,
+                                                                         deviceSpec(myDevice, device2))
+    assertThat(arguments).contains("-Pinternal.android.inject.device.serials=device_1,device_2")
+    StudioFlags.INJECT_DEVICE_SERIAL_ENABLED.clearOverride()
+
+    val argumentsWithDisabledFlag = MakeBeforeRunTaskProvider.getDeviceSpecificArguments(myModules,
+                                                                                         myRunConfiguration,
+                                                                                         deviceSpec(myDevice, device2))
+    assertThat(argumentsWithDisabledFlag).doesNotContain("-Pinternal.android.inject.device.serials=device_1,device_2")
   }
 
   private fun MakeBeforeRunTaskProvider.isSyncNeeded(project: Project, vararg abi: Abi) = isSyncNeeded(project, abi.map { it.toString() })

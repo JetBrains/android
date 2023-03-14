@@ -697,6 +697,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> INJECT_DEVICE_SERIAL_ENABLED = Flag.create(
+    GRADLE_IDE, "internal.build.injection.device.serial.number",
+    "For internal use only. Enables injection of device serial from the IDE into Gradle build.",
+    "For internal use only. Enables injection of device serial from the IDE into Gradle build.",
+    false
+  );
+
   public static final Flag<Boolean> FIX_ANDROID_RUN_CONFIGURATIONS_ENABLED = Flag.create(
     GRADLE_IDE, "gradle.run.configuration.fix.enabled",
     "Check Android Run Configurations contains the \"Gradle-aware Make\" task and fix them",

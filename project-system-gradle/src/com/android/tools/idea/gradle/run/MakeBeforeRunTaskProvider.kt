@@ -27,6 +27,7 @@ import com.android.sdklib.AndroidVersion
 import com.android.sdklib.AndroidVersion.VersionCodes
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.flags.StudioFlags.API_OPTIMIZATION_ENABLE
+import com.android.tools.idea.flags.StudioFlags.INJECT_DEVICE_SERIAL_ENABLED
 import com.android.tools.idea.gradle.project.GradleExperimentalSettings
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.build.invoker.AssembleInvocationResult
@@ -372,6 +373,12 @@ class MakeBeforeRunTaskProvider : BeforeRunTaskProvider<MakeBeforeRunTask>() {
         }
         if (configuration.deployAsInstant) {
           properties.add(AndroidGradleSettings.createProjectProperty(PROPERTY_DEPLOY_AS_INSTANT_APP, true))
+        }
+        if (INJECT_DEVICE_SERIAL_ENABLED.get() && deviceSpec.deviceSerials.isNotEmpty()) {
+          // This is an internal, opt-in flag to Sys-UI. See http://b/234033515 for more details.
+          val deviceSerials = deviceSpec.deviceSerials.joinToString(separator = ",")
+          val injectedProperty = AndroidGradleSettings.createProjectProperty("internal.android.inject.device.serials", deviceSerials)
+          properties.add(injectedProperty)
         }
       }
       return properties

@@ -16,7 +16,6 @@
 @file:JvmName("AndroidDeviceSpecUtil")
 package com.android.tools.idea.gradle.run
 
-import com.android.ddmlib.IDevice
 import com.android.ide.common.util.getLanguages
 import com.android.resources.Density
 import com.android.sdklib.AndroidVersion
@@ -46,6 +45,7 @@ data class AndroidDeviceSpecImpl @JvmOverloads constructor (
   override val minVersion: AndroidVersion?,
   override val density: Density? = null,
   override val abis: List<String> = emptyList(),
+  override val deviceSerials: List<String> = emptyList(),
   val languagesProvider: () -> List<String> = { emptyList() }
 ) : AndroidDeviceSpec {
   override val languages: List<String> by lazy { languagesProvider() }
@@ -101,7 +101,8 @@ fun createSpec(
     log.info("Creating spec for multiple devices")
   }
 
-  return AndroidDeviceSpecImpl(version, minVersion, density, abis, languagesProvider = { combineDeviceLanguages(devices, timeout, unit) })
+  val deviceSerials = devices.map { it.serial }
+  return AndroidDeviceSpecImpl(version, minVersion, density, abis, deviceSerials, languagesProvider = { combineDeviceLanguages(devices, timeout, unit) })
 }
 
 /**
@@ -190,15 +191,6 @@ private fun AndroidDeviceSpec.writeJson(writeLanguages: Boolean, out: Writer) {
   }
 }
 
-fun IDevice.createSpec(): AndroidDeviceSpec {
-  return AndroidDeviceSpecImpl(
-    version,
-    version,
-    Density.getEnum(density),
-    abis,
-    languagesProvider = { getLanguages(Duration.ofSeconds(DEVICE_SPEC_TIMEOUT_SECONDS)).sorted() }
-  )
-}
 
 private val log: Logger
   get() = Logger.getInstance(AndroidDeviceSpec::class.java)
