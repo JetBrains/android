@@ -21,6 +21,12 @@ studio_plugin(
         "//prebuilts/tools/common/m2:flatbuffers-java",
         "//prebuilts/tools/common/m2:tensorflow-lite-metadata",
         "//prebuilts/tools/common/m2:trace-perfetto-library",
+        "//prebuilts/tools/common/m2:compose-desktop-animation",
+        "//prebuilts/tools/common/m2:compose-desktop-foundation",
+        "//prebuilts/tools/common/m2:compose-desktop-material",
+        "//prebuilts/tools/common/m2:compose-desktop-runtime",
+        "//prebuilts/tools/common/m2:compose-desktop-ui",
+        "//prebuilts/tools/common/m2:skiko",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/.idea/libraries:aia-proto",
         "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
@@ -83,6 +89,7 @@ studio_plugin(
     ],
     modules = {
         "adt-ui.jar": [
+            "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
             "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model",
             "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
         ],
