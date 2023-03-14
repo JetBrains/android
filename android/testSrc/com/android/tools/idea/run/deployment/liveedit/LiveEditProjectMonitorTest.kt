@@ -126,25 +126,25 @@ class LiveEditProjectMonitorTest {
 
     // Make sure that adding a second device doesn't affect the state.
     manager.addDevice(device2, LiveEditStatus.DebuggerAttached)
-    assertEquals(manager.get(device1), LiveEditStatus.UpToDate)
-    assertEquals(manager.get(device2), LiveEditStatus.DebuggerAttached)
+    assertEquals(manager.getInfo(device1)!!.status, LiveEditStatus.UpToDate)
+    assertEquals(manager.getInfo(device2)!!.status, LiveEditStatus.DebuggerAttached)
 
     // Ensure running on one device makes the other device's status NoMultiDeploy.
     monitor.notifyExecution(listOf(device2))
-    assertEquals(manager.get(device1), LiveEditStatus.NoMultiDeploy)
-    assertEquals(manager.get(device2), LiveEditStatus.DebuggerAttached)
+    assertEquals(manager.getInfo(device1)!!.status, LiveEditStatus.NoMultiDeploy)
+    assertEquals(manager.getInfo(device2)!!.status, LiveEditStatus.DebuggerAttached)
 
     // Make sure running on the other device will force the status of other device to Disabled,
     // since showing NoMultiDeploy would be weird for the device we're deploying to. Ensure the
     // first device (that we're NOT deploying to) is now set to NoMultiDeploy.
     monitor.notifyExecution(listOf(device1))
-    assertEquals(manager.get(device1), LiveEditStatus.Disabled)
-    assertEquals(manager.get(device2), LiveEditStatus.NoMultiDeploy)
+    assertEquals(manager.getInfo(device1)!!.status, LiveEditStatus.Disabled)
+    assertEquals(manager.getInfo(device2)!!.status, LiveEditStatus.NoMultiDeploy)
 
     // Make sure if we're running on both devices, then they preserve the previous state.
     manager.update(LiveEditStatus.UpToDate)
     monitor.notifyExecution(listOf(device1, device2))
-    assertEquals(manager.get(device1), LiveEditStatus.UpToDate)
-    assertEquals(manager.get(device2), LiveEditStatus.UpToDate)
+    assertEquals(manager.getInfo(device1)!!.status, LiveEditStatus.UpToDate)
+    assertEquals(manager.getInfo(device2)!!.status, LiveEditStatus.UpToDate)
   }
 }

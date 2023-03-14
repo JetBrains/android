@@ -23,10 +23,11 @@ import org.junit.runners.JUnit4
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 @RunWith(JUnit4::class)
-class LiveEditDevicesTest {
+class LiveEditDevicesTestInfo {
 
   val device1: IDevice = MockitoKt.mock()
   val device2: IDevice = MockitoKt.mock()
@@ -41,8 +42,8 @@ class LiveEditDevicesTest {
     map.addDevice(device1, LiveEditStatus.UpToDate)
     map.addDevice(device2, LiveEditStatus.UnrecoverableError)
 
-    assertEquals(LiveEditStatus.UpToDate, map.get(device1))
-    assertEquals(LiveEditStatus.UnrecoverableError, map.get(device2))
+    assertEquals(LiveEditStatus.UpToDate, map.getInfo(device1)!!.status)
+    assertEquals(LiveEditStatus.UnrecoverableError, map.getInfo(device2)!!.status)
 
     // Listener should fire on device adds.
     assertEquals(2, events.size)
@@ -63,8 +64,8 @@ class LiveEditDevicesTest {
 
     map.update(LiveEditStatus.Disabled)
 
-    assertEquals(LiveEditStatus.Disabled, map.get(device1))
-    assertEquals(LiveEditStatus.Disabled, map.get(device2))
+    assertEquals(LiveEditStatus.Disabled, map.getInfo(device1)!!.status)
+    assertEquals(LiveEditStatus.Disabled, map.getInfo(device2)!!.status)
 
     assertEquals(2, events.size)
     assertContains(events, device1)
@@ -84,8 +85,8 @@ class LiveEditDevicesTest {
 
     map.update { _, it -> if (it.unrecoverable()) LiveEditStatus.Disabled else it }
 
-    assertEquals(LiveEditStatus.UpToDate, map.get(device1))
-    assertEquals(LiveEditStatus.Disabled, map.get(device2))
+    assertEquals(LiveEditStatus.UpToDate, map.getInfo(device1)!!.status)
+    assertEquals(LiveEditStatus.Disabled, map.getInfo(device2)!!.status)
 
     assertEquals(1, events.size)
     assertContains(events, device2)
@@ -104,8 +105,8 @@ class LiveEditDevicesTest {
     map.update(device1, LiveEditStatus.UnrecoverableError)
     map.update(device2, LiveEditStatus.Disabled)
 
-    assertEquals(LiveEditStatus.UnrecoverableError, map.get(device1))
-    assertEquals(LiveEditStatus.Disabled, map.get(device2))
+    assertEquals(LiveEditStatus.UnrecoverableError, map.getInfo(device1)!!.status)
+    assertEquals(LiveEditStatus.Disabled, map.getInfo(device2)!!.status)
 
     assertEquals(2, events.size)
     assertContains(events, device1)
@@ -126,8 +127,8 @@ class LiveEditDevicesTest {
     map.update(device1) { _, it -> if (it == LiveEditStatus.UpToDate) LiveEditStatus.Disabled else it }
     map.update(device2) { _, it -> if (it.unrecoverable()) LiveEditStatus.Disabled else it }
 
-    assertEquals(LiveEditStatus.Disabled, map.get(device1))
-    assertEquals(LiveEditStatus.Disabled, map.get(device2))
+    assertEquals(LiveEditStatus.Disabled, map.getInfo(device1)!!.status)
+    assertEquals(LiveEditStatus.Disabled, map.getInfo(device2)!!.status)
 
     assertEquals(2, events.size)
     assertContains(events, device1)

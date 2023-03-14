@@ -25,11 +25,11 @@ typealias StatusChangeListener = Consumer<Map<IDevice, LiveEditStatus>>
 // We track the state of LiveEdit on a per-project basis. Each AndroidLiveEditDeployMonitor features a LiveEditDevices object which
 // track the state of a device for the project it monitor.
 class LiveEditDevices {
-  private val devices = ConcurrentHashMap<IDevice, LiveEditDevice>()
+  private val devices = ConcurrentHashMap<IDevice, LiveEditDeviceInfoImpl>()
   private val listeners = mutableListOf<StatusChangeListener>()
 
   fun addDevice(device: IDevice, status: LiveEditStatus) {
-    devices[device] = LiveEditDevice(status)
+    devices[device] = LiveEditDeviceInfoImpl(status)
     listeners.forEach { it.accept(mapOf(Pair(device, status))) }
   }
 
@@ -37,8 +37,8 @@ class LiveEditDevices {
     return devices.keys
   }
 
-  fun get(device: IDevice): LiveEditStatus? {
-    return devices[device]?.status
+  fun getInfo(device: IDevice): LiveEditDeviceInfo? {
+    return devices[device]
   }
 
   fun isUnrecoverable(): Boolean {

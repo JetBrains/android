@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+// To expose only immutable objects, we return this interface
+interface LiveEditDeviceInfo {
+  val status : LiveEditStatus
+}
 
 // LiveEdit custom class to track the state of a device. Each LiveEditService (running on a per-project basis)
 // gets its own copy of LiveEditDevices which contains a set of LiveEditDevice.
-internal class LiveEditDevice(internal var status: LiveEditStatus) {
+internal class LiveEditDeviceInfoImpl(override var status: LiveEditStatus): LiveEditDeviceInfo {
 }

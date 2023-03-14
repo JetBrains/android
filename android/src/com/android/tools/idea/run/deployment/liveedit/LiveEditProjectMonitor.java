@@ -222,8 +222,8 @@ public class LiveEditProjectMonitor implements Disposable {
 
   @NotNull
   public LiveEditStatus status(@NotNull IDevice device) {
-    LiveEditStatus status = liveEditDevices.get(device);
-    return status == null ? LiveEditStatus.Disabled.INSTANCE : status;
+    LiveEditDeviceInfo info = liveEditDevices.getInfo(device);
+    return info == null ? LiveEditStatus.Disabled.INSTANCE : info.getStatus();
   }
 
   // This method is invoked on the listener executor thread in LiveEditService and does not block the UI thread.
@@ -558,7 +558,8 @@ public class LiveEditProjectMonitor implements Disposable {
   }
 
   private Stream<IDevice> editableDeviceIterator() {
-    return liveEditDevices.devices().stream().filter(IDevice::isOnline).filter(device -> liveEditDevices.get(device) != LiveEditStatus.Disabled.INSTANCE);
+    return liveEditDevices.devices().stream().filter(IDevice::isOnline).filter(
+      device -> liveEditDevices.getInfo(device).getStatus() != LiveEditStatus.Disabled.INSTANCE );
   }
 
   private static Installer newInstaller(IDevice device) {
