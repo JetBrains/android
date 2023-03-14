@@ -111,7 +111,7 @@ class PsAndroidArtifactDependencyCollection(val artifact: PsAndroidArtifact)
     dependencies.unresolvedDependencies.forEach { unresolvedDependency ->
       // Create a list of transitive dependencies if we have them
       val transitiveDependencies = unresolvedDependency.dependencies?.flatMap {
-        dependencies.resolver.resolve(dependencies.unresolvedDependencies[it]).filterIsInstance<IdeArtifactLibrary>()
+        dependencies.resolver.resolve(dependencies.lookup(it)).filterIsInstance<IdeArtifactLibrary>()
       }
 
       val libraries = dependencies.resolver.resolve(unresolvedDependency)

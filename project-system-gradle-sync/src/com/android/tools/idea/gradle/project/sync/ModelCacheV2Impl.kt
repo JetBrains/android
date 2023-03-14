@@ -75,6 +75,7 @@ import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
+import com.android.tools.idea.gradle.model.impl.DependencyReference
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
@@ -88,6 +89,7 @@ import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
 import com.android.tools.idea.gradle.model.impl.IdeClassFieldImpl
 import com.android.tools.idea.gradle.model.impl.IdeCustomSourceDirectoryImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreImpl
+import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreDirect
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
@@ -765,10 +767,10 @@ internal fun modelCacheV2Impl(
 
       artifactAddressesAndDependencies.forEach { (key, deps) ->
         val libraryReference = librariesById[key]!!
-        dependencyList.add(IdeDependencyCoreImpl(libraryReference, deps.mapNotNull { indexed[it] }))
+        dependencyList.add(IdeDependencyCoreImpl(libraryReference, deps.mapNotNull { indexed[it] }.map(::DependencyReference)))
       }
 
-      return IdeDependenciesCoreImpl(dependencyList)
+      return IdeDependenciesCoreDirect(dependencyList)
     }
 
     fun createIdeDependenciesInstance(): IdeDependenciesCoreImpl {
@@ -951,8 +953,8 @@ internal fun modelCacheV2Impl(
       ).recordAndGet()
 
       artifact.copy(
-        compileClasspathCore = compileClasspathCore ?: IdeDependenciesCoreImpl(emptyList()),
-        runtimeClasspathCore = runtimeClasspathCore ?: IdeDependenciesCoreImpl(emptyList()),
+        compileClasspathCore = compileClasspathCore ?: IdeDependenciesCoreDirect(emptyList()),
+        runtimeClasspathCore = runtimeClasspathCore ?: IdeDependenciesCoreDirect(emptyList()),
         unresolvedDependencies = artifactDependencies.unresolvedDependencies.unresolvedDependenciesFrom(),
       )
     }
@@ -1012,8 +1014,8 @@ internal fun modelCacheV2Impl(
       ).recordAndGet()
 
       artifact.copy(
-        compileClasspathCore = compileClasspathCore ?: IdeDependenciesCoreImpl(emptyList()),
-        runtimeClasspathCore = runtimeClasspathCore ?: IdeDependenciesCoreImpl(emptyList()),
+        compileClasspathCore = compileClasspathCore ?: IdeDependenciesCoreDirect(emptyList()),
+        runtimeClasspathCore = runtimeClasspathCore ?: IdeDependenciesCoreDirect(emptyList()),
         unresolvedDependencies = variantDependencies.unresolvedDependencies.unresolvedDependenciesFrom(),
       )
     }

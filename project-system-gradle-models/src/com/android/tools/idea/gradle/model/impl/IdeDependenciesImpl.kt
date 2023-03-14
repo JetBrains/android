@@ -18,15 +18,36 @@ package com.android.tools.idea.gradle.model.impl
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
 import com.android.tools.idea.gradle.model.IdeDependencies
 import com.android.tools.idea.gradle.model.IdeDependenciesCore
+import com.android.tools.idea.gradle.model.IdeDependencyCore
 import com.android.tools.idea.gradle.model.IdeJavaLibraryDependency
 import com.android.tools.idea.gradle.model.IdeLibraryModelResolver
 import com.android.tools.idea.gradle.model.IdeModuleDependency
 import com.android.tools.idea.gradle.model.IdeUnknownDependency
 import java.io.Serializable
 
-data class IdeDependenciesCoreImpl(
-  override val dependencies: List<IdeDependencyCoreImpl>
-) : IdeDependenciesCore, Serializable
+/**
+ * We need a sealed interface so that the model classes pass validation, we can't use the [IdeDependenciesCore] interface
+ * as this is in a different package. We still need other references to this interface within com.android.tools.idea.gradle.model
+ */
+sealed interface IdeDependenciesCoreImpl: IdeDependenciesCore, Serializable
+
+data class DependencyReference(internal val index: Int) : Serializable
+
+data class IdeDependenciesCoreDirect(
+  override val dependencies: List<IdeDependencyCore>,
+) : IdeDependenciesCoreImpl, Serializable {
+  override fun lookup(ref: DependencyReference): IdeDependencyCore = dependencies[ref.index]
+}
+
+
+data class IdeDependenciesCoreRef(
+  val referee: IdeDependenciesCoreDirect,
+  val index: DependencyReference,
+  override val dependencies: List<IdeDependencyCore> = referee.lookup(index).dependencies?.map { referee.lookup(it) } ?: emptyList(),
+) : IdeDependenciesCoreImpl, Serializable {
+  override fun lookup(ref: DependencyReference): IdeDependencyCore = referee.lookup(ref)
+}
+
 
 data class IdeDependenciesImpl(
   private val classpath: IdeDependenciesCore,
@@ -50,10 +71,11 @@ data class IdeDependenciesImpl(
   }
   override val libraries by lazy { classpath.dependencies.flatMap { resolver.resolve(it) } }
   override val unresolvedDependencies = classpath.dependencies
+  override val lookup: (DependencyReference) -> IdeDependencyCore = { classpath.lookup(it) }
 }
 
 fun throwingIdeDependencies(): IdeDependenciesCoreImpl {
-  return IdeDependenciesCoreImpl(object : List<IdeDependencyCoreImpl> {
+  return IdeDependenciesCoreDirect(object : List<IdeDependencyCoreImpl> {
     override val size: Int get() = unexpected()
     override fun get(index: Int): IdeDependencyCoreImpl = unexpected()
     override fun indexOf(element: IdeDependencyCoreImpl): Int = unexpected()

@@ -90,6 +90,7 @@ import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
 import com.android.tools.idea.gradle.model.impl.IdeClassFieldImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreImpl
+import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreDirect
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeFilterDataImpl
@@ -652,7 +653,7 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
       runtimeOnlyClasses: Collection<File>
     ): IdeModelWithPostProcessor<IdeDependenciesCoreImpl> {
       return IdeModelWithPostProcessor(
-        IdeDependenciesCoreImpl(
+        IdeDependenciesCoreDirect(
           dependencies = artifactAddresses.map { address -> dependenciesById[address]!!.dependency }
         ),
         postProcessor = fun(): IdeDependenciesCoreImpl {
@@ -684,7 +685,8 @@ internal fun modelCacheV1Impl(internedModels: InternedModels, buildFolderPaths: 
                 IdeDependencyCoreImpl(it, null)
               }
 
-          return IdeDependenciesCoreImpl(regularRuntimeNotProvidedLibraryDependencies + runtimeDependenciesRecoveredFromRuntimeOnlyClasses)
+          return IdeDependenciesCoreDirect(
+            regularRuntimeNotProvidedLibraryDependencies + runtimeDependenciesRecoveredFromRuntimeOnlyClasses)
         }
       )
     }

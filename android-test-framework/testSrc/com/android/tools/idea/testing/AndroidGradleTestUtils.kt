@@ -47,6 +47,7 @@ import com.android.tools.idea.gradle.model.impl.IdeBuildTypeContainerImpl
 import com.android.tools.idea.gradle.model.impl.IdeBuildTypeImpl
 import com.android.tools.idea.gradle.model.impl.IdeCompositeBuildMapImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreImpl
+import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreDirect
 import com.android.tools.idea.gradle.model.impl.IdeDependenciesInfoImpl
 import com.android.tools.idea.gradle.model.impl.IdeDependencyCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeJavaArtifactCoreImpl
@@ -1200,7 +1201,7 @@ fun AndroidProjectStubBuilder.buildNdkModelStub(): V2NdkModel {
 
 fun AndroidProjectStubBuilder.buildDependenciesStub(
   dependencies: List<IdeDependencyCoreImpl> = listOf()
-): IdeDependenciesCoreImpl = IdeDependenciesCoreImpl(dependencies)
+): IdeDependenciesCoreImpl = IdeDependenciesCoreDirect(dependencies)
 
 /**
  * Sets up [project] as a one module project configured in the same way sync would conigure it from the same model.
