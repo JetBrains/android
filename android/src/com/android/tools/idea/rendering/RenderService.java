@@ -135,15 +135,8 @@ final public class RenderService implements Disposable {
   }
 
   @NotNull
-  public RenderLogger createLogger(
-    @NotNull Project project, boolean logFramework, @NotNull RenderProblem.RunnableFixFactory fixFactory) {
+  public RenderLogger createLogger(@Nullable Project project, boolean logFramework, @NotNull RenderProblem.RunnableFixFactory fixFactory) {
     return new RenderLogger(project, myCredential, logFramework, fixFactory);
-  }
-
-
-  @NotNull
-  public RenderLogger createLogger(@NotNull Project project) {
-    return createLogger(project, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory.INSTANCE);
   }
 
   @NotNull

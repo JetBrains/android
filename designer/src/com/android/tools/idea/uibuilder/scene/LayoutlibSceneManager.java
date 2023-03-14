@@ -67,6 +67,7 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.ShowFixFactory;
 import com.android.tools.idea.rendering.StudioRenderConfiguration;
 import com.android.tools.idea.rendering.StudioRenderService;
+import com.android.tools.idea.rendering.StudioRenderServiceKt;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.ResourceNotificationManager;
@@ -1130,7 +1131,7 @@ public class LayoutlibSceneManager extends SceneManager {
     myRenderedVersion = resourceNotificationManager.getCurrentVersion(facet, getModel().getFile(), configuration);
 
     RenderService renderService = StudioRenderService.getInstance(getModel().getProject());
-    RenderLogger logger = myLogRenderErrors ? renderService.createLogger(project) : renderService.getNopLogger();
+    RenderLogger logger = myLogRenderErrors ? StudioRenderServiceKt.createLogger(renderService, project) : renderService.getNopLogger();
     RenderModelModule renderModule = createRenderModule(facet);
     RenderConfiguration renderConfiguration = new StudioRenderConfiguration(configuration);
     RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(renderModule, renderConfiguration, logger)

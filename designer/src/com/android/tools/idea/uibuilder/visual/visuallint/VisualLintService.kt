@@ -24,6 +24,7 @@ import com.android.tools.idea.rendering.RenderAsyncActionExecutor
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.StudioRenderService
+import com.android.tools.idea.rendering.createLogger
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater.updateHierarchy
