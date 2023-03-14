@@ -23,6 +23,7 @@ import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.androidProjectType
 import com.android.tools.idea.projectsystem.isMainModule
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.compiler.CompilerManager
 import com.intellij.openapi.module.Module
@@ -78,6 +79,10 @@ abstract class AbstractMakeGradleModuleAction :
       listOfNotNull(getDefaultModuleToBuild(project)).toTypedArray()
     }
     getInstance(project).assemble(modules, TestCompileType.ALL)
+  }
+
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return ActionUpdateThread.BGT
   }
 
   /**
