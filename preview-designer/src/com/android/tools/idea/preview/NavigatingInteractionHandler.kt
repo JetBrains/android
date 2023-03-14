@@ -23,6 +23,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionInformation
 import com.android.tools.idea.common.surface.InteractionNonInputEvent
+import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.navigateToComponent
 import com.android.tools.idea.common.surface.selectComponent
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -76,9 +77,12 @@ class NavigatingInteractionHandler(private val surface: DesignSurface<*>,
     if (sceneView != null) {
       val component = sceneView.sceneManager.model.components.firstOrNull()
       if (isSelectionEnabled() && component != null) {
+        val wasSelected = sceneView.selectionModel.isSelected(component)
         sceneView.selectComponent(component, allowToggle = false, ignoreIfAlreadySelected = true)
-        // The component will now be selected, force hover state update
-        this.hoverWhenNoInteraction(x, y, mouseEvent.modifiersEx)
+        // If the selection state changed, then force a hover state update
+        if (wasSelected != sceneView.selectionModel.isSelected(component)) {
+          forceHoverUpdate(sceneView, x, y)
+        }
       }
       val actions = surface.actionManager.getPopupMenuActions(component)
       surface.showPopup(mouseEvent, actions, "Preview")
@@ -99,14 +103,15 @@ class NavigatingInteractionHandler(private val surface: DesignSurface<*>,
         // then it is a navigation click, and shouldn't impact the selected components.
         val allowToggle = isShiftDown(modifiersEx)
         if (component != null) {
+          val wasSelected = sceneView.selectionModel.isSelected(component)
           sceneView.selectComponent(
             component,
             allowToggle,
             ignoreIfAlreadySelected = !allowToggle
           )
-          // If the component is now selected, then force hover state update
-          if (sceneView.selectionModel.isSelected(component)) {
-            this.hoverWhenNoInteraction(x, y, modifiersEx)
+          // If the selection state changed, then force a hover state update
+          if (wasSelected != sceneView.selectionModel.isSelected(component)) {
+            forceHoverUpdate(sceneView, x, y)
           }
         }
       }
@@ -135,6 +140,18 @@ class NavigatingInteractionHandler(private val surface: DesignSurface<*>,
     if (!surface.interactionPane.contains(mousePosition.x, mousePosition.y)) {
       super.mouseExited()
     }
+  }
+
+  /**
+   * Force a hover state update by performing the following steps:
+   * 1. Update the sceneManager to make sure that the scene's root and structure is up-to-date.
+   * 2. Make sure that all SceneComponents contain their layout and positioning information.
+   * 3. Simulate a hover
+   */
+  private fun forceHoverUpdate(sceneView: SceneView, x: Int, y: Int) {
+    sceneView.sceneManager.update()
+    sceneView.scene.root?.layout(sceneView.context, System.currentTimeMillis())
+    this.hoverWhenNoInteraction(x, y, 0)
   }
 
   /**

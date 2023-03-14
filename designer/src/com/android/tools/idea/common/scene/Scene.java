@@ -519,7 +519,7 @@ public class Scene implements SelectionListener, Disposable {
     repaint();
     Target closestTarget = myHoverListener.getClosestTarget(modifiersEx);
     String tooltip = null;
-    if (myOverTarget != closestTarget) {
+    if (myOverTarget != closestTarget || (closestTarget != null && !closestTarget.isMouseHovered())) {
       if (myOverTarget != null) {
         myOverTarget.setMouseHovered(false);
         myOverTarget = null;
@@ -534,7 +534,7 @@ public class Scene implements SelectionListener, Disposable {
     if (closestTarget != null) {
       tooltip = closestTarget.getToolTipText();
       Target snapTarget = myHoverListener.getFilteredTarget(closestTarget);
-      if (snapTarget != mySnapTarget) {
+      if (snapTarget != mySnapTarget || (snapTarget != null && !snapTarget.isMouseHovered())) {
         if (mySnapTarget != null) {
           mySnapTarget.setMouseHovered(false);
           mySnapTarget = null;
@@ -554,7 +554,7 @@ public class Scene implements SelectionListener, Disposable {
     if (closestComponent != null && tooltip == null) {
       tooltip = closestComponent.getNlComponent().getTooltipText();
     }
-    if (myCurrentComponent != closestComponent) {
+    if (myCurrentComponent != closestComponent || (closestComponent != null && closestComponent.getDrawState() != SceneComponent.DrawState.HOVER)) {
       if (myCurrentComponent != null) {
         myCurrentComponent.setDrawState(SceneComponent.DrawState.NORMAL);
         myCurrentComponent = null;
