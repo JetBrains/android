@@ -7,7 +7,15 @@ iml_module(
     iml_files = ["intellij.android.adt.ui.compose.iml"],
     kotlin_use_compose = True,
     visibility = ["//visibility:public"],
-    exports = ["//prebuilts/tools/common/m2:compose-desktop-runtime"],
+    # do not sort: must match IML order
+    exports = [
+        "//prebuilts/tools/common/m2:compose-desktop-animation",
+        "//prebuilts/tools/common/m2:compose-desktop-foundation",
+        "//prebuilts/tools/common/m2:compose-desktop-material",
+        "//prebuilts/tools/common/m2:compose-desktop-runtime",
+        "//prebuilts/tools/common/m2:compose-desktop-ui",
+        "//prebuilts/tools/common/m2:skiko",
+    ],
     # do not sort: must match IML order
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
