@@ -47,7 +47,7 @@ class PerfettoTraceConfigBuildersTest {
                                                                                                 "task/task_newtask"
     )
     Truth.assertThat(actualDataSources[0].config.ftraceConfig.atraceCategoriesList).containsExactly(
-      "gfx", "input", "view", "wm", "am", "sm", "camera", "hal", "res", "pm", "ss", "power", "database",
+      "gfx", "input", "view", "wm", "am", "sm", "camera", "hal", "res", "pm", "ss", "power", "database", "dalvik", "audio",
       "binder_driver", "binder_lock", "sched", "freq"
     )
     Truth.assertThat(actualDataSources[0].config.perfEventConfig.allCpus).isTrue()
