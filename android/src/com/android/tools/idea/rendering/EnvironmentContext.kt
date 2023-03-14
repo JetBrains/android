@@ -28,5 +28,5 @@ interface EnvironmentContext {
 
   fun hasLayoutlibCrash(): Boolean
 
-  val runnableLinkFactory: RenderProblem.RunnableLinkFactory
+  val runnableFixFactory: RenderProblem.RunnableFixFactory
 }

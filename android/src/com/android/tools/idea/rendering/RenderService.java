@@ -50,7 +50,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import com.android.tools.sdk.AndroidPlatform;
-import java.util.function.Supplier;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.android.util.AndroidBundle;
@@ -136,14 +135,15 @@ final public class RenderService implements Disposable {
   }
 
   @NotNull
-  public RenderLogger createLogger(@NotNull Project project, boolean logFramework) {
-    return new RenderLogger(project, myCredential, logFramework);
+  public RenderLogger createLogger(
+    @NotNull Project project, boolean logFramework, @NotNull RenderProblem.RunnableFixFactory fixFactory) {
+    return new RenderLogger(project, myCredential, logFramework, fixFactory);
   }
 
 
   @NotNull
   public RenderLogger createLogger(@NotNull Project project) {
-    return createLogger(project, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get());
+    return createLogger(project, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory.INSTANCE);
   }
 
   @NotNull
@@ -557,7 +557,7 @@ final public class RenderService implements Disposable {
           message = message != null ? message : AndroidBundle.message("android.layout.preview.default.error.message");
           myLogger.addMessage(
             RenderProblem.createPlain(
-              ERROR, message, module.getProject(), myLogger.getLinkManager(), e, module.getEnvironment().getRunnableLinkFactory()));
+              ERROR, message, module.getProject(), myLogger.getLinkManager(), e, module.getEnvironment().getRunnableFixFactory()));
           return null;
         }
         catch (NoAndroidTargetException e) {

@@ -65,7 +65,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -846,8 +845,8 @@ public class RenderTask {
           if (message == null) {
             message = ex.toString();
           }
-          RenderProblem.RunnableLinkFactory linkFactory = myContext.getModule().getEnvironment().getRunnableLinkFactory();
-          myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), ex, linkFactory));
+          RenderProblem.RunnableFixFactory fixFactory = myContext.getModule().getEnvironment().getRunnableFixFactory();
+          myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), ex, fixFactory));
         }
 
         if (result != null) {
@@ -1040,8 +1039,8 @@ public class RenderTask {
         if (message == null) {
           message = e.toString();
         }
-        RenderProblem.RunnableLinkFactory linkFactory = myContext.getModule().getEnvironment().getRunnableLinkFactory();
-        myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e, linkFactory));
+        RenderProblem.RunnableFixFactory fixFactory = myContext.getModule().getEnvironment().getRunnableFixFactory();
+        myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e, fixFactory));
         return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(myContext.getModule(), psiFile, e));
       }
     });

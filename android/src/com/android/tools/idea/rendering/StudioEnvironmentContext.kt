@@ -24,5 +24,5 @@ class StudioEnvironmentContext(private val project: Project) : EnvironmentContex
   override val parentDisposable: Disposable
     get() = (project as ProjectEx).earlyDisposable
   override fun hasLayoutlibCrash(): Boolean = hasStudioLayoutlibCrash()
-  override val runnableLinkFactory: RenderProblem.RunnableLinkFactory = ShowFixLinkFactory()
+  override val runnableFixFactory: RenderProblem.RunnableFixFactory = ShowFixFactory
 }

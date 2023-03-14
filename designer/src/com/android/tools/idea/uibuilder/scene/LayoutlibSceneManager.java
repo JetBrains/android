@@ -64,7 +64,7 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderResults;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.rendering.ShowFixLinkFactory;
+import com.android.tools.idea.rendering.ShowFixFactory;
 import com.android.tools.idea.rendering.StudioRenderConfiguration;
 import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
@@ -1157,7 +1157,7 @@ public class LayoutlibSceneManager extends SceneManager {
                   logger.addMessage(RenderProblem.createPlain(ERROR,
                                                               "Error inflating the preview",
                                                               logger.getProject(),
-                                                              logger.getLinkManager(), exception, new ShowFixLinkFactory()));
+                                                              logger.getLinkManager(), exception, ShowFixFactory.INSTANCE));
                 }
                 else {
                   logger.error(ILayoutLog.TAG_INFLATE, "Error inflating the preview", exception, null, null);

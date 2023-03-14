@@ -155,10 +155,17 @@ public class RenderLogger implements IRenderLogger {
 
   private final boolean myLogFramework;
 
-  public RenderLogger(@Nullable Project project, @Nullable Object credential, boolean logFramework) {
+  private final RenderProblem.RunnableFixFactory myFixFactory;
+
+  public RenderLogger(
+    @Nullable Project project,
+    @Nullable Object credential,
+    boolean logFramework,
+    @NotNull RenderProblem.RunnableFixFactory fixFactory) {
     myProject = project;
     myCredential = credential;
     myLogFramework = logFramework;
+    myFixFactory = fixFactory;
   }
 
   /**
@@ -166,7 +173,7 @@ public class RenderLogger implements IRenderLogger {
    */
   @VisibleForTesting
   public RenderLogger(@Nullable Project module) {
-    this(module, null, false);
+    this(module, null, false, RenderProblem.NOOP_RUNNABLE_FIX_FACTORY);
   }
 
   @VisibleForTesting
@@ -504,7 +511,7 @@ public class RenderLogger implements IRenderLogger {
       addMessage(RenderProblem.createPlain(ERROR, description).tag(tag).throwable(throwable));
     }
     else {
-      addMessage(RenderProblem.createPlain(ERROR, description, getProject(), getLinkManager(), throwable, new ShowFixLinkFactory()).tag(tag));
+      addMessage(RenderProblem.createPlain(ERROR, description, getProject(), getLinkManager(), throwable, myFixFactory).tag(tag));
     }
   }
 

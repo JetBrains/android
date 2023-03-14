@@ -22,7 +22,6 @@ import com.android.tools.idea.layoutlib.LayoutLibrary
 import com.android.tools.idea.layoutlib.RenderingException
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ShutDownTracker
@@ -78,7 +77,7 @@ fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration,
  * Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask].
  */
 fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration): RenderService.RenderTaskBuilder =
-  taskBuilder(facet, configuration, createLogger(facet.module.project, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get()))
+  taskBuilder(facet, configuration, createLogger(facet.module.project, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory))
 
 fun getLayoutLibrary(module: Module, target: IAndroidTarget?): LayoutLibrary? {
   val environment = StudioEnvironmentContext(module.project)

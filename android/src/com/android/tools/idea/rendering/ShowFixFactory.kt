@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering
 
 import com.intellij.openapi.project.Project
 
-class ShowFixLinkFactory : RenderProblem.RunnableLinkFactory {
+/** A [RenderProblem.RunnableFixFactory] that creates [ShowExceptionFix] as the [Runnable] fix. */
+object ShowFixFactory : RenderProblem.RunnableFixFactory {
   override fun create(project: Project, problem: RenderProblem): Runnable = ShowExceptionFix(project, problem)
 }
