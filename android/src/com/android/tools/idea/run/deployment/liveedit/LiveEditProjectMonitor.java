@@ -185,6 +185,24 @@ public class LiveEditProjectMonitor implements Disposable {
   // Bridge to ADB event (either ddmlib or adblib). We use it to receive device lifecycle events and app (a.k.a Client) lifecycle events.
   private final DeviceConnection deviceConnetion;
 
+  // Care should be given when modifying this field to preserve atomicity.
+  private final ConcurrentLinkedQueue<EditEvent> changedMethodQueue = new ConcurrentLinkedQueue<>();
+
+  public LiveEditProjectMonitor(@NotNull LiveEditService liveEditService, @NotNull Project project) {
+    this.project = project;
+    this.compiler = new LiveEditCompiler(project);
+    this.deviceConnetion = liveEditService.getDeviceConnection();
+
+    gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
+    Disposer.register(liveEditService, this);
+
+    deviceWatcher.addListener(liveEditDevices::handleDeviceLifecycleEvents);
+    deviceConnetion.addClientChangeListener(deviceWatcher);
+    deviceConnetion.addDeviceChangeListener(deviceWatcher);
+
+    liveEditDevices.addListener(this::handleDeviceStatusChange);
+  }
+
   public void resetState() {
     bufferedEvents.clear();
     filesWithCompilationErrors.clear();
@@ -207,10 +225,6 @@ public class LiveEditProjectMonitor implements Disposable {
     LiveEditStatus status = liveEditDevices.get(device);
     return status == null ? LiveEditStatus.Disabled.INSTANCE : status;
   }
-
-  // Care should be given when modifying this field to preserve atomicity.
-  private final ConcurrentLinkedQueue<EditEvent> changedMethodQueue = new ConcurrentLinkedQueue<>();
-
 
   // This method is invoked on the listener executor thread in LiveEditService and does not block the UI thread.
   public void onPsiChanged(EditEvent event) {
@@ -255,21 +269,6 @@ public class LiveEditProjectMonitor implements Disposable {
       methodChangesExecutor.schedule(this::processQueuedChanges, LiveEditAdvancedConfiguration.getInstance().getRefreshRateMs(),
                                      TimeUnit.MILLISECONDS);
     }
-  }
-
-  public LiveEditProjectMonitor(@NotNull LiveEditService liveEditService, @NotNull Project project) {
-    this.project = project;
-    this.compiler = new LiveEditCompiler(project);
-    this.deviceConnetion = liveEditService.getDeviceConnection();
-
-    gradleTimeSync.set(GradleSyncState.getInstance(project).getLastSyncFinishedTimeStamp());
-    Disposer.register(liveEditService, this);
-
-    deviceWatcher.addListener(liveEditDevices::handleDeviceLifecycleEvents);
-    deviceConnetion.addClientChangeListener(deviceWatcher);
-    deviceConnetion.addDeviceChangeListener(deviceWatcher);
-
-    liveEditDevices.addListener(this::handleDeviceStatusChange);
   }
 
   @Override
