@@ -35,8 +35,10 @@ import java.io.DataOutput
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.core.util.readString
 import org.jetbrains.kotlin.idea.core.util.writeString
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 
@@ -72,7 +74,7 @@ private object ProvidesMethodIndexer : DaggerConceptIndexer<DaggerIndexMethodWra
     if (!wrapper.getIsAnnotatedWith(PROVIDES)) return
 
     val containingClass = wrapper.getContainingClass() ?: return
-    if (!containingClass.getIsAnnotatedWith(MODULE)) return
+    if (!containingClass.getIsSelfOrCompanionParentAnnotatedWith(MODULE)) return
 
     val classFqName = containingClass.getFqName()
     val methodSimpleName = wrapper.getSimpleName()
@@ -118,7 +120,7 @@ internal data class ProvidesMethodIndexValue(
         if (
           psiElement !is KtConstructor<*> &&
             psiElement.hasAnnotation(PROVIDES) &&
-            psiElement.containingClassOrObject?.hasAnnotation(MODULE) == true
+            psiElement.containingClassOrObject?.selfOrCompanionParentIsModule() == true
         ) {
           ProviderDaggerElement(psiElement)
         } else {
@@ -149,8 +151,6 @@ internal data class ProvidesMethodIndexValue(
   override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
     val psiClass =
       JavaPsiFacade.getInstance(project).findClass(classFqName, scope) ?: return emptyList()
-    if (!psiClass.hasAnnotation(MODULE)) return emptyList()
-
     return psiClass.methods.filter { it.name == methodSimpleName }
   }
 
@@ -184,7 +184,7 @@ internal data class ProvidesMethodParameterIndexValue(
         if (
           parent !is KtConstructor<*> &&
             parent.hasAnnotation(PROVIDES) &&
-            parent.containingClassOrObject?.hasAnnotation(MODULE) == true
+            parent.containingClassOrObject?.selfOrCompanionParentIsModule() == true
         ) {
           ConsumerDaggerElement(psiElement)
         } else {
@@ -216,8 +216,6 @@ internal data class ProvidesMethodParameterIndexValue(
   override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
     val psiClass =
       JavaPsiFacade.getInstance(project).findClass(classFqName, scope) ?: return emptyList()
-    if (!psiClass.hasAnnotation(MODULE)) return emptyList()
-
     return psiClass.methods
       .filter { it.name == methodSimpleName }
       .flatMap { it.parameterList.parameters.filter { p -> p.name == parameterName } }
@@ -225,3 +223,9 @@ internal data class ProvidesMethodParameterIndexValue(
 
   override val daggerElementIdentifiers = identifiers
 }
+
+private fun KtClassOrObject.selfOrCompanionParentIsModule() =
+  hasAnnotation(MODULE) ||
+    (this is KtObjectDeclaration &&
+      isCompanion() &&
+      containingClassOrObject?.hasAnnotation(MODULE) == true)

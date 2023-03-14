@@ -65,7 +65,7 @@ class ProvidesMethodDaggerConceptTest {
     }
 
   @Test
-  fun indexer_moduleMethodWithProvides() {
+  fun indexer_moduleClassWithoutProvides() {
     val psiFile =
       myFixture.configureByText(
         KotlinFileType.INSTANCE,
@@ -90,7 +90,7 @@ class ProvidesMethodDaggerConceptTest {
   }
 
   @Test
-  fun indexer_providesMethodWithModule() {
+  fun indexer_providesMethodWithoutModule() {
     val psiFile =
       myFixture.configureByText(
         KotlinFileType.INSTANCE,
@@ -100,7 +100,7 @@ class ProvidesMethodDaggerConceptTest {
 
       import dagger.Provides
 
-      interface HeaterModule {
+      interface NotAModule {
         @Provides
         fun provideHeater(electricHeater: ElectricHeater) : Heater {}
       }
@@ -174,6 +174,52 @@ class ProvidesMethodDaggerConceptTest {
           ),
           ProvidesMethodParameterIndexValue(
             "com.example.HeaterModule",
+            "provideHeater",
+            "electricHeater2"
+          )
+        ),
+      )
+  }
+
+  @Test
+  fun indexer_providesMethodOnCompanion() {
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+      package com.example
+
+      import dagger.Module
+      import dagger.Provides
+
+      @Module
+      interface HeaterModule {
+        companion object {
+          @Provides
+          fun provideHeater(electricHeater: ElectricHeater, electricHeater2: ElectricHeater) : Heater {}
+        }
+      }
+      """
+          .trimIndent()
+      ) as KtFile
+
+    val element = myFixture.moveCaret("provide|Heater").parentOfType<KtFunction>()!!
+    val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
+
+    assertThat(entries)
+      .containsExactly(
+        "Heater",
+        setOf(ProvidesMethodIndexValue("com.example.HeaterModule.Companion", "provideHeater")),
+        "ElectricHeater",
+        setOf(
+          ProvidesMethodParameterIndexValue(
+            "com.example.HeaterModule.Companion",
+            "provideHeater",
+            "electricHeater"
+          ),
+          ProvidesMethodParameterIndexValue(
+            "com.example.HeaterModule.Companion",
             "provideHeater",
             "electricHeater2"
           )
@@ -275,6 +321,82 @@ class ProvidesMethodDaggerConceptTest {
 
     val indexValue1 = ProvidesMethodIndexValue("com.example.HeaterModule", "provideHeater")
     val indexValue2 = ProvidesMethodIndexValue("com.example.HeaterModule", "dontProvideHeater")
+
+    val provideHeaterFunction =
+      myFixture.moveCaret("fun provideHe|ater").parentOfType<KtFunction>()!!
+
+    val resolvedIndexValue1 =
+      indexValue1
+        .resolveToDaggerElements(heaterPsiType, myFixture.project, myFixture.project.projectScope())
+        .single()
+    assertThat(resolvedIndexValue1.psiElement).isEqualTo(provideHeaterFunction)
+    assertThat(resolvedIndexValue1.daggerType).isEqualTo(DaggerElement.Type.PROVIDER)
+
+    assertThat(
+        indexValue1.resolveToDaggerElements(
+          otherPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
+
+    assertThat(
+        indexValue2.resolveToDaggerElements(
+          heaterPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
+    assertThat(
+        indexValue2.resolveToDaggerElements(
+          otherPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
+  }
+
+  @Test
+  fun providesMethodIndexValueOnCompanion_resolveToPsiElements_kotlin() {
+    addDaggerAndHiltClasses(myFixture)
+
+    myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      // language=kotlin
+      """
+      package com.example
+
+      import dagger.Module
+      import dagger.Provides
+
+      interface Heater {}
+      class ElectricHeater : Heater {}
+
+      @Module
+      interface HeaterModule {
+        companion object {
+          @Provides
+          fun provideHeater(electricHeater: ElectricHeater) : Heater {}
+
+          fun dontProvideHeater(electricHeater: ElectricHeater) : Heater {}
+        }
+      }
+      """
+        .trimIndent()
+    )
+
+    val heaterPsiType =
+      myFixture.moveCaret("interface Heat|er {}").parentOfType<KtClass>()!!.toPsiType()!!
+    val otherPsiType =
+      myFixture.moveCaret("interface HeaterM|odule").parentOfType<KtClass>()!!.toPsiType()!!
+
+    val indexValue1 =
+      ProvidesMethodIndexValue("com.example.HeaterModule.Companion", "provideHeater")
+    val indexValue2 =
+      ProvidesMethodIndexValue("com.example.HeaterModule.Companion", "dontProvideHeater")
 
     val provideHeaterFunction =
       myFixture.moveCaret("fun provideHe|ater").parentOfType<KtFunction>()!!
@@ -432,6 +554,96 @@ class ProvidesMethodDaggerConceptTest {
     val indexValue2 =
       ProvidesMethodParameterIndexValue(
         "com.example.HeaterModule",
+        "dontProvideHeater",
+        "electricHeater"
+      )
+
+    val electricHeaterParameter =
+      myFixture
+        .moveCaret("provideHeater(elect|ricHeater: ElectricHeater")
+        .parentOfType<KtParameter>()!!
+
+    val resolvedIndexValue1 =
+      indexValue1
+        .resolveToDaggerElements(
+          electricHeaterPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+        .single()
+    assertThat(resolvedIndexValue1.psiElement).isEqualTo(electricHeaterParameter)
+    assertThat(resolvedIndexValue1.daggerType).isEqualTo(DaggerElement.Type.CONSUMER)
+
+    assertThat(
+        indexValue1.resolveToDaggerElements(
+          otherPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
+
+    assertThat(
+        indexValue2.resolveToDaggerElements(
+          electricHeaterPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
+    assertThat(
+        indexValue2.resolveToDaggerElements(
+          otherPsiType,
+          myFixture.project,
+          myFixture.project.projectScope()
+        )
+      )
+      .isEmpty()
+  }
+
+  @Test
+  fun providesMethodParameterIndexValueOnCompanion_resolveToPsiElements_kotlin() {
+    addDaggerAndHiltClasses(myFixture)
+
+    myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      // language=kotlin
+      """
+      package com.example
+
+      import dagger.Module
+      import dagger.Provides
+
+      interface Heater {}
+      class ElectricHeater : Heater {}
+
+      @Module
+      interface HeaterModule {
+        companion object {
+          @Provides
+          fun provideHeater(electricHeater: ElectricHeater) : Heater {}
+
+          fun dontProvideHeater(electricHeater: ElectricHeater) : Heater {}
+        }
+      }
+      """
+        .trimIndent()
+    )
+
+    val electricHeaterPsiType =
+      myFixture.moveCaret("class ElectricHea|ter").parentOfType<KtClass>()!!.toPsiType()!!
+    val otherPsiType =
+      myFixture.moveCaret("interface HeaterM|odule").parentOfType<KtClass>()!!.toPsiType()!!
+
+    val indexValue1 =
+      ProvidesMethodParameterIndexValue(
+        "com.example.HeaterModule.Companion",
+        "provideHeater",
+        "electricHeater"
+      )
+    val indexValue2 =
+      ProvidesMethodParameterIndexValue(
+        "com.example.HeaterModule.Companion",
         "dontProvideHeater",
         "electricHeater"
       )
