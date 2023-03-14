@@ -342,7 +342,7 @@ private val searchStrategy: AnnotationSearchStrategy
  * Returns all Dagger providers (see [isDaggerProvider] for a [type] with a [qualifierInfo] within a
  * [scope].
  *
- * Null [qualifierInfo] means that binding has not qualifier or has more then one.
+ * Null [qualifierInfo] means that binding has no qualifier or has more than one.
  */
 private fun getDaggerProviders(
   type: PsiType,

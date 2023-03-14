@@ -39,6 +39,7 @@ import java.io.File
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.asJava.toLightElements
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtConstructor
@@ -854,7 +855,9 @@ abstract class DaggerUtilTest : DaggerTestCase() {
     assume().that(provider).isNotNull()
     // We will compare with string representation, because ide returns different instances of light
     // class.
-    assume().that(provider.toString()).isEqualTo("KtUltraLightMethodForSourceDeclaration:provider")
+    val tag =
+      if (isK2Plugin()) "SymbolLightSimpleMethod" else "KtUltraLightMethodForSourceDeclaration"
+    assume().that(provider.toString()).isEqualTo("$tag:provider")
 
     // Consumer in JAVA.
     var providers = getProvidersForInjectedField("String")
