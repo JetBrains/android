@@ -27,3 +27,8 @@ interface IdeDependenciesCore {
    */
   val dependencies: List<IdeDependencyCore>
 }
+
+enum class ClasspathType {
+  COMPILE,
+  RUNTIME,
+}

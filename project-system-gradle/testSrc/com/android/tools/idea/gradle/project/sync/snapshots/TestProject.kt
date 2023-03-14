@@ -350,6 +350,24 @@ enum class TestProject(
     },
     isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
     ),
+  INDEPENDENT_MODULES_ONLY_RUNTIME(
+    TestProjectToSnapshotPaths.DEPENDENT_MODULES,
+    testName = "noLibraryRuntimeIndependentModules",
+    setup =
+    fun(): () -> Unit {
+      StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.override(true)
+
+      return fun() {
+        StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.clearOverride()
+      }
+    },
+    isCompatibleWith = { it >= AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT },
+    patch = { projectRoot: File ->
+      projectRoot.resolve("app").resolve("build.gradle").replaceContent {
+        it.replace("api project(\":lib\")", "")
+      }
+    }
+  ),
   ;
 
   override fun getTestDataDirectoryWorkspaceRelativePath(): String = "tools/adt/idea/android/testData/snapshots"

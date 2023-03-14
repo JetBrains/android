@@ -15,12 +15,16 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.tools.idea.gradle.model.ClasspathType
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactLibrary
+import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeJavaLibrary
+import com.android.tools.idea.gradle.model.IdeModuleSourceSet
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
 import com.android.tools.idea.gradle.model.impl.IdeAndroidLibraryImpl
+import com.android.tools.idea.gradle.model.impl.IdeDependenciesCoreRef
 import com.android.tools.idea.gradle.model.impl.IdeJavaLibraryImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.impl.IdePreResolvedModuleLibraryImpl
@@ -29,6 +33,16 @@ import com.android.tools.idea.gradle.model.impl.IdeUnresolvedModuleLibraryImpl
 import java.io.File
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+
+/**
+ * Small data class to store information for mapping projects to dependencies.
+ */
+internal data class ClasspathIdentifier(
+  val buildId: BuildId,
+  val projectPath: String,
+  val artifact: IdeModuleSourceSet,
+  val classpathType: ClasspathType,
+)
 
 class InternedModels(private val buildRootDirectory: File?) {
   private val strings: MutableMap<String, String> = HashMap()
@@ -47,6 +61,8 @@ class InternedModels(private val buildRootDirectory: File?) {
   private val moduleLibraries: MutableMap<IdeUnresolvedLibrary, Pair<LibraryReference, IdeUnresolvedLibrary>> = HashMap()
   private val unknownLibraries: MutableMap<IdeUnresolvedLibrary, Pair<LibraryReference, IdeUnresolvedLibrary>> = HashMap()
   var artifactToLibraryReferenceMap: Map<File, LibraryReference>? = null ; private set
+
+  internal val projectReferenceToMainArtifactRuntimeClasspathMap: MutableMap<ClasspathIdentifier, IdeDependenciesCoreRef> = HashMap()
 
   fun lookup(reference: LibraryReference): IdeUnresolvedLibrary = libraries[reference.libraryIndex]
 

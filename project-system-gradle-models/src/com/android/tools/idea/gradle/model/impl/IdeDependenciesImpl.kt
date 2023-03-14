@@ -37,15 +37,30 @@ data class IdeDependenciesCoreDirect(
   override fun lookup(ref: Int): IdeDependencyCore = dependencies[ref]
 }
 
+fun IdeDependenciesCore.lookupAll(indexes: List<Int>?): List<IdeDependencyCore>? {
+  return indexes?.map { this.lookup(it) }
+}
 
 data class IdeDependenciesCoreRef(
   val referee: IdeDependenciesCoreDirect,
   val index: Int,
-  override val dependencies: List<IdeDependencyCore> = referee.lookup(index).dependencies?.map { referee.lookup(it) } ?: emptyList(),
+  override val dependencies: List<IdeDependencyCore> = transitiveClosure(referee.lookup(index), referee),
 ) : IdeDependenciesCoreImpl, Serializable {
   override fun lookup(ref: Int): IdeDependencyCore = referee.lookup(ref)
 }
 
+fun transitiveClosure(rootDependency: IdeDependencyCore, classpath: IdeDependenciesCoreDirect): List<IdeDependencyCore> {
+  val result = LinkedHashSet<IdeDependencyCore>()
+  val queue = ArrayDeque(classpath.lookupAll(rootDependency.dependencies).orEmpty())
+  while (queue.isNotEmpty()) {
+    val value = queue.removeFirst()
+    if (result.contains(value)) continue
+    result.add(value)
+    queue.addAll(classpath.lookupAll(value.dependencies).orEmpty())
+  }
+
+  return result.toList()
+}
 
 data class IdeDependenciesImpl(
   private val classpath: IdeDependenciesCore,

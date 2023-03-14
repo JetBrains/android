@@ -252,7 +252,10 @@ abstract class SyncedProjectTest(
   fun testNonTransitiveRClassSymbolTrue() = testProject(TestProject.NON_TRANSITIVE_R_CLASS_SYMBOL_TRUE)
 
   @Test
-  fun testDependentModulesOnlyAppRuntime() = testProject(TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME);
+  fun testDependentModulesOnlyAppRuntime() = testProject(TestProject.DEPENDENT_MODULES_ONLY_APP_RUNTIME)
+
+  @Test
+  fun testIndependentLibraryOnlyRuntime() = testProject(TestProject.INDEPENDENT_MODULES_ONLY_RUNTIME)
 
   override fun getTestDefs(testProject: TestProject): List<SyncedProjectTestDef> {
     return tests[testProject].orEmpty()
