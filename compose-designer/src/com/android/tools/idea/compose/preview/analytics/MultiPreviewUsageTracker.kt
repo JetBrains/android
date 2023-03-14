@@ -87,10 +87,8 @@ class MultiPreviewEvent(private val nodes: List<MultiPreviewNode>, val fileFqNam
     ComposeMultiPreviewEvent.newBuilder()
       .addAllMultiPreviewNodes( // Don't log useless nor Preview nodes
         nodes
-          .filter {
-            it.nodeInfo != null && !it.nodeInfo!!.isUseless() && !it.nodeInfo!!.isPreviewType()
-          }
-          .map { it.nodeInfo!!.build() }
+          .filter { !it.nodeInfo.isUseless() && !it.nodeInfo.isPreviewType() }
+          .map { it.nodeInfo.build() }
       )
 
   fun build(): ComposeMultiPreviewEvent {
