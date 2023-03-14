@@ -54,6 +54,7 @@ import javax.swing.JComponent
 import javax.swing.JMenuItem
 import javax.swing.JPopupMenu
 import javax.swing.SwingConstants
+import javax.swing.border.EmptyBorder
 import javax.swing.plaf.basic.BasicMenuItemUI
 
 private const val POPUP_VERTICAL_BORDER = 6
@@ -236,6 +237,8 @@ private class WallpaperItem(action: AbstractAction, isSelected: Boolean) : JMenu
     preferredSize = JBUI.size(ICON_SIZE + 2)
     if (isSelected) {
       border = RoundedLineBorder(selectionBackground, JBUI.scale(2), JBUI.scale(2))
+    } else {
+      border = JBUI.Borders.empty(2)
     }
   }
 
