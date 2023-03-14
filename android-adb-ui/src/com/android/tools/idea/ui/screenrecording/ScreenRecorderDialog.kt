@@ -16,6 +16,7 @@
 package com.android.tools.idea.ui.screenrecording
 
 import com.android.tools.idea.ui.AndroidAdbUiBundle
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.ui.DialogWrapper
@@ -28,6 +29,7 @@ import com.intellij.ui.WindowRoundedCornersManager
 import com.intellij.ui.components.DialogPanel
 import com.intellij.ui.components.Label
 import com.intellij.ui.scale.JBUIScale
+import com.intellij.util.Alarm
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.JBUI.Borders
 import com.intellij.util.ui.UIUtil
@@ -45,28 +47,91 @@ import javax.swing.border.Border
 
 /**
  * Modeless dialog shown during device screen recording.
- *
- * Copied from com.android.tools.idea.ddms.actions.ScreenRecorderDialog
  */
-internal class ScreenRecorderDialog(private val dialogTitle: String, private val onStop: Runnable) {
+internal class ScreenRecorderDialog(
+  private val dialogTitle: String,
+  project: Project,
+  private val maxRecordingDurationMillis: Int,
+  private val onStop: Runnable,
+) : DialogWrapper(project, false, IdeModalityType.MODELESS) {
 
-  var recordingTimeMillis: Long = 0
+  private val alarm: Alarm = Alarm(disposable)
+  private var recordingStartTime: Long = 0L
+  private val panel: DialogPanel = createPanel()
+
+  private var recordingTimeMillis: Long = 0
     set(value) {
       field = value
       recordingLabelText = recordingTimeText(value)
     }
 
-  var recordingLabelText = recordingTimeText(recordingTimeMillis)
+  private var recordingLabelText = recordingTimeText(recordingTimeMillis)
     set(value) {
       field = value
       recordingLabel.text = value
     }
 
   private lateinit var recordingLabel: JLabel
+  private lateinit var stopButton: JButton
+
+  init {
+    init()
+  }
+
+  override fun init() {
+    super.init()
+    setUndecorated(true)
+    rootPane.windowDecorationStyle = JRootPane.NONE
+    panel.border = PopupBorder.Factory.create(true, true)
+
+    if (WindowRoundedCornersManager.isAvailable()) {
+      if (SystemInfoRt.isMac && UIUtil.isUnderDarcula()) {
+        WindowRoundedCornersManager.setRoundedCorners(window, JBUI.CurrentTheme.Popup.borderColor(true))
+        rootPane.border = PopupBorder.Factory.createEmpty()
+      }
+      else {
+        WindowRoundedCornersManager.setRoundedCorners(window)
+      }
+    }
+  }
+
+  override fun show() {
+    super.show()
+    recordingStartTime = System.currentTimeMillis()
+    alarm.addRequest(::stopRecordingTimer, maxRecordingDurationMillis, ModalityState.any())
+    alarm.addRequest(::updateRecordingTime, 1000, ModalityState.any())
+  }
+
+  override fun createCenterPanel(): JComponent {
+    return panel
+  }
+
+  override fun createSouthPanel(): JComponent? {
+    return null
+  }
+
+  override fun createContentPaneBorder(): Border? {
+    return null
+  }
+
+  private fun stopRecordingTimer() {
+    alarm.cancelAllRequests()
+    recordingLabelText = AndroidAdbUiBundle.message("screenrecord.action.stopping")
+    stopButton.isEnabled = false
+  }
 
   private fun recordingTimeText(timeMillis: Long): String {
     val seconds = (timeMillis / 1000).toInt()
     return AndroidAdbUiBundle.message("screenrecord.dialog.progress", String.format("%02d:%02d", seconds / 60, seconds % 60))
+  }
+
+  private fun updateRecordingTime() {
+    recordingTimeMillis = System.currentTimeMillis() - recordingStartTime
+    alarm.addRequest(::updateRecordingTime, millisUntilNextSecondTick(), ModalityState.any())
+  }
+
+  private fun millisUntilNextSecondTick(): Long {
+    return 1000 - recordingTimeMillis % 1000
   }
 
   /**
@@ -92,62 +157,13 @@ internal class ScreenRecorderDialog(private val dialogTitle: String, private val
     recordingLabel = Label(recordingTimeText(recordingTimeMillis))
     centerPanel.addToLeft(recordingLabel)
     centerPanel.addToCenter(Box.createRigidArea(Dimension(JBUIScale.scale(20), 0)))
-    val stopButton = JButton(AndroidAdbUiBundle.message("screenrecord.dialog.stop.recording"))
-    stopButton.addActionListener { onStop.run() }
+    stopButton = JButton(AndroidAdbUiBundle.message("screenrecord.dialog.stop.recording"))
+    stopButton.addActionListener {
+      stopRecordingTimer()
+      onStop.run()
+    }
     centerPanel.addToRight(stopButton)
     dialogPanel.add(centerPanel, BorderLayout.CENTER)
     return dialogPanel
-  }
-
-  /**
-   * Creates the dialog wrapper.
-   */
-  fun createWrapper(project: Project): DialogWrapper {
-    return MyDialogWrapper(project, createPanel(), onStop)
-  }
-
-  private class MyDialogWrapper(
-    project: Project?,
-    private val panel: DialogPanel,
-    private val onClose: Runnable,
-  ) : DialogWrapper(project, false, IdeModalityType.MODELESS) {
-
-    init {
-      init()
-    }
-
-    override fun init() {
-      super.init()
-      setUndecorated(true)
-      rootPane.windowDecorationStyle = JRootPane.NONE
-      panel.border = PopupBorder.Factory.create(true, true)
-
-      if (WindowRoundedCornersManager.isAvailable()) {
-        if (SystemInfoRt.isMac && UIUtil.isUnderDarcula()) {
-          WindowRoundedCornersManager.setRoundedCorners(window, JBUI.CurrentTheme.Popup.borderColor(true))
-          rootPane.border = PopupBorder.Factory.createEmpty()
-        }
-        else {
-          WindowRoundedCornersManager.setRoundedCorners(window)
-        }
-      }
-    }
-
-    override fun createCenterPanel(): JComponent {
-      return panel
-    }
-
-    override fun doCancelAction() {
-      super.doCancelAction()
-      onClose.run()
-    }
-
-    override fun createSouthPanel(): JComponent? {
-      return null
-    }
-
-    override fun createContentPaneBorder(): Border? {
-      return null
-    }
   }
 }

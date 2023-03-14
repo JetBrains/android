@@ -120,6 +120,7 @@ class ScreenRecorderAction : DumbAwareAction(
             adbSession)
 
           else -> EmulatorConsoleRecordingProvider(
+            disposableParent,
             serialNumber,
             emulatorRecordingFile,
             options,

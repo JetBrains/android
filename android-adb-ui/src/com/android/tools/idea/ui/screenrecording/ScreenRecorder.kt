@@ -28,28 +28,26 @@ import com.intellij.openapi.fileChooser.FileSaverDialog
 import com.intellij.openapi.fileTypes.NativeFileType
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.openapi.ui.DialogWrapper.CANCEL_EXIT_CODE
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.SystemInfo
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFileWrapper
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
-import java.time.Clock
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.CancellationException
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit.MILLISECONDS
 
 private const val SAVE_PATH_KEY = "ScreenRecorder.SavePath"
+/** Amount of time before reaching recording time limit when the recording is shown as stopping. */
+private const val ADVANCE_NOTICE_MILLIS = 100
 
 /**
  * Records the screen of a device.
- *
- * Mostly based on com.android.tools.idea.ddms.actions.ScreenRecorderTask but changed to use coroutines and AdbLib.
  *
  * TODO(b/235094713): Add tests
  */
@@ -57,79 +55,58 @@ internal class ScreenRecorder(
   private val project: Project,
   private val recordingProvider: RecordingProvider,
   deviceName: String,
-  private val clock: Clock = Clock.systemDefaultZone(),
 ) {
 
   private val dialogTitle = AndroidAdbUiBundle.message("screenrecord.dialog.title", deviceName)
 
   suspend fun recordScreen(timeLimitSec: Int) {
     require(timeLimitSec > 0)
-    recordingProvider.startRecording()
 
-    val start = clock.millis()
-    val deadline = start + timeLimitSec * 1000
+    val recordingHandle = recordingProvider.startRecording()
+    val dialog: ScreenRecorderDialog
 
-    val stoppingLatch = CountDownLatch(1)
-    val dialog = ScreenRecorderDialog(dialogTitle) { stoppingLatch.countDown() }
-    val dialogWrapper: DialogWrapper
     withContext(uiThread) {
-      dialogWrapper = dialog.createWrapper(project)
-      dialogWrapper.show()
+      dialog = ScreenRecorderDialog(dialogTitle, project, timeLimitSec * 1000 - ADVANCE_NOTICE_MILLIS, recordingProvider::stopRecording)
+      Disposer.register(dialog.disposable) {
+        if (dialog.exitCode == CANCEL_EXIT_CODE) {
+          recordingHandle.cancel()
+        }
+      }
+      dialog.show()
     }
 
     try {
-      withContext(Dispatchers.IO) {
-        while (!stoppingLatch.await(millisUntilNextSecondTick(start), MILLISECONDS) && clock.millis() < deadline) {
-          withContext(uiThread) {
-            dialog.recordingTimeMillis = clock.millis() - start
-          }
-        }
-      }
-      withContext(uiThread) {
-        if (dialogWrapper.isDisposed) {
-          throw InterruptedException() // The dialog was closed by pressing Esc.
-        }
-        dialog.recordingLabelText = AndroidAdbUiBundle.message("screenrecord.action.stopping")
-      }
-      // TODO: Call recordingProvider.stopRecording() unconditionally when b/256957515 is fixed.
-      if (clock.millis() < deadline) {
-        recordingProvider.stopRecording()
-      } else {
-        delay(1000)
-      }
+      recordingHandle.await()
+      closeDialog(dialog)
     }
-    catch (e: InterruptedException) {
+    catch (e: CancellationException) {
+      closeDialog(dialog)
       try {
         recordingProvider.cancelRecording()
       }
-      catch (e: Exception) {
+      catch (e: Throwable) {
         thisLogger().warn(AndroidAdbUiBundle.message("screenrecord.error.cancelling"), e)
       }
-      throw CancellationException()
+      throw e
     }
-    finally {
-      withContext(uiThread) {
-        if (!dialogWrapper.isDisposed) {
-          dialogWrapper.close(DialogWrapper.CLOSE_EXIT_CODE)
-        }
+    catch (e: Throwable) {
+      closeDialog(dialog)
+      thisLogger().warn("Screen recording failed", e)
+      val message = when (val cause = e.message) {
+        null -> AndroidAdbUiBundle.message("screenrecord.error")
+        else -> AndroidAdbUiBundle.message("screenrecord.error.with.cause", cause)
       }
+      showErrorDialog(message)
+      return
     }
 
     pullRecording()
   }
 
-  private fun millisUntilNextSecondTick(start: Long): Long {
-    return 1000 - (clock.millis() - start) % 1000
-  }
-
   private suspend fun pullRecording() {
     if (!recordingProvider.doesRecordingExist()) {
       // TODO(aalbert): See if we can get the error for the non-emulator impl.
-      withContext(uiThread) {
-        Messages.showErrorDialog(
-          AndroidAdbUiBundle.message("screenrecord.error"),
-          AndroidAdbUiBundle.message("screenrecord.error.popup.title"))
-      }
+      showErrorDialog(AndroidAdbUiBundle.message("screenrecord.error"))
       return
     }
 
@@ -146,14 +123,26 @@ internal class ScreenRecorder(
     catch (e: Throwable) {
       val message = AndroidAdbUiBundle.message("screenrecord.error.save", fileWrapper.file)
       thisLogger().warn(message, e)
-      withContext(uiThread) {
-        Messages.showErrorDialog(message, AndroidAdbUiBundle.message("screenrecord.error.popup.title"))
-      }
+      showErrorDialog(message)
       return
     }
 
     withContext(uiThread) {
       handleSavedRecording(fileWrapper)
+    }
+  }
+
+  private fun closeDialog(dialog: DialogWrapper) {
+    UIUtil.invokeLaterIfNeeded {
+      if (!dialog.isDisposed) {
+        dialog.close(DialogWrapper.CLOSE_EXIT_CODE)
+      }
+    }
+  }
+
+  private fun showErrorDialog(errorMessage: String) {
+    UIUtil.invokeLaterIfNeeded {
+      Messages.showErrorDialog(errorMessage, AndroidAdbUiBundle.message("screenrecord.error.popup.title"))
     }
   }
 
