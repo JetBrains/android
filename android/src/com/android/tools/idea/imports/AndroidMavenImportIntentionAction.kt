@@ -245,7 +245,8 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
 
   override fun isAvailable(project: Project, editor: Editor?, element: PsiElement): Boolean {
     val module = ModuleUtil.findModuleForPsiElement(element) ?: return false
-    if (!module.getModuleSystem().canRegisterDependency().isSupported()) return false
+    val moduleSystem = module.getModuleSystem()
+    if (!moduleSystem.canRegisterDependency().isSupported() || moduleSystem.usesVersionCatalogs) return false
 
     val resolvable = findResolvable(element, editor?.caretModel?.offset ?: -1) { text ->
       Resolvable.createNewOrNull(text, findLibraryData(project, text))
