@@ -20,7 +20,7 @@ import static org.junit.Assert.assertTrue;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
-import com.android.fakeadbserver.devicecommandhandlers.JdwpCommandHandler;
+import com.android.fakeadbserver.ShellProtocolType;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -53,7 +53,7 @@ public class AbiSplitApksTest extends DebuggerTestBase {
       .installDefaultCommandHandlers()
       // This test needs to query the device for ABIs, so we need some expanded functionality for the
       // getprop command handler:
-      .addDeviceHandler(new GetAbiListPropCommandHandler(Arrays.asList("x86_64")))
+      .addDeviceHandler(new GetAbiListPropCommandHandler(ShellProtocolType.SHELL, Arrays.asList("x86_64")))
       .build();
 
     DeviceState device = fakeAdbServer.connectDevice(

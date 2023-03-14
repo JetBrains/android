@@ -17,13 +17,16 @@ package com.android.tools.idea.tests.gui.debugger
 
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
-import com.android.fakeadbserver.shellcommandhandlers.GetPropCommandHandler
-import com.android.fakeadbserver.shellcommandhandlers.SimpleShellHandler
-import com.google.common.base.Charsets
+import com.android.fakeadbserver.ShellProtocolType
+import com.android.fakeadbserver.services.ServiceOutput
+import com.android.fakeadbserver.shellv2commandhandlers.GetPropV2CommandHandler
+import com.android.fakeadbserver.shellv2commandhandlers.SimpleShellV2Handler
+import com.android.fakeadbserver.shellv2commandhandlers.StatusWriter
 import java.io.IOException
-import java.net.Socket
 
-class GetAbiListPropCommandHandler(private val abiList: List<String>) : SimpleShellHandler("getprop") {
+class GetAbiListPropCommandHandler(shellProtocolType: ShellProtocolType, private val abiList: List<String>) : SimpleShellV2Handler(
+  shellProtocolType, "getprop") {
+
   init {
     if (abiList.isEmpty()) {
       throw IllegalArgumentException("abiList can not by an empty list")
@@ -32,17 +35,19 @@ class GetAbiListPropCommandHandler(private val abiList: List<String>) : SimpleSh
 
   override fun execute(
     fakeAdbServer: FakeAdbServer,
-    responseSocket: Socket,
+    statusWriter: StatusWriter,
+    serviceOutput: ServiceOutput,
     device: DeviceState,
-    args: String?
+    shellCommand: String,
+    shellCommandArgs: String?
   ) {
     // Collect the base properties from the default getprop command handler:
-    GetPropCommandHandler().execute(fakeAdbServer, responseSocket, device, args)
+    GetPropV2CommandHandler(shellProtocolType).execute(fakeAdbServer, statusWriter, serviceOutput, device, shellCommand, shellCommandArgs)
 
     try {
-      val response = responseSocket.getOutputStream()
-      response.write("[ro.product.cpu.abilist]: [${abiList.joinToString(separator = ",")}]\n".toByteArray(Charsets.UTF_8))
-    } catch (ignored: IOException) {
+      serviceOutput.writeStdout("[ro.product.cpu.abilist]: [${abiList.joinToString(separator = ",")}]\n")
+    }
+    catch (ignored: IOException) {
       // Unable to respond to client. Unable to do anything. Swallow exception and move on
     }
   }
