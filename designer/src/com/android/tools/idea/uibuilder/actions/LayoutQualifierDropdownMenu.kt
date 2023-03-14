@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.editor
+package com.android.tools.idea.uibuilder.actions
 
 import com.android.SdkConstants
 import com.android.ide.common.resources.configuration.FolderConfiguration
@@ -27,6 +27,7 @@ import com.android.tools.idea.res.getResourceVariations
 import com.android.tools.idea.ui.designer.EditorDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -51,7 +52,7 @@ private fun generateLayoutAndQualifierTitle(file: VirtualFile?): String {
  * The dropdown menu for changing layout qualifier.
  * Note that this action is also registered to action system in designer.xml.
  */
-class LayoutQualifierDropdownMenu(private val file: VirtualFile?)
+class LayoutQualifierDropdownMenu(file: VirtualFile?)
   : DropDownAction(generateLayoutAndQualifierTitle(file), "Action to switch and create qualifiers for layout files", null) {
 
   /**
@@ -65,6 +66,8 @@ class LayoutQualifierDropdownMenu(private val file: VirtualFile?)
   override fun displayTextInToolbar(): Boolean = true
 
   override fun isPerformableWithoutActionButton(): Boolean = true
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     val screenViewProvider = (e.dataContext.getData(DESIGN_SURFACE) as NlDesignSurface?)?.screenViewProvider
@@ -143,18 +146,14 @@ class LayoutQualifierDropdownMenu(private val file: VirtualFile?)
 class SwitchToVariationAction(private val title: String,
                               private val myProject: Project,
                               private val myFile: VirtualFile,
-                              select: Boolean) : AnAction(title, null, null), Toggleable {
+                              private val selected: Boolean) : AnAction(title, null, null), Toggleable {
 
-  init {
-    if (select) {
-      val templatePresentation = templatePresentation
-      Toggleable.setSelected(templatePresentation, true)
-      templatePresentation.isEnabled = false
-    }
-  }
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun update(e: AnActionEvent) {
     e.presentation.setText(title, false)
+    e.presentation.isEnabled = !selected
+    Toggleable.setSelected(e.presentation, selected)
   }
 
   override fun actionPerformed(e: AnActionEvent) {

@@ -131,7 +131,7 @@
     <!-- Layout Editor specific actions -->
     <group id="Android.Designer.LayoutEditorActions" text="Layout Editor">
       <action id="Android.Designer.SwitchLayoutQualifier"
-              class="com.android.tools.idea.uibuilder.editor.LayoutQualifierDropdownMenu"
+              class="com.android.tools.idea.uibuilder.actions.LayoutQualifierDropdownMenu"
               text="Switch Layout Qualifier"
               description="Switch or create the new qualifier for current layout">
       </action>
