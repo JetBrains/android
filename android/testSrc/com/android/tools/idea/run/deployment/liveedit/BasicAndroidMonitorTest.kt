@@ -144,6 +144,13 @@ class BasicAndroidMonitorTest {
     assertThat(status2.description).contains(gradleSyncString)
   }
 
+  @Test
+  fun unknownDeviceTEst() {
+    val unknownDevice : IDevice = MockitoKt.mock()
+    val status = monitor.status(unknownDevice)
+    assertThat(status).isEqualTo(LiveEditStatus.Disabled)
+  }
+
   @After
   fun dispose(){
     Disposer.dispose(service)

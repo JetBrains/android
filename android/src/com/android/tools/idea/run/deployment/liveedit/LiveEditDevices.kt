@@ -38,7 +38,7 @@ class LiveEditDevices {
   }
 
   fun get(device: IDevice): LiveEditStatus? {
-    return devices[device]!!.status
+    return devices[device]?.status
   }
 
   fun isUnrecoverable(): Boolean {
