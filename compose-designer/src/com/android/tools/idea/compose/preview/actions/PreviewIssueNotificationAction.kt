@@ -275,7 +275,8 @@ class ForceCompileAndRefreshActionForNotification private constructor() :
   RightAlignedToolbarAction,
   CustomComponentAction {
 
-  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+  // EDT is needed to read the preview status without holding the read lock
+  override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
   companion object {
     private const val ACTION_ID =
