@@ -320,6 +320,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/lldb-integration-tests/lldb-integration-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/lldb-integration-tests/lldb-integration-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/memory-usage/memory-usage.iml" filepath="$PROJECT_DIR$/memory-usage/memory-usage.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/sml-android/ml.sml-android.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/sml-android/ml.sml-android.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/sml-android/ml.sml-android-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/sml-android/ml.sml-android-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/sml-core/ml.sml-core.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/sml-core/ml.sml-core.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../vendor/google/ml/sml-core/ml.sml-core-tests.iml" filepath="$PROJECT_DIR$/../../vendor/google/ml/sml-core/ml.sml-core-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/native-symbolizer/native-symbolizer.iml" filepath="$PROJECT_DIR$/native-symbolizer/native-symbolizer.iml" />
