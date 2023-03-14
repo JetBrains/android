@@ -46,7 +46,7 @@ object PerfettoTraceConfigBuilders {
   private const val PROCESS_STATS_POLL_INTERVAL_MS = 1000
 
   // Power and battery data config values.
-  private const val BATTERY_POLL_INTERVAL_MS = 1000
+  private const val BATTERY_POLL_INTERVAL_MS = 250
 
   // Buffer size values.
   private const val CPU_TRACE_CONFIG_BUFFER_1_SIZE_KB = 256
