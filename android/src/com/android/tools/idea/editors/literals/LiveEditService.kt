@@ -63,6 +63,12 @@ class LiveEditService constructor(val project: Project,
                                   val deviceConnection: DeviceConnection,
                                   var executor: Executor) : Disposable {
 
+  private val deployMonitor: LiveEditProjectMonitor
+
+  private var showMultiDeviceNotification = true
+
+  private var showMultiDeployNotification = true
+
   // We quickly hand off the processing of PSI events to our own executor, since PSI events are likely
   // dispatched from the UI thread, and we do not want to block it.
   constructor(project: Project) : this(project,
@@ -102,19 +108,7 @@ class LiveEditService constructor(val project: Project,
         }
       }
     }
-  }
 
-  fun inlineCandidateCache() : SourceInlineCandidateCache {
-    return deployMonitor.compiler.inlineCandidateCache
-  }
-
-  private val deployMonitor: LiveEditProjectMonitor
-
-  private var showMultiDeviceNotification = true
-
-  private var showMultiDeployNotification = true
-
-  init {
     // TODO: Deactivate this when not needed.
     val listener = PsiListener(this::onPsiChanged)
     PsiManager.getInstance(project).addPsiTreeChangeListener(listener, this)
@@ -151,6 +145,10 @@ class LiveEditService constructor(val project: Project,
         }
       }
     })
+  }
+
+  fun inlineCandidateCache() : SourceInlineCandidateCache {
+    return deployMonitor.compiler.inlineCandidateCache
   }
 
   companion object {
