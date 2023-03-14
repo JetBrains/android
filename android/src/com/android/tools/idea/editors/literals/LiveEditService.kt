@@ -23,10 +23,9 @@ import com.android.tools.idea.editors.liveedit.ui.EmulatorLiveEditAdapter
 import com.android.tools.idea.editors.liveedit.ui.LiveEditIssueNotificationAction
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.projectsystem.ProjectSystemService
-import com.android.tools.idea.run.deployment.liveedit.AdbConnection
 import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor
-import com.android.tools.idea.run.deployment.liveedit.DeviceConnection
 import com.android.tools.idea.run.deployment.liveedit.EditEvent
+import com.android.tools.idea.run.deployment.liveedit.LiveEditAdbEventsListener
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
 import com.android.tools.idea.run.deployment.liveedit.PsiListener
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
@@ -52,7 +51,6 @@ import com.intellij.ui.content.ContentManagerListener
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.stream
 import org.jetbrains.annotations.VisibleForTesting
-import java.util.concurrent.Callable
 import java.util.concurrent.Executor
 
 /**
@@ -60,8 +58,8 @@ import java.util.concurrent.Executor
  */
 @Service
 class LiveEditService constructor(val project: Project,
-                                  val deviceConnection: DeviceConnection,
-                                  var executor: Executor) : Disposable {
+                                  var executor: Executor,
+                                  val adbEventsListener: LiveEditAdbEventsListener) : Disposable {
 
   private val deployMonitor: LiveEditProjectMonitor
 
@@ -72,9 +70,9 @@ class LiveEditService constructor(val project: Project,
   // We quickly hand off the processing of PSI events to our own executor, since PSI events are likely
   // dispatched from the UI thread, and we do not want to block it.
   constructor(project: Project) : this(project,
-                                       AdbConnection,
                                        AppExecutorUtil.createBoundedApplicationPoolExecutor(
-                                         "Document changed listeners executor", 1))
+                                         "Document changed listeners executor", 1),
+                                       LiveEditAdbEventsListener())
 
   init {
     val adapter = EmulatorLiveEditAdapter(project)

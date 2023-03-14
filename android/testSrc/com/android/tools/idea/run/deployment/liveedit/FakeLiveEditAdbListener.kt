@@ -19,22 +19,17 @@ import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 
-class FakeDeviceConnection: DeviceConnection {
+class FakeLiveEditAdbListener: LiveEditAdbEventsListener() {
   private val clientChangeListeners = mutableListOf<AndroidDebugBridge.IClientChangeListener>()
   private val deviceChangeListeners = mutableListOf<AndroidDebugBridge.IDeviceChangeListener>()
-  override fun addClientChangeListener(listener: AndroidDebugBridge.IClientChangeListener) {
-    clientChangeListeners.add(listener)
-  }
 
-  override fun addDeviceChangeListener(listener: AndroidDebugBridge.IDeviceChangeListener) {
+  override fun addListener(listener: AllAdbEventsListener) {
+    clientChangeListeners.add(listener)
     deviceChangeListeners.add(listener)
   }
 
-  override fun removeClientChangeListener(listener: AndroidDebugBridge.IClientChangeListener) {
+  override fun removeListener(listener: AllAdbEventsListener) {
     clientChangeListeners.remove(listener)
-  }
-
-  override fun removeDeviceChangeListener(listener: AndroidDebugBridge.IDeviceChangeListener) {
     deviceChangeListeners.remove(listener)
   }
 

@@ -49,7 +49,7 @@ class BasicAndroidMonitorTest {
   private lateinit var monitor: LiveEditProjectMonitor
   private lateinit var service: LiveEditService
   private lateinit var client: ClientImpl
-  private lateinit var connection: FakeDeviceConnection
+  private lateinit var connection: FakeLiveEditAdbListener
 
   private var clients: Array<Client> = arrayOf<Client>()
 
@@ -80,9 +80,9 @@ class BasicAndroidMonitorTest {
     `when`(client.clientData).thenReturn(clientData)
     `when`(clientData.packageName).thenReturn(appId)
 
-    connection = FakeDeviceConnection()
+    connection = FakeLiveEditAdbListener()
     clients = clients.plus(client)
-    service = LiveEditService(project, connection, MoreExecutors.directExecutor())
+    service = LiveEditService(project, MoreExecutors.directExecutor(), connection)
     monitor = service.getDeployMonitor()
 
     `when`(device.serialNumber).thenReturn("1")
