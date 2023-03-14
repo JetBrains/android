@@ -21,6 +21,7 @@
   <vendor>Google,JetBrains</vendor>
 
   <description>Provides a suite of design tools for Android Studio</description>
+  <resource-bundle>messages.AndroidDesignerActionsBundle</resource-bundle>
 
   <depends>com.intellij.platform.images</depends>
   <depends>org.jetbrains.android</depends>
