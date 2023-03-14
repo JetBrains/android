@@ -58,7 +58,8 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
     studioHeapAnalysisOutputDirectory = StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY.get(),
     studioHeapAnalysisLightweightMode = StudioFlags.GRADLE_HEAP_ANALYSIS_LIGHTWEIGHT_MODE.get(),
     studioFlagMultiVariantAdditionalArtifactSupport = StudioFlags.GRADLE_MULTI_VARIANT_ADDITIONAL_ARTIFACT_SUPPORT.get(),
-    studioDebugMode =  studioProjectSyncDebugModeEnabled()
+    studioDebugMode =  studioProjectSyncDebugModeEnabled(),
+    studioFlagSkipRuntimeClasspathForLibraries = StudioFlags.GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES.get(),
   )
 
   fun getAdditionalArtifactsAction() = AdditionalClassifierArtifactsActionOptions(

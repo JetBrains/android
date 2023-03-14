@@ -23,6 +23,7 @@ import com.android.builder.model.Variant
 import com.android.builder.model.v2.models.VariantDependencies
 import com.android.builder.model.v2.models.ndk.NativeModelBuilderParameter
 import com.android.builder.model.v2.models.ndk.NativeModule
+import com.android.tools.idea.gradle.model.IdeAndroidProjectType
 import com.android.utils.appendCapitalized
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.UnsupportedVersionException
@@ -82,15 +83,18 @@ internal fun BuildController.findVariantModel(
  */
 internal fun BuildController.findVariantDependenciesV2Model(
   project: BasicGradleProject,
-  variantName: String
+  variantName: String,
+  projectType: IdeAndroidProjectType,
+  skipRuntimeClasspathForLibraries: Boolean
 ): VariantDependencies? {
+  val shouldSkipRuntimeClasspath = skipRuntimeClasspathForLibraries && projectType == IdeAndroidProjectType.PROJECT_TYPE_LIBRARY
   return findModel(
     project,
     VariantDependencies::class.java,
     com.android.builder.model.v2.models.ModelBuilderParameter::class.java
   ) {
     it.variantName = variantName
-    it.dontBuildRuntimeClasspath = false
+    it.dontBuildRuntimeClasspath = shouldSkipRuntimeClasspath
   }
 }
 

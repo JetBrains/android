@@ -150,8 +150,7 @@ internal class BasicV2AndroidModuleGradleProject(
   buildName: String,
   val versions: Versions,
   val syncActionOptions: SyncActionOptions,
-) :
-  BasicIncompleteAndroidModule(gradleProject, buildName)
+) : BasicIncompleteAndroidModule(gradleProject, buildName)
 {
   override val agpVersion: String
     get() = versions.agp
@@ -195,7 +194,8 @@ internal class BasicV2AndroidModuleGradleProject(
             modelVersions = versions,
             androidDsl = androidDsl,
             legacyApplicationIdModel = legacyApplicationIdModel,
-            gradlePropertiesModel = gradlePropertiesModel
+            gradlePropertiesModel = gradlePropertiesModel,
+            skipRuntimeClasspathForLibraries = syncActionOptions.flags.studioFlagSkipRuntimeClasspathForLibraries,
           )
 
         return androidProjectResult.mapCatching { androidProjectResult ->

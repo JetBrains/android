@@ -56,8 +56,9 @@ sealed class AndroidProjectResult {
     override val allVariantNames: Set<String>,
     override val defaultVariantName: String?,
     val androidVariantResolver: AndroidVariantResolver,
+    val skipRuntimeClasspathForLibraries: Boolean,
   ) : AndroidProjectResult() {
-    override fun createVariantFetcher(): IdeVariantFetcher = v2VariantFetcher(modelCache, v2Variants)
+    override fun createVariantFetcher(): IdeVariantFetcher = v2VariantFetcher(modelCache, v2Variants, skipRuntimeClasspathForLibraries)
   }
 
   companion object {
@@ -104,6 +105,7 @@ sealed class AndroidProjectResult {
       androidDsl: AndroidDsl,
       legacyApplicationIdModel: LegacyApplicationIdModel?,
       gradlePropertiesModel: GradlePropertiesModel,
+      skipRuntimeClasspathForLibraries: Boolean,
     ): ModelResult<V2Project> {
       val buildName: String = basicAndroidProject.buildName
       val agpVersion: String = modelVersions.agp
@@ -153,7 +155,8 @@ sealed class AndroidProjectResult {
           v2Variants = v2Variants,
           allVariantNames = allVariantNames,
           defaultVariantName = defaultVariantName,
-          androidVariantResolver = androidVariantResolver
+          androidVariantResolver = androidVariantResolver,
+          skipRuntimeClasspathForLibraries = skipRuntimeClasspathForLibraries,
         )
       }
     }
@@ -197,20 +200,28 @@ private fun v1VariantFetcher(modelCache: ModelCache.V1, legacyApplicationIdModel
 }
 
 // Keep fetchers outside of AndroidProjectResult to avoid accidental references on larger builder models.
-private fun v2VariantFetcher(modelCache: ModelCache.V2, v2Variants: List<IdeVariantCoreImpl>): IdeVariantFetcher {
+private fun v2VariantFetcher(
+  modelCache: ModelCache.V2,
+  v2Variants: List<IdeVariantCoreImpl>,
+  skipRuntimeClasspathForLibraries: Boolean
+): IdeVariantFetcher {
   return fun(
     controller: BuildController,
     androidProjectPathResolver: AndroidProjectPathResolver,
     module: AndroidModule,
-    configuration: ModuleConfiguration
+    configuration: ModuleConfiguration,
   ): ModelResult<IdeVariantWithPostProcessor> {
     // In V2, we get the variants from AndroidModule.v2Variants.
     val variant = v2Variants.firstOrNull { it.name == configuration.variant }
       ?: return ModelResult.create { error("Resolved variant '${configuration.variant}' does not exist.") }
 
     // Request VariantDependencies model for the variant's dependencies.
-    val variantDependencies =
-      controller.findVariantDependenciesV2Model(module.gradleProject, configuration.variant) ?: return ModelResult.create { null }
+    val variantDependencies = controller.findVariantDependenciesV2Model(
+      module.gradleProject,
+      configuration.variant,
+      module.projectType,
+      skipRuntimeClasspathForLibraries
+    ) ?: return ModelResult.create { null }
     return modelCache.variantFrom(
       BuildId(module.gradleProject.projectIdentifier.buildIdentifier.rootDir),
       module.gradleProject.projectIdentifier.projectPath,
@@ -218,7 +229,7 @@ private fun v2VariantFetcher(modelCache: ModelCache.V2, v2Variants: List<IdeVari
       variantDependencies,
       module.androidProject.bootClasspath,
       androidProjectPathResolver,
-      module.buildNameMap
+      module.buildNameMap,
     )
   }
 }

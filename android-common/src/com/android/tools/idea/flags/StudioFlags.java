@@ -805,6 +805,13 @@ public final class StudioFlags {
     ""
   );
 
+  public static final Flag<Boolean> GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES = Flag.create(
+    GRADLE_IDE,
+    "gradle.skip.runtime.classpath.for.libraries",
+    "Skip runtime classpath resolution for libraries",
+    "Skip the runtime classpath resolution for libraries, instead obtain the information from the applications dependency graph.",
+    false
+  );
   public static final Flag<String> GRADLE_LOCAL_DISTRIBUTION_URL = Flag.create(
     GRADLE_IDE, "local.distribution.url", "Local override for distributionUrl",
     "When creating a project, Gradle updates the distributionUrl to point to a server accessible via the internet. When internet egress " +
