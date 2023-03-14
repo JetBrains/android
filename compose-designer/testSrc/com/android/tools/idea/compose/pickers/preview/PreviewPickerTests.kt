@@ -492,7 +492,7 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
     }
 
     deviceOptions["Square"]!!.select(deviceProperty) // Wear device
-    assertEquals("spec:shape=Normal,width=300,height=300,unit=px,dpi=240", deviceProperty.value)
+    assertEquals("spec:shape=Normal,width=300,height=300,unit=px,dpi=220", deviceProperty.value)
 
     deviceOptions["55.0\" Tv 2160p"]!!.select(deviceProperty) // Tv device
     assertEquals("spec:shape=Normal,width=3840,height=2160,unit=px,dpi=320", deviceProperty.value)

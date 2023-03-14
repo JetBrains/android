@@ -133,7 +133,7 @@ internal class DeviceEnumValueBuilder {
         val dpiCalc = sqrt((1.0 * widthPx * widthPx) + (1.0 * heightPx * heightPx)) / diagonalIn
         round(dpiCalc * 100) / 100.0
       }
-    val density = AvdScreenData.getScreenDensity(null, true, dpi, heightPx)
+    val density = AvdScreenData.getScreenDensity(true, dpi, heightPx)
     val deviceSpec =
       DeviceConfig(
           width = widthPx.toFloat(),
@@ -154,7 +154,7 @@ internal class DeviceEnumValueBuilder {
     chinSizePx: Int,
     displayName: String
   ): DeviceEnumValueBuilder = apply {
-    val density = AvdScreenData.getScreenDensity(null, false, 224.0, 300)
+    val density = AvdScreenData.getScreenDensity(false, 224.0, 300)
     val shape = if (isRound) Shape.Round else Shape.Normal
     val deviceSpec =
       DeviceConfig(

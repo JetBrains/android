@@ -80,9 +80,9 @@ class PsiEnumProviderTest {
     )
 
     // Density should return a density on a specific bucket
-    checkDefaultEnumValue("160", "mdpi (160 dpi)", getDensityDefaultEnumValue("199"))
-    checkDefaultEnumValue("240", "hdpi (240 dpi)", getDensityDefaultEnumValue("200"))
-    checkDefaultEnumValue("240", "hdpi (240 dpi)", getDensityDefaultEnumValue("201"))
+    checkDefaultEnumValue("160", "mdpi (160 dpi)", getDensityDefaultEnumValue("165"))
+    checkDefaultEnumValue("240", "hdpi (240 dpi)", getDensityDefaultEnumValue("235"))
+    checkDefaultEnumValue("240", "hdpi (240 dpi)", getDensityDefaultEnumValue("245"))
 
     // Unsupported values
     checkDefaultEnumValue("my device", "my device", getDeviceDefaultEnumValue("my device"))

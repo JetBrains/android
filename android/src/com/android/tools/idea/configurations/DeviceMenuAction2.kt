@@ -241,7 +241,7 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
     val xDp = screen.xDimension.toDp(density).roundToInt()
     val yDp = screen.yDimension.toDp(density).roundToInt()
     val isTv = HardwareConfigHelper.isTv(device)
-    val displayedDensity = AvdScreenData.getScreenDensity(device.id, isTv, density.dpiValue.toDouble(), screen.yDimension)
+    val displayedDensity = AvdScreenData.getScreenDensity(isTv, density.dpiValue.toDouble(), screen.yDimension)
     return "${device.displayName} ($xDp × $yDp dp, ${displayedDensity.resourceValue})"
   }
 

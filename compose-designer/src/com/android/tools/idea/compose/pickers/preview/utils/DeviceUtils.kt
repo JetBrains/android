@@ -127,7 +127,7 @@ internal fun DeviceConfig.createDeviceInstance(): Device {
             // the unit), since this change in density
             // may introduce an error when calculating the Screen dimensions
             val resolvedDensity =
-              AvdScreenData.getScreenDensity(null, false, deviceConfig.dpi.toDouble(), 0)
+              AvdScreenData.getScreenDensity(false, deviceConfig.dpi.toDouble(), 0)
             deviceConfig.dpi = resolvedDensity.dpiValue
             deviceConfig.dimUnit = DimUnit.px // Transforms dimension to Pixels
             xDimension = deviceConfig.width.roundToInt()

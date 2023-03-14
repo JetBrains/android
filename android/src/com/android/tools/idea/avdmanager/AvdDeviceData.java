@@ -124,7 +124,7 @@ public final class AvdDeviceData {
       if (myOriginalDpi == myScreenDpi.get()) {
         return myDensity;
       } else {
-        return AvdScreenData.getScreenDensity(myDeviceId.get(), isTv().get(), myScreenDpi.get(), myScreenResolutionHeight.get());
+        return AvdScreenData.getScreenDensity(isTv().get(), myScreenDpi.get(), myScreenResolutionHeight.get());
       }
     }
   };
