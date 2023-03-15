@@ -81,8 +81,8 @@ import com.intellij.psi.xml.XmlFile
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.text.nullize
 import org.jetbrains.android.dom.AttributeProcessingUtil
-import org.jetbrains.android.dom.attrs.AttributeDefinition
-import org.jetbrains.android.dom.attrs.AttributeDefinitions
+import com.android.tools.dom.attrs.AttributeDefinition
+import com.android.tools.dom.attrs.AttributeDefinitions
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import javax.swing.Icon

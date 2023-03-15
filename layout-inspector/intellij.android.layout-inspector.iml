@@ -46,5 +46,6 @@
     <orderEntry type="library" name="transport-proto" level="project" />
     <orderEntry type="module" module-name="intellij.android.execution.common" />
     <orderEntry type="module" module-name="intellij.android.streaming" />
+    <orderEntry type="module" module-name="intellij.android.render-resources" />
   </component>
 </module>

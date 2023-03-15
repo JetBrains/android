@@ -28,7 +28,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.BalloonImpl
 import com.intellij.ui.awt.RelativePoint
 import icons.StudioIcons
-import org.jetbrains.android.dom.attrs.AttributeDefinition
+import com.android.tools.dom.attrs.AttributeDefinition
 import java.awt.Point
 
 /**

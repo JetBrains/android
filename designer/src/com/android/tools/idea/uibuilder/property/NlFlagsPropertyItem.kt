@@ -30,7 +30,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ArrayUtil
 import com.intellij.util.containers.stream
 import com.intellij.util.text.nullize
-import org.jetbrains.android.dom.attrs.AttributeDefinition
+import com.android.tools.dom.attrs.AttributeDefinition
 
 /**
  * Special version of [NlPropertyItem] for flag attributes.

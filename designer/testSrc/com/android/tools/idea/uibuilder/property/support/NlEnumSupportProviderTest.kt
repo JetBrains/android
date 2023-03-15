@@ -39,7 +39,7 @@ import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.android.tools.idea.uibuilder.property.testutils.SupportTestUtil
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.AndroidTestCase
-import org.jetbrains.android.dom.attrs.AttributeDefinition
+import com.android.tools.dom.attrs.AttributeDefinition
 
 class NlEnumSupportProviderTest: AndroidTestCase() {
 

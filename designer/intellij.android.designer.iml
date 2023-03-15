@@ -42,5 +42,6 @@
     <orderEntry type="module" module-name="android.sdktools.analytics-testing" scope="TEST" />
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="android.sdktools.lint-api" />
+    <orderEntry type="module" module-name="intellij.android.render-resources" />
   </component>
 </module>

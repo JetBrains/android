@@ -1,9 +1,6 @@
-package org.jetbrains.android.resourceManagers;
+package com.android.tools.dom.attrs;
 
 import com.android.ide.common.rendering.api.ResourceReference;
-import org.jetbrains.android.dom.attrs.AttributeDefinition;
-import org.jetbrains.android.dom.attrs.AttributeDefinitions;
-import org.jetbrains.android.dom.attrs.StyleableDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

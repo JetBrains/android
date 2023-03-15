@@ -1,4 +1,4 @@
-package org.jetbrains.android.dom.attrs;
+package com.android.tools.dom.attrs;
 
 import com.android.ide.common.rendering.api.ResourceReference;
 import org.jetbrains.annotations.NotNull;
