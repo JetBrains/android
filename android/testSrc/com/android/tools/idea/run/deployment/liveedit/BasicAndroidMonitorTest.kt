@@ -145,7 +145,7 @@ class BasicAndroidMonitorTest {
   }
 
   @Test
-  fun unknownDeviceTEst() {
+  fun unknownDeviceTest() {
     val unknownDevice : IDevice = MockitoKt.mock()
     val status = monitor.status(unknownDevice)
     assertThat(status).isEqualTo(LiveEditStatus.Disabled)
