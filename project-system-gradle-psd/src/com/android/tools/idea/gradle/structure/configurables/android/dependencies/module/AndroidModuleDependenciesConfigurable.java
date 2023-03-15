@@ -20,7 +20,6 @@ import com.android.tools.idea.gradle.structure.configurables.PsContext;
 import com.android.tools.idea.gradle.structure.configurables.android.modules.AbstractModuleConfigurable;
 import com.android.tools.idea.gradle.structure.configurables.dependencies.module.MainPanel;
 import com.android.tools.idea.gradle.structure.model.android.PsAndroidModule;
-import com.intellij.ui.navigation.Place;
 import org.jetbrains.annotations.NotNull;
 
 public class AndroidModuleDependenciesConfigurable extends AbstractModuleConfigurable<PsAndroidModule, MainPanel> {
@@ -34,11 +33,6 @@ public class AndroidModuleDependenciesConfigurable extends AbstractModuleConfigu
   @Override
   public MainPanel createPanel() {
     return new MainPanel(getModule(), getContext());
-  }
-
-  @Override
-  public void putNavigationPath(@NotNull Place place, @NotNull String value) {
-    getModulePanel().putPath(place, value);
   }
 
   @Override
