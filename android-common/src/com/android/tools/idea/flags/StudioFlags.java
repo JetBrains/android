@@ -1059,6 +1059,13 @@ public final class StudioFlags {
     false
   );
 
+  public static final Flag<Boolean> ESSENTIAL_HIGHLIGHTING_ACTION_VISIBLE = Flag.create(
+    EDITOR, "essential.highlighting.action.visible",
+    "Show Essential Highlighting action",
+    "If enabled, makes Essential Highlighting action visible",
+    true
+  );
+
   //endregion
 
   //region Unified App Bundle
