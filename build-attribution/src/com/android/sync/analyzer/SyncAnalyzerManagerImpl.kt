@@ -19,6 +19,7 @@ import com.android.build.attribution.analytics.transformDownloadsAnalyzerData
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.output.DownloadsInfoUIModelNotifier
 import com.android.build.output.DownloadsInfoPresentableEvent
+import com.android.build.output.LongDownloadsNotifier
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.SyncAnalyzerManager
 import com.android.tools.idea.gradle.util.GradleUtil
@@ -57,6 +58,7 @@ class SyncAnalyzerManagerImpl(
     val data = project.getService(SyncAnalyzerDataManager::class.java).getOrCreateDataForTask(id)
     //TODO (b/231146116): if we are running with Gradle<7.3 we will not get events, view will be misleadingly empty.
     project.setUpDownloadsInfoNodeOnBuildOutput(id, data.buildDisposable)
+    LongDownloadsNotifier(id, project, data.buildDisposable)
   }
 
   override fun onSyncFinished(id: ExternalSystemTaskId?) {
