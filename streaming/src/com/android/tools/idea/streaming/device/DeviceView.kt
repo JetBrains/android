@@ -369,6 +369,9 @@ internal class DeviceView(
       }
     }
 
+    // Render before multi touch feedback.
+    renderDecorators(g.create())
+
     if (multiTouchMode) {
       val displayRect = displayRectangle
       if (displayRect != null) {

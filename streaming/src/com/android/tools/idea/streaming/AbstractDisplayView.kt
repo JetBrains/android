@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.streaming.emulator.NotificationHolderPanel
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.containers.ContainerUtil
@@ -87,6 +88,9 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   }
 
   private val frameListeners = ContainerUtil.createLockFreeCopyOnWriteList<FrameListener>()
+
+  /** Rendering contributors invoked after the display image is rendered, but before multi touch feedback and device frame are. */
+  private val decorationRenderers = mutableListOf<DecorationRenderer>()
 
   init {
     background = primaryPanelBackground
@@ -192,6 +196,17 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     findLoadingPanel()?.stopLoadingInstantly()
   }
 
+  internal fun renderDecorators(graphics: Graphics) {
+    for (renderingDecorator in decorationRenderers) {
+      try {
+        renderingDecorator.render(graphics)
+      }
+      catch (t: Throwable) {
+        thisLogger().error(t)
+      }
+    }
+  }
+
   protected fun showDisconnectedStateMessage(message: String, reconnector: Reconnector? = null) {
     hideLongRunningOperationIndicatorInstantly()
     zoom(ZoomType.FIT)
@@ -255,6 +270,14 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     }
   }
 
+  fun addDecorationRenderer(decorationRenderer: DecorationRenderer) {
+    decorationRenderers.add(decorationRenderer)
+  }
+
+  fun removeDecorationRenderer(decorationRenderer: DecorationRenderer) {
+    decorationRenderers.remove(decorationRenderer)
+  }
+
   /**
    * Adds a [listener] to receive callbacks when the display view has a new frame rendered.
    *
@@ -268,6 +291,14 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   /** Removes a [listener] so it no longer receives callbacks when the display view has a new frame rendered. */
   internal fun removeFrameListener(listener: FrameListener) {
     frameListeners.remove(listener)
+  }
+
+  fun interface DecorationRenderer {
+    /**
+     * Renders components in the graphics context passed as argument.
+     * Invoked after the display image is rendered, but before multi touch feedback and device frame are rendered.
+     */
+    fun render(graphics: Graphics)
   }
 
   internal fun interface FrameListener {

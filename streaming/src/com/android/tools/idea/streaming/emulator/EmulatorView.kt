@@ -465,6 +465,9 @@ class EmulatorView(
     frameNumber = screenshotShape.frameNumber
     notifyFrameListeners(displayRect, screenshot.image)
 
+    // Render before multi touch feedback and device frame.
+    renderDecorators(g.create())
+
     if (multiTouchMode) {
       drawMultiTouchFeedback(g, displayRect, lastTouchCoordinates != null)
     }
