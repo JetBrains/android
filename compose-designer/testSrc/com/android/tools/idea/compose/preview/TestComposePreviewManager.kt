@@ -59,5 +59,7 @@ class TestComposePreviewManager(
 
   override var isFilterEnabled: Boolean = false
 
+  override var atfChecksEnabled: Boolean = false
+
   override fun dispose() {}
 }

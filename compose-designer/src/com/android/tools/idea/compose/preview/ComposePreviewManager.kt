@@ -132,6 +132,9 @@ interface ComposePreviewManager : Disposable {
   /** Flag to indicate if the preview filter is enabled or not. */
   var isFilterEnabled: Boolean
 
+  /** Flag to indicate whether ATF checks should be run on the preview. */
+  var atfChecksEnabled: Boolean
+
   /**
    * Starts the interactive preview focusing in the given [ComposePreviewElementInstance] [instance]
    * .

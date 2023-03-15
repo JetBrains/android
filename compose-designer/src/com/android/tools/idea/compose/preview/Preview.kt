@@ -70,6 +70,7 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisi
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentationState
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.scene.accessibilityBasedHierarchyParser
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.util.toDisplayString
 import com.intellij.ide.ActivityTracker
@@ -193,7 +194,8 @@ fun configureLayoutlibSceneManager(
   sceneManager: LayoutlibSceneManager,
   showDecorations: Boolean,
   isInteractive: Boolean,
-  requestPrivateClassLoader: Boolean
+  requestPrivateClassLoader: Boolean,
+  runAtfChecks: Boolean
 ): LayoutlibSceneManager =
   sceneManager.apply {
     val reinflate =
@@ -208,6 +210,11 @@ fun configureLayoutlibSceneManager(
     // Manager to not
     // report it via the regular log.
     doNotReportOutOfDateUserClasses()
+    if (runAtfChecks) {
+      setCustomContentHierarchyParser(accessibilityBasedHierarchyParser)
+    } else {
+      setCustomContentHierarchyParser(null)
+    }
     if (reinflate) {
       forceReinflate()
     }
@@ -522,6 +529,8 @@ class ComposePreviewRepresentation(
   override var isInspectionTooltipEnabled: Boolean = false
 
   override var isFilterEnabled: Boolean = false
+
+  override var atfChecksEnabled: Boolean = StudioFlags.NELE_ATF_FOR_COMPOSE.get()
 
   private val dataProvider = DataProvider {
     when (it) {
@@ -1111,7 +1120,8 @@ class ComposePreviewRepresentation(
       layoutlibSceneManager,
       showDecorations = displaySettings.showDecoration,
       isInteractive = interactiveMode.isStartingOrReady(),
-      requestPrivateClassLoader = usePrivateClassLoader()
+      requestPrivateClassLoader = usePrivateClassLoader(),
+      runAtfChecks = runAtfChecks()
     )
 
   private fun onAfterRender() {
@@ -1377,6 +1387,9 @@ class ComposePreviewRepresentation(
    */
   private fun usePrivateClassLoader() =
     interactiveMode.isStartingOrReady() || animationInspection.get() || shouldQuickRefresh()
+
+  /** Whether to run ATF checks on the preview. Never do it for interactive preview. */
+  private fun runAtfChecks() = atfChecksEnabled && !interactiveMode.isStartingOrReady()
 
   override fun invalidate() {
     invalidated.set(true)

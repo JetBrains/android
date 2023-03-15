@@ -342,6 +342,11 @@ public final class StudioFlags {
     "Enable ATF integration in visual linting of layouts.",
     true);
 
+  public static final Flag<Boolean> NELE_ATF_FOR_COMPOSE = Flag.create(
+    NELE, "atf.for.compose", "Enable ATF checks for Compose",
+    "Allow running accessibility checks for Compose using ATF.",
+    false);
+
   public static final Flag<Boolean> NELE_WARN_NEW_THREADS = Flag.create(
     NELE, "preview.warn.new.threads", "Enable new threads warning",
     "Display a warning if user code creates new threads in the preview",
