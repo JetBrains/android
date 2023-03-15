@@ -27,6 +27,7 @@ import com.android.tools.idea.appinspection.ide.ui.RecentProcess
 import com.android.tools.idea.appinspection.internal.AppInspectionTarget
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
@@ -130,6 +131,20 @@ class LayoutInspectorToolWindowFactoryTest {
     devices.forEach { device ->
       inspectorRule.adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString())
     }
+  }
+
+  @Test
+  fun isApplicableReturnsFalseWhenEnabledInRunningDevices() {
+    val prev = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(true)
+
+    assertThat(LayoutInspectorToolWindowFactory().isApplicable(projectRule.project)).isFalse()
+
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(false)
+
+    assertThat(LayoutInspectorToolWindowFactory().isApplicable(projectRule.project)).isTrue()
+
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(prev)
   }
 
   @Test
