@@ -96,6 +96,7 @@ class ComposeViewControlActionTest {
     Show Inspection Tooltips
     ------------------------------------------------------
     Color Blind Modes
+        Original
         Protanopes
         Protanomaly
         Deuteranopes
@@ -143,6 +144,7 @@ class ComposeViewControlActionTest {
     Show Inspection Tooltips
     ------------------------------------------------------
     Color Blind Modes
+        Original
         Protanopes
         Protanomaly
         Deuteranopes
