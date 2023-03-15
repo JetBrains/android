@@ -25,7 +25,7 @@ import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.ShellProtocolType
 import com.android.fakeadbserver.services.ServiceOutput
 import com.android.fakeadbserver.shellcommandhandlers.LogcatCommandHandler
-import com.android.fakeadbserver.shellv2commandhandlers.StatusWriter
+import com.android.fakeadbserver.shellcommandhandlers.StatusWriter
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
 import com.android.testutils.TestResources
@@ -49,7 +49,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.io.EOFException
-import java.net.Socket
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.TimeUnit.MILLISECONDS

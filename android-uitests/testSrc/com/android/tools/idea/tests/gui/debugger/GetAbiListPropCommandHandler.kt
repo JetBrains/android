@@ -19,12 +19,12 @@ import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.ShellProtocolType
 import com.android.fakeadbserver.services.ServiceOutput
-import com.android.fakeadbserver.shellv2commandhandlers.GetPropV2CommandHandler
-import com.android.fakeadbserver.shellv2commandhandlers.SimpleShellV2Handler
-import com.android.fakeadbserver.shellv2commandhandlers.StatusWriter
+import com.android.fakeadbserver.shellcommandhandlers.GetPropCommandHandler
+import com.android.fakeadbserver.shellcommandhandlers.SimpleShellHandler
+import com.android.fakeadbserver.shellcommandhandlers.StatusWriter
 import java.io.IOException
 
-class GetAbiListPropCommandHandler(shellProtocolType: ShellProtocolType, private val abiList: List<String>) : SimpleShellV2Handler(
+class GetAbiListPropCommandHandler(shellProtocolType: ShellProtocolType, private val abiList: List<String>) : SimpleShellHandler(
   shellProtocolType, "getprop") {
 
   init {
@@ -42,7 +42,7 @@ class GetAbiListPropCommandHandler(shellProtocolType: ShellProtocolType, private
     shellCommandArgs: String?
   ) {
     // Collect the base properties from the default getprop command handler:
-    GetPropV2CommandHandler(shellProtocolType).execute(fakeAdbServer, statusWriter, serviceOutput, device, shellCommand, shellCommandArgs)
+    GetPropCommandHandler(shellProtocolType).execute(fakeAdbServer, statusWriter, serviceOutput, device, shellCommand, shellCommandArgs)
 
     try {
       serviceOutput.writeStdout("[ro.product.cpu.abilist]: [${abiList.joinToString(separator = ",")}]\n")

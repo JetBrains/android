@@ -21,15 +21,15 @@ import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.ShellProtocolType
 import com.android.fakeadbserver.services.ServiceOutput
-import com.android.fakeadbserver.shellv2commandhandlers.ShellV2Handler
-import com.android.fakeadbserver.shellv2commandhandlers.StatusWriter
+import com.android.fakeadbserver.shellcommandhandlers.ShellHandler
+import com.android.fakeadbserver.shellcommandhandlers.StatusWriter
 import java.lang.Thread.sleep
 
 /**
  * Handler for FakeAdbServer that handles shell commands using the given TestShellCommands
  * (i.e. predefined commands and responses).
  */
-class TestShellCommandHandler(shellProtocolType: ShellProtocolType, val shellCommands: TestShellCommands) : ShellV2Handler(
+class TestShellCommandHandler(shellProtocolType: ShellProtocolType, val shellCommands: TestShellCommands) : ShellHandler(
   shellProtocolType) {
 
   override fun shouldExecute(shellCommand: String, shellCommandArgs: String?): Boolean {

@@ -20,8 +20,8 @@ import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.ShellProtocolType;
 import com.android.fakeadbserver.services.ServiceOutput;
-import com.android.fakeadbserver.shellv2commandhandlers.SimpleShellV2Handler;
-import com.android.fakeadbserver.shellv2commandhandlers.StatusWriter;
+import com.android.fakeadbserver.shellcommandhandlers.SimpleShellHandler;
+import com.android.fakeadbserver.shellcommandhandlers.StatusWriter;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -139,7 +139,7 @@ public class FlavorsExecutionTest {
     fakeAdbServer.close();
   }
 
-  private static class LogcatCommandHandler extends SimpleShellV2Handler {
+  private static class LogcatCommandHandler extends SimpleShellHandler {
 
     public LogcatCommandHandler(ShellProtocolType shellProtocolType) {
       super(shellProtocolType, "logcat");
