@@ -273,7 +273,7 @@ class GradleDependencyCompatibilityAnalyzer(
       catch (ex: VersionIncompatibilityException) {
         analyzer.copy(baseAnalyzer)
         val nextVersionToTest = when {
-          ex.problemVersion1.min.major == null || ex.problemVersion2.min.major == null -> versions.nextOrNull()
+          ex.problemVersion1.lowerEndpoint().major == null || ex.problemVersion2.lowerEndpoint().major == null -> versions.nextOrNull()
           // At this point we know that we have created a version incompatibility by adding [candidate].
           // If the incompatibility created is more than 2 major versions off, then trying an older version of the candidate
           // is not likely to solve the problem. So jump to the preview section or stop.
@@ -282,7 +282,7 @@ class GradleDependencyCompatibilityAnalyzer(
           //   - candidate is androidx:recyclerview:recyclerview:1.1.17
           //   - the problem artifact is androidx:annotation:annotation problemVersion1 is 4.1.2 and problemVersion2 is 1.2.0
           // We know that problemVersion2 was added because of the [candidate], trying an older version of candidate would not help.
-          ex.problemVersion1.min.major!! + 2 < ex.problemVersion2.min.major!! ->
+          ex.problemVersion1.lowerEndpoint().major!! + 2 < ex.problemVersion2.lowerEndpoint().major!! ->
             if (!candidate.lowerBoundVersion.isPreview) versions.nextPreviewOrNull() else throw bestError ?: ex
 
           else -> versions.nextOrNull()
@@ -380,10 +380,10 @@ class GradleDependencyCompatibilityAnalyzer(
      * AndroidX dependency ranges are displayed as simply a version.
      */
     private fun formatVersion(id: GradleCoordinateId, version: VersionRange): String {
-      val max = version.max
+      val max = version.upperEndpoint()
       if (MavenRepositories.isAndroidX(id.groupId) && max != null &&
-          max.minor == null && max.micro == null && max.major == version.min.major?.let { it + 1 }) {
-        return version.min.toString()
+          max.minor == null && max.micro == null && max.major == version.lowerEndpoint().major?.let { it + 1 }) {
+        return version.lowerEndpoint().toString()
       }
       return version.toString()
     }
@@ -426,7 +426,7 @@ class GradleDependencyCompatibilityAnalyzer(
     }
 
     fun getVersionIdentityMatch(groupId: String): Version? {
-      return groupMap[groupId]?.versionRange?.min
+      return groupMap[groupId]?.versionRange?.lowerEndpoint()
     }
 
     fun addExplicitDependency(dependency: GradleCoordinate, fromModule: Module) {
@@ -477,7 +477,7 @@ class GradleDependencyCompatibilityAnalyzer(
 
         //TODO: Find a way to get artifact dependencies from all repositories...
         repoUrlManager
-          .findCompileDependencies(id.groupId, id.artifactId, versionRange.min)
+          .findCompileDependencies(id.groupId, id.artifactId, versionRange.lowerEndpoint())
           .forEach { addDependency(it, explicitDependency, fromModule) }
       }
     }
