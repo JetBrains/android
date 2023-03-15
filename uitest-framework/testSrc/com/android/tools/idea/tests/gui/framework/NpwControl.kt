@@ -17,6 +17,7 @@ package com.android.tools.idea.tests.gui.framework
 
 import com.android.SdkConstants
 import com.android.SdkConstants.GRADLE_LATEST_VERSION
+import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.npw.model.MultiTemplateRenderer.TemplateRendererListener
 import com.android.tools.idea.testing.AndroidGradleTests
 import com.android.tools.idea.testing.updatePluginsResolutionManagement
@@ -34,15 +35,19 @@ import java.io.File
 class NpwControl(private val project: Project) : TemplateRendererListener {
 
   override fun multiRenderingFinished() {
+    val ktsUsage = GradleUtil.projectBuildFilesTypes(project).contains(SdkConstants.DOT_KTS)
+    val buildGradleFile = if (ktsUsage) SdkConstants.FN_BUILD_GRADLE_KTS else SdkConstants.FN_BUILD_GRADLE
+    val settingsGradleFile = if (ktsUsage) SdkConstants.FN_SETTINGS_GRADLE_KTS else SdkConstants.FN_SETTINGS_GRADLE
     // Plugin definitions are in the root project build.gradle file
-    val pluginDefinitions = getContent(File(project.basePath!!, SdkConstants.FN_BUILD_GRADLE))
+    val pluginDefinitions = getContent(File(project.basePath!!, buildGradleFile))
 
     // We need to update repositories and pluginManagement block in settings.gradle
-    File(project.basePath!!, SdkConstants.FN_SETTINGS_GRADLE).let { file ->
+    File(project.basePath!!, settingsGradleFile).let { file ->
       val settingsOld = getContent(file) ?: return@let
       val settingsWithRepos = AndroidGradleTests.updateLocalRepositories(
         settingsOld,
-        AndroidGradleTests.getLocalRepositoriesForGroovy(emptyList())
+        if (ktsUsage) AndroidGradleTests.getLocalRepositoriesForKotlin(emptyList())
+        else AndroidGradleTests.getLocalRepositoriesForGroovy(emptyList())
       )
       val settingsNew = pluginDefinitions?.let { updatePluginsResolutionManagement(settingsWithRepos, it) } ?: settingsWithRepos
       writeContent(settingsOld, settingsNew, file)

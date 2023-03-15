@@ -89,7 +89,7 @@ public class ChangeLibModSettingsTest {
 
     String gradleFileContents = guiTest.ideFrame()
       .getEditor()
-      .open("/library_module/build.gradle")
+      .open("/library_module/build.gradle.kts")
       .getCurrentFileContents();
 
     assertThat(gradleFileContents).contains("compileSdkVersion 28");

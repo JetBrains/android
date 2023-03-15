@@ -133,13 +133,13 @@ public class JavaToKotlinConversionTest {
     assertThat(KotlinVersionsList.size()).isGreaterThan(2);
      */
 
-    //Click Ok with the default selected value and replacing the default "1.0.0" manually in build.gradle file.
+    //Click Ok with the default selected value and replacing the default "1.0.0" manually in build.gradle.kts file.
     configureKotlinDialogBox.clickOkAndWaitDialogDisappear();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    assertThat(editor.open("build.gradle")
+    assertThat(editor.open("build.gradle.kts")
                  .getCurrentFileContents()
-                 .contains("org.jetbrains.kotlin.android"))
+                 .contains("libs.plugins.org.jetbrains.kotlin.android"))
       .isTrue();
 
     //Manually changing the kotlin version to the latest version, and this step needs to be updated with every new release.

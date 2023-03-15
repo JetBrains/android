@@ -6,8 +6,6 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture
 import com.android.tools.idea.tests.gui.framework.fixture.NewFilePopupFixture
-import com.android.tools.idea.tests.gui.projectstructure.DependenciesTestUtil
-import com.android.tools.idea.wizard.template.BuildConfigurationLanguage
 import com.google.common.truth.Truth
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.core.MouseButton.RIGHT_BUTTON
@@ -36,7 +34,6 @@ class ShowFilesUnknownToCMakeActionTest {
       .configureNewAndroidProjectStep
       .enterName("cpp-test")
       .enterPackageName("dev.tools")
-      .selectBuildConfigurationLanguage(BuildConfigurationLanguage.Groovy)
       .wizard()
       .clickNext()
       .clickFinishAndWaitForSyncToFinish()
