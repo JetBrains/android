@@ -154,14 +154,14 @@ class LayoutInspectorManagerTest {
   }
 
   private fun assertWorkbenchWasAdded(tabContext: RunningDevicesTabContext) {
-    assertThat(tabContext.deviceDisplayComponent.parents().filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(1)
-    assertThat(tabContext.deviceDisplayContainer.components.filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(1)
+    assertThat(tabContext.tabContentPanel.parents().filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(1)
+    assertThat(tabContext.tabContentPanelContainer.components.filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(1)
   }
 
   private fun assertWorkbenchWasRemoved(tabContext: RunningDevicesTabContext) {
-    assertThat(tabContext.deviceDisplayComponent.parents().filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(0)
-    assertThat(tabContext.deviceDisplayContainer.components.filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(0)
-    assertThat(tabContext.deviceDisplayComponent.parent).isEqualTo(tabContext.deviceDisplayContainer)
+    assertThat(tabContext.tabContentPanel.parents().filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(0)
+    assertThat(tabContext.tabContentPanelContainer.components.filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(0)
+    assertThat(tabContext.tabContentPanel.parent).isEqualTo(tabContext.tabContentPanelContainer)
   }
 
   private fun createTabContext(
