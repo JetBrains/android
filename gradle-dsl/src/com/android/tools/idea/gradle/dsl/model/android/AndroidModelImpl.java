@@ -33,6 +33,7 @@ import static com.android.tools.idea.gradle.dsl.parser.android.JacocoDslElement.
 import static com.android.tools.idea.gradle.dsl.parser.android.KotlinOptionsDslElement.KOTLIN_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.LintDslElement.LINT;
 import static com.android.tools.idea.gradle.dsl.parser.android.LintOptionsDslElement.LINT_OPTIONS;
+import static com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement.PACKAGING;
 import static com.android.tools.idea.gradle.dsl.parser.android.PackagingOptionsDslElement.PACKAGING_OPTIONS;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorDslElement.PRODUCT_FLAVOR;
 import static com.android.tools.idea.gradle.dsl.parser.android.ProductFlavorsDslElement.PRODUCT_FLAVORS;
@@ -109,6 +110,7 @@ import com.android.tools.idea.gradle.dsl.parser.android.TestOptionsDslElement;
 import com.android.tools.idea.gradle.dsl.parser.android.ViewBindingDslElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleNameElement;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradlePropertiesDslElement;
+import com.android.tools.idea.gradle.dsl.parser.semantics.AndroidGradlePluginVersion;
 import com.android.tools.idea.gradle.dsl.parser.semantics.ModelPropertyDescription;
 import com.android.tools.idea.gradle.dsl.parser.semantics.VersionConstraint;
 import com.google.common.collect.ImmutableList;
@@ -343,8 +345,24 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
 
   @Override
   @NotNull
+  public PackagingOptionsModel packaging() {
+    return packagingOptions();
+  }
+
+  @Override
+  @NotNull
   public PackagingOptionsModel packagingOptions() {
-    PackagingOptionsDslElement packagingOptionsDslElement = myDslElement.ensurePropertyElement(PACKAGING_OPTIONS);
+    AndroidGradlePluginVersion version = myDslElement.getDslFile().getContext().getAgpVersion();
+    PackagingOptionsDslElement packagingOptionsDslElement;
+    if (version == null || version.compareTo(AndroidGradlePluginVersion.Companion.parse("8.0.0-beta02")) < 0) {
+      packagingOptionsDslElement = myDslElement.ensurePropertyElement(PACKAGING_OPTIONS);
+    }
+    else {
+      packagingOptionsDslElement = myDslElement.getPropertyElement(PACKAGING_OPTIONS);
+      if (packagingOptionsDslElement == null) {
+        packagingOptionsDslElement = myDslElement.ensurePropertyElement(PACKAGING);
+      }
+    }
     return new PackagingOptionsModelImpl(packagingOptionsDslElement);
   }
 

@@ -108,6 +108,9 @@ public interface AndroidModel extends GradleBlockModel {
   ResolvedPropertyModel ndkVersion();
 
   @NotNull
+  PackagingOptionsModel packaging();
+
+  @NotNull
   PackagingOptionsModel packagingOptions();
 
   @NotNull

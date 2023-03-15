@@ -55,6 +55,7 @@ public final class AndroidDslElement extends GradleDslBlockElement {
     {"kotlinOptions", KotlinOptionsDslElement.KOTLIN_OPTIONS},
     {"lint", LintDslElement.LINT},
     {"lintOptions", LintOptionsDslElement.LINT_OPTIONS},
+    {"packaging", PackagingOptionsDslElement.PACKAGING}, // TODD(xof): since AGP version ? (needs infrastructure)
     {"packagingOptions", PackagingOptionsDslElement.PACKAGING_OPTIONS},
     {"productFlavors", ProductFlavorsDslElement.PRODUCT_FLAVORS},
     {"signingConfigs", SigningConfigsDslElement.SIGNING_CONFIGS},
