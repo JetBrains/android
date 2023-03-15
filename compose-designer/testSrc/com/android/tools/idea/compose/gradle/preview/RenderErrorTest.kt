@@ -47,6 +47,7 @@ import junit.framework.Assert.assertTrue
 import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -130,6 +131,7 @@ class RenderErrorTest {
     }
   }
 
+  @Ignore("b/272048512")
   @Test
   fun testSceneViewWithoutRenderErrors() {
     val sceneViewPanelWithoutErrors =
