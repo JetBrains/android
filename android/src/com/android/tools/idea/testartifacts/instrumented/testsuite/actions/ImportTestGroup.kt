@@ -16,7 +16,7 @@
 package com.android.tools.idea.testartifacts.instrumented.testsuite.actions
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.concurrency.AndroidIoManager
+import com.android.tools.concurrency.AndroidIoManager
 import com.android.tools.idea.testartifacts.instrumented.testsuite.export.getTestStartTime
 import com.intellij.execution.TestStateStorage
 import com.intellij.execution.testframework.sm.TestHistoryConfiguration

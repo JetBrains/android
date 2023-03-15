@@ -17,12 +17,12 @@ package com.android.tools.idea.uibuilder.surface
 
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderTestUtil
-import com.android.tools.idea.res.FrameworkResourceRepositoryManager
 import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorHierarchy
 import com.android.tools.idea.validator.ValidatorResult
 import com.android.tools.idea.validator.ValidatorUtil
+import com.android.tools.res.FrameworkResourceRepositoryManager
 import com.google.common.util.concurrent.Futures
 import org.jetbrains.android.AndroidTestCase
 import java.util.EnumSet

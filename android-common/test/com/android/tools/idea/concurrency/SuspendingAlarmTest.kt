@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.concurrency
 
+import com.android.tools.concurrency.AndroidIoManager
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ProjectRule

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.concurrency
 
+import com.android.tools.concurrency.AndroidIoManager
 import com.android.tools.idea.concurrency.AndroidExecutors.Companion.getInstance
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState

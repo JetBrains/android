@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 @file:JvmName("AndroidPluginVersion")
-package com.android.tools.idea.res
+package com.android.tools.res
 
 import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.openapi.extensions.PluginId
