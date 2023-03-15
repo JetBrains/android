@@ -44,6 +44,7 @@ import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.table.TableView
 import com.intellij.util.ui.ComponentWithEmptyText
+import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.After
 import org.junit.Before
@@ -51,6 +52,9 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
+
+private val gradleVersion_7_2 = GradleVersion.version("7.2")
+private val gradleVersion_8_0 = GradleVersion.version("8.0")
 
 class DownloadsInfoPresentableEventTest {
 
@@ -71,8 +75,7 @@ class DownloadsInfoPresentableEventTest {
 
   @Test
   fun testEventFields() {
-
-    val event = DownloadsInfoPresentableEvent(buildId, buildDisposable, buildStartTimestampMs)
+    val event = DownloadsInfoPresentableEvent(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0)
 
     assertThat(event.buildId).isSameAs(buildId)
     //Time is not used for this type of event. 0 is a default value for such case.
@@ -88,8 +91,8 @@ class DownloadsInfoPresentableEventTest {
 
   @Test
   fun testNodeIcon() {
+    val event = DownloadsInfoPresentableEvent(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0)
 
-    val event = DownloadsInfoPresentableEvent(buildId, buildDisposable, buildStartTimestampMs)
     val icon = event.presentationData.nodeIcon as LayeredIcon
     assertThat(icon.allLayers).isEqualTo(arrayOf(
       AllIcons.Actions.Download,
@@ -152,7 +155,7 @@ class DownloadsInfoExecutionConsoleTest {
     buildId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.RESOLVE_PROJECT, projectRule.project)
     buildDisposable = Disposer.newCheckedDisposable("build finished disposable")
     Disposer.register(projectRule.testRootDisposable, buildDisposable)
-    executionConsole = DownloadsInfoExecutionConsole(buildId, buildDisposable, buildStartTimestampMs)
+    executionConsole = DownloadsInfoExecutionConsole(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0)
     Disposer.register(projectRule.testRootDisposable, executionConsole)
   }
 
@@ -163,6 +166,24 @@ class DownloadsInfoExecutionConsoleTest {
 
   @Test
   fun testEmptyUi() {
+    assertThat((executionConsole.component as ComponentWithEmptyText).emptyText.text).isEqualTo("No download requests")
+    assertWithMessage("None of the component should be visible.")
+      .that (executionConsole.component.components.any { it.isVisible }).isFalse()
+  }
+
+  @Test
+  fun testEmptyUiForOlderGradle() {
+    val executionConsole = DownloadsInfoExecutionConsole(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_7_2)
+    Disposer.register(projectRule.testRootDisposable, executionConsole)
+    assertThat((executionConsole.component as ComponentWithEmptyText).emptyText.text).isEqualTo("Minimal Gradle version providing downloads data is 7.3")
+    assertWithMessage("None of the component should be visible.")
+      .that (executionConsole.component.components.any { it.isVisible }).isFalse()
+  }
+
+  @Test
+  fun testEmptyUiForNullGradleVersion() {
+    val executionConsole = DownloadsInfoExecutionConsole(buildId, buildDisposable, buildStartTimestampMs, null)
+
     assertThat((executionConsole.component as ComponentWithEmptyText).emptyText.text).isEqualTo("No download requests")
     assertWithMessage("None of the component should be visible.")
       .that (executionConsole.component.components.any { it.isVisible }).isFalse()
@@ -258,7 +279,7 @@ class DownloadsInfoExecutionConsoleTest {
   @Ignore("b/271258614")
   fun testBuildFinishedBeforeUiCreated() {
     Disposer.dispose(buildDisposable)
-    val lateExecutionConsole = DownloadsInfoExecutionConsole(buildId, buildDisposable, buildStartTimestampMs)
+    val lateExecutionConsole = DownloadsInfoExecutionConsole(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0)
     Disposer.register(projectRule.testRootDisposable, lateExecutionConsole)
   }
 }

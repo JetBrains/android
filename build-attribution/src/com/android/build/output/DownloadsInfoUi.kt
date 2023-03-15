@@ -15,6 +15,7 @@
  */
 package com.android.build.output
 
+import com.android.build.attribution.analyzers.minGradleVersionProvidingDownloadEvents
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.stats.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -39,6 +40,7 @@ import com.intellij.ui.components.BrowserLink
 import com.intellij.ui.components.JBPanelWithEmptyText
 import com.intellij.ui.table.TableView
 import com.intellij.util.ui.JBUI
+import org.gradle.util.GradleVersion
 import java.awt.BorderLayout
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
@@ -58,7 +60,8 @@ import javax.swing.table.TableRowSorter
 class DownloadsInfoExecutionConsole(
   val buildId: ExternalSystemTaskId,
   val buildFinishedDisposable: CheckedDisposable,
-  val buildStartTimestampMs: Long
+  val buildStartTimestampMs: Long,
+  val gradleVersion: GradleVersion?
 ) : ExecutionConsole {
   // TODO (b/271258614): In an unlikely case when build is finished before running this code this will result in an error.
   private val listenBuildEventsDisposable = Disposer.newDisposable(buildFinishedDisposable, "DownloadsInfoExecutionConsole")
@@ -108,7 +111,7 @@ class DownloadsInfoExecutionConsole(
   private val panel by lazy { JBPanelWithEmptyText().apply {
     layout = BorderLayout()
     name = "downloads info build output panel"
-    withEmptyText("No download requests")
+    withEmptyText(createEmptyText())
     reposTable.visibleRowCount = 5
     val browserLink = BrowserLink(
       "Read more on repositories optimization",
@@ -137,6 +140,13 @@ class DownloadsInfoExecutionConsole(
     }
   }}
 
+  private fun createEmptyText() = if (gradleVersion?.let { it < minGradleVersionProvidingDownloadEvents } == true) {
+    "Minimal Gradle version providing downloads data is ${minGradleVersionProvidingDownloadEvents.version}"
+  }
+  else {
+    "No download requests"
+  }
+
   override fun dispose() {
     Disposer.dispose(listenBuildEventsDisposable)
   }
@@ -162,7 +172,8 @@ class DownloadsInfoExecutionConsole(
 class DownloadsInfoPresentableEvent(
   val buildId: ExternalSystemTaskId,
   val buildFinishedDisposable: CheckedDisposable,
-  val buildStartTimestampMs: Long
+  val buildStartTimestampMs: Long,
+  val gradleVersion: GradleVersion?
 ) : PresentableBuildEvent {
   override fun getId(): Any = "Download info"
   override fun getParentId(): Any = buildId
@@ -171,7 +182,7 @@ class DownloadsInfoPresentableEvent(
   override fun getHint(): String? = null
   override fun getDescription(): String? = null
   override fun getPresentationData(): BuildEventPresentationData = object : BuildEventPresentationData {
-    private val downloadsExecutionConsole = DownloadsInfoExecutionConsole(buildId, buildFinishedDisposable, buildStartTimestampMs)
+    private val downloadsExecutionConsole = DownloadsInfoExecutionConsole(buildId, buildFinishedDisposable, buildStartTimestampMs, gradleVersion)
     override fun getNodeIcon(): Icon = DownloadsNodeIcon(downloadsExecutionConsole.uiModel)
     override fun getExecutionConsole(): ExecutionConsole = downloadsExecutionConsole
     override fun consoleToolbarActions(): ActionGroup? = null
