@@ -61,7 +61,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -180,6 +179,10 @@ public class LiveEditProjectMonitor implements Disposable {
 
   // We want to log only a percentage of LE events, but we also always want to log the *first* event after a deployment.
   private final double LE_LOG_FRACTION = 0.1;
+
+  // Random generator used in conjunction with LE_LOG_FRACTION
+  private static final Random randomForLogging = new Random();
+
   private boolean hasLoggedSinceReset = false;
 
   // Bridge to ADB event (either ddmlib or adblib). We use it to receive device lifecycle events and app (a.k.a Client) lifecycle events.
@@ -527,9 +530,8 @@ public class LiveEditProjectMonitor implements Disposable {
     }
   }
 
-  private static final Random random = new Random();
   private void logLiveEditEvent(LiveEditEvent.Builder event) {
-    if (!hasLoggedSinceReset || random.nextDouble() < LE_LOG_FRACTION) {
+    if (!hasLoggedSinceReset || randomForLogging.nextDouble() < LE_LOG_FRACTION) {
       UsageTracker.log(
         UsageTrackerUtils.withProjectId(AndroidStudioEvent.newBuilder()
                                           .setCategory(AndroidStudioEvent.EventCategory.DEPLOYMENT)
