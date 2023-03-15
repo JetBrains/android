@@ -31,7 +31,6 @@ import com.intellij.ui.components.Label
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.Alarm
 import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.JBUI.Borders
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.BorderLayout
@@ -82,6 +81,7 @@ internal class ScreenRecorderDialog(
     super.init()
     setUndecorated(true)
     rootPane.windowDecorationStyle = JRootPane.NONE
+    rootPane.border = JBUI.Borders.empty()
     panel.border = PopupBorder.Factory.create(true, true)
 
     if (WindowRoundedCornersManager.isAvailable()) {
@@ -153,7 +153,7 @@ internal class ScreenRecorderDialog(
     dialogPanel.add(titlePanel, BorderLayout.NORTH)
 
     val centerPanel = BorderLayoutPanel()
-    centerPanel.border = Borders.empty(15, 10)
+    centerPanel.border = JBUI.Borders.empty(15, 10)
     recordingLabel = Label(recordingTimeText(recordingTimeMillis))
     centerPanel.addToLeft(recordingLabel)
     centerPanel.addToCenter(Box.createRigidArea(Dimension(JBUIScale.scale(20), 0)))
