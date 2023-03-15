@@ -35,6 +35,7 @@ import org.mockito.Mock;
 
 import static java.util.Collections.emptyList;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -75,7 +76,7 @@ public class MakeGradleModuleActionTest extends PlatformTestCase {
     myAction = new MakeGradleModuleAction();
   }
 
-  public void testDoPerform() throws Exception {
+  public void testDoPerform() {
     Module module = getModule();
     Module[] selectedModules = {module};
     when(myProjectInfo.getModulesToBuildFromSelection(myDataContext)).thenReturn(selectedModules);
@@ -85,5 +86,36 @@ public class MakeGradleModuleActionTest extends PlatformTestCase {
 
     // Verify "assemble" was invoked.
     verify(myBuildInvoker).assemble(selectedModules, TestCompileType.ALL);
+  }
+
+  public void testNoDefaultSelection() {
+    when(myProjectInfo.getModulesToBuildFromSelection(myDataContext)).thenReturn(new Module[]{});
+    myAction.doPerform(myActionEvent, getProject());
+
+    // Verify "assemble" was invoked.
+    verify(myBuildInvoker).assemble(new Module[]{}, TestCompileType.ALL);
+  }
+
+  public void testDoRememberPreviousSelection() {
+    Module[] selectedModules = new Module[]{getModule()};
+    when(myProjectInfo.getModulesToBuildFromSelection(myDataContext)).thenReturn(selectedModules);
+
+    myAction.doPerform(myActionEvent, getProject());
+    verify(myBuildInvoker).assemble(selectedModules, TestCompileType.ALL);
+    reset(myBuildInvoker);
+
+    when(myProjectInfo.getModulesToBuildFromSelection(myDataContext)).thenReturn(new Module[]{});
+    myAction.doPerform(myActionEvent, getProject());
+
+    // Verify previous selection is stored
+    verify(myBuildInvoker).assemble(selectedModules, TestCompileType.ALL);
+    reset(myBuildInvoker);
+
+    Module[] myapplication = new Module[]{createModule("myapplication")};
+    when(myProjectInfo.getModulesToBuildFromSelection(myDataContext)).thenReturn(myapplication);
+    myAction.doPerform(myActionEvent, getProject());
+
+    // Verify previous selection is updated after new module is selected
+    verify(myBuildInvoker).assemble(myapplication, TestCompileType.ALL);
   }
 }

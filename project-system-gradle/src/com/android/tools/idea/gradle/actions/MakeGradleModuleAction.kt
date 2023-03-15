@@ -62,23 +62,59 @@ class MakeGradleModuleActionFromGroupAction : AbstractMakeGradleModuleAction() {
 abstract class AbstractMakeGradleModuleAction :
   AndroidStudioGradleAction("Make Module(s)", "Build selected modules", StudioIcons.Shell.Toolbar.BUILD_MODULE) {
 
+  private var previouslySelectedModules: List<String> = emptyList()
+
   open fun getModuleNamesToBuild(e: AnActionEvent, project: Project): List<String> = extractModuleNames(e, project)
 
   open fun getModulesToBuild(e: AnActionEvent, project: Project): Array<Module> =
     GradleProjectInfo.getInstance(project).getModulesToBuildFromSelection(e.dataContext)
 
   final override fun doUpdate(e: AnActionEvent, project: Project) {
-    val modules = getModuleNamesToBuild(e, project).ifEmpty {
-      listOfNotNull(getDefaultModuleToBuild(project)).map { it.name }
-    }
+    val modules = getModuleNamesToBuild(e, project).ifEmpty {  getPreviouslySelectedNamesIfValid(project) }
+    previouslySelectedModules = modules
+
     updatePresentation(e, project, modules)
   }
 
   final override fun doPerform(e: AnActionEvent, project: Project) {
-    val modules = getModulesToBuild(e, project).ifEmpty {
-      listOfNotNull(getDefaultModuleToBuild(project)).toTypedArray()
-    }
+    val modules = getModulesToBuild(e, project).ifEmpty { getPreviouslySelectedModulesIfValid(project) }
+    previouslySelectedModules = modules.map { it.name }
+
     getInstance(project).assemble(modules, TestCompileType.ALL)
+  }
+
+  private fun getPreviouslySelectedNamesIfValid(project: Project): List<String> =
+    getPreviouslySelectedModulesIfValid(project).map { it.name }
+
+  /**
+   * Returns previously selected modules, if entire selection is still valid (module exists and it is not disposed).
+   * In cases when focus is lost (e.g. by opening tools window), we should try to maintain the previous modules selection.
+   *
+   * In case there is no previous selection, we choose [getDefaultModuleToBuild].
+   */
+  private fun getPreviouslySelectedModulesIfValid(project: Project): Array<Module> {
+    val moduleManager = ModuleManager.getInstance(project)
+    val selectedModules = arrayOfNulls<Module>(previouslySelectedModules.size)
+    var id = 0
+
+    val allValid = previouslySelectedModules.all {
+      val selectedModule = moduleManager.findModuleByName(it)
+      if (selectedModule == null || selectedModule.isDisposed) {
+        false
+      }
+      else {
+        selectedModules[id++] = selectedModule
+        true
+      }
+    }
+
+    return if (allValid && selectedModules.isNotEmpty()) {
+      @Suppress("UNCHECKED_CAST")
+      selectedModules as Array<Module>
+    }
+    else {
+      getDefaultModuleToBuild(project)?.let { arrayOf(it) } ?: arrayOf()
+    }
   }
 
   override fun getActionUpdateThread(): ActionUpdateThread {
