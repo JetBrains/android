@@ -24,6 +24,7 @@ import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.util.isRootComponentSelected
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
+import com.android.tools.idea.uibuilder.surface.BorderColor
 import com.android.tools.idea.uibuilder.surface.BorderLayer
 import com.android.tools.idea.uibuilder.surface.ClassLoadingDebugLayer
 import com.android.tools.idea.uibuilder.surface.DiagnosticsLayer
@@ -49,8 +50,12 @@ internal val COMPOSE_SCREEN_VIEW_PROVIDER =
               if (it.hasBorderLayer()) {
                 add(
                   BorderLayer(it, true) { sceneView ->
-                    StudioFlags.COMPOSE_PREVIEW_SELECTION.get() &&
-                      sceneView.isRootComponentSelected()
+                    when {
+                      StudioFlags.COMPOSE_PREVIEW_SELECTION.get() &&
+                        sceneView.isRootComponentSelected() -> BorderColor.SELECTED
+                      sceneView == sceneView.surface.sceneViewAtMousePosition -> BorderColor.HOVERED
+                      else -> BorderColor.DEFAULT_WITHOUT_SHADOW
+                    }
                   }
                 )
               }
