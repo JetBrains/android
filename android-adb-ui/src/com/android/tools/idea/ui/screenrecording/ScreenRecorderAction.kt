@@ -71,7 +71,8 @@ class ScreenRecorderAction : DumbAwareAction(
   override fun update(event: AnActionEvent) {
     val params = event.getData(SCREEN_RECORDER_PARAMETERS_KEY)
     val project = event.project
-    event.presentation.isEnabled = project != null && params != null && isScreenRecordingSupported(params, project)
+    event.presentation.isEnabled =
+        params != null && project != null && isRecordingSupported(params, project) && !recordingInProgress.contains(params.serialNumber)
   }
 
   override fun actionPerformed(event: AnActionEvent) {
@@ -84,7 +85,7 @@ class ScreenRecorderAction : DumbAwareAction(
     }
   }
 
-  private fun isScreenRecordingSupported(params: Parameters, project: Project): Boolean {
+  private fun isRecordingSupported(params: Parameters, project: Project): Boolean {
     return params.featureLevel >= 19 &&
            ScreenRecordingSupportedCache.getInstance(project).isScreenRecordingSupported(params.serialNumber, params.featureLevel)
   }
