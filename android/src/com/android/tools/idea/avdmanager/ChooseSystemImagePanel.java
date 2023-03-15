@@ -132,6 +132,7 @@ public class ChooseSystemImagePanel extends JPanel
     myRecommendedImageList.setBorder(BorderFactory.createLineBorder(JBColor.lightGray));
 
     myListModel.refreshLocalImagesSynchronously();
+    myListModel.refreshImages(false);
     setSelectedImage(mySystemImage);
 
     add(myPanel);
