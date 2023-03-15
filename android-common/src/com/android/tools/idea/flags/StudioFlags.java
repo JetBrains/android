@@ -1052,6 +1052,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> SUGGESTED_IMPORTS_WITH_VERSION_CATALOGS_ENABLED = Flag.create(
+    EDITOR, "suggested.imports.with.version.catalogs.enabled",
+    "Enable Suggested Imports with Version Catalogs",
+    "If enabled, allows suggested imports to be shown in projects that are using version catalogs",
+    false
+  );
+
   //endregion
 
   //region Unified App Bundle
