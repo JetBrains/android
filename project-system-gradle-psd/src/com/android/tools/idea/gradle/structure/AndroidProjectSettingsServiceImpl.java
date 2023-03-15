@@ -27,6 +27,7 @@ import com.android.tools.idea.gradle.structure.configurables.BasePerspectiveConf
 import com.android.tools.idea.gradle.structure.configurables.BuildVariantsPerspectiveConfigurableKt;
 import com.android.tools.idea.gradle.structure.configurables.DependenciesPerspectiveConfigurableKt;
 import com.android.tools.idea.gradle.structure.configurables.ModulesPerspectiveConfigurableKt;
+import com.android.tools.idea.gradle.structure.configurables.dependencies.module.DeclaredDependenciesPanelKt;
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.BuildVariantsPanelKt;
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.buildtypes.BuildTypesPanelKt;
 import com.android.tools.idea.gradle.structure.configurables.ui.buildvariants.productflavors.ProductFlavorsPanelKt;
@@ -151,7 +152,7 @@ public class AndroidProjectSettingsServiceImpl extends ProjectSettingsService im
       new Place()
         .putPath(ProjectStructureConfigurable.CATEGORY_NAME, DependenciesPerspectiveConfigurableKt.DEPENDENCIES_PERSPECTIVE_DISPLAY_NAME)
         .putPath(BasePerspectiveConfigurableKt.BASE_PERSPECTIVE_MODULE_PLACE_NAME, getGradleModulePath(module))
-        .putPath(String.format("dependencies.%s.place", getGradleModulePath(module)), dependency.toString())
+        .putPath(DeclaredDependenciesPanelKt.MODULE_DEPENDENCIES_PLACE_NAME, dependency.toString())
     );
   }
 
