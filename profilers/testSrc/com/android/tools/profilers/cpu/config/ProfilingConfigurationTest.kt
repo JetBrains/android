@@ -130,7 +130,7 @@ class ProfilingConfigurationTest {
 
     // Check that right amount of buffers and data sources were added.
     // More robust testing for the actual construction of the TraceConfig is found in {@link PerfettoTraceConfigBuildersTest}
-    assertThat(config.perfettoOptions.buffersCount).isEqualTo(2)
+    assertThat(config.perfettoOptions.buffersCount).isEqualTo(3)
     assertThat(config.perfettoOptions.dataSourcesCount).isEqualTo(8)
 
     // Ensure the additional options were added.

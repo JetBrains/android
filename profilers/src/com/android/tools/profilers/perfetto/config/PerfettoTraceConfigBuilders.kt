@@ -50,6 +50,7 @@ object PerfettoTraceConfigBuilders {
 
   // Buffer size values.
   private const val CPU_TRACE_CONFIG_BUFFER_1_SIZE_KB = 256
+  private const val CPU_TRACE_CONFIG_BUFFER_2_SIZE_KB = 4096
   private const val MEMORY_TRACE_CONFIG_BUFFER_0_SIZE_KB = 1024 * 128
 
   // Heap profd config values.
@@ -75,6 +76,8 @@ object PerfettoTraceConfigBuilders {
     // add buffers
     configBuilder.addBuffers(TraceConfig.BufferConfig.newBuilder().setSizeKb(bufferSizeMb.mbToKb()))
     configBuilder.addBuffers(TraceConfig.BufferConfig.newBuilder().setSizeKb(CPU_TRACE_CONFIG_BUFFER_1_SIZE_KB))
+    // This buffer is exclusively for the 'android.power' data source.
+    configBuilder.addBuffers(TraceConfig.BufferConfig.newBuilder().setSizeKb(CPU_TRACE_CONFIG_BUFFER_2_SIZE_KB))
 
     // add ftrace data source
     val ftraceDataSource = TraceConfig.DataSource.newBuilder().setConfig(getFtraceDataConfig())
@@ -192,7 +195,7 @@ object PerfettoTraceConfigBuilders {
   }
 
   private fun getPowerDataConfig(): PerfettoConfig.DataSourceConfig {
-    val powerDataConfig = PerfettoConfig.DataSourceConfig.newBuilder().setName("android.power").setTargetBuffer(0)
+    val powerDataConfig = PerfettoConfig.DataSourceConfig.newBuilder().setName("android.power").setTargetBuffer(2)
     val androidPowerConfig = powerDataConfig.androidPowerConfig.toBuilder()
     androidPowerConfig.collectPowerRails = true
     androidPowerConfig.batteryPollMs = BATTERY_POLL_INTERVAL_MS
