@@ -200,7 +200,7 @@ class DownloadsInfoPresentableEvent(
       // We do not care about removing listeners because there supposed to be 1-1 presentation to model relationship and they should
       // be released all together.
       model.addAndFireDataUpdateListener {
-        setIconRunningStateEnabled(model.repositoriesTableModel.summaryItem.runningNumberOfRequests() > 0)
+        setIconRunningStateEnabled(model.repositoriesTableModel.summaryItem.runningNumberOfRequests > 0)
       }
     }
 

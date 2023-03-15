@@ -84,8 +84,8 @@ class DownloadsInfoUIModelTest {
 
     updateDownloadRequestViaListener(DownloadRequestItem(downloadRequestKey, repository=GOOGLE))
     model.repositoriesTableModel.summaryItem.let {
-      assertThat(it.runningNumberOfRequests()).isEqualTo(1)
-      assertThat(it.totalNumberOfRequests()).isEqualTo(1)
+      assertThat(it.runningNumberOfRequests).isEqualTo(1)
+      assertThat(it.totalNumberOfRequests).isEqualTo(1)
     }
     model.repositoriesTableModel.summaryItem.assertRepositoryItemState(1, 0, 0, 0, 0)
     assertThat(model.repositoriesTableModel.items).hasSize(2)
@@ -215,11 +215,11 @@ class DownloadsInfoUIModelTest {
 
 
   private fun RepositoryTableItem.assertRepositoryItemState(running: Int, completed: Int, failed: Int, durationMs: Long, bytesDownloaded: Long) {
-    assertThat(runningNumberOfRequests()).isEqualTo(running)
-    assertThat(totalNumberOfRequests()).isEqualTo(completed + running)
-    assertThat(numberOfFailed()).isEqualTo(failed)
-    assertThat(totalAmountOfTime()).isEqualTo(durationMs)
-    assertThat(totalAmountOfData()).isEqualTo(bytesDownloaded)
+    assertThat(runningNumberOfRequests).isEqualTo(running)
+    assertThat(totalNumberOfRequests).isEqualTo(completed + running)
+    assertThat(numberOfFailed).isEqualTo(failed)
+    assertThat(totalAmountOfTime).isEqualTo(durationMs)
+    assertThat(totalAmountOfData).isEqualTo(bytesDownloaded)
   }
 }
 

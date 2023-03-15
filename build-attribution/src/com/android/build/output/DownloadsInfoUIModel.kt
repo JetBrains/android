@@ -143,7 +143,7 @@ class DownloadsInfoUIModel(val taskId: ExternalSystemTaskId, val buildFinishedDi
 
   fun repoSelectionUpdated(item: RepositoryTableItem?) {
     selectedRepoItem = item ?: repositoriesTableModel.summaryItem
-    requestsTableModel.items = selectedRepoItem.requests.values.toList()
+    requestsTableModel.items = selectedRepoItem.requests
   }
 
   /**
@@ -225,14 +225,30 @@ data class DownloadRequestItem(
 class RepositoryTableItem(
   val repository: DownloadsAnalyzer.Repository?
 ) {
-  val requests = mutableMapOf<DownloadRequestKey, DownloadRequestItem>()
+  private val requestsMap = mutableMapOf<DownloadRequestKey, DownloadRequestItem>()
+  val requests: List<DownloadRequestItem> get() = requestsMap.values.toList()
+  var totalNumberOfRequests: Int = 0
+    private set
+  var runningNumberOfRequests: Int = 0
+    private set
+  var totalAmountOfData: Long = 0L
+    private set
+  var numberOfFailed: Int = 0
+    private set
+  var totalAmountOfTime: Long = 0L
+    private set
+  var timeOfFailed: Long = 0L
+    private set
 
-  fun totalNumberOfRequests() = requests.size
-  fun runningNumberOfRequests() = requests.values.count { !it.completed }
-  fun totalAmountOfData() = requests.values.sumOf { it.receivedBytes }
-  fun numberOfFailed() = requests.values.count { it.failed }
-  fun totalAmountOfTime() = requests.values.sumOf { it.duration }
-  fun timeOfFailed() =  requests.values.filter { it.failed }.sumOf { it.duration }
+  fun updateRequest(downloadRequest: DownloadRequestItem) {
+    requestsMap[downloadRequest.requestKey] = downloadRequest
+    totalNumberOfRequests = requestsMap.size
+    runningNumberOfRequests = requestsMap.values.count { !it.completed }
+    totalAmountOfData = requestsMap.values.sumOf { it.receivedBytes }
+    numberOfFailed = requestsMap.values.count { it.failed }
+    totalAmountOfTime = requestsMap.values.sumOf { it.duration }
+    timeOfFailed =  requestsMap.values.filter { it.failed }.sumOf { it.duration }
+  }
 }
 
 class RepositoriesTableModel : ListTableModel<RepositoryTableItem>() {
@@ -268,16 +284,16 @@ class RepositoriesTableModel : ListTableModel<RepositoryTableItem>() {
         else -> error("Unexpected repository table item.")
       }},
       column("Requests", "Total number of requests.") {
-        val runningRequests = it.runningNumberOfRequests()
-        val totalRequests = it.totalNumberOfRequests()
+        val runningRequests = it.runningNumberOfRequests
+        val totalRequests = it.totalNumberOfRequests
         if (runningRequests > 0) "$totalRequests ($runningRequests running)"
         else totalRequests.toString()
       },
-      column("Data", "Total amount of data downloaded.") { Formats.formatFileSize(it.totalAmountOfData()) },
-      column("Time", "Total amount of time taken to execute requests.") { StringUtil.formatDuration(it.totalAmountOfTime()) },
-      column("Avg Speed", "Average download speed.") { formatAvgDownloadSpeed(it.totalAmountOfData(), it.totalAmountOfTime()) },
-      column("Failed Requests", "Number of failed requests.") { it.numberOfFailed().toString() },
-      column("Failed Requests Time", "Total amount of time taken to execute failed requests.") { StringUtil.formatDuration(it.timeOfFailed()) },
+      column("Data", "Total amount of data downloaded.") { Formats.formatFileSize(it.totalAmountOfData) },
+      column("Time", "Total amount of time taken to execute requests.") { StringUtil.formatDuration(it.totalAmountOfTime) },
+      column("Avg Speed", "Average download speed.") { formatAvgDownloadSpeed(it.totalAmountOfData, it.totalAmountOfTime) },
+      column("Failed Requests", "Number of failed requests.") { it.numberOfFailed.toString() },
+      column("Failed Requests Time", "Total amount of time taken to execute failed requests.") { StringUtil.formatDuration(it.timeOfFailed) },
     )
   }
 
@@ -285,8 +301,8 @@ class RepositoriesTableModel : ListTableModel<RepositoryTableItem>() {
     if (items.isEmpty()) addRow(summaryItem)
     val repository = downloadRequest.repository
     val repoTableItem = reposData.computeIfAbsent(repository) { RepositoryTableItem(it) }
-    repoTableItem.requests[downloadRequest.requestKey] = downloadRequest
-    summaryItem.requests[downloadRequest.requestKey] = downloadRequest
+    repoTableItem.updateRequest(downloadRequest)
+    summaryItem.updateRequest(downloadRequest)
 
     fireTableCellUpdated(0, TableModelEvent.ALL_COLUMNS)
     val updatedRepoRowIndex = items.indexOfFirst { it.repository == repository }
