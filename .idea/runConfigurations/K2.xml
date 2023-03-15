@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Android Studio (K2 Kotlin Plugin)" type="Application" factoryName="Application">
+  <configuration default="false" name="K2" type="Application" factoryName="Application">
     <option name="ALTERNATIVE_JRE_PATH" value="jbr-17" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <log_file alias="idea.log" path="$USER_HOME$/.cache/Google/AndroidStudioDev/log/idea.log" />
