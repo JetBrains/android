@@ -231,13 +231,13 @@ private fun PreviewConfiguration.applyTo(
   renderConfiguration.startBulkEditing()
   if (apiLevel != UNDEFINED_API_LEVEL) {
     highestApiTarget(renderConfiguration)?.let {
-      updateRenderConfigurationTargetIfChanged(CompatibilityRenderTarget(it, apiLevel, null))
+      updateRenderConfigurationTargetIfChanged(CompatibilityRenderTarget(it, apiLevel, it))
     }
   } else {
     // Use the highest available one when not defined.
     highestApiTarget(renderConfiguration)?.let {
       updateRenderConfigurationTargetIfChanged(
-        CompatibilityRenderTarget(it, it.version.apiLevel, null)
+        CompatibilityRenderTarget(it, it.version.apiLevel, it)
       )
     }
   }
