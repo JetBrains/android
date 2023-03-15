@@ -133,8 +133,7 @@ public class SystemImageListModel extends ListTableModel<SystemImageDescription>
       ApplicationManager.getApplication().invokeLater(() -> {
         List<SystemImageDescription> remotes = getRemoteImages(packages);
         if (remotes != null) {
-          items.addAll(remotes);
-          setItems(items);
+          addRows(remotes);
         }
         completedDownload("");
       }, ModalityState.any());
