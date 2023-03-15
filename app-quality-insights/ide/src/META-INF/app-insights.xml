@@ -25,6 +25,9 @@
     <projectService
         serviceInterface="com.android.tools.idea.insights.analytics.AppInsightsTracker"
         serviceImplementation="com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl" />
+    <applicationService
+        serviceInterface="com.android.tools.idea.insights.AppInsightsService"
+        serviceImplementation="com.android.tools.idea.insights.AppInsightsServiceImpl" />
   </extensions>
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.insights.ui.appInsightsTabProvider"
