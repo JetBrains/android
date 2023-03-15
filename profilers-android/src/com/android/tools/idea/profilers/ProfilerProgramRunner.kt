@@ -203,7 +203,7 @@ class ProfilerProgramRunner : AndroidConfigurationProgramRunner() {
       featureTracker.trackRunWithProfiling(metadataBuilder.build())
     }
 
-    private fun isProfilerExecutor(executorId: String): Boolean {
+    fun isProfilerExecutor(executorId: String): Boolean {
       if (StudioFlags.PROFILEABLE_BUILDS.get() &&
           // Profileable Builds support multiple profiling modes, wrapped in RegisteredSettings. To get the selected
           // mode, query the ExecutorGroup by executor ID. If a registered setting is found, the executor is a profiler one.
