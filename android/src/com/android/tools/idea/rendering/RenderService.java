@@ -44,10 +44,12 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
@@ -296,6 +298,7 @@ final public class RenderService implements Disposable {
     private boolean enableLayoutScanner = false;
     private SessionParams.RenderingMode myRenderingMode = null;
     private boolean useTransparentBackground = false;
+    private Function<Object, List<ViewInfo>> myCustomContentHierarchyParser = null;
 
     /**
      * If two RenderTasks share the same ModuleClassLoader they share the same compose framework. This way they share the state. If we would
@@ -516,6 +519,15 @@ final public class RenderService implements Disposable {
     }
 
     /**
+     * Sets a custom parser for creating the {@link ViewInfo} hierarchy from the layout root view.
+     */
+    @NotNull
+    public RenderTaskBuilder setCustomContentHierarchyParser(@NotNull Function<Object, List<ViewInfo>> parser) {
+      myCustomContentHierarchyParser = parser;
+      return this;
+    }
+
+    /**
      * Builds a new {@link RenderTask}. The returned future always completes successfully but the value might be null if the RenderTask
      * can not be created.
      */
@@ -587,6 +599,10 @@ final public class RenderService implements Disposable {
 
           if (myRenderingMode != null) {
             task.setRenderingMode(myRenderingMode);
+          }
+
+          if (myCustomContentHierarchyParser != null) {
+            task.setCustomContentHierarchyParser(myCustomContentHierarchyParser);
           }
 
           return task;

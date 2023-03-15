@@ -91,6 +91,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import org.jetbrains.android.uipreview.ClassLoaderPreloaderKt;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
@@ -157,6 +158,7 @@ public class RenderTask {
   private boolean myShadowEnabled = true;
   private boolean myEnableLayoutScanner = false;
   private boolean myShowWithToolsVisibilityAndPosition = true;
+  private Function<Object, List<ViewInfo>> myCustomContentHierarchyParser = null;
   private long myTimeout;
   @NotNull private final Locale myLocale;
   @NotNull private final Object myCredential;
@@ -514,6 +516,16 @@ public class RenderTask {
   }
 
   /**
+   * Sets a custom parser for creating the {@link ViewInfo} hierarchy from the layout root view.
+   */
+  @SuppressWarnings("UnusedReturnValue")
+  @NotNull
+  public RenderTask setCustomContentHierarchyParser(@NotNull Function<Object, List<ViewInfo>> parser) {
+    myCustomContentHierarchyParser = parser;
+    return this;
+  }
+
+  /**
    * Returns whether this parser will provide view cookies for included views.
    */
   public boolean getProvideCookiesForIncludedViews() {
@@ -588,6 +600,8 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
     params.setFlag(RenderParamsFlags.FLAG_KEY_USE_THEMED_ICON, configuration.getUseThemedIcon());
     params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
+
+    params.setCustomContentHierarchyParser(myCustomContentHierarchyParser);
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request

@@ -30,6 +30,7 @@ import com.android.ide.common.rendering.api.RenderSession;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.rendering.api.SessionParams;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.analytics.CommonUsageTracker;
 import com.android.tools.idea.common.diagnostics.NlDiagnosticsManager;
 import com.android.tools.idea.common.model.AndroidCoordinate;
@@ -361,6 +362,13 @@ public class LayoutlibSceneManager extends SceneManager {
    * Compose has its own mechanism to track out of date files so it will disable this reporting.
    */
   private boolean reportOutOfDateUserClasses = false;
+
+  /**
+   * Custom parser that will be applied to the root view of the layout
+   * in order to build the ViewInfo hierarchy.
+   * If null, layoutlib will use its default parser.
+   */
+  private Function<Object, List<ViewInfo>> myCustomContentHierarchyParser = null;
 
   /**
    * When true, this will force the current {@link RenderTask} to be disposed and re-created on the next render. This will also
@@ -991,6 +999,10 @@ public class LayoutlibSceneManager extends SceneManager {
     this.reportOutOfDateUserClasses = false;
   }
 
+  public void setCustomContentHierarchyParser(Function<Object, List<ViewInfo>> parser) {
+    myCustomContentHierarchyParser = parser;
+  }
+
   @Override
   @NotNull
   public CompletableFuture<Void> requestLayoutAsync(boolean animate) {
@@ -1271,6 +1283,10 @@ public class LayoutlibSceneManager extends SceneManager {
 
     if (!reportOutOfDateUserClasses) {
       taskBuilder.doNotReportOutOfDateUserClasses();
+    }
+
+    if (myCustomContentHierarchyParser != null) {
+      taskBuilder.setCustomContentHierarchyParser(myCustomContentHierarchyParser);
     }
 
     return taskBuilder;
