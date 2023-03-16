@@ -35,22 +35,24 @@ import javax.swing.table.JTableHeader
 /** An identifier for a table row, either a value row or a category row. */
 sealed interface RowKey<T> {
   @JvmInline value class ValueRowKey<T>(val key: Any) : RowKey<T>
+
   @JvmInline value class CategoryListRowKey<T>(val categoryList: CategoryList<T>) : RowKey<T>
 }
 
 /** A UI component for a row in a CategoryTable that is either a category or a value. */
-internal sealed class RowComponent<T> : JBPanel<RowComponent<T>>() {
+internal sealed class RowComponent<T> : JBPanel<RowComponent<T>>(), TableComponent {
   init {
     isFocusable = true
   }
 
-  var selected: Boolean = false
-    set(value) {
-      field = value
-      foreground = JBUI.CurrentTheme.Table.foreground(value, true)
-      background = JBUI.CurrentTheme.Table.background(value, true)
-      isOpaque = value
-    }
+  /** Updates the display of the row based on the current selection status. */
+  override fun updateTablePresentation(
+    manager: TablePresentationManager,
+    presentation: TablePresentation
+  ) {
+    isOpaque = presentation.rowSelected
+    manager.defaultApplyPresentation(this, presentation)
+  }
 
   abstract var indent: Int
 

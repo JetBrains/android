@@ -17,29 +17,31 @@ package com.android.tools.adtui.categorytable
 
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.IdeEventQueue
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
+import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBScrollPane
 import javax.swing.BorderFactory
 import javax.swing.JLabel
 import javax.swing.SortOrder
+import org.junit.Rule
 import org.junit.Test
 
 class CategoryTableTest {
-  val scrollPane =
+  @get:Rule val edtRule = EdtRule()
+
+  fun createScrollPane(table: CategoryTable<*>) =
     JBScrollPane().also {
       it.setBounds(0, 0, 800, 400)
       // This clears the default 1px insets of the ScrollPane to keep layout simpler
       it.border = BorderFactory.createEmptyBorder()
+      table.addToScrollPane(it)
     }
-
-  val demo = CategoryTableDemo()
-  val table = demo.table.also { it.addToScrollPane(scrollPane) }
-
-  val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
-  val attributes = demo.columns.map { it.attribute }
 
   @Test
   fun group() {
-    val values = demo.devices
+    val values = CategoryTableDemo.devices
     val sorted = groupAndSort(values, listOf(Status.attribute), emptyList())
     assertThat(sorted.map { it.status })
       .containsExactly("Offline", "Offline", "Offline", "Online", "Online", "Online")
@@ -47,7 +49,7 @@ class CategoryTableTest {
 
   @Test
   fun nestedGroup() {
-    val values = demo.devices
+    val values = CategoryTableDemo.devices
     val sorted = groupAndSort(values, listOf(Status.attribute, Type.attribute), emptyList())
     assertThat(sorted.map { it.type })
       .containsExactly("Phone", "Phone", "Tablet", "Phone", "Phone", "Tablet")
@@ -55,7 +57,9 @@ class CategoryTableTest {
 
   @Test
   fun addAndRemoveGrouping() {
-    demo.devices.forEach { table.addRow(it) }
+    val table = CategoryTable(CategoryTableDemo.columns)
+
+    CategoryTableDemo.devices.forEach { table.addRow(it) }
     assertThat(table.rowComponents).hasSize(6)
 
     table.toggleSortOrder(Name.attribute)
@@ -121,6 +125,10 @@ class CategoryTableTest {
 
   @Test
   fun tableLayout() {
+    val table = CategoryTable(CategoryTableDemo.columns)
+    val scrollPane = createScrollPane(table)
+    val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
+
     scrollPane.setBounds(0, 0, 800, 400)
     fakeUi.layout()
 
@@ -158,6 +166,10 @@ class CategoryTableTest {
 
   @Test
   fun sorting() {
+    val table = CategoryTable(CategoryTableDemo.columns)
+    val scrollPane = createScrollPane(table)
+    val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
+
     fakeUi.clickRelativeTo(scrollPane, 2, 2)
     assertThat(table.columnSorters)
       .containsExactly(ColumnSortOrder(table.columns[0].attribute, SortOrder.ASCENDING))
@@ -175,5 +187,46 @@ class CategoryTableTest {
         ColumnSortOrder(table.columns[1].attribute, SortOrder.DESCENDING),
         ColumnSortOrder(table.columns[0].attribute, SortOrder.ASCENDING)
       )
+  }
+
+  @Test
+  @RunsInEdt
+  fun selection() {
+    // Set some distinct colors
+    val colors =
+      CategoryTable.Colors(
+        selectedForeground = JBColor.BLUE,
+        selectedBackground = JBColor.WHITE,
+        unselectedBackground = JBColor.RED,
+        unselectedForeground = JBColor.GREEN,
+      )
+    val table = CategoryTable(CategoryTableDemo.columns, colors = colors)
+    val scrollPane = createScrollPane(table)
+    val fakeUi = FakeUi(scrollPane, createFakeWindow = true)
+
+    CategoryTableDemo.devices.forEach { table.addRow(it) }
+    fakeUi.layout()
+
+    assertThat(table.selection.selectedKeys()).isEmpty()
+
+    val rowToSelect = table.rowComponents[0] as ValueRowComponent<CategoryTableDemo.Device>
+    val nameColumn = table.columns.indexOf(Name)
+    val nameColumnComponent = rowToSelect.componentList[nameColumn].component
+    val actionColumn = table.columns.indexOf(Actions)
+    val actionColumnComponent = rowToSelect.componentList[actionColumn].component
+    val actionButton = actionColumnComponent.componentList[0]
+    val originalButtonForeground = actionButton.foreground
+
+    fakeUi.clickOn(rowToSelect)
+
+    assertThat(table.selection.selectedKeys()).contains(rowToSelect.rowKey)
+
+    IdeEventQueue.getInstance().flushQueue()
+
+    assertThat(nameColumnComponent.foreground).isEqualTo(colors.selectedForeground)
+    assertThat(nameColumnComponent.background).isEqualTo(colors.selectedBackground)
+    assertThat(actionColumnComponent.foreground).isEqualTo(colors.selectedForeground)
+    assertThat(actionColumnComponent.background).isEqualTo(colors.selectedBackground)
+    assertThat(actionButton.foreground).isEqualTo(originalButtonForeground)
   }
 }

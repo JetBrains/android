@@ -15,6 +15,9 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
+import com.android.tools.adtui.categorytable.TableComponent
+import com.android.tools.adtui.categorytable.TablePresentation
+import com.android.tools.adtui.categorytable.TablePresentationManager
 import com.android.tools.adtui.common.ColoredIconGenerator.generateColoredIcon
 import com.intellij.util.ui.JBDimension
 import java.awt.Color
@@ -22,7 +25,7 @@ import java.awt.Dimension
 import javax.swing.Icon
 import javax.swing.JButton
 
-internal open class IconButton(initialBaseIcon: Icon) : JButton(initialBaseIcon) {
+internal open class IconButton(initialBaseIcon: Icon) : JButton(initialBaseIcon), TableComponent {
   var baseIcon = initialBaseIcon
   var iconColor: Color? = null
     set(value) {
@@ -37,6 +40,17 @@ internal open class IconButton(initialBaseIcon: Icon) : JButton(initialBaseIcon)
     preferredSize = size
 
     icon = baseIcon
+  }
+
+  override fun updateTablePresentation(
+    manager: TablePresentationManager,
+    presentation: TablePresentation
+  ) {
+    iconColor =
+      when {
+        presentation.rowSelected -> presentation.foreground
+        else -> null
+      }
   }
 
   override fun updateUI() {

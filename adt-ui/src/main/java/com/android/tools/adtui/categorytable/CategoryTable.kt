@@ -18,6 +18,7 @@ package com.android.tools.adtui.categorytable
 import com.android.annotations.concurrency.UiThread
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBUI
+import java.awt.Color
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.awt.event.ActionEvent
@@ -65,7 +66,8 @@ import kotlinx.coroutines.launch
 class CategoryTable<T : Any>(
   val columns: ColumnList<T>,
   private val primaryKey: (T) -> Any = { it },
-  private val coroutineDispatcher: CoroutineDispatcher = defaultCoroutineDispatcher
+  private val coroutineDispatcher: CoroutineDispatcher = defaultCoroutineDispatcher,
+  colors: Colors = defaultColors,
 ) : JBPanel<CategoryTable<T>>(), Scrollable {
 
   internal val header =
@@ -122,7 +124,15 @@ class CategoryTable<T : Any>(
 
   private var scope = createComponentScope()
 
+  private val tablePresentationManager = TablePresentationManager()
+  private var selectedPresentation =
+    TablePresentation(colors.selectedForeground, colors.selectedBackground, true)
+  private var unselectedPresentation =
+    TablePresentation(colors.unselectedForeground, colors.unselectedBackground, false)
+
   init {
+    unselectedPresentation.applyColors(this)
+
     header.columnModel.addColumnModelListener(
       object : TableColumnModelListener {
         override fun columnAdded(e: TableColumnModelEvent?) {}
@@ -168,11 +178,7 @@ class CategoryTable<T : Any>(
     }
     scope.launch {
       // TODO: Make this efficient
-      selection.asFlow().collect { selectedKeys ->
-        for (c in rowComponents) {
-          c.selected = selectedKeys.contains(c.rowKey)
-        }
-      }
+      selection.asFlow().collect { selectedKeys -> updateTablePresentation(selectedKeys) }
     }
     scope.launch {
       collapsedNodes.collect { collapsedNodes ->
@@ -185,6 +191,18 @@ class CategoryTable<T : Any>(
   override fun removeNotify() {
     super.removeNotify()
     scope.cancel()
+  }
+
+  private fun updateTablePresentation(selectedKeys: Set<RowKey<T>>) {
+    for (c in rowComponents) {
+      tablePresentationManager.applyPresentation(
+        c,
+        when {
+          selectedKeys.contains(c.rowKey) -> selectedPresentation
+          else -> unselectedPresentation
+        }
+      )
+    }
   }
 
   fun addToScrollPane(scrollPane: JScrollPane) {
@@ -217,9 +235,6 @@ class CategoryTable<T : Any>(
         ?.let { clickedRow ->
           requestFocusInWindow()
           selection.selectRow(clickedRow.rowKey)
-          for (row in rowComponents) {
-            row.selected = row == clickedRow
-          }
         }
     }
   }
@@ -265,10 +280,16 @@ class CategoryTable<T : Any>(
   fun addRow(rowValue: T) {
     val key = primaryKey(rowValue)
     if (!valueRows.contains(key)) {
-      valueRows[key] = ValueRowComponent(header, columns, rowValue, key).also { add(it) }
+      valueRows[key] =
+        ValueRowComponent(header, columns, rowValue, key).also { addRowComponent(it) }
       updateValues { it + rowValue }
       updateComponents()
     }
+  }
+
+  private fun addRowComponent(rowComponent: RowComponent<T>) {
+    add(rowComponent)
+    tablePresentationManager.applyPresentation(rowComponent, unselectedPresentation)
   }
 
   /** Removes the row (i.e. the row with the same primary key as the given value) from the table. */
@@ -373,7 +394,7 @@ class CategoryTable<T : Any>(
 
   private fun addCategoryRow(categoryList: CategoryList<T>) =
     CategoryRowComponent(categoryList).also {
-      add(it)
+      addRowComponent(it)
       it.addMouseListener(
         object : MouseAdapter() {
           override fun mouseClicked(e: MouseEvent) {
@@ -534,7 +555,22 @@ class CategoryTable<T : Any>(
         put("RIGHT", TableActions.EXPAND)
         put("KP_RIGHT", TableActions.EXPAND)
       }
+
+    val defaultColors =
+      Colors(
+        selectedForeground = JBUI.CurrentTheme.Table.foreground(true, true),
+        selectedBackground = JBUI.CurrentTheme.Table.background(true, true),
+        unselectedForeground = JBUI.CurrentTheme.Table.foreground(false, true),
+        unselectedBackground = JBUI.CurrentTheme.Table.background(false, true),
+      )
   }
+
+  class Colors(
+    val selectedForeground: Color,
+    val selectedBackground: Color,
+    val unselectedForeground: Color,
+    val unselectedBackground: Color
+  )
 }
 
 /**

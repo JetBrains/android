@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.categorytable
 
+import com.android.annotations.concurrency.UiThread
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
@@ -33,6 +34,14 @@ internal val TableColumnModel.columnList: List<TableColumn>
     object : AbstractList<TableColumn>() {
       override val size = columnCount
       override fun get(index: Int): TableColumn = getColumn(index)
+    }
+
+@get:UiThread
+internal val Container.componentList: List<Component>
+  get() =
+    object : AbstractList<Component>() {
+      override val size = componentCount
+      override fun get(index: Int): Component = getComponent(index)
     }
 
 internal fun Component.heightRequirements() =
