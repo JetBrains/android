@@ -230,7 +230,7 @@ public class RenderTask {
     myLayoutLib = layoutLib;
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
     WeakReference<RenderTask> xmlFileProvider = new WeakReference<>(this);
-    ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(renderContext.getModule().getIdeaModule(), () -> {
+    ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(renderContext.getModule(), () -> {
       RenderTask task = xmlFileProvider.get();
       return task != null ? task.getXmlFile() : null;
     });

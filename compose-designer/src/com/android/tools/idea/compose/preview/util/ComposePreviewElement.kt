@@ -76,8 +76,8 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.jetbrains.android.uipreview.ModuleRenderContext
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
+import org.jetbrains.android.uipreview.forFile
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -582,7 +582,7 @@ class ParametrizedComposePreviewElementTemplate(
         .warn("Currently only one ParameterProvider is supported, rest will be ignored")
     }
 
-    val moduleRenderContext = ModuleRenderContext.forFile(file)
+    val moduleRenderContext = forFile(file)
     val classLoader =
       StudioModuleClassLoaderManager.get()
         .getPrivate(

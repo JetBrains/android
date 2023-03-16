@@ -47,6 +47,7 @@ import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.android.uipreview.ModuleRenderContext;
+import org.jetbrains.android.uipreview.ModuleRenderContexts;
 
 public class LayoutlibCallbackImplTest extends AndroidTestCase {
   /**
@@ -88,7 +89,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
-      ModuleRenderContext renderContext = ModuleRenderContext.forFile(psiFile);
+      ModuleRenderContext renderContext = ModuleRenderContexts.forFile(psiFile);
       ModuleClassLoader classLoader = StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext, this);
       RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
       LayoutlibCallbackImpl layoutlibCallback =
@@ -127,7 +128,7 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
       LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
         ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
 
-      ModuleRenderContext renderContext = ModuleRenderContext.forFile(psiFile);
+      ModuleRenderContext renderContext = ModuleRenderContexts.forFile(psiFile);
       ModuleClassLoader classLoader = StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext, this);
       RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
       LayoutlibCallbackImpl layoutlibCallback =

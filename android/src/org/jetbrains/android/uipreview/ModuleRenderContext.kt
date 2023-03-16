@@ -15,14 +15,10 @@
  */
 package org.jetbrains.android.uipreview
 
+import com.android.tools.idea.rendering.IdeaModuleProvider
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
-import com.intellij.psi.SmartPointerManager
-import com.intellij.psi.SmartPsiElementPointer
 import org.jetbrains.annotations.TestOnly
-import org.jetbrains.kotlin.idea.util.application.runReadAction
-import org.jetbrains.kotlin.idea.base.util.module
 import java.util.function.Supplier
 
 /**
@@ -32,28 +28,22 @@ import java.util.function.Supplier
  *
  * This should be a short living object since it retains a string reference to a [Module].
  */
-class ModuleRenderContext private constructor(val module: Module, val fileProvider: Supplier<PsiFile?>) {
-  val project: Project
-    get() = module.project
-
+class ModuleRenderContext private constructor(private val moduleProvider: IdeaModuleProvider, val fileProvider: Supplier<PsiFile?>) {
   val isDisposed: Boolean
     get() = module.isDisposed
 
+  val module: Module
+    get() = moduleProvider.getIdeaModule()
+
   companion object {
     @JvmStatic
-    fun forFile(module: Module, fileProvider: Supplier<PsiFile?>) = ModuleRenderContext(module, fileProvider)
-
-    @JvmStatic
-    fun forFile(file: PsiFile): ModuleRenderContext {
-      val filePointer = runReadAction { SmartPointerManager.createPointer(file) }
-      return ModuleRenderContext(file.module!!) { filePointer.element }
-    }
+    fun forFile(module: IdeaModuleProvider, fileProvider: Supplier<PsiFile?>) = ModuleRenderContext(module, fileProvider)
 
     /**
      * Always use one of the methods that can provide a file, only use this for testing.
      */
     @TestOnly
     @JvmStatic
-    fun forModule(module: Module) = ModuleRenderContext(module) { null }
+    fun forModule(module: Module) = ModuleRenderContext({ module }) { null }
   }
 }
