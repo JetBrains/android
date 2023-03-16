@@ -43,7 +43,7 @@ class TargetMenuActionTest : AndroidTestCase() {
     menuAction.updateActions(DataContext.EMPTY_CONTEXT)
 
     val expected = """30
-    Automatically Pick Best
+    ✔ Automatically Pick Best
     ------------------------------------------------------
     33
     32

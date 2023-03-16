@@ -22,6 +22,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.impl.PresentationFactory
 import java.awt.event.InputEvent
 
@@ -80,7 +81,8 @@ private fun AnAction.toText(presentationFactory: PresentationFactory?): String? 
   }
   val event = createTestActionEvent(this, presentationFactory = presentationFactory)
   update(event)
-  return event.presentation.text
+  // Add a visual representation to selected actions.
+  return "${if (Toggleable.isSelected(event.presentation)) "✔ " else ""}${event.presentation.text}"
 }
 
 /**

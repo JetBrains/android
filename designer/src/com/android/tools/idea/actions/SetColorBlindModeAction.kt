@@ -26,30 +26,32 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import org.jetbrains.android.util.AndroidBundle.message
 
+class ColorBlindScreenViewProvider(val colorBlindMode: ColorBlindMode, private val onViewProviderReplacedCallback: () -> Unit) : ScreenViewProvider {
+  override fun createPrimarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView {
+    return colorBlindProviderSelector(surface, manager, false, colorBlindMode)
+  }
+
+  override fun createSecondarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView? = null
+
+  override fun onViewProviderReplaced() {
+    onViewProviderReplacedCallback()
+  }
+
+  override val displayName: String = "Color Blind Mode"
+  override val surfaceType: LayoutEditorState.Surfaces = LayoutEditorState.Surfaces.SCREEN_SURFACE
+}
+
 /**
  * Action class to switch the [ScreenViewProvider] in a [NlDesignSurface].
  */
 class SetColorBlindModeAction(
-  private val colorBlindMode: ColorBlindMode,
+  val colorBlindMode: ColorBlindMode,
   private val designSurface: NlDesignSurface) : ToggleAction(
   colorBlindMode.displayName, message("android.layout.screenview.action.description", colorBlindMode.displayName), null) {
 
   var isSelected = false
 
-  private val colorBlindModeProvider = object : ScreenViewProvider {
-    override fun createPrimarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView {
-      return colorBlindProviderSelector(surface, manager, false, colorBlindMode)
-    }
-
-    override fun createSecondarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView? = null
-
-    override fun onViewProviderReplaced() {
-      isSelected = false
-    }
-
-    override val displayName: String = "Color Blind Mode"
-    override val surfaceType: LayoutEditorState.Surfaces = LayoutEditorState.Surfaces.SCREEN_SURFACE
-  }
+  private val colorBlindModeProvider = ColorBlindScreenViewProvider(colorBlindMode) { isSelected = false }
 
   companion object {
     private val noColorBlindModeProvider = object : ScreenViewProvider {
