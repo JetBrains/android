@@ -17,7 +17,6 @@ package com.android.build.output
 
 import com.android.annotations.concurrency.UiThread
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
-import com.android.build.attribution.ui.durationString
 import com.android.build.attribution.ui.formatAvgDownloadSpeed
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
@@ -34,7 +33,6 @@ import com.intellij.util.Alarm
 import com.intellij.util.messages.Topic
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
-import java.util.Comparator
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.swing.Icon
@@ -152,31 +150,16 @@ class DownloadsInfoUIModel(val taskId: ExternalSystemTaskId, val buildFinishedDi
    * The order of scheduled 'invokeLater' can change that's why we need more complex logic using intermediate [updatesQueue]
    * to process updates in the right order. We also try to avoid scheduling too many 'invokeLater' calls in case of EDT lagging behind.
    *
-   * To avoid stale view in case of long-running download without new events coming, as well as to avoid unprocessed events
-   * left in the queue, [refreshAlarm] is used to regularly re-run model updating until build is finished.
-   *
-   * Un build finished we also schedule last 'process updates' task to process any possible stale updates. No further updates
+   * On build finished we also schedule last 'process updates' task to process any possible stale updates. No further updates
    * should be coming after this point.
    */
   class ModelRefresher(val model: DownloadsInfoUIModel) {
-    private val refreshAlarm = Alarm(Alarm.ThreadToUse.SWING_THREAD)
     private val updatesQueue = ConcurrentLinkedQueue<DownloadRequestItem>()
     @Volatile private var immediateUpdateScheduled: Boolean = false
 
     init {
-      invokeLater {
-        object : Runnable {
-          override fun run() {
-            processUpdatesQueue()
-            refreshAlarm.addRequest(this, 5000)
-          }
-        }
-      }
       // On build finished schedule last updates processing task unconditionally
       Disposer.register(model.buildFinishedDisposable) { invokeLater {
-        // In order to avoid data-race inside alarm isDisposed state need to dispose alarm in EDT,
-        // not directly from builder thread.
-        Disposer.dispose(refreshAlarm)
         processUpdatesQueue()
       }}
     }
@@ -186,6 +169,14 @@ class DownloadsInfoUIModel(val taskId: ExternalSystemTaskId, val buildFinishedDi
       scheduleImmediateUpdateIfNecessary()
     }
 
+    /**
+     * This function guarantees that there will be at least 1 execution of [processUpdatesQueue] after calling this without overwhelming
+     * EDT with runnable objects after each new update.
+     * - when [immediateUpdateScheduled] is false it means that there is no runnable executions scheduled,
+     * though 1 could be executing right now. It makes sense to schedule one more in this case.
+     * - when [immediateUpdateScheduled] is true it means that at least 1 runnable was scheduled and did not start execution yet so
+     * no need to schedule more.
+     */
     private fun scheduleImmediateUpdateIfNecessary() {
       if (!immediateUpdateScheduled) {
         immediateUpdateScheduled = true
