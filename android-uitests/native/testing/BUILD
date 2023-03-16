@@ -7,7 +7,7 @@ cc_library(
         "layoutinspector/single.cc",
     ],
     copts = [
-        "-DSK_USER_CONFIG_HEADER=\\\"StudioConfig.h\\\"",
+        "-DSK_USER_CONFIG_HEADER=\\\"SkUserConfig.h\\\"",
         "-UFORTIFY_SOURCE",
         "-DATRACE_TAG=ATRACE_TAG_VIEW",
         "-DSKIA_IMPLEMENTATION=1",
@@ -17,9 +17,9 @@ cc_library(
     linkstatic = 1,
     deps = [
         "//prebuilts/studio/jdk:jni_headers",
-        "@prebuilt_skia//:libskia",
         "@freetype_repo//:libft2",
         "@libpng_repo//:libpng",
+        "@prebuilt_skia//:libskia",
     ],
     alwayslink = 1,
 )

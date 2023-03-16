@@ -135,7 +135,7 @@ cc_library(
     name = "skiaparser_test_support",
     srcs = ["testSrc/native/skia_parser_test_java_jni.cc"],
     copts = [
-        "-DSK_USER_CONFIG_HEADER=\\\"StudioConfig.h\\\"",
+        "-DSK_USER_CONFIG_HEADER=\\\"SkUserConfig.h\\\"",
     ],
     linkstatic = 1,
     deps = [
