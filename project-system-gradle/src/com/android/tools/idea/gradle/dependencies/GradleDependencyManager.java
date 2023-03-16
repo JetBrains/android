@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dependencies;
 
 import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
 import static com.android.ide.common.repository.VersionCatalogNamingUtilKt.pickLibraryVariableName;
+import static com.android.tools.idea.gradle.dependencies.AddDependencyPolicy.calculateAddDependencyPolicy;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.DEFAULT_CATALOG_NAME;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_GRADLEDEPENDENCY_ADDED;
@@ -65,10 +66,6 @@ public class GradleDependencyManager {
     public List<Pair<String, GradleCoordinate>> matchedCoordinates = new ArrayList<>();
   }
 
-  private enum AddingDependencyPolicy{
-    VERSION_CATALOG,
-    BUILD_FILE
-  }
 
   protected CatalogDependenciesInfo computeCatalogDependenciesInfo(@NotNull Project project,
                                                                    @NotNull Iterable<GradleCoordinate> dependencies,
@@ -202,7 +199,7 @@ public class GradleDependencyManager {
   @TestOnly
   public boolean addDependenciesAndSync(@NotNull Module module,
                                         @NotNull Iterable<GradleCoordinate> dependencies) {
-    AddingDependencyPolicy policy = calculateDefaultAddingPolicy(module);
+    AddDependencyPolicy policy = calculateAddDependencyPolicy(ProjectBuildModel.get(module.getProject()));
     boolean result = addDependenciesInTransaction(module, dependencies, policy, null);
     requestProjectSync(module.getProject(), TRIGGER_GRADLEDEPENDENCY_ADDED);
     return result;
@@ -217,14 +214,8 @@ public class GradleDependencyManager {
    * @return true if the dependencies were successfully added or were already present in the module.
    */
   public boolean addDependenciesWithoutSync(@NotNull Module module, @NotNull Iterable<GradleCoordinate> dependencies) {
-    AddingDependencyPolicy policy = calculateDefaultAddingPolicy(module);
+    AddDependencyPolicy policy = calculateAddDependencyPolicy(ProjectBuildModel.get(module.getProject()));
     return addDependenciesInTransaction(module, dependencies, policy, null);
-  }
-
-  private AddingDependencyPolicy calculateDefaultAddingPolicy(Module module) {
-    GradleVersionCatalogsModel catalogsModel = ProjectBuildModel.get(module.getProject()).getVersionCatalogsModel();
-    GradleVersionCatalogModel catalog = catalogsModel.getVersionCatalogModel(DEFAULT_CATALOG_NAME);
-    return catalog != null ? AddingDependencyPolicy.VERSION_CATALOG : AddingDependencyPolicy.BUILD_FILE;
   }
 
   /**
@@ -240,7 +231,7 @@ public class GradleDependencyManager {
     @NotNull Module module,
     @NotNull Iterable<GradleCoordinate> dependencies,
     @Nullable ConfigurationNameMapper nameMapper) {
-    AddingDependencyPolicy policy = calculateDefaultAddingPolicy(module);
+    AddDependencyPolicy policy = calculateAddDependencyPolicy(ProjectBuildModel.get(module.getProject()));
     return addDependenciesInTransaction(module, dependencies, policy,nameMapper);
   }
 
@@ -295,7 +286,7 @@ public class GradleDependencyManager {
 
   private boolean addDependenciesInTransaction(@NotNull Module module,
                                                @NotNull Iterable<GradleCoordinate> coordinates,
-                                               @NotNull AddingDependencyPolicy policy,
+                                               @NotNull AddDependencyPolicy policy,
                                                @Nullable ConfigurationNameMapper nameMapper) {
     Project project = module.getProject();
     GradleBuildModel buildModel = ProjectBuildModel.get(project).getModuleBuildModel(module);
