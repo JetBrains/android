@@ -139,7 +139,9 @@ public class JavaToKotlinConversionTest {
 
     assertThat(editor.open("build.gradle.kts")
                  .getCurrentFileContents()
-                 .contains("libs.plugins.org.jetbrains.kotlin.android"))
+      // If created as a Kotlin language, this should be written using version catalogs, but this scenario is created as a Java project
+      // first, then converted to Kotlin project. In that case, kotlin plugin isn't written using version catalogs.
+                 .contains("org.jetbrains.kotlin.android"))
       .isTrue();
 
     //Manually changing the kotlin version to the latest version, and this step needs to be updated with every new release.

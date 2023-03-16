@@ -87,7 +87,7 @@ public class NewCppProjectTestUtil {
       .open("app/build.gradle.kts")
       .getCurrentFileContents();
 
-    Pattern cppFlags = Pattern.compile(" *cppFlags '(.*)'");
+    Pattern cppFlags = Pattern.compile(" *cppFlags *\\+= *\"(.*)\"");
 
     Optional<String> flags = Arrays.stream(contents.split("\\R"))
       .map(cppFlags::matcher)

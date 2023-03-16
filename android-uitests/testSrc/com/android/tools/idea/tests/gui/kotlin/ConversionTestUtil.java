@@ -106,21 +106,21 @@ public class ConversionTestUtil {
     Wait.seconds(15)
       .expecting("Gradle project sync in progress...")
       .until(() ->
-               ideFrameFixture.getEditor().open("build.gradle").getCurrentFileContents().contains("kotlin")
+               ideFrameFixture.getEditor().open("build.gradle.kts").getCurrentFileContents().contains("kotlin")
       );
 
     String buildGradleContents = ideFrameFixture.getEditor()
-      .open("build.gradle")
+      .open("build.gradle.kts")
       .getCurrentFileContents();
 
     //String kotlinVersion = kotlinCompilerVersionShort();
     String newBuildGradleContents = buildGradleContents.replaceAll(
-        "id\\s\\'org\\.jetbrains\\.kotlin\\.android\\'\\sversion\\s\\'\\d+\\.\\d+\\.\\d+\\'\\sapply\\sfalse",
-        "id 'org.jetbrains.kotlin.android' version '1.7.21' apply false"
+        "id\\(\"org\\.jetbrains\\.kotlin\\.android\"\\) *version *\"\\d+\\.\\d+\\.\\d+\" *apply *false",
+        "id(\"org.jetbrains.kotlin.android\") version \"1.7.21\" apply false"
       );
 
     OutputStream buildGradleOutput = ideFrameFixture.getEditor()
-      .open("build.gradle")
+      .open("build.gradle.kts")
       .getCurrentFile()
       .getOutputStream(null);
     Ref<IOException> ioErrors = new Ref<>();
