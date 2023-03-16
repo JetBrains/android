@@ -25,6 +25,7 @@ import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
 import com.android.tools.idea.compose.preview.util.PreviewConfiguration
 import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.kotlin.findAnnotation
 import com.android.tools.idea.kotlin.getQualifiedName
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.utils.reflection.qualifiedName
@@ -55,12 +56,14 @@ import java.awt.Image
 import java.awt.image.BufferedImage
 import java.util.concurrent.CompletableFuture
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.asJava.findFacadeClass
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.references.mainReference
-import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.kdoc.psi.impl.KDocName
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 
@@ -83,7 +86,14 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
 
     val isComposableFunction =
       ReadAction.compute<Boolean, Throwable> {
-        return@compute element != null && element.isValid && element.isComposableFunction()
+        return@compute element != null &&
+          element.isValid &&
+          if (isK2Plugin()) {
+            val ktElement = element as? KtElement ?: return@compute false
+            analyze(ktElement) { isComposableFunction(ktElement) }
+          } else {
+            element.isComposableFunction()
+          }
       }
     if (!isComposableFunction) return CompletableFuture.completedFuture(null)
 
@@ -215,9 +225,13 @@ class ComposeDocumentationProvider : DocumentationProviderEx() {
   // During code completion as containingKtFile we have a copy of the original file. That copy
   // always returns null for findFacadeClass.
   private fun KtNamedFunction.getClassName(): String? {
-    return if (isTopLevel)
+    return if (isTopLevel) {
       ((containingKtFile.originalFile as? KtFile)?.findFacadeClass())?.qualifiedName
-    else parentOfType<KtClass>()?.getQualifiedName()
+    } else {
+      val containingClass = parentOfType<KtClass>() ?: return null
+      if (isK2Plugin()) analyze(this) { containingClass.getQualifiedName(this) }
+      else containingClass.getQualifiedName()
+    }
   }
 
   private fun getFullNameForPreview(function: KtNamedFunction): String =
