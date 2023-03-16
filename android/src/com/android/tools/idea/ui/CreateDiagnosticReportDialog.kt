@@ -40,8 +40,8 @@ import com.intellij.ui.components.BrowserLink
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.treeStructure.Tree
+import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
-import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.ActionEvent
@@ -123,7 +123,7 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
       fileTree = buildTree(files)
 
       val treeScrollPane = JScrollPane(fileTree).apply {
-        preferredSize = Dimension(300, 300)
+        preferredSize = JBDimension(300, 300)
         verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
         horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
       }
@@ -146,7 +146,7 @@ class CreateDiagnosticReportDialog(private val project: Project?, files: List<Fi
       }
 
       val contentsScrollPane = JScrollPane(contents).apply {
-        preferredSize = Dimension(800, 300)
+        preferredSize = JBDimension(800, 300)
       }
 
       constraints.apply {
