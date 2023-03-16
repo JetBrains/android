@@ -98,7 +98,8 @@ class DefaultStudioProgramRunner : AndroidConfigurationProgramRunner {
         SwapInfo.SwapType.APPLY_CHANGES -> executor.applyChanges(indicator)
         SwapInfo.SwapType.APPLY_CODE_CHANGES -> executor.applyCodeChanges(indicator)
       }
-    } else {
+    }
+    else {
       when (environment.executor.id) {
         DefaultRunExecutor.EXECUTOR_ID -> executor.run(indicator)
         DefaultDebugExecutor.EXECUTOR_ID -> executor.debug(indicator)
@@ -108,16 +109,12 @@ class DefaultStudioProgramRunner : AndroidConfigurationProgramRunner {
   }
 
   override fun execute(environment: ExecutionEnvironment, state: RunProfileState): Promise<RunContentDescriptor?> {
-    val activateToolWindowBeforeRun = environment.runnerAndConfigurationSettings?.isActivateToolWindowBeforeRun ?: false
     val showLogcatAutomatically = (environment.runProfile as? AndroidRunConfiguration)?.SHOW_LOGCAT_AUTOMATICALLY ?: false
     if (showLogcatAutomatically) {
+      // This turns off isActivateToolWindowBeforeRun on the current run configuration and remains in effect until changed explicitly in the
+      // UI. It's not ideal, but it looks like the only viable way to ensure that Logcat tool will be activated if requested.
       environment.runnerAndConfigurationSettings?.isActivateToolWindowBeforeRun = false
     }
-    try {
-      return super.execute(environment, state)
-    }
-    finally {
-      environment.runnerAndConfigurationSettings?.isActivateToolWindowBeforeRun = activateToolWindowBeforeRun
-    }
+    return super.execute(environment, state)
   }
 }
