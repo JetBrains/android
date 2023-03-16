@@ -255,7 +255,7 @@ internal fun ComposePreviewManager.getStatusInfo(project: Project): ComposePrevi
 private class ShowEventLogAction : AnAction() {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    EventLog.getEventLog(project)?.activate(null) ?: ToolWindowManager.getInstance(project).getToolWindow("Notifications")?.activate(null)
+    ToolWindowManager.getInstance(project).getToolWindow("Notifications")?.activate(null)
   }
 }
 
