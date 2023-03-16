@@ -109,20 +109,32 @@ maven_repository(
     name = "test_deps",
     # keep sorted: for buildifier
     artifacts = [
-        "@maven//:androidx.activity.activity-compose_1.5.1",
-        "@maven//:androidx.activity.activity-ktx_1.4.0",
-        "@maven//:androidx.annotation.annotation_1.2.0-rc01",
-        "@maven//:androidx.appcompat.appcompat_1.4.1",
-        "@maven//:androidx.compose.compiler.compiler_1.3.2",
+        "@maven//:androidx.activity.activity-compose_1.5.1",  # Needed for com.android.tools.idea.wizard.template.impl.activities.composeWearActivity.commonRecipe
+        "@maven//:androidx.activity.activity-compose_1.7.0",
+        "@maven//:androidx.activity.activity-ktx_1.6.0",  # Still needed from navigation-fragment-ktx:2.5.3
+        "@maven//:androidx.activity.activity-ktx_1.7.0",
+        "@maven//:androidx.annotation.annotation-jvm_1.6.0",
+        "@maven//:androidx.annotation.annotation_1.6.0",
+        "@maven//:androidx.appcompat.appcompat_1.6.1",
+        "@maven//:androidx.compose.animation.animation_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.compiler.compiler_1.4.3",
         "@maven//:androidx.compose.compose-bom_2022.10.00",
-        "@maven//:androidx.compose.foundation.foundation-layout_1.3.0",
-        "@maven//:androidx.compose.foundation.foundation_1.3.0",
-        "@maven//:androidx.compose.material.material_1.3.0",
+        "@maven//:androidx.compose.compose-bom_2023.03.00",
+        "@maven//:androidx.compose.foundation.foundation-layout_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.foundation.foundation_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.foundation.foundation_1.4.0",
+        "@maven//:androidx.compose.material.material-ripple_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.material.material_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.material.material_1.4.0",
         "@maven//:androidx.compose.material3.material3_1.0.0",
-        "@maven//:androidx.compose.ui.ui-test-junit4_1.3.0",
-        "@maven//:androidx.compose.ui.ui-test-manifest_1.3.0",
-        "@maven//:androidx.compose.ui.ui-tooling_1.3.0",
-        "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
+        "@maven//:androidx.compose.ui.ui-test-junit4_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.ui.ui-test-junit4_1.4.0",
+        "@maven//:androidx.compose.ui.ui-test-manifest_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.ui.ui-test-manifest_1.4.0",
+        "@maven//:androidx.compose.ui.ui-tooling-preview_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.ui.ui-tooling_1.3.0",  # Needed for TemplateTest#testNewComposeWearActivityWithTileAndComplication
+        "@maven//:androidx.compose.ui.ui-tooling_1.4.0",
+        "@maven//:androidx.constraintlayout.constraintlayout_2.1.4",
         "@maven//:androidx.core.core-ktx_1.9.0",
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
@@ -130,27 +142,31 @@ maven_repository(
         "@maven//:androidx.leanback.leanback_1.0.0",
         "@maven//:androidx.legacy.legacy-support-v13_1.0.0",
         "@maven//:androidx.lifecycle.lifecycle-common-java8_2.4.0",
+        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.4.1",
-        "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.6.1",  # To test transitive dep to kotlin-stdlib:1.8.0 in KotlinBomPlatformDependencyTest
-        "@maven//:androidx.lifecycle.lifecycle-process_2.6.1",  # To test transitive dep to kotlin-stdlib:1.8.0 in KotlinBomPlatformDependencyTest
+        "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-process_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-runtime-ktx_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-runtime_2.3.0-rc01",
-        "@maven//:androidx.lifecycle.lifecycle-runtime_2.6.1",  # To test transitive dep to kotlin-stdlib:1.8.0 in KotlinBomPlatformDependencyTest
-        "@maven//:androidx.lifecycle.lifecycle-service_2.6.1",  # To test transitive dep to kotlin-stdlib:1.8.0 in KotlinBomPlatformDependencyTest
+        "@maven//:androidx.lifecycle.lifecycle-runtime_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-service_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-compose_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.4.1",
-        "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.6.1",  # To test transitive dep to kotlin-stdlib:1.8.0 in KotlinBomPlatformDependencyTest
-        "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.6.1",  # To test transitive dep to kotlin-stdlib:1.8.0 in KotlinBomPlatformDependencyTest
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.3.0-rc01",
-        "@maven//:androidx.media.media_1.5.0",
-        "@maven//:androidx.navigation.navigation-fragment-ktx_2.5.2",
-        "@maven//:androidx.navigation.navigation-fragment_2.5.2",
-        "@maven//:androidx.navigation.navigation-ui-ktx_2.5.2",
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.6.1",
+        "@maven//:androidx.media.media_1.6.0",
+        "@maven//:androidx.navigation.navigation-fragment-ktx_2.5.3",
+        "@maven//:androidx.navigation.navigation-fragment_2.5.3",
+        "@maven//:androidx.navigation.navigation-ui-ktx_2.5.3",
         "@maven//:androidx.palette.palette-ktx_1.0.0",
         "@maven//:androidx.preference.preference_1.2.0",
-        "@maven//:androidx.recyclerview.recyclerview_1.2.1",
+        "@maven//:androidx.recyclerview.recyclerview_1.3.0",
         "@maven//:androidx.savedstate.savedstate_1.1.0-rc01",
         "@maven//:androidx.slice.slice-builders_1.0.0",
-        "@maven//:androidx.test.espresso.espresso-core_3.4.0",
-        "@maven//:androidx.test.ext.junit_1.1.3",
+        "@maven//:androidx.test.espresso.espresso-core_3.5.1",
+        "@maven//:androidx.test.ext.junit_1.1.5",
         "@maven//:androidx.wear.compose.compose-material_1.0.0",
         "@maven//:androidx.wear.tiles.tiles-material_1.1.0",
         "@maven//:androidx.wear.tiles.tiles_1.1.0",
@@ -158,17 +174,17 @@ maven_repository(
         "@maven//:androidx.wear.wear_1.2.0",
         "@maven//:com.android.support.appcompat-v7_28.0.0",
         "@maven//:com.github.bumptech.glide.glide_4.11.0",
-        "@maven//:com.google.android.gms.play-services-ads_20.6.0",
+        "@maven//:com.google.android.gms.play-services-ads_21.5.0",
         "@maven//:com.google.android.gms.play-services-base_17.6.0",
-        "@maven//:com.google.android.gms.play-services-maps_18.0.2",
-        "@maven//:com.google.android.gms.play-services-pay_16.0.3",
+        "@maven//:com.google.android.gms.play-services-maps_18.1.0",
+        "@maven//:com.google.android.gms.play-services-pay_16.1.0",
         "@maven//:com.google.android.gms.play-services-wallet_19.1.0",
-        "@maven//:com.google.android.gms.play-services-wearable_17.1.0",
+        "@maven//:com.google.android.gms.play-services-wearable_18.0.0",
         "@maven//:com.google.android.horologist.horologist-compose-tools_0.1.5",
         "@maven//:com.google.android.horologist.horologist-tiles_0.1.5",
         "@maven//:com.google.android.libraries.mapsplatform.secrets-gradle-plugin.secrets-gradle-plugin_2.0.1",
         "@maven//:com.google.android.material.material_1.5.0",
-        "@maven//:com.google.android.material.material_1.7.0",
+        "@maven//:com.google.android.material.material_1.8.0",
         "@maven//:com.google.android.support.wearable_2.9.0",
         "@maven//:com.google.android.wearable.wearable_2.9.0",
         "@maven//:com.google.auto.value.auto-value_1.6.2",
@@ -186,6 +202,7 @@ maven_repository(
         "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.8.10",  # Needed for KotlinBomPlatformDependencyTest
         "@maven//:org.jetbrains.kotlin.kotlin-bom_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-compiler-embeddable_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-compiler-embeddable_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.10",

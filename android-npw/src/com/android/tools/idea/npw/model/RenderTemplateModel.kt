@@ -282,6 +282,6 @@ class RenderTemplateModel private constructor(
         Language.Java
     }
 
-    fun getComposeKotlinVersion(isMaterial3: Boolean): String = "1.7.20"
+    fun getComposeKotlinVersion(isMaterial3: Boolean): String = "1.8.10"
   }
 }
