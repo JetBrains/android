@@ -105,6 +105,7 @@ public class StartUpTest {
         "Maven server api classes",
         "Mercurial",
         "NetBeans Keymap",
+        "Performance Testing",
         "Plugin DevKit",
         "Properties",
         "Settings Sync",
@@ -124,10 +125,6 @@ public class StartUpTest {
 
       if (SystemUtils.IS_OS_LINUX) {
         expectedPlugins.add("Emoji Picker");
-      }
-
-      if (SystemUtils.IS_OS_WINDOWS) {
-        expectedPlugins.add("Windows 10 Light Theme");
       }
 
       assertThat(plugins).asList().containsExactlyElementsIn(expectedPlugins);

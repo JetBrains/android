@@ -8,18 +8,14 @@
     <option name="as" path="ActionManager" hit="Add As Library..." />
     <option name="library" path="ActionManager" hit="Add As Library..." />
     <option name="add" path="ActionManager" hit="Add Right-to-Left (RTL) Support..." />
-    <option name="left" path="ActionManager" hit="Add Right-to-Left (RTL) Support..." />
-    <option name="right" path="ActionManager" hit="Add Right-to-Left (RTL) Support..." />
+    <option name="right-to-left" path="ActionManager" hit="Add Right-to-Left (RTL) Support..." />
     <option name="rtl" path="ActionManager" hit="Add Right-to-Left (RTL) Support..." />
     <option name="support" path="ActionManager" hit="Add Right-to-Left (RTL) Support..." />
-    <option name="to" path="ActionManager" hit="Add Right-to-Left (RTL) Support..." />
     <option name="add" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
-    <option name="left" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
     <option name="possible" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
-    <option name="right" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
+    <option name="right-to-left" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
     <option name="rtl" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
     <option name="support" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
-    <option name="to" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
     <option name="where" path="ActionManager" hit="Add right-to-left (RTL) support where possible" />
     <option name="add" path="ActionManager" hit="Add sample data file" />
     <option name="data" path="ActionManager" hit="Add sample data file" />
@@ -107,7 +103,9 @@
     <option name="build" path="ActionManager" hit="Build selected modules" />
     <option name="modules" path="ActionManager" hit="Build selected modules" />
     <option name="selected" path="ActionManager" hit="Build selected modules" />
+    <option name="1" path="ActionManager" hit="Button 1" />
     <option name="button" path="ActionManager" hit="Button 1" />
+    <option name="2" path="ActionManager" hit="Button 2" />
     <option name="button" path="ActionManager" hit="Button 2" />
     <option name="change" path="ActionManager" hit="Change Gradle JDK Location" />
     <option name="gradle" path="ActionManager" hit="Change Gradle JDK Location" />
@@ -186,9 +184,9 @@
     <option name="the" path="ActionManager" hit="Copy resource value to the clipboard" />
     <option name="to" path="ActionManager" hit="Copy resource value to the clipboard" />
     <option name="value" path="ActionManager" hit="Copy resource value to the clipboard" />
+    <option name="9-patch" path="ActionManager" hit="Create 9-Patch file…" />
     <option name="create" path="ActionManager" hit="Create 9-Patch file…" />
     <option name="file" path="ActionManager" hit="Create 9-Patch file…" />
-    <option name="patch" path="ActionManager" hit="Create 9-Patch file…" />
     <option name="a" path="ActionManager" hit="Create a new Android object from the Other category" />
     <option name="android" path="ActionManager" hit="Create a new Android object from the Other category" />
     <option name="category" path="ActionManager" hit="Create a new Android object from the Other category" />
@@ -279,10 +277,12 @@
     <option name="zip" path="ActionManager" hit="Export to Zip File..." />
     <option name="extend" path="ActionManager" hit="Extend Reservation" />
     <option name="reservation" path="ActionManager" hit="Extend Reservation" />
+    <option name="1" path="ActionManager" hit="Extend Reservation by 1 Hour" />
     <option name="by" path="ActionManager" hit="Extend Reservation by 1 Hour" />
     <option name="extend" path="ActionManager" hit="Extend Reservation by 1 Hour" />
     <option name="hour" path="ActionManager" hit="Extend Reservation by 1 Hour" />
     <option name="reservation" path="ActionManager" hit="Extend Reservation by 1 Hour" />
+    <option name="30" path="ActionManager" hit="Extend Reservation by 30 Minutes" />
     <option name="by" path="ActionManager" hit="Extend Reservation by 30 Minutes" />
     <option name="extend" path="ActionManager" hit="Extend Reservation by 30 Minutes" />
     <option name="minutes" path="ActionManager" hit="Extend Reservation by 30 Minutes" />
@@ -290,11 +290,13 @@
     <option name="device" path="ActionManager" hit="Extend device reservation" />
     <option name="extend" path="ActionManager" hit="Extend device reservation" />
     <option name="reservation" path="ActionManager" hit="Extend device reservation" />
+    <option name="1" path="ActionManager" hit="Extend device reservation by 1 hour" />
     <option name="by" path="ActionManager" hit="Extend device reservation by 1 hour" />
     <option name="device" path="ActionManager" hit="Extend device reservation by 1 hour" />
     <option name="extend" path="ActionManager" hit="Extend device reservation by 1 hour" />
     <option name="hour" path="ActionManager" hit="Extend device reservation by 1 hour" />
     <option name="reservation" path="ActionManager" hit="Extend device reservation by 1 hour" />
+    <option name="30" path="ActionManager" hit="Extend device reservation by 30 minutes" />
     <option name="by" path="ActionManager" hit="Extend device reservation by 30 minutes" />
     <option name="device" path="ActionManager" hit="Extend device reservation by 30 minutes" />
     <option name="extend" path="ActionManager" hit="Extend device reservation by 30 minutes" />
@@ -406,10 +408,9 @@
     <option name="to" path="ActionManager" hit="Migrate to AppCompat..." />
     <option name="classes" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
     <option name="migrate" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
-    <option name="non" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
+    <option name="non-transitive" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
     <option name="r" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
     <option name="to" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
-    <option name="transitive" path="ActionManager" hit="Migrate to Non-Transitive R Classes..." />
     <option name="migrate" path="ActionManager" hit="Migrate to Resource Namespaces..." />
     <option name="namespaces" path="ActionManager" hit="Migrate to Resource Namespaces..." />
     <option name="resource" path="ActionManager" hit="Migrate to Resource Namespaces..." />
@@ -420,12 +421,11 @@
     <option name="to" path="ActionManager" hit="Migrates app to AppCompat" />
     <option name="classes" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="migrates" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
-    <option name="non" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
+    <option name="non-transitive" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="project" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="r" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="the" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="to" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
-    <option name="transitive" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="use" path="ActionManager" hit="Migrates the project to use Non-Transitive R classes" />
     <option name="androidx" path="ActionManager" hit="Migrates to AndroidX package names" />
     <option name="migrates" path="ActionManager" hit="Migrates to AndroidX package names" />
@@ -539,13 +539,12 @@
     <option name="device" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
     <option name="devices" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
     <option name="dialog" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
-    <option name="fi" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
     <option name="open" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
     <option name="over" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
     <option name="pairing" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
     <option name="the" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
     <option name="which" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
-    <option name="wi" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
+    <option name="wi-fi" path="ActionManager" hit="Open the Device Pairing dialog which allows connecting devices over Wi-Fi" />
     <option name="manager" path="ActionManager" hit="Open the Resource Manager" />
     <option name="open" path="ActionManager" hit="Open the Resource Manager" />
     <option name="resource" path="ActionManager" hit="Open the Resource Manager" />
@@ -560,10 +559,9 @@
     <option name="wear" path="ActionManager" hit="Opens the Wear OS emulator pairing assistant" />
     <option name="overview" path="ActionManager" hit="Overview" />
     <option name="devices" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
-    <option name="fi" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
     <option name="pair" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
     <option name="using" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
-    <option name="wi" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
+    <option name="wi-fi" path="ActionManager" hit="Pair Devices Using Wi-Fi" />
     <option name="palm" path="ActionManager" hit="Palm" />
     <option name="logcat" path="ActionManager" hit="Pause Logcat" />
     <option name="pause" path="ActionManager" hit="Pause Logcat" />
@@ -654,8 +652,8 @@
     <option name="new" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
     <option name="out" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
     <option name="pulls" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
-    <option name="related" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
     <option name="style" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
+    <option name="style-related" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
     <option name="them" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
     <option name="project" path="ActionManager" hit="Rebuild Project" />
     <option name="rebuild" path="ActionManager" hit="Rebuild Project" />
@@ -698,12 +696,14 @@
     <option name="rotate" path="ActionManager" hit="Rotate Left" />
     <option name="right" path="ActionManager" hit="Rotate Right" />
     <option name="rotate" path="ActionManager" hit="Rotate Right" />
+    <option name="90" path="ActionManager" hit="Rotate the device clockwise by 90 degrees" />
     <option name="by" path="ActionManager" hit="Rotate the device clockwise by 90 degrees" />
     <option name="clockwise" path="ActionManager" hit="Rotate the device clockwise by 90 degrees" />
     <option name="degrees" path="ActionManager" hit="Rotate the device clockwise by 90 degrees" />
     <option name="device" path="ActionManager" hit="Rotate the device clockwise by 90 degrees" />
     <option name="rotate" path="ActionManager" hit="Rotate the device clockwise by 90 degrees" />
     <option name="the" path="ActionManager" hit="Rotate the device clockwise by 90 degrees" />
+    <option name="90" path="ActionManager" hit="Rotate the device counterclockwise by 90 degrees" />
     <option name="by" path="ActionManager" hit="Rotate the device counterclockwise by 90 degrees" />
     <option name="counterclockwise" path="ActionManager" hit="Rotate the device counterclockwise by 90 degrees" />
     <option name="degrees" path="ActionManager" hit="Rotate the device counterclockwise by 90 degrees" />
@@ -773,8 +773,7 @@
     <option name="the" path="ActionManager" hit="Simulate the Tilt gesture for the device" />
     <option name="tilt" path="ActionManager" hit="Simulate the Tilt gesture for the device" />
     <option name="snapshots" path="ActionManager" hit="Snapshots" />
-    <option name="soft" path="ActionManager" hit="Soft-Wrap" />
-    <option name="wrap" path="ActionManager" hit="Soft-Wrap" />
+    <option name="soft-wrap" path="ActionManager" hit="Soft-Wrap" />
     <option name="style" path="ActionManager" hit="Style..." />
     <option name="feedback" path="ActionManager" hit="Submit Feedback" />
     <option name="submit" path="ActionManager" hit="Submit Feedback" />
@@ -870,11 +869,6 @@
     <option name="os" path="ActionManager" hit="Wear OS emulator pairing assistant" />
     <option name="pairing" path="ActionManager" hit="Wear OS emulator pairing assistant" />
     <option name="wear" path="ActionManager" hit="Wear OS emulator pairing assistant" />
-  </configurable>
-  <configurable id="editor.preferences.folding" configurable_name="Code Folding">
-    <option name="android" hit="Android" />
-    <option name="references" hit="String References" />
-    <option name="string" hit="String References" />
   </configurable>
   <configurable id="reference.settingsdialog.IDE.editor.colors.Android Logcat" configurable_name="Android Logcat">
     <option name="android" hit="Android Logcat" />
@@ -1364,11 +1358,9 @@
     <option name="as" hit="Use most-recently-used filter as the default" />
     <option name="default" hit="Use most-recently-used filter as the default" />
     <option name="filter" hit="Use most-recently-used filter as the default" />
-    <option name="most" hit="Use most-recently-used filter as the default" />
-    <option name="recently" hit="Use most-recently-used filter as the default" />
+    <option name="most-recently-used" hit="Use most-recently-used filter as the default" />
     <option name="the" hit="Use most-recently-used filter as the default" />
     <option name="use" hit="Use most-recently-used filter as the default" />
-    <option name="used" hit="Use most-recently-used filter as the default" />
   </configurable>
   <configurable id="device.file.explorer" configurable_name="Device File Explorer">
     <option name="device" hit="Device File Explorer" />
@@ -1444,6 +1436,11 @@
     <option name="to" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect." />
     <option name="using" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect." />
     <option name="you" hit=" This is a global setting that applies to all projects you open using Android Studio. You need to restart the IDE before any changes to its heap size take effect." />
+    <option name="1024" hit="1024" />
+    <option name="1280" hit="1280" />
+    <option name="2048" hit="2048" />
+    <option name="3072" hit="3072" />
+    <option name="4096" hit="4096" />
     <option name="daemon" hit="Daemon Heap Size Settings" />
     <option name="heap" hit="Daemon Heap Size Settings" />
     <option name="settings" hit="Daemon Heap Size Settings" />
@@ -1546,17 +1543,15 @@
     <option name="" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
     <option name="android" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
     <option name="are" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
-    <option name="based" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
     <option name="compiling" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
     <option name="for" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
-    <option name="gradle" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
+    <option name="gradle-based" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
     <option name="note" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
     <option name="projects" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
     <option name="settings" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
     <option name="these" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
     <option name="used" hit=" Note: These settings are used for compiling Gradle-based Android projects." />
-    <option name="command" hit="Command-line Options:" />
-    <option name="line" hit="Command-line Options:" />
+    <option name="command-line" hit="Command-line Options:" />
     <option name="options" hit="Command-line Options:" />
     <option name="compile" hit="Compile independent modules in parallel (may require larger heap size)" />
     <option name="heap" hit="Compile independent modules in parallel (may require larger heap size)" />
@@ -1573,8 +1568,7 @@
     <option name="continue" hit="Continue the build after failures" />
     <option name="failures" hit="Continue the build after failures" />
     <option name="the" hit="Continue the build after failures" />
-    <option name="android" hit="Gradle-Android Compiler" />
     <option name="compiler" hit="Gradle-Android Compiler" />
-    <option name="gradle" hit="Gradle-Android Compiler" />
+    <option name="gradle-android" hit="Gradle-Android Compiler" />
   </configurable>
 </options>

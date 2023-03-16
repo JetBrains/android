@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="studio-plugin-maven-model">
+  <library name="studio-plugin-performanceTesting">
     <CLASSES>
-      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-231/$SDK_PLATFORM$/plugins/maven-model/lib/maven-model.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/studio/intellij-sdk/AI-231/$SDK_PLATFORM$/plugins/performanceTesting/lib/performanceTesting.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
