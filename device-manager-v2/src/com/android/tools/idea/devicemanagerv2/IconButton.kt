@@ -15,18 +15,47 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
+import com.android.tools.adtui.common.ColoredIconGenerator.generateColoredIcon
 import com.intellij.util.ui.JBDimension
+import java.awt.Color
 import java.awt.Dimension
 import javax.swing.Icon
 import javax.swing.JButton
 
-internal open class IconButton(defaultIcon: Icon?) : JButton(defaultIcon) {
+internal open class IconButton(initialBaseIcon: Icon) : JButton(initialBaseIcon) {
+  var baseIcon = initialBaseIcon
+  var iconColor: Color? = null
+    set(value) {
+      field = value
+      icon = baseIcon.applyColor(value)
+    }
+
   init {
     val size: Dimension = JBDimension(22, 22)
-    border = null
-    isContentAreaFilled = false
     maximumSize = size
     minimumSize = size
     preferredSize = size
+
+    icon = baseIcon
+  }
+
+  override fun updateUI() {
+    super.updateUI()
+    // This is called when the component is created and when the theme is changed. If we wish
+    // to override any properties set by the superclass, we must do so here, so that they persist
+    // after theme changes.
+    border = null
+    isContentAreaFilled = false
+    // This method gets called from the superclass constructor before the class is fully initialized
+    // and the following will crash; only update on subsequent calls to updateUI.
+    if (icon != null) {
+      icon = baseIcon.applyColor(iconColor)
+    }
   }
 }
+
+private fun Icon.applyColor(color: Color?): Icon =
+  when (color) {
+    null -> this
+    else -> generateColoredIcon(this, color)
+  }
