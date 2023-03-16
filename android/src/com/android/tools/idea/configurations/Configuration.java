@@ -634,12 +634,11 @@ public class Configuration implements Disposable, ModificationTracker {
 
     if (target instanceof CompatibilityRenderTarget) {
       CompatibilityRenderTarget compatTarget = (CompatibilityRenderTarget)target;
-      if (compatTarget.getRealTarget() != null) {
-        return compatTarget.getRealTarget();
-      }
+      return compatTarget.getRealTarget();
     }
-
-    return target;
+    else {
+      return target;
+    }
   }
 
   /**

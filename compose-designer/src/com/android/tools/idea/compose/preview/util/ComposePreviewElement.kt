@@ -221,27 +221,24 @@ private fun PreviewConfiguration.applyTo(
   defaultDeviceProvider: (Configuration) -> Device?,
   @AndroidDpCoordinate customSize: Dimension? = null
 ) {
-  fun updateRenderConfigurationTargetIfChanged(newTarget: CompatibilityRenderTarget) {
-    if (
-      (renderConfiguration.target as? CompatibilityRenderTarget)?.hashString() !=
-        newTarget.hashString()
-    ) {
+  fun updateRenderConfigurationTargetIfChanged(newTarget: IAndroidTarget) {
+    if (renderConfiguration.target?.hashString() != newTarget.hashString()) {
       renderConfiguration.target = newTarget
     }
   }
 
   renderConfiguration.startBulkEditing()
   if (apiLevel != UNDEFINED_API_LEVEL) {
+    val newTarget =
+      renderConfiguration.configurationManager.targets.firstOrNull {
+        it.version.apiLevel == apiLevel
+      }
     highestApiTarget(renderConfiguration)?.let {
-      updateRenderConfigurationTargetIfChanged(CompatibilityRenderTarget(it, apiLevel, it))
+      updateRenderConfigurationTargetIfChanged(CompatibilityRenderTarget(it, apiLevel, newTarget))
     }
   } else {
     // Use the highest available one when not defined.
-    highestApiTarget(renderConfiguration)?.let {
-      updateRenderConfigurationTargetIfChanged(
-        CompatibilityRenderTarget(it, it.version.apiLevel, it)
-      )
-    }
+    highestApiTarget(renderConfiguration)?.let { updateRenderConfigurationTargetIfChanged(it) }
   }
 
   if (theme != null) {
