@@ -264,7 +264,7 @@ iml_test(
     }) + [
         ":createproject_deps",
         "//prebuilts/studio/sdk:build-tools/30.0.3",
-        "//tools/base/build-system:gradle-distrib-7.5",
+        INTEGRATION_TEST_GRADLE_VERSION,
     ],
     module = ":intellij.android.core.integration",
     tags_linux = ["block-network"],

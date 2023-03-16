@@ -141,7 +141,10 @@ class BuildAttributionManagerImpl(
 
   private fun cleanup(attributionFileDir: File) {
     try {
-      Disposer.dispose(currentBuildDisposable!!)
+      // There is a valid codepath that would result in this being already disposed and set tu null.
+      // GradleTasksExecutorImpl.TaskImpl.reportAgpVersionMismatch throws exception redirecting to build failure path
+      // AND it is called AFTER onBuildSuccess of build analyzer was already called resulting in cleanup happening twice.
+      currentBuildDisposable?.let { Disposer.dispose(it) }
       currentBuildDisposable = null
     } catch (t: Throwable) {
       log.error("Error disposing build disposable", t)

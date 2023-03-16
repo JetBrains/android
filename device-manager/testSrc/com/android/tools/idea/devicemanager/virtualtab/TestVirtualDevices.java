@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class TestVirtualDevices {
   public static final @NotNull Key PIXEL_5_API_31_KEY = newKey("Pixel_5_API_31");
+  public static final @NotNull Key PIXEL_5_API_33_EXT_4_KEY = newKey("Pixel_5_API_33ext4");
 
   private TestVirtualDevices() {
   }
@@ -45,6 +46,18 @@ public final class TestVirtualDevices {
       .setTarget("Android 12.0 Google APIs")
       .setCpuArchitecture("x86_64")
       .setAndroidVersion(new AndroidVersion(31))
+      .setState(VirtualDevice.State.LAUNCHED)
+      .setAvdInfo(avd)
+      .build();
+  }
+
+  static @NotNull VirtualDevice onlinePixel5Api33ext4(@NotNull AvdInfo avd) {
+    return new VirtualDevice.Builder()
+      .setKey(PIXEL_5_API_33_EXT_4_KEY)
+      .setName("Pixel 5 API 33 ext 4")
+      .setTarget("Android 13.0 Google APIs")
+      .setCpuArchitecture("x86_64")
+      .setAndroidVersion(new AndroidVersion(33, null, 4, false))
       .setState(VirtualDevice.State.LAUNCHED)
       .setAvdInfo(avd)
       .build();

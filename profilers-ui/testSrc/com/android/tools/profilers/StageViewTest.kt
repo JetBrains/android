@@ -43,7 +43,7 @@ class StageViewTest {
   @Test
   fun testSelectionTimeLabel() {
     val profilers = StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices(), timer)
-    val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
+    val profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     val stageView = object : StageView<FakeStage>(profilersView, FakeStage(profilers)) {
       override fun getToolbar(): JComponent? {
         return null
@@ -71,7 +71,7 @@ class StageViewTest {
   fun testClickSelectionTimeLabel() {
     val timer = FakeTimer()
     val profilers = StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices(), timer)
-    val profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
+    val profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     val stageView = object : StageView<FakeStage>(profilersView, FakeStage(profilers)) {
       override fun getToolbar(): JComponent? {
         return null

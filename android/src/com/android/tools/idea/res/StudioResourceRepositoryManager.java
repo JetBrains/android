@@ -25,7 +25,7 @@ import com.android.ide.common.resources.configuration.LocaleQualifier;
 import com.android.projectmodel.ExternalAndroidLibrary;
 import com.android.resources.aar.AarResourceRepository;
 import com.android.tools.idea.AndroidProjectModelUtils;
-import com.android.tools.idea.concurrency.AndroidIoManager;
+import com.android.tools.concurrency.AndroidIoManager;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;

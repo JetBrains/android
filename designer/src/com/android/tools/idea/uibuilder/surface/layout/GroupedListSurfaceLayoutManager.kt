@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface.layout
 
 import com.android.tools.adtui.common.SwingCoordinate
+import com.android.tools.idea.common.model.scaleBy
 import com.android.tools.idea.common.surface.SurfaceScale
 import java.awt.Dimension
 import java.awt.Point
@@ -54,27 +55,47 @@ class GroupedListSurfaceLayoutManager(@SwingCoordinate private val canvasTopPadd
       // No content. Use 100% as zoom level
       return 1.0
     }
-    // We reserve the spaces for margins paddings when calculate the zoom-to-fit scale. So there is always enough spaces for them.
+    // Use binary search to find the proper zoom-to-fit value.
+    // Find the scale to put all the previews into the screen without any margin and padding.
+    val totalRawHeight = content.sumOf { it.contentSize.height }
+    val maxRawWidth = content.maxOf { it.contentSize.width }
+    // The zoom-to-fit scale can not be larger than this scale, since it may need some margins and/or paddings.
+    val upperBound = minOf(availableHeight.toDouble() / totalRawHeight, availableWidth.toDouble() / maxRawWidth)
 
-    val margins = content.map { it.getMargin(1.0) }
-    // Reserve the canvas and frame paddings, so the scaled content must be able to fit into the area.
-    val reducedAvailableWidth = availableWidth - 2 * previewFramePaddingProvider(1.0) - margins.sumOf { it.horizontal }
-    val reducedAvailableHeight =
-      availableHeight - canvasTopPadding - previewFramePaddingProvider(1.0) * 2 * content.size - margins.sumOf { it.vertical }
-
-    if (reducedAvailableWidth <= 0 || reducedAvailableHeight <= 0) {
-      // There is not even enough space for paddings. In this case, force using (available size / 100% size) as the fit into scale.
-      // This is an extreme case, be aware that this scale does not really fit the content.
-      val preferredSize = getSize(content, PositionableContent::contentSize, { 1.0 }, null)
-      return minOf(availableWidth.toDouble() / preferredSize.width, availableHeight.toDouble() / preferredSize.height)
+    if (upperBound <= MINIMUM_SCALE) {
+      return MINIMUM_SCALE
     }
+    // binary search between MINIMUM_SCALE to upper bound.
+    return getMaxZoomToFitScale(content, MINIMUM_SCALE, upperBound, availableWidth, availableHeight, Dimension())
+  }
 
-    // The total size of contents when zoom level is 100%. The padding space is reserved, just calculate the raw size.
-    val sizes = content.map { it.contentSize }
-    val listWidth = sizes.maxOf { it.width }
-    val listHeight = sizes.sumOf { it.height }
-
-    return minOf( reducedAvailableWidth.toDouble() / listWidth, reducedAvailableHeight.toDouble() / listHeight)
+  /**
+   * Binary search to find the largest scale for [width] x [height] space.
+   */
+  @SurfaceScale
+  private fun getMaxZoomToFitScale(content: Collection<PositionableContent>,
+                                   @SurfaceScale min: Double,
+                                   @SurfaceScale max: Double,
+                                   @SwingCoordinate width: Int,
+                                   @SwingCoordinate height: Int,
+                                   cache: Dimension,
+                                   depth: Int = 0): Double {
+    if (depth >= MAX_ITERATION_TIMES) {
+      return min
+    }
+    if (max - min <= SCALE_UNIT) {
+      // Last attempt.
+      val dim = getSize(content, { contentSize.scaleBy(max) }, { max }, cache)
+      return if (dim.width <= width && dim.height <= height) max else min
+    }
+    val scale = (min + max) / 2
+    val dim = getSize(content, { contentSize.scaleBy(scale) }, { scale }, cache)
+    return if (dim.width <= width && dim.height <= height) {
+      getMaxZoomToFitScale(content, scale, max, width, height, cache, depth + 1)
+    }
+    else {
+      getMaxZoomToFitScale(content, min, scale, width, height, cache, depth + 1)
+    }
   }
 
   private fun getSize(content: Collection<PositionableContent>,

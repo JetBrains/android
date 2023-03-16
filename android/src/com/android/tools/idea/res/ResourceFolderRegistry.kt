@@ -16,7 +16,7 @@
 package com.android.tools.idea.res
 
 import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.tools.idea.concurrency.AndroidIoManager
+import com.android.tools.concurrency.AndroidIoManager
 import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.res.ResourceUpdateTracer.pathForLogging
 import com.android.tools.idea.res.ResourceUpdateTracer.pathsForLogging

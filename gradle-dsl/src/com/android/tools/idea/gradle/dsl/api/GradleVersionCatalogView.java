@@ -18,12 +18,14 @@ package com.android.tools.idea.gradle.dsl.api;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.Map;
+import org.jetbrains.annotations.NotNull;
 
 public interface GradleVersionCatalogView {
 
   /**
    * We do minimal settings file parsing for producing CatalogView
    */
+  @NotNull
   static GradleVersionCatalogView get(Project project) {
     return GradleModelProvider.getInstance().getVersionCatalogView(project);
   }
@@ -32,5 +34,6 @@ public interface GradleVersionCatalogView {
    * Returns result of parsing settings files with name to file catalog mapping.
    * Mappings with not existing files are filtered out.
    */
+  @NotNull
   Map<String, VirtualFile> getCatalogToFileMap();
 }

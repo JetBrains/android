@@ -39,6 +39,7 @@ val DefaultPathProvider = PathProvider(PathManager.getLogPath(),
  * that they can be included in the diagnostic summary report.
  */
 class LogFileProvider(private val pathProvider: PathProvider) : DiagnosticsSummaryFileProvider {
+  override val name: String = "Logs"
   override fun getFiles(project: Project?): List<FileInfo> {
     val fileInfo = mutableListOf<FileInfo>()
 

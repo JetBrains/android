@@ -17,6 +17,7 @@ package com.android.tools.idea.appinspection.inspectors.network.model.rules
 
 import com.intellij.conversion.ConversionContext
 import com.intellij.conversion.ProjectConverter
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.util.JDOMUtil
 import com.intellij.util.io.write
 import java.nio.file.Files
@@ -35,13 +36,25 @@ class RulesPersistentStateConverter(private val context: ConversionContext) : Pr
     if (!Files.exists(miscXml)) {
       return false
     }
-    val element = JDOMUtil.load(miscXml)
+    val element =
+      try {
+        JDOMUtil.load(miscXml)
+      } catch (e: Exception) {
+        getLogger().warn("Could not read from misc.xml", e)
+        return false
+      }
     JDomSerializationUtil.findComponent(element, NETWORK_INSPECTOR_RULES)?.attributes?.forEach {
       if (it.name == NAME) {
         it.value = "deprecated$NETWORK_INSPECTOR_RULES"
       }
     }
-    miscXml.write(JDOMUtil.write(element))
+    try {
+      miscXml.write(JDOMUtil.write(element))
+    } catch (e: Exception) {
+      getLogger().warn("Could not write to misc.xml", e)
+    }
     return false
   }
+
+  private fun getLogger() = Logger.getInstance(this::class.java)
 }

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
+    <orderEntry type="module" module-name="intellij.android.common" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
+    <orderEntry type="module" module-name="intellij.android.app-quality-insights.ui" />
+    <orderEntry type="module" module-name="intellij.android.app-quality-insights.api" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="module" module-name="analytics-tracker" />
+    <orderEntry type="module" module-name="intellij.android.core" />
+  </component>
+</module>

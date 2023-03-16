@@ -15,12 +15,21 @@
  */
 package com.android.tools.idea.actions.annotations
 
+import com.android.tools.idea.lint.common.findAnnotation
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated as KtAnnotatedSymbol
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.caches.resolve.analyze as analyzeK1
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -40,6 +49,7 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
  * [KtModifierListOwner.findAnnotationWithUsageSite] instead of
  * [KtModifierListOwner.findAnnotation].
  */
+// TODO(jsjeon): Once available, use upstream util in `AnnotationModificationUtils`
 fun KtModifierListOwner.addAnnotationWithUsageSite(
   annotationFqName: FqName,
   annotationInnerText: String? = null,
@@ -89,19 +99,33 @@ fun KtModifierListOwner.addAnnotationWithUsageSite(
  * [AnnotationUseSiteTarget] and filters the returned entry to one which
  * matches the specified use site.
  */
+// TODO(jsjeon): Once available, use upstream util in `AnnotationModificationUtils`
+@OptIn(KtAllowAnalysisOnEdt::class)
 fun KtAnnotated.findAnnotationWithUsageSite(annotationFqName: FqName, useSiteTarget: AnnotationUseSiteTarget?): KtAnnotationEntry? {
   if (annotationEntries.isEmpty()) return null
 
-  val context = analyze(bodyResolveMode = BodyResolveMode.PARTIAL)
-  val descriptor = context[BindingContext.DECLARATION_TO_DESCRIPTOR, this] ?: return null
+  if (isK2Plugin()) {
+    allowAnalysisOnEdt {
+      analyze(this) {
+        val annotatedSymbol = (this@findAnnotationWithUsageSite as? KtDeclaration)?.getSymbol() as? KtAnnotatedSymbol
+        val annotations = annotatedSymbol?.annotationsByClassId(ClassId.topLevel(annotationFqName))
+        return annotations?.firstOrNull { annoApp ->
+          annoApp.useSiteTarget == useSiteTarget
+        }?.psi as? KtAnnotationEntry
+      }
+    }
+  } else {
+    val context = analyzeK1(bodyResolveMode = BodyResolveMode.PARTIAL)
+    val descriptor = context[BindingContext.DECLARATION_TO_DESCRIPTOR, this] ?: return null
 
-  // Make sure all annotations are resolved
-  descriptor.annotations.toList()
+    // Make sure all annotations are resolved
+    descriptor.annotations.toList()
 
-  return annotationEntries.firstOrNull { entry ->
-    val annotationDescriptor = context.get(BindingContext.ANNOTATION, entry)
-    // This extra filtering line is the change from the original:
-    entry.useSiteTarget?.getAnnotationUseSiteTarget() == useSiteTarget &&
+    return annotationEntries.firstOrNull { entry ->
+      val annotationDescriptor = context.get(BindingContext.ANNOTATION, entry)
+      // This extra filtering line is the change from the original:
+      entry.useSiteTarget?.getAnnotationUseSiteTarget() == useSiteTarget &&
       annotationDescriptor?.fqName == annotationFqName
+    }
   }
 }

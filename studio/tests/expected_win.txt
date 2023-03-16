@@ -6,6 +6,7 @@ android-studio/bin/appletviewer.policy
 android-studio/bin/breakgen.dll
 android-studio/bin/breakgen64.dll
 android-studio/bin/brokenPlugins.db
+android-studio/bin/defender-exclusions.ps1
 android-studio/bin/elevator.exe
 android-studio/bin/format.bat
 android-studio/bin/fsnotifier-wsl
@@ -522,6 +523,7 @@ android-studio/lib/intellij-coverage-agent-1.0.682.jar
 android-studio/lib/intellij-test-discovery.jar
 android-studio/lib/jna/amd64/jnidispatch.dll
 android-studio/lib/jps-model.jar
+android-studio/lib/jsp-base.jar
 android-studio/lib/junit.jar
 android-studio/lib/junit4.jar
 android-studio/lib/platform-objectSerializer-annotations.jar
@@ -535,8 +537,11 @@ android-studio/lib/rd.jar
 android-studio/lib/resources.jar
 android-studio/lib/stats.jar
 android-studio/lib/testFramework.jar
+android-studio/lib/tools-testsBootstrap.jar
 android-studio/lib/util.jar
 android-studio/lib/util_rt.jar
+android-studio/lib/xml-dom-impl.jar
+android-studio/lib/xml-dom.jar
 android-studio/license/antlr4-runtime-4.5.3.jar-NOTICE
 android-studio/license/bouncycastle-1.48-NOTICE
 android-studio/license/commons-compress-NOTICE
@@ -1586,9 +1591,18 @@ android-studio/plugins/android/resources/device-art-resources/pixel_5/mask.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_6/back.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_6/layout
 android-studio/plugins/android/resources/device-art-resources/pixel_6/mask.webp
+android-studio/plugins/android/resources/device-art-resources/pixel_6a/back.webp
+android-studio/plugins/android/resources/device-art-resources/pixel_6a/layout
+android-studio/plugins/android/resources/device-art-resources/pixel_6a/mask.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_6_pro/back.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_6_pro/layout
 android-studio/plugins/android/resources/device-art-resources/pixel_6_pro/mask.webp
+android-studio/plugins/android/resources/device-art-resources/pixel_7/back.webp
+android-studio/plugins/android/resources/device-art-resources/pixel_7/layout
+android-studio/plugins/android/resources/device-art-resources/pixel_7/mask.webp
+android-studio/plugins/android/resources/device-art-resources/pixel_7_pro/back.webp
+android-studio/plugins/android/resources/device-art-resources/pixel_7_pro/layout
+android-studio/plugins/android/resources/device-art-resources/pixel_7_pro/mask.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_c/land_back.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_c/land_fore.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_c/land_shadow.webp
@@ -2062,6 +2076,7 @@ android-studio/plugins/junit/lib/junit5-rt.jar
 android-studio/plugins/keymap-eclipse/lib/keymap-eclipse.jar
 android-studio/plugins/keymap-netbeans/lib/keymap-netbeans.jar
 android-studio/plugins/keymap-visualStudio/lib/keymap-visualStudio.jar
+android-studio/plugins/laf-win10/lib/laf-win10.jar
 android-studio/plugins/markdown/lib/markdown.jar
 android-studio/plugins/maven-model/lib/maven-model.jar
 android-studio/plugins/maven-server/lib/maven-server.jar

@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.gradle.dsl.api;
 
+import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogLibraries;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
-import com.intellij.openapi.vfs.VirtualFile;
 
 /**
  * Version Catalog Model covers one version catalog.
@@ -27,6 +27,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 public interface GradleVersionCatalogModel extends GradleFileModel {
 
   ExtModel libraries();
+
+  /**
+   * New API. Returns designated high level library Declaration model
+   */
+  GradleVersionCatalogLibraries libraryDeclarations();
 
   ExtModel plugins();
 

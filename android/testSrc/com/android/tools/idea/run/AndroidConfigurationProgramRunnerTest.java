@@ -17,31 +17,47 @@ package com.android.tools.idea.run;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.run.configuration.AndroidConfigurationProgramRunner;
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor;
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutorRunProfileState;
+import com.android.tools.idea.stats.RunStats;
 import com.android.tools.idea.testing.KeepTasksAsynchronousRule;
 import com.google.common.truth.Truth;
 import com.intellij.execution.ExecutionException;
+import com.intellij.execution.Executor;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
+import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.executors.DefaultDebugExecutor;
+import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.NlsSafe;
+import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.ProjectRule;
+import com.intellij.testFramework.RunsInEdt;
 import com.intellij.testFramework.UsefulTestCase;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.Icon;
 import org.jetbrains.annotations.Nls;
@@ -51,11 +67,17 @@ import org.jetbrains.concurrency.Promise;
 import org.jetbrains.concurrency.Promises;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 public class AndroidConfigurationProgramRunnerTest {
 
   @Rule
   public ProjectRule projectRule = new ProjectRule();
+
+  @Rule
+  public EdtRule edtRule = new EdtRule();
 
   @Rule
   public KeepTasksAsynchronousRule keepTasksAsynchronous = new KeepTasksAsynchronousRule(true);
@@ -210,6 +232,136 @@ public class AndroidConfigurationProgramRunnerTest {
     assertTrue(runner.canRun(DefaultDebugExecutor.EXECUTOR_ID, runConfiguration));
     target.setAvailableDeviceCount(1);
     assertTrue(runner.canRun(DefaultDebugExecutor.EXECUTOR_ID, runConfiguration));
+  }
+
+  @Test
+  @RunsInEdt
+  public void fillStatistics() throws ExecutionException, InterruptedException {
+    FakeExecutionTarget target = new FakeExecutionTarget();
+    AndroidConfigurationProgramRunner runner =
+      new AndroidConfigurationProgramRunner((project, profileState) -> target) {
+        @NotNull
+        @Override
+        protected RunContentDescriptor run(@NotNull ExecutionEnvironment environment,
+                                           @NotNull RunProfileState state,
+                                           @NotNull ProgressIndicator indicator) throws ExecutionException {
+          final RunContentDescriptor mock = mock(RunContentDescriptor.class);
+          when(mock.getProcessHandler()).thenReturn(mock(ProcessHandler.class));
+          return mock;
+        }
+
+        @NotNull
+        @Override
+        protected List<String> getSupportedConfigurationTypeIds() {
+          return List.of(new AndroidRunConfigurationType().getId());
+        }
+
+        @Override
+        protected boolean canRunWithMultipleDevices(@NotNull String executorId) {
+          return false;
+        }
+
+        @Override
+        public @NotNull String getRunnerId() {
+          return "Fake Runner";
+        }
+      };
+    final RunConfiguration configuration = new RunConfiguration() {
+      @Override
+      public @Nullable ConfigurationFactory getFactory() {
+        return null;
+      }
+
+      @Override
+      public @NotNull SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
+        return null;
+      }
+
+      @Override
+      public Project getProject() {
+        return projectRule.getProject();
+      }
+
+      @Override
+      public RunConfiguration clone() {
+        return null;
+      }
+
+      @Override
+      public @Nullable RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment environment)
+        throws ExecutionException {
+        final AndroidConfigurationExecutor executor1 = new AndroidConfigurationExecutor() {
+
+          @NotNull
+          @Override
+          public RunContentDescriptor applyCodeChanges(@NotNull ProgressIndicator indicator) throws ExecutionException {
+            return null;
+          }
+
+          @NotNull
+          @Override
+          public RunContentDescriptor applyChanges(@NotNull ProgressIndicator indicator) throws ExecutionException {
+            return null;
+          }
+
+          @NotNull
+          @Override
+          public RunContentDescriptor debug(@NotNull ProgressIndicator indicator) throws ExecutionException {
+            return null;
+          }
+
+          @NotNull
+          @Override
+          public RunContentDescriptor run(@NotNull ProgressIndicator indicator) throws ExecutionException {
+            return null;
+          }
+
+          @NotNull
+          @Override
+          public DeviceFutures getDeviceFutures() {
+            return null;
+          }
+
+          @NotNull
+          @Override
+          public RunConfiguration getConfiguration() {
+            return null;
+          }
+        };
+        return new AndroidConfigurationExecutorRunProfileState(executor1);
+      }
+
+      @Override
+      public @NlsSafe
+      @NotNull String getName() {
+        return "Name";
+      }
+
+      @Override
+      public void setName(@NlsSafe String name) {
+
+      }
+
+      @Override
+      public @Nullable Icon getIcon() {
+        return null;
+      }
+    };
+
+    ExecutionEnvironment env = ExecutionEnvironmentBuilder.create(DefaultDebugExecutor.getDebugExecutorInstance(), configuration)
+      .runner(runner)
+      .build();
+    RunStats stats = mock(RunStats.class);
+    final CountDownLatch latch = new CountDownLatch(1);
+    doAnswer(mock -> {
+      latch.countDown();
+      return null;
+    }).when(stats).endLaunchTasks();
+    env.putUserData(RunStats.KEY, stats);
+    runner.execute(env);
+    latch.await(10, TimeUnit.SECONDS);
+    verify(stats).beginLaunchTasks();
+    verify(stats).endLaunchTasks();
   }
 
   private static class FakeExecutionTarget extends AndroidExecutionTarget {

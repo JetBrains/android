@@ -46,10 +46,10 @@ import org.mockito.Mockito.`when`
 class BasicAndroidMonitorTest {
 
   private lateinit var project: Project
-  private lateinit var monitor: AndroidLiveEditDeployMonitor
+  private lateinit var monitor: LiveEditProjectMonitor
   private lateinit var service: LiveEditService
   private lateinit var client: ClientImpl
-  private lateinit var connection: FakeDeviceConnection
+  private lateinit var connection: FakeLiveEditAdbListener
 
   private var clients: Array<Client> = arrayOf<Client>()
 
@@ -68,7 +68,8 @@ class BasicAndroidMonitorTest {
 
   @Before
   fun setUp() {
-    Logger.getInstance(AndroidLiveEditDeployMonitor::class.java).setLevel(LogLevel.ALL)
+    Logger.getInstance(
+      LiveEditProjectMonitor::class.java).setLevel(LogLevel.ALL)
     project = projectRule.project
     client = MockitoKt.mock()
     `when`(client.device).thenReturn(device)
@@ -79,9 +80,9 @@ class BasicAndroidMonitorTest {
     `when`(client.clientData).thenReturn(clientData)
     `when`(clientData.packageName).thenReturn(appId)
 
-    connection = FakeDeviceConnection()
+    connection = FakeLiveEditAdbListener()
     clients = clients.plus(client)
-    service = LiveEditService(project, connection, MoreExecutors.directExecutor())
+    service = LiveEditService(project, MoreExecutors.directExecutor(), connection)
     monitor = service.getDeployMonitor()
 
     `when`(device.serialNumber).thenReturn("1")
@@ -93,9 +94,7 @@ class BasicAndroidMonitorTest {
     LiveEditApplicationConfiguration.getInstance().leTriggerMode = LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_AUTOMATIC
     LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 
-    val callback = monitor.getCallback(appId, device)
-
-    callback.call()
+    monitor.notifyAppDeploy(appId, device)
   }
 
   @Test
@@ -143,6 +142,13 @@ class BasicAndroidMonitorTest {
 
     assertThat(status2.unrecoverable()).isTrue()
     assertThat(status2.description).contains(gradleSyncString)
+  }
+
+  @Test
+  fun unknownDeviceTest() {
+    val unknownDevice : IDevice = MockitoKt.mock()
+    val status = monitor.status(unknownDevice)
+    assertThat(status).isEqualTo(LiveEditStatus.Disabled)
   }
 
   @After

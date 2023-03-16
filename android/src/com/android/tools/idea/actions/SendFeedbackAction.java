@@ -155,7 +155,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       2. Attach log files from Android Studio
         2A. In the IDE, select the Help..Collect Logs and Diagnostic Data menu option.
         2B. Create a diagnostic report and save it to your local computer.
-        2C. Attach the report to this bug using the Attach File button.
+        2C. Attach the report to this bug using the Add attachments button.
 
       3. If you know what they are, write the steps to reproduce:
 

@@ -85,7 +85,7 @@ public class NestedScrollViewHandler extends ScrollViewHandler {
     if (maxScrollableHeight > 0) {
       // There is something to scroll
       return ScrollViewScrollHandler
-        .createHandler(viewGroup, maxScrollableHeight, 10,
+        .createHandler(viewGroup, component, maxScrollableHeight, 10,
                        ScrollViewScrollHandler.Orientation.VERTICAL);
     }
 

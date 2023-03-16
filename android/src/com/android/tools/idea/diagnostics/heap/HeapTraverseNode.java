@@ -30,19 +30,22 @@ class HeapTraverseNode {
   // a sub-category plane)
   public int retainedMaskForCategories;
   public final long tag;
+  public boolean isMergePoint;
 
   HeapTraverseNode(@Nullable final Object obj,
                    @NotNull RefWeight ownershipWeight,
                    long ownedByComponentMask,
                    long retainedMask,
                    int retainedMaskForCategories,
-                   long tag) {
+                   long tag,
+                   boolean isMergePoint) {
     weakReference = new WeakReference<>(obj);
     this.ownershipWeight = ownershipWeight;
     this.ownedByComponentMask = ownedByComponentMask;
     this.retainedMask = retainedMask;
     this.retainedMaskForCategories = retainedMaskForCategories;
     this.tag = tag;
+    this.isMergePoint = isMergePoint;
   }
 
   HeapTraverseNode(@Nullable final Object obj,
@@ -50,8 +53,9 @@ class HeapTraverseNode {
                    long ownedByComponentMask,
                    long retainedMask,
                    int retainedMaskForCategories,
-                   long tag) {
-    this(obj, refWeightFromInt(ownershipWeightIntValue), ownedByComponentMask, retainedMask, retainedMaskForCategories, tag);
+                   long tag,
+                   boolean isMergePoint) {
+    this(obj, refWeightFromInt(ownershipWeightIntValue), ownedByComponentMask, retainedMask, retainedMaskForCategories, tag, isMergePoint);
   }
 
   @Nullable
@@ -126,7 +130,8 @@ class HeapTraverseNode {
                                                           long ownedByComponentMask,
                                                           long retainedMask,
                                                           int retainedMaskForCategories,
-                                                          long tag);
+                                                          long tag,
+                                                          boolean isMergePoint);
 
   /**
    * @return the size of the native id to {@link HeapTraverseNode} map.

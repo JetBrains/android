@@ -245,6 +245,30 @@ androidx-lifecycle-lifecycle-runtime-ktx2313 = { group = "androidx.lifecycle", n
   }
 
   @Test
+  fun testAddDependencyWithVersionCatalog_differentName_between_versionAndLibrary() {
+    // Only the version has the name that results in having different names between the versions and libraries section
+    // after addDependency is called
+    writeToVersionCatalogFile("""
+[versions]
+lifecycle-runtime-ktx = "2.5.0"
+[libraries]
+    """)
+
+    recipeExecutor.addDependency("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
+
+    applyChanges(recipeExecutor.projectBuildModel!!)
+
+    verifyFileContents(myVersionCatalogFile, """
+[versions]
+lifecycle-runtime-ktx = "2.5.0"
+androidx-lifecycle-lifecycle-runtime-ktx = "2.3.1"
+[libraries]
+lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle-lifecycle-runtime-ktx" }
+    """)
+    verifyFileContents(myBuildFile, TestFile.VERSION_CATALOG_ADD_DEPENDENCY)
+  }
+
+  @Test
   fun testAddPlatformDependencyWithVersionCatalog() {
     recipeExecutor.addPlatformDependency("androidx.compose:compose-bom:2022.10.00")
 
@@ -277,6 +301,30 @@ compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = 
     assertEquals("1.0.0", version)
   }
 
+  @Test
+  fun testApplyPluginWithVersionCatalog() {
+    writeToSettingsFile("""
+pluginManagement {
+  plugins {
+  }
+}
+    """)
+
+    recipeExecutor.applyPlugin("org.jetbrains.kotlin.android", "1.7.20")
+
+    applyChanges(recipeExecutor.projectBuildModel!!)
+
+    verifyFileContents(myVersionCatalogFile, """
+[versions]
+org-jetbrains-kotlin-android = "1.7.20"
+[libraries]
+[plugins]
+org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "org-jetbrains-kotlin-android" }
+    """)
+    verifyFileContents(mySettingsFile, TestFile.APPLY_PLUGIN_SETTING_FILE)
+    verifyFileContents(myBuildFile, TestFile.APPLY_PLUGIN_BUILD_FILE)
+  }
+
   enum class TestFile(private val path: @SystemDependent String) : TestFileName {
     VERSION_CATALOG_ADD_DEPENDENCY("versionCatalogAddDependency"),
     VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME("versionCatalogAddDependencyAvoidSameName"),
@@ -285,6 +333,8 @@ compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = 
     VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME_FINAL_FALLBACK_SECOND_LOOP("versionCatalogAddDependencyAvoidSameNameFinalFallbackSecondLoop"),
     VERSION_CATALOG_ADD_PLATFORM_DEPENDENCY("versionCatalogAddPlatformDependency"),
     GET_EXT_VAR_INITIAL("getExtVarInitial"),
+    APPLY_PLUGIN_BUILD_FILE("versionCatalogApplyPlugin"),
+    APPLY_PLUGIN_SETTING_FILE("versionCatalogApplyPlugin.settings"),
     ;
 
     override fun toFile(basePath: @SystemDependent String, extension: String): File {

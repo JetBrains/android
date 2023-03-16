@@ -30,11 +30,13 @@ import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchTask
-import com.android.tools.idea.run.tasks.LaunchTasksProvider
+import com.android.tools.idea.run.tasks.getBaseDebuggerTask
+import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.stats.RunStats
+import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.ExecutionException
-import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.process.NopProcessHandler
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -44,24 +46,27 @@ import com.intellij.execution.ui.RunContentManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.runBlockingCancellable
+import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.utils.keysToMap
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 class LaunchTaskRunner(
-  private val consoleProvider: ConsoleProvider,
   private val applicationIdProvider: ApplicationIdProvider,
   private val env: ExecutionEnvironment,
   override val deviceFutures: DeviceFutures,
-  private val myLaunchTasksProvider: LaunchTasksProvider,
+  private val apkProvider: ApkProvider
 ) : AndroidConfigurationExecutor {
-
   val project = env.project
   override val configuration = env.runProfile as AndroidRunConfiguration
+
+  val facet = configuration.configurationModule.module?.androidFacet ?: throw RuntimeException("Cannot get AndroidFacet")
+
   private val LOG = Logger.getInstance(this::class.java)
 
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
@@ -72,9 +77,18 @@ class LaunchTaskRunner(
     waitPreviousProcessTermination(devices, packageName, indicator)
 
     val processHandler = AndroidProcessHandler(project, packageName, { it.forceStop(packageName) })
+    val console = createConsole()
 
-    val console = createConsole(processHandler)
-    doRun(devices, processHandler, indicator, console)
+    RunStats.from(env).apply { setPackage(packageName) }
+
+    devices.forEach {
+      if (configuration.CLEAR_LOGCAT) {
+        project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(it.serialNumber)
+      }
+      LaunchUtils.initiateDismissKeyguard(it)
+    }
+
+    doRun(devices, processHandler, indicator, console, false)
 
     devices.forEach { device ->
       processHandler.addTargetDevice(device)
@@ -91,18 +105,20 @@ class LaunchTaskRunner(
   private suspend fun doRun(devices: List<IDevice>,
                             processHandler: ProcessHandler,
                             indicator: ProgressIndicator,
-                            console: ConsoleView) = coroutineScope {
+                            console: ConsoleView,
+                            isDebug: Boolean) = coroutineScope {
+    val launchTasksProvider = AndroidLaunchTasksProvider(configuration, env, facet, applicationIdProvider, apkProvider,
+                                                         configuration.launchOptions.build(), isDebug)
+
     val applicationId = applicationIdProvider.packageName
     val stat = RunStats.from(env).apply { setPackage(applicationId) }
-    stat.beginLaunchTasks()
-    try {
 
       printLaunchTaskStartedMessage(console)
-      myLaunchTasksProvider.fillStats(stat)
+      launchTasksProvider.fillStats(stat)
 
       // Create launch tasks for each device.
       indicator.text = "Getting task for devices"
-      val launchTaskMap = devices.keysToMap { myLaunchTasksProvider.getTasks(it) }
+      val launchTaskMap = devices.keysToMap { launchTasksProvider.getTasks(it) }
 
       // A list of devices that we have launched application successfully.
       indicator.text = "Launching on devices"
@@ -115,10 +131,7 @@ class LaunchTaskRunner(
           project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device.serialNumber, project)
         }
       }.awaitAll()
-    }
-    finally {
-      stat.endLaunchTasks()
-    }
+
   }
 
   private suspend fun waitPreviousProcessTermination(devices: List<IDevice>,
@@ -139,19 +152,27 @@ class LaunchTaskRunner(
     if (devices.size != 1) {
       throw ExecutionException("Cannot launch a debug session on more than 1 device.")
     }
+    RunStats.from(env).apply { setPackage(applicationId) }
+
     waitPreviousProcessTermination(devices, applicationId, indicator)
 
     findExistingSessionAndMaybeDetachForColdSwap(env)
 
     val processHandler = NopProcessHandler()
-    val console = createConsole(processHandler)
-    doRun(devices, processHandler, indicator, console)
+    val console = createConsole()
+    doRun(devices, processHandler, indicator, console, true)
 
     val device = devices.single()
-    val debuggerTask = myLaunchTasksProvider.connectDebuggerTask
-                       ?: throw RuntimeException(
-                         "ConnectDebuggerTask is null for task provider " + myLaunchTasksProvider.javaClass.name)
+
+    if (configuration.CLEAR_LOGCAT) {
+      project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device.serialNumber)
+    }
+
+    LaunchUtils.initiateDismissKeyguard(device)
+    doRun(devices, processHandler, indicator, console, true)
+
     indicator.text = "Connecting debugger"
+    val debuggerTask = getBaseDebuggerTask(configuration.androidDebuggerContext, facet, env)
     val session = debuggerTask.perform(device, applicationId, env, indicator, console)
     session.runContentDescriptor
   }
@@ -163,9 +184,9 @@ class LaunchTaskRunner(
     val packageName = applicationIdProvider.packageName
     val processHandler = oldSession.processHandler ?: AndroidProcessHandler(project, packageName)
 
-    val console = oldSession.executionConsole as? ConsoleView ?: createConsole(processHandler)
+    val console = oldSession.executionConsole as? ConsoleView ?: createConsole()
 
-    doRun(devices, processHandler, indicator, console)
+    doRun(devices, processHandler, indicator, console, false)
 
     if (oldSession.processHandler == null && processHandler is AndroidProcessHandler) {
       devices.forEach { device ->
@@ -190,8 +211,10 @@ class LaunchTaskRunner(
     }
   }
 
-  private suspend fun createConsole(processHandler: ProcessHandler): ConsoleView = withContext(uiThread) {
-    consoleProvider.createAndAttach(project, processHandler, env.executor)
+  private fun createConsole(): ConsoleView {
+    val console = TextConsoleBuilderFactory.getInstance().createBuilder(project).console
+    Disposer.register(project, console)
+    return console
   }
 
   override fun applyCodeChanges(indicator: ProgressIndicator): RunContentDescriptor {
@@ -219,7 +242,7 @@ class LaunchTaskRunner(
   }
 
   private fun printLaunchTaskStartedMessage(consoleView: ConsoleView) {
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT)
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ROOT).format(Date())
     val launchVerb = when (env.getUserData(SwapInfo.SWAP_INFO_KEY)?.type) {
       SwapInfo.SwapType.APPLY_CHANGES -> "Applying changes to"
       SwapInfo.SwapType.APPLY_CODE_CHANGES -> "Applying code changes to"

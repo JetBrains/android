@@ -25,6 +25,7 @@
         serviceInterface="com.android.processmonitor.monitor.ProcessNameMonitor"
         serviceImplementation="com.android.tools.idea.adb.processnamemonitor.ProcessNameMonitorService"
     />
+    <postStartupActivity implementation="com.android.tools.idea.adblib.AdbLibApplicationService$MyStartupActivity"/>
     <xdebugger.configurableProvider implementation="com.android.tools.idea.adb.AdbConfigurableProvider"/>
     <notificationGroup id="ADB Logs" displayType="NONE"/>
   </extensions>

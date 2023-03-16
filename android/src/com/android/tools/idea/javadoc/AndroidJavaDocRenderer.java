@@ -60,6 +60,7 @@ import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.ShowFixFactory;
 import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.ResourceFilesUtil;
@@ -1054,7 +1055,7 @@ public class AndroidJavaDocRenderer {
           AndroidFacet facet = AndroidFacet.getInstance(myModule);
           assert facet != null;
           final RenderService service = StudioRenderService.getInstance(myModule.getProject());
-          RenderLogger logger = new RenderLogger(null, null, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get());
+          RenderLogger logger = new RenderLogger(null, null, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory.INSTANCE);
           CompletableFuture<RenderTask> renderTaskFuture = taskBuilder(service, facet, myConfiguration, logger).build();
           CompletableFuture<BufferedImage> future = renderTaskFuture.thenCompose(renderTask -> {
             if (renderTask == null) {

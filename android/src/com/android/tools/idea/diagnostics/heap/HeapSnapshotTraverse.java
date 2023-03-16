@@ -152,7 +152,9 @@ public final class HeapSnapshotTraverse implements Disposable {
 
           HeapTraverseNode.putOrUpdateObjectIdToTraverseNodeMap(rootObjectId, root, HeapTraverseNode.RefWeight.DEFAULT.getValue(), 0L, 0L,
                                                                 0,
-                                                                rootTag);
+                                                                rootTag,
+                                                                statistics.getConfig().getComponentsSet().getComponentOfObject(root) !=
+                                                                null);
         }
         // By this moment all the reachable heap objects are enumerated in topological order and
         // marked as visited. Order id, visited and the iteration id are stored in objects tags.
@@ -200,9 +202,9 @@ public final class HeapSnapshotTraverse implements Disposable {
           }
 
           // if it's a root of a component
-          if (currentObjectComponent != null) {
-            updateComponentRootMasks(node, currentObjectComponent,
-                                     HeapTraverseNode.RefWeight.DEFAULT);
+          boolean objectIsAComponentRoot = currentObjectComponent != null;
+          if (objectIsAComponentRoot) {
+            updateComponentRootMasks(node, currentObjectComponent, HeapTraverseNode.RefWeight.DEFAULT);
           }
 
           // If current object is retained by any components - propagate their stats.
@@ -225,7 +227,7 @@ public final class HeapSnapshotTraverse implements Disposable {
             processMask(categoricalOwnedMask.get(),
                         (index) -> statistics.addOwnedObjectSizeToCategoryComponent(index,
                                                                                     currentObjectSize,
-                                                                                    currentObjectClassName));
+                                                                                    currentObjectClassName, node.isMergePoint));
           }
           if (node.ownedByComponentMask == 0) {
             int uncategorizedComponentId =
@@ -234,24 +236,24 @@ public final class HeapSnapshotTraverse implements Disposable {
               statistics.getConfig().getComponentsSet().getUncategorizedComponent().getComponentCategory()
                 .getId();
             statistics.addOwnedObjectSizeToComponent(uncategorizedComponentId, currentObjectSize,
-                                                     currentObjectClassName);
+                                                     currentObjectClassName, false);
             statistics.addOwnedObjectSizeToCategoryComponent(uncategorizedCategoryId,
-                                                             currentObjectSize, currentObjectClassName);
+                                                             currentObjectSize, currentObjectClassName, false);
           }
           else if (isPowerOfTwo(node.ownedByComponentMask)) {
             // if only owned by one component
             processMask(node.ownedByComponentMask,
                         (index) -> statistics.addOwnedObjectSizeToComponent(index, currentObjectSize,
-                                                                            currentObjectClassName));
+                                                                            currentObjectClassName, objectIsAComponentRoot));
           }
           else {
             // if owned by multiple components -> add to shared
             statistics.addObjectSizeToSharedComponent(node.ownedByComponentMask, currentObjectSize,
-                                                      currentObjectClassName);
+                                                      currentObjectClassName, node.isMergePoint);
           }
 
           // propagate to referred objects
-          propagateComponentMask(currentObject, node, fieldCache);
+          propagateComponentMask(currentObject, node, i, fieldCache);
         }
 
         //noinspection UnstableApiUsage
@@ -453,6 +455,7 @@ public final class HeapSnapshotTraverse implements Disposable {
    */
   private void propagateComponentMask(@NotNull final Object parentObj,
                                       @NotNull final HeapTraverseNode parentNode,
+                                      int parentId,
                                       @NotNull final FieldCache fieldCache) throws HeapSnapshotTraverseException {
     heapTraverseChildProcessor.processChildObjects(parentObj, (Object value, HeapTraverseNode.RefWeight ownershipWeight) -> {
       if (value == null ||
@@ -470,7 +473,7 @@ public final class HeapSnapshotTraverse implements Disposable {
       // don't process non-enumerated objects.
       // This situation may occur if array/list element or field value changed after enumeration
       // traversal. We don't process them because they can break the topological ordering.
-      if (objectId == INVALID_OBJECT_ID) {
+      if (objectId == INVALID_OBJECT_ID || objectId >= parentId) {
         return;
       }
       if (parentObj.getClass().isSynthetic()) {
@@ -482,12 +485,8 @@ public final class HeapSnapshotTraverse implements Disposable {
 
       HeapTraverseNode currentNode = HeapTraverseNode.getObjectIdToTraverseNodeMapElement(objectId, HeapTraverseNode.class);
       if (currentNode == null) {
-        currentNode = new HeapTraverseNode(value,
-                                           ownershipWeight,
-                                           parentNode.ownedByComponentMask,
-                                           parentNode.retainedMask,
-                                           parentNode.retainedMaskForCategories,
-                                           tag);
+        currentNode = new HeapTraverseNode(value, ownershipWeight, parentNode.ownedByComponentMask, parentNode.retainedMask,
+                                           parentNode.retainedMaskForCategories, tag, false);
       }
 
       currentNode.retainedMask &= parentNode.retainedMask;
@@ -496,14 +495,18 @@ public final class HeapSnapshotTraverse implements Disposable {
       if (ownershipWeight.compareTo(currentNode.ownershipWeight) > 0) {
         currentNode.ownershipWeight = ownershipWeight;
         currentNode.ownedByComponentMask = parentNode.ownedByComponentMask;
+        currentNode.isMergePoint = false;
       }
       else if (ownershipWeight.compareTo(currentNode.ownershipWeight) == 0) {
+        if (currentNode.ownedByComponentMask != 0 && parentNode.ownedByComponentMask != currentNode.ownedByComponentMask) {
+          currentNode.isMergePoint = true;
+        }
         currentNode.ownedByComponentMask |= parentNode.ownedByComponentMask;
       }
 
       HeapTraverseNode.putOrUpdateObjectIdToTraverseNodeMap(objectId, value, currentNode.ownershipWeight.getValue(),
-                                                            currentNode.ownedByComponentMask,
-                                                            currentNode.retainedMask, currentNode.retainedMaskForCategories, tag);
+                                                            currentNode.ownedByComponentMask, currentNode.retainedMask,
+                                                            currentNode.retainedMaskForCategories, tag, currentNode.isMergePoint);
     }, fieldCache);
   }
 

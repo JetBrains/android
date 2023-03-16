@@ -112,13 +112,13 @@
       <add-to-group group-id="Internal.JavaFlightRecorder" anchor="after" relative-to-action="FreezeUI"/>
     </action>
 
-    <action id="MakeGradleProject" class="com.android.tools.idea.gradle.actions.MakeGradleProjectAction" use-shortcut-of="CompileDirty" icon="AllIcons.Actions.Compile">
+    <action id="MakeGradleProject" class="com.android.tools.idea.gradle.actions.MakeGradleProjectAction" use-shortcut-of="CompileDirty">
       <add-to-group group-id="BuildMenu" anchor="first"/>
       <add-to-group group-id="TouchBarDefault" anchor="before" relative-to-action="RunConfiguration"/>
     </action>
 
     <group id="AndroidToolbarMakeGroup">
-      <reference ref="MakeGradleProject"/>
+      <action id="MakeTypeSelectionGroup" class="com.android.tools.idea.gradle.actions.MakeTypeSelectionGroupAction"/>
       <add-to-group group-id="ToolbarRunGroup" relative-to-action="RunConfiguration" anchor="before"/>
     </group>
     <action id="WelcomeScreen.RunDeviceManager"
@@ -136,7 +136,7 @@
     </group>
 
     <group id="Android.MainToolbarRight" >
-      <reference id="MakeGradleProject" />
+      <action id="Android.MakeGradleModule" class="com.android.tools.idea.gradle.actions.MakeGradleModuleAction" />
       <reference id="Android.InstantRunActions" />
       <reference id="AndroidConnectDebuggerAction" />
       <reference id="Android.SyncProject" />

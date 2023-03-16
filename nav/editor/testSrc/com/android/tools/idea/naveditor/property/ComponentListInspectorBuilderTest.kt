@@ -70,6 +70,24 @@ class ComponentListInspectorBuilderTest : NavTestCase() {
     verifyPanel(fragment1, propertiesModel, ArgumentInspectorBuilder(), expected)
   }
 
+  fun testArgumentInspectorBuilderForNavigationRoot() {
+    val model = model("nav.xml") {
+      navigation("root", startDestination = "fragment1") {
+        argument("argumentRoot")
+        fragment("fragment1") {
+          argument("argument2")
+          argument("argument3")
+          argument("argument1")
+        }
+      }
+    }
+
+    val navRoot = model.find("root")!!
+    val expected = arrayOf("argumentRoot").map { name -> navRoot.children.first { it.argumentName == name } }
+    val propertiesModel = NlPropertiesModel(myRootDisposable, myFacet)
+    verifyPanel(navRoot, propertiesModel, ArgumentInspectorBuilder(), expected)
+  }
+
   fun testDeepLinkInspectorBuilder() {
     val model = model("nav.xml") {
       navigation("root", startDestination = "fragment1") {

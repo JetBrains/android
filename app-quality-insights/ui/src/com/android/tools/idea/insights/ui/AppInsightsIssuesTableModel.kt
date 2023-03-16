@@ -66,6 +66,7 @@ class AppInsightsIssuesTableModel(renderer: AppInsightsTableCellRenderer) :
             NumberColumnRenderer
         }
       )
+    isSortable = true
   }
 }
 

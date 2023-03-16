@@ -20,6 +20,7 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.io.CancellableFileIo
 import com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity
 import com.android.tools.idea.gradle.project.importing.GradleProjectImporter
+import com.android.tools.idea.gradle.run.MakeBeforeRunTaskProviderUtil
 import com.android.tools.idea.gradle.util.GradleWrapper
 import com.android.tools.idea.npw.module.recipes.androidProject.androidProjectRecipe
 import com.android.tools.idea.npw.project.DomainToPackageExpression
@@ -106,7 +107,11 @@ class NewProjectModel : WizardModel(), ProjectModelData {
       override fun run(indicator: ProgressIndicator) {
         val projectName = applicationName.get()
         val projectBaseDirectory = File(projectLocation.get())
-        val newProject = GradleProjectImporter.getInstance().createProject(projectName, projectBaseDirectory)
+        val newProject = GradleProjectImporter.getInstance()
+          .createProject(projectName, projectBaseDirectory, useDefaultProjectAsTemplate = true)
+
+        MakeBeforeRunTaskProviderUtil.ensureMakeBeforeRunTaskInConfigurationTemplate(newProject)
+
         this@NewProjectModel.project = newProject
 
         AndroidNewProjectInitializationStartupActivity.setProjectInitializer(newProject) {

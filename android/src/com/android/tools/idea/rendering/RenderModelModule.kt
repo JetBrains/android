@@ -48,10 +48,14 @@ interface RenderModelModule : Disposable {
   /** If found, returns the module's resource package name. */
   val resourcePackage: String?
 
-  val dependencies: RenderDependencyInfo
+  val dependencies: RenderModuleDependencies
 
   /** The project current module belongs to. */
   val project: Project
 
   val isDisposed: Boolean
+
+  val name: String
+
+  val environment: EnvironmentContext
 }

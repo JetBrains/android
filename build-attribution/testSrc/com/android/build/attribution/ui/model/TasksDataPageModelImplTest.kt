@@ -398,7 +398,7 @@ class TasksDataPageModelImplTest {
     modelUpdateListenerCallsWithTreeUpdateCount = 0
 
     // Act - apply filter
-    model.applyFilter(TasksFilter.DEFAULT.copy(showTaskSourceTypes = setOf(PluginSourceType.BUILD_SRC)))
+    model.applyFilter(TasksFilter.DEFAULT.copy(showTaskSourceTypes = setOf(PluginSourceType.BUILD_SCRIPT)))
 
     // Assert
     assertThat(model.print()).isEqualTo("""

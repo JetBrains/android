@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -97,11 +98,11 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
 
   @NotNull
   @Override
-  protected CompletableFuture<RenderResult> renderAsync(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+  protected CompletableFuture<RenderResult> renderAsync(@Nullable LayoutEditorRenderResult.Trigger trigger, AtomicBoolean reverseUpdate) {
     if (myIgnoreRenderRequests) {
       return CompletableFuture.completedFuture(null);
     }
-    return waitForFutureWithoutBlockingUiThread(super.renderAsync(trigger));
+    return waitForFutureWithoutBlockingUiThread(super.renderAsync(trigger, reverseUpdate));
   }
 
   @NotNull
@@ -115,11 +116,11 @@ public class SyncLayoutlibSceneManager extends LayoutlibSceneManager {
   }
 
   @Override
-  protected @NotNull CompletableFuture<Void> requestRenderAsync(LayoutEditorRenderResult.Trigger trigger) {
+  protected @NotNull CompletableFuture<Void> requestRenderAsync(LayoutEditorRenderResult.Trigger trigger,  AtomicBoolean reverseUpdate) {
     if (myIgnoreRenderRequests) {
       return CompletableFuture.completedFuture(null);
     }
-    return waitForFutureWithoutBlockingUiThread(super.requestRenderAsync(trigger));
+    return waitForFutureWithoutBlockingUiThread(super.requestRenderAsync(trigger, reverseUpdate));
   }
 
   @NotNull

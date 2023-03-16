@@ -167,22 +167,6 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
     return (MotionSceneTag.Root)tag;
   }
 
-  interface Match {
-    boolean fits(XmlTag tag);
-  }
-
-  private static XmlTag getMatching(XmlFile xmlFile, Match match) {
-    XmlTag constraintSet = null;
-    XmlTag[] tags = xmlFile.getRootTag().getSubTags();
-    for (int i = 0; i < tags.length; i++) {
-      XmlTag tag = tags[i];
-      if (match.fits(tag)) {
-        return tag;
-      }
-    }
-    return null;
-  }
-
   /**
    * Utility method to pass multiple files to a WriteCommandAction
    * @param root
@@ -274,7 +258,4 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
       listener.commit(tag);
     }
   }
-
-
-  private static String trimId(String name) { return name.substring(name.indexOf('/') + 1); }
 }

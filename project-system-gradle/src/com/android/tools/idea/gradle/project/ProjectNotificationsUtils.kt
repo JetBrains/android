@@ -57,8 +57,9 @@ private fun notifyOnInvalidGradleJDKEnv(project: Project) {
     val msg = IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME +
               " is being ignored since it is set to an invalid JDK Location:\n" +
               ideSdks.envVariableJdkValue
-    AndroidNotification.getInstance(project).showBalloon("", msg, NotificationType.WARNING,
-                                                         SelectJdkFromFileSystemHyperlink.create(project)!!)
+    SelectJdkFromFileSystemHyperlink.create(project)?.let {
+      AndroidNotification.getInstance(project).showBalloon("", msg, NotificationType.WARNING, it)
+    }
   }
 }
 

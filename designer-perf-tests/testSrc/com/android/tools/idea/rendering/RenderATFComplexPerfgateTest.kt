@@ -17,9 +17,9 @@ package com.android.tools.idea.rendering
 
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.idea.configurations.Configuration
-import com.android.tools.idea.res.FrameworkResourceRepositoryManager
 import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.validator.LayoutValidator
+import com.android.tools.res.FrameworkResourceRepositoryManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.vfs.LocalFileSystem

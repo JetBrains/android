@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.lang
 
+import com.android.tools.idea.lint.common.findAnnotation
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionProvider
@@ -41,7 +42,6 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.parentOfType
 import com.intellij.util.ProcessingContext
 import org.jetbrains.kotlin.idea.references.mainReference
-import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.nj2k.postProcessing.resolve
 import org.jetbrains.kotlin.psi.KtAnnotationEntry

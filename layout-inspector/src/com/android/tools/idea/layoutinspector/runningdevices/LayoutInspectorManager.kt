@@ -34,15 +34,15 @@ private const val WORKBENCH_NAME = "Layout Inspector"
  * Class grouping components from a Running Devices tab. Used to inject Layout Inspector in the tab.
  * @param disposable Disposable associated with the tab. When the tab is disposed Layout Inspector should be disposed.
  * @param deviceSerialNumber Serial number of the device associated with this tab.
- * @param deviceDisplayComponent The component on which the device display is rendered.
- * @param deviceDisplayContainer The container of [deviceDisplayComponent].
+ * @param tabContentPanel The component containing the main content of the tab (the display).
+ * @param tabContentPanelContainer The container of [tabContentPanel].
  */
 data class RunningDevicesTabContext(
   val project: Project,
   val disposable: Disposable,
   val deviceSerialNumber: String,
-  val deviceDisplayComponent: JComponent,
-  val deviceDisplayContainer: Container
+  val tabContentPanel: JComponent,
+  val tabContentPanelContainer: Container
 )
 
 /**
@@ -163,12 +163,11 @@ private class LayoutInspectorManagerImpl : LayoutInspectorManager {
    */
   private data class TabState(
     val tabContext: RunningDevicesTabContext,
-    val wrapLogic: WrapLogic = WrapLogic(tabContext.deviceDisplayComponent, tabContext.deviceDisplayContainer)
+    val wrapLogic: WrapLogic = WrapLogic(tabContext.tabContentPanel, tabContext.tabContentPanelContainer)
   ) {
     fun injectWorkbench() {
       wrapLogic.wrapComponent { centerPanel ->
-        val layoutInspectorMainPanel = LayoutInspectorMainPanel(centerPanel)
-        createLayoutInspectorWorkbench(tabContext.project, tabContext.disposable, layoutInspectorMainPanel)
+        createLayoutInspectorWorkbench(tabContext.project, tabContext.disposable, centerPanel)
       }
     }
 

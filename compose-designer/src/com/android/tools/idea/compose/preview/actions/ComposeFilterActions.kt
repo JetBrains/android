@@ -40,11 +40,8 @@ import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 
 /** The action to start the query mode in compose preview. */
-class ComposeShowFilterAction(private val surface: DesignSurface<*>) : AnAction() {
-
-  init {
-    templatePresentation.text = message("action.scene.view.control.start.filter.preview.mode")
-  }
+class ComposeShowFilterAction(private val surface: DesignSurface<*>) :
+  AnAction(message("action.scene.view.control.start.filter.preview.mode")) {
   override fun actionPerformed(e: AnActionEvent) {
     val manager = COMPOSE_PREVIEW_MANAGER.getData(surface) ?: return
     manager.isFilterEnabled = true
@@ -55,11 +52,8 @@ class ComposeShowFilterAction(private val surface: DesignSurface<*>) : AnAction(
 
 /** The action to exit the query mode in compose preview. */
 class ComposeHideFilterAction(private val surface: DesignSurface<*>) :
-  AnAction(), CustomComponentAction, RightAlignedToolbarAction {
+  AnAction(null, null, AllIcons.Actions.Close), CustomComponentAction, RightAlignedToolbarAction {
   init {
-    templatePresentation.text = null
-    templatePresentation.icon = AllIcons.Actions.Close
-    templatePresentation.isVisible = false
     templatePresentation.putClientProperty(ComposeStatus.TEXT_POSITION, SwingConstants.LEADING)
   }
 
@@ -93,13 +87,7 @@ class ComposeHideFilterAction(private val surface: DesignSurface<*>) :
 }
 
 /** The action to show the query history in compose preview. */
-class ComposeFilterShowHistoryAction : AnAction() {
-
-  init {
-    templatePresentation.icon = StudioIcons.Common.FILTER
-    templatePresentation.isVisible = false
-  }
-
+class ComposeFilterShowHistoryAction : AnAction(null, null, StudioIcons.Common.FILTER) {
   override fun update(e: AnActionEvent) {
     e.presentation.isVisible = isPreviewFilterEnabled(e.dataContext)
     // TODO(b/266080992): Showing filter history is not implemented yet.
@@ -119,10 +107,6 @@ class ComposeFilterShowHistoryAction : AnAction() {
 /** A text field for enter the keyword of filter. */
 class ComposeFilterTextAction(private val filter: ComposeViewFilter) :
   AnAction(), CustomComponentAction {
-  init {
-    templatePresentation.isEnabledAndVisible = false
-  }
-
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabledAndVisible = isPreviewFilterEnabled(e.dataContext)
   }

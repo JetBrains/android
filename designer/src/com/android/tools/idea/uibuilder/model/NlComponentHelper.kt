@@ -438,6 +438,18 @@ val NlComponent.hasNlComponentInfo: Boolean
 val NlComponent.componentClassName: String?
   get() = viewInfo?.className
 
+var NlComponent.scrollX: Int
+  get() = this.nlComponentData.scrollX
+  set(value) {
+    this.nlComponentData.scrollX = value
+  }
+
+var NlComponent.scrollY: Int
+  get() = this.nlComponentData.scrollY
+  set(value) {
+    this.nlComponentData.scrollY = value
+  }
+
 private val NlComponent.nlComponentData: NlComponentData
   get() {
     val mixin = this.mixin
@@ -452,6 +464,8 @@ internal data class NlComponentData(
   var y: Int = 0,
   var w: Int = 0,
   var h: Int = 0,
+  var scrollX: Int = 0,
+  var scrollY: Int = 0,
   var viewInfo: ViewInfo? = null,
   var margins: Insets? = null,
   var padding: Insets? = null)

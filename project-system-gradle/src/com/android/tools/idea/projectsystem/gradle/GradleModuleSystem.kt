@@ -20,6 +20,7 @@ import com.android.manifmerger.ManifestSystemProperty
 import com.android.projectmodel.ExternalAndroidLibrary
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dependencies.GradleDependencyManager
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.model.IdeAndroidGradlePluginProjectFlags
 import com.android.tools.idea.gradle.model.IdeAndroidLibrary
 import com.android.tools.idea.gradle.model.IdeAndroidLibraryDependency
@@ -294,7 +295,7 @@ class GradleModuleSystem(
     val moduleRootDir = AndroidProjectRootUtil.getModuleDirPath(module)?.let { File(it) }
     val sourceProviders = module.androidFacet?.sourceProviders ?: return listOf()
     val selectedSourceProviders = targetDirectory?.let { sourceProviders.getForFile(targetDirectory) }
-      ?: sourceProviders.currentAndSomeFrequentlyUsedInactiveSourceProviders
+      ?: (sourceProviders.currentAndSomeFrequentlyUsedInactiveSourceProviders + sourceProviders.currentAndroidTestSourceProviders)
     return sourceProviders.buildNamedModuleTemplatesFor(moduleRootDir, selectedSourceProviders)
   }
 
@@ -524,6 +525,9 @@ class GradleModuleSystem(
 
   override val desugarLibraryConfigFiles: List<Path>
     get() = GradleAndroidModel.get(module)?.androidProject?.desugarLibraryConfigFiles?.map { it.toPath() } ?: emptyList()
+
+  override val usesVersionCatalogs: Boolean
+    get() = ProjectBuildModel.get(module.project).versionCatalogsModel.catalogNames().isNotEmpty()
 
   companion object {
     private val AGP_GLOBAL_FLAGS_DEFAULTS = AgpBuildGlobalFlags(

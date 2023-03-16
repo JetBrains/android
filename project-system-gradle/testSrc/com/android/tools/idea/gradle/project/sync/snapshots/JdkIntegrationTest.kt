@@ -22,7 +22,6 @@ import com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinitio
 import com.android.tools.idea.gradle.project.sync.utils.EnvironmentUtils
 import com.android.tools.idea.gradle.project.sync.utils.JdkTableUtils
 import com.android.tools.idea.gradle.project.sync.utils.ProjectJdkUtils
-import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
 import com.google.common.truth.Expect
 import com.intellij.openapi.Disposable
@@ -39,13 +38,12 @@ class JdkIntegrationTest(
   fun run(
     project: JdkTestProject,
     environment: TestEnvironment? = null,
-    agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
     body: ProjectRunnable.() -> Unit
   ) {
     val preparedProject = projectRule.prepareTestProject(
+      agpVersion = project.agpVersion,
       name = project.name,
       testProject = project,
-      agpVersion = agpVersion
     )
     prepareTestEnvironment(
       testEnvironment = environment,

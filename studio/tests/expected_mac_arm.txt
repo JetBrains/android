@@ -462,6 +462,7 @@ Android Studio Preview.app/Contents/lib/intellij-coverage-agent-1.0.682.jar
 Android Studio Preview.app/Contents/lib/intellij-test-discovery.jar
 Android Studio Preview.app/Contents/lib/jna/aarch64/libjnidispatch.jnilib
 Android Studio Preview.app/Contents/lib/jps-model.jar
+Android Studio Preview.app/Contents/lib/jsp-base.jar
 Android Studio Preview.app/Contents/lib/junit.jar
 Android Studio Preview.app/Contents/lib/junit4.jar
 Android Studio Preview.app/Contents/lib/platform-objectSerializer-annotations.jar
@@ -472,8 +473,11 @@ Android Studio Preview.app/Contents/lib/rd.jar
 Android Studio Preview.app/Contents/lib/resources.jar
 Android Studio Preview.app/Contents/lib/stats.jar
 Android Studio Preview.app/Contents/lib/testFramework.jar
+Android Studio Preview.app/Contents/lib/tools-testsBootstrap.jar
 Android Studio Preview.app/Contents/lib/util.jar
 Android Studio Preview.app/Contents/lib/util_rt.jar
+Android Studio Preview.app/Contents/lib/xml-dom-impl.jar
+Android Studio Preview.app/Contents/lib/xml-dom.jar
 Android Studio Preview.app/Contents/license/antlr4-runtime-4.5.3.jar-NOTICE
 Android Studio Preview.app/Contents/license/bouncycastle-1.48-NOTICE
 Android Studio Preview.app/Contents/license/commons-compress-NOTICE
@@ -1858,8 +1862,8 @@ Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/pytho
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/package_index.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/py34compat.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/sandbox.py
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/script_(dev).tmpl
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/script.tmpl
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/script_(dev).tmpl
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/unicode_utils.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/version.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib/python3.10/site-packages/setuptools/wheel.py
@@ -2271,9 +2275,18 @@ Android Studio Preview.app/Contents/plugins/android/resources/device-art-resourc
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_6/back.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_6/layout
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_6/mask.webp
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_6a/back.webp
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_6a/layout
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_6a/mask.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_6_pro/back.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_6_pro/layout
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_6_pro/mask.webp
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_7/back.webp
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_7/layout
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_7/mask.webp
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_7_pro/back.webp
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_7_pro/layout
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_7_pro/mask.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_c/land_back.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_c/land_fore.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_c/land_shadow.webp
@@ -2745,6 +2758,7 @@ Android Studio Preview.app/Contents/plugins/junit/lib/junit5-rt.jar
 Android Studio Preview.app/Contents/plugins/keymap-eclipse/lib/keymap-eclipse.jar
 Android Studio Preview.app/Contents/plugins/keymap-netbeans/lib/keymap-netbeans.jar
 Android Studio Preview.app/Contents/plugins/keymap-visualStudio/lib/keymap-visualStudio.jar
+Android Studio Preview.app/Contents/plugins/laf-macos/lib/laf-macos.jar
 Android Studio Preview.app/Contents/plugins/markdown/lib/markdown.jar
 Android Studio Preview.app/Contents/plugins/maven-model/lib/maven-model.jar
 Android Studio Preview.app/Contents/plugins/maven-server/lib/maven-server.jar

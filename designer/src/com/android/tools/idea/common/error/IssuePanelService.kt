@@ -16,16 +16,13 @@
 package com.android.tools.idea.common.error
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.common.editor.DesignToolsSplitEditor
-import com.android.tools.idea.common.editor.SplitEditor
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.surface.DesignSurface
+import com.android.tools.idea.common.surface.getDesignSurface
 import com.android.tools.idea.common.type.DesignerEditorFileType
 import com.android.tools.idea.common.type.typeOf
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.uibuilder.editor.multirepresentation.sourcecode.SourceCodePreview
 import com.android.tools.idea.uibuilder.type.DrawableFileType
 import com.android.tools.idea.uibuilder.type.LayoutFileType
 import com.android.tools.idea.uibuilder.type.MenuFileType
@@ -43,6 +40,7 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerEvent
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
+import com.intellij.openapi.fileEditor.TextEditorWithPreview
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.NlsContexts
 import com.intellij.openapi.vfs.VirtualFile
@@ -605,16 +603,4 @@ fun createTabName(title: String, issueCount: Int?): String {
                          "<td><font color='%s'>%s</font></td>" +
                          "</tr></table></body></html>"
   return String.format(labelWithCounter, name, padding, fg, number)
-}
-
-fun FileEditor.getDesignSurface(): DesignSurface<*>? {
-  when (this) {
-    is DesignToolsSplitEditor -> return designerEditor.component.surface
-    is SplitEditor<*> -> {
-      // Check if there is a design surface in the context of presentation. For example, Compose and CustomView preview.
-      val component = (preview as? SourceCodePreview)?.currentRepresentation?.component ?: return null
-      return DataManager.getInstance().getDataContext(component).getData(DESIGN_SURFACE)
-    }
-    else -> return null
-  }
 }

@@ -16,14 +16,15 @@
 package com.android.tools.idea.actions
 
 import com.android.tools.idea.diagnostics.report.DiagnosticsSummaryFileProvider.Companion.buildFileList
-import com.android.tools.idea.diagnostics.report.FileInfo
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.CreateDiagnosticReportDialog
 import com.intellij.ide.actions.CollectZippedLogsAction
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbAware
-import com.intellij.openapi.ui.Messages
 
 class CreateDiagnosticReportAction : AnAction(), DumbAware {
   override fun actionPerformed(e: AnActionEvent) {
@@ -32,17 +33,16 @@ class CreateDiagnosticReportAction : AnAction(), DumbAware {
       return
     }
 
-    val list: List<FileInfo> =
-      try {
-        buildFileList(e.project)
-      }
-      catch (ex: Exception) {
-        val message = "Error creating diagnostic file list: " + ex.message
-        Messages.showErrorDialog(e.project, message, "Diagnostics Summary Files")
-        return
-      }
+    object : Task.Modal(e.project, "Collect Logs and Diagnostic Data", false) {
+      override fun run(indicator: ProgressIndicator) {
+        indicator.text = "Collecting diagnostic information"
+        indicator.isIndeterminate = true
 
-    val dialog = CreateDiagnosticReportDialog(e.project, list)
-    dialog.show()
+        val list = buildFileList(e.project)
+        ApplicationManager.getApplication().invokeLater {
+          CreateDiagnosticReportDialog(e.project, list).show()
+        }
+      }
+    }.queue()
   }
 }

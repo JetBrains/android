@@ -16,20 +16,20 @@
 package com.android.tools.idea.adblib
 
 import com.android.adblib.AdbSession
-import com.android.ddmlib.AndroidDebugBridge
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.Application
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 
 /**
  * [Project] service that provides access to the corresponding [AdbSession] for that project.
  *
- * Example: `AdbLibService.getInstance(project).hostServices`
+ * Example: `AdbLibService.getInstance(project).session.hostServices`
  *
- * If a [Project] instance is not available, use [AdbLibApplicationService] instead, but it is then
- * the caller's responsibility to manage [AndroidDebugBridge] initialization.
+ * If a [Project] instance is *not* available, use [AdbLibApplicationService] instead, but [Application] and [Project]
+ * could be using different SDKs. A [Project] should only use the ADB provided by the SDK used in the [Project].
  */
-interface AdbLibService : Disposable {
+interface AdbLibService {
   val session: AdbSession
 
   companion object {

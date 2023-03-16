@@ -24,18 +24,6 @@ import kotlin.math.max
 import kotlin.math.sqrt
 
 /**
- * The unit of scale when calculating the zoom-to-fit scale by calling [GridSurfaceLayoutManager.getFitIntoScale].
- * The recursion stops when the differences of two zoom-to-fit value is smaller than this value.
- * We don't display the zoom level lower than 1% in the zoom panel, so we use 0.01 here.
- */
-private const val SCALE_UNIT = 0.01
-
-/**
- * Max iteration times of the binary search. Iterate 10 times can search 1% to 1024% range which is enough in the most use cases.
- */
-private const val MAX_ITERATION_TIMES = 10
-
-/**
  * This layout put the previews in the same group into the same rows and tries to not use the horizontal scrollbar in the surface.
  *
  * If there is only one visible preview, put it at the center of window.

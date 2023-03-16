@@ -81,10 +81,11 @@ public class GradleFilesTest extends AndroidGradleTestCase {
   }
 
   @Override
-  protected void loadSimpleApplication() throws Exception {
-    super.loadSimpleApplication();
+  protected File loadSimpleApplication() throws Exception {
+    File projectRoot = super.loadSimpleApplication();
     // Make sure the file hashes are updated before the test is run
     myGradleFiles.maybeProcessSyncStarted();
+    return projectRoot;
   }
 
   public void testNotModifiedWhenAddingWhitespaceInBuildFile() throws Exception {

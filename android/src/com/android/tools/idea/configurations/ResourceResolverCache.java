@@ -33,7 +33,7 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.StudioResourceRepositoryManager;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.utils.SparseArray;
 import com.google.common.annotations.VisibleForTesting;
@@ -105,7 +105,7 @@ public class ResourceResolverCache {
                                                        @NotNull String themeStyle,
                                                        @NotNull FolderConfiguration fullConfiguration) {
     // Are caches up to date?
-    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myManager.getModule());
+    ResourceRepositoryManager repositoryManager = myManager.getConfigModule().getResourceRepositoryManager();
     if (repositoryManager == null) {
       return ResourceResolver.create(Collections.emptyMap(), null);
     }
@@ -218,7 +218,7 @@ public class ResourceResolverCache {
 
     AndroidTargetData targetData = getCachedTargetData(apiLevel);
     if (targetData == null) {
-      AndroidPlatform platform = AndroidPlatforms.getInstance(myManager.getModule());
+      AndroidPlatform platform = myManager.getConfigModule().getAndroidPlatform();
       if (platform == null) {
         return null;
       }

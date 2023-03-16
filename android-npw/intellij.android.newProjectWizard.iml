@@ -17,6 +17,7 @@
     <orderEntry type="module" module-name="intellij.android.observable.ui" />
     <orderEntry type="module" module-name="intellij.android.wizard" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
+    <orderEntry type="module" module-name="intellij.android.android-material" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
     <orderEntry type="module" module-name="intellij.android.jps.model" />

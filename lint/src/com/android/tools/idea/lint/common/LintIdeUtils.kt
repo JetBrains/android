@@ -25,9 +25,24 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.annotations.KtAnnotated as KtAnnotatedSymbol
+import org.jetbrains.kotlin.analysis.api.annotations.annotationsByClassId
 import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.symbols.KtPropertySymbol
+import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
+import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
+import org.jetbrains.kotlin.idea.util.findAnnotation as findAnnotationK1
+import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.psi.KtAnnotated
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtDeclaration
+import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtModifierListOwner
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.renderer.render
 
 /** Returns the [PsiFile] associated with a given lint [Context]. */
 fun Context.getPsiFile(): PsiFile? {
@@ -42,7 +57,7 @@ fun Context.getPsiFile(): PsiFile? {
 
 /** Checks if this [KtProperty] has a backing field or implements get/set on its own. */
 @OptIn(KtAllowAnalysisOnEdt::class)
-fun KtProperty.hasBackingField(): Boolean {
+internal fun KtProperty.hasBackingField(): Boolean {
   allowAnalysisOnEdt {
     analyze(this) {
       val propertySymbol =
@@ -68,3 +83,65 @@ fun VirtualFile.getPsiFileSafely(project: Project): PsiFile? {
       })
     )
 }
+
+// TODO(jsjeon): Once available, use upstream util in `AnnotationModificationUtils`
+fun KtModifierListOwner.addAnnotation(
+  annotationFqName: FqName,
+  annotationInnerText: String? = null,
+  useSiteTarget: AnnotationUseSiteTarget? = null,
+  searchForExistingEntry: Boolean = true,
+  whiteSpaceText: String = "\n",
+  addToExistingAnnotation: ((KtAnnotationEntry) -> Boolean)? = null
+): Boolean {
+  val useSiteTargetPrefix = useSiteTarget?.let { "${it.renderName}:" } ?: ""
+  val annotationText =
+    when (annotationInnerText) {
+      null -> "@${useSiteTargetPrefix}${annotationFqName.render()}"
+      else -> "@${useSiteTargetPrefix}${annotationFqName.render()}($annotationInnerText)"
+    }
+
+  val psiFactory = KtPsiFactory(project)
+  val modifierList = modifierList
+
+  if (modifierList == null) {
+    val addedAnnotation = addAnnotationEntry(psiFactory.createAnnotationEntry(annotationText))
+    ShortenReferencesFacility.getInstance().shorten(addedAnnotation)
+    return true
+  }
+
+  val entry =
+    if (searchForExistingEntry) (this as? KtDeclaration)?.findAnnotation(annotationFqName) else null
+  if (entry == null) {
+    // no annotation
+    val newAnnotation = psiFactory.createAnnotationEntry(annotationText)
+    val addedAnnotation =
+      modifierList.addBefore(newAnnotation, modifierList.firstChild) as KtElement
+    val whiteSpace = psiFactory.createWhiteSpace(whiteSpaceText)
+    modifierList.addAfter(whiteSpace, addedAnnotation)
+
+    ShortenReferencesFacility.getInstance().shorten(addedAnnotation)
+    return true
+  }
+
+  if (addToExistingAnnotation != null) {
+    return addToExistingAnnotation(entry)
+  }
+
+  return false
+}
+
+// TODO(jsjeon): Once available, use upstream util in `AnnotationModificationUtils`
+@OptIn(KtAllowAnalysisOnEdt::class)
+fun KtAnnotated.findAnnotation(fqName: FqName): KtAnnotationEntry? =
+  if (isK2Plugin()) {
+    allowAnalysisOnEdt {
+      analyze(this) {
+        val annotatedSymbol =
+          (this@findAnnotation as? KtDeclaration)?.getSymbol() as? KtAnnotatedSymbol
+        val annotations = annotatedSymbol?.annotationsByClassId(ClassId.topLevel(fqName))
+        annotations?.singleOrNull()?.psi as? KtAnnotationEntry
+      }
+    }
+  } else {
+    findAnnotationK1(fqName)
+  }

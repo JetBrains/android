@@ -49,7 +49,7 @@ class TaskUiDataContainer(
         task.originPlugin.isGradlePlugin() -> PluginSourceType.ANDROID_PLUGIN
         task.originPlugin.isJavaPlugin() -> PluginSourceType.ANDROID_PLUGIN
         task.originPlugin.pluginType == PluginData.PluginType.BUILDSRC_PLUGIN ||
-        task.originPlugin.pluginType == PluginData.PluginType.SCRIPT -> PluginSourceType.BUILD_SRC
+        task.originPlugin.pluginType == PluginData.PluginType.SCRIPT -> PluginSourceType.BUILD_SCRIPT
         else -> PluginSourceType.THIRD_PARTY
       }
       override val pluginUnknownBecauseOfCC: Boolean = task.originPlugin.pluginType == PluginData.PluginType.UNKNOWN &&

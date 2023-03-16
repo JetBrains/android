@@ -108,7 +108,9 @@ public class AndroidLaunchTaskProviderTest {
         androidFacet,
         appIdProvider,
         apkProvider,
-        launchOptions);
+        launchOptions,
+        debug
+      );
 
       // Act
       List<LaunchTask> launchTasks = provider.getTasks(device);

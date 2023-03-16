@@ -12,6 +12,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/base/sdklib:studio.android.sdktools.sdklib[module]",
         "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[module]",
+        "//tools/base/resource-repository:studio.android.sdktools.resource-repository[module]",
     ],
 )
 
@@ -27,6 +28,7 @@ kotlin_library(
         "//prebuilts/tools/common/lint-psi/intellij-core",
         "//tools/adt/idea/layoutlib-loader:tools.layoutlib-loader",
         "//tools/base/common:tools.common",
+        "//tools/base/resource-repository:tools.resource-repository",
         "//tools/base/sdklib:tools.sdklib",
     ],
 )

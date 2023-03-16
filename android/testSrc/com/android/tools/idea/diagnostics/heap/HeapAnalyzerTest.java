@@ -550,31 +550,44 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     String serializedExtendedReport = new String(ByteStreams.toByteArray(builder.build().getContent()), Charset.defaultCharset());
     assertRequestContainsField(serializedExtendedReport, "Clusters that exceeded the threshold", "A,B");
     assertRequestContainsField(serializedExtendedReport, "Total used memory", "56/3 objects");
-    assertRequestContainsField(serializedExtendedReport, "Category android:uncategorized", "Owned: 0/0 objects\n" +
-                                                                                           "      Histogram:\n" +
-                                                                                           "      Studio objects histogram:");
-    assertRequestContainsField(serializedExtendedReport, "Category diagnostics", "Owned: 56/3 objects\n" +
-                                                                                 "      Histogram:\n" +
-                                                                                 "        24/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A\n" +
-                                                                                 "        16/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B\n" +
-                                                                                 "        16/1 objects: java.lang.Integer\n" +
-                                                                                 "      Studio objects histogram:\n" +
-                                                                                 "        24/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A\n" +
-                                                                                 "        16/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B");
-    assertRequestContainsField(serializedExtendedReport, "Component uncategorized_main", "Owned: 0/0 objects\n" +
-                                                                                         "      Histogram:\n" +
-                                                                                         "      Studio objects histogram:");
-    assertRequestContainsField(serializedExtendedReport, "Component A", "Owned: 40/2 objects\n" +
-                                                                        "      Histogram:\n" +
-                                                                        "        24/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A\n" +
-                                                                        "        16/1 objects: java.lang.Integer\n" +
-                                                                        "      Studio objects histogram:\n" +
-                                                                        "        24/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A");
-    assertRequestContainsField(serializedExtendedReport, "Component B", "Owned: 16/1 objects\n" +
-                                                                        "      Histogram:\n" +
-                                                                        "        16/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B\n" +
-                                                                        "      Studio objects histogram:\n" +
-                                                                        "        16/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B");
+    assertRequestContainsField(serializedExtendedReport, "Category android:uncategorized", """
+      Owned: 0/0 objects
+            Histogram:
+            Studio objects histogram:
+            Category roots histogram:""");
+    assertRequestContainsField(serializedExtendedReport, "Category diagnostics", """
+      Owned: 56/3 objects
+            Histogram:
+              24/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+              16/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+              16/1 objects: java.lang.Integer
+            Studio objects histogram:
+              24/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+              16/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+            Category roots histogram:
+              24/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A""");
+    assertRequestContainsField(serializedExtendedReport, "Component uncategorized_main", """
+      Owned: 0/0 objects
+            Histogram:
+            Studio objects histogram:
+            Component roots histogram:""");
+    assertRequestContainsField(serializedExtendedReport, "Component A", """
+      Owned: 40/2 objects
+            Histogram:
+              24/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+              16/1 objects: java.lang.Integer
+            Studio objects histogram:
+              24/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+            Component roots histogram:
+              24/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A""");
+    assertRequestContainsField(serializedExtendedReport, "Component B", """
+      Owned: 16/1 objects
+            Histogram:
+              16/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+            Studio objects histogram:
+              16/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
+            Component roots histogram:
+              16/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B""");
     assertRequestContainsFieldWithPattern(serializedExtendedReport, "Disposer tree information", "Disposer tree size: \\d+\n" +
                                                                                       "Total number of disposed but strong referenced objects: 0");
   }
@@ -634,6 +647,51 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     }
   }
 
+  @Test
+  public void testMergePoints() {
+    ComponentsSet componentsSet = new ComponentsSet();
+
+    ComponentsSet.ComponentCategory categoryA = componentsSet.registerCategory("A");
+    componentsSet.addComponentWithPackagesAndClassNames("A",
+                                                        categoryA,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A"));
+    ComponentsSet.ComponentCategory categoryReferenceToB = componentsSet.registerCategory("ReferenceToB");
+    componentsSet.addComponentWithPackagesAndClassNames("B",
+                                                        categoryReferenceToB,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToB"));
+
+    HeapSnapshotStatistics statistics = new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet,
+      /*collectHistograms=*/true, /*collectDisposerTreeInfo=*/false));
+
+    B b1 = new B();
+    B b2 = new B();
+
+    Assert.assertEquals(StatusCode.NO_ERROR,
+                        new HeapSnapshotTraverse(statistics).walkObjects(MAX_DEPTH, List.of(new A(b1), new A(b2), new ReferenceToB(b1),
+                                                                                            new ReferenceToB(b2))));
+    Assert.assertNotNull(statistics.getExtendedReportStatistics());
+
+    Assert.assertEquals(1, statistics.getExtendedReportStatistics().sharedClustersHistograms.size());
+    ExtendedReportStatistics.ClassNameHistogram sharedHistogram =
+      statistics.getExtendedReportStatistics().sharedClustersHistograms.values().iterator().next();
+    Assert.assertEquals(1, sharedHistogram.rootsHistogram.size());
+    Assert.assertTrue(sharedHistogram.rootsHistogram.containsKey("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"));
+    Assert.assertEquals(2, sharedHistogram.rootsHistogram.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B")
+      .getObjectsCount());
+
+    Assert.assertEquals(3, statistics.getExtendedReportStatistics().componentHistograms.size());
+    ExtendedReportStatistics.ClassNameHistogram histogram1 = statistics.getExtendedReportStatistics().componentHistograms.get(1);
+    Assert.assertEquals(2,
+                        histogram1.rootsHistogram.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A")
+                          .getObjectsCount());
+    ExtendedReportStatistics.ClassNameHistogram histogram2 = statistics.getExtendedReportStatistics().componentHistograms.get(2);
+    Assert.assertEquals(2,
+                        histogram2.rootsHistogram.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToB")
+                          .getObjectsCount());
+  }
+
   private static class A {
     private B myB = new B();
     private final Integer myInt = 0;
@@ -690,5 +748,13 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
 
   private static class H {
     private int myInt = 1;
+  }
+
+  private static class ReferenceToB {
+    private B myB;
+
+    private ReferenceToB(B b) {
+      myB = b;
+    }
   }
 }

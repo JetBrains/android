@@ -95,8 +95,11 @@ class DeviceMenuAction2Test {
     }
     val expected = referenceDevicesExpected +
       """Phones
+        Pixel 7 (411 × 914 dp, xxhdpi)
+        Pixel 7 Pro (411 × 891 dp, xxxhdpi)
         Pixel 6 (411 × 914 dp, xxhdpi)
         Pixel 6 Pro (411 × 891 dp, xxxhdpi)
+        Pixel 6a (411 × 914 dp, xxhdpi)
         Pixel 5 (393 × 851 dp, xxhdpi)
         Pixel 4 (393 × 829 dp, xxhdpi)
         Pixel 4 XL (411 × 869 dp, xxxhdpi)

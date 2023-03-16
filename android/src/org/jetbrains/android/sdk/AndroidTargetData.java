@@ -31,7 +31,7 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader;
 import com.android.tools.idea.layoutlib.RenderingException;
-import com.android.tools.idea.res.FrameworkResourceRepositoryManager;
+import com.android.tools.res.FrameworkResourceRepositoryManager;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.AndroidSdkData;
 import com.android.tools.sdk.CompatibilityRenderTarget;

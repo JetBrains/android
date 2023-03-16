@@ -18,7 +18,6 @@
   <extensions defaultExtensionNs="com.intellij">
     <moduleBuilder builderClass="com.android.tools.idea.npw.ideahost.AndroidModuleBuilder"/>
     <projectService serviceImplementation="com.android.tools.idea.npw.assetstudio.wizard.GenerateIconsModel$StateStorage" />
-    <applicationService serviceImplementation="com.android.tools.idea.npw.assetstudio.material.icons.metadata.MaterialIconsMetadataDownloadCacheService"/>
   </extensions>
   <extensions defaultExtensionNs="com.android">
     <androidStartupActivity implementation="com.android.tools.idea.npw.template.DynamicTemplateMenuAndroidStartupActivity" />

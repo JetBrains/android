@@ -158,12 +158,14 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
   /**
    * Creates a new not configured project in a given location.
    */
-  fun createProject(projectName: String, projectFolderPath: File): Project {
+  @JvmOverloads
+  fun createProject(projectName: String, projectFolderPath: File, useDefaultProjectAsTemplate: Boolean = false): Project {
     GradleProjectInfo.beginInitializingGradleProjectAt(projectFolderPath).use { ignored ->
       val newProject = ProjectManagerEx.getInstanceEx().newProject(
         Path.of(projectFolderPath.path),
         OpenProjectTask {
           this.projectName = projectName
+          this.useDefaultProjectAsTemplate = useDefaultProjectAsTemplate
         }
       ) ?: throw NullPointerException("Failed to create a new project")
       configureNewProject(newProject)

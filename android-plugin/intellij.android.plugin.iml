@@ -52,7 +52,7 @@
     <orderEntry type="module" module-name="intellij.android.device-manager" />
     <orderEntry type="module" module-name="intellij.android.wear-pairing" />
     <orderEntry type="module" module-name="intellij.android.device-manager-v2" />
-    <orderEntry type="module" module-name="intellij.android.app-quality-insights.ui" />
-    <orderEntry type="module" module-name="intellij.android.app-quality-insights.play-vitals.view" />
+    <orderEntry type="module" module-name="intellij.android.app-quality-insights.ide" />
+    <orderEntry type="module" module-name="intellij.android.app-quality-insights.play-vitals.ide" />
   </component>
 </module>

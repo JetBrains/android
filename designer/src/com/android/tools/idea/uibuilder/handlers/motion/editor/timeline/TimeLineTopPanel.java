@@ -31,7 +31,6 @@ import java.awt.event.ComponentEvent;
 public class TimeLineTopPanel extends JPanel {
 
   TickMarkCalculator mTickMarkCalculator = new TickMarkCalculator();
-  int[] mXTicksPixels = new int[0];
   int mXTickCount;
   TimelineStructure mTimelineStructure;
 
@@ -71,10 +70,6 @@ public class TimeLineTopPanel extends JPanel {
     int old = mTimelineStructure.mTimeLineWidth;
     mTimelineStructure.fireWidthChanged(old, mTimelineStructure.mTimeLineWidth = w);
     getParent().repaint();
-  }
-
-  public void setGraphWidth(int w) {
-    mTickMarkCalculator.calcRangeTicks(w);
   }
 
   public void setRange(float min, float max) {

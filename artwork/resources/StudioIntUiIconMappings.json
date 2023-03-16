@@ -25,6 +25,7 @@
         "connection-wifi.svg": "studio/icons/avd/connection-wifi.svg",
         "device-automotive.svg": "studio/icons/avd/device-automotive.svg",
         "device-car.svg": "studio/icons/avd/device-car.svg",
+        "device-desktop.svg": "studio/icons/avd/device-desktop.svg",
         "device-glass.svg": "studio/icons/avd/device-glass.svg",
         "device-mobile.svg": "studio/icons/avd/device-mobile.svg",
         "device-phone.svg": "studio/icons/avd/device-phone.svg",
@@ -141,6 +142,7 @@
         "sd-card-folder.svg": "studio/icons/device-explorer/sd-card-folder.svg",
         "shared-prefs.svg": "studio/icons/device-explorer/shared-prefs.svg",
         "virtual-device-car.svg": "studio/icons/device-explorer/virtual-device-car.svg",
+        "virtual-device-desktop.svg": "studio/icons/device-explorer/virtual-device-desktop.svg",
         "virtual-device-phone.svg": "studio/icons/device-explorer/virtual-device-phone.svg",
         "virtual-device-tv.svg": "studio/icons/device-explorer/virtual-device-tv.svg",
         "virtual-device-wear.svg": "studio/icons/device-explorer/virtual-device-wear.svg"
@@ -165,6 +167,7 @@
           "home.svg": "studio/icons/emulator/toolbar/home.svg",
           "overview.svg": "studio/icons/emulator/toolbar/overview.svg",
           "power.svg": "studio/icons/emulator/toolbar/power.svg",
+          "power-menu.svg": "studio/icons/emulator/toolbar/power-menu.svg",
           "rotate-left.svg": "studio/icons/emulator/toolbar/rotate-left.svg",
           "rotate-right.svg": "studio/icons/emulator/toolbar/rotate-right.svg",
           "screenshot.svg": "studio/icons/emulator/toolbar/screenshot.svg",
@@ -687,12 +690,15 @@
           "apply-all-changes.svg": "studio/icons/shell/toolbar/apply-all-changes.svg",
           "apply-code-swap.svg": "studio/icons/shell/toolbar/apply-code-swap.svg",
           "attach-debugger.svg": "studio/icons/shell/toolbar/attach-debugger.svg",
+          "build-module.svg": "studio/icons/shell/toolbar/build-module.svg",
           "device-manager.svg": "studio/icons/shell/toolbar/device-manager.svg",
           "gradle-sync.svg": "studio/icons/shell/toolbar/gradle-sync.svg",
           "profiler.svg": "studio/icons/shell/toolbar/profiler.svg",
           "sdk-manager.svg": "studio/icons/shell/toolbar/sdk-manager.svg",
           "user-profile.svg": "studio/icons/shell/toolbar/user-profile.svg",
-          "user-profile-active.svg": "studio/icons/shell/toolbar/user-profile-active.svg"
+          "user-profile-active.svg": "studio/icons/shell/toolbar/user-profile-active.svg",
+          "profiler-detailed.svg": "studio/icons/shell/toolbar/profiler-detailed.svg",
+          "profiler-low-overhead.svg": "studio/icons/shell/toolbar/profiler-low-overhead.svg"
         }
       },
       "test": {

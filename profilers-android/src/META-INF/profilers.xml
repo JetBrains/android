@@ -52,4 +52,7 @@
     <fileType name="PerfettoCapture" implementationClass="com.android.tools.idea.profilers.capture.PerfettoCaptureFileType"
               extensions="pftrace;perfetto-trace"/>
   </extensions>
+  <projectListeners>
+    <listener class="com.android.tools.idea.profilers.AndroidProfilerRunWindowRestorerExecutionListener" topic="com.intellij.execution.ExecutionListener" />
+  </projectListeners>
 </idea-plugin>

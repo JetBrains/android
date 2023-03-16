@@ -69,7 +69,7 @@ class BuildAnalyzerTest {
       guiTest.robot().waitForIdle()
 
       buildToolWindow.gradleSyncEventTree.also { tree ->
-        assertEquals("Downloads info", tree.valueAt(1))
+        assertEquals("Download info", tree.valueAt(1))
         tree.clickRow(1)
       }
       buildToolWindow.syncContent.component.also {
@@ -80,7 +80,7 @@ class BuildAnalyzerTest {
       guiTest.robot().waitForIdle()
 
       buildToolWindow.gradleSyncEventTree.also { tree ->
-        assertEquals("Downloads info", tree.valueAt(1))
+        assertEquals("Download info", tree.valueAt(1))
         tree.clickRow(1)
       }
       buildToolWindow.syncContent.component.also {
@@ -139,7 +139,7 @@ class BuildAnalyzerTest {
       buildToolWindow.closeBuildAnalyzerTab()
 
       buildToolWindow.gradleBuildEventTree.also { tree ->
-        assertEquals("Downloads info", tree.valueAt(1))
+        assertEquals("Download info", tree.valueAt(1))
         tree.clickRow(1)
       }
       buildToolWindow.buildContent.component.also {

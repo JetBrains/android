@@ -64,8 +64,10 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderResults;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.idea.rendering.ShowFixFactory;
 import com.android.tools.idea.rendering.StudioRenderConfiguration;
 import com.android.tools.idea.rendering.StudioRenderService;
+import com.android.tools.idea.rendering.StudioRenderServiceKt;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.ResourceNotificationManager;
@@ -745,8 +747,18 @@ public class LayoutlibSceneManager extends SceneManager {
       NlDesignSurface surface = getDesignSurface();
       // The structure might have changed, force a re-inflate
       forceReinflate();
-      requestRenderAsync(getTriggerFromChangeType(model.getLastChangeType()))
-        .thenRunAsync(() ->
+      // If the update is reversed (namely, we update the View hierarchy from the component hierarchy because information about scrolling is
+      // located in the component hierarchy and is lost in the view hierarchy) we need to run render again to propagate the change
+      // (re-layout) in the scrolling values to the View hierarchy (position, children etc.) and render the updated result.
+      AtomicBoolean doubleRender = new AtomicBoolean();
+      requestRenderAsync(getTriggerFromChangeType(model.getLastChangeType()), doubleRender)
+        .thenCompose(v -> {
+          if (doubleRender.get()) {
+            return requestRenderAsync(getTriggerFromChangeType(model.getLastChangeType()), new AtomicBoolean());
+          } else {
+            return CompletableFuture.completedFuture(null);
+          }
+        }).thenRunAsync(() ->
                         mySelectionChangeListener.selectionChanged(surface.getSelectionModel(), surface.getSelectionModel().getSelection())
           , EdtExecutorService.getInstance());
     }
@@ -783,7 +795,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * @return {@link CompletableFuture} that will be completed once the render has been done.
    */
   @NotNull
-  protected CompletableFuture<Void> requestRenderAsync(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+  protected CompletableFuture<Void> requestRenderAsync(@Nullable LayoutEditorRenderResult.Trigger trigger,  AtomicBoolean reverseUpdate) {
     if (isDisposed.get()) {
       Logger.getInstance(LayoutlibSceneManager.class).warn("requestRender after LayoutlibSceneManager has been disposed");
       return CompletableFuture.completedFuture(null);
@@ -798,17 +810,17 @@ public class LayoutlibSceneManager extends SceneManager {
       myIsCurrentlyRendering = true;
     }
 
-    myRenderingQueue.queue(createRenderUpdate(trigger));
+    myRenderingQueue.queue(createRenderUpdate(trigger, reverseUpdate));
 
     return callback;
   }
 
-  private Update createRenderUpdate(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+  private Update createRenderUpdate(@Nullable LayoutEditorRenderResult.Trigger trigger, AtomicBoolean reverseUpdate) {
     // This update is low priority so the model updates take precedence
     return new Update("model.render", LOW_PRIORITY) {
       @Override
       public void run() {
-        renderAsync(trigger);
+        renderAsync(trigger, reverseUpdate);
       }
 
       @Override
@@ -837,7 +849,7 @@ public class LayoutlibSceneManager extends SceneManager {
   @Override
   @NotNull
   public CompletableFuture<Void> requestRenderAsync() {
-    return requestRenderAsync(getTriggerFromChangeType(getModel().getLastChangeType()));
+    return requestRenderAsync(getTriggerFromChangeType(getModel().getLastChangeType()), new AtomicBoolean());
   }
 
   /**
@@ -847,7 +859,7 @@ public class LayoutlibSceneManager extends SceneManager {
   @NotNull
   public CompletableFuture<Void> requestUserInitiatedRenderAsync() {
     forceReinflate();
-    return requestRenderAsync(LayoutEditorRenderResult.Trigger.USER);
+    return requestRenderAsync(LayoutEditorRenderResult.Trigger.USER, new AtomicBoolean());
   }
 
   @Override
@@ -860,9 +872,20 @@ public class LayoutlibSceneManager extends SceneManager {
 
     LayoutEditorRenderResult.Trigger trigger = getTriggerFromChangeType(getModel().getLastChangeType());
     if (getDesignSurface().isRenderingSynchronously()) {
-      return renderAsync(trigger).thenRun(() -> notifyListenersModelLayoutComplete(animate));
+      return renderAsync(trigger, new AtomicBoolean()).thenRun(() -> notifyListenersModelLayoutComplete(animate));
     } else {
-      return requestRenderAsync(trigger)
+      // If the update is reversed (namely, we update the View hierarchy from the component hierarchy because information about scrolling is
+      // located in the component hierarchy and is lost in the view hierarchy) we need to run render again to propagate the change
+      // (re-layout) in the scrolling values to the View hierarchy (position, children etc.) and render the updated result.
+      AtomicBoolean doubleRender = new AtomicBoolean();
+      return requestRenderAsync(trigger, doubleRender)
+        .thenCompose(v -> {
+          if (doubleRender.get()) {
+            return requestRenderAsync(trigger, new AtomicBoolean());
+          } else {
+            return CompletableFuture.completedFuture(null);
+          }
+        })
         .whenCompleteAsync((result, ex) -> notifyListenersModelLayoutComplete(animate), AppExecutorUtil.getAppExecutorService());
     }
   }
@@ -1045,15 +1068,16 @@ public class LayoutlibSceneManager extends SceneManager {
     }
   }
 
-  private void updateHierarchy(@Nullable RenderResult result) {
+  private boolean updateHierarchy(@Nullable RenderResult result) {
+    boolean reverseUpdate = false;
     try {
       myUpdateHierarchyLock.acquire();
       try {
         if (result == null || !result.getRenderResult().isSuccess()) {
-          NlModelHierarchyUpdater.updateHierarchy(Collections.emptyList(), getModel());
+          reverseUpdate = NlModelHierarchyUpdater.updateHierarchy(Collections.emptyList(), getModel());
         }
         else {
-          NlModelHierarchyUpdater.updateHierarchy(result, getModel());
+          reverseUpdate = NlModelHierarchyUpdater.updateHierarchy(result, getModel());
         }
       } finally {
         myUpdateHierarchyLock.release();
@@ -1062,6 +1086,7 @@ public class LayoutlibSceneManager extends SceneManager {
     }
     catch (InterruptedException ignored) {
     }
+    return reverseUpdate;
   }
 
   @VisibleForTesting
@@ -1077,7 +1102,7 @@ public class LayoutlibSceneManager extends SceneManager {
    * if the model did not need to be re-inflated or could not be re-inflated (like the project been disposed).
    */
   @NotNull
-  private CompletableFuture<RenderResult> inflateAsync(boolean force) {
+  private CompletableFuture<RenderResult> inflateAsync(boolean force, AtomicBoolean reverseUpdate) {
     Configuration configuration = getModel().getConfiguration();
 
     Project project = getModel().getProject();
@@ -1106,7 +1131,7 @@ public class LayoutlibSceneManager extends SceneManager {
     myRenderedVersion = resourceNotificationManager.getCurrentVersion(facet, getModel().getFile(), configuration);
 
     RenderService renderService = StudioRenderService.getInstance(getModel().getProject());
-    RenderLogger logger = myLogRenderErrors ? renderService.createLogger(facet.getModule()) : renderService.getNopLogger();
+    RenderLogger logger = myLogRenderErrors ? StudioRenderServiceKt.createLogger(renderService, project) : renderService.getNopLogger();
     RenderModelModule renderModule = createRenderModule(facet);
     RenderConfiguration renderConfiguration = new StudioRenderConfiguration(configuration);
     RenderService.RenderTaskBuilder renderTaskBuilder = renderService.taskBuilder(renderModule, renderConfiguration, logger)
@@ -1133,7 +1158,7 @@ public class LayoutlibSceneManager extends SceneManager {
                   logger.addMessage(RenderProblem.createPlain(ERROR,
                                                               "Error inflating the preview",
                                                               logger.getProject(),
-                                                              logger.getLinkManager(), exception));
+                                                              logger.getLinkManager(), exception, ShowFixFactory.INSTANCE));
                 }
                 else {
                   logger.error(ILayoutLog.TAG_INFLATE, "Error inflating the preview", exception, null, null);
@@ -1175,7 +1200,7 @@ public class LayoutlibSceneManager extends SceneManager {
           return result;
         }
 
-        updateHierarchy(result);
+        reverseUpdate.set(updateHierarchy(result));
 
         return result;
       })
@@ -1279,7 +1304,7 @@ public class LayoutlibSceneManager extends SceneManager {
     if (isDisposed.get()) {
       return CompletableFuture.completedFuture(null);
     }
-    return inflateAsync(true)
+    return inflateAsync(true, new AtomicBoolean())
       .thenApply(resultProcessing);
   }
 
@@ -1329,7 +1354,8 @@ public class LayoutlibSceneManager extends SceneManager {
    * If the layout hasn't been inflated before, this call will inflate the layout before rendering.
    */
   @NotNull
-  protected CompletableFuture<RenderResult> renderAsync(@Nullable LayoutEditorRenderResult.Trigger trigger) {
+  protected CompletableFuture<RenderResult> renderAsync(@Nullable LayoutEditorRenderResult.Trigger trigger,
+                                                        AtomicBoolean reverseUpdate) {
     if (isDisposed.get()) {
       return CompletableFuture.completedFuture(null);
     }
@@ -1347,7 +1373,7 @@ public class LayoutlibSceneManager extends SceneManager {
 
       fireOnRenderStart();
       long renderStartTimeMs = System.currentTimeMillis();
-      return renderImplAsync()
+      return renderImplAsync(reverseUpdate)
         .thenApply(result -> logIfSuccessful(result, trigger, CommonUsageTracker.RenderResultType.RENDER))
         .thenApply(this::updateCachedRenderResultIfNotNull)
         .thenApply(result -> {
@@ -1409,7 +1435,7 @@ public class LayoutlibSceneManager extends SceneManager {
     callbacks.forEach(callback -> callback.complete(null));
     // If there are pending futures, we should trigger the render update
     if (hasPendingRenders()) {
-      requestRenderAsync(getTriggerFromChangeType(getModel().getLastChangeType()));
+      requestRenderAsync(getTriggerFromChangeType(getModel().getLastChangeType()), new AtomicBoolean());
     }
   }
 
@@ -1424,8 +1450,8 @@ public class LayoutlibSceneManager extends SceneManager {
   }
 
   @NotNull
-  private CompletableFuture<RenderResult> renderImplAsync() {
-    return inflateAsync(myForceInflate.getAndSet(false))
+  private CompletableFuture<RenderResult> renderImplAsync(AtomicBoolean reverseUpdate) {
+    return inflateAsync(myForceInflate.getAndSet(false), reverseUpdate)
       .thenCompose(inflateResult -> {
         boolean inflated = inflateResult != null && inflateResult.getRenderResult().isSuccess();
         long elapsedFrameTimeMs = myElapsedFrameTimeMs;
@@ -1441,7 +1467,7 @@ public class LayoutlibSceneManager extends SceneManager {
           return myRenderTask.render().thenApply(result -> {
             // When the layout was inflated in this same call, we do not have to update the hierarchy again
             if (result != null && !inflated) {
-              updateHierarchy(result);
+              reverseUpdate.set(reverseUpdate.get() || updateHierarchy(result));
             }
             return result;
           });

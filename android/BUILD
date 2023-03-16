@@ -464,6 +464,7 @@ filegroup(
         "//tools/base/emulator/proto:emulator_java_proto",
         "//tools/base/game-tools/protos:game-tools-protos",
         "//tools/base/lint:lint-checks-proto",
+        "//tools/base/process-monitor/process-tracker-agent:bundle",
         "//tools/base/sdk-common/aia-manifest-jar-generator:proto",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
         "//tools/base/threading-agent:threading_agent.jar",

@@ -15,13 +15,18 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.sdklib.IAndroidTarget
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutlib.LayoutLibrary
+import com.android.tools.idea.layoutlib.RenderingException
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.ShutDownTracker
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.android.sdk.getInstance
 import org.jetbrains.annotations.TestOnly
 
 /** Studio-specific [RenderService] management. */
@@ -62,6 +67,10 @@ open class StudioRenderService {
   }
 }
 
+fun RenderService.createLogger(project: Project?): RenderLogger {
+  return createLogger(project, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory)
+}
+
 /**
  * Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask].
  */
@@ -72,4 +81,17 @@ fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration,
  * Returns a [RenderService.RenderTaskBuilder] that can be used to build a new [RenderTask].
  */
 fun RenderService.taskBuilder(facet: AndroidFacet, configuration: Configuration): RenderService.RenderTaskBuilder =
-  taskBuilder(facet, configuration, createLogger(facet.module, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get()))
+  taskBuilder(facet, configuration, createLogger(facet.module.project))
+
+fun getLayoutLibrary(module: Module, target: IAndroidTarget?): LayoutLibrary? {
+  val environment = StudioEnvironmentContext(module.project)
+  return try {
+    RenderService.getLayoutLibrary(target, getInstance(module), environment)
+  }
+  catch (e: RenderingException) {
+    null
+  }
+  catch (e: InsufficientDataException) {
+    null
+  }
+}

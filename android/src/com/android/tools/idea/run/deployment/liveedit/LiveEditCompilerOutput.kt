@@ -17,28 +17,34 @@ package com.android.tools.idea.run.deployment.liveedit
 
 import com.intellij.openapi.module.Module
 
-class LiveEditCompiledClass(val name: String, var data: ByteArray, val module: Module?)
+internal enum class LiveEditClassType {
+  NORMAL_CLASS,
+  SUPPORT_CLASS,
+}
 
-data class LiveEditCompilerOutput private constructor (val classes: List<LiveEditCompiledClass>,
-                                                       val supportClasses: List<LiveEditCompiledClass>,
+internal class LiveEditCompiledClass(val name: String, var data: ByteArray, val module: Module?, val type: LiveEditClassType)
+
+data class LiveEditCompilerOutput internal constructor (val classes: List<LiveEditCompiledClass>,
                                                        val groupIds: List<Int>,
                                                        val resetState: Boolean) {
 
-  private fun getMap(cls : List<LiveEditCompiledClass>) : Map<String, ByteArray> {
+  private fun getMap(type: LiveEditClassType) : Map<String, ByteArray> {
     val map : MutableMap<String, ByteArray> = HashMap()
-    cls.forEach{
+    classes.forEach{
+      if (it.type != type) {
+        return@forEach
+      }
       map[it.name] = it.data
     }
     return map
   }
 
-  val classesMap by lazy(LazyThreadSafetyMode.NONE) { getMap(classes)}
-  val supportClassesMap by lazy(LazyThreadSafetyMode.NONE) { getMap(supportClasses)}
+  val classesMap by lazy(LazyThreadSafetyMode.NONE) { getMap(LiveEditClassType.NORMAL_CLASS)}
+  val supportClassesMap by lazy(LazyThreadSafetyMode.NONE) { getMap(LiveEditClassType.SUPPORT_CLASS)}
 
 
-  class Builder(
+  internal class Builder(
     var classes: MutableList<LiveEditCompiledClass> = ArrayList(),
-    var supportClasses: MutableList<LiveEditCompiledClass> = ArrayList(),
     var groupIds: ArrayList<Int> = ArrayList(),
     var resetState: Boolean = false) {
 
@@ -47,16 +53,11 @@ data class LiveEditCompilerOutput private constructor (val classes: List<LiveEdi
       return this
     }
 
-    fun addSupportClass(clazz: LiveEditCompiledClass): Builder {
-      supportClasses.add(clazz)
-      return this
-    }
-
     fun addGroupId(id: Int) : Builder{
       groupIds.add(id)
       return this
     }
 
-    fun build() = LiveEditCompilerOutput(classes, supportClasses, groupIds, resetState)
+    fun build() = LiveEditCompilerOutput(classes, groupIds, resetState)
   }
 }

@@ -251,6 +251,95 @@ class TomlDslParserTest : PlatformTestCase() {
     doTest(toml, expected)
   }
 
+  fun testBoolean() {
+    val toml = """
+      a = true
+      b = false
+    """.trimIndent()
+    val expected = mapOf("a" to true, "b" to false)
+    doTest(toml, expected)
+  }
+
+  fun testIntegerRadix10() {
+    val toml = """
+      int1 = +99
+      int2 = 42
+      int3 = 0
+      int4 = -17
+      int5 = 1_000
+      int6 = 5_349_221
+      int7 = 53_49_221  # Indian number system grouping
+      int8 = 1_2_3_4_5  # VALID but discouraged
+    """.trimIndent()
+    val expected = mapOf<String, Long>("int1" to 99, "int2" to 42, "int3" to 0, "int4" to -17, "int5" to 1000, "int6" to 5349221,
+                                       "int7" to 5349221, "int8" to 12345)
+    doTest(toml, expected)
+  }
+
+  fun testIntegerRadixPrefixes() {
+    val toml = """
+      # hexadecimal with prefix `0x`
+      hex1 = 0xDEADBEEF
+      hex2 = 0xdeadbeef
+      hex3 = 0xdead_beef
+
+      # octal with prefix `0o`
+      oct1 = 0o01234567
+      oct2 = 0o755 # useful for Unix file permissions
+
+      # binary with prefix `0b`
+      bin1 = 0b11010110
+    """.trimIndent()
+    val expected = mapOf<String, Long>("hex1" to 3735928559, "hex2" to 3735928559, "hex3" to 3735928559, "oct1" to 342391, "oct2" to 493,
+                                       "bin1" to 214)
+    doTest(toml, expected)
+  }
+
+  fun testFloat() {
+    val toml = """
+      # fractional
+      flt1 = +1.0
+      flt2 = 3.1415
+      flt3 = -0.01
+
+      # exponent
+      flt4 = 5e+22
+      flt5 = 1e06
+      flt6 = -2E-2
+
+      # both
+      flt7 = 6.626e-34
+      flt8 = 224_617.445_991_228
+
+      # infinity
+      sf1 = inf  # positive infinity
+      sf2 = +inf # positive infinity
+      sf3 = -inf # negative infinity
+
+      # not a number
+      sf4 = nan  # actual sNaN/qNaN encoding is implementation-specific
+      sf5 = +nan # same as `nan`
+      sf6 = -nan # valid, actual encoding is implementation-specific
+    """.trimIndent()
+    val expected = mapOf(
+      "flt1" to 1.0,
+      "flt2" to 3.1415,
+      "flt3" to -0.01,
+      "flt4" to 5e22,
+      // https://github.com/JetBrains/intellij-community/pull/2338 "flt5" to 1e06,
+      "flt6" to -2e-2,
+      "flt7" to 6.626e-34,
+      "flt8" to 224617.445991228,
+      "sf1" to Double.POSITIVE_INFINITY,
+      "sf2" to Double.POSITIVE_INFINITY,
+      "sf3" to Double.NEGATIVE_INFINITY,
+      "sf4" to Double.NaN,
+      "sf5" to Double.NaN,
+      "sf6" to Double.NaN,
+    )
+    doTest(toml, expected)
+  }
+
   private fun doTest(text: String, expected: Map<String,Any>) {
     val libsTomlFile = writeLibsTomlFile(text)
     val dslFile = object : GradleDslFile(libsTomlFile, project, ":", BuildModelContext.create(project, mock())) {}
@@ -274,7 +363,7 @@ class TomlDslParserTest : PlatformTestCase() {
       val value = when (element) {
         is GradleDslLiteral -> element.value ?: "null literal"
         is GradleDslExpressionMap -> {
-          val newMap = HashMap<String, Any>()
+          val newMap = LinkedHashMap<String, Any>()
           element.properties.forEach { populate(it, element.getElement(it)) { k, v -> newMap[k] = v } }
           newMap
         }
@@ -287,7 +376,7 @@ class TomlDslParserTest : PlatformTestCase() {
       }
       setter(key, value)
     }
-    val map = HashMap<String,Any>()
+    val map = LinkedHashMap<String,Any>()
     dslFile.properties.forEach { populate(it, dslFile.getElement(it)) { key, value -> map[key] = value } }
     return map
   }

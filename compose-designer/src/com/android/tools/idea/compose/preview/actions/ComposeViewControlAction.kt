@@ -20,7 +20,7 @@ import com.android.tools.adtui.actions.ZoomActualAction
 import com.android.tools.adtui.actions.ZoomInAction
 import com.android.tools.adtui.actions.ZoomOutAction
 import com.android.tools.idea.actions.DESIGN_SURFACE
-import com.android.tools.idea.actions.SetColorBlindModeAction
+import com.android.tools.idea.compose.preview.analytics.PreviewCanvasTracker
 import com.android.tools.idea.compose.preview.isAnyPreviewRefreshing
 import com.android.tools.idea.compose.preview.isPreviewFilterEnabled
 import com.android.tools.idea.compose.preview.message
@@ -29,16 +29,20 @@ import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
 import com.android.tools.idea.uibuilder.actions.SwitchSurfaceLayoutManagerAction
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.util.IconLoader
 import org.assertj.core.util.VisibleForTesting
 
+// When using [AllIcons.Debugger.RestoreLayout] as the icon, this action is considered as a
+// multi-choice group, even
+// Presentation.setMultiChoice() sets to false. (See
+// [com.intellij.openapi.actionSystem.impl.Utils.isMultiChoiceGroup])
+//
+// We clone the icon here so we can control the multi-choice state of this action ourselves.
 class ComposeViewControlAction(
   private val layoutManagerSwitcher: LayoutManagerSwitcher,
   private val layoutManagers: List<SurfaceLayoutManagerOption>,
@@ -47,19 +51,8 @@ class ComposeViewControlAction(
   DropDownAction(
     message("action.scene.view.control.title"),
     message("action.scene.view.control.description"),
-    null
+    IconLoader.copy(AllIcons.Debugger.RestoreLayout, null, true)
   ) {
-
-  init {
-    // When using [AllIcons.Debugger.RestoreLayout] as the icon, this action is considered as a
-    // multi-choice group, even
-    // Presentation.setMultiChoice() sets to false. (See
-    // [com.intellij.openapi.actionSystem.impl.Utils.isMultiChoiceGroup])
-    //
-    // We clone the icon here so we can control the multi-choice state of this action ourselves.
-    templatePresentation.icon = IconLoader.copy(AllIcons.Debugger.RestoreLayout, null, true)
-  }
-
   override fun update(e: AnActionEvent) {
     super.update(e)
     e.presentation.isEnabled = !isAnyPreviewRefreshing(e.dataContext)
@@ -80,34 +73,27 @@ class ComposeViewControlAction(
           layoutManagerSwitcher,
           layoutManagers,
           isSurfaceLayoutActionEnabled
-        )
+        ) { selectedOption ->
+          PreviewCanvasTracker.getInstance().logSwitchLayout(selectedOption.layoutManager)
+        }
         .apply {
           isPopup = false
           templatePresentation.isMultiChoice = false
         }
     )
-    addSeparator()
-    add(WrappedZoomAction(ZoomInAction.getInstance(), context))
-    add(WrappedZoomAction(ZoomOutAction.getInstance(), context))
-    add(WrappedZoomAction(ZoomActualAction.getInstance(), context, "Zoom to 100%"))
+    if (StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.get()) {
+      addSeparator()
+      add(WrappedZoomAction(ZoomInAction.getInstance(), context))
+      add(WrappedZoomAction(ZoomOutAction.getInstance(), context))
+      add(WrappedZoomAction(ZoomActualAction.getInstance(), context, "Zoom to 100%"))
+    }
     // TODO(263038548): Implement Zoom-to-selection when preview is selectable.
     addSeparator()
     add(ShowInspectionTooltipsAction(context))
     if (StudioFlags.COMPOSE_COLORBLIND_MODE.get()) {
       (context.getData(DESIGN_SURFACE) as? NlDesignSurface)?.let { surface ->
         addSeparator()
-        addAction(
-          DefaultActionGroup.createPopupGroup {
-              message("action.scene.mode.colorblind.dropdown.title")
-            }
-            .apply {
-              addAction(SetColorBlindModeAction(ColorBlindMode.PROTANOPES, surface))
-              addAction(SetColorBlindModeAction(ColorBlindMode.PROTANOMALY, surface))
-              addAction(SetColorBlindModeAction(ColorBlindMode.DEUTERANOPES, surface))
-              addAction(SetColorBlindModeAction(ColorBlindMode.DEUTERANOMALY, surface))
-              addAction(SetColorBlindModeAction(ColorBlindMode.TRITANOPES, surface))
-            }
-        )
+        add(ComposeColorBlindAction(surface))
       }
     }
     return true

@@ -351,7 +351,8 @@ fun emptySourceProvider(scopeType: ScopeType): IdeaSourceProvider {
 fun SourceProviders.getForFile(targetFolder: VirtualFile?): List<NamedIdeaSourceProvider>? {
   return if (targetFolder != null) {
     // Add source providers that contain the file (if any) and any that have files under the given folder
-    currentAndSomeFrequentlyUsedInactiveSourceProviders
+    // Also checks in the test providers.
+    (currentAndSomeFrequentlyUsedInactiveSourceProviders + currentAndroidTestSourceProviders + currentUnitTestSourceProviders)
       .filter { provider -> provider.containsFile(targetFolder) || provider.isContainedBy(targetFolder) }
       .takeUnless { it.isEmpty() }
   }

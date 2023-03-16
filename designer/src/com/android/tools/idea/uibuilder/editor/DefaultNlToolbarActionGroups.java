@@ -38,6 +38,7 @@ import com.android.tools.idea.common.actions.RefreshRenderAction;
 import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration;
 import com.android.tools.idea.ui.designer.overlays.OverlayMenuAction;
 import com.android.tools.idea.uibuilder.actions.LayoutEditorHelpAssistantAction;
+import com.android.tools.idea.uibuilder.actions.LayoutQualifierDropdownMenu;
 import com.android.tools.idea.uibuilder.actions.SwitchToNextScreenViewProviderAction;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider;

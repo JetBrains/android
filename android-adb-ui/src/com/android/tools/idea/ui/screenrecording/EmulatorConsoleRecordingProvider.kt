@@ -19,14 +19,21 @@ import com.android.adblib.AdbSession
 import com.android.adblib.tools.EmulatorConsole
 import com.android.adblib.tools.localConsoleAddress
 import com.android.adblib.tools.openEmulatorConsole
+import com.android.tools.idea.ui.AndroidAdbUiBundle
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import com.intellij.util.io.exists
 import com.intellij.util.io.move
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.concurrent.atomic.AtomicReference
 
 private const val SERIAL_NUMBER_PREFIX = "emulator-"
 
@@ -34,37 +41,58 @@ private const val SERIAL_NUMBER_PREFIX = "emulator-"
  * A [RecordingProvider] that uses [EmulatorConsole].
  */
 internal class EmulatorConsoleRecordingProvider(
+  disposableParent: Disposable,
   private val serialNumber: String,
   private val localPath: Path,
   private val options: ScreenRecorderOptions,
   private val adbSession: AdbSession,
 ) : RecordingProvider {
+
   override val fileExtension = "webm"
-
   private lateinit var emulatorConsole: EmulatorConsole
+  private val recordingHandle = AtomicReference<CompletableDeferred<Unit>>()
 
-  override suspend fun startRecording() {
+  init {
+    Disposer.register(disposableParent, this)
+  }
+
+  override suspend fun startRecording(): Deferred<Unit> {
+    val handle = CompletableDeferred<Unit>()
+    Disposer.register(this) {
+      recordingHandle.getAndSet(null)?.completeExceptionally(
+          RuntimeException(AndroidAdbUiBundle.message("screenrecord.error.disconnected")))
+    }
+
     emulatorConsole = adbSession.openEmulatorConsole(localConsoleAddress(serialNumber.getEmulatorPort()))
     emulatorConsole.startScreenRecording(localPath, *getRecorderOptions(options))
+
+    recordingHandle.set(handle)
+    return handle
   }
 
-  override suspend fun stopRecording() {
-    if (!this::emulatorConsole.isInitialized) {
-      throw IllegalStateException("emulatorConsole not initialized. Did you call startRecording()?")
+  override fun stopRecording() {
+    val handle = recordingHandle.getAndSet(null) ?: return
+    CoroutineScope(Dispatchers.IO).launch {
+      try {
+        emulatorConsole.stopScreenRecording()
+        handle.complete(Unit)
+      }
+      catch (e: Throwable) {
+        handle.completeExceptionally(e)
+      }
     }
-    emulatorConsole.stopScreenRecording()
   }
 
-  override suspend fun cancelRecording() {
-    try {
-      stopRecording()
-    }
-    catch (e: Exception) {
-      // TODO: Remove this delay when b/256957515 is fixed.
-      delay(1000)
-    }
-    withContext(Dispatchers.IO) {
-      Files.deleteIfExists(localPath)
+  override fun cancelRecording() {
+    val handle = recordingHandle.getAndSet(null) ?: return
+    CoroutineScope(Dispatchers.IO).launch {
+      try {
+        emulatorConsole.stopScreenRecording()
+      }
+      finally {
+        handle.cancel()
+        Files.deleteIfExists(localPath)
+      }
     }
   }
 
@@ -74,6 +102,10 @@ internal class EmulatorConsoleRecordingProvider(
     withContext(Dispatchers.IO) {
       localPath.move(target)
     }
+  }
+
+  override fun dispose() {
+    emulatorConsole.close()
   }
 
   companion object {
@@ -107,6 +139,6 @@ private fun String.getEmulatorPort(): Int {
     return substring(SERIAL_NUMBER_PREFIX.length).toInt()
   }
   catch (e: NumberFormatException) {
-    throw IllegalArgumentException("Not an emulator serial number: $this", e)
+    throw IllegalArgumentException("Not an emulator serial number: $this")
   }
 }

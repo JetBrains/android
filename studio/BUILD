@@ -120,8 +120,10 @@ studio_plugin(
             "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:app-inspection.inspectors.backgroundtask.model",
             "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:app-inspection.inspectors.backgroundtask.view",
             "//tools/adt/idea/app-quality-insights/api:intellij.android.app-quality-insights.api",
+            "//tools/adt/idea/app-quality-insights/ide:intellij.android.app-quality-insights.ide",
             "//tools/adt/idea/app-quality-insights/ui:intellij.android.app-quality-insights.ui",
             "//tools/adt/idea/app-quality-insights/play-vitals/model:intellij.android.app-quality-insights.play-vitals.model",
+            "//tools/adt/idea/app-quality-insights/play-vitals/ide:intellij.android.app-quality-insights.play-vitals.ide",
             "//tools/adt/idea/app-quality-insights/play-vitals/view:intellij.android.app-quality-insights.play-vitals.view",
             "//tools/adt/idea/build-attribution:intellij.android.build-attribution",
             "//tools/adt/idea/intellij.android.compose-common:intellij.android.compose-common",
@@ -154,6 +156,7 @@ studio_plugin(
             "//tools/adt/idea/mlkit:intellij.android.mlkit",
             "//tools/adt/idea/nav/safeargs:intellij.android.nav.safeargs",
             "//tools/adt/idea/android-npw:intellij.android.newProjectWizard",
+            "//tools/adt/idea/android-material:intellij.android.android-material",
             "//tools/adt/idea/observable-ui:intellij.android.observable.ui",
             "//tools/adt/idea/observable:intellij.android.observable",
             "//tools/adt/idea/android-plugin:intellij.android.plugin",
@@ -674,10 +677,10 @@ android_studio(
     searchable_options = "//tools/adt/idea/searchable-options",
     update_message_template = ":update_message.html",
     version_code_name = "Giraffe",
-    version_micro_patch = "1.9",
+    version_micro_patch = "1.10",
     # This will get added to the end of the full-version string.
     # TODO(b/240707039): automate this.
-    version_release_number = 9,
+    version_release_number = 10,
     version_type = "Canary",
     visibility = ["//visibility:public"],
 )

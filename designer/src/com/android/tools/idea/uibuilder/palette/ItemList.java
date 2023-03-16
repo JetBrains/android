@@ -110,6 +110,7 @@ public class ItemList extends ListWithMargin<Palette.Item> {
       myDownloadIcon.setIcon(selected && hasFocus ? StudioIcons.LayoutEditor.Extras.PALETTE_DOWNLOAD_SELECTED
                                                   : StudioIcons.LayoutEditor.Extras.PALETTE_DOWNLOAD);
       myDownloadIcon.setToolTipText("Add Project Dependency");
+      myPanel.setToolTipText(item.getTitle());
       return myPanel;
     }
   }

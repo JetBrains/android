@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.dsl.parser.elements;
 import com.android.tools.idea.gradle.dsl.api.BuildModelNotification;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.ext.PropertyType;
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslContextModel;
+import com.android.tools.idea.gradle.dsl.model.BuildModelContext;
 import com.android.tools.idea.gradle.dsl.model.GradleSettingsModelImpl;
 import com.android.tools.idea.gradle.dsl.model.notifications.NotificationTypeReference;
 import com.android.tools.idea.gradle.dsl.parser.ExternalNameInfo.ExternalNameSyntax;
@@ -826,10 +828,10 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
     return propertiesDslFile != null ? propertiesDslFile.getPropertyElement(referenceText) : null;
   }
 
-  private static @Nullable GradleDslElement resolveReferenceInVersionCatalogs(@NotNull GradleBuildFile buildFile, @NotNull List<String> referenceParts) {
+  private static @Nullable GradleDslElement resolveReferenceInVersionCatalogs(@NotNull BuildModelContext context, @NotNull List<String> referenceParts) {
     if (referenceParts.size() < 2) return null;
     String catalog = referenceParts.get(0);
-    for (GradleVersionCatalogFile versionCatalogFile : buildFile.getVersionCatalogFiles()) {
+    for (GradleVersionCatalogFile versionCatalogFile : context.getVersionCatalogFiles()) {
       if (!catalog.equals(versionCatalogFile.getCatalogName())) continue;
       String tableName = referenceParts.get(1);
       Pattern pattern;
@@ -949,20 +951,14 @@ public abstract class GradleDslElementImpl implements GradleDslElement, Modifica
         }
       }
 
-      GradleBuildFile rootProjectBuildFile = buildFile;
-      while (true) {
-        GradleBuildFile parentModuleDslFile = rootProjectBuildFile.getParentModuleBuildFile();
-        if (parentModuleDslFile == null) {
-          break;
-        }
-        rootProjectBuildFile = parentModuleDslFile;
-      }
-
-      GradleDslElement versionCatalogElement = resolveReferenceInVersionCatalogs(rootProjectBuildFile, referenceText);
+      GradleDslElement versionCatalogElement = resolveReferenceInVersionCatalogs(buildFile.getContext(), referenceText);
       if (versionCatalogElement != null) return versionCatalogElement;
 
-      if (buildFile == rootProjectBuildFile) {
-        return null; // This is the root project build.gradle file and there is no further path to look up.
+      GradleBuildFile rootProjectBuildFile = buildFile.getContext().getRootProjectFile();
+      if (rootProjectBuildFile == null || buildFile == rootProjectBuildFile) {
+        // This is the root project build.gradle file (or there is no root build file at all)
+        // and there is no further path to look up.
+        return null;
       }
 
       // Try to resolve in the root project gradle.properties file.

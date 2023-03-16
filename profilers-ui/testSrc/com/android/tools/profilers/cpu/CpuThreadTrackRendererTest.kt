@@ -30,6 +30,7 @@ import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilerTrackRendererType
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.Utils
@@ -67,7 +68,7 @@ class CpuThreadTrackRendererTest {
   @Before
   fun setUp() {
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
-    profilersView = StudioProfilersView(profilers, ideProfilerComponents, disposableRule.disposable)
+    profilersView = SessionProfilersView(profilers, ideProfilerComponents, disposableRule.disposable)
   }
 
   @Test

@@ -23,6 +23,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionInformation
 import com.android.tools.idea.common.surface.InteractionNonInputEvent
+import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.common.surface.navigateToComponent
 import com.android.tools.idea.common.surface.selectComponent
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -31,8 +32,10 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlInteractionHandler
 import kotlinx.coroutines.launch
 import org.intellij.lang.annotations.JdkConstants
+import java.awt.MouseInfo
 import java.awt.event.InputEvent
 import java.awt.event.MouseEvent
+import javax.swing.SwingUtilities
 
 /**
  * [InteractionHandler] mainly based in [NlInteractionHandler], but with some extra code navigation
@@ -74,7 +77,12 @@ class NavigatingInteractionHandler(private val surface: DesignSurface<*>,
     if (sceneView != null) {
       val component = sceneView.sceneManager.model.components.firstOrNull()
       if (isSelectionEnabled() && component != null) {
+        val wasSelected = sceneView.selectionModel.isSelected(component)
         sceneView.selectComponent(component, allowToggle = false, ignoreIfAlreadySelected = true)
+        // If the selection state changed, then force a hover state update
+        if (wasSelected != sceneView.selectionModel.isSelected(component)) {
+          forceHoverUpdate(sceneView, x, y)
+        }
       }
       val actions = surface.actionManager.getPopupMenuActions(component)
       surface.showPopup(mouseEvent, actions, "Preview")
@@ -90,15 +98,21 @@ class NavigatingInteractionHandler(private val surface: DesignSurface<*>,
     if (isSelectionEnabled()) {
       val sceneView = surface.getSceneViewAt(x, y)
       if (sceneView != null) {
+        val component = sceneView.sceneManager.model.components.firstOrNull()
         // If this is not a "toggle" click and the preview is already selected,
         // then it is a navigation click, and shouldn't impact the selected components.
         val allowToggle = isShiftDown(modifiersEx)
-        if (sceneView.sceneManager.model.components.isNotEmpty()) {
+        if (component != null) {
+          val wasSelected = sceneView.selectionModel.isSelected(component)
           sceneView.selectComponent(
-            sceneView.sceneManager.model.components[0],
+            component,
             allowToggle,
             ignoreIfAlreadySelected = !allowToggle
           )
+          // If the selection state changed, then force a hover state update
+          if (wasSelected != sceneView.selectionModel.isSelected(component)) {
+            forceHoverUpdate(sceneView, x, y)
+          }
         }
       }
       else {
@@ -116,6 +130,28 @@ class NavigatingInteractionHandler(private val surface: DesignSurface<*>,
       return null
     }
     return interaction
+  }
+
+  override fun mouseExited() {
+    val mousePosition = MouseInfo.getPointerInfo().location
+    SwingUtilities.convertPointFromScreen(mousePosition, surface.interactionPane)
+    // Exiting to a popup from a point within the surface is not considered as exiting the surface.
+    // This is needed to keep the hover state of a preview when interacting with its right-click pop-up.
+    if (!surface.interactionPane.contains(mousePosition.x, mousePosition.y)) {
+      super.mouseExited()
+    }
+  }
+
+  /**
+   * Force a hover state update by performing the following steps:
+   * 1. Update the sceneManager to make sure that the scene's root and structure is up-to-date.
+   * 2. Make sure that all SceneComponents contain their layout and positioning information.
+   * 3. Simulate a hover
+   */
+  private fun forceHoverUpdate(sceneView: SceneView, x: Int, y: Int) {
+    sceneView.sceneManager.update()
+    sceneView.scene.root?.layout(sceneView.context, System.currentTimeMillis())
+    this.hoverWhenNoInteraction(x, y, 0)
   }
 
   /**

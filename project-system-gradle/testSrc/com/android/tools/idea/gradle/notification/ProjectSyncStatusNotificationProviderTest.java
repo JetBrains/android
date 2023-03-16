@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.notification;
 
 import static com.android.tools.idea.gradle.project.sync.idea.AndroidGradleProjectResolverKeys.REFRESH_EXTERNAL_NATIVE_MODELS_KEY;
+import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.util.ThreeState.YES;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -30,9 +31,14 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncState;
 import com.android.tools.idea.testing.IdeComponents;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.openapi.application.ApplicationInfo;
+import com.intellij.openapi.editor.colors.ColorKey;
+import com.intellij.openapi.editor.colors.EditorColors;
+import com.intellij.openapi.editor.colors.EditorColorsManager;
+import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testFramework.PlatformTestCase;
+import com.intellij.ui.JBColor;
 import java.util.Arrays;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -252,6 +258,22 @@ public class ProjectSyncStatusNotificationProviderTest extends PlatformTestCase 
     assertEquals(Type.SYNC_NEEDED, type);
     ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
     assertInstanceOf(panel, ProjectSyncStatusNotificationProvider.StaleGradleModelNotificationPanel.class);
+  }
+
+  @Test
+  public void testCustomizeNotificationColor() {
+    when(mySyncState.isSyncNeeded()).thenReturn(YES);
+
+    Type type = myNotificationProvider.notificationPanelType();
+    assertEquals(Type.SYNC_NEEDED, type);
+    ProjectSyncStatusNotificationProvider.NotificationPanel panel = createPanel(type);
+
+    EditorColorsScheme colorsSchemeSupplier = EditorColorsManager.getInstance().getGlobalScheme();
+    ColorKey panelColorKey = panel.getBackgroundColorKey();
+    colorsSchemeSupplier.setColor(panelColorKey, JBColor.RED);
+
+    assertThat(panelColorKey).isEqualTo(EditorColors.NOTIFICATION_BACKGROUND);
+    assertThat(EditorColorsManager.getInstance().getGlobalScheme().getColor(panelColorKey)).isEqualTo(JBColor.RED);
   }
 
   private ProjectSyncStatusNotificationProvider.NotificationPanel createPanel(Type type) {

@@ -113,7 +113,7 @@ class NewCustomAttributePanelTest {
     motionRule.selectConstraint(setId, id)
     val component = motionRule.selection.componentForCustomAttributeCompletions!!
     val textView = mock(android.widget.TextView::class.java)
-    component.viewInfo = ViewInfo("TextView", null, 0, 0, 30, 20, textView, null)
+    component.viewInfo = ViewInfo("TextView", null, 0, 0, 30, 20, textView, null, null)
     val tableModel = mock(TableLineModel::class.java)
     return NewCustomAttributeWrapper(motionRule.attributesModel, motionRule.selection, tableModel)
   }

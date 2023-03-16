@@ -24,8 +24,8 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader
 import com.android.tools.profilers.memory.MainMemoryProfilerStage
 import com.android.tools.profilers.memory.MemoryCaptureObjectTestUtils
@@ -65,7 +65,7 @@ class MemoryVisualizationTooltipViewTest {
     fakeIdeProfilerComponents = FakeIdeProfilerComponents()
     val profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), fakeIdeProfilerServices, FakeTimer())
     stage = MainMemoryProfilerStage(profilers, loader)
-    val profilersView = StudioProfilersView(profilers, fakeIdeProfilerComponents, disposableRule.disposable)
+    val profilersView = SessionProfilersView(profilers, fakeIdeProfilerComponents, disposableRule.disposable)
     visualizationView = MemoryVisualizationView(stage.captureSelection, profilersView)
 
     val heapSet = MemoryCaptureObjectTestUtils.createAndSelectHeapSet(stage)

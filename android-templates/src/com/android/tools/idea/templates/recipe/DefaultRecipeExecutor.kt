@@ -25,6 +25,7 @@ import com.android.resources.ResourceFolderType
 import com.android.support.AndroidxNameUtils
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel
+import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
 import com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.ANDROID_TEST_API
@@ -118,6 +119,9 @@ class DefaultRecipeExecutor(
       context.moduleRoot != null -> getBuildModel(findGradleBuildFile(context.moduleRoot), project, projectBuildModel)
       else -> null
     }
+  }
+  private val versionCatalogModel: GradleVersionCatalogModel? by lazy {
+    projectBuildModel?.versionCatalogsModel?.getVersionCatalogModel("libs")
   }
   private val useVersionCatalog: Boolean by lazy {
     determineVersionCatalogUseForNewModule(project, projectTemplateData.isNewProject, versionCatalogDetector)
@@ -213,20 +217,42 @@ class DefaultRecipeExecutor(
   }
 
   private fun applyPluginInBuildModel(plugin: String, buildModel: GradleBuildModel, revision: String?, minRev: String?) {
-    buildModel.applyPluginIfNone(plugin)
+    if (revision == null) {
+      // When the revision is null, just apply the plugin without a revision.
+      // Version catalogs don't support the plugins without versions.
+      buildModel.applyPluginIfNone(plugin)
+      return
+    }
 
-    if (revision != null) {
-      val (pluginsBlockToModify, applyFlag) = maybeGetPluginsFromSettings()?.let { Pair(it, null) }
-                                              ?: maybeGetPluginsFromProject()?.let { Pair(it, false) }
-                                              ?: return
+    // applyFlag is either of false or null in this context because the gradle dsl [PluginsModel#applyPlugin]
+    // takes a nullable Boolean that means:
+    //  - The flag being false means "apply false" is appended at the end of the plugin declaration
+    //  - The flag being null means nothing is appended
+    val (pluginsBlockToModify, applyFlag) = maybeGetPluginsFromSettings()?.let { Pair(it, null) }
+                                            ?: maybeGetPluginsFromProject()?.let { Pair(it, false) }
+                                            ?: Pair(null, false)
+    if (pluginsBlockToModify == null) {
+      // When the revision is specified, but plugins block isn't defined in the settings nor the project level build file,
+      // just apply the plugin without a revision.
+      buildModel.applyPluginIfNone(plugin)
+      return
+    }
 
-      val pluginCoordinate = "$plugin:$plugin.gradle.plugin:$revision"
-      val resolvedVersion = resolveDependency(repositoryUrlManager, pluginCoordinate, minRev).lowerBoundVersion.toString()
-      val targetPluginModel = pluginsBlockToModify.plugins().firstOrNull { it.name().toString() == plugin }
+    val pluginCoordinate = "$plugin:$plugin.gradle.plugin:$revision"
+    val resolvedVersion = resolveDependency(repositoryUrlManager, pluginCoordinate, minRev).lowerBoundVersion.toString()
+    val targetPluginModel = pluginsBlockToModify.plugins().firstOrNull { it.name().toString() == plugin }
 
+    if (useVersionCatalog) {
+      val referenceToPlugin = getOrAddPluginToVersionCatalog(versionCatalogModel, plugin, resolvedVersion)
+      if (targetPluginModel == null && referenceToPlugin != null) {
+        pluginsBlockToModify.applyPlugin(referenceToPlugin, applyFlag)
+      }
+      buildModel.applyPluginIfNone(plugin, referenceToPlugin)
+    } else {
       if (targetPluginModel == null) {
         pluginsBlockToModify.applyPlugin(plugin, resolvedVersion, applyFlag)
       }
+      buildModel.applyPluginIfNone(plugin)
     }
   }
 
@@ -302,9 +328,8 @@ class DefaultRecipeExecutor(
     }
 
     if (useVersionCatalog) {
-      val catalogModel = projectBuildModel?.versionCatalogsModel?.getVersionCatalogModel("libs")
-      val referenceToDepToAdd = addDependencyToVersionCatalog(catalogModel, resolvedMavenCoordinate)
-      if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) == null) {
+      val referenceToDepToAdd = getOrAddDependencyToVersionCatalog(versionCatalogModel, resolvedMavenCoordinate)
+      if (buildModel.getDependencyConfiguration(resolvedMavenCoordinate) == null && referenceToDepToAdd != null) {
         buildModel.dependencies().addArtifact(resolvedConfiguration, referenceToDepToAdd)
       }
     } else {
@@ -328,9 +353,10 @@ class DefaultRecipeExecutor(
     // e.g. "implementation" and "androidTestImplementation". This is necessary to apply BOM versions
     // to dependencies in each configuration.
     if (useVersionCatalog) {
-      val catalogModel = projectBuildModel?.versionCatalogsModel?.getVersionCatalogModel("libs")
-      val referenceToDepToAdd = addDependencyToVersionCatalog(catalogModel, resolvedMavenCoordinate)
-      buildModel.dependencies().addPlatformArtifact(configuration, referenceToDepToAdd, enforced)
+      val referenceToDepToAdd = getOrAddDependencyToVersionCatalog(versionCatalogModel, resolvedMavenCoordinate)
+      if (referenceToDepToAdd != null) {
+        buildModel.dependencies().addPlatformArtifact(configuration, referenceToDepToAdd, enforced)
+      }
     } else {
       buildModel.dependencies().addPlatformArtifact(configuration, resolvedMavenCoordinate, enforced)
     }
@@ -606,7 +632,7 @@ class DefaultRecipeExecutor(
     }
   }
 
-  private fun GradleBuildModel.applyPluginIfNone(plugin: String) {
+  private fun GradleBuildModel.applyPluginIfNone(plugin: String, referenceTo: ReferenceTo? = null) {
     // b/193012182 - Some plugins have different names but are identical and we don't want to apply them more than once
     fun defaultPluginName(name: String) = when (name) {
       "kotlin-android" -> "org.jetbrains.kotlin.android"
@@ -616,7 +642,11 @@ class DefaultRecipeExecutor(
 
     val defaultName = defaultPluginName(plugin)
     if (plugins().none { defaultPluginName(it.name().forceString()) == defaultName }) {
-      applyPlugin(plugin)
+      if (useVersionCatalog && referenceTo != null) {
+        applyPlugin(referenceTo, null)
+      } else {
+        applyPlugin(plugin)
+      }
     }
   }
 

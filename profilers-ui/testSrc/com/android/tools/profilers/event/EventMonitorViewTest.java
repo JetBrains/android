@@ -33,6 +33,7 @@ import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
+import com.android.tools.profilers.SessionProfilersView;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.google.common.truth.Truth;
@@ -86,7 +87,7 @@ public class EventMonitorViewTest {
     // StudioProfilersView initialization needs to happen after the tick, as during setDevice/setProcess the StudioMonitorStage is
     // constructed. If the StudioMonitorStageView is constructed as well, grpc exceptions will be thrown due to lack of various services
     // in the channel, and the tick loop would not complete properly to set the process and agent status.
-    StudioProfilersView profilerView = new StudioProfilersView(myProfilers, new FakeIdeProfilerComponents(), myDisposableRule.getDisposable());
+    StudioProfilersView profilerView = new SessionProfilersView(myProfilers, new FakeIdeProfilerComponents(), myDisposableRule.getDisposable());
     myMonitorView = new EventMonitorView(profilerView, new EventMonitor(myProfilers));
 
     updateAgentData(DEFAULT_AGENT_ATTACHED_RESPONSE);

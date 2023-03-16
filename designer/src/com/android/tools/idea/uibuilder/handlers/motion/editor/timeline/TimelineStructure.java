@@ -25,19 +25,12 @@ import java.beans.PropertyChangeSupport;
  * The basic data structure that describes the timeline
  */
 public class TimelineStructure {
-
-  public int myXTickCount;
   public int[] myXTicksPixels = new int[0];
   public int mTimeLineWidth;
   public int mTimeLineInsetLeft;
   public int mTimeLineInsetRight;
   public float mTimeLineMinValue;
   public float mTimeLineMaxValue;
-
-  int myChartLeftInset = MEUI.scale(40);
-  int myChartRightInset = MEUI.scale(25);
-  public int myBottomInsert = MEUI.scale(20);
-  static final int ourViewListWidth = MEUI.scale(150);
 
   public float getTimeCursorMs() {
     return 0;

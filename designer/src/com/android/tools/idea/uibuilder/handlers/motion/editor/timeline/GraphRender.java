@@ -174,9 +174,6 @@ public class GraphRender {
     return Double.parseDouble(str);
   }
 
-  int[] xPoints = new int[1000];
-  int[] yPoints = new int[1000];
-
   public void draw(Graphics g, TimelineStructure mTimelineStructure, int x, int y, int w, int h) {
     if (mAttribute == null && mCycle == null) {
       return;

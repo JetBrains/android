@@ -22,6 +22,7 @@ import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuCapture
@@ -56,7 +57,7 @@ class FullTraceSummaryDetailsViewTest {
   @Before
   fun setUp() {
     val profilers = StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices())
-    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
+    profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
   }
 
   @Test

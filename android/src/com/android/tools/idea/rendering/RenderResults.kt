@@ -34,7 +34,7 @@ private fun createErrorResult(file: PsiFile, errorResult: Result, logger: Render
   val result = RenderResult(
     file,
     module,
-    logger ?: RenderLogger(module, null, false),
+    logger ?: RenderLogger(module.project, null, false, RenderProblem.NOOP_RUNNABLE_FIX_FACTORY),
     null,
     false,
     errorResult,

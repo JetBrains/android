@@ -10,5 +10,6 @@
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="android.sdktools.sdklib" />
     <orderEntry type="module" module-name="intellij.android.layoutlib-loader" />
+    <orderEntry type="module" module-name="android.sdktools.resource-repository" />
   </component>
 </module>

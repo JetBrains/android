@@ -452,6 +452,100 @@ class EmulatorToolWindowPanelTest {
     panel.destroyContent()
   }
 
+  /** Checks a large container size resulting in a scale greater than 1:1. */
+  @Test
+  fun testZoomLargeScale() {
+    val avdFolder = FakeEmulator.createWatchAvd(emulatorRule.root, api = 30)
+    val panel = createWindowPanel(avdFolder)
+    val ui = FakeUi(panel, createFakeWindow = true) // Fake window is necessary for the toolbars to be rendered.
+
+    assertThat(panel.primaryEmulatorView).isNull()
+
+    panel.createContent(true)
+    val emulatorView = panel.primaryEmulatorView ?: throw AssertionError()
+
+    // Check appearance.
+    var frameNumber = emulatorView.frameNumber
+    assertThat(frameNumber).isEqualTo(0)
+    panel.size = Dimension(200, 400)
+    ui.updateToolbars()
+    ui.layoutAndDispatchEvents()
+    val call1 = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
+    assertThat(shortDebugString(call1.request)).isEqualTo("format: RGB888 width: 168 height: 312")
+    assertThat(emulatorView.displayRectangle!!.width).isEqualTo(168)
+    assertThat(emulatorView.canZoomIn()).isTrue()
+    assertThat(emulatorView.canZoomOut()).isFalse()
+    assertThat(emulatorView.canZoomToActual()).isTrue()
+    assertThat(emulatorView.canZoomToFit()).isFalse()
+
+    emulatorView.zoom(ZoomType.IN)
+    ui.layoutAndDispatchEvents()
+    val call2 = getStreamScreenshotCallAndWaitForFrame(ui, panel, ++frameNumber)
+    assertThat(shortDebugString(call2.request)).isEqualTo("format: RGB888 width: 320 height: 320")
+    assertThat(call1.completion.isCancelled).isTrue() // The previous call has been cancelled.
+    assertThat(call1.completion.isDone).isTrue() // The previous call is no longer active.
+    assertThat(emulatorView.displayRectangle!!.width).isEqualTo(320)
+    assertThat(emulatorView.canZoomIn()).isTrue()
+    assertThat(emulatorView.canZoomOut()).isTrue()
+    assertThat(emulatorView.canZoomToActual()).isFalse()
+    assertThat(emulatorView.canZoomToFit()).isTrue()
+
+    emulatorView.zoom(ZoomType.IN)
+    ui.layoutAndDispatchEvents()
+    assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been cancelled.
+    assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
+    ui.render() // Trigger displayRectangle update.
+    assertThat(emulatorView.displayRectangle!!.width).isEqualTo(640)
+    assertThat(emulatorView.canZoomIn()).isFalse()
+    assertThat(emulatorView.canZoomOut()).isTrue()
+    assertThat(emulatorView.canZoomToActual()).isTrue()
+    assertThat(emulatorView.canZoomToFit()).isTrue()
+
+    panel.size = Dimension(800, 1200)
+    ui.layoutAndDispatchEvents()
+    assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been cancelled.
+    assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
+    ui.render() // Trigger displayRectangle update.
+    assertThat(emulatorView.displayRectangle!!.width).isEqualTo(640)
+    assertThat(emulatorView.canZoomIn()).isFalse()
+    assertThat(emulatorView.canZoomOut()).isTrue()
+    assertThat(emulatorView.canZoomToActual()).isTrue()
+    assertThat(emulatorView.canZoomToFit()).isFalse()
+
+    panel.size = Dimension(1200, 1200)
+    ui.layoutAndDispatchEvents()
+    assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been cancelled.
+    assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
+    ui.render() // Trigger displayRectangle update.
+    assertThat(emulatorView.displayRectangle!!.width).isEqualTo(960)
+    assertThat(emulatorView.canZoomIn()).isFalse()
+    assertThat(emulatorView.canZoomOut()).isTrue()
+    assertThat(emulatorView.canZoomToActual()).isTrue()
+    assertThat(emulatorView.canZoomToFit()).isFalse()
+
+    emulatorView.zoom(ZoomType.OUT)
+    ui.layoutAndDispatchEvents()
+    assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been cancelled.
+    assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
+    ui.render() // Trigger displayRectangle update.
+    assertThat(emulatorView.displayRectangle!!.width).isEqualTo(640)
+    assertThat(emulatorView.canZoomIn()).isTrue()
+    assertThat(emulatorView.canZoomOut()).isTrue()
+    assertThat(emulatorView.canZoomToActual()).isTrue()
+    assertThat(emulatorView.canZoomToFit()).isTrue()
+
+    emulatorView.zoom(ZoomType.ACTUAL)
+    ui.layoutAndDispatchEvents()
+    assertThat(call2.completion.isCancelled).isFalse() // The latest call has not been cancelled.
+    assertThat(call2.completion.isDone).isFalse() // The latest call is still ongoing.
+    ui.render() // Trigger displayRectangle update.
+    assertThat(emulatorView.displayRectangle!!.width).isEqualTo(320)
+    assertThat(emulatorView.canZoomIn()).isTrue()
+    assertThat(emulatorView.canZoomOut()).isFalse()
+    assertThat(emulatorView.canZoomToActual()).isFalse()
+    assertThat(emulatorView.canZoomToFit()).isTrue()
+  }
+
   @Test
   fun testMultipleDisplays() {
     val panel = createWindowPanelForPhone()

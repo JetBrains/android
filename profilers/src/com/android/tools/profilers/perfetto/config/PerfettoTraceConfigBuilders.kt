@@ -25,7 +25,7 @@ object PerfettoTraceConfigBuilders {
   private val taskTrackingFtraceEvents = listOf("task/task_rename", "task/task_newtask")
 
   private val standardAtraceCategories = listOf("gfx", "input", "view", "wm", "am", "sm", "camera", "hal", "res", "pm", "ss", "power",
-                                                "database",
+                                                "database", "dalvik", "audio",
                                                 "binder_driver", "binder_lock")
   private val verboseAtraceCategories = listOf("sched", "freq")
   private val batteryCounters = listOf(PerfettoConfig.AndroidPowerConfig.BatteryCounters.BATTERY_COUNTER_CAPACITY_PERCENT,

@@ -22,6 +22,7 @@ import com.android.tools.perflogger.Benchmark
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuCaptureStage
@@ -82,7 +83,7 @@ open class CpuProfilerMemoryLoadTestBase {
     // One second must be enough for new devices (and processes) to be picked up
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS)
     myTimingBenchmark.log(name, measureTimeMillis {
-    myProfilersView = StudioProfilersView(profilers, myComponents, disposableRule.disposable)
+    myProfilersView = SessionProfilersView(profilers, myComponents, disposableRule.disposable)
       // Setting the stage enters the stage and triggers the parsing of the CpuCapture
       stage.studioProfilers.stage = stage
       cpuCaptureView = CpuCaptureStageView(myProfilersView!!, stage)

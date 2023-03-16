@@ -697,6 +697,13 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> INJECT_DEVICE_SERIAL_ENABLED = Flag.create(
+    GRADLE_IDE, "internal.build.injection.device.serial.number",
+    "For internal use only. Enables injection of device serial from the IDE into Gradle build.",
+    "For internal use only. Enables injection of device serial from the IDE into Gradle build.",
+    false
+  );
+
   public static final Flag<Boolean> FIX_ANDROID_RUN_CONFIGURATIONS_ENABLED = Flag.create(
     GRADLE_IDE, "gradle.run.configuration.fix.enabled",
     "Check Android Run Configurations contains the \"Gradle-aware Make\" task and fix them",
@@ -1045,6 +1052,20 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> SUGGESTED_IMPORTS_WITH_VERSION_CATALOGS_ENABLED = Flag.create(
+    EDITOR, "suggested.imports.with.version.catalogs.enabled",
+    "Enable Suggested Imports with Version Catalogs",
+    "If enabled, allows suggested imports to be shown in projects that are using version catalogs",
+    false
+  );
+
+  public static final Flag<Boolean> ESSENTIAL_HIGHLIGHTING_ACTION_VISIBLE = Flag.create(
+    EDITOR, "essential.highlighting.action.visible",
+    "Show Essential Highlighting action",
+    "If enabled, makes Essential Highlighting action visible",
+    true
+  );
+
   //endregion
 
   //region Unified App Bundle
@@ -1247,6 +1268,13 @@ public final class StudioFlags {
     COMPOSE, "view.filter",
     "Support filter the previews in Compose",
     "If enabled, the user can find the filter actions to filter the visible previews in compose preview",
+    false
+  );
+
+  public static final Flag<Boolean> COMPOSE_ZOOM_CONTROLS_DROPDOWN = Flag.create(
+    COMPOSE, "preview.zoom.controls.dropdown",
+    "Include Zoom Controls in the Compose Preview dropdown action",
+    "If enabled, the zoom controls will also be displayed in the Compose Preview dropdown action, located on the top-left corner",
     false
   );
 
@@ -1667,7 +1695,16 @@ public final class StudioFlags {
     "Process tracking agent polling interval in milliseconds. Changing the value of this flag requires restarting Android Studio.",
     1000
   );
-    // endregion NEW_SEND_FEEDBACK_DIALOG
+  public static final Flag<Boolean> PROCESS_NAME_MONITOR_ADBLIB_ENABLED = Flag.create(
+    PROCESS_NAME_MONITOR, "processnamemonitor.adblib.enable", "Enable Adblib monitor",
+    "Enable the Adblib version of the process name monitor. " +
+    "Note that adblib process tracking can not work concurrently with ddmlib process tracking because only one concurrent JDWP " +
+    "session can be open per process per device. Therefore, this feature is only enabled if the flag " +
+    "ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER is also true. " +
+    "Changing the value of this flag requires restarting Android Studio.",
+    true
+  );
+  // endregion NEW_SEND_FEEDBACK_DIALOG
 
   private StudioFlags() { }
 }

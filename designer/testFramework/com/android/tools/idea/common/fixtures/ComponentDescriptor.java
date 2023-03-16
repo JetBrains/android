@@ -476,7 +476,8 @@ public class ComponentDescriptor {
     int bottom = top + myHeight;
     TagSnapshot snapshot = TagSnapshot.createTagSnapshotWithoutChildren(tag);
 
-    TestViewInfo viewInfo = new TestViewInfo(myViewObjectClassName, snapshot, left, top, right, bottom, myViewObject, myLayoutParamsObject);
+    TestViewInfo viewInfo =
+      new TestViewInfo(myViewObjectClassName, snapshot, left, top, right, bottom, myViewObject, null, myLayoutParamsObject);
     viewInfo.setExtendedInfo((int) (0.8 * (bottom - top)), 0, 0, 0, 0);
     if (myViewType != null) {
       viewInfo.setViewType(myViewType);
@@ -504,8 +505,9 @@ public class ComponentDescriptor {
                          int right,
                          int bottom,
                          @Nullable Object viewObject,
+                         @Nullable Object accessibilityObject,
                          @Nullable Object layoutParamsObject) {
-      super(name, cookie, left, top, right, bottom, viewObject, layoutParamsObject);
+      super(name, cookie, left, top, right, bottom, viewObject, accessibilityObject, layoutParamsObject);
       myViewType = ViewType.USER;
     }
 

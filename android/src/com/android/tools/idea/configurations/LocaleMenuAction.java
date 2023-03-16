@@ -24,6 +24,7 @@ import com.android.tools.idea.editors.strings.StringResourceEditorProvider;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.FlagManager;
 import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.StudioRenderServiceKt;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
@@ -103,7 +104,7 @@ public class LocaleMenuAction extends DropDownAction {
    * Returns whether any of the passed locales is RTL
    */
   private static boolean hasAnyRtlLocales(@NotNull Configuration configuration, @NotNull List<Locale> locales) {
-    LayoutLibrary layoutlib = RenderService.getLayoutLibrary(configuration.getModule(), configuration.getTarget());
+    LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(configuration.getModule(), configuration.getTarget());
     if (layoutlib == null) {
       return false;
     }
@@ -125,7 +126,7 @@ public class LocaleMenuAction extends DropDownAction {
     if (configuration == null) {
       return Collections.emptyList();
     }
-    Module module = configuration.getConfigurationManager().getModule();
+    ConfigurationModelModule module = configuration.getConfigurationManager().getConfigModule();
     LocaleQualifier specificLocale = configuration.getEditedConfig().getLocaleQualifier();
 
     // If the layout exists in a non-locale specific folder, then offer all locales, since
@@ -143,7 +144,7 @@ public class LocaleMenuAction extends DropDownAction {
       }
     }
 
-    LocalResourceRepository projectResources = StudioResourceRepositoryManager.getProjectResources(module);
+    LocalResourceRepository projectResources = module.getResourceRepositoryManager().getProjectResources();
     Set<LocaleQualifier> languages = projectResources != null ? ResourceRepositoryUtil.getLocales(projectResources) : Collections.emptySet();
     for (LocaleQualifier l : languages) {
       if (specificLocale != null && !specificLocale.isMatchFor(l)) {

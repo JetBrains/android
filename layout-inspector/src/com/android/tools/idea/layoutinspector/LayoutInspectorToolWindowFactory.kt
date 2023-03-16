@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessListener
@@ -50,6 +51,10 @@ fun dataProviderForLayoutInspector(layoutInspector: LayoutInspector, deviceViewP
  * ToolWindowFactory: For creating a layout inspector tool window for the project.
  */
 class LayoutInspectorToolWindowFactory : ToolWindowFactory {
+
+  override fun isApplicable(project: Project): Boolean {
+    return !StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
+  }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val disposable = toolWindow.disposable

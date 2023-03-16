@@ -21,6 +21,7 @@
     <projectService serviceImplementation="com.android.tools.idea.editors.layeredimage.LayersManager" />
     <externalAnnotator language="XML" implementationClass="com.android.tools.idea.uibuilder.lint.AtfIssueExternalAnnotator"/>
     <externalAnnotator language="XML" implementationClass="com.android.tools.idea.uibuilder.lint.VisualLintIssueExternalAnnotator"/>
+    <troubleInfoCollector implementation="com.android.tools.idea.uibuilder.troubleshooting.DesignToolsTroubleInfoCollector" />
   </extensions>
 
   <!-- Extension points -->
@@ -30,6 +31,8 @@
                     interface="com.android.tools.idea.uibuilder.handlers.ViewHandlerProvider" />
     <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.editorNotificationProvider"
                     interface="com.intellij.ui.EditorNotifications$Provider" />
+    <extensionPoint qualifiedName="com.android.tools.idea.uibuilder.troubleshooting.infoCollector"
+                    interface="com.intellij.troubleshooting.TroubleInfoCollector"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
@@ -128,7 +131,7 @@
     <!-- Layout Editor specific actions -->
     <group id="Android.Designer.LayoutEditorActions" text="Layout Editor">
       <action id="Android.Designer.SwitchLayoutQualifier"
-              class="com.android.tools.idea.uibuilder.editor.LayoutQualifierDropdownMenu"
+              class="com.android.tools.idea.uibuilder.actions.LayoutQualifierDropdownMenu"
               text="Switch Layout Qualifier"
               description="Switch or create the new qualifier for current layout">
       </action>
@@ -215,6 +218,10 @@
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">
+    <notificationGroup displayType="BALLOON" id="Motion Editor" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.intellij">
     <globalInspection projectType="Android" hasStaticDescription="true" displayName="Bounds" shortName="Bounds" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.BoundsAnalyzerInspection"/>
@@ -245,5 +252,14 @@
     <globalInspection projectType="Android" hasStaticDescription="true" displayName="Wear margins" shortName="WearMargin" groupPath="Android,Lint"
                       groupName="Screen sizes" enabledByDefault="true" level="WARNING"
                       implementationClass="com.android.tools.idea.uibuilder.visual.visuallint.analyzers.WearMarginAnalyzerInspection"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.uibuilder.troubleshooting">
+    <infoCollector implementation="com.android.tools.idea.common.surface.DesignSurfaceTroubleInfoCollector" />
+    <infoCollector implementation="com.android.tools.idea.common.error.IssuePanelServiceTroubleInfoCollector" />
+  </extensions>
+
+  <extensions defaultExtensionNs="com.android.tools.idea.diagnostics.report">
+    <logsProvider implementation="com.android.tools.idea.uibuilder.troubleshooting.DesignToolsDiagnosticsSummaryFileProvider" />
   </extensions>
 </idea-plugin>

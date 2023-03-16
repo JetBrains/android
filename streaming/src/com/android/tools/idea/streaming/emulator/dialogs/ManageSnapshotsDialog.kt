@@ -21,7 +21,7 @@ import com.android.emulator.control.SnapshotPackage
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.ui.ImagePanel
 import com.android.tools.adtui.util.getHumanizedSize
-import com.android.tools.idea.concurrency.AndroidIoManager
+import com.android.tools.concurrency.AndroidIoManager
 import com.android.tools.idea.concurrency.getDoneOrNull
 import com.android.tools.idea.streaming.EmulatorSettings
 import com.android.tools.idea.streaming.EmulatorSettings.SnapshotAutoDeletionPolicy

@@ -17,7 +17,6 @@ package com.android.tools.idea.run.configuration.execution
 
 import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.DeviceFutures
-import com.android.tools.idea.run.tasks.LaunchTasksProvider
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.ExecutionResult
 import com.intellij.execution.Executor

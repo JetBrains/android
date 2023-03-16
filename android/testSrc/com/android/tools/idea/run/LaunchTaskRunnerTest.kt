@@ -15,21 +15,22 @@
  */
 package com.android.tools.idea.run
 
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.DeviceImpl
+import com.android.ddmlib.internal.FakeAdbTestRule
+import com.android.testutils.MockitoCleanerRule
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
+import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects
 import com.android.tools.idea.project.AndroidRunConfigurations
 import com.android.tools.idea.run.activity.launch.EmptyTestConsoleView
-import com.android.tools.idea.run.tasks.ConnectDebuggerTask
-import com.android.tools.idea.run.tasks.LaunchContext
-import com.android.tools.idea.run.tasks.LaunchTask
-import com.android.tools.idea.run.tasks.LaunchTasksProvider
 import com.android.tools.idea.run.util.SwapInfo
-import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.flags.override
 import com.android.tools.idea.testing.gradleModule
 import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
@@ -43,17 +44,19 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder
 import com.intellij.execution.runners.showRunContent
-import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.execution.ui.RunContentManager
+import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
-import com.intellij.xdebugger.impl.XDebugSessionImpl
+import com.intellij.util.ui.UIUtil
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlin.test.fail
 
 
@@ -65,10 +68,13 @@ class LaunchTaskRunnerTest {
   @get:Rule
   val projectRule = AndroidProjectRule.testProject(LightGradleSyncTestProjects.SIMPLE_APPLICATION)
 
-  private var mockRunStats = mock(RunStats::class.java)
-  private var consoleProvider: ConsoleProvider = ConsoleProvider { _, _, _ -> EmptyTestConsoleView() }
-  private val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
+  @get:Rule
+  val fakeAdb = FakeAdbTestRule()
 
+  @get:Rule
+  val cleaner = MockitoCleanerRule()
+
+  private val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
 
   @Before
   fun setUp() {
@@ -76,55 +82,82 @@ class LaunchTaskRunnerTest {
     AndroidRunConfigurations.instance.createRunConfiguration(androidFacet!!)
   }
 
+  @After
+  fun after() {
+    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
+
+    AndroidDebugBridge.getBridge()!!.devices.forEach {
+      fakeAdb.server.disconnectDevice(it.serialNumber)
+    }
+  }
+
   @Test
   fun runSucceeded() {
-    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
+    val deviceState = fakeAdb.connectAndWaitForDevice()
+    val latch = CountDownLatch(1)
+    deviceState.setActivityManager { args, _ ->
+      if (args.joinToString(
+          " ") == "start -n \"applicationId/MainActivity\" -a android.intent.action.MAIN -c android.intent.category.LAUNCHER") {
+        deviceState.startClient(1234, 1235, "applicationId", false)
+        latch.countDown()
+      }
+    }
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
     val deviceFutures = DeviceFutures.forDevices(listOf(device))
 
     val env = getExecutionEnvironment(listOf(device))
-    val launchTaskProvider = getLaunchTaskProvider()
+    (env.runProfile as AndroidRunConfiguration).setLaunchActivity("MainActivity")
     val runner = LaunchTaskRunner(
-      consoleProvider,
       FakeApplicationIdProvider(),
       env,
-      deviceFutures,
-      launchTaskProvider
-    )
+      deviceFutures
+    ) { emptyList<ApkInfo>() }
 
     val runContentDescriptor = runner.run(EmptyProgressIndicator())
     val processHandler = runContentDescriptor.processHandler!!
-
-
+    processHandler.startNotify()
     assertThat(processHandler).isInstanceOf(AndroidProcessHandler::class.java)
     assertThat((processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo("applicationId")
     assertThat(processHandler.autoTerminate).isEqualTo(true)
     assertThat(processHandler.isAssociated(device)).isEqualTo(true)
 
-    verify(mockRunStats).endLaunchTasks()
-    // TODO: 264666049
-    processHandler.startNotify()
-    processHandler.destroyProcess()
-    processHandler.waitFor()
+    if (!latch.await(10, TimeUnit.SECONDS)) {
+      fail("Activity is not started")
+    }
+    deviceState.stopClient(1234)
+    if (!processHandler.waitFor(5000)) {
+      fail("Process handler didn't stop when debug process terminated")
+    }
   }
 
   @Test
   fun debugSucceeded() {
-    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
-    val deviceFutures = DeviceFutures.forDevices(listOf(device))
+    //TODO: write handler in fakeAdb for "am capabilities --protobuf"
+    StudioFlags.DEBUG_ATTEMPT_SUSPENDED_START.override(false, projectRule.testRootDisposable)
 
+    val deviceState = fakeAdb.connectAndWaitForDevice()
+    deviceState.setActivityManager { args, output ->
+      val command = args.joinToString(" ")
+      if (command == "start -n \"applicationId/MainActivity\" -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -D") {
+        deviceState.startClient(1234, 1235, "applicationId", true)
+      }
+    }
+    val device = AndroidDebugBridge.getBridge()!!.devices.single()
+    val deviceFutures = DeviceFutures.forDevices(listOf(device))
     val env = getExecutionEnvironment(listOf(device), isDebug = true)
-    val launchTaskProvider = getLaunchTaskProvider(isDebug = true)
+    (env.runProfile as AndroidRunConfiguration).setLaunchActivity("MainActivity")
     val runner = LaunchTaskRunner(
-      consoleProvider,
       FakeApplicationIdProvider(),
       env,
-      deviceFutures,
-      launchTaskProvider
-    )
+      deviceFutures
+    ) { emptyList<ApkInfo>() }
 
-    runner.debug(EmptyProgressIndicator())
-
-    verify(mockRunStats).endLaunchTasks()
+    val processHandler = (runner.debug(EmptyProgressIndicator()).processHandler as AndroidRemoteDebugProcessHandler)
+    assertThat(!processHandler.isProcessTerminating || !processHandler.isProcessTerminated)
+    deviceState.stopClient(1234)
+    if (!processHandler.waitFor(5000)) {
+      fail("Process handler didn't stop when debug process terminated")
+    }
   }
 
   @Test
@@ -134,14 +167,11 @@ class LaunchTaskRunnerTest {
     val runningProcessHandler = setSwapInfo(env)
     runningProcessHandler.addTargetDevice(device)
 
-    val launchTaskProvider = getLaunchTaskProvider()
     val runner = LaunchTaskRunner(
-      consoleProvider,
       FakeApplicationIdProvider(),
       env,
-      deviceFutures,
-      launchTaskProvider
-    )
+      deviceFutures
+    ) { emptyList<ApkInfo>() }
 
     val runContentDescriptor = runner.applyChanges(EmptyProgressIndicator())
     val processHandler = runContentDescriptor.processHandler
@@ -152,12 +182,6 @@ class LaunchTaskRunnerTest {
     assertThat(processHandler.isAssociated(device)).isEqualTo(true)
     assertThat(processHandler.isProcessTerminated).isEqualTo(false)
     assertThat(processHandler.isProcessTerminating).isEqualTo(false)
-
-    verify(mockRunStats).endLaunchTasks()
-
-    // TODO: 264666049
-    processHandler.destroyProcess()
-    processHandler.waitFor()
   }
 
   @Test
@@ -166,12 +190,10 @@ class LaunchTaskRunnerTest {
     val deviceFutures = DeviceFutures.forDevices(listOf(device))
     val env = getExecutionEnvironment(listOf(device))
     val runner = LaunchTaskRunner(
-      consoleProvider,
       FakeApplicationIdProvider(),
       env,
-      deviceFutures,
-      getFailingLaunchTaskProvider()
-    )
+      deviceFutures)
+    { throw ExecutionException("Exception") }
 
     try {
       runner.run(EmptyProgressIndicator())
@@ -180,7 +202,6 @@ class LaunchTaskRunnerTest {
     catch (_: ExecutionException) {
 
     }
-    verify(mockRunStats).endLaunchTasks()
   }
 
   @Test
@@ -190,13 +211,7 @@ class LaunchTaskRunnerTest {
     val env = getExecutionEnvironment(listOf(device))
     val runningProcessHandler = setSwapInfo(env)
     runningProcessHandler.addTargetDevice(device)
-    val runner = LaunchTaskRunner(
-      consoleProvider,
-      FakeApplicationIdProvider(),
-      env,
-      deviceFutures,
-      getFailingLaunchTaskProvider()
-    )
+    val runner = LaunchTaskRunner(FakeApplicationIdProvider(), env, deviceFutures) { throw ExecutionException("Exception") }
 
     try {
       runner.applyChanges(EmptyProgressIndicator())
@@ -208,12 +223,6 @@ class LaunchTaskRunnerTest {
     assertThat(runningProcessHandler.isAssociated(device)).isEqualTo(true)
     assertThat(runningProcessHandler.isProcessTerminated).isEqualTo(false)
     assertThat(runningProcessHandler.isProcessTerminating).isEqualTo(false)
-
-    verify(mockRunStats).endLaunchTasks()
-
-    // TODO: 264666049
-    runningProcessHandler.destroyProcess()
-    runningProcessHandler.waitFor()
   }
 
 
@@ -237,45 +246,7 @@ class LaunchTaskRunnerTest {
         override fun getRunningDevices() = devices
       })
       .build()
-    executionEnvironment.putUserData(RunStats.KEY, mockRunStats)
     return executionEnvironment
-  }
-
-  private fun getLaunchTaskProvider(isDebug: Boolean = false) = object : LaunchTasksProvider {
-    override fun getTasks(device: IDevice) = listOf(object : LaunchTask {
-      override fun getDescription() = "TestTask"
-      override fun getDuration() = 0
-      override fun run(launchContext: LaunchContext) {
-        return
-      }
-
-      override fun getId() = "ID"
-    })
-
-    override fun getConnectDebuggerTask(): ConnectDebuggerTask? {
-      if (isDebug) {
-        return ConnectDebuggerTask { _, _, _, _, _ ->
-          val xDebugSessionImpl = mock(XDebugSessionImpl::class.java)
-          whenever(xDebugSessionImpl.runContentDescriptor).thenReturn(mock(RunContentDescriptor::class.java))
-          xDebugSessionImpl
-        }
-      }
-      return null
-    }
-  }
-
-
-  private fun getFailingLaunchTaskProvider(): LaunchTasksProvider {
-    return object : LaunchTasksProvider {
-      override fun getTasks(device: IDevice) = listOf(object : LaunchTask {
-        override fun getDescription() = "TestTask"
-        override fun getDuration() = 0
-        override fun run(launchContext: LaunchContext) = throw ExecutionException("error")
-        override fun getId() = "ID"
-      })
-
-      override fun getConnectDebuggerTask() = null
-    }
   }
 
   private fun setSwapInfo(env: ExecutionEnvironment): AndroidProcessHandler {

@@ -37,8 +37,8 @@ import org.jetbrains.org.objectweb.asm.Type;
 
 import java.util.*;
 
-import static com.android.tools.idea.LogAnonymizerUtil.anonymizeClassName;
-import static com.android.tools.idea.LogAnonymizerUtil.isPublicClass;
+import static com.android.tools.idea.log.LogAnonymizerUtil.anonymizeClassName;
+import static com.android.tools.idea.log.LogAnonymizerUtil.isPublicClass;
 import static org.jetbrains.org.objectweb.asm.Opcodes.*;
 
 /**

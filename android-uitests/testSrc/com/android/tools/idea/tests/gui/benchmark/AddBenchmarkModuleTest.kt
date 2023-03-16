@@ -21,11 +21,14 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
+import com.android.tools.idea.tests.gui.kotlin.JavaToKotlinConversionTest
+import com.android.tools.idea.tests.util.WizardUtils
 import com.android.tools.idea.wizard.template.Language.Java
 import com.android.tools.idea.wizard.template.Language.Kotlin
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
 import org.fest.swing.timing.Wait
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -39,6 +42,16 @@ class AddBenchmarkModuleTest {
   @get:Rule
   val flagRule = FlagRule(StudioFlags.NPW_NEW_MACRO_BENCHMARK_MODULE, true)
 
+  @Before
+  @Throws(java.lang.Exception::class)
+  fun setUp() {
+    val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
+    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
+
+    //Clearing notifications present on the screen.
+    ideFrame.clearNotificationsPresentOnIdeFrame()
+    guiTest.waitForAllBackgroundTasksToBeCompleted()
+  }
   /**
    * Verifies that user is able to add a Benchmark Module through the
    * new module wizard.
@@ -64,9 +77,6 @@ class AddBenchmarkModuleTest {
   @Test
   @Throws(Exception::class)
   fun addJavaMicrobenchmarkModule() {
-    val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
-    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
-
     NewModuleWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "New Module\u2026"))
       .clickNextToBenchmarkModule()
       .selectBenchmarkType(BenchmarkModuleType.MICROBENCHMARK)
@@ -113,7 +123,6 @@ class AddBenchmarkModuleTest {
   @Test
   @Throws(Exception::class)
   fun addKotlinMicrobenchmarkModule() {
-    val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
     NewModuleWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "New Module\u2026"))
       .clickNextToBenchmarkModule()
       .selectBenchmarkType(BenchmarkModuleType.MICROBENCHMARK)
@@ -161,10 +170,6 @@ class AddBenchmarkModuleTest {
   @Test
   @Throws(Exception::class)
   fun addJavaMacrobenchmarkModule() {
-    val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
-    guiTest.robot().waitForIdle()
-    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
-
     NewModuleWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "New Module\u2026"))
       .clickNextToBenchmarkModule()
       .selectBenchmarkType(BenchmarkModuleType.MACROBENCHMARK)
@@ -211,10 +216,6 @@ class AddBenchmarkModuleTest {
   @Test
   @Throws(Exception::class)
   fun addKotlinMacrobenchmarkModule() {
-    val ideFrame = guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleAndroidxApplication")
-    guiTest.robot().waitForIdle()
-    assertThat(guiTest.ideFrame().invokeProjectMake().isBuildSuccessful).isTrue()
-
     NewModuleWizardFixture.find(guiTest.ideFrame().invokeMenuPath("File", "New", "New Module\u2026"))
       .clickNextToBenchmarkModule()
       .selectBenchmarkType(BenchmarkModuleType.MACROBENCHMARK)

@@ -17,6 +17,7 @@ package com.android.tools.idea.imports
 
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.support.AndroidxNameUtils
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.DependencyType
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
@@ -245,7 +246,9 @@ class AndroidMavenImportIntentionAction : PsiElementBaseIntentionAction() {
 
   override fun isAvailable(project: Project, editor: Editor?, element: PsiElement): Boolean {
     val module = ModuleUtil.findModuleForPsiElement(element) ?: return false
-    if (!module.getModuleSystem().canRegisterDependency().isSupported()) return false
+    val moduleSystem = module.getModuleSystem()
+    if (!moduleSystem.canRegisterDependency().isSupported() ||
+        (moduleSystem.usesVersionCatalogs && !StudioFlags.SUGGESTED_IMPORTS_WITH_VERSION_CATALOGS_ENABLED.get())) return false
 
     val resolvable = findResolvable(element, editor?.caretModel?.offset ?: -1) { text ->
       Resolvable.createNewOrNull(text, findLibraryData(project, text))

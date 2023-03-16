@@ -22,9 +22,6 @@
     <projectService serviceInterface="com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker"
                     serviceImplementation="com.android.tools.idea.projectsystem.gradle.RefreshOnlyAutoImportProjectTracker"
                     overrides="true"/>
-    <projectService serviceInterface="com.intellij.openapi.roots.LanguageLevelProjectExtension"
-                    serviceImplementation="com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidLanguageLevelProjectExtensionImpl"
-                    overrides="true"/>
     <actionConfigurationCustomizer id="Startup.GradleSpecificActionCustomizer" order="after Startup.AndroidStudioActionCustomizer" implementation="com.android.tools.idea.startup.GradleSpecificActionCustomizer" />
     <actionConfigurationCustomizer id="Startup.GradleSpecificInitializer" order="after Startup.AndroidStudioInitializer" implementation="com.android.tools.idea.startup.GradleSpecificInitializer" />
     <directoryProjectConfigurator
@@ -35,6 +32,7 @@
   </extensions>
   <actions>
     <action id="WelcomeScreen.Configure.ProjectStructure" class="com.android.tools.idea.gradle.actions.AndroidTemplateProjectStructureAction" overrides="true" />
+    <action id="ChangeGradleJdkLocation" class="com.android.tools.idea.gradle.actions.ChangeGradleJdkLocationAction"/>
     <action id="GenerateSourcesModuleAction" class="com.android.tools.idea.gradle.actions.GenerateSourcesModuleAction">
       <add-to-group group-id="BuildMenu" anchor="after" relative-to-action="MakeGradleModule" />
     </action>

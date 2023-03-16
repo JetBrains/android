@@ -138,7 +138,7 @@ class TaskDetailsPageTest {
     val taskData = mockTask(":module1", "task1", "myPlugin", 100, criticalPathDurationMs = 1000).apply {
       onLogicalCriticalPath = false
       onExtendedCriticalPath = true
-      sourceType = PluginSourceType.BUILD_SRC
+      sourceType = PluginSourceType.BUILD_SCRIPT
       issues = listOf(
         TaskIssueUiDataContainer.AlwaysRunNoOutputIssue(this),
         TaskIssueUiDataContainer.AlwaysRunUpToDateOverride(this),

@@ -130,27 +130,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
       @NonNull
       @Override
       public Comparator<Device> getComparator() {
-        return (o1, o2) -> {
-          String name1 = valueOf(o1);
-          String name2 = valueOf(o2);
-          if (name1 == name2) {
-            return 0;
-          }
-          if (name1.isEmpty() || name2.isEmpty()) {
-            return -1;
-          }
-          char firstChar1 = name1.charAt(0);
-          char firstChar2 = name2.charAt(0);
-          // Prefer letters to anything else
-          if (Character.isLetter(firstChar1) && !Character.isLetter(firstChar2)) {
-            return 1;
-          }
-          else if (Character.isLetter(firstChar2) && !Character.isLetter(firstChar1)) {
-            return -1;
-          }
-          // Fall back to string comparison
-          return name1.compareTo(name2);
-        };
+        return new NameComparator();
       }
     }, new PlayStoreColumnInfo("Play Store") {
     }, new DeviceColumnInfo("Size") {

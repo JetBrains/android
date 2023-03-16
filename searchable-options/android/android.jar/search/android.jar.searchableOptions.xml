@@ -101,8 +101,18 @@
     <option name="build" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
     <option name="bundle" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
     <option name="s" path="ActionManager" hit="Build Bundle(s) / APK(s)" />
+    <option name="build" path="ActionManager" hit="Build Entire Project" />
+    <option name="entire" path="ActionManager" hit="Build Entire Project" />
+    <option name="project" path="ActionManager" hit="Build Entire Project" />
+    <option name="build" path="ActionManager" hit="Build selected modules" />
+    <option name="modules" path="ActionManager" hit="Build selected modules" />
+    <option name="selected" path="ActionManager" hit="Build selected modules" />
     <option name="button" path="ActionManager" hit="Button 1" />
     <option name="button" path="ActionManager" hit="Button 2" />
+    <option name="change" path="ActionManager" hit="Change Gradle JDK Location" />
+    <option name="gradle" path="ActionManager" hit="Change Gradle JDK Location" />
+    <option name="jdk" path="ActionManager" hit="Change Gradle JDK Location" />
+    <option name="location" path="ActionManager" hit="Change Gradle JDK Location" />
     <option name="a" path="ActionManager" hit="Change display size to match a typical foldable" />
     <option name="change" path="ActionManager" hit="Change display size to match a typical foldable" />
     <option name="display" path="ActionManager" hit="Change display size to match a typical foldable" />
@@ -385,6 +395,24 @@
     <option name="namespaces" path="ActionManager" hit="Migrates to resource namespaces" />
     <option name="resource" path="ActionManager" hit="Migrates to resource namespaces" />
     <option name="to" path="ActionManager" hit="Migrates to resource namespaces" />
+    <option name="and" path="ActionManager" hit="Modify the Gradle JDK location for the current project and selected Gradle root. This JDK will be used to trigger Gradle sync" />
+    <option name="be" path="ActionManager" hit="Modify the Gradle JDK location for the current project and selected Gradle root. This JDK will be used to trigger Gradle sync" />
+    <option name="current" path="ActionManager" hit="Modify the Gradle JDK location for the current project and selected Gradle root. This JDK will be used to trigger Gradle sync" />
+    <option name="for" path="ActionManager" hit="Modify the Gradle JDK location for the current project and selected Gradle root. This JDK will be used to trigger Gradle sync" />
+    <option name="gradle" path="ActionManager" hit="Modify the Gradle JDK location for the current project and selected Gradle root. This JDK will be used to trigger Gradle sync" />
+    <option name="jdk" path="ActionManager" hit="Modify the Gradle JDK location for the current project and selected Gradle root. This JDK will be used to trigger Gradle sync" />
+    <option name="location" path="ActionManager" hit="Modify the Gradle JDK location for the current project and selected Gradle root. This JDK will be used to trigger Gradle sync" />
+    <option name="modify" path="ActionManager" hit="Modify the Gradle JDK location for the current project and selected Gradle root. This JDK will be used to trigger Gradle sync" />
+    <option name="project" path="ActionManager" hit="Modify the Gradle JDK location for the current project and selected Gradle root. This JDK will be used to trigger Gradle sync" />
+    <option name="root" path="ActionManager" hit="Modify the Gradle JDK location for the current project and selected Gradle root. This JDK will be used to trigger Gradle sync" />
+    <option name="selected" path="ActionManager" hit="Modify the Gradle JDK location for the current project and selected Gradle root. This JDK will be used to trigger Gradle sync" />
+    <option name="sync" path="ActionManager" hit="Modify the Gradle JDK location for the current project and selected Gradle root. This JDK will be used to trigger Gradle sync" />
+    <option name="the" path="ActionManager" hit="Modify the Gradle JDK location for the current project and selected Gradle root. This JDK will be used to trigger Gradle sync" />
+    <option name="this" path="ActionManager" hit="Modify the Gradle JDK location for the current project and selected Gradle root. This JDK will be used to trigger Gradle sync" />
+    <option name="to" path="ActionManager" hit="Modify the Gradle JDK location for the current project and selected Gradle root. This JDK will be used to trigger Gradle sync" />
+    <option name="trigger" path="ActionManager" hit="Modify the Gradle JDK location for the current project and selected Gradle root. This JDK will be used to trigger Gradle sync" />
+    <option name="used" path="ActionManager" hit="Modify the Gradle JDK location for the current project and selected Gradle root. This JDK will be used to trigger Gradle sync" />
+    <option name="will" path="ActionManager" hit="Modify the Gradle JDK location for the current project and selected Gradle root. This JDK will be used to trigger Gradle sync" />
     <option name="modularize" path="ActionManager" hit="Modularize..." />
     <option name="module" path="ActionManager" hit="Module" />
     <option name="and" path="ActionManager" hit="Moves classes and their associated resources to another module" />
@@ -1475,6 +1503,16 @@
     <option name="settings" hit=" Note: These settings are for features that are considered experimental." />
     <option name="that" hit=" Note: These settings are for features that are considered experimental." />
     <option name="these" hit=" Note: These settings are for features that are considered experimental." />
+    <option name="all" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
+    <option name="can" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
+    <option name="configure" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
+    <option name="during" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
+    <option name="gradle" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
+    <option name="make" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
+    <option name="slower" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
+    <option name="sync" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
+    <option name="tasks" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
+    <option name="this" hit="Configure all Gradle tasks during Gradle Sync (this can make Gradle Sync slower)" />
     <option name="default" hit="Default profile" />
     <option name="profile" hit="Default profile" />
     <option name="enable" hit="Enable @Preview picker" />
@@ -1490,18 +1528,6 @@
     <option name="jetpack" hit="Jetpack Compose" />
     <option name="editor" hit="Layout Editor" />
     <option name="layout" hit="Layout Editor" />
-    <option name="during" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="generated" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="gradle" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="in" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="include" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="list" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="only" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="sync" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="task" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="tasks" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="test" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
-    <option name="the" hit="Only include test tasks in the Gradle task list generated during Gradle Sync" />
     <option name="api" hit="Optimize build for target device API level only" />
     <option name="build" hit="Optimize build for target device API level only" />
     <option name="device" hit="Optimize build for target device API level only" />

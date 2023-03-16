@@ -201,16 +201,6 @@ private const val NO_DEVICE_SPEC = ""
 private fun Device.hasRoundFrame(): Boolean =
   allStates.any { it.hardware.screen.screenRound == ScreenRound.ROUND }
 
-/** Returns the same device without any round screen frames. */
-private fun Device.withoutRoundScreenFrame(): Device =
-  if (hasRoundFrame()) {
-    Device.Builder(this).build().also { newDevice ->
-      newDevice.allStates
-        .filter { it.hardware.screen.screenRound == ScreenRound.ROUND }
-        .onEach { it.hardware.screen.screenRound = ScreenRound.NOTROUND }
-    }
-  } else this
-
 /**
  * Applies the [PreviewConfiguration] to the given [Configuration].
  *
@@ -241,13 +231,13 @@ private fun PreviewConfiguration.applyTo(
   renderConfiguration.startBulkEditing()
   if (apiLevel != UNDEFINED_API_LEVEL) {
     highestApiTarget(renderConfiguration)?.let {
-      updateRenderConfigurationTargetIfChanged(CompatibilityRenderTarget(it, apiLevel, null))
+      updateRenderConfigurationTargetIfChanged(CompatibilityRenderTarget(it, apiLevel, it))
     }
   } else {
     // Use the highest available one when not defined.
     highestApiTarget(renderConfiguration)?.let {
       updateRenderConfigurationTargetIfChanged(
-        CompatibilityRenderTarget(it, it.version.apiLevel, null)
+        CompatibilityRenderTarget(it, it.version.apiLevel, it)
       )
     }
   }

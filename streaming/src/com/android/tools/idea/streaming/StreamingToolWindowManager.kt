@@ -23,7 +23,7 @@ import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.sdklib.deviceprovisioner.pairWithNestedState
+import com.android.sdklib.deviceprovisioner.mapStateNotNull
 import com.android.tools.idea.avdmanager.AvdLaunchListener
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.addCallback
@@ -73,7 +73,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 import java.awt.EventQueue
 import java.text.Collator
@@ -567,7 +566,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       }
     }
     else {
-      physicalDeviceWatcher?.dispose()
+      physicalDeviceWatcher?.let { Disposer.dispose(it) }
       physicalDeviceWatcher = null
       removeAllPhysicalDevicePanels()
     }
@@ -745,9 +744,13 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 private class ConnectedDevice(val handle: DeviceHandle, val state: DeviceState.Connected)
 
 private fun DeviceProvisioner.mirrorableDevicesBySerialNumber(): Flow<Map<String, ConnectedDevice>> {
-  return connectedDevices().map { pairs ->
-    pairs.filter { it.second.isMirrorable() }.associateBy({ it.second.serialNumber }) { ConnectedDevice(it.first, it.second) }
+  return connectedDevices().map { connectedDevices ->
+    connectedDevices.filter { it.state.isMirrorable() }.associateBy { it.state.serialNumber }
   }
+}
+
+private fun DeviceProvisioner.connectedDevices(): Flow<List<ConnectedDevice>> {
+  return mapStateNotNull { handle, state -> (state as? DeviceState.Connected)?.let { ConnectedDevice(handle, it) } }
 }
 
 private suspend fun DeviceState.Connected.isMirrorable(): Boolean {
@@ -770,13 +773,6 @@ private suspend fun DeviceState.Connected.isMirrorable(): Boolean {
   val apiLevel = properties.androidVersion?.apiLevel ?: SdkVersionInfo.HIGHEST_KNOWN_STABLE_API
   // Mirroring is supported for API >= 26. Wear OS devices with API < 30 don't support VP8/VP9 video encoders.
   return apiLevel >= 26 && (properties.deviceType != DeviceType.WEAR || apiLevel >= 30) && properties.abi != null
-}
-
-// TODO: Simplify this code when DeviceProvisioner provides a friendlier API.
-private fun DeviceProvisioner.connectedDevices(): Flow<List<Pair<DeviceHandle, DeviceState.Connected>>> {
-  return devices.pairWithNestedState { deviceHandle -> deviceHandle.stateFlow }.transform {
-    emit(it.mapNotNull { pair -> (pair.second as? DeviceState.Connected)?.let { Pair(pair.first, it) } })
-  }
 }
 
 private val DeviceState.Connected.serialNumber: String

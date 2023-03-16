@@ -25,6 +25,7 @@ import com.android.tools.perflib.vmtrace.ClockType
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CaptureNode
@@ -136,7 +137,7 @@ class CaptureDetailsTest {
     val profilers = object: StudioProfilers(ProfilerClient(grpcServer.channel), FakeIdeProfilerServices()) {
       override fun update(elapsedNs: Long) {}
     }
-    return StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
+    return SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
   }
 
   private fun<A> withTestData(test: (Range, List<CaptureNode>, CpuCapture) -> A): A {

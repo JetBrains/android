@@ -113,7 +113,8 @@ class DynamicFeatureInstantAppTest  {
       androidFacet,
       project.applicationIdProvider,
       project.apkProvider,
-      launchOptionsBuilder.build()
+      launchOptionsBuilder.build(),
+      false
     )
 
     val launchTasks = launchTaskProvider.getTasks(device)
@@ -146,7 +147,8 @@ class DynamicFeatureInstantAppTest  {
       androidFacet,
       project.applicationIdProvider,
       project.apkProvider,
-      launchOptionsBuilder.build()
+      launchOptionsBuilder.build(),
+      false
     )
 
     val launchTasks = launchTaskProvider.getTasks(device)
@@ -174,7 +176,8 @@ class DynamicFeatureInstantAppTest  {
       androidFacet,
       project.applicationIdProvider,
       project.apkProvider,
-      launchOptionsBuilder.build()
+      launchOptionsBuilder.build(),
+      false
     )
 
     val launchTasks = launchTaskProvider.getTasks(device)

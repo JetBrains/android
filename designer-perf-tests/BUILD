@@ -74,6 +74,7 @@ iml_module(
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/preview-designer:intellij.android.preview-designer[module, test]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
     ],
 )
 

@@ -49,13 +49,13 @@ public class ExtendedReportStatistics {
 
     int componentIndex = 0;
     for (ComponentsSet.Component component : config.getComponentsSet().getComponents()) {
-      componentHistograms.add(new ClassNameHistogram());
+      componentHistograms.add(new ClassNameHistogram(ClassNameHistogram.ClusterType.COMPONENT));
       assert component.getId() == componentIndex;
       componentIndex++;
     }
     int componentCategoryIndex = 0;
     for (ComponentsSet.ComponentCategory componentCategory : config.getComponentsSet().getComponentsCategories()) {
-      categoryHistograms.add(new ClassNameHistogram());
+      categoryHistograms.add(new ClassNameHistogram(ClassNameHistogram.ClusterType.CATEGORY));
       assert componentCategory.getId() == componentCategoryIndex;
       componentCategoryIndex++;
     }
@@ -63,20 +63,25 @@ public class ExtendedReportStatistics {
 
   void addClassNameToComponentOwnedHistogram(@NotNull final ComponentsSet.Component component,
                                              @NotNull final String className,
-                                             long size) {
-    componentHistograms.get(component.getId()).addObjectClassName(className, size);
+                                             long size,
+                                             boolean isRoot) {
+    componentHistograms.get(component.getId()).addObjectClassName(className, size, isRoot);
   }
 
   void addClassNameToCategoryOwnedHistogram(@NotNull final ComponentsSet.ComponentCategory componentCategory,
-                                            @NotNull final String className, long size) {
-    categoryHistograms.get(componentCategory.getId()).addObjectClassName(className, size);
+                                            @NotNull final String className,
+                                            long size,
+                                            boolean isRoot) {
+    categoryHistograms.get(componentCategory.getId()).addObjectClassName(className, size, isRoot);
   }
 
   public void addClassNameToSharedClusterHistogram(@NotNull final HeapSnapshotStatistics.SharedClusterStatistics sharedClusterStatistics,
                                                    @NotNull String className,
-                                                   long size) {
-    sharedClustersHistograms.putIfAbsent(sharedClusterStatistics.componentsMask, new ClassNameHistogram());
-    sharedClustersHistograms.get(sharedClusterStatistics.componentsMask).addObjectClassName(className, size);
+                                                   long size,
+                                                   boolean isMergePoint) {
+    sharedClustersHistograms.putIfAbsent(sharedClusterStatistics.componentsMask,
+                                         new ClassNameHistogram(ClassNameHistogram.ClusterType.SHARED_CLUSTER));
+    sharedClustersHistograms.get(sharedClusterStatistics.componentsMask).addObjectClassName(className, size, isMergePoint);
   }
 
   public void logCategoryHistogram(@NotNull Consumer<String> writer, @NotNull final ComponentsSet.ComponentCategory componentCategory) {
@@ -113,14 +118,32 @@ public class ExtendedReportStatistics {
 
   static class ClassNameHistogram {
 
+    enum ClusterType {
+      COMPONENT,
+      CATEGORY,
+      SHARED_CLUSTER
+    }
+
     private final static int HISTOGRAM_PRINT_LIMIT = 50;
 
     @NotNull final Map<String, ObjectsStatistics> histogram =
       Maps.newHashMap();
+    @NotNull final Map<String, ObjectsStatistics> rootsHistogram =
+      Maps.newHashMap();
+    @NotNull
+    private final ClusterType clusterType;
 
-    public void addObjectClassName(@NotNull final String className, long size) {
+    public ClassNameHistogram(@NotNull final ClusterType clusterType) {
+      this.clusterType = clusterType;
+    }
+
+    public void addObjectClassName(@NotNull final String className, long size, boolean isRoot) {
       histogram.putIfAbsent(className, new ObjectsStatistics());
       histogram.get(className).addObject(size);
+      if (isRoot) {
+        rootsHistogram.putIfAbsent(className, new ObjectsStatistics());
+        rootsHistogram.get(className).addObject(size);
+      }
     }
 
     private boolean classNameIsStudioSource(@NotNull final String className) {
@@ -142,6 +165,20 @@ public class ExtendedReportStatistics {
       writer.accept("      Studio objects histogram:");
       histogram.entrySet().stream().filter(e -> classNameIsStudioSource(e.getKey()))
         .sorted(Comparator.comparingLong((Map.Entry<String, ObjectsStatistics> a) -> a.getValue().getTotalSizeInBytes()).reversed())
+        .limit(HISTOGRAM_PRINT_LIMIT)
+        .forEach(e -> writer.accept(String.format(Locale.US, "        %s: %s",
+                                                  HeapTraverseUtil.getObjectsStatsPresentation(e.getValue(), OPTIMAL_UNITS),
+                                                  e.getKey())));
+
+      switch (clusterType) {
+        case CATEGORY -> writer.accept("      Category roots histogram:");
+        case COMPONENT -> writer.accept("      Component roots histogram:");
+        case SHARED_CLUSTER -> writer.accept("      Shared cluster merge-points histogram:");
+      }
+      rootsHistogram.entrySet().stream()
+        .sorted(
+          Comparator.comparingLong(
+            (Map.Entry<String, ObjectsStatistics> a) -> a.getValue().getTotalSizeInBytes()).reversed())
         .limit(HISTOGRAM_PRINT_LIMIT)
         .forEach(e -> writer.accept(String.format(Locale.US, "        %s: %s",
                                                   HeapTraverseUtil.getObjectsStatsPresentation(e.getValue(), OPTIMAL_UNITS),

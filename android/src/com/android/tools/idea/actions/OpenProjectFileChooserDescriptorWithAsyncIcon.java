@@ -16,7 +16,7 @@
 package com.android.tools.idea.actions;
 
 import com.android.annotations.NonNull;
-import com.android.tools.idea.concurrency.AndroidIoManager;
+import com.android.tools.concurrency.AndroidIoManager;
 import com.android.utils.concurrency.CachedAsyncSupplier;
 import com.google.common.collect.Maps;
 import com.intellij.ide.actions.OpenProjectFileChooserDescriptor;

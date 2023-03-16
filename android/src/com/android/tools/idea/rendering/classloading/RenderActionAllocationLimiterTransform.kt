@@ -100,7 +100,7 @@ class RenderActionAllocationLimiterTransform @JvmOverloads constructor(
             push(100)
             invokeStatic(threadLocalRandomType, threadLocalRandomNextIntMethod)
             push(checkPercentage)
-            ifICmp(GE, skipCheck)
+            ifICmp(GT, skipCheck)
             push(maxAllocationsPerRenderAction)
             invokeStatic(allocationCheckerType, allocationCheckMethod)
             visitLabel(skipCheck)

@@ -16,7 +16,6 @@
 package com.android.tools.idea.sdk;
 
 import static com.android.tools.idea.sdk.AndroidSdks.SDK_NAME_PREFIX;
-import static com.android.tools.sdk.SdkPaths.validateAndroidSdk;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_17;
@@ -55,6 +54,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil;
 import com.intellij.openapi.externalSystem.util.ExternalSystemApiUtil;
+import com.intellij.openapi.externalSystem.util.environment.Environment;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ex.ProjectEx;
@@ -1091,7 +1091,7 @@ public class IdeSdks {
           return;
         }
       }
-      initialize(System.getenv(JDK_LOCATION_ENV_VARIABLE_NAME));
+      initialize(Environment.getVariable(JDK_LOCATION_ENV_VARIABLE_NAME));
     }
 
     private void initialize(@Nullable String value) {

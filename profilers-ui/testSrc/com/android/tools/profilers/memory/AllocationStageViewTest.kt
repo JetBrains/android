@@ -18,6 +18,7 @@ import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.event.FakeEventService
@@ -70,7 +71,7 @@ class AllocationStageViewTest(private val isLive: Boolean) {
       if (isLive) AllocationStage.makeLiveStage(profilers, mockLoader)
       else AllocationStage.makeStaticStage(profilers, minTrackingTimeUs = 1.0, maxTrackingTimeUs = 5.0)
     observer = MemoryAspectObserver(stage.aspect, stage.captureSelection.aspect)
-    profilersView = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
+    profilersView = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     stageView = AllocationStageView(profilersView, stage)
 
     // Advance the clock to make sure StudioProfilers has a chance to select device + process.
@@ -126,7 +127,7 @@ class AllocationStageViewTest(private val isLive: Boolean) {
   @Test
   fun `back button leads to main memory stage`() {
     stage.stopTracking()
-    profilersView.backButton.doClick()
+    (profilersView as SessionProfilersView).backButton.doClick()
     assertThat(profilers.stage).isInstanceOf(MainMemoryProfilerStage::class.java)
   }
 
@@ -135,7 +136,7 @@ class AllocationStageViewTest(private val isLive: Boolean) {
     val handler = transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING) as MemoryAllocTracking
     val prevCommandId = handler.lastCommand.commandId
     stage.stopTracking()
-    profilersView.backButton.doClick()
+    (profilersView as SessionProfilersView).backButton.doClick()
     assertThat(handler.lastCommand.type).isEqualTo(Commands.Command.CommandType.STOP_ALLOC_TRACKING)
     assertThat(handler.lastCommand.commandId).isGreaterThan(prevCommandId)
   }

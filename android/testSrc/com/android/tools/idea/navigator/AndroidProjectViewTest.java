@@ -140,6 +140,19 @@ public class AndroidProjectViewTest extends AndroidGradleTestCase {
     assertFalse(((ProjectViewSettings)structure).isShowVisibilityIcons());
   }
 
+  public void testResourcesPropertiesInAndroidView() throws Exception {
+    loadSimpleApplication();
+    FileUtils.createFile(new File(getProjectFolderPath() + "/app/src/main/res/resources.properties"), "");
+
+    refreshProjectFiles();
+    AndroidGradleTests.waitForSourceFolderManagerToProcessUpdates(getProject());
+    myPane = createPane();
+    TestAndroidTreeStructure structure = new TestAndroidTreeStructure(getProject(), getTestRootDisposable());
+
+    Set<List<String>> allNodes = getAllNodes(structure);
+    assertThat(allNodes).contains(Arrays.asList("app (Android)", "res", "resources.properties (main)"));
+  }
+
   private static Set<List<String>> getAllNodes(TestAndroidTreeStructure structure) {
     Set<List<String>> result = new HashSet<>();
     Stack<String> path = new Stack<>();

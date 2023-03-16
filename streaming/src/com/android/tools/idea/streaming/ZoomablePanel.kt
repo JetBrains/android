@@ -74,8 +74,9 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
     return canZoom() && computeZoomedSize(ZoomType.IN) != explicitlySetPreferredSize
   }
 
-  override fun canZoomOut(): Boolean =
-    canZoom() && computeZoomedSize(ZoomType.OUT) != explicitlySetPreferredSize
+  override fun canZoomOut(): Boolean {
+    return canZoom() && computeZoomedSize(ZoomType.OUT) != explicitlySetPreferredSize
+  }
 
   override fun canZoomToActual(): Boolean =
     canZoom() && computeZoomedSize(ZoomType.ACTUAL) != explicitlySetPreferredSize
@@ -85,16 +86,6 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
 
   internal val explicitlySetPreferredSize: Dimension?
     get() = if (isPreferredSizeSet) preferredSize else null
-
-  override fun setBounds(x: Int, y: Int, width: Int, height: Int) {
-    val oldWidth = this.width
-    val oldHeight = this.height
-    super.setBounds(x, y, width, height)
-    if ((width < oldWidth || height < oldHeight) && explicitlySetPreferredSize != null && scale <= computeScaleToFitInParent()) {
-      // Reset preferred size so that the view fits into reduced available space.
-      preferredSize = null
-    }
-  }
 
   /**
    * Computes the maximum allowed size of the device display image in physical pixels.
@@ -109,18 +100,28 @@ abstract class ZoomablePanel : BorderLayoutPanel(), Zoomable {
   private fun computeZoomedSize(zoomType: ZoomType): Dimension? {
     val newScale = when (zoomType) {
       ZoomType.IN -> {
-        val nextScale = (ZoomType.zoomIn((scale * 100).roundToInt(), ZOOM_LEVELS) / 100.0)
+        var nextScale = (ZoomType.zoomIn((scale * 100).roundToInt(), ZOOM_LEVELS) / 100.0)
         val fitScale = computeScaleToFitInParent()
-        if (nextScale == fitScale) {
-          return null
+        if (nextScale >= fitScale) {
+          if (fitScale >= MAX_SCALE) {
+            return null
+          }
+          if (nextScale > MAX_SCALE) {
+            nextScale = MAX_SCALE
+          }
         }
-        if (fitScale >= nextScale) nextScale else nextScale.coerceAtMost(MAX_SCALE)
+        nextScale
       }
 
       ZoomType.OUT -> {
-        val nextScale = ZoomType.zoomOut((scale * 100).roundToInt(), ZOOM_LEVELS) / 100.0
+        var nextScale = ZoomType.zoomOut((scale * 100).roundToInt(), ZOOM_LEVELS) / 100.0
         val fitScale = computeScaleToFitInParent()
-        if (nextScale <= fitScale) {
+        if (fitScale > 1) {
+          if (nextScale < 1) {
+            nextScale = 1.0
+          }
+        }
+        else if (nextScale <= fitScale) {
           return null
         }
         nextScale

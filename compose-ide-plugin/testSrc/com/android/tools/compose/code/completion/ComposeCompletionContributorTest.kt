@@ -1096,6 +1096,59 @@ class ComposeCompletionContributorTest {
       , true)
   }
 
+  /**
+   * Regression test for b/271675885. Autocomplete changes should apply to function invocations, not function definitions.
+   */
+  @Test
+  fun testInsertHandler_functionDefinition() {
+    // Given:
+    val file = myFixture.addFileToProject(
+      "src/com/example/Test.kt",
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      interface MyComposables {
+          @Composable
+          fun FoobarOne()
+      }
+
+      class MyComposablesImpl : MyComposables {
+          override fun Foo${caret}
+      }
+      """.trimIndent()
+    )
+
+    // When:
+    myFixture.configureFromExistingVirtualFile(file.virtualFile)
+    myFixture.completeBasic()
+
+    // Then:
+    myFixture.checkResult(
+      // language=kotlin
+      """
+      package com.example
+
+      import androidx.compose.runtime.Composable
+
+      @Composable
+      interface MyComposables {
+          @Composable
+          fun FoobarOne()
+      }
+
+      class MyComposablesImpl : MyComposables {
+          override fun FoobarOne() {
+              TODO("Not yet implemented")
+          }
+      }
+      """.trimIndent()
+    )
+  }
+
   @Test
   fun composeMaterialIconLookupElement_resourcePathFromFqName() {
     assertThat("androidx.compose.material.icons.filled.AccountBox".resourcePathFromFqName())
@@ -1111,6 +1164,14 @@ class ComposeCompletionContributorTest {
 
     assertThat("androidx.compose.material.icons.unknown.Adb".resourcePathFromFqName()).isNull()
     assertThat("androidx.compose.material.icons.filled.extrapackage.Adb".resourcePathFromFqName()).isNull()
+
+    // Ensure numbers in camel case are converted as expected.
+    assertThat("androidx.compose.material.icons.filled.Shop2".resourcePathFromFqName())
+      .isEqualTo("images/material/icons/materialicons/shop_2/baseline_shop_2_24.xml")
+    assertThat("androidx.compose.material.icons.filled._1kPlus".resourcePathFromFqName())
+      .isEqualTo("images/material/icons/materialicons/1k_plus/baseline_1k_plus_24.xml")
+    assertThat("androidx.compose.material.icons.filled.Battery0Bar".resourcePathFromFqName())
+      .isEqualTo("images/material/icons/materialicons/battery_0_bar/baseline_battery_0_bar_24.xml")
   }
 
   @Test
@@ -1210,10 +1271,10 @@ class ComposeCompletionContributorTest {
   @Test
   fun composeMaterialIconLookupElement_getIcon() {
     assertThat(
-      ComposeMaterialIconLookupElement.getIcon("images/material/icons/materialicons/account_box/baseline_account_box_24.xml"))
+      ComposeMaterialIconLookupElement.getIcon("androidx.compose.material.icons.filled.AccountBox"))
       .isNotNull()
     assertThat(
-      ComposeMaterialIconLookupElement.getIcon("images/material/icons/materialicons/account_box/unknown.xml"))
+      ComposeMaterialIconLookupElement.getIcon("androidx.compose.material.icons.filled.Unknown"))
       .isNull()
   }
 

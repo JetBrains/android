@@ -34,5 +34,6 @@ interface AndroidDeviceSpec {
   val minVersion: AndroidVersion?
   val density: Density?
   val abis: List<String>
+  val deviceSerials: List<String>
   val languages: List<String>
 }

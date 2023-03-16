@@ -268,7 +268,7 @@
     <postStartupActivity implementation="com.android.tools.idea.gradle.project.AndroidNewProjectInitializationStartupActivity" order="first"/>
     <applicationService serviceInterface="com.android.tools.idea.res.ResourceFolderRepositoryFileCache"
                         serviceImplementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl"/>
-    <applicationService serviceImplementation="com.android.tools.idea.res.FrameworkResourceRepositoryManager"/>
+    <applicationService serviceImplementation="com.android.tools.res.FrameworkResourceRepositoryManager"/>
     <applicationService serviceImplementation="com.android.tools.idea.logcat.AndroidLogcatGlobalPreferences"/>
     <postStartupActivity implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$MaintenanceActivity"/>
     <cachesInvalidator implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$CacheInvalidator"/>
@@ -778,6 +778,8 @@
                     interface="com.android.tools.idea.analytics.IdeBrandProvider" />
     <extensionPoint qualifiedName="com.android.tools.idea.layoutlib.layoutLibraryProvider"
                     interface="com.android.tools.idea.layoutlib.LayoutLibraryLoader$LayoutLibraryProvider" />
+    <extensionPoint qualifiedName="com.android.tools.idea.diagnostics.report.logsProvider"
+                    interface="com.android.tools.idea.diagnostics.report.DiagnosticsSummaryFileProvider"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.android.gradle.sync">

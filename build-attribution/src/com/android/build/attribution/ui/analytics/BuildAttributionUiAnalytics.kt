@@ -313,7 +313,7 @@ class BuildAttributionUiAnalytics(
       filter.showTaskSourceTypes.forEach {
         add(when (it) {
               PluginSourceType.ANDROID_PLUGIN -> BuildAttributionUiEvent.FilterItem.SHOW_ANDROID_PLUGIN_TASKS
-              PluginSourceType.BUILD_SRC -> BuildAttributionUiEvent.FilterItem.SHOW_PROJECT_CUSTOMIZATION_TASKS
+              PluginSourceType.BUILD_SCRIPT -> BuildAttributionUiEvent.FilterItem.SHOW_PROJECT_CUSTOMIZATION_TASKS
               PluginSourceType.THIRD_PARTY -> BuildAttributionUiEvent.FilterItem.SHOW_THIRD_PARTY_TASKS
             })
       }
@@ -335,7 +335,7 @@ class BuildAttributionUiAnalytics(
       filter.showTaskSourceTypes.forEach {
         add(when (it) {
               PluginSourceType.ANDROID_PLUGIN -> BuildAttributionUiEvent.FilterItem.SHOW_ANDROID_PLUGIN_TASKS
-              PluginSourceType.BUILD_SRC -> BuildAttributionUiEvent.FilterItem.SHOW_PROJECT_CUSTOMIZATION_TASKS
+              PluginSourceType.BUILD_SCRIPT -> BuildAttributionUiEvent.FilterItem.SHOW_PROJECT_CUSTOMIZATION_TASKS
               PluginSourceType.THIRD_PARTY -> BuildAttributionUiEvent.FilterItem.SHOW_THIRD_PARTY_TASKS
             })
       }

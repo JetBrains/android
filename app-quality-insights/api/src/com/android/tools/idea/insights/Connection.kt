@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.insights
 
+import com.intellij.openapi.module.Module
+
 /** Variant-aware firebase connection. */
 data class VariantConnection(
-  val moduleName: String,
+  val module: Module,
   val variantName: String,
   val connection: Connection?
 ) {
+  val displayName = module.name.substringAfterLast(".")
+
   override fun toString(): String {
-    return if (!isConfigured()) "$moduleName › (no connection)"
-    else "$moduleName › $variantName: $connection"
+    return if (!isConfigured()) "$displayName › (no connection)"
+    else "$displayName › $variantName: $connection"
   }
 
   fun isConfigured(): Boolean {
@@ -32,7 +36,7 @@ data class VariantConnection(
 
   companion object {
     const val ALL_VARIANTS = "All"
-    fun createPlaceHolder(moduleName: String) = VariantConnection(moduleName, ALL_VARIANTS, null)
+    fun createPlaceHolder(module: Module) = VariantConnection(module, ALL_VARIANTS, null)
   }
 }
 /**
@@ -58,3 +62,8 @@ data class Connection(
 fun List<VariantConnection>.noneIsConfigured(): Boolean = none { it.isConfigured() }
 
 fun List<VariantConnection>.anyIsConfigured(): Boolean = any { it.isConfigured() }
+
+interface ActiveConnectionInferrer {
+  /** Determines whether the [variantConnection] can become the active connection. */
+  fun canBecomeActiveConnection(variantConnection: VariantConnection): Boolean
+}

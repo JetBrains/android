@@ -38,6 +38,7 @@
           </library>
     </orderEntry>
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
+    <orderEntry type="module" module-name="intellij.android.android-material" scope="TEST" />
   </component>
   <component name="TestModuleProperties" production-module="intellij.android.compose-ide-plugin" />
 </module>

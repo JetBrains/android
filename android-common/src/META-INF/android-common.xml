@@ -15,7 +15,7 @@
   -->
 <idea-plugin>
   <extensions defaultExtensionNs="com.intellij">
-    <applicationService serviceInterface="com.android.tools.idea.concurrency.AndroidIoManager"
+    <applicationService serviceInterface="com.android.tools.concurrency.AndroidIoManager"
                         serviceImplementation="com.android.tools.idea.concurrency.StudioIoManager"/>
   </extensions>
 </idea-plugin>

@@ -406,10 +406,9 @@ public class GradleBuildModelImpl extends GradleFileModelImpl implements GradleB
         if (sibling != null) {
           files.add(sibling);
         }
-
-        files.addAll(buildFile.getVersionCatalogFiles());
       }
     }
+    files.addAll(getContext().getVersionCatalogFiles());
 
     return files;
   }

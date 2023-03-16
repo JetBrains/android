@@ -16,7 +16,6 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.deployer.tasks.LiveUpdateDeployer
-import com.intellij.openapi.command.executeCommand
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiFile
 
@@ -24,7 +23,7 @@ import com.intellij.psi.PsiFile
  * Centralized place to handle errors reporting and metrics.
  */
 
-private val log = Logger.getInstance(AndroidLiveEditDeployMonitor::class.java)
+private val log = Logger.getInstance(LiveEditProjectMonitor::class.java)
 
 fun reportLiveEditError(exception: LiveEditUpdateException) {
   // TODO: Temp solution. These probably need to go somewhere when we have a UI.

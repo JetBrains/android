@@ -55,8 +55,16 @@ class IdeAndroidSyncExceptions(val exceptions: List<Throwable>): Serializable
  * A model to represent a fatal sync error such as one that would normally be passed as an exception. This is necessary to workaround
  * exception serialization issues across different JVM versions.
  */
-class IdeAndroidSyncError(val message: String, val stackTrace: List<String>) : Serializable
+class IdeAndroidSyncError(
+  val message: String,
+  val stackTrace: List<String>,
+  val buildPath: String? = null,
+  val modulePath: String? = null,
+  val syncIssues: List<IdeSyncIssue>? = null) : Serializable
 
 @JvmName("ideAndroidSyncErrorToException")
 fun IdeAndroidSyncError.toException(): AndroidSyncException =
-  AndroidSyncException("$message at:\n${stackTrace.joinToString(separator = "\n  ") { it }}")
+  AndroidSyncException(message = "$message at:\n${stackTrace.joinToString(separator = "\n  ") { it }}",
+                       buildPath = buildPath,
+                       modulePath = modulePath,
+                       syncIssues = syncIssues)

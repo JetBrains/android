@@ -54,15 +54,11 @@ class LayoutPanel extends JPanel {
   private static boolean DEBUG = false;
   ArrayList<MTag> mParent; // mParent.get(0) is the direct parent
   MTag mMotionLayout;
-  boolean building = false;
-
-  String[] mask = {"Value", "Layout", "Motion", "Transform", "PropertySet"};
   ArrayList<MTag> mDisplayedRows = new ArrayList<>();
   DefaultTableModel mConstraintSetModel = new DefaultTableModel(
     new String[]{"Type", "id", "Constrained"}, 0);
   JTable mConstraintSetTable = new MEJTable(mConstraintSetModel);
   private String mDerived;
-  boolean showAll = false;
   private MeModel mMeModel;
   private JLabel mTitle;
   private MotionEditorSelector mMotionEditorSelector;
@@ -114,14 +110,6 @@ class LayoutPanel extends JPanel {
       mMeModel.setSelectedViewIDs(EMPTY_STRING_ARRAY);
     }
     mMotionEditorSelector.notifyListeners(MotionEditorSelector.Type.LAYOUT_VIEW, tag, 0);
-  }
-
-  String buildListString(MTag tag) {
-    String cid = tag.getAttributeValue("id");
-    int noc = tag.getChildTags().length;
-    String end = tag.getAttributeValue("constraintSetEnd");
-    return "<html> <b> " + cid + " </b><br>" + noc + " Constraint" + ((noc == 1) ? "" : "s")
-           + "</html>";
   }
 
   static String[] ourLayoutDir = {"Left_", "Right_", "Start_", "End_", "Top_", "Bottom_",
@@ -191,25 +179,6 @@ class LayoutPanel extends JPanel {
     if (!ids.equals(found)) {
       buildTable();
     }
-  }
-
-  private String getDerived(String viewId, String[] row) {
-    if (DEBUG) Debug.log(". getDerived");
-
-    if (mDerived != null && mParent != null && mParent.size() > 0) {
-      for (MTag cSet : mParent) {
-        for (MTag child : cSet.getChildren()) {
-          String setName = Utils.stripID(child.getAttributeValue("id"));
-          if (setName.endsWith(viewId)) {
-            if (row != null) {
-              row[1] = getMask(child.getChildren(), child.getAttrList(), setName);
-            }
-            return Utils.stripID(cSet.getAttributeValue("id"));
-          }
-        }
-      }
-    }
-    return "layout";
   }
 
   private String getMask(ArrayList<MTag> children, HashMap<String, Attribute> attrs, String id) {

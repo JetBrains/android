@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class GradleVersionCatalogsModelImpl implements GradleVersionCatalogsModel {
   private Map<String, GradleVersionCatalogFile> versionCatalogFiles;
@@ -74,7 +75,9 @@ public class GradleVersionCatalogsModelImpl implements GradleVersionCatalogsMode
 
   @Override
   public GradleVersionCatalogModel getVersionCatalogModel(String catalogName) {
-    return new GradleVersionCatalogModelImpl(versionCatalogFiles.get(catalogName));
+    GradleVersionCatalogFile file = versionCatalogFiles.get(catalogName);
+    if(file == null) return null;
+    return new GradleVersionCatalogModelImpl(file);
   }
 
 }

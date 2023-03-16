@@ -39,6 +39,10 @@ private val composeTimeBenchmark = Benchmark.Builder("Compose Preview Benchmark"
   .setDescription("Base line for Compose Preview (mean) after $NUMBER_OF_SAMPLES samples.")
   .build()
 
+private fun defaultTolerance() = WindowDeviationAnalyzer.MeanToleranceParams.Builder()
+  .setStddevCoeff(1.0)
+  .build()
+
 class PerfgateComposeTest : ComposeRenderTestBase() {
 
   @Test
@@ -69,16 +73,24 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
       MemoryUseMeasurement(Metric("default_template_memory_use")),
       // Measures just the inflate time.
       InflateTimeMeasurement(Metric("default_template_inflate_time"))
-        .withAnalyzer(WindowDeviationAnalyzer.Builder().build()),
+        .withAnalyzer(WindowDeviationAnalyzer.Builder()
+                        .addMeanTolerance(defaultTolerance())
+                        .build()),
       // Measures just the render time.
       RenderTimeMeasurement(Metric("default_template_render_time"))
-        .withAnalyzer(WindowDeviationAnalyzer.Builder().build()),
+        .withAnalyzer(WindowDeviationAnalyzer.Builder()
+                        .addMeanTolerance(defaultTolerance())
+                        .build()),
       // Measures the class loading time.
       ClassLoadTimeMeasurment(Metric("default_class_total_load_time"))
-        .withAnalyzer(WindowDeviationAnalyzer.Builder().build()),
+        .withAnalyzer(WindowDeviationAnalyzer.Builder()
+                        .addMeanTolerance(defaultTolerance())
+                        .build()),
       // Measures the class loading time.
       ClassRewriteTimeMeasurement(Metric("default_class_total_rewrite_time"))
-        .withAnalyzer(WindowDeviationAnalyzer.Builder().build()),
+        .withAnalyzer(WindowDeviationAnalyzer.Builder()
+                        .addMeanTolerance(defaultTolerance())
+                        .build()),
       // Measures the number of classes loaded.
       ClassLoadCountMeasurement(Metric("default_class_load_count")),
       // Measures the class avg loading time.
@@ -97,16 +109,24 @@ class PerfgateComposeTest : ComposeRenderTestBase() {
       MemoryUseMeasurement(Metric("complex_template_memory_use")),
       // Measures just the inflate time.
       InflateTimeMeasurement(Metric("complex_template_inflate_time"))
-        .withAnalyzer(WindowDeviationAnalyzer.Builder().build()),
+        .withAnalyzer(WindowDeviationAnalyzer.Builder()
+                        .addMeanTolerance(defaultTolerance())
+                        .build()),
       // Measures just the render time.
       RenderTimeMeasurement(Metric("complex_template_render_time"))
-        .withAnalyzer(WindowDeviationAnalyzer.Builder().build()),
+        .withAnalyzer(WindowDeviationAnalyzer.Builder()
+                        .addMeanTolerance(defaultTolerance())
+                        .build()),
       // Measures the class loading time.
       ClassLoadTimeMeasurment(Metric("complex_template_class_total_load_time"))
-        .withAnalyzer(WindowDeviationAnalyzer.Builder().build()),
+        .withAnalyzer(WindowDeviationAnalyzer.Builder()
+                        .addMeanTolerance(defaultTolerance())
+                        .build()),
       // Measures the class loading time.
       ClassRewriteTimeMeasurement(Metric("complex_template_class_total_rewrite_time"))
-        .withAnalyzer(WindowDeviationAnalyzer.Builder().build()),
+        .withAnalyzer(WindowDeviationAnalyzer.Builder()
+                        .addMeanTolerance(defaultTolerance())
+                        .build()),
       // Measures the number of classes loaded.
       ClassLoadCountMeasurement(Metric("complex_template_class_load_count")),
       // Measures the class avg loading time.

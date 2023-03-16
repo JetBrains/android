@@ -31,7 +31,6 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.Wallpaper
 import com.android.tools.idea.preview.PreviewDisplaySettings
-import com.android.tools.idea.testing.AndroidProjectRule
 import kotlin.math.sqrt
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -114,7 +113,6 @@ class ComposePreviewElementConfigurationTest {
   @get:Rule
   val projectRule =
     ComposeProjectRule(
-      projectRule = AndroidProjectRule.withSdk(),
       previewAnnotationPackage = "androidx.compose.ui.tooling.preview",
       composableAnnotationPackage = "androidx.compose.runtime"
     )
@@ -248,22 +246,6 @@ class ComposePreviewElementConfigurationTest {
     assertWallpaperUpdate(Wallpaper.GREEN.resourcePath, 1)
     assertWallpaperUpdate(Wallpaper.BLUE.resourcePath, 2)
     assertWallpaperUpdate(Wallpaper.YELLOW.resourcePath, 3)
-  }
-
-  @Test
-  fun testApiLevel() {
-    val configManager = ConfigurationManager.getOrCreateInstance(fixture.module)
-    Configuration.create(configManager, null, FolderConfiguration.createDefault()).also {
-      val previewConfiguration =
-        PreviewConfiguration.cleanAndGet(30, null, null, null, null, null, null, null, null)
-      previewConfiguration.applyConfigurationForTest(
-        it,
-        highestApiTarget = { configManager.highestApiTarget },
-        devicesProvider = deviceProvider,
-        defaultDeviceProvider = { defaultDevice }
-      )
-      assertEquals(30, it.fullConfig.versionQualifier?.version)
-    }
   }
 
   private fun assertWallpaperUpdate(expectedWallpaperPath: String?, wallpaperParameterValue: Int?) {

@@ -18,6 +18,7 @@ package com.android.tools.idea.dagger
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.AndroidPsiUtils.toPsiType
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.kotlin.findAnnotation
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
 import com.intellij.openapi.components.service
@@ -47,7 +48,6 @@ import com.intellij.util.Query
 import org.jetbrains.kotlin.asJava.elements.KtLightField
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.base.util.module
-import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtClass
@@ -342,7 +342,7 @@ private val searchStrategy: AnnotationSearchStrategy
  * Returns all Dagger providers (see [isDaggerProvider] for a [type] with a [qualifierInfo] within a
  * [scope].
  *
- * Null [qualifierInfo] means that binding has not qualifier or has more then one.
+ * Null [qualifierInfo] means that binding has no qualifier or has more than one.
  */
 private fun getDaggerProviders(
   type: PsiType,

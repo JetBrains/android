@@ -31,7 +31,7 @@ enum class DeviceEvent {
 
 typealias DeviceEventListener = BiConsumer<IDevice, DeviceEvent>
 
-class DeviceEventWatcher: IClientChangeListener, IDeviceChangeListener {
+class DeviceEventWatcher: AllAdbEventsListener {
   private var applicationId = ""
   private val listeners = mutableListOf<DeviceEventListener>()
 
@@ -85,5 +85,6 @@ class DeviceEventWatcher: IClientChangeListener, IDeviceChangeListener {
 
   fun clearListeners() = listeners.clear()
 
+  // TODO: This should run on LiveEditProjectMonitor executor to leave ddmlbi/adblib threads.
   private fun notifyListeners(device: IDevice, event: DeviceEvent) = listeners.forEach { it.accept(device, event) }
 }

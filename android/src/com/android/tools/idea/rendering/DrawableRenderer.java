@@ -53,7 +53,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.ide.PooledThreadExecutor;
 
 /**
  * Renders XML drawables to raster images.
@@ -83,7 +82,7 @@ public class DrawableRenderer implements Disposable {
    */
   public DrawableRenderer(@NotNull AndroidFacet facet, @NotNull Configuration configuration) {
     Module module = facet.getModule();
-    RenderLogger logger = new RenderLogger(module, null, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get());
+    RenderLogger logger = new RenderLogger(module.getProject(), null, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory.INSTANCE);
     myParserFactory = new MyLayoutPullParserFactory(module.getProject(), logger);
     // The ThemeEditorUtils.getConfigurationForModule and RenderService.createTask calls are pretty expensive.
     // Executing them off the UI thread.

@@ -27,10 +27,6 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
-import com.android.tools.idea.model.MergedManifestException;
-import com.android.tools.idea.model.MergedManifestManager;
-import com.android.tools.idea.projectsystem.AndroidProjectSettingsService;
-import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
@@ -41,11 +37,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.Module;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ex.ProjectEx;
-import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -55,16 +47,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import com.android.tools.sdk.AndroidPlatform;
-import java.util.function.Supplier;
-import org.jetbrains.android.sdk.AndroidPlatforms;
-import org.jetbrains.android.sdk.AndroidSdkUtils;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.android.util.AndroidBundle;
@@ -125,25 +110,10 @@ final public class RenderService implements Disposable {
   }
 
   @Nullable
-  public static LayoutLibrary getLayoutLibrary(@NotNull Module module, @Nullable IAndroidTarget target) {
-    try {
-      return getLayoutLibrary(
-        target,
-        AndroidPlatforms.getInstance(module),
-        ((ProjectEx)module.getProject()).getEarlyDisposable(),
-        StudioCrash::hasStudioLayoutlibCrash
-      );
-    } catch (RenderingException | InsufficientDataException e) {
-      return null;
-    }
-  }
-
-  @Nullable
   public static LayoutLibrary getLayoutLibrary(
     @Nullable IAndroidTarget target,
     @Nullable AndroidPlatform platform,
-    @NotNull Disposable parentDisposable,
-    @NotNull Supplier<Boolean> hasLayoutlibCrash
+    @NotNull EnvironmentContext environment
   ) throws RenderingException, NoAndroidTargetException, NoAndroidPlatformException {
     if (platform == null) {
       throw new NoAndroidPlatformException();
@@ -151,7 +121,8 @@ final public class RenderService implements Disposable {
     if (target == null) {
       throw new NoAndroidTargetException();
     }
-    return AndroidTargetData.get(platform.getSdkData(), target).getLayoutLibrary(parentDisposable, hasLayoutlibCrash);
+    return AndroidTargetData.get(platform.getSdkData(), target)
+      .getLayoutLibrary(environment.getParentDisposable(), environment::hasLayoutlibCrash);
   }
 
   /** Returns true if the given file can be rendered */
@@ -164,14 +135,8 @@ final public class RenderService implements Disposable {
   }
 
   @NotNull
-  public RenderLogger createLogger(@NotNull Module module, boolean logFramework) {
-    return new RenderLogger(module, myCredential, logFramework);
-  }
-
-
-  @NotNull
-  public RenderLogger createLogger(@NotNull Module module) {
-    return createLogger(module, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get());
+  public RenderLogger createLogger(@Nullable Project project, boolean logFramework, @NotNull RenderProblem.RunnableFixFactory fixFactory) {
+    return new RenderLogger(project, myCredential, logFramework, fixFactory);
   }
 
   @NotNull
@@ -194,21 +159,6 @@ final public class RenderService implements Disposable {
   @Override
   public void dispose() {
     myImagePool.dispose();
-  }
-
-  private static void reportMissingSdk(@NotNull RenderLogger logger, @NotNull Module module) {
-    RenderProblem.Html message = RenderProblem.create(ERROR);
-    logger.addMessage(message);
-    message.getHtmlBuilder().addLink("No Android SDK found. Please ", "configure", " an Android SDK.",
-      logger.getLinkManager().createRunnableLink(() -> {
-        Project project = module.getProject();
-        ProjectSettingsService service = ProjectSettingsService.getInstance(project);
-        if (ProjectSystemUtil.requiresAndroidModel(project) && service instanceof AndroidProjectSettingsService) {
-          ((AndroidProjectSettingsService)service).openSdkSettings();
-          return;
-        }
-        AndroidSdkUtils.openModuleDependenciesConfigurable(module);
-      }));
   }
 
   /**
@@ -580,12 +530,11 @@ final public class RenderService implements Disposable {
           getLogger().warn("Module was already disposed");
           return null;
         }
-        AndroidPlatform platform = myContext.getModule().getAndroidPlatform();
         IAndroidTarget target = myContext.getConfiguration().getTarget();
 
         LayoutLibrary layoutLib;
         try {
-          layoutLib = getLayoutLibrary(target, platform, ((ProjectEx)module.getProject()).getEarlyDisposable(), StudioCrash::hasStudioLayoutlibCrash);
+          layoutLib = getLayoutLibrary(target, module.getAndroidPlatform(), module.getEnvironment());
         }
         catch (UnsupportedJavaRuntimeException e) {
           RenderProblem.Html javaVersionProblem = RenderProblem.create(ERROR);
@@ -599,7 +548,9 @@ final public class RenderService implements Disposable {
         catch (RenderingException e) {
           String message = e.getPresentableMessage();
           message = message != null ? message : AndroidBundle.message("android.layout.preview.default.error.message");
-          myLogger.addMessage(RenderProblem.createPlain(ERROR, message, module.getProject(), myLogger.getLinkManager(), e));
+          myLogger.addMessage(
+            RenderProblem.createPlain(
+              ERROR, message, module.getProject(), myLogger.getLinkManager(), e, module.getEnvironment().getRunnableFixFactory()));
           return null;
         }
         catch (NoAndroidTargetException e) {
@@ -607,7 +558,7 @@ final public class RenderService implements Disposable {
           return null;
         }
         catch (NoAndroidPlatformException e) {
-          reportMissingSdk(myLogger, myContext.getModule().getIdeaModule());
+          myContext.getModule().getDependencies().reportMissingSdkDependency(myLogger);
           return null;
         }
 

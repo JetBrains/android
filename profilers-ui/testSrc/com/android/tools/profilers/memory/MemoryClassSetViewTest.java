@@ -35,6 +35,7 @@ import com.android.tools.profiler.proto.Memory.AllocationStack;
 import com.android.tools.profilers.FakeIdeProfilerComponents;
 import com.android.tools.profilers.FakeIdeProfilerServices;
 import com.android.tools.profilers.ProfilerClient;
+import com.android.tools.profilers.SessionProfilersView;
 import com.android.tools.profilers.StudioProfilers;
 import com.android.tools.profilers.StudioProfilersView;
 import com.android.tools.profilers.memory.adapters.CaptureObject;
@@ -92,7 +93,7 @@ public class MemoryClassSetViewTest {
   @Before
   public void before() {
     StudioProfilers profilers = new StudioProfilers(new ProfilerClient(myGrpcChannel.getChannel()), new FakeIdeProfilerServices(), myTimer);
-    StudioProfilersView profilersView = new StudioProfilersView(profilers, myFakeIdeProfilerComponents, myDisposableRule.getDisposable());
+    StudioProfilersView profilersView = new SessionProfilersView(profilers, myFakeIdeProfilerComponents, myDisposableRule.getDisposable());
 
     FakeCaptureObjectLoader loader = new FakeCaptureObjectLoader();
     loader.setReturnImmediateFuture(true);

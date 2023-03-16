@@ -22,7 +22,7 @@ import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.StudioResourceRepositoryManager;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidTargetData;
@@ -59,7 +59,7 @@ public class ThemeEditorStyle {
    */
   @NotNull
   public String getQualifiedName() {
-    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myManager.getModule());
+    ResourceRepositoryManager repositoryManager = myManager.getConfigModule().getResourceRepositoryManager();
     if (repositoryManager == null || repositoryManager.getNamespace().equals(myStyleReference.getNamespace())) {
       return myStyleReference.getName();
     }
@@ -82,7 +82,7 @@ public class ThemeEditorStyle {
     if (isFramework()) {
       return false;
     }
-    StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(myManager.getModule());
+    ResourceRepositoryManager repositoryManager = myManager.getConfigModule().getResourceRepositoryManager();
     assert repositoryManager != null;
     LocalResourceRepository repository = repositoryManager.getProjectResources();
     return repository.hasResources(myStyleReference.getNamespace(), myStyleReference.getResourceType(), myStyleReference.getName());
@@ -102,7 +102,7 @@ public class ThemeEditorStyle {
       return false;
     }
 
-    AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, AndroidPlatforms.getInstance(myManager.getModule()));
+    AndroidTargetData androidTargetData = AndroidTargetData.getTargetData(target, myManager.getConfigModule().getAndroidPlatform());
     if (androidTargetData == null) {
       LOG.error("Unable to get AndroidTargetData.");
       return false;

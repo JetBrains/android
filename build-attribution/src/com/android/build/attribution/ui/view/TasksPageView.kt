@@ -114,10 +114,24 @@ class TasksPageView(
     border = JBUI.Borders.emptyRight(5)
     layout = HorizontalLayout(10)
     isOpaque = false
-    fun legendItem(name: String, color: Color) = JBLabel(name, ColorIcon(10, color), SwingConstants.RIGHT)
-    add(legendItem("Android/Java/Kotlin Plugin", CriticalPathChartLegend.androidPluginColor.baseColor), HorizontalLayout.RIGHT)
-    add(legendItem("Other Plugin", CriticalPathChartLegend.externalPluginColor.baseColor), HorizontalLayout.RIGHT)
-    add(legendItem("Project Customization", CriticalPathChartLegend.buildsrcPluginColor.baseColor), HorizontalLayout.RIGHT)
+    fun legendItem(name: String, tooltip: String, color: Color) = JBLabel(name, ColorIcon(10, color), SwingConstants.RIGHT).apply {
+      toolTipText = tooltip
+    }
+    add(legendItem(
+      name = "Android/Java/Kotlin Plugin",
+      tooltip = "The task belongs to the Android Gradle plugin, Java Gradle plugin, or Kotlin Gradle plugin",
+      color = CriticalPathChartLegend.androidPluginColor.baseColor
+    ), HorizontalLayout.RIGHT)
+    add(legendItem(
+      name = "Other Plugin",
+      tooltip = "The task belongs to a third-party or custom plugin, such as a plugin you applied after creating a new project using Android Studio",
+      color = CriticalPathChartLegend.externalPluginColor.baseColor
+    ), HorizontalLayout.RIGHT)
+    add(legendItem(
+      name = "Project Customization",
+      tooltip = "The task does not belong to a plugin. For example, task that you might define within your build.gradle files",
+      color = CriticalPathChartLegend.buildscriptPluginColor.baseColor
+    ), HorizontalLayout.RIGHT)
   }
 
   val detailsPanel = object : CardLayoutPanel<TasksPageId, TasksPageId, JComponent>() {

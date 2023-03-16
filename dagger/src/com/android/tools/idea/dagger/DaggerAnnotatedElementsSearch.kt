@@ -28,21 +28,17 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiModifierListOwner
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
-import com.intellij.psi.impl.cache.TypeInfo
-import com.intellij.psi.impl.compiled.ClsTypeElementImpl
-import com.intellij.psi.impl.compiled.SignatureParsing
-import com.intellij.psi.impl.compiled.StubBuildingVisitor
 import com.intellij.psi.impl.search.AnnotatedElementsSearcher
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.SearchScope
 import com.intellij.psi.search.searches.AnnotatedElementsSearch
-import java.text.StringCharacterIterator
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.asJava.toPsiParameters
 import org.jetbrains.kotlin.builtins.PrimitiveType
-import org.jetbrains.kotlin.codegen.signature.BothSignatureWriter
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.search.ideaExtensions.KotlinAnnotatedElementsSearcher
 import org.jetbrains.kotlin.idea.stubindex.KotlinAnnotationsIndex
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -55,10 +51,6 @@ import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.KtUserType
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
 
 /**
  * Searches for methods, fields and parameters of methods annotated with a given annotation, within
@@ -69,7 +61,7 @@ import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
  *
  * [DaggerAnnotatedElementsSearch] uses [AnnotatedElementsSearcher] for JAVA.
  * [DaggerAnnotatedElementsSearch] works directly with [KotlinAnnotationsIndex] for Kotlin. The main
- * goal is to minimizes calls of [KtElement.analyze]. [KtElement.analyze] is the main bottleneck in
+ * goal is to minimize calls of [KtElement.analyze]. [KtElement.analyze] is the main bottleneck in
  * [KotlinAnnotatedElementsSearcher]. It allows to speed up computation up to 30-40 times for large
  * projects.
  */
@@ -236,13 +228,14 @@ class DaggerAnnotatedElementsSearch(private val project: Project) {
 }
 
 /**
- * Returns true if KtTypeReference corresponds to the a given PsiType.
+ * Returns true if KtTypeReference corresponds to the given PsiType.
  *
  * This method aim to minimise number of calls for KtTypeReference.analyze(BodyResolveMode.PARTIAL).
  * KtTypeReference.analyze(BodyResolveMode.PARTIAL) is slow. It allows to speed up
  * DaggerAnnotatedElementsSearch up to 6 times.
  */
 @WorkerThread
+@OptIn(KtAllowAnalysisOnEdt::class)
 private fun KtTypeReference.equalsToPsiType(unboxedPsiType: PsiType): Boolean {
   val notNullableTypeElement =
     if (typeElement is KtNullableType) (typeElement as KtNullableType).innerType else typeElement
@@ -269,35 +262,13 @@ private fun KtTypeReference.equalsToPsiType(unboxedPsiType: PsiType): Boolean {
   }
 
   ProgressManager.checkCanceled()
-  val kotlinType = analyze(BodyResolveMode.PARTIAL).get(BindingContext.TYPE, this) ?: return false
-  val psiType = kotlinType.toPsi(this)
-  return psiType == unboxedPsiType
-}
-
-/**
- * Copied from [org.jetbrains.kotlin.asJava.classes.UltraLightUtilsKt.createTypeFromCanonicalText].
- */
-private fun createTypeFromCanonicalText(
-  canonicalSignature: String,
-  psiContext: PsiElement
-): PsiType {
-  val signature = StringCharacterIterator(canonicalSignature)
-
-  val javaType = SignatureParsing.parseTypeString(signature, StubBuildingVisitor.GUESSING_MAPPER)
-  val typeInfo = TypeInfo.fromString(javaType, false)
-  val typeText = TypeInfo.createTypeText(typeInfo) ?: return PsiType.NULL
-
-  val type = ClsTypeElementImpl(psiContext, typeText, '\u0000').type
-  return type
-}
-
-private fun KotlinType.toPsi(context: PsiElement): PsiType? {
-  val notNullableType = makeNotNullable()
-
-  // Extracted from ultraLightUtils.kt#KtUltraLightSupport.mapType
-  val signatureWriter = BothSignatureWriter(BothSignatureWriter.Mode.SKIP_CHECKS)
-  DaggerTypeMapper.mapType(notNullableType, signatureWriter)
-  return createTypeFromCanonicalText(signatureWriter.toString(), context)
+  allowAnalysisOnEdt {
+    analyze(this) {
+      val ktType = this@equalsToPsiType.getKtType()
+      val psiType = ktType.asPsiType(this@equalsToPsiType)
+      return psiType == unboxedPsiType
+    }
+  }
 }
 
 // Inspired by KtLightAnnotationsValues.kt#psiType

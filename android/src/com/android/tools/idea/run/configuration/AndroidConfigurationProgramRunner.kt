@@ -91,6 +91,8 @@ abstract class AndroidConfigurationProgramRunner internal constructor(
     val stats = RunStats.from(environment)
     val promise = AsyncPromise<RunContentDescriptor?>()
 
+    stats.beginLaunchTasks()
+
     promise.onError { e: Throwable ->
       if (e is AndroidExecutionException) {
         stats.setErrorId(e.errorId)
@@ -105,6 +107,10 @@ abstract class AndroidConfigurationProgramRunner internal constructor(
       else {
         stats.success()
       }
+    }
+
+    promise.then {
+      stats.endLaunchTasks()
     }
 
     if (state !is AndroidConfigurationExecutor) {

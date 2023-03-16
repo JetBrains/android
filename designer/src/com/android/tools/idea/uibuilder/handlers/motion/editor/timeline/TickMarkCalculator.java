@@ -31,7 +31,6 @@ public class TickMarkCalculator {
   private float mTickX;
   int ins_left = MEUI.scale(10), ins_right = MEUI.scale(15);
   int ins_top = 0, ins_botom = 0;
-  int mTextGap = 2;
   int mCanvasWidth;
   DecimalFormat df = new DecimalFormat("###.##");
   int mGraphWidth;

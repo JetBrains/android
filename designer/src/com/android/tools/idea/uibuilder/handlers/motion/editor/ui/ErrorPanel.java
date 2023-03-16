@@ -62,6 +62,7 @@ public class ErrorPanel extends JPanel {
     myLabel.setHorizontalAlignment(JLabel.CENTER);
     Font font = myLabel.getFont();
     myLabel.setFont(font.deriveFont(font.getSize()*2f));
+    myErrorLabel.setName("MotionEditorErrorLabel");
     myErrorLabel.setVerticalAlignment(JLabel.TOP);
     myErrorLabel.setText(null);
     add(myErrorLabel, gbc);
@@ -128,8 +129,15 @@ public class ErrorPanel extends JPanel {
     }
 
     MTag[] layer0 = scene.getChildTags();
+    if (layer0.length == 0) {
+      myErrorLabel.setText( "<HTML>MotionScene Syntax error:<ul>Empty Scene</ul></HTML>");
+      return false;
+    }
+
+    boolean hasTransitions = false;
     for (int i = 0; i < layer0.length; i++) {
       String tagName = layer0[i].getTagName();
+      hasTransitions |= MotionSceneAttrs.Tags.TRANSITION.equals(tagName);
       if (!validTop.contains(tagName)) {
         str = ((str != null)?str+"\n":"" ) + "<li> &lt;" + tagName +"&gt; cannot be a top level component </li>";
       }
@@ -139,6 +147,11 @@ public class ErrorPanel extends JPanel {
     if (str != null) {
       str = "<HTML>MotionScene Syntax error:<ul>"+str+"</ul></HTML>";
     }
+    else if (!hasTransitions) {
+      // If there are no other errors but the scene contains 0 transitions, let the user know.
+      str = "<HTML>MotionScene Syntax error:<ul>At least one transition required.</ul></HTML>";
+    }
+
     error = str;
     myErrorLabel.setText(error);
     return error == null;

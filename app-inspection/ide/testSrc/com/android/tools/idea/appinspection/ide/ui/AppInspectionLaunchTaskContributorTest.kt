@@ -21,7 +21,6 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.run.AndroidLaunchTasksProvider
 import com.android.tools.idea.run.AndroidRunConfiguration
-import com.android.tools.idea.run.AndroidRunConfigurationBase
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.LaunchOptions
@@ -70,12 +69,13 @@ class AppInspectionLaunchTaskContributorTest {
       val env = env()
       val launchTaskProvider =
         AndroidLaunchTasksProvider(
-          env.runProfile as AndroidRunConfigurationBase,
+          env.runProfile as AndroidRunConfiguration,
           env,
           androidFacet,
           applicationIdProvider,
           mock(),
-          launchOptions
+          launchOptions,
+          false
         )
 
       val task1 =
@@ -106,12 +106,13 @@ class AppInspectionLaunchTaskContributorTest {
         }
       val launchTaskProvider2 =
         AndroidLaunchTasksProvider(
-          env.runProfile as AndroidRunConfigurationBase,
+          env.runProfile as AndroidRunConfiguration,
           env,
           androidFacet,
           applicationIdProvider,
           mock(),
-          launchOptions
+          launchOptions,
+          false
         )
       val task2 =
         launchTaskProvider2

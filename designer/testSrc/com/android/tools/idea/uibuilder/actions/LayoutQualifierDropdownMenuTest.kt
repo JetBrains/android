@@ -21,7 +21,6 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.waitForResourceRepositoryUpdates
-import com.android.tools.idea.uibuilder.editor.LayoutQualifierDropdownMenu
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.google.common.collect.ImmutableList
 import com.intellij.openapi.actionSystem.ActionManager

@@ -57,7 +57,7 @@ class DirectoryBasedFileProviderTest : TestCase() {
 
     val pathProvider = PathProvider(logDir.toString(), null, null, null)
     val regex = Regex("^Matching.*")
-    val directoryBasedFileProvider = DirectoryBasedFileProvider(regex, pathProvider)
+    val directoryBasedFileProvider = DirectoryBasedFileProvider("Test", regex, pathProvider)
 
     val fileInfo = directoryBasedFileProvider.getFiles(null)
 

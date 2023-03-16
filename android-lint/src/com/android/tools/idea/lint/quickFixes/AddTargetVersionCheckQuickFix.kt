@@ -41,9 +41,11 @@ import com.intellij.psi.codeStyle.JavaCodeStyleManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.IncorrectOperationException
 import org.jetbrains.android.facet.AndroidFacet
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.codeInsight.surroundWith.statement.KotlinIfSurrounder
 import org.jetbrains.kotlin.idea.codeinsight.utils.findExistingEditor
 import org.jetbrains.kotlin.psi.KtBlockExpression
@@ -58,8 +60,6 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPropertyAccessor
 import org.jetbrains.kotlin.psi.KtReturnExpression
 import org.jetbrains.kotlin.psi.KtWhenEntry
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
 /** Fix which surrounds an API warning with a version check */
 class AddTargetVersionCheckQuickFix(
@@ -217,9 +217,11 @@ class AddTargetVersionCheckQuickFix(
     return current
   }
 
+  @OptIn(KtAllowAnalysisOnEdt::class)
   private fun getKotlinSurrounder(element: KtElement, todoText: String?): KotlinIfSurrounder {
-    val used =
-      element.analyze(BodyResolveMode.PARTIAL)[BindingContext.USED_AS_EXPRESSION, element] ?: false
+    val used = allowAnalysisOnEdt {
+      analyze(element) { (element as? KtExpression)?.isUsedAsExpression() ?: false }
+    }
     return if (used) {
       object : KotlinIfSurrounder() {
         override fun getCodeTemplate(): String = "if (a) { \n} else {\nTODO(${todoText ?: ""})\n}"

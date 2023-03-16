@@ -819,7 +819,7 @@
                   <size top="10" left="10" bottom="10" right="20"/>
                 </border>
                 <children>
-                  <grid id="c92220" binding="myOtherIconsAllOptionsPanel" layout-manager="GridLayoutManager" row-count="9" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                  <grid id="c92220" binding="myOtherIconsAllOptionsPanel" layout-manager="GridLayoutManager" row-count="10" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                     <margin top="0" left="0" bottom="0" right="0"/>
                     <constraints/>
                     <properties/>
@@ -1067,9 +1067,75 @@
                       </grid>
                       <vspacer id="c4e84">
                         <constraints>
-                          <grid row="8" column="0" row-span="1" col-span="2" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+                          <grid row="9" column="0" row-span="1" col-span="2" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
                         </constraints>
                       </vspacer>
+                      <component id="d8710" class="com.intellij.ui.TitledSeparator" binding="myIconFormatTitle">
+                        <constraints>
+                          <grid row="7" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <text value="Icon Format"/>
+                        </properties>
+                      </component>
+                      <grid id="459f0" binding="myIconFormatRowPanel" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                        <margin top="0" left="0" bottom="0" right="0"/>
+                        <constraints>
+                          <grid row="8" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="true"/>
+                        </constraints>
+                        <properties/>
+                        <border type="none"/>
+                        <children>
+                          <component id="2bcc3" class="com.intellij.ui.components.JBLabel" binding="myIconFormatLabel">
+                            <constraints>
+                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="1" use-parent-layout="false">
+                                <minimum-size width="70" height="-1"/>
+                              </grid>
+                            </constraints>
+                            <properties>
+                              <text value="Format:"/>
+                            </properties>
+                          </component>
+                          <grid id="5d4d5" binding="myIconFormatRadioButtonsPanel" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                            <margin top="0" left="0" bottom="0" right="0"/>
+                            <constraints>
+                              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties/>
+                            <border type="none"/>
+                            <children>
+                              <component id="145d5" class="javax.swing.JRadioButton" binding="myIconFormatWebpRadioButton">
+                                <constraints>
+                                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                                </constraints>
+                                <properties>
+                                  <actionCommand value="WebP"/>
+                                  <label value="WebP"/>
+                                  <selected value="true"/>
+                                  <text value="WebP"/>
+                                  <toolTipText value="Generate WebP icons"/>
+                                </properties>
+                              </component>
+                              <component id="82ce" class="javax.swing.JRadioButton" default-binding="true">
+                                <constraints>
+                                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                                </constraints>
+                                <properties>
+                                  <actionCommand value="PNG"/>
+                                  <label value="PNG"/>
+                                  <text value="PNG"/>
+                                  <toolTipText value="Generate PNG icons"/>
+                                </properties>
+                              </component>
+                              <hspacer id="59592">
+                                <constraints>
+                                  <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                                </constraints>
+                              </hspacer>
+                            </children>
+                          </grid>
+                        </children>
+                      </grid>
                     </children>
                   </grid>
                 </children>
@@ -1117,6 +1183,10 @@
     <group name="myGeneratePlayStoreIconGroup">
       <member id="cc274"/>
       <member id="dcd52"/>
+    </group>
+    <group name="myIconFormatGroup">
+      <member id="145d5"/>
+      <member id="82ce"/>
     </group>
   </buttonGroups>
 </form>

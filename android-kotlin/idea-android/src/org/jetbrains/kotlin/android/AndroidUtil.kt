@@ -24,8 +24,10 @@ import com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType.APP
 import com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType.FRAMEWORK
 import com.android.tools.idea.AndroidPsiUtils.ResourceReferenceType.NONE
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.components.buildClassType
 import org.jetbrains.kotlin.analysis.api.symbols.KtClassLikeSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KtJavaFieldSymbol
 import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.load.java.descriptors.JavaClassDescriptor
@@ -66,4 +68,34 @@ internal fun KtAnalysisSession.isSubclassOf(subClass: KtClassOrObject, superClas
     val superClassType = buildClassType(ClassId.topLevel(FqName(superClassName)))
     if (!strict && classType.isEqualTo(superClassType)) return true
     return classType.isSubTypeOf(superClassType)
+}
+
+/**
+ * Since this function uses [KtJavaFieldSymbol], it must run inside [analyze].
+ */
+internal fun KtAnalysisSession.getAndroidResourceType(field: KtJavaFieldSymbol): ResourceType? {
+    if (getResourceReferenceType(field) == NONE) {
+        return null
+    }
+
+    val containingClassName = field.callableIdIfNonLocal?.classId?.shortClassName?.asString() ?: return null
+    return ResourceType.fromClassName(containingClassName)
+}
+
+/**
+ * Since this function uses [KtJavaFieldSymbol], it must run inside [analyze].
+ */
+internal fun KtAnalysisSession.getResourceReferenceType(field: KtJavaFieldSymbol): AndroidPsiUtils.ResourceReferenceType {
+    val containingClassId = field.callableIdIfNonLocal?.classId ?: return NONE
+    val rClassName = containingClassId.parentClassId?.shortClassName ?: return NONE
+
+    if (R_CLASS == rClassName.asString()) {
+        val rClassPackageFqName = containingClassId.packageFqName
+        return if (rClassPackageFqName.asString() == ANDROID_PKG) {
+            FRAMEWORK
+        } else {
+            APP
+        }
+    }
+    return NONE
 }

@@ -168,9 +168,7 @@ open class AddDestinationMenu(surface: NavDesignSurface) :
       val hosts = findReferences(model.file, module).map { it.containingFile }
 
       for (tag in schema.allTags) {
-        for ((psiClass, dynamicModule) in getClassesForTag(module, tag).filterKeys {
-          !existingClasses.contains(it.qualifiedName) && it.modifierList?.hasModifierProperty(PsiModifier.ABSTRACT) != true
-        }) {
+        for ((psiClass, dynamicModule) in getClassesForTag(module, tag).filterKeys { !existingClasses.contains(it.qualifiedName) }) {
           val layoutFile = layoutFiles[psiClass]
           if (layoutFile !in hosts) {
             val inProject = psiClass.isInProject()

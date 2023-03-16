@@ -61,9 +61,9 @@ import com.android.sdklib.devices.State;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.RenderService;
+import com.android.tools.idea.rendering.StudioRenderServiceKt;
 import com.android.tools.idea.res.ResourceFilesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
-import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.res.ResourceUtils;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.google.common.base.MoreObjects;
@@ -349,7 +349,7 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   public void save() {
-    ConfigurationStateManager stateManager = StudioConfigurationStateManager.get(myManager.getModule().getProject());
+    ConfigurationStateManager stateManager = myManager.getConfigModule().getConfigurationStateManager();
 
     if (myFile != null) {
       ConfigurationFileState fileState = new ConfigurationFileState();
@@ -469,7 +469,7 @@ public class Configuration implements Disposable, ModificationTracker {
         currentConfig.setLocaleQualifier(locale.qualifier);
 
         if (locale.hasLanguage()) {
-          LayoutLibrary layoutLib = RenderService.getLayoutLibrary(module, target);
+          LayoutLibrary layoutLib = StudioRenderServiceKt.getLayoutLibrary(module, target);
           if (layoutLib != null) {
             if (layoutLib.isRtl(locale.toLocaleId())) {
               currentConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));
@@ -495,7 +495,7 @@ public class Configuration implements Disposable, ModificationTracker {
       FolderConfiguration currentConfig = getFolderConfig(module, selectedState, getLocale(), getTarget());
       if (currentConfig != null) {
         if (myEditedConfig.isMatchFor(currentConfig)) {
-          LocalResourceRepository resources = StudioResourceRepositoryManager.getAppResources(module);
+          LocalResourceRepository resources = myManager.getConfigModule().getResourceRepositoryManager().getAppResources();
           if (resources != null && myFile != null) {
             ResourceFolderType folderType = ResourceFilesUtil.getFolderType(myFile);
             if (folderType != null) {
@@ -1102,7 +1102,7 @@ public class Configuration implements Disposable, ModificationTracker {
       // Avoid getting the layout library if the locale doesn't have any language.
       myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.LTR));
     } else {
-      LayoutLibrary layoutLib = RenderService.getLayoutLibrary(getModule(), getTarget());
+      LayoutLibrary layoutLib = StudioRenderServiceKt.getLayoutLibrary(getModule(), getTarget());
       if (layoutLib != null) {
         if (layoutLib.isRtl(locale.toLocaleId())) {
           myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));

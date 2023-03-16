@@ -22,6 +22,7 @@ import com.android.adblib.testingutils.CloseablesRule
 import com.android.adblib.testingutils.FakeAdbServerProvider
 import com.android.adblib.testingutils.TestingAdbSessionHost
 import com.android.fakeadbserver.DeviceState
+import com.android.fakeadbserver.ShellProtocolType
 import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
 import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.testing.DebugLoggerRule
@@ -55,7 +56,7 @@ class AdbFileOperationsTest(private val testDevice: TestDevices) {
 
   val fakeAdb = closeables.register(FakeAdbServerProvider()
                                       .installDefaultCommandHandlers()
-                                      .installDeviceHandler(TestShellCommandHandler(shellCommands))
+                                      .installDeviceHandler(TestShellCommandHandler(ShellProtocolType.SHELL, shellCommands))
                                       .installDeviceHandler(SyncCommandHandler())
                                       .build().start())
   val host = closeables.register(TestingAdbSessionHost())

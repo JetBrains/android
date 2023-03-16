@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.concurrency
 
+import com.android.tools.concurrency.AndroidIoManager
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.indexing.UnindexedFilesUpdater
 import java.util.concurrent.ExecutorService

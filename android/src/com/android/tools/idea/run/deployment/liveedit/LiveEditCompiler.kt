@@ -126,13 +126,12 @@ class LiveEditCompiler(val project: Project) {
   }
 
   private fun dumpOutputs(outputs: LiveEditCompilerOutput, prefix : String = "") {
-    if (LiveEditAdvancedConfiguration.getInstance().useDebugMode) {
-      for (clazz in outputs.classes) {
+    if (!LiveEditAdvancedConfiguration.getInstance().useDebugMode) {
+      return
+    }
+
+    for (clazz in outputs.classes) {
         writeDebugToTmp(prefix + clazz.name.replace("/".toRegex(), ".") + ".class", clazz.data)
-      }
-      for (clazz in outputs.supportClasses) {
-        writeDebugToTmp(prefix + clazz.name.replace("/".toRegex(), ".") + ".class", clazz.data)
-      }
     }
   }
 
@@ -325,7 +324,7 @@ class LiveEditCompiler(val project: Project) {
         inlineCandidateCache.computeIfAbsent(name) {
           SourceInlineCandidate(input, it)
         }.setByteCode(primaryClass)
-        liveEditOutput.addClass(LiveEditCompiledClass(name, primaryClass, input.module))
+        liveEditOutput.addClass(LiveEditCompiledClass(name, primaryClass, input.module, LiveEditClassType.NORMAL_CLASS))
         continue
       }
 
@@ -338,7 +337,7 @@ class LiveEditCompiler(val project: Project) {
         inlineCandidateCache.computeIfAbsent(name) {
           SourceInlineCandidate(input, it)
         }.setByteCode(supportClass)
-        liveEditOutput.addSupportClass(LiveEditCompiledClass(name, supportClass, input.module))
+        liveEditOutput.addClass(LiveEditCompiledClass(name, supportClass, input.module, LiveEditClassType.SUPPORT_CLASS))
         continue
       }
 

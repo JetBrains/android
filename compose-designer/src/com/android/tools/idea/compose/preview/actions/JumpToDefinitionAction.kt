@@ -17,6 +17,7 @@ package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -35,7 +36,7 @@ class JumpToDefinitionAction(
   surface: DesignSurface<LayoutlibSceneManager>,
   private val composePreviewNavigationHandler: ComposePreviewNavigationHandler,
   private val sceneView: SceneView,
-  title: String = "Jump to Definition"
+  title: String = message("action.jump.to.definition")
 ) : AnAction(title) {
 
   private val x: Int

@@ -24,8 +24,8 @@ import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuCaptureStage
 import com.android.tools.profilers.cpu.CpuProfilerTestUtils
 import com.android.tools.profilers.cpu.analysis.CpuAnalysisPanel
@@ -61,7 +61,7 @@ class CpuAnalysisPanelLeakTest {
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                    resolveWorkspacePath(CpuProfilerTestUtils.ATRACE_DATA_FILE).toFile(), 123L)
-    panel = CpuAnalysisPanel(StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable), stage)
+    panel = CpuAnalysisPanel(SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable), stage)
   }
 
   @Test

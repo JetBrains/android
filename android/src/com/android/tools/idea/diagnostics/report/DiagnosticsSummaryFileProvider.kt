@@ -16,8 +16,10 @@
 package com.android.tools.idea.diagnostics.report
 
 import com.android.tools.idea.diagnostics.DIAGNOSTICS_REPORTS_DIR
+import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import java.nio.file.Files
+import com.intellij.troubleshooting.TroubleInfoCollector
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -32,16 +34,25 @@ data class FileInfo(val source: Path, val destination: Path)
   DiagnosticsSummaryFileProvider returns a list of source/destination pairs corresponding to debugging artifacts
   */
 interface DiagnosticsSummaryFileProvider {
+  val name: String
+
   fun getFiles(project: Project?): List<FileInfo>
 
   companion object {
-    val DiagnosticSummaryFileProviders: Map<String, DiagnosticsSummaryFileProvider> = mapOf(
-      "Logs" to DefaultLogFileProvider,
-      "System Info" to SystemInfoFileProvider,
-      "Metrics" to DefaultMetricsLogFileProvider,
-      "Heap Reports" to HeapReportProvider,
-      "Thread Dumps" to ThreadDumpProvider,
-      "UI Freezes" to UIFreezeProvider)
+    /**
+     * Extension point for [DiagnosticsSummaryFileProvider] to specify additional providers other than
+     * the [defaultDiagnosticSummaryFileProviders]. These will be used when the user uses `Help/Collect Logs and Diagnostics Data...`.
+     */
+    private val providersExtensionPoint: ExtensionPointName<DiagnosticsSummaryFileProvider> =
+      ExtensionPointName.create("com.android.tools.idea.diagnostics.report.logsProvider")
+
+    private val defaultDiagnosticSummaryFileProviders: List<DiagnosticsSummaryFileProvider> = listOf(
+      DefaultLogFileProvider,
+      SystemInfoFileProvider,
+      DefaultMetricsLogFileProvider,
+      HeapReportProvider,
+      ThreadDumpProvider,
+      UIFreezeProvider)
 
     /*
        Build a list of FileInfo objects based on the specified providers. Each file info object will be resolved
@@ -49,12 +60,12 @@ interface DiagnosticsSummaryFileProvider {
      */
     @JvmStatic
     fun buildFileList(project: Project? = null,
-                      providers: Map<String, DiagnosticsSummaryFileProvider> = DiagnosticSummaryFileProviders): List<FileInfo> {
+                      providers: List<DiagnosticsSummaryFileProvider> = defaultDiagnosticSummaryFileProviders + providersExtensionPoint.extensions): List<FileInfo> {
       val list = mutableListOf<FileInfo>()
-      for ((name, provider) in providers.entries) {
+      for (provider in providers) {
         val files = provider.getFiles(project)
           .filter { Files.exists(it.source) }
-          .map { FileInfo(it.source, Paths.get(name).resolve(it.destination)) }
+          .map { FileInfo(it.source, Paths.get(provider.name).resolve(it.destination)) }
         list.addAll(files)
       }
       return list.sortedBy { it.destination }

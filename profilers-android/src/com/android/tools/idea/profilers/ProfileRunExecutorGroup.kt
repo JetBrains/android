@@ -25,6 +25,7 @@ import com.intellij.execution.Executor
 import com.intellij.execution.ExecutorRegistry
 import com.intellij.execution.configurations.RunProfile
 import com.intellij.execution.runners.ExecutionUtil
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
@@ -120,7 +121,7 @@ class ProfileRunExecutorGroup : AbstractProfilerExecutorGroup<ProfileRunExecutor
 
   override fun getRunToolbarChooserText(): String = "Profile"
 
-  override fun getToolWindowIcon(): Icon = StudioIcons.Shell.ToolWindows.ANDROID_PROFILER
+  override fun getToolWindowIcon(): Icon = AllIcons.Toolwindows.ToolWindowRun
 
   /**
    * WARNING: do not call this to get the Profiler tool window ID, instead use [AndroidProfilerToolWindowFactory.ID] directly.

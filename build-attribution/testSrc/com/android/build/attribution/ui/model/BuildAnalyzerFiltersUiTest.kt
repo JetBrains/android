@@ -16,7 +16,7 @@
 package com.android.build.attribution.ui.model
 
 import com.android.build.attribution.ui.data.PluginSourceType.ANDROID_PLUGIN
-import com.android.build.attribution.ui.data.PluginSourceType.BUILD_SRC
+import com.android.build.attribution.ui.data.PluginSourceType.BUILD_SCRIPT
 import com.android.build.attribution.ui.data.PluginSourceType.THIRD_PARTY
 import com.android.build.attribution.ui.data.TaskIssueType
 import com.google.common.truth.Expect
@@ -135,7 +135,7 @@ class BuildAnalyzerFiltersUiTest {
       expectedText = "Selected types of task warnings")
     verifyFilter(
       filter = WarningsFilter(
-        showTaskSourceTypes = setOf(ANDROID_PLUGIN, THIRD_PARTY, BUILD_SRC),
+        showTaskSourceTypes = setOf(ANDROID_PLUGIN, THIRD_PARTY, BUILD_SCRIPT),
         showTaskWarningTypes = setOf(TaskIssueType.ALWAYS_RUN_TASKS),
         showAnnotationProcessorWarnings = false,
         showNonCriticalPathTasks = false,
@@ -145,7 +145,7 @@ class BuildAnalyzerFiltersUiTest {
       expectedText = "Selected types of task warnings")
     verifyFilter(
       filter = WarningsFilter(
-        showTaskSourceTypes = setOf(ANDROID_PLUGIN, THIRD_PARTY, BUILD_SRC),
+        showTaskSourceTypes = setOf(ANDROID_PLUGIN, THIRD_PARTY, BUILD_SCRIPT),
         showTaskWarningTypes = setOf(TaskIssueType.TASK_SETUP_ISSUE),
         showAnnotationProcessorWarnings = false,
         showNonCriticalPathTasks = false,
@@ -155,7 +155,7 @@ class BuildAnalyzerFiltersUiTest {
       expectedText = "Selected types of task warnings")
     verifyFilter(
       filter = WarningsFilter(
-        showTaskSourceTypes = setOf(ANDROID_PLUGIN, THIRD_PARTY, BUILD_SRC),
+        showTaskSourceTypes = setOf(ANDROID_PLUGIN, THIRD_PARTY, BUILD_SCRIPT),
         showTaskWarningTypes = setOf(TaskIssueType.TASK_SETUP_ISSUE),
         showAnnotationProcessorWarnings = true,
         showNonCriticalPathTasks = false,
@@ -165,7 +165,7 @@ class BuildAnalyzerFiltersUiTest {
       expectedText = "Selected types of task warnings, Annotation processors, Configuration cache, Jetifier")
     verifyFilter(
       filter = WarningsFilter(
-        showTaskSourceTypes = setOf(ANDROID_PLUGIN, THIRD_PARTY, BUILD_SRC),
+        showTaskSourceTypes = setOf(ANDROID_PLUGIN, THIRD_PARTY, BUILD_SCRIPT),
         showTaskWarningTypes = setOf(TaskIssueType.ALWAYS_RUN_TASKS, TaskIssueType.TASK_SETUP_ISSUE),
         showAnnotationProcessorWarnings = false,
         showNonCriticalPathTasks = false,
@@ -175,7 +175,7 @@ class BuildAnalyzerFiltersUiTest {
       expectedText = "All task warnings")
     verifyFilter(
       filter = WarningsFilter(
-        showTaskSourceTypes = setOf(ANDROID_PLUGIN, THIRD_PARTY, BUILD_SRC),
+        showTaskSourceTypes = setOf(ANDROID_PLUGIN, THIRD_PARTY, BUILD_SCRIPT),
         showTaskWarningTypes = setOf(TaskIssueType.ALWAYS_RUN_TASKS, TaskIssueType.TASK_SETUP_ISSUE),
         showAnnotationProcessorWarnings = true,
         showNonCriticalPathTasks = false,
@@ -195,30 +195,30 @@ class BuildAnalyzerFiltersUiTest {
 
     expect.that(TasksFilter(setOf(ANDROID_PLUGIN), showTasksWithoutWarnings = true).toUiText())
       .isEqualTo("Android/Java/Kotlin tasks")
-    expect.that(TasksFilter(setOf(BUILD_SRC), showTasksWithoutWarnings = true).toUiText())
+    expect.that(TasksFilter(setOf(BUILD_SCRIPT), showTasksWithoutWarnings = true).toUiText())
       .isEqualTo("Project customization tasks")
     expect.that(TasksFilter(setOf(THIRD_PARTY), showTasksWithoutWarnings = true).toUiText())
       .isEqualTo("Other tasks")
 
     expect.that(TasksFilter(setOf(ANDROID_PLUGIN), showTasksWithoutWarnings = false).toUiText())
       .isEqualTo("Android/Java/Kotlin tasks with warnings")
-    expect.that(TasksFilter(setOf(BUILD_SRC), showTasksWithoutWarnings = false).toUiText())
+    expect.that(TasksFilter(setOf(BUILD_SCRIPT), showTasksWithoutWarnings = false).toUiText())
       .isEqualTo("Project customization tasks with warnings")
     expect.that(TasksFilter(setOf(THIRD_PARTY), showTasksWithoutWarnings = false).toUiText())
       .isEqualTo("Other tasks with warnings")
 
-    expect.that(TasksFilter(setOf(ANDROID_PLUGIN, BUILD_SRC), showTasksWithoutWarnings = true).toUiText())
+    expect.that(TasksFilter(setOf(ANDROID_PLUGIN, BUILD_SCRIPT), showTasksWithoutWarnings = true).toUiText())
       .isEqualTo("Android/Java/Kotlin, Project customization tasks")
-    expect.that(TasksFilter(setOf(THIRD_PARTY, BUILD_SRC), showTasksWithoutWarnings = true).toUiText())
+    expect.that(TasksFilter(setOf(THIRD_PARTY, BUILD_SCRIPT), showTasksWithoutWarnings = true).toUiText())
       .isEqualTo("Project customization, Other tasks")
-    expect.that(TasksFilter(setOf(ANDROID_PLUGIN, THIRD_PARTY, BUILD_SRC), showTasksWithoutWarnings = true).toUiText())
+    expect.that(TasksFilter(setOf(ANDROID_PLUGIN, THIRD_PARTY, BUILD_SCRIPT), showTasksWithoutWarnings = true).toUiText())
       .isEqualTo("All tasks")
 
-    expect.that(TasksFilter(setOf(ANDROID_PLUGIN, BUILD_SRC), showTasksWithoutWarnings = false).toUiText())
+    expect.that(TasksFilter(setOf(ANDROID_PLUGIN, BUILD_SCRIPT), showTasksWithoutWarnings = false).toUiText())
       .isEqualTo("Android/Java/Kotlin, Project customization tasks with warnings")
-    expect.that(TasksFilter(setOf(THIRD_PARTY, BUILD_SRC), showTasksWithoutWarnings = false).toUiText())
+    expect.that(TasksFilter(setOf(THIRD_PARTY, BUILD_SCRIPT), showTasksWithoutWarnings = false).toUiText())
       .isEqualTo("Project customization, Other tasks with warnings")
-    expect.that(TasksFilter(setOf(ANDROID_PLUGIN, THIRD_PARTY, BUILD_SRC), showTasksWithoutWarnings = false).toUiText())
+    expect.that(TasksFilter(setOf(ANDROID_PLUGIN, THIRD_PARTY, BUILD_SCRIPT), showTasksWithoutWarnings = false).toUiText())
       .isEqualTo("All tasks with warnings")
   }
 }

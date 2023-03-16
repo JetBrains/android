@@ -26,22 +26,20 @@ import com.android.tools.idea.model.TestOptions
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.run.ApkProvider
 import com.android.tools.idea.run.ApkProvisionException
-import com.android.tools.idea.run.ApplicationIdProvider
+import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
-import com.android.tools.idea.run.editor.DeployTarget
 import com.android.tools.idea.run.tasks.AppLaunchTask
-import com.android.tools.idea.run.tasks.ClearLogcatTask
 import com.android.tools.idea.run.tasks.DeployTask
-import com.android.tools.idea.run.tasks.DismissKeyguardTask
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.getBaseDebuggerTask
 import com.android.tools.idea.run.ui.BaseAction
+import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.allInModuleTest
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.allInPackageTest
@@ -137,39 +135,32 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
     catch (e: ApkProvisionException) {
       throw ExecutionException("Unable to determine test package name")
     }
-    val stat = RunStats.from(env).apply { setPackage(testAppId) }
-    stat.beginLaunchTasks()
-    try {
-      printLaunchTaskStartedMessage(console)
+    RunStats.from(env).apply { setPackage(testAppId) }
+    printLaunchTaskStartedMessage(console)
 
+    // Create launch tasks for each device.
+    indicator.text = "Getting task for devices"
+    val launchTaskMap = devices.keysToMap { getTask(it, testAppId) }
 
-      // Create launch tasks for each device.
-      indicator.text = "Getting task for devices"
-      val launchTaskMap = devices.keysToMap { getTask(it, testAppId) }
-
-      // A list of devices that we have launched application successfully.
-      indicator.text = "Launching on devices"
-      launchTaskMap.entries.map { (device, tasks) ->
-        async {
-          LOG.info("Launching on device ${device.name}")
-          val launchContext = LaunchContext(env, device, console, processHandler, indicator)
-          runLaunchTasks(tasks, launchContext)
-          // Notify listeners of the deployment.
-          project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(device.serialNumber, project)
-        }
-      }.awaitAll()
-    }
-    finally {
-      stat.endLaunchTasks()
-    }
+    // A list of devices that we have launched application successfully.
+    indicator.text = "Launching on devices"
+    launchTaskMap.entries.map { (device, tasks) ->
+      async {
+        LOG.info("Launching on device ${device.name}")
+        val launchContext = LaunchContext(env, device, console, processHandler, indicator)
+        runLaunchTasks(tasks, launchContext)
+        // Notify listeners of the deployment.
+        project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingTest(device.serialNumber, project)
+      }
+    }.awaitAll()
   }
 
   private fun getTask(device: IDevice, testAppId: String): List<LaunchTask> {
     val launchTasks = mutableListOf<LaunchTask>()
     if (configuration.CLEAR_LOGCAT) {
-      launchTasks.add(ClearLogcatTask(project))
+      project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device.serialNumber)
     }
-    launchTasks.add(DismissKeyguardTask())
+    LaunchUtils.initiateDismissKeyguard(device)
 
     val packages = apkProvider.getApks(device)
     val pmInstallOptions = if (device.version.apiLevel >= 23) {

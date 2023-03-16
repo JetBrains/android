@@ -24,12 +24,6 @@ import kotlin.math.max
 import kotlin.math.sqrt
 
 /**
- * The unit of scale when calculating the zoom-to-fit scale by calling [GridSurfaceLayoutManager.getFitIntoScale].
- * The recursion stops when the differences of two zoom-to-fit value is smaller than this value.
- */
-private const val SCALE_UNIT = 0.01
-
-/**
  * [SurfaceLayoutManager] that layouts [PositionableContent]s in grid style. It tries to fill the [PositionableContent]s horizontally then
  * vertically. When a row has no horizontal space for the next [PositionableContent], it fills the remaining [PositionableContent]s in the new
  * row, and so on.

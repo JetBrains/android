@@ -83,6 +83,41 @@ public final class VirtualDeviceDetailsPanelTest {
     assertEquals("5,333 MB", section.myAvailableStorageLabel.getText());
   }
 
+  @Test
+  public void initSummarySectionWithSdkExtension() throws Exception {
+    // Arrange
+    Mockito.when(myAvd.getStatus()).thenReturn(AvdStatus.OK);
+    VirtualDevice virtualDevice = TestVirtualDevices.onlinePixel5Api33ext4(myAvd);
+
+    Device device = new VirtualDevice.Builder()
+      .setKey(TestVirtualDevices.PIXEL_5_API_33_EXT_4_KEY)
+      .setName("Pixel 5 API 33 ext 4")
+      .setTarget("Android 12.0 Google APIs")
+      .setCpuArchitecture("x86_64")
+      .setResolution(new Resolution(1080, 2340))
+      .setDensity(440)
+      .addAllAbis(List.of("x86_64", "arm64-v8a"))
+      .setStorageDevice(new StorageDevice(5_333))
+      .setAvdInfo(myAvd)
+      .build();
+
+    AsyncVirtualDeviceDetailsBuilder builder = mock(device);
+    CountDownLatch latch = new CountDownLatch(1);
+
+    // Act
+    VirtualDeviceDetailsPanel panel = new VirtualDeviceDetailsPanel(virtualDevice,
+                                                                    builder,
+                                                                    section -> newSummarySectionCallback(section, latch),
+                                                                    myManager);
+
+    // Assert
+    CountDownLatchAssert.await(latch);
+
+    SummarySection section = panel.getSummarySection();
+
+    assertEquals("33-ext4", section.myApiLevelLabel.getText());
+  }
+
   @NotNull
   private static FutureCallback<Device> newSummarySectionCallback(@NotNull SummarySection section, @NotNull CountDownLatch latch) {
     return new CountDownLatchFutureCallback<>(VirtualDeviceDetailsPanel.newSummarySectionCallback(section), latch);

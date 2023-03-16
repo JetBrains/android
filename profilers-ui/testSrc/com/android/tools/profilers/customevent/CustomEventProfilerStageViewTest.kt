@@ -26,6 +26,7 @@ import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACHED_RESPONSE
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.google.common.truth.Truth.assertThat
@@ -62,7 +63,7 @@ class CustomEventProfilerStageViewTest {
     profilers.stage = stage
 
     //Initialize the view after the stage, otherwise it will create views for monitoring stage
-    view = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
+    view = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
 
   }
 

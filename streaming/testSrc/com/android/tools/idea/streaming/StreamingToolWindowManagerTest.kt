@@ -42,6 +42,7 @@ import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.streaming.emulator.FakeEmulatorRule
 import com.android.tools.idea.streaming.emulator.RunningEmulatorCatalog
 import com.android.tools.idea.testing.AndroidExecutorsRule
+import com.android.tools.idea.testing.DisposerExplorer
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.ide.ui.LafManager
@@ -328,6 +329,13 @@ class StreamingToolWindowManagerTest {
     agentRule.disconnectDevice(device)
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
     waitForCondition(2, TimeUnit.SECONDS) { !device.agent.isRunning }
+
+    // Check that PhysicalDeviceWatcher gets disposed after disabling device mirroring.
+    // DisposerExplorer is used because alternative ways of testing this are pretty slow.
+    val physicalDeviceWatcherClassName = "com.android.tools.idea.streaming.StreamingToolWindowManager\$PhysicalDeviceWatcher"
+    assertThat(DisposerExplorer.findAll { it.javaClass.name == physicalDeviceWatcherClassName }).hasSize(1)
+    deviceMirroringSettings.deviceMirroringEnabled = false
+    assertThat(DisposerExplorer.findAll { it.javaClass.name == physicalDeviceWatcherClassName }).isEmpty()
   }
 
   @Test

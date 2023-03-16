@@ -16,7 +16,7 @@
 package com.android.tools.idea.uibuilder.visual
 
 import com.android.tools.idea.common.error.IssueModel
-import com.android.tools.idea.common.error.getDesignSurface
+import com.android.tools.idea.common.surface.getDesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.lint.CommonLintUserDataHandler
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager

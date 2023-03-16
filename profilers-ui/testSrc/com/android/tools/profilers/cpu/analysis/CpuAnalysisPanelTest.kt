@@ -24,8 +24,8 @@ import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.ProfilersTestData
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.cpu.CpuCaptureStage
 import com.android.tools.profilers.cpu.CpuProfilerUITestUtils
 import com.google.common.truth.Truth.assertThat
@@ -62,7 +62,7 @@ class CpuAnalysisPanelTest {
     profilers = StudioProfilers(ProfilerClient(grpcChannel.channel), services, timer)
     stage = CpuCaptureStage.create(profilers, ProfilersTestData.DEFAULT_CONFIG,
                                    resolveWorkspacePath(CpuProfilerUITestUtils.ATRACE_TRACE_PATH).toFile(), 123L)
-    panel = CpuAnalysisPanel(StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable), stage)
+    panel = CpuAnalysisPanel(SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable), stage)
   }
 
   @Test

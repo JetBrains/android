@@ -40,7 +40,7 @@ abstract class PreferenceScreenTestCase extends LayoutTestCase {
     Mockito.when(list.getDividerHeight()).thenReturn(2);
 
     ViewEditorImpl editor = new ViewEditorImpl(screenView);
-    editor.setRootViews(Collections.singletonList(new ViewInfo(FQCN_LIST_VIEW, null, 0, 0, 0, 0, list, null)));
+    editor.setRootViews(Collections.singletonList(new ViewInfo(FQCN_LIST_VIEW, null, 0, 0, 0, 0, list, null, null)));
 
     return editor;
   }

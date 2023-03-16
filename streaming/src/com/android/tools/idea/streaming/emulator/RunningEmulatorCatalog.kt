@@ -17,7 +17,7 @@ package com.android.tools.idea.streaming.emulator
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.annotations.concurrency.GuardedBy
-import com.android.tools.idea.concurrency.AndroidIoManager
+import com.android.tools.concurrency.AndroidIoManager
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.collect.ImmutableSet
 import com.google.common.util.concurrent.ListenableFuture

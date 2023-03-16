@@ -32,6 +32,7 @@ import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.RecordingOptionsView
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.event.FakeEventService
@@ -94,7 +95,7 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
     myStage = CpuProfilerStage(profilers)
     myStage.studioProfilers.stage = myStage
     myStage.enter()
-    myProfilersView = StudioProfilersView(profilers, myComponents, disposableRule.disposable)
+    myProfilersView = SessionProfilersView(profilers, myComponents, disposableRule.disposable)
   }
 
   @Test

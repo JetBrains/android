@@ -24,8 +24,8 @@ import com.android.tools.profiler.proto.Trace
 import com.android.tools.profilers.FakeIdeProfilerComponents
 import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
+import com.android.tools.profilers.SessionProfilersView
 import com.android.tools.profilers.StudioProfilers
-import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.TraceConfigOptionsUtils
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import com.google.common.truth.Truth.assertThat
@@ -61,7 +61,7 @@ class CpuProfilerStageCpuUsageTooltipViewTest {
     cpuStage = CpuProfilerStage(profilers)
     timer.tick(TimeUnit.SECONDS.toNanos(1))
     profilers.stage = cpuStage
-    val view = StudioProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
+    val view = SessionProfilersView(profilers, FakeIdeProfilerComponents(), disposableRule.disposable)
     val stageView: CpuProfilerStageView = view.stageView as CpuProfilerStageView
     val usageTooltip = CpuProfilerStageCpuUsageTooltip(cpuStage)
     usageTooltipView = FakeCpuUsageTooltipView(stageView, usageTooltip)

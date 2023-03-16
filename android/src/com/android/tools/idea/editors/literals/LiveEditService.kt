@@ -23,10 +23,9 @@ import com.android.tools.idea.editors.liveedit.ui.EmulatorLiveEditAdapter
 import com.android.tools.idea.editors.liveedit.ui.LiveEditIssueNotificationAction
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.projectsystem.ProjectSystemService
-import com.android.tools.idea.run.deployment.liveedit.AdbConnection
-import com.android.tools.idea.run.deployment.liveedit.AndroidLiveEditDeployMonitor
-import com.android.tools.idea.run.deployment.liveedit.DeviceConnection
+import com.android.tools.idea.run.deployment.liveedit.LiveEditProjectMonitor
 import com.android.tools.idea.run.deployment.liveedit.EditEvent
+import com.android.tools.idea.run.deployment.liveedit.LiveEditAdbEventsListener
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
 import com.android.tools.idea.run.deployment.liveedit.PsiListener
 import com.android.tools.idea.run.deployment.liveedit.SourceInlineCandidateCache
@@ -52,7 +51,6 @@ import com.intellij.ui.content.ContentManagerListener
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.containers.stream
 import org.jetbrains.annotations.VisibleForTesting
-import java.util.concurrent.Callable
 import java.util.concurrent.Executor
 
 /**
@@ -60,15 +58,21 @@ import java.util.concurrent.Executor
  */
 @Service
 class LiveEditService constructor(val project: Project,
-                                  val deviceConnection: DeviceConnection,
-                                  var executor: Executor) : Disposable {
+                                  var executor: Executor,
+                                  val adbEventsListener: LiveEditAdbEventsListener) : Disposable {
+
+  private val deployMonitor: LiveEditProjectMonitor
+
+  private var showMultiDeviceNotification = true
+
+  private var showMultiDeployNotification = true
 
   // We quickly hand off the processing of PSI events to our own executor, since PSI events are likely
   // dispatched from the UI thread, and we do not want to block it.
   constructor(project: Project) : this(project,
-                                       AdbConnection,
                                        AppExecutorUtil.createBoundedApplicationPoolExecutor(
-                                         "Document changed listeners executor", 1))
+                                         "Document changed listeners executor", 1),
+                                       LiveEditAdbEventsListener())
 
   init {
     val adapter = EmulatorLiveEditAdapter(project)
@@ -102,23 +106,11 @@ class LiveEditService constructor(val project: Project,
         }
       }
     }
-  }
 
-  fun inlineCandidateCache() : SourceInlineCandidateCache {
-    return deployMonitor.compiler.inlineCandidateCache
-  }
-
-  private val deployMonitor: AndroidLiveEditDeployMonitor
-
-  private var showMultiDeviceNotification = true
-
-  private var showMultiDeployNotification = true
-
-  init {
     // TODO: Deactivate this when not needed.
     val listener = PsiListener(this::onPsiChanged)
     PsiManager.getInstance(project).addPsiTreeChangeListener(listener, this)
-    deployMonitor = AndroidLiveEditDeployMonitor(this, project)
+    deployMonitor = LiveEditProjectMonitor(this, project)
     // TODO: Delete if it turns our we don't need Hard-refresh trigger.
     //bindKeyMapShortcut(LiveEditApplicationConfiguration.getInstance().leTriggerMode)
 
@@ -153,6 +145,10 @@ class LiveEditService constructor(val project: Project,
     })
   }
 
+  fun inlineCandidateCache() : SourceInlineCandidateCache {
+    return deployMonitor.compiler.inlineCandidateCache
+  }
+
   companion object {
 
     // The action upon which we trigger LiveEdit to do a push in manual mode.
@@ -181,13 +177,13 @@ class LiveEditService constructor(val project: Project,
     }
 
     fun hasLiveEditSupportedDeviceConnected() = AndroidDebugBridge.getBridge()!!.devices.any { device ->
-      AndroidLiveEditDeployMonitor.supportLiveEdits(device)
+      LiveEditProjectMonitor.supportLiveEdits(device)
     }
   }
 
   // TODO: Refactor this away when AndroidLiveEditDeployMonitor functionality is moved to LiveEditService/other classes.
   @VisibleForTesting
-  fun getDeployMonitor(): AndroidLiveEditDeployMonitor {
+  fun getDeployMonitor(): LiveEditProjectMonitor {
     return deployMonitor
   }
 
@@ -199,12 +195,18 @@ class LiveEditService constructor(val project: Project,
     return deployMonitor.status(device)
   }
 
+  /**
+   * Called from Android Studio when an app is "Refreshed" (namely Apply Changes or Apply Code Changes) to a device
+   */
   fun notifyAppRefresh(device: IDevice): Boolean {
     return deployMonitor.notifyAppRefresh(device)
   }
 
-  fun getCallback(packageName: String, device: IDevice) : Callable<*>? {
-    return deployMonitor.getCallback(packageName, device)
+  /**
+   * Called from Android Studio when an app is deployed (a.k.a Installed / IWIed / Delta-installed) to a device
+   */
+  fun notifyAppDeploy(packageName: String, device: IDevice): Boolean {
+    return deployMonitor.notifyAppDeploy(packageName, device)
   }
 
   fun toggleLiveEdit(oldMode: LiveEditApplicationConfiguration.LiveEditMode, newMode: LiveEditApplicationConfiguration.LiveEditMode) {
@@ -223,7 +225,7 @@ class LiveEditService constructor(val project: Project,
     if (oldMode == newMode) {
       return
     } else if (newMode == LiveEditTriggerMode.LE_TRIGGER_AUTOMATIC) {
-      deployMonitor.onManualLETrigger(project)
+      deployMonitor.onManualLETrigger()
     }
   }
 
@@ -237,6 +239,6 @@ class LiveEditService constructor(val project: Project,
   }
 
   fun triggerLiveEdit() {
-    deployMonitor.onManualLETrigger(project)
+    deployMonitor.onManualLETrigger()
   }
 }

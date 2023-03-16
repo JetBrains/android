@@ -30,6 +30,7 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildOutputDownloadsInfoEvent
+import com.intellij.codeInsight.codeVision.ui.popup.layouter.getCenter
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
@@ -42,6 +43,7 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.LayeredIcon
 import com.intellij.ui.table.TableView
+import com.intellij.util.ui.ComponentWithEmptyText
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.After
 import org.junit.Before
@@ -76,7 +78,7 @@ class DownloadsInfoPresentableEventTest {
     //Time is not used for this type of event. 0 is a default value for such case.
     assertThat(event.eventTime).isEqualTo(0)
     //This is what is shown as tree item.
-    assertThat(event.message).isEqualTo("Downloads info")
+    assertThat(event.message).isEqualTo("Download info")
     //Description is text output on execution console. Since we have custom console, we don't have it.
     assertThat(event.description).isNull()
     //Hint is an additional text shown in grey after node name. Is not updatable currently, so do not use.
@@ -161,10 +163,9 @@ class DownloadsInfoExecutionConsoleTest {
 
   @Test
   fun testEmptyUi() {
-    assertThat(reposTable.rowCount).isEqualTo(0)
-    assertThat(reposTable.emptyText.text).isEqualTo("No download requests")
-    assertThat(requestsTable.rowCount).isEqualTo(0)
-    assertThat(requestsTable.emptyText.text).isEqualTo("No download requests")
+    assertThat((executionConsole.component as ComponentWithEmptyText).emptyText.text).isEqualTo("No download requests")
+    assertWithMessage("None of the component should be visible.")
+      .that (executionConsole.component.components.any { it.isVisible }).isFalse()
   }
 
   @Test
@@ -172,6 +173,8 @@ class DownloadsInfoExecutionConsoleTest {
     val downloadProcessKey = DownloadRequestKey(1000, url1)
     executionConsole.uiModel.updateDownloadRequest(DownloadRequestItem(downloadProcessKey, GOOGLE))
 
+    assertWithMessage("Components should become visible on data arrival.")
+      .that(executionConsole.component.components.all { it.isVisible }).isTrue()
     assertThat(reposTable.rowCount).isEqualTo(2)
     assertThat(requestsTable.rowCount).isEqualTo(1)
   }
@@ -212,6 +215,27 @@ class DownloadsInfoExecutionConsoleTest {
       .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_DOWNLOADS_INFO_USER_INTERACTION }
       .map { use -> use.studioEvent.buildOutputDownloadsInfoEvent.interaction }
     assertThat(interactions).isEqualTo(listOf(BuildOutputDownloadsInfoEvent.Interaction.OPEN_DOWNLOADS_INFO_UI))
+  }
+
+  @Test
+  fun testSortToggle() {
+    val downloadProcess1 = DownloadRequestItem(DownloadRequestKey(1000, url1), GOOGLE, completed = true, duration = 200)
+    val downloadProcess2 = DownloadRequestItem(DownloadRequestKey(2000, url2), GOOGLE, completed = true, duration = 100)
+    val downloadProcess3 = DownloadRequestItem(DownloadRequestKey(3000, url3), MAVEN_CENTRAL, completed = true, duration = 300)
+    executionConsole.uiModel.updateDownloadRequest(downloadProcess1)
+    executionConsole.uiModel.updateDownloadRequest(downloadProcess2)
+    executionConsole.uiModel.updateDownloadRequest(downloadProcess3)
+
+    // Test three-state-sorting based on duration column.
+    // First toggle should sort by duration in ascending order
+    requestsTable.rowSorter.toggleSortOrder(2)
+    assertThat((0..2).map { requestsTable.getRow(it) }).isEqualTo(listOf(downloadProcess2, downloadProcess1, downloadProcess3))
+    // Second toggle should sort by duration in descending order
+    requestsTable.rowSorter.toggleSortOrder(2)
+    assertThat((0..2).map { requestsTable.getRow(it) }).isEqualTo(listOf(downloadProcess3, downloadProcess1, downloadProcess2))
+    // Third toggle should reset sorting to original order
+    requestsTable.rowSorter.toggleSortOrder(2)
+    assertThat((0..2).map { requestsTable.getRow(it) }).isEqualTo(listOf(downloadProcess1, downloadProcess2, downloadProcess3))
   }
 
   @Test

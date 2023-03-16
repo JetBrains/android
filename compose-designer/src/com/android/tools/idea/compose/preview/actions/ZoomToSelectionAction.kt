@@ -19,6 +19,7 @@ import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.compose.preview.findDeepestHits
+import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
@@ -41,7 +42,7 @@ import javax.swing.SwingUtilities
 class ZoomToSelectionAction(
   private val surface: NlDesignSurface,
   private val sceneView: SceneView,
-  title: String = "Zoom to Selection"
+  title: String = message("action.zoom.to.selection")
 ) : AnAction(title) {
 
   private val logger = Logger.getInstance(ZoomToSelectionAction::class.java)

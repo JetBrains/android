@@ -15,19 +15,29 @@
  */
 package com.android.tools.idea.ui.screenrecording
 
+import com.intellij.openapi.Disposable
+import kotlinx.coroutines.Deferred
 import java.nio.file.Path
 
 /**
- * Provides screen recording functionality
+ * Provides screen recording functionality.
  */
-interface RecordingProvider {
+interface RecordingProvider : Disposable {
   val fileExtension: String
 
-  suspend fun startRecording()
+  /**
+   * Starts recording and returns. The recording continues until it is stopped, cancelled,
+   * or exceeds the maximum supported duration. The returned [Deferred] is completed when
+   * the recording finishes. Normal completion indicates that recording was successful.
+   * An exceptional completion indicates either recording error or cancellation.
+   */
+  suspend fun startRecording(): Deferred<Unit>
 
-  suspend fun stopRecording()
+  /** Stops recording asynchronously. */
+  fun stopRecording()
 
-  suspend fun cancelRecording()
+  /** Cancels recording asynchronously. */
+  fun cancelRecording()
 
   suspend fun doesRecordingExist(): Boolean
 

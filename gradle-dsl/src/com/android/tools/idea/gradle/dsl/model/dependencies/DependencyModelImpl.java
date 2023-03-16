@@ -74,4 +74,9 @@ public abstract class DependencyModelImpl implements DependencyModel {
   @Override
   @Nullable
   public PsiElement getPsiElement() { return getDslElement().getPsiElement(); }
+
+  @Override
+  public String toString() {
+    return getDslElement().toString();
+  }
 }

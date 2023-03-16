@@ -133,6 +133,10 @@ Task                          : :app:preDebugBuild
     TaskType                      : com.android.build.gradle.internal.tasks.AndroidVariantTask
     PrimaryTaskCategory           : UNCATEGORIZED
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
+Task                          : :app:processDebugJavaRes
+    TaskType                      : com.android.build.gradle.internal.tasks.ProcessJavaResTask
+    PrimaryTaskCategory           : JAVA_RESOURCES
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.AppPlugin
 Task                          : :app:processDebugMainManifest
     TaskType                      : com.android.build.gradle.tasks.ProcessApplicationManifest
     PrimaryTaskCategory           : MANIFEST
@@ -193,11 +197,6 @@ Task                          : :lib:bundleDebugAar
 Task                          : :lib:bundleLibCompileToJarDebug
     TaskType                      : com.android.build.gradle.internal.tasks.BundleLibraryClassesJar
     PrimaryTaskCategory           : COMPILED_CLASSES
-    SecondaryTaskCategories       : ZIPPING
-    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
-Task                          : :lib:bundleLibResDebug
-    TaskType                      : com.android.build.gradle.internal.tasks.BundleLibraryJavaRes
-    PrimaryTaskCategory           : JAVA_RESOURCES
     SecondaryTaskCategories       : ZIPPING
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:bundleLibRuntimeToJarDebug
@@ -329,6 +328,10 @@ Task                          : :lib:prepareDebugArtProfile
 Task                          : :lib:prepareLintJarForPublish
     TaskType                      : com.android.build.gradle.internal.tasks.PrepareLintJarForPublish
     PrimaryTaskCategory           : LINT
+    Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
+Task                          : :lib:processDebugJavaRes
+    TaskType                      : com.android.build.gradle.internal.tasks.ProcessJavaResTask
+    PrimaryTaskCategory           : JAVA_RESOURCES
     Plugin                        : binary plugin com.android.build.gradle.internal.plugins.LibraryPlugin
 Task                          : :lib:processDebugManifest
     TaskType                      : com.android.build.gradle.tasks.ProcessMultiApkApplicationManifest

@@ -50,6 +50,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -176,6 +177,11 @@ public class NlActionManager extends ActionManager<NlDesignSurface> {
         p.setEnabled(false);
         p.setVisible(true);
       }
+    }
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+      return ActionUpdateThread.BGT;
     }
   }
 

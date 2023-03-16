@@ -37,7 +37,7 @@ internal class LiveEditDesugar : AutoCloseable{
   internal fun desugar(compiledFiles: LiveEditCompilerOutput) {
     val now = System.nanoTime()
     try {
-      desugarClasses(compiledFiles.classes, compiledFiles.supportClasses)
+      desugarClasses(compiledFiles.classes)
     }
     catch (e: Exception) {
       e.printStackTrace()
@@ -116,7 +116,7 @@ internal class LiveEditDesugar : AutoCloseable{
     }.toList()
   }
 
-  private fun desugarClasses(classes : List<LiveEditCompiledClass>, supportClasses : List<LiveEditCompiledClass>) {
+  private fun desugarClasses(classes : List<LiveEditCompiledClass>) {
 
     // We batch class desugaring on a per-module basis to re-use common class desugaring configuration.
     // 1/ Flattened lists into a single one.
@@ -127,7 +127,6 @@ internal class LiveEditDesugar : AutoCloseable{
     logger.log("Request for:")
     val flattenedClasses = mutableMapOf<String, LiveEditCompiledClass>()
     flatten(classes, flattenedClasses, "classes")
-    flatten(supportClasses, flattenedClasses, "support_classes")
 
     // 2
     val modulesSet = mutableMapOf<String, MutableList<LiveEditCompiledClass>>()

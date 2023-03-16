@@ -18,7 +18,10 @@ package org.jetbrains.android.actions;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.model.AndroidModel;
 import com.android.tools.idea.navigator.AndroidProjectView;
+import com.android.tools.idea.projectsystem.AndroidModulePaths;
+import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
+import com.android.tools.idea.projectsystem.ProjectSystemService;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.intellij.ide.projectView.ProjectView;
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane;
@@ -38,6 +41,8 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiManager;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Objects;
+import java.util.stream.Stream;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -124,17 +129,22 @@ public class CreateResourceDialogUtils {
       return;
     }
     if (facet != null && AndroidModel.isRequired(facet) && AndroidModel.get(facet) != null) {
-      Collection<NamedIdeaSourceProvider> providers = SourceProviderManager.getInstance(facet).getCurrentAndSomeFrequentlyUsedInactiveSourceProviders();
-      DefaultComboBoxModel<SourceSetItem> model = new DefaultComboBoxModel<SourceSetItem>();
-      for (NamedIdeaSourceProvider sourceProvider : providers) {
-        for (String resDirUrl : sourceProvider.getResDirectoryUrls()) {
-          // In gradle, each source provider may have multiple res directories, so we create an element for each one of them.
-          SourceSetItem item = SourceSetItem.create(sourceProvider, facet.getModule(), resDirUrl);
-          if (item != null) {
-            model.addElement(item);
-          }
-        }
-      }
+      DefaultComboBoxModel<SourceSetItem> model = new DefaultComboBoxModel<>();
+      ProjectSystemService.getInstance(facet.getModule().getProject())
+        .getProjectSystem()
+        .getModuleSystem(facet.getModule())
+        .getModuleTemplates(null)
+        .stream()
+        .flatMap((namedTemplate) ->
+                   namedTemplate
+                     .getPaths()
+                     .getResDirectories()
+                     .stream()
+                     .map((resDir) -> SourceSetItem.create(namedTemplate, resDir))
+                     .filter(Objects::nonNull)
+        )
+        .forEach(model::addElement);
+
       combo.setModel(model);
       combo.setRenderer(new SourceSetCellRenderer());
 
