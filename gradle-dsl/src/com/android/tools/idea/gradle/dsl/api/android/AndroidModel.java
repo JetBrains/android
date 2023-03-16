@@ -21,7 +21,6 @@ import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import org.jetbrains.annotations.Nullable;
 
 public interface AndroidModel extends GradleBlockModel {
   @NotNull
@@ -110,6 +109,7 @@ public interface AndroidModel extends GradleBlockModel {
   @NotNull
   PackagingOptionsModel packaging();
 
+  @Deprecated
   @NotNull
   PackagingOptionsModel packagingOptions();
 

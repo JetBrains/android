@@ -66,6 +66,8 @@ class AgpVersionRefactoringProcessor : AgpUpgradeComponentRefactoringProcessor {
 
   object UncompressedNativeLibsDisabled: BlockReason(
     shortDescription = "Uncompressed native libs in bundle is a deprecated property.",
+    // Note: packagingOptions is deprecated in 8.0 but packaging, its replacement, is not available in 7.x, so use
+    // packagingOptions in this snippet as that will work with all relevant AGP versions.
     description =
     """
       Starting with version 8.1, Android Gradle Plugin will no longer support the

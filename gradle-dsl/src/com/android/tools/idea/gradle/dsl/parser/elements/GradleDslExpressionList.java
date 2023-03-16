@@ -150,7 +150,7 @@ public final class GradleDslExpressionList extends GradlePropertiesDslElement im
     ModelEffectDescription effect = getModelEffect();
     // TODO(b/144280051): this prevents the deletion/recreation of an implicit element when it and its children have been
     //  destructively modified, rather than having any structural change.  This allows existing tests to pass while
-    //  not actually solving the fundamental problem of some packagingOptions properties having only one-arg augmenting
+    //  not actually solving the fundamental problem of some PackagingOptions properties having only one-arg augmenting
     //  helper functions, for which proper handling we need to take proper account of arity when looking up model
     //  functions to use.  When we add or remove elements, we must re-create it from scratch as just removing a sub-element may
     //  invalidate the existing element's syntax constraints.

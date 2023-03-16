@@ -82,9 +82,9 @@ class AndroidManifestUseEmbeddedDexToUseLegacyPackagingRefactoringProcessor : Ag
         usages.add(usageInfo)
       }
       manifestValue?.let {
-        if (model.android().packagingOptions().dex().useLegacyPackaging().valueType != GradlePropertyModel.ValueType.NONE) return@let
-        val psiElement = model.android().packagingOptions().dex().psiElement
-                         ?: model.android().packagingOptions().psiElement
+        if (model.android().packaging().dex().useLegacyPackaging().valueType != GradlePropertyModel.ValueType.NONE) return@let
+        val psiElement = model.android().packaging().dex().psiElement
+                         ?: model.android().packaging().psiElement
                          ?: model.android().psiElement ?: modelPsiElement
         val wrappedPsiElement = WrappedPsiElement(psiElement, this, ADD_DSL_USE_LEGACY_PACKAGING)
         val usageInfo = AddDexUseLegacyPackagingInfo(wrappedPsiElement, model, !manifestValue)
@@ -132,7 +132,7 @@ class AddDexUseLegacyPackagingInfo(
   val value: Boolean
 ) : GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    model.android().packagingOptions().dex().useLegacyPackaging().setValue(value)
+    model.android().packaging().dex().useLegacyPackaging().setValue(value)
   }
 
   override fun getTooltipText(): String = AndroidBundle.message(

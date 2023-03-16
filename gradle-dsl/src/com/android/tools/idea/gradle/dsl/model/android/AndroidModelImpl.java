@@ -346,12 +346,6 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
   @Override
   @NotNull
   public PackagingOptionsModel packaging() {
-    return packagingOptions();
-  }
-
-  @Override
-  @NotNull
-  public PackagingOptionsModel packagingOptions() {
     AndroidGradlePluginVersion version = myDslElement.getDslFile().getContext().getAgpVersion();
     PackagingOptionsDslElement packagingOptionsDslElement;
     if (version == null || version.compareTo(AndroidGradlePluginVersion.Companion.parse("8.0.0-beta02")) < 0) {
@@ -364,6 +358,13 @@ public final class AndroidModelImpl extends GradleDslBlockModel implements Andro
       }
     }
     return new PackagingOptionsModelImpl(packagingOptionsDslElement);
+  }
+
+  @Override
+  @NotNull
+  @Deprecated
+  public PackagingOptionsModel packagingOptions() {
+    return packaging();
   }
 
   @Override
