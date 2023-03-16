@@ -58,7 +58,7 @@ public class AdaptiveIconsTest {
    *   Verify:
    *   1. Preview panel shows the proper set of icons
    *   2. Resources are generated based on selection
-   *   3. The corresponding png shows up in the mipmap-*dpi (for launcher icon) or drawable-*dpi directory
+   *   3. The corresponding webp shows up in the mipmap-*dpi (for launcher icon) or drawable-*dpi directory
    *   </pre>
    */
   @Test
@@ -89,29 +89,29 @@ public class AdaptiveIconsTest {
     List<String> newFiles =
       getNewFiles(projectDir, TreeDifferenceEngine.computeEditScript(original, changed), path -> path.startsWith(filterPath));
     assertThat(newFiles).containsExactly(
-      "app/src/main/res/mipmap-hdpi/ic_launcher.png",
-      "app/src/main/res/mipmap-mdpi/ic_launcher.png",
-      "app/src/main/res/mipmap-xhdpi/ic_launcher.png",
-      "app/src/main/res/mipmap-xxhdpi/ic_launcher.png",
-      "app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
+      "app/src/main/res/mipmap-hdpi/ic_launcher.webp",
+      "app/src/main/res/mipmap-mdpi/ic_launcher.webp",
+      "app/src/main/res/mipmap-xhdpi/ic_launcher.webp",
+      "app/src/main/res/mipmap-xxhdpi/ic_launcher.webp",
+      "app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp",
       "app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",
       "app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml",
-      "app/src/main/res/mipmap-hdpi/ic_launcher_round.png",
-      "app/src/main/res/mipmap-mdpi/ic_launcher_round.png",
-      "app/src/main/res/mipmap-xhdpi/ic_launcher_round.png",
-      "app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png",
-      "app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png",
+      "app/src/main/res/mipmap-hdpi/ic_launcher_round.webp",
+      "app/src/main/res/mipmap-mdpi/ic_launcher_round.webp",
+      "app/src/main/res/mipmap-xhdpi/ic_launcher_round.webp",
+      "app/src/main/res/mipmap-xxhdpi/ic_launcher_round.webp",
+      "app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp",
       "app/src/main/ic_launcher-playstore.png",
-      "app/src/main/res/mipmap-hdpi/ic_launcher_background.png",
-      "app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png",
-      "app/src/main/res/mipmap-mdpi/ic_launcher_background.png",
-      "app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png",
-      "app/src/main/res/mipmap-xhdpi/ic_launcher_background.png",
-      "app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png",
-      "app/src/main/res/mipmap-xxhdpi/ic_launcher_background.png",
-      "app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png",
-      "app/src/main/res/mipmap-xxxhdpi/ic_launcher_background.png",
-      "app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png"
+      "app/src/main/res/mipmap-hdpi/ic_launcher_background.webp",
+      "app/src/main/res/mipmap-hdpi/ic_launcher_foreground.webp",
+      "app/src/main/res/mipmap-mdpi/ic_launcher_background.webp",
+      "app/src/main/res/mipmap-mdpi/ic_launcher_foreground.webp",
+      "app/src/main/res/mipmap-xhdpi/ic_launcher_background.webp",
+      "app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.webp",
+      "app/src/main/res/mipmap-xxhdpi/ic_launcher_background.webp",
+      "app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.webp",
+      "app/src/main/res/mipmap-xxxhdpi/ic_launcher_background.webp",
+      "app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.webp"
     );
   }
 }
