@@ -92,8 +92,9 @@ class DeviceFileDropHandlerTest {
     // Simulate drop.
     target.drop(event)
 
-    waitForCondition(2, TimeUnit.SECONDS) { device.cmdLogs.size >= 2 }
-    assertThat(device.cmdLogs).containsExactly("package install-create -t --user current --full", "package install-commit 1234")
+    waitForCondition(2, TimeUnit.SECONDS) { device.cmdLogs.size >= 3 }
+    assertThat(device.cmdLogs).containsExactly("package install-create -t --user current --full",
+                                               "package install-write -S 675 1234 test.apk -", "package install-commit 1234")
   }
 
   @Test
