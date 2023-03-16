@@ -35,7 +35,7 @@ import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
-import org.jetbrains.android.sdk.EmbeddedRenderTarget;
+import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 
 public class ViewLoaderTest extends AndroidTestCase {
   @SuppressWarnings("ALL")
@@ -62,7 +62,7 @@ public class ViewLoaderTest extends AndroidTestCase {
     AndroidPlatform platform = AndroidPlatforms.getInstance(module);
     assertNotNull(platform);
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(module);
-    myLayoutLib = StudioRenderServiceKt.getLayoutLibrary(module, EmbeddedRenderTarget.getCompatibilityTarget(manager.getHighestApiTarget()));
+    myLayoutLib = StudioRenderServiceKt.getLayoutLibrary(module, StudioEmbeddedRenderTarget.getCompatibilityTarget(manager.getHighestApiTarget()));
     assertNotNull(myLayoutLib);
     myClassLoader = StudioModuleClassLoaderManager.get().getShared(myLayoutLib.getClassLoader(), ModuleRenderContext.forModule(myModule), this);
   }

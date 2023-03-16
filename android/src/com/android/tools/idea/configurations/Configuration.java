@@ -83,7 +83,7 @@ import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
-import org.jetbrains.android.sdk.EmbeddedRenderTarget;
+import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -1390,6 +1390,6 @@ public class Configuration implements Disposable, ModificationTracker {
       return null;
     }
 
-    return EmbeddedRenderTarget.getCompatibilityTarget(target);
+    return StudioEmbeddedRenderTarget.getCompatibilityTarget(target);
   }
 }

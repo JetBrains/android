@@ -45,7 +45,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.io.URLUtil
 import com.intellij.util.lang.UrlClassLoader
-import org.jetbrains.android.sdk.EmbeddedRenderTarget
+import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.annotations.VisibleForTesting
 import org.objectweb.asm.ClassWriter
@@ -103,7 +103,7 @@ class PseudoClassLocatorForLoader @JvmOverloads constructor(
 
 private val additionalLibraries: List<Path>
   get() {
-    val layoutlibDistributionPath = EmbeddedRenderTarget.getEmbeddedLayoutLibPath()
+    val layoutlibDistributionPath = StudioEmbeddedRenderTarget.getEmbeddedLayoutLibPath()
                                     ?: return emptyList() // Error is already logged by getEmbeddedLayoutLibPath
     val relativeCoroutineLibPath = FileUtil.toSystemIndependentName("data/layoutlib-extensions.jar")
     return arrayListOf(File(layoutlibDistributionPath, relativeCoroutineLibPath).toPath())

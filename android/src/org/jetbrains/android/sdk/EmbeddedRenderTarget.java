@@ -21,23 +21,14 @@ import com.android.sdklib.BuildToolInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.OptionalLibrary;
 import com.android.sdklib.repository.targets.PlatformTarget;
-import com.android.tools.idea.util.StudioPathManager;
 import com.android.tools.sdk.CompatibilityRenderTarget;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.PluginPathManager;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
-import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,35 +36,18 @@ import org.jetbrains.annotations.Nullable;
  * {@link IAndroidTarget} to render using the layoutlib version and resources shipped with Android Studio.
  */
 public class EmbeddedRenderTarget implements IAndroidTarget {
-  private static final Logger LOG = Logger.getInstance(EmbeddedRenderTarget.class);
   private static final String ONLY_FOR_RENDERING_ERROR = "This target is only for rendering";
   private static final String FRAMEWORK_RES_JAR = "framework_res.jar";
 
   @Nullable private final String myBasePath;
 
   private static EmbeddedRenderTarget ourStudioEmbeddedTarget;
-  private static boolean ourDisableEmbeddedTargetForTesting = false;
-
-  /**
-   * Method that allows to disable the use of the embedded render target. Only for testing.
-   *
-   * @param value if true, the embedded layoutlib won't be used
-   */
-  @VisibleForTesting
-  public static void setDisableEmbeddedTarget(boolean value) {
-    assert ApplicationManager.getApplication().isUnitTestMode();
-
-    ourDisableEmbeddedTargetForTesting = value;
-  }
 
   /**
    * Returns a CompatibilityRenderTarget that will use EmbeddedRenderTarget to do the rendering.
    */
-  public static CompatibilityRenderTarget getCompatibilityTarget(@NotNull IAndroidTarget target) {
-    if (ourDisableEmbeddedTargetForTesting) {
-      return new CompatibilityRenderTarget(target, target.getVersion().getApiLevel(), target);
-    }
-
+  public static CompatibilityRenderTarget getCompatibilityTarget(
+    @NotNull IAndroidTarget target, @NotNull Supplier<String> layoutlibPathSupplier) {
     int api = target.getVersion().getApiLevel();
 
     if (target instanceof CompatibilityRenderTarget) {
@@ -81,44 +55,18 @@ public class EmbeddedRenderTarget implements IAndroidTarget {
       target = compatRenderTarget.getRealTarget();
     }
 
-    return new CompatibilityRenderTarget(getInstance(), api, target);
+    return new CompatibilityRenderTarget(getInstance(layoutlibPathSupplier), api, target);
   }
 
-  @VisibleForTesting
-  public static EmbeddedRenderTarget getInstance() {
+  private static EmbeddedRenderTarget getInstance(Supplier<String> layoutlibPathSupplier) {
     if (ourStudioEmbeddedTarget == null) {
-      ourStudioEmbeddedTarget = new EmbeddedRenderTarget();
+      ourStudioEmbeddedTarget = new EmbeddedRenderTarget(layoutlibPathSupplier.get());
     }
     return ourStudioEmbeddedTarget;
   }
 
-  private EmbeddedRenderTarget() {
-    myBasePath = getEmbeddedLayoutLibPath();
-  }
-
-  /**
-   * Returns the URL for the embedded layoutlib distribution.
-   */
-  @Nullable
-  public static String getEmbeddedLayoutLibPath() {
-    String homePath = FileUtil.toSystemIndependentName(PluginPathManager.getPluginHomePath("design-tools"));
-
-    String path = FileUtil.join(homePath, "/resources/layoutlib/");
-    if (StudioPathManager.isRunningFromSources()) {
-      path = StudioPathManager.resolvePathFromSourcesRoot("prebuilts/studio/layoutlib/").toString();
-    }
-
-    VirtualFile root = LocalFileSystem.getInstance().findFileByPath(FileUtil.toSystemIndependentName(path));
-    if (root != null) {
-      File rootFile = VfsUtilCore.virtualToIoFile(root);
-      if (rootFile.exists() && rootFile.isDirectory()) {
-        LOG.debug("Embedded layoutlib found at " + path);
-        return rootFile.getAbsolutePath() + File.separator;
-      }
-    }
-
-    LOG.error("Unable to find embedded layoutlib in path: " + path);
-    return null;
+  private EmbeddedRenderTarget(@NotNull String layoutlibPath) {
+    myBasePath = layoutlibPath;
   }
 
   @Override
