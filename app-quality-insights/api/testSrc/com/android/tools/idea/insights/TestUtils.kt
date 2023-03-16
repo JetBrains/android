@@ -35,6 +35,26 @@ suspend fun waitForCondition(timeoutMs: Long = 500, condition: () -> Boolean) {
   throw TimeoutException()
 }
 
+private val TestTimeIntervals =
+  listOf(
+    TimeIntervalFilter.ONE_DAY,
+    TimeIntervalFilter.SEVEN_DAYS,
+    TimeIntervalFilter.THIRTY_DAYS,
+    TimeIntervalFilter.SIXTY_DAYS,
+    TimeIntervalFilter.NINETY_DAYS
+  )
+private val TestFailureTypes = listOf(FailureType.FATAL, FailureType.NON_FATAL)
+
+val TEST_FILTERS =
+  Filters(
+    MultiSelection.emptySelection(),
+    Selection(TimeIntervalFilter.THIRTY_DAYS, TestTimeIntervals),
+    MultiSelection(TestFailureTypes.toSet(), TestFailureTypes),
+    MultiSelection.emptySelection(),
+    MultiSelection.emptySelection(),
+    selectionOf(SignalType.SIGNAL_UNSPECIFIED)
+  )
+
 val MODULE1 = mock(Module::class.java).apply { `when`(this.name).thenReturn("app1") }
 val MODULE2 = mock(Module::class.java).apply { `when`(this.name).thenReturn("app2") }
 val MODULE3 = mock(Module::class.java).apply { `when`(this.name).thenReturn("app3") }

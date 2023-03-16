@@ -20,11 +20,7 @@ import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.stats.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.Resolution
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiMethod
 import java.security.MessageDigest
 import java.util.Random
 
@@ -237,18 +233,3 @@ class AppInsightsTrackerImpl(private val project: Project) : AppInsightsTracker 
     return digest.fold("") { str, it -> str + "%02x".format(it) }
   }
 }
-
-fun convertResolution(element: PsiElement): Resolution =
-  when (element) {
-    is PsiMethod -> Resolution.METHOD
-    is PsiClass -> Resolution.CLASS
-    else -> Resolution.LINE
-  }
-
-internal fun IssueSelectionSource.toCrashOpenSource() =
-  when (this) {
-    IssueSelectionSource.LIST ->
-      AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails.CrashOpenSource.LIST
-    else ->
-      AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails.CrashOpenSource.INSPECTION
-  }

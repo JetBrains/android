@@ -1,3 +1,9 @@
+package com.android.tools.idea.insights
+
+import com.android.testutils.JarTestSuiteRunner
+import com.android.tools.tests.IdeaTestSuiteBase
+import org.junit.runner.RunWith
+
 /*
  * Copyright (C) 2023 The Android Open Source Project
  *
@@ -13,21 +19,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights
-
-import java.time.Clock
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZoneOffset
-
-class FakeClock : Clock() {
-  private var now = Instant.now(fixed(Instant.parse("2022-06-08T10:00:00Z"), ZoneOffset.UTC))
-
-  override fun getZone(): ZoneId = ZoneOffset.UTC
-  override fun withZone(zone: ZoneId?): Clock = throw NotImplementedError()
-  override fun instant(): Instant = now
-
-  fun advanceTimeBy(timeMs: Long) {
-    now = now.plusMillis(timeMs)
-  }
-}
+@RunWith(JarTestSuiteRunner::class)
+@JarTestSuiteRunner.ExcludeClasses(InsightsIdeTestSuite::class)
+class InsightsIdeTestSuite : IdeaTestSuiteBase()

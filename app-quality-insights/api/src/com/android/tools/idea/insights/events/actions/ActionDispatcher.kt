@@ -44,7 +44,6 @@ import com.android.tools.idea.insights.events.RollbackAddNoteRequest
 import com.android.tools.idea.insights.events.RollbackDeleteNoteRequest
 import com.android.tools.idea.insights.toIssueRequest
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
-import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
@@ -86,6 +85,7 @@ class ActionDispatcher(
   private val appInsightsClient: AppInsightsClient,
   private val queue: AppInsightsActionQueue,
   private val defaultFilters: Filters,
+  private val cache: AppInsightsCache,
   private val eventEmitter: suspend (ChangeEvent) -> Unit,
   private val onErrorAction: (String, HyperlinkListener?) -> Unit,
 ) {
@@ -353,7 +353,7 @@ class ActionDispatcher(
   // The cache does not know about pending requests, so the pending request counters are incremented
   // here.
   private fun getIssuesWithPendingRequests(connection: Connection): List<AppInsightsIssue> {
-    val issues = service<AppInsightsCache>().getIssues(connection, queue.getPendingIssueIds())
+    val issues = cache.getIssues(connection, queue.getPendingIssueIds())
     val pendingIssuesByCount = queue.filterIsInstance<Action.IssueAction>().groupBy { it.id }
     return issues.map { issue ->
       pendingIssuesByCount[issue.id]?.count()?.let { issue.copy(pendingRequests = it) } ?: issue

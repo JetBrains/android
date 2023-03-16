@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,19 @@
  */
 package com.android.tools.idea.insights
 
-import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.insights.events.EnterOfflineMode
-import com.android.tools.idea.insights.events.EnterOnlineMode
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZoneOffset
 
-enum class ConnectionMode {
-  ONLINE,
-  OFFLINE;
+class InsightsFakeClock : Clock() {
+  private var now = Instant.now(fixed(Instant.parse("2022-06-08T10:00:00Z"), ZoneOffset.UTC))
 
-  fun isOfflineMode() = StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get() && this == OFFLINE
+  override fun getZone(): ZoneId = ZoneOffset.UTC
+  override fun withZone(zone: ZoneId?): Clock = throw NotImplementedError()
+  override fun instant(): Instant = now
 
-  fun toEvent() = if (this == ONLINE) EnterOnlineMode else EnterOfflineMode
+  fun advanceTimeBy(timeMs: Long) {
+    now = now.plusMillis(timeMs)
+  }
 }

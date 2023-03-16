@@ -38,11 +38,11 @@ private class CancellationEntry(
   val notCancelledBy: List<Single> = listOf()
 )
 
-val ID1 = IssueId("1")
-val ID2 = IssueId("2")
-val NOTE_ID1 = NoteId(issueId = ID1, noteId = "1", sessionId = "1")
-val fetchActions = listOf(Refresh, Fetch(FetchSource.FILTER), CancelFetches)
-val nonFetchActions =
+private val ID1 = IssueId("1")
+private val ID2 = IssueId("2")
+private val NOTE_ID1 = NoteId(issueId = ID1, noteId = "1", sessionId = "1")
+private val fetchActions = listOf(Refresh, Fetch(FetchSource.FILTER), CancelFetches)
+private val nonFetchActions =
   listOf(FetchDetails(ID1), OpenIssue(ID1), CloseIssue(ID2), FetchNotes(ID1), DeleteNote(NOTE_ID1))
 
 private val CANCELLATION_TABLE =
