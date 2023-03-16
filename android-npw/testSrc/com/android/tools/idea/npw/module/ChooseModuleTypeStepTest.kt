@@ -16,6 +16,7 @@
 package com.android.tools.idea.npw.module
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.baselineprofiles.NewBaselineProfilesModuleDescriptionProvider
 import com.android.tools.idea.npw.benchmark.NewBenchmarkModuleDescriptionProvider
 import com.android.tools.idea.npw.dynamicapp.NewDynamicAppModuleDescriptionProvider
@@ -27,6 +28,7 @@ import org.jetbrains.android.util.AndroidBundle.message
 import org.mockito.Mockito
 
 class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
+
   fun testSortSingleModuleEntries() {
     assertThat(sort(message("android.wizard.module.new.mobile"))).containsExactly(message("android.wizard.module.new.mobile")).inOrder()
   }
@@ -82,11 +84,11 @@ class ChooseModuleTypeStepTest : AndroidGradleTestCase() {
       message("android.wizard.module.import.gradle.title"),
       message("android.wizard.module.import.eclipse.title"),
       message("android.wizard.module.new.java.or.kotlin.library"),
-      message("android.wizard.module.new.baselineprofiles.module.app"),
+      if (StudioFlags.NPW_NEW_BASELINE_PROFILES_MODULE.get()) message("android.wizard.module.new.baselineprofiles.module.app") else null,
       message("android.wizard.module.new.benchmark.module.app")
     ).filterNot {
       it == message("android.wizard.module.import.gradle.title") || it == message("android.wizard.module.import.eclipse.title")
-    }
+    }.filterNotNull()
 
     assertThat(sortedEntries).containsExactlyElementsIn(expectedEntries).inOrder()
   }
