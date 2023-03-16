@@ -41,10 +41,13 @@ typealias DaggerRelatedElement = Pair<DaggerElement, String>
  * Wrapper around a PsiElement that represents an item in the Dagger graph, along with associated
  * data.
  */
-sealed class DaggerElement constructor() {
+sealed class DaggerElement {
 
   abstract val psiElement: PsiElement
   abstract val daggerType: Type
+
+  protected val elementPsiType: PsiType
+    get() = psiElement.getPsiType().unboxed
 
   enum class Type {
     PROVIDER,
@@ -61,12 +64,14 @@ sealed class DaggerElement constructor() {
    * Looks up related Dagger elements using [DaggerIndex]. Derived classes should use this to
    * implement the part of [getRelatedDaggerElements] that finds items stored in the index.
    */
-  internal fun getRelatedDaggerElementsFromIndex(relatedItemTypes: Set<Type>): List<DaggerElement> {
+  internal fun getRelatedDaggerElementsFromIndex(
+    relatedItemTypes: Set<Type>,
+    indexKeys: List<String> = elementPsiType.getIndexKeys()
+  ): List<DaggerElement> {
     val project = psiElement.project
     val scope = project.projectScope()
-    val psiType = psiElement.getPsiType()
 
-    return getIndexKeys(psiType, project, scope)
+    return indexKeys
       // Look up the keys in the index
       .flatMap { DaggerIndex.getValues(it, scope) }
       // Remove types we aren't interested in before resolving
@@ -84,17 +89,17 @@ sealed class DaggerElement constructor() {
 
   /**
    * Given a candidate related element that's been resolved from the index, decide if it is actually
-   * applicable.
-   *
-   * The default implementation is checking if this DaggerElement's PSI type matches that of the
-   * related item.
+   * applicable. This includes comparing [PsiType]s, although the exact comparison depends on the
+   * relationship between this [DaggerElement] and the candidate.
    */
-  protected open fun filterResolveCandidate(resolveCandidate: DaggerElement): Boolean {
-    return psiElement
-      .getPsiType()
-      .unboxed
-      .isAssignableFrom(resolveCandidate.psiElement.getPsiType())
-  }
+  abstract fun filterResolveCandidate(resolveCandidate: DaggerElement): Boolean
+
+  /**
+   * Gets the index keys associated with the given [PsiType], using the project and project scope
+   * from the current [DaggerElement]'s [PsiElement].
+   */
+  protected fun PsiType.getIndexKeys() =
+    getIndexKeys(this, psiElement.project, psiElement.project.projectScope())
 }
 
 fun interface DaggerElementIdentifier<T : PsiElement> {

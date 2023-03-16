@@ -105,7 +105,11 @@ internal fun getIndexKeys(
     .distinct()
 }
 
-private fun getAliasSimpleNames(
+/**
+ * Given a simple name, returns the simple names of any Kotlin type aliases that might correspond to
+ * it.
+ */
+internal fun getAliasSimpleNames(
   baseTypeSimpleName: String,
   project: Project,
   scope: GlobalSearchScope

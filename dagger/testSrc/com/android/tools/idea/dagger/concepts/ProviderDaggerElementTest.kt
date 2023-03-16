@@ -84,4 +84,122 @@ class ProviderDaggerElementTest {
         DaggerRelatedElement(consumerDaggerElement, "Consumers"),
       )
   }
+
+  @Test
+  fun getRelatedDaggerElement_wrappingDaggerTypes() {
+    addDaggerAndHiltClasses(myFixture)
+
+    myFixture.openFileInEditor(
+      myFixture
+        .addFileToProject(
+          "src/com/example/Foo.kt",
+          // language=kotlin
+          """
+          package com.example
+
+          import dagger.Lazy
+          import javax.inject.Inject
+          import javax.inject.Provider
+
+          class Foo @Inject constructor() {}
+
+          class Bar @Inject constructor(
+            consumerOfLazyFoo: Lazy<Foo>,
+            consumerOfProviderFoo: Provider<Foo>,
+            consumerOfProviderLazyFoo: Provider<Lazy<Foo>>,
+          ) {}
+          """
+            .trimIndent()
+        )
+        .virtualFile
+    )
+
+    val providerPsiElement =
+      myFixture
+        .moveCaret("Foo @Inject const|ructor")
+        .parentOfType<KtConstructor<*>>(withSelf = true)!!
+    val providerDaggerElement = ProviderDaggerElement(providerPsiElement)
+
+    val consumerOfLazyFooPsiElement =
+      myFixture.moveCaret("consumerOf|LazyFoo").parentOfType<KtParameter>(withSelf = true)!!
+    val consumerOfLazyFooDaggerElement = ConsumerDaggerElement(consumerOfLazyFooPsiElement)
+
+    val consumerOfProviderFooPsiElement =
+      myFixture.moveCaret("consumerOf|ProviderFoo").parentOfType<KtParameter>(withSelf = true)!!
+    val consumerOfProviderFooDaggerElement = ConsumerDaggerElement(consumerOfProviderFooPsiElement)
+
+    val consumerOfProviderLazyFooPsiElement =
+      myFixture.moveCaret("consumerOf|ProviderLazyFoo").parentOfType<KtParameter>(withSelf = true)!!
+    val consumerOfProviderLazyFooDaggerElement =
+      ConsumerDaggerElement(consumerOfProviderLazyFooPsiElement)
+
+    val relatedElements = providerDaggerElement.getRelatedDaggerElements()
+    assertThat(relatedElements)
+      .containsExactly(
+        Pair(consumerOfLazyFooDaggerElement, "Consumers"),
+        Pair(consumerOfProviderFooDaggerElement, "Consumers"),
+        Pair(consumerOfProviderLazyFooDaggerElement, "Consumers"),
+      )
+  }
+
+  @Test
+  fun getRelatedDaggerElement_wrappingDaggerTypesWithAliases() {
+    addDaggerAndHiltClasses(myFixture)
+
+    myFixture.openFileInEditor(
+      myFixture
+        .addFileToProject(
+          "src/com/example/Foo.kt",
+          // language=kotlin
+          """
+          package com.example
+
+          import dagger.Lazy
+          import javax.inject.Inject
+          import javax.inject.Provider
+
+          typealias MyLazyFoo = Lazy<Foo>
+          typealias MyProviderFoo = Provider<Foo>
+          typealias MyProviderLazyFoo = Provider<Lazy<Foo>>
+
+          class Foo @Inject constructor() {}
+
+          class Bar @Inject constructor(
+            consumerOfLazyFoo: MyLazyFoo,
+            consumerOfProviderFoo: MyProviderFoo,
+            consumerOfProviderLazyFoo: MyProviderLazyFoo,
+          ) {}
+          """
+            .trimIndent()
+        )
+        .virtualFile
+    )
+
+    val providerPsiElement =
+      myFixture
+        .moveCaret("Foo @Inject const|ructor")
+        .parentOfType<KtConstructor<*>>(withSelf = true)!!
+    val providerDaggerElement = ProviderDaggerElement(providerPsiElement)
+
+    val consumerOfLazyFooPsiElement =
+      myFixture.moveCaret("consumerOf|LazyFoo").parentOfType<KtParameter>(withSelf = true)!!
+    val consumerOfLazyFooDaggerElement = ConsumerDaggerElement(consumerOfLazyFooPsiElement)
+
+    val consumerOfProviderFooPsiElement =
+      myFixture.moveCaret("consumerOf|ProviderFoo").parentOfType<KtParameter>(withSelf = true)!!
+    val consumerOfProviderFooDaggerElement = ConsumerDaggerElement(consumerOfProviderFooPsiElement)
+
+    val consumerOfProviderLazyFooPsiElement =
+      myFixture.moveCaret("consumerOf|ProviderLazyFoo").parentOfType<KtParameter>(withSelf = true)!!
+    val consumerOfProviderLazyFooDaggerElement =
+      ConsumerDaggerElement(consumerOfProviderLazyFooPsiElement)
+
+    val relatedElements = providerDaggerElement.getRelatedDaggerElements()
+    assertThat(relatedElements)
+      .containsExactly(
+        Pair(consumerOfLazyFooDaggerElement, "Consumers"),
+        Pair(consumerOfProviderFooDaggerElement, "Consumers"),
+        Pair(consumerOfProviderLazyFooDaggerElement, "Consumers"),
+      )
+  }
 }

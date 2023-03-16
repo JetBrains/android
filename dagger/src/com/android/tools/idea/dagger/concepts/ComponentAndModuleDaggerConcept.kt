@@ -245,7 +245,7 @@ internal sealed class ClassDaggerElement : DaggerElement() {
         else -> return false
       }
 
-    return referencedTypes.any { it == this.psiElement.getPsiType() }
+    return elementPsiType in referencedTypes
   }
 }
 

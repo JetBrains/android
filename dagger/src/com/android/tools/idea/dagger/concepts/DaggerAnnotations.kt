@@ -19,7 +19,9 @@ package com.android.tools.idea.dagger.concepts
 object DaggerAnnotations {
   internal const val COMPONENT = "dagger.Component"
   internal const val INJECT = "javax.inject.Inject"
+  internal const val LAZY = "dagger.Lazy"
   internal const val MODULE = "dagger.Module"
   internal const val PROVIDES = "dagger.Provides"
+  internal const val PROVIDER = "javax.inject.Provider"
   internal const val SUBCOMPONENT = "dagger.Subcomponent"
 }

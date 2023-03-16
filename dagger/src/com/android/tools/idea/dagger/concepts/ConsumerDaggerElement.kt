@@ -16,14 +16,39 @@
 package com.android.tools.idea.dagger.concepts
 
 import com.android.tools.idea.dagger.localization.DaggerBundle
+import com.android.tools.idea.dagger.unboxed
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiType
+import com.intellij.psi.impl.source.PsiClassReferenceType
 
 internal data class ConsumerDaggerElement(override val psiElement: PsiElement) : DaggerElement() {
 
   override val daggerType = Type.CONSUMER
 
+  /** Type being consumed, without any wrapper like `dagger.Lazy<>`. */
+  private val unwrappedType = elementPsiType.removeWrappingDaggerType().unboxed
+
   override fun getRelatedDaggerElements(): List<DaggerRelatedElement> =
-    getRelatedDaggerElementsFromIndex(setOf(Type.PROVIDER)).map {
+    getRelatedDaggerElementsFromIndex(setOf(Type.PROVIDER), unwrappedType.getIndexKeys()).map {
       DaggerRelatedElement(it, DaggerBundle.message("providers"))
     }
+
+  override fun filterResolveCandidate(resolveCandidate: DaggerElement) =
+    unwrappedType == resolveCandidate.psiElement.getPsiType().unboxed
+
+  companion object {
+    internal val wrappingDaggerTypes = setOf(DaggerAnnotations.LAZY, DaggerAnnotations.PROVIDER)
+
+    /**
+     * Dagger allows consumers to wrap a requested type with Lazy<>, Provider<>, or
+     * Provider<Lazy<>>. This method removes any of those wrappers, returning the inner type.
+     */
+    internal fun PsiType.removeWrappingDaggerType(): PsiType {
+      if (this is PsiClassReferenceType && rawType().canonicalText in wrappingDaggerTypes) {
+        return parameters[0].removeWrappingDaggerType()
+      }
+
+      return this
+    }
+  }
 }
