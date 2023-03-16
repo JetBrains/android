@@ -18,7 +18,6 @@ package com.android.tools.idea.dagger.concepts
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.dagger.index.DaggerIndex
 import com.android.tools.idea.dagger.index.getIndexKeys
-import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.android.tools.idea.dagger.unboxed
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
@@ -42,8 +41,10 @@ typealias DaggerRelatedElement = Pair<DaggerElement, String>
  * Wrapper around a PsiElement that represents an item in the Dagger graph, along with associated
  * data.
  */
-abstract class DaggerElement
-internal constructor(val psiElement: PsiElement, val daggerType: Type) {
+abstract class DaggerElement internal constructor() {
+
+  abstract val psiElement: PsiElement
+  abstract val daggerType: Type
 
   enum class Type {
     PROVIDER,
@@ -78,22 +79,6 @@ internal constructor(val psiElement: PsiElement, val daggerType: Type) {
       // Ensure there are no duplicate resolved values
       .distinct()
   }
-}
-
-internal class ProviderDaggerElement(psiElement: PsiElement) :
-  DaggerElement(psiElement, Type.PROVIDER) {
-  override fun getRelatedDaggerElements(): List<DaggerRelatedElement> =
-    getRelatedDaggerElementsFromIndex(setOf(Type.CONSUMER)).map {
-      DaggerRelatedElement(it, DaggerBundle.message("consumers"))
-    }
-}
-
-internal class ConsumerDaggerElement(psiElement: PsiElement) :
-  DaggerElement(psiElement, Type.CONSUMER) {
-  override fun getRelatedDaggerElements(): List<DaggerRelatedElement> =
-    getRelatedDaggerElementsFromIndex(setOf(Type.PROVIDER)).map {
-      DaggerRelatedElement(it, DaggerBundle.message("providers"))
-    }
 }
 
 fun interface DaggerElementIdentifier<T : PsiElement> {

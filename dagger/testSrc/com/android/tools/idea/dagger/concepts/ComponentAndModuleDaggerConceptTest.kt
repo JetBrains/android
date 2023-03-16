@@ -905,11 +905,11 @@ class ComponentAndModuleDaggerConceptTest {
     assertThat(modulesAndSubcomponents[1].second).isEqualTo("Subcomponents")
   }
 
-  private class FakeComponentDaggerElementBase(
-    psiElement: PsiElement,
-    daggerType: Type,
+  private data class FakeComponentDaggerElementBase(
+    override val psiElement: PsiElement,
+    override val daggerType: Type,
     override val definingAnnotationName: String
-  ) : ComponentDaggerElementBase(psiElement, daggerType) {
+  ) : ComponentDaggerElementBase() {
 
     override fun getRelatedDaggerElements() = throw NotImplementedError()
 

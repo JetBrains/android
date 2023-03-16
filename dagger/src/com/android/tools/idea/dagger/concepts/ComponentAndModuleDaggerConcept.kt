@@ -222,8 +222,10 @@ internal data class ClassIndexValue(
   override val daggerElementIdentifiers = identifiers
 }
 
-internal class ModuleDaggerElement(psiElement: PsiElement) :
-  DaggerElement(psiElement, Type.MODULE) {
+internal data class ModuleDaggerElement(override val psiElement: PsiElement) : DaggerElement() {
+
+  override val daggerType = Type.MODULE
+
   override fun getRelatedDaggerElements(): List<DaggerRelatedElement> {
     val fromIndex =
       getRelatedDaggerElementsFromIndex(setOf(Type.COMPONENT, Type.MODULE, Type.SUBCOMPONENT))
@@ -242,8 +244,8 @@ internal class ModuleDaggerElement(psiElement: PsiElement) :
   }
 }
 
-internal abstract class ComponentDaggerElementBase(psiElement: PsiElement, daggerType: Type) :
-  DaggerElement(psiElement, daggerType) {
+internal abstract class ComponentDaggerElementBase() : DaggerElement() {
+
   protected abstract val definingAnnotationName: String
 
   protected fun getIncludedModulesAndSubcomponents(): List<DaggerRelatedElement> {
@@ -319,8 +321,10 @@ internal abstract class ComponentDaggerElementBase(psiElement: PsiElement, dagge
   }
 }
 
-internal class ComponentDaggerElement(psiElement: PsiElement) :
-  ComponentDaggerElementBase(psiElement, Type.COMPONENT) {
+internal data class ComponentDaggerElement(override val psiElement: PsiElement) :
+  ComponentDaggerElementBase() {
+
+  override val daggerType = Type.COMPONENT
   override val definingAnnotationName = DaggerAnnotations.COMPONENT
 
   override fun getRelatedDaggerElements(): List<DaggerRelatedElement> {
@@ -332,8 +336,10 @@ internal class ComponentDaggerElement(psiElement: PsiElement) :
   }
 }
 
-internal class SubcomponentDaggerElement(psiElement: PsiElement) :
-  ComponentDaggerElementBase(psiElement, Type.SUBCOMPONENT) {
+internal data class SubcomponentDaggerElement(override val psiElement: PsiElement) :
+  ComponentDaggerElementBase() {
+
+  override val daggerType = Type.SUBCOMPONENT
   override val definingAnnotationName = DaggerAnnotations.SUBCOMPONENT
 
   override fun getRelatedDaggerElements(): List<DaggerRelatedElement> {
