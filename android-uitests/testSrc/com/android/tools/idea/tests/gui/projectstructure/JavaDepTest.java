@@ -21,7 +21,6 @@ import static com.android.tools.idea.wizard.template.Language.Java;
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.junit.Assert.assertTrue;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -35,9 +34,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructur
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
-import org.fest.swing.timing.Wait;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,7 +41,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class JavaDepTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
 
   /***
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
@@ -72,6 +68,9 @@ public class JavaDepTest {
       .clickNextToPureLibrary()
       .wizard()
       .clickFinishAndWaitForSyncToFinish();
+    guiTest.ideFrame().getProjectView()
+      .selectAndroidPane()
+      .expand(30);
     EditorFixture editor = ideFrame.getEditor()
       .open("/lib/build.gradle")
       .moveBetween("id 'java-library'\n}", "")

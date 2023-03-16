@@ -86,7 +86,11 @@ public class VerifyNpwPhoneAndTabletTemplatesTest {
     guiTest.waitForAllBackgroundTasksToBeCompleted();
     assertThat(guiTest.ideFrame().invokeProjectMake(Wait.seconds(180)).isBuildSuccessful()).isTrue();
     validateGradleFile(); //Validate Gradle file contains Material 3 dependencies
-    validateMainActivity(); //Validate MainActivity has @Composable
+    validateMainActivity();//Validate MainActivity has @Composable
+    guiTest.ideFrame().getProjectView().assertFilesExist(
+    "gradle/libs.versions.toml"
+    );
+    validateTomlForMaterial3();
   }
 
   @Test
@@ -120,11 +124,19 @@ public class VerifyNpwPhoneAndTabletTemplatesTest {
   }
 
   private void validateGradleFile() {
-    String buildGradleContents = guiTest.getProjectFileText("app/build.gradle");
-      assertThat((buildGradleContents).contains("implementation 'androidx.compose.ui:ui")).isTrue();
-      assertThat((buildGradleContents).contains("implementation 'androidx.compose.material3:")).isTrue();
-      assertThat((buildGradleContents).contains("implementation 'androidx.compose.ui:ui-tooling-preview")).isTrue();
-      assertThat((buildGradleContents).contains("debugImplementation 'androidx.compose.ui:ui-tooling")).isTrue();
+    String buildGradleContents = guiTest.getProjectFileText("app/build.gradle.kts");
+    assertThat((buildGradleContents).contains("implementation(libs.ui)")).isTrue();
+    assertThat((buildGradleContents).contains("implementation(libs.material3)")).isTrue();
+    assertThat((buildGradleContents).contains("implementation(libs.ui.tooling.preview)")).isTrue();
+    assertThat((buildGradleContents).contains("debugImplementation(libs.ui.tooling)")).isTrue();
+  }
+
+  private void validateTomlForMaterial3() {
+    String buildGradleContents = guiTest.getProjectFileText("gradle/libs.versions.toml");
+    assertThat((buildGradleContents).contains("ui = { group = \"androidx.compose.ui\", name = \"ui\" }")).isTrue();
+    assertThat((buildGradleContents).contains("material3 = { group = \"androidx.compose.material3\", name = \"material3\" }")).isTrue();
+    assertThat((buildGradleContents).contains("ui-tooling-preview = { group = \"androidx.compose.ui\", name = \"ui-tooling-preview\" }")).isTrue();
+    assertThat((buildGradleContents).contains("ui-tooling = { group = \"androidx.compose.ui\", name = \"ui-tooling\" }\n")).isTrue();
   }
 
   private void validateThemeFile(String fileRelPath) {

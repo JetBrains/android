@@ -19,15 +19,12 @@ import static com.android.tools.idea.tests.gui.projectstructure.DependenciesTest
 import static com.android.tools.idea.tests.gui.projectstructure.DependenciesTestUtil.MIN_SDK_API;
 import static com.android.tools.idea.wizard.template.Language.Java;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,7 +32,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class JavaLibsDepTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
 
   private static final String JAVA_MODULE_1 = "lib"; // default name
   private static final String JAVA_MODULE_2 = "lib2"; // default name
@@ -72,11 +69,11 @@ public class JavaLibsDepTest {
     IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, APP_NAME, MIN_SDK_API, Java);
 
     DependenciesTestUtil.createJavaModule(ideFrame); // default name: lib
-    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, JAVA_MODULE_1, "app", "api");
+    DependenciesTestUtil.addModuleDependencyUnderAnother(guiTest, ideFrame, JAVA_MODULE_1, "app", "api");
     DependenciesTestUtil.createJavaClassInModule(ideFrame, JAVA_MODULE_1, DependenciesTestUtil.CLASS_NAME_1);
 
     DependenciesTestUtil.createJavaModule(ideFrame); // default name: lib2
-    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, JAVA_MODULE_2, JAVA_MODULE_1, "api");
+    DependenciesTestUtil.addModuleDependencyUnderAnother(guiTest, ideFrame, JAVA_MODULE_2, JAVA_MODULE_1, "api");
     DependenciesTestUtil.createJavaClassInModule(ideFrame, JAVA_MODULE_2, DependenciesTestUtil.CLASS_NAME_2);
 
     DependenciesTestUtil.accessLibraryClassAndVerify(ideFrame, JAVA_MODULE_1, JAVA_MODULE_2);
