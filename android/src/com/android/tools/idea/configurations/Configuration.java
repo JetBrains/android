@@ -495,7 +495,7 @@ public class Configuration implements Disposable, ModificationTracker {
       FolderConfiguration currentConfig = getFolderConfig(module, selectedState, getLocale(), getTarget());
       if (currentConfig != null) {
         if (myEditedConfig.isMatchFor(currentConfig)) {
-          LocalResourceRepository resources = myManager.getConfigModule().getResourceRepositoryManager().getAppResources();
+          ResourceRepository resources = myManager.getConfigModule().getResourceRepositoryManager().getAppResources();
           if (resources != null && myFile != null) {
             ResourceFolderType folderType = ResourceFilesUtil.getFolderType(myFile);
             if (folderType != null) {
