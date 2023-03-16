@@ -41,7 +41,7 @@ open class MigrateGradleJvmSyncListener : GradleSyncListenerWithRoot {
     val projectRootSettings = GradleSettings.getInstance(project).getLinkedProjectSettings(rootProjectPath)
     when (projectRootSettings?.gradleJvm) {
       EMBEDDED_JDK_NAME, ANDROID_STUDIO_DEFAULT_JDK_NAME -> WriteAction.computeAndWait<Unit, Throwable> {
-        JdkUtils.setProjectGradleJvmToUseEmbeddedJdk(project, rootProjectPath)?.let { gradleJvm ->
+        JdkUtils.setProjectGradleJvmToUseEmbeddedJdk(project, rootProjectPath).let { gradleJvm ->
           LOG.info("Project Gradle root: $rootProjectPath gradleJvm updated from ${projectRootSettings.gradleJvm} to $gradleJvm")
         }
       }

@@ -65,7 +65,7 @@ class GradleJvmNotificationExtensionTest {
   fun `customize with expected message and getJdk same as embedded`() {
     val originalMessage = "Invalid Gradle JDK configuration found.\n"
     val notificationData = NotificationData("Test error title", originalMessage, ERROR, PROJECT_SYNC)
-    val embeddedPath = IdeSdks.getInstance().embeddedJdkPath!!.toAbsolutePath().toString()
+    val embeddedPath = IdeSdks.getInstance().embeddedJdkPath.toAbsolutePath().toString()
     val expectedMessage = originalMessage + "<a href=\"${baseId()}.embedded\">Use Embedded JDK ($embeddedPath)</a>\n" +
                           "<a href=\"${OpenProjectJdkLocationListener.ID}\">Change JDK location</a>\n"
     assertThat(notificationData.registeredListenerIds).isEmpty()
@@ -84,7 +84,7 @@ class GradleJvmNotificationExtensionTest {
     overrideJdkTo8()
     val ideSdks = IdeSdks.getInstance()
     val jdk = ideSdks.jdk!!
-    val embeddedPath = ideSdks.embeddedJdkPath!!.toAbsolutePath().toString()
+    val embeddedPath = ideSdks.embeddedJdkPath.toAbsolutePath().toString()
     val expectedMessage = originalMessage + "<a href=\"${baseId()}.embedded\">Use Embedded JDK ($embeddedPath)</a>\n" +
                           "<a href=\"${baseId()}\">Use JDK ${jdk.name} (${jdk.homePath})</a>\n" +
                           "<a href=\"${OpenProjectJdkLocationListener.ID}\">Change JDK location</a>\n"
@@ -139,7 +139,7 @@ class GradleJvmNotificationExtensionTest {
     val originalMessage = "Invalid Gradle JDK configuration found."
     val invalidReason = "Generating invalid JDK reason for Test."
     val notificationData = NotificationData("Test error title", originalMessage, ERROR, PROJECT_SYNC)
-    val embeddedPath = IdeSdks.getInstance().embeddedJdkPath!!.toAbsolutePath().toString()
+    val embeddedPath = IdeSdks.getInstance().embeddedJdkPath.toAbsolutePath().toString()
     val expectedMessage = "$originalMessage $invalidReason\n" +
                           "<a href=\"${baseId()}.embedded\">Use Embedded JDK ($embeddedPath)</a>\n" +
                           "<a href=\"${OpenProjectJdkLocationListener.ID}\">Change JDK location</a>\n"

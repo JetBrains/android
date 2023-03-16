@@ -108,7 +108,7 @@ class JdkImportIssueChecker : GradleIssueChecker {
         if (issueQuickFixes.isEmpty()) {
           val embeddedJdkPath = IdeSdks.getInstance().embeddedJdkPath
           // TODO: Check we REALLY need to check isJdkRunnableOnPlatform. This spawns a process.
-          if (embeddedJdkPath != null && Jdks.isJdkRunnableOnPlatform(embeddedJdkPath.toAbsolutePath().toString())) {
+          if (Jdks.isJdkRunnableOnPlatform(embeddedJdkPath.toAbsolutePath().toString())) {
             addQuickFix(UseEmbeddedJdkQuickFix())
           } else {
             addQuickFix(DownloadAndroidStudioQuickFix())
@@ -145,7 +145,7 @@ private class UseJavaHomeAsJdkQuickFix() : DescribedBuildIssueQuickFix {
 }
 
 private class UseEmbeddedJdkQuickFix : DescribedBuildIssueQuickFix {
-  override val description: String = "Use embedded JDK as Gradle JDK (${IdeSdks.getInstance().embeddedJdkPath.toString()})"
+  override val description: String = "Use embedded JDK as Gradle JDK (${IdeSdks.getInstance().embeddedJdkPath})"
   override val id: String = "use.embedded.jdk"
 
   override fun runQuickFix(project: Project, dataContext: DataContext): CompletableFuture<*> {

@@ -19,6 +19,7 @@ import com.android.tools.idea.IdeInfo
 import com.android.tools.idea.Projects
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.sync.SdkSync
+import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.LocalProperties
 import com.android.tools.idea.io.FilePaths
@@ -37,6 +38,7 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectTypeService
 import com.intellij.openapi.project.ex.ProjectManagerEx
+import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.roots.CompilerProjectExtension
 import com.intellij.openapi.roots.LanguageLevelProjectExtension
 import com.intellij.openapi.roots.ProjectRootManager
@@ -207,13 +209,14 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
       val projectSettings = GradleProjectSettings()
       @Suppress("UnstableApiUsage")
       projectSettings.setupGradleProjectSettings(newProject, File(externalProjectPath).toPath())
-      // Set gradleJvm to USE_PROJECT_JDK since this setting is only available in the PSD for Android Studio and use default jdk
+      // Set gradleJvm to USE_PROJECT_JDK since this setting is only available in the PSD for Android Studio and use embedded jdk
       projectSettings.gradleJvm = ExternalSystemJdkUtil.USE_PROJECT_JDK
       ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)
       WriteAction.runAndWait<RuntimeException> {
-        val jdk = IdeSdks.getInstance().jdk
-        if (jdk != null) {
-          ProjectRootManager.getInstance(newProject).projectSdk = jdk
+        val embeddedJdkPath = IdeSdks.getInstance().embeddedJdkPath
+        val jdkTableEntry = JdkUtils.addOrRecreateDedicatedJdkTableEntry(embeddedJdkPath.toString())
+        ProjectJdkTable.getInstance().findJdk(jdkTableEntry)?.let {
+          ProjectRootManager.getInstance(newProject).projectSdk = it
         }
       }
       beforeOpen(newProject)

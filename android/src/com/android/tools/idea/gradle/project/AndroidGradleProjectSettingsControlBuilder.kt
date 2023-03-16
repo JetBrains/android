@@ -176,10 +176,11 @@ class AndroidGradleProjectSettingsControlBuilder(
       // Remove any invalid JDK
       ideSdks.removeInvalidJdksFromTable()
       // Add embedded
-      ideSdks.embeddedJdkPath?.let {
+      ideSdks.embeddedJdkPath.let {
         val embeddedJdkName = JavaSdk.getInstance().suggestSdkName(null, it.absolutePathString())
         addJdkIfNotPresent(sdksModel, embeddedJdkName, it)
       }
+
       // ADD JDK_LOCATION_ENV_VARIABLE_NAME
       if (ideSdks.isJdkEnvVariableValid) {
         addJdkIfNotPresent(sdksModel, JDK_LOCATION_ENV_VARIABLE_NAME, ideSdks.jdkPath!!)
