@@ -47,7 +47,7 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import org.jetbrains.android.facet.AndroidFacet;
-import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
+import org.jetbrains.android.sdk.EmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -240,7 +240,7 @@ public class AssetRepositoryImpl extends AssetRepository {
       if (target == null) {
         return null;
       }
-      CompatibilityRenderTarget compatibilityTarget = StudioEmbeddedRenderTarget.getCompatibilityTarget(target);
+      CompatibilityRenderTarget compatibilityTarget = EmbeddedRenderTarget.getCompatibilityTarget(target);
       myFrameworkResDirOrJar = compatibilityTarget.getPath(IAndroidTarget.RESOURCES);
     }
     return myFrameworkResDirOrJar;

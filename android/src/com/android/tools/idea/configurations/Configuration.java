@@ -60,7 +60,6 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.StudioRenderServiceKt;
 import com.android.tools.idea.res.ResourceFilesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -84,7 +83,7 @@ import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
 import java.util.List;
 import org.jetbrains.android.resourceManagers.LocalResourceManager;
-import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
+import org.jetbrains.android.sdk.EmbeddedRenderTarget;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -1391,6 +1390,6 @@ public class Configuration implements Disposable, ModificationTracker {
       return null;
     }
 
-    return StudioEmbeddedRenderTarget.getCompatibilityTarget(target);
+    return EmbeddedRenderTarget.getCompatibilityTarget(target);
   }
 }

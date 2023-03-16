@@ -25,19 +25,17 @@ import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
 import com.android.tools.idea.rendering.RenderLogger;
-import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.rendering.StudioRenderServiceKt;
 import com.android.tools.idea.res.ResourceIdManager;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import java.util.function.Consumer;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.facet.AndroidFacet;
 import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
-import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
+import org.jetbrains.android.sdk.EmbeddedRenderTarget;
 
 public class ViewLoaderTest extends AndroidTestCase {
   @SuppressWarnings("ALL")
@@ -64,7 +62,7 @@ public class ViewLoaderTest extends AndroidTestCase {
     AndroidPlatform platform = AndroidPlatforms.getInstance(module);
     assertNotNull(platform);
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(module);
-    myLayoutLib = StudioRenderServiceKt.getLayoutLibrary(module, StudioEmbeddedRenderTarget.getCompatibilityTarget(manager.getHighestApiTarget()));
+    myLayoutLib = StudioRenderServiceKt.getLayoutLibrary(module, EmbeddedRenderTarget.getCompatibilityTarget(manager.getHighestApiTarget()));
     assertNotNull(myLayoutLib);
     myClassLoader = StudioModuleClassLoaderManager.get().getShared(myLayoutLib.getClassLoader(), ModuleRenderContext.forModule(myModule), this);
   }

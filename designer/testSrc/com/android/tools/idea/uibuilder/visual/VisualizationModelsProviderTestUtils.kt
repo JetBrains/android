@@ -23,7 +23,7 @@ import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.editors.theme.ThemeResolver
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.sdk.CompatibilityRenderTarget
-import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
+import org.jetbrains.android.sdk.EmbeddedRenderTarget
 
 fun verifyAdaptiveShapeReflected(sourceConfig: Configuration, modelsToVerify: Collection<NlModel>, shouldReflect: Boolean) {
   // If the first enum value of AdaptiveIconShape() is same as the current sourceConfig.adaptiveShape, then the
@@ -83,7 +83,7 @@ fun verifyThemeReflected(sourceConfig: Configuration, modelsToVerify: Collection
 fun verifyTargetReflected(sourceConfig: Configuration, modelsToVerify: Collection<NlModel>, shouldReflect: Boolean) {
   val manager = sourceConfig.configurationManager
   verifyChangeReflected(sourceConfig, modelsToVerify, shouldReflect, manager.targets.toList(),
-                        Configuration::setTarget, { this.target?.let { StudioEmbeddedRenderTarget.getCompatibilityTarget(it) } }) {
+                        Configuration::setTarget, { this.target?.let { EmbeddedRenderTarget.getCompatibilityTarget(it) } }) {
     a, b -> if (a is CompatibilityRenderTarget && b is CompatibilityRenderTarget) { a.hashString() == b.hashString() } else a == b
   }
 }

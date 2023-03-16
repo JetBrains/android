@@ -47,7 +47,7 @@ import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.update.MergingUpdateQueue
 import org.jetbrains.android.dom.manifest.getPrimaryManifestXml
 import org.jetbrains.android.facet.AndroidFacet
-import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget
+import org.jetbrains.android.sdk.EmbeddedRenderTarget
 import java.util.concurrent.CompletableFuture
 import java.util.function.Function
 import java.util.function.Supplier
@@ -476,7 +476,7 @@ private fun getResourceResolver(
     configuration?.let { return@Function it.resourceResolver }
     val configurationManager = ConfigurationManager.getOrCreateInstance(facet.module)
     val theme = getApplicationTheme(facet)
-    val target = configurationManager.highestApiTarget?.let { StudioEmbeddedRenderTarget.getCompatibilityTarget(it) }
+    val target = configurationManager.highestApiTarget?.let { EmbeddedRenderTarget.getCompatibilityTarget(it) }
     return@Function configurationManager.resolverCache.getResourceResolver(target, theme, FolderConfiguration.createDefault())
   }, AppExecutorUtil.getAppExecutorService())
 }

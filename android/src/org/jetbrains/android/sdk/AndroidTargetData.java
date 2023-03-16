@@ -130,8 +130,8 @@ public class AndroidTargetData {
         }
       }
 
-      if (!(myTarget instanceof StudioEmbeddedRenderTarget)) {
-        LOG.warn("Rendering will not use the StudioEmbeddedRenderTarget");
+      if (!(myTarget instanceof EmbeddedRenderTarget)) {
+        LOG.warn("Rendering will not use the EmbeddedRenderTarget");
       }
       myLayoutLibrary = LayoutLibraryLoader.load(myTarget, getFrameworkEnumValues(), hasLayoutlibCrash);
       Disposer.register(parentDisposable, myLayoutLibrary);

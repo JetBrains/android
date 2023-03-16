@@ -44,14 +44,14 @@ import org.jetbrains.annotations.Nullable;
 /**
  * {@link IAndroidTarget} to render using the layoutlib version and resources shipped with Android Studio.
  */
-public class StudioEmbeddedRenderTarget implements IAndroidTarget {
-  private static final Logger LOG = Logger.getInstance(StudioEmbeddedRenderTarget.class);
+public class EmbeddedRenderTarget implements IAndroidTarget {
+  private static final Logger LOG = Logger.getInstance(EmbeddedRenderTarget.class);
   private static final String ONLY_FOR_RENDERING_ERROR = "This target is only for rendering";
   private static final String FRAMEWORK_RES_JAR = "framework_res.jar";
 
   @Nullable private final String myBasePath;
 
-  private static StudioEmbeddedRenderTarget ourStudioEmbeddedTarget;
+  private static EmbeddedRenderTarget ourStudioEmbeddedTarget;
   private static boolean ourDisableEmbeddedTargetForTesting = false;
 
   /**
@@ -67,7 +67,7 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
   }
 
   /**
-   * Returns a CompatibilityRenderTarget that will use StudioEmbeddedRenderTarget to do the rendering.
+   * Returns a CompatibilityRenderTarget that will use EmbeddedRenderTarget to do the rendering.
    */
   public static CompatibilityRenderTarget getCompatibilityTarget(@NotNull IAndroidTarget target) {
     if (ourDisableEmbeddedTargetForTesting) {
@@ -85,14 +85,14 @@ public class StudioEmbeddedRenderTarget implements IAndroidTarget {
   }
 
   @VisibleForTesting
-  public static StudioEmbeddedRenderTarget getInstance() {
+  public static EmbeddedRenderTarget getInstance() {
     if (ourStudioEmbeddedTarget == null) {
-      ourStudioEmbeddedTarget = new StudioEmbeddedRenderTarget();
+      ourStudioEmbeddedTarget = new EmbeddedRenderTarget();
     }
     return ourStudioEmbeddedTarget;
   }
 
-  private StudioEmbeddedRenderTarget() {
+  private EmbeddedRenderTarget() {
     myBasePath = getEmbeddedLayoutLibPath();
   }
 
