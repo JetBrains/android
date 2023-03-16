@@ -41,7 +41,7 @@ typealias DaggerRelatedElement = Pair<DaggerElement, String>
  * Wrapper around a PsiElement that represents an item in the Dagger graph, along with associated
  * data.
  */
-abstract class DaggerElement internal constructor() {
+sealed class DaggerElement constructor() {
 
   abstract val psiElement: PsiElement
   abstract val daggerType: Type
@@ -75,9 +75,25 @@ abstract class DaggerElement internal constructor() {
       // identical values)
       .distinct()
       // Resolve index values
-      .flatMap { it.resolveToDaggerElements(psiType, project, scope) }
+      .flatMap { it.resolveToDaggerElements(project, scope) }
       // Ensure there are no duplicate resolved values
       .distinct()
+      // Filter out any candidates that are not applicable.
+      .filter(this::filterResolveCandidate)
+  }
+
+  /**
+   * Given a candidate related element that's been resolved from the index, decide if it is actually
+   * applicable.
+   *
+   * The default implementation is checking if this DaggerElement's PSI type matches that of the
+   * related item.
+   */
+  protected open fun filterResolveCandidate(resolveCandidate: DaggerElement): Boolean {
+    return psiElement
+      .getPsiType()
+      .unboxed
+      .isAssignableFrom(resolveCandidate.psiElement.getPsiType())
   }
 }
 
