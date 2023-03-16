@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.handlers.constraint.drawing;
 
 import com.android.tools.idea.common.scene.draw.ColorSet;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.decorator.ColorTheme;
+import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 
@@ -60,7 +61,7 @@ public class AndroidColorSet extends ColorSet {
 
         mComponentHighlightedBackground = new Color(0x591886F7, true);
         mHighlightedBackground = Color.white;
-        mHighlightedFrames = new Color(106, 161, 211);
+        mHighlightedFrames = new JBColor(0x3573f0, 0x548af7);
         mHighlightedSnapGuides = Color.orange;
         mHighlightedConstraints = Color.blue.brighter();
 
