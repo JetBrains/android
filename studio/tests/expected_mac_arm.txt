@@ -2037,6 +2037,10 @@ Android Studio Preview.app/Contents/plugins/android/lib/game-tools-protos.jar
 Android Studio Preview.app/Contents/plugins/android/lib/game-tools.jar
 Android Studio Preview.app/Contents/plugins/android/lib/generator.jar
 Android Studio Preview.app/Contents/plugins/android/lib/google-analytics-library.jar
+Android Studio Preview.app/Contents/plugins/android/lib/google-api-java-client-min-repackaged-1.20.0.jar
+Android Studio Preview.app/Contents/plugins/android/lib/google-api-services-oauth2-v2-rev150-1.22.0.jar
+Android Studio Preview.app/Contents/plugins/android/lib/google-auth-library-oauth2-http-0.22.2.jar
+Android Studio Preview.app/Contents/plugins/android/lib/google-login.jar
 Android Studio Preview.app/Contents/plugins/android/lib/inspectors-common.jar
 Android Studio Preview.app/Contents/plugins/android/lib/instantapps-api-1.8.jar
 Android Studio Preview.app/Contents/plugins/android/lib/jarutils.jar
@@ -2045,7 +2049,9 @@ Android Studio Preview.app/Contents/plugins/android/lib/javacpp-1.5.8.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javacpp-platform-1.5.8.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javapoet-1.10.0.jar
 Android Studio Preview.app/Contents/plugins/android/lib/javax.inject-1.jar
+Android Studio Preview.app/Contents/plugins/android/lib/javax.servlet-api-3.0.1.jar
 Android Studio Preview.app/Contents/plugins/android/lib/jetifier-core-1.0.0-beta10.jar
+Android Studio Preview.app/Contents/plugins/android/lib/jsr305-2.0.1.jar
 Android Studio Preview.app/Contents/plugins/android/lib/juniversalchardet-1.0.3.jar
 Android Studio Preview.app/Contents/plugins/android/lib/kotlinx-coroutines-guava-1.6.4.jar
 Android Studio Preview.app/Contents/plugins/android/lib/kxml2-2.3.0.jar
@@ -2714,12 +2720,7 @@ Android Studio Preview.app/Contents/plugins/google-cloud-tools-core-as/lib/googl
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-core-as/lib/google-api-services-source.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-core-as/lib/google-cloud-tools-core-as.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-core-as/lib/gradle-appengine-builder-model-0.1.0.jar
-Android Studio Preview.app/Contents/plugins/google-login-as/lib/google-api-java-client-min-repackaged-1.20.0.jar
-Android Studio Preview.app/Contents/plugins/google-login-as/lib/google-api-services-oauth2-v2-rev150-1.22.0.jar
-Android Studio Preview.app/Contents/plugins/google-login-as/lib/google-auth-library-oauth2-http-0.22.2.jar
 Android Studio Preview.app/Contents/plugins/google-login-as/lib/google-login-as.jar
-Android Studio Preview.app/Contents/plugins/google-login-as/lib/javax.servlet-api-3.0.1.jar
-Android Studio Preview.app/Contents/plugins/google-login-as/lib/jsr305-2.0.1.jar
 Android Studio Preview.app/Contents/plugins/google-samples/lib/google-samples.jar
 Android Studio Preview.app/Contents/plugins/gradle-java/lib/gradle-java.jar
 Android Studio Preview.app/Contents/plugins/gradle-java/lib/gradle-jps.jar

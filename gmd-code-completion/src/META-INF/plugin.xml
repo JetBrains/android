@@ -23,7 +23,6 @@
 
   <depends>org.jetbrains.android</depends>
   <depends>com.google.gct.testing</depends>
-  <depends>com.google.gct.login</depends>
 
   <projectListeners>
     <listener class="com.android.gmdcodecompletion.GmdCodeCompletionGradleSyncListener"
