@@ -17,14 +17,13 @@ package com.android.tools.idea.editors.theme.datamodels;
 
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.resources.ResourceRepository;
 import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.openapi.diagnostic.Logger;
-import org.jetbrains.android.sdk.AndroidPlatforms;
 import org.jetbrains.android.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 
@@ -84,7 +83,7 @@ public class ThemeEditorStyle {
     }
     ResourceRepositoryManager repositoryManager = myManager.getConfigModule().getResourceRepositoryManager();
     assert repositoryManager != null;
-    LocalResourceRepository repository = repositoryManager.getProjectResources();
+    ResourceRepository repository = repositoryManager.getProjectResources();
     return repository.hasResources(myStyleReference.getNamespace(), myStyleReference.getResourceType(), myStyleReference.getName());
   }
 

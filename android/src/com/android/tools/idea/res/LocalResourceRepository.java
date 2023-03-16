@@ -127,7 +127,7 @@ import org.jetbrains.annotations.VisibleForTesting;
  * </p>
  */
 @SuppressWarnings("InstanceGuardedByStatic") // TODO: The whole locking scheme for resource repositories needs to be reworked.
-public abstract class LocalResourceRepository extends AbstractResourceRepositoryWithLocking implements ModificationTracker {
+public abstract class LocalResourceRepository extends AbstractResourceRepositoryWithLocking implements CacheableResourceRepository {
   protected static final AtomicLong ourModificationCounter = new AtomicLong();
 
   private final String myDisplayName;

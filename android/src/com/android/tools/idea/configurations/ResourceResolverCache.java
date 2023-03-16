@@ -32,6 +32,7 @@ import com.android.ide.common.util.DisjointUnionMap;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
+import com.android.tools.idea.res.CacheableResourceRepository;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.sdk.CompatibilityRenderTarget;
@@ -109,7 +110,7 @@ public class ResourceResolverCache {
     if (repositoryManager == null) {
       return ResourceResolver.create(Collections.emptyMap(), null);
     }
-    LocalResourceRepository resources = repositoryManager.getAppResources();
+    CacheableResourceRepository resources = repositoryManager.getAppResources();
     synchronized (myLock) {
       if (myCachedGeneration != resources.getModificationCount()) {
         myResolverMap.clear();
