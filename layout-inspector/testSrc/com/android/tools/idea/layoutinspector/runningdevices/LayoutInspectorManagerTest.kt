@@ -50,7 +50,7 @@ class LayoutInspectorManagerTest {
   @Before
   fun setUp() {
     val mockLayoutInspectorProjectService = mock<LayoutInspectorProjectService>()
-    whenever(mockLayoutInspectorProjectService.getLayoutInspector(any(), any())).thenAnswer { mock<LayoutInspector>() }
+    whenever(mockLayoutInspectorProjectService.getLayoutInspector(any())).thenAnswer { mock<LayoutInspector>() }
     projectRule.project.replaceService(LayoutInspectorProjectService::class.java, mockLayoutInspectorProjectService, disposableRule.disposable)
   }
 

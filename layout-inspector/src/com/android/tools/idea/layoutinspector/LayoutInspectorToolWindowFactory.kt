@@ -58,7 +58,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     val disposable = toolWindow.disposable
-    val layoutInspector = LayoutInspectorProjectService.getInstance(project).getLayoutInspector(project, disposable)
+    val layoutInspector = LayoutInspectorProjectService.getInstance(project).getLayoutInspector(disposable)
     val devicePanel = createDevicePanel(disposable, layoutInspector)
 
     val workbench = WorkBench<LayoutInspector>(project, LAYOUT_INSPECTOR_TOOL_WINDOW_ID, null, disposable).apply {

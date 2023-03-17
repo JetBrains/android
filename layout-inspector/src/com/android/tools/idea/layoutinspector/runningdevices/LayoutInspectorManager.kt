@@ -186,7 +186,7 @@ private fun createLayoutInspectorWorkbench(
   centerPanel: JComponent,
 ): WorkBench<LayoutInspector> {
   val workbench = WorkBench<LayoutInspector>(project, WORKBENCH_NAME, null, parentDisposable)
-  val layoutInspector = LayoutInspectorProjectService.getInstance(project).getLayoutInspector(project, parentDisposable)
+  val layoutInspector = LayoutInspectorProjectService.getInstance(project).getLayoutInspector(parentDisposable)
   val toolsDefinition = listOf(LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition())
   workbench.init(centerPanel, layoutInspector, toolsDefinition, false)
   return workbench
