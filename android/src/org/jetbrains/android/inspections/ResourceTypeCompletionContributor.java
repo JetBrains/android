@@ -29,6 +29,7 @@ import com.intellij.codeInspection.magicConstant.MagicCompletionContributor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.light.LightElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
@@ -48,6 +49,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import org.jetbrains.kotlin.asJava.LightClassUtilsKt;
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression;
+import org.jetbrains.kotlin.psi.KtElement;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.lint.detector.api.ResourceEvaluator.*;
@@ -66,6 +70,10 @@ import static com.android.tools.lint.detector.api.ResourceEvaluator.*;
  *   completing parameters or return types that have been annotated with one of the resource
  *   type annotations: {@code @android.support.annotation.StringRes},
  *   {@code @android.support.annotation.DrawableRes}, ...
+ * </li>
+ * <li>
+ *   it can compute suggestions for Android typedefs ({@code @IntDef}, {@code @LongDef}, {@code @StringDef})
+ *   based on the values of those typedefs
  * </li>
  */
 public class ResourceTypeCompletionContributor extends CompletionContributor {
@@ -88,7 +96,7 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
     Constraints allowedValues = getAllowedValues(pos);
     if (allowedValues == null) return;
 
-    final Set<PsiElement> allowed = new THashSet<PsiElement>(new TObjectHashingStrategy<PsiElement>() {
+    final Set<PsiElement> allowed = new THashSet<>(new TObjectHashingStrategy<>() {
       @Override
       public int computeHashCode(PsiElement object) {
         return 0;
@@ -136,39 +144,52 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
       }
       List<ExpectedTypeInfo> types = Arrays.asList(JavaSmartCompletionContributor.getExpectedTypes(parameters));
       for (PsiAnnotationMemberValue value : a.values) {
-        if (value instanceof PsiReference) {
-          PsiElement resolved = ((PsiReference)value).resolve();
-          if (resolved instanceof PsiNamedElement) {
-
-            LookupElement lookupElement = LookupItemUtil.objectToLookupItem(resolved);
-            if (lookupElement instanceof VariableLookupItem) {
-              ((VariableLookupItem)lookupElement).setSubstitutor(PsiSubstitutor.EMPTY);
-            }
-            LookupElement element = PrioritizedLookupElement.withPriority(lookupElement, PRIORITY);
-            element = decorate(parameters, types, element);
-            result.addElement(element);
-            allowed.add(resolved);
-            continue;
+        @Nullable PsiNamedElement namedElement = getNamedElementFromAnnotationMember(value);
+        if (namedElement != null) {
+          LookupElement lookupElement = LookupItemUtil.objectToLookupItem(namedElement);
+          if (lookupElement instanceof VariableLookupItem variableLookupItem) {
+            variableLookupItem.setSubstitutor(PsiSubstitutor.EMPTY);
           }
+          LookupElement element = PrioritizedLookupElement.withPriority(lookupElement, PRIORITY);
+          result.addElement(decorate(parameters, types, element));
+          allowed.add(namedElement);
         }
-        LookupElement element = LookupElementBuilder.create(value, value.getText());
-        element = decorate(parameters, types, element);
-        result.addElement(element);
-        allowed.add(value);
+        else {
+          LookupElement element = decorate(parameters, types, LookupElementBuilder.create(value, value.getText()));
+          result.addElement(decorate(parameters, types, element));
+          allowed.add(value);
+        }
       }
     }
 
-    result.runRemainingContributors(parameters, new Consumer<CompletionResult>() {
-      @Override
-      public void consume(CompletionResult completionResult) {
-        LookupElement element = completionResult.getLookupElement();
-        Object object = element.getObject();
-        if (object instanceof PsiElement && allowed.contains(object)) {
-          return;
-        }
-        result.passResult(completionResult);
+    result.runRemainingContributors(parameters, completionResult -> {
+      Object object = completionResult.getLookupElement().getObject();
+      if (object instanceof PsiElement && allowed.contains(object)) {
+        return;
       }
+      result.passResult(completionResult);
     });
+  }
+
+  @Nullable
+  private static PsiNamedElement getNamedElementFromAnnotationMember(PsiAnnotationMemberValue v) {
+    if (v instanceof PsiReference) {
+      if (((PsiReference)v).resolve() instanceof PsiNamedElement named) return named;
+    }
+    else if (v instanceof LightElement) {
+      PsiElement navigationElement = v.getNavigationElement();
+      if (navigationElement instanceof KtDotQualifiedExpression dotQualifiedExpression) {
+        navigationElement = dotQualifiedExpression.getSelectorExpression();
+      }
+      PsiReference psiReference = navigationElement.getReference();
+      if (psiReference != null) {
+        PsiElement element = psiReference.resolve();
+        if (element instanceof KtElement ktElement) {
+          return LightClassUtilsKt.toLightElements(ktElement).stream().findFirst().orElse(null);
+        }
+      }
+    }
+    return null;
   }
 
   @Nullable
@@ -207,7 +228,9 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
       }
 
       if (AndroidXConstants.SUPPORT_ANNOTATIONS_PREFIX.isPrefix(qualifiedName) || qualifiedName.startsWith("test.pkg.")) {
-        if (AndroidXConstants.INT_DEF_ANNOTATION.isEquals(qualifiedName) || AndroidXConstants.STRING_DEF_ANNOTATION.isEquals(qualifiedName)) {
+        if (AndroidXConstants.INT_DEF_ANNOTATION.isEquals(qualifiedName)
+            || AndroidXConstants.STRING_DEF_ANNOTATION.isEquals(qualifiedName)
+            || AndroidXConstants.LONG_DEF_ANNOTATION.isEquals(qualifiedName)) {
           if (type != null && !(annotation instanceof PsiCompiledElement)) { // Don't fetch constants from .class files: can't hold data
             constraint = merge(getAllowedValuesFromTypedef(type, annotation, manager), constraint);
           }
