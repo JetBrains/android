@@ -666,10 +666,10 @@ android_studio(
     searchable_options = "//tools/adt/idea/searchable-options",
     update_message_template = ":update_message.html",
     version_code_name = "Giraffe",
-    version_micro_patch = "1.10",
+    version_micro_patch = "1.11",
     # This will get added to the end of the full-version string.
     # TODO(b/240707039): automate this.
-    version_release_number = 10,
+    version_release_number = 11,
     version_type = "Canary",
     visibility = ["//visibility:public"],
 )
@@ -729,8 +729,8 @@ py_test(
         ],
         # On Windows, the test converts Windows ↔ macOS
         "@platforms//os:windows": [
-            ":android-studio.win.zip",
             ":android-studio.mac.zip",
+            ":android-studio.win.zip",
         ],
         # On Linux, the test converts Linux ↔ Windows
         "@platforms//os:linux": [
@@ -921,8 +921,8 @@ iml_module(
     test_data = [
         ":android-studio.linux.zip",
         ":android-studio.mac.zip",
-        ":android-studio.win.zip",
         ":android-studio.plugin.lst",
+        ":android-studio.win.zip",
     ],
     test_srcs = ["tests/testSrc"],
     visibility = ["//visibility:public"],
