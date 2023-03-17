@@ -140,7 +140,7 @@ import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtFile
 
 /** Background color for the surface while "Interactive" is enabled. */
-private val INTERACTIVE_BACKGROUND_COLOR = JBColor(0xCBD2D9, 0x46454D)
+private val INTERACTIVE_BACKGROUND_COLOR = JBColor(0xF7F8FA, 0x2B2D30)
 
 /** [Notification] group ID. Must match the `groupNotification` entry of `compose-designer.xml`. */
 const val PREVIEW_NOTIFICATION_GROUP_ID = "Compose Preview Notification"
