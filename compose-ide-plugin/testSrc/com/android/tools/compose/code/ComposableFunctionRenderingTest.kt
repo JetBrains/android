@@ -25,8 +25,6 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
-import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.junit.Before
 import org.junit.Rule
@@ -217,7 +215,7 @@ class ComposableFunctionRenderingTest {
   }
 
   private fun getComposableFunctionRenderPartsAtCaret() = runReadAction {
-    val descriptor = (myFixture.elementAtCaret as KtDeclaration).descriptor as FunctionDescriptor
-    descriptor.getComposableFunctionRenderParts()
+    val element = myFixture.elementAtCaret as KtDeclaration
+    element.getComposableFunctionRenderParts() ?: throw AssertionError("Test must contain a valid composable function")
   }
 }

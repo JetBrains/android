@@ -16,12 +16,18 @@
 package com.android.tools.compose.code
 
 import com.android.tools.compose.COMPOSABLE_FQ_NAMES
+import com.android.tools.compose.aa.code.getComposableFunctionRenderParts
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionLikeSymbol
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.completion.BasicLookupElementFactory.Companion.SHORT_NAMES_RENDERER
 import org.jetbrains.kotlin.idea.completion.LambdaSignatureTemplates
+import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.renderer.DescriptorRenderer.ValueParametersHandler
 
@@ -29,6 +35,19 @@ import org.jetbrains.kotlin.renderer.DescriptorRenderer.ValueParametersHandler
  * Represents parts of a Composable function to be used for rendering in various menus or dialogs.
  */
 data class ComposableFunctionRenderParts(val parameters: String?, val tail: String?)
+
+fun KtDeclaration.getComposableFunctionRenderParts(): ComposableFunctionRenderParts? {
+  return if (isK2Plugin()) {
+    analyze(this) {
+      val functionLikeSymbol = this@getComposableFunctionRenderParts.getSymbol() as? KtFunctionLikeSymbol ?: return null
+      getComposableFunctionRenderParts(functionLikeSymbol)
+    }
+  }
+  else {
+    val descriptor = this.descriptor as? FunctionDescriptor ?: return null
+    descriptor.getComposableFunctionRenderParts()
+  }
+}
 
 /**
  * Generates [ComposableFunctionRenderParts] for a given Composable function.
