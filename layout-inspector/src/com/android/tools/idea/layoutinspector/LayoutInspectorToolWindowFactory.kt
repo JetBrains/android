@@ -28,7 +28,6 @@ import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorEvent.DynamicLayoutInspectorEventType
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.wm.ToolWindow
@@ -40,12 +39,6 @@ import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
 
 const val LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector"
-
-/**
- * Create a [DataProvider] for the specified [layoutInspector].
- */
-fun dataProviderForLayoutInspector(layoutInspector: LayoutInspector, deviceViewPanel: DataProvider): DataProvider =
-  DataProvider { dataId -> if (LAYOUT_INSPECTOR_DATA_KEY.`is`(dataId)) layoutInspector else deviceViewPanel.getData(dataId) }
 
 /**
  * ToolWindowFactory: For creating a layout inspector tool window for the project.
@@ -70,7 +63,7 @@ class LayoutInspectorToolWindowFactory : ToolWindowFactory {
       )
     }
 
-    DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector, devicePanel))
+    DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
 
     val contentPanel = JPanel(BorderLayout()).apply {
       add(InspectorBanner(project), BorderLayout.NORTH)

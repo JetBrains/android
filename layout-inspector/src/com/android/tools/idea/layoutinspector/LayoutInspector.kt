@@ -40,6 +40,7 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.Att
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.ui.Messages
@@ -53,6 +54,18 @@ import java.util.concurrent.atomic.AtomicLong
 const val SHOW_ERROR_MESSAGES_IN_DIALOG = false
 
 val LAYOUT_INSPECTOR_DATA_KEY = DataKey.create<LayoutInspector>(LayoutInspector::class.java.name)
+
+/**
+ * Create a [DataProvider] for the specified [layoutInspector].
+ */
+fun dataProviderForLayoutInspector(layoutInspector: LayoutInspector): DataProvider {
+  return DataProvider { dataId ->
+    when {
+      LAYOUT_INSPECTOR_DATA_KEY.`is`(dataId) -> layoutInspector
+      else -> null
+    }
+  }
+}
 
 private val logger = Logger.getInstance(LayoutInspector::class.java)
 
