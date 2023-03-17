@@ -23,7 +23,7 @@
                     serviceImplementation="com.android.tools.idea.projectsystem.gradle.RefreshOnlyAutoImportProjectTracker"
                     overrides="true"/>
     <actionConfigurationCustomizer id="Startup.GradleSpecificActionCustomizer" order="after Startup.AndroidStudioActionCustomizer" implementation="com.android.tools.idea.startup.GradleSpecificActionCustomizer" />
-    <actionConfigurationCustomizer id="Startup.GradleSpecificInitializer" order="after Startup.AndroidStudioInitializer" implementation="com.android.tools.idea.startup.GradleSpecificInitializer" />
+    <applicationInitializedListener id="Startup.GradleSpecificInitializer" implementation="com.android.tools.idea.startup.GradleSpecificInitializer" />
     <directoryProjectConfigurator
       implementation="com.android.tools.idea.gradle.project.importing.AndroidGradleProjectConfigurator"
       order="after PlatformProjectConfigurator"/>

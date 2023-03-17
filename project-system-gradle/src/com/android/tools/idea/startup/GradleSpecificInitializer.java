@@ -31,14 +31,13 @@ import com.android.tools.idea.welcome.config.FirstRunWizardMode;
 import com.android.tools.idea.welcome.wizard.AndroidStudioWelcomeScreenProvider;
 import com.android.tools.lint.checks.GradleDetector;
 import com.android.tools.sdk.AndroidPlatform;
+import com.intellij.ide.ApplicationInitializedListener;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.impl.ActionConfigurationCustomizer;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.application.ConfigImportHelper;
@@ -63,12 +62,14 @@ import org.jetbrains.plugins.gradle.service.project.CommonGradleProjectResolverE
 /**
  * Performs Gradle-specific IDE initialization
  */
-public class GradleSpecificInitializer implements ActionConfigurationCustomizer {
+public class GradleSpecificInitializer implements ApplicationInitializedListener {
 
   private static final Logger LOG = Logger.getInstance(GradleSpecificInitializer.class);
 
+  // Note: this code runs quite early during Android Studio startup and directly affects app startup performance.
+  // Any heavy work should be moved to a background thread and/or moved to a later phase.
   @Override
-  public void customize(@NotNull ActionManager actionManager) {
+  public void componentsInitialized() {
     checkInstallPath();
 
     if (AndroidSdkUtils.isAndroidSdkManagerEnabled()) {
