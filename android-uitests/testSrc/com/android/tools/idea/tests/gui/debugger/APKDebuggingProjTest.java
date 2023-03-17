@@ -29,6 +29,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.WelcomeFrameFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
 import com.android.tools.idea.wizard.template.Language;
+import com.intellij.openapi.project.ex.ProjectManagerEx;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
@@ -57,6 +58,7 @@ public class APKDebuggingProjTest {
    */
   @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   private FakeAdbServer fakeAdbServer;
+  private static final int WAIT_TIME = 30;
 
   @Before
   public void removingExistingApkProjects() throws Exception {
@@ -155,7 +157,7 @@ public class APKDebuggingProjTest {
     myIdeFrameFixture.clearNotificationsPresentOnIdeFrame();
 
     //Add debug symbols.
-    File debugSymbols = new File(projectRoot, "app/build/intermediates/cxx/Debug");
+    File debugSymbols = new File(projectRoot, "app/build/intermediates/merged_native_libs/debug/out");
     myEditorFixture.open("lib/x86/libapkdebugging.so")
       .getLibrarySymbolsFixture()
       .addDebugSymbols(debugSymbols);
@@ -202,7 +204,9 @@ public class APKDebuggingProjTest {
     we don't have to manage two windows.
       */
     ideFrame.closeProject();
-
+    Wait.seconds(WAIT_TIME)
+      .expecting("Project to be closed")
+      .until(() -> ProjectManagerEx.getInstanceEx().getOpenProjects().length == 0);
     return projectRoot;
   }
 
