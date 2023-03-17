@@ -23,6 +23,9 @@ HIDDEN = [
     # This annotation jar is nonexistent, despite being referenced by product-info.json.
     # Probably this happens because BaseIdeaProperties.copyAdditionalFiles() moves this jar.
     "/lib/annotations-java5.jar",
+    # Hide JUnit3 to avoid clashing with JUnit4 (b/271338952, IDEA-315065).
+    # This emulates IntelliJ commit 1dc8b1360c which is coming in IJ 232.
+    "/lib/junit.jar",
 ]
 
 ALL = "all"
