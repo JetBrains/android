@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.api.catalog
 
-import com.android.tools.idea.gradle.dsl.api.dependencies.DependencyModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.LibraryDeclarationModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.LibraryDeclarationSpec
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel

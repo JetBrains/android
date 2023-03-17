@@ -74,7 +74,7 @@ class GradleVersionCatalogViewTest: GradleFileModelTestCase() {
     """)
 
     val settingsModel = gradleSettingsModel
-    var view = getVersionCatalogView(settingsModel)
+    val view = getVersionCatalogView(settingsModel)
     var catalogToFile = view.catalogToFileMap
     assertSize(1, catalogToFile.entries)
     Assert.assertNotNull(catalogToFile["libs"])
