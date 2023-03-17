@@ -33,7 +33,6 @@ import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.res.CacheableResourceRepository;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.utils.SparseArray;
@@ -46,8 +45,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import com.android.tools.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidPlatforms;
-import org.jetbrains.android.sdk.AndroidTargetData;
+import com.android.tools.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

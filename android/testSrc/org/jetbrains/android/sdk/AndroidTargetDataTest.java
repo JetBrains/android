@@ -26,6 +26,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.sdk.AndroidSdkData;
+import com.android.tools.sdk.AndroidTargetData;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import java.io.File;
 import org.jetbrains.android.AndroidTestCase;
