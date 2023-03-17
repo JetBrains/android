@@ -104,7 +104,7 @@ class VisualLintAtfAnalysis(
       validatorResult.issues.forEach {
         if ((it.mLevel == ValidatorData.Level.ERROR || it.mLevel == ValidatorData.Level.WARNING) &&
             it.mType == ValidatorData.Type.ACCESSIBILITY) {
-          val component = layoutParser.findComponent(it, validatorResult.srcMap)
+          val component = layoutParser.findComponent(it, validatorResult.srcMap, validatorResult.nodeInfoMap)
           if (component == null) {
             issuesWithoutSources++
           } else {

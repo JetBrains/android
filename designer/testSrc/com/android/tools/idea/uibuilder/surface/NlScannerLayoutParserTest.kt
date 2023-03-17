@@ -77,7 +77,7 @@ class NlScannerLayoutParserTest {
     val issue = ScannerTestHelper.createTestIssueBuilder()
       .setSrcId(helper.lastUsedIssueId).build()
 
-    val found = layoutParser.findComponent(issue, result.srcMap)
+    val found = layoutParser.findComponent(issue, result.srcMap, result.nodeInfoMap)
 
     assertNotNull(found)
     assertEquals(component, found)
@@ -99,7 +99,7 @@ class NlScannerLayoutParserTest {
     // per component. Force components to find its View thru id match.
     layoutParser.viewToComponent.clear()
 
-    val found = layoutParser.findComponent(issue, result.srcMap)
+    val found = layoutParser.findComponent(issue, result.srcMap, result.nodeInfoMap)
 
     assertNotNull(found)
     assertEquals(component, found)

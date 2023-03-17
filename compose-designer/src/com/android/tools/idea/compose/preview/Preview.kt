@@ -226,8 +226,10 @@ fun configureLayoutlibSceneManager(
     doNotReportOutOfDateUserClasses()
     if (runAtfChecks) {
       setCustomContentHierarchyParser(accessibilityBasedHierarchyParser)
+      layoutScannerConfig.isLayoutScannerEnabled = true
     } else {
       setCustomContentHierarchyParser(null)
+      layoutScannerConfig.isLayoutScannerEnabled = false
     }
     if (reinflate) {
       forceReinflate()

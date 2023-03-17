@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.surface
 
 import android.view.View
+import android.view.accessibility.AccessibilityNodeInfo
 import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.uibuilder.model.viewInfo
@@ -23,6 +24,7 @@ import com.android.tools.idea.validator.ValidatorData
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.BiMap
 import com.google.common.collect.HashBiMap
+import com.google.common.collect.ImmutableBiMap
 
 /**
  * Parse the layout for Accessibility Testing Framework.
@@ -34,6 +36,7 @@ class NlScannerLayoutParser {
   val idToComponent: BiMap<Int, NlComponent> = HashBiMap.create()
   @VisibleForTesting
   val viewToComponent: BiMap<View, NlComponent> = HashBiMap.create()
+  val nodeIdToComponent: BiMap<Long, NlComponent> = HashBiMap.create()
 
   /** Returns the list of [NlComponent] that is <[SdkConstants.VIEW_INCLUDE]> */
   val includeComponents: List<NlComponent>
@@ -57,12 +60,19 @@ class NlScannerLayoutParser {
       }
     }
 
-    root.viewInfo?.viewObject?.let { viewObj ->
-      val view = viewObj as View
-      viewToComponent[view] = component
+    root.viewInfo?.let { viewInfo ->
+      val viewObj = viewInfo.viewObject
+      if (viewObj is View) {
+        viewToComponent[viewObj] = component
 
-      if (View.NO_ID != view.id) {
-        idToComponent[view.id] = component
+        if (View.NO_ID != viewObj.id) {
+          idToComponent[viewObj.id] = component
+        }
+      }
+
+      val accessibilityNodeInfo = viewInfo.accessibilityObject
+      if (accessibilityNodeInfo is AccessibilityNodeInfo) {
+        nodeIdToComponent[accessibilityNodeInfo.sourceNodeId] = component
       }
 
       component.children.forEach { buildViewToComponentMap(it) }
@@ -90,20 +100,26 @@ class NlScannerLayoutParser {
   }
 
   /** Find the source [NlComponent] based on issue. If no source is found it returns null. */
-  fun findComponent(result: ValidatorData.Issue, map: BiMap<Long, View>): NlComponent? {
-    val view = map[result.mSrcId] ?: return null
-    var toReturn = viewToComponent[view]
-    if (toReturn == null) {
-      // attempt to see if we can do id matching.
-      toReturn = idToComponent[view.id]
+  fun findComponent(result: ValidatorData.Issue, map: BiMap<Long, View>, nodeInfoMap: ImmutableBiMap<Long, AccessibilityNodeInfo>): NlComponent? {
+    val view = map[result.mSrcId]
+    if (view != null) {
+      var toReturn = viewToComponent[view]
+      if (toReturn == null) {
+        // attempt to see if we can do id matching.
+        toReturn = idToComponent[view.id]
+      }
+      return toReturn
+    } else {
+      val node = nodeInfoMap[result.mSrcId] ?: return null
+      return nodeIdToComponent[node.sourceNodeId]
     }
-    return toReturn
   }
 
   /** Clear all maps and meta data from parsing. */
   fun clear() {
     viewToComponent.clear()
     idToComponent.clear()
+    nodeIdToComponent.clear()
     _includeComponents.clear()
     componentCount = 0
   }

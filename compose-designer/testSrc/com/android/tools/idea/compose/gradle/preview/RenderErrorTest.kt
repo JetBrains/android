@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.compose.gradle.preview
 
+import com.android.flags.junit.FlagRule
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.common.error.NlComponentIssueSource
 import com.android.tools.idea.common.surface.SceneViewErrorsPanel
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
@@ -24,6 +26,8 @@ import com.android.tools.idea.compose.gradle.activateAndWaitForRender
 import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
+import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.intellij.openapi.actionSystem.AnAction
@@ -41,6 +45,7 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Dimension
+import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
 import junit.framework.Assert.assertFalse
 import junit.framework.Assert.assertTrue
@@ -54,6 +59,7 @@ import org.junit.Test
 class RenderErrorTest {
 
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
+  @get:Rule val flagRule = FlagRule(StudioFlags.NELE_ATF_FOR_COMPOSE, true)
 
   private val project: Project
     get() = projectRule.project
@@ -155,6 +161,22 @@ class RenderErrorTest {
       // there are no render errors.
       assertEquals(2, countVisibleActions(actions, visibleBefore))
     }
+  }
+
+  @Test
+  fun testAtfErrors() {
+    val sceneViewPanel = panels.single { it.displayName == "PreviewWithContrastError" }
+    val issueModel = sceneViewPanel.sceneView.surface.issueModel
+    runBlocking {
+      waitForCondition(5, TimeUnit.SECONDS) {
+        issueModel.issues.any { it.category == "Accessibility" }
+      }
+    }
+    val accessibilityIssues = issueModel.issues.filter { it.category == "Accessibility" }
+    assertEquals(1, accessibilityIssues.size)
+    val issue = accessibilityIssues[0]
+    assertEquals("Insufficient text color contrast ratio", issue.summary)
+    assertTrue(issue.source is NlComponentIssueSource)
   }
 
   private fun countVisibleActions(actions: List<AnAction>, visibleBefore: Boolean): Int {

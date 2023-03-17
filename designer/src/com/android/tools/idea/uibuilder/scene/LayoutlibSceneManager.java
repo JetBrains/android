@@ -19,7 +19,6 @@ import static com.android.SdkConstants.ATTR_SHOW_IN;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.common.surface.SceneView.SQUARE_SHAPE_POLICY;
-import static com.android.tools.idea.rendering.StudioRenderServiceKt.taskBuilder;
 import static com.android.tools.idea.rendering.ProblemSeverity.ERROR;
 import static com.intellij.util.ui.update.Update.HIGH_PRIORITY;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
@@ -49,11 +48,13 @@ import com.android.tools.idea.common.scene.TemporarySceneComponent;
 import com.android.tools.idea.common.scene.decorator.SceneDecoratorFactory;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.LayoutScannerConfiguration;
+import com.android.tools.idea.common.surface.LayoutScannerEnabled;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationListener;
 import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.AndroidFacetRenderModelModule;
 import com.android.tools.idea.rendering.ExecuteCallbacksResult;
 import com.android.tools.idea.rendering.InteractionEventResult;
@@ -498,8 +499,9 @@ public class LayoutlibSceneManager extends SceneManager {
       MergingRenderingQueue::new,
       sceneComponentProvider,
       sceneUpdateListener,
-      LayoutScannerConfiguration.getDISABLED(),
+      new LayoutScannerEnabled(),
       sessionClockFactory);
+    myLayoutScannerConfig.setLayoutScannerEnabled(false);
   }
 
   /**
@@ -1703,6 +1705,9 @@ public class LayoutlibSceneManager extends SceneManager {
    */
   public void setInteractive(boolean interactive) {
     myIsInteractive = interactive;
+    if (StudioFlags.NELE_ATF_FOR_COMPOSE.get()) {
+      getLayoutScannerConfig().setLayoutScannerEnabled(!interactive);
+    }
     getSceneViews().forEach(sv -> sv.setAnimated(interactive));
   }
 
