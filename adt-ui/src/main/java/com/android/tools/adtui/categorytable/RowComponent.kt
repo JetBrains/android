@@ -61,12 +61,10 @@ internal sealed class RowComponent<T> : JBPanel<RowComponent<T>>(), TableCompone
 
 internal class CategoryRowComponent<T>(val path: CategoryList<T>) : RowComponent<T>() {
 
-  private val iconLabel = JBLabel(expandedIcon)
+  private val iconLabel = IconLabel(expandedIcon)
 
   init {
-    iconLabel.minimumSize = Dimension(iconWidth, iconHeight)
-    iconLabel.preferredSize = Dimension(iconWidth, iconHeight)
-    iconLabel.maximumSize = Dimension(iconWidth, iconHeight)
+    iconLabel.constrainSize(Dimension(iconWidth, iconHeight))
 
     border = BorderFactory.createEmptyBorder(JBUI.scale(5), 0, JBUI.scale(2), 0)
     layout = BoxLayout(this, BoxLayout.X_AXIS)
@@ -95,19 +93,17 @@ internal class CategoryRowComponent<T>(val path: CategoryList<T>) : RowComponent
     set(value) {
       if (field != value) {
         field = value
-        iconLabel.icon = if (isExpanded) expandedIcon else collapsedIcon
+        iconLabel.baseIcon = if (isExpanded) expandedIcon else collapsedIcon
       }
     }
 
   override val rowKey = RowKey.CategoryListRowKey(path)
 
   companion object {
-    private val expandedIcon = UIManager.get("Tree.expandedIcon", null) as? Icon
-    private val collapsedIcon = UIManager.get("Tree.collapsedIcon", null) as? Icon
-    private val iconWidth: Int =
-      maxOf(expandedIcon?.iconWidth ?: 16, collapsedIcon?.iconWidth ?: 16)
-    private val iconHeight: Int =
-      maxOf(expandedIcon?.iconHeight ?: 16, collapsedIcon?.iconHeight ?: 16)
+    private val expandedIcon = UIManager.get("Tree.expandedIcon", null) as Icon
+    private val collapsedIcon = UIManager.get("Tree.collapsedIcon", null) as Icon
+    private val iconWidth: Int = maxOf(expandedIcon.iconWidth, collapsedIcon.iconWidth)
+    private val iconHeight: Int = maxOf(expandedIcon.iconHeight, collapsedIcon.iconHeight)
   }
 }
 
