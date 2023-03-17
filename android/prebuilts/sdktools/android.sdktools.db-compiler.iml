@@ -39,16 +39,6 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module-library">
-      <library name="commons-lang" type="repository">
-        <properties include-transitive-deps="false" maven-id="commons-lang:commons-lang:2.6" />
-        <CLASSES>
-          <root url="jar://$MAVEN_REPOSITORY$/commons-lang/commons-lang/2.6/commons-lang-2.6.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="library" scope="TEST" name="mockito" level="project" />
     <orderEntry type="module-library">
       <library name="javapoet" type="repository">
@@ -92,5 +82,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="commons-lang" level="project" />
   </component>
 </module>
