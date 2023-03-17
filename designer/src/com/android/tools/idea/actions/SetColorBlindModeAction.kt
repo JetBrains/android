@@ -22,6 +22,7 @@ import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.colorBlindProviderSelector
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.wireless.android.sdk.stats.LayoutEditorState
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import org.jetbrains.android.util.AndroidBundle.message
@@ -78,4 +79,6 @@ class SetColorBlindModeAction(
       designSurface.setScreenViewProvider(noColorBlindModeProvider, false)
     }
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }

@@ -21,6 +21,7 @@ import com.android.tools.idea.actions.SetColorBlindModeAction
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 
 /** [DropDownAction] to allow setting different color-blind modes to Compose Previews. */
@@ -44,4 +45,6 @@ class ComposeColorBlindAction(private val surface: NlDesignSurface) :
       }
     }
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }
