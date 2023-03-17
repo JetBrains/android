@@ -15,18 +15,17 @@
  */
 package com.android.tools.idea.gradle.repositories
 
+import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleCoordinate.ArtifactType
-import com.android.ide.common.repository.GradleCoordinate.COMPARE_PLUS_LOWER
 import com.android.ide.common.repository.MavenRepositories
 import com.android.ide.common.repository.SdkMavenRepository
 import com.android.io.CancellableFileIo
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
 import com.android.tools.idea.gradle.util.GradleLocalCache
-import com.android.tools.idea.gradle.util.ImportUtil
 import com.android.tools.idea.lint.common.LintIdeSupport
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId
 import com.android.tools.idea.sdk.AndroidSdks
@@ -108,7 +107,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
         .filter { it?.isDirectory == true }
         .firstNotNullOfOrNull {
           MavenRepositories.getHighestInstalledVersion(groupId, artifactId, fileSystem.getPath(it.path), filter, includePreviews)
-        }?.lowerBoundVersion
+        }?.version
     }
     return null
   }
@@ -127,29 +126,29 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
   }
 
   /**
-   * Gets the file on the local filesystem that corresponds to the given maven coordinate.
+   * Gets the file on the local filesystem that corresponds to the given [Component].
    *
-   * @param gradleCoordinate the coordinate to retrieve an archive file for
+   * @param component        the [Component] to retrieve an archive file for
    * @param sdkLocation      SDK to use
    * @param fileSystem       the [FileSystem] to work in
    * @return a file pointing at the archive for the given coordinate or null if no SDK is configured
    */
-  fun getArchiveForCoordinate(
-    gradleCoordinate: GradleCoordinate, sdkLocation: File,
+  fun getArchiveForComponent(
+    component: Component, sdkLocation: File,
     // TODO: remove when EmbeddedDistributionPaths uses Path rather than File
     fileSystem: FileSystem
   ): File? {
-    val groupId = gradleCoordinate.groupId
-    val artifactId = gradleCoordinate.artifactId
+    val group = component.group
+    val name = component.name
     val sdkPath = fileSystem.getPath(sdkLocation.path)
-    val repository = SdkMavenRepository.find(sdkPath, groupId, artifactId) ?: return null
+    val repository = SdkMavenRepository.find(sdkPath, group, name) ?: return null
     val repositoryLocation = repository.getRepositoryLocation(sdkPath, true) ?: return null
-    val artifactDirectory: Path? = MavenRepositories.getArtifactDirectory(repositoryLocation, gradleCoordinate)
+    val artifactDirectory: Path? = MavenRepositories.getArtifactDirectory(repositoryLocation, component)
     if (!CancellableFileIo.isDirectory(artifactDirectory!!)) {
       return null
     }
     for (artifactType in ImmutableList.of(ArtifactType.JAR, ArtifactType.AAR)) {
-      val archive = artifactDirectory.resolve("$artifactId-${gradleCoordinate.revision}.$artifactType")
+      val archive = artifactDirectory.resolve("$name-${component.version}.$artifactType")
       if (CancellableFileIo.isRegularFile(archive)) {
         return archive.toFile()
       }
@@ -287,13 +286,3 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
  * Constant full revision for "anything available"
  */
 const val REVISION_ANY = "+"
-
-private fun findExistingExplicitVersion(dependencies: Collection<GradleCoordinate>): String? {
-  val highest = dependencies
-                  .filter { coordinate: GradleCoordinate -> ImportUtil.SUPPORT_GROUP_ID == coordinate.groupId }
-                  .maxWithOrNull(COMPARE_PLUS_LOWER) ?: return null
-  val version = highest.revision
-  return if (version.endsWith(REVISION_ANY))
-    if (version.length > 1) version.dropLast(1) else null
-  else version
-}

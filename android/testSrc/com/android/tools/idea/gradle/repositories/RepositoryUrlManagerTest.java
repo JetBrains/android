@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.repositories;
 
+import com.android.ide.common.gradle.Component;
 import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.StubGoogleMavenRepository;
@@ -145,7 +146,7 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
   }
 
   /**
-   * @see com.android.ide.common.repository.MavenRepositories#isPreview(GradleCoordinate)
+   * @see com.android.ide.common.repository.MavenRepositories#isPreview(Component)
    */
   public void testgetLibraryRevision_playServices_preview() {
     // Check without metadata file.
@@ -154,13 +155,13 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
   }
 
   private void checkGetArchiveForCoordinate(String coordinateString, String path) {
-    GradleCoordinate supportCoordinate = GradleCoordinate.parseCoordinateString(coordinateString);
-    assertNotNull(supportCoordinate);
+    Component supportComponent = Component.Companion.tryParse(coordinateString);
+    assertNotNull(supportComponent);
     File expectedFile = null;
     if (path != null) {
       expectedFile = new File(SDK_DIR, path.replace('/', File.separatorChar));
     }
-    assertEquals(expectedFile, myRepositoryUrlManager.getArchiveForCoordinate(supportCoordinate, new File(SDK_DIR), myRoot.getFileSystem()));
+    assertEquals(expectedFile, myRepositoryUrlManager.getArchiveForComponent(supportComponent, new File(SDK_DIR), myRoot.getFileSystem()));
   }
 
   public void testGetArchiveForCoordinate_missingSdk() throws Exception {

@@ -15,9 +15,9 @@
  */
 package org.jetbrains.android.refactoring;
 
+import com.android.ide.common.gradle.Component;
 import com.android.tools.sdk.AndroidSdkData;
 import com.google.common.annotations.VisibleForTesting;
-import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager;
@@ -158,9 +158,9 @@ public class AppCompatPublicDotTxtLookup {
     if (sdkData == null) {
       return null;
     }
-    GradleCoordinate coordinate = artifactId.getCoordinate(appCompatVersion);
-    File appCompatAarFile = RepositoryUrlManager.get().getArchiveForCoordinate(coordinate, sdkData.getLocationFile(),
-                                                                               FileSystems.getDefault());
+    Component component = artifactId.getComponent(appCompatVersion);
+    File appCompatAarFile = RepositoryUrlManager.get().getArchiveForComponent(component, sdkData.getLocationFile(),
+                                                                              FileSystems.getDefault());
     if (appCompatAarFile == null || !appCompatAarFile.exists()) {
       return null;
     }

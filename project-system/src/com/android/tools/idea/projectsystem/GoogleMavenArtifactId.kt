@@ -16,6 +16,8 @@
 package com.android.tools.idea.projectsystem
 
 import com.android.SdkConstants.CONSTRAINT_LAYOUT_LIB_GROUP_ID
+import com.android.ide.common.gradle.Component
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GradleCoordinate
 
 /**
@@ -115,7 +117,10 @@ enum class GoogleMavenArtifactId(val mavenGroupId: String, val mavenArtifactId: 
   ;
 
   fun getCoordinate(revision: String): GradleCoordinate =
-      GradleCoordinate(mavenGroupId, mavenArtifactId, revision)
+    GradleCoordinate(mavenGroupId, mavenArtifactId, revision)
+
+  fun getComponent(version: String): Component =
+    Component(mavenGroupId, mavenArtifactId, Version.parse(version))
 
   fun isAndroidxLibrary(): Boolean = mavenGroupId.startsWith("androidx.")
 
