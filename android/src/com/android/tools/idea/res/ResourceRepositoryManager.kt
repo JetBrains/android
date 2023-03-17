@@ -59,4 +59,15 @@ interface ResourceRepositoryManager {
 
   /** Returns all locales of the project resources. */
   val localesInProject: ImmutableList<Locale>
+
+  /**
+   * Returns the resource repository for a single module (which can possibly have multiple resource folders).
+   * Does not include resources from any dependencies.
+   *
+   * <p><b>Note:</b> This method should not be called on the event dispatch thread since it may take long time,
+   * or block waiting for a read action lock.
+   *
+   * @return the computed repository
+   */
+  val moduleResources: ResourceRepository
 }

@@ -380,6 +380,7 @@ public final class StudioResourceRepositoryManager implements Disposable, Resour
    */
   @Slow
   @NotNull
+  @Override
   public LocalResourceRepository getModuleResources() {
     LocalResourceRepository moduleResources = getCachedModuleResources();
     if (moduleResources != null) {
