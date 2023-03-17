@@ -29,17 +29,26 @@ abstract class GmdDeviceCatalogService<T : GmdDeviceCatalogState>(
   private val myServiceName: String) : PersistentStateComponent<T> {
 
   protected abstract var myDeviceCatalogState: T
+
+  /**
+   * In the load state and get state functions, we are not guaranteed that myDeviceCatalogState
+   * is not used / modified in another thread. While syncing device catalog, user can already
+   * invoke code completion (indexing is finished by then). Without the lock the myDeviceCatalogState
+   * obtained in code completion contributor might be in an undefined state.
+   */
   protected val myLock: Lock = ReentrantLock()
 
   /**
    * This function runs before Task starts in updateDeviceCatalog. Used for tasks that should
-   * not run in background thread (e.g. interactions with PSI elements
+   * not run in background thread (e.g. interactions with PSI elements.
+   *
+   * Return false to avoid running the updateDeviceCatalog function. Default is true
    */
-  protected open fun runBeforeUpdate(project: Project):Boolean { return false }
+  protected open fun runBeforeUpdate(project: Project):Boolean { return true }
 
   // Update corresponding device catalog if necessary (catalog outdated / no catalog found)
-  fun updateDeviceCatalog(project: Project, beforeTaskAction: (Project) -> Boolean = ::runBeforeUpdate) {
-    if(beforeTaskAction(project)) return
+  fun updateDeviceCatalog(project: Project) {
+    if(!runBeforeUpdate(project)) return
     object : Task.Backgroundable(project, "Syncing in $myServiceName", true) {
       override fun run(indicator: ProgressIndicator) {
         updateDeviceCatalogTaskAction(project, indicator)
@@ -52,6 +61,9 @@ abstract class GmdDeviceCatalogService<T : GmdDeviceCatalogState>(
   final override fun loadState(state: T) = myLock.withLock { myDeviceCatalogState = state }
 
   final override fun getState(): T {
+    /**
+     * Use myLock.tryLock() to avoid freezing UI when user invokes code completion but device catalog sync is still not completed.
+     */
     if (myLock.tryLock()) {
       try {
         return myDeviceCatalogState

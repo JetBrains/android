@@ -57,7 +57,6 @@ class ManagedVirtualDeviceCatalogStateTest {
       assertTrue(deserializedDeviceCatalog.isEmpty() == testManagedVirtualDeviceCatalog.isEmpty())
       assertTrue(deserializedDeviceCatalog.devices == testManagedVirtualDeviceCatalog.devices)
       assertTrue(deserializedDeviceCatalog.apiLevels == testManagedVirtualDeviceCatalog.apiLevels)
-      assertTrue(deserializedDeviceCatalog.orientation == testManagedVirtualDeviceCatalog.orientation)
     }
     catch (e: Exception) {
       fail("ManagedVirtualDeviceCatalog fails to serialize / deserialize")

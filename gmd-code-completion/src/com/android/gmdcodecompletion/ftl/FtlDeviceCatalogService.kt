@@ -17,6 +17,7 @@ package com.android.gmdcodecompletion.ftl
 
 import com.android.gmdcodecompletion.FTL_DEVICE_CATALOG_UPDATE_FREQUENCY
 import com.android.gmdcodecompletion.GmdDeviceCatalogService
+import com.android.gmdcodecompletion.isFtlPluginEnabled
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.RoamingType
@@ -47,15 +48,10 @@ class FtlDeviceCatalogService : GmdDeviceCatalogService<FtlDeviceCatalogState>(F
 
   override var myDeviceCatalogState: FtlDeviceCatalogState = FtlDeviceCatalogState()
 
-  // Interactions with PSI / UI elements should not run as part of background task
-  override fun runBeforeUpdate(project: Project): Boolean {
-    val ftlEnabled = ProjectBuildModel.get(project)?.projectBuildModel?.plugins()?.any { pluginModel ->
-      pluginModel?.psiElement?.let { psiElement ->
-        psiElement?.text?.contains("com.google.firebase.testlab") ?: false
-      } ?: false
-    } ?: return true
-    return (!ftlEnabled)
-  }
+  /**
+   * Return false if FTL plugin is not enabled to NOT run updateDeviceCatalogTaskAction
+   */
+  override fun runBeforeUpdate(project: Project): Boolean = isFtlPluginEnabled(project)
 
   override fun updateDeviceCatalogTaskAction(project: Project,
                                              indicator: ProgressIndicator) {

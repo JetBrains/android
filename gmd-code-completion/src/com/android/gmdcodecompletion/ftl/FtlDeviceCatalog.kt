@@ -30,8 +30,8 @@ class FtlDeviceCatalog : GmdDeviceCatalog() {
 
   // Stores additional information for device locale
   data class LocaleInfo(
-    val languageName: String,
-    val region: String,
+    val languageName: String = "",
+    val region: String = "",
   )
 
   override fun checkEmptyFields(): FtlDeviceCatalog{

@@ -15,7 +15,7 @@
  */
 package com.android.gmdcodecompletion.ftl
 
-import com.android.gmdcodecompletion.freshFtlDeviceCatalog
+import com.android.gmdcodecompletion.fullFtlDeviceCatalog
 import com.android.gmdcodecompletion.freshFtlDeviceCatalogState
 import com.android.gmdcodecompletion.fullAndroidDeviceCatalog
 import com.android.gmdcodecompletion.matchFtlDeviceCatalog
@@ -53,12 +53,15 @@ class FtlDeviceCatalogStateTest {
   fun testLocalFtlDeviceCatalogConverter() {
     val converter = FtlDeviceCatalogState.FtlDeviceCatalogConverter()
     try {
-      val testFtlDeviceCatalog = freshFtlDeviceCatalog()
+      val testFtlDeviceCatalog = fullFtlDeviceCatalog()
       val serializedString = converter.toString(testFtlDeviceCatalog)
       val deserializedDeviceCatalog = converter.fromString(serializedString)
       // If there are serialization issues it will throw error before reaching assertTrue
       assertTrue(deserializedDeviceCatalog.isEmpty() == testFtlDeviceCatalog.isEmpty())
-      assertTrue(matchFtlDeviceCatalog(deserializedDeviceCatalog, fullAndroidDeviceCatalog))
+      assertTrue(deserializedDeviceCatalog.devices == testFtlDeviceCatalog.devices)
+      assertTrue(deserializedDeviceCatalog.apiLevels == testFtlDeviceCatalog.apiLevels)
+      assertTrue(deserializedDeviceCatalog.orientation == testFtlDeviceCatalog.orientation)
+      assertTrue(deserializedDeviceCatalog.locale == testFtlDeviceCatalog.locale)
     }
     catch (e: Exception) {
       fail("FtlDeviceCatalog fails to serialize / deserialize")

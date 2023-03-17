@@ -24,6 +24,17 @@
   <depends>org.jetbrains.android</depends>
   <depends>com.google.gct.testing</depends>
 
+  <extensions defaultExtensionNs="com.intellij">
+    <completion.contributor language="any"
+                            id="GmdCodeCompletionContributor"
+                            implementationClass="com.android.gmdcodecompletion.completions.GmdCodeCompletionContributor"
+                            order="first, before KotlinCompletionContributor"/>
+    <completion.confidence language="any"
+                           id="EnableAutoPopupInStringLiteralForGmdCompletion"
+                           implementationClass="com.android.gmdcodecompletion.completions.EnableAutoPopupInStringLiteralForGmdCodeCompletion"
+                           order="first"/>
+  </extensions>
+
   <projectListeners>
     <listener class="com.android.gmdcodecompletion.GmdCodeCompletionGradleSyncListener"
               topic="com.android.tools.idea.projectsystem.ProjectSystemSyncManager$SyncResultListener"/>
