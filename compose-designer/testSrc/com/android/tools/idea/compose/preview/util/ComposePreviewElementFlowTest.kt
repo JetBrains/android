@@ -16,18 +16,22 @@
 package com.android.tools.idea.compose.preview.util
 
 import com.android.tools.idea.compose.ComposeProjectRule
+import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.testing.moveCaretToEnd
+import com.android.tools.idea.testing.replaceText
 import com.android.tools.idea.ui.ApplicationUtils
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.SmartPointerManager
 import kotlin.test.assertEquals
-import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -43,7 +47,6 @@ class ComposePreviewElementFlowTest {
       composableAnnotationPackage = "androidx.compose.runtime"
     )
 
-  @OptIn(ExperimentalTime::class)
   @Test
   fun `test flow updates`(): Unit = runBlocking {
     val psiFile =
@@ -119,5 +122,66 @@ class ComposePreviewElementFlowTest {
 
     // Ensure the flow listener is terminated
     testJob.cancel()
+  }
+
+  @Test
+  fun `test multi preview flow updates`(): Unit {
+    val multiPreviewPsiFile =
+      projectRule.fixture.addFileToProject(
+        "src/Multipreview.kt",
+        // language=kotlin
+        """
+          import androidx.compose.ui.tooling.preview.Preview
+
+          @Preview(name = "A")
+          @Preview(name = "B")
+          annotation class MultiPreview
+        """
+          .trimIndent()
+      )
+    val psiFile =
+      projectRule.fixture.addFileToProject(
+        "src/OtherFile.kt",
+        // language=kotlin
+        """
+        import androidx.compose.ui.tooling.preview.Preview
+        import androidx.compose.runtime.Composable
+
+        @Composable
+        @MultiPreview
+        fun Preview1() {
+        }
+      """
+          .trimIndent()
+      )
+    val psiFilePointer = runReadAction { SmartPointerManager.createPointer(psiFile) }
+
+    runBlocking {
+      val flowScope = createChildScope()
+      val flow =
+        previewElementFlowForFile(flowScope, projectRule.fixture.testRootDisposable, psiFilePointer)
+      assertEquals(
+        "Preview1 - A,Preview1 - B",
+        flow.filter { it.size == 2 }.first().joinToString(",") { it.displaySettings.name }
+      )
+
+      // Make change
+      ApplicationUtils.invokeWriteActionAndWait(ModalityState.defaultModalityState()) {
+        projectRule.fixture.openFileInEditor(multiPreviewPsiFile.virtualFile)
+
+        // Make 3 changes that should trigger *at least* 3 flow elements
+        projectRule.fixture.editor.moveCaretToEnd()
+        projectRule.fixture.editor.executeAndSave {
+          replaceText("@Preview(name = \"B\")", "@Preview(name = \"B\")\n@Preview(name = \"C\")")
+        }
+      }
+
+      assertEquals(
+        "Preview1 - A,Preview1 - B,Preview1 - C",
+        flow.filter { it.size == 3 }.first().joinToString(",") { it.displaySettings.name }
+      )
+      // Terminate the flow
+      flowScope.cancel()
+    }
   }
 }
