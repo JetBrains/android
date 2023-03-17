@@ -15,8 +15,12 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
+import com.android.tools.adtui.categorytable.constrainSize
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBPanel
+import com.intellij.util.ui.JBDimension
+import java.awt.Component
+import java.awt.Dimension
 import javax.swing.BoxLayout
 
 internal class ActionButtonsPanel(val project: Project, deviceRowData: DeviceRowData) :
@@ -28,9 +32,12 @@ internal class ActionButtonsPanel(val project: Project, deviceRowData: DeviceRow
   init {
     layout = BoxLayout(this, BoxLayout.X_AXIS)
     isOpaque = false
-    add(startStopButton)
-    add(openDeviceExplorer)
-    add(editButton)
+
+    val size = JBDimension(22, 22)
+    for (button in listOf(startStopButton, openDeviceExplorer, editButton)) {
+      button.constrainSize(size)
+      add(button)
+    }
   }
 
   fun updateState(state: DeviceRowData) {

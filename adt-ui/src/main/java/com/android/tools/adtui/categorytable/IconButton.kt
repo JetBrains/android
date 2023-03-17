@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.devicemanagerv2
+package com.android.tools.adtui.categorytable
 
-import com.android.tools.adtui.categorytable.TableComponent
-import com.android.tools.adtui.categorytable.TablePresentation
-import com.android.tools.adtui.categorytable.TablePresentationManager
 import com.android.tools.adtui.common.ColoredIconGenerator.generateColoredIcon
-import com.intellij.util.ui.JBDimension
 import java.awt.Color
-import java.awt.Dimension
 import javax.swing.Icon
 import javax.swing.JButton
 
-internal open class IconButton(initialBaseIcon: Icon) : JButton(initialBaseIcon), TableComponent {
+open class IconButton(initialBaseIcon: Icon) : JButton(initialBaseIcon), TableComponent {
   var baseIcon = initialBaseIcon
   var iconColor: Color? = null
     set(value) {
@@ -34,11 +29,6 @@ internal open class IconButton(initialBaseIcon: Icon) : JButton(initialBaseIcon)
     }
 
   init {
-    val size: Dimension = JBDimension(22, 22)
-    maximumSize = size
-    minimumSize = size
-    preferredSize = size
-
     icon = baseIcon
   }
 

@@ -61,3 +61,12 @@ internal fun Dimension.addInsets(container: Container) {
   width += insets.left + insets.right
   height += insets.top + insets.bottom
 }
+
+/**
+ * Sets minimum, maximum, and preferred sizes to the given value.
+ */
+fun Component.constrainSize(size: Dimension) {
+  maximumSize = size
+  minimumSize = size
+  preferredSize = size
+}

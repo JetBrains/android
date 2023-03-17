@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.tools.adtui.categorytable.IconButton
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.google.wireless.android.sdk.stats.DeviceManagerEvent
 import com.intellij.icons.AllIcons
