@@ -157,7 +157,14 @@ public abstract class BaseAction extends AnAction {
       return;
     }
 
-    ExecutionEnvironmentBuilder builder = ExecutionEnvironmentBuilder.create(executor, settings.getConfiguration());
+    ExecutionEnvironmentBuilder builder = null;
+    try {
+      builder = ExecutionEnvironmentBuilder.create(executor, settings);
+    }
+    catch (com.intellij.execution.ExecutionException ex) {
+      LOG.error(myName + " ExecutionException " + ex.getMessage());
+      return;
+    }
     ExecutionEnvironment env = builder.activeTarget().dataContext(e.getDataContext()).build();
 
     env.putUserData(SWAP_INFO_KEY, new SwapInfo(mySwapType));
@@ -300,7 +307,7 @@ public abstract class BaseAction extends AnAction {
   }
 
   @Nullable
-  public static ProcessHandler findRunningProcessHandler(@NotNull Project project, @NotNull RunConfiguration runConfiguration, @NotNull
+  protected static ProcessHandler findRunningProcessHandler(@NotNull Project project, @NotNull RunConfiguration runConfiguration, @NotNull
   ExecutionTarget executionTarget) {
     for (ProcessHandler handler : ExecutionManager.getInstance(project).getRunningProcesses()) {
       SwappableProcessHandler extension = handler.getCopyableUserData(SwappableProcessHandler.EXTENSION_KEY);

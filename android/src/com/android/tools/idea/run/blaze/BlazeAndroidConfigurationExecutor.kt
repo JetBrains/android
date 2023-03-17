@@ -18,6 +18,7 @@ package com.android.tools.idea.run.blaze
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.execution.common.ApplicationTerminator
+import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.ClearLogcatListener
@@ -27,7 +28,6 @@ import com.android.tools.idea.run.DeviceHeadsUpListener
 import com.android.tools.idea.run.LaunchOptions
 import com.android.tools.idea.run.ShowLogcatListener
 import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLinkText
-import com.android.tools.idea.run.applychanges.findExistingSessionAndMaybeDetachForColdSwap
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
@@ -74,8 +74,9 @@ class BlazeAndroidConfigurationExecutor(
   private val LOG = Logger.getInstance(this::class.java)
 
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
-    findExistingSessionAndMaybeDetachForColdSwap(env)
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
+
+    env.runnerAndConfigurationSettings?.getProcessHandlersForDevices(project, devices)?.forEach { it.destroyProcess() }
 
     val packageName = applicationIdProvider.packageName
     waitPreviousProcessTermination(devices, packageName, indicator)
@@ -154,9 +155,10 @@ class BlazeAndroidConfigurationExecutor(
     if (devices.size != 1) {
       throw ExecutionException("Cannot launch a debug session on more than 1 device.")
     }
-    waitPreviousProcessTermination(devices, applicationId, indicator)
 
-    findExistingSessionAndMaybeDetachForColdSwap(env)
+    env.runnerAndConfigurationSettings?.getProcessHandlersForDevices(project, devices)?.forEach { it.destroyProcess() }
+
+    waitPreviousProcessTermination(devices, applicationId, indicator)
 
     val processHandler = NopProcessHandler()
     val console = createConsole(processHandler)

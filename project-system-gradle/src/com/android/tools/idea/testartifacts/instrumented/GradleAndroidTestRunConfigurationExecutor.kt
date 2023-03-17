@@ -18,6 +18,7 @@ package com.android.tools.idea.testartifacts.instrumented
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.execution.common.ApplicationTerminator
+import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel
 import com.android.tools.idea.run.ApkProvisionException
@@ -28,7 +29,6 @@ import com.android.tools.idea.run.configuration.execution.createRunContentDescri
 import com.android.tools.idea.run.configuration.execution.getDevices
 import com.android.tools.idea.run.configuration.execution.println
 import com.android.tools.idea.run.tasks.getBaseDebuggerTask
-import com.android.tools.idea.run.ui.BaseAction
 import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.testartifacts.instrumented.orchestrator.MAP_EXECUTION_TYPE_TO_MASTER_ANDROID_PROCESS_NAME
 import com.android.tools.idea.testartifacts.instrumented.testsuite.view.AndroidTestSuiteView
@@ -86,10 +86,9 @@ open class GradleAndroidTestRunConfigurationExecutor(
 
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
     LOG.info("Start run tests")
-    BaseAction.findRunningProcessHandler(project, configuration, env.executionTarget)?.destroyProcess()
 
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
-
+    env.runnerAndConfigurationSettings?.getProcessHandlersForDevices(project, devices)?.forEach { it.destroyProcess() }
     waitPreviousProcessTermination(devices, getMasterAndroidProcessId(), indicator)
 
     val console = createAndroidTestSuiteView()
@@ -137,14 +136,13 @@ open class GradleAndroidTestRunConfigurationExecutor(
 
   override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
     LOG.info("Start debug tests")
-    BaseAction.findRunningProcessHandler(project, configuration, env.executionTarget)?.destroyProcess()
-
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
 
     if (devices.size != 1) {
       throw ExecutionException("Cannot launch a debug session on more than 1 device.")
     }
 
+    env.runnerAndConfigurationSettings?.getProcessHandlersForDevices(project, devices)?.forEach { it.destroyProcess() }
     waitPreviousProcessTermination(devices, getMasterAndroidProcessId(), indicator)
 
     val console = createAndroidTestSuiteView()
