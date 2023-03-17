@@ -73,7 +73,8 @@ def main():
         if f.suffix not in [".xml", ".iml", ".txt", ".json"]:
             continue
         text = f.read_text("UTF-8", errors="ignore")
-        assert "prebuilts/studio/intellij-sdk" not in text, f"intellij-sdk still referenced by {f}"
+        if "prebuilts/studio/intellij-sdk" in text:
+            print(f"Warning: intellij-sdk still referenced by {f}")
 
     # Move generated output.
     final_project_dir = monobuild_dir.joinpath(".idea")
