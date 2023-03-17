@@ -55,7 +55,7 @@ data class SurfaceLayoutManagerOption(val displayName: String,
  * [DropDownAction] that allows switching the layout manager in the surface.
  */
 class SwitchSurfaceLayoutManagerAction(private val layoutManagerSwitcher: LayoutManagerSwitcher,
-                                       private val layoutManagers: List<SurfaceLayoutManagerOption>,
+                                       layoutManagers: List<SurfaceLayoutManagerOption>,
                                        private val isActionEnabled: (AnActionEvent) -> Boolean = { true },
                                        private val onLayoutSelected: (SurfaceLayoutManagerOption) -> Unit
 ) : DropDownAction(
