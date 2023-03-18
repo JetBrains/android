@@ -87,10 +87,12 @@ open class SeamlessTextEditorWithPreview<P : FileEditor>(textEditor: TextEditor,
     myPreview.component.isVisible = false
   }
 
+/* b/275444702
   override fun getTabActions(): ActionGroup? {
     val parentActions = super.getTabActions() ?: return null
     return tabsAction ?: TabsActionWrapper(parentActions).also { tabsAction = it }
   }
+b/275444702 */
 
   // Even though isPureTextEditor is meant to be persistent this editor delegates keeping the state persistent to the clients
   var isPureTextEditor: Boolean = true
