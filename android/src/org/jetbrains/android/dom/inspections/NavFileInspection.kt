@@ -76,7 +76,7 @@ class NavFileInspection : LocalInspectionTool() {
         return
       }
       val tag = attribute.parent
-      val value = attribute.value
+      val value = attribute.value ?: ""
       val allowedDestinations = getClassesForTag(module, tag.name).keys.map { it.qualifiedName }.toSet()
       if (!allowedDestinations.contains(value)) {
         attribute.valueElement?.let {
