@@ -1,9 +1,9 @@
-#include "include/core/SkData.h"
-#include "include/core/SkPictureRecorder.h"
-#include "include/core/SkRRect.h"
-#include "include/core/SkCanvas.h"
-#include "include/core/SkPaint.h"
-#include "include/core/SkRect.h"
+#include <SkData.h>
+#include <SkPictureRecorder.h>
+#include <SkRRect.h>
+#include <SkCanvas.h>
+#include <SkPaint.h>
+#include <SkRect.h>
 #include <grpc++/grpc++.h>
 #include <jni.h>
 #include "server.h"

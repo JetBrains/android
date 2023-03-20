@@ -134,12 +134,15 @@ iml_module(
 cc_library(
     name = "skiaparser_test_support",
     srcs = ["testSrc/native/skia_parser_test_java_jni.cc"],
+    copts = [
+        "-DSK_USER_CONFIG_HEADER=\\\"SkUserConfig.h\\\"",
+    ],
     linkstatic = 1,
     deps = [
         "//prebuilts/studio/jdk:jni_headers",
         "//tools/base/dynamic-layout-inspector/skia:skia-lib",
         "//tools/base/dynamic-layout-inspector/skia/proto:layout_inspector_skia_cc_proto",
-        "@freetype_repo//:freetype",
+        "@freetype_repo//:libft2",
         "@libpng_repo//:libpng",
     ],
     alwayslink = 1,
