@@ -166,11 +166,8 @@ public class StudioDownloaderTest {
     // Create some sizeable custom content to download.
     int howMany = (1 << 20);
     String stuff = "A quick brown brown fox jumps over the lazy dog.";
-    StringBuilder contentBuffer = new StringBuilder(howMany * stuff.length());
-    for (int i = 0; i < howMany; ++i) {
-      contentBuffer.append(stuff);
-    }
-    createServerContextThatReturnsCustomContent(contentBuffer.toString());
+    String content = stuff.repeat(howMany);
+    createServerContextThatReturnsCustomContent(content);
 
     Path downloadResult = FileOpUtils.getNewTempDir("testResumableDownloads", fs).resolve("studio_partial_downloads_test.txt");
 
@@ -209,7 +206,7 @@ public class StudioDownloaderTest {
     assertFalse(Files.exists(interimDownload));
 
     String downloadedContent = new String(Files.readAllBytes(downloadResult));
-    assertEquals(contentBuffer.toString(), downloadedContent);
+    assertEquals(content, downloadedContent);
   }
 
   @Test
