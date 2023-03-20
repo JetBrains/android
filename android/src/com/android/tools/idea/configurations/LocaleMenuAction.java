@@ -102,7 +102,8 @@ public class LocaleMenuAction extends DropDownAction {
    * Returns whether any of the passed locales is RTL
    */
   private static boolean hasAnyRtlLocales(@NotNull Configuration configuration, @NotNull List<Locale> locales) {
-    LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(configuration.getModule(), configuration.getTarget());
+    Module module = ((StudioConfigurationModelModule)(configuration.getConfigModule())).getModule();
+    LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(module, configuration.getTarget());
     if (layoutlib == null) {
       return false;
     }
@@ -251,7 +252,7 @@ public class LocaleMenuAction extends DropDownAction {
     public void actionPerformed(@NotNull AnActionEvent e) {
       Configuration configuration = myRenderContext.getConfiguration();
       if (configuration != null) {
-        Module module = configuration.getModule();
+        Module module = ((StudioConfigurationModelModule)(configuration.getConfigModule())).getModule();
         StringResourceEditorProvider.openEditor(module);
       }
     }

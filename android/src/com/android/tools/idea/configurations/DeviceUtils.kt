@@ -133,7 +133,8 @@ private fun sizeGroupNexus(device: Device): DeviceGroup {
  */
 fun getAvdDevices(configuration: Configuration): List<Device> {
   // Unlikely, but has happened - see http://b.android.com/68091
-  val facet = AndroidFacet.getInstance(configuration.module) ?: return emptyList()
+  val module = (configuration.configModule as StudioConfigurationModelModule).module
+  val facet = AndroidFacet.getInstance(module) ?: return emptyList()
   val configurationManager = configuration.configurationManager
   val avdManager = AvdManagerUtils.getAvdManager(facet) ?: return emptyList()
   return avdManager.validAvds.mapNotNull { configurationManager.createDeviceForAvd(it) }
@@ -197,6 +198,10 @@ fun getReferenceDevice(devices: Map<DeviceGroup, List<Device>>, type: ReferenceD
   }
 }
 
+fun isUseWearDeviceAsDefault(configuration: Configuration): Boolean {
+  val module = (configuration.configModule as StudioConfigurationModelModule).module
+  return isUseWearDeviceAsDefault(module)
+}
 /**
  * Convert dp to px.
  * The formula is "px = dp * (dpi / 160)"

@@ -27,7 +27,7 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.android.sdk.getInstance
 
 /** Studio-specific [ConfigurationModelModule] constructed using Android module. */
-class StudioConfigurationModelModule(private val module: Module): ConfigurationModelModule {
+class StudioConfigurationModelModule(val module: Module): ConfigurationModelModule {
   override val androidPlatform: AndroidPlatform?
     get() = getInstance(module)
   override val resourceRepositoryManager: ResourceRepositoryManager?

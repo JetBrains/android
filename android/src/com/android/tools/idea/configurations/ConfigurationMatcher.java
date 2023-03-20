@@ -613,7 +613,7 @@ public class ConfigurationMatcher {
     }
 
     Comparator<ConfigMatch> comparator = null;
-    if (DeviceUtils.isUseWearDeviceAsDefault(myConfiguration.getModule())) {
+    if (DeviceUtils.isUseWearDeviceAsDefault(myConfiguration)) {
       comparator = new WearConfigComparator(myConfiguration.getConfigurationManager(), idRank);
     }
     else {
