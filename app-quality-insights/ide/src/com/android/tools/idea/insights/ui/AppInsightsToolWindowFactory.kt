@@ -32,9 +32,6 @@ import icons.StudioIcons
 import javax.swing.event.HyperlinkListener
 import org.jetbrains.annotations.VisibleForTesting
 
-// This must match the [toolwindow] id in plugin.xml
-const val APP_INSIGHTS_ID = "App Quality Insights"
-
 class AppInsightsToolWindowFactory : DumbAware, ToolWindowFactory {
   companion object {
     fun show(project: Project, tabName: String, callback: (() -> Unit)?) {
