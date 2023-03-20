@@ -19,7 +19,7 @@ import com.android.tools.adtui.ImageUtils
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.ImageUtil
-import com.intellij.util.ui.StartupUiUtil
+import com.intellij.util.ui.drawImage
 import java.awt.AlphaComposite
 import java.awt.Composite
 import java.awt.Graphics
@@ -93,7 +93,7 @@ fun <T: JBPanel<T>> JBPanel<T>.paintPanelImage(g: Graphics, image: Image?, activ
       }
       else {
         // Draw the image using IJ wrapper so that rendering is optimized for JBHiDPIScaledImage
-        StartupUiUtil.drawImage(g, img, Rectangle(xOffset, yOffset, w, h), null, null)
+        drawImage(g = g, image = img, x = xOffset, y = yOffset, dw = w, dh = h)
       }
     }
   }
