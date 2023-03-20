@@ -17,13 +17,11 @@ package com.android.tools.idea.logcat
 
 import com.android.adblib.testing.FakeAdbSession
 import com.android.ddmlib.AndroidDebugBridge
-import com.android.ddmlib.Client
-import com.android.ddmlib.ClientData
-import com.android.ddmlib.IDevice
-import com.android.ddmlib.IDevice.CHANGE_CLIENT_LIST
+import com.android.processmonitor.common.ProcessEvent.ProcessAdded
+import com.android.processmonitor.monitor.ProcessNameMonitor
+import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.CTRL_LEFT
 import com.android.tools.adtui.swing.FakeUi
@@ -107,7 +105,6 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.any
-import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import java.awt.BorderLayout
@@ -138,6 +135,7 @@ class LogcatMainPanelTest {
   private val androidLogcatFormattingOptions = AndroidLogcatFormattingOptions()
   private val fakeLogcatService = FakeLogcatService()
   private val deviceTracker = FakeDeviceComboBoxDeviceTracker()
+  private val fakeProcessNameMonitor = FakeProcessNameMonitor()
 
   @get:Rule
   val rule = RuleChain(
@@ -146,6 +144,7 @@ class LogcatMainPanelTest {
     ProjectServiceRule(projectRule, AdbLibService::class.java, TestAdbLibService(FakeAdbSession())),
     ProjectServiceRule(projectRule, LogcatService::class.java, fakeLogcatService),
     ProjectServiceRule(projectRule, DeviceComboBoxDeviceTrackerFactory::class.java, DeviceComboBoxDeviceTrackerFactory { deviceTracker }),
+    ProjectServiceRule(projectRule, ProcessNameMonitor::class.java, fakeProcessNameMonitor),
     EdtRule(),
     androidExecutorsRule,
     popupRule,
@@ -1120,16 +1119,10 @@ class LogcatMainPanelTest {
         waitForCondition { it.getConnectedDevice() != null }
       }
     }
-    val iDevice = mock<IDevice>()
-    val client = mock<Client>()
-    val clientData = mock<ClientData>()
 
-    whenever(clientData.packageName).thenReturn("myapp")
-    whenever(client.clientData).thenReturn(clientData)
-    whenever(iDevice.serialNumber).thenReturn(device1.serialNumber)
-    whenever(iDevice.clients).thenReturn(arrayOf(client))
-    AndroidDebugBridge.deviceChanged(iDevice, CHANGE_CLIENT_LIST)
-
+    runBlocking {
+      fakeProcessNameMonitor.getProcessTracker(device1.serialNumber).send(ProcessAdded(0, null, "myapp"))
+    }
     logcatMainPanel.editor.document.waitForCondition(logcatMainPanel) {
       immutableText().contains("PROCESS STARTED (0) for package myapp")
     }

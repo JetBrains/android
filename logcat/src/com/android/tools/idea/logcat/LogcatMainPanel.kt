@@ -16,7 +16,7 @@
 package com.android.tools.idea.logcat
 
 import com.android.annotations.concurrency.UiThread
-import com.android.ddmlib.AndroidDebugBridge
+import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsStateProvider
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -68,6 +68,7 @@ import com.android.tools.idea.logcat.messages.TextAccumulator
 import com.android.tools.idea.logcat.messages.TextAccumulator.FilterHint
 import com.android.tools.idea.logcat.messages.TimestampFormat
 import com.android.tools.idea.logcat.service.LogcatService
+import com.android.tools.idea.logcat.service.ProjectAppMonitor
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
@@ -125,6 +126,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -260,7 +263,7 @@ internal class LogcatMainPanel @TestOnly constructor(
   private var ignoreCaretAtBottom = false // Derived from similar code in ConsoleViewImpl. See initScrollToEndStateHandling()
   private val connectedDevice = AtomicReference<Device?>()
   private val logcatServiceChannel = Channel<LogcatServiceEvent>(1)
-  private val clientListener = ProjectAppMonitor(this, packageNamesProvider)
+  private val projectAppMonitor = ProjectAppMonitor(project.getService(ProcessNameMonitor::class.java), packageNamesProvider)
 
   @VisibleForTesting
   internal var logcatServiceJob: Job? = null
@@ -394,9 +397,6 @@ internal class LogcatMainPanel @TestOnly constructor(
         }
       }
     }
-
-    AndroidDebugBridge.addDeviceChangeListener(clientListener)
-    AndroidDebugBridge.addClientChangeListener(clientListener)
   }
 
   private fun getPopupActionGroup(actions: Array<AnAction>): ActionGroup {
@@ -500,8 +500,6 @@ internal class LogcatMainPanel @TestOnly constructor(
 
   override fun dispose() {
     EditorFactory.getInstance().releaseEditor(editor)
-    AndroidDebugBridge.removeDeviceChangeListener(clientListener)
-    AndroidDebugBridge.removeClientChangeListener(clientListener)
   }
 
   override fun applyLogcatSettings(logcatSettings: AndroidLogcatSettings) {
@@ -681,12 +679,10 @@ internal class LogcatMainPanel @TestOnly constructor(
     messageBacklog.get().clear()
 
     return coroutineScope.launch(Dispatchers.IO) {
-      logcatService.readLogcat(device).also {
-        // Set the device after we start the service so that the service will be running when we
-        // are reporting an active device.
-        connectedDevice.set(device)
-        it.collect { message -> processMessages(message) }
-      }
+      val logcatFlow = logcatService.readLogcat(device)
+      val processMonitorFlow = projectAppMonitor.monitorDevice(device.serialNumber).transform { emit(listOf(it)) }
+      connectedDevice.set(device)
+      merge(logcatFlow, processMonitorFlow).collect { message -> processMessages(message) }
     }
   }
 

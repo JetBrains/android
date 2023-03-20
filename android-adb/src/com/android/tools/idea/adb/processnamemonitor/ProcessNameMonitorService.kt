@@ -18,6 +18,7 @@ package com.android.tools.idea.adb.processnamemonitor
 import com.android.processmonitor.agenttracker.AgentProcessTrackerConfig
 import com.android.processmonitor.agenttracker.AgentSourcePaths.AGENT_RESOURCE_PROD
 import com.android.processmonitor.agenttracker.AgentSourcePaths.AGENT_SOURCE_DEV
+import com.android.processmonitor.common.ProcessEvent
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.processmonitor.monitor.ProcessNameMonitorImpl
 import com.android.processmonitor.monitor.ddmlib.AdbAdapterImpl
@@ -33,6 +34,7 @@ import com.intellij.openapi.application.PluginPathManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.flow.Flow
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -59,6 +61,8 @@ internal class ProcessNameMonitorService(project: Project) : ProcessNameMonitor,
   override fun start() = delegate.start()
 
   override fun getProcessNames(serialNumber: String, pid: Int) = delegate.getProcessNames(serialNumber, pid)
+
+  override suspend fun trackDeviceProcesses(serialNumber: String): Flow<ProcessEvent> = delegate.trackDeviceProcesses(serialNumber)
 
   override fun dispose() {
     delegate.close()
