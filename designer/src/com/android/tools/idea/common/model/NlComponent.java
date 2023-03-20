@@ -25,7 +25,9 @@ import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
+import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
+import com.android.tools.idea.rendering.parsers.RenderXmlTag;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -468,7 +470,7 @@ public class NlComponent implements NlAttributesHolder {
       return snapshot.attributes;
     }
 
-    XmlTag tag = getTagDeprecated();
+    RenderXmlTag tag = new PsiXmlTag(getTagDeprecated());
     if (tag.isValid()) {
       Application application = ApplicationManager.getApplication();
 

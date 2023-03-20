@@ -43,10 +43,10 @@ import com.android.tools.idea.common.scene.target.Target;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.SceneView;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.StudioRenderService;
+import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.handlers.constraint.SecondarySelector;
 import com.android.tools.idea.uibuilder.handlers.constraint.draw.ConstraintLayoutDecorator;
@@ -1212,7 +1212,7 @@ public class Scene implements SelectionListener, Disposable {
         }
 
         XmlTag tag = neleComponent.getTagDeprecated();
-        return task.measureChild(tag, filter).whenCompleteAsync((map, ex) -> task.dispose(), PooledThreadExecutor.INSTANCE);
+        return task.measureChild(new PsiXmlTag(tag), filter).whenCompleteAsync((map, ex) -> task.dispose(), PooledThreadExecutor.INSTANCE);
       })
       .thenApply(viewInfo -> {
         if (viewInfo == null) {

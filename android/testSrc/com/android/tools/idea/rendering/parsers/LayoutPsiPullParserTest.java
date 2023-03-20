@@ -47,12 +47,9 @@ import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import java.io.StringReader;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -278,10 +275,10 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     when(emptyFile.getProject()).thenReturn(getProject());
     RenderLogger logger = RenderLogger.NOP_RENDER_LOGGER;
     assertEmptyParser(LayoutPsiPullParser.create(emptyFile, logger, StudioResourceRepositoryManager.getInstance(myModule)));
-    assertEmptyParser(new LayoutPsiPullParser(mock(XmlTag.class), logger, true,
+    assertEmptyParser(new LayoutPsiPullParser(mock(RenderXmlTag.class), logger, true,
                                               null, StudioResourceRepositoryManager.getInstance(myModule)));
-    assertEmptyParser(new LayoutPsiPullParser(mock(XmlTag.class), logger, true,
-                                              null,  StudioResourceRepositoryManager.getInstance(myModule)));
+    assertEmptyParser(new LayoutPsiPullParser(mock(RenderXmlTag.class), logger, true,
+                                              null, StudioResourceRepositoryManager.getInstance(myModule)));
   }
 
   public void testAaptAttr() throws Exception {
@@ -921,7 +918,7 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
           throw new AssertionError("Unexpected type");
       }
 
-      XmlTag element = null;
+      RenderXmlTag element = null;
       if (expected == START_TAG) {
         assertNotNull(parser.getViewCookie());
         assertTrue(parser.getViewCookie() instanceof TagSnapshot);
@@ -930,7 +927,7 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
 
       if (expected == START_TAG) {
         assertEquals(referenceParser.getName(), parser.getName());
-        if (element != xmlFile.getRootTag()) { // KXmlParser seems to not include xmlns: attributes on the root tag!{
+        if (element != PsiXmlTag.create(xmlFile.getRootTag())) { // KXmlParser seems to not include xmlns: attributes on the root tag!{
           SortedSet<String> referenceAttributes = new TreeSet<>();
           SortedSet<String> attributes = new TreeSet<>();
           for (int i = 0; i < referenceParser.getAttributeCount(); i++) {
@@ -956,7 +953,7 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
         //assertEquals(referenceParser.isEmptyElementTag(), parser.isEmptyElementTag());
 
         if (element != null) {
-          for (XmlAttribute attribute : element.getAttributes()) {
+          for (RenderXmlAttribute attribute : element.getAttributes()) {
             String namespace = attribute.getNamespace();
             String name = attribute.getLocalName();
             if (namespace.isEmpty()) {

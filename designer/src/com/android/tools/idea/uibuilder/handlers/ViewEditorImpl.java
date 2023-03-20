@@ -33,6 +33,8 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.StudioRenderService;
+import com.android.tools.idea.rendering.parsers.PsiXmlTag;
+import com.android.tools.idea.rendering.parsers.RenderXmlTag;
 import com.android.tools.idea.uibuilder.api.ViewEditor;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlModelHelperKt;
@@ -168,7 +170,7 @@ public class ViewEditorImpl extends ViewEditor {
       if (task == null) {
         return CompletableFuture.completedFuture(Collections.emptyMap());
       }
-      return task.measureChildren(parentTag, filter)
+      return task.measureChildren(new PsiXmlTag(parentTag), filter)
         .whenCompleteAsync((map, ex) -> task.dispose(), AppExecutorUtil.getAppExecutorService())
         .thenApply(map -> {
           if (map == null) {
@@ -176,7 +178,7 @@ public class ViewEditorImpl extends ViewEditor {
           }
 
           Map<NlComponent, Dimension> unweightedSizes = Maps.newHashMap();
-          for (Map.Entry<XmlTag, ViewInfo> entry : map.entrySet()) {
+          for (Map.Entry<RenderXmlTag, ViewInfo> entry : map.entrySet()) {
             ViewInfo viewInfo = entry.getValue();
             viewInfo = RenderService.getSafeBounds(viewInfo);
             Dimension size = new Dimension(viewInfo.getRight() - viewInfo.getLeft(), viewInfo.getBottom() - viewInfo.getTop());

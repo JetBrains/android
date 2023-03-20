@@ -21,6 +21,7 @@ import com.android.resources.ResourceUrl
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.RenderResult
+import com.android.tools.idea.rendering.parsers.PsiXmlTag
 import com.android.tools.idea.rendering.parsers.TagSnapshot
 import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
@@ -92,8 +93,8 @@ abstract class VisualLintAnalyzer {
   }
 
   protected fun componentFromViewInfo(viewInfo: ViewInfo?, model: NlModel): NlComponent? {
-    val tag = (viewInfo?.cookie as? TagSnapshot)?.tag ?: return null
-    return model.findViewByTag(tag)
+    val tag = (viewInfo?.cookie as? TagSnapshot)?.tag as? PsiXmlTag ?: return null
+    return model.findViewByTag(tag.psiXmlTag)
   }
 
   data class VisualLintIssueContent(val view: ViewInfo?, val message: String, val descriptionProvider: (Int) -> HtmlBuilder)

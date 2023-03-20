@@ -57,6 +57,7 @@ import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
+import com.android.tools.idea.rendering.parsers.RenderXmlTag;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.utils.HtmlBuilder;
@@ -69,7 +70,6 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.serviceContainer.AlreadyDisposedException;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.event.KeyEvent;
@@ -1248,12 +1248,12 @@ public class RenderTask {
    * @return a map from the children of the parent to new bounds of the children
    */
   @NotNull
-  public CompletableFuture<Map<XmlTag, ViewInfo>> measureChildren(@NotNull XmlTag parent, @Nullable AttributeFilter filter) {
+  public CompletableFuture<Map<RenderXmlTag, ViewInfo>> measureChildren(@NotNull RenderXmlTag parent, @Nullable AttributeFilter filter) {
     ILayoutPullParser modelParser = LayoutPsiPullParser.create(filter,
                                                                parent,
                                                                myLogger,
                                                                myContext.getModule().getResourceRepositoryManager());
-    Map<XmlTag, ViewInfo> map = new HashMap<>();
+    Map<RenderXmlTag, ViewInfo> map = new HashMap<>();
     return RenderService.getRenderAsyncActionExecutor().runAsyncAction(myPriority, () -> measure(modelParser))
       .thenComposeAsync(session -> {
         if (session != null) {
@@ -1265,7 +1265,7 @@ public class RenderTask {
               ViewInfo root = session.getRootViews().get(0);
               List<ViewInfo> children = root.getChildren();
               for (ViewInfo info : children) {
-                XmlTag tag = RenderService.getXmlTag(info);
+                RenderXmlTag tag = RenderService.getXmlTag(info);
                 if (tag != null) {
                   map.put(tag, info);
                 }
@@ -1292,8 +1292,8 @@ public class RenderTask {
    * @return a {@link CompletableFuture} that will return the {@link ViewInfo} if found.
    */
   @NotNull
-  public CompletableFuture<ViewInfo> measureChild(@NotNull XmlTag tag, @Nullable AttributeFilter filter) {
-    XmlTag parent = tag.getParentTag();
+  public CompletableFuture<ViewInfo> measureChild(@NotNull RenderXmlTag tag, @Nullable AttributeFilter filter) {
+    RenderXmlTag parent = tag.getParentTag();
     if (parent == null) {
       return CompletableFuture.completedFuture(null);
     }
@@ -1394,7 +1394,7 @@ public class RenderTask {
      * @return an override value, or null to return the unfiltered value
      */
     @Nullable
-    String getAttribute(@NotNull XmlTag node, @Nullable String namespace, @NotNull String localName);
+    String getAttribute(@NotNull RenderXmlTag node, @Nullable String namespace, @NotNull String localName);
   }
 
   /**

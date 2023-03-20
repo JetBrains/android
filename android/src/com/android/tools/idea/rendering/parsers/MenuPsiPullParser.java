@@ -19,9 +19,7 @@ import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,14 +37,14 @@ class MenuPsiPullParser extends LayoutPsiPullParser.AttributeFilteredLayoutParse
     super(file, logger, new RenderTask.AttributeFilter() {
       @Nullable
       @Override
-      public String getAttribute(@NotNull XmlTag node, @Nullable String namespace, @NotNull String localName) {
+      public String getAttribute(@NotNull RenderXmlTag node, @Nullable String namespace, @NotNull String localName) {
         if (ANDROID_URI.equals(namespace)) {
           if (localName.equals(ATTR_SHOW_AS_ACTION)) {
             return getShowAsActionValue(node);
           }
           else if (localName.equals("actionLayout")) {
             // Check if the attribute is in the app namespace
-            XmlAttribute actionLayout = node.getAttribute("actionLayout", AUTO_URI);
+            RenderXmlAttribute actionLayout = node.getAttribute("actionLayout", AUTO_URI);
             return actionLayout != null ? actionLayout.getValue() : null;
           }
           else if (UNSUPPORTED_ATTRIBUTES.contains(localName)) {
@@ -57,7 +55,7 @@ class MenuPsiPullParser extends LayoutPsiPullParser.AttributeFilteredLayoutParse
       }
 
       @Nullable
-      private String getShowAsActionValue(@NotNull XmlTag node) {
+      private String getShowAsActionValue(@NotNull RenderXmlTag node) {
         // Search for the attribute in the android and tools namespace.
         if (node.getAttribute(ATTR_SHOW_AS_ACTION, ANDROID_URI) != null || node.getAttribute(ATTR_SHOW_AS_ACTION, TOOLS_URI) != null) {
           // Return null to indicate that we don't want to filter this attribute.
@@ -65,7 +63,7 @@ class MenuPsiPullParser extends LayoutPsiPullParser.AttributeFilteredLayoutParse
         }
         // For appcompat, the attribute may be present in the app's namespace.
         // Try with res-auto namespace.
-        XmlAttribute attr = node.getAttribute(ATTR_SHOW_AS_ACTION, AUTO_URI);
+        RenderXmlAttribute attr = node.getAttribute(ATTR_SHOW_AS_ACTION, AUTO_URI);
         if (attr != null) {
           return attr.getValue();
         }

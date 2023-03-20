@@ -20,7 +20,6 @@ import com.android.resources.Density;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
@@ -60,12 +59,12 @@ class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
    * attribute value. Can be null, which is the case when we don't want to perform any
    * <b>individual</b> node exploding.
    */
-  private final Set<XmlTag> myExplodeNodes;
+  private final Set<RenderXmlTag> myExplodeNodes;
 
   /**
    * Use the {@link LayoutPsiPullParser#create(XmlFile, IRenderLogger, Set, Density, ResourceRepositoryManager)} factory instead.
    */
-  PaddingLayoutPsiPullParser(@NotNull XmlFile file, @NotNull IRenderLogger logger, @NotNull Set<XmlTag> explodeNodes,
+  PaddingLayoutPsiPullParser(@NotNull XmlFile file, @NotNull IRenderLogger logger, @NotNull Set<RenderXmlTag> explodeNodes,
                              @NotNull Density density, @Nullable ResourceRepositoryManager resourceRepositoryManager) {
     super(file, logger, true, resourceRepositoryManager);
     myExplodeNodes = explodeNodes;

@@ -19,6 +19,7 @@ package com.android.tools.idea.common.model;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
 
+import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
@@ -298,8 +299,8 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
 
   private static void gatherTagsAndSnapshots(@NotNull NlModel.TagSnapshotTreeNode node, @NotNull Map<XmlTag, TagSnapshot> map) {
     TagSnapshot snapshot = node.getTagSnapshot();
-    if (snapshot != null) {
-      map.put(snapshot.tag, snapshot);
+    if (snapshot != null && snapshot.tag instanceof PsiXmlTag xmlTag) {
+      map.put(xmlTag.getPsiXmlTag(), snapshot);
     }
 
     for (NlModel.TagSnapshotTreeNode child : node.getChildren()) {
@@ -357,13 +358,14 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
     if (snapshot != null) {
       component = data.mySnapshotToComponent.get(snapshot);
       if (component == null) {
-        component = data.myTagToComponentMap.get(snapshot.tag);
+        PsiXmlTag psiXmlTag = (PsiXmlTag)snapshot.tag;
+        component = data.myTagToComponentMap.get(psiXmlTag != null ? psiXmlTag.getPsiXmlTag() : null);
       }
 
       if (component != null) {
         component.setSnapshot(snapshot);
         assert snapshot.tag != null;
-        component.setTag(snapshot.tag);
+        component.setTag(((PsiXmlTag)snapshot.tag).getPsiXmlTag());
       }
     }
     for (NlModel.TagSnapshotTreeNode child : node.getChildren()) {

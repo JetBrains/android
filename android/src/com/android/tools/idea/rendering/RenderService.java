@@ -32,6 +32,7 @@ import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
+import com.android.tools.idea.rendering.parsers.RenderXmlTag;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -39,7 +40,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.Collection;
@@ -231,13 +231,13 @@ final public class RenderService implements Disposable {
   }
 
   /**
-   * Returns the {@link XmlTag} associated with a {@link ViewInfo}, if any
+   * Returns the {@link RenderXmlTag} associated with a {@link ViewInfo}, if any
    *
    * @param view the view to check
    * @return the corresponding tag, if any
    */
   @Nullable
-  public static XmlTag getXmlTag(@NotNull ViewInfo view) {
+  public static RenderXmlTag getXmlTag(@NotNull ViewInfo view) {
     Object cookie = view.getCookie();
     if (cookie != null) {
       if (cookie instanceof TagSnapshot) {
@@ -251,8 +251,8 @@ final public class RenderService implements Disposable {
           return snapshot.tag;
         }
       }
-      if (cookie instanceof XmlTag) {
-        return (XmlTag)cookie;
+      if (cookie instanceof RenderXmlTag) {
+        return (RenderXmlTag)cookie;
       }
     }
 
