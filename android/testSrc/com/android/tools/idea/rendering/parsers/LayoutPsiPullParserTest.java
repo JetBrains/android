@@ -278,11 +278,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     when(emptyFile.getProject()).thenReturn(getProject());
     RenderLogger logger = RenderLogger.NOP_RENDER_LOGGER;
     assertEmptyParser(LayoutPsiPullParser.create(emptyFile, logger, StudioResourceRepositoryManager.getInstance(myModule)));
-    XmlTag emptyTag = mock(XmlTag.class);
     assertEmptyParser(new LayoutPsiPullParser(mock(XmlTag.class), logger, true,
                                               null, StudioResourceRepositoryManager.getInstance(myModule)));
-
-    when(emptyTag.isValid()).thenReturn(true);
     assertEmptyParser(new LayoutPsiPullParser(mock(XmlTag.class), logger, true,
                                               null,  StudioResourceRepositoryManager.getInstance(myModule)));
   }
@@ -924,7 +921,7 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
           throw new AssertionError("Unexpected type");
       }
 
-      PsiElement element = null;
+      XmlTag element = null;
       if (expected == START_TAG) {
         assertNotNull(parser.getViewCookie());
         assertTrue(parser.getViewCookie() instanceof TagSnapshot);
@@ -958,9 +955,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
         // pulling out the state correctly to do it
         //assertEquals(referenceParser.isEmptyElementTag(), parser.isEmptyElementTag());
 
-        if (element instanceof XmlTag) {
-          XmlTag tag = (XmlTag)element;
-          for (XmlAttribute attribute : tag.getAttributes()) {
+        if (element != null) {
+          for (XmlAttribute attribute : element.getAttributes()) {
             String namespace = attribute.getNamespace();
             String name = attribute.getLocalName();
             if (namespace.isEmpty()) {
