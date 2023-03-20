@@ -19,7 +19,13 @@ import com.android.tools.adtui.ImageUtils
 import java.awt.Dimension
 import java.awt.image.BufferedImage
 
-class ScreenshotImage(val image: BufferedImage, val screenshotRotationQuadrants: Int, private val displayInfo: String, val isTv: Boolean) {
+class ScreenshotImage(
+  val image: BufferedImage,
+  val screenshotRotationQuadrants: Int,
+  private val displayInfo: String = "",
+  val isTv: Boolean = false
+) {
+
   val width
     get() = image.width
 

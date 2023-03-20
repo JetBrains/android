@@ -248,10 +248,10 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       hideComponent(myDecorationComboBox);
     }
     else {
-      // Clipping is only available for round device screenshots.
-      boolean canClipDeviceMask = screenshotImage.isRoundDisplay();
       DefaultComboBoxModel<DecorationOption> decorationOptions = new DefaultComboBoxModel<>();
       decorationOptions.addElement(DecorationOption.RECTANGULAR);
+      // Clipping is available when the postprocessor supports it and for round devices.
+      boolean canClipDeviceMask = screenshotPostprocessor.getCanClipToDisplayShape() || screenshotImage.isRoundDisplay();
       if (canClipDeviceMask) {
         decorationOptions.addElement(DecorationOption.DISPLAY_SHAPE_CLIP);
       }
@@ -265,9 +265,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
         myDecorationComboBox.setSelectedIndex(defaultFramingOption + frameOptionStartIndex); // Select the default framing option.
       }
       else {
-        // DEVICE_SHAPED or RECTANGULAR (if DEVICE_SHAPED is not available).
-        myDecorationComboBox.setSelectedItem(
-          canClipDeviceMask ? DecorationOption.DISPLAY_SHAPE_CLIP : DecorationOption.RECTANGULAR);
+        // DISPLAY_SHAPE_CLIP or RECTANGULAR, if DISPLAY_SHAPE_CLIP is not available.
+        myDecorationComboBox.setSelectedItem(canClipDeviceMask ? DecorationOption.DISPLAY_SHAPE_CLIP : DecorationOption.RECTANGULAR);
       }
 
       ActionListener decorationListener = event -> {
@@ -524,7 +523,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       pngWriter.dispose();
     }
     catch (IOException e) {
-      Files.delete(outFile);
+      Files.deleteIfExists(outFile);
     }
   }
 

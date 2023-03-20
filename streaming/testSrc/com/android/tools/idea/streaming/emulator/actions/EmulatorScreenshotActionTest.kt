@@ -23,10 +23,10 @@ import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.findModelessDialog
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.ddms.screenshot.ScreenshotViewer
 import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
+import com.android.tools.idea.ui.screenshot.ScreenshotViewer
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
