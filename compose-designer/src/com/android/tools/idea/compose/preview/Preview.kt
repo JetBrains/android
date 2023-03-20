@@ -36,12 +36,13 @@ import com.android.tools.idea.compose.preview.util.previewElementFlowForFile
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.concurrency.SyntaxErrorUpdate
 import com.android.tools.idea.concurrency.UniqueTaskCoroutineLauncher
 import com.android.tools.idea.concurrency.conflateLatest
-import com.android.tools.idea.concurrency.disposableCallbackFlow
 import com.android.tools.idea.concurrency.launchWithProgress
 import com.android.tools.idea.concurrency.psiFileChangeFlow
 import com.android.tools.idea.concurrency.smartModeFlow
+import com.android.tools.idea.concurrency.syntaxErrorFlow
 import com.android.tools.idea.concurrency.wrapCompletableDeferredCollection
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
@@ -95,8 +96,6 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.util.UserDataHolderEx
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.problems.ProblemListener
 import com.intellij.problems.WolfTheProblemSolver
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
@@ -127,6 +126,7 @@ import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
@@ -918,41 +918,26 @@ class ComposePreviewRepresentation(
                 // more responsive to typing.
                 if (FastPreviewManager.getInstance(project).isAvailable) 250L else 1000L
               },
-            disposableCallbackFlow<Unit>(
-              "SyntaxErrorFlow",
-              log,
-              this@ComposePreviewRepresentation
-            ) {
-              project.messageBus
-                .connect(disposable)
-                .subscribe(
-                  ProblemListener.TOPIC,
-                  object : ProblemListener {
-                    override fun problemsDisappeared(file: VirtualFile) {
-                      // We listen for problems disappearing so we know when we need to re-trigger a
-                      // Fast Preview compile.
-                      // We can safely ignore this events if:
-                      //  - No files are out of date or it's not a relevant file
-                      //  - Fast Preview is not active, we do not need to detect files having
-                      // problems removed.
-                      if (
-                        psiCodeFileChangeDetectorService.outOfDateFiles.isEmpty() ||
-                          !FastPreviewManager.getInstance(project).isAvailable
-                      )
-                        return
-
-                      // We only care about this in Kotlin files when they are out of date.
-                      val relevantFile =
-                        psiCodeFileChangeDetectorService.outOfDateKtFiles
-                          .map { it.virtualFile }
-                          .any { it == file }
-                      if (!relevantFile) return
-
-                      trySend(Unit)
-                    }
-                  }
-                )
-            }
+            syntaxErrorFlow(project, this@ComposePreviewRepresentation, log, null)
+              // Detect when problems disappear
+              .filter { it is SyntaxErrorUpdate.Disappeared }
+              .map { it.file }
+              // We listen for problems disappearing so we know when we need to re-trigger a
+              // Fast Preview compile.
+              // We can safely ignore this events if:
+              //  - No files are out of date or it's not a relevant file
+              //  - Fast Preview is not active, we do not need to detect files having
+              // problems removed.
+              .filter {
+                FastPreviewManager.getInstance(project).isAvailable &&
+                  psiCodeFileChangeDetectorService.outOfDateFiles.isNotEmpty()
+              }
+              .filter { file ->
+                // We only care about this in Kotlin files when they are out of date.
+                psiCodeFileChangeDetectorService.outOfDateKtFiles
+                  .map { it.virtualFile }
+                  .any { it == file }
+              }
           )
           .conflate()
           .collect {
