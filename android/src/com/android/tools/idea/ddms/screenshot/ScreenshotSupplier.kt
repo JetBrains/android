@@ -32,9 +32,7 @@ package com.android.tools.idea.ddms.screenshot
 
 import com.android.annotations.concurrency.Slow
 
-/**
- * Used in conjunction with [ScreenshotViewer].
- */
+@Deprecated(message = "Use com.android.tools.idea.ui.screenshot.ScreenshotSupplier")
 interface ScreenshotSupplier {
   /**
    * Captures and returns a new screenshot. Throws a [RuntimeException] in case of an error.

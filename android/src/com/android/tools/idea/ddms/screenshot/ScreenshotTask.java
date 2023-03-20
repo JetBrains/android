@@ -23,6 +23,10 @@ import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * @deprecated Use com.android.tools.idea.ui.screenshot.ScreenshotTask
+ */
+@Deprecated
 public class ScreenshotTask extends Task.Modal {
   private final @NotNull ScreenshotSupplier myScreenshotSupplier;
 

@@ -33,9 +33,7 @@ package com.android.tools.idea.ddms.screenshot
 import com.android.tools.adtui.ImageUtils
 import java.awt.image.BufferedImage
 
-/**
- * A screenshot image with the screen orientation.
- */
+@Deprecated(message = "Use com.android.tools.idea.ui.screenshot.ScreenshotImage")
 open class ScreenshotImage(val image: BufferedImage, val screenRotationQuadrants: Int) {
   val width
     get() = image.width

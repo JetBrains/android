@@ -25,9 +25,7 @@ import org.jetbrains.android.util.AndroidBundle
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-/**
- * A [ScreenshotSupplier] based on [IDevice].
- */
+@Deprecated(message = "Use com.android.tools.idea.ui.screenshot.AdbScreenCapScreenshotSupplier")
 class DeviceScreenshotSupplier(private val device: IDevice) : ScreenshotSupplier {
   @Slow
   override fun captureScreenshot(): ScreenshotImage {
