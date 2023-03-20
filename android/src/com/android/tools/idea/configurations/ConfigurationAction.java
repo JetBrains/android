@@ -26,14 +26,12 @@ import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.fileEditor.ex.FileEditorManagerEx;
 import com.intellij.openapi.fileEditor.ex.FileEditorWithProvider;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
 import javax.swing.Icon;
-import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -86,7 +84,6 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
       boolean affectsFileSelection = (myFlags & MASK_FILE_ATTRS) != 0;
       // Get the resources of the file's project.
       if (affectsFileSelection) {
-        Module module = myRenderContext.getConfiguration().getModule();
         VirtualFile file = myRenderContext.getConfiguration().getFile();
         if (file != null) {
           ConfigurationMatcher matcher = new ConfigurationMatcher(clone, file);
@@ -94,9 +91,7 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
           if (!matchingFiles.isEmpty() && !matchingFiles.contains(file)) {
             // Switch files, and leave this configuration alone.
             pickedBetterMatch(matchingFiles.get(0), file);
-            AndroidFacet facet = AndroidFacet.getInstance(module);
-            assert facet != null;
-            ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(module);
+            ConfigurationManager configurationManager = configuration.getConfigurationManager();
             updateConfiguration(configurationManager.getConfiguration(matchingFiles.get(0)), true /*commit*/);
             return;
           }
