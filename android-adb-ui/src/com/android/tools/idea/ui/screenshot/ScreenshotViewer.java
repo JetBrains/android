@@ -51,7 +51,6 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileWrapper;
 import com.intellij.openapi.wm.IdeFocusManager;
-import com.intellij.ui.JBColor;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -371,7 +370,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     if (myScreenshotPostprocessor != null) {
       framingOption = ((DecorationOption)Objects.requireNonNull(myDecorationComboBox.getSelectedItem())).getFramingOption();
       if (myDecorationComboBox.getSelectedItem().equals(DecorationOption.RECTANGULAR)) {
-        backgroundColor = JBColor.BLACK;
+        //noinspection UseJBColor - we want the actual color Black, JBColor will be grey in dark modes.
+        backgroundColor = Color.BLACK;
       }
     }
 

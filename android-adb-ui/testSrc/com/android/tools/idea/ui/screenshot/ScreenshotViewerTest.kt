@@ -22,6 +22,8 @@ import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.findModelessDialog
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.ui.laf.darcula.DarculaLaf
+import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.testFramework.EdtRule
@@ -39,6 +41,7 @@ import java.awt.Color
 import java.awt.image.BufferedImage
 import java.util.EnumSet
 import javax.swing.JComboBox
+import javax.swing.UIManager
 
 private val DISPLAY_INFO_PHONE =
   "DisplayDeviceInfo{\"Built-in Screen\": uniqueId=\"local:4619827259835644672\", 1080 x 2400, modeId 1, defaultModeId 1," +
@@ -135,6 +138,25 @@ class ScreenshotViewerTest {
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+
+    clipComboBox.selectFirstMatch("Rectangular")
+    EDT.dispatchAllInvocationEvents()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
+    assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
+    assertThat(processedImage.getRGB(5, 5)).isEqualTo(Color.BLACK.rgb)
+    assertThat(processedImage.getRGB(screenshotImage.width - 5, screenshotImage.height - 5)).isEqualTo(Color.BLACK.rgb)
+  }
+
+  @Test
+  fun testClipRoundScreenshotWithBackgroundColorInDarkMode() {
+    runInEdt {
+      UIManager.setLookAndFeel(DarculaLaf())
+    }
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_WATCH, isTv = false)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val ui = FakeUi(viewer.rootPane)
     val clipComboBox = ui.getComponent<JComboBox<*>>()
 
     clipComboBox.selectFirstMatch("Rectangular")
