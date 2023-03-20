@@ -177,18 +177,18 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     fillOval(center.x - radius, center.y - radius, radius * 2, radius * 2)
   }
 
-  fun showLongRunningOperationIndicator(text: String) {
+  internal fun showLongRunningOperationIndicator(text: String) {
     findLoadingPanel()?.apply {
       setLoadingText(text)
       startLoading()
     }
   }
 
-  fun hideLongRunningOperationIndicator() {
+  internal fun hideLongRunningOperationIndicator() {
     findLoadingPanel()?.stopLoading()
   }
 
-  fun hideLongRunningOperationIndicatorInstantly() {
+  internal fun hideLongRunningOperationIndicatorInstantly() {
     findLoadingPanel()?.stopLoadingInstantly()
   }
 
@@ -305,7 +305,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   protected inner class Reconnector(val reconnectLabel: String, val progressMessage: String, val reconnect: suspend () -> Unit) {
 
     /** Starts the reconnection attempt. */
-    fun start() {
+    internal fun start() {
       hideDisconnectedStateMessage()
       showLongRunningOperationIndicator(progressMessage)
       AndroidCoroutineScope(this@AbstractDisplayView).launch {
