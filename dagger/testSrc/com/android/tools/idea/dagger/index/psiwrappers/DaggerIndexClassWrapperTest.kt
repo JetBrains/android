@@ -136,6 +136,28 @@ class DaggerIndexClassWrapperTest {
   }
 
   @Test
+  fun kotlinClassCompanionFqName() {
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+        package com.example
+
+        class Foo {
+          companion object {}
+        }
+        """
+          .trimIndent()
+      ) as KtFile
+
+    val element = myFixture.moveCaret("companion obj|ect").parentOfType<KtObjectDeclaration>()!!
+    val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
+
+    assertThat(wrapper.getFqName()).isEqualTo("com.example.Foo.Companion")
+  }
+
+  @Test
   fun kotlinClassAnnotationOnSelfOrParent() {
     val psiFile =
       myFixture.configureByText(

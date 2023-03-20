@@ -70,15 +70,15 @@ class ProvidesMethodDaggerConceptTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import dagger.Module
+        import dagger.Module
 
-      @Module
-      interface HeaterModule {
-        fun provideHeater(electricHeater: ElectricHeater) : Heater {}
-      }
-      """
+        @Module
+        interface HeaterModule {
+          fun provideHeater(electricHeater: ElectricHeater) : Heater {}
+        }
+        """
           .trimIndent()
       ) as KtFile
 
@@ -95,15 +95,15 @@ class ProvidesMethodDaggerConceptTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import dagger.Provides
+        import dagger.Provides
 
-      interface NotAModule {
-        @Provides
-        fun provideHeater(electricHeater: ElectricHeater) : Heater {}
-      }
-      """
+        interface NotAModule {
+          @Provides
+          fun provideHeater(electricHeater: ElectricHeater) : Heater {}
+        }
+        """
           .trimIndent()
       ) as KtFile
 
@@ -120,13 +120,13 @@ class ProvidesMethodDaggerConceptTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import dagger.Provides
+        import dagger.Provides
 
-      @Provides
-      fun provideHeater(electricHeater: ElectricHeater) : Heater {}
-      """
+        @Provides
+        fun provideHeater(electricHeater: ElectricHeater) : Heater {}
+        """
           .trimIndent()
       ) as KtFile
 
@@ -143,17 +143,17 @@ class ProvidesMethodDaggerConceptTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import dagger.Module
-      import dagger.Provides
+        import dagger.Module
+        import dagger.Provides
 
-      @Module
-      interface HeaterModule {
-        @Provides
-        fun provideHeater(electricHeater: ElectricHeater, electricHeater2: ElectricHeater) : Heater {}
-      }
-      """
+        @Module
+        interface HeaterModule {
+          @Provides
+          fun provideHeater(electricHeater: ElectricHeater, electricHeater2: ElectricHeater) : Heater {}
+        }
+        """
           .trimIndent()
       ) as KtFile
 
@@ -181,25 +181,64 @@ class ProvidesMethodDaggerConceptTest {
   }
 
   @Test
+  fun indexer_bindsMethod() {
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+        package com.example
+
+        import dagger.Binds
+        import dagger.Module
+
+        @Module
+        abstract class HeaterModule {
+          @Binds
+          abstract fun bindHeater(electricHeater: ElectricHeater) : Heater
+        }
+        """
+          .trimIndent()
+      ) as KtFile
+
+    val element = myFixture.moveCaret("bind|Heater").parentOfType<KtFunction>()!!
+    val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
+
+    assertThat(entries)
+      .containsExactly(
+        "Heater",
+        setOf(ProvidesMethodIndexValue("com.example.HeaterModule", "bindHeater")),
+        "ElectricHeater",
+        setOf(
+          ProvidesMethodParameterIndexValue(
+            "com.example.HeaterModule",
+            "bindHeater",
+            "electricHeater"
+          ),
+        ),
+      )
+  }
+
+  @Test
   fun indexer_providesMethodOnCompanion() {
     val psiFile =
       myFixture.configureByText(
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import dagger.Module
-      import dagger.Provides
+        import dagger.Module
+        import dagger.Provides
 
-      @Module
-      interface HeaterModule {
-        companion object {
-          @Provides
-          fun provideHeater(electricHeater: ElectricHeater, electricHeater2: ElectricHeater) : Heater {}
+        @Module
+        interface HeaterModule {
+          companion object {
+            @Provides
+            fun provideHeater(electricHeater: ElectricHeater, electricHeater2: ElectricHeater) : Heater {}
+          }
         }
-      }
-      """
+        """
           .trimIndent()
       ) as KtFile
 
@@ -233,17 +272,17 @@ class ProvidesMethodDaggerConceptTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import dagger.Module
-      import com.other.Provides
+        import dagger.Module
+        import com.other.Provides
 
-      @Module
-      interface HeaterModule {
-        @Provides
-        fun provideHeater(electricHeater: ElectricHeater, electricHeater2: ElectricHeater) : Heater {}
-      }
-      """
+        @Module
+        interface HeaterModule {
+          @Provides
+          fun provideHeater(electricHeater: ElectricHeater, electricHeater2: ElectricHeater) : Heater {}
+        }
+        """
           .trimIndent()
       ) as KtFile
 
@@ -260,17 +299,17 @@ class ProvidesMethodDaggerConceptTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import com.other.Module
-      import dagger.Provides
+        import com.other.Module
+        import dagger.Provides
 
-      @Module
-      interface HeaterModule {
-        @Provides
-        fun provideHeater(electricHeater: ElectricHeater, electricHeater2: ElectricHeater) : Heater {}
-      }
-      """
+        @Module
+        interface HeaterModule {
+          @Provides
+          fun provideHeater(electricHeater: ElectricHeater, electricHeater2: ElectricHeater) : Heater {}
+        }
+        """
           .trimIndent()
       ) as KtFile
 
@@ -296,6 +335,7 @@ class ProvidesMethodDaggerConceptTest {
       """
       package com.example
 
+      import dagger.Binds
       import dagger.Module
       import dagger.Provides
 
@@ -308,6 +348,9 @@ class ProvidesMethodDaggerConceptTest {
         fun provideHeater(electricHeater: ElectricHeater) : Heater {}
 
         fun dontProvideHeater(electricHeater: ElectricHeater) : Heater {}
+
+        @Binds
+        fun bindHeater(electricHeater: ElectricHeater) : Heater {}
       }
       """
         .trimIndent()
@@ -315,13 +358,17 @@ class ProvidesMethodDaggerConceptTest {
 
     val indexValue1 = ProvidesMethodIndexValue("com.example.HeaterModule", "provideHeater")
     val indexValue2 = ProvidesMethodIndexValue("com.example.HeaterModule", "dontProvideHeater")
+    val indexValue3 = ProvidesMethodIndexValue("com.example.HeaterModule", "bindHeater")
 
     val provideHeaterFunction =
       myFixture.moveCaret("fun provideHe|ater").parentOfType<KtFunction>()!!
+    val bindHeaterFunction = myFixture.moveCaret("fun bindHe|ater").parentOfType<KtFunction>()!!
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(provideHeaterFunction))
     assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue3.resolveToDaggerElements(myProject, myProject.projectScope()).single())
+      .isEqualTo(ProviderDaggerElement(bindHeaterFunction))
   }
 
   @Test
@@ -334,6 +381,7 @@ class ProvidesMethodDaggerConceptTest {
       """
       package com.example
 
+      import dagger.Binds
       import dagger.Module
       import dagger.Provides
 
@@ -347,6 +395,9 @@ class ProvidesMethodDaggerConceptTest {
           fun provideHeater(electricHeater: ElectricHeater) : Heater {}
 
           fun dontProvideHeater(electricHeater: ElectricHeater) : Heater {}
+
+          @Binds
+          fun bindHeater(electricHeater: ElectricHeater) : Heater {}
         }
       }
       """
@@ -357,13 +408,17 @@ class ProvidesMethodDaggerConceptTest {
       ProvidesMethodIndexValue("com.example.HeaterModule.Companion", "provideHeater")
     val indexValue2 =
       ProvidesMethodIndexValue("com.example.HeaterModule.Companion", "dontProvideHeater")
+    val indexValue3 = ProvidesMethodIndexValue("com.example.HeaterModule.Companion", "bindHeater")
 
     val provideHeaterFunction =
       myFixture.moveCaret("fun provideHe|ater").parentOfType<KtFunction>()!!
+    val bindHeaterFunction = myFixture.moveCaret("fun bindHe|ater").parentOfType<KtFunction>()!!
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(provideHeaterFunction))
     assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue3.resolveToDaggerElements(myProject, myProject.projectScope()).single())
+      .isEqualTo(ProviderDaggerElement(bindHeaterFunction))
   }
 
   @Test
@@ -376,6 +431,7 @@ class ProvidesMethodDaggerConceptTest {
       """
       package com.example;
 
+      import dagger.Binds;
       import dagger.Module;
       import dagger.Provides;
 
@@ -388,6 +444,9 @@ class ProvidesMethodDaggerConceptTest {
         Heater provideHeater(ElectricHeater electricHeater) {}
 
         Heater dontProvideHeater(ElectricHeater electricHeater) {}
+
+        @Binds
+        Heater bindHeater(ElectricHeater electricHeater) {}
       }
       """
         .trimIndent()
@@ -395,13 +454,17 @@ class ProvidesMethodDaggerConceptTest {
 
     val indexValue1 = ProvidesMethodIndexValue("com.example.HeaterModule", "provideHeater")
     val indexValue2 = ProvidesMethodIndexValue("com.example.HeaterModule", "dontProvideHeater")
+    val indexValue3 = ProvidesMethodIndexValue("com.example.HeaterModule", "bindHeater")
 
     val provideHeaterFunction =
       myFixture.moveCaret("Heater provideHe|ater").parentOfType<PsiMethod>()!!
+    val bindHeaterFunction = myFixture.moveCaret("Heater bindHe|ater").parentOfType<PsiMethod>()!!
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(provideHeaterFunction))
     assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue3.resolveToDaggerElements(myProject, myProject.projectScope()).single())
+      .isEqualTo(ProviderDaggerElement(bindHeaterFunction))
   }
 
   @Test
@@ -420,6 +483,7 @@ class ProvidesMethodDaggerConceptTest {
       """
       package com.example
 
+      import dagger.Binds
       import dagger.Module
       import dagger.Provides
 
@@ -432,6 +496,9 @@ class ProvidesMethodDaggerConceptTest {
         fun provideHeater(electricHeater: ElectricHeater) : Heater {}
 
         fun dontProvideHeater(electricHeater: ElectricHeater) : Heater {}
+
+        @Binds
+        fun bindHeater(electricHeater: ElectricHeater) : Heater {}
       }
       """
         .trimIndent()
@@ -449,15 +516,24 @@ class ProvidesMethodDaggerConceptTest {
         "dontProvideHeater",
         "electricHeater"
       )
+    val indexValue3 =
+      ProvidesMethodParameterIndexValue("com.example.HeaterModule", "bindHeater", "electricHeater")
 
-    val electricHeaterParameter =
+    val electricHeaterProvidesParameter =
       myFixture
         .moveCaret("provideHeater(elect|ricHeater: ElectricHeater")
         .parentOfType<KtParameter>()!!
 
+    val electricHeaterBindsParameter =
+      myFixture
+        .moveCaret("bindHeater(elect|ricHeater: ElectricHeater")
+        .parentOfType<KtParameter>()!!
+
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
-      .isEqualTo(ConsumerDaggerElement(electricHeaterParameter))
+      .isEqualTo(ConsumerDaggerElement(electricHeaterProvidesParameter))
     assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue3.resolveToDaggerElements(myProject, myProject.projectScope()).single())
+      .isEqualTo(ConsumerDaggerElement(electricHeaterBindsParameter))
   }
 
   @Test
@@ -470,6 +546,7 @@ class ProvidesMethodDaggerConceptTest {
       """
       package com.example
 
+      import dagger.Binds
       import dagger.Module
       import dagger.Provides
 
@@ -483,6 +560,9 @@ class ProvidesMethodDaggerConceptTest {
           fun provideHeater(electricHeater: ElectricHeater) : Heater {}
 
           fun dontProvideHeater(electricHeater: ElectricHeater) : Heater {}
+
+          @Binds
+          fun bindHeater(electricHeater: ElectricHeater) : Heater {}
         }
       }
       """
@@ -501,15 +581,28 @@ class ProvidesMethodDaggerConceptTest {
         "dontProvideHeater",
         "electricHeater"
       )
+    val indexValue3 =
+      ProvidesMethodParameterIndexValue(
+        "com.example.HeaterModule.Companion",
+        "bindHeater",
+        "electricHeater"
+      )
 
-    val electricHeaterParameter =
+    val electricHeaterProvidesParameter =
       myFixture
         .moveCaret("provideHeater(elect|ricHeater: ElectricHeater")
         .parentOfType<KtParameter>()!!
 
+    val electricHeaterBindsParameter =
+      myFixture
+        .moveCaret("bindHeater(elect|ricHeater: ElectricHeater")
+        .parentOfType<KtParameter>()!!
+
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
-      .isEqualTo(ConsumerDaggerElement(electricHeaterParameter))
+      .isEqualTo(ConsumerDaggerElement(electricHeaterProvidesParameter))
     assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue3.resolveToDaggerElements(myProject, myProject.projectScope()).single())
+      .isEqualTo(ConsumerDaggerElement(electricHeaterBindsParameter))
   }
 
   @Test
@@ -522,6 +615,7 @@ class ProvidesMethodDaggerConceptTest {
       """
       package com.example;
 
+      import dagger.Binds;
       import dagger.Module;
       import dagger.Provides;
 
@@ -534,6 +628,9 @@ class ProvidesMethodDaggerConceptTest {
         Heater provideHeater(ElectricHeater electricHeater) {}
 
         Heater dontProvideHeater(ElectricHeater electricHeater) {}
+
+        @Binds
+        Heater bindHeater(ElectricHeater electricHeater) {}
       }
       """
         .trimIndent()
@@ -551,14 +648,23 @@ class ProvidesMethodDaggerConceptTest {
         "dontProvideHeater",
         "electricHeater"
       )
+    val indexValue3 =
+      ProvidesMethodParameterIndexValue("com.example.HeaterModule", "bindHeater", "electricHeater")
 
-    val electricHeaterParameter =
+    val electricHeaterProvidesParameter =
       myFixture
         .moveCaret("provideHeater(ElectricHeater elec|tricHeater")
         .parentOfType<PsiParameter>()!!
 
+    val electricHeaterBindsParameter =
+      myFixture
+        .moveCaret("bindHeater(ElectricHeater elec|tricHeater")
+        .parentOfType<PsiParameter>()!!
+
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
-      .isEqualTo(ConsumerDaggerElement(electricHeaterParameter))
+      .isEqualTo(ConsumerDaggerElement(electricHeaterProvidesParameter))
     assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
+    assertThat(indexValue3.resolveToDaggerElements(myProject, myProject.projectScope()).single())
+      .isEqualTo(ConsumerDaggerElement(electricHeaterBindsParameter))
   }
 }
