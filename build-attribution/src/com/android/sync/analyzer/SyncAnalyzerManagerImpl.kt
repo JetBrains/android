@@ -57,7 +57,6 @@ class SyncAnalyzerManagerImpl(
     if (id == null) return
     val data = project.getService(SyncAnalyzerDataManager::class.java).getOrCreateDataForTask(id)
     project.setUpDownloadsInfoNodeOnBuildOutput(id, data.buildDisposable)
-    LongDownloadsNotifier(id, project, data.buildDisposable)
   }
 
   override fun onSyncFinished(id: ExternalSystemTaskId?) {
@@ -68,9 +67,11 @@ class SyncAnalyzerManagerImpl(
   private fun Project.setUpDownloadsInfoNodeOnBuildOutput(id: ExternalSystemTaskId, buildDisposable: CheckedDisposable) {
     if (!StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()) return
     val gradleVersion = GradleVersions.getInstance().getGradleVersion(this)
-    val rootDownloadEvent = DownloadsInfoPresentableEvent(id, buildDisposable, System.currentTimeMillis(), gradleVersion)
+    val buildStartTimestampMs = System.currentTimeMillis()
+    val rootDownloadEvent = DownloadsInfoPresentableEvent(id, buildDisposable, buildStartTimestampMs, gradleVersion)
     val viewManager = getService(SyncViewManager::class.java)
     viewManager.onEvent(id, rootDownloadEvent)
+    LongDownloadsNotifier(id, project, buildDisposable, buildStartTimestampMs)
   }
 }
 
