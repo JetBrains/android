@@ -13,5 +13,6 @@
     <orderEntry type="module" module-name="android.sdktools.flags" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
   </component>
 </module>
