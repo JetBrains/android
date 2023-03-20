@@ -1698,5 +1698,15 @@ public final class StudioFlags {
   );
   // endregion NEW_SEND_FEEDBACK_DIALOG
 
+  // region Play Compatible Wear Screenshots
+  private static final FlagGroup
+    PLAY_COMPATIBLE_WEAR_SCREENSHOTS = new FlagGroup(FLAGS, "play.compatible.wear.screenshots", "Play Compatible Wear Screenshots");
+  public static final Flag<Boolean> PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED = Flag.create(
+    PLAY_COMPATIBLE_WEAR_SCREENSHOTS, "play.compatible.wear.screenshots.enable", "Enable Play Compatible Wear Screenshots",
+    "Enable a play compatible screenshot option for wear devices.",
+    false
+  );
+  // endregion
+
   private StudioFlags() { }
 }
