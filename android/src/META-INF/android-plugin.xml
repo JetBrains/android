@@ -276,15 +276,12 @@
     <applicationService serviceInterface="com.android.tools.idea.res.ResourceFolderRepositoryFileCache"
                         serviceImplementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl"/>
     <applicationService serviceImplementation="com.android.tools.res.FrameworkResourceRepositoryManager"/>
-    <applicationService serviceImplementation="com.android.tools.idea.logcat.AndroidLogcatGlobalPreferences"/>
     <postStartupActivity implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$MaintenanceActivity"/>
     <cachesInvalidator implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$CacheInvalidator"/>
     <cachesInvalidator implementation="com.android.tools.idea.gradle.project.metrics.CacheInvalidatorMetricCollector"/>
     <postStartupActivity implementation="com.android.tools.idea.res.ResourceFolderRepositoryFileCacheImpl$PopulateCachesActivity"/>
     <lang.foldingBuilder language="JAVA" implementationClass="com.android.tools.idea.folding.ResourceFoldingBuilder" />
     <codeFoldingOptionsProvider instance="com.android.tools.idea.folding.AndroidCodeFoldingOptionsProvider"/>
-    <console.folding implementation="com.android.tools.idea.logcat.ExceptionFolding"/>
-    <consoleActionsPostProcessor implementation="com.android.tools.idea.logcat.LogcatConsoleActionsPostProcessor" />
 
     <actionConfigurationCustomizer implementation="org.jetbrains.android.AndroidPlugin$ActionCustomizer"/>
     <applicationService serviceImplementation="org.jetbrains.android.AndroidPlugin" preload="true"/>
@@ -295,7 +292,6 @@
     <applicationService serviceImplementation="com.android.tools.idea.ui.GuiTestingService"/>
     <applicationService serviceImplementation="com.android.tools.idea.ui.designer.overlays.OverlayPersistentStateService"/>
     <applicationService serviceImplementation="com.android.tools.idea.flags.StudioFlagSettings"/>
-    <applicationService serviceImplementation="com.android.tools.idea.logcat.AndroidLogcatService" />
     <applicationService serviceImplementation="com.android.tools.idea.folding.AndroidFoldingSettings"/>
     <applicationService serviceImplementation="com.android.tools.idea.instantapp.InstantAppSdks" />
     <applicationService serviceImplementation="com.android.tools.idea.sdk.IdeSdks"/>
@@ -526,8 +522,6 @@
     <projectService serviceImplementation="com.android.tools.idea.run.DeploymentService" />
 
     <projectService serviceImplementation="com.android.tools.idea.run.profiler.CpuProfilerConfigsState" />
-    <projectService serviceImplementation="com.android.tools.idea.logcat.AndroidLogcatPreferences"/>
-    <projectService serviceImplementation="com.android.tools.idea.logcat.PersistentAndroidLogFilters"/>
     <projectService serviceInterface="com.android.tools.idea.configurations.ConfigurationStateManager"
                     serviceImplementation="com.android.tools.idea.configurations.StudioConfigurationStateManager"/>
 
@@ -656,9 +650,6 @@
     <spellchecker.support language="Shell Script" implementationClass="org.jetbrains.android.spellchecker.AndroidShellSpellcheckingStrategy" order="first"/>
     <deadCode implementation="org.jetbrains.android.inspections.AndroidComponentEntryPoint"/>
 
-    <xdebugger.configurableProvider implementation="com.android.tools.idea.logcat.output.LogcatOutputConfigurableProvider" />
-    <applicationService serviceImplementation="com.android.tools.idea.logcat.output.LogcatOutputSettings" />
-
     <virtualFileSystem key="android-dummy" implementationClass="com.android.tools.idea.editors.AndroidFakeFileSystem"/>
     <virtualFileSystem key="apk" implementationClass="com.android.tools.idea.apk.viewer.ApkFileSystem"/>
     <codeInsight.unresolvedReferenceQuickFixProvider
@@ -754,8 +745,6 @@
                     interface="com.android.tools.idea.run.editor.AndroidDebuggerInfoProvider"/>
     <extensionPoint qualifiedName="com.android.tools.idea.sendFeedbackDescriptionProvider"
                     interface="com.android.tools.idea.actions.SendFeedbackDescriptionProvider"/>
-    <extensionPoint qualifiedName="com.android.logcat.filterProvider"
-                    interface="com.android.tools.idea.logcat.LogcatFilterProvider"/>
     <extensionPoint qualifiedName="org.jetbrains.android.actions.newResourceCreationHandler"
                     interface="org.jetbrains.android.actions.NewResourceCreationHandler"/>
     <extensionPoint qualifiedName="com.android.run.androidLaunchTaskContributor"
