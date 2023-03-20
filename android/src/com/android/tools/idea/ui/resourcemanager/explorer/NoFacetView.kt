@@ -24,7 +24,11 @@ import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.VerticalFlowLayout
 import com.intellij.ui.ColorUtil
-import com.intellij.util.ui.*
+import com.intellij.util.ui.HTMLEditorKitBuilder
+import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.NamedColorUtil
+import com.intellij.util.ui.StartupUiUtil
+import com.intellij.util.ui.UIUtil
 import org.intellij.lang.annotations.Language
 import java.awt.Cursor
 import javax.swing.JEditorPane
@@ -70,7 +74,7 @@ class NoFacetView(val project: Project)
         it.styleSheet.addRule(" a { color: #$linkColor; } p { line-height: $EMPTY_TEXT_LINE_HEIGHT; }")
       }
       border = JBUI.Borders.empty(32)
-      font = StartupUiUtil.getLabelFont()
+      font = StartupUiUtil.labelFont
       cursor = Cursor.getDefaultCursor()
       text = "<html><center>$NO_FACET_TEXT<center></html>"
       isEditable = false

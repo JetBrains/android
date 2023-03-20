@@ -135,7 +135,7 @@ class FlagPropertyPanel(private val editorModel: FlagPropertyEditorModel,
   }
 
   private fun addLinks() {
-    val font = StartupUiUtil.getLabelFont()
+    val font = StartupUiUtil.labelFont
     val smallerFont = font.deriveFont(font.size2D * 0.9f)
     val selectAll = HyperlinkLabel("Select all")
     selectAll.font = smallerFont

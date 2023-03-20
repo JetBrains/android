@@ -103,8 +103,8 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     var enabledValue = true
     var deEmphasized = false
 
-    private val baseFontMetrics = getFontMetrics(StartupUiUtil.getLabelFont())
-    private val boldFontMetrics = getFontMetrics(deriveFont(StartupUiUtil.getLabelFont(), SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES))
+    private val baseFontMetrics = getFontMetrics(StartupUiUtil.labelFont)
+    private val boldFontMetrics = getFontMetrics(deriveFont(StartupUiUtil.labelFont, SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES))
     private val strikeout = SimpleTextAttributes.REGULAR_ATTRIBUTES.derive(STYLE_STRIKEOUT, null, null, null)
     private val boldStrikeout = SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES.derive(STYLE_STRIKEOUT, null, null, null)
 
@@ -112,7 +112,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     override fun shouldPaintBackground() = false
 
     init {
-      font = StartupUiUtil.getLabelFont()
+      font = StartupUiUtil.labelFont
       ipad = JBInsets.emptyInsets()
     }
 

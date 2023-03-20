@@ -229,7 +229,7 @@ object AdtUiUtils {
   @JvmStatic
   fun getActionKeyText(): String {
     if (SystemInfo.isMac) {
-      val labelFont = StartupUiUtil.getLabelFont()
+      val labelFont = StartupUiUtil.labelFont
       return if (labelFont != null && labelFont.canDisplayUpTo(MacKeymapUtil.COMMAND) == -1) MacKeymapUtil.COMMAND else "Cmd"
     }
     return "Ctrl"

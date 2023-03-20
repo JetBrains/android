@@ -19,7 +19,6 @@ import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.common.primaryPanelBackground
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.common.showViewContextMenu
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
@@ -293,7 +292,7 @@ class DeviceViewContentPanel(
       val bounds = Rectangle()
       hits.forEach { if (bounds.isEmpty) bounds.bounds = it.bounds.bounds else bounds.add(it.bounds.bounds) }
       if (!bounds.isEmpty) {
-        val font = StartupUiUtil.getLabelFont().deriveFont(getLabelFontSize(viewSettings.scaleFraction))
+        val font = StartupUiUtil.labelFont.deriveFont(getLabelFontSize(viewSettings.scaleFraction))
         val fontMetrics = getFontMetrics(font)
         val textWidth = fontMetrics.stringWidth(selection.unqualifiedName)
         val labelHeight = getDrawNodeLabelHeight(viewSettings.scaleFraction).toInt()

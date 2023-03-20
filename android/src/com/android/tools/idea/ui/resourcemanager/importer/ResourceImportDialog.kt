@@ -225,7 +225,7 @@ class ResourceImportDialog(
    */
   private inner class DesignAssetSetView(private var assetSet: ResourceAssetSet) : JPanel(BorderLayout(0, 0)) {
     val assetNameLabel = JBTextField(assetSet.name, 20).apply {
-      this.font = StartupUiUtil.getLabelFont().deriveFont(JBUI.scaleFontSize(14f))
+      this.font = StartupUiUtil.labelFont.deriveFont(JBUI.scaleFontSize(14f))
       document.addDocumentListener(object : DocumentAdapter() {
         override fun textChanged(e: DocumentEvent) {
           performRename(e.document.getText(0, document.length))

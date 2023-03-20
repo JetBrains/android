@@ -109,7 +109,7 @@ class InstallSummaryStep(
 
     // TODO(qumeric): change to HtmlBuilder/similar.
     val builder = StringBuilder("<html><head>")
-    builder.append(UIUtil.getCssFontDeclaration(StartupUiUtil.getLabelFont(), UIUtil.getLabelForeground(), null, null))
+    builder.append(UIUtil.getCssFontDeclaration(StartupUiUtil.labelFont, UIUtil.getLabelForeground(), null, null))
       .append("</head><body>")
     sections.filterNot(Section::isEmpty).forEach {
       builder.append(it.html)
