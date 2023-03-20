@@ -2008,6 +2008,8 @@ Android Studio Preview.app/Contents/plugins/android/lib/android-extensions-ide.j
 Android Studio Preview.app/Contents/plugins/android/lib/android-kotlin.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-profilers.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android-rt.jar
+Android Studio Preview.app/Contents/plugins/android/lib/android-project-system-gradle-models.jar
+Android Studio Preview.app/Contents/plugins/android/lib/android-gradle.jar
 Android Studio Preview.app/Contents/plugins/android/lib/android.jar
 Android Studio Preview.app/Contents/plugins/android/lib/animation-core-desktop-1.1.1.jar
 Android Studio Preview.app/Contents/plugins/android/lib/animation-desktop-1.1.1.jar

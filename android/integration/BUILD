@@ -16,6 +16,7 @@ iml_module(
         "//tools/adt/idea/as-driver:as-driver.utils[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/base/perf-logger:studio.perf-logger[module, test]",
     ],
 )
@@ -372,10 +373,10 @@ iml_test(
         "//conditions:default": [],
     }) + [
         ":helloworldapk",
-        "//prebuilts/studio/sdk:platforms/android-31",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
+        "//prebuilts/studio/sdk:platforms/android-31",
         "//tools/base/build-system:gradle-distrib-7.2",
         "@system_image_android-31_default_x86_64//:x86_64-android-31-images",
     ],
@@ -405,8 +406,8 @@ iml_test(
         ],
         "//conditions:default": [],
     }) + [
-        ":run_instrumented_test_project_deps",
         ":instrumenttestapp",
+        ":run_instrumented_test_project_deps",
         "//prebuilts/studio/sdk:build-tools/30.0.3",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",

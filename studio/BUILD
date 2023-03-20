@@ -114,6 +114,14 @@ studio_plugin(
         "android-rt.jar": [
             "//tools/adt/idea/rt:intellij.android.rt",
         ],
+        "android-project-system-gradle-models.jar": [
+            "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
+        ],
+        "android-gradle.jar": [
+            "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api",
+            "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-impl:intellij.android.gradle-tooling.impl",
+            "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync",
+        ],
         "android.jar": [
             "//tools/adt/idea/analytics:analytics",
             "//tools/base/flags:studio.android.sdktools.flags",
@@ -156,8 +164,6 @@ studio_plugin(
             "//tools/adt/idea/device-manager:intellij.android.device-manager",
             "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2",
             "//tools/adt/idea/streaming:intellij.android.streaming",
-            "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api",
-            "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-impl:intellij.android.gradle-tooling.impl",
             "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl",
             "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
             "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
@@ -174,10 +180,8 @@ studio_plugin(
             "//tools/adt/idea/observable:intellij.android.observable",
             "//tools/adt/idea/android-plugin:intellij.android.plugin",
             "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid",
-            "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
             "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd",
             "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch",
-            "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync",
             "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade",
             "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
             "//tools/adt/idea/project-system:intellij.android.projectSystem",

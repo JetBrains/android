@@ -33,6 +33,9 @@ import com.android.tools.idea.gradle.project.sync.idea.ProjectResolutionMode.Sin
 import com.intellij.openapi.diagnostic.thisLogger
 import org.jetbrains.plugins.gradle.service.project.ProjectResolverContext
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
+private const val STUDIO_PROJECT_SYNC_DEBUG_MODE_KEY = "studio.project.sync.debug.mode"
+
+fun studioProjectSyncDebugModeEnabled(): Boolean = java.lang.Boolean.getBoolean(STUDIO_PROJECT_SYNC_DEBUG_MODE_KEY)
 
 fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraModelProvider? {
   val project = this.externalSystemTaskId.findProject() ?: let {
@@ -55,6 +58,7 @@ fun ProjectResolverContext.configureAndGetExtraModelProvider(): AndroidExtraMode
     studioHeapAnalysisOutputDirectory = StudioFlags.GRADLE_HEAP_ANALYSIS_OUTPUT_DIRECTORY.get(),
     studioHeapAnalysisLightweightMode = StudioFlags.GRADLE_HEAP_ANALYSIS_LIGHTWEIGHT_MODE.get(),
     studioFlagMultiVariantAdditionalArtifactSupport = StudioFlags.GRADLE_MULTI_VARIANT_ADDITIONAL_ARTIFACT_SUPPORT.get(),
+    studioDebugMode =  studioProjectSyncDebugModeEnabled()
   )
 
   fun getAdditionalArtifactsAction() = AdditionalClassifierArtifactsActionOptions(

@@ -70,5 +70,6 @@ data class GradleSyncStudioFlags(
   val studioHeapAnalysisOutputDirectory: String,
   val studioHeapAnalysisLightweightMode: Boolean,
   val studioFlagMultiVariantAdditionalArtifactSupport: Boolean,
+  val studioDebugMode: Boolean = false // Emit extra logs or populate debug models during sync
 ) : Serializable
 

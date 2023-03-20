@@ -28,6 +28,7 @@ import com.android.tools.idea.gradle.model.IdeArtifactLibrary
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.model.IdeBaseArtifactCore
 import com.android.tools.idea.gradle.model.IdeCompositeBuildMap
+import com.android.tools.idea.gradle.model.IdeDebugInfo
 import com.android.tools.idea.gradle.model.IdeSourceProvider
 import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeVariantCore
@@ -93,6 +94,7 @@ import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.notification.NotificationsConfiguration
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.ExternalSystemException
@@ -147,6 +149,8 @@ import java.io.IOException
 import java.util.function.Function
 import java.util.zip.ZipException
 
+private val LOG = Logger.getInstance(AndroidGradleProjectResolver::class.java)
+
 /**
  * Imports Android-Gradle projects into IDEA.
  */
@@ -191,6 +195,9 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     val syncError = resolverCtx.models.getModel(IdeAndroidSyncError::class.java)
     if (syncError != null) {
       throw syncError.toException()
+    }
+    if (studioProjectSyncDebugModeEnabled()) {
+      printDebugInfo()
     }
 
     // This is used in the special mode sync to fetch additional native variants.
@@ -267,6 +274,14 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     }
     if (kotlinModel != null) {
       myKotlinCacheOriginIdentifiers.add(kotlinModel.cacheAware.cacheOriginIdentifier)
+    }
+  }
+
+  private fun printDebugInfo() {
+    val debugInfo = resolverCtx.models.getModel(IdeDebugInfo::class.java)
+    debugInfo?.projectImportModelProviderClasspath?.entries?.forEach { (key, value) ->
+      // Integration test searches for this string pattern in idea log file.
+      LOG.debug("ModelProvider $key Classpath: $value")
     }
   }
 

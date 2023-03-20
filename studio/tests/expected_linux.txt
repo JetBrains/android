@@ -1993,6 +1993,8 @@ android-studio/plugins/android/lib/android-extensions-ide.jar
 android-studio/plugins/android/lib/android-kotlin.jar
 android-studio/plugins/android/lib/android-profilers.jar
 android-studio/plugins/android/lib/android-rt.jar
+android-studio/plugins/android/lib/android-project-system-gradle-models.jar
+android-studio/plugins/android/lib/android-gradle.jar
 android-studio/plugins/android/lib/android.jar
 android-studio/plugins/android/lib/animation-core-desktop-1.1.1.jar
 android-studio/plugins/android/lib/animation-desktop-1.1.1.jar
