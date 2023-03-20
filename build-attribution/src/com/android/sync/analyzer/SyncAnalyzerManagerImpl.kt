@@ -56,7 +56,6 @@ class SyncAnalyzerManagerImpl(
   override fun onSyncStarted(id: ExternalSystemTaskId?) {
     if (id == null) return
     val data = project.getService(SyncAnalyzerDataManager::class.java).getOrCreateDataForTask(id)
-    //TODO (b/231146116): if we are running with Gradle<7.3 we will not get events, view will be misleadingly empty.
     project.setUpDownloadsInfoNodeOnBuildOutput(id, data.buildDisposable)
     LongDownloadsNotifier(id, project, data.buildDisposable)
   }
