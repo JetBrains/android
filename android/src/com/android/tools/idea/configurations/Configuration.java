@@ -60,10 +60,14 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.rendering.StudioRenderServiceKt;
+import com.android.tools.idea.layoutlib.RenderingException;
+import com.android.tools.idea.rendering.EnvironmentContext;
+import com.android.tools.idea.rendering.InsufficientDataException;
+import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.res.ResourceFilesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.ResourceUtils;
+import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -460,25 +464,30 @@ public class Configuration implements Disposable, ModificationTracker {
   }
 
   @Nullable
-  public static FolderConfiguration getFolderConfig(@NotNull Module module, @NotNull State state, @NotNull Locale locale,
+  public static FolderConfiguration getFolderConfig(@NotNull ConfigurationModelModule module, @NotNull State state, @NotNull Locale locale,
                                                     @Nullable IAndroidTarget target) {
     FolderConfiguration currentConfig = DeviceConfigHelper.getFolderConfig(state);
     if (currentConfig != null) {
       if (locale.hasLanguage()) {
         currentConfig.setLocaleQualifier(locale.qualifier);
-
-        if (locale.hasLanguage()) {
-          LayoutLibrary layoutLib = StudioRenderServiceKt.getLayoutLibrary(module, target);
-          if (layoutLib != null) {
-            if (layoutLib.isRtl(locale.toLocaleId())) {
-              currentConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));
-            }
+        LayoutLibrary layoutLib = getLayoutLibrary(target, module.getAndroidPlatform(), module.getEnvironmentContext());
+        if (layoutLib != null) {
+          if (layoutLib.isRtl(locale.toLocaleId())) {
+            currentConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));
           }
         }
       }
     }
 
     return currentConfig;
+  }
+
+  private static LayoutLibrary getLayoutLibrary(IAndroidTarget target, AndroidPlatform platform, EnvironmentContext context) {
+    try {
+      return RenderService.getLayoutLibrary(target, platform, context);
+    } catch (RenderingException | InsufficientDataException ignored) {
+      return null;
+    }
   }
 
   @Slow
@@ -491,7 +500,7 @@ public class Configuration implements Disposable, ModificationTracker {
       }
       State selectedState = ConfigurationFileState.getState(device, stateName);
       Module module = getModule();
-      FolderConfiguration currentConfig = getFolderConfig(module, selectedState, getLocale(), getTarget());
+      FolderConfiguration currentConfig = getFolderConfig(myManager.getConfigModule(), selectedState, getLocale(), getTarget());
       if (currentConfig != null) {
         if (myEditedConfig.isMatchFor(currentConfig)) {
           ResourceRepositoryManager repositoryManager = myManager.getConfigModule().getResourceRepositoryManager();
@@ -1086,7 +1095,7 @@ public class Configuration implements Disposable, ModificationTracker {
     if (deviceState == null) {
       deviceState = device.getDefaultState();
     }
-    FolderConfiguration config = getFolderConfig(getModule(), deviceState, getLocale(), getTarget());
+    FolderConfiguration config = getFolderConfig(myManager.getConfigModule(), deviceState, getLocale(), getTarget());
 
     // replace the config with the one from the device
     myFullConfig.set(config);
@@ -1101,7 +1110,8 @@ public class Configuration implements Disposable, ModificationTracker {
       // Avoid getting the layout library if the locale doesn't have any language.
       myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.LTR));
     } else {
-      LayoutLibrary layoutLib = StudioRenderServiceKt.getLayoutLibrary(getModule(), getTarget());
+      ConfigurationModelModule configModule = myManager.getConfigModule();
+      LayoutLibrary layoutLib = getLayoutLibrary(getTarget(), configModule.getAndroidPlatform(), configModule.getEnvironmentContext());
       if (layoutLib != null) {
         if (layoutLib.isRtl(locale.toLocaleId())) {
           myFullConfig.setLayoutDirectionQualifier(new LayoutDirectionQualifier(LayoutDirection.RTL));
