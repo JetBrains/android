@@ -54,19 +54,15 @@ ClipboardManager* ClipboardManager::GetInstance(Jni jni) {
 }
 
 string ClipboardManager::GetText() const {
-  Log::V("%s:%d", __FILE__, __LINE__);
   JObject text = clipboard_adapter_class_.CallStaticObjectMethod(jni_, get_text_method_);
-  Log::V("%s:%d", __FILE__, __LINE__);
   if (text.IsNull()) {
-    JObject exception = jni_.GetAndClearException();
+    JThrowable exception = jni_.GetAndClearException();
     if (!exception.IsNull()) {
-      Log::W("Unable to obtain clipboard text - %s", exception.ToString().c_str());
+      Log::W("Unable to obtain clipboard text - %s", exception.Describe().c_str());
     }
 
-    Log::V("%s:%d", __FILE__, __LINE__);
     return "";
   }
-  Log::V("%s:%d", __FILE__, __LINE__);
   return text.ToString();
 }
 
