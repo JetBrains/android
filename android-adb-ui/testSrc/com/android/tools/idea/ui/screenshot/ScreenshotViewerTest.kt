@@ -21,6 +21,7 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.findModelessDialog
+import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
 import com.intellij.openapi.application.runInEdt
@@ -35,6 +36,7 @@ import com.intellij.util.ui.EDT
 import org.intellij.images.ui.ImageComponent
 import org.intellij.images.ui.ImageComponentDecorator
 import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
@@ -81,6 +83,11 @@ class ScreenshotViewerTest {
 
   private val testFrame = object : FramingOption {
     override val displayName = "Test frame"
+  }
+
+  @Before
+  fun setup() {
+    StudioFlags.PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED.override(true)
   }
 
   @After
@@ -168,6 +175,64 @@ class ScreenshotViewerTest {
     assertThat(processedImage.getRGB(screenshotImage.width - 5, screenshotImage.height - 5)).isEqualTo(Color.BLACK.rgb)
   }
 
+  @Test
+  fun testPlayCompatibleScreenshot_Disabled() {
+    StudioFlags.PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED.override(false)
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_WATCH, isWear = true)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val ui = FakeUi(viewer.rootPane)
+
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+    assertThat(clipComboBox.options()).doesNotContain("Play Store Compatible")
+  }
+
+  @Test
+  fun testPlayCompatibleScreenshotIsAvailable() {
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_WATCH, isWear = true)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val ui = FakeUi(viewer.rootPane)
+
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+    assertThat(clipComboBox.options()).contains("Play Store Compatible")
+  }
+
+  @Test
+  fun testPlayCompatibleScreenshot() {
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_WATCH, isTv = false, isWear = true)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val ui = FakeUi(viewer.rootPane)
+
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+
+    clipComboBox.selectFirstMatch("Play Store Compatible")
+    EDT.dispatchAllInvocationEvents()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
+    assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
+    assertThat(processedImage.getRGB(5, 5)).isEqualTo(Color.BLACK.rgb)
+    assertThat(processedImage.getRGB(screenshotImage.width - 5, screenshotImage.height - 5)).isEqualTo(Color.BLACK.rgb)
+  }
+
+  @Test
+  fun testPlayCompatibleScreenshotInDarkMode() {
+    runInEdt {
+      UIManager.setLookAndFeel(DarculaLaf())
+    }
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_WATCH, isTv = false, isWear = true)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val ui = FakeUi(viewer.rootPane)
+
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+
+    clipComboBox.selectFirstMatch("Play Store Compatible")
+    EDT.dispatchAllInvocationEvents()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
+    assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
+    assertThat(processedImage.getRGB(5, 5)).isEqualTo(Color.BLACK.rgb)
+    assertThat(processedImage.getRGB(screenshotImage.width - 5, screenshotImage.height - 5)).isEqualTo(Color.BLACK.rgb)
+  }
+
   private fun createImage(width: Int, height: Int): BufferedImage {
     val image = ImageUtils.createDipImage(width, height, BufferedImage.TYPE_INT_ARGB)
     val graphics = image.createGraphics()
@@ -195,4 +260,9 @@ class ScreenshotViewerTest {
       }
     }
   }
+
+  private fun <E> JComboBox<E>.options(): List<String> =
+    (0 until model.size).map {
+      model.getElementAt(it).toString()
+    }
 }

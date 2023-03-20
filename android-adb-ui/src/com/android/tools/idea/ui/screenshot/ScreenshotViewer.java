@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.screenshot;
 import static com.android.SdkConstants.EXT_PNG;
 import static com.intellij.openapi.components.StoragePathMacros.NON_ROAMABLE_FILE;
 
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.AndroidAdbUiBundle;
 import com.android.tools.pixelprobe.color.Colors;
 import com.android.utils.HashCodes;
@@ -127,6 +128,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       new DecorationOption(AndroidAdbUiBundle.message("screenshot.dialog.decoration.rectangular"));
     private static final DecorationOption DISPLAY_SHAPE_CLIP =
       new DecorationOption(AndroidAdbUiBundle.message("screenshot.dialog.decoration.display.shape"));
+    private static final DecorationOption PLAY_COMPATIBLE =
+      new DecorationOption(AndroidAdbUiBundle.message("screenshot.dialog.decoration.display.play-compatible"));
 
     private final @Nullable String myClipAction;
     private final @Nullable FramingOption myFramingOption;
@@ -254,6 +257,9 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       if (canClipDeviceMask) {
         decorationOptions.addElement(DecorationOption.DISPLAY_SHAPE_CLIP);
       }
+      if (StudioFlags.PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED.get() && screenshotImage.isWear()) {
+        decorationOptions.addElement(DecorationOption.PLAY_COMPATIBLE);
+      }
       int frameOptionStartIndex = decorationOptions.getSize();
       for (FramingOption framingOption : framingOptions) {
         decorationOptions.addElement(new DecorationOption(framingOption));
@@ -363,7 +369,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     Color backgroundColor = null;
     if (myScreenshotPostprocessor != null) {
       framingOption = ((DecorationOption)Objects.requireNonNull(myDecorationComboBox.getSelectedItem())).getFramingOption();
-      if (myDecorationComboBox.getSelectedItem().equals(DecorationOption.RECTANGULAR)) {
+      if (myDecorationComboBox.getSelectedItem().equals(DecorationOption.RECTANGULAR) ||
+          myDecorationComboBox.getSelectedItem().equals(DecorationOption.PLAY_COMPATIBLE)) {
         //noinspection UseJBColor - we want the actual color Black, JBColor will be grey in dark modes.
         backgroundColor = Color.BLACK;
       }
