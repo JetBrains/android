@@ -72,12 +72,13 @@ class AdbScreenCapScreenshotSupplier(
       val displayInfo = extractDeviceDisplayInfo(dumpsysOutput)
       val pmOutput = pmJob.await()
       val isTv = pmOutput.contains("feature:android.software.leanback")
+      val isWear = pmOutput.contains("feature:android.hardware.type.watch")
       val screenshotBytes = screenshotJob.await()
 
       @Suppress("BlockingMethodInNonBlockingContext") // Reading from memory is not blocking.
       val image = ImageIO.read(ByteArrayInputStream(screenshotBytes.stdout))
                   ?: throw RuntimeException(AndroidAdbUiBundle.message("screenshot.error.decode"))
-      screenshotOptions.createScreenshotImage(image, displayInfo, isTv)
+      screenshotOptions.createScreenshotImage(image, displayInfo, isTv = isTv, isWear = isWear)
     }
   }
 

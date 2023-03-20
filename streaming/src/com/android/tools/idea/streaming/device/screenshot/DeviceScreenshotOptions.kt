@@ -62,9 +62,9 @@ internal class DeviceScreenshotOptions(
   private val skinHome: Path? = DeviceArtDescriptor.getBundledDescriptorsFolder()?.toPath()
   private var defaultFrameIndex: Int = 0
 
-  override fun createScreenshotImage(image: BufferedImage, displayInfo: String, isTv: Boolean): ScreenshotImage {
+  override fun createScreenshotImage(image: BufferedImage, displayInfo: String, isTv: Boolean, isWear: Boolean): ScreenshotImage {
     val rotatedImage = ImageUtils.rotateByQuadrants(image, deviceView.displayOrientationCorrectionQuadrants)
-    return ScreenshotImage(rotatedImage, deviceView.displayOrientationQuadrants, displayInfo, isTv)
+    return ScreenshotImage(rotatedImage, deviceView.displayOrientationQuadrants, displayInfo, isTv = isTv, isWear = isWear)
   }
 
   override fun getFramingOptions(screenshotImage: ScreenshotImage): List<FramingOption> {

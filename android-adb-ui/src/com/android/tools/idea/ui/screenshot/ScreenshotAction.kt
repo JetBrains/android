@@ -116,7 +116,7 @@ class ScreenshotAction : DumbAwareAction(
     val screenshotViewerOptions: Set<ScreenshotViewer.Option>
     val screenshotPostprocessor: ScreenshotPostprocessor
 
-    fun createScreenshotImage(image: BufferedImage, displayInfo: String, isTv: Boolean): ScreenshotImage
+    fun createScreenshotImage(image: BufferedImage, displayInfo: String, isTv: Boolean, isWear: Boolean): ScreenshotImage
 
     /** Returns the list of available framing options for the given image. */
     fun getFramingOptions(screenshotImage: ScreenshotImage): List<FramingOption>

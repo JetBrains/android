@@ -35,8 +35,8 @@ class DeviceArtScreenshotOptions(
 
   override val screenshotPostprocessor: ScreenshotPostprocessor = DeviceArtScreenshotPostprocessor()
 
-  override fun createScreenshotImage(image: BufferedImage, displayInfo: String, isTv: Boolean): ScreenshotImage {
-    return ScreenshotImage(image, 0, displayInfo, isTv)
+  override fun createScreenshotImage(image: BufferedImage, displayInfo: String, isTv: Boolean, isWear: Boolean): ScreenshotImage {
+    return ScreenshotImage(image, 0, displayInfo, isTv = isTv, isWear = isWear)
   }
 
   override fun getFramingOptions(screenshotImage: ScreenshotImage): List<FramingOption> {

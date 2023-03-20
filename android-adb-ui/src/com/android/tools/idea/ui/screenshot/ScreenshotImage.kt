@@ -23,7 +23,8 @@ class ScreenshotImage(
   val image: BufferedImage,
   val screenshotRotationQuadrants: Int,
   private val displayInfo: String = "",
-  val isTv: Boolean = false
+  val isTv: Boolean = false,
+  val isWear: Boolean = false,
 ) {
 
   val width
@@ -48,10 +49,11 @@ class ScreenshotImage(
       return this
     }
     return ScreenshotImage(
-        ImageUtils.rotateByQuadrants(image, rotationQuadrants),
-        (screenshotRotationQuadrants + rotationQuadrants) and 0x03,
-        displayInfo,
-        isTv)
+      image = ImageUtils.rotateByQuadrants(image, rotationQuadrants),
+      screenshotRotationQuadrants = (screenshotRotationQuadrants + rotationQuadrants) and 0x03,
+      displayInfo = displayInfo,
+      isTv = isTv,
+      isWear = isWear)
   }
 
   private fun computeDisplaySize(): Dimension? {
