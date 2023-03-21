@@ -15,13 +15,13 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.tools.idea.rendering.parsers.RenderXmlFile
 import com.intellij.openapi.project.Project
-import com.intellij.psi.xml.XmlFile
 import java.io.File
 
 /** A reference to a particular file in the project. */
 interface IncludeReference {
-  fun getFromXmlFile(project: Project): XmlFile?
+  fun getFromXmlFile(project: Project): RenderXmlFile?
 
   val fromPath: File
 
@@ -30,7 +30,7 @@ interface IncludeReference {
   companion object {
     @JvmField
     val NONE = object : IncludeReference {
-      override fun getFromXmlFile(project: Project): XmlFile? = null
+      override fun getFromXmlFile(project: Project): RenderXmlFile? = null
       override val fromPath: File = File("")
       override val fromResourceUrl: String = ""
     }

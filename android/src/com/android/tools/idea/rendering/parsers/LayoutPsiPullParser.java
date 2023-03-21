@@ -76,11 +76,9 @@ import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.ide.common.resources.sampledata.SampleDataManager;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.LayoutMetadata;
 import com.android.tools.idea.rendering.RenderLogger;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -93,7 +91,6 @@ import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.xml.XmlFile;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -109,7 +106,7 @@ import org.jetbrains.annotations.NotNull;
 import org.xmlpull.v1.XmlPullParserException;
 
 /**
- * {@link ILayoutPullParser} implementation on top of the PSI {@link RenderXmlTag}.
+ * {@link ILayoutPullParser} implementation on top of the {@link RenderXmlTag}.
  * <p/>
  * It's designed to work on layout files, and will not work on other resource files (no text event
  * support for example).
@@ -213,20 +210,20 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    * Constructs a new {@link LayoutPsiPullParser}, a parser dedicated to the special case of
    * parsing a layout resource files.
    *
-   * @param file         The {@link RenderXmlTag} for the root node.
+   * @param file         The {@link RenderXmlFile} containing the root node.
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    * @param sampleDataCounter start index for displaying sample data
    * @param resourceRepositoryManager for namespace
    */
   @NotNull
-  public static LayoutPsiPullParser create(@NotNull XmlFile file,
+  public static LayoutPsiPullParser create(@NotNull RenderXmlFile file,
                                            @NotNull IRenderLogger logger,
                                            boolean honorMergeParentTag,
                                            @Nullable ResourceResolver resolver,
                                            @Nullable ResourceRepositoryManager resourceRepositoryManager,
                                            int sampleDataCounter) {
-    if (IdeResourcesUtil.getFolderType(file) == ResourceFolderType.MENU) {
+    if (file.getFolderType() == ResourceFolderType.MENU) {
       return new MenuPsiPullParser(file, logger, resourceRepositoryManager);
     }
     return new LayoutPsiPullParser(file, logger, honorMergeParentTag, resolver, resourceRepositoryManager, sampleDataCounter);
@@ -236,11 +233,11 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    * Constructs a new {@link LayoutPsiPullParser}, a parser dedicated to the special case of
    * parsing a layout resource files.
    *
-   * @param file         The {@link RenderXmlTag} for the root node.
+   * @param file         The {@link RenderXmlFile} containing the root node.
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    */
   @NotNull
-  public static LayoutPsiPullParser create(@NotNull XmlFile file, @NotNull IRenderLogger logger, @Nullable ResourceRepositoryManager resourceRepositoryManager) {
+  public static LayoutPsiPullParser create(@NotNull RenderXmlFile file, @NotNull IRenderLogger logger, @Nullable ResourceRepositoryManager resourceRepositoryManager) {
     return create(file, logger, true, null, resourceRepositoryManager, 0);
   }
 
@@ -249,7 +246,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    * parsing a layout resource files, and handling "exploded rendering" - adding padding on views
    * to make them easier to see and operate on.
    *
-   * @param file         The {@link RenderXmlTag} for the root node.
+   * @param file         The {@link RenderXmlFile} containing the root node.
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    * @param explodeNodes A set of individual nodes that should be assigned a fixed amount of
    *                     padding ({@link PaddingLayoutPsiPullParser#FIXED_PADDING_VALUE}).
@@ -262,7 +259,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    *                                     attributes will be ignored by the parser.
    */
   @NotNull
-  public static LayoutPsiPullParser create(@NotNull XmlFile file,
+  public static LayoutPsiPullParser create(@NotNull RenderXmlFile file,
                                            @NotNull IRenderLogger logger,
                                            @Nullable Set<RenderXmlTag> explodeNodes,
                                            @NotNull Density density,
@@ -294,37 +291,37 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   /**
    * Use one of the {@link #create} factory methods instead
    *
-   * @param file         The {@link RenderXmlTag} for the root node.
+   * @param file         The {@link RenderXmlFile} containing the root node.
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    */
-  protected LayoutPsiPullParser(@NotNull XmlFile file, @NotNull ILayoutLog logger, boolean honorMergeParentTag, @Nullable ResourceRepositoryManager resourceRepositoryManager) {
+  protected LayoutPsiPullParser(@NotNull RenderXmlFile file, @NotNull ILayoutLog logger, boolean honorMergeParentTag, @Nullable ResourceRepositoryManager resourceRepositoryManager) {
     this(file, logger, honorMergeParentTag, null, resourceRepositoryManager, 0 );
   }
 
   /**
    * Use one of the {@link #create} factory methods instead
    *
-   * @param file         The {@link RenderXmlTag} for the root node.
+   * @param file         The {@link RenderXmlFile} containing the root node.
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    * @param resolver Optional {@link ResourceResolver} that will be used by the parser to
    *                         resolve any resources.
    * @param sampleDataCounter start index for displaying sample data
    */
-  protected LayoutPsiPullParser(@NotNull XmlFile file,
+  protected LayoutPsiPullParser(@NotNull RenderXmlFile file,
                                 @NotNull ILayoutLog logger,
                                 boolean honorMergeParentTag,
                                 @Nullable ResourceResolver resolver,
                                 @Nullable ResourceRepositoryManager resourceRepositoryManager,
                                 int sampleDataCounter) {
-    this(PsiXmlTag.create(AndroidPsiUtils.getRootTagSafely(file)), logger, honorMergeParentTag, resolver, resourceRepositoryManager, sampleDataCounter, true);
+    this(file.getRootTag(), logger, honorMergeParentTag, resolver, resourceRepositoryManager, sampleDataCounter, true);
   }
 
   /**
    * Use one of the {@link #create} factory methods instead
    *
-   * @param file         The {@link RenderXmlTag} for the root node.
+   * @param file         The {@link RenderXmlFile} containing the root node.
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    * @param resourceResolver Optional {@link ResourceResolver} that will be used by the parser to
@@ -332,13 +329,13 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    * @param useToolsPositionAndVisibility When false, 'visibility', 'layout_editor_absoluteX' and 'layout_editor_absoluteY' tools namespaced
    *                                     attributes will be ignored by the parser.
    */
-  protected LayoutPsiPullParser(@NotNull XmlFile file,
+  protected LayoutPsiPullParser(@NotNull RenderXmlFile file,
                                 @NotNull ILayoutLog logger,
                                 boolean honorMergeParentTag,
                                 @Nullable ResourceResolver resourceResolver,
                                 @Nullable ResourceRepositoryManager resourceRepositoryManager,
                                 boolean useToolsPositionAndVisibility) {
-    this(PsiXmlTag.create(AndroidPsiUtils.getRootTagSafely(file)), logger, honorMergeParentTag, resourceResolver, resourceRepositoryManager, 0, useToolsPositionAndVisibility);
+    this(file.getRootTag(), logger, honorMergeParentTag, resourceResolver, resourceRepositoryManager, 0, useToolsPositionAndVisibility);
   }
 
   /**
@@ -1166,7 +1163,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
       this.myFilter = filter;
     }
 
-    public AttributeFilteredLayoutParser(@NotNull XmlFile file,
+    public AttributeFilteredLayoutParser(@NotNull RenderXmlFile file,
                                          @NotNull ILayoutLog logger,
                                          @Nullable AttributeFilter filter,
                                          @Nullable ResourceRepositoryManager resourceRepositoryManager) {

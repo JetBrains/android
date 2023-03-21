@@ -20,11 +20,10 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ActionBarHandler;
 import com.android.tools.idea.rendering.LayoutlibCallbackImpl;
+import com.android.tools.idea.rendering.RenderModuleDependencies;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
-import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.psi.PsiFile;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Document;
@@ -33,7 +32,6 @@ import java.util.Collections;
 
 import static com.android.AndroidXConstants.NAVIGATION_VIEW;
 import static com.android.tools.idea.rendering.parsers.LayoutPullParsers.createEmptyParser;
-import static com.android.tools.idea.util.DependencyManagementUtil.mapAndroidxName;
 
 /**
  * Renderer which creates a preview of menus and renders them into a layout XML element hierarchy.
@@ -57,7 +55,7 @@ class MenuLayoutParserFactory {
 
 
   @NotNull
-  public static ILayoutPullParser create(@NotNull PsiFile psiFile, @NotNull LayoutlibCallbackImpl layoutlibCallback) {
+  public static ILayoutPullParser create(@NotNull RenderXmlFile psiFile, @NotNull LayoutlibCallbackImpl layoutlibCallback) {
     Document frameLayoutDocument = XmlUtils.parseDocumentSilently(FRAME_LAYOUT_XML, true);
     if (frameLayoutDocument == null) {
       return createEmptyParser();
@@ -76,8 +74,8 @@ class MenuLayoutParserFactory {
   }
 
   @NotNull
-  public static ILayoutPullParser createInNavigationView(@NotNull PsiFile file) {
-    String navViewTag = mapAndroidxName(ModuleUtilCore.findModuleForPsiElement(file), NAVIGATION_VIEW);
+  public static ILayoutPullParser createInNavigationView(@NotNull RenderXmlFile file, @NotNull RenderModuleDependencies dependencies) {
+    String navViewTag = dependencies.getDependsOnAndroidX() ? NAVIGATION_VIEW.newName() : NAVIGATION_VIEW.oldName();
     @Language("XML")
     String xml = "<" + navViewTag + " xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
                  "    xmlns:app=\"http://schemas.android.com/apk/res-auto\"\n" +

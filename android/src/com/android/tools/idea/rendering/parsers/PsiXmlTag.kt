@@ -1,5 +1,7 @@
 package com.android.tools.idea.rendering.parsers
 
+import com.android.ide.common.rendering.api.ResourceNamespace
+import com.android.tools.idea.res.resourceNamespace
 import com.intellij.openapi.project.Project
 import com.intellij.psi.xml.XmlTag
 
@@ -22,6 +24,9 @@ class PsiXmlTag(private val tag: XmlTag) : RenderXmlTag {
 
   override val namespace: String
     get() = tag.namespace
+
+  override val resourceNamespace: ResourceNamespace?
+    get() = tag.resourceNamespace
 
   override val localName: String
     get() = tag.localName

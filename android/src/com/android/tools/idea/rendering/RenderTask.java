@@ -57,8 +57,8 @@ import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
+import com.android.tools.idea.rendering.parsers.RenderXmlFile;
 import com.android.tools.idea.rendering.parsers.RenderXmlTag;
-import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -67,9 +67,6 @@ import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.serviceContainer.AlreadyDisposedException;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.event.KeyEvent;
@@ -169,7 +166,7 @@ public class RenderTask {
   @NotNull private CrashReporter myCrashReporter;
   private final List<CompletableFuture<?>> myRunningFutures = new LinkedList<>();
   @NotNull private final AtomicBoolean isDisposed = new AtomicBoolean(false);
-  @Nullable private XmlFile myXmlFile;
+  @Nullable private RenderXmlFile myXmlFile;
   @NotNull private final ModuleClassLoader myModuleClassLoader;
 
   /**
@@ -233,7 +230,8 @@ public class RenderTask {
     WeakReference<RenderTask> xmlFileProvider = new WeakReference<>(this);
     ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(renderContext.getModule(), () -> {
       RenderTask task = xmlFileProvider.get();
-      return task != null ? task.getXmlFile() : null;
+      RenderXmlFile xmlFile = task != null ? task.getXmlFile() : null;
+      return xmlFile != null ? xmlFile.getPsiFile() : null;
     });
     if (privateClassLoader) {
       myModuleClassLoader = classLoaderManager.getPrivate(
@@ -317,13 +315,13 @@ public class RenderTask {
     setQuality(myDefaultQuality);
   }
 
-  public void setXmlFile(@NotNull XmlFile file) {
+  public void setXmlFile(@NotNull RenderXmlFile file) {
     myXmlFile = file;
-    ReadAction.run(() -> getContext().setFolderType(IdeResourcesUtil.getFolderType(file)));
+    ReadAction.run(() -> getContext().setFolderType(file.getFolderType()));
   }
 
   @Nullable
-  public XmlFile getXmlFile() {
+  public RenderXmlFile getXmlFile() {
     return myXmlFile;
   }
 
@@ -531,18 +529,19 @@ public class RenderTask {
     return myProvideCookiesForIncludedViews;
   }
 
+
   /**
-   * Returns the root tag for the given {@link XmlFile}, if any, acquiring the read
+   * Returns the root tag for the given {@link RenderXmlFile}, if any, acquiring the read
    * lock to do so if necessary
    *
    * @param file the file to look up the root tag for
    * @return the corresponding root tag, if any
    */
   @Nullable
-  private static String getRootTagName(@NotNull XmlFile file) {
-    ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
+  private static String getRootTagName(@NotNull RenderXmlFile file) {
+    ResourceFolderType folderType = file.getFolderType();
     if (folderType == ResourceFolderType.XML || folderType == ResourceFolderType.MENU || folderType == ResourceFolderType.DRAWABLE) {
-      XmlTag rootTag = AndroidPsiUtils.getRootTagSafely(file);
+      RenderXmlTag rootTag = file.getRootTag();
       return rootTag == null ? null : rootTag.getName();
     }
     return null;
@@ -562,7 +561,7 @@ public class RenderTask {
       return null;
     }
 
-    XmlFile xmlFile = getXmlFile();
+    RenderXmlFile xmlFile = getXmlFile();
     if (xmlFile == null) {
       throw new IllegalStateException("createRenderSession shouldn't be called on RenderTask without PsiFile");
     }
@@ -710,7 +709,7 @@ public class RenderTask {
           // Advance the frame time to display the material progress bars
           session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
         }
-        RenderResult result = RenderResult.create(context, session, xmlFile, myLogger, myImagePool.copyOf(session.getImage()), myLayoutlibCallback.isUsed());
+        RenderResult result = RenderResult.create(context, session, xmlFile.getPsiFile(), myLogger, myImagePool.copyOf(session.getImage()), myLayoutlibCallback.isUsed());
         RenderSession oldRenderSession = myRenderSession;
         myRenderSession = session;
         if (oldRenderSession != null) {
@@ -734,7 +733,7 @@ public class RenderTask {
 
   @Nullable
   private ILayoutPullParser getIncludingLayoutParser(RenderResources resolver, ILayoutPullParser modelParser) {
-    XmlFile xmlFile = getXmlFile();
+    RenderXmlFile xmlFile = getXmlFile();
     if (xmlFile == null) {
       throw new IllegalStateException("getIncludingLayoutParser shouldn't be called on RenderTask without PsiFile");
     }
@@ -757,7 +756,7 @@ public class RenderTask {
       myLayoutlibCallback.setLayoutParser(queryLayoutName, modelParser);
 
       // Attempt to read from PSI.
-      XmlFile fromXmlFile = myIncludedWithin.getFromXmlFile(myContext.getModule().getProject());
+      RenderXmlFile fromXmlFile = myIncludedWithin.getFromXmlFile(myContext.getModule().getProject());
       if (fromXmlFile != null) {
         LayoutPsiPullParser parser = LayoutPsiPullParser.create(fromXmlFile, myLogger,
                                                                 myContext.getModule().getResourceRepositoryManager());
@@ -838,7 +837,7 @@ public class RenderTask {
     // During development only:
     //assert !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during inflate!";
 
-    XmlFile xmlFile = getXmlFile();
+    RenderXmlFile xmlFile = getXmlFile();
     if (xmlFile == null) {
       return immediateFailedFuture(new IllegalStateException("inflate shouldn't be called on RenderTask without PsiFile"));
     }
@@ -878,7 +877,7 @@ public class RenderTask {
         }
         else {
           if (xmlFile.isValid()) {
-            return RenderResult.createRenderTaskErrorResult(myContext.getModule(), xmlFile, ex);
+            return RenderResult.createRenderTaskErrorResult(myContext.getModule(), xmlFile.getPsiFile(), ex);
           }
           else {
             LOG.warn("Invalid file " + xmlFile);
@@ -901,10 +900,10 @@ public class RenderTask {
     try {
       // runAsyncRenderAction might not run immediately so we need to capture the current myRenderSession and myPsiFile values
       RenderSession renderSession = myRenderSession;
-      PsiFile psiFile = getXmlFile();
+      RenderXmlFile xmlFile = getXmlFile();
       return runAsyncRenderAction(() -> {
         myRenderSession.measure();
-        return RenderResult.create(myContext, renderSession, psiFile, myLogger, ImagePool.NULL_POOLED_IMAGE, myLayoutlibCallback.isUsed());
+        return RenderResult.create(myContext, renderSession, xmlFile.getPsiFile(), myLogger, ImagePool.NULL_POOLED_IMAGE, myLayoutlibCallback.isUsed());
       });
     }
     catch (Exception e) {
@@ -999,8 +998,8 @@ public class RenderTask {
     // During development only:
     //assert !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during render!";
 
-    PsiFile psiFile = getXmlFile();
-    assert psiFile != null;
+    RenderXmlFile xmlFile = getXmlFile();
+    assert xmlFile != null;
 
     CompletableFuture<RenderResult> inflateCompletableResult;
     if (myRenderSession == null) {
@@ -1028,7 +1027,7 @@ public class RenderTask {
         return runAsyncRenderAction(() -> {
           myRenderSession.render();
           RenderResult result =
-            RenderResult.create(myContext, myRenderSession, psiFile, myLogger, myImagePool.copyOf(myRenderSession.getImage()), myLayoutlibCallback.isUsed());
+            RenderResult.create(myContext, myRenderSession, xmlFile.getPsiFile(), myLogger, myImagePool.copyOf(myRenderSession.getImage()), myLayoutlibCallback.isUsed());
           Result renderResult = result.getRenderResult();
           if (renderResult.getException() != null) {
             reportException(renderResult.getException());
@@ -1061,7 +1060,7 @@ public class RenderTask {
         }
         RenderProblem.RunnableFixFactory fixFactory = myContext.getModule().getEnvironment().getRunnableFixFactory();
         myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e, fixFactory));
-        return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(myContext.getModule(), psiFile, e));
+        return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(myContext.getModule(), xmlFile.getPsiFile(), e));
       }
     });
   }

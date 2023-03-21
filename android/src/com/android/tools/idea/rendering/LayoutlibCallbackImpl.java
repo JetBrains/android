@@ -69,6 +69,7 @@ import com.android.tools.idea.rendering.parsers.AaptAttrParser;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
+import com.android.tools.idea.rendering.parsers.RenderXmlFile;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.lint.detector.api.Lint;
@@ -84,7 +85,6 @@ import com.google.common.collect.Sets;
 import com.google.common.io.Files;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.xml.XmlFile;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -486,7 +486,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       if (parentName != null
           && !path.contains(FilenameConstants.EXPLODED_AAR) && !path.contains(FD_LAYOUTLIB) && !path.contains(BUILD_CACHE)
           && (parentName.startsWith(FD_RES_LAYOUT) || parentName.startsWith(FD_RES_DRAWABLE) || parentName.startsWith(FD_RES_MENU))) {
-        XmlFile xmlFile = myRenderModule.getEnvironment().getXmlFile(xml);
+        RenderXmlFile xmlFile = myRenderModule.getEnvironment().getXmlFile(xml);
         if (xmlFile != null) {
           ResourceResolver resourceResolver = myRenderTask.getContext().getConfiguration().getResourceResolver();
           // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different

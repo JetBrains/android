@@ -30,6 +30,7 @@ import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
+import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.rendering.parsers.RenderXmlTag;
 import com.google.common.annotations.VisibleForTesting;
@@ -574,7 +575,9 @@ final public class RenderService implements Disposable {
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
                            classesToPreload, reportOutOfDateUserClasses, myPriority, myMinDownscalingFactor);
 
-          task.setXmlFile(myXmlFile);
+          if (myXmlFile != null) {
+            task.setXmlFile(new PsiXmlFile(myXmlFile));
+          }
 
           task
             .setDecorations(showDecorations)

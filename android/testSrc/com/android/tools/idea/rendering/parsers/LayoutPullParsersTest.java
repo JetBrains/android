@@ -86,9 +86,9 @@ public class LayoutPullParsersTest extends AndroidTestCase {
 
     PsiManager psiManager = PsiManager.getInstance(getProject());
 
-    assertTrue(LayoutPullParsers.isSupported(psiManager.findFile(layoutFile)));
-    assertTrue(LayoutPullParsers.isSupported(psiManager.findFile(menuFile)));
-    assertTrue(LayoutPullParsers.isSupported(psiManager.findFile(drawableFile)));
+    assertTrue(LayoutPullParsers.isSupported(new PsiXmlFile((XmlFile)psiManager.findFile(layoutFile))));
+    assertTrue(LayoutPullParsers.isSupported(new PsiXmlFile((XmlFile)psiManager.findFile(menuFile))));
+    assertTrue(LayoutPullParsers.isSupported(new PsiXmlFile((XmlFile)psiManager.findFile(drawableFile))));
   }
 
   public void testRenderDrawable() {
@@ -314,7 +314,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     assertNotNull(file);
 
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
-    ILayoutPullParser parser = LayoutPullParsers.createFontFamilyParser((XmlFile)psiFile, (name) -> compoundFontFamily);
+    ILayoutPullParser parser = LayoutPullParsers.createFontFamilyParser(new PsiXmlFile((XmlFile)psiFile), (name) -> compoundFontFamily);
     assertTrue(parser instanceof DomPullParser);
     Element root = ((DomPullParser)parser).getRoot();
 
@@ -349,7 +349,7 @@ public class LayoutPullParsersTest extends AndroidTestCase {
     assertNotNull(file);
 
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
-    assertNull(LayoutPullParsers.createFontFamilyParser((XmlFile)psiFile, (name) -> compoundFontFamily));
+    assertNull(LayoutPullParsers.createFontFamilyParser(new PsiXmlFile((XmlFile)psiFile), (name) -> compoundFontFamily));
   }
 
   public void testNamespace() throws Exception {

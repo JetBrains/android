@@ -19,7 +19,6 @@ import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,7 +32,7 @@ class MenuPsiPullParser extends LayoutPsiPullParser.AttributeFilteredLayoutParse
   // Some attributes are not supported by layoutlib and will throw an exception.
   private static final ImmutableSet<String> UNSUPPORTED_ATTRIBUTES = ImmutableSet.of("onClick", "actionViewClass");
 
-  public MenuPsiPullParser(XmlFile file, ILayoutLog logger, ResourceRepositoryManager resourceRepositoryManager) {
+  public MenuPsiPullParser(RenderXmlFile file, ILayoutLog logger, ResourceRepositoryManager resourceRepositoryManager) {
     super(file, logger, new RenderTask.AttributeFilter() {
       @Nullable
       @Override

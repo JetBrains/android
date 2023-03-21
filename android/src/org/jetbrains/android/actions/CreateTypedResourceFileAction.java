@@ -20,6 +20,7 @@ import com.android.SdkConstants;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.navigator.AndroidProjectView;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
+import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.intellij.CommonBundle;
 import com.intellij.ide.IdeView;
@@ -150,7 +151,7 @@ public class CreateTypedResourceFileAction extends CreateResourceActionBase {
   }
 
   protected void doNavigate(XmlFile file) {
-    if (file.isValid() && LayoutPullParsers.isSupported(file)) {
+    if (file.isValid() && LayoutPullParsers.isSupported(new PsiXmlFile(file))) {
       VirtualFile virtualFile = file.getVirtualFile();
       if (virtualFile != null && virtualFile.isValid()) {
         if (AndroidEditorSettings.getInstance().getGlobalState().isPreferXmlEditor()) {

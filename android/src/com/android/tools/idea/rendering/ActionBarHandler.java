@@ -22,12 +22,12 @@ import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.ide.common.rendering.api.ActionBarCallback;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
+import com.android.tools.idea.rendering.parsers.RenderXmlFile;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.JavaPsiFacade;
@@ -35,10 +35,8 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiCompiledElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.concurrent.Callable;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -146,8 +144,8 @@ public class ActionBarHandler extends ActionBarCallback {
     boolean token = RenderSecurityManager.enterSafeRegion(myCredential);
     try {
       ResourceNamespace namespace = myResourceRepositoryManager.getNamespace();
-      XmlFile xmlFile = myRenderTask.getXmlFile();
-      String commaSeparatedMenus = xmlFile == null ? null : AndroidXmlFiles.getRootTagAttributeSafely(xmlFile, ATTR_MENU, TOOLS_URI);
+      RenderXmlFile xmlFile = myRenderTask.getXmlFile();
+      String commaSeparatedMenus = xmlFile == null ? null : xmlFile.getRootTagAttribute(ATTR_MENU, TOOLS_URI);
       if (commaSeparatedMenus != null) {
         List<String> names = Splitter.on(',').trimResults().omitEmptyStrings().splitToList(commaSeparatedMenus);
         myMenus = names.stream()
@@ -181,9 +179,9 @@ public class ActionBarHandler extends ActionBarCallback {
 
   @Override
   public int getNavigationMode() {
-    XmlFile xmlFile = myRenderTask.getXmlFile();
+    RenderXmlFile xmlFile = myRenderTask.getXmlFile();
     String navMode =
-        StringUtil.notNullize(xmlFile == null ? null : AndroidXmlFiles.getRootTagAttributeSafely(xmlFile, ATTR_NAV_MODE, TOOLS_URI)).trim();
+        StringUtil.notNullize(xmlFile == null ? null : xmlFile.getRootTagAttribute(ATTR_NAV_MODE, TOOLS_URI)).trim();
     if (navMode.equalsIgnoreCase(VALUE_NAV_MODE_TABS)) {
       return NAVIGATION_MODE_TABS;
     }

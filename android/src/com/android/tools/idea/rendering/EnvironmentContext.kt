@@ -17,8 +17,8 @@ package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.util.PathString
+import com.android.tools.idea.rendering.parsers.RenderXmlFile
 import com.intellij.openapi.Disposable
-import com.intellij.psi.xml.XmlFile
 
 /**
  * An interface proving access to the general environment specific functionality, primarily related to Intellij IDEA. The interface itself
@@ -33,9 +33,9 @@ interface EnvironmentContext {
 
   val runnableFixFactory: RenderProblem.RunnableFixFactory
 
-  fun createIncludeReference(xmlFile: XmlFile, resolver: RenderResources): IncludeReference
+  fun createIncludeReference(xmlFile: RenderXmlFile, resolver: RenderResources): IncludeReference
 
   fun getFileText(fileName: String): String?
 
-  fun getXmlFile(filePath: PathString): XmlFile?
+  fun getXmlFile(filePath: PathString): RenderXmlFile?
 }

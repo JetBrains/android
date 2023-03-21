@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering.parsers
 
+import com.android.ide.common.rendering.api.ResourceNamespace
 import com.intellij.openapi.project.Project
 
 /** Implementation agnostic representation of a xml tag. Used in rendering pipeline. */
@@ -30,6 +31,8 @@ interface RenderXmlTag {
   val subTags: List<RenderXmlTag>
 
   val namespace: String
+
+  val resourceNamespace: ResourceNamespace?
 
   val localName: String
 

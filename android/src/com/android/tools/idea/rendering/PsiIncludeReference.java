@@ -20,6 +20,10 @@ import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
+import com.android.tools.idea.rendering.parsers.PsiXmlFile;
+import com.android.tools.idea.rendering.parsers.PsiXmlTag;
+import com.android.tools.idea.rendering.parsers.RenderXmlFile;
+import com.android.tools.idea.rendering.parsers.RenderXmlTag;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
@@ -30,7 +34,6 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -62,9 +65,9 @@ public class PsiIncludeReference implements IncludeReference {
    */
   @Override
   @Nullable
-  public XmlFile getFromXmlFile(@NotNull Project project) {
+  public RenderXmlFile getFromXmlFile(@NotNull Project project) {
     PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, myFromFile);
-    return psiFile instanceof XmlFile ? (XmlFile)psiFile : null;
+    return psiFile instanceof XmlFile ? new PsiXmlFile((XmlFile)psiFile) : null;
   }
 
   /**
@@ -105,19 +108,19 @@ public class PsiIncludeReference implements IncludeReference {
    * the given file.
    */
   @NotNull
-  public static IncludeReference get(@NotNull XmlFile file, @NotNull RenderResources resolver) {
+  public static IncludeReference get(@NotNull RenderXmlFile file, @NotNull RenderResources resolver) {
     if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
       return ApplicationManager.getApplication().runReadAction((Computable<IncludeReference>)() -> get(file, resolver));
     }
 
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    XmlTag rootTag = file.getRootTag();
+    RenderXmlTag rootTag = file.getRootTag();
     if (rootTag != null && rootTag.isValid()) {
       String layoutRef = rootTag.getAttributeValue(ATTR_SHOW_IN, TOOLS_URI);
       if (layoutRef != null) {
         ResourceUrl layoutUrl = ResourceUrl.parse(layoutRef);
         if (layoutUrl != null) {
-          ResourceValue resValue = IdeResourcesUtil.resolve(resolver, layoutUrl, rootTag);
+          ResourceValue resValue = IdeResourcesUtil.resolve(resolver, layoutUrl, ((PsiXmlTag)rootTag).getPsiXmlTag());
           if (resValue != null) {
             // TODO: Do some sort of picking based on best configuration.
             // I should make sure I also get a configuration that is compatible with

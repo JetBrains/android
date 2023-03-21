@@ -19,6 +19,8 @@ import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.util.PathString
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.util.toVirtualFile
+import com.android.tools.idea.rendering.parsers.PsiXmlFile
+import com.android.tools.idea.rendering.parsers.RenderXmlFile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -34,7 +36,7 @@ class StudioEnvironmentContext(private val project: Project) : EnvironmentContex
   override fun hasLayoutlibCrash(): Boolean = hasStudioLayoutlibCrash()
   override val runnableFixFactory: RenderProblem.RunnableFixFactory = ShowFixFactory
 
-  override fun createIncludeReference(xmlFile: XmlFile, resolver: RenderResources): IncludeReference =
+  override fun createIncludeReference(xmlFile: RenderXmlFile, resolver: RenderResources): IncludeReference =
     PsiIncludeReference.get(xmlFile, resolver)
 
   override fun getFileText(fileName: String): String? {
@@ -50,8 +52,8 @@ class StudioEnvironmentContext(private val project: Project) : EnvironmentContex
     return null
   }
 
-  override fun getXmlFile(filePath: PathString): XmlFile? {
+  override fun getXmlFile(filePath: PathString): RenderXmlFile? {
     val file = filePath.toVirtualFile()
-    return file?.let { AndroidPsiUtils.getPsiFileSafely(project, it) as? XmlFile }
+    return file?.let { AndroidPsiUtils.getPsiFileSafely(project, it) as? XmlFile }?.let { PsiXmlFile(it) }
   }
 }
