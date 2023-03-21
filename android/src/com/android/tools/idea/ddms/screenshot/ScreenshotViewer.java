@@ -289,7 +289,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     myCopyButton.addActionListener(event -> {
       BufferedImage currentImage = myImageFileEditor.getImageEditor().getDocument().getValue();
       CopyPasteManager.getInstance().setContents(new BufferedImageTransferable(currentImage));
-      String groupId = NotificationGroup.createIdWithTitle("Screen Capture", AndroidBundle.message("android.ddms.actions.screenshot"));
+      String groupId =
+          NotificationGroup.createIdWithTitle("Screen Capture DDMS", AndroidBundle.message("android.ddms.actions.screenshot"));
       Notifications.Bus.notify(new Notification(groupId,
                                                 AndroidBundle.message("android.ddms.actions.screenshot"),
                                                 AndroidBundle.message("android.ddms.actions.screenshot.copied.to.clipboard"),

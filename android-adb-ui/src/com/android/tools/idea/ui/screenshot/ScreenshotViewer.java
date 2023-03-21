@@ -24,7 +24,6 @@ import com.android.utils.HashCodes;
 import com.google.common.base.Preconditions;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
@@ -290,13 +289,9 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     myCopyButton.addActionListener(event -> {
       BufferedImage currentImage = myImageFileEditor.getImageEditor().getDocument().getValue();
       CopyPasteManager.getInstance().setContents(new BufferedImageTransferable(currentImage));
-      String groupId = NotificationGroup.createIdWithTitle("Screen Capture", AndroidAdbUiBundle.message("screenshot.notification.title"));
-      Notifications.Bus.notify(
-        new Notification(
-          groupId,
-          AndroidAdbUiBundle.message("screenshot.notification.title"),
-          AndroidAdbUiBundle.message("screenshot.notification.copied.to.clipboard"),
-          NotificationType.INFORMATION), myProject);
+      NotificationGroup group = NotificationGroup.findRegisteredGroup("Screen Capture");
+      assert group != null;
+      Notifications.Bus.notify(group.createNotification(AndroidAdbUiBundle.message("screenshot.notification.copied.to.clipboard"), NotificationType.INFORMATION), project);
     });
 
     updateEditorImage();

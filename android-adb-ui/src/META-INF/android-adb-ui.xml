@@ -18,7 +18,7 @@
     <projectService serviceImplementation="com.android.tools.idea.ui.screenshot.ScreenshotViewer$PersistentState" />
     <projectService
         serviceInterface="com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache"
-        serviceImplementation="com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCacheImpl"
-    />
+        serviceImplementation="com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCacheImpl"/>
+    <notificationGroup id="Screen Capture" displayType="BALLOON" bundle="messages.AndroidAdbUiBundle" key="screenshot.notification.title"/>
   </extensions>
 </idea-plugin>
