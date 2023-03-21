@@ -498,21 +498,16 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     try (ImageOutputStream stream = ImageIO.createImageOutputStream(Files.newOutputStream(outFile))) {
       pngWriter.setOutput(stream);
 
-      if (image.getColorModel().getColorSpace() instanceof ICC_ColorSpace) {
+      if (image.getColorModel().getColorSpace() instanceof ICC_ColorSpace colorSpace) {
         ImageTypeSpecifier type = ImageTypeSpecifier.createFromRenderedImage(image);
         ImageWriteParam writeParams = pngWriter.getDefaultWriteParam();
         IIOMetadata metadata = pngWriter.getDefaultImageMetadata(type, writeParams);
-
-        ICC_ColorSpace colorSpace = (ICC_ColorSpace)image.getColorModel().getColorSpace();
-        byte[] data = deflate(colorSpace.getProfile().getData());
-
         Node node = metadata.getAsTree("javax_imageio_png_1.0");
         IIOMetadataNode metadataNode = new IIOMetadataNode("iCCP");
-        metadataNode.setUserObject(data);
+        metadataNode.setUserObject(deflate(colorSpace.getProfile().getData()));
         metadataNode.setAttribute("profileName", Colors.getIccProfileDescription(colorSpace.getProfile()));
         metadataNode.setAttribute("compressionMethod", "deflate");
         node.appendChild(metadataNode);
-
         metadata.setFromTree("javax_imageio_png_1.0", node);
 
         pngWriter.write(new IIOImage(image, null, metadata));
@@ -580,7 +575,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
     @Override
     public @NotNull DataFlavor[] getTransferDataFlavors() {
-      return new DataFlavor[]{DataFlavor.imageFlavor};
+      return new DataFlavor[] { DataFlavor.imageFlavor };
     }
 
     @Override
