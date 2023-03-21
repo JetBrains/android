@@ -1286,16 +1286,7 @@ public class RenderTask {
       return CompletableFuture.completedFuture(null);
     }
 
-    return measureChildren(parent, filter)
-      .thenApply(map -> {
-        for (Map.Entry<XmlTag, ViewInfo> entry : map.entrySet()) {
-          if (entry.getKey() == tag) {
-            return entry.getValue();
-          }
-        }
-
-        return null;
-      });
+    return measureChildren(parent, filter).thenApply(map -> map.get(tag));
   }
 
   @Nullable
