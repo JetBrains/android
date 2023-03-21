@@ -71,6 +71,16 @@ private const val DISPLAY_INFO_WATCH =
   " manufactureDate=ManufactureDate{week=27, year=2006}, relativeAddress=null}, state ON," +
   " FLAG_DEFAULT_DISPLAY, FLAG_ROTATES_WITH_CONTENT, FLAG_SECURE, FLAG_SUPPORTS_PROTECTED_BUFFERS, FLAG_ROUND}"
 
+private const val DISPLAY_INFO_WATCH_SQUARE =
+  "DisplayDeviceInfo{\"Built-in Screen\": uniqueId=\"local:8141603649153536\", 454 x 454, modeId 1, defaultModeId 1," +
+  " supportedModes [{id=1, width=454, height=454, fps=60.000004}], colorMode 0, supportedColorModes [0]," +
+  " HdrCapabilities HdrCapabilities{mSupportedHdrTypes=[], mMaxLuminance=500.0, mMaxAverageLuminance=500.0, mMinLuminance=0.0}," +
+  " allmSupported false, gameContentTypeSupported false, density 320, 320.0 x 320.0 dpi, appVsyncOff 1000000, presDeadline 16666666," +
+  " touch INTERNAL, rotation 0, type INTERNAL, address {port=0, model=0x1cecbed168ea}," +
+  " deviceProductInfo DeviceProductInfo{name=EMU_display_0, manufacturerPnpId=GGL, productId=1, modelYear=null," +
+  " manufactureDate=ManufactureDate{week=27, year=2006}, relativeAddress=null}, state ON," +
+  " FLAG_DEFAULT_DISPLAY, FLAG_ROTATES_WITH_CONTENT, FLAG_SECURE, FLAG_SUPPORTS_PROTECTED_BUFFERS}"
+
 /**
  * Tests for [ScreenshotViewer].
  */
@@ -231,6 +241,36 @@ class ScreenshotViewerTest {
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
     assertThat(processedImage.getRGB(5, 5)).isEqualTo(Color.BLACK.rgb)
     assertThat(processedImage.getRGB(screenshotImage.width - 5, screenshotImage.height - 5)).isEqualTo(Color.BLACK.rgb)
+  }
+
+  @Test
+  fun testComboBoxDefaultsToDisplayShapeIfAvailable() {
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_WATCH, isWear = true)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val ui = FakeUi(viewer.rootPane)
+
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+    assertThat(clipComboBox.selectedItem?.toString()).isEqualTo("Display Shape")
+  }
+
+  @Test
+  fun testComboBoxDefaultsToPlayStoreCompatibleIfDisplayShapeIsNotAvailable() {
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_WATCH_SQUARE, isWear = true)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val ui = FakeUi(viewer.rootPane)
+
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+    assertThat(clipComboBox.selectedItem?.toString()).isEqualTo("Play Store Compatible")
+  }
+
+  @Test
+  fun testComboBoxDefaultsToRectangularIfPlayStoreCompatibleAndDisplayShapeAreNotAvailable() {
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_PHONE, isWear = false)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val ui = FakeUi(viewer.rootPane)
+
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+    assertThat(clipComboBox.selectedItem?.toString()).isEqualTo("Rectangular")
   }
 
   private fun createImage(width: Int, height: Int): BufferedImage {

@@ -257,7 +257,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       if (canClipDeviceMask) {
         decorationOptions.addElement(DecorationOption.DISPLAY_SHAPE_CLIP);
       }
-      if (StudioFlags.PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED.get() && screenshotImage.isWear()) {
+      boolean isPlayCompatibleWearScreenshot = StudioFlags.PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED.get() && screenshotImage.isWear();
+      if (isPlayCompatibleWearScreenshot) {
         decorationOptions.addElement(DecorationOption.PLAY_COMPATIBLE);
       }
       int frameOptionStartIndex = decorationOptions.getSize();
@@ -270,8 +271,13 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
         myDecorationComboBox.setSelectedIndex(defaultFramingOption + frameOptionStartIndex); // Select the default framing option.
       }
       else {
-        // DISPLAY_SHAPE_CLIP or RECTANGULAR, if DISPLAY_SHAPE_CLIP is not available.
-        myDecorationComboBox.setSelectedItem(canClipDeviceMask ? DecorationOption.DISPLAY_SHAPE_CLIP : DecorationOption.RECTANGULAR);
+        if (canClipDeviceMask) {
+          myDecorationComboBox.setSelectedItem(DecorationOption.DISPLAY_SHAPE_CLIP);
+        } else if (isPlayCompatibleWearScreenshot) {
+          myDecorationComboBox.setSelectedItem(DecorationOption.PLAY_COMPATIBLE);
+        } else {
+          myDecorationComboBox.setSelectedItem(DecorationOption.RECTANGULAR);
+        }
       }
 
       ActionListener decorationListener = event -> {
