@@ -29,6 +29,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtConstructor
+import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.junit.Before
 import org.junit.Ignore
@@ -208,6 +209,93 @@ class ConsumerDaggerElementTest {
 
     assertThat(consumerOfProviderLazyFooDaggerElement.getRelatedDaggerElements())
       .containsExactly(DaggerRelatedElement(providerDaggerElement, "Providers"))
+  }
+
+  @Test
+  fun getRelatedDaggerElement_nullableTypes() {
+    addDaggerAndHiltClasses(myFixture)
+
+    // This is technically not a valid set of consumers/providers, since there are multiple
+    // providers for the same type and some providers don't work for all the consumers (eg, a
+    // provider of `Foo?` can't provide for a consumer of `Foo`.) But for the purpose of navigation,
+    // we want to show all the relationships regardless of nullability.
+    myFixture.openFileInEditor(
+      myFixture
+        .addFileToProject(
+          "src/com/example/Foo.kt",
+          // language=kotlin
+          """
+          package com.example
+
+          import dagger.Module
+          import dagger.Provides
+          import javax.inject.Inject
+
+          typealias MyNullableFoo = Foo?
+
+          class Foo {}
+
+          @Module
+          interface MyModule {
+            @Provides
+            fun provideFoo(): Foo = Foo()
+
+            @Provides
+            fun provideNullableFoo(): Foo? = Foo()
+
+            @Provides
+            fun provideMyNullableFoo(): MyNullableFoo = Foo()
+          }
+
+          class Bar @Inject constructor(
+            consumerOfFoo: Foo,
+            consumerOfNullableFoo: Foo?,
+            consumerOfMyNullableFoo: MyNullableFoo,
+          ) {}
+          """
+            .trimIndent()
+        )
+        .virtualFile
+    )
+
+    val consumerOfFooPsiElement =
+      myFixture.moveCaret("consumerOf|Foo").parentOfType<KtParameter>(withSelf = true)!!
+    val consumerOfFooDaggerElement = ConsumerDaggerElement(consumerOfFooPsiElement)
+
+    val consumerOfNullableFooPsiElement =
+      myFixture.moveCaret("consumerOf|NullableFoo").parentOfType<KtParameter>(withSelf = true)!!
+    val consumerOfNullableFooDaggerElement = ConsumerDaggerElement(consumerOfNullableFooPsiElement)
+
+    val consumerOfMyNullableFooPsiElement =
+      myFixture.moveCaret("consumerOf|MyNullableFoo").parentOfType<KtParameter>(withSelf = true)!!
+    val consumerOfMyNullableFooDaggerElement =
+      ConsumerDaggerElement(consumerOfMyNullableFooPsiElement)
+
+    val provideFooPsiElement =
+      myFixture.moveCaret("provide|Foo").parentOfType<KtFunction>(withSelf = true)!!
+    val provideFooDaggerElement = ProviderDaggerElement(provideFooPsiElement)
+
+    val provideNullableFooPsiElement =
+      myFixture.moveCaret("provide|NullableFoo").parentOfType<KtFunction>(withSelf = true)!!
+    val provideNullableFooDaggerElement = ProviderDaggerElement(provideNullableFooPsiElement)
+
+    val provideMyNullableFooPsiElement =
+      myFixture.moveCaret("provide|MyNullableFoo").parentOfType<KtFunction>(withSelf = true)!!
+    val provideMyNullableFooDaggerElement = ProviderDaggerElement(provideMyNullableFooPsiElement)
+
+    val consumerOfFooRelatedElements = consumerOfFooDaggerElement.getRelatedDaggerElements()
+    assertThat(consumerOfFooRelatedElements)
+      .containsExactly(
+        DaggerRelatedElement(provideFooDaggerElement, "Providers"),
+        DaggerRelatedElement(provideNullableFooDaggerElement, "Providers"),
+        DaggerRelatedElement(provideMyNullableFooDaggerElement, "Providers"),
+      )
+
+    assertThat(consumerOfNullableFooDaggerElement.getRelatedDaggerElements())
+      .containsExactlyElementsIn(consumerOfFooRelatedElements)
+
+    assertThat(consumerOfMyNullableFooDaggerElement.getRelatedDaggerElements())
+      .containsExactlyElementsIn(consumerOfFooRelatedElements)
   }
 
   @Test

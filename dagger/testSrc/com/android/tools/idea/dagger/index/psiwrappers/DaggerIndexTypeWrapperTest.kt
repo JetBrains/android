@@ -57,11 +57,11 @@ class DaggerIndexTypeWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
-      class Foo {
-        fun bar(): Baz {} 
-      }
-      """
+        package com.example
+        class Foo {
+          fun bar(): Baz {}
+        }
+        """
           .trimIndent()
       ) as KtFile
 
@@ -78,13 +78,13 @@ class DaggerIndexTypeWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
-      import com.other.Baz
+        package com.example
+        import com.other.Baz
 
-      class Foo {
-        fun bar(): Baz {} 
-      }
-      """
+        class Foo {
+          fun bar(): Baz {}
+        }
+        """
           .trimIndent()
       ) as KtFile
 
@@ -101,13 +101,13 @@ class DaggerIndexTypeWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
-      import com.other.Aliased as Baz
+        package com.example
+        import com.other.Aliased as Baz
 
-      class Foo {
-        fun bar(): Baz {} 
-      }
-      """
+        class Foo {
+          fun bar(): Baz {}
+        }
+        """
           .trimIndent()
       ) as KtFile
 
@@ -124,12 +124,12 @@ class DaggerIndexTypeWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      class Foo {
-        fun bar(): com.other.Baz {} 
-      }
-      """
+        class Foo {
+          fun bar(): com.other.Baz {}
+        }
+        """
           .trimIndent()
       ) as KtFile
 
@@ -146,13 +146,13 @@ class DaggerIndexTypeWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
-      import com.other.Baz
+        package com.example
+        import com.other.Baz
 
-      class Foo {
-        fun bar(): Baz.InnerClass {} 
-      }
-      """
+        class Foo {
+          fun bar(): Baz.InnerClass {}
+        }
+        """
           .trimIndent()
       ) as KtFile
 
@@ -169,13 +169,13 @@ class DaggerIndexTypeWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
-      import com.other.Aliased as Baz
+        package com.example
+        import com.other.Aliased as Baz
 
-      class Foo {
-        fun bar(): Baz.InnerClass {} 
-      }
-      """
+        class Foo {
+          fun bar(): Baz.InnerClass {}
+        }
+        """
           .trimIndent()
       ) as KtFile
 
@@ -192,13 +192,13 @@ class DaggerIndexTypeWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
-      import com.other.*
+        package com.example
+        import com.other.*
 
-      class Foo {
-        fun bar(): Baz {} 
-      }
-      """
+        class Foo {
+          fun bar(): Baz {}
+        }
+        """
           .trimIndent()
       ) as KtFile
 
@@ -215,17 +215,17 @@ class DaggerIndexTypeWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
-      import java.util.Optional
-      import java.util.Optional as OptionalAlias
+        package com.example
+        import java.util.Optional
+        import java.util.Optional as OptionalAlias
 
-      class Foo {
-        fun bar1(): List<Optional<String>> {}
-        fun bar2(): kotlin.collections.List<java.util.Optional<kotlin.String>> {}
-        fun bar3(): kotlin.collections.List<OptionalAlias<kotlin.String>> {}
-        fun bar4(): kotlin.Map<String, List<String>> {}
-      }
-      """
+        class Foo {
+          fun bar1(): List<Optional<String>> {}
+          fun bar2(): kotlin.collections.List<java.util.Optional<kotlin.String>> {}
+          fun bar3(): kotlin.collections.List<OptionalAlias<kotlin.String>> {}
+          fun bar4(): kotlin.Map<String, List<String>> {}
+        }
+        """
           .trimIndent()
       ) as KtFile
 
@@ -265,16 +265,16 @@ class DaggerIndexTypeWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import kotlin.Int as MyInt
+        import kotlin.Int as MyInt
 
-      class Foo {
-        fun bar1(): Int = 0
-        fun bar2(): kotlin.Int = 0
-        fun bar3(): MyInt = 0
-      }
-      """
+        class Foo {
+          fun bar1(): Int = 0
+          fun bar2(): kotlin.Int = 0
+          fun bar3(): MyInt = 0
+        }
+        """
           .trimIndent()
       ) as KtFile
 
@@ -307,16 +307,16 @@ class DaggerIndexTypeWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import kotlin.String as MyString
+        import kotlin.String as MyString
 
-      class Foo {
-        fun bar1(): String = 0
-        fun bar2(): kotlin.String = 0
-        fun bar3(): MyString = 0
-      }
-      """
+        class Foo {
+          fun bar1(): String = 0
+          fun bar2(): kotlin.String = 0
+          fun bar3(): MyString = 0
+        }
+        """
           .trimIndent()
       ) as KtFile
 
@@ -349,15 +349,15 @@ class DaggerIndexTypeWrapperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      class Foo {
-        fun bar1(): Array<Bar> {}
-        fun bar2(): Array<com.other.Bar> {}
-        fun bar3(): IntArray {}
-        fun bar4(): Array<Bar<Baz>> {}
-      }
-      """
+        class Foo {
+          fun bar1(): Array<Bar> {}
+          fun bar2(): Array<com.other.Bar> {}
+          fun bar3(): IntArray {}
+          fun bar4(): Array<Bar<Baz>> {}
+        }
+        """
           .trimIndent()
       ) as KtFile
 
@@ -391,17 +391,81 @@ class DaggerIndexTypeWrapperTest {
   }
 
   @Test
+  fun kotlinNullableTypes() {
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+        package com.example
+
+        class Foo {
+          fun nullable1(): Bar? {}
+          fun nullable2(): com.other.Bar? {}
+          fun nullable3(): Array<Bar>? {}
+          fun nullable4(): List<Bar>? {}
+          fun nullable5(): Int? {}
+          fun nullable6(): IntArray? {}
+        }
+        """
+          .trimIndent()
+      ) as KtFile
+
+    val nullable1ReturnTypeElement =
+      myFixture.moveCaret("nullable|1()").parentOfType<KtFunction>()?.getReturnTypeReference()!!
+    val nullable1ReturnTypeWrapper =
+      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(nullable1ReturnTypeElement)
+
+    assertThat(nullable1ReturnTypeWrapper.getSimpleName()).isEqualTo("Bar")
+
+    val nullable2ReturnTypeElement =
+      myFixture.moveCaret("nullable|2()").parentOfType<KtFunction>()?.getReturnTypeReference()!!
+    val nullable2ReturnTypeWrapper =
+      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(nullable2ReturnTypeElement)
+
+    assertThat(nullable2ReturnTypeWrapper.getSimpleName()).isEqualTo("Bar")
+
+    val nullable3ReturnTypeElement =
+      myFixture.moveCaret("nullable|3()").parentOfType<KtFunction>()?.getReturnTypeReference()!!
+    val nullable3ReturnTypeWrapper =
+      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(nullable3ReturnTypeElement)
+
+    assertThat(nullable3ReturnTypeWrapper.getSimpleName()).isEqualTo("Array")
+
+    val nullable4ReturnTypeElement =
+      myFixture.moveCaret("nullable|4()").parentOfType<KtFunction>()?.getReturnTypeReference()!!
+    val nullable4ReturnTypeWrapper =
+      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(nullable4ReturnTypeElement)
+
+    assertThat(nullable4ReturnTypeWrapper.getSimpleName()).isEqualTo("List")
+
+    val nullable5ReturnTypeElement =
+      myFixture.moveCaret("nullable|5()").parentOfType<KtFunction>()?.getReturnTypeReference()!!
+    val nullable5ReturnTypeWrapper =
+      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(nullable5ReturnTypeElement)
+
+    assertThat(nullable5ReturnTypeWrapper.getSimpleName()).isEqualTo("Int")
+
+    val nullable6ReturnTypeElement =
+      myFixture.moveCaret("nullable|6()").parentOfType<KtFunction>()?.getReturnTypeReference()!!
+    val nullable6ReturnTypeWrapper =
+      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(nullable6ReturnTypeElement)
+
+    assertThat(nullable6ReturnTypeWrapper.getSimpleName()).isEqualTo("IntArray")
+  }
+
+  @Test
   fun javaUnqualifiedType() {
     val psiFile =
       myFixture.configureByText(
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
-      public class Foo {
-        public Baz bar() {}
-      }
-      """
+        package com.example;
+        public class Foo {
+          public Baz bar() {}
+        }
+        """
           .trimIndent()
       ) as PsiJavaFile
 
@@ -418,13 +482,13 @@ class DaggerIndexTypeWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
-      import com.other.Baz;
-      
-      public class Foo {
-        public Baz bar() {}
-      }
-      """
+        package com.example;
+        import com.other.Baz;
+
+        public class Foo {
+          public Baz bar() {}
+        }
+        """
           .trimIndent()
       ) as PsiJavaFile
 
@@ -441,11 +505,11 @@ class DaggerIndexTypeWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
-      public class Foo {
-        public com.other.Baz bar() {}
-      }
-      """
+        package com.example;
+        public class Foo {
+          public com.other.Baz bar() {}
+        }
+        """
           .trimIndent()
       ) as PsiJavaFile
 
@@ -462,13 +526,13 @@ class DaggerIndexTypeWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
-      import com.other.Baz;
-      
-      public class Foo {
-        public Baz.InnerClass bar() {}
-      }
-      """
+        package com.example;
+        import com.other.Baz;
+
+        public class Foo {
+          public Baz.InnerClass bar() {}
+        }
+        """
           .trimIndent()
       ) as PsiJavaFile
 
@@ -485,13 +549,13 @@ class DaggerIndexTypeWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
-      import com.other.*;
+        package com.example;
+        import com.other.*;
 
-      public class Foo {
-        public Baz bar() {}
-      }
-      """
+        public class Foo {
+          public Baz bar() {}
+        }
+        """
           .trimIndent()
       ) as PsiJavaFile
 
@@ -508,17 +572,17 @@ class DaggerIndexTypeWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
-      import java.util.List;
-      import java.util.Map;
-      import java.util.Optional;
+        package com.example;
+        import java.util.List;
+        import java.util.Map;
+        import java.util.Optional;
 
-      public class Foo {
-        public List<Optional<String>> bar1() {}
-        public java.util.List<java.util.Optional<java.lang.String>> bar2() {}
-        public Map<String, Integer> bar3() {}
-      }
-      """
+        public class Foo {
+          public List<Optional<String>> bar1() {}
+          public java.util.List<java.util.Optional<java.lang.String>> bar2() {}
+          public Map<String, Integer> bar3() {}
+        }
+        """
           .trimIndent()
       ) as PsiJavaFile
 
@@ -548,14 +612,14 @@ class DaggerIndexTypeWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+        package com.example;
 
-      public class Foo {
-        public int bar1() {}
-        public Integer bar2() {}
-        public java.lang.Integer bar3() {}
-      }
-      """
+        public class Foo {
+          public int bar1() {}
+          public Integer bar2() {}
+          public java.lang.Integer bar3() {}
+        }
+        """
           .trimIndent()
       ) as PsiJavaFile
 
@@ -585,13 +649,13 @@ class DaggerIndexTypeWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+        package com.example;
 
-      public class Foo {
-        public String bar1() {}
-        public java.lang.String bar2() {}
-      }
-      """
+        public class Foo {
+          public String bar1() {}
+          public java.lang.String bar2() {}
+        }
+        """
           .trimIndent()
       ) as PsiJavaFile
 
@@ -615,16 +679,16 @@ class DaggerIndexTypeWrapperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
+        package com.example;
 
-      public class Foo {
-        public Bar[] bar1() {}
-        public com.other.Bar[] bar2() {}
-        public Integer[] bar3() {}
-        public int[] bar4() {}
-        public Bar<Baz>[] bar5() {}
-      }
-      """
+        public class Foo {
+          public Bar[] bar1() {}
+          public com.other.Bar[] bar2() {}
+          public Integer[] bar3() {}
+          public int[] bar4() {}
+          public Bar<Baz>[] bar5() {}
+        }
+        """
           .trimIndent()
       ) as PsiJavaFile
 

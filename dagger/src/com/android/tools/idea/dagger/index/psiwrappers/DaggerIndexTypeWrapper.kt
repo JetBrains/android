@@ -19,6 +19,8 @@ import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiPrimitiveType
 import com.intellij.psi.PsiType
 import com.intellij.psi.PsiTypeElement
+import org.jetbrains.kotlin.psi.KtNullableType
+import org.jetbrains.kotlin.psi.KtTypeElement
 import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.psi.KtUserType
 
@@ -49,6 +51,7 @@ interface DaggerIndexTypeWrapper : DaggerIndexPsiWrapper {
    *    "Integer"). This is because Dagger treats arrays of boxed types as different from arrays of
    *    unboxed types. Kotlin arrays will return either a primitive array type (eg "IntArray") or a
    *    generic object array type (eg "Array<TypeName>").
+   * 5. **Nullables** in Kotlin are stored as if they were the inner non-nullable type.
    */
   fun getSimpleName(): String
 }
@@ -59,15 +62,15 @@ internal class KtTypeReferenceWrapper(
 ) : DaggerIndexTypeWrapper {
   override fun getSimpleName(): String = ktTypeReference.getSimpleName()
 
-  private fun KtTypeReference.getSimpleName(): String {
-    // We always expect to have a KtUserType with a reference expression in the scenarios these
-    // wrappers are used for.
-    val ktUserType = typeElement as KtUserType
-    val simpleNameInCode = ktUserType.referenceExpression?.getReferencedName()!!
+  private fun KtTypeReference.getSimpleName() =
+    typeElement!!.toNonNullableUserType().getSimpleName()
+
+  private fun KtUserType.getSimpleName(): String {
+    val simpleNameInCode = referenceExpression?.getReferencedName()!!
 
     // Replace any import alias in the simple name.
     val aliasedSimpleName =
-      if (ktUserType.qualifier != null) {
+      if (qualifier != null) {
         // If the type has any qualifiers, then the only part that can be aliased is at the
         // beginning. Therefore, the alias isn't part of the simple name, and we can just return
         // here.
@@ -80,6 +83,11 @@ internal class KtTypeReferenceWrapper(
 
     return aliasedSimpleName
   }
+
+  private fun KtTypeElement.toNonNullableUserType(): KtUserType =
+    // We always expect to have a type element that can resolve down to a `KtUserType` in the
+    // scenarios these wrappers are used for.
+    (if (this is KtNullableType) innerType else this) as KtUserType
 }
 
 internal class PsiTypeElementWrapper(private val psiTypeElement: PsiTypeElement) :
