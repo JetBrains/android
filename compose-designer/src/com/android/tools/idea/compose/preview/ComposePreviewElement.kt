@@ -24,7 +24,6 @@ import com.android.SdkConstants.ATTR_MIN_WIDTH
 import com.android.SdkConstants.VALUE_WRAP_CONTENT
 import com.android.ide.common.resources.Locale
 import com.android.resources.Density
-import com.android.resources.ScreenRound
 import com.android.sdklib.IAndroidTarget
 import com.android.sdklib.devices.Device
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
@@ -177,10 +176,6 @@ private fun Int?.truncate(min: Int, max: Int): Int? {
 
 /** Empty device spec when the user has not specified any. */
 private const val NO_DEVICE_SPEC = ""
-
-/** Returns if the device has any state with [ScreenRound.ROUND] configuration. */
-private fun Device.hasRoundFrame(): Boolean =
-  allStates.any { it.hardware.screen.screenRound == ScreenRound.ROUND }
 
 /**
  * Applies the [PreviewConfiguration] to the given [Configuration].
