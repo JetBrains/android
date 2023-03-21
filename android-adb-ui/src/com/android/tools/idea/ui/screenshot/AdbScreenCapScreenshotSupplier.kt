@@ -38,7 +38,7 @@ private val commandTimeout = INFINITE_DURATION
 /**
  * A [ScreenshotSupplier] that uses `adb shell screencap`
  */
-internal class AdbScreenCapScreenshotSupplier(
+class AdbScreenCapScreenshotSupplier(
   project: Project,
   private val serialNumber: String,
   private val screenshotOptions: ScreenshotOptions,
