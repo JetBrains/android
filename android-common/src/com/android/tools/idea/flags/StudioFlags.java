@@ -646,14 +646,6 @@ public final class StudioFlags {
     false
   );
 
-  public static final Flag<Boolean> LOGCAT_NAMED_FILTERS_ENABLE = Flag.create(
-    LOGCAT,
-    "logcat.named.filters.enable",
-    "Enable Logcat named filters feature",
-    "Enables the named filters feature in the Logcat tool window",
-    false
-  );
-
   public static final Flag<Boolean> LOGCAT_CUSTOM_FORMAT_ACTION = Flag.create(
     LOGCAT,
     "logcat.custom.format.action",

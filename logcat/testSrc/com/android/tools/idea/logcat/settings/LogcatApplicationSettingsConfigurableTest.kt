@@ -151,13 +151,11 @@ class LogcatApplicationSettingsConfigurableTest {
       bufferSize = 100 * 1024,
       defaultFilter = "foo",
       mostRecentlyUsedFilterIsDefault = false,
-      namedFiltersEnabled = false,
       ignoredTags = emptySet())
     val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
     configurable.cycleBufferSizeTextField.text = "200"
     configurable.defaultFilterTextField.text = "bar"
     configurable.mostRecentlyUsedFilterIsDefaultCheckbox.isSelected = true
-    configurable.enableNamedFiltersCheckbox.isSelected = true
     configurable.ignoreTagsTextField.component.text = " foo  bar "
 
     configurable.apply()
@@ -166,7 +164,6 @@ class LogcatApplicationSettingsConfigurableTest {
       bufferSize = 200 * 1024,
       defaultFilter = "bar",
       mostRecentlyUsedFilterIsDefault = true,
-      namedFiltersEnabled = true,
       ignoredTags = setOf("foo", "bar")))
   }
 
@@ -200,17 +197,6 @@ class LogcatApplicationSettingsConfigurableTest {
     assertThat(configurable.isModified).isFalse()
 
     configurable.mostRecentlyUsedFilterIsDefaultCheckbox.isSelected = true
-
-    assertThat(configurable.isModified).isTrue()
-  }
-
-  @Test
-  fun isModified_namedFilters() {
-    logcatSettings.namedFiltersEnabled = false
-    val configurable = logcatApplicationSettingsConfigurable(logcatSettings)
-    assertThat(configurable.isModified).isFalse()
-
-    configurable.enableNamedFiltersCheckbox.isSelected = true
 
     assertThat(configurable.isModified).isTrue()
   }
