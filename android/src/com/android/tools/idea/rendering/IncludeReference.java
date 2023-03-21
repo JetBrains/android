@@ -147,19 +147,6 @@ public class IncludeReference {
     return LAYOUT_RESOURCE_PREFIX + getFromResourceName();
   }
 
-  @Nullable
-  public static String getIncludingLayout(@NotNull XmlFile file) {
-    if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-      return ApplicationManager.getApplication().runReadAction((Computable<String>)() -> getIncludingLayout(file));
-    }
-    XmlTag rootTag = file.getRootTag();
-    if (rootTag != null && rootTag.isValid()) {
-      return rootTag.getAttributeValue(ATTR_SHOW_IN, TOOLS_URI);
-    }
-
-    return null;
-  }
-
   public static void setIncludingLayout(@NotNull Project project, @NotNull XmlFile xmlFile, @Nullable String layout) {
     XmlTag tag = xmlFile.getRootTag();
     if (tag != null) {
@@ -180,7 +167,7 @@ public class IncludeReference {
 
     ApplicationManager.getApplication().assertReadAccessAllowed();
     XmlTag rootTag = file.getRootTag();
-    if (rootTag != null) {
+    if (rootTag != null && rootTag.isValid()) {
       String layoutRef = rootTag.getAttributeValue(ATTR_SHOW_IN, TOOLS_URI);
       if (layoutRef != null) {
         ResourceUrl layoutUrl = ResourceUrl.parse(layoutRef);

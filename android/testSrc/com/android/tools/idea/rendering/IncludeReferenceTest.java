@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.configurations.ResourceResolverCache;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
@@ -58,8 +59,6 @@ public class IncludeReferenceTest extends AndroidTestCase {
     XmlFile psiFile = (XmlFile)PsiManager.getInstance(getProject()).findFile(included);
     assertNotNull(psiFile);
 
-    assertEquals("@layout/includer", IncludeReference.getIncludingLayout(psiFile));
-
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = manager.getConfiguration(included);
     ResourceResolver resourceResolver = configuration.getResourceResolver();
@@ -75,9 +74,10 @@ public class IncludeReferenceTest extends AndroidTestCase {
     IncludeReference.setIncludingLayout(getProject(), psiFile, null);
     assertEquals(IncludeReference.NONE, IncludeReference.get(psiFile, resourceResolver));
 
-    VirtualFile other = myFixture.copyFileToProject("xmlpull/designtime.xml", "res/layout-land/designtime.xml");
+    VirtualFile other = myFixture.copyFileToProject("xmlpull/designtime.xml", "res/layout/designtime.xml");
     assertNotNull(other);
     IncludeReference.setIncludingLayout(getProject(), psiFile, "@layout/designtime");
-    assertEquals("@layout/designtime", IncludeReference.getIncludingLayout(psiFile));
+    manager.getResolverCache().reset();
+    assertEquals("@layout/designtime", IncludeReference.get(psiFile, configuration.getResourceResolver()).getFromResourceUrl());
   }
 }
