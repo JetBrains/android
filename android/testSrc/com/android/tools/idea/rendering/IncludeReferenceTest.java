@@ -65,12 +65,12 @@ public class IncludeReferenceTest extends AndroidTestCase {
 
     assertEquals(reference.getFromFile(), includer);
 
-    IncludeReference.setIncludingLayout(getProject(), psiFile, null);
+    IncludingLayout.setIncludingLayout(psiFile, null);
     assertEquals(IncludeReference.NONE, IncludeReference.get(psiFile, resourceResolver));
 
     VirtualFile other = myFixture.copyFileToProject("xmlpull/designtime.xml", "res/layout/designtime.xml");
     assertNotNull(other);
-    IncludeReference.setIncludingLayout(getProject(), psiFile, "@layout/designtime");
+    IncludingLayout.setIncludingLayout(psiFile, "@layout/designtime");
     manager.getResolverCache().reset();
     assertEquals("@layout/designtime", IncludeReference.get(psiFile, configuration.getResourceResolver()).getFromResourceUrl());
   }

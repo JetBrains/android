@@ -102,14 +102,6 @@ public class IncludeReference {
     return LAYOUT_RESOURCE_PREFIX + getFromResourceName();
   }
 
-  public static void setIncludingLayout(@NotNull Project project, @NotNull XmlFile xmlFile, @Nullable String layout) {
-    XmlTag tag = xmlFile.getRootTag();
-    if (tag != null) {
-      SetAttributeFix fix = new SetAttributeFix(tag, ATTR_SHOW_IN, TOOLS_URI, layout);
-      fix.executeCommand();
-    }
-  }
-
   /**
    * Returns an {@link IncludeReference} specified for the given file, or {@link #NONE} if no include should be performed from
    * the given file.
