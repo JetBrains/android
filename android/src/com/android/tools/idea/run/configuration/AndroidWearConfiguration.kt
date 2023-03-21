@@ -24,6 +24,7 @@ import com.android.tools.idea.execution.common.DeployOptions
 import com.android.tools.idea.execution.common.DeployableToDevice
 import com.android.tools.idea.execution.common.WearSurfaceLaunchOptions
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerContext
+import com.android.tools.idea.execution.common.debug.RunConfigurationWithDebugger
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
 import com.android.tools.idea.execution.common.stats.RunStats
 import com.android.tools.idea.execution.common.stats.RunStatsService
@@ -38,7 +39,6 @@ import com.android.tools.idea.run.PreferGradleMake
 import com.android.tools.idea.run.configuration.editors.AndroidWearConfigurationEditor
 import com.android.tools.idea.run.configuration.execution.ApplicationDeployerImpl
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxTargetProvider
-import com.android.tools.idea.run.editor.RunConfigurationWithDebugger
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory

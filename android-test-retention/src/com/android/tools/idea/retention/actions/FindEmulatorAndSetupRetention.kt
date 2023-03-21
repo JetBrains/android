@@ -27,6 +27,7 @@ import com.android.tools.idea.avdmanager.AvdManagerConnection
 import com.android.tools.idea.avdmanager.emulatorcommand.EmulatorCommandBuilder
 import com.android.tools.idea.execution.common.debug.AndroidDebugger
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
+import com.android.tools.idea.execution.common.debug.utils.AndroidConnectDebugger
 import com.android.tools.idea.io.grpc.stub.ClientCallStreamObserver
 import com.android.tools.idea.io.grpc.stub.ClientResponseObserver
 import com.android.tools.idea.io.grpc.stub.StreamObserver
@@ -69,7 +70,6 @@ import com.intellij.xdebugger.frame.XStackFrame
 import com.intellij.xdebugger.frame.XSuspendContext
 import com.android.tools.idea.sdk.AvdManagerCache
 import com.android.tools.idea.sdk.IdeAvdManagers
-import org.jetbrains.android.actions.AndroidConnectDebuggerAction
 import java.io.File
 import java.io.IOException
 import java.nio.charset.Charset
@@ -375,7 +375,7 @@ private fun connectDebugger(device: IDevice, dataContext: DataContext) {
     LOG.warn("Cannot find java debuggers.")
     return
   }
-  AndroidConnectDebuggerAction.closeOldSessionAndRun(project, androidDebugger, client, null)
+  AndroidConnectDebugger.closeOldSessionAndRun(project, androidDebugger, client, null)
 }
 
 /**
