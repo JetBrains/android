@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.util
 
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
-import com.android.tools.idea.rendering.RenderResult
 
 internal fun findComposeViewAdapter(viewObj: Any): Any? {
   if (COMPOSE_VIEW_ADAPTER_FQN == viewObj.javaClass.name) {
@@ -31,6 +30,3 @@ internal fun findComposeViewAdapter(viewObj: Any): Any? {
   }
   return null
 }
-
-internal fun RenderResult?.findComposeViewAdapter(): Any? =
-  this?.rootViews?.mapNotNull { findComposeViewAdapter(it.viewObject) }?.firstOrNull()
