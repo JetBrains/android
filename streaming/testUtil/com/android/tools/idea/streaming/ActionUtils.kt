@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,8 +40,8 @@ import java.awt.event.KeyEvent.VK_E
 /**
  * Executes an action related to device streaming.
  */
-internal fun executeDeviceAction(
-    actionId: String, displayView: AbstractDisplayView, project: Project, place: String = ActionPlaces.TOOLBAR) {
+fun executeDeviceAction(
+  actionId: String, displayView: AbstractDisplayView, project: Project, place: String = ActionPlaces.TOOLBAR) {
   val action = ActionManager.getInstance().getAction(actionId)
   val event = createTestEvent(displayView, project, place)
   action.update(event)
@@ -49,8 +49,8 @@ internal fun executeDeviceAction(
   action.actionPerformed(event)
 }
 
-internal fun updateAndGetActionPresentation(
-    actionId: String, displayView: AbstractDisplayView, project: Project, place: String = ActionPlaces.KEYBOARD_SHORTCUT): Presentation {
+fun updateAndGetActionPresentation(
+  actionId: String, displayView: AbstractDisplayView, project: Project, place: String = ActionPlaces.KEYBOARD_SHORTCUT): Presentation {
   val action = ActionManager.getInstance().getAction(actionId)
   val event = createTestEvent(displayView, project, place)
   action.update(event)
