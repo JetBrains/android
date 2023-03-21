@@ -18,15 +18,14 @@ package com.android.tools.adtui.ui
 import com.android.annotations.concurrency.WorkerThread
 import com.intellij.ui.icons.CachedImageIcon
 import com.intellij.ui.scale.ScaleContext
-import com.intellij.util.SVGLoader
 import java.awt.Image
-import java.net.URL
 import javax.swing.Icon
+import javax.swing.ImageIcon
 
 /**
  * A [ScaledImageProvider] for SVG resources. Aspect ratio is preserved when scaling.
  */
-class SVGScaledImageProvider(private val url: URL, private val image: Image?) : ScaledImageProvider {
+class SVGScaledImageProvider(private val cachedIcon: CachedImageIcon, private val image: Image?) : ScaledImageProvider {
   override val initialImage: Image?
     get() = image
 
@@ -34,10 +33,11 @@ class SVGScaledImageProvider(private val url: URL, private val image: Image?) : 
   @WorkerThread
   override fun createScaledImage(ctx: ScaleContext, width: Double, height: Double): Image {
     // Preserve an aspect ratio
-    val size = width.coerceAtMost(height) // min(width, height)
+    val size = width.coerceAtMost(height).toFloat() // min(width, height)
+    val unscaledSize = cachedIcon.iconWidth.coerceAtMost(cachedIcon.iconHeight)
 
     // Load SVG file, with HiDPI support from [ctx]
-    return SVGLoader.load(url, url.openStream(), ctx, size, size)
+    return (cachedIcon.scale(size / unscaledSize) as ImageIcon).image
   }
 
   companion object {
@@ -51,11 +51,7 @@ class SVGScaledImageProvider(private val url: URL, private val image: Image?) : 
 
     @JvmStatic
     fun create(cachedIcon: CachedImageIcon): SVGScaledImageProvider {
-      val url = cachedIcon.url
-      if (url != null) {
-        return SVGScaledImageProvider(url, cachedIcon.getRealIcon().image)
-      }
-      throw IllegalArgumentException("CachedImageIcon should have a valid URL")
+      return SVGScaledImageProvider(cachedIcon, cachedIcon.getRealIcon().image)
     }
   }
 }
