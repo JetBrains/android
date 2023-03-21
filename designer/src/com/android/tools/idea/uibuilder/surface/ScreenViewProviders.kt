@@ -22,7 +22,6 @@ import com.android.tools.idea.common.surface.SceneLayer
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.ScreenView.DEVICE_CONTENT_SIZE_POLICY
-import com.android.tools.idea.uibuilder.visual.ColorBlindModeScreenViewLayer
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
@@ -200,7 +199,7 @@ internal fun visualizationProvider(surface: NlDesignSurface,
 /**
  * Returns appropriate mode based on model display name.
  */
-private fun colorBlindMode(sceneManager: SceneManager): ColorBlindMode? {
+private fun findColorBlindMode(sceneManager: SceneManager): ColorBlindMode? {
   val model: NlModel = sceneManager.model
   for (mode in ColorBlindMode.values()) {
     if (mode.displayName == model.modelDisplayName) {
@@ -221,9 +220,10 @@ internal fun colorBlindProvider(surface: NlDesignSurface,
       ImmutableList.builder<Layer>().apply {
         // Always has border in visualization tool.
         add(BorderLayer(it))
-        val mode: ColorBlindMode? = colorBlindMode(manager)
+        // Try to get the specific blind mode for this manager/model
+        val mode: ColorBlindMode? = findColorBlindMode(manager)
         if (mode != null) {
-          add(ColorBlindModeScreenViewLayer(it, mode))
+          add(ScreenViewLayer(it, mode))
         }
         else {
           // ERROR - at least show the original.
@@ -246,7 +246,7 @@ internal fun colorBlindProviderSelector(surface: NlDesignSurface,
       ImmutableList.builder<Layer>().apply {
         // Always has border in visualization tool.
         add(BorderLayer(it))
-        add(ColorBlindModeScreenViewLayer(it, mode))
+        add(ScreenViewLayer(it, mode))
       }.build()
     }
     .disableBorder()
