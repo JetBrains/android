@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package google.play.developer.reporting.v1beta1;
+import "releases.proto";
+option java_package = "com.google.play.developer.reporting";
+option java_outer_classname = "ReportingServiceProto";
+option java_multiple_files = true;
+
+// Reference: https://source.corp.google.com/piper///depot/google3/google/play/developer/reporting/v1main/reporting_service.proto
+//
+// Service used to retrieve reporting metadata.
+service ReportingService {
+  // Describes filtering options for releases.
+  rpc FetchReleaseFilterOptions(FetchReleaseFilterOptionsRequest) returns
+    (ReleaseFilterOptions) {
+  }
+
+  // Searches for Apps accessible by the user.
+  rpc SearchAccessibleApps(SearchAccessibleAppsRequest) returns
+    (SearchAccessibleAppsResponse) {
+  }
+}
+
+// Request message for
+// [FetchReleaseFilterOptions][google.play.developer.reporting.v1beta1.ReportingService.FetchReleaseFilterOptions].
+message FetchReleaseFilterOptionsRequest {
+  // Name of the resource, i.e. app the filtering options are for.
+  //
+  // Format: apps/{app}
+  string name = 1;
+}
+
+// A set of filtering options for releases and version codes specific to an app.
+message ReleaseFilterOptions {
+  // List of tracks to filter releases over.
+  //
+  // Provides the grouping of version codes under releases and tracks.
+  repeated Track tracks = 1;
+}
+
+// Request message for
+// [SearchAccessibleApps][google.play.developer.reporting.v1beta1.ReportingService.SearchAccessibleApps].
+message SearchAccessibleAppsRequest {
+  // The maximum number of apps to return. The service may return fewer than
+  // this value.
+  // If unspecified, at most 50 apps will be returned.
+  // The maximum value is 1000; values above 1000 will be coerced to 1000.
+  int32 page_size = 1;
+
+  // A page token, received from a previous `SearchAccessibleApps` call.
+  // Provide this to retrieve the subsequent page.
+  // When paginating, all other parameters provided to `SearchAccessibleApps`
+  // must match the call that provided the page token.
+  string page_token = 2;
+}
+
+// Response message for
+// [SearchAccessibleApps][google.play.developer.reporting.v1beta1.ReportingService.SearchAccessibleApps].
+message SearchAccessibleAppsResponse {
+  // The apps accessible to the user calling the endpoint.
+  repeated App apps = 1;
+
+  // A token, which can be sent as `page_token` to retrieve the next page.
+  // If this field is omitted, there are no subsequent pages.
+  string next_page_token = 2;
+}
+
+// A representation of an app in the Play Store.
+//
+// (== resource_for v1beta1.apps ==)
+message App {
+  // The resource name.
+  //
+  // Format: apps/{app}
+  string name = 1;
+
+  // Package name of the app.
+  //
+  // Example: `com.example.app123`.
+  string package_name = 2;
+
+  // Title of the app as displayed in the Play Store.
+  //
+  // Example: `Google Maps`.
+  string display_name = 3;
+}

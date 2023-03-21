@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package google.play.developer.reporting.v1beta1;
+option java_package = "com.google.play.developer.reporting";
+option java_outer_classname = "ReleasesProto";
+option java_multiple_files = true;
+
+// https://source.corp.google.com/piper///depot/google3/google/play/developer/reporting/v1main/releases.proto
+//
+// A representation of a Play release track.
+message Track {
+  // Readable identifier of the track.
+  string display_name = 1;
+
+  // The type of the track.
+  string type = 2;
+
+  // Represents all active releases in the track.
+  repeated Release serving_releases = 3;
+}
+
+// A representation of an app release.
+message Release {
+  // Readable identifier of the release.
+  string display_name = 1;
+
+  // The version codes contained in this release.
+  repeated int64 version_codes = 2;
+}

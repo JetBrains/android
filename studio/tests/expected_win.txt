@@ -1412,6 +1412,7 @@ android-studio/plugins/android/lib/org.eclipse.emf.ecore-2.12.0.jar
 android-studio/plugins/android/lib/pepk.jar
 android-studio/plugins/android/lib/perfetto-protos.jar
 android-studio/plugins/android/lib/pixelprobe.jar
+android-studio/plugins/android/lib/play_vitals_java_proto.jar
 android-studio/plugins/android/lib/proto.jar
 android-studio/plugins/android/lib/r8.jar
 android-studio/plugins/android/lib/repository.jar

@@ -66,6 +66,7 @@ studio_plugin(
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:workmanager-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:workmanager-inspector-proto",
+        "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_java_proto",
         "//tools/adt/idea/compose-designer:ui-animation-tooling-internal",
         "//tools/adt/idea/profilers-android:traceprocessor-proto",
         "//tools/adt/idea/profilers:traceprocessor-proto",

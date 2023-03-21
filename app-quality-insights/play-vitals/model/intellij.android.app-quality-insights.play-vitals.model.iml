@@ -10,5 +10,16 @@
     <orderEntry type="library" name="studio-sdk" level="project" />
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.api" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="library" name="studio-grpc" level="project" />
+    <orderEntry type="library" name="studio-proto" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../../../../../bazel-bin/tools/adt/idea/app-quality-insights/play-vitals/model/proto/play_vitals_java_proto.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
   </component>
 </module>

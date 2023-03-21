@@ -2093,6 +2093,7 @@ Android Studio Preview.app/Contents/plugins/android/lib/org.eclipse.emf.ecore-2.
 Android Studio Preview.app/Contents/plugins/android/lib/pepk.jar
 Android Studio Preview.app/Contents/plugins/android/lib/perfetto-protos.jar
 Android Studio Preview.app/Contents/plugins/android/lib/pixelprobe.jar
+Android Studio Preview.app/Contents/plugins/android/lib/play_vitals_java_proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/r8.jar
 Android Studio Preview.app/Contents/plugins/android/lib/repository.jar

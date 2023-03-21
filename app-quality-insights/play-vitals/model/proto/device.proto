@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package google.play.developer.reporting.v1beta1;
+option java_package = "com.google.play.developer.reporting";
+option java_outer_classname = "DeviceProto";
+option java_multiple_files = true;
+
+// Reference: https://source.corp.google.com/piper///depot/google3/google/play/developer/reporting/v1main/device.proto
+//
+// Summary of a device
+message DeviceModelSummary {
+  // Identifier of the device.
+  DeviceId device_id = 1;
+
+  // Display name of the device.
+  string marketing_name = 2;
+
+  // Link to the device in Play Device Catalog.
+  string device_uri = 3;
+}
+
+// Identifier of a device.
+message DeviceId {
+  // Value of Build.BRAND.
+  string build_brand = 1;
+
+  // Value of Build.DEVICE.
+  string build_device = 2;
+}
