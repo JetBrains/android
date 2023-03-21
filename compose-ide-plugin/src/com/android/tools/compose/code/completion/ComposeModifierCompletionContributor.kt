@@ -16,7 +16,10 @@
 package com.android.tools.compose.code.completion
 
 import com.android.tools.compose.COMPOSE_MODIFIER_FQN
+import com.android.tools.compose.callReturnTypeFqName
+import com.android.tools.compose.matchingParamTypeFqName
 import com.android.tools.compose.isComposeEnabled
+import com.android.tools.compose.returnTypeFqName
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionInitializationContext
 import com.intellij.codeInsight.completion.CompletionParameters
@@ -39,7 +42,6 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
 import org.jetbrains.kotlin.idea.caches.resolve.resolveImportReference
-import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
 import org.jetbrains.kotlin.idea.caches.resolve.util.getResolveScope
 import org.jetbrains.kotlin.idea.completion.BasicLookupElementFactory
 import org.jetbrains.kotlin.idea.completion.CollectRequiredTypesContextVariablesProvider
@@ -55,10 +57,8 @@ import org.jetbrains.kotlin.idea.util.CallTypeAndReceiver
 import org.jetbrains.kotlin.idea.util.ImportInsertHelper
 import org.jetbrains.kotlin.idea.util.getResolutionScope
 import org.jetbrains.kotlin.idea.util.receiverTypesWithIndex
-import org.jetbrains.kotlin.js.translate.callTranslator.getReturnType
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.nj2k.postProcessing.resolve
-import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtCallElement
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -72,7 +72,6 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
-import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import org.jetbrains.kotlin.psi.psiUtil.getReceiverExpression
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
@@ -95,7 +94,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       return
     }
 
-    // It says "on imported" because only in that case we are able resolve that it called on Modifier.
+    // It says "on imported" because only in that case we are able to resolve that it called on Modifier.
     val isMethodCalledOnImportedModifier = element.isMethodCalledOnModifier()
     ProgressManager.checkCanceled()
     val isModifierType = isMethodCalledOnImportedModifier || element.isModifierArgument || element.isModifierProperty
@@ -215,7 +214,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
     get() {
       // Case val myModifier:Modifier = <caret>
       val property = parent?.parent as? KtProperty ?: return false
-      return property.type()?.fqName?.asString() == COMPOSE_MODIFIER_FQN
+      return property.returnTypeFqName()?.asString() == COMPOSE_MODIFIER_FQN
     }
 
   private val PsiElement.isModifierArgument: Boolean
@@ -225,14 +224,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
       val callExpression = argument.parentOfType<KtCallElement>() ?: return false
       val callee = callExpression.calleeExpression?.mainReference?.resolve() as? KtNamedFunction ?: return false
 
-      val argumentTypeFqName = if (argument.isNamed()) {
-        val argumentName = argument.getArgumentName()!!.asName.asString()
-        callee.valueParameters.find { it.name == argumentName }?.type()?.fqName
-      }
-      else {
-        val argumentIndex = (argument.parent as KtValueArgumentList).arguments.indexOf(argument)
-        callee.valueParameters.getOrNull(argumentIndex)?.type()?.fqName
-      }
+      val argumentTypeFqName = argument.matchingParamTypeFqName(callee)
 
       return argumentTypeFqName?.asString() == COMPOSE_MODIFIER_FQN
     }
@@ -245,7 +237,7 @@ class ComposeModifierCompletionContributor : CompletionContributor() {
   private fun PsiElement.isMethodCalledOnModifier(): Boolean {
     val elementOnWhichMethodCalled: KtExpression = (parent as? KtNameReferenceExpression)?.getReceiverExpression() ?: return false
     // Case Modifier.align().%this%, modifier.%this%
-    val fqName = elementOnWhichMethodCalled.resolveToCall(BodyResolveMode.PARTIAL)?.getReturnType()?.fqName ?:
+    val fqName = elementOnWhichMethodCalled.callReturnTypeFqName() ?:
                  // Case Modifier.%this%
                  ((elementOnWhichMethodCalled as? KtNameReferenceExpression)?.resolve() as? KtClass)?.fqName
     return fqName?.asString() == COMPOSE_MODIFIER_FQN
