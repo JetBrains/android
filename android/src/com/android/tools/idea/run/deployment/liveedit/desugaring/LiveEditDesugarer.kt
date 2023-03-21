@@ -53,9 +53,6 @@ internal class LiveEditDesugar : AutoCloseable{
         val desugaredClasses = desugarClasses(request.compilerOutput.classes, apiVersion)
         response.addOutputSet(apiVersion, desugaredClasses)
       }
-    }
-    catch (e: Exception) {
-      e.printStackTrace()
     } finally {
       jarResourceCacheManager.done()
     }
@@ -196,7 +193,7 @@ internal class LiveEditDesugar : AutoCloseable{
      val moduleSys = module.getModuleSystem()
      if (!moduleSys.desugarLibraryConfigFilesKnown) {
        // If AGP does not support config retrieval, we cannot proceed
-       desugarFailure("Unable to desugar :${moduleSys.desugarLibraryConfigFilesNotKnownUserMessage}")
+       desugarFailure("${moduleSys.desugarLibraryConfigFilesNotKnownUserMessage}")
      }
 
      // Enable desugared library if it was used.
