@@ -261,7 +261,7 @@ internal class DeviceEnumValueBuilder {
         deviceEnumValues[DeviceClass.Canonical]?.isEmpty() == true
     ) {
       addCanonical(
-        "Phone",
+        "Medium Phone",
         DEVICE_CLASS_PHONE_TOOLTIP,
         ReferencePhoneConfig,
         PreviewPickerValue.DEVICE_REF_PHONE
@@ -273,7 +273,7 @@ internal class DeviceEnumValueBuilder {
         PreviewPickerValue.DEVICE_REF_FOLDABLE
       )
       addCanonical(
-        "Tablet",
+        "Medium Tablet",
         DEVICE_CLASS_TABLET_TOOLTIP,
         ReferenceTabletConfig,
         PreviewPickerValue.DEVICE_REF_TABLET

@@ -467,7 +467,7 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
         .includeDefaultsAndBuild()
         .associateBy { it.display } // Easier to test
 
-    deviceOptions["Phone"]!!.select(deviceProperty)
+    deviceOptions["Medium Phone"]!!.select(deviceProperty)
     assertEquals("spec:shape=Normal,width=411,height=891,unit=dp,dpi=420", deviceProperty.value)
 
     deviceOptions["Foldable"]!!.select(deviceProperty)
@@ -477,7 +477,7 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
       assertEquals("spec:shape=Normal,width=674,height=841,unit=dp,dpi=480", deviceProperty.value)
     }
 
-    deviceOptions["Tablet"]!!.select(deviceProperty)
+    deviceOptions["Medium Tablet"]!!.select(deviceProperty)
     if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
       assertEquals("spec:shape=Normal,width=1280,height=800,unit=dp,dpi=240", deviceProperty.value)
     } else {

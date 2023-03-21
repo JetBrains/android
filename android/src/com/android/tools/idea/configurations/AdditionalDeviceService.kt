@@ -69,15 +69,15 @@ data class WindowSizeData(val id: String, val name: String, val widthDp: Double,
  */
 val PREDEFINED_WINDOW_SIZES_DEFINITIONS: List<WindowSizeData> = if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
   listOf(
-    WindowSizeData(DEVICE_CLASS_PHONE_ID, "Phone", 411.0, 891.0, Density.DPI_420, ScreenOrientation.PORTRAIT),
+    WindowSizeData(DEVICE_CLASS_PHONE_ID, "Medium Phone", 411.0, 891.0, Density.DPI_420, ScreenOrientation.PORTRAIT),
     WindowSizeData(DEVICE_CLASS_FOLDABLE_ID, "Foldable", 673.0, 841.0, Density.DPI_420, ScreenOrientation.PORTRAIT),
-    WindowSizeData(DEVICE_CLASS_TABLET_ID, "Tablet", 1280.0, 800.0, Density.HIGH, ScreenOrientation.LANDSCAPE),
+    WindowSizeData(DEVICE_CLASS_TABLET_ID, "Medium Tablet", 1280.0, 800.0, Density.HIGH, ScreenOrientation.LANDSCAPE),
     WindowSizeData(DEVICE_CLASS_DESKTOP_ID, "Desktop", 1920.0, 1080.0, Density.MEDIUM, ScreenOrientation.LANDSCAPE))
 } else {
   listOf(
-    WindowSizeData(DEVICE_CLASS_PHONE_ID, "Phone", 411.0, 891.0, Density.DPI_420, ScreenOrientation.PORTRAIT),
+    WindowSizeData(DEVICE_CLASS_PHONE_ID, "Medium Phone", 411.0, 891.0, Density.DPI_420, ScreenOrientation.PORTRAIT),
     WindowSizeData(DEVICE_CLASS_FOLDABLE_ID, "Foldable", 673.5, 841.0, Density.XXHIGH, ScreenOrientation.PORTRAIT),
-    WindowSizeData(DEVICE_CLASS_TABLET_ID, "Tablet", 1280.0, 800.0, Density.XXHIGH, ScreenOrientation.LANDSCAPE),
+    WindowSizeData(DEVICE_CLASS_TABLET_ID, "Medium Tablet", 1280.0, 800.0, Density.XXHIGH, ScreenOrientation.LANDSCAPE),
     WindowSizeData(DEVICE_CLASS_DESKTOP_ID, "Desktop", 1920.0, 1080.0, Density.XXHIGH, ScreenOrientation.LANDSCAPE))
 }
 

@@ -120,9 +120,9 @@ class PreviewPickerValuesProviderTest(previewAnnotationPackage: String) {
     ) // 4 headers + 3 separators + 11 devices (4 Reference, 3 Wear, 3 TV, 1 Auto)
     // Generic devices are not shown since they are empty when running on test
     assertEquals("Reference Devices", (deviceValues[0] as HeaderEnumValue).header)
-    assertEquals("Phone", deviceValues[1].display)
+    assertEquals("Medium Phone", deviceValues[1].display)
     assertEquals("Foldable", deviceValues[2].display)
-    assertEquals("Tablet", deviceValues[3].display)
+    assertEquals("Medium Tablet", deviceValues[3].display)
     assertEquals("Desktop", deviceValues[4].display)
     assertEquals("Wear", (deviceValues[6] as HeaderEnumValue).header)
     assertEquals("Tv", (deviceValues[11] as HeaderEnumValue).header)
