@@ -21,7 +21,6 @@ import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.actions.prettyPrintActions
-import com.android.tools.idea.actions.ColorBlindScreenViewProvider
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.layout.EmptySurfaceLayoutManager
@@ -35,6 +34,7 @@ import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
+import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.intellij.openapi.actionSystem.DataContext
@@ -177,9 +177,11 @@ class ComposeViewControlActionTest {
         createOption("Layout C", EmptySurfaceLayoutManager())
       )
 
+    val screenViewProviderMock = mock<ScreenViewProvider>()
+
     val designSurfaceMock = mock<NlDesignSurface>()
-    whenever(designSurfaceMock.screenViewProvider)
-      .thenReturn(ColorBlindScreenViewProvider(ColorBlindMode.PROTANOMALY) {})
+    whenever(designSurfaceMock.screenViewProvider).thenReturn(screenViewProviderMock)
+    whenever(screenViewProviderMock.colorBlindFilter).thenReturn(ColorBlindMode.PROTANOMALY)
 
     val context = DataContext {
       when {

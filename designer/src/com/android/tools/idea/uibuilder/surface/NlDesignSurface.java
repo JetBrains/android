@@ -69,6 +69,7 @@ import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService;
 import com.google.common.collect.ImmutableList;
@@ -582,6 +583,19 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
       }
       revalidateScrollArea();
     }
+  }
+
+  /**
+   * Update the color-blind mode in the {@link ScreenViewProvider} for this surface
+   * and make sure to update all the SceneViews in this surface to reflect the change.
+   */
+  public void setColorBlindMode(ColorBlindMode mode) {
+    myScreenViewProvider.setColorBlindFilter(mode);
+    for (SceneManager manager : getSceneManagers()) {
+      manager.updateSceneView();
+      manager.requestLayoutAndRenderAsync(false);
+    }
+    revalidateScrollArea();
   }
 
   @Nullable

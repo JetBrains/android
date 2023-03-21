@@ -32,11 +32,13 @@ import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.LayoutEditorState
 
 internal val COMPOSE_SCREEN_VIEW_PROVIDER =
   object : ScreenViewProvider {
+    override var colorBlindFilter: ColorBlindMode = ColorBlindMode.NONE
     override val displayName: String = "Compose"
 
     override fun createPrimarySceneView(
@@ -59,7 +61,7 @@ internal val COMPOSE_SCREEN_VIEW_PROVIDER =
                   }
                 )
               }
-              add(ScreenViewLayer(it))
+              add(ScreenViewLayer(it, colorBlindFilter))
               add(
                 SceneLayer(it.surface, it, false).apply {
                   isShowOnHover = true

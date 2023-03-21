@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.tools.adtui.actions.DropDownAction
-import com.android.tools.idea.actions.ColorBlindScreenViewProvider
 import com.android.tools.idea.actions.SetColorBlindModeAction
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -37,12 +36,7 @@ class ComposeColorBlindAction(private val surface: NlDesignSurface) :
     getChildren(e).forEach { action ->
       val screenViewProvider = surface.screenViewProvider
       action as SetColorBlindModeAction
-      if (screenViewProvider is ColorBlindScreenViewProvider) {
-        action.isSelected = screenViewProvider.colorBlindMode == action.colorBlindMode
-      } else {
-        // Provider is ComposeScreenViewProvider. Mode is Original.
-        action.isSelected = action.colorBlindMode == ColorBlindMode.NONE
-      }
+      action.isSelected = screenViewProvider.colorBlindFilter == action.colorBlindMode
     }
   }
 

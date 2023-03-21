@@ -15,35 +15,16 @@
  */
 package com.android.tools.idea.actions
 
-import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
-import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
-import com.android.tools.idea.uibuilder.surface.colorBlindProviderSelector
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
-import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import org.jetbrains.android.util.AndroidBundle.message
 
-class ColorBlindScreenViewProvider(val colorBlindMode: ColorBlindMode, private val onViewProviderReplacedCallback: () -> Unit) : ScreenViewProvider {
-  override fun createPrimarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView {
-    return colorBlindProviderSelector(surface, manager, false, colorBlindMode)
-  }
-
-  override fun createSecondarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView? = null
-
-  override fun onViewProviderReplaced() {
-    onViewProviderReplacedCallback()
-  }
-
-  override val displayName: String = "Color Blind Mode"
-  override val surfaceType: LayoutEditorState.Surfaces = LayoutEditorState.Surfaces.SCREEN_SURFACE
-}
-
 /**
- * Action class to switch the [ScreenViewProvider] in a [NlDesignSurface].
+ * Action class to switch the [ScreenViewProvider.colorBlindFilter] in a [NlDesignSurface].
  */
 class SetColorBlindModeAction(
   val colorBlindMode: ColorBlindMode,
@@ -52,32 +33,11 @@ class SetColorBlindModeAction(
 
   var isSelected = false
 
-  private val colorBlindModeProvider = ColorBlindScreenViewProvider(colorBlindMode) { isSelected = false }
-
-  companion object {
-    private val noColorBlindModeProvider = object : ScreenViewProvider {
-      override fun createPrimarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView {
-        return colorBlindProviderSelector(surface, manager, false, ColorBlindMode.NONE)
-      }
-
-      override fun createSecondarySceneView(surface: NlDesignSurface, manager: LayoutlibSceneManager): ScreenView? = null
-
-      override val displayName: String = "Default"
-      override val surfaceType: LayoutEditorState.Surfaces = LayoutEditorState.Surfaces.SCREEN_SURFACE
-    }
-  }
-
   override fun isSelected(e: AnActionEvent) = isSelected
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     isSelected = state
-    // Design surface has a check that skips if view provider has not changed.
-    if (state) {
-      designSurface.setScreenViewProvider(colorBlindModeProvider, false)
-    }
-    else {
-      designSurface.setScreenViewProvider(noColorBlindModeProvider, false)
-    }
+    designSurface.setColorBlindMode(if (isSelected) colorBlindMode else ColorBlindMode.NONE)
   }
 
   override fun getActionUpdateThread() = ActionUpdateThread.BGT
