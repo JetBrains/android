@@ -33,6 +33,10 @@ interface DaggerIndexAnnotatedWrapper : DaggerIndexPsiWrapper {
    */
   fun getIsAnnotatedWith(fqName: String) = getAnnotationsByName(fqName).any()
 
+  /** Same as [getIsAnnotatedWith], but allowing multiple annotation names. */
+  fun getIsAnnotatedWithAnyOf(vararg fqNames: String) =
+    fqNames.any { fqName -> getIsAnnotatedWith(fqName) }
+
   /**
    * Gets a list of annotations on this element that might correspond to the given fully-qualified
    * name. (See [getIsAnnotatedWith] for an explanation of why this is not a guaranteed match.)

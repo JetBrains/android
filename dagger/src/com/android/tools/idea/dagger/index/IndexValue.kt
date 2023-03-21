@@ -51,6 +51,7 @@ abstract class IndexValue {
     SUBCOMPONENT_WITH_MODULE(DaggerElement.Type.SUBCOMPONENT),
     MODULE_WITH_INCLUDE(DaggerElement.Type.MODULE),
     MODULE_WITH_SUBCOMPONENT(DaggerElement.Type.MODULE),
+    COMPONENT_PROVISION_METHOD(DaggerElement.Type.CONSUMER),
   }
 
   abstract fun save(output: DataOutput)

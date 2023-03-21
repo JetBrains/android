@@ -15,9 +15,8 @@
  */
 package com.android.tools.idea.dagger.concepts
 
-import com.android.tools.idea.dagger.concepts.ConsumerDaggerElement.Companion.removeWrappingDaggerType
+import com.android.tools.idea.dagger.concepts.ConsumerDaggerElementBase.Companion.removeWrappingDaggerType
 import com.android.tools.idea.dagger.index.getAliasSimpleNames
-import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.android.tools.idea.dagger.unboxed
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.base.util.projectScope
@@ -34,13 +33,13 @@ internal data class ProviderDaggerElement(override val psiElement: PsiElement) :
     val scope = project.projectScope()
     val indexKeys =
       elementPsiType.getIndexKeys() +
-        ConsumerDaggerElement.wrappingDaggerTypes.flatMap {
+        ConsumerDaggerElementBase.wrappingDaggerTypes.flatMap {
           val simpleName = it.substringAfterLast(".")
           listOf(simpleName) + getAliasSimpleNames(simpleName, project, scope)
         }
 
     return getRelatedDaggerElementsFromIndex(setOf(Type.CONSUMER), indexKeys).map {
-      DaggerRelatedElement(it, DaggerBundle.message("consumers"))
+      DaggerRelatedElement(it, (it as ConsumerDaggerElementBase).relatedElementGrouping)
     }
   }
 

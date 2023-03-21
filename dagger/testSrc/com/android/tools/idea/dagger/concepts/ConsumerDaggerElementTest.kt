@@ -16,7 +16,7 @@
 package com.android.tools.idea.dagger.concepts
 
 import com.android.tools.idea.dagger.addDaggerAndHiltClasses
-import com.android.tools.idea.dagger.concepts.ConsumerDaggerElement.Companion.removeWrappingDaggerType
+import com.android.tools.idea.dagger.concepts.ConsumerDaggerElementBase.Companion.removeWrappingDaggerType
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
 import com.android.tools.idea.testing.AndroidProjectRule
