@@ -16,7 +16,6 @@
 package com.android.tools.idea.logcat
 
 import com.android.adblib.testing.FakeAdbSession
-import com.android.ddmlib.AndroidDebugBridge
 import com.android.processmonitor.common.ProcessEvent.ProcessAdded
 import com.android.processmonitor.monitor.ProcessNameMonitor
 import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
@@ -1126,17 +1125,6 @@ class LogcatMainPanelTest {
     logcatMainPanel.editor.document.waitForCondition(logcatMainPanel) {
       immutableText().contains("PROCESS STARTED (0) for package myapp")
     }
-  }
-
-  @RunsInEdt
-  @Test
-  fun projectAppMonitorRemoved() {
-    val logcatMainPanel = logcatMainPanel()
-    assertThat(AndroidDebugBridge.getDeviceChangeListenerCount() == 1)
-
-    Disposer.dispose(logcatMainPanel)
-
-    assertThat(AndroidDebugBridge.getDeviceChangeListenerCount() == 0)
   }
 
   @Test

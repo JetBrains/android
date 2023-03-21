@@ -11,20 +11,18 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="module" module-name="analytics-tracker" />
+    <orderEntry type="module" module-name="android.sdktools.adblib" />
+    <orderEntry type="module" module-name="android.sdktools.device-provisioner" />
+    <orderEntry type="module" module-name="android.sdktools.flags" />
+    <orderEntry type="module" module-name="android.sdktools.process-monitor" />
+    <orderEntry type="module" module-name="intellij.android.adb" />
+    <orderEntry type="module" module-name="intellij.android.adb.ui" />
     <orderEntry type="module" module-name="intellij.android.adt.ui" />
+    <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.core" />
-    <orderEntry type="module" module-name="android.sdktools.flags" />
-    <orderEntry type="module" module-name="intellij.android.artwork" />
-    <orderEntry type="module" module-name="android.sdktools.adblib" />
-    <orderEntry type="module" module-name="intellij.android.adb" />
-    <orderEntry type="module" module-name="android.sdktools.adblib.tools" />
-    <orderEntry type="module" module-name="analytics-tracker" />
-    <orderEntry type="library" name="studio-analytics-proto" level="project" />
-    <orderEntry type="library" name="kotlinx-coroutines-guava" level="project" />
-    <orderEntry type="module" module-name="intellij.android.adb.ui" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
-    <orderEntry type="module" module-name="android.sdktools.device-provisioner" />
-    <orderEntry type="module" module-name="android.sdktools.process-monitor" />
   </component>
 </module>
