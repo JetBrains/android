@@ -16,26 +16,10 @@
 package com.android.tools.idea.nav.safeargs.module
 
 import com.android.ide.common.gradle.Version
-import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.ide.common.resources.ResourceItem
-import com.android.resources.ResourceType
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
-import com.android.tools.idea.nav.safeargs.index.NavXmlData
-import com.android.tools.idea.nav.safeargs.index.NavXmlIndex
-import com.android.tools.idea.nav.safeargs.isSafeArgsEnabled
-import com.android.tools.idea.nav.safeargs.psi.GRADLE_VERSION_ZERO
-import com.android.tools.idea.nav.safeargs.psi.findNavigationVersion
 import com.android.tools.idea.nav.safeargs.psi.java.LightArgsClass
 import com.android.tools.idea.nav.safeargs.psi.java.LightDirectionsClass
-import com.android.tools.idea.nav.safeargs.safeArgsMode
-import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.res.StudioResourceRepositoryManager
-import com.android.tools.idea.res.getSourceAsVirtualFile
-import com.android.tools.idea.util.androidFacet
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.DumbService
-import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
 import org.jetbrains.android.facet.AndroidFacet
 
@@ -47,91 +31,26 @@ import org.jetbrains.android.facet.AndroidFacet
  * built on top of.
  */
 @ThreadSafe
-class SafeArgsCacheModuleService private constructor(private val module: Module) {
-  private class NavEntry(val resource: ResourceItem, val data: NavXmlData)
+class SafeArgsCacheModuleService private constructor(module: Module) {
+  private class Status(val directions: List<LightDirectionsClass>, val args: List<LightArgsClass>)
 
-  private val LOG = Logger.getInstance(SafeArgsCacheModuleService::class.java)
+  private val currentStatus by NavStatusCache(module, SafeArgsMode.JAVA) { navInfo ->
+    val directions = navInfo.entries
+      .flatMap { entry -> createLightDirectionsClasses(navInfo.facet, navInfo.packageName, entry) }
+      .toList()
 
-  companion object {
-    @JvmStatic
-    fun getInstance(facet: AndroidFacet): SafeArgsCacheModuleService {
-      // service registered in android plugin
-      return facet.module.getService(SafeArgsCacheModuleService::class.java)!!
-    }
+    val args = navInfo.entries
+      .flatMap { entry -> createLightArgsClasses(navInfo.facet, navInfo.packageName, navInfo.navVersion, entry) }
+      .toList()
+
+    Status(directions, args)
   }
 
-  private val lock = Any()
-
-
-  /**
-   * A modification tracker for module resources.
-   *
-   * We keep track of it to know when to regenerate [LightDirectionsClass] instances, since they depend on
-   * resources.
-   */
-  @GuardedBy("lock")
-  private var lastResourcesModificationCount = Long.MIN_VALUE
-
-  @GuardedBy("lock")
-  private var lastNavigationVersion = GRADLE_VERSION_ZERO
-
-  @GuardedBy("lock")
-  private var _directions = emptyList<LightDirectionsClass>()
   val directions: List<LightDirectionsClass>
-    get() {
-      if (module.androidFacet?.safeArgsMode != SafeArgsMode.JAVA) return emptyList()
+    get() = currentStatus?.directions ?: emptyList()
 
-      refreshSafeArgsLightClassesIfNecessary()
-      return _directions
-    }
-
-  @GuardedBy("lock")
-  private var _args = emptyList<LightArgsClass>()
   val args: List<LightArgsClass>
-    get() {
-      if (module.androidFacet?.safeArgsMode != SafeArgsMode.JAVA) return emptyList()
-
-      refreshSafeArgsLightClassesIfNecessary()
-      return _args
-    }
-
-  private fun refreshSafeArgsLightClassesIfNecessary() {
-    val facet = AndroidFacet.getInstance(module)?.takeIf { it.isSafeArgsEnabled() } ?: return
-    val modulePackage = facet.getModuleSystem().getPackageName() ?: return
-
-    if (DumbService.getInstance(module.project).isDumb) {
-      LOG.warn("Safe Args classes may be temporarily stale due to indices not being ready right now.")
-      return
-    }
-
-    synchronized(lock) {
-      val modificationCount = ModuleNavigationResourcesModificationTracker.getInstance(module).modificationCount
-      val currVersion = facet.findNavigationVersion()
-
-      if (modificationCount != lastResourcesModificationCount || currVersion != lastNavigationVersion) {
-        val moduleResources = StudioResourceRepositoryManager.getModuleResources(facet)
-        val navResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.NAVIGATION)
-
-        val entries = navResources.values()
-          .mapNotNull { resource ->
-            val file = resource.getSourceAsVirtualFile() ?: return@mapNotNull null
-            val data = NavXmlIndex.getDataForFile(facet.module.project, file) ?: return@mapNotNull null
-            NavEntry(resource, data)
-          }
-
-        _directions = entries
-          .flatMap { entry -> createLightDirectionsClasses(facet, modulePackage, entry) }
-          .toList()
-
-        _args = entries
-          .flatMap { entry -> createLightArgsClasses(facet, modulePackage, currVersion, entry) }
-          .toList()
-
-        lastResourcesModificationCount = modificationCount
-        lastNavigationVersion = currVersion
-      }
-    }
-  }
+    get() = currentStatus?.args ?: emptyList()
 
   private fun createLightDirectionsClasses(facet: AndroidFacet, modulePackage: String, entry: NavEntry): Collection<LightDirectionsClass> {
     return entry.data.resolvedDestinations
@@ -148,5 +67,13 @@ class SafeArgsCacheModuleService private constructor(private val module: Module)
       .filter { destination -> destination.arguments.isNotEmpty() }
       .map { destination -> LightArgsClass(facet, modulePackage, navigationVersion, entry.resource, destination) }
       .toSet()
+  }
+
+  companion object {
+    @JvmStatic
+    fun getInstance(facet: AndroidFacet): SafeArgsCacheModuleService {
+      // service registered in android plugin
+      return facet.module.getService(SafeArgsCacheModuleService::class.java)!!
+    }
   }
 }
