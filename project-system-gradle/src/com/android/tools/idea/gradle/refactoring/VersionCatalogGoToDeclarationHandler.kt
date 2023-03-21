@@ -16,23 +16,26 @@
 package com.android.tools.idea.gradle.refactoring
 
 import com.android.SdkConstants
-import com.android.SdkConstants.DOT_VERSIONS_DOT_TOML
-import com.android.SdkConstants.FD_GRADLE
+import com.android.tools.idea.gradle.dsl.api.GradleModelProvider
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandlerBase
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
-import org.jetbrains.kotlin.idea.base.util.module
+import org.jetbrains.kotlin.analysis.utils.printer.parentOfType
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtValueArgument
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.arguments.GrArgumentList
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrCommandArgumentList
 import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression
 import org.toml.lang.psi.TomlArray
 import org.toml.lang.psi.TomlFile
 import org.toml.lang.psi.TomlKeyValue
 import org.toml.lang.psi.TomlLiteral
 import org.toml.lang.psi.TomlTable
+import org.toml.lang.psi.ext.TomlLiteralKind
+import org.toml.lang.psi.ext.kind
 
 /**
  * Go to declaration handler for providing navigation from references to version
@@ -50,12 +53,13 @@ class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
     val parent = sourceElement.parent ?: return null
     val grandParent = parent.parent ?: return null
 
+    //TODO add support of non trivial cases like  "id(libs.plugins.android.application.get().pluginId) apply false"
     // Reference from build.gradle.kts to dependency?
     if (grandParent is KtDotQualifiedExpression) {
-      if (grandParent.firstChild?.firstChild?.text == "libs" && grandParent.containingFile.name.endsWith(SdkConstants.DOT_KTS)) {
-        val catalog = findVersionCatalog(parent) ?: return null
-        val key = grandParent.text
-        val target = findCatalogKey(catalog, key.removePrefix("libs."))
+      val key = grandParent.text
+      val catalog = findVersionCatalog(key.substringBefore("."), sourceElement.project)
+      if (catalog != null && grandParent.containingFile.name.endsWith(SdkConstants.DOT_KTS)) {
+        val target = findCatalogKey(catalog, key.substringAfter("."))
         if (target != null) {
           return target
         }
@@ -68,28 +72,38 @@ class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
         val argument = grandParent.getParentOfType<KtValueArgument>(true) ?: return null
         val fullKey = argument.text
         if (fullKey != key) {
-          return findCatalogKey(catalog, fullKey.removePrefix("libs."))
+          return findCatalogKey(catalog, fullKey.substringAfter("."))
         }
       }
       return null
     }
 
-    // Reference within a Groovy build.gradle file?
-    // Handled by GradleVersionCatalogTomlAwareGotoDeclarationHandler
-    //   assuming "gradle.version.catalogs.dynamic.support" is turned on in the registry.
-    // ...but it doesn't seem to work quite right
+    // Reference within a Groovy build.gradle file
+    // In declaration api libs.plugins.ksp we can jump to plugins table and ksp plugin declaration
+    // IMPORTANT: in case JetBrains provides native handler [GradleVersionCatalogTomlAwareGotoDeclarationHandler]
+    // It will be called first. Once it navigates somewhere, Idea stops checking other handlers.
+    // That means current handler will not be called. System works with multiple handlers cover same cases -
+    // first in line wins.
     if (parent is GrReferenceExpression) {
-      val key = parent.text
-      if (key.startsWith("libs.") && grandParent.containingFile.name.endsWith(SdkConstants.DOT_GRADLE)) {
-        val catalog = findVersionCatalog(parent) ?: return null
-        val target = findCatalogKey(catalog, key.removePrefix("libs."))
-        if (target != null) {
-          return target
+      val catalog = findVersionCatalog(parent.text.substringBefore("."), parent.project)
+      if (catalog != null && grandParent.containingFile.name.endsWith(SdkConstants.DOT_GRADLE)) {
+        val key = parent.text
+        if(key != null) {
+          findCatalogKey(catalog, key.substringAfter("."))?.let { return it }
+
+          // if we did not find element by key maybe we searched by partial key - so we need to take whole
+          // e.g. libs.const|raint.layout => key = libs.constraint, wholeKey = libs.constraint.layout
+          // where real key name is constraint-layout
+          val wholeKey = getWholeKey(sourceElement)
+          if (wholeKey != null) {
+            findCatalogKey(catalog, wholeKey.substringAfter("."))?.let { return it }
+          }
         }
+        return null
       }
     }
 
-    // Reference within TOML file?
+    // Reference within TOML file
     if (parent is TomlLiteral) {
       if (grandParent is TomlArray) {
         // Bundle definition -- string value points to a library key
@@ -110,6 +124,22 @@ class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
   }
 
   /**
+   * Need to travel up through Psi tree until parent is
+   * - GrArgumentList for 'api libs.my.lib'
+   * - GrCommandArgumentList 'alias(libs.plugins.myplugin)'
+   */
+  fun getWholeKey(sourceElement: PsiElement): String? {
+    var currElement = sourceElement
+    while (currElement.parent != null) {
+      if (currElement.parent is GrArgumentList || currElement.parent is GrCommandArgumentList) {
+        return currElement.text
+      }
+      else currElement = currElement.parent
+    }
+    return null
+  }
+
+  /**
    * Given a [TomlFile] and a path, returns the corresponding key element.
    * For example, given "versions.foo", it will locate the `foo =` key/value
    * pair under the `\[versions]` table and return it. As a special case,
@@ -119,13 +149,11 @@ class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
     val section: String
     val target: String
     if (path.startsWith("versions.") ||
-      path.startsWith("libraries.") ||
       path.startsWith("bundles.") ||
       path.startsWith("plugins.")
     ) {
-      val index = path.indexOf('.')
-      section = path.substring(0, index)
-      target = path.substring(index + 1)
+      section = path.substringBefore('.')
+      target = path.substringAfter('.')
     } else {
       section = "libraries"
       target = path
@@ -166,147 +194,32 @@ class VersionCatalogGoToDeclarationHandler : GotoDeclarationHandlerBase() {
     return true
   }
 
-  // Gradle converts dashed-keys into dashed.keys
+  // Gradle converts dashed-keys or dashed_keys into dashed.keys
   private fun Char.normalize(): Char {
-    if (this == '-') {
+    if (this == '-' || this == '_') {
       return '.'
     }
     return this
   }
 
-  // TODO: Hook up to however we're really supposed to find the version catalog
-  private fun findVersionCatalog(element: PsiElement): TomlFile? {
-    val module = element.module ?: return null
-    val roots = ModuleRootManager.getInstance(module).contentRoots
-    var dir = roots.firstOrNull() ?: return null
+  private fun findVersionCatalog(reference: String, project: Project): TomlFile? {
+    val view = GradleModelProvider.getInstance().getVersionCatalogView(project);
+    val file = view.catalogToFileMap[reference] ?: return null
 
-    while (true) {
-      val gradle = dir.findChild(FD_GRADLE)
-      if (gradle != null) {
-        for (file in gradle.children) {
-          if (file.name.endsWith(DOT_VERSIONS_DOT_TOML)) {
-            val psiFile = PsiManager.getInstance(element.project).findFile(file)
-            if (psiFile is TomlFile) {
-              return psiFile
-            }
-          }
-        }
-        break
-      }
-      dir = dir.parent ?: break
+    val psiFile = PsiManager.getInstance(project).findFile(file)
+    if (psiFile is TomlFile) {
+      return psiFile
     }
 
     return null
   }
-}
 
-private fun TomlLiteral.getString(): String {
-  // Surprisingly it looks like the TomlLiteral PSI element doesn't
-  // have a direct method for returning the unescaped string?
-  // It probably does *somewhere*; hook that up.
-  return text.tomlStringSourceToString()
-}
-
-// The below two methods are copied from DefaultLintTomlParser in lint; I'm assuming there's
-// a better utility to call from within IntelliJ's TOML PSI support; if not,
-// we can probably move this to a more reusable place outside of lint.
-
-// TOML string escaping; see https://toml.io/en/v1.0.0#string
-private fun unescape(s: String, skipInitialNewline: Boolean = false): String {
-  val sb = StringBuilder()
-  val length = s.length
-  var i = 0
-  if (skipInitialNewline && length > 0 && s[i] == '\n') {
-    i++
-  }
-  while (i < length) {
-    val c = s[i++]
-    if (c == '\\' && i < s.length) {
-      when (val next = s[i++]) {
-        '\n' -> {
-          // From the toml spec: "When the last non-whitespace character on a
-          // line is an unescaped \, it will be trimmed along with all whitespace
-          // (including newlines) up to the next non-whitespace character or
-          // closing delimiter."
-          while (i < length && s[i].isWhitespace()) {
-            i++
-          }
-          continue
-        }
-
-        'n' -> sb.append('\n')
-        't' -> sb.append('\t')
-        'b' -> sb.append('\b')
-        'f' -> sb.append('\u000C')
-        'r' -> sb.append('\r')
-        '"' -> sb.append('\"')
-        '\\' -> sb.append('\\')
-        'u' -> { // \uXXXX
-          if (i <= s.length - 4) {
-            try {
-              val uc = Integer.parseInt(s.substring(i, i + 4), 16).toChar()
-              sb.append(uc)
-              i += 4
-            } catch (e: NumberFormatException) {
-              sb.append(next)
-            }
-          } else {
-            sb.append(next)
-          }
-        }
-
-        'U' -> { // \UXXXXXXXX
-          if (i <= s.length - 8) {
-            try {
-              val uc = Integer.parseInt(s.substring(i, i + 8), 16).toChar()
-              sb.append(uc)
-              i += 8
-            } catch (e: NumberFormatException) {
-              sb.append(next)
-            }
-          } else {
-            sb.append(next)
-          }
-        }
-
-        else -> sb.append(next)
-      }
-    } else {
-      sb.append(c)
-    }
-  }
-  return sb.toString()
-}
-
-private fun String.tomlStringSourceToString(): String {
-  val valueSource = this
-  when {
-    valueSource.isEmpty() -> {
-      return valueSource
-    }
-
-    valueSource.startsWith("\"\"\"") -> {
-      val body = valueSource.removeSurrounding("\"\"\"")
-      return unescape(body, skipInitialNewline = true)
-    }
-
-    valueSource.startsWith("\"") -> {
-      return unescape(valueSource.removeSurrounding("\""))
-    }
-
-    valueSource.startsWith("'''") -> {
-      var body = valueSource.removeSurrounding("'''")
-      if (body.startsWith("\n")) {
-        // Leading newlines in """ and ''' strings should be removed
-        body = body.substring(1)
-      }
-      return body
-    }
-
-    valueSource.startsWith("'") -> {
-      return valueSource.removeSurrounding("'")
-    }
-
-    else -> return valueSource
+  private fun findVersionCatalog(element: PsiElement?): TomlFile? {
+    val project = element?.project ?: return null
+    return findVersionCatalog(element.text, project)
   }
 }
+
+private fun TomlLiteral.getString(): String =
+   (kind as? TomlLiteralKind.String)?.value ?: text
+

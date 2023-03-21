@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.refactoring
 
 import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.android.tools.idea.testing.TestProjectPaths
-import com.google.common.truth.Truth
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.openapi.vfs.StandardFileSystems
@@ -25,7 +24,7 @@ import com.intellij.psi.PsiManager
 
 /** Tests for [VersionCatalogGoToDeclarationHandler]. */
 class VersionCatalogGoToDeclarationHandlerTest : AndroidGradleTestCase() {
-  fun testGoToDeclaration() {
+  fun testGoToDeclarationInToml() {
     loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
 
     // Check Go To Declaration within the TOML file
@@ -58,10 +57,16 @@ class VersionCatalogGoToDeclarationHandlerTest : AndroidGradleTestCase() {
       "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }"
     )
 
-    // -------------------------------------------------------------
-    // Check Go To Declaration from KTS to the TOML file
-    // -------------------------------------------------------------
+    // Same, but for a library variable with dashes
+    checkUsage(
+      "gradle/libs.versions.toml",
+      "both = [\"const|raint-layout\", \"guava\"]",
+      "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }"
+    )
+  }
 
+  fun testGotoCatalogDeclarationInKts(){
+    loadProject(TestProjectPaths.SIMPLE_APPLICATION_VERSION_CATALOG_KTS)
     // Navigate from KTS catalog reference to TOML library
     checkUsage(
       "app/build.gradle.kts",
@@ -87,15 +92,15 @@ class VersionCatalogGoToDeclarationHandlerTest : AndroidGradleTestCase() {
     // Navigate to the [plugins] block in TOML
     checkUsage(
       "app/build.gradle.kts",
-      "alias(libs.plu|gins.ksp)",
+      "alias(libs.plu|gins.kotlinAndroid)",
       "[plugins]"
     )
 
     // Navigate from a KTS plugin reference to the plugin in the TOML file
     checkUsage(
       "app/build.gradle.kts",
-      "alias(libs.plugins.|ksp)",
-      "ksp = { id = \"com.google.devtools.ksp\", version = \"1.7.21-1.0.8\" }"
+      "alias(libs.plugins.android.appli|cation)",
+      "android-application = { id = \"com.android.application\", version.ref = \"agpVersion\" }"
     )
 
     // Navigate to the [bundles] block in TOML
@@ -105,11 +110,78 @@ class VersionCatalogGoToDeclarationHandlerTest : AndroidGradleTestCase() {
       "[bundles]"
     )
 
-    // Navigate from a KTS bundle reference to the bundle in the TOML file
+    // Navigate to the [bundles] block in TOML
     checkUsage(
       "app/build.gradle.kts",
       "api(libs.bundles.|both)",
       "both = [\"constraint-layout\", \"guava\"]"
+    )
+
+    // Navigate from a KTS to second catalog
+    checkUsage(
+      "app/build.gradle.kts",
+      "testImplementation(libsTest.j|unit)",
+      "junit = { module = \"junit:junit\", version.ref = \"junit\" }"
+    )
+  }
+
+  fun testGotoCatalogDeclarationInGroovy(){
+    loadProject(TestProjectPaths.SIMPLE_APPLICATION_MULTI_VERSION_CATALOG)
+    // Navigate from groovy catalog reference to TOML library
+    checkUsage(
+      "app/build.gradle",
+      "api libs.|guava",
+      "guava = { module = \"com.google.guava:guava\", version.ref = \"guava\" }"
+    )
+
+    // Navigate from groovy catalog reference to TOML library, with a dotted name (mapped to dashed name in TOML)
+    checkUsage(
+      "app/build.gradle",
+      "libs.constraint.la|yout",
+      "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }"
+    )
+
+    // Same, but clicking on an earlier part in the reference; there isn't an exact TOML library for the group, so we
+    // need to pick the first one
+    checkUsage(
+      "app/build.gradle",
+      "libs.cons|traint.layout",
+      "constraint-layout = { module = \"com.android.support.constraint:constraint-layout\", version.ref = \"constraint-layout\" }"
+    )
+
+    // Navigate to the [plugins] block in TOML
+   checkUsage(
+      "app/build.gradle",
+      "alias libs.plug|ins.android.application",
+      "[plugins]"
+    )
+
+    // Navigate from a ksp plugin reference to the plugin in the TOML file
+    checkUsage(
+      "app/build.gradle",
+      "alias libs.plugins.andr|oid.application",
+      "android-application = { id = \"com.android.application\", version.ref = \"gradlePlugins-agp\" }"
+    )
+
+    // Navigate to the [bundles] block in TOML
+    checkUsage(
+      "app/build.gradle",
+      "api libs.b|undles.both",
+      "[bundles]"
+    )
+
+    // Navigate to the [bundles] block in TOML
+    checkUsage(
+      "app/build.gradle",
+      "api libs.bundles.|both",
+      "both = [\"constraint-layout\", \"guava\"]"
+    )
+
+    // Navigate from a groovy to second catalog
+    checkUsage(
+      "app/build.gradle",
+      "testImplementation libsTest.j|unit",
+      "junit = { module = \"junit:junit\", version.ref = \"junit\" }"
     )
   }
 

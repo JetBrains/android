@@ -8,10 +8,10 @@ dependencyResolutionManagement {
     // This will be populated by AndroidGradleTestCase
   }
   versionCatalogs {
-    create("libsTest") {
+    libsTest {
       from(files("./gradle/libsTest.versions.toml"))
     }
   }
 }
 
-include(":app")
+include ':app'

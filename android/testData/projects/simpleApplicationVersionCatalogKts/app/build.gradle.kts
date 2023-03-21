@@ -1,13 +1,7 @@
 plugins {
-  // Results in a sync failure
-  //alias(libs.plugins.android.application)
-  //alias(libs.plugins.kotlinAndroid)
-  id("com.android.application")
-  kotlin("android")
-
-  alias(libs.plugins.ksp)
+  alias(libs.plugins.android.application)
+  alias(libs.plugins.kotlinAndroid)
 }
-apply(plugin = "com.android.application")
 
 android {
   namespace = "google.simpleapplication"
@@ -28,7 +22,7 @@ dependencies {
   api(libs.guava)
   api(libs.constraint.layout)
   api(libs.bundles.both)
-  testImplementation(libs.junit)
+  testImplementation(libsTest.junit)
   androidTestImplementation("com.android.support.test:runner:+")
   androidTestImplementation("com.android.support.test.espresso:espresso-core:+")
 }
