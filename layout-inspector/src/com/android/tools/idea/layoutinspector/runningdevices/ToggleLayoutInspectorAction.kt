@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.runningdevices
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.streaming.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.streaming.STREAMING_CONTENT_PANEL_KEY
@@ -56,12 +57,14 @@ private fun AnActionEvent.createRunningDevicesTabContext(): RunningDevicesTabCon
 
   val deviceSerialNumber = SERIAL_NUMBER_KEY.getData(dataContext) ?: return null
   val contentPanel = STREAMING_CONTENT_PANEL_KEY.getData(dataContext) ?: return null
+  val displayView = DISPLAY_VIEW_KEY.getData(dataContext) ?: return null
 
   return RunningDevicesTabContext(
     project,
     selectedContent,
     deviceSerialNumber,
     contentPanel,
-    contentPanel.parent
+    contentPanel.parent,
+    displayView
   )
 }

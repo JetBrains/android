@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
+import com.android.tools.idea.streaming.AbstractDisplayView
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
@@ -38,13 +39,15 @@ private const val WORKBENCH_NAME = "Layout Inspector"
  * @param deviceSerialNumber Serial number of the device associated with this tab.
  * @param tabContentPanel The component containing the main content of the tab (the display).
  * @param tabContentPanelContainer The container of [tabContentPanel].
+ * @param displayView The [AbstractDisplayView] from running devices. Component on which the device display is rendered.
  */
 data class RunningDevicesTabContext(
   val project: Project,
   val disposable: Disposable,
   val deviceSerialNumber: String,
   val tabContentPanel: JComponent,
-  val tabContentPanelContainer: Container
+  val tabContentPanelContainer: Container,
+  val displayView: AbstractDisplayView
 )
 
 /**
@@ -165,16 +168,23 @@ private class LayoutInspectorManagerImpl : LayoutInspectorManager {
    */
   private data class TabState(
     val tabContext: RunningDevicesTabContext,
-    val wrapLogic: WrapLogic = WrapLogic(tabContext.tabContentPanel, tabContext.tabContentPanelContainer)
+    val wrapLogic: WrapLogic = WrapLogic(tabContext.tabContentPanel, tabContext.tabContentPanelContainer),
+    val displayViewManager: DisplayViewManager = DisplayViewManager(
+      tabContext.getLayoutInspector().renderModel,
+      tabContext.getLayoutInspector().renderLogic,
+      tabContext.displayView
+    )
   ) {
     fun enableLayoutInspector() {
       wrapLogic.wrapComponent { centerPanel ->
         createLayoutInspectorWorkbench(tabContext, centerPanel)
       }
+      displayViewManager.startRendering()
     }
 
     fun disableLayoutInspector() {
       wrapLogic.unwrapComponent()
+      displayViewManager.stopRendering()
     }
   }
 }

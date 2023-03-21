@@ -19,16 +19,21 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
+import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
+import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.android.tools.idea.streaming.AbstractDisplayView
+import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
-import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
 import org.junit.Before
@@ -41,28 +46,36 @@ import javax.swing.JPanel
 class LayoutInspectorManagerTest {
 
   @get:Rule
-  val projectRule = ProjectRule()
-
-  @get:Rule
-  val disposableRule = DisposableRule()
-
-  @get:Rule
   val edtRule = EdtRule()
 
-  private lateinit var mockLayoutInspector: LayoutInspector
+  @get:Rule
+  val displayViewRule = EmulatorViewRule()
+
+  private lateinit var layoutInspector: LayoutInspector
+  private lateinit var displayView: AbstractDisplayView
 
   @Before
   fun setUp() {
     val mockLayoutInspectorProjectService = mock<LayoutInspectorProjectService>()
-    mockLayoutInspector = mock()
-    whenever(mockLayoutInspectorProjectService.getLayoutInspector(any())).thenAnswer { mockLayoutInspector }
-    projectRule.project.replaceService(LayoutInspectorProjectService::class.java, mockLayoutInspectorProjectService, disposableRule.disposable)
+
+    layoutInspector = LayoutInspector(
+      coroutineScope = AndroidCoroutineScope(displayViewRule.testRootDisposable),
+      layoutInspectorClientSettings = InspectorClientSettings(displayViewRule.project),
+      client = DisconnectedClient,
+      layoutInspectorModel = model { },
+      treeSettings = FakeTreeSettings()
+    )
+
+    whenever(mockLayoutInspectorProjectService.getLayoutInspector(any())).thenAnswer { layoutInspector }
+    displayViewRule.project.replaceService(LayoutInspectorProjectService::class.java, mockLayoutInspectorProjectService, displayViewRule.testRootDisposable)
+
+    displayView = displayViewRule.newEmulatorView()
   }
 
   @Test
   @RunsInEdt
   fun testToggleLayoutInspectorOnOff() {
-    val layoutInspectorManager = LayoutInspectorManager.getInstance(projectRule.project)
+    val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     val tabContext = createTabContext()
 
@@ -78,7 +91,7 @@ class LayoutInspectorManagerTest {
   @Test
   @RunsInEdt
   fun testToggleLayoutInspectorOnMultipleTimesForSameTab() {
-    val layoutInspectorManager = LayoutInspectorManager.getInstance(projectRule.project)
+    val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     val tabContext = createTabContext()
 
@@ -95,7 +108,7 @@ class LayoutInspectorManagerTest {
   @Test
   @RunsInEdt
   fun testToggleLayoutInspectorOffMultipleTimesForSameTab() {
-    val layoutInspectorManager = LayoutInspectorManager.getInstance(projectRule.project)
+    val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     val tabContext = createTabContext()
 
@@ -112,7 +125,7 @@ class LayoutInspectorManagerTest {
   @Test
   @RunsInEdt
   fun testToggleLayoutInspectorOnMultipleTabs() {
-    val layoutInspectorManager = LayoutInspectorManager.getInstance(projectRule.project)
+    val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     val tabContext1 = createTabContext(serialNumber = "serial1")
     val tabContext2 = createTabContext(serialNumber = "serial2")
@@ -135,13 +148,13 @@ class LayoutInspectorManagerTest {
   @Test
   @RunsInEdt
   fun testStateUpdatedOnDisposal() {
-    val layoutInspectorManager = LayoutInspectorManager.getInstance(projectRule.project)
+    val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     val observedState = mutableListOf<Set<RunningDevicesTabContext>>()
     layoutInspectorManager.addStateListener { observedState.add(it) }
 
     val disposable = Disposer.newDisposable()
-    Disposer.register(disposableRule.disposable, disposable)
+    Disposer.register(displayViewRule.testRootDisposable, disposable)
 
     val tabContext = createTabContext(disposable = disposable)
 
@@ -161,7 +174,7 @@ class LayoutInspectorManagerTest {
   @Test
   @RunsInEdt
   fun testWorkbenchHasDataProvider() {
-    val layoutInspectorManager = LayoutInspectorManager.getInstance(projectRule.project)
+    val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
 
     val tabContext = createTabContext()
 
@@ -186,18 +199,19 @@ class LayoutInspectorManagerTest {
 
   private fun createTabContext(
     serialNumber: String = "serial",
-    disposable: Disposable = disposableRule.disposable
+    disposable: Disposable = displayViewRule.testRootDisposable
   ): RunningDevicesTabContext {
     val content = JPanel()
     val container = JPanel()
     container.add(content)
 
     return RunningDevicesTabContext(
-      projectRule.project,
+      displayViewRule.project,
       disposable,
       serialNumber,
       content,
-      container
+      container,
+      displayView
     )
   }
 

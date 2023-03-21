@@ -72,6 +72,7 @@ iml_module(
     test_class = "com.android.tools.idea.layoutinspector.LayoutInspectorTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/layout-inspector/testData",
     ] + select({
         "windows": [":skiaparser-test.dll"],
@@ -128,6 +129,7 @@ iml_module(
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
         "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
+        "//tools/adt/idea/streaming:intellij.android.streaming.testUtil[module, test]",
     ],
 )
 
