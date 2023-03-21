@@ -18,6 +18,7 @@ package com.android.tools.idea.ddms.screenshot
 import com.android.tools.adtui.ImageUtils
 import java.awt.image.BufferedImage
 
+@Deprecated(message = "Use com.android.tools.idea.ui.screenshot.ScreenshotImage")
 class DeviceScreenshotImage(image: BufferedImage, screenRotationQuadrants: Int, val isRoundScreen: Boolean) :
     ScreenshotImage(image, screenRotationQuadrants) {
 

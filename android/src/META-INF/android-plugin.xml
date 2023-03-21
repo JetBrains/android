@@ -255,7 +255,6 @@
   <extensions defaultExtensionNs="com.intellij">
     <projectService serviceImplementation="com.android.tools.idea.res.AndroidFileChangeListener" />
     <postStartupActivity implementation="com.android.tools.idea.res.AndroidFileChangeListener$MyStartupActivity"/>
-    <projectService serviceImplementation="com.android.tools.idea.ddms.screenshot.ScreenshotViewer$PersistentState" />
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceNotificationManager" />
     <projectService serviceImplementation="com.android.tools.idea.res.ResourceClassRegistry" />
     <projectService serviceImplementation="com.android.tools.idea.project.SyncTimestamp" />
@@ -691,7 +690,6 @@
     <notificationGroup id="SDK Install" displayType="STICKY_BALLOON" isLogByDefault="false"/>
     <notificationGroup id="Gradle Initializer" displayType="STICKY_BALLOON"/>
     <notificationGroup id="Emulator" displayType="BALLOON" bundle="messages.AndroidBundle" key="android.emulator"/>
-    <notificationGroup id="Screen Capture DDMS" displayType="BALLOON" bundle="messages.AndroidBundle" key="android.ddms.actions.screenshot"/>
     <notificationGroup id="Android Autogeneration" displayType="BALLOON" bundle="messages.AndroidBundle" key="android.autogeneration.notification.group"/>
     <notificationGroup id="Importing Error" displayType="BALLOON" bundle="messages.AndroidBundle" key="android.facet.importing.notification.group"/>
     <notificationGroup id="Android Gradle Upgrade Notification" displayType="STICKY_BALLOON"/>
