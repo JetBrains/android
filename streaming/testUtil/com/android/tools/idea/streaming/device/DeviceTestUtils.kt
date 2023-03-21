@@ -23,15 +23,15 @@ import com.intellij.openapi.util.SystemInfo
  * For some unclear reason FFmpeg-dependent tests fail on Windows with
  * "UnsatisfiedLinkError: no jniavcodec in java.library.path".
  */
-internal fun isFFmpegAvailableToTest(): Boolean = !SystemInfo.isWindows
+fun isFFmpegAvailableToTest(): Boolean = !SystemInfo.isWindows
 
 /**
  * Creates a [DeviceConfiguration] for testing purposes.
  */
-internal fun createDeviceConfiguration(propertyMap: Map<String, String>): DeviceConfiguration {
+fun createDeviceConfiguration(propertyMap: Map<String, String>): DeviceConfiguration {
   val properties = DeviceProperties.Builder()
   properties.readCommonProperties(propertyMap)
   return DeviceConfiguration(properties.buildBase())
 }
 
-internal val emptyDeviceConfiguration: DeviceConfiguration = createDeviceConfiguration(mapOf())
+val emptyDeviceConfiguration: DeviceConfiguration = createDeviceConfiguration(mapOf())

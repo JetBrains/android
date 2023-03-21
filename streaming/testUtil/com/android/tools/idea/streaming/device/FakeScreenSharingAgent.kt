@@ -96,7 +96,7 @@ import kotlin.math.roundToInt
 /**
  * Fake Screen Sharing Agent for use in tests.
  */
-internal class FakeScreenSharingAgent(
+class FakeScreenSharingAgent(
   val displaySize: Dimension,
   private val deviceState: DeviceState,
   val roundDisplay: Boolean = false,

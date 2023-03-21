@@ -43,7 +43,7 @@ import java.nio.file.attribute.FileTime
 /**
  * Allows tests to use [FakeScreenSharingAgent] instead of the real one.
  */
-internal class FakeScreenSharingAgentRule : TestRule {
+class FakeScreenSharingAgentRule : TestRule {
   private var deviceCounter = 0
   private val devices = mutableListOf<FakeDevice>()
   private val projectRule = ProjectRule()

@@ -54,13 +54,11 @@ iml_module(
     test_friends = ["//tools/adt/idea/streaming:intellij.android.streaming"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
-    runtime_deps = ["//tools/adt/idea/.idea/libraries:ffmpeg-platform"],
     # do not sort: must match IML order
     deps = [
         "//tools/analytics-library/crash:analytics-crash[module, test]",
         "//tools/base/adblib:studio.android.sdktools.adblib[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
-        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
         "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
@@ -77,18 +75,17 @@ iml_module(
         "//tools/adt/idea/streaming:intellij.android.streaming.testUtil[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/.idea/libraries:emulator-proto[test]",
-        "//tools/adt/idea/.idea/libraries:ffmpeg[test]",
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/adt/idea/.idea/libraries:jimfs[test]",
         "//tools/adt/idea/.idea/libraries:kotlin-test[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-platform-images[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-webp[test]",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
-        "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
     ],
 )
 
@@ -147,10 +144,13 @@ iml_module(
     test_srcs = ["testUtil"],
     test_tags = ["manual"],  # testUtil is TEST scoped but contains no runnable tests
     visibility = ["//visibility:public"],
+    runtime_deps = ["//tools/adt/idea/.idea/libraries:ffmpeg-platform"],
     # do not sort: must match IML order
     deps = [
         "//tools/base/annotations:studio.android.sdktools.android-annotations[module, test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
+        "//tools/base/device-provisioner:studio.android.sdktools.device-provisioner[module, test]",
+        "//tools/base/fakeadbserver:studio.android.sdktools.fakeadbserver[module, test]",
         "//tools/base/flags:studio.android.sdktools.flags[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module, test]",
@@ -159,9 +159,11 @@ iml_module(
         "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/.idea/libraries:emulator-proto[test]",
+        "//tools/adt/idea/.idea/libraries:ffmpeg[test]",
         "//tools/adt/idea/.idea/libraries:studio-grpc[test]",
         "//tools/adt/idea/.idea/libraries:studio-proto[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/android-adb:intellij.android.adb.testUtil[module, test]",
     ],
 )
