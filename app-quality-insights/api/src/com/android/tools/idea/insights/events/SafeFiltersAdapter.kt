@@ -38,7 +38,7 @@ data class SafeFiltersAdapter(private val delegate: ChangeEvent) : ChangeEvent {
         result.newState.copy(
           issues =
             LoadingState.UnknownFailure(
-              "Currently selected app is not linked to a Firebase project.",
+              "Currently selected app is not configured with the current insights tool.",
               UnconfiguredAppException
             ),
           currentIssueDetails = LoadingState.Ready(null),

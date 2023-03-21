@@ -28,7 +28,7 @@ enum class IssueState {
   CLOSING
 }
 
-/** Represents an issue found by Crashlytics, including one representative event for it. */
+/** Represents discovered issue, including one representative event for it. */
 data class AppInsightsIssue(
   val issueDetails: IssueDetails,
   val sampleEvent: Event,
@@ -91,7 +91,7 @@ data class IssueDetails(
   val eventsCount: Long,
   // Issue signals.
   val signals: Set<SignalType>,
-  // Provides a link to the containing issue on the Firebase console.
+  // Provides a link to the containing issue on the console.
   // please note the link will be configured with the same time interval and filters as the request.
   val uri: String,
   val notesCount: Long

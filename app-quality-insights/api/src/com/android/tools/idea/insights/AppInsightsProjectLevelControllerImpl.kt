@@ -92,7 +92,6 @@ class AppInsightsProjectLevelControllerImpl(
   onErrorAction: (String, HyperlinkListener?) -> Unit,
   connectionInferrer: ActiveConnectionInferrer,
   private val defaultFilters: Filters,
-  private val getGoogleAccountEmail: () -> String?,
   cache: AppInsightsCache
 ) : AppInsightsProjectLevelController {
 
@@ -209,7 +208,7 @@ class AppInsightsProjectLevelControllerImpl(
     emit(SignalChanged(value))
   }
 
-  override fun selectFirebaseConnection(value: VariantConnection) {
+  override fun selectConnection(value: VariantConnection) {
     emit(ActiveConnectionChanged(value))
   }
 
@@ -230,14 +229,7 @@ class AppInsightsProjectLevelControllerImpl(
   }
 
   override fun addNote(issue: AppInsightsIssue, message: String) {
-    emit(
-      AddNoteRequested(
-        issue.id,
-        message,
-        clock,
-        getGoogleAccountEmail() ?: "You (probably you already logged out)"
-      )
-    )
+    emit(AddNoteRequested(issue.id, message, clock))
   }
 
   override fun deleteNote(note: Note) {

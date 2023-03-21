@@ -37,7 +37,7 @@ interface AppInsightsProjectLevelController {
    * "focus" on a subset of the data you care about. e.g.
    *
    * ```kotlin
-   * val connections: Flow<Selection<FirebaseConnection>> = ctrl.state.map { it.connections }.distinctUntilChanged()
+   * val connections: Flow<Selection<VariantConnection>> = ctrl.state.map { it.connections }.distinctUntilChanged()
    * val issues: Flow<Selection<Issue>> = ctrl.state.filters.map { it.issues }.distinctUntilChanged() }
    * val selectedIssue: Flow<Issue?> = issues.mapReady { it.selected }.readyOrNull()
    * ```
@@ -66,7 +66,7 @@ interface AppInsightsProjectLevelController {
 
   fun revertToSnapshot(state: AppInsightsState)
   fun selectSignal(value: SignalType)
-  fun selectFirebaseConnection(value: VariantConnection)
+  fun selectConnection(value: VariantConnection)
   fun openIssue(issue: AppInsightsIssue)
   fun closeIssue(issue: AppInsightsIssue)
   fun addNote(issue: AppInsightsIssue, message: String)

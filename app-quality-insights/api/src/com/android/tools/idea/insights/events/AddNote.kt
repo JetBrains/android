@@ -28,16 +28,13 @@ import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.Timed
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.events.actions.Action
+import com.google.gct.login.GoogleLogin
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import java.time.Clock
 import java.util.UUID
 
-data class AddNoteRequested(
-  val issueId: IssueId,
-  val message: String,
-  val clock: Clock,
-  private val userEmail: String
-) : ChangeEvent {
+data class AddNoteRequested(val issueId: IssueId, val message: String, val clock: Clock) :
+  ChangeEvent {
   override fun transition(
     state: AppInsightsState,
     tracker: AppInsightsTracker
@@ -47,7 +44,7 @@ data class AddNoteRequested(
       Note(
         id = NoteId(issueId, "", sessionId),
         timestamp = clock.instant(),
-        author = userEmail,
+        author = fetchEmail(),
         body = message,
         state = NoteState.CREATING
       )
@@ -67,6 +64,10 @@ data class AddNoteRequested(
       checkNotNull(it) { "No prior notes fetched, thus adding on new note is not allowed." }
       listOf(note) + it
     }
+  }
+
+  private fun fetchEmail(): String {
+    return GoogleLogin.instance.getEmail()?.takeUnless { it.isEmpty() } ?: "You (logged out)"
   }
 }
 

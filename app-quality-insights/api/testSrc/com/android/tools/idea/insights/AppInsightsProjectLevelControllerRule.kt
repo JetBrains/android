@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights
 
+import com.android.testutils.MockitoKt
 import com.android.testutils.time.FakeClock
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
@@ -28,10 +29,13 @@ import com.android.tools.idea.insights.client.IssueResponse
 import com.android.tools.idea.insights.events.actions.AppInsightsActionQueueImpl
 import com.android.tools.idea.testing.NamedExternalResource
 import com.google.common.truth.Truth.assertThat
+import com.google.gct.login.GoogleLogin
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.registerOrReplaceServiceInstance
 import com.intellij.testFramework.runInEdtAndWait
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
@@ -48,6 +52,7 @@ import kotlinx.coroutines.withTimeout
 import org.junit.runner.Description
 import org.mockito.Mockito
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 
 private suspend fun <T> ReceiveChannel<T>.receiveWithTimeout(): T = withTimeout(5000) { receive() }
 
@@ -77,6 +82,14 @@ class AppInsightsProjectLevelControllerRule(
     connections = MutableStateFlow(listOf(VARIANT1, VARIANT2, PLACEHOLDER_CONNECTION))
     tracker = mock(AppInsightsTracker::class.java)
     connectionInferrer = mock(ActiveConnectionInferrer::class.java)
+    ApplicationManager.getApplication()
+      .registerOrReplaceServiceInstance(
+        GoogleLogin::class.java,
+        MockitoKt.mock<GoogleLogin>().apply {
+          `when`(this.getEmail()).thenReturn("testuser@gmail.com")
+        },
+        disposable
+      )
     controller =
       AppInsightsProjectLevelControllerImpl(
         scope,
@@ -93,7 +106,6 @@ class AppInsightsProjectLevelControllerRule(
         onErrorAction = onErrorAction,
         connectionInferrer = connectionInferrer,
         defaultFilters = TEST_FILTERS,
-        getGoogleAccountEmail = { "testuser@gmail.com" },
         cache = cache
       )
     internalState = Channel(capacity = 3)
@@ -180,8 +192,7 @@ class AppInsightsProjectLevelControllerRule(
   fun selectSignal(value: SignalType) = controller.selectSignal(value)
 
   fun selectDevices(values: Set<Device>) = controller.selectDevices(values)
-  fun selectFirebaseConnection(value: VariantConnection) =
-    controller.selectFirebaseConnection(value)
+  fun selectFirebaseConnection(value: VariantConnection) = controller.selectConnection(value)
   fun toggleFatality(value: FailureType) = controller.toggleFailureType(value)
   fun updateConnections(variantConnections: List<VariantConnection>) =
     connections.update { variantConnections }

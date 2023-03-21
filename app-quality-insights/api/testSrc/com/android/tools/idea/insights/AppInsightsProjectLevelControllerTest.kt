@@ -111,7 +111,7 @@ class AppInsightsProjectLevelControllerTest {
           connections = model.connections.select(PLACEHOLDER_CONNECTION),
           issues =
             LoadingState.UnknownFailure(
-              message = "Currently selected app is not linked to a Firebase project.",
+              message = "Currently selected app is not configured with the current insights tool.",
               cause = UnconfiguredAppException
             ),
           filters = TEST_FILTERS
@@ -363,7 +363,8 @@ class AppInsightsProjectLevelControllerTest {
             connections = Selection(PLACEHOLDER_CONNECTION, listOf(PLACEHOLDER_CONNECTION)),
             issues =
               LoadingState.UnknownFailure(
-                message = "Currently selected app is not linked to a Firebase project.",
+                message =
+                  "Currently selected app is not configured with the current insights tool.",
                 cause = UnconfiguredAppException
               ),
             filters = TEST_FILTERS

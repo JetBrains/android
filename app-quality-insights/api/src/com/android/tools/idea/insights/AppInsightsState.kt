@@ -66,7 +66,7 @@ data class AppInsightsState(
    */
   val currentNotes: LoadingState<List<Note>?> = LoadingState.Ready(null),
 
-  /** Access level of the currently logged-in user has on Crashlytics */
+  /** Access level of the currently logged-in user has on the insights API */
   val permission: Permission = Permission.NONE,
   val mode: ConnectionMode = ConnectionMode.ONLINE
 ) {

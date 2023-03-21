@@ -23,5 +23,6 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-test-framework[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as[module]",
     ],
 )
