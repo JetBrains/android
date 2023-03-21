@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.compose.preview.util
+package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.ComposePreviewElementModelAdapter
-import com.android.tools.idea.compose.preview.MAX_HEIGHT
-import com.android.tools.idea.compose.preview.MAX_WIDTH
-import com.android.tools.idea.compose.preview.PreviewConfiguration
-import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.psi.PsiElement
@@ -34,7 +28,7 @@ import org.junit.Assert.fail
 import org.junit.Test
 import org.xml.sax.InputSource
 
-class ComposePreviewElementsTest {
+class ComposePreviewElementTest {
 
   @Test
   fun testPreviewConfigurationCleaner() {
