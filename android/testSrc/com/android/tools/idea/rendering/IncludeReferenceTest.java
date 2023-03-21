@@ -35,20 +35,16 @@ public class IncludeReferenceTest extends AndroidTestCase {
     VirtualFile file3 = myFixture.copyFileToProject("xmlpull/designtime.xml", "res/layout-land/designtime.xml");
     assertNotNull(file1);
 
-    IncludeReference reference = IncludeReference.create(file1, file2);
-    assertEquals("designtime.xml", reference.getFromDisplayName());
+    IncludeReference reference = IncludeReference.create(file1);
     assertEquals("designtime", reference.getFromResourceName());
     assertEquals("@layout/designtime", reference.getFromResourceUrl());
     assertEquals(file1, reference.getFromFile());
-    assertEquals(file2, reference.getToFile());
     assertEquals(file1, LocalFileSystem.getInstance().findFileByIoFile(reference.getFromPath()));
     //noinspection ConstantConditions
-    assertEquals(file2, LocalFileSystem.getInstance().findFileByIoFile(reference.getToPath()));
 
-    reference = IncludeReference.create(file3, file2);
+    reference = IncludeReference.create(file3);
     assertEquals("designtime", reference.getFromResourceName());
     assertEquals("@layout/designtime", reference.getFromResourceUrl());
-    assertEquals("layout-land/designtime.xml", reference.getFromDisplayName());
   }
 
   public void testGetSet() {
@@ -64,12 +60,10 @@ public class IncludeReferenceTest extends AndroidTestCase {
     ResourceResolver resourceResolver = configuration.getResourceResolver();
     assertNotNull(resourceResolver);
     IncludeReference reference = IncludeReference.get(psiFile, resourceResolver);
-    assertEquals("includer.xml", reference.getFromDisplayName());
     assertEquals("includer", reference.getFromResourceName());
     assertEquals("@layout/includer", reference.getFromResourceUrl());
 
     assertEquals(reference.getFromFile(), includer);
-    assertEquals(reference.getToFile(), included);
 
     IncludeReference.setIncludingLayout(getProject(), psiFile, null);
     assertEquals(IncludeReference.NONE, IncludeReference.get(psiFile, resourceResolver));

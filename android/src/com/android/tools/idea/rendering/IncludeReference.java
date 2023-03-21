@@ -40,7 +40,7 @@ import static com.android.SdkConstants.*;
  */
 public class IncludeReference {
   @SuppressWarnings("ConstantConditions")
-  public static final IncludeReference NONE = new IncludeReference(null, null);
+  public static final IncludeReference NONE = new IncludeReference(null);
 
   /**
    * The source file of the reference (included from).
@@ -49,24 +49,17 @@ public class IncludeReference {
   private final VirtualFile myFromFile;
 
   /**
-   * The destination file of the reference (the file being included).
-   */
-  @Nullable
-  private final VirtualFile myToFile;
-
-  /**
    * Creates a new include reference.
    */
-  private IncludeReference(@NonNull VirtualFile fromFile, @Nullable VirtualFile toFile) {
+  private IncludeReference(@NonNull VirtualFile fromFile) {
     myFromFile = fromFile;
-    myToFile = toFile;
   }
 
   /**
    * Creates a new include reference.
    */
-  public static IncludeReference create(@NonNull VirtualFile fromFile, @Nullable VirtualFile toFile) {
-    return new IncludeReference(fromFile, toFile);
+  public static IncludeReference create(@NonNull VirtualFile fromFile) {
+    return new IncludeReference(fromFile);
   }
 
   /**
@@ -87,44 +80,6 @@ public class IncludeReference {
   @NotNull
   public File getFromPath() {
     return VfsUtilCore.virtualToIoFile(myFromFile);
-  }
-
-  /**
-   * Returns the destination file for the include reference.
-   *
-   * @return the destination file
-   */
-  @Nullable
-  public VirtualFile getToFile() {
-    return myToFile;
-  }
-
-  /**
-   * Returns the destination path for the include reference.
-   *
-   * @return the destination path, if known
-   */
-  @Nullable
-  public File getToPath() {
-    return myToFile != null ? VfsUtilCore.virtualToIoFile(myToFile) : null;
-  }
-
-  /**
-   * Returns a description of this reference, suitable to be shown to the user.
-   *
-   * @return a display name for the reference
-   */
-  @NotNull
-  public String getFromDisplayName() {
-    // The ID is deliberately kept in a pretty user-readable format but we could
-    // consider prepending layout/ on ids that don't have it (to make the display
-    // more uniform) or ripping out all layout[-constraint] prefixes out and
-    // instead prepending @ etc.
-    if (myToFile != null && myToFile.getParent() != null && myToFile.getParent().equals(myFromFile.getParent())) {
-      return myFromFile.getName();
-    }
-
-    return myFromFile.getParent().getName() + '/' + myFromFile.getName();
   }
 
   /**
@@ -179,8 +134,7 @@ public class IncludeReference {
             // my target include. I could stash it in the include reference.
             VirtualFile source = IdeResourcesUtil.resolveLayout(resolver, resValue);
             if (source != null) {
-              VirtualFile target = file.getVirtualFile();
-              return create(source, target);
+              return create(source);
             }
           }
         }

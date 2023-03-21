@@ -735,7 +735,6 @@ public class RenderTask {
 
     ILayoutPullParser topParser = null;
     if (myIncludedWithin != IncludeReference.NONE) {
-      assert Objects.equals(myIncludedWithin.getToFile(), xmlFile.getVirtualFile());
       // TODO: Validate that we're really including the same layout here!
       //ResourceValue contextLayout = resolver.findResValue(myIncludedWithin.getFromResourceUrl(), false  /* forceFrameworkOnly*/);
       //if (contextLayout != null) {
