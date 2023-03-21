@@ -2269,12 +2269,12 @@ android-studio/plugins/android/resources/device-art-resources/pixel_5/mask.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_6/back.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_6/layout
 android-studio/plugins/android/resources/device-art-resources/pixel_6/mask.webp
-android-studio/plugins/android/resources/device-art-resources/pixel_6a/back.webp
-android-studio/plugins/android/resources/device-art-resources/pixel_6a/layout
-android-studio/plugins/android/resources/device-art-resources/pixel_6a/mask.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_6_pro/back.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_6_pro/layout
 android-studio/plugins/android/resources/device-art-resources/pixel_6_pro/mask.webp
+android-studio/plugins/android/resources/device-art-resources/pixel_6a/back.webp
+android-studio/plugins/android/resources/device-art-resources/pixel_6a/layout
+android-studio/plugins/android/resources/device-art-resources/pixel_6a/mask.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_7/back.webp
 android-studio/plugins/android/resources/device-art-resources/pixel_7/layout
 android-studio/plugins/android/resources/device-art-resources/pixel_7/mask.webp
@@ -2380,6 +2380,10 @@ android-studio/plugins/android/resources/perfetto/x86_64/libperfetto.so
 android-studio/plugins/android/resources/perfetto/x86_64/perfetto
 android-studio/plugins/android/resources/perfetto/x86_64/traced
 android-studio/plugins/android/resources/perfetto/x86_64/traced_probes
+android-studio/plugins/android/resources/process-tracker-agent/native/arm64-v8a/process-tracker
+android-studio/plugins/android/resources/process-tracker-agent/native/armeabi-v7a/process-tracker
+android-studio/plugins/android/resources/process-tracker-agent/native/x86/process-tracker
+android-studio/plugins/android/resources/process-tracker-agent/native/x86_64/process-tracker
 android-studio/plugins/android/resources/profilers-transform.jar
 android-studio/plugins/android/resources/sampleData/avatars/avatar_1.xml
 android-studio/plugins/android/resources/sampleData/avatars/avatar_10.xml

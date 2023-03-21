@@ -307,6 +307,7 @@ studio_plugin(
             "//tools/base/app-inspection/inspectors/backgroundtask:bundle",
             "//tools/base/app-inspection/inspectors/network:bundle",
             "//tools/base/dynamic-layout-inspector/agent/appinspection:bundle",
+            "//tools/base/process-monitor/process-tracker-agent:bundle",
             "//tools/base/profiler/transform:profilers-transform",
             "//tools/base/profiler/app:perfa",
             "//tools/base/profiler/app:perfa_okhttp",

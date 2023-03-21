@@ -2291,12 +2291,12 @@ Android Studio Preview.app/Contents/plugins/android/resources/device-art-resourc
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_6/back.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_6/layout
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_6/mask.webp
-Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_6a/back.webp
-Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_6a/layout
-Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_6a/mask.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_6_pro/back.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_6_pro/layout
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_6_pro/mask.webp
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_6a/back.webp
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_6a/layout
+Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_6a/mask.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_7/back.webp
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_7/layout
 Android Studio Preview.app/Contents/plugins/android/resources/device-art-resources/pixel_7/mask.webp
@@ -2402,6 +2402,10 @@ Android Studio Preview.app/Contents/plugins/android/resources/perfetto/x86_64/li
 Android Studio Preview.app/Contents/plugins/android/resources/perfetto/x86_64/perfetto
 Android Studio Preview.app/Contents/plugins/android/resources/perfetto/x86_64/traced
 Android Studio Preview.app/Contents/plugins/android/resources/perfetto/x86_64/traced_probes
+Android Studio Preview.app/Contents/plugins/android/resources/process-tracker-agent/native/arm64-v8a/process-tracker
+Android Studio Preview.app/Contents/plugins/android/resources/process-tracker-agent/native/armeabi-v7a/process-tracker
+Android Studio Preview.app/Contents/plugins/android/resources/process-tracker-agent/native/x86/process-tracker
+Android Studio Preview.app/Contents/plugins/android/resources/process-tracker-agent/native/x86_64/process-tracker
 Android Studio Preview.app/Contents/plugins/android/resources/profilers-transform.jar
 Android Studio Preview.app/Contents/plugins/android/resources/sampleData/avatars/avatar_1.xml
 Android Studio Preview.app/Contents/plugins/android/resources/sampleData/avatars/avatar_10.xml
