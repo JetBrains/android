@@ -16,6 +16,7 @@
 package com.android.tools.idea.dagger.index
 
 import com.android.tools.idea.dagger.concepts.AllConcepts
+import com.android.tools.idea.dagger.concepts.BindsOptionalOfProviderDaggerElement
 import com.android.tools.idea.dagger.concepts.ComponentDaggerElement
 import com.android.tools.idea.dagger.concepts.ComponentProvisionMethodDaggerElement
 import com.android.tools.idea.dagger.concepts.ConsumerDaggerElement
@@ -59,6 +60,7 @@ abstract class IndexValue {
     MODULE_WITH_INCLUDE(ModuleDaggerElement::class),
     MODULE_WITH_SUBCOMPONENT(ModuleDaggerElement::class),
     COMPONENT_PROVISION_METHOD(ComponentProvisionMethodDaggerElement::class),
+    BINDS_OPTIONAL_OF_METHOD(BindsOptionalOfProviderDaggerElement::class),
   }
 
   abstract fun save(output: DataOutput)

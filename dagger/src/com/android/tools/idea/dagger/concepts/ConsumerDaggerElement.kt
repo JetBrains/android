@@ -35,15 +35,15 @@ internal abstract class ConsumerDaggerElementBase : DaggerElement() {
 
   /** Type being consumed, without any wrapper like `dagger.Lazy<>`. */
   val consumedType: PsiType
-    get() = rawType.withoutWrappingDaggerType().unboxed
+    get() = rawType.withoutDaggerWrapper().unboxed
 
   override fun getRelatedDaggerElements(): List<DaggerRelatedElement> =
-    getRelatedDaggerElementsFromIndex<ProviderDaggerElement>(consumedType.getIndexKeys()).map {
+    getRelatedDaggerElementsFromIndex<ProviderDaggerElementBase>(consumedType.getIndexKeys()).map {
       DaggerRelatedElement(it, DaggerBundle.message("providers"))
     }
 
   override fun filterResolveCandidate(resolveCandidate: DaggerElement) =
-    resolveCandidate is ProviderDaggerElement && resolveCandidate.canProvideType(consumedType)
+    resolveCandidate is ProviderDaggerElementBase && resolveCandidate.canProvideType(consumedType)
 }
 
 internal data class ConsumerDaggerElement(

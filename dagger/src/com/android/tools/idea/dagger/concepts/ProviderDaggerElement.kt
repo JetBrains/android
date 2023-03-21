@@ -22,32 +22,37 @@ import com.intellij.psi.PsiType
 import org.jetbrains.kotlin.idea.base.util.projectScope
 import org.jetbrains.kotlin.psi.KtFunction
 
+internal abstract class ProviderDaggerElementBase : DaggerElement() {
+
+  protected abstract fun getIndexKeys(): List<String>
+
+  abstract fun canProvideType(psiType: PsiType): Boolean
+
+  override fun getRelatedDaggerElements(): List<DaggerRelatedElement> =
+    getRelatedDaggerElementsFromIndex<ConsumerDaggerElementBase>(getIndexKeys()).map {
+      DaggerRelatedElement(it, it.relatedElementGrouping)
+    }
+
+  override fun filterResolveCandidate(resolveCandidate: DaggerElement): Boolean =
+    resolveCandidate is ConsumerDaggerElementBase && canProvideType(resolveCandidate.consumedType)
+}
+
 internal data class ProviderDaggerElement(
   override val psiElement: PsiElement,
   private val providedPsiType: PsiType
-) : DaggerElement() {
+) : ProviderDaggerElementBase() {
 
   internal constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())
   internal constructor(psiElement: PsiMethod) : this(psiElement, psiElement.getReturnedPsiType())
 
-  override fun getRelatedDaggerElements(): List<DaggerRelatedElement> {
-    // Since Dagger allows types to be wrapped with Lazy<> and Provider<> and since our index stores
-    // generics by the outermost type's simple name only, we have to search for "Lazy" and
-    // "Provider" for all types.
+  override fun getIndexKeys(): List<String> {
     val project = psiElement.project
     val scope = project.projectScope()
-    val indexKeys = providedPsiType.getIndexKeys() + extraIndexKeysForProvider(project, scope)
-
-    return getRelatedDaggerElementsFromIndex<ConsumerDaggerElementBase>(indexKeys).map {
-      DaggerRelatedElement(it, it.relatedElementGrouping)
-    }
+    return providedPsiType.getIndexKeys() + extraIndexKeysForProvider(project, scope)
   }
 
-  override fun filterResolveCandidate(resolveCandidate: DaggerElement): Boolean =
-    resolveCandidate is ConsumerDaggerElementBase && canProvideType(resolveCandidate.consumedType)
-
-  fun canProvideType(psiType: PsiType): Boolean {
+  override fun canProvideType(psiType: PsiType): Boolean {
     return psiType.unboxed == providedPsiType ||
-      psiType.withoutWrappingDaggerType() == providedPsiType
+      psiType.typeInsideDaggerWrapper() == providedPsiType
   }
 }

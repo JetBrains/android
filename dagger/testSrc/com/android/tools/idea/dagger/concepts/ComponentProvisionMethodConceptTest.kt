@@ -15,11 +15,7 @@
  */
 package com.android.tools.idea.dagger.concepts
 
-import com.android.testutils.MockitoKt.mock
-import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.dagger.addDaggerAndHiltClasses
-import com.android.tools.idea.dagger.index.DaggerDataIndexer
-import com.android.tools.idea.dagger.index.IndexValue
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.onEdt
@@ -30,7 +26,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiMethod
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import com.intellij.util.indexing.FileContent
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.util.projectScope
 import org.jetbrains.kotlin.psi.KtFile
@@ -92,7 +87,7 @@ class ComponentProvisionMethodConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val indexResults = runIndexer(psiFile)
+    val indexResults = ComponentProvisionMethodConcept.indexers.runIndexerOn(psiFile)
 
     assertThat(indexResults)
       .containsExactly(
@@ -105,14 +100,6 @@ class ComponentProvisionMethodConceptTest {
           ),
         )
       )
-  }
-
-  private fun runIndexer(ktFile: KtFile): Map<String, Set<IndexValue>> {
-    val dataIndexer = DaggerDataIndexer(ComponentProvisionMethodConcept.indexers)
-    val fileContent: FileContent = mock()
-    whenever(fileContent.psiFile).thenReturn(ktFile)
-    whenever(fileContent.fileType).thenReturn(KotlinFileType.INSTANCE)
-    return dataIndexer.map(fileContent)
   }
 
   @Test

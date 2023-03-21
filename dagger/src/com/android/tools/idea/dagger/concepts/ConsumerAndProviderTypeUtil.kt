@@ -24,9 +24,11 @@ import com.intellij.psi.search.GlobalSearchScope
 private const val LAZY = "dagger.Lazy"
 private const val PROVIDER = "javax.inject.Provider"
 
-private val wrappingDaggerTypeFqNames = listOf(LAZY, PROVIDER)
 private val wrappingDaggerTypeSimpleNames =
-  wrappingDaggerTypeFqNames.map { it.substringAfterLast(".") }
+  listOf(LAZY, PROVIDER).map { it.substringAfterLast(".") }
+
+private const val OPTIONAL_GUAVA = "com.google.common.base.Optional"
+private const val OPTIONAL_JAVA = "java.util.Optional"
 
 /**
  * Gets index keys to use when looking up related [DaggerElement]s from a [ProviderDaggerElement].
@@ -41,16 +43,40 @@ internal fun extraIndexKeysForProvider(project: Project, scope: GlobalSearchScop
 
 /**
  * Dagger allows consumers to wrap a requested type with Lazy<>, Provider<>, or Provider<Lazy<>>.
- * This method removes any of those wrappers, returning the inner type.
+ * This method returns the type inside those wrappers, or null if there is no wrapper.
  */
-internal fun PsiType.withoutWrappingDaggerType(): PsiType {
+internal fun PsiType.typeInsideDaggerWrapper(): PsiType? {
+  // Remove Provider<> first and then Lazy<>, since Provider<Lazy<>> is allowed but
+  // Lazy<Provider<>> is not.
+  val typeWithoutProvider = typeInsideWrapper(PROVIDER)
+  return if (typeWithoutProvider != null) {
+    typeWithoutProvider.typeInsideWrapper(LAZY) ?: typeWithoutProvider
+  } else {
+    typeInsideWrapper(LAZY)
+  }
+}
+
+/**
+ * Dagger allows consumers to wrap a requested type with Lazy<>, Provider<>, or Provider<Lazy<>>.
+ * This method returns the type inside those wrappers, or the original type if there is no wrapper.
+ */
+internal fun PsiType.withoutDaggerWrapper(): PsiType = typeInsideDaggerWrapper() ?: this
+
+/**
+ * Dagger allows some types to be consumed with an Optional<> wrapper, using a couple variants of
+ * Optional. This method returns the type inside those wrappers, or null if there is no wrapper.
+ */
+internal fun PsiType.typeInsideOptionalWrapper(): PsiType? =
+  typeInsideWrapper(OPTIONAL_GUAVA, OPTIONAL_JAVA)
+
+private fun PsiType.typeInsideWrapper(vararg wrapperFqName: String): PsiType? {
   if (
     this is PsiClassReferenceType &&
-      rawType().canonicalText in wrappingDaggerTypeFqNames &&
-      parameters.isNotEmpty()
+      parameters.isNotEmpty() &&
+      rawType().canonicalText in wrapperFqName
   ) {
-    return parameters[0].withoutWrappingDaggerType()
+    return parameters[0]
   }
 
-  return this
+  return null
 }

@@ -15,11 +15,18 @@
  */
 package com.android.tools.idea.dagger.concepts
 
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.dagger.index.DaggerConceptIndexers
+import com.android.tools.idea.dagger.index.DaggerDataIndexer
 import com.android.tools.idea.dagger.index.IndexValue
+import com.intellij.util.indexing.FileContent
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
+import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.psi.KtFile
 
 fun serializeAndDeserializeIndexValue(indexValue: IndexValue): IndexValue =
   serializeAndDeserializeIndexValues(setOf(indexValue)).single()
@@ -34,4 +41,12 @@ fun serializeAndDeserializeIndexValues(indexValues: Set<IndexValue>): Set<IndexV
   return ByteArrayInputStream(bytes).use { bais ->
     DataInputStream(bais).use { dis -> IndexValue.Externalizer.read(dis) }
   }
+}
+
+fun DaggerConceptIndexers.runIndexerOn(ktFile: KtFile): Map<String, Set<IndexValue>> {
+  val dataIndexer = DaggerDataIndexer(this)
+  val fileContent: FileContent = mock()
+  whenever(fileContent.psiFile).thenReturn(ktFile)
+  whenever(fileContent.fileType).thenReturn(KotlinFileType.INSTANCE)
+  return dataIndexer.map(fileContent)
 }

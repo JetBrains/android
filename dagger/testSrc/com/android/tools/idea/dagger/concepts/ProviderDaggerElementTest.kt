@@ -284,6 +284,143 @@ class ProviderDaggerElementTest {
   }
 
   @Test
+  fun getRelatedDaggerElement_optionalTypes() {
+    addDaggerAndHiltClasses(myFixture)
+
+    myFixture.addFileToProject(
+      "java/util/Optional.java",
+      // language=java
+      """
+      package java.util;
+      public class Optional<T> {
+        public static <T> Optional<T> empty() { return null; }
+      }
+      """
+        .trimIndent()
+    )
+
+    myFixture.addFileToProject(
+      "com/google/common/base/Optional.java",
+      // language=java
+      """
+      package com.google.common.base;
+      public class Optional<T> {
+        public static <T> Optional<T> absent() { return null; }
+      }
+      """
+        .trimIndent()
+    )
+
+    // This is not a realistic Dagger file and would not compile, since there are multiple
+    // conflicting provides/binds methods. But that doesn't matter for navigation purposes, and this
+    // allows us to quickly validate both positive and negative cases.
+    myFixture.openFileInEditor(
+      myFixture
+        .addFileToProject(
+          "src/com/example/Foo.kt",
+          // language=kotlin
+          """
+          package com.example
+
+          import dagger.BindsOptionalOf
+          import dagger.Lazy
+          import dagger.Module
+          import dagger.Provides
+          import javax.inject.Inject
+
+          typealias JavaOptional<T> = java.util.Optional<T>
+          typealias GuavaOptional<T> = com.google.common.base.Optional <T>
+
+          class Foo {}
+
+          class Optional<T> {}
+
+          @Module
+          interface MyModule {
+            @BindsOptionalOf
+            fun bindOptionalFoo(): Foo
+
+            @Provides
+            fun provideJavaOptionalFoo(): JavaOptional<Foo> = JavaOptional.empty()
+
+            @Provides
+            fun provideGuavaOptionalFoo(): GuavaOptional<Foo> = GuavaOptional.absent()
+
+            @Provides
+            fun provideMyOptionalFoo(): com.example.Optional<Foo> = com.example.Optional()
+
+            @Provides
+            fun provideFoo(): Foo = Foo()
+          }
+
+          class Bar @Inject constructor(
+            consumerOfJavaOptionalFoo: JavaOptional<Foo>,
+            consumerOfGuavaOptionalFoo: GuavaOptional<Foo>,
+            consumerOfMyOptionalFoo: com.example.Optional<Foo>,
+            consumerOfFoo: Foo,
+            consumerOfJavaOptionalLazyFoo: JavaOptional<Lazy<Foo>>,
+          ) {}
+          """
+            .trimIndent()
+        )
+        .virtualFile
+    )
+
+    val bindOptionalFooDaggerElement =
+      BindsOptionalOfProviderDaggerElement(
+        myFixture.findParentElement<KtFunction>("bindOptional|Foo")
+      )
+    val provideJavaOptionalFooDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provideJavaOptional|Foo"))
+    val provideGuavaOptionalFooDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provideGuavaOptional|Foo"))
+    val provideMyOptionalFooDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provideMyOptional|Foo"))
+    val provideFooDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|Foo"))
+
+    val consumerOfJavaOptionalFooDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("consumerOf|JavaOptionalFoo"))
+    val consumerOfGuavaOptionalFooDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("consumerOf|GuavaOptionalFoo"))
+    val consumerOfMyOptionalFooDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("consumerOf|MyOptionalFoo"))
+    val consumerOfFooDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("consumerOf|Foo"))
+    val consumerOfJavaOptionalLazyFooDaggerElement =
+      ConsumerDaggerElement(
+        myFixture.findParentElement<KtParameter>("consumerOfJavaOptionalLazy|Foo")
+      )
+
+    assertThat(bindOptionalFooDaggerElement.getRelatedDaggerElements())
+      .containsExactly(
+        DaggerRelatedElement(consumerOfJavaOptionalFooDaggerElement, "Consumers"),
+        DaggerRelatedElement(consumerOfGuavaOptionalFooDaggerElement, "Consumers"),
+        DaggerRelatedElement(consumerOfJavaOptionalLazyFooDaggerElement, "Consumers"),
+      )
+
+    assertThat(provideJavaOptionalFooDaggerElement.getRelatedDaggerElements())
+      .containsExactly(
+        DaggerRelatedElement(consumerOfJavaOptionalFooDaggerElement, "Consumers"),
+      )
+
+    assertThat(provideGuavaOptionalFooDaggerElement.getRelatedDaggerElements())
+      .containsExactly(
+        DaggerRelatedElement(consumerOfGuavaOptionalFooDaggerElement, "Consumers"),
+      )
+
+    assertThat(provideMyOptionalFooDaggerElement.getRelatedDaggerElements())
+      .containsExactly(
+        DaggerRelatedElement(consumerOfMyOptionalFooDaggerElement, "Consumers"),
+      )
+
+    assertThat(provideFooDaggerElement.getRelatedDaggerElements())
+      .containsExactly(
+        DaggerRelatedElement(consumerOfFooDaggerElement, "Consumers"),
+      )
+  }
+
+  @Test
   fun canProviderType_normalType() {
     addDaggerAndHiltClasses(myFixture)
 

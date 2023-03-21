@@ -48,7 +48,7 @@ class ConsumerAndProviderTypeUtilTest {
   }
 
   @Test
-  fun removeWrappingDaggerType_hasWrappingType() {
+  fun typeInsideDaggerWrapper_hasWrappingType() {
     addDaggerAndHiltClasses(myFixture)
 
     val psiFile =
@@ -67,6 +67,7 @@ class ConsumerAndProviderTypeUtilTest {
           lazyFoo: Lazy<Foo>,
           providerFoo: Provider<Foo>,
           providerLazyFoo: Provider<Lazy<Foo>>,
+          lazyProviderFoo: Lazy<Provider<Foo>>,
           lazyInt: Lazy<Int>,
         )
         """
@@ -80,6 +81,8 @@ class ConsumerAndProviderTypeUtilTest {
       myFixture.moveCaret("provider|Foo").parentOfType<KtParameter>(withSelf = true)!!.psiType!!
     val providerLazyFooType =
       myFixture.moveCaret("providerLazy|Foo").parentOfType<KtParameter>(withSelf = true)!!.psiType!!
+    val lazyProviderFooType =
+      myFixture.moveCaret("lazyProvider|Foo").parentOfType<KtParameter>(withSelf = true)!!.psiType!!
     val lazyIntType =
       myFixture.moveCaret("lazy|Int").parentOfType<KtParameter>(withSelf = true)!!.psiType!!
 
@@ -87,15 +90,19 @@ class ConsumerAndProviderTypeUtilTest {
       myFixture.moveCaret("class F|oo").parentOfType<KtClass>(withSelf = true)!!.toPsiType()
     val integerType = PsiPrimitiveType.INT.getBoxedType(/* context= */ psiFile)
 
-    assertThat(lazyFooType.withoutWrappingDaggerType()).isEqualTo(fooType)
-    assertThat(providerFooType.withoutWrappingDaggerType()).isEqualTo(fooType)
-    assertThat(providerLazyFooType.withoutWrappingDaggerType()).isEqualTo(fooType)
+    assertThat(lazyFooType.typeInsideDaggerWrapper()).isEqualTo(fooType)
+    assertThat(providerFooType.typeInsideDaggerWrapper()).isEqualTo(fooType)
+    assertThat(providerLazyFooType.typeInsideDaggerWrapper()).isEqualTo(fooType)
 
-    assertThat(lazyIntType.withoutWrappingDaggerType()).isEqualTo(integerType)
+    // Nesting Lazy<Provider<Foo>> is not supported by Dagger (only the opposite order,
+    // Provider<Lazy<Foo>>).
+    assertThat(lazyProviderFooType.typeInsideDaggerWrapper()).isEqualTo(providerFooType)
+
+    assertThat(lazyIntType.typeInsideDaggerWrapper()).isEqualTo(integerType)
   }
 
   @Test
-  fun removeWrappingDaggerType_doesNotHaveWrappingType() {
+  fun typeInsideDaggerWrapper_doesNotHaveWrappingType() {
     addDaggerAndHiltClasses(myFixture)
 
     myFixture.openFileInEditor(
@@ -123,7 +130,9 @@ class ConsumerAndProviderTypeUtilTest {
     val integerType =
       myFixture.moveCaret("inte|ger: Int").parentOfType<KtParameter>(withSelf = true)!!.psiType!!
 
-    assertThat(fooType.withoutWrappingDaggerType()).isEqualTo(fooType)
-    assertThat(integerType.withoutWrappingDaggerType()).isEqualTo(integerType)
+    assertThat(fooType.typeInsideDaggerWrapper()).isNull()
+    assertThat(fooType.withoutDaggerWrapper()).isEqualTo(fooType)
+    assertThat(integerType.typeInsideDaggerWrapper()).isNull()
+    assertThat(integerType.withoutDaggerWrapper()).isEqualTo(integerType)
   }
 }

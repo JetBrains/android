@@ -20,7 +20,7 @@ import com.android.tools.idea.dagger.concepts.ComponentDaggerElement
 import com.android.tools.idea.dagger.concepts.ConsumerDaggerElementBase
 import com.android.tools.idea.dagger.concepts.DaggerElement
 import com.android.tools.idea.dagger.concepts.ModuleDaggerElement
-import com.android.tools.idea.dagger.concepts.ProviderDaggerElement
+import com.android.tools.idea.dagger.concepts.ProviderDaggerElementBase
 import com.android.tools.idea.dagger.concepts.SubcomponentDaggerElement
 import com.android.tools.idea.dagger.concepts.getDaggerElement
 import com.android.tools.idea.dagger.localization.DaggerBundle
@@ -120,7 +120,7 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
     private fun DaggerElement.getIcon(): Icon =
       when (this) {
         is ConsumerDaggerElementBase -> StudioIcons.Misc.DEPENDENCY_PROVIDER
-        is ProviderDaggerElement,
+        is ProviderDaggerElementBase,
         is ComponentDaggerElement,
         is SubcomponentDaggerElement,
         is ModuleDaggerElement -> StudioIcons.Misc.DEPENDENCY_CONSUMER
