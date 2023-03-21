@@ -20,7 +20,7 @@ import com.android.testutils.file.createInMemoryFileSystem
 import com.android.testutils.file.getExistingFiles
 import com.android.testutils.file.someRoot
 import com.android.testutils.truth.PathSubject.assertThat
-import com.android.tools.idea.executeCapturingLoggedErrors
+import com.android.tools.idea.testing.executeCapturingLoggedErrors
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.testFramework.TestLoggerFactory

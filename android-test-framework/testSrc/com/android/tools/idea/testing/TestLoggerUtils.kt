@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea
+package com.android.tools.idea.testing
 
 import com.intellij.testFramework.LoggedErrorProcessor
 import com.intellij.util.ThrowableRunnable

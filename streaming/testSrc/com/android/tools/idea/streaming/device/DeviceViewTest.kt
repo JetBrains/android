@@ -30,7 +30,6 @@ import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.analytics.crash.CrashReport
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.executeCapturingLoggedErrors
 import com.android.tools.idea.streaming.AbstractDisplayView
 import com.android.tools.idea.streaming.DeviceMirroringSettings
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
@@ -41,6 +40,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.executeDeviceAction
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.CrashReporterRule
+import com.android.tools.idea.testing.executeCapturingLoggedErrors
 import com.android.tools.idea.testing.mockStatic
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE_MIRRORING_ABNORMAL_AGENT_TERMINATION
