@@ -30,8 +30,8 @@ fun executeCapturingLoggedErrors(runnable: ThrowableRunnable<RuntimeException>):
 private class LoggedErrorCapturer : LoggedErrorProcessor() {
   val errorMessages = mutableListOf<String>()
 
-  override fun processError(category: String, message: String, t: Throwable?, details: Array<out String>): Boolean {
+  override fun processError(category: String, message: String, details: Array<out String>, t: Throwable?): Set<Action> {
     errorMessages.add(message)
-    return false
+    return Action.NONE
   }
 }
