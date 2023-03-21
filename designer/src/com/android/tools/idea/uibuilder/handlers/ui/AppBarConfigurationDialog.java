@@ -360,7 +360,7 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   @WorkerThread
-  private PsiFile generateXml(boolean collapsed) {
+  private XmlFile generateXml(boolean collapsed) {
     DumbService.getInstance(getProject()).waitForSmartMode();
     StringBuilder text = new StringBuilder(SAMPLE_REPETITION * SAMPLE_TEXT.length());
     for (int i = 0; i < SAMPLE_REPETITION; i++) {
@@ -370,7 +370,7 @@ public class AppBarConfigurationDialog extends JDialog {
     String content = Templates.getTextView(namespaces.get(ANDROID_URI), text.toString());
     String xml = getXml(content, collapsed, namespaces);
     Project project = getProject();
-    return ReadAction.compute(() -> PsiFileFactory.getInstance(project).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml));
+    return (XmlFile)ReadAction.compute(() -> PsiFileFactory.getInstance(project).createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml));
   }
 
   private void updatePreviewImages() {
@@ -592,11 +592,11 @@ public class AppBarConfigurationDialog extends JDialog {
   }
 
   @NotNull
-  private CompletableFuture<BufferedImage> updateImage(@NotNull PsiFile xmlFile, @NotNull JBLabel preview) {
+  private CompletableFuture<BufferedImage> updateImage(@NotNull XmlFile xmlFile, @NotNull JBLabel preview) {
     return renderImage(xmlFile).whenCompleteAsync((image, ex) -> updatePreviewImage(image, preview), EdtExecutorService.getInstance());
   }
 
-  private CompletableFuture<BufferedImage> renderImage(@NotNull PsiFile xmlFile) {
+  private CompletableFuture<BufferedImage> renderImage(@NotNull XmlFile xmlFile) {
     AndroidFacet facet = myModel.getFacet();
     RenderService renderService = StudioRenderService.getInstance(getProject());
     final CompletableFuture<RenderTask> taskFuture = taskBuilder(renderService, facet, myModel.getConfiguration())

@@ -286,7 +286,7 @@ final public class RenderService implements Disposable {
     private final RenderContext myContext;
     private final Object myCredential;
     @NotNull private ImagePool myImagePool;
-    @Nullable private PsiFile myPsiFile;
+    @Nullable private XmlFile myXmlFile;
     @NotNull private final RenderLogger myLogger;
     @Nullable private ILayoutPullParserFactory myParserFactory;
     private boolean isSecurityManagerEnabled = true;
@@ -367,8 +367,8 @@ final public class RenderService implements Disposable {
     }
 
     @NotNull
-    public RenderTaskBuilder withPsiFile(@NotNull PsiFile psiFile) {
-      this.myPsiFile = psiFile;
+    public RenderTaskBuilder withPsiFile(@NotNull XmlFile xmlFile) {
+      this.myXmlFile = xmlFile;
       return this;
     }
 
@@ -580,9 +580,8 @@ final public class RenderService implements Disposable {
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
                            classesToPreload, reportOutOfDateUserClasses, myPriority, myMinDownscalingFactor);
-          if (myPsiFile instanceof XmlFile) {
-            task.setXmlFile((XmlFile)myPsiFile);
-          }
+
+          task.setXmlFile(myXmlFile);
 
           task
             .setDecorations(showDecorations)
