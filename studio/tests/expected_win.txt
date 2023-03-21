@@ -11,6 +11,7 @@ android-studio/bin/elevator.exe
 android-studio/bin/format.bat
 android-studio/bin/fsnotifier-wsl
 android-studio/bin/fsnotifier.exe
+android-studio/bin/game-tools.bat
 android-studio/bin/helpers/jb_declarative_formatters/__init__.py
 android-studio/bin/helpers/jb_declarative_formatters/parsers/__init__.py
 android-studio/bin/helpers/jb_declarative_formatters/parsers/natvis/__init__.py
@@ -55,6 +56,8 @@ android-studio/bin/lldb/helpers/renderers/jb_lldb_string_utils.py
 android-studio/bin/lldb/helpers/renderers/jb_lldb_utils.py
 android-studio/bin/ltedit.bat
 android-studio/bin/msvcp140.dll
+android-studio/bin/profiler.bat
+android-studio/bin/profiler.exe
 android-studio/bin/restarter.exe
 android-studio/bin/runnerw.exe
 android-studio/bin/studio.bat
