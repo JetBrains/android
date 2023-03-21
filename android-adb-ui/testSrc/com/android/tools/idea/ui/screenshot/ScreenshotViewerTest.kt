@@ -45,7 +45,7 @@ import java.util.EnumSet
 import javax.swing.JComboBox
 import javax.swing.UIManager
 
-private val DISPLAY_INFO_PHONE =
+private const val DISPLAY_INFO_PHONE =
   "DisplayDeviceInfo{\"Built-in Screen\": uniqueId=\"local:4619827259835644672\", 1080 x 2400, modeId 1, defaultModeId 1," +
   " supportedModes [{id=1, width=1080, height=2400, fps=60.000004, alternativeRefreshRates=[]}], colorMode 0, supportedColorModes [0]," +
   " hdrCapabilities HdrCapabilities{mSupportedHdrTypes=[], mMaxLuminance=500.0, mMaxAverageLuminance=500.0, mMinLuminance=0.0}," +
@@ -61,7 +61,7 @@ private val DISPLAY_INFO_PHONE =
   " brightnessMaximum 1.0, brightnessDefault 0.39763778," +
   " FLAG_ALLOWED_TO_BE_DEFAULT_DISPLAY, FLAG_ROTATES_WITH_CONTENT, FLAG_SECURE, FLAG_SUPPORTS_PROTECTED_BUFFERS, installOrientation 0}"
 
-private val DISPLAY_INFO_WATCH =
+private const val DISPLAY_INFO_WATCH =
   "DisplayDeviceInfo{\"Built-in Screen\": uniqueId=\"local:8141603649153536\", 454 x 454, modeId 1, defaultModeId 1," +
   " supportedModes [{id=1, width=454, height=454, fps=60.000004}], colorMode 0, supportedColorModes [0]," +
   " HdrCapabilities HdrCapabilities{mSupportedHdrTypes=[], mMaxLuminance=500.0, mMaxAverageLuminance=500.0, mMinLuminance=0.0}," +
