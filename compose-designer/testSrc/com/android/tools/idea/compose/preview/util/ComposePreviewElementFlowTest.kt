@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.util
 
 import com.android.tools.idea.compose.ComposeProjectRule
+import com.android.tools.idea.compose.preview.previewElementFlowForFile
 import com.android.tools.idea.concurrency.createChildScope
 import com.android.tools.idea.testing.executeAndSave
 import com.android.tools.idea.testing.insertText

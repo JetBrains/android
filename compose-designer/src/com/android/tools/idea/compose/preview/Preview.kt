@@ -32,7 +32,6 @@ import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.containsOffset
-import com.android.tools.idea.compose.preview.util.previewElementFlowForFile
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
