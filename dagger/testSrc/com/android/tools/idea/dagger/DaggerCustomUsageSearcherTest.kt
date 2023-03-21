@@ -16,8 +16,8 @@
 package com.android.tools.idea.dagger
 
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.loadNewFile
-import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.intellij.find.FindManager
 import com.intellij.find.impl.FindManagerImpl
@@ -25,7 +25,6 @@ import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
-import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.registerServiceInstance
 import com.intellij.usages.Usage
 import com.intellij.usages.UsageInfo2UsageAdapter
@@ -471,7 +470,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       )
       .containingFile
 
-    val provider = myFixture.moveCaret("public MyProvi|der()").parentOfType<PsiMethod>()!!
+    val provider: PsiMethod = myFixture.findParentElement("public MyProvi|der()")
 
     // Dagger consumer as param of @Provides-annotated method.
     myFixture.addClass(
@@ -597,7 +596,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         .virtualFile
 
     myFixture.configureFromExistingVirtualFile(componentFile)
-    val componentMethod = myFixture.moveCaret("getMyCl|ass").parentOfType<PsiMethod>()!!
+    val componentMethod: PsiMethod = myFixture.findParentElement("getMyCl|ass")
 
     var presentation = myFixture.getUsageViewTreeTextRepresentation(componentMethod)
 
@@ -615,7 +614,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       )
 
     myFixture.configureFromExistingVirtualFile(classFile)
-    val classProvider = myFixture.moveCaret("@Inject public MyCla|ss").parentOfType<PsiMethod>()!!
+    val classProvider: PsiMethod = myFixture.findParentElement("@Inject public MyCla|ss")
 
     presentation = myFixture.getUsageViewTreeTextRepresentation(classProvider)
 
@@ -671,8 +670,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         .virtualFile
 
     myFixture.configureFromExistingVirtualFile(entryPointFile)
-    val entryPointMethod =
-      myFixture.moveCaret("getMyClassInEntry|Point").parentOfType<PsiMethod>()!!
+    val entryPointMethod: PsiMethod = myFixture.findParentElement("getMyClassInEntry|Point")
 
     var presentation = myFixture.getUsageViewTreeTextRepresentation(entryPointMethod)
 
@@ -690,7 +688,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
       )
 
     myFixture.configureFromExistingVirtualFile(classFile)
-    val classProvider = myFixture.moveCaret("@Inject public MyCla|ss").parentOfType<PsiMethod>()!!
+    val classProvider: PsiMethod = myFixture.findParentElement("@Inject public MyCla|ss")
 
     presentation = myFixture.getUsageViewTreeTextRepresentation(classProvider)
 
@@ -779,7 +777,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     )
 
     myFixture.configureFromExistingVirtualFile(moduleFile)
-    val module = myFixture.moveCaret("class MyMod|ule {}").parentOfType<PsiClass>()!!
+    val module: PsiClass = myFixture.findParentElement("class MyMod|ule {}")
     val presentation = myFixture.getUsageViewTreeTextRepresentation(module)
 
     assertThat(presentation)
@@ -840,7 +838,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     )
 
     myFixture.configureFromExistingVirtualFile(componentFile)
-    val component = myFixture.moveCaret("MyCompon|ent {}").parentOfType<PsiClass>()!!
+    val component: PsiClass = myFixture.findParentElement("MyCompon|ent {}")
     val presentation = myFixture.getUsageViewTreeTextRepresentation(component)
 
     assertThat(presentation)
@@ -928,7 +926,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     )
 
     myFixture.configureFromExistingVirtualFile(subcomponentFile)
-    val component = myFixture.moveCaret("MySubcompon|ent").parentOfType<PsiClass>()!!
+    val component: PsiClass = myFixture.findParentElement("MySubcompon|ent")
     val presentation = myFixture.getUsageViewTreeTextRepresentation(component)
 
     assertThat(presentation)
@@ -993,7 +991,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         .virtualFile
 
     myFixture.configureFromExistingVirtualFile(file)
-    val component = myFixture.moveCaret("MyParent|Subcomponent").parentOfType<PsiClass>()!!
+    val component: PsiClass = myFixture.findParentElement("MyParent|Subcomponent")
     val presentation = myFixture.getUsageViewTreeTextRepresentation(component)
 
     assertThat(presentation)
@@ -1071,7 +1069,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
         .virtualFile
 
     myFixture.configureFromExistingVirtualFile(file)
-    val component = myFixture.moveCaret("MyCompon|ent").parentOfType<PsiClass>()!!
+    val component: PsiClass = myFixture.findParentElement("MyCompon|ent")
     val presentation = myFixture.getUsageViewTreeTextRepresentation(component)
 
     assertThat(presentation)
@@ -1131,7 +1129,7 @@ class DaggerCustomUsageSearcherTest : DaggerTestCase() {
     )
 
     myFixture.configureFromExistingVirtualFile(moduleFile)
-    val module = myFixture.moveCaret("MyMod|ule").parentOfType<KtClassOrObject>()!!
+    val module: KtClassOrObject = myFixture.findParentElement("MyMod|ule")
     val presentation = myFixture.getUsageViewTreeTextRepresentation(module)
 
     assertThat(presentation)

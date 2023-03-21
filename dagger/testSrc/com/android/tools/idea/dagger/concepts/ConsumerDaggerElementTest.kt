@@ -20,6 +20,7 @@ import com.android.tools.idea.dagger.concepts.ConsumerDaggerElement.Companion.re
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
@@ -75,14 +76,11 @@ class ConsumerDaggerElementTest {
         .virtualFile
     )
 
-    val consumerPsiElement =
-      myFixture.moveCaret("fo|o: Foo").parentOfType<KtParameter>(withSelf = true)!!
+    val consumerPsiElement: KtParameter = myFixture.findParentElement("fo|o: Foo")
     val consumerDaggerElement = ConsumerDaggerElement(consumerPsiElement)
 
-    val providerPsiElement =
-      myFixture
-        .moveCaret("Foo @Inject const|ructor")
-        .parentOfType<KtConstructor<*>>(withSelf = true)!!
+    val providerPsiElement: KtConstructor<*> =
+      myFixture.findParentElement("Foo @Inject const|ructor")
     val providerDaggerElement = ProviderDaggerElement(providerPsiElement)
 
     assertThat(consumerDaggerElement.getRelatedDaggerElements())
@@ -120,23 +118,20 @@ class ConsumerDaggerElementTest {
         .virtualFile
     )
 
-    val consumerOfLazyFooPsiElement =
-      myFixture.moveCaret("consumerOf|LazyFoo").parentOfType<KtParameter>(withSelf = true)!!
+    val consumerOfLazyFooPsiElement: KtParameter = myFixture.findParentElement("consumerOf|LazyFoo")
     val consumerOfLazyFooDaggerElement = ConsumerDaggerElement(consumerOfLazyFooPsiElement)
 
-    val consumerOfProviderFooPsiElement =
-      myFixture.moveCaret("consumerOf|ProviderFoo").parentOfType<KtParameter>(withSelf = true)!!
+    val consumerOfProviderFooPsiElement: KtParameter =
+      myFixture.findParentElement("consumerOf|ProviderFoo")
     val consumerOfProviderFooDaggerElement = ConsumerDaggerElement(consumerOfProviderFooPsiElement)
 
-    val consumerOfProviderLazyFooPsiElement =
-      myFixture.moveCaret("consumerOf|ProviderLazyFoo").parentOfType<KtParameter>(withSelf = true)!!
+    val consumerOfProviderLazyFooPsiElement: KtParameter =
+      myFixture.findParentElement("consumerOf|ProviderLazyFoo")
     val consumerOfProviderLazyFooDaggerElement =
       ConsumerDaggerElement(consumerOfProviderLazyFooPsiElement)
 
-    val providerPsiElement =
-      myFixture
-        .moveCaret("Foo @Inject const|ructor")
-        .parentOfType<KtConstructor<*>>(withSelf = true)!!
+    val providerPsiElement: KtConstructor<*> =
+      myFixture.findParentElement("Foo @Inject const|ructor")
     val providerDaggerElement = ProviderDaggerElement(providerPsiElement)
 
     assertThat(consumerOfLazyFooDaggerElement.getRelatedDaggerElements())
@@ -182,23 +177,20 @@ class ConsumerDaggerElementTest {
         .virtualFile
     )
 
-    val consumerOfLazyFooPsiElement =
-      myFixture.moveCaret("consumerOf|LazyFoo").parentOfType<KtParameter>(withSelf = true)!!
+    val consumerOfLazyFooPsiElement: KtParameter = myFixture.findParentElement("consumerOf|LazyFoo")
     val consumerOfLazyFooDaggerElement = ConsumerDaggerElement(consumerOfLazyFooPsiElement)
 
-    val consumerOfProviderFooPsiElement =
-      myFixture.moveCaret("consumerOf|ProviderFoo").parentOfType<KtParameter>(withSelf = true)!!
+    val consumerOfProviderFooPsiElement: KtParameter =
+      myFixture.findParentElement("consumerOf|ProviderFoo")
     val consumerOfProviderFooDaggerElement = ConsumerDaggerElement(consumerOfProviderFooPsiElement)
 
-    val consumerOfProviderLazyFooPsiElement =
-      myFixture.moveCaret("consumerOf|ProviderLazyFoo").parentOfType<KtParameter>(withSelf = true)!!
+    val consumerOfProviderLazyFooPsiElement: KtParameter =
+      myFixture.findParentElement("consumerOf|ProviderLazyFoo")
     val consumerOfProviderLazyFooDaggerElement =
       ConsumerDaggerElement(consumerOfProviderLazyFooPsiElement)
 
-    val providerPsiElement =
-      myFixture
-        .moveCaret("Foo @Inject const|ructor")
-        .parentOfType<KtConstructor<*>>(withSelf = true)!!
+    val providerPsiElement: KtConstructor<*> =
+      myFixture.findParentElement("Foo @Inject const|ructor")
     val providerDaggerElement = ProviderDaggerElement(providerPsiElement)
 
     assertThat(consumerOfLazyFooDaggerElement.getRelatedDaggerElements())
@@ -258,29 +250,27 @@ class ConsumerDaggerElementTest {
         .virtualFile
     )
 
-    val consumerOfFooPsiElement =
-      myFixture.moveCaret("consumerOf|Foo").parentOfType<KtParameter>(withSelf = true)!!
+    val consumerOfFooPsiElement: KtParameter = myFixture.findParentElement("consumerOf|Foo")
     val consumerOfFooDaggerElement = ConsumerDaggerElement(consumerOfFooPsiElement)
 
-    val consumerOfNullableFooPsiElement =
-      myFixture.moveCaret("consumerOf|NullableFoo").parentOfType<KtParameter>(withSelf = true)!!
+    val consumerOfNullableFooPsiElement: KtParameter =
+      myFixture.findParentElement("consumerOf|NullableFoo")
     val consumerOfNullableFooDaggerElement = ConsumerDaggerElement(consumerOfNullableFooPsiElement)
 
-    val consumerOfMyNullableFooPsiElement =
-      myFixture.moveCaret("consumerOf|MyNullableFoo").parentOfType<KtParameter>(withSelf = true)!!
+    val consumerOfMyNullableFooPsiElement: KtParameter =
+      myFixture.findParentElement("consumerOf|MyNullableFoo")
     val consumerOfMyNullableFooDaggerElement =
       ConsumerDaggerElement(consumerOfMyNullableFooPsiElement)
 
-    val provideFooPsiElement =
-      myFixture.moveCaret("provide|Foo").parentOfType<KtFunction>(withSelf = true)!!
+    val provideFooPsiElement: KtFunction = myFixture.findParentElement("provide|Foo")
     val provideFooDaggerElement = ProviderDaggerElement(provideFooPsiElement)
 
-    val provideNullableFooPsiElement =
-      myFixture.moveCaret("provide|NullableFoo").parentOfType<KtFunction>(withSelf = true)!!
+    val provideNullableFooPsiElement: KtFunction =
+      myFixture.findParentElement("provide|NullableFoo")
     val provideNullableFooDaggerElement = ProviderDaggerElement(provideNullableFooPsiElement)
 
-    val provideMyNullableFooPsiElement =
-      myFixture.moveCaret("provide|MyNullableFoo").parentOfType<KtFunction>(withSelf = true)!!
+    val provideMyNullableFooPsiElement: KtFunction =
+      myFixture.findParentElement("provide|MyNullableFoo")
     val provideMyNullableFooDaggerElement = ProviderDaggerElement(provideMyNullableFooPsiElement)
 
     val consumerOfFooRelatedElements = consumerOfFooDaggerElement.getRelatedDaggerElements()

@@ -16,13 +16,12 @@
 package com.android.tools.idea.dagger.index.psiwrappers
 
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiAnnotation
 import com.intellij.psi.PsiJavaFile
-import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -63,7 +62,7 @@ class DaggerIndexAnnotationWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Annotati|on").parentOfType<KtAnnotationEntry>()!!
+    val element: KtAnnotationEntry = myFixture.findParentElement("Annotati|on")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getAnnotationNameInSource()).isEqualTo("Annotation")
@@ -86,7 +85,7 @@ class DaggerIndexAnnotationWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Annotati|on").parentOfType<KtAnnotationEntry>()!!
+    val element: KtAnnotationEntry = myFixture.findParentElement("Annotati|on")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getAnnotationNameInSource()).isEqualTo("com.qualified.Annotation")
@@ -109,7 +108,7 @@ class DaggerIndexAnnotationWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("@Ba|r").parentOfType<KtAnnotationEntry>()!!
+    val element: KtAnnotationEntry = myFixture.findParentElement("@Ba|r")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getAnnotationNameInSource()).isEqualTo("Bar")
@@ -130,7 +129,7 @@ class DaggerIndexAnnotationWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Annota|tion").parentOfType<KtAnnotationEntry>()!!
+    val element: KtAnnotationEntry = myFixture.findParentElement("Annota|tion")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getArgumentClassNames("modules")).containsExactly("Module1")
@@ -151,7 +150,7 @@ class DaggerIndexAnnotationWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Annota|tion").parentOfType<KtAnnotationEntry>()!!
+    val element: KtAnnotationEntry = myFixture.findParentElement("Annota|tion")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getArgumentClassNames("modules")).containsExactly("Module1", "Module2")
@@ -172,7 +171,7 @@ class DaggerIndexAnnotationWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Annota|tion").parentOfType<KtAnnotationEntry>()!!
+    val element: KtAnnotationEntry = myFixture.findParentElement("Annota|tion")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getArgumentClassNames("modules")).isEmpty()
@@ -193,7 +192,7 @@ class DaggerIndexAnnotationWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Annota|tion").parentOfType<KtAnnotationEntry>()!!
+    val element: KtAnnotationEntry = myFixture.findParentElement("Annota|tion")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getArgumentClassNames("modules")).isEmpty()
@@ -216,7 +215,7 @@ class DaggerIndexAnnotationWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Annota|tion").parentOfType<PsiAnnotation>()!!
+    val element: PsiAnnotation = myFixture.findParentElement("Annota|tion")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getAnnotationNameInSource()).isEqualTo("Annotation")
@@ -239,7 +238,7 @@ class DaggerIndexAnnotationWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Annota|tion").parentOfType<PsiAnnotation>()!!
+    val element: PsiAnnotation = myFixture.findParentElement("Annota|tion")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getAnnotationNameInSource()).isEqualTo("com.qualified.Annotation")
@@ -260,7 +259,7 @@ class DaggerIndexAnnotationWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Annota|tion").parentOfType<PsiAnnotation>()!!
+    val element: PsiAnnotation = myFixture.findParentElement("Annota|tion")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getArgumentClassNames("modules")).containsExactly("Module1")
@@ -281,7 +280,7 @@ class DaggerIndexAnnotationWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Annota|tion").parentOfType<PsiAnnotation>()!!
+    val element: PsiAnnotation = myFixture.findParentElement("Annota|tion")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getArgumentClassNames("modules")).containsExactly("Module1")
@@ -302,7 +301,7 @@ class DaggerIndexAnnotationWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Annota|tion").parentOfType<PsiAnnotation>()!!
+    val element: PsiAnnotation = myFixture.findParentElement("Annota|tion")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getArgumentClassNames("modules")).containsExactly("Module1", "Module2")
@@ -323,7 +322,7 @@ class DaggerIndexAnnotationWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Annota|tion").parentOfType<PsiAnnotation>()!!
+    val element: PsiAnnotation = myFixture.findParentElement("Annota|tion")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getArgumentClassNames("modules")).isEmpty()
@@ -344,7 +343,7 @@ class DaggerIndexAnnotationWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Annota|tion").parentOfType<PsiAnnotation>()!!
+    val element: PsiAnnotation = myFixture.findParentElement("Annota|tion")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getArgumentClassNames("modules")).isEmpty()

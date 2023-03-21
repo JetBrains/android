@@ -20,13 +20,12 @@ import com.android.tools.idea.dagger.index.IndexValue
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexFieldWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexPsiWrapper
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiField
-import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -78,7 +77,7 @@ class InjectedFieldDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("hea|ter").parentOfType<KtProperty>()!!
+    val element: KtProperty = myFixture.findParentElement("hea|ter")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries)
@@ -104,7 +103,7 @@ class InjectedFieldDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("hea|ter").parentOfType<KtProperty>()!!
+    val element: KtProperty = myFixture.findParentElement("hea|ter")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries).isEmpty()
@@ -128,7 +127,7 @@ class InjectedFieldDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("hea|ter").parentOfType<KtProperty>()!!
+    val element: KtProperty = myFixture.findParentElement("hea|ter")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries).isEmpty()
@@ -165,7 +164,7 @@ class InjectedFieldDaggerConceptTest {
     val indexValue1 = InjectedFieldIndexValue("com.example.CoffeeMaker", "heater")
     val indexValue2 = InjectedFieldIndexValue("com.example.CoffeeMaker", "notInjectedHeater")
 
-    val heaterField = myFixture.moveCaret("var hea|ter").parentOfType<KtProperty>()!!
+    val heaterField: KtProperty = myFixture.findParentElement("var hea|ter")
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(heaterField))
@@ -200,7 +199,7 @@ class InjectedFieldDaggerConceptTest {
     val indexValue1 = InjectedFieldIndexValue("com.example.CoffeeMaker", "heater")
     val indexValue2 = InjectedFieldIndexValue("com.example.CoffeeMaker", "notInjectedHeater")
 
-    val heaterField = myFixture.moveCaret("Heater hea|ter").parentOfType<PsiField>()!!
+    val heaterField: PsiField = myFixture.findParentElement("Heater hea|ter")
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(heaterField))

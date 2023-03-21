@@ -16,13 +16,12 @@
 package com.android.tools.idea.dagger.index.psiwrappers
 
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiJavaFile
-import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -68,7 +67,7 @@ class DaggerIndexAnnotatedWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Fo|o").parentOfType<KtClass>()!!
+    val element: KtClass = myFixture.findParentElement("Fo|o")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getIsAnnotatedWith("Annotation")).isTrue()
@@ -101,7 +100,7 @@ class DaggerIndexAnnotatedWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Fo|o").parentOfType<KtClass>()!!
+    val element: KtClass = myFixture.findParentElement("Fo|o")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getIsAnnotatedWith("Annotation")).isFalse()
@@ -133,7 +132,7 @@ class DaggerIndexAnnotatedWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Fo|o").parentOfType<KtClass>()!!
+    val element: KtClass = myFixture.findParentElement("Fo|o")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getIsAnnotatedWith("com.aliased.Annotation")).isTrue()
@@ -162,7 +161,7 @@ class DaggerIndexAnnotatedWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Fo|o").parentOfType<KtClass>()!!
+    val element: KtClass = myFixture.findParentElement("Fo|o")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getIsAnnotatedWith("Annotation")).isTrue()
@@ -200,7 +199,7 @@ class DaggerIndexAnnotatedWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Fo|o").parentOfType<PsiClass>()!!
+    val element: PsiClass = myFixture.findParentElement("Fo|o")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getIsAnnotatedWith("Annotation")).isTrue()
@@ -233,7 +232,7 @@ class DaggerIndexAnnotatedWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Fo|o").parentOfType<PsiClass>()!!
+    val element: PsiClass = myFixture.findParentElement("Fo|o")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getIsAnnotatedWith("Annotation")).isFalse()
@@ -269,7 +268,7 @@ class DaggerIndexAnnotatedWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Fo|o").parentOfType<PsiClass>()!!
+    val element: PsiClass = myFixture.findParentElement("Fo|o")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getIsAnnotatedWith("Annotation")).isTrue()

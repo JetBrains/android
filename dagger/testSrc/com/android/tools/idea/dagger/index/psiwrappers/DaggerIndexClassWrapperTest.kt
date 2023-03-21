@@ -16,6 +16,7 @@
 package com.android.tools.idea.dagger.index.psiwrappers
 
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
@@ -62,7 +63,7 @@ class DaggerIndexClassWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Fo|o").parentOfType<KtClass>()!!
+    val element: KtClass = myFixture.findParentElement("Fo|o")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getFqName()).isEqualTo("com.example.Foo")
@@ -81,7 +82,7 @@ class DaggerIndexClassWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Fo|o").parentOfType<KtClass>()!!
+    val element: KtClass = myFixture.findParentElement("Fo|o")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getFqName()).isEqualTo("Foo")
@@ -105,7 +106,7 @@ class DaggerIndexClassWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Fo|o").parentOfType<KtClass>()!!
+    val element: KtClass = myFixture.findParentElement("Fo|o")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getFqName()).isEqualTo("com.example.Foo")
@@ -129,7 +130,7 @@ class DaggerIndexClassWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Fo|o").parentOfType<KtClass>()!!
+    val element: KtClass = myFixture.findParentElement("Fo|o")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getFqName()).isEqualTo("com.example.Foo")
@@ -151,7 +152,7 @@ class DaggerIndexClassWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("companion obj|ect").parentOfType<KtObjectDeclaration>()!!
+    val element: KtObjectDeclaration = myFixture.findParentElement("companion obj|ect")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getFqName()).isEqualTo("com.example.Foo.Companion")
@@ -236,7 +237,7 @@ class DaggerIndexClassWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Fo|o").parentOfType<PsiClass>()!!
+    val element: PsiClass = myFixture.findParentElement("Fo|o")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getFqName()).isEqualTo("com.example.Foo")
@@ -255,7 +256,7 @@ class DaggerIndexClassWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Fo|o").parentOfType<PsiClass>()!!
+    val element: PsiClass = myFixture.findParentElement("Fo|o")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getFqName()).isEqualTo("Foo")
@@ -279,7 +280,7 @@ class DaggerIndexClassWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Fo|o").parentOfType<PsiClass>()!!
+    val element: PsiClass = myFixture.findParentElement("Fo|o")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getFqName()).isEqualTo("com.example.Foo")
@@ -303,7 +304,7 @@ class DaggerIndexClassWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Fo|o").parentOfType<PsiClass>()!!
+    val element: PsiClass = myFixture.findParentElement("Fo|o")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getFqName()).isEqualTo("com.example.Foo")

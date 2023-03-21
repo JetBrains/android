@@ -20,6 +20,7 @@ import com.android.tools.idea.dagger.index.IndexValue
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexClassWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexPsiWrapper
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
@@ -81,7 +82,7 @@ class ComponentAndModuleDaggerConceptTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Coffee|Shop").parentOfType<PsiClass>()!!
+    val element: PsiClass = myFixture.findParentElement("Coffee|Shop")
     val entries = runIndexer(DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element))
 
     val expectedModuleIndexValue =
@@ -121,7 +122,7 @@ class ComponentAndModuleDaggerConceptTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Coffee|Shop").parentOfType<PsiClass>()!!
+    val element: PsiClass = myFixture.findParentElement("Coffee|Shop")
     val entries = runIndexer(DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element))
 
     assertThat(entries).isEmpty()
@@ -147,7 +148,7 @@ class ComponentAndModuleDaggerConceptTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Coffee|Shop").parentOfType<PsiClass>()!!
+    val element: PsiClass = myFixture.findParentElement("Coffee|Shop")
     val entries = runIndexer(DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element))
 
     assertThat(entries).isEmpty()
@@ -172,7 +173,7 @@ class ComponentAndModuleDaggerConceptTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Coffee|Shop").parentOfType<PsiClass>()!!
+    val element: PsiClass = myFixture.findParentElement("Coffee|Shop")
     val entries = runIndexer(DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element))
 
     val expectedIndexValue =
@@ -207,7 +208,7 @@ class ComponentAndModuleDaggerConceptTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Coffee|Shop").parentOfType<PsiClass>()!!
+    val element: PsiClass = myFixture.findParentElement("Coffee|Shop")
     val entries = runIndexer(DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element))
 
     val expectedIncludesIndexValue =
@@ -270,8 +271,7 @@ class ComponentAndModuleDaggerConceptTest {
         .trimIndent()
     )
 
-    val componentClass =
-      myFixture.moveCaret("interface CoffeeShop|Component").parentOfType<KtClass>()!!
+    val componentClass: KtClass = myFixture.findParentElement("interface CoffeeShop|Component")
 
     val moduleIndexValue =
       ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_MODULE, "com.example.CoffeeShopComponent")
@@ -314,8 +314,8 @@ class ComponentAndModuleDaggerConceptTest {
         .trimIndent()
     )
 
-    val subcomponentClass =
-      myFixture.moveCaret("interface CoffeeShop|Subcomponent").parentOfType<KtClass>()!!
+    val subcomponentClass: KtClass =
+      myFixture.findParentElement("interface CoffeeShop|Subcomponent")
 
     val indexValue =
       ClassIndexValue(
@@ -355,7 +355,7 @@ class ComponentAndModuleDaggerConceptTest {
         .trimIndent()
     )
 
-    val moduleClass = myFixture.moveCaret("interface CoffeeShop|Module").parentOfType<KtClass>()!!
+    val moduleClass: KtClass = myFixture.findParentElement("interface CoffeeShop|Module")
 
     val includeIndexValue =
       ClassIndexValue(IndexValue.DataType.MODULE_WITH_INCLUDE, "com.example.CoffeeShopModule")
@@ -401,8 +401,7 @@ class ComponentAndModuleDaggerConceptTest {
         .trimIndent()
     )
 
-    val componentClass =
-      myFixture.moveCaret("interface CoffeeShop|Component").parentOfType<PsiClass>()!!
+    val componentClass: PsiClass = myFixture.findParentElement("interface CoffeeShop|Component")
 
     val moduleIndexValue =
       ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_MODULE, "com.example.CoffeeShopComponent")
@@ -445,8 +444,8 @@ class ComponentAndModuleDaggerConceptTest {
         .trimIndent()
     )
 
-    val subcomponentClass =
-      myFixture.moveCaret("interface CoffeeShop|Subcomponent").parentOfType<PsiClass>()!!
+    val subcomponentClass: PsiClass =
+      myFixture.findParentElement("interface CoffeeShop|Subcomponent")
 
     val indexValue =
       ClassIndexValue(
@@ -486,7 +485,7 @@ class ComponentAndModuleDaggerConceptTest {
         .trimIndent()
     )
 
-    val moduleClass = myFixture.moveCaret("interface CoffeeShop|Module").parentOfType<PsiClass>()!!
+    val moduleClass: PsiClass = myFixture.findParentElement("interface CoffeeShop|Module")
 
     val includeIndexValue =
       ClassIndexValue(IndexValue.DataType.MODULE_WITH_INCLUDE, "com.example.CoffeeShopModule")
@@ -628,13 +627,12 @@ class ComponentAndModuleDaggerConceptTest {
         .trimIndent()
     )
 
-    val componentPsiElement =
-      myFixture.moveCaret("interface CoffeeShop|Component").parentOfType<KtClass>()!!
+    val componentPsiElement: KtClass = myFixture.findParentElement("interface CoffeeShop|Component")
 
-    val coffeeShopModuleElement =
-      myFixture.moveCaret("interface CoffeeShop|Module").parentOfType<KtClass>()!!
-    val coffeeShopSubcomponentElement =
-      myFixture.moveCaret("interface CoffeeShop|Subcomponent").parentOfType<KtClass>()!!
+    val coffeeShopModuleElement: KtClass =
+      myFixture.findParentElement("interface CoffeeShop|Module")
+    val coffeeShopSubcomponentElement: KtClass =
+      myFixture.findParentElement("interface CoffeeShop|Subcomponent")
 
     val componentDaggerElement = ComponentDaggerElement(componentPsiElement)
 
@@ -676,13 +674,13 @@ class ComponentAndModuleDaggerConceptTest {
         .trimIndent()
     )
 
-    val componentPsiElement =
-      myFixture.moveCaret("interface CoffeeShop|Component").parentOfType<PsiClass>()!!
+    val componentPsiElement: PsiClass =
+      myFixture.findParentElement("interface CoffeeShop|Component")
 
-    val coffeeShopModuleElement =
-      myFixture.moveCaret("interface CoffeeShop|Module").parentOfType<PsiClass>()!!
-    val coffeeShopSubcomponentElement =
-      myFixture.moveCaret("interface CoffeeShop|Subcomponent").parentOfType<PsiClass>()!!
+    val coffeeShopModuleElement: PsiClass =
+      myFixture.findParentElement("interface CoffeeShop|Module")
+    val coffeeShopSubcomponentElement: PsiClass =
+      myFixture.findParentElement("interface CoffeeShop|Subcomponent")
 
     val componentDaggerElement = ComponentDaggerElement(componentPsiElement)
 
@@ -722,7 +720,7 @@ class ComponentAndModuleDaggerConceptTest {
         .trimIndent()
     )
 
-    val componentPsiElement = myFixture.moveCaret("CoffeeShop|Component").parentOfType<PsiClass>()!!
+    val componentPsiElement: PsiClass = myFixture.findParentElement("CoffeeShop|Component")
 
     val componentDaggerElement = ComponentDaggerElement(componentPsiElement)
     val modulesAndSubcomponents = componentDaggerElement.getIncludedModulesAndSubcomponents()

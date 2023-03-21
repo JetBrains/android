@@ -20,14 +20,13 @@ import com.android.tools.idea.dagger.index.IndexValue
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexPsiWrapper
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
-import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -79,7 +78,7 @@ class InjectedConstructorDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("construct|or").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("construct|or")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries).isEmpty()
@@ -101,7 +100,7 @@ class InjectedConstructorDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("construct|or").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("construct|or")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries)
@@ -134,7 +133,7 @@ class InjectedConstructorDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("construct|or").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("construct|or")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries).isEmpty()
@@ -158,7 +157,7 @@ class InjectedConstructorDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("someFunc|tion").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("someFunc|tion")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries).isEmpty()
@@ -180,7 +179,7 @@ class InjectedConstructorDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("someFunc|tion").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("someFunc|tion")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries).isEmpty()
@@ -213,10 +212,8 @@ class InjectedConstructorDaggerConceptTest {
         .trimIndent()
     )
 
-    val constructor1Element =
-      myFixture
-        .moveCaret("ClassWithInjectedConstructor @Inject cons|tructor")
-        .parentOfType<KtConstructor<*>>()!!
+    val constructor1Element: KtConstructor<*> =
+      myFixture.findParentElement("ClassWithInjectedConstructor @Inject cons|tructor")
 
     val indexValue1 = InjectedConstructorIndexValue("com.example.ClassWithInjectedConstructor")
     val indexValue2 = InjectedConstructorIndexValue("com.example.ClassWithoutInjectedConstructor")
@@ -251,8 +248,8 @@ class InjectedConstructorDaggerConceptTest {
         .trimIndent()
     )
 
-    val constructor1Element =
-      myFixture.moveCaret("ClassWithInjectedConstru|ctor()").parentOfType<PsiMethod>()!!
+    val constructor1Element: PsiMethod =
+      myFixture.findParentElement("ClassWithInjectedConstru|ctor()")
     val indexValue1 = InjectedConstructorIndexValue("com.example.ClassWithInjectedConstructor")
     val indexValue2 = InjectedConstructorIndexValue("com.example.ClassWithoutInjectedConstructor")
 
@@ -291,10 +288,8 @@ class InjectedConstructorDaggerConceptTest {
         .trimIndent()
     )
 
-    val parameter1Element =
-      myFixture
-        .moveCaret("ClassWithInjectedConstructor @Inject constructor(b|ar: Bar)")
-        .parentOfType<KtParameter>()!!
+    val parameter1Element: KtParameter =
+      myFixture.findParentElement("ClassWithInjectedConstructor @Inject constructor(b|ar: Bar)")
     val indexValue1 =
       InjectedConstructorParameterIndexValue("com.example.ClassWithInjectedConstructor", "bar")
     val indexValue2 =
@@ -332,8 +327,8 @@ class InjectedConstructorDaggerConceptTest {
         .trimIndent()
     )
 
-    val parameter1Element =
-      myFixture.moveCaret("ClassWithInjectedConstructor(Bar ba|r)").parentOfType<PsiParameter>()!!
+    val parameter1Element: PsiParameter =
+      myFixture.findParentElement("ClassWithInjectedConstructor(Bar ba|r)")
     val indexValue1 =
       InjectedConstructorParameterIndexValue("com.example.ClassWithInjectedConstructor", "bar")
 

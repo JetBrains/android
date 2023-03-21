@@ -16,6 +16,7 @@
 package com.android.tools.idea.dagger.index.psiwrappers
 
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
@@ -65,7 +66,7 @@ class DaggerIndexTypeWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Ba|z {}").parentOfType<KtTypeReference>()!!
+    val element: KtTypeReference = myFixture.findParentElement("Ba|z {}")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("Baz")
@@ -88,7 +89,7 @@ class DaggerIndexTypeWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Ba|z {}").parentOfType<KtTypeReference>()!!
+    val element: KtTypeReference = myFixture.findParentElement("Ba|z {}")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("Baz")
@@ -111,7 +112,7 @@ class DaggerIndexTypeWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Ba|z {}").parentOfType<KtTypeReference>()!!
+    val element: KtTypeReference = myFixture.findParentElement("Ba|z {}")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("Aliased")
@@ -133,7 +134,7 @@ class DaggerIndexTypeWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Ba|z {}").parentOfType<KtTypeReference>()!!
+    val element: KtTypeReference = myFixture.findParentElement("Ba|z {}")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("Baz")
@@ -156,7 +157,7 @@ class DaggerIndexTypeWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Ba|z.InnerClass {}").parentOfType<KtTypeReference>()!!
+    val element: KtTypeReference = myFixture.findParentElement("Ba|z.InnerClass {}")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("InnerClass")
@@ -179,7 +180,7 @@ class DaggerIndexTypeWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Ba|z.InnerClass {}").parentOfType<KtTypeReference>()!!
+    val element: KtTypeReference = myFixture.findParentElement("Ba|z.InnerClass {}")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("InnerClass")
@@ -202,7 +203,7 @@ class DaggerIndexTypeWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Ba|z {}").parentOfType<KtTypeReference>()!!
+    val element: KtTypeReference = myFixture.findParentElement("Ba|z {}")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("Baz")
@@ -469,7 +470,7 @@ class DaggerIndexTypeWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Ba|z bar()").parentOfType<PsiTypeElement>()!!
+    val element: PsiTypeElement = myFixture.findParentElement("Ba|z bar()")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("Baz")
@@ -492,7 +493,7 @@ class DaggerIndexTypeWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Ba|z bar()").parentOfType<PsiTypeElement>()!!
+    val element: PsiTypeElement = myFixture.findParentElement("Ba|z bar()")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("Baz")
@@ -513,7 +514,7 @@ class DaggerIndexTypeWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Ba|z bar()").parentOfType<PsiTypeElement>()!!
+    val element: PsiTypeElement = myFixture.findParentElement("Ba|z bar()")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("Baz")
@@ -536,7 +537,7 @@ class DaggerIndexTypeWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Ba|z.InnerClass bar()").parentOfType<PsiTypeElement>()!!
+    val element: PsiTypeElement = myFixture.findParentElement("Ba|z.InnerClass bar()")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("InnerClass")
@@ -559,7 +560,7 @@ class DaggerIndexTypeWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Ba|z bar()").parentOfType<PsiTypeElement>()!!
+    val element: PsiTypeElement = myFixture.findParentElement("Ba|z bar()")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("Baz")

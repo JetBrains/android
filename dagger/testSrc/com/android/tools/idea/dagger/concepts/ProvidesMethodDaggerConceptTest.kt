@@ -20,14 +20,13 @@ import com.android.tools.idea.dagger.index.IndexValue
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexPsiWrapper
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
-import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -82,7 +81,7 @@ class ProvidesMethodDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("provide|Heater").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("provide|Heater")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries).isEmpty()
@@ -107,7 +106,7 @@ class ProvidesMethodDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("provide|Heater").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("provide|Heater")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries).isEmpty()
@@ -130,7 +129,7 @@ class ProvidesMethodDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("provide|Heater").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("provide|Heater")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries).isEmpty()
@@ -157,7 +156,7 @@ class ProvidesMethodDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("provide|Heater").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("provide|Heater")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries)
@@ -201,7 +200,7 @@ class ProvidesMethodDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("bind|Heater").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("bind|Heater")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries)
@@ -242,7 +241,7 @@ class ProvidesMethodDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("provide|Heater").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("provide|Heater")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries)
@@ -286,7 +285,7 @@ class ProvidesMethodDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("provide|Heater").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("provide|Heater")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries).isEmpty()
@@ -313,7 +312,7 @@ class ProvidesMethodDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("provide|Heater").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("provide|Heater")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries).isEmpty()
@@ -360,9 +359,8 @@ class ProvidesMethodDaggerConceptTest {
     val indexValue2 = ProvidesMethodIndexValue("com.example.HeaterModule", "dontProvideHeater")
     val indexValue3 = ProvidesMethodIndexValue("com.example.HeaterModule", "bindHeater")
 
-    val provideHeaterFunction =
-      myFixture.moveCaret("fun provideHe|ater").parentOfType<KtFunction>()!!
-    val bindHeaterFunction = myFixture.moveCaret("fun bindHe|ater").parentOfType<KtFunction>()!!
+    val provideHeaterFunction: KtFunction = myFixture.findParentElement("fun provideHe|ater")
+    val bindHeaterFunction: KtFunction = myFixture.findParentElement("fun bindHe|ater")
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(provideHeaterFunction))
@@ -410,9 +408,8 @@ class ProvidesMethodDaggerConceptTest {
       ProvidesMethodIndexValue("com.example.HeaterModule.Companion", "dontProvideHeater")
     val indexValue3 = ProvidesMethodIndexValue("com.example.HeaterModule.Companion", "bindHeater")
 
-    val provideHeaterFunction =
-      myFixture.moveCaret("fun provideHe|ater").parentOfType<KtFunction>()!!
-    val bindHeaterFunction = myFixture.moveCaret("fun bindHe|ater").parentOfType<KtFunction>()!!
+    val provideHeaterFunction: KtFunction = myFixture.findParentElement("fun provideHe|ater")
+    val bindHeaterFunction: KtFunction = myFixture.findParentElement("fun bindHe|ater")
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(provideHeaterFunction))
@@ -456,9 +453,8 @@ class ProvidesMethodDaggerConceptTest {
     val indexValue2 = ProvidesMethodIndexValue("com.example.HeaterModule", "dontProvideHeater")
     val indexValue3 = ProvidesMethodIndexValue("com.example.HeaterModule", "bindHeater")
 
-    val provideHeaterFunction =
-      myFixture.moveCaret("Heater provideHe|ater").parentOfType<PsiMethod>()!!
-    val bindHeaterFunction = myFixture.moveCaret("Heater bindHe|ater").parentOfType<PsiMethod>()!!
+    val provideHeaterFunction: PsiMethod = myFixture.findParentElement("Heater provideHe|ater")
+    val bindHeaterFunction: PsiMethod = myFixture.findParentElement("Heater bindHe|ater")
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ProviderDaggerElement(provideHeaterFunction))
@@ -519,15 +515,11 @@ class ProvidesMethodDaggerConceptTest {
     val indexValue3 =
       ProvidesMethodParameterIndexValue("com.example.HeaterModule", "bindHeater", "electricHeater")
 
-    val electricHeaterProvidesParameter =
-      myFixture
-        .moveCaret("provideHeater(elect|ricHeater: ElectricHeater")
-        .parentOfType<KtParameter>()!!
+    val electricHeaterProvidesParameter: KtParameter =
+      myFixture.findParentElement("provideHeater(elect|ricHeater: ElectricHeater")
 
-    val electricHeaterBindsParameter =
-      myFixture
-        .moveCaret("bindHeater(elect|ricHeater: ElectricHeater")
-        .parentOfType<KtParameter>()!!
+    val electricHeaterBindsParameter: KtParameter =
+      myFixture.findParentElement("bindHeater(elect|ricHeater: ElectricHeater")
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(electricHeaterProvidesParameter))
@@ -588,15 +580,11 @@ class ProvidesMethodDaggerConceptTest {
         "electricHeater"
       )
 
-    val electricHeaterProvidesParameter =
-      myFixture
-        .moveCaret("provideHeater(elect|ricHeater: ElectricHeater")
-        .parentOfType<KtParameter>()!!
+    val electricHeaterProvidesParameter: KtParameter =
+      myFixture.findParentElement("provideHeater(elect|ricHeater: ElectricHeater")
 
-    val electricHeaterBindsParameter =
-      myFixture
-        .moveCaret("bindHeater(elect|ricHeater: ElectricHeater")
-        .parentOfType<KtParameter>()!!
+    val electricHeaterBindsParameter: KtParameter =
+      myFixture.findParentElement("bindHeater(elect|ricHeater: ElectricHeater")
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(electricHeaterProvidesParameter))
@@ -651,15 +639,11 @@ class ProvidesMethodDaggerConceptTest {
     val indexValue3 =
       ProvidesMethodParameterIndexValue("com.example.HeaterModule", "bindHeater", "electricHeater")
 
-    val electricHeaterProvidesParameter =
-      myFixture
-        .moveCaret("provideHeater(ElectricHeater elec|tricHeater")
-        .parentOfType<PsiParameter>()!!
+    val electricHeaterProvidesParameter: PsiParameter =
+      myFixture.findParentElement("provideHeater(ElectricHeater elec|tricHeater")
 
-    val electricHeaterBindsParameter =
-      myFixture
-        .moveCaret("bindHeater(ElectricHeater elec|tricHeater")
-        .parentOfType<PsiParameter>()!!
+    val electricHeaterBindsParameter: PsiParameter =
+      myFixture.findParentElement("bindHeater(ElectricHeater elec|tricHeater")
 
     assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
       .isEqualTo(ConsumerDaggerElement(electricHeaterProvidesParameter))

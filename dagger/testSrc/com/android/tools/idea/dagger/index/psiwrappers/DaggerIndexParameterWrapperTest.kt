@@ -16,13 +16,12 @@
 package com.android.tools.idea.dagger.index.psiwrappers
 
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiParameter
-import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -63,7 +62,7 @@ class DaggerIndexParameterWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("a|rg").parentOfType<KtParameter>()!!
+    val element: KtParameter = myFixture.findParentElement("a|rg")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("arg")
@@ -86,7 +85,7 @@ class DaggerIndexParameterWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("a|rg").parentOfType<PsiParameter>()!!
+    val element: PsiParameter = myFixture.findParentElement("a|rg")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("arg")
