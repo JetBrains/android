@@ -27,6 +27,9 @@ import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
 import com.android.tools.idea.avdmanager.AvdScreenData
 import com.android.tools.idea.compose.ComposeProjectRule
+import com.android.tools.idea.compose.preview.PreviewConfiguration
+import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.applyConfigurationForTest
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.Wallpaper

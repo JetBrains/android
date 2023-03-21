@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.compose.preview.renderer
 
-import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
-import com.android.tools.idea.compose.preview.util.ComposePreviewElement
-import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.util.applyTo
+import com.android.tools.idea.compose.preview.ComposeAdapterLightVirtualFile
+import com.android.tools.idea.compose.preview.ComposePreviewElement
+import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.applyTo
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.rendering.createRenderTaskFuture

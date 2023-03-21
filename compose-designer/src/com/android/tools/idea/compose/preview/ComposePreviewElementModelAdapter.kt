@@ -16,9 +16,6 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.compose.preview.util.ComposeAdapterLightVirtualFile
-import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.util.applyTo
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.preview.PreviewElementModelAdapter
 import com.intellij.openapi.util.Disposer

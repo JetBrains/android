@@ -15,7 +15,12 @@
  */
 package com.android.tools.idea.compose.preview.util
 
+import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.ComposePreviewElementModelAdapter
+import com.android.tools.idea.compose.preview.MAX_HEIGHT
+import com.android.tools.idea.compose.preview.MAX_WIDTH
+import com.android.tools.idea.compose.preview.PreviewConfiguration
+import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.psi.PsiElement

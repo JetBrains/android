@@ -21,9 +21,9 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_NAME
 import com.android.tools.compose.isComposableFunction
+import com.android.tools.idea.compose.preview.PreviewConfiguration
+import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.renderer.renderPreviewElement
-import com.android.tools.idea.compose.preview.util.PreviewConfiguration
-import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.findAnnotation
 import com.android.tools.idea.kotlin.getQualifiedName

@@ -18,10 +18,6 @@ package com.android.tools.idea.compose.preview
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.annotations.TestDumbService
 import com.android.tools.idea.compose.ComposeProjectRule
-import com.android.tools.idea.compose.preview.util.ComposePreviewElement
-import com.android.tools.idea.compose.preview.util.ParametrizedComposePreviewElementTemplate
-import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
-import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.DisplayPositioning
 import com.android.tools.idea.preview.PreviewDisplaySettings

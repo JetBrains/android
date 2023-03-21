@@ -22,7 +22,7 @@ import com.android.tools.idea.compose.pickers.preview.property.DimUnit
 import com.android.tools.idea.compose.pickers.preview.property.Shape
 import com.android.tools.idea.compose.pickers.preview.utils.createDeviceInstance
 import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
-import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
+import com.android.tools.idea.compose.preview.SingleComposePreviewElementInstance
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
@@ -82,8 +82,7 @@ class ComposeScreenViewProvidersTest {
     // case, round.
     assertTrue(
       COMPOSE_SCREEN_VIEW_PROVIDER.createPrimarySceneView(surface, surface.sceneManager!!)
-        .screenShape is
-        Ellipse2D
+        .screenShape is Ellipse2D
     )
 
     // When showDecorations is false, the scene view should always use a square shape
@@ -95,8 +94,7 @@ class ComposeScreenViewProvidersTest {
       )
     assertTrue(
       COMPOSE_SCREEN_VIEW_PROVIDER.createPrimarySceneView(surface, surface.sceneManager!!)
-        .screenShape is
-        Rectangle
+        .screenShape is Rectangle
     )
   }
 }

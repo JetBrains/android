@@ -28,8 +28,8 @@ import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.Refere
 import com.android.tools.idea.compose.pickers.preview.model.PreviewPickerPropertiesModel
 import com.android.tools.idea.compose.pickers.preview.property.DimUnit
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
+import com.android.tools.idea.compose.preview.ComposePreviewElement
 import com.android.tools.idea.compose.preview.namespaceVariations
-import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.Sdks

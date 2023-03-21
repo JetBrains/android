@@ -19,10 +19,6 @@ import com.android.sdklib.SdkVersionInfo
 import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
-import com.android.tools.idea.compose.preview.util.MAX_HEIGHT
-import com.android.tools.idea.compose.preview.util.MAX_WIDTH
-import com.android.tools.idea.compose.preview.util.isInUnitTestFile
-import com.android.tools.idea.compose.preview.util.isValidPreviewLocation
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.findValueArgument
