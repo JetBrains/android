@@ -50,11 +50,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import org.jetbrains.kotlin.asJava.LightClassUtilsKt;
+import org.jetbrains.kotlin.psi.KtClass;
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression;
 import org.jetbrains.kotlin.psi.KtElement;
 
 import static com.android.SdkConstants.*;
 import static com.android.tools.lint.detector.api.ResourceEvaluator.*;
+import static org.jetbrains.kotlin.asJava.LightClassUtilsKt.toLightClass;
 
 /**
  * A custom version of the IntelliJ {@link MagicCompletionContributor}, almost identical, except
@@ -255,11 +257,12 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
       if (constraint == null) {
         PsiJavaCodeReferenceElement ref = annotation.getNameReferenceElement();
         PsiElement resolved = ref == null ? null : ref.resolve();
-        if (!(resolved instanceof PsiClass) || !((PsiClass)resolved).isAnnotationType()) continue;
-        PsiClass aClass = (PsiClass)resolved;
-        if (visited == null) visited = new HashSet<>();
-        if (!visited.add(aClass)) continue;
-        constraint = getAllowedValues(aClass, type, visited);
+        if (resolved instanceof KtClass ktClass) resolved = toLightClass(ktClass);
+        if (resolved instanceof PsiClass aClass && aClass.isAnnotationType()) {
+          if (visited == null) visited = new HashSet<>();
+          if (!visited.add(aClass)) continue;
+          constraint = getAllowedValues(aClass, type, visited);
+        }
       }
     }
 
