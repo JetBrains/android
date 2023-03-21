@@ -68,7 +68,7 @@ import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.android.facet.AndroidRootUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.idea.core.ShortenReferences;
+import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility;
 import org.jetbrains.kotlin.psi.KtBlockExpression;
 import org.jetbrains.kotlin.psi.KtElement;
 import org.jetbrains.kotlin.psi.KtIfExpression;
@@ -394,7 +394,7 @@ public class AndroidLintMissingPermissionInspection extends AndroidLintInspectio
             PsiElement added = parent.addBefore(child, statement);
             parent.addBefore(factory.createNewLine(), statement);
             if (added instanceof KtElement) {
-              ShortenReferences.DEFAULT.process((KtElement)added);
+              ShortenReferencesFacility.Companion.getInstance().shorten((KtElement)added);
             }
             break;
           }
