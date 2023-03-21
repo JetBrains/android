@@ -25,6 +25,7 @@ import com.intellij.openapi.actionSystem.Separator;
 import com.intellij.openapi.actionSystem.ex.ActionUtil;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.impl.content.BaseLabel;
+import com.intellij.toolWindow.ToolWindowHeader;
 import com.intellij.ui.InplaceButton;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.components.panels.Wrapper;
@@ -47,7 +48,7 @@ import static com.intellij.ui.tabs.TabsUtil.getTabsHeight;
 import static com.intellij.util.ui.UIUtil.*;
 
 /**
- * Adapted from {@link com.intellij.openapi.wm.impl.ToolWindowHeader}.
+ * Adapted from {@link ToolWindowHeader}.
  */
 public class Header extends JPanel {
   @NotNull private final String myTitle;
