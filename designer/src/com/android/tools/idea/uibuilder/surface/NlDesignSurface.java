@@ -51,6 +51,7 @@ import com.android.tools.idea.common.surface.SurfaceScale;
 import com.android.tools.idea.common.surface.SurfaceScreenScalingFactor;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewportScroller;
+import com.android.tools.idea.common.surface.layout.TopBoundCenterScroller;
 import com.android.tools.idea.common.surface.layout.ZoomCenterScroller;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
@@ -66,8 +67,10 @@ import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.scene.RenderListener;
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
+import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
+import com.android.tools.idea.uibuilder.surface.layout.VerticalOnlyLayoutManager;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider;
@@ -888,7 +891,12 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     boolean changed = super.setScale(scale, x, y);
     if (changed) {
       DesignSurfaceViewport port = getViewport();
-      if (!(myLayoutManager instanceof GridSurfaceLayoutManager)) {
+
+      if (myLayoutManager instanceof GroupedListSurfaceLayoutManager) {
+        Point scrollPosition = getScrollPosition();
+        myViewportScroller = new TopBoundCenterScroller(new Dimension(port.getViewSize()), new Point(scrollPosition));
+      }
+      else if (!(myLayoutManager instanceof GridSurfaceLayoutManager)) {
         Point zoomCenterInView;
         if (x < 0 || y < 0) {
           x = port.getViewportComponent().getWidth() / 2;

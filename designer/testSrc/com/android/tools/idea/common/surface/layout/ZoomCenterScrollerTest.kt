@@ -22,8 +22,6 @@ import java.awt.Component
 import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
-import javax.swing.JPanel
-import javax.swing.event.ChangeListener
 import kotlin.test.assertEquals
 
 class ZoomCenterScrollerTest {
@@ -31,13 +29,14 @@ class ZoomCenterScrollerTest {
   @Test
   fun testScrollAfterZoomIn1() {
     // Test case: viewport size: (500 x 500). View component size changes from (1000 x 1000) to (2000 x 2000).
+    val viewRect = Rectangle(250, 250, 500, 500)
+
     val viewportComponent = MockitoKt.mock<Component>()
-    whenever(viewportComponent.width).thenReturn(500)
-    whenever(viewportComponent.height).thenReturn(500)
+    whenever(viewportComponent.width).thenReturn(viewRect.width)
+    whenever(viewportComponent.height).thenReturn(viewRect.height)
+    val viewport = TestDesignSurfaceViewport(Dimension(2000, 2000), viewRect, viewportComponent = viewportComponent)
 
-    val scroller = ZoomCenterScroller(Dimension(1000, 1000), Point(250, 250), Point(250, 250))
-
-    val viewport = TestDesignSurfaceViewport(viewportComponent, Dimension(2000, 2000))
+    val scroller = ZoomCenterScroller(Dimension(1000, 1000), Point(viewRect.location), Point(250, 250))
     scroller.scroll(viewport)
     assertEquals(Point(750, 750), viewport.viewPosition)
   }
@@ -45,13 +44,14 @@ class ZoomCenterScrollerTest {
   @Test
   fun testScrollAfterZoomIn2() {
     // Test case: viewport size: (500 x 500). View component size changes from (1000 x 1000) to (2000 x 2000).
+    val viewRect = Rectangle(250, 250, 500, 500)
+
     val viewportComponent = MockitoKt.mock<Component>()
     whenever(viewportComponent.width).thenReturn(500)
     whenever(viewportComponent.height).thenReturn(500)
+    val viewport = TestDesignSurfaceViewport(Dimension(2000, 2000), viewRect, viewportComponent = viewportComponent)
 
-    val scroller = ZoomCenterScroller(Dimension(1000, 1000), Point(250, 250), Point(200, 400))
-
-    val viewport = TestDesignSurfaceViewport(viewportComponent, Dimension(2000, 2000))
+    val scroller = ZoomCenterScroller(Dimension(1000, 1000), viewRect.location, Point(200, 400))
     scroller.scroll(viewport)
     assertEquals(Point(700, 900), viewport.viewPosition)
   }
@@ -59,13 +59,14 @@ class ZoomCenterScrollerTest {
   @Test
   fun testScrollAfterZoomOut1() {
     // Test case: viewport size: (500 x 500). View component size changes from (2000 x 2000) to (1000 x 1000).
+    val viewRect = Rectangle(500, 500, 500, 500)
+
     val viewportComponent = MockitoKt.mock<Component>()
     whenever(viewportComponent.width).thenReturn(500)
     whenever(viewportComponent.height).thenReturn(500)
+    val viewport = TestDesignSurfaceViewport(Dimension(1000, 1000), viewRect, viewportComponent = viewportComponent)
 
-    val scroller = ZoomCenterScroller(Dimension(2000, 2000), Point(500, 500), Point(250, 250))
-
-    val viewport = TestDesignSurfaceViewport(viewportComponent, Dimension(1000, 1000))
+    val scroller = ZoomCenterScroller(Dimension(2000, 2000), viewRect.location, Point(250, 250))
     scroller.scroll(viewport)
     assertEquals(Point(125, 125), viewport.viewPosition)
   }
@@ -73,26 +74,15 @@ class ZoomCenterScrollerTest {
   @Test
   fun testScrollAfterZoomOut2() {
     // Test case: viewport size: (500 x 500). View component size changes from (2000 x 2000) to (1000 x 1000).
+    val viewRect = Rectangle(500, 500, 500, 500)
+
     val viewportComponent = MockitoKt.mock<Component>()
     whenever(viewportComponent.width).thenReturn(500)
     whenever(viewportComponent.height).thenReturn(500)
+    val viewport = TestDesignSurfaceViewport(Dimension(1000, 1000), viewRect, viewportComponent = viewportComponent)
 
-    val scroller = ZoomCenterScroller(Dimension(2000, 2000), Point(500, 500), Point(200, 400))
-
-    val viewport = TestDesignSurfaceViewport(viewportComponent, Dimension(1000, 1000))
+    val scroller = ZoomCenterScroller(Dimension(2000, 2000), viewRect.location, Point(200, 400))
     scroller.scroll(viewport)
     assertEquals(Point(150, 50), viewport.viewPosition)
   }
-}
-
-private class TestDesignSurfaceViewport(override val viewportComponent: Component,
-                                        override val viewSize: Dimension)
-  : DesignSurfaceViewport {
-
-  override var viewPosition: Point = Point()
-
-  override val viewRect: Rectangle = Rectangle()
-  override val viewComponent: Component = JPanel()
-  override val extentSize: Dimension = Dimension()
-  override fun addChangeListener(changeListener: ChangeListener) = Unit
 }
