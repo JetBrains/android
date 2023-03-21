@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.ui;
+package com.android.tools.idea.execution.common.applychanges;
 
 import static com.android.tools.idea.run.tasks.AbstractDeployTask.MIN_API_VERSION;
 import static com.android.tools.idea.run.util.SwapInfo.SWAP_INFO_KEY;
 
-import com.android.tools.idea.run.deployable.Deployable;
-import com.android.tools.idea.run.deployable.DeployableProvider;
-import com.android.tools.idea.run.deployable.SwappableProcessHandler;
+import com.android.ddmlib.IDevice;
+import com.android.tools.idea.execution.common.AndroidExecutionTarget;
+import com.android.tools.idea.execution.common.AppRunConfiguration;
+import com.android.tools.idea.execution.common.UtilsKt;
+import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.run.util.SwapInfo.SwapType;
 import com.android.tools.idea.util.CommonAndroidUtil;
@@ -35,10 +37,12 @@ import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationBase;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
 import com.intellij.execution.executors.DefaultRunExecutor;
+import com.intellij.execution.impl.ExecutionManagerImpl;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
 import com.intellij.execution.runners.ProgramRunner;
+import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.Presentation;
@@ -49,9 +53,10 @@ import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+import java.util.Objects;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -143,15 +148,19 @@ public abstract class BaseAction extends AnAction {
     }
 
     RunnerAndConfigurationSettings settings = RunManager.getInstance(project).getSelectedConfiguration();
-    ExecutionTarget selectedExecutionTarget = ExecutionTargetManager.getActiveTarget(project);
+    AndroidExecutionTarget selectedExecutionTarget = (AndroidExecutionTarget)ExecutionTargetManager.getActiveTarget(project);
 
     if (settings == null) {
       LOG.warn(myName + " action could not locate current run config settings");
       return;
     }
 
-    ProcessHandler handler = findRunningProcessHandler(project, settings.getConfiguration(), selectedExecutionTarget);
-    Executor executor = findRunningExecutor(handler);
+    final List<ProcessHandler> runningProcessHandlers =
+      UtilsKt.getProcessHandlersForDevices(settings, project, selectedExecutionTarget.getRunningDevices().stream().toList());
+
+    final List<Executor> executors = getRunningExecutorsOfDifferentType(project, runningProcessHandlers);
+
+    Executor executor = executors.isEmpty() ? DefaultRunExecutor.getRunExecutorInstance() : executors.get(0);
     if (executor == null) {
       LOG.warn(myName + " action could not identify executor of existing running application");
       return;
@@ -187,7 +196,6 @@ public abstract class BaseAction extends AnAction {
     }
 
     RunConfiguration selectedRunConfig = configSettings.getConfiguration();
-    ExecutionTarget selectedExecutionTarget = ExecutionTargetManager.getActiveTarget(project);
     if (!isApplyChangesRelevant(selectedRunConfig)) {
       return new DisableMessage(DisableMessage.DisableMode.INVISIBLE, "unsupported configuration",
                                 "the selected configuration is not supported");
@@ -199,69 +207,60 @@ public abstract class BaseAction extends AnAction {
       return new DisableMessage(DisableMessage.DisableMode.DISABLED, "configuration has errors", "selected configuration contains errors");
     }
 
-    if (!programRunnerAvailable(selectedRunConfig, selectedExecutionTarget)) {
-      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "no runner available",
-                                "there are no Program Runners available to run the given configuration (perhaps project needs a sync?)");
+    if (!(selectedRunConfig instanceof AppRunConfiguration) || ((AppRunConfiguration)selectedRunConfig).getAppId() == null) {
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "can't detect package name", "can't detect package name");
     }
+
+    String packageName = ((AppRunConfiguration)selectedRunConfig).getAppId();
+
+    ExecutionTarget selectedExecutionTarget = ExecutionTargetManager.getActiveTarget(project);
+    if (!(selectedExecutionTarget instanceof AndroidExecutionTarget)) {
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "unsupported execution target", "unsupported execution target");
+    }
+    AndroidExecutionTarget androidExecutionTarget = (AndroidExecutionTarget)selectedExecutionTarget;
+
+    final Collection<IDevice> devices = androidExecutionTarget.getRunningDevices();
+
+    if (devices.isEmpty()) {
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "devices not connected", "the selected devices are not connected");
+    }
+
+    if (devices.stream().anyMatch(d -> Objects.equals(d.getState(), IDevice.DeviceState.UNAUTHORIZED))) {
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "device not authorized",
+                                "the selected device is not authorized");
+    }
+
+    if (devices.stream().anyMatch(d -> !d.getVersion().isGreaterOrEqualThan(MIN_API_VERSION))) {
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "incompatible device API level",
+                                "its API level is lower than 26");
+    }
+
+    if (devices.stream().allMatch(d -> DeploymentApplicationService.getInstance().findClient(d, packageName).isEmpty())) {
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "app not detected",
+                                "the app is not yet running or not debuggable");
+    }
+
 
     if (isExecutorStarting(project, selectedRunConfig)) {
       return new DisableMessage(DisableMessage.DisableMode.DISABLED, "building and/or launching",
                                 "the selected configuration is currently building and/or launching");
     }
 
-    DeployableProvider deployableProvider = DeployableProvider.getInstance(project);
-    if (deployableProvider == null) {
-      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "no deployment provider",
-                                "there is no deployment provider specified");
+    final List<ProcessHandler> runningProcessHandlers =
+      UtilsKt.getProcessHandlersForDevices(configSettings, project, devices.stream().toList());
+
+    final List<Executor> executors = getRunningExecutorsOfDifferentType(project, runningProcessHandlers);
+
+    if (executors.size() > 1) {
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "more than one executor is running",
+                                "more than one type of executor is running configuration");
     }
 
-    Deployable deployable;
-    try {
-      deployable = deployableProvider.getDeployable(selectedRunConfig);
-      if (deployable == null) {
-        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "selected device is invalid", "the selected device is not valid");
-      }
+    Executor executor = executors.isEmpty() ? DefaultRunExecutor.getRunExecutorInstance() : executors.get(0);
 
-      if (!deployable.isOnline()) {
-        if (deployable.isUnauthorized()) {
-          return new DisableMessage(DisableMessage.DisableMode.DISABLED, "device not authorized",
-                                    "the selected device is not authorized");
-        }
-        else {
-          return new DisableMessage(DisableMessage.DisableMode.DISABLED, "device not connected", "the selected device is not connected");
-        }
-      }
-
-      var versionFuture = deployable.getVersionAsync();
-
-      if (!versionFuture.isDone()) {
-        // Don't stall the EDT - if the Future isn't ready, just return false.
-        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "unknown device API level", "its API level is currently unknown");
-      }
-
-      if (versionFuture.get().getApiLevel() < MIN_API_VERSION) {
-        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "incompatible device API level",
-                                  "its API level is lower than 26");
-      }
-
-      if (deployable.searchClientsForPackage().isEmpty()) {
-        return new DisableMessage(DisableMessage.DisableMode.DISABLED, "app not detected",
-                                  "the app is not yet running or not debuggable");
-      }
-    }
-    catch (InterruptedException ex) {
-      LOG.warn(ex);
-      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "update interrupted", "its status update was interrupted");
-    }
-    catch (ExecutionException ex) {
-      LOG.warn(ex);
-      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "unknown device API level",
-                                "its API level could not be determined");
-    }
-    catch (Exception ex) {
-      LOG.warn(ex);
-      return new DisableMessage(
-        DisableMessage.DisableMode.DISABLED, "unexpected exception", "an unexpected exception was thrown: " + ex);
+    if (ProgramRunner.getRunner(executor.getId(), selectedRunConfig) == null) {
+      return new DisableMessage(DisableMessage.DisableMode.DISABLED, "no runner available",
+                                "there are no Program Runners available to run the given configuration (perhaps project needs a sync?)");
     }
 
     return null;
@@ -293,45 +292,11 @@ public abstract class BaseAction extends AnAction {
     return false;
   }
 
-  private static boolean programRunnerAvailable(@NotNull RunConfiguration config, ExecutionTarget selectedExecutionTarget) {
-    ProcessHandler handler = findRunningProcessHandler(config.getProject(), config, selectedExecutionTarget);
-    Executor executor = findRunningExecutor(handler);
-    return executor != null && ProgramRunner.getRunner(executor.getId(), config) != null;
-  }
-
-  private static @Nullable Executor findRunningExecutor(@Nullable ProcessHandler handler) {
-    return handler == null
-           // If we can't find an existing executor (e.g. app was started directly on device), just use the Run Executor.
-           ? DefaultRunExecutor.getRunExecutorInstance()
-           : getExecutor(handler);
-  }
-
-  @Nullable
-  protected static ProcessHandler findRunningProcessHandler(@NotNull Project project, @NotNull RunConfiguration runConfiguration, @NotNull
-  ExecutionTarget executionTarget) {
-    for (ProcessHandler handler : ExecutionManager.getInstance(project).getRunningProcesses()) {
-      SwappableProcessHandler extension = handler.getCopyableUserData(SwappableProcessHandler.EXTENSION_KEY);
-      if (extension == null) {
-        continue; // We may have a non-swappable process running.
-      }
-
-      if (extension.isRunningWith(runConfiguration, executionTarget) &&
-          handler.isStartNotified() &&
-          !handler.isProcessTerminating() &&
-          !handler.isProcessTerminated()) {
-        return handler;
-      }
-    }
-
-    return null;
-  }
-
-  @Nullable
-  protected static Executor getExecutor(@NotNull ProcessHandler processHandler) {
-    SwappableProcessHandler extension = processHandler.getCopyableUserData(SwappableProcessHandler.EXTENSION_KEY);
-    return processHandler.isProcessTerminated() || processHandler.isProcessTerminating() || extension == null
-           ? null
-           : extension.getExecutor();
+  protected static List<Executor> getRunningExecutorsOfDifferentType(@NotNull Project project, List<ProcessHandler> processHandlers) {
+    ExecutionManagerImpl executionManager = ExecutionManagerImpl.getInstance(project);
+    List<RunContentDescriptor> runningDescriptors =
+      executionManager.getRunningDescriptors(c -> true).stream().filter(d -> processHandlers.contains(d.getProcessHandler())).toList();
+    return runningDescriptors.stream().flatMap(r -> ExecutionManagerImpl.getInstance(project).getExecutors(r).stream()).distinct().toList();
   }
 
   public static final class DisableMessage {

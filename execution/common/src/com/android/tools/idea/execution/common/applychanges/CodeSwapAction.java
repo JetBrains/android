@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.run.ui;
+package com.android.tools.idea.execution.common.applychanges;
 
-import static icons.StudioIcons.Shell.Toolbar.APPLY_ALL_CHANGES;
+import static icons.StudioIcons.Shell.Toolbar.APPLY_CODE_SWAP;
 
 import com.android.tools.idea.run.util.SwapInfo;
-import com.intellij.execution.ExecutionTarget;
-import com.intellij.execution.ExecutionTargetManager;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationType;
-import com.intellij.execution.executors.DefaultDebugExecutor;
-import com.intellij.execution.process.ProcessHandler;
 import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
@@ -35,22 +31,24 @@ import javax.swing.KeyStroke;
 import org.jetbrains.android.util.AndroidBuildCommonUtils;
 import org.jetbrains.annotations.NotNull;
 
-public class ApplyChangesAction extends BaseAction {
+public class CodeSwapAction extends BaseAction {
 
-  public static final String ID = "android.deploy.ApplyChanges";
+  public static final String ID = "android.deploy.CodeSwap";
 
-  public static final String DISPLAY_NAME = "Apply Changes and Restart Activity";
+  public static final String DISPLAY_NAME = "Apply Code Changes";
 
   // The '&' is IJ markup to indicate the subsequent letter is the accelerator key.
-  public static final String ACCELERATOR_NAME = "&Apply Changes and Restart Activity";
+  public static final String ACCELERATOR_NAME = "Apply Cod&e Changes";
 
+  // TODO: Control Alt F10 is almost always going to get your xserver to send you to
+  //       your 10th virtual console.....
   private static final Shortcut SHORTCUT =
-    new KeyboardShortcut(KeyStroke.getKeyStroke(SystemInfo.isMac ? "control meta E" : "control F10"), null);
+    new KeyboardShortcut(KeyStroke.getKeyStroke(SystemInfo.isMac ? "control meta shift E" : "control alt F10"), null);
 
-  private static final String DESC = "Attempt to apply resource and code changes and restart activity.";
+  private static final String DESC = "Attempt to apply only code changes without restarting anything.";
 
-  public ApplyChangesAction() {
-    super(ID, DISPLAY_NAME, ACCELERATOR_NAME, SwapInfo.SwapType.APPLY_CHANGES, APPLY_ALL_CHANGES, SHORTCUT, DESC);
+  public CodeSwapAction() {
+    super(ID, DISPLAY_NAME, ACCELERATOR_NAME, SwapInfo.SwapType.APPLY_CODE_CHANGES, APPLY_CODE_SWAP, SHORTCUT, DESC);
   }
 
   @NotNull
@@ -68,23 +66,18 @@ public class ApplyChangesAction extends BaseAction {
       return;
     }
 
-    // Disable "Apply Changes" for any kind of test project.
-    RunnerAndConfigurationSettings runConfig = RunManager.getInstance(project).getSelectedConfiguration();
-    ExecutionTarget selectedExecutionTarget = ExecutionTargetManager.getActiveTarget(project);
-
+    // Disable the button for any test project that is not an Instrumented Test.
+    RunManager runManager = RunManager.getInstanceIfCreated(project);
+    if (runManager == null) {
+      return;
+    }
+    RunnerAndConfigurationSettings runConfig = runManager.getSelectedConfiguration();
     if (runConfig != null) {
       ConfigurationType type = runConfig.getType();
       String id = type.getId();
-      if (AndroidBuildCommonUtils.isTestConfiguration(id) || AndroidBuildCommonUtils.isInstrumentationTestConfiguration(id)) {
+      if (AndroidBuildCommonUtils.isTestConfiguration(id)) {
         disableAction(e.getPresentation(), new DisableMessage(DisableMessage.DisableMode.DISABLED, "test project",
                                                               "the selected configuration is a test configuration"));
-        return;
-      }
-
-      ProcessHandler handler = findRunningProcessHandler(project, runConfig.getConfiguration(), selectedExecutionTarget);
-      if (handler != null && getExecutor(handler) == DefaultDebugExecutor.getDebugExecutorInstance()) {
-        disableAction(e.getPresentation(), new DisableMessage(DisableMessage.DisableMode.DISABLED, "debug execution",
-                                                              "it is currently not allowed during debugging"));
       }
     }
   }

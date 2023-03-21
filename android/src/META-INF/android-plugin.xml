@@ -50,8 +50,8 @@
     </group>
 
     <group id="Android.InstantRunActions">
-      <action id="android.deploy.ApplyChanges" class="com.android.tools.idea.run.ui.ApplyChangesAction"/>
-      <action id="android.deploy.CodeSwap" class="com.android.tools.idea.run.ui.CodeSwapAction"/>
+      <action id="android.deploy.ApplyChanges" class="com.android.tools.idea.execution.common.applychanges.ApplyChangesAction"/>
+      <action id="android.deploy.CodeSwap" class="com.android.tools.idea.execution.common.applychanges.CodeSwapAction"/>
       <add-to-group group-id="RunnerActions" anchor="after" relative-to-action="Run"/>
     </group>
 
