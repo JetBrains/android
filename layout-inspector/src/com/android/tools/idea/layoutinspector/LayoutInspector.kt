@@ -151,6 +151,14 @@ class LayoutInspector private constructor(
     onClientChanged(client)
   }
 
+  init {
+    // refresh the rendering each time the inspector model changes
+    inspectorModel.modificationListeners.add { _, newAndroidWindow, _ ->
+      newAndroidWindow?.refreshImages(renderLogic.renderSettings.scaleFraction)
+      renderModel.refresh()
+    }
+  }
+
   val currentClient get() = currentClientProvider()
 
   private val latestLoadTime = AtomicLong(-1)

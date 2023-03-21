@@ -24,6 +24,7 @@ import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.model.InspectorModel
+import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.adb.AdbDebugViewProperties
@@ -32,6 +33,7 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAt
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessDetection
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
@@ -90,6 +92,8 @@ class LayoutInspectorTest {
   private lateinit var deviceModel: DeviceModel
   private lateinit var processModel: ProcessesModel
   private lateinit var mockForegroundProcessDetection: ForegroundProcessDetection
+  private lateinit var inspectorModel: InspectorModel
+  private lateinit var mockRenderModel: RenderModel
 
   @Before
   fun setUp() {
@@ -100,7 +104,9 @@ class LayoutInspectorTest {
     mockForegroundProcessDetection = mock<ForegroundProcessDetection>()
     val mockClientSettings = mock<InspectorClientSettings>()
     val mockLauncher = mock<InspectorClientLauncher>()
-    val inspectorModel = InspectorModel(projectRule.project)
+    inspectorModel = model { view(ROOT, qualifiedName = "root") }
+    mockRenderModel = mock()
+
     val mockTreeSettings = mock<TreeSettings>()
     layoutInspector = LayoutInspector(
       scope,
@@ -110,7 +116,8 @@ class LayoutInspectorTest {
       mockClientSettings,
       mockLauncher,
       inspectorModel,
-      mockTreeSettings
+      mockTreeSettings,
+      renderModel = mockRenderModel
     )
   }
 
@@ -202,6 +209,17 @@ class LayoutInspectorTest {
     // the device is still connected, so the global flag should not be reset
     assertThat(adbProperties.debugViewAttributesChangesCount).isEqualTo(2)
     assertThat(adbProperties.debugViewAttributes).isNull()
+  }
+
+  @Test
+  fun updateRenderOnModelChanges() {
+    var imagesRefreshed = false
+    val newWindow = window(ROOT, ROOT, onRefreshImages = { imagesRefreshed = true })
+
+    inspectorModel.update(newWindow, listOf(ROOT), 0)
+
+    assertThat(imagesRefreshed).isTrue()
+    verify(mockRenderModel).refresh()
   }
 
   /**
