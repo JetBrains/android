@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.configurations.ResourceResolverCache;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiManager;
@@ -34,14 +35,14 @@ public class IncludeReferenceTest extends AndroidTestCase {
     VirtualFile file3 = myFixture.copyFileToProject("xmlpull/designtime.xml", "res/layout-land/designtime.xml");
     assertNotNull(file1);
 
-    IncludeReference reference = new IncludeReference(file1);
+    IncludeReference reference = IncludeReference.create(file1);
     assertEquals("designtime", reference.getFromResourceName());
     assertEquals("@layout/designtime", reference.getFromResourceUrl());
-    assertEquals(file1, reference.getFromXmlFile(getProject()).getVirtualFile());
+    assertEquals(file1, reference.getFromFile());
     assertEquals(file1, LocalFileSystem.getInstance().findFileByIoFile(reference.getFromPath()));
     //noinspection ConstantConditions
 
-    reference = new IncludeReference(file3);
+    reference = IncludeReference.create(file3);
     assertEquals("designtime", reference.getFromResourceName());
     assertEquals("@layout/designtime", reference.getFromResourceUrl());
   }
@@ -62,7 +63,7 @@ public class IncludeReferenceTest extends AndroidTestCase {
     assertEquals("includer", reference.getFromResourceName());
     assertEquals("@layout/includer", reference.getFromResourceUrl());
 
-    assertEquals(reference.getFromXmlFile(getProject()).getVirtualFile(), includer);
+    assertEquals(reference.getFromFile(), includer);
 
     IncludingLayout.setIncludingLayout(psiFile, null);
     assertEquals(IncludeReference.NONE, IncludeReference.get(psiFile, resourceResolver));
