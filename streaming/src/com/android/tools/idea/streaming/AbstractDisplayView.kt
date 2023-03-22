@@ -87,10 +87,8 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     add(Box.createVerticalGlue())
   }
 
+  private val decorationPainters = mutableListOf<DecorationPainter>()
   private val frameListeners = ContainerUtil.createLockFreeCopyOnWriteList<FrameListener>()
-
-  /** Rendering contributors invoked after the display image is rendered, but before multi touch feedback and device frame are. */
-  private val decorationRenderers = mutableListOf<DecorationRenderer>()
 
   init {
     background = primaryPanelBackground
@@ -196,10 +194,10 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     findLoadingPanel()?.stopLoadingInstantly()
   }
 
-  internal fun renderDecorators(graphics: Graphics) {
-    for (renderingDecorator in decorationRenderers) {
+  protected fun paintDecorations(graphics: Graphics, displayRectangle: Rectangle) {
+    for (painter in decorationPainters) {
       try {
-        renderingDecorator.render(graphics)
+        painter.paintDecorations(graphics.create(), displayRectangle, deviceDisplaySize, displayOrientationQuadrants)
       }
       catch (t: Throwable) {
         thisLogger().error(t)
@@ -270,12 +268,12 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     }
   }
 
-  fun addDecorationRenderer(decorationRenderer: DecorationRenderer) {
-    decorationRenderers.add(decorationRenderer)
+  fun addDecorationRenderer(decorationPainter: DecorationPainter) {
+    decorationPainters.add(decorationPainter)
   }
 
-  fun removeDecorationRenderer(decorationRenderer: DecorationRenderer) {
-    decorationRenderers.remove(decorationRenderer)
+  fun removeDecorationRenderer(decorationPainter: DecorationPainter) {
+    decorationPainters.remove(decorationPainter)
   }
 
   /**
@@ -293,12 +291,12 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     frameListeners.remove(listener)
   }
 
-  fun interface DecorationRenderer {
+  fun interface DecorationPainter {
     /**
-     * Renders components in the graphics context passed as argument.
-     * Invoked after the display image is rendered, but before multi touch feedback and device frame are rendered.
+     * Paints on top of the device display image. Invoked after the display image is rendered,
+     * but before drawing multi-touch feedback and device frame.
      */
-    fun render(graphics: Graphics)
+    fun paintDecorations(graphics: Graphics, displayRectangle: Rectangle, deviceDisplaySize: Dimension, displayOrientationQuadrants: Int)
   }
 
   internal fun interface FrameListener {

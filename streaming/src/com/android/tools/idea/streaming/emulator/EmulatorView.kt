@@ -465,10 +465,10 @@ class EmulatorView(
     frameNumber = screenshotShape.frameNumber
     notifyFrameListeners(displayRect, screenshot.image)
 
-    // Render before multi touch feedback and device frame.
-    renderDecorators(g.create())
+    paintDecorations(g, displayRect)
 
     if (multiTouchMode) {
+      // Draw multi-touch visual feedback.
       drawMultiTouchFeedback(g, displayRect, lastTouchCoordinates != null)
     }
 
@@ -476,6 +476,7 @@ class EmulatorView(
       // Draw device frame and mask.
       skin.drawFrameAndMask(g, displayRect)
     }
+
     if (!screenshot.painted) {
       screenshot.painted = true
       val paintTime = System.currentTimeMillis()
