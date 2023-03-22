@@ -33,18 +33,22 @@ data class IdeDependenciesImpl(
   override val resolver: IdeLibraryModelResolver
 ) : IdeDependencies {
   @Deprecated("does not respect classpath order", ReplaceWith("this.libraries"))
-  override val androidLibraries: Collection<IdeAndroidLibraryDependency> =
+  override val androidLibraries: Collection<IdeAndroidLibraryDependency> by lazy {
     classpath.dependencies.flatMap(resolver::resolveAndroidLibrary)
+  }
   @Deprecated("does not respect classpath order", ReplaceWith("this.libraries"))
-  override val javaLibraries: Collection<IdeJavaLibraryDependency> =
+  override val javaLibraries: Collection<IdeJavaLibraryDependency> by lazy {
     classpath.dependencies.flatMap(resolver::resolveJavaLibrary)
+  }
   @Deprecated("does not respect classpath order", ReplaceWith("this.libraries"))
-  override val moduleDependencies: Collection<IdeModuleDependency> =
+  override val moduleDependencies: Collection<IdeModuleDependency> by lazy {
     classpath.dependencies.flatMap(resolver::resolveModule)
+  }
   @Deprecated("does not respect classpath order", ReplaceWith("this.libraries"))
-  override val unknownDependencies: Collection<IdeUnknownDependency> =
+  override val unknownDependencies: Collection<IdeUnknownDependency> by lazy {
     classpath.dependencies.flatMap(resolver::resolveUnknownLibrary)
-  override val libraries = classpath.dependencies.flatMap { resolver.resolve(it) }
+  }
+  override val libraries by lazy { classpath.dependencies.flatMap { resolver.resolve(it) } }
   override val unresolvedDependencies = classpath.dependencies
 }
 
