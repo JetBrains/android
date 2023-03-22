@@ -145,7 +145,7 @@ open class ScalingImagePanel : JBPanel<ImagePanel>(true), Disposable {
 
   private fun pixelWidth(img: Image): Int {
     if (img is JBHiDPIScaledImage) {
-      return img.getRealWidth(null)
+      return img.getRealWidth()
     }
     else {
       return img.getWidth(null)
