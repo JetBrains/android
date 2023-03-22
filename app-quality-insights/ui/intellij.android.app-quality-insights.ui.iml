@@ -15,5 +15,8 @@
     <orderEntry type="module" module-name="intellij.android.common" />
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="library" name="studio-analytics-proto" level="project" />
+    <orderEntry type="library" scope="TEST" name="intellij-test-framework" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="library" scope="TEST" name="mockito" level="project" />
   </component>
 </module>
