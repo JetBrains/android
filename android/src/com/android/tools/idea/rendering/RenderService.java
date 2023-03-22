@@ -30,7 +30,6 @@ import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
-import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.rendering.parsers.RenderXmlTag;
 import com.google.common.annotations.VisibleForTesting;
@@ -38,7 +37,6 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.concurrency.AppExecutorUtil;
@@ -124,11 +122,6 @@ final public class RenderService implements Disposable {
     }
     return AndroidTargetData.get(platform.getSdkData(), target)
       .getLayoutLibrary(environment.getParentDisposable(), environment::hasLayoutlibCrash);
-  }
-
-  /** Returns true if the given file can be rendered */
-  public static boolean canRender(@Nullable PsiFile file) {
-    return file != null && LayoutPullParsers.isSupported(file);
   }
 
   protected RenderService(@NotNull Consumer<RenderTaskBuilder> configureBuilder) {
