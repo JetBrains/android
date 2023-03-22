@@ -10,9 +10,9 @@ iml_module(
     # do not sort: must match IML order
     exports = [
         "//prebuilts/tools/common/m2:compose-desktop-animation",
-        "//prebuilts/tools/common/m2:compose-desktop-foundation",
         "//prebuilts/tools/common/m2:compose-desktop-material",
         "//prebuilts/tools/common/m2:compose-desktop-runtime",
+        "//prebuilts/tools/common/m2:compose-desktop-foundation",
         "//prebuilts/tools/common/m2:compose-desktop-ui",
         "//prebuilts/tools/common/m2:skiko",
     ],
@@ -22,9 +22,9 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/android:intellij.android.core[module]",
         "//prebuilts/tools/common/m2:compose-desktop-animation",
-        "//prebuilts/tools/common/m2:compose-desktop-foundation",
         "//prebuilts/tools/common/m2:compose-desktop-material",
         "//prebuilts/tools/common/m2:compose-desktop-runtime",
+        "//prebuilts/tools/common/m2:compose-desktop-foundation",
         "//prebuilts/tools/common/m2:compose-desktop-ui",
         "//prebuilts/tools/common/m2:skiko",
     ],
