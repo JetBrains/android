@@ -19,6 +19,7 @@ import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.RenderResources;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.resources.ResourceUrl;
+import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.utils.SdkUtils;
 import com.intellij.openapi.application.ApplicationManager;
@@ -26,6 +27,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.annotations.NotNull;
@@ -51,15 +53,8 @@ public class IncludeReference {
   /**
    * Creates a new include reference.
    */
-  private IncludeReference(@NonNull VirtualFile fromFile) {
+  IncludeReference(@NonNull VirtualFile fromFile) {
     myFromFile = fromFile;
-  }
-
-  /**
-   * Creates a new include reference.
-   */
-  public static IncludeReference create(@NonNull VirtualFile fromFile) {
-    return new IncludeReference(fromFile);
   }
 
   /**
@@ -67,9 +62,10 @@ public class IncludeReference {
    *
    * @return the file
    */
-  @NotNull
-  public VirtualFile getFromFile() {
-    return myFromFile;
+  @Nullable
+  public XmlFile getFromXmlFile(@NotNull Project project) {
+    PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, myFromFile);
+    return psiFile instanceof XmlFile ? (XmlFile)psiFile : null;
   }
 
   /**
@@ -126,7 +122,7 @@ public class IncludeReference {
             // my target include. I could stash it in the include reference.
             VirtualFile source = IdeResourcesUtil.resolveLayout(resolver, resValue);
             if (source != null) {
-              return create(source);
+              return new IncludeReference(source);
             }
           }
         }
