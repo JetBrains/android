@@ -23,6 +23,7 @@ import com.android.tools.adtui.webp.WebpMetadata
 import com.android.tools.idea.streaming.device.DeviceView
 import com.android.tools.idea.streaming.device.createDeviceConfiguration
 import com.android.tools.idea.streaming.device.emptyDeviceConfiguration
+import com.android.tools.idea.ui.screenshot.DeviceType
 import com.android.tools.idea.ui.screenshot.FramingOption
 import com.google.common.truth.Truth.assertThat
 import org.junit.Before
@@ -64,7 +65,7 @@ class DeviceScreenshotOptionsTest {
     val screenshotOptions = DeviceScreenshotOptions(serialNumber, emptyDeviceConfiguration, deviceView)
     val image = createImage(1080, 2400, Color.WHITE)
     val displayInfo = "DisplayDeviceInfo{..., 1080 x 2400, ..., density 560, ...}"
-    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, isTv = false, isWear = false)
+    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.PHONE)
     assertThat(screenshotImage.image.width).isEqualTo(2400)
     assertThat(screenshotImage.image.height).isEqualTo(1080)
     assertThat(screenshotImage.displaySize).isEqualTo(Dimension(1080, 2400))
@@ -79,7 +80,7 @@ class DeviceScreenshotOptionsTest {
     val screenshotOptions = DeviceScreenshotOptions(serialNumber, deviceConfiguration, deviceView)
     val image = createImage(1440, 3040, Color.WHITE)
     val displayInfo = "DisplayDeviceInfo{..., 1440 x 3040, ..., density 560, ...}"
-    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, isTv = false, isWear = false)
+    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.PHONE)
     val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
     assertThat(framingOptions).containsExactly(DeviceFramingOption("Pixel 4 XL", SKIN_FOLDER.resolve("pixel_4_xl")))
     assertThat(screenshotOptions.getDefaultFramingOption(framingOptions, screenshotImage)).isEqualTo(0)
@@ -91,7 +92,7 @@ class DeviceScreenshotOptionsTest {
     val screenshotOptions = DeviceScreenshotOptions(serialNumber, deviceConfiguration, deviceView)
     val image = createImage(1080, 2340, Color.WHITE)
     val displayInfo = "DisplayDeviceInfo{..., 1080 x 2340, ..., density 420, ...}"
-    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, isTv = false, isWear = false)
+    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.PHONE)
     val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
     assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Generic Phone")
     assertThat(screenshotOptions.getDefaultFramingOption(framingOptions, screenshotImage)).isEqualTo(0)
@@ -103,7 +104,7 @@ class DeviceScreenshotOptionsTest {
     val screenshotOptions = DeviceScreenshotOptions(serialNumber, deviceConfiguration, deviceView)
     val image = createImage(1600, 2560, Color.WHITE)
     val displayInfo = "DisplayDeviceInfo{..., 1600 x 2560, ..., density 280, ...}"
-    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, isTv = false, isWear = false)
+    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.PHONE)
     val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
     assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Generic Tablet")
     assertThat(screenshotOptions.getDefaultFramingOption(framingOptions, screenshotImage)).isEqualTo(0)
@@ -115,7 +116,7 @@ class DeviceScreenshotOptionsTest {
     val screenshotOptions = DeviceScreenshotOptions(serialNumber, deviceConfiguration, deviceView)
     val image = createImage(1280, 768, Color.WHITE)
     val displayInfo = "DisplayDeviceInfo{..., 1280 x 768, ..., density 180, ...}"
-    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, isTv = false, isWear = false)
+    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.PHONE)
     val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
     assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Automotive (1024p landscape)", "Generic Tablet")
     assertThat(screenshotOptions.getDefaultFramingOption(framingOptions, screenshotImage)).isEqualTo(0)
@@ -126,10 +127,11 @@ class DeviceScreenshotOptionsTest {
     val screenshotOptions = DeviceScreenshotOptions(serialNumber, emptyDeviceConfiguration, deviceView)
     val image = createImage(1920, 1080, Color.GRAY)
     val displayInfo = "DisplayDeviceInfo{..., 1920 x 1080, ..., density 480, ...}"
-    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, isTv = true, isWear = false)
+    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.TV)
     val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
     assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Android TV (1080p)")
     assertThat(screenshotOptions.getDefaultFramingOption(framingOptions, screenshotImage)).isEqualTo(0)
+    assertThat(screenshotImage.isTv).isTrue()
   }
 
   @Test
@@ -138,10 +140,11 @@ class DeviceScreenshotOptionsTest {
     val screenshotOptions = DeviceScreenshotOptions(serialNumber, deviceConfiguration, deviceView)
     val image = createImage(384, 384, Color.DARK_GRAY)
     val displayInfo = "DisplayDeviceInfo{..., 384 x 384, ..., density 200, ..., FLAG_ROUND}"
-    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, isTv = false, isWear = false)
+    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.WEAR)
     val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
     assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Wear OS Small Round")
     assertThat(screenshotOptions.getDefaultFramingOption(framingOptions, screenshotImage)).isEqualTo(0)
+    assertThat(screenshotImage.isWear).isTrue()
   }
 
   private fun createImage(width: Int, height: Int, color: Color): BufferedImage {

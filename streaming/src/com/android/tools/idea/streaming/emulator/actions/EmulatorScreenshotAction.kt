@@ -23,6 +23,7 @@ import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.FutureStreamObserver
 import com.android.tools.idea.streaming.emulator.SkinDefinition
+import com.android.tools.idea.ui.screenshot.DeviceType
 import com.android.tools.idea.ui.screenshot.FramingOption
 import com.android.tools.idea.ui.screenshot.ScreenshotImage
 import com.android.tools.idea.ui.screenshot.ScreenshotPostprocessor
@@ -80,7 +81,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
           imageBytes.writeTo(it)
         }
 
-        val screenshotImage = ScreenshotImage(image, screenshot.format.rotation.rotationValue, isWear = emulatorController.emulatorConfig.isWearOs)
+        val screenshotImage = ScreenshotImage(image, screenshot.format.rotation.rotationValue, deviceType(emulatorController))
         val screenshotSupplier = MyScreenshotSupplier(emulatorController)
         val screenshotFramer = emulatorController.skinDefinition?.let { MyScreenshotPostprocessor(it) }
 
@@ -121,7 +122,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
       try {
         val screenshot = receiver.futureResult.get()
         val image = ImageIO.read(screenshot.image.newInput()) ?: throw RuntimeException("Corrupted screenshot image")
-        return ScreenshotImage(image, screenshot.format.rotation.rotationValue, isWear = emulatorController.emulatorConfig.isWearOs)
+        return ScreenshotImage(image, screenshot.format.rotation.rotationValue, deviceType(emulatorController))
       }
       catch (e: InterruptedException) {
         throw ProcessCanceledException()
@@ -185,3 +186,9 @@ private val avdFrame = object : FramingOption {
 }
 
 private fun pngFormat() = ImageFormat.newBuilder().setFormat(ImageFormat.ImgFormat.PNG).build()
+
+private fun deviceType(emulatorController: EmulatorController): DeviceType =
+  when {
+    emulatorController.emulatorConfig.isWearOs -> DeviceType.WEAR
+    else -> DeviceType.PHONE
+  }

@@ -107,7 +107,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testResizing() {
-    val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DISPLAY_INFO_PHONE, isTv = false)
+    val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, null)
     val ui = FakeUi(viewer.rootPane)
 
@@ -121,7 +121,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testUpdateEditorImage() {
-    val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DISPLAY_INFO_PHONE, isTv = false)
+    val screenshotImage = ScreenshotImage(createImage(100, 200), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, null)
     val ui = FakeUi(viewer.rootPane)
 
@@ -135,7 +135,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testClipRoundScreenshot() {
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_WATCH, isTv = false)
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
     val clipComboBox = ui.getComponent<JComboBox<*>>()
@@ -151,7 +151,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testClipRoundScreenshotWithBackgroundColor() {
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_WATCH, isTv = false)
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 
@@ -171,7 +171,7 @@ class ScreenshotViewerTest {
     runInEdt {
       UIManager.setLookAndFeel(DarculaLaf())
     }
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_WATCH, isTv = false)
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
     val clipComboBox = ui.getComponent<JComboBox<*>>()
@@ -188,7 +188,7 @@ class ScreenshotViewerTest {
   @Test
   fun testPlayCompatibleScreenshot_Disabled() {
     StudioFlags.PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED.override(false)
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_WATCH, isWear = true)
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 
@@ -198,7 +198,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testPlayCompatibleScreenshotIsAvailable() {
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_WATCH, isWear = true)
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 
@@ -208,7 +208,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testPlayCompatibleScreenshot() {
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_WATCH, isTv = false, isWear = true)
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 
@@ -228,7 +228,7 @@ class ScreenshotViewerTest {
     runInEdt {
       UIManager.setLookAndFeel(DarculaLaf())
     }
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_WATCH, isTv = false, isWear = true)
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 
@@ -245,7 +245,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testComboBoxDefaultsToDisplayShapeIfAvailable() {
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_WATCH, isWear = true)
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 
@@ -255,7 +255,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testComboBoxDefaultsToPlayStoreCompatibleIfDisplayShapeIsNotAvailable() {
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_WATCH_SQUARE, isWear = true)
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH_SQUARE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 
@@ -265,7 +265,7 @@ class ScreenshotViewerTest {
 
   @Test
   fun testComboBoxDefaultsToRectangularIfPlayStoreCompatibleAndDisplayShapeAreNotAvailable() {
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DISPLAY_INFO_PHONE, isWear = false)
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 

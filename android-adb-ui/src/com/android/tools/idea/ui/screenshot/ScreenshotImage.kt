@@ -22,9 +22,8 @@ import java.awt.image.BufferedImage
 class ScreenshotImage(
   val image: BufferedImage,
   val screenshotRotationQuadrants: Int,
+  private val deviceType: DeviceType,
   private val displayInfo: String = "",
-  val isTv: Boolean = false,
-  val isWear: Boolean = false,
 ) {
 
   val width
@@ -41,6 +40,11 @@ class ScreenshotImage(
   // e.g. Android TV, report fictitious display density.
   val displayDensity: Double = computeDisplayDensity()
 
+  val isTv
+    get() = deviceType == DeviceType.TV
+  val isWear
+    get() = deviceType == DeviceType.WEAR
+
   /**
    * Returns the rotated screenshot.
    */
@@ -52,8 +56,7 @@ class ScreenshotImage(
       image = ImageUtils.rotateByQuadrants(image, rotationQuadrants),
       screenshotRotationQuadrants = (screenshotRotationQuadrants + rotationQuadrants) and 0x03,
       displayInfo = displayInfo,
-      isTv = isTv,
-      isWear = isWear)
+      deviceType = deviceType)
   }
 
   private fun computeDisplaySize(): Dimension? {
