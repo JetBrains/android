@@ -23,17 +23,15 @@ import com.intellij.psi.impl.source.PsiClassReferenceType
 
 internal abstract class ConsumerDaggerElementBase : DaggerElement() {
 
-  override val daggerType = Type.CONSUMER
-
   /** Returns a string indicating the group shown in related items for this element. */
   abstract val relatedElementGrouping: String
 
   /** Type being consumed, without any wrapper like `dagger.Lazy<>`. */
   private val unwrappedType: PsiType
-    get() = elementPsiType.removeWrappingDaggerType().unboxed
+    get() = psiElement.getPsiType().removeWrappingDaggerType().unboxed
 
   override fun getRelatedDaggerElements(): List<DaggerRelatedElement> =
-    getRelatedDaggerElementsFromIndex(setOf(Type.PROVIDER), unwrappedType.getIndexKeys()).map {
+    getRelatedDaggerElementsFromIndex<ProviderDaggerElement>(unwrappedType.getIndexKeys()).map {
       DaggerRelatedElement(it, DaggerBundle.message("providers"))
     }
 

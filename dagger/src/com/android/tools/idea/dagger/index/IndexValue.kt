@@ -16,15 +16,22 @@
 package com.android.tools.idea.dagger.index
 
 import com.android.tools.idea.dagger.concepts.AllConcepts
+import com.android.tools.idea.dagger.concepts.ComponentDaggerElement
+import com.android.tools.idea.dagger.concepts.ComponentProvisionMethodDaggerElement
+import com.android.tools.idea.dagger.concepts.ConsumerDaggerElement
 import com.android.tools.idea.dagger.concepts.DaggerConcept
 import com.android.tools.idea.dagger.concepts.DaggerElement
 import com.android.tools.idea.dagger.concepts.DaggerElementIdentifiers
+import com.android.tools.idea.dagger.concepts.ModuleDaggerElement
+import com.android.tools.idea.dagger.concepts.ProviderDaggerElement
+import com.android.tools.idea.dagger.concepts.SubcomponentDaggerElement
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.io.DataExternalizer
 import java.io.DataInput
 import java.io.DataOutput
+import kotlin.reflect.KClass
 import org.jetbrains.annotations.VisibleForTesting
 
 /**
@@ -40,18 +47,18 @@ abstract class IndexValue {
    * Type of value being stored. This is required to be centralized to ensure that each type has a
    * unique integer representation that can be used for serialization and storage.
    */
-  enum class DataType(val daggerElementType: DaggerElement.Type) {
-    INJECTED_CONSTRUCTOR(DaggerElement.Type.PROVIDER),
-    INJECTED_CONSTRUCTOR_PARAMETER(DaggerElement.Type.CONSUMER),
-    PROVIDES_METHOD(DaggerElement.Type.PROVIDER),
-    PROVIDES_METHOD_PARAMETER(DaggerElement.Type.CONSUMER),
-    INJECTED_FIELD(DaggerElement.Type.CONSUMER),
-    COMPONENT_WITH_MODULE(DaggerElement.Type.COMPONENT),
-    COMPONENT_WITH_DEPENDENCY(DaggerElement.Type.COMPONENT),
-    SUBCOMPONENT_WITH_MODULE(DaggerElement.Type.SUBCOMPONENT),
-    MODULE_WITH_INCLUDE(DaggerElement.Type.MODULE),
-    MODULE_WITH_SUBCOMPONENT(DaggerElement.Type.MODULE),
-    COMPONENT_PROVISION_METHOD(DaggerElement.Type.CONSUMER),
+  enum class DataType(val daggerElementType: KClass<out DaggerElement>) {
+    INJECTED_CONSTRUCTOR(ProviderDaggerElement::class),
+    INJECTED_CONSTRUCTOR_PARAMETER(ConsumerDaggerElement::class),
+    PROVIDES_METHOD(ProviderDaggerElement::class),
+    PROVIDES_METHOD_PARAMETER(ConsumerDaggerElement::class),
+    INJECTED_FIELD(ConsumerDaggerElement::class),
+    COMPONENT_WITH_MODULE(ComponentDaggerElement::class),
+    COMPONENT_WITH_DEPENDENCY(ComponentDaggerElement::class),
+    SUBCOMPONENT_WITH_MODULE(SubcomponentDaggerElement::class),
+    MODULE_WITH_INCLUDE(ModuleDaggerElement::class),
+    MODULE_WITH_SUBCOMPONENT(ModuleDaggerElement::class),
+    COMPONENT_PROVISION_METHOD(ComponentProvisionMethodDaggerElement::class),
   }
 
   abstract fun save(output: DataOutput)
@@ -60,9 +67,16 @@ abstract class IndexValue {
    * Resolve the Dagger element represented by this [IndexValue] into one or more [DaggerElement]s.
    */
   fun resolveToDaggerElements(project: Project, scope: GlobalSearchScope): List<DaggerElement> {
-    return getResolveCandidates(project, scope).mapNotNull {
-      daggerElementIdentifiers.getDaggerElement(it.navigationElement)
-    }
+    val candidates =
+      getResolveCandidates(project, scope).mapNotNull {
+        daggerElementIdentifiers.getDaggerElement(it.navigationElement)
+      }
+
+    // Validate that the type of [DaggerElement] specified by this [IndexValue] matches what was
+    // resolved.
+    candidates.forEach { assert(dataType.daggerElementType.isInstance(it)) }
+
+    return candidates
   }
 
   /**

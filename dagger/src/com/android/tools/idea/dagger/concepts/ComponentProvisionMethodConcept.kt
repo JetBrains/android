@@ -152,7 +152,6 @@ internal data class ComponentProvisionMethodIndexValue(
   override val daggerElementIdentifiers = identifiers
 }
 
-@VisibleForTesting
 internal data class ComponentProvisionMethodDaggerElement(override val psiElement: PsiElement) :
   ConsumerDaggerElementBase() {
   override val relatedElementGrouping: String = DaggerBundle.message("exposed.by.components")

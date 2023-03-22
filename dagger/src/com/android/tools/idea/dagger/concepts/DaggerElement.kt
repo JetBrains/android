@@ -27,6 +27,7 @@ import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
+import kotlin.reflect.KClass
 import org.jetbrains.kotlin.idea.base.util.projectScope
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtConstructor
@@ -44,18 +45,6 @@ typealias DaggerRelatedElement = Pair<DaggerElement, String>
 sealed class DaggerElement {
 
   abstract val psiElement: PsiElement
-  abstract val daggerType: Type
-
-  protected val elementPsiType: PsiType
-    get() = psiElement.getPsiType().unboxed
-
-  enum class Type {
-    PROVIDER,
-    CONSUMER,
-    COMPONENT,
-    SUBCOMPONENT,
-    MODULE,
-  }
 
   /** Looks up related Dagger elements. */
   abstract fun getRelatedDaggerElements(): List<DaggerRelatedElement>
@@ -64,9 +53,17 @@ sealed class DaggerElement {
    * Looks up related Dagger elements using [DaggerIndex]. Derived classes should use this to
    * implement the part of [getRelatedDaggerElements] that finds items stored in the index.
    */
+  internal inline fun <reified T : DaggerElement> getRelatedDaggerElementsFromIndex(
+    indexKeys: List<String>
+  ): List<T> = getRelatedDaggerElementsFromIndex(setOf(T::class), indexKeys).map { it as T }
+
+  /**
+   * Looks up related Dagger elements using [DaggerIndex]. Derived classes should use this to
+   * implement the part of [getRelatedDaggerElements] that finds items stored in the index.
+   */
   internal fun getRelatedDaggerElementsFromIndex(
-    relatedItemTypes: Set<Type>,
-    indexKeys: List<String> = elementPsiType.getIndexKeys()
+    relatedItemTypes: Set<KClass<out DaggerElement>>,
+    indexKeys: List<String>,
   ): List<DaggerElement> {
     val project = psiElement.project
     val scope = project.projectScope()
@@ -75,7 +72,10 @@ sealed class DaggerElement {
       // Look up the keys in the index
       .flatMap { DaggerIndex.getValues(it, scope) }
       // Remove types we aren't interested in before resolving
-      .filter { it.dataType.daggerElementType in relatedItemTypes }
+      .filter { indexValue ->
+        val daggerElementJavaType = indexValue.dataType.daggerElementType.java
+        relatedItemTypes.any { type -> type.java.isAssignableFrom(daggerElementJavaType) }
+      }
       // Ensure there are no duplicate index values (which can happen if two different keys have
       // identical values)
       .distinct()

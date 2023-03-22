@@ -19,11 +19,13 @@ import com.android.tools.idea.dagger.concepts.ConsumerDaggerElementBase.Companio
 import com.android.tools.idea.dagger.index.getAliasSimpleNames
 import com.android.tools.idea.dagger.unboxed
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiType
 import org.jetbrains.kotlin.idea.base.util.projectScope
 
 internal data class ProviderDaggerElement(override val psiElement: PsiElement) : DaggerElement() {
 
-  override val daggerType = Type.PROVIDER
+  private val providedPsiType: PsiType
+    get() = psiElement.getPsiType().unboxed
 
   override fun getRelatedDaggerElements(): List<DaggerRelatedElement> {
     // Since Dagger allows types to be wrapped with Lazy<> and Provider<> and since our index stores
@@ -32,19 +34,19 @@ internal data class ProviderDaggerElement(override val psiElement: PsiElement) :
     val project = psiElement.project
     val scope = project.projectScope()
     val indexKeys =
-      elementPsiType.getIndexKeys() +
+      providedPsiType.getIndexKeys() +
         ConsumerDaggerElementBase.wrappingDaggerTypes.flatMap {
           val simpleName = it.substringAfterLast(".")
           listOf(simpleName) + getAliasSimpleNames(simpleName, project, scope)
         }
 
-    return getRelatedDaggerElementsFromIndex(setOf(Type.CONSUMER), indexKeys).map {
-      DaggerRelatedElement(it, (it as ConsumerDaggerElementBase).relatedElementGrouping)
+    return getRelatedDaggerElementsFromIndex<ConsumerDaggerElementBase>(indexKeys).map {
+      DaggerRelatedElement(it, it.relatedElementGrouping)
     }
   }
 
   override fun filterResolveCandidate(resolveCandidate: DaggerElement): Boolean =
     // A consumer may request a wrapped type like `Lazy<Foo>`, but this provider would just be
     // returning the `Foo`.
-    elementPsiType == resolveCandidate.psiElement.getPsiType().removeWrappingDaggerType().unboxed
+    providedPsiType == resolveCandidate.psiElement.getPsiType().removeWrappingDaggerType().unboxed
 }

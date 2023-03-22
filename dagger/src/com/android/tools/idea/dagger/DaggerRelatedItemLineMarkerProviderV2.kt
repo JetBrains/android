@@ -16,12 +16,12 @@
 package com.android.tools.idea.dagger
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.dagger.concepts.ComponentDaggerElement
+import com.android.tools.idea.dagger.concepts.ConsumerDaggerElementBase
 import com.android.tools.idea.dagger.concepts.DaggerElement
-import com.android.tools.idea.dagger.concepts.DaggerElement.Type.COMPONENT
-import com.android.tools.idea.dagger.concepts.DaggerElement.Type.CONSUMER
-import com.android.tools.idea.dagger.concepts.DaggerElement.Type.MODULE
-import com.android.tools.idea.dagger.concepts.DaggerElement.Type.PROVIDER
-import com.android.tools.idea.dagger.concepts.DaggerElement.Type.SUBCOMPONENT
+import com.android.tools.idea.dagger.concepts.ModuleDaggerElement
+import com.android.tools.idea.dagger.concepts.ProviderDaggerElement
+import com.android.tools.idea.dagger.concepts.SubcomponentDaggerElement
 import com.android.tools.idea.dagger.concepts.getDaggerElement
 import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.google.common.base.Supplier
@@ -74,7 +74,7 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
       RelatedItemLineMarkerInfo(
         element,
         element.textRange,
-        daggerElement.daggerType.getIcon(),
+        daggerElement.getIcon(),
         ::tooltipProvider,
         NavigationHandler(gotoTargetsSupplier),
         GutterIconRenderer.Alignment.RIGHT,
@@ -117,13 +117,13 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
       }
 
     /** Returns the gutter icon to use for a given Dagger element type. */
-    private fun DaggerElement.Type.getIcon(): Icon =
+    private fun DaggerElement.getIcon(): Icon =
       when (this) {
-        CONSUMER -> StudioIcons.Misc.DEPENDENCY_PROVIDER
-        PROVIDER,
-        COMPONENT,
-        SUBCOMPONENT,
-        MODULE -> StudioIcons.Misc.DEPENDENCY_CONSUMER
+        is ConsumerDaggerElementBase -> StudioIcons.Misc.DEPENDENCY_PROVIDER
+        is ProviderDaggerElement,
+        is ComponentDaggerElement,
+        is SubcomponentDaggerElement,
+        is ModuleDaggerElement -> StudioIcons.Misc.DEPENDENCY_CONSUMER
       }
   }
 

@@ -533,22 +533,19 @@ class ComponentAndModuleDaggerConceptTest {
       ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
         myFixture.moveCaret("CoffeeShop|Component").parentOfType<KtClass>()!!
       )
-    assertThat(componentDaggerElement).isNotNull()
-    assertThat(componentDaggerElement!!.daggerType).isEqualTo(DaggerElement.Type.COMPONENT)
+    assertThat(componentDaggerElement).isInstanceOf(ComponentDaggerElement::class.java)
 
     val subcomponentDaggerElement =
       ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
         myFixture.moveCaret("CoffeeShop|Subcomponent").parentOfType<KtClass>()!!
       )
-    assertThat(subcomponentDaggerElement).isNotNull()
-    assertThat(subcomponentDaggerElement!!.daggerType).isEqualTo(DaggerElement.Type.SUBCOMPONENT)
+    assertThat(subcomponentDaggerElement).isInstanceOf(SubcomponentDaggerElement::class.java)
 
     val moduleDaggerElement =
       ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
         myFixture.moveCaret("CoffeeShop|Module").parentOfType<KtClass>()!!
       )
-    assertThat(moduleDaggerElement).isNotNull()
-    assertThat(moduleDaggerElement!!.daggerType).isEqualTo(DaggerElement.Type.MODULE)
+    assertThat(moduleDaggerElement).isInstanceOf(ModuleDaggerElement::class.java)
   }
 
   @Test
@@ -581,22 +578,19 @@ class ComponentAndModuleDaggerConceptTest {
       ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
         myFixture.moveCaret("CoffeeShop|Component").parentOfType<PsiClass>()!!
       )
-    assertThat(componentDaggerElement).isNotNull()
-    assertThat(componentDaggerElement!!.daggerType).isEqualTo(DaggerElement.Type.COMPONENT)
+    assertThat(componentDaggerElement).isInstanceOf(ComponentDaggerElement::class.java)
 
     val subcomponentDaggerElement =
       ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
         myFixture.moveCaret("CoffeeShop|Subcomponent").parentOfType<PsiClass>()!!
       )
-    assertThat(subcomponentDaggerElement).isNotNull()
-    assertThat(subcomponentDaggerElement!!.daggerType).isEqualTo(DaggerElement.Type.SUBCOMPONENT)
+    assertThat(subcomponentDaggerElement).isInstanceOf(SubcomponentDaggerElement::class.java)
 
     val moduleDaggerElement =
       ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
         myFixture.moveCaret("CoffeeShop|Module").parentOfType<PsiClass>()!!
       )
-    assertThat(moduleDaggerElement).isNotNull()
-    assertThat(moduleDaggerElement!!.daggerType).isEqualTo(DaggerElement.Type.MODULE)
+    assertThat(moduleDaggerElement).isInstanceOf(ModuleDaggerElement::class.java)
   }
 
   @Test
@@ -727,9 +721,8 @@ class ComponentAndModuleDaggerConceptTest {
 
     assertThat(modulesAndSubcomponents).hasSize(2)
 
-    assertThat(modulesAndSubcomponents[0].first.daggerType).isEqualTo(DaggerElement.Type.MODULE)
-    assertThat(modulesAndSubcomponents[1].first.daggerType)
-      .isEqualTo(DaggerElement.Type.SUBCOMPONENT)
+    assertThat(modulesAndSubcomponents[0].first).isInstanceOf(ModuleDaggerElement::class.java)
+    assertThat(modulesAndSubcomponents[1].first).isInstanceOf(SubcomponentDaggerElement::class.java)
 
     assertThat(modulesAndSubcomponents[0].first.psiElement.text).contains("CoffeeShopModule")
     assertThat(modulesAndSubcomponents[1].first.psiElement.text).contains("CoffeeShopSubcomponent")
