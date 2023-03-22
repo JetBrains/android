@@ -18,6 +18,7 @@ package com.android.tools.idea.run.deployment;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.configuration.AndroidWearConfiguration;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -81,12 +82,6 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
 
     // noinspection UnstableApiUsage
     return Futures.transform(future, DeviceAndSnapshotComboBoxExecutionTarget::filterNonNull, MoreExecutors.directExecutor());
-  }
-
-  private static @NotNull Collection<IDevice> filterNonNull(@NotNull Collection<IDevice> devices) {
-    return devices.stream()
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
   }
 
   @NotNull
@@ -153,6 +148,14 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
     if (configuration instanceof UserDataHolderBase) {
       deploysToLocalDevice = ((UserDataHolderBase)configuration).getUserData(DeviceAndSnapshotComboBoxAction.DEPLOYS_TO_LOCAL_DEVICE);
     }
-    return configuration instanceof AndroidRunConfigurationBase || (deploysToLocalDevice != null && deploysToLocalDevice);
+    return configuration instanceof AndroidRunConfigurationBase ||
+           configuration instanceof AndroidWearConfiguration ||
+           (deploysToLocalDevice != null && deploysToLocalDevice);
+  }
+
+  private static @NotNull Collection<IDevice> filterNonNull(@NotNull Collection<IDevice> devices) {
+    return devices.stream()
+      .filter(Objects::nonNull)
+      .collect(Collectors.toList());
   }
 }
