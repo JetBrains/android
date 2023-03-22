@@ -15,27 +15,28 @@
  */
 package com.android.tools.idea.downloads;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import com.android.tools.idea.TestDataPathUtils;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.testFramework.LightPlatformTestCase;
-import com.intellij.util.concurrency.FutureResult;
 import com.intellij.util.concurrency.Semaphore;
 import com.intellij.util.download.DownloadableFileDescription;
 import com.intellij.util.download.FileDownloader;
 import com.intellij.util.download.impl.DownloadableFileDescriptionImpl;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.jetbrains.annotations.NotNull;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static com.google.common.truth.Truth.assertThat;
 
 public class DownloadServiceTest extends LightPlatformTestCase {
   private static final String DATA_PATH = "downloads";
@@ -137,10 +138,10 @@ public class DownloadServiceTest extends LightPlatformTestCase {
     Mockito.when(downloader.download(ArgumentMatchers.any(File.class))).thenThrow(new RuntimeException("expected exception"));
 
     MyDownloadService service = new MyDownloadService(downloader, myFallbackFileUrl);
-    final FutureResult<Boolean> result = new FutureResult<>();
+    final CompletableFuture<Boolean> result = new CompletableFuture<>();
     service.refresh(() -> {
       assert false;
-    }, () -> result.set(true));
+    }, () -> result.complete(true));
     assertThat(result.get(5, TimeUnit.SECONDS)).isTrue();
     assertThat(service.getLoadedCount()).isEqualTo(1);
     assertThat(service.getLastLoadUrl()).isEqualTo(myFallbackFileUrl);
@@ -167,8 +168,8 @@ public class DownloadServiceTest extends LightPlatformTestCase {
     FileDownloader downloader = Mockito.mock(FileDownloader.class);
     Mockito.when(downloader.download(ArgumentMatchers.any(File.class))).thenThrow(new RuntimeException("expected exception"));
     MyDownloadService service = new MyDownloadService(downloader, myFallbackFileUrl);
-    FutureResult<Boolean> result = new FutureResult<>();
-    service.refresh(() -> result.set(true), () -> {
+    CompletableFuture<Boolean> result = new CompletableFuture<>();
+    service.refresh(() -> result.complete(true), () -> {
       assert false;
     });
     assertThat(result.get(5, TimeUnit.SECONDS)).isTrue();
