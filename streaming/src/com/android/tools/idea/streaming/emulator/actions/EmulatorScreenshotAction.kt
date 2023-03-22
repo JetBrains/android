@@ -80,7 +80,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
           imageBytes.writeTo(it)
         }
 
-        val screenshotImage = ScreenshotImage(image, screenshot.format.rotation.rotationValue)
+        val screenshotImage = ScreenshotImage(image, screenshot.format.rotation.rotationValue, isWear = emulatorController.emulatorConfig.isWearOs)
         val screenshotSupplier = MyScreenshotSupplier(emulatorController)
         val screenshotFramer = emulatorController.skinDefinition?.let { MyScreenshotPostprocessor(it) }
 
@@ -121,7 +121,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
       try {
         val screenshot = receiver.futureResult.get()
         val image = ImageIO.read(screenshot.image.newInput()) ?: throw RuntimeException("Corrupted screenshot image")
-        return ScreenshotImage(image, screenshot.format.rotation.rotationValue)
+        return ScreenshotImage(image, screenshot.format.rotation.rotationValue, isWear = emulatorController.emulatorConfig.isWearOs)
       }
       catch (e: InterruptedException) {
         throw ProcessCanceledException()
