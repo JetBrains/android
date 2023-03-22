@@ -28,6 +28,7 @@ import com.android.tools.idea.logcat.LogcatMainPanel.LogcatServiceEvent.StopLogc
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Custom
 import com.android.tools.idea.logcat.LogcatPanelConfig.FormattingConfig.Preset
+import com.android.tools.idea.logcat.LogcatPresenter.Companion.CONNECTED_DEVICE
 import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
 import com.android.tools.idea.logcat.ProjectApplicationIdsProvider.Companion.PROJECT_APPLICATION_IDS_CHANGED_TOPIC
 import com.android.tools.idea.logcat.ProjectApplicationIdsProvider.ProjectApplicationIdsListener
@@ -44,6 +45,7 @@ import com.android.tools.idea.logcat.actions.NextOccurrenceToolbarAction
 import com.android.tools.idea.logcat.actions.PauseLogcatAction
 import com.android.tools.idea.logcat.actions.PreviousOccurrenceToolbarAction
 import com.android.tools.idea.logcat.actions.RestartLogcatAction
+import com.android.tools.idea.logcat.actions.TerminateAppActions
 import com.android.tools.idea.logcat.actions.ToggleFilterAction
 import com.android.tools.idea.logcat.devices.Device
 import com.android.tools.idea.logcat.filters.LogcatFilter
@@ -415,6 +417,12 @@ internal class LogcatMainPanel @TestOnly constructor(
       add(CreateScratchFileAction())
       add(Separator.create())
       actions.forEach { add(it) }
+      if (StudioFlags.ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER.get() && StudioFlags.LOGCAT_TERMINATE_APP_ACTIONS_ENABLED.get()) {
+        add(Separator.getInstance())
+        add(TerminateAppActions.ForceStopAppAction())
+        add(TerminateAppActions.KillAppAction())
+        add(TerminateAppActions.CrashAppAction())
+      }
       add(Separator.create())
       add(ClearLogcatAction())
     }
@@ -681,7 +689,7 @@ internal class LogcatMainPanel @TestOnly constructor(
       ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name -> device?.let {
         ScreenRecorderAction.Parameters(it.name, it.serialNumber, it.sdk, if (it.isEmulator) it.deviceId else null, this)
       }
-
+      CONNECTED_DEVICE.name -> device
       EDITOR.name -> editor
       else -> null
     }

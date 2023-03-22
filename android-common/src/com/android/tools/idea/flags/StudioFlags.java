@@ -690,6 +690,16 @@ public final class StudioFlags {
     true
   );
 
+
+  public static final Flag<Boolean> LOGCAT_TERMINATE_APP_ACTIONS_ENABLED = Flag.create(
+    LOGCAT,
+    "logcat.terminate.app.actions.enable",
+    "Enable right-click actions for terminating the application",
+    "Enable right-click actions for terminating the application. " +
+    "Note that this feature is only enabled if the flag ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER is also true. " +
+    "Changing the value of this flag requires restarting Android Studio.",
+    true
+  );
   //endregion
 
   //region Gradle Project System

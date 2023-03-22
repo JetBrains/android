@@ -101,5 +101,6 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Process
 
   companion object {
     val LOGCAT_PRESENTER_ACTION = DataKey.create<LogcatPresenter>("LogcatPresenter")
+    val CONNECTED_DEVICE = DataKey.create<Device>("ConnectedDevice")
   }
 }
