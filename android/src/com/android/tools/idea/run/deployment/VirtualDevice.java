@@ -263,21 +263,6 @@ final class VirtualDevice extends Device {
     return targets;
   }
 
-  @NotNull
-  @Override
-  ListenableFuture<AndroidVersion> getAndroidVersionAsync() {
-    Object androidDevice = getAndroidDevice();
-
-    if (androidDevice instanceof LaunchableAndroidDevice) {
-      return Futures.immediateFuture(((LaunchableAndroidDevice)androidDevice).getAvdInfo().getAndroidVersion());
-    }
-
-    var service = DeploymentApplicationService.getInstance();
-
-    // noinspection UnstableApiUsage
-    return Futures.transformAsync(getDdmlibDeviceAsync(), service::getVersion, MoreExecutors.directExecutor());
-  }
-
   @Override
   public boolean equals(@Nullable Object object) {
     if (!(object instanceof VirtualDevice device)) {

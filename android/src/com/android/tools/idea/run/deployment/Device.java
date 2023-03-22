@@ -19,7 +19,6 @@ import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
-import com.android.tools.idea.run.deployable.Deployable;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -124,29 +123,6 @@ public abstract class Device {
   @NotNull
   final AndroidDevice getAndroidDevice() {
     return myAndroidDevice;
-  }
-
-  @NotNull
-  abstract ListenableFuture<AndroidVersion> getAndroidVersionAsync();
-
-  final @NotNull ListenableFuture<Boolean> isRunningAsync(@NotNull String appPackage) {
-    if (!isConnected()) {
-      return Futures.immediateFuture(false);
-    }
-
-    // The EDT and Action Updater (Common) threads call into this. Ideally we'd use the respective executors here instead of the direct
-    // executor. But we don't have access to the Action Updater (Common) executor.
-
-    // noinspection UnstableApiUsage
-    return Futures.transform(getDdmlibDeviceAsync(), device -> isRunning(device, appPackage), MoreExecutors.directExecutor());
-  }
-
-  private static boolean isRunning(@NotNull IDevice device, @NotNull String appPackage) {
-    if (!device.isOnline()) {
-      return false;
-    }
-
-    return !Deployable.searchClientsForPackage(device, appPackage).isEmpty();
   }
 
   final @NotNull ListenableFuture<IDevice> getDdmlibDeviceAsync() {

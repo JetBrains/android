@@ -107,12 +107,6 @@ final class ConnectedDevice extends Device {
     throw new UnsupportedOperationException();
   }
 
-  @NotNull
-  @Override
-  ListenableFuture<AndroidVersion> getAndroidVersionAsync() {
-    throw new UnsupportedOperationException();
-  }
-
   @Override
   public boolean equals(@Nullable Object object) {
     if (!(object instanceof ConnectedDevice)) {

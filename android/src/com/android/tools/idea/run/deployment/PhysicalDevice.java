@@ -151,15 +151,6 @@ final class PhysicalDevice extends Device {
     return Collections.singletonList(new RunningDeviceTarget(getKey()));
   }
 
-  @NotNull
-  @Override
-  ListenableFuture<AndroidVersion> getAndroidVersionAsync() {
-    var service = DeploymentApplicationService.getInstance();
-
-    // noinspection UnstableApiUsage
-    return Futures.transformAsync(getDdmlibDeviceAsync(), service::getVersion, MoreExecutors.directExecutor());
-  }
-
   @Override
   public boolean equals(@Nullable Object object) {
     if (!(object instanceof PhysicalDevice)) {

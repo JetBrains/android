@@ -18,6 +18,7 @@ package com.android.tools.idea.run.deployment;
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.execution.common.AndroidExecutionTarget;
 import com.android.tools.idea.run.AndroidRunConfigurationBase;
+import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -53,12 +54,9 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
 
   @Override
   public @NotNull ListenableFuture<Boolean> isApplicationRunningAsync(@NotNull String appPackage) {
-    var futures = deviceStream()
-      .map(device -> device.isRunningAsync(appPackage))
-      .collect(Collectors.toList());
-
     // noinspection UnstableApiUsage, SpellCheckingInspection
-    return Futures.transform(Futures.successfulAsList(futures), runnings -> runnings.contains(true),
+    return Futures.transform(getRunningDevicesAsync(),
+                             devices -> devices.stream().anyMatch(d -> !DeploymentApplicationService.getInstance().findClient(d, appPackage).isEmpty()),
                              AppExecutorUtil.getAppExecutorService());
   }
 
