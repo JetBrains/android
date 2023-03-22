@@ -168,7 +168,7 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
 
   private fun addTvDeviceSection(groupedDevices: Map<DeviceGroup, List<Device>>) {
     val tvDevices = groupedDevices.get(DeviceGroup.TV) ?: return
-    add(DeviceCategory("TV", "Android TV devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_TV))
+    add(DeviceCategory("TV", "Television devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_TV))
     for (device in tvDevices) {
       val selected = device == renderContext.configuration?.device
       add(DeviceMenuAction.SetDeviceAction(renderContext,

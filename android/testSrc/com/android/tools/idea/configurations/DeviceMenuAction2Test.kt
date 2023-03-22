@@ -125,9 +125,9 @@ class DeviceMenuAction2Test {
     Wear OS Large Round (227 × 227 dp, xhdpi)
     ------------------------------------------------------
     TV
-    Android TV (4K) (960 × 540 dp, xhdpi)
-    Android TV (1080p) (960 × 540 dp, xhdpi)
-    Android TV (720p) (962 × 541 dp, tvdpi)
+    Television (4K) (960 × 540 dp, xhdpi)
+    Television (1080p) (960 × 540 dp, xhdpi)
+    Television (720p) (962 × 541 dp, tvdpi)
     ------------------------------------------------------
     Auto
     Automotive (1024p landscape) (1024 × 768 dp, mdpi)
@@ -205,9 +205,9 @@ class DeviceMenuAction2Test {
     Wear OS Large Round (227 × 227 dp, xhdpi)
     ------------------------------------------------------
     TV
-    Android TV (4K) (960 × 540 dp, xhdpi)
-    Android TV (1080p) (960 × 540 dp, xhdpi)
-    Android TV (720p) (962 × 541 dp, tvdpi)
+    Television (4K) (960 × 540 dp, xhdpi)
+    Television (1080p) (960 × 540 dp, xhdpi)
+    Television (720p) (962 × 541 dp, tvdpi)
     ------------------------------------------------------
     Auto
     Automotive (1024p landscape) (1024 × 768 dp, mdpi)

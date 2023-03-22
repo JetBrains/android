@@ -129,7 +129,7 @@ class DeviceScreenshotOptionsTest {
     val displayInfo = "DisplayDeviceInfo{..., 1920 x 1080, ..., density 480, ...}"
     val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.TV)
     val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
-    assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Android TV (1080p)")
+    assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Television (1080p)")
     assertThat(screenshotOptions.getDefaultFramingOption(framingOptions, screenshotImage)).isEqualTo(0)
     assertThat(screenshotImage.isTv).isTrue()
   }

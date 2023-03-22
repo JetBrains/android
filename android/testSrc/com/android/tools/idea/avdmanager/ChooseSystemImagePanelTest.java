@@ -187,9 +187,9 @@ public class ChooseSystemImagePanelTest extends AndroidTestCase {
                                             IdDisplay.create("google", "Google"), 28, sdkRoot);
       pkgAutomotive = createSysimgPackage(automotivePath, abi, IdDisplay.create("android-automotive", "Android Automotive"),
                                           IdDisplay.create("google", "Google"), 28, sdkRoot);
-      pkgTv30 = createSysimgPackage(tv30Path, abi, IdDisplay.create("android-tv", "Android TV"),
+      pkgTv30 = createSysimgPackage(tv30Path, abi, IdDisplay.create("android-tv", "Television"),
                                     IdDisplay.create("google", "Google"), 30, sdkRoot);
-      pkgTv31 = createSysimgPackage(tv31Path, abi, IdDisplay.create("android-tv", "Android TV"),
+      pkgTv31 = createSysimgPackage(tv31Path, abi, IdDisplay.create("android-tv", "Television"),
                                     IdDisplay.create("google", "Google"), 31, sdkRoot);
     }
 

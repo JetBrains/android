@@ -82,7 +82,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private static final String DEFAULT_PHONE = "Pixel 2";
   private static final String DEFAULT_TABLET = "Pixel C";
   private static final String DEFAULT_WEAR = "Wear OS Square";
-  private static final String DEFAULT_TV = "Android TV (1080p)";
+  private static final String DEFAULT_TV = "Television (1080p)";
   private static final String DEFAULT_AUTOMOTIVE = "Automotive (1024p landscape)";
   private static final String DEFAULT_DESKTOP = "Medium Desktop";
   private static final String TV = "TV";
