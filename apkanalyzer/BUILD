@@ -22,7 +22,7 @@ iml_module(
         "//tools/adt/idea/android-common:intellij.android.common[module]",
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
-        "//tools/adt/idea/.idea/libraries:dexlib2",
+        "//tools/adt/idea/.idea/libraries:google-dexlib2",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
         "//tools/adt/idea/smali:intellij.android.smali[module]",
         "//tools/adt/idea/android-lang:intellij.android.lang[module]",

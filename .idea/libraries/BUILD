@@ -131,13 +131,6 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "baksmali",
-    jars = ["//prebuilts/tools/common/m2:baksmali_files"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
     name = "zxing-core",
     jars = ["//prebuilts/tools/common/m2:zxing-core_files"],
     visibility = ["//visibility:public"],

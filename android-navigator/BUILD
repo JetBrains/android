@@ -23,7 +23,7 @@ iml_module(
         "//tools/adt/idea/smali:intellij.android.smali[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
-        "//tools/adt/idea/.idea/libraries:dexlib2",
+        "//tools/adt/idea/.idea/libraries:google-dexlib2",
     ],
 )
 

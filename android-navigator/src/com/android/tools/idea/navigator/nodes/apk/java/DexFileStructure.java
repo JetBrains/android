@@ -25,10 +25,10 @@ import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
-import org.jf.dexlib2.dexbacked.DexBackedClassDef;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
-import org.jf.dexlib2.dexbacked.reference.DexBackedMethodReference;
-import org.jf.dexlib2.iface.reference.MethodReference;
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedClassDef;
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
+import com.android.tools.smali.dexlib2.dexbacked.reference.DexBackedMethodReference;
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;

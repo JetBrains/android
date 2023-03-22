@@ -2020,7 +2020,6 @@ Android Studio Preview.app/Contents/plugins/android/lib/asm-commons-9.3.jar
 Android Studio Preview.app/Contents/plugins/android/lib/asm-tree-9.3.jar
 Android Studio Preview.app/Contents/plugins/android/lib/auto-common-0.10.jar
 Android Studio Preview.app/Contents/plugins/android/lib/backgroundtask_inspector_java_proto.jar
-Android Studio Preview.app/Contents/plugins/android/lib/baksmali-2.5.2.jar
 Android Studio Preview.app/Contents/plugins/android/lib/build-analysis-results-proto.jar
 Android Studio Preview.app/Contents/plugins/android/lib/build-common.jar
 Android Studio Preview.app/Contents/plugins/android/lib/commons-lang-2.6.jar
@@ -2127,7 +2126,6 @@ Android Studio Preview.app/Contents/plugins/android/lib/ui-graphics-desktop-1.3.
 Android Studio Preview.app/Contents/plugins/android/lib/ui-text-desktop-1.3.1.jar
 Android Studio Preview.app/Contents/plugins/android/lib/ui-unit-desktop-1.3.1.jar
 Android Studio Preview.app/Contents/plugins/android/lib/ui-util-desktop-1.3.1.jar
-Android Studio Preview.app/Contents/plugins/android/lib/util-2.5.2.jar
 Android Studio Preview.app/Contents/plugins/android/lib/utp-core-proto-jarjar.jar
 Android Studio Preview.app/Contents/plugins/android/lib/utp.jar
 Android Studio Preview.app/Contents/plugins/android/lib/wizard-template.jar

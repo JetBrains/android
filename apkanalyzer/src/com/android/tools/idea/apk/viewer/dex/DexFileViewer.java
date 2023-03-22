@@ -102,7 +102,7 @@ import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.ide.PooledThreadExecutor;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
 
 public class DexFileViewer extends UserDataHolderBase implements ApkFileEditorComponent, FileEditor {
   private final Disposable myDisposable;

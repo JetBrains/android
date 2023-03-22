@@ -38,10 +38,10 @@ import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.concurrency.EdtExecutorService;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jf.dexlib2.iface.reference.FieldReference;
-import org.jf.dexlib2.iface.reference.MethodReference;
-import org.jf.dexlib2.iface.reference.Reference;
-import org.jf.dexlib2.iface.reference.TypeReference;
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference;
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
+import com.android.tools.smali.dexlib2.iface.reference.Reference;
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference;
 
 import javax.swing.*;
 import javax.swing.event.TreeExpansionEvent;

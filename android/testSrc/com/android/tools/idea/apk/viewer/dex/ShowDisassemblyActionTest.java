@@ -21,7 +21,7 @@ import com.android.tools.proguard.ProguardMap;
 import java.text.ParseException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
 import org.junit.Before;
 import org.junit.Test;
 
