@@ -64,17 +64,13 @@ import com.android.tools.idea.rendering.AndroidXmlFiles;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.ResourceFilesUtil;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeInsight.template.emmet.generators.LoremGenerator;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -379,38 +375,6 @@ public class LayoutPullParsers {
     }
 
     return DomPullParser.createFromDocument(document);
-  }
-
-  public static boolean needSave(@Nullable ResourceFolderType type) {
-    // Only layouts are delegates to the LayoutlibCallback#getParser where we can supply a
-    // parser directly from the live document; others read contents from disk via layoutlib.
-    // TODO: Work on adding layoutlib support for this.
-    return type != ResourceFolderType.LAYOUT;
-  }
-
-  public static void saveFileIfNecessary(PsiFile psiFile) {
-    if (!needSave(ResourceFilesUtil.getFolderType(psiFile.getVirtualFile()))) { // Avoid need for read lock in get parent
-      return;
-    }
-
-    VirtualFile file = psiFile.getVirtualFile();
-    if (file == null) {
-      return;
-    }
-
-    final FileDocumentManager fileManager = FileDocumentManager.getInstance();
-    if (!fileManager.isFileModified(file)) {
-      return;
-    }
-
-    final com.intellij.openapi.editor.Document document;
-    document = fileManager.getCachedDocument(file);
-    if (document == null || !fileManager.isDocumentUnsaved(document)) {
-      return;
-    }
-
-    Application application = ApplicationManager.getApplication();
-    application.invokeAndWait(() -> application.runWriteAction(() -> fileManager.saveDocument(document)));
   }
 
   public static Element addRootElement(@NotNull Document document, @NotNull String tag, @Nullable ResourceNamespace namespace) {
