@@ -70,6 +70,7 @@ import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.serviceContainer.AlreadyDisposedException;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.event.KeyEvent;
@@ -533,6 +534,23 @@ public class RenderTask {
   }
 
   /**
+   * Returns the root tag for the given {@link XmlFile}, if any, acquiring the read
+   * lock to do so if necessary
+   *
+   * @param file the file to look up the root tag for
+   * @return the corresponding root tag, if any
+   */
+  @Nullable
+  private static String getRootTagName(@NotNull XmlFile file) {
+    ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
+    if (folderType == ResourceFolderType.XML || folderType == ResourceFolderType.MENU || folderType == ResourceFolderType.DRAWABLE) {
+      XmlTag rootTag = AndroidPsiUtils.getRootTagSafely(file);
+      return rootTag == null ? null : rootTag.getName();
+    }
+    return null;
+  }
+
+  /**
    * Renders the model and returns the result as a {@link RenderSession}.
    *
    * @param factory Factory for images which would be used to render layouts to.
@@ -546,8 +564,8 @@ public class RenderTask {
       return null;
     }
 
-    PsiFile psiFile = getXmlFile();
-    if (psiFile == null) {
+    XmlFile xmlFile = getXmlFile();
+    if (xmlFile == null) {
       throw new IllegalStateException("createRenderSession shouldn't be called on RenderTask without PsiFile");
     }
     if (isDisposed.get()) {
@@ -591,7 +609,7 @@ public class RenderTask {
                         myLogger, simulatedPlatform);
     params.setAssetRepository(context.getModule().getAssetRepository());
 
-    params.setFlag(RenderParamsFlags.FLAG_KEY_ROOT_TAG, AndroidUtils.getRootTagName(psiFile));
+    params.setFlag(RenderParamsFlags.FLAG_KEY_ROOT_TAG, getRootTagName(xmlFile));
     params.setFlag(RenderParamsFlags.FLAG_KEY_DISABLE_BITMAP_CACHING, true);
     params.setFlag(RenderParamsFlags.FLAG_DO_NOT_RENDER_ON_CREATE, true);
     params.setFlag(RenderParamsFlags.FLAG_KEY_RESULT_IMAGE_AUTO_SCALE, true);
@@ -694,7 +712,7 @@ public class RenderTask {
           // Advance the frame time to display the material progress bars
           session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
         }
-        RenderResult result = RenderResult.create(context, session, psiFile, myLogger, myImagePool.copyOf(session.getImage()), myLayoutlibCallback.isUsed());
+        RenderResult result = RenderResult.create(context, session, xmlFile, myLogger, myImagePool.copyOf(session.getImage()), myLayoutlibCallback.isUsed());
         RenderSession oldRenderSession = myRenderSession;
         myRenderSession = session;
         if (oldRenderSession != null) {
