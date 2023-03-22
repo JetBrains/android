@@ -26,17 +26,23 @@ internal abstract class ConsumerDaggerElementBase : DaggerElement() {
   /** Returns a string indicating the group shown in related items for this element. */
   abstract val relatedElementGrouping: String
 
+  /** Type being consumer, as specified in code. */
+  protected abstract val rawType: PsiType
+
   /** Type being consumed, without any wrapper like `dagger.Lazy<>`. */
-  private val unwrappedType: PsiType
-    get() = psiElement.getPsiType().removeWrappingDaggerType().unboxed
+  val consumedType: PsiType
+    get() = rawType.removeWrappingDaggerType().unboxed
 
   override fun getRelatedDaggerElements(): List<DaggerRelatedElement> =
-    getRelatedDaggerElementsFromIndex<ProviderDaggerElement>(unwrappedType.getIndexKeys()).map {
+    getRelatedDaggerElementsFromIndex<ProviderDaggerElement>(consumedType.getIndexKeys()).map {
       DaggerRelatedElement(it, DaggerBundle.message("providers"))
     }
 
   override fun filterResolveCandidate(resolveCandidate: DaggerElement) =
-    unwrappedType == resolveCandidate.psiElement.getPsiType().unboxed
+    when (resolveCandidate) {
+      is ProviderDaggerElement -> consumedType in resolveCandidate.providedPsiTypes
+      else -> false
+    }
 
   companion object {
     internal val wrappingDaggerTypes = setOf(DaggerAnnotations.LAZY, DaggerAnnotations.PROVIDER)
@@ -55,8 +61,10 @@ internal abstract class ConsumerDaggerElementBase : DaggerElement() {
   }
 }
 
-internal data class ConsumerDaggerElement(override val psiElement: PsiElement) :
-  ConsumerDaggerElementBase() {
+internal data class ConsumerDaggerElement(
+  override val psiElement: PsiElement,
+  override val rawType: PsiType = psiElement.getPsiType().unboxed
+) : ConsumerDaggerElementBase() {
 
   override val relatedElementGrouping: String = DaggerBundle.message("consumers")
 }
