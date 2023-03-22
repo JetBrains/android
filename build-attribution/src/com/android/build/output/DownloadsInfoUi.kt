@@ -25,10 +25,10 @@ import com.intellij.build.events.PresentableBuildEvent
 import com.intellij.execution.ui.ExecutionConsole
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.setEmptyState
 import com.intellij.openapi.util.CheckedDisposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.AnimatedIcon
@@ -46,7 +46,6 @@ import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
 import javax.swing.Icon
 import javax.swing.JComponent
-import javax.swing.JPanel
 import javax.swing.ListSelectionModel
 import javax.swing.SortOrder
 import javax.swing.table.TableModel
@@ -63,9 +62,7 @@ class DownloadsInfoExecutionConsole(
   val buildStartTimestampMs: Long,
   val gradleVersion: GradleVersion?
 ) : ExecutionConsole {
-  // TODO (b/271258614): In an unlikely case when build is finished before running this code this will result in an error.
-  private val listenBuildEventsDisposable = Disposer.newDisposable(buildFinishedDisposable, "DownloadsInfoExecutionConsole")
-  val uiModel = DownloadsInfoUIModel(buildId, listenBuildEventsDisposable)
+  val uiModel = DownloadsInfoUIModel()
 
   val requestsTable = object : TableView<DownloadRequestItem>(uiModel.requestsTableModel) {
     override fun createRowSorter(model: TableModel?): TableRowSorter<TableModel?> {
@@ -146,9 +143,7 @@ class DownloadsInfoExecutionConsole(
     "No download requests"
   }
 
-  override fun dispose() {
-    Disposer.dispose(listenBuildEventsDisposable)
-  }
+  override fun dispose() = Unit
   override fun getComponent(): JComponent = panel
   override fun getPreferredFocusableComponent(): JComponent = requestsTable
 
@@ -167,23 +162,35 @@ class DownloadsInfoExecutionConsole(
   }
 }
 
+/**
+ * Event to install custom downloads UI into build output.
+ * There should be only one event emitted at the very beginning of the build.
+ */
 @Suppress("UnstableApiUsage")
-class DownloadsInfoPresentableEvent(
+class DownloadsInfoPresentableBuildEvent(
   val buildId: ExternalSystemTaskId,
   val buildFinishedDisposable: CheckedDisposable,
   val buildStartTimestampMs: Long,
   val gradleVersion: GradleVersion?
 ) : PresentableBuildEvent {
+  private val dataModel = DownloadInfoDataModel(buildId, buildFinishedDisposable)
   override fun getId(): Any = "Download info"
   override fun getParentId(): Any = buildId
   override fun getEventTime(): Long = 0
   override fun getMessage(): String = "Download info"
   override fun getHint(): String? = null
   override fun getDescription(): String? = null
+  // Note: BuildTreeConsoleView calls this from BACKGROUND thread
   override fun getPresentationData(): BuildEventPresentationData = object : BuildEventPresentationData {
-    private val downloadsExecutionConsole = DownloadsInfoExecutionConsole(buildId, buildFinishedDisposable, buildStartTimestampMs, gradleVersion)
-    override fun getNodeIcon(): Icon = DownloadsNodeIcon(downloadsExecutionConsole.uiModel)
-    override fun getExecutionConsole(): ExecutionConsole = downloadsExecutionConsole
+    override fun getNodeIcon(): Icon = DownloadsNodeIcon(dataModel)
+    // Note: BuildTreeConsoleView retrieves and installs console in EDT (in invokeLater)
+    override fun getExecutionConsole(): ExecutionConsole =
+      DownloadsInfoExecutionConsole(buildId, buildFinishedDisposable, buildStartTimestampMs, gradleVersion).also { console ->
+        invokeLater {
+          dataModel.subscribeUiModel(console.uiModel)
+          Disposer.register(console) { dataModel.unsubscribeUiModel(console.uiModel) }
+        }
+      }
     override fun consoleToolbarActions(): ActionGroup? = null
   }
 
@@ -191,15 +198,26 @@ class DownloadsInfoPresentableEvent(
    * There is no way to update icon of the existing node with current API, so instead we install this special icon
    * that can change its appearance reacting on changes in page model.
    */
-  private class DownloadsNodeIcon(model: DownloadsInfoUIModel) : LayeredIcon(
+  private class DownloadsNodeIcon(model: DownloadInfoDataModel) : LayeredIcon(
     AllIcons.Actions.Download,
     AnimatedIcon.Default.INSTANCE
   ) {
     init {
-      // We do not care about removing listeners because there supposed to be 1-1 presentation to model relationship and they should
-      // be released all together.
-      model.addAndFireDataUpdateListener {
-        setIconRunningStateEnabled(model.repositoriesTableModel.summaryItem.runningNumberOfRequests > 0)
+      setIconRunningStateEnabled(false)
+      // It can be created on background thread so postpone subscribing to EDT
+      invokeLater {
+        model.subscribeUiModel(object : DownloadInfoDataModel.Listener {
+          private val runningRequestsSet = mutableSetOf<DownloadRequestKey>()
+          override fun updateDownloadRequest(downloadRequest: DownloadRequestItem) {
+            if (!downloadRequest.completed) {
+              runningRequestsSet.add(downloadRequest.requestKey)
+            }
+            else {
+              runningRequestsSet.remove(downloadRequest.requestKey)
+            }
+            setIconRunningStateEnabled(runningRequestsSet.isNotEmpty())
+          }
+        })
       }
     }
 

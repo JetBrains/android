@@ -18,7 +18,7 @@ package com.android.sync.analyzer
 import com.android.build.attribution.analytics.transformDownloadsAnalyzerData
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.output.DownloadsInfoUIModelNotifier
-import com.android.build.output.DownloadsInfoPresentableEvent
+import com.android.build.output.DownloadsInfoPresentableBuildEvent
 import com.android.build.output.LongDownloadsNotifier
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.SyncAnalyzerManager
@@ -27,7 +27,6 @@ import com.android.tools.idea.gradle.util.GradleVersions
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.GradleSyncStats
 import com.intellij.build.SyncViewManager
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
@@ -68,7 +67,7 @@ class SyncAnalyzerManagerImpl(
     if (!StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()) return
     val gradleVersion = GradleVersions.getInstance().getGradleVersion(this)
     val buildStartTimestampMs = System.currentTimeMillis()
-    val rootDownloadEvent = DownloadsInfoPresentableEvent(id, buildDisposable, buildStartTimestampMs, gradleVersion)
+    val rootDownloadEvent = DownloadsInfoPresentableBuildEvent(id, buildDisposable, buildStartTimestampMs, gradleVersion)
     val viewManager = getService(SyncViewManager::class.java)
     viewManager.onEvent(id, rootDownloadEvent)
     LongDownloadsNotifier(id, project, buildDisposable, buildStartTimestampMs)

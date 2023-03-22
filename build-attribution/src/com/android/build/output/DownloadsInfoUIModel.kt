@@ -19,21 +19,16 @@ import com.android.annotations.concurrency.UiThread
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.ui.formatAvgDownloadSpeed
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.Formats
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.SimpleTextAttributes
-import com.intellij.util.Alarm
 import com.intellij.util.messages.Topic
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
-import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.swing.Icon
 import javax.swing.JTable
@@ -86,13 +81,8 @@ class DownloadsInfoUIModelNotifier(
 /**
  * This class describes the logic of how build output Downloads info page [DownloadsInfoExecutionConsole] is updated.
  * There should be strictly 1 to 1 relation between the view and this model.
- * Since the view is created and installed by the platform code reacting to us publishing [DownloadsInfoPresentableEvent], we can
- * not control the lifecycle of the view and even how much of them will be created. Because of that code is structured in a way that this
- * model is created for each view created by the platform code. Then the model subscribes to updates form [DownloadsInfoUIModelNotifier]
- * via [DownloadsInfoUIModelNotifier.DOWNLOADS_OUTPUT_TOPIC]. It listens for the updates only during build, [buildFinishedDisposable]
- * is used in order to support this.
  */
-class DownloadsInfoUIModel(val taskId: ExternalSystemTaskId, val buildFinishedDisposable: Disposable) {
+class DownloadsInfoUIModel : DownloadInfoDataModel.Listener {
   val repositoriesTableModel = RepositoriesTableModel()
   val requestsTableModel = RequestsTableModel()
   var selectedRepoItem = repositoriesTableModel.summaryItem
@@ -102,31 +92,13 @@ class DownloadsInfoUIModel(val taskId: ExternalSystemTaskId, val buildFinishedDi
    */
   private val dataUpdatedListeners: MutableList<() -> Unit> = CopyOnWriteArrayList()
 
-  private val modelRefresher = ModelRefresher(this)
-
-  init {
-    taskId.findProject()?.let { project: Project ->
-      // TODO (b/271258614): in the case this UI is created after events start coming, these events will be missed.
-      //    To avoid this probably need to re-read data from some data accumulator.
-      project.messageBus.connect(buildFinishedDisposable).subscribe(DownloadsInfoUIModelNotifier.DOWNLOADS_OUTPUT_TOPIC, object : DownloadsInfoUIModelNotifier.Listener {
-        override fun updateDownloadRequest(taskId: ExternalSystemTaskId, downloadRequest: DownloadRequestItem) {
-          if (this@DownloadsInfoUIModel.taskId != taskId) return
-          // The order of 'invokeLater' calls can be reshuffled resulting in incorrect order of updates applied resulting in incorrect
-          // data being presented (last arrived events is considered to be the latest known state).
-          // To ensure the order of the received updates add them to concurrent queue and pull updates from it in EDT.
-          modelRefresher.onNewItemUpdate(downloadRequest)
-        }
-      })
-    }
-  }
-
   /**
    * [downloadRequest] represents new or an updated state of already existing request. Two table models need to be updated. For summary
    * table 'All summary' row is updated, it contains info on all requests, and item corresponding to this request repository is updated.
    * Requests table is updated only if updated [downloadRequest] belongs to the repository selected at the moment.
    */
   @UiThread
-  fun updateDownloadRequest(downloadRequest: DownloadRequestItem) {
+  override fun updateDownloadRequest(downloadRequest: DownloadRequestItem) {
     repositoriesTableModel.update(downloadRequest)
     if (selectedRepoItem.repository == null || selectedRepoItem.repository == downloadRequest.repository) {
       requestsTableModel.addOrUpdate(downloadRequest)
@@ -142,58 +114,6 @@ class DownloadsInfoUIModel(val taskId: ExternalSystemTaskId, val buildFinishedDi
   fun repoSelectionUpdated(item: RepositoryTableItem?) {
     selectedRepoItem = item ?: repositoriesTableModel.summaryItem
     requestsTableModel.items = selectedRepoItem.requests
-  }
-
-  /**
-   * This class is responsible for processing incoming updates in time and in right order.
-   * Updates are coming in build worker thread but should be passed to model in EDT.
-   * The order of scheduled 'invokeLater' can change that's why we need more complex logic using intermediate [updatesQueue]
-   * to process updates in the right order. We also try to avoid scheduling too many 'invokeLater' calls in case of EDT lagging behind.
-   *
-   * On build finished we also schedule last 'process updates' task to process any possible stale updates. No further updates
-   * should be coming after this point.
-   */
-  class ModelRefresher(val model: DownloadsInfoUIModel) {
-    private val updatesQueue = ConcurrentLinkedQueue<DownloadRequestItem>()
-    @Volatile private var immediateUpdateScheduled: Boolean = false
-
-    init {
-      // On build finished schedule last updates processing task unconditionally
-      Disposer.register(model.buildFinishedDisposable) { invokeLater {
-        processUpdatesQueue()
-      }}
-    }
-
-    fun onNewItemUpdate(downloadRequest: DownloadRequestItem) {
-      updatesQueue.add(downloadRequest)
-      scheduleImmediateUpdateIfNecessary()
-    }
-
-    /**
-     * This function guarantees that there will be at least 1 execution of [processUpdatesQueue] after calling this without overwhelming
-     * EDT with runnable objects after each new update.
-     * - when [immediateUpdateScheduled] is false it means that there is no runnable executions scheduled,
-     * though 1 could be executing right now. It makes sense to schedule one more in this case.
-     * - when [immediateUpdateScheduled] is true it means that at least 1 runnable was scheduled and did not start execution yet so
-     * no need to schedule more.
-     */
-    private fun scheduleImmediateUpdateIfNecessary() {
-      if (!immediateUpdateScheduled) {
-        immediateUpdateScheduled = true
-        invokeLater {
-          immediateUpdateScheduled = false
-          processUpdatesQueue()
-        }
-      }
-    }
-
-    @UiThread
-    fun processUpdatesQueue() {
-      while (true) {
-        val requestItem = updatesQueue.poll() ?: break
-        model.updateDownloadRequest(requestItem)
-      }
-    }
   }
 }
 

@@ -31,7 +31,7 @@ import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner
 import com.android.build.attribution.ui.invokeLaterIfNotDisposed
 import com.android.build.output.DownloadsInfoUIModelNotifier
-import com.android.build.output.DownloadsInfoPresentableEvent
+import com.android.build.output.DownloadsInfoPresentableBuildEvent
 import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
 import com.android.ide.common.repository.AgpVersion
 import com.android.tools.idea.flags.StudioFlags
@@ -196,7 +196,7 @@ class BuildAttributionManagerImpl(
   private fun Project.setUpDownloadsInfoNodeOnBuildOutput(id: ExternalSystemTaskId, buildDisposable: CheckedDisposable) {
     if (!StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()) return
     val gradleVersion = GradleVersions.getInstance().getGradleVersion(this)
-    val rootDownloadEvent = DownloadsInfoPresentableEvent(id, buildDisposable, System.currentTimeMillis(), gradleVersion)
+    val rootDownloadEvent = DownloadsInfoPresentableBuildEvent(id, buildDisposable, System.currentTimeMillis(), gradleVersion)
     val viewManager = getService(BuildViewManager::class.java)
     viewManager.onEvent(id, rootDownloadEvent)
   }

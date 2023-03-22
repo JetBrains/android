@@ -30,7 +30,6 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildOutputDownloadsInfoEvent
-import com.intellij.codeInsight.codeVision.ui.popup.layouter.getCenter
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
@@ -48,7 +47,6 @@ import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Dimension
@@ -72,10 +70,9 @@ class DownloadsInfoPresentableEventTest {
     Disposer.register(projectRule.testRootDisposable, buildDisposable)
   }
 
-
   @Test
   fun testEventFields() {
-    val event = DownloadsInfoPresentableEvent(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0)
+    val event = DownloadsInfoPresentableBuildEvent(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0)
 
     assertThat(event.buildId).isSameAs(buildId)
     //Time is not used for this type of event. 0 is a default value for such case.
@@ -86,12 +83,14 @@ class DownloadsInfoPresentableEventTest {
     assertThat(event.description).isNull()
     //Hint is an additional text shown in grey after node name. Is not updatable currently, so do not use.
     assertThat(event.hint).isNull()
-    assertThat(event.presentationData.executionConsole).isInstanceOf(DownloadsInfoExecutionConsole::class.java)
+    val executionConsole = event.presentationData.executionConsole
+      ?.also { Disposer.register(projectRule.testRootDisposable, it) }
+    assertThat(executionConsole).isInstanceOf(DownloadsInfoExecutionConsole::class.java)
   }
 
   @Test
   fun testNodeIcon() {
-    val event = DownloadsInfoPresentableEvent(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0)
+    val event = DownloadsInfoPresentableBuildEvent(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0)
 
     val icon = event.presentationData.nodeIcon as LayeredIcon
     assertThat(icon.allLayers).isEqualTo(arrayOf(
@@ -276,7 +275,6 @@ class DownloadsInfoExecutionConsoleTest {
   }
 
   @Test
-  @Ignore("b/271258614")
   fun testBuildFinishedBeforeUiCreated() {
     Disposer.dispose(buildDisposable)
     val lateExecutionConsole = DownloadsInfoExecutionConsole(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0)

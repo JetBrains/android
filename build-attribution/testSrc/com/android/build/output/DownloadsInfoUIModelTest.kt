@@ -15,7 +15,6 @@
  */
 package com.android.build.output
 
-import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.android.build.attribution.analyzers.DownloadsAnalyzer.KnownRepository.GOOGLE
 import com.android.build.attribution.analyzers.DownloadsAnalyzer.KnownRepository.MAVEN_CENTRAL
 import com.android.build.attribution.analyzers.url1
@@ -24,8 +23,10 @@ import com.android.build.attribution.analyzers.url3
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.AnimatedIcon
@@ -35,7 +36,6 @@ import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import javax.swing.table.DefaultTableCellRenderer
 
 class DownloadsInfoUIModelTest {
 
@@ -43,15 +43,21 @@ class DownloadsInfoUIModelTest {
   val projectRule = AndroidProjectRule.inMemory()
 
   private lateinit var buildId: ExternalSystemTaskId
+  private lateinit var dataModel: DownloadInfoDataModel
+  private lateinit var buildDisposable: Disposable
 
   @Before
   fun setUp() {
     buildId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.RESOLVE_PROJECT, projectRule.project)
+    buildDisposable = Disposer.newDisposable(projectRule.testRootDisposable, "Test Build Disposable")
+    dataModel = DownloadInfoDataModel(buildId, buildDisposable)
   }
 
   @Test
   fun testModelInit() {
-    val model = DownloadsInfoUIModel(buildId, projectRule.testRootDisposable)
+    val model = DownloadsInfoUIModel().apply {
+      dataModel.subscribeUiModel(this)
+    }
 
     assertThat(model.repositoriesTableModel.items).hasSize(0)
     assertThat(model.repositoriesTableModel.isSortable).isFalse()
@@ -79,10 +85,12 @@ class DownloadsInfoUIModelTest {
 
   @Test
   fun testOneDownload() {
-    val model = DownloadsInfoUIModel(buildId, projectRule.testRootDisposable)
+    val model = DownloadsInfoUIModel().apply {
+      dataModel.subscribeUiModel(this)
+    }
     val downloadRequestKey = DownloadRequestKey(100, url1)
 
-    updateDownloadRequestViaListener(DownloadRequestItem(downloadRequestKey, repository=GOOGLE))
+    updateDownloadRequestViaListener(DownloadRequestItem(downloadRequestKey, repository = GOOGLE))
     model.repositoriesTableModel.summaryItem.let {
       assertThat(it.runningNumberOfRequests).isEqualTo(1)
       assertThat(it.totalNumberOfRequests).isEqualTo(1)
@@ -93,7 +101,8 @@ class DownloadsInfoUIModelTest {
     assertThat(model.repositoriesTableModel.items[1].repository).isEqualTo(GOOGLE)
     assertThat(model.requestsTableModel.items).hasSize(1)
 
-    updateDownloadRequestViaListener(DownloadRequestItem(downloadRequestKey, repository = GOOGLE, completed = false, receivedBytes = 100, duration = 200))
+    updateDownloadRequestViaListener(
+      DownloadRequestItem(downloadRequestKey, repository = GOOGLE, completed = false, receivedBytes = 100, duration = 200))
 
     model.repositoriesTableModel.summaryItem.assertRepositoryItemState(1, 0, 0, 200, 100)
     assertThat(model.repositoriesTableModel.items).hasSize(2)
@@ -101,7 +110,8 @@ class DownloadsInfoUIModelTest {
     assertThat(model.repositoriesTableModel.items[1].repository).isEqualTo(GOOGLE)
     assertThat(model.requestsTableModel.items).hasSize(1)
 
-    updateDownloadRequestViaListener(DownloadRequestItem(downloadRequestKey, repository = GOOGLE, completed = true, receivedBytes = 1000, duration = 300))
+    updateDownloadRequestViaListener(
+      DownloadRequestItem(downloadRequestKey, repository = GOOGLE, completed = true, receivedBytes = 1000, duration = 300))
 
     model.repositoriesTableModel.summaryItem.assertRepositoryItemState(0, 1, 0, 300, 1000)
     assertThat(model.repositoriesTableModel.items).hasSize(2)
@@ -112,10 +122,13 @@ class DownloadsInfoUIModelTest {
 
   @Test
   fun testOneDownloadCompletedRightAway() {
-    val model = DownloadsInfoUIModel(buildId, projectRule.testRootDisposable)
+    val model = DownloadsInfoUIModel().apply {
+      dataModel.subscribeUiModel(this)
+    }
     val downloadRequestKey = DownloadRequestKey(100, url1)
 
-    updateDownloadRequestViaListener(DownloadRequestItem(downloadRequestKey, repository = GOOGLE, completed = true, receivedBytes = 1000, duration = 300))
+    updateDownloadRequestViaListener(
+      DownloadRequestItem(downloadRequestKey, repository = GOOGLE, completed = true, receivedBytes = 1000, duration = 300))
 
     model.repositoriesTableModel.summaryItem.assertRepositoryItemState(0, 1, 0, 300, 1000)
     assertThat(model.repositoriesTableModel.items).hasSize(2)
@@ -126,7 +139,9 @@ class DownloadsInfoUIModelTest {
 
   @Test
   fun testTwoDownloadsSequentially() {
-    val model = DownloadsInfoUIModel(buildId, projectRule.testRootDisposable)
+    val model = DownloadsInfoUIModel().apply {
+      dataModel.subscribeUiModel(this)
+    }
 
     val downloadRequestKey1 = DownloadRequestKey(1000, url1)
     val downloadRequestKey2 = DownloadRequestKey(1500, url2)
@@ -135,7 +150,8 @@ class DownloadsInfoUIModelTest {
     model.repositoriesTableModel.summaryItem.assertRepositoryItemState(1, 0, 0, 0, 0)
     assertThat(model.requestsTableModel.items).hasSize(1)
 
-    updateDownloadRequestViaListener(DownloadRequestItem(downloadRequestKey1, repository = GOOGLE, completed = true, receivedBytes = 1000, duration = 300))
+    updateDownloadRequestViaListener(
+      DownloadRequestItem(downloadRequestKey1, repository = GOOGLE, completed = true, receivedBytes = 1000, duration = 300))
     model.repositoriesTableModel.summaryItem.assertRepositoryItemState(0, 1, 0, 300, 1000)
     assertThat(model.requestsTableModel.items).hasSize(1)
 
@@ -143,14 +159,17 @@ class DownloadsInfoUIModelTest {
     model.repositoriesTableModel.summaryItem.assertRepositoryItemState(1, 1, 0, 300, 1000)
     assertThat(model.requestsTableModel.items).hasSize(2)
 
-    updateDownloadRequestViaListener(DownloadRequestItem(downloadRequestKey2, repository = GOOGLE, completed = true, receivedBytes = 3000, duration = 700))
+    updateDownloadRequestViaListener(
+      DownloadRequestItem(downloadRequestKey2, repository = GOOGLE, completed = true, receivedBytes = 3000, duration = 700))
     model.repositoriesTableModel.summaryItem.assertRepositoryItemState(0, 2, 0, 1000, 4000)
     assertThat(model.requestsTableModel.items).hasSize(2)
   }
 
   @Test
   fun testTwoDownloadsInParallel() {
-    val model = DownloadsInfoUIModel(buildId, projectRule.testRootDisposable)
+    val model = DownloadsInfoUIModel().apply {
+      dataModel.subscribeUiModel(this)
+    }
 
     val downloadRequestKey1 = DownloadRequestKey(1000, url1)
     val downloadRequestKey2 = DownloadRequestKey(1001, url2)
@@ -162,19 +181,25 @@ class DownloadsInfoUIModelTest {
     model.repositoriesTableModel.summaryItem.assertRepositoryItemState(2, 0, 0, 0, 0)
     assertThat(model.requestsTableModel.items).hasSize(2)
 
-    updateDownloadRequestViaListener(DownloadRequestItem(downloadRequestKey1, repository = GOOGLE, completed = true, receivedBytes = 1000, duration = 300))
+    updateDownloadRequestViaListener(
+      DownloadRequestItem(downloadRequestKey1, repository = GOOGLE, completed = true, receivedBytes = 1000, duration = 300))
     model.repositoriesTableModel.summaryItem.assertRepositoryItemState(1, 1, 0, 300, 1000)
 
-    updateDownloadRequestViaListener(DownloadRequestItem(downloadRequestKey2, repository = GOOGLE, completed = true, receivedBytes = 3000, duration = 700))
+    updateDownloadRequestViaListener(
+      DownloadRequestItem(downloadRequestKey2, repository = GOOGLE, completed = true, receivedBytes = 3000, duration = 700))
     model.repositoriesTableModel.summaryItem.assertRepositoryItemState(0, 2, 0, 1000, 4000)
     assertThat(model.requestsTableModel.items).hasSize(2)
   }
 
   @Test
   fun testFailedDownloadCompleted() {
-    val model = DownloadsInfoUIModel(buildId, projectRule.testRootDisposable)
+    val model = DownloadsInfoUIModel().apply {
+      dataModel.subscribeUiModel(this)
+    }
     val downloadRequestKey = DownloadRequestKey(1000, url1)
-    updateDownloadRequestViaListener(DownloadRequestItem(downloadRequestKey, repository = GOOGLE, completed = true, receivedBytes = 1000, duration = 300, failureMessage = "Failure message"))
+    updateDownloadRequestViaListener(
+      DownloadRequestItem(downloadRequestKey, repository = GOOGLE, completed = true, receivedBytes = 1000, duration = 300,
+                          failureMessage = "Failure message"))
     model.repositoriesTableModel.summaryItem.assertRepositoryItemState(0, 1, 1, 300, 1000)
     assertThat(model.requestsTableModel.items).hasSize(1)
   }
@@ -182,7 +207,8 @@ class DownloadsInfoUIModelTest {
   @Test
   fun testFiltersOutOtherBuildsData() {
     val newBuildId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.RESOLVE_PROJECT, projectRule.project)
-    val model = DownloadsInfoUIModel(newBuildId, projectRule.testRootDisposable)
+    val dataModel = DownloadInfoDataModel(newBuildId, projectRule.testRootDisposable)
+    val model = DownloadsInfoUIModel().apply { dataModel.subscribeUiModel(this) }
     val downloadRequestKey = DownloadRequestKey(100, url1)
 
     updateDownloadRequestViaListener(DownloadRequestItem(downloadRequestKey, repository = GOOGLE, completed = true, receivedBytes = 1000, duration = 300))
@@ -194,7 +220,9 @@ class DownloadsInfoUIModelTest {
 
   @Test
   fun testDataUpdateListeners() {
-    val model = DownloadsInfoUIModel(buildId, projectRule.testRootDisposable)
+    val model = DownloadsInfoUIModel().apply {
+      dataModel.subscribeUiModel(this)
+    }
     var notificationCounter = 0
 
     model.addAndFireDataUpdateListener { notificationCounter++ }
@@ -204,8 +232,63 @@ class DownloadsInfoUIModelTest {
     updateDownloadRequestViaListener(DownloadRequestItem(downloadRequestKey, repository = GOOGLE))
     assertThat(notificationCounter).isEqualTo(2)
 
-    updateDownloadRequestViaListener(DownloadRequestItem(downloadRequestKey, repository = GOOGLE, completed = true, receivedBytes = 1000, duration = 300))
+    updateDownloadRequestViaListener(
+      DownloadRequestItem(downloadRequestKey, repository = GOOGLE, completed = true, receivedBytes = 1000, duration = 300))
     assertThat(notificationCounter).isEqualTo(3)
+  }
+
+  @Test
+  fun testSecondModelSubscribedLater() {
+    val model1 = DownloadsInfoUIModel().apply {
+      dataModel.subscribeUiModel(this)
+    }
+    val downloadRequestKey = DownloadRequestKey(100, url1)
+
+    updateDownloadRequestViaListener(DownloadRequestItem(downloadRequestKey, repository = GOOGLE))
+    model1.repositoriesTableModel.summaryItem.assertRepositoryItemState(1, 0, 0, 0, 0)
+    assertThat(model1.requestsTableModel.items).hasSize(1)
+
+    val model2 = DownloadsInfoUIModel().apply {
+      dataModel.subscribeUiModel(this)
+    }
+    model2.repositoriesTableModel.summaryItem.assertRepositoryItemState(1, 0, 0, 0, 0)
+    assertThat(model2.requestsTableModel.items).hasSize(1)
+
+    updateDownloadRequestViaListener(
+      DownloadRequestItem(downloadRequestKey, repository = GOOGLE, completed = true, receivedBytes = 1000, duration = 300))
+    model1.repositoriesTableModel.summaryItem.assertRepositoryItemState(0, 1, 0, 300, 1000)
+    assertThat(model1.requestsTableModel.items).hasSize(1)
+    model2.repositoriesTableModel.summaryItem.assertRepositoryItemState(0, 1, 0, 300, 1000)
+    assertThat(model2.requestsTableModel.items).hasSize(1)
+  }
+
+  @Test
+  fun testUiModelUnsubscribedBeforeBuildFinished() {
+    val model = DownloadsInfoUIModel()
+    dataModel.subscribeUiModel(model)
+
+    dataModel.unsubscribeUiModel(model)
+
+    val downloadRequestKey = DownloadRequestKey(100, url1)
+    updateDownloadRequestViaListener(DownloadRequestItem(downloadRequestKey, repository = GOOGLE))
+    // No updates should happen to this model, it should have been unsubscribed.
+    model.repositoriesTableModel.summaryItem.assertRepositoryItemState(0, 0, 0, 0, 0)
+  }
+
+  @Test
+  fun testModelSubscribedAfterBuildFinished() {
+    val downloadRequestKey = DownloadRequestKey(100, url1)
+    updateDownloadRequestViaListener(DownloadRequestItem(downloadRequestKey, repository = GOOGLE))
+    updateDownloadRequestViaListener(
+      DownloadRequestItem(downloadRequestKey, repository = GOOGLE, completed = true, receivedBytes = 1000, duration = 300))
+
+    Disposer.dispose(buildDisposable)
+
+    val model = DownloadsInfoUIModel().apply {
+      dataModel.subscribeUiModel(this)
+    }
+    model.repositoriesTableModel.summaryItem.assertRepositoryItemState(0, 1, 0, 300, 1000)
+    assertThat(model.requestsTableModel.items).hasSize(1)
   }
 
   private fun updateDownloadRequestViaListener(requestItem: DownloadRequestItem) {
