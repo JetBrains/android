@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 The Android Open Source Project
+ * Copyright (C) 2020 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,7 +62,7 @@ class EmulatorViewRule : TestRule {
   val project: Project
     get() = projectRule.project
 
-  fun newEmulatorView(avdCreator: (Path) -> Path = { path -> FakeEmulator.createPhoneAvd(path) } ): EmulatorView {
+  fun newEmulatorView(avdCreator: (Path) -> Path = { path -> FakeEmulator.createPhoneAvd(path) }): EmulatorView {
     val catalog = RunningEmulatorCatalog.getInstance()
     val tempFolder = emulatorRule.root
     val fakeEmulator = emulatorRule.newEmulator(avdCreator(tempFolder))
