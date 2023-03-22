@@ -40,9 +40,9 @@ import static com.android.SdkConstants.*;
 /**
  * A reference to a particular file in the project
  */
-public class PsiIncludeReference {
+public class IncludeReference {
   @SuppressWarnings("ConstantConditions")
-  public static final PsiIncludeReference NONE = new PsiIncludeReference(null);
+  public static final IncludeReference NONE = new IncludeReference(null);
 
   /**
    * The source file of the reference (included from).
@@ -53,7 +53,7 @@ public class PsiIncludeReference {
   /**
    * Creates a new include reference.
    */
-  PsiIncludeReference(@NonNull VirtualFile fromFile) {
+  IncludeReference(@NonNull VirtualFile fromFile) {
     myFromFile = fromFile;
   }
 
@@ -99,13 +99,13 @@ public class PsiIncludeReference {
   }
 
   /**
-   * Returns an {@link PsiIncludeReference} specified for the given file, or {@link #NONE} if no include should be performed from
+   * Returns an {@link IncludeReference} specified for the given file, or {@link #NONE} if no include should be performed from
    * the given file.
    */
   @NotNull
-  public static PsiIncludeReference get(@NotNull XmlFile file, @NotNull RenderResources resolver) {
+  public static IncludeReference get(@NotNull XmlFile file, @NotNull RenderResources resolver) {
     if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-      return ApplicationManager.getApplication().runReadAction((Computable<PsiIncludeReference>)() -> get(file, resolver));
+      return ApplicationManager.getApplication().runReadAction((Computable<IncludeReference>)() -> get(file, resolver));
     }
 
     ApplicationManager.getApplication().assertReadAccessAllowed();
@@ -122,7 +122,7 @@ public class PsiIncludeReference {
             // my target include. I could stash it in the include reference.
             VirtualFile source = IdeResourcesUtil.resolveLayout(resolver, resValue);
             if (source != null) {
-              return new PsiIncludeReference(source);
+              return new IncludeReference(source);
             }
           }
         }

@@ -25,7 +25,7 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.android.AndroidTestCase;
 
 @SuppressWarnings("SpellCheckingInspection")
-public class PsiIncludeReferenceTest extends AndroidTestCase {
+public class IncludeReferenceTest extends AndroidTestCase {
   public void testBasic() {
     VirtualFile file1 = myFixture.copyFileToProject("xmlpull/designtime.xml", "res/layout/designtime.xml");
     assertNotNull(file1);
@@ -34,14 +34,14 @@ public class PsiIncludeReferenceTest extends AndroidTestCase {
     VirtualFile file3 = myFixture.copyFileToProject("xmlpull/designtime.xml", "res/layout-land/designtime.xml");
     assertNotNull(file1);
 
-    PsiIncludeReference reference = new PsiIncludeReference(file1);
+    IncludeReference reference = new IncludeReference(file1);
     assertEquals("designtime", reference.getFromResourceName());
     assertEquals("@layout/designtime", reference.getFromResourceUrl());
     assertEquals(file1, reference.getFromXmlFile(getProject()).getVirtualFile());
     assertEquals(file1, LocalFileSystem.getInstance().findFileByIoFile(reference.getFromPath()));
     //noinspection ConstantConditions
 
-    reference = new PsiIncludeReference(file3);
+    reference = new IncludeReference(file3);
     assertEquals("designtime", reference.getFromResourceName());
     assertEquals("@layout/designtime", reference.getFromResourceUrl());
   }
@@ -58,19 +58,19 @@ public class PsiIncludeReferenceTest extends AndroidTestCase {
     Configuration configuration = manager.getConfiguration(included);
     ResourceResolver resourceResolver = configuration.getResourceResolver();
     assertNotNull(resourceResolver);
-    PsiIncludeReference reference = PsiIncludeReference.get(psiFile, resourceResolver);
+    IncludeReference reference = IncludeReference.get(psiFile, resourceResolver);
     assertEquals("includer", reference.getFromResourceName());
     assertEquals("@layout/includer", reference.getFromResourceUrl());
 
     assertEquals(reference.getFromXmlFile(getProject()).getVirtualFile(), includer);
 
     IncludingLayout.setIncludingLayout(psiFile, null);
-    assertEquals(PsiIncludeReference.NONE, PsiIncludeReference.get(psiFile, resourceResolver));
+    assertEquals(IncludeReference.NONE, IncludeReference.get(psiFile, resourceResolver));
 
     VirtualFile other = myFixture.copyFileToProject("xmlpull/designtime.xml", "res/layout/designtime.xml");
     assertNotNull(other);
     IncludingLayout.setIncludingLayout(psiFile, "@layout/designtime");
     manager.getResolverCache().reset();
-    assertEquals("@layout/designtime", PsiIncludeReference.get(psiFile, configuration.getResourceResolver()).getFromResourceUrl());
+    assertEquals("@layout/designtime", IncludeReference.get(psiFile, configuration.getResourceResolver()).getFromResourceUrl());
   }
 }
