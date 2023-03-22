@@ -268,8 +268,8 @@ class LaunchTaskRunner(
         }
         catch (e: Exception) {
           stat.endLaunchTask(task, details, false)
-          if (e is DeployerException) {
-            throw AndroidExecutionException(e.id, e.message)
+          if (e.cause is DeployerException) {
+            throw AndroidExecutionException((e.cause as DeployerException).id, e.message)
           }
           throw e
         }
