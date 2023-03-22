@@ -6,5 +6,10 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.app-quality-insights.play-vitals.model.iml"],
     visibility = ["//visibility:public"],
-    deps = ["//prebuilts/studio/intellij-sdk:studio-sdk"],
+    # do not sort: must match IML order
+    deps = [
+        "//prebuilts/studio/intellij-sdk:studio-sdk",
+        "//tools/adt/idea/app-quality-insights/api:intellij.android.app-quality-insights.api[module]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+    ],
 )

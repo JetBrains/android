@@ -17,6 +17,7 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.insights.AppInsightsConfigurationManager
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.MultiSelection
@@ -25,6 +26,7 @@ import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.TimeIntervalFilter
 import com.android.tools.idea.insights.Version
 import com.android.tools.idea.insights.WithCount
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.Timestamp
 import com.android.tools.idea.insights.ui.TimestampState
 import com.android.tools.idea.insights.ui.actions.AppInsightsDisplayRefreshTimestampAction
@@ -40,6 +42,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.components.service
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
@@ -64,7 +67,8 @@ private val offlineAction =
     }
   }
 
-class VitalsTab(private val clock: Clock) : JPanel(BorderLayout()), Disposable {
+class VitalsTab(configurationManager: AppInsightsConfigurationManager, private val clock: Clock) :
+  JPanel(BorderLayout()), Disposable {
   val scope = AndroidCoroutineScope(this)
 
   // TODO(b/271919516): remove once the vitals client is ready.
@@ -101,7 +105,13 @@ class VitalsTab(private val clock: Clock) : JPanel(BorderLayout()), Disposable {
 
   init {
     add(createToolbar().component, BorderLayout.NORTH)
-    add(JPanel(BorderLayout()), BorderLayout.CENTER)
+    add(
+      VitalsContentContainerPanel(
+        configurationManager,
+        configurationManager.project.service<AppInsightsTracker>(),
+        this
+      )
+    )
   }
 
   private fun createToolbar(): ActionToolbar {

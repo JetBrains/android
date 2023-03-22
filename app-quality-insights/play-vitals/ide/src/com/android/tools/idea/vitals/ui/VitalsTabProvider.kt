@@ -29,7 +29,7 @@ class VitalsTabProvider : AppInsightsTabProvider {
   override val tabIcon = StudioIcons.Avd.DEVICE_PLAY_STORE
 
   override fun populateTab(project: Project, tabPanel: AppInsightsTabPanel) {
-    tabPanel.setComponent(VitalsTab(Clock.systemDefaultZone()))
+    tabPanel.setComponent(VitalsTab(VitalsConfigurationManager(project), Clock.systemDefaultZone()))
   }
 
   override fun isApplicable() = StudioFlags.PLAY_VITALS_ENABLED.get()

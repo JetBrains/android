@@ -15,5 +15,8 @@ iml_module(
         "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/app-quality-insights/play-vitals/view:intellij.android.app-quality-insights.play-vitals.view[module]",
         "//tools/adt/idea/app-quality-insights/ui:intellij.android.app-quality-insights.ui[module]",
+        "//tools/adt/idea/app-quality-insights/api:intellij.android.app-quality-insights.api[module]",
+        "//tools/adt/idea/app-quality-insights/play-vitals/model:intellij.android.app-quality-insights.play-vitals.model[module]",
+        "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
     ],
 )

@@ -14,5 +14,8 @@
     <orderEntry type="module" module-name="intellij.android.artwork" />
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.play-vitals.view" />
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.ui" />
+    <orderEntry type="module" module-name="intellij.android.app-quality-insights.api" />
+    <orderEntry type="module" module-name="intellij.android.app-quality-insights.play-vitals.model" />
+    <orderEntry type="module" module-name="intellij.android.projectSystem" />
   </component>
 </module>

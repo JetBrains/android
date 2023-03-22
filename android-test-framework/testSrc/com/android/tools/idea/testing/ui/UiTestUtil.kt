@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights
+package com.android.tools.idea.testing.ui
 
-import com.intellij.openapi.components.Service
-import com.intellij.openapi.project.Project
-import kotlinx.coroutines.flow.Flow
+import java.awt.Component
+import java.awt.Container
 
-/** Project-level [Service] that provides App Insights data for Android app modules. */
-interface AppInsightsConfigurationManager {
-  val project: Project
+fun Component.flatten(visibleOnly: Boolean = true): List<Component> {
+  if (visibleOnly && !isVisible) return emptyList()
 
-  val configuration: Flow<AppInsightsModel>
-
-  /** Returns an [AppInsightsProjectLevelController] for the project. */
-  fun getController(): AppInsightsProjectLevelController
+  if (this !is Container) {
+    return listOf(this)
+  }
+  return components.flatMap { it.flatten(visibleOnly) }.plus(this)
 }

@@ -16,5 +16,6 @@ iml_module(
         "//tools/adt/idea/app-quality-insights/ui:intellij.android.app-quality-insights.ui[module]",
         "//tools/adt/idea/adt-ui:intellij.android.adt.ui[module]",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:intellij.android.app-quality-insights.play-vitals.model[module]",
+        "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
     ],
 )

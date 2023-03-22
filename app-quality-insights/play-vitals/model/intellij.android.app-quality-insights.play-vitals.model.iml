@@ -8,5 +8,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="studio-sdk" level="project" />
+    <orderEntry type="module" module-name="intellij.android.app-quality-insights.api" />
+    <orderEntry type="library" name="studio-analytics-proto" level="project" />
   </component>
 </module>

@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights
+package com.android.tools.idea.vitals
 
-import com.intellij.openapi.components.Service
-import com.intellij.openapi.project.Project
-import kotlinx.coroutines.flow.Flow
+import com.android.tools.idea.insights.ActiveConnectionInferrer
+import com.android.tools.idea.insights.VariantConnection
 
-/** Project-level [Service] that provides App Insights data for Android app modules. */
-interface AppInsightsConfigurationManager {
-  val project: Project
-
-  val configuration: Flow<AppInsightsModel>
-
-  /** Returns an [AppInsightsProjectLevelController] for the project. */
-  fun getController(): AppInsightsProjectLevelController
+class VitalsConnectionInferrer : ActiveConnectionInferrer {
+  override fun canBecomeActiveConnection(variantConnection: VariantConnection): Boolean {
+    // TODO
+    return true
+  }
 }
