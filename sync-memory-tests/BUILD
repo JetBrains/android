@@ -14,6 +14,9 @@ iml_module(
         "Benchmark200": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark200MemoryTest",
         },
+        "Benchmark200Repeated20Times": {
+            "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark200Repeated20TimesMemoryTest",
+        },
         "Benchmark500": {
             "test_filter": "com.android.tools.idea.gradle.project.sync.memory.Benchmark500MemoryTest",
         },

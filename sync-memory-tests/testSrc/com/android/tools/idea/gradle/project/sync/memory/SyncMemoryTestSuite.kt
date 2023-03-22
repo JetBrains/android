@@ -75,6 +75,25 @@ class Benchmark200MemoryTest : MemoryBenchmarkTestSuite() {
   }
 }
 
+class Benchmark200Repeated20TimesMemoryTest : MemoryBenchmarkTestSuite() {
+  @get:Rule
+  val memoryUsageBenchmarkRule = MemoryUsageBenchmarkRule(
+    projectRule,
+    projectName = "200Modules",
+    memoryLimitMb = 1300,
+    lightweightMode = false,
+  )
+
+  init {
+    setUpProject("diff-200")
+  }
+
+  @Test
+  fun testSyncMemoryPost20Repeats() {
+    memoryUsageBenchmarkRule.repeatSyncAndMeasure(20)
+  }
+}
+
 class Benchmark500MemoryTest : MemoryBenchmarkTestSuite() {
   @get:Rule
   val memoryUsageBenchmarkRule = MemoryUsageBenchmarkRule(

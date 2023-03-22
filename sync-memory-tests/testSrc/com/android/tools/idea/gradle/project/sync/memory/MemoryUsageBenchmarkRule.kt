@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject.
 import com.android.tools.idea.gradle.project.sync.snapshots.testProjectTemplateFromPath
 import com.android.tools.idea.gradle.util.GradleProperties
 import com.android.tools.idea.testing.IntegrationTestEnvironmentRule
+import com.android.tools.idea.testing.requestSyncAndWait
 import com.android.tools.memory.usage.LightweightHeapTraverse
 import com.android.tools.memory.usage.LightweightHeapTraverseConfig
 import com.android.tools.memory.usage.LightweightTraverseResult
@@ -65,7 +66,6 @@ class MemoryUsageBenchmarkRule (
     }.absolutePath
     analysisFlag.override(outputDirectory)
     StudioFlags.GRADLE_HEAP_ANALYSIS_LIGHTWEIGHT_MODE.override(lightweightMode)
-
   }
 
   override fun after() {
@@ -90,7 +90,31 @@ class MemoryUsageBenchmarkRule (
     }
   }
 
-  private fun recordIdeMeasurements() {
+  fun repeatSyncAndMeasure(repeatCount: Int) = runBlocking {
+    setJvmArgs()
+    analysisFlag.clearOverride() // Turn off measurements in repeated syncs before the measured one
+    testEnvironmentRule.openTestProject(testProjectTemplateFromPath(
+      path = MemoryBenchmarkTestSuite.DIRECTORY,
+      testDataPath = MemoryBenchmarkTestSuite.TEST_DATA.toString())) {
+      // Skip one run because it's already opened once by [openTestProject]
+      // Skip another because that will the be measured one
+      repeat (repeatCount - 2 ) {
+        project.requestSyncAndWait()
+      }
+      // Start measured sync
+      analysisFlag.override(outputDirectory)
+      startMemoryPolling()
+      project.requestSyncAndWait()
+
+      // Free up some memory by closing the Gradle Daemon
+      DefaultGradleConnector.close()
+      recordIdeMeasurements("_Post_${repeatCount}_Repeats")
+      recordGradleMeasurements("_Post_${repeatCount}_Repeats")
+    }
+  }
+
+
+  private fun recordIdeMeasurements(measurementSuffix : String = "") {
     // Wait for the IDE to "settle" before taking a measurement. There will be indexing
     // and caching related cleanup jobs still running for a while. This allows them to
     // finish and results in much more reliable values.
@@ -103,8 +127,8 @@ class MemoryUsageBenchmarkRule (
     }
     println("Heap traversal for IDE after sync finished in $elapsedTimeAfterSync milliseconds")
 
-    recordMeasurement("IDE_After_Sync_Total", result!!.totalReachableObjectsSizeBytes)
-    recordMeasurement("IDE_After_Sync", result!!.totalStrongReferencedObjectsSizeBytes)
+    recordMeasurement("IDE_After_Sync_Total", measurementSuffix, result!!.totalReachableObjectsSizeBytes)
+    recordMeasurement("IDE_After_Sync", measurementSuffix, result!!.totalStrongReferencedObjectsSizeBytes)
 
     println("IDE total size MBs: ${result!!.totalReachableObjectsSizeBytes shr 20} ")
     println("IDE total object count: ${result!!.totalReachableObjectsNumber} ")
@@ -112,7 +136,7 @@ class MemoryUsageBenchmarkRule (
     println("IDE strong object count: ${result!!.totalStrongReferencedObjectsNumber} ")
   }
 
-  private fun recordGradleMeasurements() {
+  private fun recordGradleMeasurements(measurementSuffix : String = "") {
     for (metricFilePath in File(outputDirectory).walk().filter { !it.isDirectory }.asIterable()) {
       when {
         metricFilePath.name.endsWith("before_sync_strong") -> "Before_Sync"
@@ -120,7 +144,7 @@ class MemoryUsageBenchmarkRule (
         metricFilePath.name.endsWith("after_sync_strong") -> "After_Sync"
         metricFilePath.name.endsWith("after_sync_total") -> "After_Sync_Total"
         else -> null
-      }?.let { recordMeasurement(it, metricFilePath.readText().toLong()) }
+      }?.let { recordMeasurement(it, measurementSuffix, metricFilePath.readText().toLong()) }
     }
   }
 
@@ -133,9 +157,9 @@ class MemoryUsageBenchmarkRule (
     }
   }
 
-  private fun recordMeasurement(suffix: String, value: Long) {
+  private fun recordMeasurement(metricName: String, suffix: String, value: Long) {
     val currentTime = Instant.now().toEpochMilli()
-    Metric("${projectName}_$suffix").apply {
+    Metric("${projectName}_$metricName$suffix").apply {
       addSamples(MemoryBenchmarkTestSuite.BENCHMARK, Metric.MetricSample(currentTime, value))
       commit() // There is only one measurement per type, so we can commit immediately.
     }
