@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.memory
 
+import com.android.testutils.TestUtils
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.perflogger.Benchmark
 import com.android.tools.tests.GradleDaemonsRule
@@ -51,11 +52,15 @@ abstract class MemoryBenchmarkTestSuite : IdeaTestSuiteBase() {
         DiffSpec("prebuilts/studio/buildbenchmarks/extra-large.2022.9/diff-properties", 0),
         *(diffSpecs.map2Array { it.toSpec() })
       )
+
       unzipIntoOfflineMavenRepo("prebuilts/studio/buildbenchmarks/extra-large.2022.9/repo.zip")
-      unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip")
-      unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip")
-      linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest")
-      linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest")
+      if (TestUtils.runningFromBazel()) { // If not running from bazel, you'll need to make sure
+                                          // latest AGP is published, with databinding artifacts.
+        unzipIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin.zip")
+        unzipIntoOfflineMavenRepo("tools/data-binding/data_binding_runtime.zip")
+        linkIntoOfflineMavenRepo("tools/base/build-system/android_gradle_plugin_runtime_dependencies.manifest")
+        linkIntoOfflineMavenRepo("tools/base/build-system/integration-test/kotlin_gradle_plugin_prebuilts.manifest")
+      }
     }
     private fun String.toSpec() = DiffSpec("prebuilts/studio/buildbenchmarks/extra-large.2022.9/$this", 0)
   }
