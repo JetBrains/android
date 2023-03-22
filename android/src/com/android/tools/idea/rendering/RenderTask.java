@@ -46,7 +46,6 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.analytics.crash.CrashReporter;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
@@ -67,7 +66,6 @@ import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -82,7 +80,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -753,23 +750,15 @@ public class RenderTask {
 
     ILayoutPullParser topParser = null;
     if (myIncludedWithin != IncludeReference.NONE) {
-      // TODO: Validate that we're really including the same layout here!
-      //ResourceValue contextLayout = resolver.findResValue(myIncludedWithin.getFromResourceUrl(), false  /* forceFrameworkOnly*/);
-      //if (contextLayout != null) {
-      //  File layoutFile = new File(contextLayout.getValue());
-      //  if (layoutFile.isFile()) {
-      //
-      VirtualFile layoutVirtualFile = myIncludedWithin.getFromFile();
-
       // Get the name of the layout actually being edited, without the extension
       // as it's what IXmlPullParser.getParser(String) will receive.
       String queryLayoutName = SdkUtils.fileNameToResourceName(xmlFile.getName());
       myLayoutlibCallback.setLayoutParser(queryLayoutName, modelParser);
 
       // Attempt to read from PSI.
-      PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(getContext().getModule().getProject(), layoutVirtualFile);
-      if (psiFile instanceof XmlFile) {
-        LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger,
+      XmlFile fromXmlFile = myIncludedWithin.getFromXmlFile(myContext.getModule().getProject());
+      if (fromXmlFile != null) {
+        LayoutPsiPullParser parser = LayoutPsiPullParser.create(fromXmlFile, myLogger,
                                                                 myContext.getModule().getResourceRepositoryManager());
         // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
         parser.setProvideViewCookies(myProvideCookiesForIncludedViews);
