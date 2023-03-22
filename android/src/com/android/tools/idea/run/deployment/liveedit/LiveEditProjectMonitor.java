@@ -560,7 +560,10 @@ public class LiveEditProjectMonitor implements Disposable {
   }
 
   private void updateEditableStatus(@NotNull LiveEditStatus newStatus) {
-    liveEditDevices.update((device, prevStatus) -> (prevStatus.unrecoverable() || prevStatus == LiveEditStatus.Disabled.INSTANCE) ? prevStatus : newStatus);
+    liveEditDevices.update((device, prevStatus) -> (
+      prevStatus.unrecoverable() ||
+      prevStatus == LiveEditStatus.Disabled.INSTANCE ||
+      prevStatus == LiveEditStatus.NoMultiDeploy.INSTANCE) ? prevStatus : newStatus);
   }
 
   private void handleDeviceStatusChange(Map<IDevice, LiveEditStatus> map) {
@@ -570,7 +573,9 @@ public class LiveEditProjectMonitor implements Disposable {
 
   private Stream<IDevice> editableDeviceIterator() {
     return liveEditDevices.devices().stream().filter(IDevice::isOnline).filter(
-      device -> liveEditDevices.getInfo(device).getStatus() != LiveEditStatus.Disabled.INSTANCE );
+      device ->
+        liveEditDevices.getInfo(device).getStatus() != LiveEditStatus.Disabled.INSTANCE &&
+        liveEditDevices.getInfo(device).getStatus() != LiveEditStatus.NoMultiDeploy.INSTANCE);
   }
 
   private static Installer newInstaller(IDevice device) {
