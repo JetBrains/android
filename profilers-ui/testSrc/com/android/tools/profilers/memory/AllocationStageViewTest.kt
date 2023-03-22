@@ -124,19 +124,12 @@ class AllocationStageViewTest(private val isLive: Boolean) {
     assertThat(stageView.samplingMenu.combobox.selectedItem).isEqualTo(SAMPLED)
   }
 
-  @Test
-  fun `back button leads to main memory stage`() {
-    stage.stopTracking()
-    (profilersView as SessionProfilersView).backButton.doClick()
-    assertThat(profilers.stage).isInstanceOf(MainMemoryProfilerStage::class.java)
-  }
 
   @Test
-  fun `back button issues stop alloc tracking command`() {
+  fun `stopping alloc tracking issues the correct command`() {
     val handler = transportService.getRegisteredCommand(Commands.Command.CommandType.STOP_ALLOC_TRACKING) as MemoryAllocTracking
     val prevCommandId = handler.lastCommand.commandId
     stage.stopTracking()
-    (profilersView as SessionProfilersView).backButton.doClick()
     assertThat(handler.lastCommand.type).isEqualTo(Commands.Command.CommandType.STOP_ALLOC_TRACKING)
     assertThat(handler.lastCommand.commandId).isGreaterThan(prevCommandId)
   }

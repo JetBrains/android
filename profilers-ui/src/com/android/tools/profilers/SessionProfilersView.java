@@ -23,7 +23,6 @@ import static com.android.tools.profilers.sessions.SessionsView.SESSION_IS_COLLA
 import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
 import static java.awt.event.InputEvent.META_DOWN_MASK;
 
-import com.android.tools.adtui.flat.FlatComboBox;
 import com.android.tools.adtui.flat.FlatSeparator;
 import com.android.tools.adtui.model.Range;
 import com.android.tools.adtui.model.StreamingTimeline;
@@ -54,7 +53,6 @@ import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionsView;
 import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableMap;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
@@ -63,8 +61,6 @@ import com.intellij.openapi.util.IconLoader;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeGlassPane;
 import com.intellij.openapi.wm.IdeGlassPaneUtil;
-import com.intellij.ui.ColoredListCellRenderer;
-import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.Activatable;
@@ -78,13 +74,8 @@ import java.awt.KeyboardFocusManager;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.List;
 import java.util.function.BiFunction;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
@@ -114,7 +105,7 @@ public class SessionProfilersView extends StudioProfilersView {
   private SessionsView mySessionsView;
   private JPanel myToolbar;
   private JPanel myStageToolbar;
-  private JPanel myCommonToolbar;
+  private StageNavigationToolbar myStageNavigationToolbar;
   private JPanel myGoLiveToolbar;
   private JPanel myRightToolbar;
   private JToggleButton myGoLive;
@@ -122,7 +113,6 @@ public class SessionProfilersView extends StudioProfilersView {
   private CommonButton myZoomIn;
   private CommonButton myResetZoom;
   private CommonButton myZoomToSelection;
-  private CommonButton myBack;
   private DefaultContextMenuItem myZoomToSelectionAction;
 
   public SessionProfilersView(@NotNull StudioProfilers profiler,
@@ -213,12 +203,6 @@ public class SessionProfilersView extends StudioProfilersView {
 
   @VisibleForTesting
   @NotNull
-  public CommonButton getBackButton() {
-    return myBack;
-  }
-
-  @VisibleForTesting
-  @NotNull
   SessionsView getSessionsView() {
     return mySessionsView;
   }
@@ -277,43 +261,11 @@ public class SessionProfilersView extends StudioProfilersView {
 
   private void initializeStageUi() {
     myToolbar = new JPanel(new BorderLayout());
-    JPanel leftToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
-
     myToolbar.setBorder(DEFAULT_BOTTOM_BORDER);
     myToolbar.setPreferredSize(new Dimension(0, TOOLBAR_HEIGHT));
 
-    myCommonToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
-    myBack = new CommonButton(AllIcons.Actions.Back);
-    myBack.addActionListener(action -> confirmExit("Go back?", () -> {
-      myProfiler.setStage(myProfiler.getStage().getParentStage());
-      // clear the selected artifact by setting it to null as going back
-      // guarantees we will no longer be viewing an artifact recording
-      getStudioProfilers().getSessionsManager().resetSelectedArtifactProto();
-
-      myProfiler.getIdeServices().getFeatureTracker().trackGoBack();
-    }));
-    myCommonToolbar.add(myBack);
-    myCommonToolbar.add(new FlatSeparator());
-
-    JComboBox<Class<? extends Stage>> stageCombo = new FlatComboBox<>();
-    Supplier<List<Class<? extends Stage>>> getSupportedStages = () -> getStudioProfilers().getDirectStages().stream()
-      .filter(st -> getStudioProfilers().getSelectedSessionSupportLevel().isStageSupported((Class<? extends Stage<?>>)st))
-      .collect(Collectors.toList());
-    JComboBoxView stages = new JComboBoxView<>(stageCombo, myProfiler, ProfilerAspect.STAGE,
-                                               getSupportedStages,
-                                               myProfiler::getStageClass,
-                                               stage -> confirmExit("Exit?", () -> {
-                                                 // Track first, so current stage is sent with the event
-                                                 myProfiler.getIdeServices().getFeatureTracker().trackSelectMonitor();
-                                                 myProfiler.setNewStage(stage);
-                                               }),
-                                               () -> myProfiler.getStage().getHomeStageClass());
-    stageCombo.setRenderer(new StageComboBoxRenderer());
-    stages.bind();
-    myCommonToolbar.add(stageCombo);
-    myCommonToolbar.add(new FlatSeparator());
-    leftToolbar.add(myCommonToolbar);
-    myToolbar.add(leftToolbar, BorderLayout.WEST);
+    myStageNavigationToolbar = new StageNavigationToolbar(myProfiler);
+    myToolbar.add(myStageNavigationToolbar, BorderLayout.WEST);
 
     myRightToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
     myToolbar.add(myRightToolbar, BorderLayout.EAST);
@@ -438,15 +390,6 @@ public class SessionProfilersView extends StudioProfilersView {
     updateStreaming();
   }
 
-  private void confirmExit(String title, Runnable exit) {
-    String msg = myProfiler.getStage().getConfirmExitMessage();
-    if (msg != null) {
-      getStudioProfilers().getIdeServices().openYesNoDialog(msg, title, exit, () -> {});
-    } else {
-      exit.run();
-    }
-  }
-
   private void toggleTimelineButtons() {
     boolean isAlive = myProfiler.getSessionsManager().isSessionAlive();
     if (isAlive) {
@@ -534,7 +477,7 @@ public class SessionProfilersView extends StudioProfilersView {
     myGoLiveToolbar.setVisible(myStageView.supportsStreaming());
 
     boolean topLevel = myStageView == null || myStageView.needsProcessSelection();
-    myCommonToolbar.setVisible(!topLevel && myStageView.supportsStageNavigation());
+    myStageNavigationToolbar.setVisible(!topLevel && myStageView.supportsStageNavigation());
 
     myRightToolbar.setVisible(stage.isInteractingWithTimeline());
   }
@@ -592,26 +535,5 @@ public class SessionProfilersView extends StudioProfilersView {
   @VisibleForTesting
   final JComponent getStageViewComponent() {
     return myStageView.getComponent();
-  }
-
-  @VisibleForTesting
-  public static class StageComboBoxRenderer extends ColoredListCellRenderer<Class> {
-
-    private static ImmutableMap<Class<? extends Stage>, String> CLASS_TO_NAME = ImmutableMap.of(
-      CpuProfilerStage.class, "CPU",
-      MainMemoryProfilerStage.class, "MEMORY",
-      EnergyProfilerStage.class, "ENERGY",
-      CustomEventProfilerStage.class, "CUSTOM EVENTS");
-
-    @Override
-    protected void customizeCellRenderer(@NotNull JList list, Class value, int index, boolean selected, boolean hasFocus) {
-      String name = CLASS_TO_NAME.get(value);
-      append(name == null ? "[UNKNOWN]" : name, SimpleTextAttributes.REGULAR_ATTRIBUTES);
-    }
-  }
-
-  @VisibleForTesting
-  public JPanel getCommonToolbar() {
-    return myCommonToolbar;
   }
 }

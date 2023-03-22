@@ -24,10 +24,8 @@ import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_ATTACH
 import static com.android.tools.profilers.ProfilersTestData.DEFAULT_AGENT_UNSPECIFIED_RESPONSE;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeTrue;
 
 import com.android.sdklib.AndroidVersion;
-import com.android.testutils.TestUtils;
 import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.FakeTimer;
@@ -38,10 +36,8 @@ import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
-import com.android.tools.profilers.cpu.CpuCaptureStage;
 import com.android.tools.profilers.cpu.CpuMonitorTooltip;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
-import com.android.tools.profilers.cpu.CpuProfilerUITestUtils;
 import com.android.tools.profilers.energy.EnergyMonitorTooltip;
 import com.android.tools.profilers.energy.EnergyProfilerStage;
 import com.android.tools.profilers.memory.FakeCaptureObjectLoader;
@@ -61,13 +57,8 @@ import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import javax.swing.ComboBoxModel;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import org.jetbrains.annotations.NotNull;
@@ -130,7 +121,7 @@ public class SessionProfilersViewTest {
 
   @Test
   public void testSameStageTransition() {
-    FakeStage stage = new FakeStage(myProfilers);
+    FakeStage stage = new FakeStage(myProfilers, "Really?");
     myProfilers.setStage(stage);
     StageView view = myView.getStageView();
 
@@ -140,7 +131,7 @@ public class SessionProfilersViewTest {
 
   @Test
   public void testViewHasNoExceptionsWhenProfilersStop() {
-    FakeStage stage = new FakeStage(myProfilers);
+    FakeStage stage = new FakeStage(myProfilers, "Really?");
     myProfilers.setStage(stage);
     StageView view = myView.getStageView();
 
@@ -513,65 +504,6 @@ public class SessionProfilersViewTest {
     assertThat(myView.getRightToolbar().isVisible()).isTrue();
   }
 
-  @Test
-  public void captureCpuStageGoesBackToCpuStageThenBackToMonitorStage() {
-    myProfilers.setStage(CpuCaptureStage.create(myProfilers,
-                                                ProfilersTestData.DEFAULT_CONFIG,
-                                                TestUtils.resolveWorkspacePath(CpuProfilerUITestUtils.VALID_TRACE_PATH).toFile(),
-                                                ProfilersTestData.SESSION_DATA.getSessionId()));
-    myView.getBackButton().doClick();
-    assertThat(myProfilers.getStage()).isInstanceOf(CpuProfilerStage.class);
-    myView.getBackButton().doClick();
-    assertThat(myProfilers.getStage()).isInstanceOf(StudioMonitorStage.class);
-  }
-
-  @Test
-  public void profilerStaysInStageWhenUserConfirmsStay() {
-    setFakeStage();
-    myProfilerServices.setShouldProceedYesNoDialog(false);
-    myView.getBackButton().doClick();
-    assertThat(myProfilers.getStage()).isInstanceOf(FakeStage.class);
-  }
-
-  @Test
-  public void profilerExitsWhenUserConfirmsExit() {
-    setFakeStage();
-    myProfilerServices.setShouldProceedYesNoDialog(true);
-    myView.getBackButton().doClick();
-    assertThat(myProfilers.getStage()).isNotInstanceOf(FakeStage.class);
-  }
-
-  @Test
-  public void menuShowsSupportedStagesForDebuggable() {
-    assumeFalse(myIsTestingProfileable);
-    menuShowsSupportedStages(CpuProfilerStage.class, MainMemoryProfilerStage.class, EnergyProfilerStage.class);
-  }
-
-  @Test
-  public void menuShowsSupportedStagesForProfileable() {
-    assumeTrue(myIsTestingProfileable);
-    menuShowsSupportedStages(CpuProfilerStage.class, MainMemoryProfilerStage.class);
-  }
-
-  private void menuShowsSupportedStages(Class<?>... expected) {
-    TreeWalker t = new TreeWalker(myView.getCommonToolbar());
-    Predicate<ComboBoxModel<?>> itemsChecker = model ->
-      model.getSize() == expected.length &&
-      IntStream.range(0, model.getSize())
-        .allMatch(i -> model.getElementAt(i) instanceof Class<?> &&
-                       expected[i].isAssignableFrom((Class<?>)model.getElementAt(i)));
-    assertThat(t.descendantStream()
-                 .anyMatch(view -> view instanceof JComboBox<?> && itemsChecker.test(((JComboBox<?>)view).getModel())))
-      .isTrue();
-  }
-
-  private void setFakeStage() {
-    FakeStage stage = new FakeStage(myProfilers);
-    myView.bind(stage.getClass(), FakeStageView::new);
-    myProfilers.setStage(stage);
-    assertThat(myProfilers.getStage()).isInstanceOf(FakeStage.class);
-  }
-
   private void startSessionWithNewDeviceAndProcess() {
     Common.Device onlineDevice = Common.Device.newBuilder()
       .setDeviceId(NEW_DEVICE_ID)
@@ -618,46 +550,6 @@ public class SessionProfilersViewTest {
   private void updatePreferredProcess(String preferredDeviceName, String preferredProcessName) {
     myProfilers.setPreferredProcess(preferredDeviceName, preferredProcessName, null);
     myTimer.tick(FakeTimer.ONE_SECOND_IN_NS);
-  }
-
-  private static class FakeStage extends Stage<Timeline> {
-    FakeStage(@NotNull StudioProfilers profilers) {
-      super(profilers);
-    }
-
-    @NotNull
-    @Override
-    public Timeline getTimeline() {
-      return getStudioProfilers().getTimeline();
-    }
-
-    @Override
-    public void enter() { }
-
-    @Override
-    public void exit() { }
-
-    @Override
-    public AndroidProfilerEvent.Stage getStageType() {
-      return AndroidProfilerEvent.Stage.UNKNOWN_STAGE;
-    }
-
-    @Nullable
-    @Override
-    public String getConfirmExitMessage() {
-      return "Really?";
-    }
-  }
-
-  private static class FakeStageView extends StageView<FakeStage> {
-    public FakeStageView(@NotNull SessionProfilersView view, @NotNull FakeStage stage) {
-      super(view, stage);
-    }
-
-    @Override
-    public JComponent getToolbar() {
-      return new JLabel("Hello world");
-    }
   }
 
   static class FakeView extends StageView<FakeStage> {
