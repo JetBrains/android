@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices
 
-import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.WorkBench
@@ -66,7 +65,7 @@ class LayoutInspectorManagerTest {
       treeSettings = FakeTreeSettings()
     )
 
-    whenever(mockLayoutInspectorProjectService.getLayoutInspector(any())).thenAnswer { layoutInspector }
+    whenever(mockLayoutInspectorProjectService.getLayoutInspector()).thenAnswer { layoutInspector }
     displayViewRule.project.replaceService(LayoutInspectorProjectService::class.java, mockLayoutInspectorProjectService, displayViewRule.testRootDisposable)
 
     displayView = displayViewRule.newEmulatorView()

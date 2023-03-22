@@ -86,7 +86,7 @@ interface LayoutInspectorManager {
  * This class is meant to be used on the UI thread, to avoid concurrency issues.
  */
 @UiThread
-private class LayoutInspectorManagerImpl : LayoutInspectorManager {
+private class LayoutInspectorManagerImpl(private val project: Project) : LayoutInspectorManager {
 
   /** Keeps track of tabs on which a Workbench was injected */
   private var state = mapOf<String, TabState>()
@@ -153,6 +153,7 @@ private class LayoutInspectorManagerImpl : LayoutInspectorManager {
    * Removes [tabContext] from [state].
    * @return the [TabState] associated to [tabContext] that was removed. Or null if nothing was removed.
    */
+  // TODO(b/265150325): dispose Layout Inspector when all tabs are removed
   private fun removeFromState(tabContext: RunningDevicesTabContext): TabState? {
     val toRemove = state[tabContext.deviceSerialNumber]
     state = state - tabContext.deviceSerialNumber
@@ -170,8 +171,8 @@ private class LayoutInspectorManagerImpl : LayoutInspectorManager {
     val tabContext: RunningDevicesTabContext,
     val wrapLogic: WrapLogic = WrapLogic(tabContext.tabContentPanel, tabContext.tabContentPanelContainer),
     val displayViewManager: DisplayViewManager = DisplayViewManager(
-      tabContext.getLayoutInspector().renderModel,
-      tabContext.getLayoutInspector().renderLogic,
+      tabContext.project.getLayoutInspector().renderModel,
+      tabContext.project.getLayoutInspector().renderLogic,
       tabContext.displayView
     )
   ) {
@@ -197,7 +198,7 @@ private fun createLayoutInspectorWorkbench(
   centerPanel: JComponent,
 ): WorkBench<LayoutInspector> {
   val workbench = WorkBench<LayoutInspector>(tabContext.project, WORKBENCH_NAME, null, tabContext.disposable)
-  val layoutInspector = tabContext.getLayoutInspector()
+  val layoutInspector = tabContext.project.getLayoutInspector()
   val toolsDefinition = listOf(LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition())
   workbench.init(centerPanel, layoutInspector, toolsDefinition, false)
   DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
@@ -205,8 +206,8 @@ private fun createLayoutInspectorWorkbench(
 }
 
 /** Utility function to get [LayoutInspector] from a [RunningDevicesTabContext] */
-private fun RunningDevicesTabContext.getLayoutInspector(): LayoutInspector {
+private fun Project.getLayoutInspector(): LayoutInspector {
   return LayoutInspectorProjectService
-    .getInstance(project)
-    .getLayoutInspector(disposable)
+    .getInstance(this)
+    .getLayoutInspector()
 }
