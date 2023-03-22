@@ -58,7 +58,7 @@ public class PsiIncludeReferenceTest extends AndroidTestCase {
     Configuration configuration = manager.getConfiguration(included);
     ResourceResolver resourceResolver = configuration.getResourceResolver();
     assertNotNull(resourceResolver);
-    PsiIncludeReference reference = PsiIncludeReference.get(psiFile, resourceResolver);
+    PsiIncludeReference reference = (PsiIncludeReference)PsiIncludeReference.get(psiFile, resourceResolver);
     assertEquals("includer", reference.getFromResourceName());
     assertEquals("@layout/includer", reference.getFromResourceUrl());
 

@@ -22,6 +22,7 @@ import com.android.resources.ResourceUrl;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.utils.SdkUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
@@ -38,12 +39,9 @@ import java.io.File;
 import static com.android.SdkConstants.*;
 
 /**
- * A reference to a particular file in the project
+ * A studio-specific PSI and VFS backed implementation of {@link IncludeReference}.
  */
-public class PsiIncludeReference {
-  @SuppressWarnings("ConstantConditions")
-  public static final PsiIncludeReference NONE = new PsiIncludeReference(null);
-
+public class PsiIncludeReference implements IncludeReference {
   /**
    * The source file of the reference (included from).
    */
@@ -62,6 +60,7 @@ public class PsiIncludeReference {
    *
    * @return the file
    */
+  @Override
   @Nullable
   public XmlFile getFromXmlFile(@NotNull Project project) {
     PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(project, myFromFile);
@@ -73,6 +72,7 @@ public class PsiIncludeReference {
    *
    * @return the path
    */
+  @Override
   @NotNull
   public File getFromPath() {
     return VfsUtilCore.virtualToIoFile(myFromFile);
@@ -84,7 +84,8 @@ public class PsiIncludeReference {
    * @return the resource name
    */
   @NotNull
-  public String getFromResourceName() {
+  @VisibleForTesting
+  String getFromResourceName() {
     return SdkUtils.fileNameToResourceName(myFromFile.getName());
   }
 
@@ -93,6 +94,7 @@ public class PsiIncludeReference {
    *
    * @return the resource URL
    */
+  @Override
   @NotNull
   public String getFromResourceUrl() {
     return LAYOUT_RESOURCE_PREFIX + getFromResourceName();
@@ -103,9 +105,9 @@ public class PsiIncludeReference {
    * the given file.
    */
   @NotNull
-  public static PsiIncludeReference get(@NotNull XmlFile file, @NotNull RenderResources resolver) {
+  public static IncludeReference get(@NotNull XmlFile file, @NotNull RenderResources resolver) {
     if (!ApplicationManager.getApplication().isReadAccessAllowed()) {
-      return ApplicationManager.getApplication().runReadAction((Computable<PsiIncludeReference>)() -> get(file, resolver));
+      return ApplicationManager.getApplication().runReadAction((Computable<IncludeReference>)() -> get(file, resolver));
     }
 
     ApplicationManager.getApplication().assertReadAccessAllowed();

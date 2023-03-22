@@ -150,7 +150,7 @@ public class RenderTask {
   private final float myMinDownscalingFactor;
   private final float myDefaultQuality;
   private final long myDownScaledImageMaxBytes;
-  @Nullable private PsiIncludeReference myIncludedWithin;
+  @Nullable private IncludeReference myIncludedWithin;
   @NotNull private RenderingMode myRenderingMode = RenderingMode.NORMAL;
   private boolean mySetTransparentBackground = false;
   private boolean myShowDecorations = true;
@@ -746,11 +746,11 @@ public class RenderTask {
 
     // Code to support editing included layout.
     if (myIncludedWithin == null) {
-      myIncludedWithin = PsiIncludeReference.get(xmlFile, resolver);
+      myIncludedWithin = myContext.getModule().getEnvironment().createIncludeReference(xmlFile, resolver);
     }
 
     ILayoutPullParser topParser = null;
-    if (myIncludedWithin != PsiIncludeReference.NONE) {
+    if (myIncludedWithin != IncludeReference.NONE) {
       // Get the name of the layout actually being edited, without the extension
       // as it's what IXmlPullParser.getParser(String) will receive.
       String queryLayoutName = SdkUtils.fileNameToResourceName(xmlFile.getName());
@@ -1113,7 +1113,7 @@ public class RenderTask {
         myLogger.error(null, "Unknown render problem: " + result.getStatus(), null, null, null);
       }
     }
-    else if (myIncludedWithin != null && myIncludedWithin != PsiIncludeReference.NONE) {
+    else if (myIncludedWithin != null && myIncludedWithin != IncludeReference.NONE) {
       ILayoutPullParser layoutEmbeddedParser = myLayoutlibCallback.getLayoutEmbeddedParser();
       if (layoutEmbeddedParser != null) {  // Should have been nulled out if used
         myLogger.error(null, String.format("The surrounding layout (%1$s) did not actually include this layout. " +

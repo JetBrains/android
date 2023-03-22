@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.ide.common.rendering.api.RenderResources
 import com.intellij.openapi.Disposable
+import com.intellij.psi.xml.XmlFile
 
 /**
  * An interface proving access to the general environment specific functionality, primarily related to Intellij IDEA. The interface itself
@@ -29,4 +31,6 @@ interface EnvironmentContext {
   fun hasLayoutlibCrash(): Boolean
 
   val runnableFixFactory: RenderProblem.RunnableFixFactory
+
+  fun createIncludeReference(xmlFile: XmlFile, resolver: RenderResources): IncludeReference
 }
