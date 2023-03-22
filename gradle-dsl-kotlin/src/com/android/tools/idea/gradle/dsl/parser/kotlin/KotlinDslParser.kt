@@ -80,6 +80,7 @@ import org.jetbrains.kotlin.psi.KtVisitor
 import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
 import org.jetbrains.kotlin.parsing.parseBoolean
 import org.jetbrains.kotlin.parsing.parseNumericLiteral
+import org.jetbrains.kotlin.psi.KtAnnotatedExpression
 import java.math.BigDecimal
 
 /**
@@ -97,11 +98,11 @@ class KotlinDslParser(
   //
   override fun parse() {
     ApplicationManager.getApplication().assertReadAccessAllowed()
-    psiFile.script?.blockExpression?.statements?.map {
-      if (it is KtScriptInitializer) it.body else it
-    }?.requireNoNulls()?.forEach {
-      it.accept(this, dslFile)
-    }
+    psiFile.script?.blockExpression?.statements
+      ?.map { if (it is KtScriptInitializer) it.body else it }
+      ?.map { if (it is KtAnnotatedExpression) it.baseExpression else it }
+      ?.requireNoNulls()
+      ?.forEach { it.accept(this, dslFile) }
   }
 
   override fun convertToPsiElement(context: GradleDslSimpleExpression, literal: Any): PsiElement? {
