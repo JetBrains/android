@@ -64,7 +64,7 @@ public class AddRemoveCppDependencyTest {
    *   3) Project is built successfully
    *   </pre>
    */
-  @RunIn(TestGroup.SANITY_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void addRemoveCppDependency() {
     createCppProject(CppStandardType.DEFAULT, guiTest);

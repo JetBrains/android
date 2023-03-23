@@ -50,7 +50,7 @@ public class BuildInstantAppTest {
    * </pre>
    */
   @Test
-  @RunIn(TestGroup.SANITY_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   public void buildInstantApp() throws Exception {
     IdeFrameFixture ideFrame =
       guiTest.importProjectAndWaitForProjectSyncToFinish("SimpleApplication", Wait.seconds(180));

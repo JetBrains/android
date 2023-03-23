@@ -59,7 +59,7 @@ class CreateNewFlavorsTest {
    *   set in the project structure flavor dialog
    * </pre>
    */
-  @RunIn(TestGroup.SANITY_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   @Throws(Exception::class)
   fun createNewFlavors() {
