@@ -405,12 +405,13 @@ class ComposePreviewTest {
       val deployArgs = "am start -n \"$composablePackageName/$previewActivityName\"" +
                        " -a android.intent.action.MAIN -c android.intent.category.LAUNCHER --es composable $composableFqn"
       val stopArgs = "am force-stop $composablePackageName"
-      when (args) {
+      return when (args) {
         deployArgs, stopArgs -> {
           CommandHandler.writeOkay(socket.getOutputStream())
-          return true
+          true
         }
-        else -> return false
+
+        else -> false
       }
     }
   }
