@@ -21,6 +21,7 @@ import com.android.sdklib.AndroidVersion;
 import com.android.sdklib.SdkVersionInfo;
 import com.android.sdklib.repository.IdDisplay;
 import com.android.sdklib.repository.targets.SystemImage;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.IconLoader;
@@ -66,6 +67,8 @@ public class SystemImagePreview {
   private Disposable myDisposable;
   ApiLevelHyperlinkListener myApiLevelListener = new ApiLevelHyperlinkListener();
 
+  private static final ImmutableList TV_DEVICES = ImmutableList.of("android-tv", "google-tv");
+
   private static final String NO_SYSTEM_IMAGE_SELECTED = "No System Image Selected";
   private static final String MAIN_CONTENT = "main";
   private static final String NO_IMAGE_CONTENT = "none";
@@ -110,6 +113,13 @@ public class SystemImagePreview {
   }
 
   /**
+   * @return True if the given {@link SystemImagePreview} is a Television device.
+   */
+  private static boolean isTvDevice(@NotNull IdDisplay tag) {
+    return TV_DEVICES.contains(tag.getId());
+  }
+
+  /**
    * Set the image to display.
    */
   public void setImage(@Nullable SystemImageDescription image) {
@@ -149,8 +159,10 @@ public class SystemImagePreview {
       myAndroidVersion.setText(SdkVersionInfo.getVersionString(apiLevel));
       String vendorName;
       IdDisplay tag = myImageDescription.getTag();
-      if (tag.getId().equals("android-wear") || tag.getId().equals("android-tv")) {
+      if (tag.getId().equals("android-wear")) {
         vendorName = "Android";
+      } else if (isTvDevice(tag)) {
+        vendorName = "Google LLC";
       } else {
         vendorName = myImageDescription.getVendor();
       }

@@ -46,6 +46,8 @@ public class SystemImagePreviewTest extends AndroidTestCase {
   private SystemImageDescription mMarshmallowImageDescr;
   private SystemImageDescription mPreviewImageDescr;
   private SystemImageDescription mWearOsImageDescr;
+  private SystemImageDescription mAndroidTvImageDescr;
+  private SystemImageDescription mGoogleTvImageDescr;
 
   @Override
   public void setUp() throws Exception {
@@ -90,7 +92,31 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     pkgWearOs.setTypeDetails((TypeDetails)detailsWearOs);
     InMemoryFileSystems.recordExistingFile(pkgWearOs.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
 
-    packages.setLocalPkgInfos(ImmutableList.of(pkgMarshmallow, pkgPreview, pkgWearOs));
+    // Fake preview image
+    String androidTvPath = "system-images;android-tv;android-30;android-tv;x86";
+    FakePackage.FakeLocalPackage pkgAndroidTv = new FakePackage.FakeLocalPackage(androidTvPath, sdkRoot.resolve("mAtvSysImg"));
+    DetailsTypes.SysImgDetailsType detailsAndroidTv =
+      AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    detailsAndroidTv.getTags().add(IdDisplay.create("android-tv", "Android TV"));
+    detailsAndroidTv.setAbi("x86");
+    detailsAndroidTv.setVendor(IdDisplay.create("google", "Google"));
+    detailsAndroidTv.setApiLevel(30);
+    pkgAndroidTv.setTypeDetails((TypeDetails)detailsAndroidTv);
+    InMemoryFileSystems.recordExistingFile(pkgAndroidTv.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+
+    // Fake preview image
+    String googleTvPath = "system-images;google-tv;android-30;google-tv;x86";
+    FakePackage.FakeLocalPackage pkgGoogleTv = new FakePackage.FakeLocalPackage(googleTvPath, sdkRoot.resolve("mGtvSysImg"));
+    DetailsTypes.SysImgDetailsType detailsGoogleTv =
+      AndroidSdkHandler.getSysImgModule().createLatestFactory().createSysImgDetailsType();
+    detailsGoogleTv.getTags().add(IdDisplay.create("google-tv", "Google TV"));
+    detailsGoogleTv.setAbi("x86");
+    detailsGoogleTv.setVendor(IdDisplay.create("google", "Google"));
+    detailsGoogleTv.setApiLevel(30);
+    pkgGoogleTv.setTypeDetails((TypeDetails)detailsGoogleTv);
+    InMemoryFileSystems.recordExistingFile(pkgGoogleTv.getLocation().resolve(SystemImageManager.SYS_IMG_NAME));
+
+    packages.setLocalPkgInfos(ImmutableList.of(pkgMarshmallow, pkgPreview, pkgWearOs, pkgAndroidTv, pkgGoogleTv));
 
     RepoManager mgr = new FakeRepoManager(sdkRoot, packages);
 
@@ -106,10 +132,16 @@ public class SystemImagePreviewTest extends AndroidTestCase {
       sdkHandler.getLocalPackage(previewPath, progress).getLocation());
     ISystemImage wearOsImage = systemImageManager.getImageAt(
       sdkHandler.getLocalPackage(wearOsPath, progress).getLocation());
+    ISystemImage androidTvImage = systemImageManager.getImageAt(
+      sdkHandler.getLocalPackage(androidTvPath, progress).getLocation());
+    ISystemImage googleTvImage = systemImageManager.getImageAt(
+      sdkHandler.getLocalPackage(googleTvPath, progress).getLocation());
 
     mMarshmallowImageDescr = new SystemImageDescription(marshmallowImage);
     mPreviewImageDescr = new SystemImageDescription(previewImage);
     mWearOsImageDescr = new SystemImageDescription(wearOsImage);
+    mAndroidTvImageDescr = new SystemImageDescription(androidTvImage);
+    mGoogleTvImageDescr = new SystemImageDescription(googleTvImage);
   }
 
   public void testSetImage() {
@@ -126,6 +158,30 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     assertTrue("No icon fetched for Preview API", iconLabel != null && iconLabel.getIcon() != null);
     iconUrl = iconLabel.getIcon().toString();
     assertTrue("Wrong icon fetched for Preview API", iconUrl.contains("Default.png"));
+  }
+
+  public void testAndroidTvVendorName() {
+    SystemImagePreview imagePreview = new SystemImagePreview(null);
+    JPanel rootPanel = new JPanel();
+    rootPanel.setSize(new Dimension(500, 500));
+    rootPanel.add(imagePreview.getRootPanel());
+    FakeUi fakeUi = new FakeUi(rootPanel, 1f, true);
+
+    imagePreview.setImage(mAndroidTvImageDescr);
+
+    assertNotNull(findLabel(fakeUi, "Google LLC"));
+  }
+
+  public void testGoogleTvVendorName() {
+    SystemImagePreview imagePreview = new SystemImagePreview(null);
+    JPanel rootPanel = new JPanel();
+    rootPanel.setSize(new Dimension(500, 500));
+    rootPanel.add(imagePreview.getRootPanel());
+    FakeUi fakeUi = new FakeUi(rootPanel, 1f, true);
+
+    imagePreview.setImage(mGoogleTvImageDescr);
+
+    assertNotNull(findLabel(fakeUi, "Google LLC"));
   }
 
   public void testLocalizedChinaImages() {
