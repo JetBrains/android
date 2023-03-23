@@ -49,9 +49,8 @@ class SVGScaledImageProvider(private val cachedIcon: CachedImageIcon, private va
       throw IllegalArgumentException("Icon should be an instance of CachedImageIcon")
     }
 
-    @JvmStatic
     fun create(cachedIcon: CachedImageIcon): SVGScaledImageProvider {
-      return SVGScaledImageProvider(cachedIcon, cachedIcon.getRealIcon().image)
+      return SVGScaledImageProvider(cachedIcon, cachedIcon.getRealImage())
     }
   }
 }
