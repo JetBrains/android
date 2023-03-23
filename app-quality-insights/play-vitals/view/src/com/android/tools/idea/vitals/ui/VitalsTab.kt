@@ -22,6 +22,7 @@ import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.Selection
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.ui.ActionToolbarListenerForOfflineBalloon
 import com.android.tools.idea.insights.ui.AppInsightsModuleSelector
 import com.android.tools.idea.insights.ui.Timestamp
 import com.android.tools.idea.insights.ui.actions.AppInsightsDisplayRefreshTimestampAction
@@ -63,8 +64,10 @@ private val offlineAction =
     }
   }
 
-class VitalsTab(configurationManager: AppInsightsConfigurationManager, private val clock: Clock) :
-  JPanel(BorderLayout()), Disposable {
+class VitalsTab(
+  private val configurationManager: AppInsightsConfigurationManager,
+  private val clock: Clock
+) : JPanel(BorderLayout()), Disposable {
   private val scope = AndroidCoroutineScope(this)
   private val projectController = configurationManager.getController()
 
@@ -231,7 +234,15 @@ class VitalsTab(configurationManager: AppInsightsConfigurationManager, private v
     ActionToolbarUtil.findActionButton(actionToolbar, offlineAction)?.isVisible = false
     actionToolbar.component.border = JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0)
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
-    // TODO: add offline balloon
+    actionToolbar.component.addContainerListener(
+      ActionToolbarListenerForOfflineBalloon(
+        "Play Vitals",
+        configurationManager.project,
+        offlineAction,
+        scope,
+        offlineStateFlow
+      )
+    )
     return actionToolbar
   }
 
