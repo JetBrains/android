@@ -29,23 +29,23 @@ class HeapTraverseNode {
   // Retained mask that works in a component categories plane (for comparison: retainedMask works in
   // a sub-category plane)
   public int retainedMaskForCategories;
-  public final long tag;
   public boolean isMergePoint;
+  public int owningRootsSetHashcode;
 
   HeapTraverseNode(@Nullable final Object obj,
                    @NotNull RefWeight ownershipWeight,
                    long ownedByComponentMask,
                    long retainedMask,
                    int retainedMaskForCategories,
-                   long tag,
-                   boolean isMergePoint) {
+                   boolean isMergePoint,
+                   int owningRootsSetHashcode) {
     weakReference = new WeakReference<>(obj);
     this.ownershipWeight = ownershipWeight;
     this.ownedByComponentMask = ownedByComponentMask;
     this.retainedMask = retainedMask;
     this.retainedMaskForCategories = retainedMaskForCategories;
-    this.tag = tag;
     this.isMergePoint = isMergePoint;
+    this.owningRootsSetHashcode = owningRootsSetHashcode;
   }
 
   HeapTraverseNode(@Nullable final Object obj,
@@ -53,9 +53,10 @@ class HeapTraverseNode {
                    long ownedByComponentMask,
                    long retainedMask,
                    int retainedMaskForCategories,
-                   long tag,
-                   boolean isMergePoint) {
-    this(obj, refWeightFromInt(ownershipWeightIntValue), ownedByComponentMask, retainedMask, retainedMaskForCategories, tag, isMergePoint);
+                   boolean isMergePoint,
+                   int owningRootsSetHashcode) {
+    this(obj, refWeightFromInt(ownershipWeightIntValue), ownedByComponentMask, retainedMask, retainedMaskForCategories, isMergePoint,
+         owningRootsSetHashcode);
   }
 
   @Nullable
@@ -130,8 +131,9 @@ class HeapTraverseNode {
                                                           long ownedByComponentMask,
                                                           long retainedMask,
                                                           int retainedMaskForCategories,
-                                                          long tag,
                                                           boolean isMergePoint);
+  static native void putOrUpdateObjectIdToExtendedTraverseNodeMap(int id,
+                                                                  int owningRootsSetHashcode);
 
   /**
    * @return the size of the native id to {@link HeapTraverseNode} map.
@@ -146,5 +148,6 @@ class HeapTraverseNode {
   /**
    * Return element from the native {@link HeapTraverseNode} map.
    */
-  static native HeapTraverseNode getObjectIdToTraverseNodeMapElement(int id, Class<?> heapTraverseNodeClass);
+  static native HeapTraverseNode getObjectIdToTraverseNodeMapElement(int id,
+                                                                     Class<?> heapTraverseNodeClass);
 }

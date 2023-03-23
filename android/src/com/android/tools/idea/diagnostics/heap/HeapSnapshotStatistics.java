@@ -209,6 +209,8 @@ final class HeapSnapshotStatistics {
         StringBuilder disposerTreeInfoBuilder = new StringBuilder();
         extendedReportStatistics.logDisposerTreeReport((String s) -> disposerTreeInfoBuilder.append(s).append("\n"));
         GoogleCrashReporter.addBodyToBuilder(builder, "Disposer tree information", disposerTreeInfoBuilder.toString());
+        GoogleCrashReporter.addBodyToBuilder(builder, "Root sets container size",
+                                             String.valueOf(extendedReportStatistics.categoryRootOwnershipSets.size()));
       }
     };
   }

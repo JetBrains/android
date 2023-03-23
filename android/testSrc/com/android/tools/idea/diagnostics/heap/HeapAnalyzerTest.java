@@ -51,7 +51,6 @@ import org.assertj.core.util.Sets;
 import org.hamcrest.core.SubstringMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.AssumptionViolatedException;
 import org.junit.Before;
@@ -483,8 +482,8 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     Assert.assertEquals(StatusCode.NO_ERROR,
                         new HeapSnapshotTraverse(statistics).walkObjects(MAX_DEPTH, List.of(new D(new B(), new B(), new B()))));
     Assert.assertNotNull(statistics.getExtendedReportStatistics());
-    ExtendedReportStatistics.ClassNameHistogram histogram0 = statistics.getExtendedReportStatistics().categoryHistograms.get(0);
-    ExtendedReportStatistics.ClassNameHistogram histogram1 = statistics.getExtendedReportStatistics().categoryHistograms.get(1);
+    ExtendedReportStatistics.ClusterHistogram histogram0 = statistics.getExtendedReportStatistics().categoryHistograms.get(0);
+    ExtendedReportStatistics.ClusterHistogram histogram1 = statistics.getExtendedReportStatistics().categoryHistograms.get(1);
     Assert.assertTrue(histogram0.histogram.isEmpty());
     Assert.assertEquals(48, histogram1.histogram.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B").getTotalSizeInBytes());
     Assert.assertEquals(3, histogram1.histogram.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B").getObjectsCount());
@@ -565,7 +564,8 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
               24/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
               16/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
             Category roots histogram:
-              24/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A""");
+              24/1 objects[56/3 objects]: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
+              16/1 objects[16/1 objects]: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B""");
     assertRequestContainsField(serializedExtendedReport, "Component uncategorized_main", """
       Owned: 0/0 objects
             Histogram:
@@ -579,7 +579,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
             Studio objects histogram:
               24/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A
             Component roots histogram:
-              24/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A""");
+              24/1 objects[40/2 objects]: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A""");
     assertRequestContainsField(serializedExtendedReport, "Component B", """
       Owned: 16/1 objects
             Histogram:
@@ -587,9 +587,9 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
             Studio objects histogram:
               16/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B
             Component roots histogram:
-              16/1 objects: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B""");
+              16/1 objects[16/1 objects]: com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B""");
     assertRequestContainsFieldWithPattern(serializedExtendedReport, "Disposer tree information", "Disposer tree size: \\d+\n" +
-                                                                                      "Total number of disposed but strong referenced objects: 0");
+                                                                                                 "Total number of disposed but strong referenced objects: 0");
   }
 
   private static void assertRequestContainsField(final String requestBody, final String name, final String value) {
@@ -674,22 +674,109 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     Assert.assertNotNull(statistics.getExtendedReportStatistics());
 
     Assert.assertEquals(1, statistics.getExtendedReportStatistics().sharedClustersHistograms.size());
-    ExtendedReportStatistics.ClassNameHistogram sharedHistogram =
+    ExtendedReportStatistics.ClusterHistogram sharedHistogram =
       statistics.getExtendedReportStatistics().sharedClustersHistograms.values().iterator().next();
-    Assert.assertEquals(1, sharedHistogram.rootsHistogram.size());
-    Assert.assertTrue(sharedHistogram.rootsHistogram.containsKey("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"));
-    Assert.assertEquals(2, sharedHistogram.rootsHistogram.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B")
-      .getObjectsCount());
+    Assert.assertEquals(1, sharedHistogram.rootHistograms.size());
+    Assert.assertTrue(sharedHistogram.rootClassNameToId.containsKey("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"));
+    Assert.assertEquals(2, sharedHistogram.rootHistograms.get(
+        sharedHistogram.rootClassNameToId.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"))
+      .getObjectsStatistics().getObjectsCount());
 
     Assert.assertEquals(3, statistics.getExtendedReportStatistics().componentHistograms.size());
-    ExtendedReportStatistics.ClassNameHistogram histogram1 = statistics.getExtendedReportStatistics().componentHistograms.get(1);
+    ExtendedReportStatistics.ClusterHistogram histogram1 = statistics.getExtendedReportStatistics().componentHistograms.get(1);
     Assert.assertEquals(2,
-                        histogram1.rootsHistogram.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A")
-                          .getObjectsCount());
-    ExtendedReportStatistics.ClassNameHistogram histogram2 = statistics.getExtendedReportStatistics().componentHistograms.get(2);
+                        histogram1.rootHistograms.get(
+                            histogram1.rootClassNameToId.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A"))
+                          .getObjectsStatistics().getObjectsCount());
+    ExtendedReportStatistics.ClusterHistogram histogram2 = statistics.getExtendedReportStatistics().componentHistograms.get(2);
     Assert.assertEquals(2,
-                        histogram2.rootsHistogram.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToB")
-                          .getObjectsCount());
+                        histogram2.rootHistograms.get(
+                            histogram2.rootClassNameToId.get("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$ReferenceToB"))
+                          .getObjectsStatistics().getObjectsCount());
+  }
+
+  @Test
+  public void testComponentRootSubtree() {
+    ComponentsSet componentsSet = new ComponentsSet();
+
+    ComponentsSet.ComponentCategory categoryA = componentsSet.registerCategory("A");
+    componentsSet.addComponentWithPackagesAndClassNames("A",
+                                                        categoryA,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A",
+                                                                "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B",
+                                                                "com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"));
+    HeapSnapshotStatistics statistics = new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet,
+      /*collectHistograms=*/true, /*collectDisposerTreeInfo=*/false));
+
+    B b1 = new B();
+
+    Assert.assertEquals(StatusCode.NO_ERROR,
+                        new HeapSnapshotTraverse(statistics).walkObjects(MAX_DEPTH, List.of(new A(b1), new D(b1, new B()))));
+    Assert.assertNotNull(statistics.getExtendedReportStatistics());
+    Assert.assertEquals(2, statistics.getExtendedReportStatistics().componentHistograms.size());
+    Assert.assertEquals(3, statistics.getExtendedReportStatistics().componentHistograms.get(1).rootHistograms.size());
+    ObjectsStatistics dSubtree = statistics.getExtendedReportStatistics().componentHistograms.get(1).rootHistograms.get(0).getSubtree();
+    ObjectsStatistics bSubtree = statistics.getExtendedReportStatistics().componentHistograms.get(1).rootHistograms.get(1).getSubtree();
+    ObjectsStatistics aSubtree = statistics.getExtendedReportStatistics().componentHistograms.get(1).rootHistograms.get(2).getSubtree();
+    Assert.assertEquals(3, dSubtree.getObjectsCount());
+    Assert.assertEquals(56, dSubtree.getTotalSizeInBytes());
+    Assert.assertEquals(2, bSubtree.getObjectsCount());
+    Assert.assertEquals(32, bSubtree.getTotalSizeInBytes());
+    Assert.assertEquals(3, aSubtree.getObjectsCount());
+    Assert.assertEquals(56, aSubtree.getTotalSizeInBytes());
+  }
+
+  public void testCategoryRootSubtree() {
+    ComponentsSet componentsSet = new ComponentsSet();
+
+    ComponentsSet.ComponentCategory category = componentsSet.registerCategory("Main");
+    componentsSet.addComponentWithPackagesAndClassNames("A",
+                                                        category,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A"));
+    componentsSet.addComponentWithPackagesAndClassNames("D",
+                                                        category,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D"));
+    componentsSet.addComponentWithPackagesAndClassNames("B",
+                                                        category,
+                                                        Collections.emptyList(),
+                                                        List.of("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$B"));
+
+    HeapSnapshotStatistics statistics = new HeapSnapshotStatistics(new HeapTraverseConfig(componentsSet,
+      /*collectHistograms=*/true, /*collectDisposerTreeInfo=*/false));
+
+    B b1 = new B();
+
+    Assert.assertEquals(StatusCode.NO_ERROR,
+                        new HeapSnapshotTraverse(statistics).walkObjects(MAX_DEPTH, List.of(new A(b1), new D(b1))));
+    Assert.assertNotNull(statistics.getExtendedReportStatistics());
+    ExtendedReportStatistics.CategoryHistogram categoryHistogram = statistics.getExtendedReportStatistics().categoryHistograms.get(1);
+    Assert.assertEquals(3, categoryHistogram.rootHistograms.size());
+    Assert.assertEquals("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$D",
+                        categoryHistogram.rootHistograms.get(0).getRootObjectClassName());
+    Assert.assertEquals(2,
+                        categoryHistogram.rootHistograms.get(0).getSubtree().getObjectsCount());
+    Assert.assertEquals(40,
+                        categoryHistogram.rootHistograms.get(0).getSubtree().getTotalSizeInBytes());
+
+    Assert.assertEquals("com.android.tools.idea.diagnostics.heap.HeapAnalyzerTest$A",
+                        categoryHistogram.rootHistograms.get(1).getRootObjectClassName());
+    // HeapAnalyzerTest$B instance, that is attributed to a different component then HeapAnalyzerTest$A will still be included here, since
+    // they are in the same category.
+    Assert.assertEquals(3,
+                        categoryHistogram.rootHistograms.get(1).getSubtree().getObjectsCount());
+    Assert.assertEquals(56,
+                        categoryHistogram.rootHistograms.get(1).getSubtree().getTotalSizeInBytes());
+
+    ExtendedReportStatistics.ClusterHistogram componentAHistogram = statistics.getExtendedReportStatistics().componentHistograms.get(1);
+    ExtendedReportStatistics.ClusterHistogram componentDHistogram = statistics.getExtendedReportStatistics().componentHistograms.get(2);
+    Assert.assertEquals(1, componentAHistogram.rootHistograms.size());
+    Assert.assertEquals(2, componentAHistogram.rootHistograms.get(0).getSubtree().getObjectsCount());
+
+    Assert.assertEquals(1, componentDHistogram.rootHistograms.size());
+    Assert.assertEquals(2, componentDHistogram.rootHistograms.get(0).getSubtree().getObjectsCount());
   }
 
   private static class A {
