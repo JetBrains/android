@@ -35,7 +35,7 @@ public class GvmInstallInfoStep extends FirstRunWizardStep {
   private final ScopedStateStore.Key<Boolean> myKeyCustomInstall;
 
   public GvmInstallInfoStep(@NotNull ScopedStateStore.Key<Boolean> keyCustomInstall) {
-    super("Installing Android Emulator Hypervisor Driver");
+    super("Installing Android Emulator hypervisor driver");
     myKeyCustomInstall = keyCustomInstall;
     setComponent(myRoot);
   }

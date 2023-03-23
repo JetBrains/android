@@ -92,8 +92,8 @@ public class AccelerationErrorSolution {
     INSTALL_HAXM("Install HAXM"),
     REINSTALL_HAXM("Reinstall HAXM"),
     TURNOFF_HYPER_V("Turn off Hyper-V"),
-    INSTALL_GVM("Install Android Emulator Hypervisor Driver"),
-    REINSTALL_GVM("Reinstall Android Emulator Hypervisor Driver");
+    INSTALL_GVM("Install Android Emulator hypervisor driver"),
+    REINSTALL_GVM("Reinstall Android Emulator hypervisor driver");
 
     private final String myDescription;
 
