@@ -707,12 +707,6 @@ class ComposePreviewRepresentation(
       project,
       object : BuildListener {
         /**
-         * True if the project had files out of date before the build had triggered. This means we
-         * will need a refresh after the build has completed.
-         */
-        private var hadOutOfDateFiles = false
-
-        /**
          * True if the animation inspection was open at the beginning of the build. If open, we will
          * force a refresh after the build has completed since the animations preview panel
          * refreshes only when a refresh happens.
@@ -738,16 +732,13 @@ class ComposePreviewRepresentation(
             FastPreviewManager.getInstance(project).preStartDaemon(module)
           }
 
-          afterBuildComplete(
-            isSuccessful = true,
-            needsRefresh = hadOutOfDateFiles || animationInspectionsEnabled
-          )
+          afterBuildComplete(isSuccessful = true)
         }
 
         override fun buildFailed() {
           log.debug("buildFailed")
 
-          afterBuildComplete(isSuccessful = false, needsRefresh = false)
+          afterBuildComplete(isSuccessful = false)
 
           // This ensures the animations panel is showed again after the build completes.
           if (animationInspectionsEnabled) requestRefresh()
@@ -761,7 +752,6 @@ class ComposePreviewRepresentation(
 
         override fun buildStarted() {
           log.debug("buildStarted")
-          hadOutOfDateFiles = psiCodeFileChangeDetectorService.outOfDateFiles.isNotEmpty()
           animationInspectionsEnabled = animationInspection.get()
 
           composeWorkBench.updateProgress(message("panel.building"))
@@ -787,18 +777,15 @@ class ComposePreviewRepresentation(
           ) {
             // Notify on any Fast Preview compilation to ensure we refresh all the previews
             // correctly.
-            afterBuildComplete(result == CompilationResult.Success, true)
+            afterBuildComplete(result == CompilationResult.Success)
           }
         }
       )
   }
 
-  /**
-   * Called after a project build has completed. If [needsRefresh] is true, the project contained
-   * changes before the build that now require a preview refresh.
-   */
-  private fun afterBuildComplete(isSuccessful: Boolean, needsRefresh: Boolean) {
-    if (isSuccessful && needsRefresh) {
+  /** Called after a project build has completed. */
+  private fun afterBuildComplete(isSuccessful: Boolean) {
+    if (isSuccessful) {
       invalidate()
       requestRefresh()
     } else requestVisibilityAndNotificationsUpdate()
