@@ -23,7 +23,6 @@ import com.android.tools.idea.dagger.index.IndexEntries
 import com.android.tools.idea.dagger.index.IndexValue
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexClassWrapper
 import com.android.tools.idea.dagger.localization.DaggerBundle
-import com.android.tools.idea.dagger.unboxed
 import com.android.tools.idea.kotlin.hasAnnotation
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
@@ -200,7 +199,7 @@ internal data class ClassIndexValue(
 internal sealed class ClassDaggerElement : DaggerElement() {
 
   val classPsiType: PsiType
-    get() = psiElement.getPsiType().unboxed
+    get() = psiElement.classToPsiType()
 
   /**
    * Given a related element, returns the annotation and annotation argument name that would be used

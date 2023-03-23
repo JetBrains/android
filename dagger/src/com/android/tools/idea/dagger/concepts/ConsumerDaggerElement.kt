@@ -17,9 +17,14 @@ package com.android.tools.idea.dagger.concepts
 
 import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.android.tools.idea.dagger.unboxed
+import com.android.tools.idea.kotlin.psiType
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiField
+import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
 import com.intellij.psi.impl.source.PsiClassReferenceType
+import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.psi.KtProperty
 
 internal abstract class ConsumerDaggerElementBase : DaggerElement() {
 
@@ -63,8 +68,13 @@ internal abstract class ConsumerDaggerElementBase : DaggerElement() {
 
 internal data class ConsumerDaggerElement(
   override val psiElement: PsiElement,
-  override val rawType: PsiType = psiElement.getPsiType().unboxed
+  override val rawType: PsiType
 ) : ConsumerDaggerElementBase() {
+
+  internal constructor(psiElement: KtParameter) : this(psiElement, psiElement.psiType!!.unboxed)
+  internal constructor(psiElement: KtProperty) : this(psiElement, psiElement.psiType!!.unboxed)
+  internal constructor(psiElement: PsiField) : this(psiElement, psiElement.type.unboxed)
+  internal constructor(psiElement: PsiParameter) : this(psiElement, psiElement.type.unboxed)
 
   override val relatedElementGrouping: String = DaggerBundle.message("consumers")
 }

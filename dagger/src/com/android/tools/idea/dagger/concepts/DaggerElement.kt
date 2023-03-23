@@ -169,20 +169,29 @@ fun PsiElement.getDaggerElement(): DaggerElement? =
   AllConcepts.daggerElementIdentifiers.getDaggerElement(this)
 
 /**
- * Every Dagger element deals with a specific JVM type by providing it, consuming it, etc. This
- * utility finds the appropriate type for a [PsiElement] based upon what type of Java or Kotlin
- * element it actually is.
+ * Gets a function's return type as a [PsiType]. For a constructor, this is defined as the [PsiType]
+ * of the class being constructed.
  */
-internal fun PsiElement.getPsiType(): PsiType =
+internal fun KtFunction.getReturnedPsiType(): PsiType =
+  (if (this is KtConstructor<*>) containingClass()?.toPsiType() else psiType)!!.unboxed
+
+/**
+ * Gets a function's return type as a [PsiType]. For a constructor, this is defined as the [PsiType]
+ * of the class being constructed.
+ */
+internal fun PsiMethod.getReturnedPsiType(): PsiType =
+  (if (isConstructor) AndroidPsiUtils.toPsiType(containingClass!!) else returnType)!!.unboxed
+
+/** Returns the [PsiType] representing this class. */
+internal fun KtClass.classToPsiType(): PsiType = toPsiType()!!.unboxed
+
+/** Returns the [PsiType] representing this class. */
+internal fun PsiClass.classToPsiType(): PsiType = AndroidPsiUtils.toPsiType(this)!!.unboxed
+
+/** Given a [KtClass] or [PsiClass] as `this`, returns the [PsiType] representing the class. */
+internal fun PsiElement.classToPsiType(): PsiType =
   when (this) {
-      is KtClass -> toPsiType()
-      is KtFunction -> if (this is KtConstructor<*>) containingClass()?.toPsiType() else psiType
-      is KtParameter -> psiType
-      is KtProperty -> psiType
-      is PsiClass -> AndroidPsiUtils.toPsiType(this)
-      is PsiField -> type
-      is PsiMethod -> if (isConstructor) containingClass!!.getPsiType() else returnType
-      is PsiParameter -> type
-      else -> throw IllegalArgumentException("Unknown element type ${this::class.java}")
-    }!!
-    .unboxed
+    is KtClass -> classToPsiType()
+    is PsiClass -> classToPsiType()
+    else -> throw IllegalArgumentException("Unsupported type ${this::class}")
+  }

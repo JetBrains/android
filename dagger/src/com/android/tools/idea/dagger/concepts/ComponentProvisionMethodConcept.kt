@@ -21,7 +21,6 @@ import com.android.tools.idea.dagger.index.IndexEntries
 import com.android.tools.idea.dagger.index.IndexValue
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
 import com.android.tools.idea.dagger.localization.DaggerBundle
-import com.android.tools.idea.dagger.unboxed
 import com.android.tools.idea.kotlin.hasAnnotation
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
@@ -156,7 +155,11 @@ internal data class ComponentProvisionMethodIndexValue(
 
 internal data class ComponentProvisionMethodDaggerElement(
   override val psiElement: PsiElement,
-  override val rawType: PsiType = psiElement.getPsiType().unboxed
+  override val rawType: PsiType,
 ) : ConsumerDaggerElementBase() {
+
+  internal constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())
+  internal constructor(psiElement: PsiMethod) : this(psiElement, psiElement.getReturnedPsiType())
+
   override val relatedElementGrouping: String = DaggerBundle.message("exposed.by.components")
 }

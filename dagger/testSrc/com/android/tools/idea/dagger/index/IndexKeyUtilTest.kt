@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.dagger.index
 
-import com.android.tools.idea.dagger.concepts.getPsiType
+import com.android.tools.idea.dagger.concepts.classToPsiType
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
-import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.RunsInEdt
@@ -79,7 +78,7 @@ class IndexKeyUtilTest {
         .trimIndent()
     )
 
-    val psiType = (myFixture.elementAtCaret as PsiClass).getPsiType()
+    val psiType = myFixture.elementAtCaret.classToPsiType()
     assertThat(getIndexKeys(psiType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("com.example.Foo", "Foo", "")
       .inOrder()
