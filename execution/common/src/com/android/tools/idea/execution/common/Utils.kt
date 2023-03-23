@@ -27,6 +27,9 @@ import com.intellij.openapi.project.Project
 fun RunnerAndConfigurationSettings.getProcessHandlersForDevices(project: Project, devices: List<IDevice>): List<ProcessHandler> {
   return ExecutionManagerImpl.getInstance(project)
     .getRunningDescriptors { it.isOfSameType(this) }
-    .mapNotNull { it.processHandler as? DeviceAwareProcessHandler }
-    .filter { processHandler -> devices.any { processHandler.isAssociated(it) } }
+    .mapNotNull { it.processHandler }
+    .filter {
+      val deviceAwareProcessHandler = it.getCopyableUserData(DeviceAwareProcessHandler.EXTENSION_KEY) ?: return@filter false
+      devices.any { d -> deviceAwareProcessHandler.isAssociated(d) }
+    }
 }

@@ -16,8 +16,13 @@
 package com.android.tools.idea.execution.common.processhandler
 
 import com.android.ddmlib.IDevice
-import com.intellij.execution.process.ProcessHandler
+import com.intellij.openapi.util.Key
 
-abstract class DeviceAwareProcessHandler : ProcessHandler() {
-  abstract fun isAssociated(device: IDevice): Boolean
+interface DeviceAwareProcessHandler {
+  companion object {
+    @JvmField
+    val EXTENSION_KEY = Key<DeviceAwareProcessHandler>("android.execution.deviceawareprocesshandler")
+  }
+
+  fun isAssociated(device: IDevice): Boolean
 }

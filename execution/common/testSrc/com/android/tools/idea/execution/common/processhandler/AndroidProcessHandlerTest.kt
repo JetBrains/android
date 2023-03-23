@@ -22,7 +22,6 @@ import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.run.DeploymentApplicationService
-import com.android.tools.idea.run.deployable.SwappableProcessHandler
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ExecutionTarget
 import com.intellij.execution.ExecutionTargetManager
@@ -125,7 +124,7 @@ class AndroidProcessHandlerTest {
 
   @Test
   fun handlerIsRegisteredToCopyableUserData() {
-    assertThat(handler.getCopyableUserData(SwappableProcessHandler.EXTENSION_KEY)).isSameAs(handler)
+    assertThat(handler.getCopyableUserData(DeviceAwareProcessHandler.EXTENSION_KEY)).isSameAs(handler)
   }
 
   @Test

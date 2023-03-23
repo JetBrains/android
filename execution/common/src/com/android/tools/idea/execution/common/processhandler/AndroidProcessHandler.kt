@@ -20,15 +20,10 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.ddmlib.Client
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
-import com.android.tools.idea.execution.common.AndroidSessionInfo
-import com.android.tools.idea.execution.common.AppRunConfiguration
 import com.android.tools.idea.run.DeploymentApplicationService
-import com.android.tools.idea.run.deployable.SwappableProcessHandler
 import com.intellij.execution.DefaultExecutionTarget
-import com.intellij.execution.ExecutionTarget
 import com.intellij.execution.ExecutionTargetManager
 import com.intellij.execution.KillableProcess
-import com.intellij.execution.configurations.RunConfiguration
 import com.intellij.execution.process.AnsiEscapeDecoder
 import com.intellij.execution.process.ProcessHandler
 import com.intellij.openapi.diagnostic.Logger
@@ -70,14 +65,14 @@ class AndroidProcessHandler @JvmOverloads constructor(
   androidProcessMonitorManagerFactory: AndroidProcessMonitorManagerFactory = { textEmitter, listener ->
     AndroidProcessMonitorManager(targetApplicationId, deploymentApplicationService, textEmitter, listener,
                                  finishAndroidProcessCallback)
-  }) : KillableProcess, SwappableProcessHandler, DeviceAwareProcessHandler() {
+  }) : ProcessHandler(), KillableProcess, DeviceAwareProcessHandler {
 
   companion object {
     private var LOG = Logger.getInstance(AndroidProcessHandler::class.java)
   }
 
   init {
-    putCopyableUserData(SwappableProcessHandler.EXTENSION_KEY, this)
+    putCopyableUserData(DeviceAwareProcessHandler.EXTENSION_KEY, this)
   }
 
   /**
@@ -214,23 +209,6 @@ class AndroidProcessHandler @JvmOverloads constructor(
   @AnyThread
   override fun killProcess() {
     destroyProcess()
-  }
-
-  @AnyThread
-  override fun getExecutor() = getUserData(AndroidSessionInfo.KEY)?.executor
-
-  @AnyThread
-  override fun isRunningWith(runConfiguration: RunConfiguration, executionTarget: ExecutionTarget): Boolean {
-    val sameRunningApp = runConfiguration is AppRunConfiguration && runConfiguration.appId == targetApplicationId
-    if (!sameRunningApp) {
-      return false
-    }
-
-    if (executionTarget is AndroidExecutionTarget) {
-      return areAnyDevicesAssociated(executionTarget)
-    }
-
-    return false
   }
 
   @AnyThread
