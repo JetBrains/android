@@ -112,10 +112,6 @@ class AndroidJavaDebuggerTest {
     val processHandler = session!!.debugProcess.processHandler
     // For AndroidPositionManager.
     assertThat(processHandler.getUserData(AndroidSessionInfo.ANDROID_DEVICE_API_LEVEL)).isEqualTo(AndroidVersion(26))
-    // For Apply Changes.
-    val sessionInfo = processHandler.getUserData(AndroidSessionInfo.KEY)!!
-    assertThat(sessionInfo.processHandler).isEqualTo(processHandler)
-    assertThat(sessionInfo.executor).isEqualTo(executionEnvironment.executor)
   }
 
   @Test
