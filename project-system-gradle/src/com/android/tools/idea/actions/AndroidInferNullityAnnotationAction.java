@@ -49,6 +49,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.ui.Messages;
@@ -286,7 +287,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
   // Intellij code from InferNullityAnnotationsAction.
   @Override
   protected void restartAnalysis(Project project, AnalysisScope scope) {
-    ApplicationManager.getApplication().invokeLater(() -> analyze(project, scope));
+    DumbService.getInstance(project).smartInvokeLater(() -> analyze(project, scope));
   }
 
   // Intellij code from InferNullityAnnotationsAction.
