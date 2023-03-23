@@ -147,6 +147,19 @@ class DeviceScreenshotOptionsTest {
     assertThat(screenshotImage.isWear).isTrue()
   }
 
+  @Test
+  fun testGetFramingOptionsWatchSquare() {
+    val deviceConfiguration = createDeviceConfiguration(mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
+    val screenshotOptions = DeviceScreenshotOptions(serialNumber, deviceConfiguration, deviceView)
+    val image = createImage(384, 384, Color.DARK_GRAY)
+    val displayInfo = "DisplayDeviceInfo{..., 384 x 384, ..., density 200, ...}"
+    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.WEAR)
+    val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
+    assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Wear OS Square")
+    assertThat(screenshotOptions.getDefaultFramingOption(framingOptions, screenshotImage)).isEqualTo(0)
+    assertThat(screenshotImage.isWear).isTrue()
+  }
+
   private fun createImage(width: Int, height: Int, color: Color): BufferedImage {
     val image = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
     val g2 = image.createGraphics()

@@ -28,6 +28,9 @@ iml_module(
     name = "intellij.android.adb.ui.tests",
     iml_files = ["intellij.android.adb.ui.tests.iml"],
     test_class = "com.android.tools.idea.ui.AdbUiTestSuite",
+    test_data = [
+        "//tools/adt/idea/artwork:device-art-resources",
+    ],
     test_friends = ["//tools/adt/idea/android-adb-ui:intellij.android.adb.ui"],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],

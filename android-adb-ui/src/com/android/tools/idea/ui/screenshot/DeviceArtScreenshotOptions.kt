@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.screenshot
 import com.android.resources.ScreenOrientation
 import com.android.tools.adtui.ImageUtils
 import com.android.tools.adtui.device.DeviceArtDescriptor
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer.Option.ALLOW_IMAGE_ROTATION
 import java.awt.image.BufferedImage
 import java.util.EnumSet
@@ -43,7 +44,10 @@ class DeviceArtScreenshotOptions(
     val imgAspectRatio = screenshotImage.width.toDouble() / screenshotImage.height
     val orientation = if (imgAspectRatio >= 1 - ImageUtils.EPSILON) ScreenOrientation.LANDSCAPE else ScreenOrientation.PORTRAIT
     val allDescriptors = DeviceArtDescriptor.getDescriptors(null)
-    return allDescriptors.filter { it.canFrameImage(screenshotImage.image, orientation) }.map { DeviceArtFramingOption(it) }
+    return allDescriptors
+      .filter { it.canFrameImage(screenshotImage.image, orientation) }
+      .filter { it.isCompatible(screenshotImage) }
+      .map { DeviceArtFramingOption(it) }
   }
 
   override fun getDefaultFramingOption(framingOptions: List<FramingOption>, screenshotImage: ScreenshotImage): Int {
@@ -62,5 +66,18 @@ class DeviceArtScreenshotOptions(
 
   private fun findFrameIndexForDeviceModel(frames: List<FramingOption>, deviceModel: String): Int {
     return frames.indexOfFirst { it.displayName.equals(deviceModel, ignoreCase = true) }
+  }
+
+  private fun DeviceArtDescriptor.isCompatible(screenshotImage: ScreenshotImage): Boolean {
+    if (!StudioFlags.PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED.get()) {
+      return true
+    }
+    if (!screenshotImage.isWear) {
+      return true
+    }
+    // In the case of wear devices, we want to filter out phone/tablet descriptors and only end up with the wear descriptor
+    // that matches the shape of the wear device.
+    val compatibleDeviceArtId = if (screenshotImage.isRoundDisplay) "watch_round" else "watch_square"
+    return this.id == compatibleDeviceArtId
   }
 }
