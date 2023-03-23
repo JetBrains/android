@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.dagger.concepts
 
-import com.android.tools.idea.dagger.index.getAliasSimpleNames
+import com.android.tools.idea.dagger.unboxed
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiType
@@ -24,15 +24,11 @@ import org.jetbrains.kotlin.psi.KtFunction
 
 internal data class ProviderDaggerElement(
   override val psiElement: PsiElement,
-  val providedPsiTypes: Set<PsiType>
+  private val providedPsiType: PsiType
 ) : DaggerElement() {
 
-  internal constructor(
-    psiElement: KtFunction
-  ) : this(psiElement, setOf(psiElement.getReturnedPsiType()))
-  internal constructor(
-    psiElement: PsiMethod
-  ) : this(psiElement, setOf(psiElement.getReturnedPsiType()))
+  internal constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())
+  internal constructor(psiElement: PsiMethod) : this(psiElement, psiElement.getReturnedPsiType())
 
   override fun getRelatedDaggerElements(): List<DaggerRelatedElement> {
     // Since Dagger allows types to be wrapped with Lazy<> and Provider<> and since our index stores
@@ -40,12 +36,7 @@ internal data class ProviderDaggerElement(
     // "Provider" for all types.
     val project = psiElement.project
     val scope = project.projectScope()
-    val indexKeys =
-      providedPsiTypes.flatMap { it.getIndexKeys() } +
-        ConsumerDaggerElementBase.wrappingDaggerTypes.flatMap {
-          val simpleName = it.substringAfterLast(".")
-          listOf(simpleName) + getAliasSimpleNames(simpleName, project, scope)
-        }
+    val indexKeys = providedPsiType.getIndexKeys() + extraIndexKeysForProvider(project, scope)
 
     return getRelatedDaggerElementsFromIndex<ConsumerDaggerElementBase>(indexKeys).map {
       DaggerRelatedElement(it, it.relatedElementGrouping)
@@ -53,8 +44,10 @@ internal data class ProviderDaggerElement(
   }
 
   override fun filterResolveCandidate(resolveCandidate: DaggerElement): Boolean =
-    when (resolveCandidate) {
-      is ConsumerDaggerElementBase -> resolveCandidate.consumedType in providedPsiTypes
-      else -> false
-    }
+    resolveCandidate is ConsumerDaggerElementBase && canProvideType(resolveCandidate.consumedType)
+
+  fun canProvideType(psiType: PsiType): Boolean {
+    return psiType.unboxed == providedPsiType ||
+      psiType.withoutWrappingDaggerType() == providedPsiType
+  }
 }

@@ -22,7 +22,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
-import com.intellij.psi.impl.source.PsiClassReferenceType
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 
@@ -36,7 +35,7 @@ internal abstract class ConsumerDaggerElementBase : DaggerElement() {
 
   /** Type being consumed, without any wrapper like `dagger.Lazy<>`. */
   val consumedType: PsiType
-    get() = rawType.removeWrappingDaggerType().unboxed
+    get() = rawType.withoutWrappingDaggerType().unboxed
 
   override fun getRelatedDaggerElements(): List<DaggerRelatedElement> =
     getRelatedDaggerElementsFromIndex<ProviderDaggerElement>(consumedType.getIndexKeys()).map {
@@ -44,26 +43,7 @@ internal abstract class ConsumerDaggerElementBase : DaggerElement() {
     }
 
   override fun filterResolveCandidate(resolveCandidate: DaggerElement) =
-    when (resolveCandidate) {
-      is ProviderDaggerElement -> consumedType in resolveCandidate.providedPsiTypes
-      else -> false
-    }
-
-  companion object {
-    internal val wrappingDaggerTypes = setOf(DaggerAnnotations.LAZY, DaggerAnnotations.PROVIDER)
-
-    /**
-     * Dagger allows consumers to wrap a requested type with Lazy<>, Provider<>, or
-     * Provider<Lazy<>>. This method removes any of those wrappers, returning the inner type.
-     */
-    internal fun PsiType.removeWrappingDaggerType(): PsiType {
-      if (this is PsiClassReferenceType && rawType().canonicalText in wrappingDaggerTypes) {
-        return parameters[0].removeWrappingDaggerType()
-      }
-
-      return this
-    }
-  }
+    resolveCandidate is ProviderDaggerElement && resolveCandidate.canProvideType(consumedType)
 }
 
 internal data class ConsumerDaggerElement(

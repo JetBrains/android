@@ -16,15 +16,19 @@
 package com.android.tools.idea.dagger.concepts
 
 import com.android.tools.idea.dagger.addDaggerAndHiltClasses
+import com.android.tools.idea.kotlin.psiType
+import com.android.tools.idea.kotlin.toPsiType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.psi.KtProperty
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -277,5 +281,80 @@ class ProviderDaggerElementTest {
 
     assertThat(provideMyNullableFooDaggerElement.getRelatedDaggerElements())
       .containsExactlyElementsIn(provideFooRelatedElements)
+  }
+
+  @Test
+  fun canProviderType_normalType() {
+    addDaggerAndHiltClasses(myFixture)
+
+    myFixture.openFileInEditor(
+      myFixture
+        .addFileToProject(
+          "src/com/example/Foo.kt",
+          // language=kotlin
+          """
+          package com.example
+
+          import javax.inject.Inject
+
+          class Foo @Inject constructor() {}
+
+          class Bar {}
+          """
+            .trimIndent()
+        )
+        .virtualFile
+    )
+
+    val fooConstructor =
+      myFixture.findParentElement<KtConstructor<*>>("class Foo @Inject construc|tor")
+    val fooType = myFixture.findParentElement<KtClass>("class Fo|o").toPsiType()!!
+    val barType = myFixture.findParentElement<KtClass>("class Ba|r").toPsiType()!!
+
+    val providerDaggerElement = ProviderDaggerElement(fooConstructor)
+
+    assertThat(providerDaggerElement.canProvideType(fooType)).isTrue()
+    assertThat(providerDaggerElement.canProvideType(barType)).isFalse()
+  }
+
+  @Test
+  fun canProviderType_wrappedType() {
+    addDaggerAndHiltClasses(myFixture)
+
+    myFixture.openFileInEditor(
+      myFixture
+        .addFileToProject(
+          "src/com/example/Foo.kt",
+          // language=kotlin
+          """
+          package com.example
+
+          import dagger.Lazy
+          import javax.inject.Inject
+          import javax.inject.Provider
+
+          class Foo @Inject constructor() {}
+
+          val lazyFoo: Lazy<Foo>
+          val providerFoo: Provider<Foo>
+          val providerLazyFoo: Provider<Lazy<Foo>>
+          """
+            .trimIndent()
+        )
+        .virtualFile
+    )
+
+    val fooConstructor =
+      myFixture.findParentElement<KtConstructor<*>>("class Foo @Inject construc|tor")
+    val lazyFooType = myFixture.findParentElement<KtProperty>("val lazy|Foo").psiType!!
+    val providerFooType = myFixture.findParentElement<KtProperty>("val provider|Foo").psiType!!
+    val providerLazyFooType =
+      myFixture.findParentElement<KtProperty>("val providerLazy|Foo").psiType!!
+
+    val providerDaggerElement = ProviderDaggerElement(fooConstructor)
+
+    assertThat(providerDaggerElement.canProvideType(lazyFooType)).isTrue()
+    assertThat(providerDaggerElement.canProvideType(providerFooType)).isTrue()
+    assertThat(providerDaggerElement.canProvideType(providerLazyFooType)).isTrue()
   }
 }
