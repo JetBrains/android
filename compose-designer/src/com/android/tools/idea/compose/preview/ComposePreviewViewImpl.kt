@@ -180,6 +180,11 @@ internal class ComposePreviewViewImpl(
         } else dataProvider.getData(key)
       }
       .build()
+      .apply {
+        // Set the initial scale value to 0.25, so the preview is not large before first
+        // zoom-to-fit is triggered.
+        setScale(0.25)
+      }
 
   override val isPannable: Boolean
     get() = mainSurface.isPannable
