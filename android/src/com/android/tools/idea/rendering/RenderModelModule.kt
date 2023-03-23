@@ -45,7 +45,7 @@ interface RenderModelModule : Disposable, IdeaModuleProvider {
   /** If found, returns the module's resource package name. */
   val resourcePackage: String?
 
-  val dependencies: RenderModuleDependencies
+  val dependencies: ModuleDependencies
 
   /** The project current module belongs to. */
   val project: Project

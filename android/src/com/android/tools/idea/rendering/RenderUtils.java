@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.Configuration;
+import com.android.tools.idea.configurations.StudioConfigurationModelModule;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.ResourceClassRegistry;
 import com.android.tools.idea.res.ResourceIdManager;
@@ -37,23 +38,21 @@ public class RenderUtils {
       .forEach(configuration -> {
         // Clear layoutlib bitmap cache (in case files have been modified externally)
         IAndroidTarget target = configuration.getTarget();
-        Module module = configuration.getModule();
-        if (module != null) {
-          StudioModuleClassLoaderManager.get().clearCache(module);
-          ResourceIdManager.get(module).resetDynamicIds();
-          ResourceClassRegistry.get(module.getProject()).clearCache();
-          if (target != null) {
-            AndroidTargetData targetData = AndroidTargetData.getTargetData(target, AndroidPlatforms.getInstance(module));
-            if (targetData != null) {
-              targetData.clearAllCaches(module);
-            }
+        Module module = ((StudioConfigurationModelModule)(configuration.getConfigModule())).getModule();
+        StudioModuleClassLoaderManager.get().clearCache(module);
+        ResourceIdManager.get(module).resetDynamicIds();
+        ResourceClassRegistry.get(module.getProject()).clearCache();
+        if (target != null) {
+          AndroidTargetData targetData = AndroidTargetData.getTargetData(target, AndroidPlatforms.getInstance(module));
+          if (targetData != null) {
+            targetData.clearAllCaches(module);
           }
 
-          // Reset resources for the current module and all the dependencies
-          AndroidFacet facet = AndroidFacet.getInstance(module);
-          Stream.concat(AndroidDependenciesCache.getAllAndroidDependencies(module, true).stream(), Stream.of(facet))
-            .filter(Objects::nonNull)
-            .forEach(f -> StudioResourceRepositoryManager.getInstance(f).resetAllCaches());
+        // Reset resources for the current module and all the dependencies
+        AndroidFacet facet = AndroidFacet.getInstance(module);
+        Stream.concat(AndroidDependenciesCache.getAllAndroidDependencies(module, true).stream(), Stream.of(facet))
+          .filter(Objects::nonNull)
+          .forEach(f -> StudioResourceRepositoryManager.getInstance(f).resetAllCaches());
         }
       });
   }

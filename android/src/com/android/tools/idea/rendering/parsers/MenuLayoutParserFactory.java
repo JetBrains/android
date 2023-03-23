@@ -20,7 +20,7 @@ import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ActionBarHandler;
 import com.android.tools.idea.rendering.LayoutlibCallbackImpl;
-import com.android.tools.idea.rendering.RenderModuleDependencies;
+import com.android.tools.idea.rendering.ModuleDependencies;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;
@@ -75,7 +75,7 @@ class MenuLayoutParserFactory {
   }
 
   @NotNull
-  public static ILayoutPullParser createInNavigationView(@NotNull RenderXmlFile file, @NotNull RenderModuleDependencies dependencies) {
+  public static ILayoutPullParser createInNavigationView(@NotNull RenderXmlFile file, @NotNull ModuleDependencies dependencies) {
     String navViewTag = dependencies.getDependsOnAndroidX() ? NAVIGATION_VIEW.newName() : NAVIGATION_VIEW.oldName();
     @Language("XML")
     String xml = "<" + navViewTag + " xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +

@@ -19,10 +19,14 @@ import com.android.tools.rendering.IRenderLogger
 import com.intellij.psi.PsiClass
 
 /** Information about module dependencies required for rendering. */
-interface RenderModuleDependencies {
+interface ModuleDependencies {
   val dependsOnAppCompat: Boolean
 
   val dependsOnAndroidXAppCompat: Boolean
+
+  val dependsOnDesign: Boolean
+
+  val dependsOnAndroidXDesign: Boolean
 
   val dependsOnAndroidX: Boolean
 

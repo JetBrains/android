@@ -37,13 +37,19 @@ import com.intellij.psi.PsiClass
 import org.jetbrains.android.sdk.AndroidSdkUtils
 import java.io.IOException
 
-/** Studio specific implementation of [RenderModuleDependencies]. */
-class StudioRenderModuleDependencies(private val module: Module) : RenderModuleDependencies {
+/** Studio specific implementation of [ModuleDependencies]. */
+class StudioModuleDependencies(private val module: Module) : ModuleDependencies {
   override val dependsOnAppCompat: Boolean
     get() = module.dependsOn(GoogleMavenArtifactId.APP_COMPAT_V7)
 
   override val dependsOnAndroidXAppCompat: Boolean
     get() = module.dependsOn(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7)
+
+  override val dependsOnDesign: Boolean
+    get() = module.dependsOn(GoogleMavenArtifactId.DESIGN)
+
+  override val dependsOnAndroidXDesign: Boolean
+    get() = module.dependsOn(GoogleMavenArtifactId.ANDROIDX_DESIGN)
 
   override val dependsOnAndroidX: Boolean
     get() = module.dependsOnAndroidx()
@@ -93,7 +99,7 @@ private fun getPackageName(library: ExternalAndroidLibrary): String? {
         packageName = AndroidManifestPackageNameUtils.getPackageNameFromManifestFile(manifest)
       }
       catch (e: IOException) {
-        Logger.getInstance(StudioRenderModuleDependencies::class.java)
+        Logger.getInstance(StudioModuleDependencies::class.java)
           .info("getPackageName: failed to find packageName for library ${library.libraryName()}")
       }
     }
