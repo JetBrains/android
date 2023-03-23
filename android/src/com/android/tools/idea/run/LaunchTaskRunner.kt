@@ -195,34 +195,23 @@ class LaunchTaskRunner(
      */
     val processHandlers = settings.getProcessHandlersForDevices(project, devices).distinct()
 
-    if (processHandlers.size > 1) {
-      throw ExecutionException("Can't perform applying changes. Devices associated with more than one running process")
-    }
-
-    val existingProcessHandler = processHandlers.firstOrNull()
-
-    val existingRunContentDescriptor = existingProcessHandler?.let {
+    /**
+     * Searching for first not hidden [RunContentDescriptor].
+     */
+    val existingRunContentDescriptor = processHandlers.mapNotNull {
       withContext(uiThread) {
-        RunContentManager.getInstance(project).findContentDescriptor(env.executor, existingProcessHandler)
+        RunContentManager.getInstance(project).findContentDescriptor(env.executor, it)?.takeIf { !it.isHiddenContent }
       }
-    }
+    }.firstOrNull()
 
     val packageName = applicationIdProvider.packageName
-    val processHandler = existingProcessHandler ?: AndroidProcessHandler(project, packageName)
+    val processHandler = existingRunContentDescriptor?.processHandler ?: AndroidProcessHandler(project, packageName).apply {
+      devices.forEach { addTargetDevice(it) }
+    }
+
     val console = existingRunContentDescriptor?.executionConsole as? ConsoleView ?: createConsole()
 
     doRun(devices, processHandler, indicator, console, false)
-
-    if (processHandler is AndroidProcessHandler) {
-      devices.forEach { device ->
-        processHandler.addTargetDevice(device)
-        if (!StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.get()) {
-          console.printHyperlink(getShowLogcatLinkText(device)) { project ->
-            project.messageBus.syncPublisher(ShowLogcatListener.TOPIC).showLogcat(device, applicationIdProvider.packageName)
-          }
-        }
-      }
-    }
 
     withContext(uiThread) {
       val attachedContent = existingRunContentDescriptor?.attachedContent
@@ -230,23 +219,18 @@ class LaunchTaskRunner(
         createRunContentDescriptor(processHandler, console, env)
       }
       else {
-        if (existingRunContentDescriptor.isHiddenContent) {
-          existingRunContentDescriptor
-        }
-        else {
-          object : RunContentDescriptor(existingRunContentDescriptor.executionConsole,
-                                        existingRunContentDescriptor.processHandler,
-                                        existingRunContentDescriptor.component,
-                                        existingRunContentDescriptor.displayName,
-                                        existingRunContentDescriptor.icon, null as Runnable?,
-                                        existingRunContentDescriptor.restartActions) {
-            override fun isHiddenContent() = true
-          }.apply {
+        object : RunContentDescriptor(existingRunContentDescriptor.executionConsole,
+                                      existingRunContentDescriptor.processHandler,
+                                      existingRunContentDescriptor.component,
+                                      existingRunContentDescriptor.displayName,
+                                      existingRunContentDescriptor.icon, null as Runnable?,
+                                      existingRunContentDescriptor.restartActions) {
+          override fun isHiddenContent() = true
+        }.apply {
             setAttachedContent(attachedContent)
             // Same as [RunContentBuilder.showRunContent]
             Disposer.register(project, this)
           }
-        }
       }
     }
   }
