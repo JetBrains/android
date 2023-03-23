@@ -32,17 +32,8 @@ public abstract class AndroidExecutionTarget extends ExecutionTarget {
   public abstract int getAvailableDeviceCount();
 
   /**
-   * @return the collection of running devices to run a configuration on, apply changes to, etc
-   */
-  public @NotNull ListenableFuture<Collection<IDevice>> getRunningDevicesAsync() {
-    throw new UnsupportedOperationException();
-  }
-
-  /**
    * @return the collection of live running devices to run a configuration on, apply changes to, etc
-   * @deprecated Use {@link #getRunningDevicesAsync}
    */
-  @Deprecated
   @NotNull
   public abstract Collection<IDevice> getRunningDevices();
 

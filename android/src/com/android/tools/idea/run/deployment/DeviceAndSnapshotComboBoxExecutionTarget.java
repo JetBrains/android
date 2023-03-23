@@ -22,15 +22,12 @@ import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.configuration.AndroidWearConfiguration;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.ExecutionTarget;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.openapi.util.UserDataHolderBase;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import icons.StudioIcons;
-import java.awt.EventQueue;
 import java.util.Collection;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.swing.Icon;
@@ -54,10 +51,15 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
 
   @Override
   public @NotNull ListenableFuture<Boolean> isApplicationRunningAsync(@NotNull String appPackage) {
-    // noinspection UnstableApiUsage, SpellCheckingInspection
-    return Futures.transform(getRunningDevicesAsync(),
-                             devices -> devices.stream().anyMatch(d -> !DeploymentApplicationService.getInstance().findClient(d, appPackage).isEmpty()),
-                             AppExecutorUtil.getAppExecutorService());
+    return Futures.submit(() -> isApplicationRunning(appPackage), AppExecutorUtil.getAppExecutorService());
+  }
+
+  private boolean isApplicationRunning(@NotNull String appPackage) {
+    var service = DeploymentApplicationService.getInstance();
+
+    return getRunningDevices().stream()
+      .map(device -> service.findClient(device, appPackage))
+      .anyMatch(clients -> !clients.isEmpty());
   }
 
   @Override
@@ -65,32 +67,9 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
     return (int)deviceStream().count();
   }
 
-  @Override
-  public @NotNull ListenableFuture<Collection<IDevice>> getRunningDevicesAsync() {
-    var futures = deviceStream()
-      .filter(Device::isConnected)
-      .map(Device::getDdmlibDeviceAsync)
-      .collect(Collectors.toList());
-
-    @SuppressWarnings("UnstableApiUsage")
-    var future = Futures.successfulAsList(futures);
-
-    // The EDT and Action Updater (Common) threads call into this. Ideally we'd use the respective executors here instead of the direct
-    // executor. But we don't have access to the Action Updater (Common) executor.
-
-    // noinspection UnstableApiUsage
-    return Futures.transform(future, DeviceAndSnapshotComboBoxExecutionTarget::filterNonNull, MoreExecutors.directExecutor());
-  }
-
   @NotNull
   @Override
   public Collection<IDevice> getRunningDevices() {
-    if (Thread.currentThread().getName().equals("Action Updater (Common)") || EventQueue.isDispatchThread()) {
-      Loggers.errorConditionally(DeviceAndSnapshotComboBoxExecutionTarget.class,
-                                 "Blocking Future::get calls on an Action Updater (Common) thread or the EDT http://b/259746412, " +
-                                 "http://b/259746444, http://b/259746749, http://b/259747002, http://b/259747870, and http://b/259747965");
-    }
-
     return deviceStream()
       .filter(Device::isConnected)
       .map(Device::getDdmlibDeviceAsync)
@@ -149,11 +128,5 @@ final class DeviceAndSnapshotComboBoxExecutionTarget extends AndroidExecutionTar
     return configuration instanceof AndroidRunConfigurationBase ||
            configuration instanceof AndroidWearConfiguration ||
            (deploysToLocalDevice != null && deploysToLocalDevice);
-  }
-
-  private static @NotNull Collection<IDevice> filterNonNull(@NotNull Collection<IDevice> devices) {
-    return devices.stream()
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
   }
 }
