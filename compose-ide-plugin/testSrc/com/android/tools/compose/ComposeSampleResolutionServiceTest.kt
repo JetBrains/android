@@ -74,7 +74,7 @@ class ComposeSampleResolutionServiceTest : AndroidGradleTestCase() {
     assume().that(file).isNotNull()
     myFixture.openFileInEditor(file!!)
 
-    val psiElement = myFixture.moveCaret("myFuncti|on").navigationElement
+    myFixture.moveCaret("myFuncti|on").navigationElement
     val librarySourceFunction = myFixture.elementAtCaret.navigationElement as KtNamedFunction
     assume().that(librarySourceFunction).isNotNull()
 
