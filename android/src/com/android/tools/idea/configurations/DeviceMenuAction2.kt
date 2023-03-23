@@ -111,7 +111,7 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
 
   private fun createDeviceMenuList() {
     val groupedDevices = getSuitableDevicesForMenu(renderContext.configuration!!)
-    addWindowSizeAndNexusSection(groupedDevices)
+    addReferenceDeviceSection(groupedDevices)
     addWearDeviceSection(groupedDevices)
     addTvDeviceSection(groupedDevices)
     addAutomotiveDeviceSection(groupedDevices)
@@ -120,10 +120,11 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
     addGenericDeviceAndNewDefinitionSection(groupedDevices)
   }
 
-  private fun addWindowSizeAndNexusSection(groupedDevices: Map<DeviceGroup, List<Device>>) {
-    val windowDevices = AdditionalDeviceService.getInstance()?.getWindowSizeDevices() ?: return
+  private fun addReferenceDeviceSection(groupedDevices: Map<DeviceGroup, List<Device>>) {
     add(DeviceCategory("Reference Devices", "Reference Devices", StudioIcons.Avd.DEVICE_MOBILE))
-    for (device in windowDevices) {
+
+    for (type in ReferenceDeviceType.values()) {
+      val device = getReferenceDevice(groupedDevices, type) ?: continue
       val selected = device == renderContext.configuration?.device
       add(DeviceMenuAction.SetDeviceAction(renderContext,
                                            getDeviceLabel(device),
@@ -133,10 +134,18 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
                                            null, selected))
     }
 
-    groupedDevices.get(DeviceGroup.NEXUS_XL)?.let { addDevicesToPopup("Phones", it) }
-    groupedDevices.get(DeviceGroup.NEXUS_TABLET)?.let { addDevicesToPopup("Tablets", it) }
-    groupedDevices.get(DeviceGroup.DESKTOP)?.let { addDevicesToPopup("Desktop", it) }
+    // Add canonical small and medium phone devices at the top of menu.
+    val phoneDevices = listOfNotNull(getCanonicalDevice(groupedDevices, CanonicalDeviceType.SMALL_PHONE),
+                                     getCanonicalDevice(groupedDevices, CanonicalDeviceType.MEDIUM_PHONE)) +
+                       groupedDevices.getOrDefault(DeviceGroup.NEXUS_XL, emptyList())
+    addDevicesToPopup("Phones", phoneDevices)
 
+    // Add canonical medium tablet device at the top of menu.
+    val tabletDevices = listOfNotNull(getCanonicalDevice(groupedDevices, CanonicalDeviceType.MEDIUM_TABLET)) +
+                        groupedDevices.getOrDefault(DeviceGroup.NEXUS_TABLET, emptyList())
+    addDevicesToPopup("Tablets", tabletDevices)
+
+    groupedDevices.get(DeviceGroup.DESKTOP)?.let { addDevicesToPopup("Desktop", it) }
     addSeparator()
   }
 

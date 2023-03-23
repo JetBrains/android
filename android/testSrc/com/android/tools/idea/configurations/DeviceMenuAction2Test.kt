@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.configurations
 
+import com.android.sdklib.devices.DeviceManager
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.prettyPrintActions
 import com.android.tools.idea.flags.StudioFlags
@@ -61,21 +62,8 @@ class DeviceMenuAction2Test {
     StudioFlags.NELE_NEW_DEVICE_MENU.clearOverride()
   }
 
-  @Test
-  fun testActions() {
-    val configuration = Mockito.mock(Configuration::class.java)
-    whenever(configuration.module).thenReturn(projectRule.projectRule.module)
-    whenever(configuration.configurationManager).thenReturn(ConfigurationManager.getOrCreateInstance(projectRule.projectRule.module))
-    val holder = ConfigurationHolder { configuration }
-    val menuAction = DeviceMenuAction2(holder) { _, _ -> }
-    menuAction.updateActions(DataContext.EMPTY_CONTEXT)
-    val presentationFactory = PresentationFactory()
-    val actual = runInEdtAndGet {
-      @Suppress("UnstableApiUsage")
-      Utils.expandActionGroup(menuAction, presentationFactory, DataContext.EMPTY_CONTEXT, ActionPlaces.TOOLBAR)
-      prettyPrintActions(menuAction, { action: AnAction -> !isAvdAction(action) }, presentationFactory)
-    }
-    val referenceDevicesExpected = if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
+  private fun getReferenceDevicesExpected(): String {
+    return if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
       """
     Reference Devices
     Medium Phone (411 × 891 dp, 420dpi)
@@ -93,8 +81,12 @@ class DeviceMenuAction2Test {
     Desktop (1920 × 1080 dp, xxhdpi)
     """
     }
-    val expected = referenceDevicesExpected +
-      """Phones
+  }
+
+  @Test
+  fun testActionWithoutCanonicalDevices() {
+    testActions(false, getReferenceDevicesExpected() +
+                       """Phones
         Pixel 7 (411 × 914 dp, 420dpi)
         Pixel 7 Pro (411 × 891 dp, 560dpi)
         Pixel 6 (411 × 914 dp, 420dpi)
@@ -165,7 +157,119 @@ class DeviceMenuAction2Test {
         10.1" WXGA (Tablet) (1280 × 800 dp, mdpi)
         13.5" Freeform (1707 × 960 dp, hdpi)
     Add Device Definition
-"""
+""")
+  }
+
+  @Test
+  fun testActionWithCanonicalDevices() {
+    testActions(true, getReferenceDevicesExpected() +
+                      """Phones
+        Small Phone (360 × 640 dp, xhdpi)
+        Medium Phone (411 × 914 dp, 420dpi)
+        Pixel 7 (411 × 914 dp, 420dpi)
+        Pixel 7 Pro (411 × 891 dp, 560dpi)
+        Pixel 6 (411 × 914 dp, 420dpi)
+        Pixel 6 Pro (411 × 891 dp, 560dpi)
+        Pixel 6a (411 × 914 dp, 420dpi)
+        Pixel 5 (393 × 851 dp, 440dpi)
+        Pixel 4 (393 × 829 dp, 440dpi)
+        Pixel 4 XL (411 × 869 dp, 560dpi)
+        Pixel 4a (393 × 851 dp, 440dpi)
+        Pixel 3 (393 × 785 dp, 440dpi)
+        Pixel 3 XL (411 × 846 dp, 560dpi)
+        Pixel 3a (393 × 807 dp, 440dpi)
+        Pixel 3a XL (432 × 864 dp, 400dpi)
+        Pixel 2 (411 × 731 dp, 420dpi)
+        Pixel 2 XL (411 × 823 dp, 560dpi)
+        Pixel (411 × 731 dp, 420dpi)
+        Pixel XL (411 × 731 dp, 560dpi)
+        Nexus 6 (411 × 731 dp, 560dpi)
+        Nexus 6P (411 × 731 dp, 560dpi)
+        Nexus 5X (411 × 731 dp, 420dpi)
+    Tablets
+        Medium Tablet (1280 × 800 dp, xhdpi)
+        Pixel C (1280 × 900 dp, xhdpi)
+        Nexus 10 (1280 × 800 dp, xhdpi)
+        Nexus 9 (1024 × 768 dp, xhdpi)
+        Nexus 7 (600 × 960 dp, xhdpi)
+        Nexus 7 (2012) (601 × 962 dp, 220dpi)
+    Desktop
+        Small Desktop (1366 × 768 dp, mdpi)
+        Medium Desktop (1920 × 1080 dp, xhdpi)
+        Large Desktop (1920 × 1080 dp, mdpi)
+    ------------------------------------------------------
+    Wear
+    Wear OS Small Round (192 × 192 dp, xhdpi)
+    Wear OS Rectangular (201 × 238 dp, xhdpi)
+    Wear OS Square (180 × 180 dp, xhdpi)
+    Wear OS Large Round (227 × 227 dp, xhdpi)
+    ------------------------------------------------------
+    TV
+    Android TV (4K) (960 × 540 dp, xhdpi)
+    Android TV (1080p) (960 × 540 dp, xhdpi)
+    Android TV (720p) (962 × 541 dp, tvdpi)
+    ------------------------------------------------------
+    Auto
+    Automotive (1024p landscape) (1024 × 768 dp, mdpi)
+    ------------------------------------------------------
+    Custom
+    ------------------------------------------------------
+    Generic Devices
+        2.7" QVGA (320 × 427 dp, ldpi)
+        2.7" QVGA slider (320 × 427 dp, ldpi)
+        3.2" HVGA slider (ADP1) (320 × 480 dp, mdpi)
+        3.2" QVGA (ADP2) (320 × 480 dp, mdpi)
+        3.3" WQVGA (320 × 533 dp, ldpi)
+        3.4" WQVGA (320 × 576 dp, ldpi)
+        3.7" WVGA (Nexus One) (320 × 533 dp, hdpi)
+        3.7" FWVGA slider (320 × 569 dp, hdpi)
+        4" WVGA (Nexus S) (320 × 533 dp, hdpi)
+        4.65" 720p (Galaxy Nexus) (360 × 640 dp, xhdpi)
+        4.7" WXGA (640 × 360 dp, xhdpi)
+        5.1" WVGA (480 × 800 dp, mdpi)
+        5.4" FWVGA (480 × 854 dp, mdpi)
+        Resizable (Experimental) (411 × 891 dp, 420dpi)
+        6.7" Horizontal Fold-in (360 × 879 dp, xxhdpi)
+        7" WSVGA (Tablet) (1024 × 600 dp, mdpi)
+        7.4" Rollable (610 × 925 dp, 420dpi)
+        7.6" Fold-in with outer display (674 × 841 dp, 420dpi)
+        8" Fold-out (838 × 945 dp, 420dpi)
+        10.1" WXGA (Tablet) (1280 × 800 dp, mdpi)
+        13.5" Freeform (1707 × 960 dp, hdpi)
+    Add Device Definition
+""")
+  }
+
+  private fun testActions(canonicalDeviceEnabled: Boolean, expected: String) {
+    val previousValue: String? = System.getProperty(DeviceManager.FLAG_CANONICAL_DEVICES)
+    System.setProperty(DeviceManager.FLAG_CANONICAL_DEVICES, canonicalDeviceEnabled.toString())
+    try {
+      testActions(expected)
+    }
+    finally {
+      if (previousValue != null) {
+        System.setProperty(DeviceManager.FLAG_CANONICAL_DEVICES, previousValue)
+      }
+      else {
+        System.clearProperty(DeviceManager.FLAG_CANONICAL_DEVICES)
+      }
+    }
+  }
+
+  private fun testActions(expected: String) {
+    val configuration = Mockito.mock(Configuration::class.java)
+    whenever(configuration.module).thenReturn(projectRule.projectRule.module)
+    whenever(configuration.configurationManager).thenReturn(ConfigurationManager.getOrCreateInstance(projectRule.projectRule.module))
+    val holder = ConfigurationHolder { configuration }
+    val menuAction = DeviceMenuAction2(holder) { _, _ -> }
+    menuAction.updateActions(DataContext.EMPTY_CONTEXT)
+    val presentationFactory = PresentationFactory()
+    val actual = runInEdtAndGet {
+      @Suppress("UnstableApiUsage")
+      Utils.expandActionGroup(menuAction, presentationFactory, DataContext.EMPTY_CONTEXT, ActionPlaces.TOOLBAR)
+      prettyPrintActions(menuAction, { action: AnAction -> !isAvdAction(action) }, presentationFactory)
+    }
+
     Truth.assertThat(actual).isEqualTo(expected)
   }
 

@@ -109,6 +109,10 @@ internal open class PreviewPickerTracker : BaseComposePickerTracker() {
             DeviceType.UNKNOWN_DEVICE_TYPE // TODO(b/205184728): Add tracker value for Auto
           DeviceGroup.GENERIC -> DeviceType.GENERIC
           DeviceGroup.OTHER, // unused in picker
+          DeviceGroup.ADDITIONAL_DEVICE ->
+            DeviceType.UNKNOWN_DEVICE_TYPE // TODO(b/205184728): Add tracker value for Auto
+          DeviceGroup.CANONICAL_DEVICE ->
+            DeviceType.UNKNOWN_DEVICE_TYPE // TODO(b/205184728): Add tracker value for Auto
           null -> DeviceType.UNKNOWN_DEVICE_TYPE
         }
       }

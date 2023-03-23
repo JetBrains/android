@@ -43,6 +43,8 @@ enum class DeviceGroup {
   AUTOMOTIVE,
   GENERIC,
   OTHER,
+  ADDITIONAL_DEVICE,
+  CANONICAL_DEVICE,
 }
 
 /**
@@ -68,6 +70,8 @@ fun getSuitableDevices(configuration: Configuration): Map<DeviceGroup, List<Devi
 
 /**
  * Group the given devices by [DeviceGroup]:
+ * - For canonical devices: [DeviceGroup.CANONICAL_DEVICE]
+ * - For predefined devices in [AdditionalDeviceService]: [DeviceGroup.ADDITIONAL_DEVICE]
  * - For Nexus/Pixel devices which diagonal Length < 5 inch: [DeviceGroup.NEXUS]
  * - Nexus/Pixel devices which diagonal Length < 6.5 inch: [DeviceGroup.NEXUS_XL]
  * - Other Nexus/Pixel devices: [DeviceGroup.NEXUS_TABLET]
@@ -82,11 +86,13 @@ fun getSuitableDevices(configuration: Configuration): Map<DeviceGroup, List<Devi
  * @see DeviceGroup
  * @return map of sorted devices
  */
-fun groupDevices(devices: List<Device>): Map<DeviceGroup, List<Device>> =
-  devices.filterNot { Configuration.CUSTOM_DEVICE_ID == it.id || ConfigurationManager.isAvdDevice(it) }
+fun groupDevices(devices: List<Device>): Map<DeviceGroup, List<Device>> {
+  return devices.filterNot { Configuration.CUSTOM_DEVICE_ID == it.id || ConfigurationManager.isAvdDevice(it) }
     .apply { sortDevicesByScreenSize(this) }
     .groupBy {
       when {
+        isCanonicalDevice(it) -> DeviceGroup.CANONICAL_DEVICE
+        isAdditionalDevice(it) -> DeviceGroup.ADDITIONAL_DEVICE
         isAutomotive(it) -> DeviceGroup.AUTOMOTIVE
         isWear(it) -> DeviceGroup.WEAR
         isDesktop(it) -> DeviceGroup.DESKTOP
@@ -97,6 +103,21 @@ fun groupDevices(devices: List<Device>): Map<DeviceGroup, List<Device>> =
       }
     }
     .toSortedMap()
+}
+
+private fun isCanonicalDevice(device: Device): Boolean {
+  val id = device.id
+  return id == "SmallPhone" || id == "MediumPhone" || id == "MediumTablet"
+}
+
+private fun isAdditionalDevice(device: Device): Boolean {
+  val id = device.id
+
+  return id == AdditionalDeviceService.DEVICE_CLASS_PHONE_ID ||
+         id == AdditionalDeviceService.DEVICE_CLASS_FOLDABLE_ID ||
+         id == AdditionalDeviceService.DEVICE_CLASS_TABLET_ID ||
+         id == AdditionalDeviceService.DEVICE_CLASS_DESKTOP_ID
+}
 
 private fun sizeGroupNexus(device: Device): DeviceGroup {
   val diagonalLength = device.defaultHardware.screen.diagonalLength
@@ -136,6 +157,44 @@ fun isUseWearDeviceAsDefault(module: Module): Boolean {
   return ApplicationManager.getApplication().runReadAction(Computable {
     manifest.usesFeatures.any { usesFeature -> usesFeature.name.value == WEAR_OS_USE_FEATURE_TAG }
   })
+}
+
+enum class CanonicalDeviceType(val id: String) {
+  SMALL_PHONE("SmallPhone"),
+  MEDIUM_PHONE("MediumPhone"),
+  MEDIUM_TABLET("MediumTablet"),
+}
+
+fun getCanonicalDevice(devices: Map<DeviceGroup, List<Device>>, type: CanonicalDeviceType): Device? =
+  devices[DeviceGroup.CANONICAL_DEVICE]?.firstOrNull { it.id == type.id }
+
+enum class ReferenceDeviceType {
+  MEDIUM_PHONE,
+  FOLDABLE,
+  MEDIUM_TABLET,
+  DESKTOP
+}
+
+/**
+ * Helper function to find the reference device. The device in [AdditionalDeviceService] is picked
+ */
+fun getReferenceDevice(config: Configuration, type: ReferenceDeviceType) = getReferenceDevice(getSuitableDevices (config), type)
+
+/**
+ * Helper function to find the reference device.
+ * @see [getReferenceDevice]
+ */
+fun getReferenceDevice(devices: Map<DeviceGroup, List<Device>>, type: ReferenceDeviceType): Device? {
+  return when (type) {
+    ReferenceDeviceType.MEDIUM_PHONE ->
+      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == AdditionalDeviceService.DEVICE_CLASS_PHONE_ID }
+    ReferenceDeviceType.FOLDABLE ->
+      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == AdditionalDeviceService.DEVICE_CLASS_FOLDABLE_ID }
+    ReferenceDeviceType.MEDIUM_TABLET ->
+      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == AdditionalDeviceService.DEVICE_CLASS_TABLET_ID }
+    ReferenceDeviceType.DESKTOP ->
+      devices[DeviceGroup.ADDITIONAL_DEVICE]?.firstOrNull { it.id == AdditionalDeviceService.DEVICE_CLASS_DESKTOP_ID }
+  }
 }
 
 /**
