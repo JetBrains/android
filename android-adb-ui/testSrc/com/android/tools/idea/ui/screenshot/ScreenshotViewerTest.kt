@@ -21,6 +21,8 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.findModelessDialog
+import com.android.tools.adtui.swing.optionsAsString
+import com.android.tools.adtui.swing.selectFirstMatch
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
@@ -193,7 +195,7 @@ class ScreenshotViewerTest {
     val ui = FakeUi(viewer.rootPane)
 
     val clipComboBox = ui.getComponent<JComboBox<*>>()
-    assertThat(clipComboBox.options()).doesNotContain("Play Store Compatible")
+    assertThat(clipComboBox.optionsAsString()).doesNotContain("Play Store Compatible")
   }
 
   @Test
@@ -203,7 +205,7 @@ class ScreenshotViewerTest {
     val ui = FakeUi(viewer.rootPane)
 
     val clipComboBox = ui.getComponent<JComboBox<*>>()
-    assertThat(clipComboBox.options()).contains("Play Store Compatible")
+    assertThat(clipComboBox.optionsAsString()).contains("Play Store Compatible")
   }
 
   @Test
@@ -351,18 +353,4 @@ class ScreenshotViewerTest {
     viewer.show()
     return viewer
   }
-
-  private fun <E> JComboBox<E>.selectFirstMatch(text: String) {
-    for (i in 0 until model.size) {
-      if (model.getElementAt(i).toString() == text) {
-        this.selectedIndex = i
-        return
-      }
-    }
-  }
-
-  private fun <E> JComboBox<E>.options(): List<String> =
-    (0 until model.size).map {
-      model.getElementAt(it).toString()
-    }
 }
