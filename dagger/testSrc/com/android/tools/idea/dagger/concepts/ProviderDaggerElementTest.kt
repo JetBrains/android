@@ -16,19 +16,15 @@
 package com.android.tools.idea.dagger.concepts
 
 import com.android.tools.idea.dagger.addDaggerAndHiltClasses
-import com.android.tools.idea.kotlin.psiType
-import com.android.tools.idea.kotlin.toPsiType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
-import org.jetbrains.kotlin.psi.KtProperty
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -421,7 +417,116 @@ class ProviderDaggerElementTest {
   }
 
   @Test
-  fun canProviderType_normalType() {
+  fun getRelatedDaggerElement_qualifiers() {
+    addDaggerAndHiltClasses(myFixture)
+
+    myFixture.openFileInEditor(
+      myFixture
+        .addFileToProject(
+          "src/com/example/Foo.kt",
+          // language=kotlin
+          """
+          package com.example
+
+          import dagger.Module
+          import dagger.Provides
+          import javax.inject.Inject
+          import javax.inject.Qualifier
+
+          @Qualifier
+          @Retention(value = AnnotationRetention.RUNTIME)
+          annotation class Named(val value: String)
+
+          class Foo @Inject constructor(
+            unqualifiedIntConsumer: Int,
+            @Named("Bert") bertIntConsumer: Int,
+            @Named("Ernie") ernieIntConsumer: Int,
+            unqualifiedBarConsumer: Bar,
+            @Named("Bert") bertBarConsumer: Bar,
+            @Named("Ernie") ernieBarConsumer: Bar,
+          )
+
+          class Bar
+
+          @Module
+          class MyModule {
+            companion object {
+              @Provides
+              fun provideUnqualifiedInt(): Int = 0
+
+              @Provides
+              @Named("Bert")
+              fun provideBertInt(): Int = 0
+
+              @Provides
+              @Named("Ernie")
+              fun provideErnieInt(): Int = 0
+
+              @Provides
+              fun provideUnqualifiedBar(): Bar = Bar()
+
+              @Provides
+              @Named("Bert")
+              fun provideBertBar(): Bar = Bar()
+
+              @Provides
+              @Named("Ernie")
+              fun provideErnieBar(): Bar = Bar()
+            }
+          }
+          """
+            .trimIndent()
+        )
+        .virtualFile
+    )
+
+    val unqualifiedIntConsumerDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("unqualifiedInt|Consumer"))
+    val bertIntConsumerDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("bertInt|Consumer"))
+    val ernieIntConsumerDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("ernieInt|Consumer"))
+    val unqualifiedBarConsumerDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("unqualifiedBar|Consumer"))
+    val bertBarConsumerDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("bertBar|Consumer"))
+    val ernieBarConsumerDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("ernieBar|Consumer"))
+
+    val provideUnqualifiedIntDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|UnqualifiedInt"))
+    val providerBertIntDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|BertInt"))
+    val provideErnieIntDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|ErnieInt"))
+    val provideUnqualifiedBarDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|UnqualifiedBar"))
+    val provideBertBarDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|BertBar"))
+    val provideErnieBarDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|ErnieBar"))
+
+    assertThat(provideUnqualifiedIntDaggerElement.getRelatedDaggerElements())
+      .containsExactly(DaggerRelatedElement(unqualifiedIntConsumerDaggerElement, "Consumers"))
+
+    assertThat(providerBertIntDaggerElement.getRelatedDaggerElements())
+      .containsExactly(DaggerRelatedElement(bertIntConsumerDaggerElement, "Consumers"))
+
+    assertThat(provideErnieIntDaggerElement.getRelatedDaggerElements())
+      .containsExactly(DaggerRelatedElement(ernieIntConsumerDaggerElement, "Consumers"))
+
+    assertThat(provideUnqualifiedBarDaggerElement.getRelatedDaggerElements())
+      .containsExactly(DaggerRelatedElement(unqualifiedBarConsumerDaggerElement, "Consumers"))
+
+    assertThat(provideBertBarDaggerElement.getRelatedDaggerElements())
+      .containsExactly(DaggerRelatedElement(bertBarConsumerDaggerElement, "Consumers"))
+
+    assertThat(provideErnieBarDaggerElement.getRelatedDaggerElements())
+      .containsExactly(DaggerRelatedElement(ernieBarConsumerDaggerElement, "Consumers"))
+  }
+
+  @Test
+  fun canProvideForConsumer_normalType() {
     addDaggerAndHiltClasses(myFixture)
 
     myFixture.openFileInEditor(
@@ -436,26 +541,32 @@ class ProviderDaggerElementTest {
 
           class Foo @Inject constructor() {}
 
-          class Bar {}
+          class Bar @Inject constructor(
+            consumerOfFoo: Foo,
+            consumerOfInt: Int
+          ) {}
           """
             .trimIndent()
         )
         .virtualFile
     )
 
-    val fooConstructor =
-      myFixture.findParentElement<KtConstructor<*>>("class Foo @Inject construc|tor")
-    val fooType = myFixture.findParentElement<KtClass>("class Fo|o").toPsiType()!!
-    val barType = myFixture.findParentElement<KtClass>("class Ba|r").toPsiType()!!
+    val fooProviderDaggerElement =
+      ProviderDaggerElement(
+        myFixture.findParentElement<KtConstructor<*>>("class Foo @Inject construc|tor")
+      )
 
-    val providerDaggerElement = ProviderDaggerElement(fooConstructor)
+    val consumerOfFooDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("consumerOf|Foo"))
+    val consumerOfIntDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("consumerOf|Int"))
 
-    assertThat(providerDaggerElement.canProvideType(fooType)).isTrue()
-    assertThat(providerDaggerElement.canProvideType(barType)).isFalse()
+    assertThat(fooProviderDaggerElement.canProvideFor(consumerOfFooDaggerElement)).isTrue()
+    assertThat(fooProviderDaggerElement.canProvideFor(consumerOfIntDaggerElement)).isFalse()
   }
 
   @Test
-  fun canProviderType_wrappedType() {
+  fun canProvideForConsumer_wrappedType() {
     addDaggerAndHiltClasses(myFixture)
 
     myFixture.openFileInEditor(
@@ -472,26 +583,31 @@ class ProviderDaggerElementTest {
 
           class Foo @Inject constructor() {}
 
-          val lazyFoo: Lazy<Foo>
-          val providerFoo: Provider<Foo>
-          val providerLazyFoo: Provider<Lazy<Foo>>
+          class Bar @Inject constructor(
+            lazyFoo: Lazy<Foo>,
+            providerFoo: Provider<Foo>,
+            providerLazyFoo: Provider<Lazy<Foo>>,
+          ) {}
           """
             .trimIndent()
         )
         .virtualFile
     )
 
-    val fooConstructor =
-      myFixture.findParentElement<KtConstructor<*>>("class Foo @Inject construc|tor")
-    val lazyFooType = myFixture.findParentElement<KtProperty>("val lazy|Foo").psiType!!
-    val providerFooType = myFixture.findParentElement<KtProperty>("val provider|Foo").psiType!!
-    val providerLazyFooType =
-      myFixture.findParentElement<KtProperty>("val providerLazy|Foo").psiType!!
+    val fooProviderDaggerElement =
+      ProviderDaggerElement(
+        myFixture.findParentElement<KtConstructor<*>>("class Foo @Inject construc|tor")
+      )
 
-    val providerDaggerElement = ProviderDaggerElement(fooConstructor)
+    val lazyFooDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("lazy|Foo"))
+    val providerFooDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("provider|Foo"))
+    val providerLazyFooDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("providerLazy|Foo"))
 
-    assertThat(providerDaggerElement.canProvideType(lazyFooType)).isTrue()
-    assertThat(providerDaggerElement.canProvideType(providerFooType)).isTrue()
-    assertThat(providerDaggerElement.canProvideType(providerLazyFooType)).isTrue()
+    assertThat(fooProviderDaggerElement.canProvideFor(lazyFooDaggerElement)).isTrue()
+    assertThat(fooProviderDaggerElement.canProvideFor(providerFooDaggerElement)).isTrue()
+    assertThat(fooProviderDaggerElement.canProvideFor(providerLazyFooDaggerElement)).isTrue()
   }
 }

@@ -415,4 +415,113 @@ class ConsumerDaggerElementTest {
     assertThat(consumerOfJavaOptionalLazyFooDaggerElement.getRelatedDaggerElements())
       .containsExactly(DaggerRelatedElement(bindOptionalFooDaggerElement, "Providers"))
   }
+
+  @Test
+  fun getRelatedDaggerElement_qualifiers() {
+    addDaggerAndHiltClasses(myFixture)
+
+    myFixture.openFileInEditor(
+      myFixture
+        .addFileToProject(
+          "src/com/example/Foo.kt",
+          // language=kotlin
+          """
+          package com.example
+
+          import dagger.Module
+          import dagger.Provides
+          import javax.inject.Inject
+          import javax.inject.Qualifier
+
+          @Qualifier
+          @Retention(value = AnnotationRetention.RUNTIME)
+          annotation class Named(val value: String)
+
+          class Foo @Inject constructor(
+            unqualifiedIntConsumer: Int,
+            @Named("Bert") bertIntConsumer: Int,
+            @Named("Ernie") ernieIntConsumer: Int,
+            unqualifiedBarConsumer: Bar,
+            @Named("Bert") bertBarConsumer: Bar,
+            @Named("Ernie") ernieBarConsumer: Bar,
+          )
+
+          class Bar
+
+          @Module
+          class MyModule {
+            companion object {
+              @Provides
+              fun provideUnqualifiedInt(): Int = 0
+
+              @Provides
+              @Named("Bert")
+              fun provideBertInt(): Int = 0
+
+              @Provides
+              @Named("Ernie")
+              fun provideErnieInt(): Int = 0
+
+              @Provides
+              fun provideUnqualifiedBar(): Bar = Bar()
+
+              @Provides
+              @Named("Bert")
+              fun provideBertBar(): Bar = Bar()
+
+              @Provides
+              @Named("Ernie")
+              fun provideErnieBar(): Bar = Bar()
+            }
+          }
+          """
+            .trimIndent()
+        )
+        .virtualFile
+    )
+
+    val unqualifiedIntConsumerDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("unqualifiedInt|Consumer"))
+    val bertIntConsumerDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("bertInt|Consumer"))
+    val ernieIntConsumerDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("ernieInt|Consumer"))
+    val unqualifiedBarConsumerDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("unqualifiedBar|Consumer"))
+    val bertBarConsumerDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("bertBar|Consumer"))
+    val ernieBarConsumerDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("ernieBar|Consumer"))
+
+    val provideUnqualifiedIntDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|UnqualifiedInt"))
+    val providerBertIntDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|BertInt"))
+    val provideErnieIntDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|ErnieInt"))
+    val provideUnqualifiedBarDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|UnqualifiedBar"))
+    val provideBertBarDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|BertBar"))
+    val provideErnieBarDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|ErnieBar"))
+
+    assertThat(unqualifiedIntConsumerDaggerElement.getRelatedDaggerElements())
+      .containsExactly(DaggerRelatedElement(provideUnqualifiedIntDaggerElement, "Providers"))
+
+    assertThat(bertIntConsumerDaggerElement.getRelatedDaggerElements())
+      .containsExactly(DaggerRelatedElement(providerBertIntDaggerElement, "Providers"))
+
+    assertThat(ernieIntConsumerDaggerElement.getRelatedDaggerElements())
+      .containsExactly(DaggerRelatedElement(provideErnieIntDaggerElement, "Providers"))
+
+    assertThat(unqualifiedBarConsumerDaggerElement.getRelatedDaggerElements())
+      .containsExactly(DaggerRelatedElement(provideUnqualifiedBarDaggerElement, "Providers"))
+
+    assertThat(bertBarConsumerDaggerElement.getRelatedDaggerElements())
+      .containsExactly(DaggerRelatedElement(provideBertBarDaggerElement, "Providers"))
+
+    assertThat(ernieBarConsumerDaggerElement.getRelatedDaggerElements())
+      .containsExactly(DaggerRelatedElement(provideErnieBarDaggerElement, "Providers"))
+  }
 }

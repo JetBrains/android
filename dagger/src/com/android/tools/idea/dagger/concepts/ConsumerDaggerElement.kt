@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.dagger.concepts
 
+import com.android.tools.idea.dagger.getQualifierInfo
 import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.android.tools.idea.dagger.unboxed
 import com.android.tools.idea.kotlin.psiType
@@ -33,6 +34,10 @@ internal abstract class ConsumerDaggerElementBase : DaggerElement() {
   /** Type being consumer, as specified in code. */
   protected abstract val rawType: PsiType
 
+  /** Gets info for any @Qualifier annotations on this element. */
+  internal val qualifierInfo by
+    lazy(LazyThreadSafetyMode.SYNCHRONIZED) { psiElement.getQualifierInfo() }
+
   /** Type being consumed, without any wrapper like `dagger.Lazy<>`. */
   val consumedType: PsiType
     get() = rawType.withoutDaggerWrapper().unboxed
@@ -43,7 +48,7 @@ internal abstract class ConsumerDaggerElementBase : DaggerElement() {
     }
 
   override fun filterResolveCandidate(resolveCandidate: DaggerElement) =
-    resolveCandidate is ProviderDaggerElementBase && resolveCandidate.canProvideType(consumedType)
+    resolveCandidate is ProviderDaggerElementBase && resolveCandidate.canProvideFor(this)
 }
 
 internal data class ConsumerDaggerElement(

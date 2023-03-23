@@ -159,9 +159,9 @@ internal data class BindsOptionalOfProviderDaggerElement(
     return listOf(optionalSimpleName) + getAliasSimpleNames(optionalSimpleName, project, scope)
   }
 
-  override fun canProvideType(psiType: PsiType): Boolean {
-    val innerType = psiType.typeInsideOptionalWrapper() ?: return false
-    return innerType == providedPsiType || innerType.typeInsideDaggerWrapper() == providedPsiType
+  override fun canProvideFor(consumer: ConsumerDaggerElementBase): Boolean {
+    val innerType = consumer.consumedType.typeInsideOptionalWrapper() ?: return false
+    return innerType.matchesProvidedType(providedPsiType) && qualifierInfo == consumer.qualifierInfo
   }
 
   companion object {
