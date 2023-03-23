@@ -23,6 +23,7 @@ import com.android.tools.idea.editors.strings.table.StringResourceTableModel;
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.MultilineStringEditorDialogFixture;
+import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.SimpleColoredComponent.ColoredIterator;
@@ -109,7 +110,7 @@ public final class TranslationsEditorFixture {
     getAddLocaleButton().click();
     GuiTests.waitForBackgroundTasks(myRobot);
     myRobot.waitForIdle();
-    JListFixture listFixture = new JListFixture(myRobot, getLocaleList());
+    JListFixture listFixture = new JListFixture(myRobot, myRobot.finder().find(Matchers.byType(JBList.class)));
     listFixture.replaceCellReader((jList, index) -> jList.getModel().getElementAt(index).toString());
     listFixture.clickItem(newLocale);
   }

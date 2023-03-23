@@ -23,6 +23,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture
 import com.android.tools.idea.tests.gui.framework.fixupWaiting
 import com.android.tools.idea.tests.gui.framework.matcher.Matchers
 import com.android.tools.idea.tests.gui.framework.waitForIdle
+import com.intellij.util.ui.AsyncProcessIcon
 import org.fest.swing.core.Robot
 import org.fest.swing.fixture.JListFixture
 import org.fest.swing.timing.Wait
@@ -65,6 +66,14 @@ class ProjectStructureDialogFixture(
 
   fun waitForSyncToFinish(actions: () -> Unit) {
     ideFrameFixture.actAndWaitForGradleProjectSyncToFinish { actions() }.also { waitForIdle() }
+  }
+
+  fun waitTillProjectStructureIsLoaded(): ProjectStructureDialogFixture {
+    val processIcon = robot().finder().find(target(), Matchers.byType(AsyncProcessIcon::class.java))
+    Wait.seconds(60)
+      .expecting("Wait for project structure to complete loading ...")
+      .until { !processIcon.isRunning }
+    return this
   }
 
   fun selectConfigurable(viewName: String): ProjectStructureDialogFixture {
@@ -117,3 +126,4 @@ fun DialogContainerFixture.waitForDialogToClose() {
   waitForIdle()
   maybeRestoreLostFocus()
 }
+

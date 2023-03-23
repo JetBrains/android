@@ -15,13 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.projectstructure;
 
-import static com.android.tools.idea.tests.gui.projectstructure.DependenciesTestUtil.APP_NAME;
-import static com.android.tools.idea.tests.gui.projectstructure.DependenciesTestUtil.MIN_SDK_API;
 import static com.android.tools.idea.wizard.template.Language.Java;
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.junit.Assert.assertTrue;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -34,12 +31,11 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.DependenciesPer
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.DependenciesPerspectiveConfigurableFixtureKt;
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructureDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
+import com.android.tools.idea.tests.util.WizardUtils;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguage;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
-import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,7 +43,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class AndroidDepTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
 
   /***
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
@@ -68,64 +64,83 @@ public class AndroidDepTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void transitiveDependenciesResolve() {
-    IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, APP_NAME, MIN_SDK_API, Java);
+    WizardUtils.createNewProject(guiTest, "Empty Views Activity", Java, BuildConfigurationLanguage.KTS);
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+    EditorFixture editor = ideFrame.getEditor();
+
+    ideFrame.clearNotificationsPresentOnIdeFrame();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     ideFrame.openFromMenu(NewModuleWizardFixture::find, "File", "New", "New Module\u2026")
       .clickNextToAndroidLibrary()
       .enterModuleName("library_module")
       .wizard()
       .clickFinishAndWaitForSyncToFinish();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    EditorFixture editor = ideFrame.getEditor()
-      .open("/library_module/build.gradle")
+    editor.open("/library_module/build.gradle.kts")
       .select("dependencies \\{()")
-      .enterText("\napi 'com.google.code.gson:gson:2.6.2'\n");
+      .enterText("\n   api(\"com.google.code.gson:gson:2.6.2\")");
+    ideFrame.takeScreenshot();
+    guiTest.robot().waitForIdle();
 
     ideFrame.getProjectView()
-      .selectProjectPane()
-      .clickPath(RIGHT_BUTTON, APP_NAME, "app");
-
-    guiTest.waitForBackgroundTasks();
-    guiTest.robot().waitForIdle();
-    guiTest.robot().findActivePopupMenu();
-    ideFrame.invokeMenuPath("Open Module Settings");
+      .selectAndroidPane()
+      .clickPath(RIGHT_BUTTON, "app")
+      .invokeContextualMenuPath("Open Module Settings");
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     ProjectStructureDialogFixture dialogFixture = ProjectStructureDialogFixture.Companion.find(ideFrame);
+    dialogFixture.waitTillProjectStructureIsLoaded();
+
     DependenciesPerspectiveConfigurableFixture dependenciesFixture =
       DependenciesPerspectiveConfigurableFixtureKt.selectDependenciesConfigurable(dialogFixture);
 
-    AddModuleDependencyDialogFixture addModuleDependencyFixture = dependenciesFixture.findDependenciesPanel().clickAddModuleDependency();
+    dependenciesFixture.findModuleSelector()
+      .selectModule("app");
+
+    AddModuleDependencyDialogFixture addModuleDependencyFixture =
+      dependenciesFixture.findDependenciesPanel()
+        .clickAddModuleDependency();
+
     addModuleDependencyFixture.toggleModule("library_module");
     addModuleDependencyFixture.clickOk();
+    guiTest.robot().waitForIdle();
     dialogFixture.clickOk();
 
     guiTest.waitForBackgroundTasks();
     guiTest.robot().waitForIdle();
-    editor.open("/app/src/main/java/android/com/app/MainActivity.java")
+
+    editor.open("/app/src/main/java/com/google/myapplication/MainActivity.java")
       .moveBetween("setContentView(R.layout.activity_main);", "")
-      .enterText("\nGson gson = new Gson();")
-      .select("()public class MainActivity")
+      .enterText("\nGson gson = new Gson();");
+    guiTest.robot().waitForIdle();
+
+    editor.select("()public class MainActivity")
       .enterText("import com.google.gson.Gson;\n\n");
 
     // Create a class in the library and check the build.
     ideFrame.getProjectView()
       .selectProjectPane()
-      .clickPath(APP_NAME, "library_module", "src", "main", "java", "android.com.library_module");
+      .clickPath("MyApplication", "library_module", "src", "main", "java", "com.google.library_module");
 
-    invokeJavaClass(ideFrame).enterName("LibraryClass").clickOk();
+    invokeJavaClass(ideFrame)
+      .enterName("LibraryClass")
+      .clickOk();
     guiTest.waitForBackgroundTasks();
     guiTest.robot().waitForIdle();
 
-    editor.open("/library_module/src/main/java/android/com/library_module/LibraryClass.java")
+    editor.open("/library_module/src/main/java/com/google/library_module/LibraryClass.java")
       .select("()public class LibraryClass")
       .enterText("import com.google.gson.Gson;\n\n");
-
     guiTest.waitForBackgroundTasks();
     guiTest.robot().waitForIdle();
-    editor.open("/library_module/src/main/java/android/com/library_module/LibraryClass.java")
+
+    editor.open("/library_module/src/main/java/com/google/library_module/LibraryClass.java")
       .moveBetween("public class LibraryClass {", "")
       .enterText("\nGson gson = new Gson();\n");
-
 
     BuildStatus result = guiTest.ideFrame().invokeProjectMake();
     assertTrue(result.isBuildSuccessful());
