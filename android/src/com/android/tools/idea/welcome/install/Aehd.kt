@@ -21,35 +21,35 @@ import com.android.tools.idea.observable.core.IntValueProperty
 import com.android.tools.idea.sdk.install.VmType
 import com.android.tools.idea.welcome.install.InstallationIntention.UNINSTALL
 import com.android.tools.idea.welcome.wizard.HaxmInstallSettingsStep
-import com.android.tools.idea.welcome.wizard.deprecated.GvmInstallInfoStep
+import com.android.tools.idea.welcome.wizard.deprecated.AehdInstallInfoStep
 import com.android.tools.idea.welcome.wizard.deprecated.VmUninstallInfoStep
 import com.android.tools.idea.wizard.dynamic.ScopedStateStore
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.openapi.util.SystemInfo
 
 /**
- * Google GVM installable component
+ * Google AEHD installable component
  */
-class Gvm(
+class Aehd(
   installationIntention: InstallationIntention,
   isCustomInstall: ScopedStateStore.Key<Boolean>
-) : Vm(Gvm, installationIntention, isCustomInstall) {
-  override val filePrefix = "gvm"
-  override val installUrl = GVM_WINDOWS_INSTALL_URL
+) : Vm(Aehd, installationIntention, isCustomInstall) {
+  override val filePrefix = "aehd"
+  override val installUrl = AEHD_WINDOWS_INSTALL_URL
   override val steps: Collection<ModelWizardStep<*>>
-    get() = setOf(if (installationIntention == UNINSTALL) com.android.tools.idea.welcome.wizard.VmUninstallInfoStep(VmType.GVM)
+    get() = setOf(if (installationIntention == UNINSTALL) com.android.tools.idea.welcome.wizard.VmUninstallInfoStep(VmType.AEHD)
       else HaxmInstallSettingsStep(IntValueProperty(1024))) // FIXME
 
   override fun createSteps() =
-    setOf(if (installationIntention === UNINSTALL) VmUninstallInfoStep(VmType.GVM)
-          else GvmInstallInfoStep(isCustomInstall))
+    setOf(if (installationIntention === UNINSTALL) VmUninstallInfoStep(VmType.AEHD)
+          else AehdInstallInfoStep(isCustomInstall))
 
   companion object InstallerInfo : VmInstallerInfo("Android Emulator hypervisor driver") {
     override val vendor = "google"
-    override val installSolution = SolutionCode.INSTALL_GVM
-    override val reinstallSolution = SolutionCode.REINSTALL_GVM
+    override val installSolution = SolutionCode.INSTALL_AEHD
+    override val reinstallSolution = SolutionCode.REINSTALL_AEHD
     override val incompatibleSystemError = when {
-      !SystemInfo.isWindows -> AccelerationErrorCode.GVM_REQUIRES_WINDOWS
+      !SystemInfo.isWindows -> AccelerationErrorCode.AEHD_REQUIRES_WINDOWS
       else -> null
     }
     override val componentPath = "Android_Emulator_Hypervisor_Driver"

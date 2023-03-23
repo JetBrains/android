@@ -46,11 +46,11 @@ class AndroidSdkTest {
   }
 
   @Test
-  fun `GVM is only compatible with Windows`() {
+  fun `AEHD is only compatible with Windows`() {
     if (SystemInfo.isWindows) {
-      assertThat(Gvm.InstallerInfo.checkInstallation()).isNotEqualTo(AccelerationErrorCode.GVM_REQUIRES_WINDOWS);
+      assertThat(Aehd.InstallerInfo.checkInstallation()).isNotEqualTo(AccelerationErrorCode.AEHD_REQUIRES_WINDOWS);
     } else {
-      assertThat(Gvm.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.GVM_REQUIRES_WINDOWS);
+      assertThat(Aehd.InstallerInfo.checkInstallation()).isEqualTo(AccelerationErrorCode.AEHD_REQUIRES_WINDOWS);
     }
   }
 }

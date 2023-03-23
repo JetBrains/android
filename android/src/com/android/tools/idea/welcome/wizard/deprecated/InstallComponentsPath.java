@@ -41,7 +41,7 @@ import com.android.tools.idea.welcome.install.CheckSdkOperation;
 import com.android.tools.idea.welcome.install.ComponentCategory;
 import com.android.tools.idea.welcome.install.ComponentInstaller;
 import com.android.tools.idea.welcome.install.ComponentTreeNode;
-import com.android.tools.idea.welcome.install.Gvm;
+import com.android.tools.idea.welcome.install.Aehd;
 import com.android.tools.idea.welcome.install.Haxm;
 import com.android.tools.idea.welcome.install.InstallComponentsOperation;
 import com.android.tools.idea.welcome.install.InstallContext;
@@ -126,8 +126,8 @@ public class InstallComponentsPath extends DynamicWizardPath implements LongRunn
     if (reason == FirstRunWizardMode.NEW_INSTALL && Haxm.InstallerInfo.canRun()) {
       components.add(new Haxm(installationIntention, FirstRunWizard.KEY_CUSTOM_INSTALL));
     }
-    if (reason == FirstRunWizardMode.NEW_INSTALL && Gvm.InstallerInfo.canRun()) {
-      components.add(new Gvm(installationIntention, FirstRunWizard.KEY_CUSTOM_INSTALL));
+    if (reason == FirstRunWizardMode.NEW_INSTALL && Aehd.InstallerInfo.canRun()) {
+      components.add(new Aehd(installationIntention, FirstRunWizard.KEY_CUSTOM_INSTALL));
     }
     if (createAvd) {
       components.add(new AndroidVirtualDevice(remotePackages, myInstallUpdates));

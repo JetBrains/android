@@ -24,17 +24,17 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * This is to be shown as the first GVM Wizard step just to inform the user that
- * GVM installation is about to start. It is here just to make sure we don't
+ * This is to be shown as the first AEHD Wizard step just to inform the user that
+ * AEHD installation is about to start. It is here just to make sure we don't
  * run installation operations straight away as the first wizard step, as this
  * would not be in line with common wizard conventions
  */
 @Deprecated
-public class GvmInstallInfoStep extends FirstRunWizardStep {
+public class AehdInstallInfoStep extends FirstRunWizardStep {
   private JPanel myRoot;
   private final ScopedStateStore.Key<Boolean> myKeyCustomInstall;
 
-  public GvmInstallInfoStep(@NotNull ScopedStateStore.Key<Boolean> keyCustomInstall) {
+  public AehdInstallInfoStep(@NotNull ScopedStateStore.Key<Boolean> keyCustomInstall) {
     super("Installing Android Emulator hypervisor driver");
     myKeyCustomInstall = keyCustomInstall;
     setComponent(myRoot);
