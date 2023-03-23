@@ -18,8 +18,11 @@ package com.android.tools.idea.actions;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.pluralize;
+import static org.jetbrains.kotlin.idea.util.application.ApplicationUtilsKt.isUnitTestMode;
 
+import com.android.tools.idea.gradle.dependencies.DependenciesHelper;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
@@ -117,7 +120,13 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     }
 
     if (usageInfos.length < 5) {
-      DumbService.getInstance(project).smartInvokeLater(applyRunnable(project, () -> usageInfos));
+      if (isUnitTestMode()) {
+        // don't use invokeLater for test mode
+        applyRunnable(project, () -> usageInfos).run();
+      }
+      else {
+        DumbService.getInstance(project).smartInvokeLater(applyRunnable(project, () -> usageInfos));
+      }
     }
     else {
       showUsageView(project, usageInfos, scope, this);
@@ -162,7 +171,8 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       if (info != null && info.getBuildSdkVersion() != null && info.getBuildSdkVersion().getFeatureLevel() < MIN_SDK_WITH_NULLABLE) {
         modulesWithLowVersion.add(module);
       }
-      GradleBuildModel buildModel = GradleBuildModel.get(module);
+      ProjectBuildModel projectModel = ProjectBuildModel.get(module.getProject());
+      GradleBuildModel buildModel = projectModel.getModuleBuildModel(module);
       if (buildModel == null) {
         LOG.warn("Unable to find Gradle build model for module " + module.getName());
         continue;
@@ -229,7 +239,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     return false;
   }
 
-  private void syncAndRestartAnalysis(@NotNull Project project, @NotNull AnalysisScope scope) {
+  protected void syncAndRestartAnalysis(@NotNull Project project, @NotNull AnalysisScope scope) {
     assert ApplicationManager.getApplication().isDispatchThread();
 
     ListenableFuture<ProjectSystemSyncManager.SyncResult> syncResult = ProjectSystemUtil.getProjectSystem(project)
@@ -251,7 +261,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
   }
 
   // Intellij code from InferNullityAnnotationsAction.
-  private static Runnable applyRunnable(Project project, Computable<UsageInfo[]> computable) {
+  protected static Runnable applyRunnable(Project project, Computable<UsageInfo[]> computable) {
     return () -> {
       LocalHistoryAction action = LocalHistory.getInstance().startAction(INFER_NULLITY_ANNOTATIONS);
       try {
@@ -345,9 +355,12 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
   private static void addDependency(@NotNull Module module, @Nullable String libraryCoordinate) {
     if (isNotEmpty(libraryCoordinate)) {
       ModuleRootModificationUtil.updateModel(module, model -> {
-        GradleBuildModel buildModel = GradleBuildModel.get(module);
+        ProjectBuildModel projectModel = ProjectBuildModel.get(module.getProject());
+        GradleBuildModel buildModel = projectModel.getModuleBuildModel(module);
         if (buildModel != null) {
-          buildModel.dependencies().addArtifact(IMPLEMENTATION, libraryCoordinate);
+          DependenciesHelper helper = new DependenciesHelper(projectModel);
+          helper.addDependency(IMPLEMENTATION, libraryCoordinate, buildModel);
+          projectModel.applyChanges();
           buildModel.applyChanges();
         }
       });
