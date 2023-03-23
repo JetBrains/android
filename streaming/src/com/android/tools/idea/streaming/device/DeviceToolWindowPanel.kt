@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.device
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.idea.streaming.AbstractDisplayPanel
+import com.android.tools.idea.streaming.DEVICE_HANDLE_KEY
 import com.android.tools.idea.streaming.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.DeviceId
 import com.android.tools.idea.streaming.RunningDevicePanel
@@ -146,6 +147,7 @@ internal class DeviceToolWindowPanel(
       DEVICE_VIEW_KEY.name, DISPLAY_VIEW_KEY.name, ZOOMABLE_KEY.name -> primaryDeviceView
       DEVICE_CLIENT_KEY.name -> deviceClient
       DEVICE_CONTROLLER_KEY.name -> deviceClient.deviceController
+      DEVICE_HANDLE_KEY.name -> deviceClient.deviceHandle
       ScreenshotAction.SCREENSHOT_OPTIONS_KEY.name ->
           primaryDeviceView?.let { if (it.isConnected) DeviceScreenshotOptions(deviceSerialNumber, deviceConfig, it) else null }
       ScreenRecorderAction.SCREEN_RECORDER_PARAMETERS_KEY.name ->

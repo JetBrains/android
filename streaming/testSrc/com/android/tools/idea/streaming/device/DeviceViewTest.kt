@@ -661,7 +661,8 @@ internal class DeviceViewTest {
   }
 
   private fun createDeviceView(width: Int, height: Int, screenScale: Double = 2.0) {
-    val deviceClient = DeviceClient(testRootDisposable, device.serialNumber, device.configuration, device.deviceState.cpuAbi, project)
+    val deviceClient =
+        DeviceClient(testRootDisposable, device.serialNumber, device.handle, device.configuration, device.deviceState.cpuAbi, project)
     // DeviceView has to be disposed before DeviceClient.
     val disposable = Disposer.newDisposable()
     Disposer.register(testRootDisposable, disposable)

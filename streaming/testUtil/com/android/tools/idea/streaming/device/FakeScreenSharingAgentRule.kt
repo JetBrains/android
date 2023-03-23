@@ -15,17 +15,26 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.adblib.ConnectedDevice
+import com.android.adblib.DeviceInfo
+import com.android.adblib.DeviceState.ONLINE
 import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.ShellV2Protocol
 import com.android.fakeadbserver.devicecommandhandlers.DeviceCommandHandler
+import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceProperties
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.adb.FakeAdbServiceRule
+import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.util.StudioPathManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.ProjectRule
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.bytedeco.ffmpeg.global.avcodec.AV_CODEC_ID_VP8
 import org.bytedeco.ffmpeg.global.avcodec.avcodec_find_encoder
@@ -39,6 +48,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.FileTime
+import com.android.sdklib.deviceprovisioner.DeviceState as ProvisionerDeviceState
 
 /**
  * Allows tests to use [FakeScreenSharingAgent] instead of the real one.
@@ -169,5 +179,21 @@ class FakeScreenSharingAgentRule : TestRule {
     val agent: FakeScreenSharingAgent = FakeScreenSharingAgent(displaySize, deviceState, roundDisplay = roundDisplay)
     var hostPort: Int? = null
     val configuration: DeviceConfiguration = createDeviceConfiguration(deviceState.properties)
+    val handle: DeviceHandle = FakeDeviceHandle(this)
+  }
+
+  private class FakeDeviceHandle(private val device: FakeDevice) : DeviceHandle {
+    override val scope = AndroidCoroutineScope(device.agent)
+
+    override val stateFlow = MutableStateFlow(createConnectedDeviceState())
+
+    fun createConnectedDeviceState(): ProvisionerDeviceState.Connected {
+      val deviceProperties = DeviceProperties.Builder().apply { readCommonProperties(device.deviceState.properties) }.buildBase()
+      val connectedDevice = mock<ConnectedDevice>().apply {
+        whenever(deviceInfoFlow).thenReturn(MutableStateFlow(DeviceInfo(device.serialNumber, ONLINE)))
+      }
+      return ProvisionerDeviceState.Connected(deviceProperties, connectedDevice, null)
+    }
   }
 }
+

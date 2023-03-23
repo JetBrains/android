@@ -15,7 +15,9 @@
  */
 package com.android.tools.idea.streaming.device
 
+import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProperties
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.TestUtils.getBinPath
 import com.android.testutils.TestUtils.resolveWorkspacePath
 import com.android.tools.adtui.swing.FakeKeyboard
@@ -411,7 +413,8 @@ class ScreenSharingAgentTest {
         waitForLog("0", SHORT_DEVICE_OPERATION_TIMEOUT)
       }
 
-      val deviceClient = DeviceClient(testRootDisposable, emulator.serialNumber, emptyDeviceConfiguration, "x86_64", project)
+      val deviceClient =
+          DeviceClient(testRootDisposable, emulator.serialNumber, mock<DeviceHandle>(), emptyDeviceConfiguration, "x86_64", project)
       deviceView = DeviceView(testRootDisposable, deviceClient, 0, project)
 
       fakeUi = FakeUi(deviceView.wrapInScrollPane(200, 300))
