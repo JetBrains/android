@@ -86,6 +86,11 @@ class FakeViewLayoutInspector(connection: Connection<Event>)
       Command.SpecializedCase.CAPTURE_SNAPSHOT_COMMAND -> {
         Response.newBuilder().setCaptureSnapshotResponse(CaptureSnapshotResponse.getDefaultInstance()).build()
       }
+      Command.SpecializedCase.DISABLE_BITMAP_SCREENSHOT_COMMAND -> {
+        Response.newBuilder().setDisableBitmapScreenshotResponse(
+          LayoutInspectorViewProtocol.DisableBitmapScreenshotResponse.getDefaultInstance()
+        ).build()
+      }
       else -> fail("Unhandled view inspector command: ${command.specializedCase}")
     }
   }

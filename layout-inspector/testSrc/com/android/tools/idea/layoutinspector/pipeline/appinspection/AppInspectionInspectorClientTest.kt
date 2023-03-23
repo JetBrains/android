@@ -322,6 +322,23 @@ class AppInspectionInspectorClientTest {
   }
 
   @Test
+  fun disableBitmapCapturingTrueWhenInRunningDevices(): Unit = runBlocking {
+    val originalState = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(true)
+
+    val disableBitmapScreenshotReceived = ReportingCountDownLatch(1)
+    inspectionRule.viewInspector.listenWhen({ it.hasDisableBitmapScreenshotCommand() }) { command ->
+      assertThat(command.disableBitmapScreenshotCommand.disable).isTrue()
+      disableBitmapScreenshotReceived.countDown()
+    }
+
+    inspectorRule.processNotifier.fireConnected(MODERN_PROCESS)
+    disableBitmapScreenshotReceived.await(TIMEOUT, TIMEOUT_UNIT)
+
+    StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.override(originalState)
+  }
+
+  @Test
   fun statsInitializedWhenConnectedA() {
     inspectorRule.inspector.treeSettings.hideSystemNodes = true
     inspectorRule.inspector.treeSettings.showRecompositions = false

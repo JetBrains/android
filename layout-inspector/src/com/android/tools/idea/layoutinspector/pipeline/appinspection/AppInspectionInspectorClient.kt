@@ -176,6 +176,10 @@ class AppInspectionInspectorClient(
 
       model.modificationListeners.add(updateListener)
 
+      if (inspectorClientSettings.disableBitmapScreenshot) {
+        disableBitmapScreenshots(true)
+      }
+
       if (isCapturing) {
         startFetchingInternal()
       }
@@ -227,6 +231,11 @@ class AppInspectionInspectorClient(
   private suspend fun startFetchingInternal() {
     stats.currentModeIsLive = true
     viewInspector?.startFetching(continuous = true)
+  }
+
+  private suspend fun disableBitmapScreenshots(disable: Boolean) {
+    // TODO(b/265150325) disableBitmapScreenshots to stats
+    viewInspector?.disableBitmapScreenshots(disable)
   }
 
   override suspend fun stopFetching() {
