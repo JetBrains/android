@@ -19,6 +19,7 @@ package com.android.tools.idea.common.model;
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_ID;
 
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.google.common.annotations.VisibleForTesting;
@@ -86,7 +87,7 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
    */
   @VisibleForTesting
   @Override
-  public void update(@NotNull NlModel model, @Nullable XmlTag newRoot, @NotNull List<NlModel.TagSnapshotTreeNode> roots) {
+  public void updateFromTagSnapshot(@NotNull NlModel model, @Nullable XmlTag newRoot, @NotNull List<NlModel.TagSnapshotTreeNode> roots) {
     ModelUpdaterData data = new ModelUpdaterData();
 
     data.myModel = model;
@@ -139,6 +140,9 @@ public class DefaultModelUpdater implements NlModel.NlModelUpdaterInterface {
       updateHierarchy(root, data);
     }
   }
+
+  @Override
+  public void updateFromViewInfo(@NotNull NlModel model, @NotNull List<ViewInfo> viewInfos) { }
 
   private void mapOldToNew(
       @NotNull XmlTag newRootTag,

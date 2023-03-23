@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.preview.representation
 
+import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
@@ -73,6 +74,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
 
 /** A generic [PreviewElement] [PreviewRepresentation]. */
 open class CommonPreviewRepresentation<T : PreviewElement>(
@@ -229,6 +232,7 @@ open class CommonPreviewRepresentation<T : PreviewElement>(
         progressIndicator,
         this::onAfterRender,
         previewElementModelAdapter,
+        modelUpdater,
         this::configureLayoutlibSceneManager
       )
 

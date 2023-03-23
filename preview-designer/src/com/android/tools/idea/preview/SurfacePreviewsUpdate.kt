@@ -17,7 +17,6 @@ package com.android.tools.idea.preview
 
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.resources.configuration.FolderConfiguration
-import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.NlModelBuilder
 import com.android.tools.idea.common.model.updateFileContentBlocking
@@ -41,11 +40,6 @@ import com.intellij.psi.PsiFile
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.backend.common.pop
-
-/**
- * [NlModel.NlModelUpdaterInterface] to be used for updating the Compose model from the Compose render result.
- */
-private val modelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
 
 private fun <T : PreviewElement, M> calcAffinityMatrix(
   elements: List<T>, models: List<M>, previewElementModelAdapter: PreviewElementModelAdapter<T, M>): List<List<Int>> {
@@ -129,6 +123,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.refreshExistingPreviewElements(
  * @param progressIndicator [ProgressIndicator] that runs while the refresh is in progress. When cancelled, this method should return early.
  * @param onRenderCompleted method called when all the elements created/updated by this call have finished rendering.
  * @param previewElementModelAdapter object to adapt the [PreviewElement]s to the [NlModel].
+ * @param modelUpdater [NlModel.NlModelUpdaterInterface] to be used for updating the [NlModel]
  * @param configureLayoutlibSceneManager helper called when the method needs to configure a [LayoutlibSceneManager].
  */
 suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
@@ -140,6 +135,7 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
   progressIndicator: ProgressIndicator,
   onRenderCompleted: () -> Unit,
   previewElementModelAdapter: PreviewElementModelAdapter<T, NlModel>,
+  modelUpdater: NlModel.NlModelUpdaterInterface,
   configureLayoutlibSceneManager: (PreviewDisplaySettings, LayoutlibSceneManager) -> LayoutlibSceneManager): List<T> {
   val debugLogger = if (log.isDebugEnabled) PreviewElementDebugLogger(log) else null
   val facet = AndroidFacet.getInstance(psiFile) ?: return emptyList()

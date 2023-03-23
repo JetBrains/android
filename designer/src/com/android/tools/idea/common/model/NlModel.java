@@ -22,12 +22,10 @@ import static com.intellij.util.Alarm.ThreadToUse.SWING_THREAD;
 import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
+import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.resources.ResourceResolver;
-import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
-import com.android.sdklib.IAndroidTarget;
-import com.android.sdklib.devices.Device;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.api.DragType;
 import com.android.tools.idea.common.api.InsertType;
@@ -37,7 +35,6 @@ import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.common.type.DesignerEditorFileTypeKt;
 import com.android.tools.idea.common.util.XmlTagUtil;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.configurations.ResourceResolverCache;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
@@ -97,7 +94,9 @@ public class NlModel implements ModificationTracker, DataContextHolder {
    */
   public interface NlModelUpdaterInterface {
 
-    void update(@NotNull NlModel model, @Nullable XmlTag newRoot, @NotNull List<NlModel.TagSnapshotTreeNode> roots);
+    void updateFromTagSnapshot(@NotNull NlModel model, @Nullable XmlTag newRoot, @NotNull List<NlModel.TagSnapshotTreeNode> roots);
+
+    void updateFromViewInfo(@NotNull NlModel model, @NotNull List<ViewInfo> viewInfos);
   }
 
   public static final int DELAY_AFTER_TYPING_MS = 250;
@@ -363,10 +362,14 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   }
 
   public void syncWithPsi(@NotNull XmlTag newRoot, @NotNull List<TagSnapshotTreeNode> roots) {
-    myModelUpdater.update(this, newRoot, roots);
+    myModelUpdater.updateFromTagSnapshot(this, newRoot, roots);
   }
 
-  protected void setRootComponent(NlComponent root) {
+  public void updateAccessibility(@NotNull List<ViewInfo> viewInfos) {
+    myModelUpdater.updateFromViewInfo(this, viewInfos);
+  }
+
+  protected void setRootComponent(@Nullable NlComponent root) {
     myRootComponent = root;
   }
 

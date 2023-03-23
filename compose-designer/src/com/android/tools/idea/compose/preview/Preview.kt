@@ -17,6 +17,8 @@ package com.android.tools.idea.compose.preview
 
 import com.android.ide.common.rendering.api.Bridge
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
+import com.android.tools.idea.common.model.AccessibilityModelUpdater
+import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.LayoutlibInteractionHandler
@@ -142,6 +144,18 @@ private val INTERACTIVE_BACKGROUND_COLOR = JBColor(0xF7F8FA, 0x2B2D30)
 
 /** [Notification] group ID. Must match the `groupNotification` entry of `compose-designer.xml`. */
 const val PREVIEW_NOTIFICATION_GROUP_ID = "Compose Preview Notification"
+
+/**
+ * [NlModel.NlModelUpdaterInterface] to be used for updating the Compose model from the Compose
+ * render result, using the [View] hierarchy.
+ */
+private val defaultModelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
+
+/**
+ * [NlModel.NlModelUpdaterInterface] to be used for updating the Compose model from the Compose
+ * render result, using the [AccessibilityNodeInfo] hierarchy.
+ */
+private val accessibilityModelUpdater: NlModel.NlModelUpdaterInterface = AccessibilityModelUpdater()
 
 /**
  * [NlModel] associated preview data
@@ -1166,6 +1180,7 @@ class ComposePreviewRepresentation(
         progressIndicator,
         this::onAfterRender,
         previewElementModelAdapter,
+        if (runAtfChecks()) accessibilityModelUpdater else defaultModelUpdater,
         this::configureLayoutlibSceneManagerForPreviewElement
       )
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh

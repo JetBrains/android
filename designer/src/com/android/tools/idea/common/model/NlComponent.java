@@ -91,9 +91,21 @@ public class NlComponent implements NlAttributesHolder {
    */
   @Nullable AttributesTransaction myCurrentTransaction;
 
+  /**
+   * ID from {@link android.view.accessibility.AccessibilityNodeInfo} associated with this NlComponent,
+   * equals to -1 if there are no such AccessibilityNodeInfo.
+   */
+  long myAccessibilityId = -1;
+
   public NlComponent(@NotNull NlModel model, @NotNull XmlTag tag) {
     myModel = model;
     myBackend = new NlComponentBackendXml(model.getProject(), tag);
+  }
+
+  public NlComponent(@NotNull NlModel model, long accessibilityId) {
+    myModel = model;
+    myBackend = new NlComponentBackendEmpty();
+    myAccessibilityId = accessibilityId;
   }
 
   @TestOnly
@@ -117,6 +129,14 @@ public class NlComponent implements NlAttributesHolder {
   @Nullable
   public XmlModelComponentMixin getMixin() {
     return myMixin;
+  }
+
+  public void setAccessibilityId(long id) {
+    myAccessibilityId = id;
+  }
+
+  public long getAccessibilityId() {
+    return myAccessibilityId;
   }
 
   /**
