@@ -68,7 +68,7 @@ class LayoutInspectorRendererTest {
   private val screenDimension = Dimension(200, 250)
   private val deviceFrameDimension = Dimension(100, 150)
 
-  private val deviceFrame = Rectangle(0, 0, deviceFrameDimension.width, deviceFrameDimension.height)
+  private val deviceFrame = Rectangle(10, 10, deviceFrameDimension.width, deviceFrameDimension.height)
   private lateinit var component: Component
 
   @Before
@@ -83,7 +83,7 @@ class LayoutInspectorRendererTest {
 
   @Test
   fun testViewBordersAreRendered() {
-    val layoutInspectorRenderer = LayoutInspectorRenderer(renderLogic, renderModel, component) { deviceFrame }
+    val layoutInspectorRenderer = LayoutInspectorRenderer(renderLogic, renderModel, component)
 
     @Suppress("UndesirableClassUsage")
     val renderImage = BufferedImage(screenDimension.width, screenDimension.height, BufferedImage.TYPE_INT_ARGB)
@@ -93,7 +93,7 @@ class LayoutInspectorRendererTest {
 
   @Test
   fun testOverlayIsRendered() {
-    val layoutInspectorRenderer = LayoutInspectorRenderer(renderLogic, renderModel, component) { deviceFrame }
+    val layoutInspectorRenderer = LayoutInspectorRenderer(renderLogic, renderModel, component)
 
     renderModel.overlay = ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile())
 
@@ -109,7 +109,7 @@ class LayoutInspectorRendererTest {
     graphics.fillRect(Rectangle(0, 0, renderDimension.width, renderDimension.height), Color(250, 250, 250))
     graphics.font = ImageDiffTestUtil.getDefaultFont()
 
-    layoutInspectorRenderer.paint(graphics)
+    layoutInspectorRenderer.paint(graphics, deviceFrame)
   }
 
   /**

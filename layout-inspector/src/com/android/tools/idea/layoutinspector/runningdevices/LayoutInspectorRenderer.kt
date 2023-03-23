@@ -30,41 +30,35 @@ import java.awt.geom.AffineTransform
  *
  * @param component The component on which we are rendering.
  * It is used to access swing properties that this class wouldn't know how to access otherwise.
- * @param deviceFrameSizeProvider Provides the size of the device frame. Scaled accordingly to screen pixel density.
  */
 class LayoutInspectorRenderer(
   private val renderLogic: RenderLogic,
   private val renderModel: RenderModel,
-  private val component: Component,
-  private val deviceFrameSizeProvider: () -> Rectangle?,
+  private val component: Component
 ) {
 
   /**
-   * Transform to the center of the panel and apply scale
+   * Transform to the center of the panel and scale Layout Inspector UI to display size.
+   * @param displayRectangle The rectangle on which the device display is rendered.
    */
-  private val transform: AffineTransform
-    get() {
-      val deviceFrameRectangle = deviceFrameSizeProvider() ?: Rectangle(1, 1)
-      val deviceFrameContainerDimensions = component.size
+  private fun getTransform(displayRectangle: Rectangle): AffineTransform {
+    val rootView = renderModel.model.root
 
-      val rootView = renderModel.model.root
-      // deviceFrameRectangle is scaled according to the pixel density of the screen, we need bring it back to not scaled size.
-      val screenScale = component.graphicsConfiguration?.defaultTransform?.scaleX ?: 1.0
+    // calculate how much we need to scale the Layout Inspector bounds to match the device frame.
+    val scale = displayRectangle.width.toDouble() / rootView.layoutBounds.bounds.width.toDouble()
 
-      // calculate how much we need to scale the Layout Inspector bounds to match the device frame.
-      val scale = (deviceFrameRectangle.width.toDouble() / screenScale) / rootView.layoutBounds.bounds.width.toDouble()
-
-      return AffineTransform().apply {
-        // translate to center of panel
-        translate(deviceFrameContainerDimensions.width / 2.0, deviceFrameContainerDimensions.height / 2.0)
-        scale(scale, scale)
-      }
+    return AffineTransform().apply {
+      // translate to center of panel
+      translate(displayRectangle.x + displayRectangle.width / 2.0, displayRectangle.y + displayRectangle.height / 2.0)
+      scale(scale, scale)
     }
+  }
 
-  fun paint(g: Graphics) {
+  fun paint(g: Graphics, displayRectangle: Rectangle) {
     val g2d = g as Graphics2D
     g2d.color = primaryPanelBackground
 
+    val transform = getTransform(displayRectangle)
     g2d.transform = g2d.transform.apply { concatenate(transform) }
 
     renderLogic.renderBorders(g2d, component, component.foreground)
