@@ -68,11 +68,10 @@ fun notifyOnInvalidGradleJdk(project: Project): Boolean {
   val jdkInvalidReason = getInvalidJdkReason(project)
   if (jdkInvalidReason != null) {
     val ideSdks = IdeSdks.getInstance()
-    val embeddedJdkPath = ideSdks.embeddedJdkPath
     val errorResolution: String
     val notificationType: NotificationType
     val shouldUseEmbedded: Boolean
-    if (embeddedJdkPath != null && (ideSdks.validateJdkPath(embeddedJdkPath) != null)) {
+    if (ideSdks.validateJdkPath(ideSdks.embeddedJdkPath) != null) {
       // Can use embedded JDK as alternative, do so and warn user of change
       errorResolution = "Gradle JVM setting was changed to use Embedded JDK."
       notificationType = NotificationType.WARNING

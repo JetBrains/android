@@ -20,6 +20,7 @@ import com.android.tools.deployer.DeployerException
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.ApplicationTerminator
+import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.model.AndroidModel
 import com.android.tools.idea.model.TestOptions
@@ -38,7 +39,6 @@ import com.android.tools.idea.run.tasks.DeployTask
 import com.android.tools.idea.run.tasks.LaunchContext
 import com.android.tools.idea.run.tasks.LaunchTask
 import com.android.tools.idea.run.tasks.getBaseDebuggerTask
-import com.android.tools.idea.run.ui.BaseAction
 import com.android.tools.idea.run.util.LaunchUtils
 import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.testartifacts.instrumented.AndroidTestApplicationLaunchTask.Companion.allInModuleTest
@@ -103,9 +103,9 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
   }
 
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
-    BaseAction.findRunningProcessHandler(project, configuration, env.executionTarget)?.destroyProcess()
-
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
+
+    env.runnerAndConfigurationSettings?.getProcessHandlersForDevices(project, devices)?.forEach { it.destroyProcess() }
 
     waitPreviousProcessTermination(devices, getMasterAndroidProcessId(), indicator)
 
@@ -256,9 +256,9 @@ class AndroidTestRunConfigurationExecutor @JvmOverloads constructor(
   }
 
   override fun debug(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
-    BaseAction.findRunningProcessHandler(project, configuration, env.executionTarget)?.destroyProcess()
-
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
+
+    env.runnerAndConfigurationSettings?.getProcessHandlersForDevices(project, devices)?.forEach { it.destroyProcess() }
 
     if (devices.size != 1) {
       throw ExecutionException("Cannot launch a debug session on more than 1 device.")

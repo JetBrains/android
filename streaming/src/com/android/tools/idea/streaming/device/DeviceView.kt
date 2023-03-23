@@ -367,11 +367,11 @@ internal class DeviceView(
           startTime = 0L
         }
       }
-    }
 
-    if (multiTouchMode) {
-      val displayRect = displayRectangle
-      if (displayRect != null) {
+      paintDecorations(g, displayRect)
+
+      if (multiTouchMode) {
+        // Render multi-touch visual feedback.
         drawMultiTouchFeedback(g, displayRect, lastTouchCoordinates != null)
       }
     }

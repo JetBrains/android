@@ -54,8 +54,8 @@ import com.intellij.xml.NamespaceAwareXmlAttributeDescriptor
 import com.intellij.xml.XmlAttributeDescriptor
 import org.jetbrains.android.dom.AndroidDomElementDescriptorProvider
 import org.jetbrains.android.dom.AttributeProcessingUtil
-import org.jetbrains.android.dom.attrs.AttributeDefinition
-import org.jetbrains.android.dom.attrs.AttributeDefinitions
+import com.android.tools.dom.attrs.AttributeDefinition
+import com.android.tools.dom.attrs.AttributeDefinitions
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
 import java.awt.EventQueue
@@ -115,7 +115,8 @@ class NlPropertiesProvider(private val facet: AndroidFacet): PropertiesProvider 
                                     private val model: NlPropertiesModel,
                                     private val components: List<NlComponent>,
                                     private val localAttrDefs: AttributeDefinitions,
-                                    private val systemAttrDefs: AttributeDefinitions) {
+                                    private val systemAttrDefs: AttributeDefinitions
+  ) {
     private val project = facet.module.project
     private val apiLookup = LintIdeClient.getApiLookup(project)
     private val minApi = StudioAndroidModuleInfo.getInstance(facet).minSdkVersion.featureLevel

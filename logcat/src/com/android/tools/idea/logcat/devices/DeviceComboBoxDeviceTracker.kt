@@ -17,9 +17,9 @@ package com.android.tools.idea.logcat.devices
 
 import com.android.adblib.AdbSession
 import com.android.adblib.serialNumber
-import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceState
+import com.android.sdklib.deviceprovisioner.mapStateNotNull
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
@@ -27,10 +27,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import org.jetbrains.annotations.VisibleForTesting
 
@@ -69,9 +66,9 @@ internal class DeviceComboBoxDeviceTracker @VisibleForTesting constructor(
       // If a previously unknown device comes online, we emit Added
       // If a previously known device comes online, we emit StateChanged
       // If previously online device is missing from the list, we emit a StateChanged.
-      deviceProvisioner.devices.statesFlow().collect { states ->
-        val onlineStates = states.filter { it.isOnline() }.associateBy { it.connectedDevice?.serialNumber }
-        onlineStates.values.forEach { state ->
+      deviceProvisioner.mapStateNotNull {_, state -> state.asOnline()}.collect {states ->
+        val onlineStatesBySerial = states.associateBy { it.connectedDevice.serialNumber }
+        onlineStatesBySerial.values.forEach { state ->
           val device = state.toDevice() ?: return@forEach
           if (!onlineDevicesBySerial.containsKey(device.serialNumber)) {
             if (allDevicesById.containsKey(device.deviceId)) {
@@ -86,7 +83,7 @@ internal class DeviceComboBoxDeviceTracker @VisibleForTesting constructor(
         }
 
         // Find devices that were online and are not anymore, then remove them.
-        onlineDevicesBySerial.keys.filter { !onlineStates.containsKey(it) }.forEach {
+        onlineDevicesBySerial.keys.filter { !onlineStatesBySerial.containsKey(it) }.forEach {
           val device = onlineDevicesBySerial[it] ?: return@forEach
           val deviceOffline = device.copy(isOnline = false)
           emit(StateChanged(deviceOffline))
@@ -98,12 +95,4 @@ internal class DeviceComboBoxDeviceTracker @VisibleForTesting constructor(
   }
 }
 
-fun Flow<Iterable<DeviceHandle>>.statesFlow(): Flow<List<DeviceState>> =
-  @Suppress("OPT_IN_USAGE")
-  flatMapLatest { handles ->
-    val innerFlows = handles.map(DeviceHandle::stateFlow)
-    when {
-      innerFlows.isEmpty() -> flowOf(emptyList())
-      else -> combine(innerFlows) { states -> states.toList() }
-    }
-  }
+private fun DeviceState.asOnline() = takeIf { it.isOnline() } as? DeviceState.Connected

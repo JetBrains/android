@@ -365,6 +365,12 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   /** Whether AndroidX libraries should be used instead of legacy support libraries. */
   val useAndroidX: Boolean get() = false // TODO(270044829): fix tests to make this true by default
 
+  /** Whether [desugarLibraryConfigFiles] can be determined for this AGP version */
+  val desugarLibraryConfigFilesKnown: Boolean get() = false
+
+  /** A user visible message, such as 'Only supported for project using Android Gradle plugin '8.1.0-alpha05' and above' */
+  val desugarLibraryConfigFilesNotKnownUserMessage: String? get() = "Only supported for Gradle projects"
+
   val desugarLibraryConfigFiles: List<Path> get() = listOf()
 
   /**

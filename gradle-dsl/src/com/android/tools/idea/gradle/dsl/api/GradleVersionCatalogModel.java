@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dsl.api;
 
 import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogLibraries;
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Version Catalog Model covers one version catalog.
@@ -26,19 +27,25 @@ import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
  */
 public interface GradleVersionCatalogModel extends GradleFileModel {
 
+  @NotNull
   ExtModel libraries();
 
   /**
    * New API. Returns designated high level library Declaration model
    */
+  @NotNull
   GradleVersionCatalogLibraries libraryDeclarations();
 
+  @NotNull
   ExtModel plugins();
 
+  @NotNull
   ExtModel versions();
 
+  @NotNull
   ExtModel bundles();
 
+  @NotNull
   String catalogName();
 
   boolean isDefault();

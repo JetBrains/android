@@ -38,7 +38,8 @@ class PsVersionCatalogCollection(parent: PsProjectImpl) : PsCollectionBase<PsVer
 
   override fun update(key: VersionCatalogKey, model: PsVersionCatalog) {
     val projectParsedModel = parent.parsedModel
-    val catalogModel = projectParsedModel.versionCatalogsModel!!
-    model.init(catalogModel.getVersionCatalogModel(key.name))
+    val catalogModel = projectParsedModel.versionCatalogsModel.getVersionCatalogModel(key.name)
+    assert(catalogModel != null)
+    model.init(catalogModel!!)
   }
 }

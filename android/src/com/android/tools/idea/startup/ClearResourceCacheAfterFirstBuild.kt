@@ -25,7 +25,7 @@ import com.android.tools.idea.res.ResourceIdManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.startup.StartupActivity
+import com.intellij.openapi.startup.ProjectPostStartupActivity
 import com.intellij.openapi.util.Key
 import com.intellij.util.messages.MessageBusConnection
 import org.jetbrains.android.resourceManagers.ModuleResourceManagers
@@ -47,8 +47,8 @@ class ClearResourceCacheAfterFirstBuild(private val project: Project) {
   private val callbacks = mutableListOf<CacheClearedCallback>()
   private var messageBusConnection: MessageBusConnection? = null
 
-  class MyStartupActivity : StartupActivity.DumbAware {
-    override fun runActivity(project: Project) {
+  class MyStartupActivity : ProjectPostStartupActivity {
+    override suspend fun execute(project: Project) {
       // Listen for sync results until the first successful project sync.
       val serviceInstance = getInstance(project)
       serviceInstance.messageBusConnection = project.messageBus.connect().apply {

@@ -21,6 +21,7 @@ import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.sdk.AndroidPlatform
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.project.Project
 import org.jetbrains.android.sdk.getInstance
 
 /** Studio-specific [ConfigurationModelModule] constructed using Android module. */
@@ -30,9 +31,10 @@ class StudioConfigurationModelModule(private val module: Module): ConfigurationM
   override val resourceRepositoryManager: ResourceRepositoryManager?
     get() = StudioResourceRepositoryManager.getInstance(module)
   override val configurationStateManager: ConfigurationStateManager
-    get() = StudioConfigurationStateManager.get(module.getProject())
+    get() = StudioConfigurationStateManager.get(module.project)
   override val themeInfoProvider: ThemeInfoProvider = StudioThemeInfoProvider(module)
   override val androidModuleInfo: AndroidModuleInfo? = StudioAndroidModuleInfo.getInstance(module)
+  override val project: Project = module.project
 
   override fun dispose() {
   }

@@ -17,6 +17,7 @@ package com.android.tools.idea.common.fixtures;
 
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.ide.common.rendering.api.ViewType;
+import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.common.model.AndroidCoordinate;
 import com.android.utils.XmlUtils;
@@ -474,7 +475,7 @@ public class ComponentDescriptor {
     }
     int right = left + myWidth;
     int bottom = top + myHeight;
-    TagSnapshot snapshot = TagSnapshot.createTagSnapshotWithoutChildren(tag);
+    TagSnapshot snapshot = TagSnapshot.createTagSnapshotWithoutChildren(new PsiXmlTag(tag));
 
     TestViewInfo viewInfo =
       new TestViewInfo(myViewObjectClassName, snapshot, left, top, right, bottom, myViewObject, null, myLayoutParamsObject);

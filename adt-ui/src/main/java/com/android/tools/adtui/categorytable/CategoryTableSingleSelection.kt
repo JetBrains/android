@@ -30,6 +30,8 @@ class CategoryTableSingleSelection<T : Any>(val table: CategoryTable<T>) {
 
   fun asFlow(): Flow<Set<RowKey<T>>> = selectedKey.map { setOfNotNull(it) }
 
+  fun selectedKeys(): Set<RowKey<T>> = setOfNotNull(selectedKey.value)
+
   fun clear() {
     selectedKey.value = null
   }

@@ -30,6 +30,8 @@ class NewProjectDescriptor {
   // TODO(qumeric): consider adding "save location"
   private String myActivity = "Empty Views Activity";
 
+  private BuildConfigurationLanguage myBuildConfigurationLanguage = BuildConfigurationLanguage.KTS;
+
   protected NewProjectDescriptor(@NotNull String name) {
     withName(name);
   }
@@ -83,6 +85,11 @@ class NewProjectDescriptor {
     return this;
   }
 
+  NewProjectDescriptor withBuildConfigurationLanguage(BuildConfigurationLanguage buildConfigurationLanguage) {
+    myBuildConfigurationLanguage = buildConfigurationLanguage;
+    return this;
+  }
+
   /**
    * Creates a project fixture for this description
    */
@@ -100,8 +107,7 @@ class NewProjectDescriptor {
       .setSourceLanguage(null)
       .enterPackageName(myPkg)
       .selectMinimumSdkApi(myMinSdkApi)
-      // TODO:(b/271092042) Change the default build script as KTS
-      .selectBuildConfigurationLanguage(BuildConfigurationLanguage.Groovy)
+      .selectBuildConfigurationLanguage(myBuildConfigurationLanguage)
       .wizard()
       .clickFinishAndWaitForSyncToFinish();
       // Hide Gradle tool window if needed, as it takes too much space at the right of the editors and might grab the focus (b/138841171)

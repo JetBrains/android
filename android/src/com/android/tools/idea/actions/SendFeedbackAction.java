@@ -29,6 +29,10 @@ import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.util.io.URLUtil;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -168,6 +172,12 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
       For more information on how to get your bug routed quickly, see https://developer.android.com/studio/report-bugs.html
       """;
 
+    ApplicationInfoEx app = ApplicationInfoEx.getInstanceEx();
+    String buildNumber = app.getBuild().asString();
+    Date date = app.getBuildDate().getTime();
+    DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmm", Locale.US);
+    String strDate = dateFormat.format(date);
+
     return "https://issuetracker.google.com/issues/new?" +
            "component=192708" +
            "&template=840533" +
@@ -176,7 +186,7 @@ public class SendFeedbackAction extends AnAction implements DumbAware {
            "&description=" +
            "%60%60%60%0A" +
            URLUtil.encodeURIComponent(instructions) + "%0A" +
-           "Build%3A%20__BUILD_NUMBER__%2C%20__BUILD_DATE__" +
+           "Build%3A%20" + buildNumber + "%2C%20" + strDate +
            "$DESCR" +
            "%60%60%60";
   }

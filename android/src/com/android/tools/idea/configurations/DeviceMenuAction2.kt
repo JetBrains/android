@@ -27,7 +27,6 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
@@ -241,7 +240,7 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
     val xDp = screen.xDimension.toDp(density).roundToInt()
     val yDp = screen.yDimension.toDp(density).roundToInt()
     val isTv = HardwareConfigHelper.isTv(device)
-    val displayedDensity = AvdScreenData.getScreenDensity(device.id, isTv, density.dpiValue.toDouble(), screen.yDimension)
+    val displayedDensity = AvdScreenData.getScreenDensity(isTv, density.dpiValue.toDouble(), screen.yDimension)
     return "${device.displayName} ($xDp × $yDp dp, ${displayedDensity.resourceValue})"
   }
 
@@ -299,8 +298,7 @@ class AddDeviceDefinitionAction(private val configurationHolder: ConfigurationHo
 
   override fun actionPerformed(e: AnActionEvent) {
     val config = configurationHolder.configuration ?: return
-    val module = config.module ?: return
-    val project = module.project
+    val project = config.configModule.project
 
     val optionsModel = AvdOptionsModel(null)
     val dialog = AvdWizardUtils.createAvdWizard(null, project, optionsModel)

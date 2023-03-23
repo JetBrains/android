@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="google-dexlib2">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/android/tools/smali/smali-dexlib2/3.0.0/smali-dexlib2-3.0.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/m2/repository/com/android/tools/smali/smali-dexlib2/3.0.0/smali-dexlib2-3.0.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

@@ -24,11 +24,12 @@ import com.android.tools.idea.gradle.dsl.model.ext.ExtModelImpl;
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap;
 import com.android.tools.idea.gradle.dsl.parser.files.GradleVersionCatalogFile;
 import com.android.tools.idea.gradle.dsl.parser.semantics.PropertiesElementDescription;
+import org.jetbrains.annotations.NotNull;
 
 public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implements GradleVersionCatalogModel {
   private final String catalogName;
   private final GradleVersionCatalogFile catalogFile;
-  public GradleVersionCatalogModelImpl(GradleVersionCatalogFile file){
+  public GradleVersionCatalogModelImpl(@NotNull GradleVersionCatalogFile file){
     super(file);
     catalogName = file.getCatalogName();
     catalogFile = file;
@@ -47,32 +48,38 @@ public class GradleVersionCatalogModelImpl extends GradleFileModelImpl implement
                             GradleVersionCatalogPropertyModel::new);
   }
 
+  @NotNull
   @Override
   public ExtModel libraries() {
     return extractByName("libraries");
   }
 
+  @NotNull
   @Override
   public GradleVersionCatalogLibraries libraryDeclarations(){
     GradleDslExpressionMap librariesDslElement = ensureMap("libraries");
     return new GradleVersionCatalogLibrariesImpl(librariesDslElement);
   }
 
+  @NotNull
   @Override
   public ExtModel plugins() {
     return extractByName("plugins");
   }
 
+  @NotNull
   @Override
   public ExtModel versions() {
     return extractByName("versions");
   }
 
+  @NotNull
   @Override
   public ExtModel bundles() {
     return extractByName("bundles");
   }
 
+  @NotNull
   @Override
   public String catalogName() {
     return catalogName;

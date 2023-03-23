@@ -52,7 +52,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiClass
-import org.jetbrains.android.dom.attrs.AttributeDefinition
+import com.android.tools.dom.attrs.AttributeDefinition
 import org.junit.Test
 
 

@@ -93,7 +93,7 @@ public class ClipboardAdapter {
     return clipData.getItemAt(0).getText().toString();
   }
 
-  public static void setText(String text) {
+  public static void setText(String text) throws InvocationTargetException, IllegalAccessException {
     if (clipboard == null) {
       return;
     }
@@ -104,71 +104,56 @@ public class ClipboardAdapter {
       clipData.getDescription().setExtras(overlaySuppressor);
     }
 
-    try {
-      if (numberOfExtraParameters == 0) {
-        setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME);
-      }
-      else if (numberOfExtraParameters == 1) {
-        setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME, USER_ID);
-      }
-      else if (numberOfExtraParameters == 2) {
-        setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID);
-      }
-      else if (numberOfExtraParameters == 3) {
-        setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT);
-      }
+    if (numberOfExtraParameters == 0) {
+      setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME);
     }
-    catch (ReflectiveOperationException e) {
-      throw new RuntimeException(e);
+    else if (numberOfExtraParameters == 1) {
+      setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME, USER_ID);
+    }
+    else if (numberOfExtraParameters == 2) {
+      setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID);
+    }
+    else if (numberOfExtraParameters == 3) {
+      setPrimaryClipMethod.invoke(clipboard, clipData, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT);
     }
   }
 
-  public static void enablePrimaryClipChangedListener() {
+  public static void enablePrimaryClipChangedListener() throws InvocationTargetException, IllegalAccessException {
     if (clipboard == null) {
       return;
     }
 
-    try {
-      if (numberOfExtraParameters == 0) {
-        addPrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME);
-      }
-      else if (numberOfExtraParameters == 1) {
-        addPrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, USER_ID);
-      }
-      else if (numberOfExtraParameters == 2) {
-        addPrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID);
-      }
-      else if (numberOfExtraParameters == 3) {
-        addPrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT);
-      }
+    if (numberOfExtraParameters == 0) {
+      addPrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME);
     }
-    catch (ReflectiveOperationException e) {
-      throw new RuntimeException(e);
+    else if (numberOfExtraParameters == 1) {
+      addPrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, USER_ID);
+    }
+    else if (numberOfExtraParameters == 2) {
+      addPrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID);
+    }
+    else if (numberOfExtraParameters == 3) {
+      addPrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID, DEVICE_ID_DEFAULT);
     }
   }
 
-  public static void disablePrimaryClipChangedListener() {
+  public static void disablePrimaryClipChangedListener() throws InvocationTargetException, IllegalAccessException {
     if (clipboard == null) {
       return;
     }
 
-    try {
-      if (numberOfExtraParameters == 0) {
-        removePrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME);
-      }
-      else if (numberOfExtraParameters == 1) {
-        removePrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, USER_ID);
-      }
-      else if (numberOfExtraParameters == 2) {
-        removePrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID);
-      }
-      else if (numberOfExtraParameters == 3) {
-        removePrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID,
-                                                      DEVICE_ID_DEFAULT);
-      }
+    if (numberOfExtraParameters == 0) {
+      removePrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME);
     }
-    catch (ReflectiveOperationException e) {
-      throw new RuntimeException(e);
+    else if (numberOfExtraParameters == 1) {
+      removePrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, USER_ID);
+    }
+    else if (numberOfExtraParameters == 2) {
+      removePrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID);
+    }
+    else if (numberOfExtraParameters == 3) {
+      removePrimaryClipChangedListenerMethod.invoke(clipboard, clipboardListener, PACKAGE_NAME, ATTRIBUTION_TAG, USER_ID,
+                                                    DEVICE_ID_DEFAULT);
     }
   }
 

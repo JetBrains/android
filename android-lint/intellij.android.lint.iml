@@ -29,5 +29,6 @@
     <orderEntry type="module" module-name="intellij.android.core" />
     <orderEntry type="library" name="studio-plugin-toml" level="project" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
+    <orderEntry type="module" module-name="assistant" />
   </component>
 </module>

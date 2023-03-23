@@ -15,9 +15,11 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.ide.common.rendering.api.RenderResources
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectEx
+import com.intellij.psi.xml.XmlFile
 
 /** Studio-specific implementation of [EnvironmentContext]. */
 class StudioEnvironmentContext(private val project: Project) : EnvironmentContext {
@@ -25,4 +27,6 @@ class StudioEnvironmentContext(private val project: Project) : EnvironmentContex
     get() = (project as ProjectEx).earlyDisposable
   override fun hasLayoutlibCrash(): Boolean = hasStudioLayoutlibCrash()
   override val runnableFixFactory: RenderProblem.RunnableFixFactory = ShowFixFactory
+  override fun createIncludeReference(xmlFile: XmlFile, resolver: RenderResources): IncludeReference =
+    PsiIncludeReference.get(xmlFile, resolver)
 }

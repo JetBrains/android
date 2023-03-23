@@ -23,6 +23,7 @@ import com.android.annotations.Nullable;
 import com.android.annotations.Trace;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.tools.idea.gradle.project.sync.GradleSyncState;
+import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarResponse;
 import com.android.tools.idea.stats.UsageTrackerUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.util.Ref;
@@ -321,7 +322,7 @@ public class LiveEditProjectMonitor implements Disposable {
   }
 
   // Called from Android Studio when an app is deployed (a.k.a Installed / IWIed / Delta-installed) to a device
-  public boolean notifyAppDeploy(String applicationId, IDevice device) throws ExecutionException, InterruptedException {
+  public boolean notifyAppDeploy(String applicationId, IDevice device, @NotNull LiveEditApp app) throws ExecutionException, InterruptedException {
     if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit()) {
       LOGGER.info("Live Edit on device disabled via settings.");
       return false;
@@ -329,14 +330,14 @@ public class LiveEditProjectMonitor implements Disposable {
 
     if (!supportLiveEdits(device)) {
       LOGGER.info("Live edit not support for device %s targeting app %s", project.getName(), applicationId);
-      liveEditDevices.addDevice(device, LiveEditStatus.UnsupportedVersion.INSTANCE);
+      liveEditDevices.addDevice(device, LiveEditStatus.UnsupportedVersion.INSTANCE, app);
       return false;
     }
 
     LOGGER.info("Creating monitor for project %s targeting app %s", project.getName(), applicationId);
 
     // Initialize EditStatus for current device.
-    liveEditDevices.addDevice(device, LiveEditStatus.Loading.INSTANCE);
+    liveEditDevices.addDevice(device, LiveEditStatus.Loading.INSTANCE, app);
 
     // This method (notifyAppDeploy) is called from Studio on a random Worker thread. We schedule the data update on the same Executor
     // we process our keystrokes {@link #methodChangesExecutor}
@@ -417,7 +418,7 @@ public class LiveEditProjectMonitor implements Disposable {
     long start = System.nanoTime();
     long compileFinish, pushFinish;
 
-    Optional<LiveEditCompilerOutput> compiled;
+    Optional<LiveEditDesugarResponse> compiled;
 
     try {
       PrebuildChecks(project, changes);
@@ -425,7 +426,9 @@ public class LiveEditProjectMonitor implements Disposable {
         change ->
           new LiveEditCompilerInput(change.getFile(), change.getOrigin(), change.getParentGroup()))
         .collect(Collectors.toList());
-      compiled = compiler.compile(inputs, !LiveEditService.isLeTriggerManual());
+
+      Set<Integer> minApis = getDevicesApiLevels();
+      compiled = compiler.compile(inputs, !LiveEditService.isLeTriggerManual(), minApis);
       if (compiled.isEmpty()) {
         return false;
       }
@@ -452,15 +455,15 @@ public class LiveEditProjectMonitor implements Disposable {
       return true;
     }
 
-    final LiveEditCompilerOutput finalCompiled = compiled.get();
-    event.setHasNonCompose(finalCompiled.getResetState());
+    final LiveEditDesugarResponse desugaredResponse = compiled.get();
+    event.setHasNonCompose(desugaredResponse.resetState());
 
     compileFinish = System.nanoTime();
     event.setCompileDurationMs(TimeUnit.NANOSECONDS.toMillis(compileFinish - start));
     LOGGER.info("LiveEdit compile completed in %dms", event.getCompileDurationMs());
 
     List<LiveUpdateDeployer.UpdateLiveEditError> errors = editableDeviceIterator()
-      .map(device -> pushUpdatesToDevice(applicationId, device, finalCompiled).errors)
+      .map(device -> pushUpdatesToDevice(applicationId, device, desugaredResponse).errors)
       .flatMap(List::stream)
       .toList();
 
@@ -476,6 +479,13 @@ public class LiveEditProjectMonitor implements Disposable {
 
     logLiveEditEvent(event);
     return true;
+  }
+
+  @NotNull
+  private Set<Integer> getDevicesApiLevels() {
+    return editableDeviceIterator()
+      .map(device -> liveEditDevices.getInfo(device).getApp().getMinAPI())
+      .collect(Collectors.toSet());
   }
 
   public void requestRerun() {
@@ -550,7 +560,10 @@ public class LiveEditProjectMonitor implements Disposable {
   }
 
   private void updateEditableStatus(@NotNull LiveEditStatus newStatus) {
-    liveEditDevices.update((device, prevStatus) -> (prevStatus.unrecoverable() || prevStatus == LiveEditStatus.Disabled.INSTANCE) ? prevStatus : newStatus);
+    liveEditDevices.update((device, prevStatus) -> (
+      prevStatus.unrecoverable() ||
+      prevStatus == LiveEditStatus.Disabled.INSTANCE ||
+      prevStatus == LiveEditStatus.NoMultiDeploy.INSTANCE) ? prevStatus : newStatus);
   }
 
   private void handleDeviceStatusChange(Map<IDevice, LiveEditStatus> map) {
@@ -560,7 +573,9 @@ public class LiveEditProjectMonitor implements Disposable {
 
   private Stream<IDevice> editableDeviceIterator() {
     return liveEditDevices.devices().stream().filter(IDevice::isOnline).filter(
-      device -> liveEditDevices.getInfo(device).getStatus() != LiveEditStatus.Disabled.INSTANCE );
+      device ->
+        liveEditDevices.getInfo(device).getStatus() != LiveEditStatus.Disabled.INSTANCE &&
+        liveEditDevices.getInfo(device).getStatus() != LiveEditStatus.NoMultiDeploy.INSTANCE);
   }
 
   private static Installer newInstaller(IDevice device) {
@@ -570,19 +585,21 @@ public class LiveEditProjectMonitor implements Disposable {
   }
 
   private LiveUpdateDeployer.UpdateLiveEditResult pushUpdatesToDevice(
-      String applicationId, IDevice device, LiveEditCompilerOutput update) {
+      String applicationId, IDevice device, LiveEditDesugarResponse update) {
     LiveUpdateDeployer deployer = new LiveUpdateDeployer(LOGGER);
     Installer installer = newInstaller(device);
     AdbClient adb = new AdbClient(device, LOGGER);
 
     boolean useDebugMode = LiveEditAdvancedConfiguration.getInstance().getUseDebugMode();
-    boolean usePartialRecompose = LiveEditAdvancedConfiguration.getInstance().getUsePartialRecompose() && !update.getResetState();
+    boolean resetState = update.resetState();
+    boolean usePartialRecompose = LiveEditAdvancedConfiguration.getInstance().getUsePartialRecompose() && !resetState;
 
+    int apiLevel = liveEditDevices.getInfo(device).getApp().getMinAPI();
     LiveUpdateDeployer.UpdateLiveEditsParam param =
       new LiveUpdateDeployer.UpdateLiveEditsParam(
-        update.getClassesMap(),
-        update.getSupportClassesMap(),
-        update.getGroupIds(),
+        update.classes(apiLevel),
+        update.supportClasses(apiLevel),
+        update.groupIds(),
         usePartialRecompose,
         useDebugMode);
 

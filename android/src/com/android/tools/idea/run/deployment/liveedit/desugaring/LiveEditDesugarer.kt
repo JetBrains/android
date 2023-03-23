@@ -15,57 +15,52 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.desugaring
 
-import com.android.tools.idea.model.StudioAndroidModuleInfo
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
+import com.android.tools.idea.run.deployment.liveedit.LiveEditLogger
 import com.android.tools.idea.run.deployment.liveedit.LiveEditCompiledClass
-import com.android.tools.idea.run.deployment.liveedit.LiveEditCompilerOutput
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.desugarFailure
 import com.android.tools.r8.ClassFileResourceProvider
 import com.android.tools.r8.D8
 import com.android.tools.r8.D8Command
-import org.jetbrains.android.facet.AndroidFacet
+import com.intellij.openapi.module.Module
 import java.nio.file.Files
 import java.nio.file.Paths
-import com.intellij.openapi.module.Module;
+
+typealias MinApiLevel = Int
+typealias ClassName = String
+typealias ByteCode = ByteArray
 
 internal class LiveEditDesugar : AutoCloseable{
 
-  private val logger = DesugarLogger()
+  private val logger = LiveEditLogger("LE Desugar")
   private val jarResourceCacheManager = JarResourceCacheManager(logger)
 
-  internal fun desugar(compiledFiles: LiveEditCompilerOutput) {
+  internal fun desugar(request: LiveEditDesugarRequest): LiveEditDesugarResponse {
     val now = System.nanoTime()
-    try {
-      desugarClasses(compiledFiles.classes)
+    val response = LiveEditDesugarResponse(request.compilerOutput)
+
+    if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_R8_DESUGAR.get()) {
+      // If desugaring is disabled we pass-through the compiler output as desugaring output
+      request.apiVersions.forEach{ apiVersion ->
+        response.addOutputSet(apiVersion, request.compilerOutput.classes.map{ it.name to it.data }.toMap())
+      }
     }
-    catch (e: Exception) {
-      e.printStackTrace()
+
+    try {
+      for (apiVersion in request.apiVersions) {
+        val desugaredClasses = desugarClasses(request.compilerOutput.classes, apiVersion)
+        response.addOutputSet(apiVersion, desugaredClasses)
+      }
     } finally {
       jarResourceCacheManager.done()
     }
     val durationMs = (System.nanoTime() - now) / 1000000
     logger.log("Runtime = $durationMs")
+    return response
   }
 
-
-  private fun getMinApiLevel(module: Module?) : Int {
-    if (module == null) {
-      logger.log("Cannot retrieve min API (no module)")
-      return 0
-    }
-
-    val facet: AndroidFacet? = AndroidFacet.getInstance(module)
-    if (facet == null) {
-      logger.log("Cannot retrieve min API (no facet)")
-      return 0
-    }
-
-    val minAPI = StudioAndroidModuleInfo.getInstance(facet).minSdkVersion.apiLevel
-
-    logger.log("Target API = $minAPI")
-    return minAPI
-  }
 
   private fun getDesugarConfig(module: Module?): String? {
     if (module == null) {
@@ -116,79 +111,72 @@ internal class LiveEditDesugar : AutoCloseable{
     }.toList()
   }
 
-  private fun desugarClasses(classes : List<LiveEditCompiledClass>) {
+  private fun desugarClasses(classes : List<LiveEditCompiledClass>, version : MinApiLevel) : Map<ClassName, ByteCode> {
 
     // We batch class desugaring on a per-module basis to re-use common class desugaring configuration.
-    // 1/ Flattened lists into a single one.
-    // 2/ Group classes per-module name and desugar via R8
-    // 3/ Write back desugared classes where they belong
+    // 1/ Group classes per-module name and desugar via R8
+    // 2/ Write back desugared classes where they belong
 
     // 1
-    logger.log("Request for:")
-    val flattenedClasses = mutableMapOf<String, LiveEditCompiledClass>()
-    flatten(classes, flattenedClasses, "classes")
-
-    // 2
     val modulesSet = mutableMapOf<String, MutableList<LiveEditCompiledClass>>()
-    flattenedClasses.forEach{
-      if (it.value.module == null) {
-        desugarFailure("Cannot process class '${it.value.name}' without module")
+    classes.forEach{
+      if (it.module == null) {
+        desugarFailure("Cannot process class '${it.name}' without module")
         return@forEach
       }
-      val moduleName = it.value.module!!.name
+      val moduleName = it.module.name
       if (!modulesSet.contains(moduleName)) {
         modulesSet[moduleName] = ArrayList()
       }
-      modulesSet[moduleName]!!.add(it.value)
+      modulesSet[moduleName]!!.add(it)
     }
 
     // We store all desugared classes in there.
-    val allDesugaredClasses = HashMap<String, ByteArray>()
+    val allDesugaredClasses = HashMap<ClassName, ByteCode>()
+    // 2
     modulesSet.forEach{
-      logger.log("Batch for module: ${it.key}")
+      val moduleName = it.key
+      val compiledClasses = it.value
+      logger.log("Batch for module: $moduleName")
       val module = it.value[0].module
-      val desugaredModuleClasses = desugarClassesForModule(it.value, module)
-      allDesugaredClasses.putAll(desugaredModuleClasses)
+      if (module == null) {
+        desugarFailure("Unable to desugar, no Module associated with $moduleName")
+      }
+
+      allDesugaredClasses.putAll(desugarClassesForModule(compiledClasses, module!!, version))
     }
 
-    // 3
-    replaceWithDesugared(allDesugaredClasses, flattenedClasses)
+    return allDesugaredClasses
   }
 
-  private fun flatten(classes: List<LiveEditCompiledClass>, flattenedClasses: MutableMap<String, LiveEditCompiledClass>, name: String) {
-    logger.log(name)
-    classes.forEach{
-      logger.log(it.name)
-      flattenedClasses[it.name] = it
-    }
-  }
+  private fun desugarClassesForModule(classes : List<LiveEditCompiledClass>, module: Module, minApiLevel: MinApiLevel) : Map<String, ByteArray>{
+     val memClassFileProvider = R8MemoryProgramResourceProvider(classes, logger)
+     val memClassFileConsumer = R8MemoryClassFileConsumer(logger)
 
-  private fun desugarClassesForModule(classes : List<LiveEditCompiledClass>, module: Module?) : Map<String, ByteArray>{
-      val memClassFileProvider = R8MemoryProgramResourceProvider(classes, logger)
-      val memClassFileConsumer = R8MemoryClassFileConsumer(logger)
+     logger.log("minAPILevel =$minApiLevel")
 
-      val diagnosticHandler = R8DiagnosticHandler(logger)
-      val command = D8Command.builder(diagnosticHandler)
+     val diagnosticHandler = R8DiagnosticHandler(logger)
+     val command = D8Command.builder(diagnosticHandler)
         // Path of files to compile.
         .addProgramResourceProvider(memClassFileProvider)
 
         // Pass the min API.
-        .setMinApiLevel(getMinApiLevel(module))
+        .setMinApiLevel(minApiLevel)
 
         // Set output to Cf in memory consumer
         .setProgramConsumer(memClassFileConsumer)
 
-      // Pass android.jar of the target device (not the min-api)
-      getAndroidJar(module).forEach {
-        command.addLibraryResourceProvider(it)
-      }
+     // Pass android.jar of the target device (not the min-api)
+     getAndroidJar(module).forEach {
+       command.addLibraryResourceProvider(it)
+     }
 
-      // Pass the classpaths
-      getClassPathResourceProvider(module).forEach{
-        command.addClasspathResourceProvider(it)
-      }
+     // Pass the classpaths
+     getClassPathResourceProvider(module).forEach{
+       command.addClasspathResourceProvider(it)
+     }
 
-      /* If build.gradle enable library desugaring via,
+     /* If build.gradle enable library desugaring via,
          compileOptions {
            sourceCompatibility JavaVersion.VERSION_1_8
            targetCompatibility JavaVersion.VERSION_1_8
@@ -199,27 +187,24 @@ internal class LiveEditDesugar : AutoCloseable{
          }
 
          then, we do get a json config file that we should forward to our own invocation.
-      */
-      // Enable desugared library if it was used.
-      val desugarConfig = getDesugarConfig(module)
-      if (desugarConfig != null) {
-        command.addDesugaredLibraryConfiguration(desugarConfig)
-      }
+     */
 
-      // By default, D8 run on an executor with one thread per core
-      D8.run(command.build())
-      return memClassFileConsumer.classes
-  }
+     // Check if the build system support returning the json config library information
+     val moduleSys = module.getModuleSystem()
+     if (!moduleSys.desugarLibraryConfigFilesKnown) {
+       // If AGP does not support config retrieval, we cannot proceed
+       desugarFailure("${moduleSys.desugarLibraryConfigFilesNotKnownUserMessage}")
+     }
 
-  fun Map<String, Any>.toList() = this.map{it.key}.toList()
+     // Enable desugared library if it was used.
+     val desugarConfig = getDesugarConfig(module)
+     if (desugarConfig != null) {
+       command.addDesugaredLibraryConfiguration(desugarConfig)
+     }
 
-  private fun replaceWithDesugared(desugared: Map<String, ByteArray>, target: Map<String, LiveEditCompiledClass>) {
-    target.forEach{
-      if (!desugared.contains(it.key)) {
-        desugarFailure("R8 did not desugar ${it.key}, desugared=${desugared.toList()}, target=${target.toList()}")
-      }
-      target[it.key]!!.data = desugared[it.key]!!
-    }
+     // By default, D8 run on an executor with one thread per core
+     D8.run(command.build())
+     return memClassFileConsumer.classes
   }
 
   override fun close() {

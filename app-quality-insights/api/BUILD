@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.app-quality-insights.api",
     srcs = ["src"],
     iml_files = ["intellij.android.app-quality-insights.api.iml"],
+    test_class = "com.android.tools.idea.insights.InsightsApiTestSuite",
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -19,5 +20,9 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-test-framework[test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
+        "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as[module]",
     ],
 )

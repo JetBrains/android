@@ -317,3 +317,17 @@ jvm_import(
     jars = ["//prebuilts/tools/common/m2:oauth2_files"],
     visibility = ["//visibility:public"],
 )
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "google-dexlib2",
+    jars = ["//prebuilts/tools/common/m2:google-dexlib2_files"],
+    visibility = ["//visibility:public"],
+)
+
+# managed by go/iml_to_build
+jvm_import(
+    name = "google-baksmali",
+    jars = ["//prebuilts/tools/common/m2:google-baksmali_files"],
+    visibility = ["//visibility:public"],
+)

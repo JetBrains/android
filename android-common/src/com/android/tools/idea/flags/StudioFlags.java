@@ -93,7 +93,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> NPW_NEW_BASELINE_PROFILES_MODULE = Flag.create(
     NPW, "new.baseline.profiles.module", "New Baseline Profile Module",
     "Show template to create a new Baseline Profile module in the new module wizard.",
-    true);
+    false);
 
   public static final Flag<Boolean> NPW_ENABLE_GRADLE_VERSION_CATALOG = Flag.create(
     NPW, "enable.version.catalog", "Enable Gradle Version Catalog",
@@ -341,6 +341,11 @@ public final class StudioFlags {
     NELE, "visual.lint.atf", "Enable ATF integration in visual linting for layouts",
     "Enable ATF integration in visual linting of layouts.",
     true);
+
+  public static final Flag<Boolean> NELE_ATF_FOR_COMPOSE = Flag.create(
+    NELE, "atf.for.compose", "Enable ATF checks for Compose",
+    "Allow running accessibility checks for Compose using ATF.",
+    false);
 
   public static final Flag<Boolean> NELE_WARN_NEW_THREADS = Flag.create(
     NELE, "preview.warn.new.threads", "Enable new threads warning",
@@ -643,14 +648,6 @@ public final class StudioFlags {
     "logcat.suppressed.tags.enable",
     "Enable Suppressed Tags Dialog in Logcat (deprecated)",
     "Enables a dialog that allows the user to maintain a global set of tags to be suppressed in Logcat",
-    false
-  );
-
-  public static final Flag<Boolean> LOGCAT_NAMED_FILTERS_ENABLE = Flag.create(
-    LOGCAT,
-    "logcat.named.filters.enable",
-    "Enable Logcat named filters feature",
-    "Enables the named filters feature in the Logcat tool window",
     false
   );
 
@@ -1212,7 +1209,7 @@ public final class StudioFlags {
     "LiveEdit: Desugar kotlinc outputs with R8",
     "If enabled, the outputs of kotlinc are desugared before being sent to LiveEdit engine. This improves " +
     "the odds of matching what was produced by the Build system",
-    false // False by default until we can gracefully fail if AGP < 8.1.0-alpha
+    true
   );
 
   public static final Flag<Integer> COMPOSE_LIVE_LITERALS_UPDATE_RATE = Flag.create(
@@ -1354,7 +1351,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> COMPOSE_ALLOCATION_LIMITER = Flag.create(
     COMPOSE, "allocation.limiter", "If enabled, limits allocations per render",
     "If enabled, limits the number of allocations that user code can do in a single render action",
-    false);
+    java.lang.Boolean.getBoolean("idea.is.internal"));
   public static final Flag<Boolean> COMPOSE_PREVIEW_SELECTION = Flag.create(
     COMPOSE, "compose.preview.selection", "Enable the select/deselect interaction with Previews",
     "If enabled, Previews will be selectable, and some interactions will only be enabled for selected Previews",
@@ -1705,6 +1702,16 @@ public final class StudioFlags {
     true
   );
   // endregion NEW_SEND_FEEDBACK_DIALOG
+
+  // region Play Compatible Wear Screenshots
+  private static final FlagGroup
+    PLAY_COMPATIBLE_WEAR_SCREENSHOTS = new FlagGroup(FLAGS, "play.compatible.wear.screenshots", "Play Compatible Wear Screenshots");
+  public static final Flag<Boolean> PLAY_COMPATIBLE_WEAR_SCREENSHOTS_ENABLED = Flag.create(
+    PLAY_COMPATIBLE_WEAR_SCREENSHOTS, "play.compatible.wear.screenshots.enable", "Enable Play Compatible Wear Screenshots",
+    "Enable a play compatible screenshot option for wear devices.",
+    false
+  );
+  // endregion
 
   private StudioFlags() { }
 }

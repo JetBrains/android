@@ -58,7 +58,6 @@ public class VisualTests {
       dialog.addTest(new TooltipVisualTest());
       dialog.addTest(new LineChartVisualTest());
       dialog.addTest(new FlameGraphVisualTest());
-      dialog.addTest(new AccordionVisualTest());
       dialog.addTest(new ThreadCallsVisualTest());
       dialog.addTest(new AxisLineChartVisualTest());
       dialog.addTest(new StateChartVisualTest());

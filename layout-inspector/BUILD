@@ -60,6 +60,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:truth[test]",
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module]",
         "//tools/adt/idea/streaming:intellij.android.streaming[module]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
     ],
 )
 
@@ -133,15 +134,12 @@ iml_module(
 cc_library(
     name = "skiaparser_test_support",
     srcs = ["testSrc/native/skia_parser_test_java_jni.cc"],
-    copts = [
-        "-DSK_USER_CONFIG_HEADER=\\\"StudioConfig.h\\\"",
-    ],
     linkstatic = 1,
     deps = [
         "//prebuilts/studio/jdk:jni_headers",
         "//tools/base/dynamic-layout-inspector/skia:skia-lib",
         "//tools/base/dynamic-layout-inspector/skia/proto:layout_inspector_skia_cc_proto",
-        "@freetype_repo//:libft2",
+        "@freetype_repo//:freetype",
         "@libpng_repo//:libpng",
     ],
     alwayslink = 1,

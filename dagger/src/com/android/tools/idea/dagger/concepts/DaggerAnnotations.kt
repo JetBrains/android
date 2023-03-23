@@ -17,9 +17,12 @@ package com.android.tools.idea.dagger.concepts
 
 /** Shared definitions of annotation names used when building the Dagger index. */
 object DaggerAnnotations {
+  internal const val BINDS = "dagger.Binds"
   internal const val COMPONENT = "dagger.Component"
   internal const val INJECT = "javax.inject.Inject"
+  internal const val LAZY = "dagger.Lazy"
   internal const val MODULE = "dagger.Module"
   internal const val PROVIDES = "dagger.Provides"
+  internal const val PROVIDER = "javax.inject.Provider"
   internal const val SUBCOMPONENT = "dagger.Subcomponent"
 }

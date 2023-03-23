@@ -24,7 +24,6 @@ import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEdi
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
-import com.android.tools.idea.logcat.AndroidLogcatToolWindowFactory
 import com.android.tools.idea.run.deployment.liveedit.LiveEditBundle
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
 import com.intellij.icons.AllIcons
@@ -152,7 +151,7 @@ internal class ManualLiveEditAction : AnAction("Refresh") {
 internal class ShowLogcatAction : AnAction("Show Logcat") {
   override fun actionPerformed(e: AnActionEvent) {
     val project = e.project ?: return
-    ToolWindowManager.getInstance(project).getToolWindow(AndroidLogcatToolWindowFactory.getToolWindowId())?.activate {}
+    ToolWindowManager.getInstance(project).getToolWindow("Logcat")?.activate {}
   }
 }
 

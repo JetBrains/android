@@ -66,6 +66,7 @@ public class GradleDependencyManagerTest {
 
   private static final GradleCoordinate APP_COMPAT_DEPENDENCY = new GradleCoordinate("com.android.support", "appcompat-v7", "+");
   private static final GradleCoordinate RECYCLER_VIEW_DEPENDENCY = new GradleCoordinate("com.android.support", "recyclerview-v7", "+");
+  private static final GradleCoordinate ROOM_DEPENDENCY = new GradleCoordinate("androidx.room","room-ktx", "2.5.1");
   private static final GradleCoordinate DUMMY_DEPENDENCY = new GradleCoordinate("dummy.group", "dummy.artifact", "0.0.0");
   private static final GradleCoordinate VECTOR_DRAWABLE_DEPENDENCY =
     new GradleCoordinate("com.android.support", "support-vector-drawable", "+");
@@ -250,10 +251,35 @@ public class GradleDependencyManagerTest {
       GradleVersionCatalogModel catalogModel = catalog.getVersionCatalogModel("libs");
 
       assertThat(
-        dependencyManager.findMissingCatalogDependencies(appModule.getProject(), dependencies, catalogModel).missingLibraries).isEmpty();
+        dependencyManager.computeCatalogDependenciesInfo(appModule.getProject(), dependencies, catalogModel).missingLibraries).isEmpty();
       assertTrue(isRecyclerInCatalog(project));
       assertBuildGradle(project, str -> !str.contains("com.android.support:libs.recyclerview-v7:+"));
       assertBuildGradle(project, str -> str.contains("implementation libs.recyclerview.v7"));
+      return null;
+    });
+  }
+
+  @Test
+  public void testFindInCatalogAndAddToBuild() {
+    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.SIMPLE_APPLICATION_VERSION_CATALOG);
+    preparedProject.open(it -> it, project -> {
+      Module appModule = TestModuleUtil.findAppModule(project);
+      GradleDependencyManager dependencyManager = GradleDependencyManager.getInstance(project);
+      List<GradleCoordinate> dependencies = Collections.singletonList(ROOM_DEPENDENCY);
+
+      assertThat(dependencyManager.findMissingDependencies(appModule, dependencies)).isNotEmpty();
+
+      boolean result = dependencyManager.addDependenciesAndSync(appModule, dependencies);
+
+      assertTrue(result);
+      GradleVersionCatalogsModel catalog = ProjectBuildModel.get(project).getVersionCatalogsModel();
+      GradleVersionCatalogModel catalogModel = catalog.getVersionCatalogModel("libs");
+
+      assertThat(
+        dependencyManager.computeCatalogDependenciesInfo(appModule.getProject(), dependencies, catalogModel).missingLibraries).isEmpty();
+      assertTrue(isInCatalog(project, "group=androidx.room,name=room-ktx,version=2.5.0"));
+      assertBuildGradle(project, str -> !str.contains("androidx.room:room-ktx:2.5.0"));
+      assertBuildGradle(project, str -> str.contains("implementation libs.androidx.room.ktx"));
       return null;
     });
   }
@@ -264,13 +290,17 @@ public class GradleDependencyManagerTest {
     return check.test(buildGradlePsi.getText().replace(" ", "").replace("\"", ""));
   }
 
-  private boolean isRecyclerInCatalog(Project project) {
+  private boolean isRecyclerInCatalog(Project project){
+    return isInCatalog(project, "group=com.android.support,name=recyclerview-v7,version=28.0.0");
+  }
+
+  private boolean isInCatalog(Project project, String catalogSnippet) {
     GradleVersionCatalogsModel catalog = ProjectBuildModel.get(project).getVersionCatalogsModel();
     GradleVersionCatalogModel catalogModel = catalog.getVersionCatalogModel("libs");
     if (catalogModel == null) return false;
     VirtualFile file = catalogModel.getVirtualFile();
     return checkFileContent(project,
                             file,
-                            str -> str.contains("group=com.android.support,name=recyclerview-v7,version=28.0.0"));
+                            str -> str.contains(catalogSnippet));
   }
 }

@@ -24,9 +24,9 @@ import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.testing.TestProjectPaths.NAVIGATION_EDITOR_INCLUDE_FROM_LIB
 import com.android.tools.idea.util.toIoFile
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil
-import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

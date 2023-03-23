@@ -97,7 +97,7 @@ data class StacktraceGroup(
   val exceptions: List<ExceptionStack> = listOf()
 )
 
-/** Metadata about the device running an app with Crashlytics. */
+/** Metadata about the device running an app. */
 data class Device(
   val manufacturer: String,
   val model: String,

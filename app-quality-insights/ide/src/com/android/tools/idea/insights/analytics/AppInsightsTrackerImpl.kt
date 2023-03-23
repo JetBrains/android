@@ -17,16 +17,10 @@ package com.android.tools.idea.insights.analytics
 
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.insights.ConnectionMode
-import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.stats.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter
-import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent.Resolution
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiMethod
 import java.security.MessageDigest
 import java.util.Random
 
@@ -239,34 +233,3 @@ class AppInsightsTrackerImpl(private val project: Project) : AppInsightsTracker 
     return digest.fold("") { str, it -> str + "%02x".format(it) }
   }
 }
-
-fun convertSeverityList(fatalities: List<FailureType>): SeverityFilter {
-  if (fatalities.size < 1 || fatalities.size > 2) {
-    return SeverityFilter.UNKNOWN_SEVERITY
-  }
-  if (fatalities.size == 2) {
-    return SeverityFilter.ALL
-  }
-  return when (fatalities[0]) {
-    FailureType.ANR -> SeverityFilter.UNKNOWN_SEVERITY
-    FailureType.FATAL -> SeverityFilter.FATAL
-    FailureType.NON_FATAL -> SeverityFilter.NON_FATAL
-    FailureType.UNSPECIFIED -> SeverityFilter.UNKNOWN_SEVERITY
-    else -> SeverityFilter.UNKNOWN_SEVERITY
-  }
-}
-
-fun convertResolution(element: PsiElement): Resolution =
-  when (element) {
-    is PsiMethod -> Resolution.METHOD
-    is PsiClass -> Resolution.CLASS
-    else -> Resolution.LINE
-  }
-
-internal fun IssueSelectionSource.toCrashOpenSource() =
-  when (this) {
-    IssueSelectionSource.LIST ->
-      AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails.CrashOpenSource.LIST
-    else ->
-      AppQualityInsightsUsageEvent.AppQualityInsightsCrashOpenDetails.CrashOpenSource.INSPECTION
-  }

@@ -21,6 +21,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguage;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
@@ -60,7 +61,8 @@ public class RunAppEnableTest {
 
   @Before
   public void setUp() throws Exception {
-    WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE); // Default projects are created with androidx dependencies
+    // TODO: Change the build configuration language as KTS
+    WizardUtils.createNewProject(guiTest, EMPTY_ACTIVITY_TEMPLATE, BuildConfigurationLanguage.Groovy); // Default projects are created with androidx dependencies
     guiTest.robot().waitForIdle();
   }
 

@@ -465,7 +465,10 @@ class EmulatorView(
     frameNumber = screenshotShape.frameNumber
     notifyFrameListeners(displayRect, screenshot.image)
 
+    paintDecorations(g, displayRect)
+
     if (multiTouchMode) {
+      // Draw multi-touch visual feedback.
       drawMultiTouchFeedback(g, displayRect, lastTouchCoordinates != null)
     }
 
@@ -473,6 +476,7 @@ class EmulatorView(
       // Draw device frame and mask.
       skin.drawFrameAndMask(g, displayRect)
     }
+
     if (!screenshot.painted) {
       screenshot.painted = true
       val paintTime = System.currentTimeMillis()
@@ -1218,27 +1222,28 @@ class EmulatorView(
    * dimensions and orientation.
    */
   private class SkinLayoutCache(val emulator: EmulatorController) {
-    var displayShape: DisplayShape? = null
+    var width = 0
+    var height = 0
+    var orientation = -1
     var skinLayout: SkinLayout? = null
 
-    fun getCached(displayShape: DisplayShape): SkinLayout? {
-      synchronized(this) {
-        return if (displayShape == this.displayShape) skinLayout else null
-      }
-    }
+    @Synchronized
+    fun getCached(displayShape: DisplayShape): SkinLayout? =
+        if (displayShape.width == width && displayShape.height == height && displayShape.orientation == orientation) skinLayout else null
 
     @Slow
+    @Synchronized
     fun get(displayShape: DisplayShape): SkinLayout {
-      synchronized(this) {
-        var layout = this.skinLayout
-        if (displayShape != this.displayShape || layout == null) {
-          layout = emulator.skinDefinition?.createScaledLayout(displayShape.width, displayShape.height, displayShape.orientation) ?:
-                   SkinLayout(displayShape.width, displayShape.height)
-          this.displayShape = displayShape
-          this.skinLayout = layout
-        }
-        return layout
+      var layout = skinLayout
+      if (displayShape.width != width || displayShape.height != height || displayShape.orientation != orientation || layout == null) {
+        layout = emulator.skinDefinition?.createScaledLayout(displayShape.width, displayShape.height, displayShape.orientation)
+                 ?: SkinLayout(displayShape.width, displayShape.height)
+        width = displayShape.width
+        height = displayShape.height
+        orientation = displayShape.orientation
+        skinLayout = layout
       }
+      return layout
     }
   }
 

@@ -20,12 +20,25 @@ import com.android.tools.idea.actions.SetColorBlindModeAction
 import com.android.tools.idea.compose.preview.message
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnActionEvent
 
 /** [DropDownAction] to allow setting different color-blind modes to Compose Previews. */
-class ComposeColorBlindAction(surface: NlDesignSurface) :
+class ComposeColorBlindAction(private val surface: NlDesignSurface) :
   DropDownAction(message("action.scene.mode.colorblind.dropdown.title"), null, null) {
 
   init {
     ColorBlindMode.values().forEach { addAction(SetColorBlindModeAction(it, surface)) }
   }
+
+  override fun update(e: AnActionEvent) {
+    super.update(e)
+    getChildren(e).forEach { action ->
+      val screenViewProvider = surface.screenViewProvider
+      action as SetColorBlindModeAction
+      action.isSelected = screenViewProvider.colorBlindFilter == action.colorBlindMode
+    }
+  }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }

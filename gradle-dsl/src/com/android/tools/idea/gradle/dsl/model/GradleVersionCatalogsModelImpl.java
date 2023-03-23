@@ -49,30 +49,37 @@ public class GradleVersionCatalogsModelImpl implements GradleVersionCatalogsMode
     }));
   }
 
+  @Nullable
   @Override
   public ExtModel libraries(String catalogName) {
     return extractByName("libraries").get(catalogName);
   }
 
+  @Nullable
   @Override
   public ExtModel plugins(String catalogName) {
     return extractByName("plugins").get(catalogName);
   }
 
+  @Nullable
   @Override
   public ExtModel versions(String catalogName) {
     return extractByName("versions").get(catalogName);
   }
 
+  @Nullable
   @Override
   public ExtModel bundles(String catalogName) {
     return extractByName("bundles").get(catalogName);
   }
 
+  @NotNull
+  @Override
   public Set<String> catalogNames(){
     return versionCatalogFiles.keySet();
   }
 
+  @Nullable
   @Override
   public GradleVersionCatalogModel getVersionCatalogModel(String catalogName) {
     GradleVersionCatalogFile file = versionCatalogFiles.get(catalogName);

@@ -61,7 +61,7 @@ class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor : AgpUpgr
 
     projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
       usages.addAll(MOVE_PACKAGING_OPTIONS_PROPERTIES_INFO.findBuildModelUsages(this, model))
-      model.android().packagingOptions().run {
+      model.android().packaging().run {
         splitModel(excludes(), jniLibs().excludes(), resources().excludes())
         splitModel(pickFirsts(), jniLibs().pickFirsts(), resources().pickFirsts())
       }
@@ -99,14 +99,14 @@ class MigratePackagingOptionsToJniLibsAndResourcesRefactoringProcessor : AgpUpgr
 
     val MOVE_PACKAGING_OPTIONS_PROPERTIES_INFO = MovePropertiesInfo(
       listOf(
-        Pair({ android().packagingOptions().doNotStrip() }, { android().packagingOptions().jniLibs().keepDebugSymbols() }),
-        Pair({ android().packagingOptions().merges() }, { android().packagingOptions().resources().merges() }),
+        Pair({ android().packaging().doNotStrip() }, { android().packaging().jniLibs().keepDebugSymbols() }),
+        Pair({ android().packaging().merges() }, { android().packaging().resources().merges() }),
       ),
       tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.move.tooltipText"),
       usageType = MOVE_PROPERTY
     )
     val REMOVE_PACKAGING_OPTIONS_PROPERTIES_INFO = RemovePropertiesInfo(
-      { listOf(android().packagingOptions().excludes(), android().packagingOptions().pickFirsts()) },
+      { listOf(android().packaging().excludes(), android().packaging().pickFirsts()) },
       tooltipTextSupplier = AndroidBundle.messagePointer("project.upgrade.migratePackagingOptionsRefactoringProcessor.remove.tooltipText"),
       usageType = REMOVE_PROPERTY
     )

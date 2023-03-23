@@ -133,7 +133,9 @@ public class GradleVersionCatalogFile extends GradleDslFile {
     }
 
     private void deleteOldDependencies() {
-      myDependencies.forEach(e -> e.getToBeInjected().unregisterDependent(e));
+      myDependencies.forEach(e -> {
+        if (e.getToBeInjected() != null) e.getToBeInjected().unregisterDependent(e);
+      });
       myDependencies.clear();
     }
 

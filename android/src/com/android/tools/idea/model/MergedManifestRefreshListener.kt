@@ -28,6 +28,7 @@ import com.android.tools.idea.util.PoliteAndroidVirtualFileListener
 import com.android.tools.idea.util.listenUntilNextSync
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.startup.ProjectPostStartupActivity
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -115,8 +116,8 @@ class MergedManifestRefreshListener(project: Project) : PoliteAndroidVirtualFile
    * [StartupActivity.DumbAware] responsible for ensuring that a [Project] has a [MergedManifestRefreshListener]
    * subscribed to listen for VFS changes once the initial project sync has completed.
    */
-  private class SubscriptionStartupActivity : StartupActivity.DumbAware {
-    override fun runActivity(project: Project) {
+  private class SubscriptionStartupActivity : ProjectPostStartupActivity {
+    override suspend fun execute(project: Project) {
       val subscriber = object : LazyFileListenerSubscriber<MergedManifestRefreshListener>(MergedManifestRefreshListener(project), project) {
         override fun subscribe() {
           VirtualFileManager.getInstance().addVirtualFileListener(listener, parent)

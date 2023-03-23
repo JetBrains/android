@@ -38,8 +38,7 @@ import org.junit.runners.JUnit4
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.test.assertFailsWith
-import kotlin.time.Duration
-import kotlin.time.ExperimentalTime
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Tests methods in [StringResourceRepository].
@@ -59,7 +58,6 @@ class StringResourceRepositoryTest {
   private lateinit var localResourceRepository: LocalResourceRepository
   private lateinit var stringResourceRepository: StringResourceRepository
 
-  @OptIn(ExperimentalTime::class)
   @Before
   fun setUp() {
     androidProjectRule.fixture.testDataPath =
@@ -84,7 +82,7 @@ class StringResourceRepositoryTest {
     stringResourceRepository = StringResourceRepository.create(localResourceRepository)
 
     runBlocking {
-      withTimeout(Duration.seconds(2)) {
+      withTimeout(2.seconds) {
         suspendCoroutine<Unit> {
           localResourceRepository.invokeAfterPendingUpdatesFinish(
               EdtExecutorService.getInstance()) { it.resume(Unit) }
@@ -225,12 +223,11 @@ class StringResourceRepositoryTest {
     }
   }
 
-  @OptIn(ExperimentalTime::class)
   @Test
   fun invokeAfterPendingUpdatesFinish() {
     val key1Item = stringResourceRepository.getDefaultValue(key1)
     val key1Value: String? = runBlocking {
-      withTimeout(Duration.seconds(2)) {
+      withTimeout(2.seconds) {
         suspendCoroutine {
           stringResourceRepository.invokeAfterPendingUpdatesFinish(key1) {
             // This must run on the EdtExecutorService or an exception will be thrown.
@@ -250,10 +247,9 @@ class StringResourceRepositoryTest {
   }
 
   /** Runs code inside the [EdtExecutorService] and waits for it to return a value. */
-  @OptIn(ExperimentalTime::class)
   private fun <T> evaluateInEdtExecutor(block: () -> T): T {
     return runBlocking {
-      withTimeout(Duration.seconds(2)) {
+      withTimeout(2.seconds) {
         suspendCoroutine { EdtExecutorService.getInstance().execute { it.resume(block.invoke()) } }
       }
     }

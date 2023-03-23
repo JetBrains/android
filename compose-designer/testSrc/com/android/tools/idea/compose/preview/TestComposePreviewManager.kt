@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
 import com.intellij.psi.PsiFile
 
 class TestComposePreviewManager(
@@ -59,6 +58,8 @@ class TestComposePreviewManager(
   override var isInspectionTooltipEnabled: Boolean = false
 
   override var isFilterEnabled: Boolean = false
+
+  override var atfChecksEnabled: Boolean = false
 
   override fun dispose() {}
 }

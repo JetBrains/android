@@ -55,7 +55,7 @@ class GradleVersionCatalogLibrariesTest : GradleFileModelTestCase() {
 
     val catalogModel = projectBuildModel.versionCatalogsModel
 
-    val deps = catalogModel.getVersionCatalogModel("libs").libraryDeclarations().getAll()
+    val deps = catalogModel.getVersionCatalogModel("libs")!!.libraryDeclarations().getAll()
     assertSize(8, deps.toList())
     run {
       val dep = deps.toList()[0].second
@@ -131,7 +131,7 @@ class GradleVersionCatalogLibrariesTest : GradleFileModelTestCase() {
 
     val catalogModel = projectBuildModel.versionCatalogsModel
 
-    val deps = catalogModel.getVersionCatalogModel("libs").libraryDeclarations().getAllAliases()
+    val deps = catalogModel.getVersionCatalogModel("libs")!!.libraryDeclarations().getAllAliases()
     assertSize(8, deps.toList())
     assertEquals(deps, setOf("junit", "core", "appcompat", "material", "constraintlayout", "nav_ui", "espressocore", "nav-fragment"))
   }
@@ -143,7 +143,7 @@ class GradleVersionCatalogLibrariesTest : GradleFileModelTestCase() {
     val buildModel = projectBuildModel
     val catalogModel = buildModel.versionCatalogsModel
 
-    val declarations = catalogModel.getVersionCatalogModel("libs").libraryDeclarations()
+    val declarations = catalogModel.getVersionCatalogModel("libs")!!.libraryDeclarations()
     declarations.addDeclaration("core","androidx.core:core-ktx:1.8.0")
 
     applyChangesAndReparse(buildModel)
@@ -160,7 +160,7 @@ class GradleVersionCatalogLibrariesTest : GradleFileModelTestCase() {
     val buildModel = projectBuildModel
     val catalogModel = buildModel.versionCatalogsModel
 
-    val declarations = catalogModel.getVersionCatalogModel("libs").libraryDeclarations()
+    val declarations = catalogModel.getVersionCatalogModel("libs")!!.libraryDeclarations()
     val spec = LibraryDeclarationSpecImpl("core-ktx", "androidx.core", "1.8.0")
     declarations.addDeclaration("core", spec)
 
@@ -179,7 +179,7 @@ class GradleVersionCatalogLibrariesTest : GradleFileModelTestCase() {
     val buildModel = projectBuildModel
     val catalogModel = buildModel.versionCatalogsModel
 
-    val declarations = catalogModel.getVersionCatalogModel("libs").libraryDeclarations()
+    val declarations = catalogModel.getVersionCatalogModel("libs")!!.libraryDeclarations()
     val spec = LibraryDeclarationSpecImpl("core-ktx", "androidx.core", null)
     declarations.addDeclaration("core", spec)
 
@@ -203,7 +203,7 @@ class GradleVersionCatalogLibrariesTest : GradleFileModelTestCase() {
     val buildModel = projectBuildModel
     val catalogModel = buildModel.versionCatalogsModel
 
-    val declarations = catalogModel.getVersionCatalogModel("libs").libraryDeclarations()
+    val declarations = catalogModel.getVersionCatalogModel("libs")!!.libraryDeclarations()
     declarations.remove("appcompat")
     applyChanges(buildModel)
     verifyFileContents(myVersionCatalogFile, """
@@ -224,7 +224,7 @@ class GradleVersionCatalogLibrariesTest : GradleFileModelTestCase() {
     val buildModel = projectBuildModel
     val catalogModel = buildModel.versionCatalogsModel
 
-    val declarations = catalogModel.getVersionCatalogModel("libs").libraryDeclarations()
+    val declarations = catalogModel.getVersionCatalogModel("libs")!!.libraryDeclarations()
     declarations.remove("core")
     applyChanges(buildModel)
     verifyFileContents(myVersionCatalogFile, """

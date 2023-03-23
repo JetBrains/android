@@ -69,7 +69,7 @@ internal class DeclaredDependenciesPanel(
       }
     }
 
-    placeName = createPlaceName(module.name)
+    placeName = MODULE_DEPENDENCIES_PLACE_NAME
 
     contentsPanel.add(createActionsPanel(), BorderLayout.NORTH)
     initializeDependencyDetails()
@@ -114,8 +114,6 @@ internal class DeclaredDependenciesPanel(
 
     updateTableColumnSizes()
   }
-
-  private fun createPlaceName(moduleName: String): String = MODULE_DEPENDENCIES_PLACE_NAME
 
   private fun initializeDependencyDetails() {
     addDetails(SingleDeclaredLibraryDependencyDetails(context))

@@ -44,7 +44,7 @@ class ColorResourceModel(configuration: Configuration) {
   private val resourceMaps = mutableMapOf<String, List<ResourceReference>>()
 
   private val resourceResolver = configuration.resourceResolver
-  private val project = configuration.module.project
+  private val project = configuration.configModule.project
 
   init {
     val repoManager = StudioResourceRepositoryManager.getInstance(configuration.module)

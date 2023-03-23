@@ -23,7 +23,6 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.debug.AndroidDebuggerState
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
-import com.android.tools.idea.logcat.AndroidLogcatService
 import com.android.tools.idea.run.AndroidRunConfigurationType
 import com.android.tools.idea.run.DefaultStudioProgramRunner
 import com.google.common.truth.Truth.assertThat
@@ -32,11 +31,9 @@ import com.intellij.execution.executors.DefaultDebugExecutor
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.ui.RunContentManager
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.EmptyProgressIndicator
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.registerServiceInstance
-import com.intellij.testFramework.replaceService
 import com.intellij.xdebugger.XDebuggerManager
 import org.junit.After
 import org.junit.Assert
@@ -73,9 +70,6 @@ class ReattachingConnectDebuggerTaskTest {
 
   @Before
   fun setUp() {
-    val emptyLogcatService = Mockito.mock(AndroidLogcatService::class.java)
-    ApplicationManager.getApplication().replaceService(AndroidLogcatService::class.java, emptyLogcatService, project)
-
     deviceState = fakeAdbRule.connectAndWaitForDevice()
     device = AndroidDebugBridge.getBridge()!!.devices.single()
     val configSettings = RunManager.getInstance(project).createConfiguration(

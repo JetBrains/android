@@ -16,7 +16,7 @@
 package com.android.tools.idea.insights.ui.actions
 
 import com.android.tools.idea.concurrency.SupervisorJob
-import com.android.tools.idea.insights.FakeClock
+import com.android.tools.idea.insights.InsightsFakeClock
 import com.android.tools.idea.insights.ui.Timestamp
 import com.android.tools.idea.insights.ui.TimestampState
 import com.google.common.truth.Truth.assertThat
@@ -38,11 +38,11 @@ class AppInsightsDisplayRefreshTimestampActionTest {
   private lateinit var scope: CoroutineScope
   private lateinit var timestamp: MutableSharedFlow<Timestamp>
   private lateinit var action: AppInsightsDisplayRefreshTimestampAction
-  private lateinit var clock: FakeClock
+  private lateinit var clock: InsightsFakeClock
 
   @Before
   fun setUp() {
-    clock = FakeClock()
+    clock = InsightsFakeClock()
     scope =
       CoroutineScope(
         MoreExecutors.directExecutor().asCoroutineDispatcher() +

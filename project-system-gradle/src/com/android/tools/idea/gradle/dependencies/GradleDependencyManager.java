@@ -17,6 +17,7 @@ package com.android.tools.idea.gradle.dependencies;
 
 import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
 import static com.android.ide.common.repository.VersionCatalogNamingUtilKt.pickLibraryVariableName;
+import static com.android.tools.idea.gradle.dependencies.AddDependencyPolicy.calculateAddDependencyPolicy;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.DEFAULT_CATALOG_NAME;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_GRADLEDEPENDENCY_ADDED;
@@ -60,24 +61,20 @@ public class GradleDependencyManager {
     return project.getService(GradleDependencyManager.class);
   }
 
-  static class DependencySearchResultInternal {
+  static class CatalogDependenciesInfo {
     public List<GradleCoordinate> missingLibraries = new ArrayList<>();
     public List<Pair<String, GradleCoordinate>> matchedCoordinates = new ArrayList<>();
   }
 
-  private enum AddingDependencyPolicy{
-    VERSION_CATALOG,
-    BUILD_FILE
-  }
 
-  protected DependencySearchResultInternal findMissingCatalogDependencies(@NotNull Project project,
-                                                                       @NotNull Iterable<GradleCoordinate> dependencies,
-                                                                       GradleVersionCatalogModel catalogModel) {
+  protected CatalogDependenciesInfo computeCatalogDependenciesInfo(@NotNull Project project,
+                                                                   @NotNull Iterable<GradleCoordinate> dependencies,
+                                                                   GradleVersionCatalogModel catalogModel) {
     GradleBuildModel buildModel = ProjectBuildModel.get(project).getProjectBuildModel();
     List<ArtifactDependencyModel> compileDependencies = buildModel != null ? buildModel.dependencies().artifacts() : null;
 
     String appCompatVersion = getAppCompatVersion(compileDependencies);
-    DependencySearchResultInternal searchResult = new DependencySearchResultInternal();
+    CatalogDependenciesInfo searchResult = new CatalogDependenciesInfo();
     GradleVersionCatalogLibraries libraries = catalogModel.libraryDeclarations();
     for (GradleCoordinate coordinate : dependencies) {
       if (coordinate.getGroupId() == null || coordinate.getArtifactId() == null) continue;
@@ -102,15 +99,6 @@ public class GradleDependencyManager {
       }
     }
     return searchResult;
-  }
-
-
-  private Optional<String> getCatalogNameToInsert(GradleVersionCatalogsModel catalog) {
-    Set<String> names = catalog.catalogNames();
-    if (names.isEmpty()) return Optional.empty();
-
-    GradleVersionCatalogModel model = catalog.getVersionCatalogModel(DEFAULT_CATALOG_NAME);
-    return Optional.of((model == null) ? names.iterator().next() : DEFAULT_CATALOG_NAME);
   }
 
   /**
@@ -211,7 +199,7 @@ public class GradleDependencyManager {
   @TestOnly
   public boolean addDependenciesAndSync(@NotNull Module module,
                                         @NotNull Iterable<GradleCoordinate> dependencies) {
-    AddingDependencyPolicy policy = calculateDefaultAddingPolicy(module);
+    AddDependencyPolicy policy = calculateAddDependencyPolicy(ProjectBuildModel.get(module.getProject()));
     boolean result = addDependenciesInTransaction(module, dependencies, policy, null);
     requestProjectSync(module.getProject(), TRIGGER_GRADLEDEPENDENCY_ADDED);
     return result;
@@ -226,14 +214,8 @@ public class GradleDependencyManager {
    * @return true if the dependencies were successfully added or were already present in the module.
    */
   public boolean addDependenciesWithoutSync(@NotNull Module module, @NotNull Iterable<GradleCoordinate> dependencies) {
-    AddingDependencyPolicy policy = calculateDefaultAddingPolicy(module);
+    AddDependencyPolicy policy = calculateAddDependencyPolicy(ProjectBuildModel.get(module.getProject()));
     return addDependenciesInTransaction(module, dependencies, policy, null);
-  }
-
-  private AddingDependencyPolicy calculateDefaultAddingPolicy(Module module) {
-    GradleVersionCatalogsModel catalogsModel = ProjectBuildModel.get(module.getProject()).getVersionCatalogsModel();
-    GradleVersionCatalogModel catalog = catalogsModel.getVersionCatalogModel(DEFAULT_CATALOG_NAME);
-    return catalog != null ? AddingDependencyPolicy.VERSION_CATALOG : AddingDependencyPolicy.BUILD_FILE;
   }
 
   /**
@@ -249,7 +231,7 @@ public class GradleDependencyManager {
     @NotNull Module module,
     @NotNull Iterable<GradleCoordinate> dependencies,
     @Nullable ConfigurationNameMapper nameMapper) {
-    AddingDependencyPolicy policy = calculateDefaultAddingPolicy(module);
+    AddDependencyPolicy policy = calculateAddDependencyPolicy(ProjectBuildModel.get(module.getProject()));
     return addDependenciesInTransaction(module, dependencies, policy,nameMapper);
   }
 
@@ -304,7 +286,7 @@ public class GradleDependencyManager {
 
   private boolean addDependenciesInTransaction(@NotNull Module module,
                                                @NotNull Iterable<GradleCoordinate> coordinates,
-                                               @NotNull AddingDependencyPolicy policy,
+                                               @NotNull AddDependencyPolicy policy,
                                                @Nullable ConfigurationNameMapper nameMapper) {
     Project project = module.getProject();
     GradleBuildModel buildModel = ProjectBuildModel.get(project).getModuleBuildModel(module);
@@ -326,25 +308,23 @@ public class GradleDependencyManager {
         GradleVersionCatalogModel catalogModel = catalog.getVersionCatalogModel(DEFAULT_CATALOG_NAME);
         WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY).run(() -> {
 
-          List<GradleCoordinate> missing = findMissingDependencies(module, coordinates);
-          DependencySearchResultInternal catalogSearchResult = findMissingCatalogDependencies(module.getProject(), missing, catalogModel);
+          List<GradleCoordinate> missingFromModule = findMissingDependencies(module, coordinates);
+          if(missingFromModule.isEmpty()) return; // we have all dependencies already
 
-          if (missing.isEmpty() || catalogSearchResult.missingLibraries.isEmpty()) {
-            return;
-          }
+          CatalogDependenciesInfo catalogSearchResult = computeCatalogDependenciesInfo(module.getProject(), missingFromModule, catalogModel);
 
-          addDependenciesToCatalogAndBuild(module, nameMapper, buildModel, catalogModel, catalogSearchResult);
+          addDependenciesToCatalogAndModuleBuildFile(module, nameMapper, buildModel, catalogModel, catalogSearchResult);
         });
       }
     }
     return true;
   }
 
-  private static void addDependenciesToCatalogAndBuild(@NotNull Module module,
-                                                       @Nullable ConfigurationNameMapper nameMapper,
-                                                       GradleBuildModel buildModel,
-                                                       GradleVersionCatalogModel catalogModel,
-                                                       DependencySearchResultInternal catalogSearchResult) {
+  private static void addDependenciesToCatalogAndModuleBuildFile(@NotNull Module module,
+                                                                 @Nullable ConfigurationNameMapper nameMapper,
+                                                                 GradleBuildModel buildModel,
+                                                                 GradleVersionCatalogModel catalogModel,
+                                                                 CatalogDependenciesInfo catalogSearchResult) {
     updateModel(module, model -> {
       List<Pair<String, GradleCoordinate>> addedCoordinates = addCatalogLibraries(catalogModel,
                                                                                   catalogSearchResult.missingLibraries);

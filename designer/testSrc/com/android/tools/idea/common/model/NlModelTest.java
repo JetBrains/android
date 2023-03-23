@@ -54,6 +54,7 @@ import com.android.tools.idea.common.util.NlTreeDumper;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.TestProjectSystem;
+import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.uibuilder.LayoutTestCase;
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil;
@@ -611,7 +612,7 @@ public class NlModelTest extends LayoutTestCase {
 
     assertThat(originalFrameLayout).isSameAs(newButton);
 
-    TagSnapshot snapshot = TagSnapshot.createTagSnapshot(newRoot, null);
+    TagSnapshot snapshot = TagSnapshot.createTagSnapshot(new PsiXmlTag(newRoot), null);
     ViewInfo viewInfo = new ViewInfo("android.widget.LinearLayout", snapshot, 0, 0, 500, 500);
     views.add(viewInfo);
 
@@ -695,7 +696,7 @@ public class NlModelTest extends LayoutTestCase {
     NlModel model = createModel(mergeXml);
 
     XmlTag parentRoot = parentXml.getRootTag();
-    TagSnapshot parentRootSnapshot = TagSnapshot.createTagSnapshot(parentRoot, null);
+    TagSnapshot parentRootSnapshot = TagSnapshot.createTagSnapshot(new PsiXmlTag(parentRoot), null);
 
     ImmutableList<ViewInfo> list = ImmutableList.of(
       new ViewInfo("android.widget.Button", new MergeCookie(parentRootSnapshot), 0, 0, 50, 50),
@@ -727,7 +728,7 @@ public class NlModelTest extends LayoutTestCase {
                                                             "</LinearLayout>");
     NlModel model = createModel(modelXml);
 
-    TagSnapshot rootSnapshot = TagSnapshot.createTagSnapshot(modelXml.getRootTag(), null);
+    TagSnapshot rootSnapshot = TagSnapshot.createTagSnapshot(new PsiXmlTag(modelXml.getRootTag()), null);
     ViewInfo rootViewInfo = new ViewInfo("android.widget.LinearLayout", rootSnapshot, 0, 0, 500, 500);
     ViewInfo searchViewInfo = new ViewInfo("android.widget.SearchView", rootSnapshot.children.get(0), 0, 0, 500, 500);
     searchViewInfo.setChildren(ImmutableList.of(new ViewInfo("android.widget.LinearLayout", rootSnapshot.children.get(0), 0, 0, 500, 500)));

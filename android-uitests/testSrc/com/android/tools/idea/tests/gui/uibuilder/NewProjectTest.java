@@ -102,9 +102,9 @@ public class NewProjectTest {
       .actAndWaitForGradleProjectSyncToFinish(
         it ->
           it.getEditor()
-            .open("app/build.gradle", EditorFixture.Tab.EDITOR)
+            .open("app/build.gradle.kts", EditorFixture.Tab.EDITOR)
             .moveBetween("", "applicationId")
-            .enterText("resValue \"string\", \"foo\", \"Typpo Here\"\n")
+            .enterText("resValue(\"string, \", \"foo, \", \"Typpo Here\")\n")
             .awaitNotification(
               "Gradle files have changed since last project sync. A project sync may be necessary for the IDE to work properly.")
             .performAction("Sync Now")
@@ -121,11 +121,11 @@ public class NewProjectTest {
       "        Lint",
       "            Performance",
       "                Unused resources",
-      "                    build.gradle",
+      "                    build.gradle.kts",
       "                        The resource 'R.string.foo' appears to be unused",
       "            Correctness",
       "                Obsolete Gradle Dependency",
-      "                    build.gradle",
+      "                    build.gradle.kts",
       "                        A newer version of .*",
       // This warning is unfortunate. We may want to get rid of it.
       "            Security",
@@ -177,7 +177,7 @@ public class NewProjectTest {
 
     // Remove "compileOptions { ... }" block, to force gradle "defaults"
     guiTest.ideFrame().getEditor()
-      .open("app/build.gradle")
+      .open("app/build.gradle.kts")
       .select("(compileOptions.*\n.*\n.*\n.*})")
       .typeText(" ")
       .getIdeFrame()
@@ -215,7 +215,7 @@ public class NewProjectTest {
    *   1. Create a new project with empty activity with min SDK 26
    *   2. Drag and Drop RecyclerView (Verify)
    *   Verify:
-   *   Dependency should be added to build.gradle with latest version from maven
+   *   Dependency should be added to build.gradle.kts with latest version from maven
    *   </pre>
    */
   @RunIn(TestGroup.QA)
@@ -232,10 +232,10 @@ public class NewProjectTest {
     MessagesFixture.findByTitle(guiTest.robot(), "Add Project Dependency").clickOk();
 
     String contents = ideFrameFixture.getEditor()
-      .open("app/build.gradle")
+      .open("app/build.gradle.kts")
       .getCurrentFileContents();
 
-    assertThat(contents).contains("implementation 'androidx.recyclerview:recyclerview:");
+    assertThat(contents).contains("implementation(libs.recyclerview");
   }
 
   @Test

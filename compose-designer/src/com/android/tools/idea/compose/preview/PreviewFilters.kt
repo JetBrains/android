@@ -17,9 +17,6 @@ package com.android.tools.idea.compose.preview
 
 import com.android.annotations.concurrency.Slow
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
-import com.android.tools.idea.compose.preview.util.ComposePreviewElement
-import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.util.PreviewElementTemplateInstanceProvider
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.intellij.openapi.diagnostic.Logger
 import kotlin.properties.Delegates

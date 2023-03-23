@@ -147,6 +147,20 @@ public final class ComponentsSet {
     return category;
   }
 
+  ComponentCategory registerCategory(@NotNull final MemoryUsageComponentCategory protoCategory) {
+    return registerCategory(protoCategory.getLabel(), protoCategory.hasExtendedReportThresholdBytes()
+                                                      ? protoCategory.getExtendedReportThresholdBytes()
+                                                      : Long.MAX_VALUE);
+  }
+
+  void addComponentWithPackagesAndClassNames(@NotNull final ComponentCategory componentCategory,
+                                             @NotNull final MemoryUsageComponent component) {
+    addComponentWithPackagesAndClassNames(component.getLabel(), component.hasExtendedReportThresholdBytes()
+                                                                ? component.getExtendedReportThresholdBytes()
+                                                                : Long.MAX_VALUE,
+                                          componentCategory, component.getPackageNamesList(), component.getClassNamesList());
+  }
+
   void addComponentWithPackagesAndClassNames(@NotNull final String componentLabel,
                                              long extendedReportCollectionThresholdBytes,
                                              @NotNull final ComponentCategory componentCategory,
@@ -205,11 +219,9 @@ public final class ComponentsSet {
                         configuration.getUncategorizedComponentExtendedReportThresholdBytes());
 
     for (MemoryUsageComponentCategory protoCategory : configuration.getCategoriesList()) {
-      ComponentCategory category = components.registerCategory(protoCategory.getLabel(), protoCategory.getExtendedReportThresholdBytes());
+      ComponentCategory category = components.registerCategory(protoCategory);
       for (MemoryUsageComponent component : protoCategory.getComponentsList()) {
-        components.addComponentWithPackagesAndClassNames(component.getLabel(), component.getExtendedReportThresholdBytes(), category,
-                                                         component.getPackageNamesList(),
-                                                         component.getClassNamesList());
+        components.addComponentWithPackagesAndClassNames(category, component);
       }
     }
 

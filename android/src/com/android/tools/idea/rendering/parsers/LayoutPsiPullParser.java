@@ -93,9 +93,7 @@ import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -111,13 +109,13 @@ import org.jetbrains.annotations.NotNull;
 import org.xmlpull.v1.XmlPullParserException;
 
 /**
- * {@link ILayoutPullParser} implementation on top of the PSI {@link XmlTag}.
+ * {@link ILayoutPullParser} implementation on top of the PSI {@link RenderXmlTag}.
  * <p/>
  * It's designed to work on layout files, and will not work on other resource files (no text event
  * support for example).
  * <p/>
  * This pull parser generates {@link com.android.ide.common.rendering.api.ViewInfo}s whose keys
- * are of type {@link XmlTag}.
+ * are of type {@link RenderXmlTag}.
  */
 public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrParser {
   @Nullable final ResourceResolver myResourceResolver;
@@ -215,7 +213,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    * Constructs a new {@link LayoutPsiPullParser}, a parser dedicated to the special case of
    * parsing a layout resource files.
    *
-   * @param file         The {@link XmlTag} for the root node.
+   * @param file         The {@link RenderXmlTag} for the root node.
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    * @param sampleDataCounter start index for displaying sample data
@@ -238,7 +236,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    * Constructs a new {@link LayoutPsiPullParser}, a parser dedicated to the special case of
    * parsing a layout resource files.
    *
-   * @param file         The {@link XmlTag} for the root node.
+   * @param file         The {@link RenderXmlTag} for the root node.
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    */
   @NotNull
@@ -251,7 +249,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    * parsing a layout resource files, and handling "exploded rendering" - adding padding on views
    * to make them easier to see and operate on.
    *
-   * @param file         The {@link XmlTag} for the root node.
+   * @param file         The {@link RenderXmlTag} for the root node.
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    * @param explodeNodes A set of individual nodes that should be assigned a fixed amount of
    *                     padding ({@link PaddingLayoutPsiPullParser#FIXED_PADDING_VALUE}).
@@ -266,7 +264,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   @NotNull
   public static LayoutPsiPullParser create(@NotNull XmlFile file,
                                            @NotNull IRenderLogger logger,
-                                           @Nullable Set<XmlTag> explodeNodes,
+                                           @Nullable Set<RenderXmlTag> explodeNodes,
                                            @NotNull Density density,
                                            @Nullable ResourceResolver resourceResolver,
                                            @Nullable ResourceRepositoryManager resourceRepositoryManager,
@@ -282,7 +280,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
 
   @NotNull
   public static LayoutPsiPullParser create(@Nullable final AttributeFilter filter,
-                                           @NotNull XmlTag root,
+                                           @NotNull RenderXmlTag root,
                                            @NotNull IRenderLogger logger,
                                            @Nullable ResourceRepositoryManager resourceRepositoryManager) {
     return new AttributeFilteredLayoutParser(root, logger, filter, resourceRepositoryManager);
@@ -296,7 +294,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   /**
    * Use one of the {@link #create} factory methods instead
    *
-   * @param file         The {@link XmlTag} for the root node.
+   * @param file         The {@link RenderXmlTag} for the root node.
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    */
@@ -307,7 +305,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   /**
    * Use one of the {@link #create} factory methods instead
    *
-   * @param file         The {@link XmlTag} for the root node.
+   * @param file         The {@link RenderXmlTag} for the root node.
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    * @param resolver Optional {@link ResourceResolver} that will be used by the parser to
@@ -320,13 +318,13 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
                                 @Nullable ResourceResolver resolver,
                                 @Nullable ResourceRepositoryManager resourceRepositoryManager,
                                 int sampleDataCounter) {
-    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag, resolver, resourceRepositoryManager, sampleDataCounter, true);
+    this(PsiXmlTag.create(AndroidPsiUtils.getRootTagSafely(file)), logger, honorMergeParentTag, resolver, resourceRepositoryManager, sampleDataCounter, true);
   }
 
   /**
    * Use one of the {@link #create} factory methods instead
    *
-   * @param file         The {@link XmlTag} for the root node.
+   * @param file         The {@link RenderXmlTag} for the root node.
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    * @param resourceResolver Optional {@link ResourceResolver} that will be used by the parser to
@@ -340,7 +338,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
                                 @Nullable ResourceResolver resourceResolver,
                                 @Nullable ResourceRepositoryManager resourceRepositoryManager,
                                 boolean useToolsPositionAndVisibility) {
-    this(AndroidPsiUtils.getRootTagSafely(file), logger, honorMergeParentTag, resourceResolver, resourceRepositoryManager, 0, useToolsPositionAndVisibility);
+    this(PsiXmlTag.create(AndroidPsiUtils.getRootTagSafely(file)), logger, honorMergeParentTag, resourceResolver, resourceRepositoryManager, 0, useToolsPositionAndVisibility);
   }
 
   /**
@@ -353,7 +351,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
       return ApplicationManager.getApplication().runReadAction((Computable<ImmutableMap<String, String>>)() -> buildNamespacesMap(root));
     }
 
-    XmlTag rootTag = root != null ? root.tag : null;
+    RenderXmlTag rootTag = root != null ? root.tag : null;
     if (rootTag == null || !rootTag.isValid()) {
       return ImmutableMap.of();
     }
@@ -373,7 +371,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    * Use one of the {@link #create} factory methods instead
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    */
-  protected LayoutPsiPullParser(@Nullable final XmlTag root,
+  protected LayoutPsiPullParser(@Nullable final RenderXmlTag root,
                                 @NotNull ILayoutLog logger,
                                 boolean honorMergeParentTag,
                                 @Nullable ResourceResolver resourceResolver,
@@ -386,7 +384,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    * @param sampleDataCounter start index for displaying sample data
    */
-  protected LayoutPsiPullParser(@Nullable final XmlTag root,
+  protected LayoutPsiPullParser(@Nullable final RenderXmlTag root,
                                 @NotNull ILayoutLog logger,
                                 boolean honorMergeParentTag,
                                 @Nullable ResourceResolver resourceResolver,
@@ -571,7 +569,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   /**
    * {@inheritDoc}
    * <p/>
-   * This implementation returns the underlying DOM node of type {@link XmlTag}.
+   * This implementation returns the underlying DOM node of type {@link RenderXmlTag}.
    * Note that the link between the GLE and the parsing code depends on this being the actual
    * type returned, so you can't just randomly change it here.
    */
@@ -957,7 +955,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   /**
    * Returns the distance from the given tag to the parent {@code layout} tag or -1 if there is no {@code layout} tag
    */
-  private static int distanceToLayoutTag(@NotNull XmlTag tag) {
+  private static int distanceToLayoutTag(@NotNull RenderXmlTag tag) {
     int distance = 0;
 
     while ((tag = tag.getParentTag()) != null) {
@@ -977,17 +975,17 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   }
 
   /**
-   * Creates a {@link TagSnapshot} for the given {@link XmlTag} and all its children.
+   * Creates a {@link TagSnapshot} for the given {@link RenderXmlTag} and all its children.
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    */
   @Nullable
-  private static TagSnapshot createSnapshot(@NotNull XmlTag tag, boolean honorMergeParentTag, @NotNull Consumer<TagSnapshot> tagPostProcessor) {
+  private static TagSnapshot createSnapshot(@NotNull RenderXmlTag tag, boolean honorMergeParentTag, @NotNull Consumer<TagSnapshot> tagPostProcessor) {
     Consumer<TagSnapshot> tagDecorator = TAG_SNAPSHOT_DECORATOR.andThen(tagPostProcessor);
     if (tag.getName().equals(TAG_LAYOUT)) {
       // If we are creating a snapshot of a databinding layout (the root tag is <layout>), we need to emulate some post-processing that
       // the databinding code does in the layouts.
       // For all the children of the root tag, it adds a tag that identifies. The tag is "layout/layout_name_<number>"
-      final String layoutRootName = tag.getContainingFile().getVirtualFile().getNameWithoutExtension();
+      final String layoutRootName = tag.getContainingFileNameWithoutExtension();
       tagDecorator = tagDecorator.andThen(new Consumer<TagSnapshot>() {
         int counter = 0;
         @Override
@@ -1032,28 +1030,28 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   }
 
   @NotNull
-  private static TagSnapshot createSnapshotForViewFragment(@NotNull String rootTagName, @NotNull XmlTag rootTag, @NotNull Consumer<TagSnapshot> tagPostProcessor) {
-    XmlAttribute[] psiAttributes = rootTag.getAttributes();
-    List<AttributeSnapshot> attributes = Lists.newArrayListWithCapacity(psiAttributes.length);
-    for (XmlAttribute psiAttribute : psiAttributes) {
-      AttributeSnapshot attribute = AttributeSnapshot.createAttributeSnapshot(psiAttribute);
+  private static TagSnapshot createSnapshotForViewFragment(@NotNull String rootTagName, @NotNull RenderXmlTag rootTag, @NotNull Consumer<TagSnapshot> tagPostProcessor) {
+    List<RenderXmlAttribute> renderAttributes = rootTag.getAttributes();
+    List<AttributeSnapshot> attributes = Lists.newArrayListWithCapacity(renderAttributes.size());
+    for (RenderXmlAttribute renderAttribute : renderAttributes) {
+      AttributeSnapshot attribute = AttributeSnapshot.createAttributeSnapshot(renderAttribute);
       if (attribute != null) {
         attributes.add(attribute);
       }
     }
 
-    List<AttributeSnapshot> includeAttributes = Lists.newArrayListWithCapacity(psiAttributes.length);
-    for (XmlAttribute psiAttribute : psiAttributes) {
-      String name = psiAttribute.getName();
+    List<AttributeSnapshot> includeAttributes = Lists.newArrayListWithCapacity(renderAttributes.size());
+    for (RenderXmlAttribute renderAttribute : renderAttributes) {
+      String name = renderAttribute.getName();
       if (name.startsWith(XMLNS_PREFIX)) {
         continue;
       }
-      String localName = psiAttribute.getLocalName();
+      String localName = renderAttribute.getLocalName();
       if (localName.startsWith(ATTR_LAYOUT_MARGIN) || localName.startsWith(ATTR_PADDING) ||
           localName.equals(ATTR_ID)) {
         continue;
       }
-      AttributeSnapshot attribute = AttributeSnapshot.createAttributeSnapshot(psiAttribute);
+      AttributeSnapshot attribute = AttributeSnapshot.createAttributeSnapshot(renderAttribute);
       if (attribute != null) {
         includeAttributes.add(attribute);
       }
@@ -1065,7 +1063,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   }
 
   @NotNull
-  private static TagSnapshot createSnapshotForFrameLayout(@NotNull XmlTag rootTag, @NotNull Consumer<TagSnapshot> tagDecorator) {
+  private static TagSnapshot createSnapshotForFrameLayout(@NotNull RenderXmlTag rootTag, @NotNull Consumer<TagSnapshot> tagDecorator) {
     TagSnapshot root = TagSnapshot.createTagSnapshot(rootTag, tagDecorator);
 
     // tools:layout on a <FrameLayout> acts like an <include> child. This
@@ -1110,11 +1108,11 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   }
 
   /**
-   * Creates a {@link TagSnapshot} for the given {@link XmlTag}.
+   * Creates a {@link TagSnapshot} for the given {@link RenderXmlTag}.
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
    */
   @NotNull
-  private static TagSnapshot createSnapshotForMerge(@NotNull XmlTag rootTag,
+  private static TagSnapshot createSnapshotForMerge(@NotNull RenderXmlTag rootTag,
                                                     boolean honorMergeParentTag,
                                                     @NotNull Consumer<TagSnapshot> tagDecorator) {
     TagSnapshot root = TagSnapshot.createTagSnapshot(rootTag, tagDecorator);
@@ -1128,7 +1126,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
     return TagSnapshot.createSyntheticTag(rootTag, parentTag, "", "", attributes, root.children, null);
   }
 
-  private static void addAttributeIfMissing(@NotNull XmlTag tag, @NotNull String attrName, @NotNull List<AttributeSnapshot> attributes) {
+  private static void addAttributeIfMissing(@NotNull RenderXmlTag tag, @NotNull String attrName, @NotNull List<AttributeSnapshot> attributes) {
     String value = tag.getAttributeValue(attrName, ANDROID_URI);
     if (value == null) {
       value = tag.getAttributeValue(attrName, TOOLS_URI);
@@ -1139,9 +1137,9 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
   }
 
   @Nullable
-  public static XmlTag getRootTag(@NotNull XmlTag tag) {
+  public static RenderXmlTag getRootTag(@NotNull RenderXmlTag tag) {
     if (tag.getName().equals(TAG_LAYOUT)) {
-      for (XmlTag subTag : tag.getSubTags()) {
+      for (RenderXmlTag subTag : tag.getSubTags()) {
         String subTagName = subTag.getName();
         if (!subTagName.equals(TAG_DATA)) {
           return subTag;
@@ -1160,7 +1158,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
     @Nullable
     private final AttributeFilter myFilter;
 
-    public AttributeFilteredLayoutParser(@NotNull XmlTag root,
+    public AttributeFilteredLayoutParser(@NotNull RenderXmlTag root,
                                          @NotNull ILayoutLog logger,
                                          @Nullable AttributeFilter filter,
                                          @Nullable ResourceRepositoryManager resourceRepositoryManager) {
@@ -1182,7 +1180,7 @@ public class LayoutPsiPullParser extends LayoutPullParser implements AaptAttrPar
       if (myFilter != null) {
         TagSnapshot element = getCurrentNode();
         if (element != null) {
-          final XmlTag tag = element.tag;
+          final RenderXmlTag tag = element.tag;
           if (tag != null) {
             String value;
             if (ApplicationManager.getApplication().isReadAccessAllowed()) {

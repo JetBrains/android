@@ -28,8 +28,9 @@ class LiveEditDevices {
   private val devices = ConcurrentHashMap<IDevice, LiveEditDeviceInfoImpl>()
   private val listeners = mutableListOf<StatusChangeListener>()
 
-  fun addDevice(device: IDevice, status: LiveEditStatus) {
-    devices[device] = LiveEditDeviceInfoImpl(status)
+  @JvmOverloads
+  fun addDevice(device: IDevice, status: LiveEditStatus, app: LiveEditApp? = null) {
+    devices[device] = LiveEditDeviceInfoImpl(status, app)
     listeners.forEach { it.accept(mapOf(Pair(device, status))) }
   }
 

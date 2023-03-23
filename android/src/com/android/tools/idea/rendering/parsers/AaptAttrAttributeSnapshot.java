@@ -16,8 +16,8 @@
 package com.android.tools.idea.rendering.parsers;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.xml.util.XmlUtil;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,19 +53,19 @@ class AaptAttrAttributeSnapshot extends AttributeSnapshot {
    * Creates an attribute snapshot for an appt:attr item.
    */
   @Nullable
-  public static AaptAttrAttributeSnapshot createAttributeSnapshot(@NotNull XmlTag tag) {
-    XmlTag parent = tag.getParentTag();
+  public static AaptAttrAttributeSnapshot createAttributeSnapshot(@NotNull RenderXmlTag tag) {
+    RenderXmlTag parent = tag.getParentTag();
     String name = tag.getAttributeValue(ATTR_NAME);
     if (parent == null || name == null) {
       return null;
     }
 
-    XmlTag[] subTags = tag.getSubTags();
-    if (subTags.length == 0) {
+    List<RenderXmlTag> subTags = tag.getSubTags();
+    if (subTags.size() == 0) {
       return null;
     }
 
-    XmlTag bundledTag = tag.getSubTags()[0];
+    RenderXmlTag bundledTag = subTags.get(0);
 
     String prefix = XmlUtil.findPrefixByQualifiedName(name);
 

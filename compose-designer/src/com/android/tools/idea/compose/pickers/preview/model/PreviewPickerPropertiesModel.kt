@@ -50,9 +50,9 @@ import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
 import com.android.tools.idea.compose.preview.PARAMETER_WALLPAPER
 import com.android.tools.idea.compose.preview.PARAMETER_WIDTH
 import com.android.tools.idea.compose.preview.PARAMETER_WIDTH_DP
+import com.android.tools.idea.compose.preview.UNDEFINED_API_LEVEL
+import com.android.tools.idea.compose.preview.UNDEFINED_DIMENSION
 import com.android.tools.idea.compose.preview.findPreviewDefaultValues
-import com.android.tools.idea.compose.preview.util.UNDEFINED_API_LEVEL
-import com.android.tools.idea.compose.preview.util.UNDEFINED_DIMENSION
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.diagnostic.Logger

@@ -38,7 +38,6 @@ import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
 import com.android.tools.idea.run.DeploymentService;
 import com.android.tools.idea.run.IdeService;
-import com.android.tools.idea.run.ui.ApplyChangesAction;
 import com.android.tools.idea.util.StudioPathManager;
 import com.android.utils.ILogger;
 import com.google.common.base.Stopwatch;
@@ -325,7 +324,8 @@ public abstract class AbstractDeployTask implements LaunchTask {
 
     switch (resolutionAction) {
       case APPLY_CHANGES:
-        actionId = ApplyChangesAction.ID;
+        // TODO: fix dependencies and use ApplyChangesAction.ID
+        actionId = "android.deploy.ApplyChanges";
         break;
       case RUN_APP:
         actionId = DefaultDebugExecutor.EXECUTOR_ID.equals(executor.getId())

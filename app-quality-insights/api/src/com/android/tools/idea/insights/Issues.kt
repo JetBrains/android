@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.insights
 
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import icons.StudioIcons
 import javax.swing.Icon
 
@@ -27,7 +28,7 @@ enum class IssueState {
   CLOSING
 }
 
-/** Represents an issue found by Crashlytics, including one representative event for it. */
+/** Represents discovered issue, including one representative event for it. */
 data class AppInsightsIssue(
   val issueDetails: IssueDetails,
   val sampleEvent: Event,
@@ -53,6 +54,20 @@ enum class SignalType(private val readableName: String, val icon: Icon?) {
   SIGNAL_REPETITIVE("Repetitive", StudioIcons.AppQualityInsights.REPETITIVE_SIGNAL);
 
   override fun toString() = readableName
+
+  fun toLogProto() =
+    when (this) {
+      SIGNAL_EARLY ->
+        AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SignalFilter.EARLY_SIGNAL
+      SIGNAL_FRESH ->
+        AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SignalFilter.FRESH_SIGNAL
+      SIGNAL_REGRESSED ->
+        AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SignalFilter.REGRESSIVE_SIGNAL
+      SIGNAL_REPETITIVE ->
+        AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SignalFilter.REPETITIVE_SIGNAL
+      SIGNAL_UNSPECIFIED ->
+        AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SignalFilter.UNKNOWN_SIGNAL
+    }
 }
 
 data class IssueDetails(
@@ -76,7 +91,7 @@ data class IssueDetails(
   val eventsCount: Long,
   // Issue signals.
   val signals: Set<SignalType>,
-  // Provides a link to the containing issue on the Firebase console.
+  // Provides a link to the containing issue on the console.
   // please note the link will be configured with the same time interval and filters as the request.
   val uri: String,
   val notesCount: Long

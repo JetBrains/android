@@ -97,12 +97,24 @@ object JdkUtils {
    * @param gradleRootPath Gradle project root absolute path
    * @return The jdkTable entry created for the embedded jdk
    */
-  fun setProjectGradleJvmToUseEmbeddedJdk(project: Project, gradleRootPath: @SystemIndependent String): String? {
-    return IdeSdks.getInstance().embeddedJdkPath?.absolutePathString()?.let {
+  fun setProjectGradleJvmToUseEmbeddedJdk(project: Project, gradleRootPath: @SystemIndependent String): String {
+    return IdeSdks.getInstance().embeddedJdkPath.absolutePathString().let {
       val jdkTableEntry = addOrRecreateDedicatedJdkTableEntry(it)
       updateProjectGradleJvm(project, gradleRootPath, jdkTableEntry)
       jdkTableEntry
     }
+  }
+
+  /**
+   * Create or recreate in case is already present but was corrupted a dedicated jdk.table.xml entry given a valid jdk path.
+   * The dedicated name is generated using the suggested name given a Jdk path were combines the provider and version i.e: jbr-17
+   * @param jdkPath A valid jdk absolute path
+   * @return Sdk name of table entry for the gradle jvm path if was possible to create or update it
+   */
+  fun addOrRecreateDedicatedJdkTableEntry(jdkPath: String): String {
+    val suggestedJdkName = JavaSdk.getInstance().suggestSdkName(null, jdkPath)
+    IdeSdks.getInstance().recreateOrAddJdkInTable(jdkPath, suggestedJdkName)
+    return suggestedJdkName
   }
 
   private fun updateProjectGradleJvm(
@@ -114,15 +126,5 @@ object JdkUtils {
     projectSettings?.gradleJvm = gradleJvm
   }
 
-  /**
-   * Create or recreate in case is already present but was corrupted a dedicated jdk.table.xml entry given a valid jdk path.
-   * The dedicated name is generated using the suggested name given a Jdk path were combines the provider and version i.e: jbr-17
-   * @param jdkPath A valid jdk absolute path
-   * @return Sdk name of table entry for the gradle jvm path if was possible to create or update it
-   */
-  private fun addOrRecreateDedicatedJdkTableEntry(jdkPath: String): String {
-    val suggestedJdkName = JavaSdk.getInstance().suggestSdkName(null, jdkPath)
-    IdeSdks.getInstance().recreateOrAddJdkInTable(jdkPath, suggestedJdkName)
-    return suggestedJdkName
-  }
+
 }

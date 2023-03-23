@@ -25,8 +25,6 @@ import com.android.tools.idea.common.surface.NopInteractionHandler
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
-import com.android.tools.idea.compose.preview.util.ComposePreviewElementInstance
-import com.android.tools.idea.compose.preview.util.SingleComposePreviewElementInstance
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
@@ -85,7 +83,8 @@ private fun configureLayoutlibSceneManagerForPreviewElement(
     layoutlibSceneManager,
     showDecorations = displaySettings.showDecoration,
     isInteractive = false,
-    requestPrivateClassLoader = false
+    requestPrivateClassLoader = false,
+    runAtfChecks = false
   )
 
 /** Converts an [InstructionsPanel] into text that can be easily used in assertions. */

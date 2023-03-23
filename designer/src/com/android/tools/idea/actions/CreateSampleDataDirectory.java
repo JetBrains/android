@@ -23,7 +23,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.PlatformCoreDataKeys;
-import com.intellij.openapi.application.WriteAction;
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -85,10 +85,18 @@ public class CreateSampleDataDirectory extends AnAction {
     Module module = getModuleFromSelection(e.getDataContext());
     assert module != null; // Needs to exist or the action wouldn't be visible
 
-    try {
-      WriteAction.run(() -> ProjectSystemUtil.getModuleSystem(module).getOrCreateSampleDataDirectory());
-    } catch (IOException ex) {
-      LOG.warn("Unable to create sample data directory for module " + module.getName(), ex);
-    }
+    WriteCommandAction.writeCommandAction(module.getProject())
+      .withName(AndroidBundle.message("new.sampledata.dir.action.title"))
+      .withGlobalUndo()
+      .run(
+        () -> {
+          try {
+            ProjectSystemUtil.getModuleSystem(module).getOrCreateSampleDataDirectory();
+          }
+          catch (IOException ex) {
+            LOG.warn("Unable to create sample data directory for module " + module.getName(), ex);
+          }
+        }
+      );
   }
 }

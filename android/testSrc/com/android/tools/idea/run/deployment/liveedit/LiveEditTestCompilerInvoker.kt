@@ -39,7 +39,7 @@ internal fun compile(inputs: List<LiveEditCompilerInput>, useInliner: Boolean = 
   // compilation succeeds.
   var output: LiveEditCompilerOutput? = null
   while (output == null) {
-    output = LiveEditCompiler(inputs.first().file.project).compile(inputs).get()
+    output = LiveEditCompiler(inputs.first().file.project).compile(inputs).get().compilerOutput
   }
   return output
 }

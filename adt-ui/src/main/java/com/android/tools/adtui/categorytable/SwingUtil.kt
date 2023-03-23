@@ -15,6 +15,7 @@
  */
 package com.android.tools.adtui.categorytable
 
+import com.android.annotations.concurrency.UiThread
 import java.awt.Component
 import java.awt.Container
 import java.awt.Dimension
@@ -35,6 +36,14 @@ internal val TableColumnModel.columnList: List<TableColumn>
       override fun get(index: Int): TableColumn = getColumn(index)
     }
 
+@get:UiThread
+internal val Container.componentList: List<Component>
+  get() =
+    object : AbstractList<Component>() {
+      override val size = componentCount
+      override fun get(index: Int): Component = getComponent(index)
+    }
+
 internal fun Component.heightRequirements() =
   SizeRequirements(minimumSize.height, preferredSize.height, maximumSize.height, alignmentY)
 
@@ -51,4 +60,13 @@ internal fun Dimension.addInsets(container: Container) {
   val insets = container.insets
   width += insets.left + insets.right
   height += insets.top + insets.bottom
+}
+
+/**
+ * Sets minimum, maximum, and preferred sizes to the given value.
+ */
+fun Component.constrainSize(size: Dimension) {
+  maximumSize = size
+  minimumSize = size
+  preferredSize = size
 }

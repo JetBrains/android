@@ -52,10 +52,14 @@ internal class SdkSourceRedirectFilter(
 
   @Suppress("UnstableApiUsage") // MultipleFilesHyperlinkInfo is marked as @ApiStatus.Internal
   private fun MultipleFilesHyperlinkInfo.convert(sdk: Int): HyperlinkInfo {
-    return SdkSourceRedirectLinkInfo(project, filesVariants, descriptor?.line ?: -1, sdk)
+    // If there's no descriptor, MultipleFilesHyperlinkInfo won't be able to navigate anyway so there's nothing more we need to do
+    val descriptor = descriptor?: return this
+    return SdkSourceRedirectLinkInfo(project, filesVariants, descriptor, sdk)
   }
 
   private fun OpenFileHyperlinkInfo.convert(sdk: Int): HyperlinkInfo {
-    return virtualFile?.let { SdkSourceRedirectLinkInfo(project, listOf(it), descriptor?.line ?: -1, sdk) } ?: this
+    // If there's no descriptor, OpenFileHyperlinkInfo won't be able to navigate anyway so there's nothing more we need to do
+    val descriptor = descriptor?: return this // should not happen
+    return virtualFile?.let { SdkSourceRedirectLinkInfo(project, listOf(it), descriptor, sdk) } ?: this
   }
 }

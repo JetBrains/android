@@ -18,6 +18,7 @@ package com.android.tools.idea.res
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.Locale
+import com.android.ide.common.resources.ResourceRepository
 import com.android.tools.idea.model.Namespacing
 import com.google.common.collect.ImmutableList
 
@@ -37,7 +38,7 @@ interface ResourceRepositoryManager {
    * @return the computed repository
    */
   @get:Slow
-  val appResources: LocalResourceRepository
+  val appResources: CacheableResourceRepository
 
   /**
    * Returns the resource repository for a module along with all its (local) module dependencies.
@@ -46,7 +47,7 @@ interface ResourceRepositoryManager {
    * @return the computed repository
    */
   @get:Slow
-  val projectResources: LocalResourceRepository
+  val projectResources: ResourceRepository
 
   /**
    * Returns the [ResourceNamespace] used by the current module.

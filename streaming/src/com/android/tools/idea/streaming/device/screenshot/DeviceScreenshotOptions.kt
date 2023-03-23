@@ -26,6 +26,7 @@ import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.idea.avdmanager.SkinUtils
 import com.android.tools.idea.streaming.device.DeviceConfiguration
 import com.android.tools.idea.streaming.device.DeviceView
+import com.android.tools.idea.ui.screenshot.DeviceType
 import com.android.tools.idea.ui.screenshot.FramingOption
 import com.android.tools.idea.ui.screenshot.ScreenshotAction
 import com.android.tools.idea.ui.screenshot.ScreenshotImage
@@ -62,9 +63,9 @@ internal class DeviceScreenshotOptions(
   private val skinHome: Path? = DeviceArtDescriptor.getBundledDescriptorsFolder()?.toPath()
   private var defaultFrameIndex: Int = 0
 
-  override fun createScreenshotImage(image: BufferedImage, displayInfo: String, isTv: Boolean): ScreenshotImage {
+  override fun createScreenshotImage(image: BufferedImage, displayInfo: String, deviceType: DeviceType): ScreenshotImage {
     val rotatedImage = ImageUtils.rotateByQuadrants(image, deviceView.displayOrientationCorrectionQuadrants)
-    return ScreenshotImage(rotatedImage, deviceView.displayOrientationQuadrants, displayInfo, isTv)
+    return ScreenshotImage(rotatedImage, deviceView.displayOrientationQuadrants, deviceType, displayInfo)
   }
 
   override fun getFramingOptions(screenshotImage: ScreenshotImage): List<FramingOption> {

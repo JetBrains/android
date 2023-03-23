@@ -21,6 +21,7 @@ import com.intellij.execution.ExecutionBundle
 import com.intellij.execution.filters.HyperlinkInfoBase
 import com.intellij.execution.filters.OpenFileHyperlinkInfo
 import com.intellij.ide.util.gotoByName.GotoFileCellRenderer
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.vfs.VirtualFile
@@ -38,7 +39,7 @@ import org.jetbrains.annotations.VisibleForTesting
 internal class SdkSourceRedirectLinkInfo(
   private val project: Project,
   @VisibleForTesting val files: List<VirtualFile>,
-  private val lineNumber: Int,
+  private val descriptor: OpenFileDescriptor,
   @VisibleForTesting val apiLevel: Int,
 ) : HyperlinkInfoBase() {
   override fun navigate(project: Project, hyperlinkLocationPoint: RelativePoint?) {
@@ -46,19 +47,19 @@ internal class SdkSourceRedirectLinkInfo(
     val psiFiles = files.mapNotNull { psiManager.findFile(it) }
     when (psiFiles.size) {
       0 -> return
-      1 -> openFile(project, psiFiles.first(), lineNumber)
-      else -> openFileChooser(psiFiles, lineNumber, hyperlinkLocationPoint)
+      1 -> openFile(psiFiles.first(), descriptor)
+      else -> openFileChooser(psiFiles, descriptor, hyperlinkLocationPoint)
     }
   }
 
-  private fun openFileChooser(files: List<PsiFile>, lineNumber: Int, hyperlinkLocationPoint: RelativePoint?) {
+  private fun openFileChooser(files: List<PsiFile>, descriptor: OpenFileDescriptor, hyperlinkLocationPoint: RelativePoint?) {
     val frame = WindowManager.getInstance().getFrame(project)
     val width = frame?.size?.width ?: 200
     val popup = JBPopupFactory.getInstance()
       .createPopupChooserBuilder(files)
       .setRenderer(GotoFileCellRenderer(width))
       .setTitle(ExecutionBundle.message("popup.title.choose.target.file"))
-      .setItemChosenCallback { file: PsiFile -> openFile(project, file, lineNumber) }
+      .setItemChosenCallback { file: PsiFile -> openFile(file, descriptor.withFile(file.virtualFile)) }
       .createPopup()
     if (hyperlinkLocationPoint != null) {
       popup.show(hyperlinkLocationPoint)
@@ -69,16 +70,31 @@ internal class SdkSourceRedirectLinkInfo(
   }
 
   /**
-   * Opens a file using [OpenFileHyperlinkInfo.navigate]
+   * Opens a file using [OpenFileDescriptor.navigate]
    */
-  private fun openFile(project: Project, psiFile: PsiFile, lineNumber: Int) {
+  private fun openFile(psiFile: PsiFile, descriptor: OpenFileDescriptor) {
     val androidSdks = AndroidSdks.getInstance()
-    val file = when {
-      androidSdks.isInAndroidSdk(psiFile) -> psiFile.getAndroidSdkFile()
-      else -> psiFile
+    val newDescriptor = when {
+      androidSdks.isInAndroidSdk(psiFile) -> descriptor.withFile(psiFile.getAndroidSdkFile().virtualFile)
+      else -> descriptor
     }
-    OpenFileHyperlinkInfo(project, file.virtualFile, lineNumber).navigate(project)
+    newDescriptor.navigate(true)
   }
 
-  private fun PsiFile.getAndroidSdkFile() = SdkSourcePositionFinder.getInstance(project).getSourcePosition(apiLevel, this, lineNumber).file
+  private fun PsiFile.getAndroidSdkFile(): PsiFile =
+    // Ignore line number since we don't use it, we just need the file. The line number will come from the descriptor
+    SdkSourcePositionFinder.getInstance(project).getSourcePosition(apiLevel, this, lineNumber = -1).file
+
+  /**
+   * Clones an OpenFileDescriptor to point to a different file.
+   *
+   * Due to a (buggy) behavior of [OpenFileHyperlinkInfo], the descriptor can be missing a line number but have a valid offset. In case
+   * both are available, prefer a line number because the offset can be calculated from a file in a different SDK and may be incorrect.
+   */
+  private fun OpenFileDescriptor.withFile(newFile: VirtualFile): OpenFileDescriptor {
+    return when {
+      line >= 0 -> OpenFileDescriptor(project, newFile, line, column)
+      else -> OpenFileDescriptor(project, newFile, offset)
+    }
+  }
 }

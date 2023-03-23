@@ -59,8 +59,7 @@ import javax.swing.JCheckBox
 import kotlin.coroutines.resume
 import kotlin.test.assertFailsWith
 import kotlin.test.fail
-import kotlin.time.Duration
-import kotlin.time.ExperimentalTime
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Tests the [StringResourceWriter].
@@ -580,11 +579,11 @@ class StringResourceWriterTest {
   }
 
   private fun dumbSafeDelete(item: ResourceItem) = dumbSafeDelete(listOf(item))
-  @OptIn(ExperimentalTime::class)
+
   private fun dumbSafeDelete(items: List<ResourceItem>) {
     (DumbService.getInstance(project) as DumbServiceImpl).isDumb = true
     runBlocking {
-      withTimeout(Duration.seconds(2)) {
+      withTimeout(2.seconds) {
         suspendCancellableCoroutine<Unit> { cont ->
           stringResourceWriter.safeDelete(project, items) { cont.resume(Unit) }
         }
@@ -597,14 +596,13 @@ class StringResourceWriterTest {
       dialogInteraction: (DialogWrapper) -> Unit
   ) = interactWithSafeDeleteDialog(listOf(item), dialogInteraction)
 
-  @OptIn(ExperimentalTime::class)
   private fun interactWithSafeDeleteDialog(
       items: List<ResourceItem>,
       dialogInteraction: (DialogWrapper) -> Unit
   ) {
     (DumbService.getInstance(project) as DumbServiceImpl).isDumb = false
     runBlocking {
-      withTimeout(Duration.seconds(20)) {
+      withTimeout(20.seconds) {
         suspendCancellableCoroutine<Unit> { cont ->
           createModalDialogAndInteractWithIt({
             stringResourceWriter.safeDelete(project, items) { cont.resume(Unit) }

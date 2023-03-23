@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview.actions
 
 import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.ZOOMABLE_KEY
 import com.android.tools.adtui.Zoomable
 import com.android.tools.adtui.actions.ZoomType
@@ -32,7 +33,10 @@ import com.android.tools.idea.testing.onEdt
 import com.android.tools.idea.uibuilder.actions.LayoutManagerSwitcher
 import com.android.tools.idea.uibuilder.actions.SurfaceLayoutManagerOption
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
+import com.android.tools.idea.uibuilder.surface.NlScreenViewProvider
+import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.Utils
@@ -75,10 +79,13 @@ class ComposeViewControlActionTest {
         createOption("Layout C", EmptySurfaceLayoutManager())
       )
 
+    val designSurfaceMock = mock<NlDesignSurface>()
+    whenever(designSurfaceMock.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
+
     val context = DataContext {
       when {
         ZOOMABLE_KEY.`is`(it) -> TestZoomable()
-        DESIGN_SURFACE.`is`(it) -> mock<NlDesignSurface>()
+        DESIGN_SURFACE.`is`(it) -> designSurfaceMock
         else -> null
       }
     }
@@ -96,7 +103,7 @@ class ComposeViewControlActionTest {
     Show Inspection Tooltips
     ------------------------------------------------------
     Color Blind Modes
-        Original
+        ✔ Original
         Protanopes
         Protanomaly
         Deuteranopes
@@ -119,10 +126,67 @@ class ComposeViewControlActionTest {
         createOption("Layout C", EmptySurfaceLayoutManager())
       )
 
+    val designSurfaceMock = mock<NlDesignSurface>()
+    whenever(designSurfaceMock.screenViewProvider).thenReturn(NlScreenViewProvider.RENDER)
+
     val context = DataContext {
       when {
         ZOOMABLE_KEY.`is`(it) -> TestZoomable()
-        DESIGN_SURFACE.`is`(it) -> mock<NlDesignSurface>()
+        DESIGN_SURFACE.`is`(it) -> designSurfaceMock
+        else -> null
+      }
+    }
+
+    val viewControlAction = ComposeViewControlAction(EmptyLayoutManagerSwitcher, options)
+    viewControlAction.updateActions(context)
+
+    val expected =
+      """View Control
+    Switch Layout
+    Layout A
+    Layout B
+    Layout C
+    ------------------------------------------------------
+    Zoom In
+    Zoom Out
+    Zoom to 100%
+    ------------------------------------------------------
+    Show Inspection Tooltips
+    ------------------------------------------------------
+    Color Blind Modes
+        ✔ Original
+        Protanopes
+        Protanomaly
+        Deuteranopes
+        Deuteranomaly
+        Tritanopes
+"""
+
+    val actionContent = prettyPrintActions(viewControlAction)
+    assertEquals(expected, actionContent)
+  }
+
+  @Suppress("SpellCheckingInspection")
+  @Test
+  fun testColorBlindModeIsSelectedBasedOnTheScreenViewProvider() {
+    StudioFlags.COMPOSE_ZOOM_CONTROLS_DROPDOWN.override(true)
+    val options =
+      listOf(
+        createOption("Layout A", EmptySurfaceLayoutManager()),
+        createOption("Layout B", EmptySurfaceLayoutManager()),
+        createOption("Layout C", EmptySurfaceLayoutManager())
+      )
+
+    val screenViewProviderMock = mock<ScreenViewProvider>()
+
+    val designSurfaceMock = mock<NlDesignSurface>()
+    whenever(designSurfaceMock.screenViewProvider).thenReturn(screenViewProviderMock)
+    whenever(screenViewProviderMock.colorBlindFilter).thenReturn(ColorBlindMode.PROTANOMALY)
+
+    val context = DataContext {
+      when {
+        ZOOMABLE_KEY.`is`(it) -> TestZoomable()
+        DESIGN_SURFACE.`is`(it) -> designSurfaceMock
         else -> null
       }
     }
@@ -146,7 +210,7 @@ class ComposeViewControlActionTest {
     Color Blind Modes
         Original
         Protanopes
-        Protanomaly
+        ✔ Protanomaly
         Deuteranopes
         Deuteranomaly
         Tritanopes
@@ -246,7 +310,7 @@ private class TestZoomable : Zoomable {
 
 private object EmptyLayoutManagerSwitcher : LayoutManagerSwitcher {
 
-  override fun isLayoutManagerSelected(layoutManager: SurfaceLayoutManager): Boolean = true
+  override fun isLayoutManagerSelected(layoutManager: SurfaceLayoutManager): Boolean = false
 
   override fun setLayoutManager(
     layoutManager: SurfaceLayoutManager,

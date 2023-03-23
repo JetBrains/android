@@ -648,19 +648,19 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
 
     val pbm = projectBuildModel
     val buildModel = pbm.projectBuildModel!!
-    val app = pbm.versionCatalogsModel.plugins("libs").findProperty("app")
+    val app = pbm.versionCatalogsModel.plugins("libs")!!.findProperty("app")
     buildModel.applyPlugin(ReferenceTo(app, buildModel), null).also { pluginModel ->
       assertEquals("com.android.application", pluginModel.name().forceString())
       assertEquals("7.1.0", pluginModel.version().forceString())
       assertMissingProperty(pluginModel.apply())
     }
-    val lib = pbm.versionCatalogsModel.plugins("libs").findProperty("lib")
+    val lib = pbm.versionCatalogsModel.plugins("libs")!!.findProperty("lib")
     buildModel.applyPlugin(ReferenceTo(lib, buildModel), true).also { pluginModel ->
       assertEquals("com.android.library", pluginModel.name().forceString())
       assertEquals("7.1.0", pluginModel.version().forceString())
       assertEquals("true", pluginModel.apply().forceString())
     }
-    val com = pbm.versionCatalogsModel.plugins("libs").findProperty("com")
+    val com = pbm.versionCatalogsModel.plugins("libs")!!.findProperty("com")
     buildModel.applyPlugin(ReferenceTo(com, buildModel), false).also { pluginModel ->
       assertEquals("com.android.dynamic-feature", pluginModel.name().forceString())
       assertEquals("7.1.0", pluginModel.version().forceString())
@@ -832,7 +832,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
 
     val pbm = projectBuildModel
     val vcModel = pbm.versionCatalogsModel
-    val versions = vcModel.getVersionCatalogModel("libs").versions()!!
+    val versions = vcModel.getVersionCatalogModel("libs")!!.versions()
     val foo = versions.findProperty("foo")
     assertEquals("1.1.1", foo.toString())
     foo.setValue("1.2.3")
@@ -1616,10 +1616,10 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     val buildModel = pbm.projectBuildModel!!
     val dependencies = buildModel.dependencies()
     val versionCatalog = pbm.versionCatalogsModel
-    ReferenceTo(versionCatalog.libraries("libs").findProperty("a_dep-endency"), dependencies).let { reference ->
+    ReferenceTo(versionCatalog.libraries("libs")!!.findProperty("a_dep-endency"), dependencies).let { reference ->
       dependencies.addArtifact("api", reference)
     }
-    ReferenceTo(versionCatalog.libraries("libs").findProperty("a_nother-dep_endency"), dependencies).let { reference ->
+    ReferenceTo(versionCatalog.libraries("libs")!!.findProperty("a_nother-dep_endency"), dependencies).let { reference ->
       dependencies.addArtifact("implementation", reference)
     }
     applyChangesAndReparse(pbm)
@@ -1636,10 +1636,10 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     val buildModel = pbm.projectBuildModel!!
     val dependencies = buildModel.dependencies()
     val versionCatalog = pbm.versionCatalogsModel
-    ReferenceTo(versionCatalog.libraries("libs").findProperty("a_dep-endency"), dependencies).let { reference ->
+    ReferenceTo(versionCatalog.libraries("libs")!!.findProperty("a_dep-endency"), dependencies).let { reference ->
       dependencies.addPlatformArtifact("api", reference, false)
     }
-    ReferenceTo(versionCatalog.libraries("libs").findProperty("a_nother-dep_endency"), dependencies).let { reference ->
+    ReferenceTo(versionCatalog.libraries("libs")!!.findProperty("a_nother-dep_endency"), dependencies).let { reference ->
       dependencies.addPlatformArtifact("implementation", reference, true)
     }
     applyChangesAndReparse(pbm)
@@ -1656,7 +1656,7 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
     val buildModel = pbm.projectBuildModel!!
     val dependencies = buildModel.dependencies()
     val versionCatalog = pbm.versionCatalogsModel
-    ReferenceTo(versionCatalog.bundles("libs").findProperty("dep_endencies"), dependencies).let { reference ->
+    ReferenceTo(versionCatalog.bundles("libs")!!.findProperty("dep_endencies"), dependencies).let { reference ->
       dependencies.addArtifact("api", reference)
     }
     applyChangesAndReparse(pbm)

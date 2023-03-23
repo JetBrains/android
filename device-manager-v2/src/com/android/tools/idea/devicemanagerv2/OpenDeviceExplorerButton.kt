@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanagerv2
 import com.android.adblib.serialNumber
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceState
+import com.android.tools.adtui.categorytable.IconButton
 import com.android.tools.idea.device.explorer.DeviceExplorerService
 import com.android.tools.idea.file.explorer.toolwindow.DeviceExplorer
 import com.android.tools.idea.flags.StudioFlags
@@ -26,8 +27,10 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 
-internal class OpenDeviceExplorerButton(private val project: Project, private val handle: DeviceHandle) :
-  IconButton(AllIcons.Actions.MenuOpen) {
+internal class OpenDeviceExplorerButton(
+  private val project: Project,
+  private val handle: DeviceHandle
+) : IconButton(AllIcons.Actions.MenuOpen) {
 
   private var isVirtual = false
 

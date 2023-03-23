@@ -26,7 +26,7 @@ public interface GradleVersionCatalogView {
    * We do minimal settings file parsing for producing CatalogView
    */
   @NotNull
-  static GradleVersionCatalogView get(Project project) {
+  static GradleVersionCatalogView get(@NotNull Project project) {
     return GradleModelProvider.getInstance().getVersionCatalogView(project);
   }
 

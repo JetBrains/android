@@ -18,9 +18,9 @@ package com.android.tools.idea.editors.strings
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.junit.Rule
 import org.junit.Test
 

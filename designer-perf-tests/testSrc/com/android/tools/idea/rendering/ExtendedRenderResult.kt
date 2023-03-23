@@ -20,21 +20,7 @@ package com.android.tools.idea.rendering
  */
 open class ExtendedRenderResult protected constructor(
   renderResult: RenderResult,
-  val extendedStats: ExtendedStats) : RenderResult(
-  renderResult.renderedFile,
-  renderResult.module,
-  renderResult.logger,
-  renderResult.renderContext,
-  renderResult.hasRequestedCustomViews(),
-  renderResult.renderResult,
-  renderResult.rootViews,
-  renderResult.systemRootViews,
-  renderResult.renderedImage,
-  renderResult.defaultProperties,
-  renderResult.defaultStyles,
-  renderResult.validatorResult,
-  renderResult.stats,
-) {
+  val extendedStats: ExtendedStats) : RenderResult(renderResult) {
 
   companion object {
     fun create(

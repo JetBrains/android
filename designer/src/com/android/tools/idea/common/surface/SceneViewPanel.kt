@@ -16,7 +16,6 @@
 package com.android.tools.idea.common.surface
 
 import com.android.annotations.concurrency.UiThread
-import com.android.tools.adtui.common.AdtUiUtils
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.model.scaleBy
@@ -33,11 +32,13 @@ import com.android.tools.idea.uibuilder.surface.layout.horizontal
 import com.android.tools.idea.uibuilder.surface.layout.margin
 import com.android.tools.idea.uibuilder.surface.layout.scaledContentSize
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.launch
 import java.awt.BorderLayout
+import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
@@ -128,6 +129,9 @@ private data class LayoutData private constructor(
   }
 }
 
+private val nameLabelDefaultColor = JBColor(0x6c707e, 0xdfe1e5)
+private val nameLabelHoverColor = JBColor(0x5a5d6b, 0xf0f1f2)
+
 /**
  * A Swing component associated to the given [SceneView]. There will be one of this components in the [DesignSurface]
  * per every [SceneView] available. This panel will be positioned on the coordinates of the [SceneView] and can be
@@ -159,7 +163,20 @@ class SceneViewPeerPanel(val sceneView: SceneView,
    */
   private val modelNameLabel = JBLabel().apply {
     maximumSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
-    foreground = AdtUiUtils.TITLE_COLOR
+    foreground = nameLabelDefaultColor
+    addMouseListener(object : MouseAdapter() {
+      override fun mouseEntered(e: MouseEvent?) {
+        foreground = nameLabelHoverColor
+      }
+      override fun mouseExited(e: MouseEvent?) {
+        foreground = nameLabelDefaultColor
+      }
+      override fun mouseClicked(e: MouseEvent?) {
+        scope.launch {
+          (sceneView.surface as? NlDesignSurface)?.navigationHandler?.handleNavigate(sceneView, false)
+        }
+      }
+    })
   }
 
   val positionableAdapter = object : PositionableContent {
@@ -283,14 +300,6 @@ class SceneViewPeerPanel(val sceneView: SceneView,
    * hide it otherwise.
    */
   private fun JPanel.setUpTopPanelMouseListeners() {
-    modelNameLabel.addMouseListener(object : MouseAdapter() {
-      override fun mouseClicked(e: MouseEvent?) {
-        scope.launch {
-          (sceneView.surface as? NlDesignSurface)?.navigationHandler?.handleNavigate(sceneView, false)
-        }
-      }
-    })
-
     // MouseListener to show the sceneViewToolbar when the mouse enters the target component, and to hide it when the mouse exits the bounds
     // of sceneViewTopPanel.
     val hoverTopPanelMouseListener = object : MouseAdapter() {

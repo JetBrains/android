@@ -28,7 +28,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.ConfigureNewAndroi
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewProjectWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
-import com.android.tools.idea.wizard.template.BuildConfigurationLanguage;
 import java.io.IOException;
 import java.util.regex.Pattern;
 import javax.swing.JComponent;
@@ -144,7 +143,6 @@ public class ProjectWithKotlinTestUtil {
       .wizard()
       .clickNext()
       .getConfigureNewAndroidProjectStep()
-      .selectBuildConfigurationLanguage(BuildConfigurationLanguage.Groovy)
       .enterPackageName("android.com");
 
     waitForPackageNameToShow("android.com", configAndroid);

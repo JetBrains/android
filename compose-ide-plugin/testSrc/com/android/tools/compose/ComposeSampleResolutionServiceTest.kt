@@ -55,13 +55,16 @@ class ComposeSampleResolutionServiceTest : AndroidGradleTestCase() {
 
     val libraryFilePaths = LibraryFilePaths.getInstance(myFixture.project)
     // Make sure that sample sources are from maven, not from local directory.
-    val samples = libraryFilePaths.getCachedPathsForArtifact("com.example.libraryWithSamples:lib1:1.0.0")?.sampleSource
+    val samples = libraryFilePaths.getCachedPathsForArtifact("com.example:lib:3.0")?.sampleSource
     // We download samples only for androidx libraries.
     assume().that(samples).isNull()
 
-    val androidxSamples = libraryFilePaths.getCachedPathsForArtifact("androidx.ui.libraryWithSamples:lib1:1.0.0")?.sampleSource
+    val androidxSamples = libraryFilePaths.getCachedPathsForArtifact("androidx.ui:lib:3.0")?.sampleSource
     assume().that(androidxSamples).isNotNull()
-    assertThat(androidxSamples!!.name).isEqualTo("lib1-1.0.0-${AdditionalClassifierArtifactsModel.SAMPLE_SOURCE_CLASSIFIER}.jar")
+    // Note: the classifer here is not the same as what is required by the Gradle metadata, this was an accident but we leave
+    // as is to also test that this actually correctly picks up the name of the artifact by relying on the Gradle module metadata rather
+    // than just the classifer.
+    assertThat(androidxSamples!!.name).isEqualTo("lib-3.0-samplesources.jar")
   }
 
   fun testResolveSampleReference() {
@@ -71,14 +74,13 @@ class ComposeSampleResolutionServiceTest : AndroidGradleTestCase() {
     assume().that(file).isNotNull()
     myFixture.openFileInEditor(file!!)
 
-    myFixture.moveCaret("myFuncti|on")
+    myFixture.moveCaret("myFuncti|on").navigationElement
     val librarySourceFunction = myFixture.elementAtCaret.navigationElement as KtNamedFunction
     assume().that(librarySourceFunction).isNotNull()
 
     val sampleTag = librarySourceFunction.docComment!!.getDefaultSection().findTagByName("sample")!!
     val sample = PsiTreeUtil.findChildOfType<KDocName>(sampleTag, KDocName::class.java)?.mainReference?.resolve()
     assume().that(sample).isNotNull()
-    // For library structure see testData/projects/psdSampleRepo/com/example/libraryWithSamples/lib1/1.0.0
-    assertThat(sample!!.getKotlinFqName()!!.asString()).isEqualTo("androidx.samples.sampleFunction")
+    assertThat(sample!!.getKotlinFqName()!!.asString()).isEqualTo("app.samples.sampleFunction")
   }
 }

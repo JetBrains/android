@@ -15,11 +15,12 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.desugaring
 
+import com.android.tools.idea.run.deployment.liveedit.LiveEditLogger
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.desugarFailure
 import com.android.tools.r8.Diagnostic
 import com.android.tools.r8.DiagnosticsHandler
 
-class R8DiagnosticHandler(private val logger: DesugarLogger) : DiagnosticsHandler{
+class R8DiagnosticHandler(private val logger: LiveEditLogger) : DiagnosticsHandler{
   override fun error(error: Diagnostic?) {
     super.error(error)
     error?.let {

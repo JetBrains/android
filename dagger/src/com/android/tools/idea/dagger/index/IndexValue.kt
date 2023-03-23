@@ -19,11 +19,8 @@ import com.android.tools.idea.dagger.concepts.AllConcepts
 import com.android.tools.idea.dagger.concepts.DaggerConcept
 import com.android.tools.idea.dagger.concepts.DaggerElement
 import com.android.tools.idea.dagger.concepts.DaggerElementIdentifiers
-import com.android.tools.idea.dagger.concepts.getPsiType
-import com.android.tools.idea.dagger.unboxed
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.io.DataExternalizer
 import java.io.DataInput
@@ -54,51 +51,28 @@ abstract class IndexValue {
     SUBCOMPONENT_WITH_MODULE(DaggerElement.Type.SUBCOMPONENT),
     MODULE_WITH_INCLUDE(DaggerElement.Type.MODULE),
     MODULE_WITH_SUBCOMPONENT(DaggerElement.Type.MODULE),
+    COMPONENT_PROVISION_METHOD(DaggerElement.Type.CONSUMER),
   }
 
   abstract fun save(output: DataOutput)
 
   /**
    * Resolve the Dagger element represented by this [IndexValue] into one or more [DaggerElement]s.
-   *
-   * @param indexKeyPsiType the related type of the Dagger element being resolved.
-   * @return a list of valid [DaggerElement]s, or the empty list when no elements can be found that
-   *   match the given type.
    */
-  fun resolveToDaggerElements(
-    indexKeyPsiType: PsiType,
-    project: Project,
-    scope: GlobalSearchScope
-  ): List<DaggerElement> {
-    val unboxedIndexKeyPsiType = indexKeyPsiType.unboxed
-    return getResolveCandidates(project, scope)
-      .filter { resolveCandidate ->
-        getMatchingIndexKeyPsiTypes(resolveCandidate).any { type ->
-          type.unboxed == unboxedIndexKeyPsiType
-        }
-      }
-      .mapNotNull { daggerElementIdentifiers.getDaggerElement(it.navigationElement) }
+  fun resolveToDaggerElements(project: Project, scope: GlobalSearchScope): List<DaggerElement> {
+    return getResolveCandidates(project, scope).mapNotNull {
+      daggerElementIdentifiers.getDaggerElement(it.navigationElement)
+    }
   }
 
   /**
-   * Find any [PsiElement]s represented by this [IndexValue] that match the given [PsiType].
+   * Find any [PsiElement]s represented by this [IndexValue].
    *
    * The elements may or may not represent valid Dagger elements; it's not the responsibility of
    * this method to determine that. Rather, this method is just searching for elements based on
    * whatever data it has from the index. This method is used by [resolveToDaggerElements] to get a
    * candidate set of elements, and that method will then filter based upon which elements are valid
    * Dagger items.
-   *
-   * However, this method may choose to do further filtering of candidates if the information is
-   * quick and readily available. An example is checking for an attribute on a [PsiClass]; that
-   * information is quickly available on the stub returned by [JavaPsiFacade], and so it's okay for
-   * this method to check for a required annotation on a class and filter out candidates that don't
-   * have it.
-   *
-   * On the flip side, checking for an annotation on a [PsiMethod] method coming from Kotlin
-   * actually *can't* be done quickly, since it requires resolving to the navigation element first.
-   * Therefore, that type of check should not be done here, in order to keep this method as
-   * lightweight as possible.
    */
   protected abstract fun getResolveCandidates(
     project: Project,
@@ -106,20 +80,13 @@ abstract class IndexValue {
   ): List<PsiElement>
 
   /**
-   * Returns the set of [PsiType]s for a given resolve candidate element that can match a
-   * corresponding index key.
-   *
-   * The default implementation assumes that the [PsiType] of the candidate itself should match the
-   * key's [PsiType]. This is not the case for all [IndexValue]s (see
-   * [com.android.tools.idea.dagger.concepts.ClassIndexValue] for a counterexample), but it is
-   * common to enough other cases that it is the default implementation.
-   */
-  protected open fun getMatchingIndexKeyPsiTypes(resolveCandidate: PsiElement): Set<PsiType> =
-    setOf(resolveCandidate.getPsiType())
-
-  /**
    * Identifiers that search specifically for the types of [DaggerElement]s represented by this
-   * [IndexValue].
+   * [IndexValue]. The identifiers are responsible for validating that necessary conditions for
+   * defining a [DaggerElement] are met.
+   *
+   * As an example, this method would be responsible for checking that a Component has the correct
+   * `@Component` annotation, since the results returned from the index may have had a different
+   * `@Component` annotation.
    */
   protected abstract val daggerElementIdentifiers: DaggerElementIdentifiers
 

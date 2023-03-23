@@ -47,6 +47,9 @@ internal class DeviceScreenshotPostprocessor : ScreenshotPostprocessor {
     }
   }
 
+  override val canClipToDisplayShape: Boolean
+    get() = false
+
   private fun addSkinBasedFrame(screenshotImage: ScreenshotImage, skinFolder: Path): BufferedImage {
     val image = screenshotImage.image
     val skinDefinition = SkinDefinitionCache.getInstance().getSkinDefinition(skinFolder) ?: return image

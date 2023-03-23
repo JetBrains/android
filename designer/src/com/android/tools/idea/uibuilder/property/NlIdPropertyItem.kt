@@ -31,7 +31,7 @@ import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.psi.xml.XmlAttributeValue
 import com.intellij.refactoring.actions.RenameElementAction
 import com.intellij.util.text.nullize
-import org.jetbrains.android.dom.attrs.AttributeDefinition
+import com.android.tools.dom.attrs.AttributeDefinition
 import org.jetbrains.android.refactoring.renaming.NEW_NAME_RESOURCE
 
 open class NlIdPropertyItem(

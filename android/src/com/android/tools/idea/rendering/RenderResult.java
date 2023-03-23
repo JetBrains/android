@@ -19,11 +19,13 @@ import com.android.ide.common.rendering.api.*;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.imagepool.ImagePoolImageDisposer;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.notebook.editor.BackedVirtualFile;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
@@ -35,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
+import org.jetbrains.annotations.TestOnly;
 
 public class RenderResult {
   private static Logger LOG = Logger.getInstance(RenderResult.class);
@@ -47,7 +50,8 @@ public class RenderResult {
   @NotNull private final Result myRenderResult;
   @NotNull private final Map<Object, Map<ResourceReference, ResourceValue>> myDefaultProperties;
   @NotNull private final Map<Object, ResourceReference> myDefaultStyles;
-  @NotNull private final Module myModule;
+  @NotNull private final IdeaModuleProvider myModule;
+  @NotNull private final Project myProject;
   private final ReadWriteLock myDisposeLock = new ReentrantReadWriteLock();
   @Nullable private final Object myValidatorResult;
   private final boolean myHasRequestedCustomViews;
@@ -56,7 +60,8 @@ public class RenderResult {
   private final RenderResultStats myStats;
 
   protected RenderResult(@NotNull PsiFile renderedFile,
-                         @NotNull Module module,
+                         @NotNull Project project,
+                         @NotNull IdeaModuleProvider module,
                          @NotNull RenderLogger logger,
                          @Nullable RenderContext renderContext,
                          boolean hasRequestedCustomViews,
@@ -69,6 +74,7 @@ public class RenderResult {
                          @Nullable Object validatorResult,
                          @NotNull RenderResultStats stats) {
     myModule = module;
+    myProject = project;
     myRenderContext = renderContext;
     myRenderedFile = renderedFile;
     myLogger = logger;
@@ -81,6 +87,25 @@ public class RenderResult {
     myValidatorResult = validatorResult;
     myStats = stats;
     myHasRequestedCustomViews = hasRequestedCustomViews;
+  }
+
+  @TestOnly
+  protected RenderResult(RenderResult result) {
+    this(
+      result.myRenderedFile,
+      result.myProject,
+      result.myModule,
+      result.myLogger,
+      result.myRenderContext,
+      result.myHasRequestedCustomViews,
+      result.myRenderResult,
+      result.myRootViews,
+      result.mySystemRootViews,
+      result.myImage,
+      result.myDefaultProperties,
+      result.myDefaultStyles,
+      result.myValidatorResult,
+      result.myStats);
   }
 
   /**
@@ -131,7 +156,8 @@ public class RenderResult {
     Map<Object, ResourceReference> defaultStyles = session.getDefaultNamespacedStyles();
     RenderResult result = new RenderResult(
       file,
-      renderContext.getModule().getIdeaModule(),
+      renderContext.getModule().getProject(),
+      renderContext.getModule(),
       logger,
       renderContext,
       hasRequestedCustomViews,
@@ -158,6 +184,7 @@ public class RenderResult {
   RenderResult createWithStats(@NotNull RenderResultStats stats) {
     return new RenderResult(
       myRenderedFile,
+      myProject,
       myModule,
       myLogger,
       myRenderContext,
@@ -177,7 +204,8 @@ public class RenderResult {
     @NotNull RenderModelModule renderModule, @NotNull PsiFile file, @Nullable Throwable throwable) {
     RenderResult result = new RenderResult(
       file,
-      renderModule.getIdeaModule(),
+      renderModule.getProject(),
+      renderModule,
       new RenderLogger(renderModule.getProject(), null, false, RenderProblem.NOOP_RUNNABLE_FIX_FACTORY),
       null,
       false,
@@ -218,9 +246,7 @@ public class RenderResult {
   }
 
   /**
-   * Returns the source {@link PsiFile} if available. This might be different from the {@link #getRenderedFile()} in cases where the
-   * render is generated via a synthetic layout (like menus, drawables or Compose.).
-   * If you want to access the user source file name, use this method.
+   * Returns the source {@link PsiFile} if available. If you want to access the user source file name, use this method.
    */
   @SuppressWarnings("UnstableApiUsage")
   @NotNull
@@ -235,21 +261,24 @@ public class RenderResult {
     return myRenderedFile;
   }
 
-  /**
-   * Returns the {@link PsiFile} being rendered. This might be different from the actual user source file when the render comes from a
-   * layout generated synthetically by the Layout Editor. This happens in cases like menus, drawables or Compose.
-   */
-  @NotNull
-  public PsiFile getRenderedFile() { return myRenderedFile; }
-
   @Nullable
   public RenderContext getRenderContext() {
     return myRenderContext;
   }
 
   @NotNull
+  public Project getProject() {
+    return myProject;
+  }
+
+  /**
+   * Reference to the Android module object. Used exclusively by render error contributors.
+   * Deprecated. RenderResult should not be the Module holder, obtain the module elsewhere.
+   */
+  @Deprecated
+  @NotNull
   public Module getModule() {
-    return myModule;
+    return myModule.getIdeaModule();
   }
 
   @NotNull

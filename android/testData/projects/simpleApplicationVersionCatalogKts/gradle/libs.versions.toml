@@ -1,0 +1,17 @@
+[versions]
+constraint-layout = "1.0.2"
+guava = "19.0"
+agpVersion = "8.0.0-beta01"  # this will be substituted by test import
+kotlinVersion = "1.7.20"
+
+[libraries]
+constraint-layout = { module = "com.android.support.constraint:constraint-layout", version.ref = "constraint-layout" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+
+[plugins]
+ksp = { id = "com.google.devtools.ksp", version = "1.7.21-1.0.8" }
+android-application = { id = "com.android.application", version.ref = "agpVersion" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlinVersion" }
+
+[bundles]
+both = ["constraint-layout", "guava"]

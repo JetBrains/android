@@ -23,6 +23,7 @@ import com.android.tools.idea.deploy.DeploymentConfiguration;
 import com.android.tools.idea.editors.literals.LiveEditService;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
+import com.android.tools.idea.run.deployment.liveedit.LiveEditApp;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.tasks.ApplyChangesTask;
 import com.android.tools.idea.run.tasks.ApplyCodeChangesTask;
@@ -41,9 +42,12 @@ import com.intellij.execution.ExecutionException;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -193,12 +197,23 @@ public class AndroidLaunchTasksProvider {
           myLaunchOptions.getAlwaysInstallWithPm()));
         tasks.add(new StartLiveUpdateMonitoringTask(AndroidLiveLiteralDeployMonitor.getCallback(myProject, packageName, device)));
         if (LiveEditService.usesCompose(myProject)) {
-          tasks.add(new StartLiveUpdateMonitoringTask(() -> LiveEditService.getInstance(myProject).notifyAppDeploy(packageName, device)));
+          LiveEditApp app = new LiveEditApp(getApkPaths(device, myApkProvider), device.getVersion().getApiLevel());
+          tasks.add(new StartLiveUpdateMonitoringTask(() -> LiveEditService.getInstance(myProject).notifyAppDeploy(packageName, device, app)));
         }
         break;
       default: throw new IllegalStateException("Unhandled Deploy Type");
     }
     return ImmutableList.copyOf(tasks);
+  }
+
+  private static Set<Path> getApkPaths(@NotNull IDevice device, @NotNull ApkProvider apkProvider) throws ApkProvisionException {
+    Set<Path> apksPaths = new HashSet<>();
+    for(ApkInfo apkInfo:  apkProvider.getApks(device)) {
+      for (ApkFileUnit apkFileUnit : apkInfo.getFiles()) {
+        apksPaths.add(apkFileUnit.getApkPath());
+      }
+    }
+    return apksPaths;
   }
 
 

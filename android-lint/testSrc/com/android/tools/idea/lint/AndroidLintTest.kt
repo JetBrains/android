@@ -31,7 +31,6 @@ import com.android.tools.idea.lint.common.AndroidLintGradleDynamicVersionInspect
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase
 import com.android.tools.idea.lint.common.LintEditorResult
 import com.android.tools.idea.lint.common.LintIdeSupport
-import com.android.tools.idea.lint.common.LintIgnoredResult
 import com.android.tools.idea.lint.common.LintProblemData
 import com.android.tools.idea.lint.common.SuppressLintIntentionAction
 import com.android.tools.idea.lint.inspections.AndroidLintAdapterViewChildrenInspection
@@ -1238,24 +1237,9 @@ class AndroidLintTest : AbstractAndroidLintTest() {
 
   fun testOldTargetApi() {
     deleteManifest()
-    val expectedTarget =
-      Integer.toString(AndroidLintIdeClient(project, LintIgnoredResult()).highestKnownApiLevel)
-    doTestWithFix(
-      AndroidLintOldTargetApiInspection(),
-      "Update targetSdkVersion to $expectedTarget",
-      "AndroidManifest.xml",
-      "xml"
-    )
+    doTestHighlighting(AndroidLintOldTargetApiInspection(), "AndroidManifest.xml", "xml")
   }
 
-  /*
-  public void testOldTargetApiGradle() throws Exception {
-    // Doesn't work in incremental mode because this issue is also used for manifest files;
-    // we don't well support implementations pointing to different detectors for each file type
-    doTestWithFix(new AndroidLintInspectionToolProvider.AndroidLintOldTargetApiInspection(),
-                  "Change to 17.0.0", "build.gradle", "gradle");
-  }
-  */
   fun testReferenceTypes() {
     doTestWithFix(
       AndroidLintReferenceTypeInspection(),

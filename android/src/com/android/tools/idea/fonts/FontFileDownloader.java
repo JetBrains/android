@@ -14,9 +14,9 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.util.concurrency.AppExecutorUtil;
-import com.intellij.util.containers.hash.LinkedHashMap;
 import com.intellij.util.download.DownloadableFileDescription;
 import com.intellij.util.io.HttpRequests;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -209,7 +209,7 @@ public class FontFileDownloader {
     private final int myTasksCount;
     private final AtomicDouble myTotalFraction;
     private final Object myLock = new Object();
-    private final LinkedHashMap<SubTaskProgressIndicator, String> myText2Stack = new LinkedHashMap<>();
+    private final Object2ObjectLinkedOpenHashMap<SubTaskProgressIndicator, String> myText2Stack = new Object2ObjectLinkedOpenHashMap<>();
 
     private ConcurrentTasksProgressManager(ProgressIndicator parent, int tasksCount) {
       myParent = parent;
@@ -237,7 +237,7 @@ public class FontFileDownloader {
         String prev;
         synchronized (myLock) {
           myText2Stack.remove(subTask);
-          prev = myText2Stack.getLastValue();
+          prev = myText2Stack.isEmpty() ? null : myText2Stack.get(myText2Stack.lastKey());
         }
         if (prev != null) {
           myParent.setText2(prev);

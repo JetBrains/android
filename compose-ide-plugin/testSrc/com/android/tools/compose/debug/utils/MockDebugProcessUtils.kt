@@ -129,7 +129,7 @@ class MockDebugProcessImpl(project: Project) : DebugProcessImpl(project) {
     evaluationContext: EvaluationContext,
     objRef: ObjectReference,
     method: Method,
-    args: MutableList<out Value>,
+    args: List<Value>,
     invocationOptions: Int
   ): Value {
     return invokeMethod(evaluationContext, objRef, method, args)

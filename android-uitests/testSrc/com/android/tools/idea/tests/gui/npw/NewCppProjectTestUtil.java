@@ -25,7 +25,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.ExecutionToolWindowFix
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ProjectViewFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.CppStandardType;
-import com.android.tools.idea.wizard.template.BuildConfigurationLanguage;
 import com.intellij.openapi.util.SystemInfo;
 import java.util.Arrays;
 import java.util.Optional;
@@ -63,7 +62,6 @@ public class NewCppProjectTestUtil {
       .clickNext()
       .getConfigureNewAndroidProjectStep()
       .setSourceLanguage(Java)
-      .selectBuildConfigurationLanguage(BuildConfigurationLanguage.Groovy)
       .enterPackageName("com.example.myapplication")
       .wizard()
       .clickNext()
@@ -86,10 +84,10 @@ public class NewCppProjectTestUtil {
 
   private static @Nullable String getCppFlags(@NotNull IdeFrameFixture frame) {
     String contents = frame.getEditor()
-      .open("app/build.gradle")
+      .open("app/build.gradle.kts")
       .getCurrentFileContents();
 
-    Pattern cppFlags = Pattern.compile(" *cppFlags '(.*)'");
+    Pattern cppFlags = Pattern.compile(" *cppFlags *\\+= *\"(.*)\"");
 
     Optional<String> flags = Arrays.stream(contents.split("\\R"))
       .map(cppFlags::matcher)

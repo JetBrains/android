@@ -81,9 +81,9 @@ class AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor :
         usages.add(usageInfo)
       }
       manifestValue?.let {
-        if (model.android().packagingOptions().jniLibs().useLegacyPackaging().valueType != GradlePropertyModel.ValueType.NONE)  return@let
-        val psiElement = model.android().packagingOptions().jniLibs().psiElement
-                         ?: model.android().packagingOptions().psiElement
+        if (model.android().packaging().jniLibs().useLegacyPackaging().valueType != GradlePropertyModel.ValueType.NONE)  return@let
+        val psiElement = model.android().packaging().jniLibs().psiElement
+                         ?: model.android().packaging().psiElement
                          ?: model.android().psiElement ?: modelPsiElement
         val wrappedPsiElement = WrappedPsiElement(psiElement, this, ADD_DSL_USE_LEGACY_PACKAGING)
         val usageInfo = AddUseLegacyPackagingInfo(wrappedPsiElement, model, manifestValue)
@@ -127,7 +127,7 @@ class AddUseLegacyPackagingInfo(
   val value: Boolean
 ): GradleBuildModelUsageInfo(element) {
   override fun performBuildModelRefactoring(processor: GradleBuildModelRefactoringProcessor) {
-    model.android().packagingOptions().jniLibs().useLegacyPackaging().setValue(value)
+    model.android().packaging().jniLibs().useLegacyPackaging().setValue(value)
   }
 
   override fun getTooltipText(): String = AndroidBundle.message("project.upgrade.androidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor.addUseLegacyPackaging.tooltipText")

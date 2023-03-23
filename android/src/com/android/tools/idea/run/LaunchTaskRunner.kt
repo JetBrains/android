@@ -20,10 +20,10 @@ import com.android.tools.deployer.DeployerException
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.execution.common.AndroidExecutionException
 import com.android.tools.idea.execution.common.ApplicationTerminator
+import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.run.ShowLogcatListener.Companion.getShowLogcatLinkText
-import com.android.tools.idea.run.applychanges.findExistingSessionAndMaybeDetachForColdSwap
 import com.android.tools.idea.run.configuration.execution.AndroidConfigurationExecutor
 import com.android.tools.idea.run.configuration.execution.createRunContentDescriptor
 import com.android.tools.idea.run.configuration.execution.getDevices
@@ -36,6 +36,7 @@ import com.android.tools.idea.run.util.SwapInfo
 import com.android.tools.idea.stats.RunStats
 import com.android.tools.idea.util.androidFacet
 import com.intellij.execution.ExecutionException
+import com.intellij.execution.RunnerAndConfigurationSettings
 import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.process.NopProcessHandler
 import com.intellij.execution.process.ProcessHandler
@@ -64,14 +65,16 @@ class LaunchTaskRunner(
 ) : AndroidConfigurationExecutor {
   val project = env.project
   override val configuration = env.runProfile as AndroidRunConfiguration
+  private val settings = env.runnerAndConfigurationSettings as RunnerAndConfigurationSettings
 
   val facet = configuration.configurationModule.module?.androidFacet ?: throw RuntimeException("Cannot get AndroidFacet")
 
   private val LOG = Logger.getInstance(this::class.java)
 
   override fun run(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
-    findExistingSessionAndMaybeDetachForColdSwap(env)
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
+
+    settings.getProcessHandlersForDevices(project, devices).forEach { it.destroyProcess() }
 
     val packageName = applicationIdProvider.packageName
     waitPreviousProcessTermination(devices, packageName, indicator)
@@ -154,9 +157,9 @@ class LaunchTaskRunner(
     }
     RunStats.from(env).apply { setPackage(applicationId) }
 
-    waitPreviousProcessTermination(devices, applicationId, indicator)
+    settings.getProcessHandlersForDevices(project, devices).forEach { it.destroyProcess() }
 
-    findExistingSessionAndMaybeDetachForColdSwap(env)
+    waitPreviousProcessTermination(devices, applicationId, indicator)
 
     val processHandler = NopProcessHandler()
     val console = createConsole()
@@ -180,15 +183,33 @@ class LaunchTaskRunner(
   override fun applyChanges(indicator: ProgressIndicator): RunContentDescriptor = runBlockingCancellable(indicator) {
     val devices = getDevices(deviceFutures, indicator, RunStats.from(env))
 
-    val oldSession = findExistingSessionAndMaybeDetachForColdSwap(env)
-    val packageName = applicationIdProvider.packageName
-    val processHandler = oldSession.processHandler ?: AndroidProcessHandler(project, packageName)
+    /**
+     * We use [distinct] because there can be more than one RunContentDescriptor for given configuration and given devices.
+     *
+     * Every time user does AC or ACC we are obligated to create a new RunContentDescriptor. So we create, but don't show it in UI by setting [RunContentDescriptor.isHiddenContent] to false.
+     * Multiple [RunContentDescriptor] -> multiple [ProcessHandler]. But it's the same instance of [ProcessHandler].
+     */
+    val processHandlers = settings.getProcessHandlersForDevices(project, devices).distinct()
 
-    val console = oldSession.executionConsole as? ConsoleView ?: createConsole()
+    if (processHandlers.size > 1) {
+      throw ExecutionException("Can't perform applying changes. Devices associated with more than one running process")
+    }
+
+    val existingProcessHandler = processHandlers.firstOrNull()
+
+    val existingRunContentDescriptor = existingProcessHandler?.let {
+      withContext(uiThread) {
+        RunContentManager.getInstance(project).findContentDescriptor(env.executor, existingProcessHandler)
+      }
+    }
+
+    val packageName = applicationIdProvider.packageName
+    val processHandler = existingProcessHandler ?: AndroidProcessHandler(project, packageName)
+    val console = existingRunContentDescriptor?.executionConsole as? ConsoleView ?: createConsole()
 
     doRun(devices, processHandler, indicator, console, false)
 
-    if (oldSession.processHandler == null && processHandler is AndroidProcessHandler) {
+    if (processHandler is AndroidProcessHandler) {
       devices.forEach { device ->
         processHandler.addTargetDevice(device)
         if (!StudioFlags.RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED.get()) {
@@ -200,13 +221,28 @@ class LaunchTaskRunner(
     }
 
     withContext(uiThread) {
-      val descriptor = RunContentManager.getInstance(project).findContentDescriptor(env.executor, processHandler)
-
-      if (descriptor?.attachedContent == null) {
+      val attachedContent = existingRunContentDescriptor?.attachedContent
+      if (attachedContent == null) {
         createRunContentDescriptor(processHandler, console, env)
       }
       else {
-        descriptor.takeIf { it is HiddenRunContentDescriptor } ?: HiddenRunContentDescriptor(descriptor)
+        if (existingRunContentDescriptor.isHiddenContent) {
+          existingRunContentDescriptor
+        }
+        else {
+          object : RunContentDescriptor(existingRunContentDescriptor.executionConsole,
+                                        existingRunContentDescriptor.processHandler,
+                                        existingRunContentDescriptor.component,
+                                        existingRunContentDescriptor.displayName,
+                                        existingRunContentDescriptor.icon, null as Runnable?,
+                                        existingRunContentDescriptor.restartActions) {
+            override fun isHiddenContent() = true
+          }.apply {
+            setAttachedContent(attachedContent)
+            // Same as [RunContentBuilder.showRunContent]
+            Disposer.register(project, this)
+          }
+        }
       }
     }
   }
@@ -232,8 +268,8 @@ class LaunchTaskRunner(
         }
         catch (e: Exception) {
           stat.endLaunchTask(task, details, false)
-          if (e is DeployerException) {
-            throw AndroidExecutionException(e.id, e.message)
+          if (e.cause is DeployerException) {
+            throw AndroidExecutionException((e.cause as DeployerException).id, e.message)
           }
           throw e
         }

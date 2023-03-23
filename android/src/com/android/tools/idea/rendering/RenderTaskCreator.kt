@@ -21,6 +21,7 @@ import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.facet.AndroidFacet
 import java.util.concurrent.CompletableFuture
 
@@ -38,8 +39,8 @@ fun createRenderTaskFuture(
 ) : CompletableFuture<RenderTask> {
   val project = facet.module.project
 
-  val psiFile =
-    AndroidPsiUtils.getPsiFileSafely(project, file)
+  val xmlFile =
+    AndroidPsiUtils.getPsiFileSafely(project, file) as? XmlFile
     ?: return CompletableFuture.completedFuture(null)
   val configuration =
     Configuration.create(
@@ -51,7 +52,7 @@ fun createRenderTaskFuture(
 
   return StudioRenderService.getInstance(project)
     .taskBuilder(facet, configuration)
-    .withPsiFile(psiFile)
+    .withPsiFile(xmlFile)
     .disableDecorations()
     .apply {
       if (privateClassLoader) {

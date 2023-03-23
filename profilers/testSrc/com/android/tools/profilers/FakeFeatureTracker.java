@@ -120,11 +120,6 @@ public final class FakeFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackProfilerInitializationFailed() {
-
-  }
-
-  @Override
   public void trackEnterStage(AndroidProfilerEvent.Stage stageType) {
     // Production stages should have a valid stage type set.
     Truth.assertThat(stageType).isNotEqualTo(AndroidProfilerEvent.Stage.UNKNOWN_STAGE);

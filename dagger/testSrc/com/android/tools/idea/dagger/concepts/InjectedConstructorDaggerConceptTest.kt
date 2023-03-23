@@ -15,31 +15,26 @@
  */
 package com.android.tools.idea.dagger.concepts
 
-import com.android.tools.idea.AndroidPsiUtils.toPsiType
 import com.android.tools.idea.dagger.addDaggerAndHiltClasses
 import com.android.tools.idea.dagger.index.IndexValue
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexPsiWrapper
-import com.android.tools.idea.kotlin.toPsiType
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
-import com.intellij.psi.PsiClass
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
-import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.util.projectScope
-import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
-import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -53,10 +48,12 @@ class InjectedConstructorDaggerConceptTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private lateinit var myFixture: CodeInsightTestFixture
+  private lateinit var myProject: Project
 
   @Before
   fun setup() {
     myFixture = projectRule.fixture
+    myProject = myFixture.project
   }
 
   private fun runIndexer(wrapper: DaggerIndexMethodWrapper): Map<String, Set<IndexValue>> =
@@ -81,7 +78,7 @@ class InjectedConstructorDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("construct|or").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("construct|or")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries).isEmpty()
@@ -103,7 +100,7 @@ class InjectedConstructorDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("construct|or").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("construct|or")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries)
@@ -136,7 +133,7 @@ class InjectedConstructorDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("construct|or").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("construct|or")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries).isEmpty()
@@ -160,7 +157,7 @@ class InjectedConstructorDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("someFunc|tion").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("someFunc|tion")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries).isEmpty()
@@ -182,7 +179,7 @@ class InjectedConstructorDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("someFunc|tion").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("someFunc|tion")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries).isEmpty()
@@ -215,56 +212,16 @@ class InjectedConstructorDaggerConceptTest {
         .trimIndent()
     )
 
-    val constructor1Element =
-      myFixture
-        .moveCaret("ClassWithInjectedConstructor @Inject cons|tructor")
-        .parentOfType<KtConstructor<*>>()!!
+    val constructor1Element: KtConstructor<*> =
+      myFixture.findParentElement("ClassWithInjectedConstructor @Inject cons|tructor")
+
     val indexValue1 = InjectedConstructorIndexValue("com.example.ClassWithInjectedConstructor")
-    val expectedPsiType1 = constructor1Element.containingClass()?.toPsiType()!!
-
-    val constructor2Element =
-      myFixture
-        .moveCaret("ClassWithoutInjectedConstructor cons|tructor")
-        .parentOfType<KtConstructor<*>>()!!
     val indexValue2 = InjectedConstructorIndexValue("com.example.ClassWithoutInjectedConstructor")
-    val expectedPsiType2 = constructor2Element.containingClass()?.toPsiType()!!
 
-    val resolvedIndexValue1 =
-      indexValue1
-        .resolveToDaggerElements(
-          expectedPsiType1,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-        .single()
-    assertThat(resolvedIndexValue1.psiElement).isEqualTo(constructor1Element)
-    assertThat(resolvedIndexValue1.daggerType).isEqualTo(DaggerElement.Type.PROVIDER)
+    assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
+      .isEqualTo(ProviderDaggerElement(constructor1Element))
 
-    assertThat(
-        indexValue1.resolveToDaggerElements(
-          expectedPsiType2,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .isEmpty()
-
-    assertThat(
-        indexValue2.resolveToDaggerElements(
-          expectedPsiType1,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .isEmpty()
-    assertThat(
-        indexValue2.resolveToDaggerElements(
-          expectedPsiType2,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
   }
 
   @Test
@@ -291,52 +248,15 @@ class InjectedConstructorDaggerConceptTest {
         .trimIndent()
     )
 
-    val constructor1Element =
-      myFixture.moveCaret("ClassWithInjectedConstru|ctor()").parentOfType<PsiMethod>()!!
+    val constructor1Element: PsiMethod =
+      myFixture.findParentElement("ClassWithInjectedConstru|ctor()")
     val indexValue1 = InjectedConstructorIndexValue("com.example.ClassWithInjectedConstructor")
-    val expectedPsiType1 = toPsiType(constructor1Element.containingClass!!)!!
-
-    val constructor2Element =
-      myFixture.moveCaret("ClassWithoutInjectedConstru|ctor()").parentOfType<PsiMethod>()!!
     val indexValue2 = InjectedConstructorIndexValue("com.example.ClassWithoutInjectedConstructor")
-    val expectedPsiType2 = toPsiType(constructor2Element.containingClass!!)!!
 
-    val resolvedIndexValue1 =
-      indexValue1
-        .resolveToDaggerElements(
-          expectedPsiType1,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-        .single()
-    assertThat(resolvedIndexValue1.psiElement).isEqualTo(constructor1Element)
-    assertThat(resolvedIndexValue1.daggerType).isEqualTo(DaggerElement.Type.PROVIDER)
+    assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
+      .isEqualTo(ProviderDaggerElement(constructor1Element))
 
-    assertThat(
-        indexValue1.resolveToDaggerElements(
-          expectedPsiType2,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .isEmpty()
-
-    assertThat(
-        indexValue2.resolveToDaggerElements(
-          expectedPsiType1,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .isEmpty()
-    assertThat(
-        indexValue2.resolveToDaggerElements(
-          expectedPsiType2,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
   }
 
   @Test
@@ -368,55 +288,17 @@ class InjectedConstructorDaggerConceptTest {
         .trimIndent()
     )
 
-    val barPsiType = myFixture.moveCaret("class Ba|r").parentOfType<KtClass>()!!.toPsiType()!!
-    val otherPsiType =
-      myFixture
-        .moveCaret("ClassWithoutInjectedConstructor cons|tructor")
-        .parentOfType<KtClass>()!!
-        .toPsiType()!!
-
-    val parameter1Element =
-      myFixture
-        .moveCaret("ClassWithInjectedConstructor @Inject constructor(b|ar: Bar)")
-        .parentOfType<KtParameter>()!!
+    val parameter1Element: KtParameter =
+      myFixture.findParentElement("ClassWithInjectedConstructor @Inject constructor(b|ar: Bar)")
     val indexValue1 =
       InjectedConstructorParameterIndexValue("com.example.ClassWithInjectedConstructor", "bar")
-
     val indexValue2 =
       InjectedConstructorParameterIndexValue("com.example.ClassWithoutInjectedConstructor", "bar")
 
-    val resolvedIndexValue1 =
-      indexValue1
-        .resolveToDaggerElements(barPsiType, myFixture.project, myFixture.project.projectScope())
-        .single()
-    assertThat(resolvedIndexValue1.psiElement).isEqualTo(parameter1Element)
-    assertThat(resolvedIndexValue1.daggerType).isEqualTo(DaggerElement.Type.CONSUMER)
+    assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
+      .isEqualTo(ConsumerDaggerElement(parameter1Element))
 
-    assertThat(
-        indexValue1.resolveToDaggerElements(
-          otherPsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .isEmpty()
-
-    assertThat(
-        indexValue2.resolveToDaggerElements(
-          barPsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .isEmpty()
-    assertThat(
-        indexValue2.resolveToDaggerElements(
-          otherPsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
   }
 
   @Test
@@ -445,51 +327,17 @@ class InjectedConstructorDaggerConceptTest {
         .trimIndent()
     )
 
-    val barPsiType = toPsiType(myFixture.moveCaret("class Ba|r").parentOfType<PsiClass>()!!)!!
-    val otherPsiType =
-      toPsiType(
-        myFixture.moveCaret("ClassWithoutInjectedCons|tructor").parentOfType<PsiClass>()!!
-      )!!
-
-    val parameter1Element =
-      myFixture.moveCaret("ClassWithInjectedConstructor(Bar ba|r)").parentOfType<PsiParameter>()!!
+    val parameter1Element: PsiParameter =
+      myFixture.findParentElement("ClassWithInjectedConstructor(Bar ba|r)")
     val indexValue1 =
       InjectedConstructorParameterIndexValue("com.example.ClassWithInjectedConstructor", "bar")
 
     val indexValue2 =
       InjectedConstructorParameterIndexValue("com.example.ClassWithoutInjectedConstructor", "bar")
 
-    val resolvedIndexValue1 =
-      indexValue1
-        .resolveToDaggerElements(barPsiType, myFixture.project, myFixture.project.projectScope())
-        .single()
-    assertThat(resolvedIndexValue1.psiElement).isEqualTo(parameter1Element)
-    assertThat(resolvedIndexValue1.daggerType).isEqualTo(DaggerElement.Type.CONSUMER)
+    assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
+      .isEqualTo(ConsumerDaggerElement(parameter1Element))
 
-    assertThat(
-        indexValue1.resolveToDaggerElements(
-          otherPsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .isEmpty()
-
-    assertThat(
-        indexValue2.resolveToDaggerElements(
-          barPsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .isEmpty()
-    assertThat(
-        indexValue2.resolveToDaggerElements(
-          otherPsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
   }
 }

@@ -24,7 +24,7 @@ import com.android.resources.ResourceType
 import com.android.tools.idea.uibuilder.property.NlPropertyType
 import com.intellij.psi.PsiClass
 import org.jetbrains.android.dom.AndroidDomUtil
-import org.jetbrains.android.dom.attrs.AttributeDefinition
+import com.android.tools.dom.attrs.AttributeDefinition
 import org.jetbrains.android.dom.navigation.NavigationSchema
 
 /**

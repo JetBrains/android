@@ -22,13 +22,12 @@ import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.codeInsight.intention.AddAnnotationFix
-import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils.prepareElementForWrite
+import com.intellij.codeInsight.intention.preview.IntentionPreviewUtils
 import com.intellij.codeInspection.ProblemDescriptor
 import com.intellij.codeInspection.SuppressQuickFix
 import com.intellij.codeInspection.SuppressionUtilCore
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.lang.xml.XMLLanguage
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
@@ -99,7 +98,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   @Throws(IncorrectOperationException::class)
   private fun handleXml(element: PsiElement) {
     val tag = PsiTreeUtil.getParentOfType(element, XmlTag::class.java, false) ?: return
-    if (!prepareElementForWrite(tag)) {
+    if (!IntentionPreviewUtils.prepareElementForWrite(tag)) {
       return
     }
     val file = if (tag is XmlFile) tag else tag.containingFile as? XmlFile ?: return
@@ -110,7 +109,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   @Throws(IncorrectOperationException::class)
   private fun handleJava(element: PsiElement) {
     val container = findJavaSuppressElement(element) ?: return
-    if (!prepareElementForWrite(container)) {
+    if (!IntentionPreviewUtils.prepareElementForWrite(container)) {
       return
     }
     val project = element.project
@@ -127,7 +126,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   @Throws(IncorrectOperationException::class)
   private fun handleGroovy(element: PsiElement) {
     val file = if (element is PsiFile) element else element.containingFile ?: return
-    if (!prepareElementForWrite(file)) {
+    if (!IntentionPreviewUtils.prepareElementForWrite(file)) {
       return
     }
     val project = file.project
@@ -138,7 +137,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   @Throws(IncorrectOperationException::class)
   private fun handleToml(element: PsiElement) {
     val file = if (element is PsiFile) element else element.containingFile ?: return
-    if (!prepareElementForWrite(file)) {
+    if (!IntentionPreviewUtils.prepareElementForWrite(file)) {
       return
     }
     val project = file.project
@@ -157,7 +156,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
     commentPrefix: String = "//"
   ) {
     val documentManager = PsiDocumentManager.getInstance(project)
-    val document = documentManager.getDocument(file) ?: return
+    val document = file.viewProvider.document ?: return
     val line = document.getLineNumber(offset)
     val lineStart = document.getLineStartOffset(line)
     if (lineStart > 0) {
@@ -181,7 +180,6 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
       }
       nonSpace++
     }
-    ApplicationManager.getApplication().assertWriteAccessAllowed()
     document.insertString(
       lineStart + nonSpace,
       commentPrefix +
@@ -218,7 +216,7 @@ class SuppressLintQuickFix(private val id: String, element: PsiElement? = null) 
   private fun handleKotlin(element: PsiElement) {
     val target = findKotlinSuppressElement(element) ?: return
 
-    if (!prepareElementForWrite(target)) {
+    if (!IntentionPreviewUtils.prepareElementForWrite(target)) {
       return
     }
 

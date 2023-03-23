@@ -18,6 +18,7 @@ package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.Result
 import com.android.tools.idea.rendering.imagepool.ImagePool
+import com.android.tools.idea.util.androidFacet
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.intellij.openapi.application.ReadAction
@@ -33,7 +34,8 @@ private fun createErrorResult(file: PsiFile, errorResult: Result, logger: Render
   assert(module != null)
   val result = RenderResult(
     file,
-    module,
+    module.project,
+    { module },
     logger ?: RenderLogger(module.project, null, false, RenderProblem.NOOP_RUNNABLE_FIX_FACTORY),
     null,
     false,

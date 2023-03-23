@@ -15,71 +15,157 @@
  */
 package com.android.tools.idea.gradle.project.sync.memory
 
-class Benchmark50MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
-  override val projectName = "50Modules"
-  override val memoryLimitMb = 400
-  override val lightweightMode = false
+import org.junit.Rule
+import org.junit.Test
+
+class Benchmark50MemoryTest : MemoryBenchmarkTestSuite() {
+  @get:Rule
+  val memoryUsageBenchmarkRule = MemoryUsageBenchmarkRule(
+    projectRule,
+    projectName = "50Modules",
+    memoryLimitMb = 400,
+    lightweightMode = false
+  )
 
   init {
     setUpProject("diff-50")
   }
+
+  @Test
+  fun testSyncMemory() {
+    memoryUsageBenchmarkRule.openProjectAndMeasure()
+  }
 }
-class Benchmark100MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
-  override val projectName = "100Modules"
-  override val memoryLimitMb = 600
-  override val lightweightMode = false
+
+class Benchmark100MemoryTest : MemoryBenchmarkTestSuite() {
+  @get:Rule
+  val memoryUsageBenchmarkRule = MemoryUsageBenchmarkRule(
+    projectRule,
+    projectName = "100Modules",
+    memoryLimitMb = 600,
+    lightweightMode = false
+  )
 
   init {
     setUpProject("diff-100")
   }
+
+  @Test
+  fun testSyncMemory() {
+    memoryUsageBenchmarkRule.openProjectAndMeasure()
+  }
 }
 
-class Benchmark200MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
-  override val projectName = "200Modules"
-  override val memoryLimitMb = 1300
-  override val lightweightMode = false
+class Benchmark200MemoryTest : MemoryBenchmarkTestSuite() {
+  @get:Rule
+  val memoryUsageBenchmarkRule = MemoryUsageBenchmarkRule(
+    projectRule,
+    projectName = "200Modules",
+    memoryLimitMb = 1300,
+    lightweightMode = false,
+  )
 
   init {
     setUpProject("diff-200")
   }
+
+  @Test
+  fun testSyncMemory() {
+    memoryUsageBenchmarkRule.openProjectAndMeasure()
+  }
 }
 
-class Benchmark500MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
-  override val projectName = "500Modules"
-  override val memoryLimitMb = 4200
-  override val lightweightMode = false
+class Benchmark200Repeated20TimesMemoryTest : MemoryBenchmarkTestSuite() {
+  @get:Rule
+  val memoryUsageBenchmarkRule = MemoryUsageBenchmarkRule(
+    projectRule,
+    projectName = "200Modules",
+    memoryLimitMb = 1300,
+    lightweightMode = false,
+  )
+
+  init {
+    setUpProject("diff-200")
+  }
+
+  @Test
+  fun testSyncMemoryPost20Repeats() {
+    memoryUsageBenchmarkRule.repeatSyncAndMeasure(20)
+  }
+}
+
+class Benchmark500MemoryTest : MemoryBenchmarkTestSuite() {
+  @get:Rule
+  val memoryUsageBenchmarkRule = MemoryUsageBenchmarkRule(
+    projectRule,
+    projectName = "500Modules",
+    memoryLimitMb = 4200,
+    lightweightMode = false
+  )
 
   init {
     setUpProject("diff-500")
   }
+
+  @Test
+  fun testSyncMemory() {
+    memoryUsageBenchmarkRule.openProjectAndMeasure()
+  }
 }
 
-class Benchmark1000MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
-  override val projectName = "1000Modules"
-  override val memoryLimitMb = 9000
-  override val lightweightMode = false
+class Benchmark1000MemoryTest : MemoryBenchmarkTestSuite() {
+  @get:Rule
+  val memoryUsageBenchmarkRule = MemoryUsageBenchmarkRule(
+    projectRule,
+    projectName = "1000Modules",
+    memoryLimitMb = 9000,
+    lightweightMode = false
+  )
 
   init {
     setUpProject("diff-1000")
   }
+
+  @Test
+  fun testSyncMemory() {
+    memoryUsageBenchmarkRule.openProjectAndMeasure()
+  }
 }
 
-class Benchmark2000MemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
-  override val projectName = "2000Modules"
-  override val memoryLimitMb = 25000
-  override val lightweightMode = true
+class Benchmark2000MemoryTest : MemoryBenchmarkTestSuite() {
+  @get:Rule
+  val memoryUsageBenchmarkRule = MemoryUsageBenchmarkRule(
+    projectRule,
+    projectName = "2000Modules",
+    memoryLimitMb = 25000,
+    lightweightMode = true
+  )
 
   init {
     setUpProject("diff-app")
   }
+
+  @Test
+  fun testSyncMemory() {
+    memoryUsageBenchmarkRule.openProjectAndMeasure()
+  }
 }
 
-class BenchmarkXLMemoryTest : AbstractGradleSyncMemoryUsageTestCase() {
-  override val projectName = "BenchmarkXL"
-  override val memoryLimitMb = 60000
-  override val lightweightMode = true
+class BenchmarkXLMemoryTest : MemoryBenchmarkTestSuite() {
+  @get:Rule
+  val memoryUsageBenchmarkRule = MemoryUsageBenchmarkRule(
+    projectRule,
+    projectName = "BenchmarkXL",
+    memoryLimitMb = 60000,
+    lightweightMode = true
+  )
 
   init {
     setUpProject() // no diff
+  }
+
+  @Test
+  fun testSyncMemory() {
+    memoryUsageBenchmarkRule.openProjectAndMeasure()
   }
 }

@@ -37,7 +37,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.idea.core.ShortenReferences;
+import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility;
 import org.jetbrains.kotlin.psi.KtPsiFactory;
 import org.jetbrains.kotlin.psi.KtWhenEntry;
 import org.jetbrains.kotlin.psi.KtWhenExpression;
@@ -98,7 +98,7 @@ public class AndroidLintSwitchIntDefInspection extends AndroidLintInspectionBase
                 constant = TextFormat.RAW.convertTo(constant, TextFormat.TEXT);
                 KtWhenEntry caseStatement = factory.createWhenEntry(constant + "-> { TODO() }");
                 ((PsiElement)when).addBefore(caseStatement, anchor);
-                ShortenReferences.DEFAULT.process(when);
+                ShortenReferencesFacility.Companion.getInstance().shorten(when);
               }
             }
           }

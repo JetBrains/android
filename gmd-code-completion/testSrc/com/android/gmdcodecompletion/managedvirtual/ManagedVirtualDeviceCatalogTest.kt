@@ -16,6 +16,7 @@
 package com.android.gmdcodecompletion.managedvirtual
 
 import com.android.gmdcodecompletion.managedVirtualDeviceCatalogTestHelper
+import com.android.repository.api.RemotePackage
 import com.android.repository.api.RepoManager
 import com.android.repository.api.UpdatablePackage
 import com.android.sdklib.devices.Device
@@ -24,8 +25,8 @@ import com.android.sdklib.devices.Hardware
 import com.android.sdklib.devices.Screen
 import com.android.sdklib.devices.Software
 import com.android.sdklib.devices.State
+import com.android.sdklib.repository.generated.sysimg.v1.SysImgDetailsType
 import com.android.testutils.MockitoKt.any
-import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.sdk.AndroidSdks
 import com.intellij.testFramework.LightPlatformTestCase
@@ -45,6 +46,15 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
   @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   private lateinit var mockRepoManager: RepoManager
 
+  @Mock
+  private lateinit var mockUpdatablePackage: UpdatablePackage
+
+  @Mock
+  private lateinit var mockTypeDetail: SysImgDetailsType
+
+  @Mock
+  private lateinit var mockRemotePackage: RemotePackage
+
   companion object {
     private val testDeviceState: () -> State = {
       val state = State()
@@ -63,6 +73,8 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
     super.setUp()
     openMocks(this)
     whenever(mockAndroidSdks.tryToChooseSdkHandler().getSdkManager(any())).thenReturn(mockRepoManager)
+    whenever(mockUpdatablePackage.remote).thenReturn(mockRemotePackage)
+    whenever(mockRemotePackage.typeDetails).thenReturn(mockTypeDetail)
     TestApplicationManager.getInstance()
   }
 
@@ -85,16 +97,21 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
   }
 
   private fun managedVirtualDeviceCatalogTestHelperWrapper(
+    testSystemImageString: String = "",
+    testApiLevel: Int = 0,
     deviceManager: DeviceManager? = mockDeviceManager,
     androidSdks: AndroidSdks? = mockAndroidSdks,
-    callback: () -> Unit) = managedVirtualDeviceCatalogTestHelper(deviceManager, androidSdks, callback)
+    callback: () -> Unit) = managedVirtualDeviceCatalogTestHelper(deviceManager, androidSdks) {
+    whenever(mockTypeDetail.apiLevel).thenReturn(testApiLevel)
+    whenever(mockRepoManager.packages.consolidatedPkgs).thenReturn(mapOf(testSystemImageString to mockUpdatablePackage))
+    callback()
+  }
 
   fun testDeprecatedDevice() {
-    managedVirtualDeviceCatalogTestHelperWrapper {
+    managedVirtualDeviceCatalogTestHelperWrapper("system-images;android-23;android;armeabi-v7a", 23) {
       val deprecatedDevice = buildTestDevice()
       deprecatedDevice.isDeprecated = true
       whenever(mockDeviceManager.getDevices(DeviceManager.ALL_DEVICES)).thenReturn(listOf(deprecatedDevice))
-
       val deviceCatalog = ManagedVirtualDeviceCatalog().syncDeviceCatalog()
       assertTrue(deviceCatalog.devices.isEmpty())
       verify(mockDeviceManager).getDevices(DeviceManager.ALL_DEVICES)
@@ -102,28 +119,29 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
   }
 
   fun testNoSupportedApiRange() {
-    managedVirtualDeviceCatalogTestHelperWrapper {
+    val testApiLevel = 23
+    managedVirtualDeviceCatalogTestHelperWrapper("system-images;android-23;android;armeabi-v7a", testApiLevel) {
       whenever(mockDeviceManager.getDevices(DeviceManager.ALL_DEVICES)).thenReturn(listOf(buildTestDevice()))
       val deviceCatalog = ManagedVirtualDeviceCatalog().syncDeviceCatalog()
       assertTrue(deviceCatalog.devices.isNotEmpty())
       val deviceInfo = deviceCatalog.devices[testDeviceName]!!
-      assertEquals(deviceInfo.supportedApiRange, (0 .. Int.MAX_VALUE))
+      assertEquals(deviceInfo.supportedApis, (0..testApiLevel).toList())
       assertEquals(deviceInfo.brand, testBrand)
       assertEquals(deviceInfo.deviceName, testDeviceName)
     }
   }
 
   fun testFullDeviceInformation() {
-    managedVirtualDeviceCatalogTestHelperWrapper {
-      val testSoftware = Software()
-      val minApiLevel = 12
-      val maxApiLevel = 33
+    val testSoftware = Software()
+    val minApiLevel = 12
+    val maxApiLevel = 33
+    managedVirtualDeviceCatalogTestHelperWrapper("system-images;android-33;android;armeabi-v7a", maxApiLevel) {
       testSoftware.minSdkLevel = minApiLevel
       testSoftware.maxSdkLevel = maxApiLevel
       val testDevice = buildTestDevice(software = testSoftware)
       whenever(mockDeviceManager.getDevices(DeviceManager.ALL_DEVICES)).thenReturn(listOf(testDevice))
       val deviceCatalog = ManagedVirtualDeviceCatalog().syncDeviceCatalog()
-      assertEquals(deviceCatalog.devices[testDeviceName]!!.supportedApiRange, (minApiLevel .. maxApiLevel))
+      assertEquals(deviceCatalog.devices[testDeviceName]!!.supportedApis, (minApiLevel..maxApiLevel).toList())
     }
   }
 
@@ -142,9 +160,7 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
   }
 
   fun testDoNotCollectNonSysImage() {
-    managedVirtualDeviceCatalogTestHelperWrapper {
-      val nonSysImgEntry = Pair("add-ons;addon-google_apis-google-19", mock<UpdatablePackage>())
-      whenever(mockRepoManager.packages.consolidatedPkgs).thenReturn(mapOf(nonSysImgEntry))
+    managedVirtualDeviceCatalogTestHelperWrapper("add-ons;addon-google_apis-google-19") {
       val deviceCatalog = ManagedVirtualDeviceCatalog().syncDeviceCatalog()
       assertTrue(deviceCatalog.apiLevels.isEmpty())
       verify(mockRepoManager.packages).consolidatedPkgs
@@ -152,27 +168,28 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
   }
 
   fun testCollectArmImage() {
-    managedVirtualDeviceCatalogTestHelperWrapper {
-      val armSysImgEntry = Pair("system-images;android-23;android-tv;armeabi-v7a", mock<UpdatablePackage>())
-      whenever(mockRepoManager.packages.consolidatedPkgs).thenReturn(mapOf(armSysImgEntry))
+    val testApiLevel = 23
+    managedVirtualDeviceCatalogTestHelperWrapper("system-images;android-23;android;armeabi-v7a", testApiLevel) {
       val deviceCatalog = ManagedVirtualDeviceCatalog().syncDeviceCatalog()
       assertFalse(deviceCatalog.apiLevels.isEmpty())
       val apiLevelEntry = deviceCatalog.apiLevels[0]
-      assertEquals(apiLevelEntry.apiLevel, 23)
+      assertEquals(apiLevelEntry.apiLevel, testApiLevel)
       assertEquals(apiLevelEntry.apiPreview, "")
-      assertEquals(apiLevelEntry.imageSource, "android-tv")
+      assertEquals(apiLevelEntry.imageSource, "android")
       assertEquals(apiLevelEntry.require64Bit, false)
     }
   }
 
   fun testCollectArm64Image() {
     managedVirtualDeviceCatalogTestHelperWrapper {
-      val armSysImgEntry = Pair("system-images;android-26;google_apis;arm64-v8a", mock<UpdatablePackage>())
-      whenever(mockRepoManager.packages.consolidatedPkgs).thenReturn(mapOf(armSysImgEntry))
+      val testApiLevel = 26
+      whenever(mockTypeDetail.apiLevel).thenReturn(testApiLevel)
+      whenever(mockRepoManager.packages.consolidatedPkgs).thenReturn(mapOf(
+        "system-images;android-26;google_apis;arm64-v8a" to mockUpdatablePackage))
       val deviceCatalog = ManagedVirtualDeviceCatalog().syncDeviceCatalog()
       assertFalse(deviceCatalog.apiLevels.isEmpty())
       val apiLevelEntry = deviceCatalog.apiLevels[0]
-      assertEquals(apiLevelEntry.apiLevel, 26)
+      assertEquals(apiLevelEntry.apiLevel, testApiLevel)
       assertEquals(apiLevelEntry.apiPreview, "")
       assertEquals(apiLevelEntry.imageSource, "google_apis")
       assertEquals(apiLevelEntry.require64Bit, false)
@@ -180,13 +197,12 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
   }
 
   fun testCollectX86Image() {
-    managedVirtualDeviceCatalogTestHelperWrapper {
-      val armSysImgEntry = Pair("system-images;android-23;google_apis;x86", mock<UpdatablePackage>())
-      whenever(mockRepoManager.packages.consolidatedPkgs).thenReturn(mapOf(armSysImgEntry))
+    val testApiLevel = 23
+    managedVirtualDeviceCatalogTestHelperWrapper("system-images;android-23;google_apis;x86", testApiLevel) {
       val deviceCatalog = ManagedVirtualDeviceCatalog().syncDeviceCatalog()
       assertFalse(deviceCatalog.apiLevels.isEmpty())
       val apiLevelEntry = deviceCatalog.apiLevels[0]
-      assertEquals(apiLevelEntry.apiLevel, 23)
+      assertEquals(apiLevelEntry.apiLevel, testApiLevel)
       assertEquals(apiLevelEntry.apiPreview, "")
       assertEquals(apiLevelEntry.imageSource, "google_apis")
       assertEquals(apiLevelEntry.require64Bit, false)
@@ -194,13 +210,12 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
   }
 
   fun testCollectX86_64Image() {
-    managedVirtualDeviceCatalogTestHelperWrapper {
-      val armSysImgEntry = Pair("system-images;android-23;google_apis;x86_64", mock<UpdatablePackage>())
-      whenever(mockRepoManager.packages.consolidatedPkgs).thenReturn(mapOf(armSysImgEntry))
+    val testApiLevel = 23
+    managedVirtualDeviceCatalogTestHelperWrapper("system-images;android-23;google_apis;x86_64", testApiLevel) {
       val deviceCatalog = ManagedVirtualDeviceCatalog().syncDeviceCatalog()
       assertFalse(deviceCatalog.apiLevels.isEmpty())
       val apiLevelEntry = deviceCatalog.apiLevels[0]
-      assertEquals(apiLevelEntry.apiLevel, 23)
+      assertEquals(apiLevelEntry.apiLevel, testApiLevel)
       assertEquals(apiLevelEntry.apiPreview, "")
       assertEquals(apiLevelEntry.imageSource, "google_apis")
       assertEquals(apiLevelEntry.require64Bit, true)
@@ -208,16 +223,32 @@ class ManagedVirtualDeviceCatalogTest : LightPlatformTestCase() {
   }
 
   fun testCollectApiPreviewImage() {
-    managedVirtualDeviceCatalogTestHelperWrapper {
-      val armSysImgEntry = Pair("system-images;android-TiramisuPrivacySandbox;google_apis_playstore;arm64-v8a", mock<UpdatablePackage>())
-      whenever(mockRepoManager.packages.consolidatedPkgs).thenReturn(mapOf(armSysImgEntry))
+    val testApiLevel = 33
+    managedVirtualDeviceCatalogTestHelperWrapper(
+      "system-images;android-TiramisuPrivacySandbox;google_apis_playstore;arm64-v8a", testApiLevel) {
       val deviceCatalog = ManagedVirtualDeviceCatalog().syncDeviceCatalog()
       assertFalse(deviceCatalog.apiLevels.isEmpty())
       val apiLevelEntry = deviceCatalog.apiLevels[0]
-      assertEquals(apiLevelEntry.apiLevel, -1)
+      assertEquals(apiLevelEntry.apiLevel, testApiLevel)
       assertEquals(apiLevelEntry.apiPreview, "TiramisuPrivacySandbox")
       assertEquals(apiLevelEntry.imageSource, "google_apis_playstore")
       assertEquals(apiLevelEntry.require64Bit, false)
+    }
+  }
+
+  // Remove test after b/272562190 is fixed
+  fun testFilterAndroidTvImage() {
+    managedVirtualDeviceCatalogTestHelperWrapper("system-images;android-TiramisuPrivacySandbox;android_tv;arm64-v8a") {
+      val deviceCatalog = ManagedVirtualDeviceCatalog().syncDeviceCatalog()
+      assertTrue(deviceCatalog.apiLevels.isEmpty())
+    }
+  }
+
+  // Remove test after b/272562193 is fixed
+  fun testFilterAndroidAutoImage() {
+    managedVirtualDeviceCatalogTestHelperWrapper("system-images;android-TiramisuPrivacySandbox;android_auto;arm64-v8a") {
+      val deviceCatalog = ManagedVirtualDeviceCatalog().syncDeviceCatalog()
+      assertTrue(deviceCatalog.apiLevels.isEmpty())
     }
   }
 }

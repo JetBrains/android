@@ -23,6 +23,9 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Co
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.internalError
 import com.android.tools.idea.run.deployment.liveedit.LiveEditUpdateException.Companion.nonPrivateInlineFunctionFailure
 import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugar
+import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarRequest
+import com.android.tools.idea.run.deployment.liveedit.desugaring.LiveEditDesugarResponse
+import com.android.tools.idea.run.deployment.liveedit.desugaring.MinApiLevel
 import com.google.common.collect.HashMultimap
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
@@ -56,6 +59,7 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.Optional
+import java.util.stream.Collectors
 
 class LiveEditCompiler(val project: Project) {
 
@@ -66,6 +70,8 @@ class LiveEditCompiler(val project: Project) {
 
   private var desugarer = LiveEditDesugar()
 
+  private val logger = LiveEditLogger("LE Compiler")
+
   /**
    * Compile a given set of MethodReferences to Java .class files and populates the output list with the compiled code.
    * The compilation is wrapped in a cancelable read action, and will be interrupted by a PSI write action.
@@ -75,7 +81,7 @@ class LiveEditCompiler(val project: Project) {
    * LiveEditException detailing the failure.
    */
   @Trace
-  fun compile(inputs: List<LiveEditCompilerInput>, giveWritePriority : Boolean = true) : Optional<LiveEditCompilerOutput> {
+  fun compile(inputs: List<LiveEditCompilerInput>, giveWritePriority : Boolean = true, apiVersions : Set<MinApiLevel> = emptySet()) : Optional<LiveEditDesugarResponse> {
     // Bundle changes per-file to prevent wasted recompilation of the same file. The most common
     // scenario is multiple pending changes in the same file, so this is somewhat important.
     val changedFiles = HashMultimap.create<KtFile, LiveEditCompilerInput>()
@@ -89,21 +95,19 @@ class LiveEditCompiler(val project: Project) {
     // which prevents the UI from freezing during compilation if the user continues typing.
     val progressManager = ProgressManager.getInstance()
 
-    var outputs : LiveEditCompilerOutput = LiveEditCompilerOutput.Builder().build()
+    var desugaredOutputs : LiveEditDesugarResponse? = null
     val compileCmd = {
       var outputBuilder = LiveEditCompilerOutput.Builder()
       for ((file, input) in changedFiles.asMap()) {
         // Compiler pass
         compileKtFile(file, input, outputBuilder)
-        outputs = outputBuilder.build()
-
-        dumpOutputs(outputs)
+        val outputs = outputBuilder.build()
+        logger.dumpCompilerOutputs(outputs.classes)
 
         // Desugaring pass
-        if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_R8_DESUGAR.get()) {
-          desugarer.desugar(outputs)
-          dumpOutputs(outputs, "desugared-")
-        }
+        val request = LiveEditDesugarRequest(outputs, apiVersions)
+        desugaredOutputs = desugarer.desugar(request)
+        logger.dumpDesugarOutputs(desugaredOutputs!!.classes)
       }
     }
 
@@ -122,17 +126,7 @@ class LiveEditCompiler(val project: Project) {
       ApplicationManager.getApplication().runReadAction(compileCmd)
     }
 
-    return if (success) Optional.of(outputs) else Optional.empty()
-  }
-
-  private fun dumpOutputs(outputs: LiveEditCompilerOutput, prefix : String = "") {
-    if (!LiveEditAdvancedConfiguration.getInstance().useDebugMode) {
-      return
-    }
-
-    for (clazz in outputs.classes) {
-        writeDebugToTmp(prefix + clazz.name.replace("/".toRegex(), ".") + ".class", clazz.data)
-    }
+    return if (success) Optional.of(desugaredOutputs!!) else Optional.empty()
   }
 
   private fun compileKtFile(file: KtFile, inputs: Collection<LiveEditCompilerInput>, output: LiveEditCompilerOutput.Builder) {
@@ -411,15 +405,5 @@ class LiveEditCompiler(val project: Project) {
     }
   }
 
-  private fun writeDebugToTmp(name: String, data: ByteArray) {
-    val tmpPath = System.getProperty("java.io.tmpdir") ?: return
-    val path = Paths.get(tmpPath, name)
-    try {
-      Files.write(path, data)
-      LOGGER.info("Wrote debug file at '%s'", path.toAbsolutePath())
-    }
-    catch (e: IOException) {
-      LOGGER.info("Unable to write debug file '%s'", path.toAbsolutePath())
-    }
-  }
+
 }

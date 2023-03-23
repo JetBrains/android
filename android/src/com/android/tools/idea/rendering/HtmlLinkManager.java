@@ -88,7 +88,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
-import com.intellij.util.AlarmFactory;
+import com.intellij.util.Alarm;
 import com.intellij.util.PsiNavigateUtil;
 import java.io.File;
 import java.net.MalformedURLException;
@@ -144,7 +144,7 @@ public class HtmlLinkManager {
     Notification notification = NOTIFICATIONS_GROUP.createNotification(content, NotificationType.INFORMATION);
     Notifications.Bus.notify(notification);
 
-    AlarmFactory.getInstance().create().addRequest(
+    new Alarm().addRequest(
       notification::expire,
       TimeUnit.SECONDS.toMillis(2)
     );

@@ -74,6 +74,7 @@ suspend fun ComposePreviewRepresentation.waitForRender(
 ) =
   withTimeout(timeout = 30.seconds) {
     Logger.getInstance(ComposePreviewRepresentation::class.java).debug("Waiting for render")
+    waitForAnyPendingRefresh()
     var retryCounter = 0
     while (
       isActive &&

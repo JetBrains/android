@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
+import com.android.tools.idea.gradle.dependencies.DependenciesHelper
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
@@ -260,8 +261,8 @@ abstract class PsModule protected constructor(
 
   private fun addLibraryDependencyToParsedModel(configurationName: String, compactNotation: String) {
     parsedModel?.let { parsedModel ->
-      val dependencies = parsedModel.dependencies()
-      dependencies.addArtifact(configurationName, compactNotation)
+      val helper = DependenciesHelper(parent.parsedModel)
+      helper.addDependency(configurationName, compactNotation, parsedModel)
       parsedDependencies.reset(parsedModel)
     } ?: noParsedModel()
   }

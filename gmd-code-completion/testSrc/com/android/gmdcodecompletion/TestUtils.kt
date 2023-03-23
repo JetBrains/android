@@ -15,12 +15,18 @@
  */
 package com.android.gmdcodecompletion
 
+import com.android.gmdcodecompletion.completions.GmdCodeCompletionLookupElement
+import com.android.gmdcodecompletion.completions.lookupelementprovider.BaseLookupElementProvider
+import com.android.gmdcodecompletion.completions.lookupelementprovider.CurrentDeviceProperties
+import com.android.gmdcodecompletion.completions.lookupelementprovider.FtlLookupElementProvider
 import com.android.gmdcodecompletion.ftl.FtlDeviceCatalog
 import com.android.gmdcodecompletion.ftl.FtlDeviceCatalogState
 import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalog
 import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalogState
 import com.android.sdklib.devices.DeviceManager
-import com.android.testutils.MockitoKt
+import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.mockStatic
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioSdkUtil
 import com.google.api.services.testing.model.AndroidDeviceCatalog
@@ -29,7 +35,14 @@ import com.google.api.services.testing.model.AndroidRuntimeConfiguration
 import com.google.api.services.testing.model.AndroidVersion
 import com.google.api.services.testing.model.Locale
 import com.google.api.services.testing.model.Orientation
+import org.junit.Assert.assertEquals
 import java.util.Calendar
+
+enum class BuildFileName(val fileName: String) {
+  GROOVY_BUILD_FILE("build.gradle"),
+  KOTLIN_BUILD_FILE("build.gradle.kts"),
+  OTHER_FILE("build.otherfile"),
+}
 
 val fullAndroidModel: AndroidModel = AndroidModel()
   .setId("testDeviceId")
@@ -50,20 +63,40 @@ val fullAndroidDeviceCatalog: AndroidDeviceCatalog = AndroidDeviceCatalog()
   .setVersions(listOf(fullAndroidVersion))
   .setRuntimeConfiguration(fullAndroidRuntimeConfiguration)
 
-val freshFtlDeviceCatalog: () -> FtlDeviceCatalog = {
-  FtlDeviceCatalog().parseAndroidDeviceCatalog(fullAndroidDeviceCatalog)
+val testFtlDeviceOrientation = listOf("horizontal", "vertical", "default")
+val testFtlDeviceLocale: HashMap<String, FtlDeviceCatalog.LocaleInfo> = hashMapOf(
+  "lang2" to FtlDeviceCatalog.LocaleInfo("langName2", "region2"),
+  "lang1" to FtlDeviceCatalog.LocaleInfo("langName1", "region1"),
+  "lang3" to FtlDeviceCatalog.LocaleInfo("langName3", "region3"))
+val testFtlDeviceApiLevels = (1..34).toList()
+
+val fullFtlDeviceCatalog: () -> FtlDeviceCatalog = {
+  val deviceCatalog = FtlDeviceCatalog()
+  deviceCatalog.orientation.addAll(testFtlDeviceOrientation)
+  deviceCatalog.locale.putAll(testFtlDeviceLocale)
+  deviceCatalog.apiLevels.addAll(testFtlDeviceApiLevels)
+  deviceCatalog.checkEmptyFields()
+  deviceCatalog
+}
+
+val fullManagedVirtualDeviceCatalog: () -> ManagedVirtualDeviceCatalog = {
+  val deviceCatalog = ManagedVirtualDeviceCatalog()
+  deviceCatalog.apiLevels.add(ManagedVirtualDeviceCatalog.ApiVersionInfo())
+  deviceCatalog.devices["testDevice"] = AndroidDeviceInfo()
+  deviceCatalog.checkEmptyFields()
+  deviceCatalog
 }
 
 val freshFtlDeviceCatalogState: () -> FtlDeviceCatalogState = {
   val calendar = Calendar.getInstance()
   calendar.add(Calendar.DATE, 1)
-  FtlDeviceCatalogState(calendar.time, freshFtlDeviceCatalog())
+  FtlDeviceCatalogState(calendar.time, fullFtlDeviceCatalog())
 }
 
-val freshManagedVirtualDeviceCatalogState: () -> ManagedVirtualDeviceCatalogState = {
+val fullManagedVirtualDeviceCatalogState: () -> ManagedVirtualDeviceCatalogState = {
   val calendar = Calendar.getInstance()
   calendar.add(Calendar.DATE, 1)
-  ManagedVirtualDeviceCatalogState(calendar.time, ManagedVirtualDeviceCatalog().syncDeviceCatalog())
+  ManagedVirtualDeviceCatalogState(calendar.time, fullManagedVirtualDeviceCatalog())
 }
 
 fun matchFtlDeviceCatalog(ftlDeviceCatalog: FtlDeviceCatalog, androidDeviceCatalog: AndroidDeviceCatalog): Boolean {
@@ -90,14 +123,33 @@ fun managedVirtualDeviceCatalogTestHelper(
   deviceManager: DeviceManager?,
   androidSdks: AndroidSdks?,
   callback: () -> Unit) {
-  MockitoKt.mockStatic<DeviceManager>().use {
-    MockitoKt.mockStatic<AndroidSdks>().use {
-      MockitoKt.whenever(AndroidSdks.getInstance()).thenReturn(androidSdks)
-      MockitoKt.mockStatic<StudioSdkUtil>().use {
-        MockitoKt.whenever(StudioSdkUtil.reloadRemoteSdkWithModalProgress()).thenAnswer{}
-        MockitoKt.whenever(DeviceManager.createInstance(MockitoKt.any(), MockitoKt.any(), MockitoKt.any())).thenReturn(deviceManager)
+  mockStatic<DeviceManager>().use {
+    mockStatic<AndroidSdks>().use {
+      whenever(AndroidSdks.getInstance()).thenReturn(androidSdks)
+      mockStatic<StudioSdkUtil>().use {
+        whenever(StudioSdkUtil.reloadRemoteSdkWithModalProgress()).thenAnswer {}
+        whenever(DeviceManager.createInstance(any(), any(), any())).thenReturn(deviceManager)
         callback()
       }
     }
+  }
+}
+
+val testMinAndTargetApiLevel = MinAndTargetApiLevel(targetSdk = 33, minSdk = 20)
+
+fun lookupElementProviderTestHelper(devicePropertyName: DevicePropertyName, currentDeviceProperties: CurrentDeviceProperties,
+                                    deviceCatalog: GmdDeviceCatalog, expectedResult: List<GmdCodeCompletionLookupElement>,
+                                    lookupElementProvider: BaseLookupElementProvider) {
+  val result = lookupElementProvider.generateDevicePropertyValueSuggestionList(devicePropertyName,
+                                                                               currentDeviceProperties,
+                                                                               testMinAndTargetApiLevel,
+                                                                               deviceCatalog)
+  val sortedResult = result.map { it as GmdCodeCompletionLookupElement }
+    .sortedWith { element1, element2 ->
+      element1.compareTo(element2)
+    }
+  assertEquals(expectedResult.size, sortedResult.size)
+  sortedResult.zip(expectedResult).forEach { (element1, element2) ->
+    assertEquals(element1.compareTo(element2), 0)
   }
 }

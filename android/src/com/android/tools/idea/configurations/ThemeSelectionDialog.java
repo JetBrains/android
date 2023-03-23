@@ -36,7 +36,7 @@ public class ThemeSelectionDialog extends DialogWrapper {
   }
 
   public ThemeSelectionDialog(@NotNull Configuration configuration, @NotNull Set<String> excludedThemes) {
-    super(configuration.getModule().getProject());
+    super(configuration.getConfigModule().getProject());
     myPanel = new ThemeSelectionPanel(this, configuration, excludedThemes);
     setTitle("Select Theme");
     init();

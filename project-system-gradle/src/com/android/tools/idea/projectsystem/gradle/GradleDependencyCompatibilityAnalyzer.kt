@@ -17,8 +17,8 @@ package com.android.tools.idea.projectsystem.gradle
 
 import com.android.SdkConstants
 import com.android.ide.common.gradle.Version
+import com.android.ide.common.gradle.VersionRange
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleVersionRange
 import com.android.ide.common.repository.MavenRepositories
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
@@ -273,7 +273,7 @@ class GradleDependencyCompatibilityAnalyzer(
       catch (ex: VersionIncompatibilityException) {
         analyzer.copy(baseAnalyzer)
         val nextVersionToTest = when {
-          ex.problemVersion1.min.major == null || ex.problemVersion2.min.major == null -> versions.nextOrNull()
+          ex.problemVersion1.lowerEndpoint().major == null || ex.problemVersion2.lowerEndpoint().major == null -> versions.nextOrNull()
           // At this point we know that we have created a version incompatibility by adding [candidate].
           // If the incompatibility created is more than 2 major versions off, then trying an older version of the candidate
           // is not likely to solve the problem. So jump to the preview section or stop.
@@ -282,7 +282,7 @@ class GradleDependencyCompatibilityAnalyzer(
           //   - candidate is androidx:recyclerview:recyclerview:1.1.17
           //   - the problem artifact is androidx:annotation:annotation problemVersion1 is 4.1.2 and problemVersion2 is 1.2.0
           // We know that problemVersion2 was added because of the [candidate], trying an older version of candidate would not help.
-          ex.problemVersion1.min.major!! + 2 < ex.problemVersion2.min.major!! ->
+          ex.problemVersion1.lowerEndpoint().major!! + 2 < ex.problemVersion2.lowerEndpoint().major!! ->
             if (!candidate.lowerBoundVersion.isPreview) versions.nextPreviewOrNull() else throw bestError ?: ex
 
           else -> versions.nextOrNull()
@@ -360,9 +360,9 @@ class GradleDependencyCompatibilityAnalyzer(
     val conflict2: GradleCoordinate,
     val module2: Module?,
     val problemId1: GradleCoordinateId,
-    val problemVersion1: GradleVersionRange,
+    val problemVersion1: VersionRange,
     val problemId2: GradleCoordinateId,
-    val problemVersion2: GradleVersionRange) : RuntimeException() {
+    val problemVersion2: VersionRange) : RuntimeException() {
 
     override val message: String by lazy {
       val version1 = formatVersion(problemId1, problemVersion1)
@@ -379,11 +379,11 @@ class GradleDependencyCompatibilityAnalyzer(
     /**
      * AndroidX dependency ranges are displayed as simply a version.
      */
-    private fun formatVersion(id: GradleCoordinateId, version: GradleVersionRange): String {
-      val max = version.max
+    private fun formatVersion(id: GradleCoordinateId, version: VersionRange): String {
+      val max = version.upperEndpoint()
       if (MavenRepositories.isAndroidX(id.groupId) && max != null &&
-          max.minor == null && max.micro == null && max.major == version.min.major?.let { it + 1 }) {
-        return version.min.toString()
+          max.minor == null && max.micro == null && max.major == version.lowerEndpoint().major?.let { it + 1 }) {
+        return version.lowerEndpoint().toString()
       }
       return version.toString()
     }
@@ -394,7 +394,7 @@ class GradleDependencyCompatibilityAnalyzer(
    * Special handling are included for pre androidX support artifacts which require version identify.
    */
   private inner class AndroidDependencyAnalyzer() {
-    private val dependencyMap = mutableMapOf<GradleCoordinateId, GradleVersionRange>()
+    private val dependencyMap = mutableMapOf<GradleCoordinateId, VersionRange>()
     private val explicitDependencies = mutableSetOf<GradleCoordinateId>()
     private val explicitMap = mutableMapOf<GradleCoordinateId, GradleCoordinate>()
     private val moduleMap = mutableMapOf<GradleCoordinateId, Module>()
@@ -426,7 +426,7 @@ class GradleDependencyCompatibilityAnalyzer(
     }
 
     fun getVersionIdentityMatch(groupId: String): Version? {
-      return groupMap[groupId]?.versionRange?.min
+      return groupMap[groupId]?.versionRange?.lowerEndpoint()
     }
 
     fun addExplicitDependency(dependency: GradleCoordinate, fromModule: Module) {
@@ -434,8 +434,9 @@ class GradleDependencyCompatibilityAnalyzer(
       val existingDependency = explicitMap[id]
       val existingVersion = dependencyMap[id]
       val existingModule = moduleMap[id]
-      val dependencyVersion = dependency.versionRange ?: GradleVersionRange.parse("+")
-      if (existingDependency != null && existingVersion != null && dependencyVersion.intersection(existingVersion) == null) {
+      val dependencyVersion = dependency.versionRange ?: VersionRange.parse("+")
+      if (existingDependency != null && existingVersion != null &&
+          (!dependencyVersion.isConnected(existingVersion) || dependencyVersion.intersection(existingVersion).isEmpty())) {
         throw VersionIncompatibilityException(dependency, fromModule, existingDependency, existingModule,
                                               id, dependencyVersion, id, existingVersion)
       }
@@ -449,8 +450,8 @@ class GradleDependencyCompatibilityAnalyzer(
       val existingVersionRange = dependencyMap[id]
       val existingExplicitCoordinate = explicitMap[id]
       if (versionRange != existingVersionRange) {
-        val effectiveRange = if (existingVersionRange != null) existingVersionRange.intersection(versionRange) else versionRange
-        if (existingVersionRange != null && existingExplicitCoordinate != null && effectiveRange == null) {
+        if (existingVersionRange != null && existingExplicitCoordinate != null &&
+            (!versionRange.isConnected(existingVersionRange) || versionRange.intersection(existingVersionRange).isEmpty())) {
           throw VersionIncompatibilityException(explicitDependency, fromModule, existingExplicitCoordinate, moduleMap[id],
                                                 id, versionRange, id, existingVersionRange)
         }
@@ -459,8 +460,8 @@ class GradleDependencyCompatibilityAnalyzer(
         if (groupsWithVersionIdentifyRequirements.contains(id.groupId) && id.artifactId != SdkConstants.ANNOTATIONS_LIB_ARTIFACT_ID) {
           val otherGroupCoordinate = groupMap[id.groupId]
           if (otherGroupCoordinate != null) {
-            val dependencyVersion = dependency.versionRange ?: GradleVersionRange.parse("+")
-            val existingVersion = otherGroupCoordinate.versionRange ?: GradleVersionRange.parse("+")
+            val dependencyVersion = dependency.versionRange ?: VersionRange.parse("+")
+            val existingVersion = otherGroupCoordinate.versionRange ?: VersionRange.parse("+")
             val otherId = GradleCoordinateId(otherGroupCoordinate)
             val otherExplicitCoordinate = explicitMap[otherId]
             if (dependencyVersion != existingVersion && otherExplicitCoordinate != null) {
@@ -476,7 +477,7 @@ class GradleDependencyCompatibilityAnalyzer(
 
         //TODO: Find a way to get artifact dependencies from all repositories...
         repoUrlManager
-          .findCompileDependencies(id.groupId, id.artifactId, versionRange.min)
+          .findCompileDependencies(id.groupId, id.artifactId, versionRange.lowerEndpoint())
           .forEach { addDependency(it, explicitDependency, fromModule) }
       }
     }

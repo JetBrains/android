@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.desugaring
 
+import com.android.tools.idea.run.deployment.liveedit.LiveEditLogger
 import com.android.tools.r8.ByteDataView
 import com.android.tools.r8.ClassFileConsumer
 import com.android.tools.r8.DiagnosticsHandler
 import java.util.concurrent.ConcurrentHashMap
 import com.android.tools.r8.references.Reference
 
-class R8MemoryClassFileConsumer(private val logger: DesugarLogger): ClassFileConsumer {
+class R8MemoryClassFileConsumer(private val logger: LiveEditLogger): ClassFileConsumer {
   private val inClasses : MutableMap<String, ByteArray> = ConcurrentHashMap<String, ByteArray>()
   val classes: Map<String, ByteArray> = inClasses
 

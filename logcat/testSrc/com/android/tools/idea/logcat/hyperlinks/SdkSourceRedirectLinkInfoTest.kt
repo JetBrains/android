@@ -17,10 +17,12 @@ package com.android.tools.idea.logcat.hyperlinks
 
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.engine.PositionManagerImpl
 import com.intellij.lang.java.JavaLanguage
-import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.FileNavigator
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.search.GlobalSearchScope
@@ -39,63 +41,94 @@ class SdkSourceRedirectLinkInfoTest {
   private val androidProjectRule = AndroidProjectRule.withSdk()
   private val popupRule = JBPopupRule()
 
+  private val fakeFileNavigator = FakeFileNavigator()
+
   @get:Rule
-  val rule = RuleChain(androidProjectRule, popupRule, EdtRule())
+  val rule = RuleChain(
+    androidProjectRule,
+    popupRule,
+    ApplicationServiceRule(FileNavigator::class.java, fakeFileNavigator), EdtRule())
 
   private val project get() = androidProjectRule.project
 
-  private val fileEditorManager by lazy { FileEditorManager.getInstance(project) }
 
   @Test
   fun navigate_opensSdkFile() {
     val file = getSdkFile("android.view.View")
-    val info = SdkSourceRedirectLinkInfo(project, listOf(file.virtualFile), 10, 27)
+    val info = SdkSourceRedirectLinkInfo(project, listOf(file.virtualFile), OpenFileDescriptor(project, file.virtualFile, 10, 0), 27)
 
     info.navigate(project)
 
-    val openFiles = fileEditorManager.openFiles
-    assertThat(openFiles).asList().hasSize(1)
-    assertThat(openFiles[0].path).endsWith("/android-27/android/view/View.java")
+    assertThat(fakeFileNavigator.navigationRequests).containsExactly(
+      NavigationRequest("sources/android-27/android/view/View.java", line = 10, offset = 366, requestFocus = true),
+    )
   }
 
   @Test
   fun navigate_opensNonSdkFile() {
-    val file =  getNonSdkFile("Foo.java")
-    val info = SdkSourceRedirectLinkInfo(project, listOf(file.virtualFile), 10, 27)
+    val file = getNonSdkFile("Foo.java")
+    val info = SdkSourceRedirectLinkInfo(project, listOf(file.virtualFile), OpenFileDescriptor(project, file.virtualFile, 1, 0), 27)
 
     info.navigate(project)
 
-    assertThat(fileEditorManager.openFiles).asList().containsExactly(file.virtualFile)
+    assertThat(fakeFileNavigator.navigationRequests).containsExactly(
+      NavigationRequest("/Foo.java", line = 1, offset = 7, requestFocus = true),
+    )
   }
 
   @Test
   fun navigate_multipleFiles_selectFile1() {
-    val file1 =  getNonSdkFile("Foo.java")
-    val file2 =  getNonSdkFile("Bar.java")
-    val info = SdkSourceRedirectLinkInfo(project, listOf(file1.virtualFile, file2.virtualFile), 10, 27)
+    val file1 = getNonSdkFile("Foo.java")
+    val file2 = getNonSdkFile("Bar.java")
+    val info = SdkSourceRedirectLinkInfo(
+      project,
+      listOf(file1.virtualFile, file2.virtualFile),
+      OpenFileDescriptor(project, file1.virtualFile, 1, 0),
+      27,
+    )
 
     info.navigate(project)
 
     val popup = popupRule.fakePopupFactory.getPopup<PsiFile>(0)
     assertThat(popup.items).containsExactly(file1, file2).inOrder()
     popup.selectItem(file1)
-    assertThat(fileEditorManager.openFiles).asList().containsExactly(file1.virtualFile)
+    assertThat(fakeFileNavigator.navigationRequests).containsExactly(
+      NavigationRequest("/Foo.java", line = 1, offset = 7, requestFocus = true),
+    )
   }
 
   @Test
   fun navigate_multipleFiles_selectFile2() {
-    val file1 =  getNonSdkFile("Foo.java")
-    val file2 =  getNonSdkFile("Bar.java")
-    val info = SdkSourceRedirectLinkInfo(project, listOf(file1.virtualFile, file2.virtualFile), 10, 27)
+    val file1 = getNonSdkFile("Foo.java")
+    val file2 = getNonSdkFile("Bar.java")
+    val info = SdkSourceRedirectLinkInfo(
+      project,
+      listOf(file1.virtualFile, file2.virtualFile),
+      OpenFileDescriptor(project, file1.virtualFile, 1, 0),
+      27
+    )
 
     info.navigate(project)
 
     val popup = popupRule.fakePopupFactory.getPopup<PsiFile>(0)
     assertThat(popup.items).containsExactly(file1, file2).inOrder()
     popup.selectItem(file2)
-    assertThat(fileEditorManager.openFiles).asList().containsExactly(file2.virtualFile)
+    assertThat(fakeFileNavigator.navigationRequests).containsExactly(
+      NavigationRequest("/Bar.java", line = 1, offset = 7, requestFocus = true),
+    )
   }
 
+  @Test
+  fun navigate_descriptorWithOffset() {
+    val file = getNonSdkFile("Foo.java")
+    val info = SdkSourceRedirectLinkInfo(project, listOf(file.virtualFile), OpenFileDescriptor(project, file.virtualFile, 7), 27)
+
+    info.navigate(project)
+
+    assertThat(fakeFileNavigator.navigationRequests).containsExactly(
+      NavigationRequest("/Foo.java", line = -1, offset = 7, requestFocus = true),
+    )
+  }
 
   @Suppress("SameParameterValue")
   private fun getSdkFile(name: String): PsiFile {
@@ -105,6 +138,29 @@ class SdkSourceRedirectLinkInfoTest {
 
   @Suppress("SameParameterValue")
   private fun getNonSdkFile(name: String): PsiFile =
-    PsiFileFactory.getInstance(project).createFileFromText(name, JavaLanguage.INSTANCE, "")
+    PsiFileFactory.getInstance(project).createFileFromText(name, JavaLanguage.INSTANCE, """
+      Line 1
+      Line 2
+      """.trimIndent())
 
+  private data class NavigationRequest(val file: String, val line: Int, val offset: Int, val requestFocus: Boolean)
+
+  private class FakeFileNavigator : FileNavigator {
+    val navigationRequests = mutableListOf<NavigationRequest>()
+
+    override fun navigate(descriptor: OpenFileDescriptor, requestFocus: Boolean) {
+      val path = descriptor.file.path
+      val trim = path.lastIndexOf("sources/")
+      navigationRequests.add(NavigationRequest(
+        if (trim < 0) path else path.substring(trim),
+        descriptor.line,
+        descriptor.offset,
+        requestFocus))
+    }
+
+    override fun navigateInEditor(descriptor: OpenFileDescriptor, requestFocus: Boolean): Boolean {
+      navigate(descriptor, requestFocus)
+      return true
+    }
+  }
 }

@@ -286,8 +286,8 @@ class LogcatFilterPsiTest {
   }
 
   @Test
-  fun parse_escapedColon() {
-    assertThat(parse("tag\\:foo tag:foo").toFilter())
+  fun parse_quotedColon() {
+    assertThat(parse("'tag:foo' tag:foo").toFilter())
       .isEqualTo(
         AndFilter(
           TopLevelFilter("tag:foo"),
@@ -295,12 +295,39 @@ class LogcatFilterPsiTest {
   }
 
   @Test
-  fun parse_quotedColon() {
-    assertThat(parse("'tag:foo' tag:foo").toFilter())
-      .isEqualTo(
-        AndFilter(
-          TopLevelFilter("tag:foo"),
-          KeyFilter("tag", "foo")))
+  fun parse_valuesWithParens() {
+    assertThat(parse("tag:'(foo)' message:\"(foo)\" package~:'(foo)' process~:\"(foo)\" ").toFilter()).isEqualTo(
+      AndFilter(
+        KeyFilter("tag", "(foo)"),
+        KeyFilter("message", "(foo)"),
+        KeyFilter("package", "(foo)", isRegex = true),
+        KeyFilter("process", "(foo)", isRegex = true),
+      )
+    )
+  }
+
+  @Test
+  fun bug_257008139() {
+    assertThat(parse("message~:'Received (proto|[r|R]esponse)' | message~:'abcd(e|f)'").toFilter()).isEqualTo(
+      OrFilter(
+        KeyFilter("message", "Received (proto|[r|R]esponse)", isRegex = true),
+        KeyFilter("message", "abcd(e|f)", isRegex = true),
+      ))
+  }
+
+  @Test
+  fun bug_238471477() {
+    assertThat(parse("""-line~:"WakeLock (aquired|released) by"""").toFilter()).isEqualTo(
+      KeyFilter("line", "WakeLock (aquired|released) by", isRegex = true, isNegated = true))
+  }
+
+  @Test
+  fun bug_273971194() {
+    assertThat(parse("""message:"a message with spaces" | tag~:'A (regular expression)|(regex) with parens'""").toFilter()).isEqualTo(
+      OrFilter(
+        KeyFilter("message", "a message with spaces"),
+        KeyFilter("tag", "A (regular expression)|(regex) with parens", isRegex = true),
+      ))
   }
 
   @Test

@@ -179,15 +179,13 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
       // Suggest use embedded
       var registeredListeners = notificationData.registeredListenerIds
       val embeddedJdkPath = ideSdks.embeddedJdkPath
-      if (embeddedJdkPath != null) {
-        if (ideSdks.validateJdkPath(embeddedJdkPath) != null) {
-          val absolutePath = embeddedJdkPath.toAbsolutePath().toString()
-          val listener = UseJdkAsProjectJdkListener(project, absolutePath, ".embedded")
-          if (!registeredListeners.contains(listener.id)) {
-            notificationData.message = notificationData.message + "<a href=\"${listener.id}\">Use Embedded JDK ($absolutePath)</a>\n"
-            notificationData.setListener(listener.id, listener)
-            registeredListeners = notificationData.registeredListenerIds
-          }
+      if (ideSdks.validateJdkPath(embeddedJdkPath) != null) {
+        val absolutePath = embeddedJdkPath.toAbsolutePath().toString()
+        val listener = UseJdkAsProjectJdkListener(project, absolutePath, ".embedded")
+        if (!registeredListeners.contains(listener.id)) {
+          notificationData.message = notificationData.message + "<a href=\"${listener.id}\">Use Embedded JDK ($absolutePath)</a>\n"
+          notificationData.setListener(listener.id, listener)
+          registeredListeners = notificationData.registeredListenerIds
         }
       }
       // Suggest IdeSdks.jdk (if different to embedded)
@@ -195,7 +193,7 @@ class GradleJvmNotificationExtension: GradleNotificationExtension() {
       val defaultPath = defaultJdk?.homePath
       if (defaultPath != null) {
         if (ideSdks.validateJdkPath(Paths.get(defaultPath)) != null) {
-          if (embeddedJdkPath == null || (!FileUtils.isSameFile(embeddedJdkPath.toFile(), File(defaultPath)))) {
+          if (!FileUtils.isSameFile(embeddedJdkPath.toFile(), File(defaultPath))) {
             val listener = UseJdkAsProjectJdkListener(project, defaultPath)
             if (!registeredListeners.contains(listener.id)) {
               notificationData.message = notificationData.message + "<a href=\"${listener.id}\">Use JDK ${defaultJdk.name} ($defaultPath)</a>\n"

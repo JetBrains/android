@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.primaryPanelBackground
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.streaming.emulator.NotificationHolderPanel
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.containers.ContainerUtil
@@ -86,6 +87,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     add(Box.createVerticalGlue())
   }
 
+  private val decorationPainters = mutableListOf<DecorationPainter>()
   private val frameListeners = ContainerUtil.createLockFreeCopyOnWriteList<FrameListener>()
 
   init {
@@ -177,19 +179,30 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     fillOval(center.x - radius, center.y - radius, radius * 2, radius * 2)
   }
 
-  fun showLongRunningOperationIndicator(text: String) {
+  internal fun showLongRunningOperationIndicator(text: String) {
     findLoadingPanel()?.apply {
       setLoadingText(text)
       startLoading()
     }
   }
 
-  fun hideLongRunningOperationIndicator() {
+  internal fun hideLongRunningOperationIndicator() {
     findLoadingPanel()?.stopLoading()
   }
 
-  fun hideLongRunningOperationIndicatorInstantly() {
+  internal fun hideLongRunningOperationIndicatorInstantly() {
     findLoadingPanel()?.stopLoadingInstantly()
+  }
+
+  protected fun paintDecorations(graphics: Graphics, displayRectangle: Rectangle) {
+    for (painter in decorationPainters) {
+      try {
+        painter.paintDecorations(graphics.create(), displayRectangle, deviceDisplaySize, displayOrientationQuadrants)
+      }
+      catch (t: Throwable) {
+        thisLogger().error(t)
+      }
+    }
   }
 
   protected fun showDisconnectedStateMessage(message: String, reconnector: Reconnector? = null) {
@@ -255,6 +268,14 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     }
   }
 
+  fun addDecorationRenderer(decorationPainter: DecorationPainter) {
+    decorationPainters.add(decorationPainter)
+  }
+
+  fun removeDecorationRenderer(decorationPainter: DecorationPainter) {
+    decorationPainters.remove(decorationPainter)
+  }
+
   /**
    * Adds a [listener] to receive callbacks when the display view has a new frame rendered.
    *
@@ -268,6 +289,14 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   /** Removes a [listener] so it no longer receives callbacks when the display view has a new frame rendered. */
   internal fun removeFrameListener(listener: FrameListener) {
     frameListeners.remove(listener)
+  }
+
+  fun interface DecorationPainter {
+    /**
+     * Paints on top of the device display image. Invoked after the display image is rendered,
+     * but before drawing multi-touch feedback and device frame.
+     */
+    fun paintDecorations(graphics: Graphics, displayRectangle: Rectangle, deviceDisplaySize: Dimension, displayOrientationQuadrants: Int)
   }
 
   internal fun interface FrameListener {
@@ -305,7 +334,7 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
   protected inner class Reconnector(val reconnectLabel: String, val progressMessage: String, val reconnect: suspend () -> Unit) {
 
     /** Starts the reconnection attempt. */
-    fun start() {
+    internal fun start() {
       hideDisconnectedStateMessage()
       showLongRunningOperationIndicator(progressMessage)
       AndroidCoroutineScope(this@AbstractDisplayView).launch {

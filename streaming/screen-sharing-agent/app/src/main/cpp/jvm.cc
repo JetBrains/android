@@ -360,12 +360,23 @@ bool Jni::CheckAndClearException() const {
   return exception_thrown != JNI_FALSE;
 }
 
-JObject Jni::GetAndClearException() const {
+JThrowable Jni::GetAndClearException() const {
   jthrowable exception = jni_env_->ExceptionOccurred();
   if (exception != nullptr) {
     jni_env_->ExceptionClear();
   }
-  return JObject(jni_env_, exception);
+  return JThrowable(jni_env_, exception);
+}
+
+string JThrowable::Describe() const {
+  if (IsNull()) {
+    Log::Fatal("Describe is called on a null object");
+  }
+  Jni jni = GetJni();
+  JClass clazz = jni.GetClass("com/android/tools/screensharing/ThrowableHelper");
+  jmethodID method = clazz.GetStaticMethod("describe", "(Ljava/lang/Throwable;)Ljava/lang/String;");
+  JString str = JString(jni, jni->CallStaticObjectMethod(clazz.ref(), method, ref()));
+  return str.GetValue();
 }
 
 JavaVM* Jvm::jvm_ = nullptr;
@@ -392,5 +403,4 @@ Jni Jvm::AttachCurrentThread(const char* thread_name) {
 void Jvm::DetachCurrentThread() {
   jvm_->DetachCurrentThread();
 }
-
 }  // namespace screensharing

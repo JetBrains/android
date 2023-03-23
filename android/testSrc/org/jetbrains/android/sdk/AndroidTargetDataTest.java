@@ -26,10 +26,11 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.sdk.AndroidSdkData;
+import com.android.tools.sdk.AndroidTargetData;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import java.io.File;
 import org.jetbrains.android.AndroidTestCase;
-import org.jetbrains.android.dom.attrs.AttributeDefinitions;
+import com.android.tools.dom.attrs.AttributeDefinitions;
 
 public class AndroidTargetDataTest extends AndroidTestCase {
 

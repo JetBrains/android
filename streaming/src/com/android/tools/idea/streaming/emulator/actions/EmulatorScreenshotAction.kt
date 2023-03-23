@@ -19,15 +19,16 @@ import com.android.SdkConstants
 import com.android.emulator.control.Image
 import com.android.emulator.control.ImageFormat
 import com.android.tools.idea.concurrency.executeOnPooledThread
-import com.android.tools.idea.ddms.screenshot.FramingOption
-import com.android.tools.idea.ddms.screenshot.ScreenshotImage
-import com.android.tools.idea.ddms.screenshot.ScreenshotPostprocessor
-import com.android.tools.idea.ddms.screenshot.ScreenshotSupplier
-import com.android.tools.idea.ddms.screenshot.ScreenshotViewer
 import com.android.tools.idea.streaming.emulator.EmptyStreamObserver
 import com.android.tools.idea.streaming.emulator.EmulatorController
 import com.android.tools.idea.streaming.emulator.FutureStreamObserver
 import com.android.tools.idea.streaming.emulator.SkinDefinition
+import com.android.tools.idea.ui.screenshot.DeviceType
+import com.android.tools.idea.ui.screenshot.FramingOption
+import com.android.tools.idea.ui.screenshot.ScreenshotImage
+import com.android.tools.idea.ui.screenshot.ScreenshotPostprocessor
+import com.android.tools.idea.ui.screenshot.ScreenshotSupplier
+import com.android.tools.idea.ui.screenshot.ScreenshotViewer
 import com.google.common.base.Throwables
 import com.google.common.util.concurrent.UncheckedExecutionException
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -80,7 +81,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
           imageBytes.writeTo(it)
         }
 
-        val screenshotImage = ScreenshotImage(image, screenshot.format.rotation.rotationValue)
+        val screenshotImage = ScreenshotImage(image, screenshot.format.rotation.rotationValue, deviceType(emulatorController))
         val screenshotSupplier = MyScreenshotSupplier(emulatorController)
         val screenshotFramer = emulatorController.skinDefinition?.let { MyScreenshotPostprocessor(it) }
 
@@ -121,7 +122,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
       try {
         val screenshot = receiver.futureResult.get()
         val image = ImageIO.read(screenshot.image.newInput()) ?: throw RuntimeException("Corrupted screenshot image")
-        return ScreenshotImage(image, screenshot.format.rotation.rotationValue)
+        return ScreenshotImage(image, screenshot.format.rotation.rotationValue, deviceType(emulatorController))
       }
       catch (e: InterruptedException) {
         throw ProcessCanceledException()
@@ -146,7 +147,7 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
       val image = screenshotImage.image
       val w = image.width
       val h = image.height
-      val skin = skinDefinition.createScaledLayout(w, h, screenshotImage.screenRotationQuadrants)
+      val skin = skinDefinition.createScaledLayout(w, h, screenshotImage.screenshotRotationQuadrants)
       if (framingOption == null) {
         @Suppress("UndesirableClassUsage")
         val result = BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB)
@@ -174,6 +175,9 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
       graphics.dispose()
       return result
     }
+
+    override val canClipToDisplayShape: Boolean
+      get() = true
   }
 }
 
@@ -182,3 +186,9 @@ private val avdFrame = object : FramingOption {
 }
 
 private fun pngFormat() = ImageFormat.newBuilder().setFormat(ImageFormat.ImgFormat.PNG).build()
+
+private fun deviceType(emulatorController: EmulatorController): DeviceType =
+  when {
+    emulatorController.emulatorConfig.isWearOs -> DeviceType.WEAR
+    else -> DeviceType.PHONE
+  }

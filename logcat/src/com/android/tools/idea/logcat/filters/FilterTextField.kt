@@ -143,7 +143,7 @@ internal class FilterTextField(
   private val filterParser: LogcatFilterParser,
   initialText: String,
   androidProjectDetector: AndroidProjectDetector = AndroidProjectDetectorImpl(),
-) : BorderLayoutPanel(), FilterTextComponent {
+) : BorderLayoutPanel() {
   private val filterHistory = AndroidLogcatFilterHistory.getInstance()
 
   @TestOnly
@@ -161,13 +161,11 @@ internal class FilterTextField(
       favoriteButton.icon = if (isFavorite) FAVORITE_FILLED else FAVORITE_OUTLINE
     }
 
-  override var text: String
+  var text: String
     get() = textField.text
     set(value) {
       textField.text = value
     }
-
-  override val component: Component get() = this
 
   init {
     text = initialText
@@ -276,7 +274,7 @@ internal class FilterTextField(
   }
 
   @UiThread
-  override fun addDocumentListener(listener: DocumentListener) {
+  fun addDocumentListener(listener: DocumentListener) {
     documentChangedListeners.add(listener)
   }
 

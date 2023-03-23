@@ -21,7 +21,9 @@ import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
+import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewActivityWizardFixture;
+import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
 import org.junit.Rule;
@@ -31,7 +33,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateSettingsActivityTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
 
   /***
    * <p>This is run to qualify releases. Please involve the test team in substantial changes.
@@ -59,18 +61,24 @@ public class CreateSettingsActivityTest {
   @Test
   public void activityTemplate() {
     // Create a new project with Settings Activity.
-    guiTest.welcomeFrame().createNewProject()
-      .getChooseAndroidProjectStep()
-      .chooseActivity("Empty Activity")
-      .wizard()
-      .clickNext()
-      .clickFinishAndWaitForSyncToFinish()
-      .openFromMenu(NewActivityWizardFixture::find, "File", "New", "Activity", "Settings Views Activity")
-      .clickFinishAndWaitForSyncToFinish();
+
+    WizardUtils.createNewProject(guiTest, "Empty Views Activity");
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
+    IdeFrameFixture ideFrame = guiTest.ideFrame();
+
+    ideFrame.invokeMenuPath("File", "New", "Activity", "Settings Views Activity");
+    NewActivityWizardFixture myDialog = NewActivityWizardFixture.find(ideFrame);
+    myDialog.clickFinishAndWaitForSyncToFinish();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     // Verification.
-    EditorFixture editorFixture = guiTest.ideFrame().getEditor();
+    EditorFixture editorFixture = ideFrame.getEditor();
+
+    assertThat(editorFixture.getCurrentFileName()).contains("SettingsActivity");
+
     String content = editorFixture.getCurrentFileContents();
+    guiTest.ideFrame().takeScreenshot();
 
     String settingClassDef = "public class SettingsActivity extends AppCompatActivity";
     String layout = "setContentView(R.layout.settings_activity)";

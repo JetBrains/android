@@ -64,7 +64,6 @@ class ProcessListTableBuilder {
       setComparator(VM_COLUMN_INDEX, getVMComparator())
       setComparator(USER_ID_COLUMN_INDEX, getUserIdComparator())
       setComparator(DEBUGGER_COLUMN_INDEX, getStatusComparator())
-      setComparator(NATIVE_COLUMN_INDEX, getSupportNativeDebuggingComparator())
     }
 
     return table
@@ -76,8 +75,7 @@ class ProcessListTableBuilder {
     TableColumn(ABI_COLUMN_INDEX, 200, abiCellRenderer(), null).apply { headerValue = "ABI" },
     TableColumn(VM_COLUMN_INDEX, 200, vmIdentifierRenderer(), null).apply { headerValue = "VM" },
     TableColumn(USER_ID_COLUMN_INDEX, 100, userIdRenderer(), null).apply { headerValue = "User ID" },
-    TableColumn(DEBUGGER_COLUMN_INDEX, 100, statusRenderer(), null).apply { headerValue = "Debugger" },
-    TableColumn(NATIVE_COLUMN_INDEX, 100, supportsNativeDebuggingRenderer(), null).apply { headerValue = "Native" }
+    TableColumn(DEBUGGER_COLUMN_INDEX, 100, statusRenderer(), null).apply { headerValue = "Debugger" }
   )
 
   private fun nameCellRenderer(tableSpeedSearch: TableSpeedSearch) = TableCellRenderer { table, value, isSelected, _, _, _ ->
@@ -226,30 +224,6 @@ class ProcessListTableBuilder {
     val1.compareTo(val2)
   }
 
-  private fun supportsNativeDebuggingRenderer() = TableCellRenderer { table, value, isSelected, _, _, _ ->
-    val processInfo = value as? ProcessInfo
-    SimpleColoredComponent().apply {
-      processInfo?.let {
-        if (it.isPidOnly) {
-          append("-")
-        }
-        else {
-          append(if (it.supportsNativeDebugging) "Yes" else "No")
-        }
-        setTextAlign(SwingConstants.CENTER)
-      }
-      setTextAlign(SwingConstants.CENTER)
-      ipad = JBUI.insets(0, DeviceMonitorPanel.TEXT_RENDERER_HORIZ_PADDING)
-      if (isSelected) background = table.selectionBackground
-    }
-  }
-
-  private fun getSupportNativeDebuggingComparator(): Comparator<ProcessInfo> = Comparator { o1, o2 ->
-    val val1 = o1?.let { if (o1.supportsNativeDebugging) 0 else 1 } ?: 2
-    val val2 = o2?.let { if (o2.supportsNativeDebugging) 0 else 1 } ?: 2
-    val1.compareTo(val2)
-  }
-
   private fun compareNullableStrings(str1: String?, str2: String?): Int {
     return if (str1 == null && str2 == null) {
       0
@@ -273,6 +247,5 @@ class ProcessListTableBuilder {
     private const val VM_COLUMN_INDEX = 3
     private const val USER_ID_COLUMN_INDEX = 4
     private const val DEBUGGER_COLUMN_INDEX = 5
-    private const val NATIVE_COLUMN_INDEX = 6
   }
 }

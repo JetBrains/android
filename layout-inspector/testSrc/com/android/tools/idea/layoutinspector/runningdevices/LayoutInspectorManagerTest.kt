@@ -19,9 +19,11 @@ import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.DisposableRule
@@ -47,10 +49,13 @@ class LayoutInspectorManagerTest {
   @get:Rule
   val edtRule = EdtRule()
 
+  private lateinit var mockLayoutInspector: LayoutInspector
+
   @Before
   fun setUp() {
     val mockLayoutInspectorProjectService = mock<LayoutInspectorProjectService>()
-    whenever(mockLayoutInspectorProjectService.getLayoutInspector(any(), any())).thenAnswer { mock<LayoutInspector>() }
+    mockLayoutInspector = mock()
+    whenever(mockLayoutInspectorProjectService.getLayoutInspector(any())).thenAnswer { mockLayoutInspector }
     projectRule.project.replaceService(LayoutInspectorProjectService::class.java, mockLayoutInspectorProjectService, disposableRule.disposable)
   }
 
@@ -151,6 +156,21 @@ class LayoutInspectorManagerTest {
       setOf(tabContext),
       emptySet()
     ))
+  }
+
+  @Test
+  @RunsInEdt
+  fun testWorkbenchHasDataProvider() {
+    val layoutInspectorManager = LayoutInspectorManager.getInstance(projectRule.project)
+
+    val tabContext = createTabContext()
+
+    layoutInspectorManager.enableLayoutInspector(tabContext, true)
+
+    val workbench = tabContext.tabContentPanel.parents().filterIsInstance<WorkBench<LayoutInspector>>().first()
+    val dataContext = DataManager.getInstance().getDataContext(workbench)
+    val layoutInspector = dataContext.getData(LAYOUT_INSPECTOR_DATA_KEY)
+    assertThat(layoutInspector).isEqualTo(layoutInspector)
   }
 
   private fun assertWorkbenchWasAdded(tabContext: RunningDevicesTabContext) {

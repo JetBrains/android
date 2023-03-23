@@ -27,6 +27,7 @@ object AllConcepts : DaggerConcept {
   private val CONCEPTS =
     listOf(
       ComponentAndModuleDaggerConcept,
+      ComponentProvisionMethodConcept,
       InjectedConstructorDaggerConcept,
       InjectedFieldDaggerConcept,
       ProvidesMethodDaggerConcept,

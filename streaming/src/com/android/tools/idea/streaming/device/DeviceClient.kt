@@ -22,6 +22,7 @@ import com.android.adblib.ShellCommandOutputElement
 import com.android.adblib.SocketSpec
 import com.android.adblib.shellAsLines
 import com.android.adblib.syncSend
+import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -89,6 +90,7 @@ private const val REPORT_FIELD_DEVICE = "device"
 internal class DeviceClient(
   disposableParent: Disposable,
   val deviceSerialNumber: String,
+  val deviceHandle: DeviceHandle,
   val deviceConfig: DeviceConfiguration,
   private val deviceAbi: String,
   private val project: Project

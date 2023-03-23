@@ -19,7 +19,7 @@ import com.android.tools.adtui.model.stdui.DefaultCommonTextFieldModel
 import com.android.tools.adtui.model.stdui.EditingSupport
 import com.android.tools.adtui.model.stdui.EditorCompletion
 import com.intellij.openapi.module.Module
-import org.jetbrains.android.sdk.AndroidTargetData
+import com.android.tools.sdk.AndroidTargetData
 import org.jetbrains.android.sdk.getInstance
 
 class ActionTextFieldModel : DefaultCommonTextFieldModel("", "e.g. ACTION_SEND") {

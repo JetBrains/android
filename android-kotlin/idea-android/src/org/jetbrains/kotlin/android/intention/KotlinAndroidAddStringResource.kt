@@ -40,6 +40,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
@@ -49,13 +50,21 @@ import org.jetbrains.android.actions.CreateXmlResourceDialog
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.android.util.AndroidUtils
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.symbols.KtFunctionLikeSymbol
+import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
+import org.jetbrains.kotlin.android.isExtensionFunctionType
+import org.jetbrains.kotlin.android.isSubclassOf
 import org.jetbrains.kotlin.builtins.isExtensionFunctionType
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.idea.base.codeInsight.ShortenReferencesFacility
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.caches.resolve.unsafeResolveToDescriptor
-import org.jetbrains.kotlin.idea.core.ShortenReferences
 import org.jetbrains.kotlin.idea.codeinsight.api.classic.intentions.SelfTargetingIntention
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -225,11 +234,13 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateEx
 
         TemplateManager.getInstance(module.project).startTemplate(editor, template, false, null, object : TemplateEditingAdapter() {
             override fun waitingForInput(template: Template?) {
-                ShortenReferences.DEFAULT.process(file, marker.startOffset, marker.endOffset)
+                // TODO(273768010): K2 reference shortener does not work here. Check this line later with the up-to-date KT compiler.
+                ShortenReferencesFacility.getInstance().shorten(file, TextRange(marker.startOffset, marker.endOffset))
             }
 
             override fun beforeTemplateFinished(state: TemplateState, template: Template?) {
-                ShortenReferences.DEFAULT.process(file, marker.startOffset, marker.endOffset)
+                // TODO(273768010): K2 reference shortener does not work here. Check this line later with the up-to-date KT compiler.
+                ShortenReferencesFacility.getInstance().shorten(file, TextRange(marker.startOffset, marker.endOffset))
             }
         })
     }
@@ -256,7 +267,7 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateEx
         return true
     }
 
-    private fun getApplicationPackage(facet: AndroidFacet) = facet.getModuleSystem()?.getPackageName()
+    private fun getApplicationPackage(facet: AndroidFacet) = facet.getModuleSystem().getPackageName()
 
     private fun PsiElement.isSubclassOrSubclassExtension(baseClasses: Collection<String>) =
             (this as? KtClassOrObject)?.isSubclassOfAny(baseClasses) ?:
@@ -271,31 +282,55 @@ class KotlinAndroidAddStringResource : SelfTargetingIntention<KtStringTemplateEx
 
     private fun KtClassOrObject.isInnerClass() = (this as? KtClass)?.isInner() ?: false
 
+    @OptIn(KtAllowAnalysisOnEdt::class)
     private fun KtFunction.isSubclassExtensionOfAny(baseClasses: Collection<String>): Boolean {
+        if (isK2Plugin()) {
+            allowAnalysisOnEdt {
+                analyze(this) {
+                    val functionSymbol = this@isSubclassExtensionOfAny.getSymbol() as? KtFunctionLikeSymbol ?: return false
+                    val receiverType = functionSymbol.receiverType ?: return false
+                    return baseClasses.any { isSubclassOf(receiverType, it, strict = false) }
+                }
+            }
+        }
         val descriptor = unsafeResolveToDescriptor() as FunctionDescriptor
         val extendedTypeDescriptor = descriptor.extensionReceiverParameter?.type?.constructor?.declarationDescriptor
         return extendedTypeDescriptor != null && baseClasses.any { extendedTypeDescriptor.isSubclassOf(it) }
     }
 
+    @OptIn(KtAllowAnalysisOnEdt::class)
     private fun KtLambdaExpression.isSubclassExtensionOfAny(baseClasses: Collection<String>): Boolean {
+        if (isK2Plugin()) {
+            allowAnalysisOnEdt {
+                analyze(this) {
+                    val type = this@isSubclassExtensionOfAny.getKtType() as? KtFunctionalType ?: return false
+                    if (!isExtensionFunctionType(type)) return false
+                    val extendedType = type.receiverType ?: return false
+                    return baseClasses.any { isSubclassOf(extendedType, it, strict = false) }
+                }
+            }
+        }
         val bindingContext = analyze(BodyResolveMode.PARTIAL)
-        val type = bindingContext.getType(this)
+        val type = bindingContext.getType(this) ?: return false
 
-        if (type == null || !type.isExtensionFunctionType) {
-            return false
-        }
+        if (!type.isExtensionFunctionType) return false
 
-        val extendedTypeDescriptor = type.arguments.first().type.constructor.declarationDescriptor
-        if (extendedTypeDescriptor != null) {
-            return baseClasses.any { extendedTypeDescriptor.isSubclassOf(it) }
-        }
-
-        return false
+        val extendedTypeDescriptor = type.arguments.first().type.constructor.declarationDescriptor ?: return false
+        return baseClasses.any { extendedTypeDescriptor.isSubclassOf(it) }
     }
 
+    @OptIn(KtAllowAnalysisOnEdt::class)
     private fun KtClassOrObject.isSubclassOfAny(baseClasses: Collection<String>): Boolean {
-        val declarationDescriptor = resolveToDescriptorIfAny()
-        return baseClasses.any { declarationDescriptor?.isSubclassOf(it) ?: false }
+        if (isK2Plugin()) {
+            allowAnalysisOnEdt {
+                analyze(this) {
+                    val classOrObjectSymbol = this@isSubclassOfAny.getClassOrObjectSymbol() ?: return false
+                    return baseClasses.any { isSubclassOf(classOrObjectSymbol, it, strict = false) }
+                }
+            }
+        }
+        val declarationDescriptor = resolveToDescriptorIfAny() ?: return false
+        return baseClasses.any { declarationDescriptor.isSubclassOf(it) }
     }
 
     private fun ClassifierDescriptor.isSubclassOf(className: String): Boolean {

@@ -281,6 +281,13 @@ public:
   }
 };
 
+class JThrowable : public JRef<JThrowable, jthrowable> {
+public:
+  using JRef::JRef;
+
+  std::string Describe() const;
+};
+
 class Jni {
 public:
   Jni(JNIEnv* jni_env)
@@ -299,7 +306,7 @@ public:
 
   JCharArray NewCharArray(int32_t length) const;
   bool CheckAndClearException() const;
-  JObject GetAndClearException() const;
+  JThrowable GetAndClearException() const;
 
 private:
   JNIEnv* jni_env_;

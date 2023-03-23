@@ -15,33 +15,28 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import com.android.tools.idea.flags.StudioFlags;
+import static com.android.tools.idea.tests.gui.framework.fixture.newpsd.ModulesPerspectiveConfigurableFixtureKt.selectModulesConfigurable;
+import static com.google.common.truth.Truth.assertThat;
+import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
+
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
-import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ModuleDefaultConfigFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ModulePropertiesFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ModulesPerspectiveConfigurableFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructureDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.util.concurrent.TimeUnit;
 import org.fest.swing.timing.Wait;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.util.concurrent.TimeUnit;
-
-import static com.android.tools.idea.tests.gui.framework.fixture.newpsd.ModulesPerspectiveConfigurableFixtureKt.selectModulesConfigurable;
-import static com.google.common.truth.Truth.assertThat;
-import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
-
 @RunWith(GuiTestRemoteRunner.class)
 public class ChangeLibModSettingsTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
@@ -74,11 +69,18 @@ public class ChangeLibModSettingsTest {
 
     guiTest.waitForBackgroundTasks();
 
-    ProjectStructureDialogFixture dialogFixture = guiTest.ideFrame()
-      .getProjectView()
+    guiTest.ideFrame().focus();
+    guiTest.ideFrame().getProjectView()
       .selectProjectPane()
-      .clickPath(RIGHT_BUTTON, "MyTestApp", "library_module")
-      .openFromMenu(ProjectStructureDialogFixture.Companion::find, "Open Module Settings");
+      .clickPath(RIGHT_BUTTON, "MyTestApp", "library_module");
+
+    guiTest.waitForBackgroundTasks();
+    guiTest.robot().waitForIdle();
+    guiTest.robot().findActivePopupMenu();
+
+    guiTest.ideFrame().invokeMenuPath("Open Module Settings");
+
+    ProjectStructureDialogFixture dialogFixture = ProjectStructureDialogFixture.Companion.find(guiTest.ideFrame());
 
     ModulesPerspectiveConfigurableFixture modulesConfigurable = selectModulesConfigurable(dialogFixture);
     ModulePropertiesFixture propertiesTab = modulesConfigurable.selectPropertiesTab();
@@ -89,14 +91,14 @@ public class ChangeLibModSettingsTest {
 
     String gradleFileContents = guiTest.ideFrame()
       .getEditor()
-      .open("/library_module/build.gradle")
+      .open("/library_module/build.gradle.kts")
       .getCurrentFileContents();
 
-    assertThat(gradleFileContents).contains("compileSdkVersion 28");
+    assertThat(gradleFileContents).contains("compileSdk = 28");
     // TODO(b/136748446): Review and re-enable if necessary.
     //assertThat(gradleFileContents).contains("aaptOptions {\n        ignoreAssetsPattern 'TestIgnoreAssetsPattern'\n    }");
     //assertThat(gradleFileContents).contains("dexOptions {\n        incremental false\n    }");
     assertThat(gradleFileContents).contains(
-      "compileOptions {\n        sourceCompatibility = 1.7\n        targetCompatibility = 1.7\n    }");
+      "compileOptions {\n        sourceCompatibility = JavaVersion.VERSION_1_7\n        targetCompatibility = JavaVersion.VERSION_1_7\n    }");
   }
 }

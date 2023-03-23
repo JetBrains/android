@@ -52,14 +52,14 @@ public class AddRemoveCppDependencyTest {
    *   <pre>
    *   Steps:
    *   1. Create a new project, checking the box for "Include C++ Support"
-   *   2. Remove the externalNativeBuild section of the project level build.gradle
+   *   2. Remove the externalNativeBuild section of the project level build.gradle.kts
    *   3. Sync gradle; verify that the project's app/cpp files are gone but app/java remains
    *   4. Go to File -> Add C++ Project with Gradle
    *   5. Leave the build system dropdown on cmake and select ${projectDir}/app/CMakeLists.txt for project path (Verify 1, 2)
    *   6. Build project
    *
    *   Verification:
-   *   1) Verify that the externalNativeBuild section of build.gradle reappears with cmake.path CMakeLists.txt
+   *   1) Verify that the externalNativeBuild section of build.gradle.kts reappears with cmake.path CMakeLists.txt
    *   2) Verify that app/cpp reappears and contains native-lib.cpp
    *   3) Project is built successfully
    *   </pre>
@@ -90,11 +90,11 @@ public class AddRemoveCppDependencyTest {
     });
     // end programmatic removal of externalNativeBuild block
 
-    // Open the build.gradle file so screenshot mechanism can take a snapshot of the
+    // Open the build.gradle.kts file so screenshot mechanism can take a snapshot of the
     // project in case of failure
     ideFixture
       .getEditor()
-      .open("app/build.gradle")
+      .open("app/build.gradle.kts")
       .getIdeFrame()
       .requestProjectSyncAndWaitForSyncToFinish();
 
@@ -113,8 +113,8 @@ public class AddRemoveCppDependencyTest {
         }
       )
       .getEditor()
-      .open("app/build.gradle")
-      .select(getExternalNativeBuildRegExp()); // externalNativeBuild section of build.gradle reappears with cmake.path CMakeLists.txt
+      .open("app/build.gradle.kts")
+      .select(getExternalNativeBuildRegExp()); // externalNativeBuild section of build.gradle.kts reappears with cmake.path CMakeLists.txt
 
     assertAndroidPanePath(true, guiTest, "app", "cpp", "native-lib.cpp"); // app/cpp reappears and contains native-lib.cpp
 

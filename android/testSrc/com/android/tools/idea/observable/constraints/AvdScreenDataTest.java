@@ -15,6 +15,7 @@
  */
 
 package com.android.tools.idea.observable.constraints;
+import com.android.sdklib.devices.DeviceManager;
 import org.junit.Test;
 
 import com.android.resources.*;
@@ -28,41 +29,28 @@ import static com.google.common.truth.Truth.assertThat;
 public class AvdScreenDataTest {
 
   @Test
-  public void testGetScreenDensity() throws Exception {
+  public void testGetScreenDensity() {
 
-    // Recommended densities
-    // From https://developer.android.com/guide/practices/screens_support.html
-    assertThat( AvdScreenData.getScreenDensity(null, false,  120.0, 1080) ).isEqualTo(Density.LOW);
-    assertThat( AvdScreenData.getScreenDensity(null, false,  160.0, 1080) ).isEqualTo(Density.MEDIUM);
-    assertThat( AvdScreenData.getScreenDensity(null, false,  240.0, 1080) ).isEqualTo(Density.HIGH);
-    assertThat( AvdScreenData.getScreenDensity(null, false,  320.0, 1080) ).isEqualTo(Density.XHIGH);
-    assertThat( AvdScreenData.getScreenDensity(null, false,  480.0, 1080) ).isEqualTo(Density.XXHIGH);
-    assertThat( AvdScreenData.getScreenDensity(null, false,  640.0, 1080) ).isEqualTo(Density.XXXHIGH);
+    assertThat( AvdScreenData.getScreenDensity(false,  120.0, 1080) ).isEqualTo(Density.LOW);
+    assertThat( AvdScreenData.getScreenDensity(false,  160.0, 1080) ).isEqualTo(Density.MEDIUM);
+    assertThat( AvdScreenData.getScreenDensity(false,  240.0, 1080) ).isEqualTo(Density.HIGH);
+    assertThat( AvdScreenData.getScreenDensity(false,  320.0, 1080) ).isEqualTo(Density.XHIGH);
+    assertThat( AvdScreenData.getScreenDensity(false,  480.0, 1080) ).isEqualTo(Density.XXHIGH);
+    assertThat( AvdScreenData.getScreenDensity(false,  640.0, 1080) ).isEqualTo(Density.XXXHIGH);
 
-    assertThat( AvdScreenData.getScreenDensity(null, false, 2048.0, 1080) ).isEqualTo(Density.XXXHIGH); // The maximum (for now)
+    assertThat( AvdScreenData.getScreenDensity(false, 2048.0, 1080) ).isEqualTo(Density.XXXHIGH); // The maximum (for now)
 
-    // Non-recommended densities
-    // From https://developer.android.com/reference/android/util/DisplayMetrics.html#DENSITY_280
-    assertThat( AvdScreenData.getScreenDensity(null, false, 279.5, 720) ).isEqualTo(Density.HIGH);    // Not DPI_280
-    assertThat( AvdScreenData.getScreenDensity(null, false, 360.0, 720) ).isEqualTo(Density.XHIGH);   // Not DPI_360
-    assertThat( AvdScreenData.getScreenDensity(null, false, 399.5, 720) ).isEqualTo(Density.XHIGH);   // Not DPI_400
-    assertThat( AvdScreenData.getScreenDensity(null, false, 420.0, 720) ).isEqualTo(Density.XXHIGH);  // Not DPI_420
-    assertThat( AvdScreenData.getScreenDensity(null, false, 560.5, 720) ).isEqualTo(Density.XXXHIGH); // Not DPI_560
-
-    // Special densities for special devices
-    assertThat( AvdScreenData.getScreenDensity("pixel", false, 0.0, 0) ).isEqualTo(Density.DPI_420);
-    assertThat( AvdScreenData.getScreenDensity("pixel 2", false, 0.0, 0) ).isEqualTo(Density.DPI_420);
-    assertThat( AvdScreenData.getScreenDensity("pixel_xl", false, 0.0, 0) ).isEqualTo(Density.DPI_560);
-    assertThat( AvdScreenData.getScreenDensity("pixel_2_xl", false, 0.0, 0) ).isEqualTo(Density.DPI_560);
-    assertThat( AvdScreenData.getScreenDensity("Nexus 5X", false, 0.0, 0) ).isEqualTo(Density.DPI_420);
-    assertThat( AvdScreenData.getScreenDensity("Nexus 6", false, 0.0, 0) ).isEqualTo(Density.DPI_560);
-    assertThat( AvdScreenData.getScreenDensity("Nexus 6P", false, 0.0, 0) ).isEqualTo(Density.DPI_560);
+    assertThat( AvdScreenData.getScreenDensity(false, 279.5, 720) ).isEqualTo(Density.DPI_280);
+    assertThat( AvdScreenData.getScreenDensity(false, 360.0, 720) ).isEqualTo(Density.DPI_360);
+    assertThat( AvdScreenData.getScreenDensity(false, 399.5, 720) ).isEqualTo(Density.DPI_400);
+    assertThat( AvdScreenData.getScreenDensity(false, 420.0, 720) ).isEqualTo(Density.DPI_420);
+    assertThat( AvdScreenData.getScreenDensity(false, 560.5, 720) ).isEqualTo(Density.DPI_560);
 
     // TV densities
     // From https://developer.android.com/reference/android/util/DisplayMetrics.html#DENSITY_TV
-    assertThat( AvdScreenData.getScreenDensity(null, true, 480.0,  720) ).isEqualTo(Density.TV);
-    assertThat( AvdScreenData.getScreenDensity(null, true, 480.0, 1080) ).isEqualTo(Density.XHIGH);
-    assertThat( AvdScreenData.getScreenDensity(null, true, 480.0, 2048) ).isEqualTo(Density.XHIGH); // May change in the future
+    assertThat( AvdScreenData.getScreenDensity(true, 480.0,  720) ).isEqualTo(Density.TV);
+    assertThat( AvdScreenData.getScreenDensity(true, 480.0, 1080) ).isEqualTo(Density.XHIGH);
+    assertThat( AvdScreenData.getScreenDensity(true, 480.0, 2048) ).isEqualTo(Density.XHIGH); // May change in the future
   }
 
   // Helper function

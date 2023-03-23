@@ -25,7 +25,7 @@ import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.WindowConstants
 
-class CategoryTableDemo {
+object CategoryTableDemo {
   data class Device(val name: String, val api: String, val type: String, val status: String) {}
 
   val devices =
@@ -38,7 +38,6 @@ class CategoryTableDemo {
       Device("Nexus 7", "26", "Tablet", "Online")
     )
   val columns = listOf(Name, Api, Status, Type, Actions)
-  val table = CategoryTable<Device>(columns)
 }
 
 val Name =
@@ -96,17 +95,18 @@ object Actions : Column<CategoryTableDemo.Device, Unit, JPanel> {
 fun main(args: Array<String>) {
   val frame = JFrame()
   frame.defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
-  val demo = CategoryTableDemo()
-  demo.devices.forEach(demo.table::addRow)
+  val table = CategoryTable(CategoryTableDemo.columns)
+
+  CategoryTableDemo.devices.forEach(table::addRow)
   val scroll = JBScrollPane()
   frame.contentPane = scroll
-  demo.table.addToScrollPane(scroll)
+  table.addToScrollPane(scroll)
 
-  demo.table.addGrouping(Status.attribute)
-  demo.table.addGrouping(Api.attribute)
-  demo.table.addGrouping(Type.attribute)
-  demo.table.removeGrouping(Api.attribute)
-  demo.table.removeGrouping(Type.attribute)
+  table.addGrouping(Status.attribute)
+  table.addGrouping(Api.attribute)
+  table.addGrouping(Type.attribute)
+  table.removeGrouping(Api.attribute)
+  table.removeGrouping(Type.attribute)
 
   frame.preferredSize = Dimension(600, 800)
   frame.pack()

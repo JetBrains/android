@@ -28,7 +28,10 @@ kotlin_library(
         "//prebuilts/tools/common/lint-psi/intellij-core",
         "//tools/adt/idea/layoutlib-loader:tools.layoutlib-loader",
         "//tools/base/common:tools.common",
+        "//tools/base/layoutlib-api:tools.layoutlib-api",
         "//tools/base/resource-repository:tools.resource-repository",
+        "//tools/base/sdk-common:tools.sdk-common",
         "//tools/base/sdklib:tools.sdklib",
+        "@maven//:net.sf.kxml.kxml2",
     ],
 )

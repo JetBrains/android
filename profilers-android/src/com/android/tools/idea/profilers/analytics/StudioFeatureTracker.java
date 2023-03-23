@@ -209,11 +209,6 @@ public final class StudioFeatureTracker implements FeatureTracker {
   }
 
   @Override
-  public void trackProfilerInitializationFailed() {
-    track(AndroidProfilerEvent.Type.PROFILER_INITIALIZATION_FAILED);
-  }
-
-  @Override
   public void trackEnterStage(AndroidProfilerEvent.Stage stageType) {
     myCurrStage = stageType;
     track(AndroidProfilerEvent.Type.STAGE_ENTERED);

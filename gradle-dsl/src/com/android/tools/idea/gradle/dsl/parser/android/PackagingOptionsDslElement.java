@@ -38,6 +38,8 @@ import org.jetbrains.annotations.NotNull;
 public class PackagingOptionsDslElement extends GradleDslBlockElement {
   public static final PropertiesElementDescription<PackagingOptionsDslElement> PACKAGING_OPTIONS =
     new PropertiesElementDescription<>("packagingOptions", PackagingOptionsDslElement.class, PackagingOptionsDslElement::new);
+  public static final PropertiesElementDescription<PackagingOptionsDslElement> PACKAGING =
+    new PropertiesElementDescription<>("packaging", PackagingOptionsDslElement.class, PackagingOptionsDslElement::new);
 
   public static final ExternalToModelMap ktsToModelNameMap = Stream.of(new Object[][]{
     {"doNotStrip", property, DO_NOT_STRIP, VAR},

@@ -60,10 +60,9 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.StudioRenderServiceKt;
 import com.android.tools.idea.res.ResourceFilesUtil;
-import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.ResourceUtils;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.google.common.base.MoreObjects;
@@ -495,8 +494,8 @@ public class Configuration implements Disposable, ModificationTracker {
       FolderConfiguration currentConfig = getFolderConfig(module, selectedState, getLocale(), getTarget());
       if (currentConfig != null) {
         if (myEditedConfig.isMatchFor(currentConfig)) {
-          LocalResourceRepository resources = myManager.getConfigModule().getResourceRepositoryManager().getAppResources();
-          if (resources != null && myFile != null) {
+          ResourceRepositoryManager repositoryManager = myManager.getConfigModule().getResourceRepositoryManager();
+          if (repositoryManager != null && myFile != null) {
             ResourceFolderType folderType = ResourceFilesUtil.getFolderType(myFile);
             if (folderType != null) {
               if (ResourceFolderType.VALUES.equals(folderType)) {
@@ -519,6 +518,7 @@ public class Configuration implements Disposable, ModificationTracker {
                 List<ResourceType> types = FolderTypeRelationship.getRelatedResourceTypes(folderType);
                 if (!types.isEmpty()) {
                   ResourceType type = types.get(0);
+                  ResourceRepository resources = repositoryManager.getAppResources();
                   List<VirtualFile> matches =
                       ConfigurationMatcher.getMatchingFiles(resources, myFile, ResourceNamespace.TODO(), type, currentConfig);
                   if (matches.contains(myFile)) {
@@ -635,12 +635,11 @@ public class Configuration implements Disposable, ModificationTracker {
 
     if (target instanceof CompatibilityRenderTarget) {
       CompatibilityRenderTarget compatTarget = (CompatibilityRenderTarget)target;
-      if (compatTarget.getRealTarget() != null) {
-        return compatTarget.getRealTarget();
-      }
+      return compatTarget.getRealTarget();
     }
-
-    return target;
+    else {
+      return target;
+    }
   }
 
   /**
@@ -1353,6 +1352,11 @@ public class Configuration implements Disposable, ModificationTracker {
   @NotNull
   public Module getModule() {
     return myManager.getModule();
+  }
+
+  @NotNull
+  public ConfigurationModelModule getConfigModule() {
+    return myManager.getConfigModule();
   }
 
   @Override

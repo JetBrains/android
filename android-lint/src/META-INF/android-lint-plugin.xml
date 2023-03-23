@@ -405,6 +405,7 @@
       <className>com.android.tools.idea.lint.intentions.RedoParcelableAction</className>
       <category>Android</category>
     </intentionAction>
+    <globalInspection projectType="Android" hasStaticDescription="true" shortName="AndroidLintEditedTargetSdkVersion" groupName="Android Lint: Correctness" displayName="Manually Edited TargetSdkVersion" bundle="messages.AndroidLintBundle" enabledByDefault="true" level="ERROR" implementationClass="com.android.tools.idea.lint.inspections.AndroidLintEditedTargetSdkVersionInspection"/>
   </extensions>
 
   <extensions defaultExtensionNs="com.intellij">

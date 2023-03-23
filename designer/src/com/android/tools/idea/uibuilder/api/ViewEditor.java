@@ -247,7 +247,7 @@ public abstract class ViewEditor {
     if (file == null) {
       return;
     }
-    LayoutNavigationManager.getInstance(config.getModule().getProject()).pushFile(model.getVirtualFile(), file);
+    LayoutNavigationManager.getInstance(config.getConfigModule().getProject()).pushFile(model.getVirtualFile(), file);
   }
 
   /**

@@ -19,16 +19,19 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonSyntaxException
 import com.intellij.openapi.diagnostic.Logger
 
-/** Defines basic behavior of device catalogs for GMD code completion */
+/** Defines basic behavior of device catalogs for GMD code completion
+ *  ManagedVirtualDeviceCatalog and FtlDeviceCatalog inherits this abstract class
+ */
 abstract class GmdDeviceCatalog {
   companion object {
-    internal fun <T : GmdDeviceCatalog> toJson(catalog: T): String =
+    internal fun toJson(catalog: GmdDeviceCatalog): String =
       GsonBuilder().create().toJson(catalog).replace(Regex("(?<!\\\\)\""), "'")
 
     inline fun <reified T : GmdDeviceCatalog> fromJson(json: String): T {
       return try {
         GsonBuilder().create().fromJson(json, T::class.java)
       }
+      // Local cache might be corrupted and thus fail to reconstruct GmdDeviceCatalog children classes
       catch (e: JsonSyntaxException) {
         Logger.getInstance(T::class.java).warn("Invalid state JSON string: '$json'")
         T::class.java.getConstructor().newInstance()
@@ -40,6 +43,6 @@ abstract class GmdDeviceCatalog {
   fun isEmpty(): Boolean = this.isEmptyCatalog
 
   // Make sure every GMD device catalog check if all its fields are empty
-  protected abstract fun checkEmptyFields(): GmdDeviceCatalog
+  abstract fun checkEmptyFields(): GmdDeviceCatalog
   abstract fun syncDeviceCatalog(): GmdDeviceCatalog
 }

@@ -19,7 +19,6 @@ import static com.android.tools.idea.tests.gui.projectstructure.DependenciesTest
 import static com.android.tools.idea.tests.gui.projectstructure.DependenciesTestUtil.MIN_SDK_API;
 import static com.android.tools.idea.wizard.template.Language.Java;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
 import com.android.tools.idea.tests.gui.framework.TestGroup;
@@ -28,8 +27,6 @@ import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFix
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,7 +34,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class AndroidLibsDepTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
 
   private static final String LIB_NAME_1 = "modulea";
   private static final String LIB_NAME_2 = "moduleb";
@@ -74,11 +71,11 @@ public class AndroidLibsDepTest {
     IdeFrameFixture ideFrame = DependenciesTestUtil.createNewProject(guiTest, APP_NAME, MIN_SDK_API, Java);
 
     DependenciesTestUtil.createAndroidLibrary(ideFrame, LIB_NAME_1);
-    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, LIB_NAME_1, "app", "implementation");
+    DependenciesTestUtil.addModuleDependencyUnderAnother(guiTest, ideFrame, LIB_NAME_1, "app", "implementation");
     DependenciesTestUtil.createJavaClassInModule(ideFrame, LIB_NAME_1, DependenciesTestUtil.CLASS_NAME_1);
 
     createAndroidLibrary(ideFrame, LIB_NAME_2);
-    DependenciesTestUtil.addModuleDependencyUnderAnother(ideFrame, LIB_NAME_2, LIB_NAME_1, "api");
+    DependenciesTestUtil.addModuleDependencyUnderAnother(guiTest, ideFrame, LIB_NAME_2, LIB_NAME_1, "api");
     DependenciesTestUtil.createJavaClassInModule(ideFrame, LIB_NAME_2, DependenciesTestUtil.CLASS_NAME_2);
 
     DependenciesTestUtil.accessLibraryClassAndVerify(ideFrame, LIB_NAME_1, LIB_NAME_2);

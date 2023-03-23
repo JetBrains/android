@@ -81,7 +81,6 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
                     vmIdentifier = client.clientData.vmIdentifier,
                     abi = client.clientData.abi,
                     debuggerStatus = client.clientData.debuggerConnectionStatus,
-                    supportsNativeDebugging = client.clientData.isNativeDebuggable,
                     killAction = { client.kill() } )
       }
     }

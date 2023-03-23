@@ -18,6 +18,7 @@ package com.android.tools.idea.insights
 import com.android.tools.idea.insights.analysis.StackTraceAnalyzer
 import com.android.tools.idea.insights.analytics.IssueSelectionSource
 import com.intellij.psi.PsiFile
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
 /** Provides lifecycle and App Insights state data. */
@@ -36,12 +37,15 @@ interface AppInsightsProjectLevelController {
    * "focus" on a subset of the data you care about. e.g.
    *
    * ```kotlin
-   * val connections: Flow<Selection<FirebaseConnection>> = ctrl.state.map { it.connections }.distinctUntilChanged()
+   * val connections: Flow<Selection<VariantConnection>> = ctrl.state.map { it.connections }.distinctUntilChanged()
    * val issues: Flow<Selection<Issue>> = ctrl.state.filters.map { it.issues }.distinctUntilChanged() }
    * val selectedIssue: Flow<Issue?> = issues.mapReady { it.selected }.readyOrNull()
    * ```
    */
   val state: Flow<AppInsightsState>
+
+  /** [CoroutineScope] whose lifecycle is tied to current configuration of the host module. */
+  val coroutineScope: CoroutineScope
 
   // events
   fun refresh()
@@ -59,4 +63,12 @@ interface AppInsightsProjectLevelController {
     file: PsiFile,
     analyzer: StackTraceAnalyzer,
   )
+
+  fun revertToSnapshot(state: AppInsightsState)
+  fun selectSignal(value: SignalType)
+  fun selectConnection(value: VariantConnection)
+  fun openIssue(issue: AppInsightsIssue)
+  fun closeIssue(issue: AppInsightsIssue)
+  fun addNote(issue: AppInsightsIssue, message: String)
+  fun deleteNote(note: Note)
 }

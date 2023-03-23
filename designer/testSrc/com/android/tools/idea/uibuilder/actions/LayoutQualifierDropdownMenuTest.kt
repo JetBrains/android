@@ -43,10 +43,11 @@ class LayoutQualifierDropdownMenuTest {
 
   private lateinit var context: DataContext
   private lateinit var file: VirtualFile
+  private lateinit var surface: NlDesignSurface
 
   @Before
   fun setUp() {
-    val surface = Mockito.mock(NlDesignSurface::class.java)
+    surface = Mockito.mock(NlDesignSurface::class.java)
 
     file = projectRule.fixture.addFileToProject("res/layout/layout1.xml", "").virtualFile
     val manager = ConfigurationManager.getOrCreateInstance(projectRule.module)
@@ -61,7 +62,7 @@ class LayoutQualifierDropdownMenuTest {
     val action = LayoutQualifierDropdownMenu(file)
     action.updateActions(context)
     val expected = """layout1.xml
-    layout1.xml
+    ✔ layout1.xml
     ------------------------------------------------------
     Create Landscape Qualifier
     Create Tablet Qualifier
@@ -77,7 +78,7 @@ class LayoutQualifierDropdownMenuTest {
     val action = LayoutQualifierDropdownMenu(file)
     action.updateActions(context)
     val expected = """layout1.xml
-    layout1.xml
+    ✔ layout1.xml
     land/layout1.xml
     ------------------------------------------------------
     Create Tablet Qualifier
@@ -94,7 +95,7 @@ class LayoutQualifierDropdownMenuTest {
     val action = LayoutQualifierDropdownMenu(file)
     action.updateActions(context)
     val expected = """layout1.xml
-    layout1.xml
+    ✔ layout1.xml
     land/layout1.xml
     sw600dp/layout1.xml
     ------------------------------------------------------
@@ -131,11 +132,14 @@ class LayoutQualifierDropdownMenuTest {
     projectRule.fixture.addFileToProject("res/layout-sw600dp/layout1.xml", "")
     waitForResourceRepositoryUpdates(projectRule.module)
 
+    val landConfig =
+      ConfigurationManager.getOrCreateInstance(projectRule.module).getConfiguration(variantFile.virtualFile)
+    whenever(surface.configurations).thenReturn(ImmutableList.of(landConfig))
     val action = LayoutQualifierDropdownMenu(variantFile.virtualFile)
     action.updateActions(context)
     val expected = """land/layout1.xml
     layout1.xml
-    land/layout1.xml
+    ✔ land/layout1.xml
     sw600dp/layout1.xml
     ------------------------------------------------------
     Add Resource Qualifier

@@ -19,8 +19,10 @@ import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
+import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
+import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -107,7 +109,7 @@ private class LayoutInspectorManagerImpl : LayoutInspectorManager {
       }
 
       val tabState = addToState(runningDevicesTabContext)
-      tabState.injectWorkbench()
+      tabState.enableLayoutInspector()
     }
     else {
       if (!state.containsKey(runningDevicesTabContext.deviceSerialNumber)) {
@@ -116,7 +118,7 @@ private class LayoutInspectorManagerImpl : LayoutInspectorManager {
       }
 
       val tabState = removeFromState(runningDevicesTabContext)
-      tabState?.removeWorkbench()
+      tabState?.disableLayoutInspector()
     }
   }
 
@@ -165,13 +167,13 @@ private class LayoutInspectorManagerImpl : LayoutInspectorManager {
     val tabContext: RunningDevicesTabContext,
     val wrapLogic: WrapLogic = WrapLogic(tabContext.tabContentPanel, tabContext.tabContentPanelContainer)
   ) {
-    fun injectWorkbench() {
+    fun enableLayoutInspector() {
       wrapLogic.wrapComponent { centerPanel ->
-        createLayoutInspectorWorkbench(tabContext.project, tabContext.disposable, centerPanel)
+        createLayoutInspectorWorkbench(tabContext, centerPanel)
       }
     }
 
-    fun removeWorkbench() {
+    fun disableLayoutInspector() {
       wrapLogic.unwrapComponent()
     }
   }
@@ -181,13 +183,20 @@ private class LayoutInspectorManagerImpl : LayoutInspectorManager {
  * Creates a Layout Inspector [WorkBench] with view tree panel and properties panel.
  */
 private fun createLayoutInspectorWorkbench(
-  project: Project,
-  parentDisposable: Disposable,
+  tabContext: RunningDevicesTabContext,
   centerPanel: JComponent,
 ): WorkBench<LayoutInspector> {
-  val workbench = WorkBench<LayoutInspector>(project, WORKBENCH_NAME, null, parentDisposable)
-  val layoutInspector = LayoutInspectorProjectService.getInstance(project).getLayoutInspector(project, parentDisposable)
+  val workbench = WorkBench<LayoutInspector>(tabContext.project, WORKBENCH_NAME, null, tabContext.disposable)
+  val layoutInspector = tabContext.getLayoutInspector()
   val toolsDefinition = listOf(LayoutInspectorTreePanelDefinition(), LayoutInspectorPropertiesPanelDefinition())
   workbench.init(centerPanel, layoutInspector, toolsDefinition, false)
+  DataManager.registerDataProvider(workbench, dataProviderForLayoutInspector(layoutInspector))
   return workbench
+}
+
+/** Utility function to get [LayoutInspector] from a [RunningDevicesTabContext] */
+private fun RunningDevicesTabContext.getLayoutInspector(): LayoutInspector {
+  return LayoutInspectorProjectService
+    .getInstance(project)
+    .getLayoutInspector(disposable)
 }

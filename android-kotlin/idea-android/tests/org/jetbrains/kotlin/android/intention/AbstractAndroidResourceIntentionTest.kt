@@ -25,8 +25,8 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.PlatformTestUtil
 import junit.framework.TestCase
 import org.jetbrains.kotlin.android.KotlinAndroidTestCase
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import java.io.File
-
 
 abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
     fun doTest(path: String) {
@@ -84,7 +84,13 @@ abstract class AbstractAndroidResourceIntentionTest : KotlinAndroidTestCase() {
 
         FileDocumentManager.getInstance().saveAllDocuments()
 
-        myFixture.checkResultByFile("/expected/main.kt")
+        val fileWithExpectedResult = if (isK2Plugin() && FileUtil.exists(myFixture.getTestDataPath() + "/expected/main.k2.kt")) {
+            "/expected/main.k2.kt"
+        }
+        else {
+            "/expected/main.kt"
+        }
+        myFixture.checkResultByFile(fileWithExpectedResult)
         assertResourcesEqual(testDataPath + "/expected/res")
     }
 

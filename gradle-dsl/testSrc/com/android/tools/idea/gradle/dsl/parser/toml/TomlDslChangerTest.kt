@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dsl.parser.toml
 
 import com.android.testutils.MockitoKt
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.model.BuildModelContext
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionList
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslExpressionMap
@@ -130,7 +129,7 @@ class TomlDslChangerTest : PlatformTestCase() {
       foo_updated = { bar = "baz" }
     """.trimIndent()
     doTest(toml, expected) {
-      elements?.get("foo")?.rename("foo_updated")
+      elements["foo"]?.rename("foo_updated")
     }
   }
 

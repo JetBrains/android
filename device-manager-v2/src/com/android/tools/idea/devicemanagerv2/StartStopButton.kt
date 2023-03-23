@@ -17,6 +17,7 @@ package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceState
+import com.android.tools.adtui.categorytable.IconButton
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import icons.StudioIcons
 import kotlinx.coroutines.flow.collectLatest
@@ -25,7 +26,7 @@ import kotlinx.coroutines.launch
 internal class StartStopButton(private val handle: DeviceHandle) : IconButton(StudioIcons.Avd.RUN) {
   init {
     addActionListener {
-      when (icon) {
+      when (baseIcon) {
         StudioIcons.Avd.RUN -> handle.scope.launch { handle.activationAction?.activate() }
         StudioIcons.Avd.STOP -> handle.scope.launch { handle.deactivationAction?.deactivate() }
         else -> {}
@@ -36,11 +37,11 @@ internal class StartStopButton(private val handle: DeviceHandle) : IconButton(St
       handle.stateFlow.collectLatest { state ->
         when (state) {
           is DeviceState.Disconnected -> {
-            icon = StudioIcons.Avd.RUN
+            baseIcon = StudioIcons.Avd.RUN
             trackActionEnabled(handle.activationAction)
           }
           is DeviceState.Connected -> {
-            icon = StudioIcons.Avd.STOP
+            baseIcon = StudioIcons.Avd.STOP
             trackActionEnabled(handle.deactivationAction)
           }
           else -> {}

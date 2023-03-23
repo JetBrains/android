@@ -26,5 +26,5 @@ internal class TestRenderModelModule(
 ) : RenderModelModule by delegate {
   // For testing, we do not need to wait for the full merged manifest
   override val manifest: RenderModelManifest?
-    get() = MergedManifestManager.getMergedManifestSupplier(delegate.ideaModule).now?.let { RenderMergedManifest(it) }
+    get() = MergedManifestManager.getMergedManifestSupplier(delegate.getIdeaModule()).now?.let { RenderMergedManifest(it) }
 }

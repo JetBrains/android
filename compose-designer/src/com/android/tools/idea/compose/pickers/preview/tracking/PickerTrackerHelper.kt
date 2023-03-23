@@ -37,7 +37,6 @@ internal object PickerTrackerHelper {
       } // We need pixel dimensions to calculate density
     val density =
       AvdScreenData.getScreenDensity(
-        null,
         false,
         configCopy.dpi.toDouble(),
         configCopy.height.roundToInt()

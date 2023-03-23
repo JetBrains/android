@@ -35,4 +35,10 @@ interface ScreenshotPostprocessor {
    */
   @Slow
   fun addFrame(screenshotImage: ScreenshotImage, framingOption: FramingOption?, backgroundColor: Color?): BufferedImage
+
+  /**
+   * Indicates whether the postprocessor is capable of clipping a screenshot image to the shape of
+   * the device display.
+   */
+  abstract val canClipToDisplayShape: Boolean
 }

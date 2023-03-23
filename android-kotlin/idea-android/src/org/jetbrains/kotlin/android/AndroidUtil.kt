@@ -28,7 +28,9 @@ import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.components.buildClassType
 import org.jetbrains.kotlin.analysis.api.symbols.KtClassLikeSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KtJavaFieldSymbol
-import org.jetbrains.kotlin.analysis.api.types.KtNonErrorClassType
+import org.jetbrains.kotlin.analysis.api.types.KtClassErrorType
+import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
+import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.load.java.descriptors.JavaClassDescriptor
 import org.jetbrains.kotlin.load.java.descriptors.JavaPropertyDescriptor
@@ -63,11 +65,19 @@ internal fun JavaPropertyDescriptor.getResourceReferenceType(): AndroidPsiUtils.
 
 internal fun KtAnalysisSession.isSubclassOf(subClass: KtClassOrObject, superClassName: String, strict: Boolean = false): Boolean {
     val classSymbol = subClass.getSymbol() as? KtClassLikeSymbol ?: return false
-    val classType = buildClassType(classSymbol) as? KtNonErrorClassType ?: return false
+    return isSubclassOf(classSymbol, superClassName, strict)
+}
 
+internal fun KtAnalysisSession.isSubclassOf(classSymbol: KtClassLikeSymbol, superClassName: String, strict: Boolean = false): Boolean {
+    val classType = buildClassType(classSymbol)
+    return isSubclassOf(classType, superClassName, strict)
+}
+
+internal fun KtAnalysisSession.isSubclassOf(classType: KtType, superClassName: String, strict: Boolean = false): Boolean {
     val superClassType = buildClassType(ClassId.topLevel(FqName(superClassName)))
-    if (!strict && classType.isEqualTo(superClassType)) return true
-    return classType.isSubTypeOf(superClassType)
+    if (superClassType is KtClassErrorType) return false
+    if (!strict && classType isEqualTo superClassType) return true
+    return classType isSubTypeOf superClassType
 }
 
 /**
@@ -98,4 +108,9 @@ internal fun KtAnalysisSession.getResourceReferenceType(field: KtJavaFieldSymbol
         }
     }
     return NONE
+}
+
+internal fun KtAnalysisSession.isExtensionFunctionType(type: KtType): Boolean {
+    val functionalType = type as? KtFunctionalType ?: return false
+    return functionalType.hasReceiver
 }

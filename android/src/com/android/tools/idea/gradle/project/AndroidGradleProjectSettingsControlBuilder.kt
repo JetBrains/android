@@ -24,7 +24,6 @@ import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.JAVA_HOME
-import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil.USE_PROJECT_JDK
 import com.intellij.openapi.externalSystem.util.ExternalSystemUiUtil
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.openapi.project.Project
@@ -155,11 +154,6 @@ class AndroidGradleProjectSettingsControlBuilder(
     if (IdeSdks.getInstance().isUsingEnvVariableJdk) {
       selectedSdk = JDK_LOCATION_ENV_VARIABLE_NAME
     }
-    if (selectedSdk == USE_PROJECT_JDK) {
-      val resolvedJdk = myGradleJdkComboBox!!.getProjectSdk()
-      if (resolvedJdk != null)
-        selectedSdk = resolvedJdk.name
-    }
     myInitialJdkName = selectedSdk
     myGradleJdkComboBox!!.selectedGradleJvmReference = selectedSdk
   }
@@ -176,10 +170,11 @@ class AndroidGradleProjectSettingsControlBuilder(
       // Remove any invalid JDK
       ideSdks.removeInvalidJdksFromTable()
       // Add embedded
-      ideSdks.embeddedJdkPath?.let {
+      ideSdks.embeddedJdkPath.let {
         val embeddedJdkName = JavaSdk.getInstance().suggestSdkName(null, it.absolutePathString())
         addJdkIfNotPresent(sdksModel, embeddedJdkName, it)
       }
+
       // ADD JDK_LOCATION_ENV_VARIABLE_NAME
       if (ideSdks.isJdkEnvVariableValid) {
         addJdkIfNotPresent(sdksModel, JDK_LOCATION_ENV_VARIABLE_NAME, ideSdks.jdkPath!!)

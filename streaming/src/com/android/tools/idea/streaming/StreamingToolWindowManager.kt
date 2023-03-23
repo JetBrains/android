@@ -691,7 +691,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       UIUtil.invokeLaterIfNeeded { // This is safe because this code doesn't touch PSI or VFS.
         if (serialNumber in onlineDevices) {
           val deviceClient = deviceClients.computeIfAbsent(serialNumber) { serial ->
-            DeviceClient(this, serial, config, properties.abi.toString(), project).apply {
+            DeviceClient(this, serial, device.handle, config, properties.abi.toString(), project).apply {
               establishAgentConnectionWithoutVideoStreamAsync() // Start the agent and connect to it proactively.
             }
           }

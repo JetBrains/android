@@ -104,8 +104,8 @@ class AddCppToModuleActionTest {
       Assert.fail("Sync failed after adding new C++ files to current Android project. See logs.")
     }
 
-    Truth.assertThat(projectRoot.resolve("app/build.gradle").readText()).contains("../cpp/CMakeLists.txt")
-    Truth.assertThat(projectRoot.resolve("app/build.gradle").readText()).contains("version '$DEFAULT_CMAKE_VERSION'")
+    Truth.assertThat(projectRoot.resolve("app/build.gradle.kts").readText()).contains("../cpp/CMakeLists.txt")
+    Truth.assertThat(projectRoot.resolve("app/build.gradle.kts").readText()).contains("version = \"$DEFAULT_CMAKE_VERSION\"")
   }
 
   @Test
@@ -140,7 +140,7 @@ class AddCppToModuleActionTest {
       Assert.fail("Sync failed after adding new C++ files to current Android project. See logs.")
     }
 
-    Truth.assertThat(projectRoot.resolve("app/build.gradle").readText()).contains("../cpp/Android.mk")
+    Truth.assertThat(projectRoot.resolve("app/build.gradle.kts").readText()).contains("../cpp/Android.mk")
   }
 
   @Test
@@ -166,7 +166,7 @@ class AddCppToModuleActionTest {
       enabledTextField.setText("/blah")
       Truth.assertThat(okButton.isEnabled).isFalse()
       // selection exists, but it's not a CMakeLists.txt or *.mk file
-      enabledTextField.setText(projectRoot.resolve("build.gradle").absolutePath)
+      enabledTextField.setText(projectRoot.resolve("build.gradle.kts").absolutePath)
       Truth.assertThat(okButton.isEnabled).isFalse()
       // selection is valid
       enabledTextField.setText(cmakeListsFile.absolutePath)
@@ -185,7 +185,6 @@ class AddCppToModuleActionTest {
       .configureNewAndroidProjectStep
       .enterName("AddCppToModuleTestProject")
       .enterPackageName("dev.tools")
-      .selectBuildConfigurationLanguage(BuildConfigurationLanguage.Groovy)
       .wizard()
       .clickFinishAndWaitForSyncToFinish()
   }

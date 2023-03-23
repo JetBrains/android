@@ -331,7 +331,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
   @Nullable
   public ModuleRenderContext getModuleContext() {
     Module module = getModule();
-    return module == null ? null : ModuleRenderContext.forFile(module, myPsiFileProvider);
+    return module == null ? null : ModuleRenderContext.forFile(() -> module, myPsiFileProvider);
   }
 
   /**

@@ -18,7 +18,6 @@ package com.android.tools.idea.tests.gui.projectstructure;
 import static org.fest.swing.core.MouseButton.RIGHT_BUTTON;
 import static org.junit.Assert.assertTrue;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.build.BuildStatus;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
@@ -37,8 +36,6 @@ import org.fest.swing.exception.LocationUnavailableException;
 import org.fest.swing.exception.WaitTimedOutError;
 import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
-import org.junit.After;
-import org.junit.Before;
 
 public class DependenciesTestUtil {
 
@@ -100,14 +97,19 @@ public class DependenciesTestUtil {
     assertTrue(result.isBuildSuccessful());
   }
 
-  protected static void addModuleDependencyUnderAnother(@NotNull IdeFrameFixture ideFrame,
+  protected static void addModuleDependencyUnderAnother(@NotNull GuiTestRule guiTest,
+                                                        @NotNull IdeFrameFixture ideFrame,
                                                         @NotNull String moduleName,
                                                         @NotNull String anotherModule,
                                                         @NotNull String scope) {
+    ideFrame.focus();
     ideFrame.getProjectView()
       .selectProjectPane()
       .clickPath(RIGHT_BUTTON, APP_NAME, anotherModule);
 
+    guiTest.waitForBackgroundTasks();
+    guiTest.robot().waitForIdle();
+    guiTest.robot().findActivePopupMenu();
     ideFrame.invokeMenuPath("Open Module Settings");
 
     ProjectStructureDialogFixture dialogFixture = ProjectStructureDialogFixture.Companion.find(ideFrame);

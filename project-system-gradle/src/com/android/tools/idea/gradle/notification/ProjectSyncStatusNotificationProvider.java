@@ -27,6 +27,7 @@ import static com.intellij.util.ThreeState.YES;
 import com.android.annotations.concurrency.AnyThread;
 import com.android.repository.Revision;
 import com.android.tools.idea.IdeInfo;
+import com.android.tools.idea.actions.HideAndroidBannerAction;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
 import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector;
@@ -69,10 +70,10 @@ import org.jetbrains.annotations.Nullable;
  */
 public class ProjectSyncStatusNotificationProvider extends EditorNotifications.Provider<EditorNotificationPanel> implements DumbAware {
   @NotNull private static final Key<EditorNotificationPanel> KEY = Key.create("android.gradle.sync.status");
-
   @NotNull private final GradleProjectInfo myProjectInfo;
   @NotNull private final GradleSyncState mySyncState;
   @NotNull private final GradleVersionCatalogDetector myVersionCatalogDetector;
+  private static final long HIDE_ACTION_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(30);
 
   @SuppressWarnings("unused") // Invoked by IDEA
   public ProjectSyncStatusNotificationProvider(@NotNull Project project) {
@@ -102,19 +103,12 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
     return newPanelType.create(project, file, myProjectInfo);
   }
 
-  @NotNull
-  private NotificationPanel.Type notificationPanelType(@NotNull Project project) {
-    if (IdeInfo.getInstance().isAndroidStudio() || isAndroidProject(project)) {
-      return notificationPanelType();
-    } else {
-      return NotificationPanel.Type.NONE;
-    }
-  }
-
   @VisibleForTesting
   @NotNull
-  NotificationPanel.Type notificationPanelType() {
-    if (!myProjectInfo.isBuildWithGradle()) {
+  NotificationPanel.Type notificationPanelType(@NotNull Project project) {
+    if ((!IdeInfo.getInstance().isAndroidStudio() && !isAndroidProject(project))
+        || !myProjectInfo.isBuildWithGradle()
+        || shouldHideBanner()) {
       return NotificationPanel.Type.NONE;
     }
     if (mySyncState.isSyncInProgress()) {
@@ -137,6 +131,19 @@ public class ProjectSyncStatusNotificationProvider extends EditorNotifications.P
 
     return NotificationPanel.Type.PROJECT_STRUCTURE;
   }
+
+  /**
+   * This method checks if the action to hide notification was triggered recently in {@link HideAndroidBannerAction}.
+   * For multiple banners open in split windows, this method helps check the hidden timestamp so that all
+   * banners are dismissed when `updateAllNotifications` is called.
+   */
+  static boolean shouldHideBanner() {
+      long now = System.currentTimeMillis();
+      String lastHiddenValue =
+        PropertiesComponent.getInstance().getValue("PROJECT_STRUCTURE_NOTIFICATION_HIDE_ACTION_TIMESTAMP", "0");
+      long lastHidden = Long.parseLong(lastHiddenValue);
+      return (now - lastHidden) < HIDE_ACTION_TIMEOUT_MS;
+    }
 
   @VisibleForTesting
   static class NotificationPanel extends EditorNotificationPanel {

@@ -699,23 +699,4 @@ public class AndroidUtils extends CommonAndroidUtil {
     }
     return null;
   }
-
-  /**
-   * Returns the root tag for the given {@link PsiFile}, if any, acquiring the read
-   * lock to do so if necessary
-   *
-   * @param file the file to look up the root tag for
-   * @return the corresponding root tag, if any
-   */
-  @Nullable
-  public static String getRootTagName(@NotNull PsiFile file) {
-    ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
-    if (folderType == ResourceFolderType.XML || folderType == ResourceFolderType.MENU || folderType == ResourceFolderType.DRAWABLE) {
-      if (file instanceof XmlFile) {
-        XmlTag rootTag = AndroidPsiUtils.getRootTagSafely(((XmlFile)file));
-        return rootTag == null ? null : rootTag.getName();
-      }
-    }
-    return null;
-  }
 }

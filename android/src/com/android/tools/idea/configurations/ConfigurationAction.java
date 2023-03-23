@@ -87,20 +87,18 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
       // Get the resources of the file's project.
       if (affectsFileSelection) {
         Module module = myRenderContext.getConfiguration().getModule();
-        if (module != null) {
-          VirtualFile file = myRenderContext.getConfiguration().getFile();
-          if (file != null) {
-            ConfigurationMatcher matcher = new ConfigurationMatcher(clone, file);
-            List<VirtualFile> matchingFiles = matcher.getBestFileMatches();
-            if (!matchingFiles.isEmpty() && !matchingFiles.contains(file)) {
-              // Switch files, and leave this configuration alone.
-              pickedBetterMatch(matchingFiles.get(0), file);
-              AndroidFacet facet = AndroidFacet.getInstance(module);
-              assert facet != null;
-              ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(module);
-              updateConfiguration(configurationManager.getConfiguration(matchingFiles.get(0)), true /*commit*/);
-              return;
-            }
+        VirtualFile file = myRenderContext.getConfiguration().getFile();
+        if (file != null) {
+          ConfigurationMatcher matcher = new ConfigurationMatcher(clone, file);
+          List<VirtualFile> matchingFiles = matcher.getBestFileMatches();
+          if (!matchingFiles.isEmpty() && !matchingFiles.contains(file)) {
+            // Switch files, and leave this configuration alone.
+            pickedBetterMatch(matchingFiles.get(0), file);
+            AndroidFacet facet = AndroidFacet.getInstance(module);
+            assert facet != null;
+            ConfigurationManager configurationManager = ConfigurationManager.getOrCreateInstance(module);
+            updateConfiguration(configurationManager.getConfiguration(matchingFiles.get(0)), true /*commit*/);
+            return;
           }
         }
       }
@@ -111,9 +109,9 @@ abstract class ConfigurationAction extends AnAction implements ConfigurationList
 
   protected void pickedBetterMatch(@NotNull VirtualFile file, @NotNull VirtualFile old) {
     // Switch files, and leave this configuration alone
-    Module module = myRenderContext.getConfiguration().getModule();
-    assert module != null;
-    Project project = module.getProject();
+    Configuration configuration = myRenderContext.getConfiguration();
+    assert configuration != null;
+    Project project = configuration.getConfigModule().getProject();
     OpenFileDescriptor descriptor = new OpenFileDescriptor(project, file, -1);
     FileEditorManagerEx manager = FileEditorManagerEx.getInstanceEx(project);
     FileEditorWithProvider previousSelection = manager.getSelectedEditorWithProvider(old);

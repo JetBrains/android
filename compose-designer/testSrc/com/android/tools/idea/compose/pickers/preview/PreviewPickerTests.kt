@@ -28,8 +28,8 @@ import com.android.tools.idea.compose.pickers.preview.enumsupport.devices.Refere
 import com.android.tools.idea.compose.pickers.preview.model.PreviewPickerPropertiesModel
 import com.android.tools.idea.compose.pickers.preview.property.DimUnit
 import com.android.tools.idea.compose.preview.AnnotationFilePreviewElementFinder
+import com.android.tools.idea.compose.preview.ComposePreviewElement
 import com.android.tools.idea.compose.preview.namespaceVariations
-import com.android.tools.idea.compose.preview.util.ComposePreviewElement
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.Sdks
@@ -467,7 +467,7 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
         .includeDefaultsAndBuild()
         .associateBy { it.display } // Easier to test
 
-    deviceOptions["Phone"]!!.select(deviceProperty)
+    deviceOptions["Medium Phone"]!!.select(deviceProperty)
     assertEquals("spec:shape=Normal,width=411,height=891,unit=dp,dpi=420", deviceProperty.value)
 
     deviceOptions["Foldable"]!!.select(deviceProperty)
@@ -477,7 +477,7 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
       assertEquals("spec:shape=Normal,width=674,height=841,unit=dp,dpi=480", deviceProperty.value)
     }
 
-    deviceOptions["Tablet"]!!.select(deviceProperty)
+    deviceOptions["Medium Tablet"]!!.select(deviceProperty)
     if (StudioFlags.NELE_DP_SIZED_PREVIEW.get()) {
       assertEquals("spec:shape=Normal,width=1280,height=800,unit=dp,dpi=240", deviceProperty.value)
     } else {
@@ -492,7 +492,7 @@ class PreviewPickerTests(previewAnnotationPackage: String, composableAnnotationP
     }
 
     deviceOptions["Square"]!!.select(deviceProperty) // Wear device
-    assertEquals("spec:shape=Normal,width=300,height=300,unit=px,dpi=240", deviceProperty.value)
+    assertEquals("spec:shape=Normal,width=300,height=300,unit=px,dpi=220", deviceProperty.value)
 
     deviceOptions["55.0\" Tv 2160p"]!!.select(deviceProperty) // Tv device
     assertEquals("spec:shape=Normal,width=3840,height=2160,unit=px,dpi=320", deviceProperty.value)

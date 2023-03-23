@@ -18,6 +18,7 @@
 package com.android.tools.idea.dagger
 
 import com.android.tools.idea.testing.caret
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
@@ -32,7 +33,6 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiNamedElement
-import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.registerServiceInstance
 import icons.StudioIcons.Misc.DEPENDENCY_CONSUMER
 import icons.StudioIcons.Misc.DEPENDENCY_PROVIDER
@@ -91,7 +91,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
           .trimIndent()
       )
 
-    val providerMethod = myFixture.moveCaret("provi|der()").parentOfType<PsiMethod>()
+    val providerMethod: PsiMethod = myFixture.findParentElement("provi|der()")
 
     // Consumer
     myFixture.configureByText(
@@ -177,7 +177,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    val parameter = myFixture.moveCaret("inj|ectedString").parentOfType<KtParameter>()!!
+    val parameter: KtParameter = myFixture.findParentElement("inj|ectedString")
 
     // Icons in provider file.
     myFixture.configureFromExistingVirtualFile(providerFile.virtualFile)

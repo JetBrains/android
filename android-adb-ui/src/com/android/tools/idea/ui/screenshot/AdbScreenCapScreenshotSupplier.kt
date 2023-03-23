@@ -38,7 +38,7 @@ private val commandTimeout = INFINITE_DURATION
 /**
  * A [ScreenshotSupplier] that uses `adb shell screencap`
  */
-internal class AdbScreenCapScreenshotSupplier(
+class AdbScreenCapScreenshotSupplier(
   project: Project,
   private val serialNumber: String,
   private val screenshotOptions: ScreenshotOptions,
@@ -71,15 +71,22 @@ internal class AdbScreenCapScreenshotSupplier(
       val dumpsysOutput = dumpsysJob.await()
       val displayInfo = extractDeviceDisplayInfo(dumpsysOutput)
       val pmOutput = pmJob.await()
-      val isTv = pmOutput.contains("feature:android.software.leanback")
+      val deviceType = extractDeviceType(pmOutput)
       val screenshotBytes = screenshotJob.await()
 
       @Suppress("BlockingMethodInNonBlockingContext") // Reading from memory is not blocking.
       val image = ImageIO.read(ByteArrayInputStream(screenshotBytes.stdout))
                   ?: throw RuntimeException(AndroidAdbUiBundle.message("screenshot.error.decode"))
-      screenshotOptions.createScreenshotImage(image, displayInfo, isTv)
+      screenshotOptions.createScreenshotImage(image, displayInfo, deviceType)
     }
   }
+
+  private fun extractDeviceType(pmOutput: String): DeviceType =
+    when {
+      pmOutput.contains("feature:android.software.leanback") -> DeviceType.TV
+      pmOutput.contains("feature:android.hardware.type.watch") -> DeviceType.WEAR
+      else -> DeviceType.PHONE
+    }
 
   /**
    * Returns the first line starting with "DisplayDeviceInfo".

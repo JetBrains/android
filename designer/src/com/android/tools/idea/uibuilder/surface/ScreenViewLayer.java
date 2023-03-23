@@ -20,6 +20,8 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.imagepool.ImagePoolImageDisposer;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorConverter;
 import com.google.common.collect.ImmutableMap;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.util.ui.ImageUtil;
@@ -66,14 +68,26 @@ public class ScreenViewLayer extends Layer {
   private final Rectangle myCachedScreenViewDisplayRect = new Rectangle();
   private double myLastScale;
 
+  private final ColorConverter myImageFilter;
+
   /**
    * Create a new ScreenViewLayer for the given screenView.
    * @param screenView The screenView containing the model to render
    */
   public ScreenViewLayer(@NotNull ScreenView screenView) {
+    this(screenView, ColorBlindMode.NONE);
+  }
+
+  public ScreenViewLayer(@NotNull ScreenView screenView, @NotNull ColorBlindMode colorBlindFilter) {
+    this(screenView, colorBlindFilter == ColorBlindMode.NONE ? null : new ColorConverter(colorBlindFilter));
+  }
+
+  private ScreenViewLayer(@NotNull ScreenView screenView, @Nullable ColorConverter imageFilter) {
     myScreenView = screenView;
     myLastScale = myScreenView.getScale();
+    myImageFilter = imageFilter;
     Disposer.register(screenView.getSurface(), this);
+    if(myImageFilter != null) Disposer.register(this, myImageFilter);
   }
 
   @SuppressWarnings("UseJBColor")
@@ -208,6 +222,21 @@ public class ScreenViewLayer extends Layer {
 
   protected void setLastRenderResult(@Nullable RenderResult result) {
     myLastRenderResult = result;
+    if (myImageFilter == null || result == null) return;
+
+    // Apply the color converter if any.
+    // This is used for example to support different color-blind modes
+    result.processImageIfNotDisposed(image -> {
+      if (image == null) return;
+      BufferedImage copy = image.getCopy();
+      if (copy == null) return;
+      myImageFilter.convert(copy, copy);
+      image.paint(g2D -> {
+        int w = image.getWidth();
+        int h = image.getHeight();
+        g2D.drawImage(copy, 0, 0, w, h, 0, 0, w, h, null);
+      });
+    });
   }
 
   /**

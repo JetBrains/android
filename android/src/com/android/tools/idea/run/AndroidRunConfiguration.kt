@@ -19,8 +19,10 @@ import com.android.AndroidProjectTypes
 import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.model.component.ComponentType
+import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.execution.common.AppRunConfiguration
+import com.android.tools.idea.execution.common.applychanges.BaseAction
 import com.android.tools.idea.projectsystem.AndroidModuleSystem
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.isMainModule
@@ -36,7 +38,6 @@ import com.android.tools.idea.run.editor.AndroidRunConfigurationEditor
 import com.android.tools.idea.run.editor.ApplicationRunParameters
 import com.android.tools.idea.run.editor.DeployTargetProvider
 import com.android.tools.idea.run.tasks.AppLaunchTask
-import com.android.tools.idea.run.ui.BaseAction
 import com.android.tools.idea.stats.RunStats
 import com.google.common.base.Predicate
 import com.google.common.collect.ImmutableList
@@ -66,6 +67,7 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.refactoring.listeners.RefactoringElementListener
+import com.intellij.util.concurrency.AppExecutorUtil
 import org.jdom.Element
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.util.AndroidBundle
@@ -314,32 +316,44 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
     }
   }
 
+  // if null platform creates icon without "live" indicator is it's applicable. See [ExecutorRegistryImpl.ExecutorAction.getInformativeIcon]
+  private var runExecutorIcon: Icon? = null
+
   override fun getExecutorIcon(configuration: RunConfiguration, executor: Executor): Icon? {
+    if (DefaultRunExecutor.EXECUTOR_ID != executor.id) {
+      return null
+    }
+    updateRunExecutorIconAsync()
+    return runExecutorIcon
+  }
+
+  private fun updateRunExecutorIconAsync() {
     // Customize the executor icon for the DeviceAndSnapshotComboBoxAction: show "restart" icon instead of "run" icon if the app is already
     // running (even if it is started not from the IDE)
-    val project = configuration.project
+    val project = this.project
     val executionTarget = ExecutionTargetManager.getInstance(project).activeTarget
-    val applicationIdProvider = applicationIdProvider
+    if (executionTarget !is AndroidExecutionTarget) {
+      runExecutorIcon = null
+      return
+    }
     var applicationId: String? = null
     try {
       applicationId = applicationIdProvider?.packageName
     }
     catch (ignored: ApkProvisionException) {
     }
-    val isRunning = executionTarget is AndroidExecutionTarget && applicationId != null &&
-                    executionTarget.isApplicationRunning(applicationId)
-    return if (DefaultRunExecutor.EXECUTOR_ID == executor.id) {
-      if (isRunning) {
-        // Use the system's restart icon for the default run executor.
+    if (applicationId == null) {
+      runExecutorIcon = null
+      return
+    }
+    executionTarget.isApplicationRunningAsync(applicationId).transform(AppExecutorUtil.getAppExecutorService()) { isRunning ->
+      runExecutorIcon = if (isRunning) {
+        // Use the system's restart icon for the default run executor if application running on selected target.
         AllIcons.Actions.Restart
       }
       else {
-        // this is default "run" icon without "live" indicator.
-        if (executor is ExecutorIconProvider) (executor as ExecutorIconProvider).getExecutorIcon(getProject(), executor) else executor.icon
+        null
       }
-    }
-    else {
-      null // use platform default icon
     }
   }
 

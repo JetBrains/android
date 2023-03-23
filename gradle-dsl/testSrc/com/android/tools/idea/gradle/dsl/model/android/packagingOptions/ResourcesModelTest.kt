@@ -27,7 +27,7 @@ class ResourcesModelTest : GradleFileModelTestCase() {
   fun testParse() {
     writeToBuildFile(TestFile.PARSE)
     val buildModel = gradleBuildModel
-    val resourcesModel = buildModel.android().packagingOptions().resources()
+    val resourcesModel = buildModel.android().packaging().resources()
     checkForValidPsiElement(resourcesModel, ResourcesModelImpl::class.java)
     verifyListProperty("excludes", resourcesModel.excludes(), listOf("foo"))
     verifyListProperty("pickFirsts", resourcesModel.pickFirsts(), listOf("bar", "baz"))
@@ -38,7 +38,7 @@ class ResourcesModelTest : GradleFileModelTestCase() {
   fun testAddAndApply() {
     writeToBuildFile(TestFile.ADD_AND_APPLY)
     val buildModel = gradleBuildModel
-    val resourcesModel = buildModel.android().packagingOptions().resources()
+    val resourcesModel = buildModel.android().packaging().resources()
     checkForInvalidPsiElement(resourcesModel, ResourcesModelImpl::class.java)
     resourcesModel.excludes().addListValue()!!.setValue("foo")
     resourcesModel.pickFirsts().addListValue()!!.setValue("bar")
@@ -59,7 +59,7 @@ class ResourcesModelTest : GradleFileModelTestCase() {
   fun testAddElementsAndApply() {
     writeToBuildFile(TestFile.ADD_ELEMENTS_AND_APPLY)
     val buildModel = gradleBuildModel
-    val resourcesModel = buildModel.android().packagingOptions().resources()
+    val resourcesModel = buildModel.android().packaging().resources()
 
     resourcesModel.excludes().addListValue()!!.setValue("excludes2")
     resourcesModel.pickFirsts().addListValue()!!.setValue("pickFirsts2")
@@ -73,7 +73,7 @@ class ResourcesModelTest : GradleFileModelTestCase() {
   fun testRemoveElementsAndApply() {
     writeToBuildFile(TestFile.REMOVE_ELEMENTS_AND_APPLY)
     val buildModel = gradleBuildModel
-    val resourcesModel = buildModel.android().packagingOptions().resources()
+    val resourcesModel = buildModel.android().packaging().resources()
 
     resourcesModel.excludes().getListValue("excludes1")?.delete()
     resourcesModel.pickFirsts().getListValue("pickFirsts1")?.delete()
@@ -87,7 +87,7 @@ class ResourcesModelTest : GradleFileModelTestCase() {
   fun testEditElementsAndApply() {
     writeToBuildFile(TestFile.EDIT_ELEMENTS_AND_APPLY)
     val buildModel = gradleBuildModel
-    val resourcesModel = buildModel.android().packagingOptions().resources()
+    val resourcesModel = buildModel.android().packaging().resources()
 
     resourcesModel.excludes().getListValue("excludes1")?.setValue("excludesX")
     resourcesModel.pickFirsts().getListValue("pickFirsts1")?.setValue("pickFirstsX")

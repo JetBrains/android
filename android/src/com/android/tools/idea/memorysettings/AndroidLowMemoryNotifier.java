@@ -22,17 +22,15 @@ import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
-import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
 import com.intellij.openapi.Disposable;
-import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
 import com.intellij.openapi.util.LowMemoryWatcher;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
 @Service
@@ -52,23 +50,13 @@ public final class AndroidLowMemoryNotifier implements Disposable {
     int currentXmx = MemorySettingsUtil.getCurrentXmx();
     int xmxCap = MemorySettingsUtil.getIdeXmxCapInGB() * 1024;
     if (myNotificationShown.compareAndSet(false, true) && currentXmx < xmxCap) {
-      Notification notification = new Notification(NotificationGroup.createIdWithTitle("Low Memory", IdeBundle.message("low.memory.notification.title")),
-                                                   IdeBundle.message("low.memory.notification.title"),
-                                                   IdeBundle.message("low.memory.notification.content"),
-                                                   NotificationType.WARNING);
-      notification.addAction(new NotificationAction(IdeBundle.message("low.memory.notification.action")) {
-        @Override
-        public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
-          MemorySettingsUtil.log(MemorySettingsEvent.EventKind.CONFIGURE,
-                                 currentXmx, -1, -1,
-                                 -1, -1, -1,
-                                 -1, -1, -1);
-          Project project = e.getProject();
-          ShowSettingsUtilImpl.showSettingsDialog(project, "memory.settings", "");
-          notification.expire();
-        }
-      });
-      Notifications.Bus.notify(notification);
+      String content = AndroidBundle.message("low.memory.notification.content");
+      new Notification("Low Memory", AndroidBundle.message("low.memory.notification.title"), content, NotificationType.WARNING)
+        .addAction(NotificationAction.createExpiring(IdeBundle.message("low.memory.notification.action"), (e, n) -> {
+          MemorySettingsUtil.log(MemorySettingsEvent.EventKind.CONFIGURE, currentXmx, -1, -1, -1, -1, -1, -1, -1, -1);
+          ShowSettingsUtilImpl.showSettingsDialog(e.getProject(), "memory.settings", "");
+        }))
+        .notify(null);
     }
   }
 

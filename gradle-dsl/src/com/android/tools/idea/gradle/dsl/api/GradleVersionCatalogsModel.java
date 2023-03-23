@@ -17,6 +17,8 @@ package com.android.tools.idea.gradle.dsl.api;
 
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Version Catalogs Model covers all catalog files that relate to a project.
@@ -28,18 +30,24 @@ public interface GradleVersionCatalogsModel {
   // Having ExtModels, as return value is the closest thing we currently have (an arbitrary-sized collection of
   // arbitrary named Dsl values).  The ExtModel for versions in particular might be doing double
   // duty in order to support exposing its contents as PsVariables. (b/238982664)
+  @Nullable
   ExtModel libraries(String catalogName);
 
+  @Nullable
   ExtModel plugins(String catalogName);
 
+  @Nullable
   ExtModel versions(String catalogName);
 
+  @Nullable
   ExtModel bundles(String catalogName);
 
   /**
    * Get names for all catalogs that are in use for particular project
    */
+  @NotNull
   Set<String> catalogNames();
 
+  @Nullable
   GradleVersionCatalogModel getVersionCatalogModel(String catalogName);
 }

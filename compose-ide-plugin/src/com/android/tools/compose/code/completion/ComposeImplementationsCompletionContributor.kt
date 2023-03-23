@@ -21,6 +21,7 @@ import com.android.tools.compose.COMPOSE_ALIGNMENT_VERTICAL
 import com.android.tools.compose.COMPOSE_ARRANGEMENT
 import com.android.tools.compose.COMPOSE_ARRANGEMENT_HORIZONTAL
 import com.android.tools.compose.COMPOSE_ARRANGEMENT_VERTICAL
+import com.android.tools.compose.matchingParamTypeFqName
 import com.android.tools.compose.isClassOrExtendsClass
 import com.android.tools.compose.isComposeEnabled
 import com.intellij.codeInsight.completion.CompletionContributor
@@ -56,7 +57,6 @@ import org.jetbrains.kotlin.psi.KtLambdaArgument
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtValueArgument
-import org.jetbrains.kotlin.psi.KtValueArgumentList
 
 /**
  * Suggests specific implementations of frequently used Compose interfaces in a parameter or a property position.
@@ -161,14 +161,7 @@ class ComposeImplementationsCompletionContributor : CompletionContributor() {
       val callExpression = argument.parentOfType<KtCallElement>() ?: return null
       val callee = callExpression.calleeExpression?.mainReference?.resolve() as? KtNamedFunction ?: return null
 
-      val argumentTypeFqName = if (argument.isNamed()) {
-        val argumentName = argument.getArgumentName()!!.asName.asString()
-        callee.valueParameters.find { it.name == argumentName }?.type()?.fqName
-      }
-      else {
-        val argumentIndex = (argument.parent as KtValueArgumentList).arguments.indexOf(argument)
-        callee.valueParameters.getOrNull(argumentIndex)?.type()?.fqName
-      }
+      val argumentTypeFqName = argument.matchingParamTypeFqName(callee)
 
       return argumentTypeFqName?.asString()
     }

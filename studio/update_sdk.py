@@ -23,6 +23,9 @@ HIDDEN = [
     # This annotation jar is nonexistent, despite being referenced by product-info.json.
     # Probably this happens because BaseIdeaProperties.copyAdditionalFiles() moves this jar.
     "/lib/annotations-java5.jar",
+    # Hide JUnit3 to avoid clashing with JUnit4 (b/271338952, IDEA-315065).
+    # This emulates IntelliJ commit 1dc8b1360c which is coming in IJ 232.
+    "/lib/junit.jar",
 ]
 
 ALL = "all"
@@ -131,8 +134,8 @@ def write_spec_file(workspace, sdk_rel, version, sdk_jars, plugin_jars, mac_bund
     name = version.replace("-", "").replace(".", "_")
     file.write("# Auto-generated file, do not edit manually.\n")
     file.write(name  + " = struct(\n" )
-    file.write(f'    major_version="{sdk_version.major}",\n')
-    file.write(f'    minor_version="{sdk_version.minor}",\n')
+    file.write(f'    major_version = "{sdk_version.major}",\n')
+    file.write(f'    minor_version = "{sdk_version.minor}",\n')
 
     for platform in [ALL] + PLATFORMS:
       file.write(f"    jars{suffix[platform]} = [\n")

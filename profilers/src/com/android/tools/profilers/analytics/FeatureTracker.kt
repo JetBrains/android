@@ -57,12 +57,6 @@ interface FeatureTracker {
   fun trackTransportProxyCreationFailed(transportDevice: Common.Device, exception: Exception)
 
   /**
-   * Track when the profilers failed to initiailize. This happens when the ProfilerService is
-   * unavailable. (e.g. more than one Studio instance access profilers)
-   */
-  fun trackProfilerInitializationFailed()
-
-  /**
    * Track when we enter a new stage. The stage should always be included as state with all other
    * tracking events.
    */

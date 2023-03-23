@@ -17,7 +17,7 @@ package com.android.tools.idea.insights
 
 import com.intellij.openapi.module.Module
 
-/** Variant-aware firebase connection. */
+/** Variant-aware connection to an insights API. */
 data class VariantConnection(
   val module: Module,
   val variantName: String,

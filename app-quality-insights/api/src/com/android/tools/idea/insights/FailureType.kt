@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.insights
 
+import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
+import com.intellij.openapi.diagnostic.Logger
 import icons.StudioIcons
 import javax.swing.Icon
 
@@ -38,4 +40,41 @@ enum class FailureType {
       // This scenario shouldn't ever be reached.
       UNSPECIFIED -> null
     }
+
+  fun toCrashType(): AppQualityInsightsUsageEvent.CrashType =
+    when (this) {
+      UNSPECIFIED -> AppQualityInsightsUsageEvent.CrashType.UNKNOWN_TYPE
+      FATAL -> AppQualityInsightsUsageEvent.CrashType.FATAL
+      NON_FATAL -> AppQualityInsightsUsageEvent.CrashType.NON_FATAL
+      ANR -> AppQualityInsightsUsageEvent.CrashType.UNKNOWN_TYPE
+      else -> {
+        Logger.getInstance(FailureType::class.java)
+          .warn("Unrecognized app insights usage event crash type: $this")
+        AppQualityInsightsUsageEvent.CrashType.UNKNOWN_TYPE
+      }
+    }
+}
+
+fun convertSeverityList(
+  fatalities: List<FailureType>
+): AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter {
+  if (fatalities.size < 1 || fatalities.size > 2) {
+    return AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter
+      .UNKNOWN_SEVERITY
+  }
+  if (fatalities.size == 2) {
+    return AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.ALL
+  }
+  return when (fatalities[0]) {
+    FailureType.ANR ->
+      AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.UNKNOWN_SEVERITY
+    FailureType.FATAL ->
+      AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.FATAL
+    FailureType.NON_FATAL ->
+      AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.NON_FATAL
+    FailureType.UNSPECIFIED ->
+      AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.UNKNOWN_SEVERITY
+    else ->
+      AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.SeverityFilter.UNKNOWN_SEVERITY
+  }
 }

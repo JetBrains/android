@@ -35,6 +35,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.xml.XmlFile;
 import com.intellij.util.ui.UIUtil;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -163,11 +164,11 @@ public class RenderTestUtil {
                                              @NotNull RenderLogger logger,
                                              @NotNull RenderingPriority priority) {
     Module module = facet.getModule();
-    PsiFile psiFile = ReadAction.compute(() -> PsiManager.getInstance(module.getProject()).findFile(file));
-    assertNotNull(psiFile);
+    XmlFile xmlFile = (XmlFile)ReadAction.compute(() -> PsiManager.getInstance(module.getProject()).findFile(file));
+    assertNotNull(xmlFile);
     RenderService renderService = StudioRenderService.getInstance(module.getProject());
     final CompletableFuture<RenderTask> taskFuture = taskBuilder(renderService, facet, configuration, logger)
-      .withPsiFile(psiFile)
+      .withPsiFile(xmlFile)
       .disableSecurityManager()
       .withPriority(priority)
       .build();

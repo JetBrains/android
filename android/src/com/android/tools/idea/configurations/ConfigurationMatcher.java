@@ -87,7 +87,7 @@ public class ConfigurationMatcher {
 
   @NotNull private final Configuration myConfiguration;
   @NotNull private final ConfigurationManager myManager;
-  @Nullable private final LocalResourceRepository myResources;
+  @Nullable private final ResourceRepository myResources;
   @Nullable private final ResourceNamespace myNamespace;
   @Nullable private final VirtualFile myFile;
 
@@ -702,9 +702,9 @@ public class ConfigurationMatcher {
       }
       FolderConfiguration currentConfig = Configuration.getFolderConfig(module, selectedState, locale, target);
       if (currentConfig != null) {
-        ResourceRepositoryManager repositoryManager = configuration.getConfigurationManager().getConfigModule().getResourceRepositoryManager();
+        ResourceRepositoryManager repositoryManager = configuration.getConfigModule().getResourceRepositoryManager();
         if (repositoryManager != null) {
-          LocalResourceRepository resources = repositoryManager.getAppResources();
+          ResourceRepository resources = repositoryManager.getAppResources();
           ResourceFolderType folderType = ResourceFilesUtil.getFolderType(file);
           if (folderType != null) {
             List<ResourceType> types = FolderTypeRelationship.getRelatedResourceTypes(folderType);

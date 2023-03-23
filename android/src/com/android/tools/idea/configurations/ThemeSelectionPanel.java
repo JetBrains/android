@@ -23,7 +23,6 @@ import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.editors.theme.ThemeResolver;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.StudioAndroidModuleInfo;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
 import com.intellij.openapi.Disposable;
@@ -474,7 +473,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
 
       addCategory(topLevel, ThemeCategory.MANIFEST);
       addCategory(topLevel, ThemeCategory.PROJECT);
-      AndroidModuleInfo info = myConfiguration.getConfigurationManager().getConfigModule().getAndroidModuleInfo();
+      AndroidModuleInfo info = myConfiguration.getConfigModule().getAndroidModuleInfo();
       if (info != null && info.getBuildSdkVersion() != null && info.getBuildSdkVersion().getFeatureLevel() >= 21) {
         addCategory(topLevel, ThemeCategory.MATERIAL);
         addCategory(topLevel, ThemeCategory.MATERIAL_LIGHT);
@@ -578,7 +577,7 @@ public class ThemeSelectionPanel implements TreeSelectionListener, ListSelection
   }
 
   public void focus() {
-    final Project project = myConfiguration.getModule().getProject();
+    final Project project = myConfiguration.getConfigModule().getProject();
     final IdeFocusManager focusManager = project.isDefault() ? IdeFocusManager.getGlobalInstance() : IdeFocusManager.getInstance(project);
     focusManager.doWhenFocusSettlesDown(() -> focusManager.requestFocus(myThemeList, true));
   }

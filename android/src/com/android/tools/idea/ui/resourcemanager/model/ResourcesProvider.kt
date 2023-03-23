@@ -19,7 +19,6 @@ import com.android.SdkConstants
 import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.StyleItemResourceValue
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.resources.ResourceItem
 import com.android.ide.common.resources.ResourceItemWithVisibility
 import com.android.ide.common.resources.ResourceRepository
@@ -175,11 +174,7 @@ fun getThemeAttributes(forFacet: AndroidFacet,
   return createResourceSection("Theme attributes", themeAttributes, type)
 }
 
-private fun userReadableLibraryName(lib: AarResourceRepository) =
-  lib.libraryName?.let {
-    GradleCoordinate.parseCoordinateString(it)?.artifactId ?: it
-  }
-  ?: "library - failed name"
+private fun userReadableLibraryName(lib: AarResourceRepository) = lib.displayName
 
 private fun ResourceRepository.getResourcesAndApplyFilters(namespace: ResourceNamespace,
                                                            type: ResourceType,

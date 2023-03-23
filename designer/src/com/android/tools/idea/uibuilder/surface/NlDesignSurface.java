@@ -50,6 +50,8 @@ import com.android.tools.idea.common.surface.SurfaceInteractable;
 import com.android.tools.idea.common.surface.SurfaceScale;
 import com.android.tools.idea.common.surface.SurfaceScreenScalingFactor;
 import com.android.tools.idea.common.surface.layout.DesignSurfaceViewport;
+import com.android.tools.idea.common.surface.layout.DesignSurfaceViewportScroller;
+import com.android.tools.idea.common.surface.layout.ZoomCenterScroller;
 import com.android.tools.idea.gradle.project.build.GradleBuildState;
 import com.android.tools.idea.rendering.RenderErrorModelFactory;
 import com.android.tools.idea.rendering.RenderResult;
@@ -67,6 +69,7 @@ import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
+import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService;
 import com.google.common.collect.ImmutableList;
@@ -90,12 +93,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import javax.swing.SwingUtilities;
-import javax.swing.event.ChangeEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -398,24 +398,8 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   @SurfaceScale private final double myMinScale;
   @SurfaceScale private final double myMaxScale;
 
-  // properties to calculate the correct viewport position when its size is changed.
-  @Nullable private Dimension myCurrentViewportSize = null;
-  @SwingCoordinate
-  @NotNull
-  private final Point myZoomCenterInViewport = new Point();
-  @SwingCoordinate
-  @NotNull
-  private final Point myZoomCenter = new Point();
-  /**
-   * Flag to indicate the view port should have same center when viewport changed.
-   */
-  private boolean myNeedsKeepSameViewportCenter = false;
-
-  @NotNull
-  private final Function<ChangeEvent, Void> defaultViewportChangeHandler;
-
-  @NotNull
-  private Function<ChangeEvent, Void> myViewportChangeHandler;
+  // To scroll to correct viewport position when its size is changed.
+  @Nullable private DesignSurfaceViewportScroller myViewportScroller = null;
 
   private boolean myIsRenderingSynchronously = false;
   private boolean myIsAnimationScrubbing = false;
@@ -473,65 +457,13 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     myMinScale = minScale;
     myMaxScale = maxScale;
 
-    defaultViewportChangeHandler = e -> {
-      if (!myNeedsKeepSameViewportCenter) {
-        // We only change the viewport position when viewport is changed by scaling.
-        // For example, we don't want to change the position when user resize the window.
-        return null;
+    getViewport().addChangeListener(e -> {
+      DesignSurfaceViewportScroller scroller = myViewportScroller;
+      myViewportScroller = null;
+      if (scroller != null) {
+        scroller.scroll(getViewport());
       }
-      // Reset the flag so it won't update the center point if the following change is caused by window resizing.
-      myNeedsKeepSameViewportCenter = false;
-      // Calculate the viewport position of scroll view when its size is changed.
-      // When the view size is changed, the new center position should have same weight in both x and y axis as before.
-      // Consider the size of the view is 1000 * 2000 and the zoom center is at (800, 1500). So the weight is 0.8 on x-axis and 0.75 on
-      // y-axis.
-      // When view size changes to 500 * 1000, the new center should be (400, 750) because we want to keep same weights
-      // We calculate the new viewport position to achieve above behavior.
-      if (myLayoutManager instanceof GridSurfaceLayoutManager) {
-        // Grid surface layout manager layouts the preview depending on the screen size. There is no particular trace point for zooming.
-        return null;
-      }
-      DesignSurfaceViewport port = getViewport();
-      Dimension newViewportSize = port.getViewSize();
-      if (newViewportSize == null ||
-          newViewportSize.width == 0 ||
-          newViewportSize.height == 0 ||
-          newViewportSize.equals(myCurrentViewportSize)) {
-        return null;
-      }
-      if (myCurrentViewportSize == null) {
-        // Do nothing. The view position should be default value (usually it is (0, 0))
-        myCurrentViewportSize = newViewportSize;
-        return null;
-      }
-
-      int zoomCenterX = myZoomCenter.x;
-      int zoomCenterY = myZoomCenter.y;
-      int zoomCenterInViewportX = myZoomCenterInViewport.x;
-      int zoomCenterInViewportY = myZoomCenterInViewport.y;
-
-      double weightInPaneX = zoomCenterInViewportX / (double)myCurrentViewportSize.width;
-      double weightInPaneY = zoomCenterInViewportY / (double)myCurrentViewportSize.height;
-
-      int newViewWidth = newViewportSize.width;
-      int newViewHeight = newViewportSize.height;
-      double newZoomCenterInViewportX = newViewWidth * weightInPaneX;
-      double newZoomCenterInViewportY = newViewHeight * weightInPaneY;
-
-      int newViewPositionX = (int)(newZoomCenterInViewportX - zoomCenterX);
-      int newViewPositionY = (int)(newZoomCenterInViewportY - zoomCenterY);
-
-      // Make sure the view port position doesn't go out of bound. (It may happen when zooming-out)
-      newViewPositionX = Math.max(0, Math.min(newViewPositionX, newViewWidth - port.getViewportComponent().getWidth()));
-      newViewPositionY = Math.max(0, Math.min(newViewPositionY, newViewHeight - port.getViewportComponent().getHeight()));
-
-      myCurrentViewportSize = newViewportSize;
-
-      port.setViewPosition(new Point(newViewPositionX, newViewPositionY));
-      return null;
-    };
-    myViewportChangeHandler = defaultViewportChangeHandler;
-    getViewport().addChangeListener(e -> myViewportChangeHandler.apply(e));
+    });
 
     myScannerControl = new NlLayoutScanner(this);
     myDelegateDataProvider = delegateDataProvider;
@@ -651,6 +583,19 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
       }
       revalidateScrollArea();
     }
+  }
+
+  /**
+   * Update the color-blind mode in the {@link ScreenViewProvider} for this surface
+   * and make sure to update all the SceneViews in this surface to reflect the change.
+   */
+  public void setColorBlindMode(ColorBlindMode mode) {
+    myScreenViewProvider.setColorBlindFilter(mode);
+    for (SceneManager manager : getSceneManagers()) {
+      manager.updateSceneView();
+      manager.requestLayoutAndRenderAsync(false);
+    }
+    revalidateScrollArea();
   }
 
   @Nullable
@@ -940,29 +885,22 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
 
   @Override
   public boolean setScale(double scale, int x, int y) {
-    if (x < 0 || y < 0) {
-      // This happens when zooming is triggered by shortcut or zoom buttons.
-      // We use the center point of scroll pane as scaling center.
-      myZoomCenter.x = getViewport().getViewportComponent().getWidth() / 2;
-      myZoomCenter.y = getViewport().getViewportComponent().getHeight() / 2;
+    boolean changed = super.setScale(scale, x, y);
+    if (changed) {
+      DesignSurfaceViewport port = getViewport();
+      if (!(myLayoutManager instanceof GridSurfaceLayoutManager)) {
+        Point zoomCenterInView;
+        if (x < 0 || y < 0) {
+          x = port.getViewportComponent().getWidth() / 2;
+          y = port.getViewportComponent().getHeight() / 2;
+        }
+        Point scrollPosition = getScrollPosition();
+        zoomCenterInView = new Point(scrollPosition.x + x, scrollPosition.y + y);
 
-      // Convert the center point in scroll pane to view port coordinate system.
-      Point scrollPosition = getScrollPosition();
-      myZoomCenterInViewport.x = scrollPosition.x + myZoomCenter.x;
-      myZoomCenterInViewport.y = scrollPosition.y + myZoomCenter.y;
+        myViewportScroller = new ZoomCenterScroller(new Dimension(port.getViewSize()), new Point(scrollPosition), zoomCenterInView);
+      }
     }
-    else {
-      // This happens when zooming is triggered by mouse wheel or magnify (e.g. the gesture of track pad)
-      myZoomCenterInViewport.x = x;
-      myZoomCenterInViewport.y = y;
-
-      // The given zoom center is in Viewport coordinate, we need to calculate the point in scroll pane.
-      Point center = SwingUtilities.convertPoint(getViewport().getViewComponent(), x, y, getViewport().getViewportComponent());
-      myZoomCenter.x = center.x;
-      myZoomCenter.y = center.y;
-    }
-    myNeedsKeepSameViewportCenter = super.setScale(scale, x, y);
-    return myNeedsKeepSameViewportCenter;
+    return changed;
   }
 
   /**
@@ -1003,27 +941,12 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     rectangle.setRect(rectangle.x * scaleChangeNeeded, rectangle.y * scaleChangeNeeded,
                       rectangle.width * scaleChangeNeeded, rectangle.height * scaleChangeNeeded);
 
-    myViewportChangeHandler = new Function<>() {
-      final private AtomicBoolean alreadyTriggered = new AtomicBoolean(false);
-
-      @Override
-      public Void apply(ChangeEvent event) {
-        if (!alreadyTriggered.getAndSet(true)) {
-          scrollToCenter(sceneView, rectangle);
-          // Change the handler back to the default one
-          myNeedsKeepSameViewportCenter = false;
-          myViewportChangeHandler = defaultViewportChangeHandler;
-        }
-        return null;
-      }
-    };
-
-    if (!setScale(boundedNewScale)) {
-      // If scale hasn't changed, then just scroll to center and change the
-      // handler back to the default one
+    if (setScale(boundedNewScale)) {
+      myViewportScroller = port -> scrollToCenter(sceneView, rectangle);
+    }
+    else {
+      // If scale hasn't changed, then just scroll to center
       scrollToCenter(sceneView, rectangle);
-      myNeedsKeepSameViewportCenter = false;
-      myViewportChangeHandler = defaultViewportChangeHandler;
     }
   }
 

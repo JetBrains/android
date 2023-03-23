@@ -133,12 +133,14 @@ public class JavaToKotlinConversionTest {
     assertThat(KotlinVersionsList.size()).isGreaterThan(2);
      */
 
-    //Click Ok with the default selected value and replacing the default "1.0.0" manually in build.gradle file.
+    //Click Ok with the default selected value and replacing the default "1.0.0" manually in build.gradle.kts file.
     configureKotlinDialogBox.clickOkAndWaitDialogDisappear();
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
-    assertThat(editor.open("build.gradle")
+    assertThat(editor.open("build.gradle.kts")
                  .getCurrentFileContents()
+      // If created as a Kotlin language, this should be written using version catalogs, but this scenario is created as a Java project
+      // first, then converted to Kotlin project. In that case, kotlin plugin isn't written using version catalogs.
                  .contains("org.jetbrains.kotlin.android"))
       .isTrue();
 

@@ -19,7 +19,6 @@ import androidx.compose.compiler.plugins.kotlin.hasComposableAnnotation
 import com.android.tools.compose.code.getComposableFunctionRenderParts
 import com.intellij.navigation.ItemPresentation
 import com.intellij.navigation.ItemPresentationProvider
-import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.idea.presentation.KotlinFunctionPresentation
 import org.jetbrains.kotlin.idea.presentation.KtFunctionPresenter
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
@@ -63,8 +62,7 @@ class ComposableItemPresentationProvider : ItemPresentationProvider<KtFunction> 
         append("@Composable")
         function.name?.let { append(" $it") }
 
-        val functionDescriptor = function.descriptor as? FunctionDescriptor
-        functionDescriptor?.getComposableFunctionRenderParts()?.let { (parameters, tail) ->
+        function.getComposableFunctionRenderParts()?.let { (parameters, tail) ->
           parameters?.let { append(it) }
           tail?.let { append(" $it") }
         }

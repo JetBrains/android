@@ -57,6 +57,7 @@ import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
+import com.android.tools.idea.rendering.parsers.RenderXmlTag;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.utils.HtmlBuilder;
@@ -66,7 +67,6 @@ import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
@@ -81,7 +81,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -91,6 +90,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import org.jetbrains.android.uipreview.ClassLoaderPreloaderKt;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
@@ -157,6 +157,7 @@ public class RenderTask {
   private boolean myShadowEnabled = true;
   private boolean myEnableLayoutScanner = false;
   private boolean myShowWithToolsVisibilityAndPosition = true;
+  private Function<Object, List<ViewInfo>> myCustomContentHierarchyParser = null;
   private long myTimeout;
   @NotNull private final Locale myLocale;
   @NotNull private final Object myCredential;
@@ -230,7 +231,7 @@ public class RenderTask {
     myLayoutLib = layoutLib;
     ActionBarHandler actionBarHandler = new ActionBarHandler(this, myCredential);
     WeakReference<RenderTask> xmlFileProvider = new WeakReference<>(this);
-    ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(renderContext.getModule().getIdeaModule(), () -> {
+    ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(renderContext.getModule(), () -> {
       RenderTask task = xmlFileProvider.get();
       return task != null ? task.getXmlFile() : null;
     });
@@ -514,10 +515,37 @@ public class RenderTask {
   }
 
   /**
+   * Sets a custom parser for creating the {@link ViewInfo} hierarchy from the layout root view.
+   */
+  @SuppressWarnings("UnusedReturnValue")
+  @NotNull
+  public RenderTask setCustomContentHierarchyParser(@NotNull Function<Object, List<ViewInfo>> parser) {
+    myCustomContentHierarchyParser = parser;
+    return this;
+  }
+
+  /**
    * Returns whether this parser will provide view cookies for included views.
    */
   public boolean getProvideCookiesForIncludedViews() {
     return myProvideCookiesForIncludedViews;
+  }
+
+  /**
+   * Returns the root tag for the given {@link XmlFile}, if any, acquiring the read
+   * lock to do so if necessary
+   *
+   * @param file the file to look up the root tag for
+   * @return the corresponding root tag, if any
+   */
+  @Nullable
+  private static String getRootTagName(@NotNull XmlFile file) {
+    ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
+    if (folderType == ResourceFolderType.XML || folderType == ResourceFolderType.MENU || folderType == ResourceFolderType.DRAWABLE) {
+      XmlTag rootTag = AndroidPsiUtils.getRootTagSafely(file);
+      return rootTag == null ? null : rootTag.getName();
+    }
+    return null;
   }
 
   /**
@@ -534,8 +562,8 @@ public class RenderTask {
       return null;
     }
 
-    PsiFile psiFile = getXmlFile();
-    if (psiFile == null) {
+    XmlFile xmlFile = getXmlFile();
+    if (xmlFile == null) {
       throw new IllegalStateException("createRenderSession shouldn't be called on RenderTask without PsiFile");
     }
     if (isDisposed.get()) {
@@ -579,7 +607,7 @@ public class RenderTask {
                         myLogger, simulatedPlatform);
     params.setAssetRepository(context.getModule().getAssetRepository());
 
-    params.setFlag(RenderParamsFlags.FLAG_KEY_ROOT_TAG, AndroidUtils.getRootTagName(psiFile));
+    params.setFlag(RenderParamsFlags.FLAG_KEY_ROOT_TAG, getRootTagName(xmlFile));
     params.setFlag(RenderParamsFlags.FLAG_KEY_DISABLE_BITMAP_CACHING, true);
     params.setFlag(RenderParamsFlags.FLAG_DO_NOT_RENDER_ON_CREATE, true);
     params.setFlag(RenderParamsFlags.FLAG_KEY_RESULT_IMAGE_AUTO_SCALE, true);
@@ -588,6 +616,8 @@ public class RenderTask {
     params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
     params.setFlag(RenderParamsFlags.FLAG_KEY_USE_THEMED_ICON, configuration.getUseThemedIcon());
     params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
+
+    params.setCustomContentHierarchyParser(myCustomContentHierarchyParser);
 
     // Request margin and baseline information.
     // TODO: Be smarter about setting this; start without it, and on the first request
@@ -680,7 +710,7 @@ public class RenderTask {
           // Advance the frame time to display the material progress bars
           session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
         }
-        RenderResult result = RenderResult.create(context, session, psiFile, myLogger, myImagePool.copyOf(session.getImage()), myLayoutlibCallback.isUsed());
+        RenderResult result = RenderResult.create(context, session, xmlFile, myLogger, myImagePool.copyOf(session.getImage()), myLayoutlibCallback.isUsed());
         RenderSession oldRenderSession = myRenderSession;
         myRenderSession = session;
         if (oldRenderSession != null) {
@@ -716,30 +746,20 @@ public class RenderTask {
 
     // Code to support editing included layout.
     if (myIncludedWithin == null) {
-      String layout = IncludeReference.getIncludingLayout(xmlFile);
-      myIncludedWithin = layout != null ? IncludeReference.get(xmlFile, resolver) : IncludeReference.NONE;
+      myIncludedWithin = myContext.getModule().getEnvironment().createIncludeReference(xmlFile, resolver);
     }
 
     ILayoutPullParser topParser = null;
     if (myIncludedWithin != IncludeReference.NONE) {
-      assert Objects.equals(myIncludedWithin.getToFile(), xmlFile.getVirtualFile());
-      // TODO: Validate that we're really including the same layout here!
-      //ResourceValue contextLayout = resolver.findResValue(myIncludedWithin.getFromResourceUrl(), false  /* forceFrameworkOnly*/);
-      //if (contextLayout != null) {
-      //  File layoutFile = new File(contextLayout.getValue());
-      //  if (layoutFile.isFile()) {
-      //
-      VirtualFile layoutVirtualFile = myIncludedWithin.getFromFile();
-
       // Get the name of the layout actually being edited, without the extension
       // as it's what IXmlPullParser.getParser(String) will receive.
       String queryLayoutName = SdkUtils.fileNameToResourceName(xmlFile.getName());
       myLayoutlibCallback.setLayoutParser(queryLayoutName, modelParser);
 
       // Attempt to read from PSI.
-      PsiFile psiFile = AndroidPsiUtils.getPsiFileSafely(getContext().getModule().getProject(), layoutVirtualFile);
-      if (psiFile instanceof XmlFile) {
-        LayoutPsiPullParser parser = LayoutPsiPullParser.create((XmlFile)psiFile, myLogger,
+      XmlFile fromXmlFile = myIncludedWithin.getFromXmlFile(myContext.getModule().getProject());
+      if (fromXmlFile != null) {
+        LayoutPsiPullParser parser = LayoutPsiPullParser.create(fromXmlFile, myLogger,
                                                                 myContext.getModule().getResourceRepositoryManager());
         // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
         parser.setProvideViewCookies(myProvideCookiesForIncludedViews);
@@ -1236,12 +1256,12 @@ public class RenderTask {
    * @return a map from the children of the parent to new bounds of the children
    */
   @NotNull
-  public CompletableFuture<Map<XmlTag, ViewInfo>> measureChildren(@NotNull XmlTag parent, @Nullable AttributeFilter filter) {
+  public CompletableFuture<Map<RenderXmlTag, ViewInfo>> measureChildren(@NotNull RenderXmlTag parent, @Nullable AttributeFilter filter) {
     ILayoutPullParser modelParser = LayoutPsiPullParser.create(filter,
                                                                parent,
                                                                myLogger,
                                                                myContext.getModule().getResourceRepositoryManager());
-    Map<XmlTag, ViewInfo> map = new HashMap<>();
+    Map<RenderXmlTag, ViewInfo> map = new HashMap<>();
     return RenderService.getRenderAsyncActionExecutor().runAsyncAction(myPriority, () -> measure(modelParser))
       .thenComposeAsync(session -> {
         if (session != null) {
@@ -1253,7 +1273,7 @@ public class RenderTask {
               ViewInfo root = session.getRootViews().get(0);
               List<ViewInfo> children = root.getChildren();
               for (ViewInfo info : children) {
-                XmlTag tag = RenderService.getXmlTag(info);
+                RenderXmlTag tag = RenderService.getXmlTag(info);
                 if (tag != null) {
                   map.put(tag, info);
                 }
@@ -1280,22 +1300,13 @@ public class RenderTask {
    * @return a {@link CompletableFuture} that will return the {@link ViewInfo} if found.
    */
   @NotNull
-  public CompletableFuture<ViewInfo> measureChild(@NotNull XmlTag tag, @Nullable AttributeFilter filter) {
-    XmlTag parent = tag.getParentTag();
+  public CompletableFuture<ViewInfo> measureChild(@NotNull RenderXmlTag tag, @Nullable AttributeFilter filter) {
+    RenderXmlTag parent = tag.getParentTag();
     if (parent == null) {
       return CompletableFuture.completedFuture(null);
     }
 
-    return measureChildren(parent, filter)
-      .thenApply(map -> {
-        for (Map.Entry<XmlTag, ViewInfo> entry : map.entrySet()) {
-          if (entry.getKey() == tag) {
-            return entry.getValue();
-          }
-        }
-
-        return null;
-      });
+    return measureChildren(parent, filter).thenApply(map -> map.get(tag));
   }
 
   @Nullable
@@ -1391,7 +1402,7 @@ public class RenderTask {
      * @return an override value, or null to return the unfiltered value
      */
     @Nullable
-    String getAttribute(@NotNull XmlTag node, @Nullable String namespace, @NotNull String localName);
+    String getAttribute(@NotNull RenderXmlTag node, @Nullable String namespace, @NotNull String localName);
   }
 
   /**

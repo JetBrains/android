@@ -46,7 +46,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.AndroidSdkData;
-import org.jetbrains.android.sdk.AndroidTargetData;
+import com.android.tools.sdk.AndroidTargetData;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -377,7 +377,7 @@ public class ConfigurationManager implements Disposable {
 
   @NotNull
   public Project getProject() {
-    return myModule.getProject();
+    return myConfigurationModule.getProject();
   }
 
   @NotNull

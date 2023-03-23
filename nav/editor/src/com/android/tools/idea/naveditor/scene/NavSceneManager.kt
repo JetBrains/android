@@ -59,6 +59,7 @@ import com.android.tools.idea.naveditor.scene.targets.NavScreenTargetProvider
 import com.android.tools.idea.naveditor.scene.targets.NavigationTargetProvider
 import com.android.tools.idea.naveditor.surface.NavDesignSurface
 import com.android.tools.idea.naveditor.surface.NavView
+import com.android.tools.idea.rendering.parsers.PsiXmlTag
 import com.android.tools.idea.rendering.parsers.TagSnapshot
 import com.intellij.openapi.command.undo.BasicUndoableAction
 import com.intellij.openapi.command.undo.UndoManager
@@ -558,7 +559,7 @@ private fun buildTree(roots: List<XmlTag>): List<NlModel.TagSnapshotTreeNode> {
   return roots.map {
     object : NlModel.TagSnapshotTreeNode {
       override fun getTagSnapshot(): TagSnapshot {
-        return TagSnapshot.createTagSnapshot(it, null)
+        return TagSnapshot.createTagSnapshot(PsiXmlTag(it), null)
       }
 
       override fun getChildren(): List<NlModel.TagSnapshotTreeNode> {

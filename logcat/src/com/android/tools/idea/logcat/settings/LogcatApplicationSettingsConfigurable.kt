@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.logcat.settings
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.LogcatToolWindowFactory
 import com.android.tools.idea.logcat.filters.parser.LogcatFilterFileType
@@ -73,10 +72,6 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
   internal val filterHistoryAutocompleteCheckbox =
     JCheckBox(LogcatBundle.message("logcat.settings.history.autocomplete"), logcatSettings.filterHistoryAutocomplete)
 
-  @VisibleForTesting
-  internal val enableNamedFiltersCheckbox =
-    JCheckBox(LogcatBundle.message("logcat.settings.enable.named.filters"), logcatSettings.namedFiltersEnabled)
-
   private val component = JPanel(GridBagLayout())
 
   override fun createComponent() = component.apply {
@@ -108,9 +103,6 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
 
       add(filterHistoryAutocompleteCheckbox, gridBag.nextLine().next().coverLine().anchor(NORTHWEST).pady(10))
 
-      if (StudioFlags.LOGCAT_NAMED_FILTERS_ENABLE.get()) {
-        add(enableNamedFiltersCheckbox, gridBag.nextLine().next().coverLine().anchor(NORTHWEST))
-      }
       // Add an empty panel that consumes all vertical space bellow.
       add(JPanel(), gridBag.nextLine().next().weighty(1.0))
     }
@@ -134,7 +126,6 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
            || defaultFilterTextField.text != logcatSettings.defaultFilter
            || mostRecentlyUsedFilterIsDefaultCheckbox.isSelected != logcatSettings.mostRecentlyUsedFilterIsDefault
            || filterHistoryAutocompleteCheckbox.isSelected != logcatSettings.filterHistoryAutocomplete
-           || enableNamedFiltersCheckbox.isSelected != logcatSettings.namedFiltersEnabled
            || ignoreTagsTextField.getIgnoredTags() != logcatSettings.ignoredTags
   }
 
@@ -143,7 +134,6 @@ internal class LogcatApplicationSettingsConfigurable(private val logcatSettings:
     logcatSettings.defaultFilter = defaultFilterTextField.text
     logcatSettings.mostRecentlyUsedFilterIsDefault = mostRecentlyUsedFilterIsDefaultCheckbox.isSelected
     logcatSettings.filterHistoryAutocomplete = filterHistoryAutocompleteCheckbox.isSelected
-    logcatSettings.namedFiltersEnabled = enableNamedFiltersCheckbox.isSelected
     logcatSettings.ignoredTags = ignoreTagsTextField.getIgnoredTags()
 
     LogcatToolWindowFactory.logcatPresenters.forEach {

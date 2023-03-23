@@ -16,13 +16,12 @@
 package com.android.tools.idea.dagger.index.psiwrappers
 
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiMethod
-import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -65,7 +64,7 @@ class DaggerIndexMethodWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("b|ar").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("b|ar")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("bar")
@@ -92,7 +91,7 @@ class DaggerIndexMethodWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("b|ar").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("b|ar")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getReturnType()).isNull()
@@ -117,7 +116,7 @@ class DaggerIndexMethodWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("b|ar").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("b|ar")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation1")).isTrue()
@@ -140,7 +139,7 @@ class DaggerIndexMethodWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("b|ar").parentOfType<KtFunction>()!!
+    val element: KtFunction = myFixture.findParentElement("b|ar")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getContainingClass()).isNull()
@@ -160,7 +159,7 @@ class DaggerIndexMethodWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("Foo(a|rg1").parentOfType<KtPrimaryConstructor>()!!
+    val element: KtPrimaryConstructor = myFixture.findParentElement("Foo(a|rg1")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("Foo")
@@ -187,7 +186,7 @@ class DaggerIndexMethodWrapperTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("constr|uctor").parentOfType<KtSecondaryConstructor>()!!
+    val element: KtSecondaryConstructor = myFixture.findParentElement("constr|uctor")
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("Foo")
@@ -213,7 +212,7 @@ class DaggerIndexMethodWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("b|ar").parentOfType<PsiMethod>()!!
+    val element: PsiMethod = myFixture.findParentElement("b|ar")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("bar")
@@ -242,7 +241,7 @@ class DaggerIndexMethodWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("b|ar").parentOfType<PsiMethod>()!!
+    val element: PsiMethod = myFixture.findParentElement("b|ar")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation1")).isTrue()
@@ -266,7 +265,7 @@ class DaggerIndexMethodWrapperTest {
           .trimIndent()
       ) as PsiJavaFile
 
-    val element = myFixture.moveCaret("Fo|o(int").parentOfType<PsiMethod>()!!
+    val element: PsiMethod = myFixture.findParentElement("Fo|o(int")
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("Foo")

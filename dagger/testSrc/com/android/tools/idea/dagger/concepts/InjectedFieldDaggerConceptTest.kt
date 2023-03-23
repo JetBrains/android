@@ -15,25 +15,21 @@
  */
 package com.android.tools.idea.dagger.concepts
 
-import com.android.tools.idea.AndroidPsiUtils.toPsiType
 import com.android.tools.idea.dagger.addDaggerAndHiltClasses
 import com.android.tools.idea.dagger.index.IndexValue
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexFieldWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexPsiWrapper
-import com.android.tools.idea.kotlin.toPsiType
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
-import com.intellij.psi.PsiClass
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiField
-import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.util.projectScope
-import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtProperty
 import org.junit.Before
@@ -48,10 +44,12 @@ class InjectedFieldDaggerConceptTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory().onEdt()
 
   private lateinit var myFixture: CodeInsightTestFixture
+  private lateinit var myProject: Project
 
   @Before
   fun setup() {
     myFixture = projectRule.fixture
+    myProject = myFixture.project
   }
 
   private fun runIndexer(wrapper: DaggerIndexFieldWrapper): Map<String, Set<IndexValue>> =
@@ -79,7 +77,7 @@ class InjectedFieldDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("hea|ter").parentOfType<KtProperty>()!!
+    val element: KtProperty = myFixture.findParentElement("hea|ter")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries)
@@ -105,7 +103,7 @@ class InjectedFieldDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("hea|ter").parentOfType<KtProperty>()!!
+    val element: KtProperty = myFixture.findParentElement("hea|ter")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries).isEmpty()
@@ -129,7 +127,7 @@ class InjectedFieldDaggerConceptTest {
           .trimIndent()
       ) as KtFile
 
-    val element = myFixture.moveCaret("hea|ter").parentOfType<KtProperty>()!!
+    val element: KtProperty = myFixture.findParentElement("hea|ter")
     val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
 
     assertThat(entries).isEmpty()
@@ -163,48 +161,15 @@ class InjectedFieldDaggerConceptTest {
         .trimIndent()
     )
 
-    val heaterPsiType =
-      myFixture.moveCaret("interface Heat|er").parentOfType<KtClass>()!!.toPsiType()!!
-    val otherPsiType =
-      myFixture.moveCaret("class Coffee|Maker").parentOfType<KtClass>()!!.toPsiType()!!
-
     val indexValue1 = InjectedFieldIndexValue("com.example.CoffeeMaker", "heater")
     val indexValue2 = InjectedFieldIndexValue("com.example.CoffeeMaker", "notInjectedHeater")
 
-    val heaterField = myFixture.moveCaret("var hea|ter").parentOfType<KtProperty>()!!
+    val heaterField: KtProperty = myFixture.findParentElement("var hea|ter")
 
-    val resolvedIndexValue1 =
-      indexValue1
-        .resolveToDaggerElements(heaterPsiType, myFixture.project, myFixture.project.projectScope())
-        .single()
-    assertThat(resolvedIndexValue1.psiElement).isEqualTo(heaterField)
-    assertThat(resolvedIndexValue1.daggerType).isEqualTo(DaggerElement.Type.CONSUMER)
+    assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
+      .isEqualTo(ConsumerDaggerElement(heaterField))
 
-    assertThat(
-        indexValue1.resolveToDaggerElements(
-          otherPsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .isEmpty()
-
-    assertThat(
-        indexValue2.resolveToDaggerElements(
-          heaterPsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .isEmpty()
-    assertThat(
-        indexValue2.resolveToDaggerElements(
-          otherPsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
   }
 
   @Test
@@ -231,47 +196,14 @@ class InjectedFieldDaggerConceptTest {
         .trimIndent()
     )
 
-    val heaterPsiType =
-      toPsiType(myFixture.moveCaret("interface Heat|er").parentOfType<PsiClass>()!!)!!
-    val otherPsiType =
-      toPsiType(myFixture.moveCaret("class Coffee|Maker").parentOfType<PsiClass>()!!)!!
-
     val indexValue1 = InjectedFieldIndexValue("com.example.CoffeeMaker", "heater")
     val indexValue2 = InjectedFieldIndexValue("com.example.CoffeeMaker", "notInjectedHeater")
 
-    val heaterField = myFixture.moveCaret("Heater hea|ter").parentOfType<PsiField>()!!
+    val heaterField: PsiField = myFixture.findParentElement("Heater hea|ter")
 
-    val resolvedIndexValue1 =
-      indexValue1
-        .resolveToDaggerElements(heaterPsiType, myFixture.project, myFixture.project.projectScope())
-        .single()
-    assertThat(resolvedIndexValue1.psiElement).isEqualTo(heaterField)
-    assertThat(resolvedIndexValue1.daggerType).isEqualTo(DaggerElement.Type.CONSUMER)
+    assertThat(indexValue1.resolveToDaggerElements(myProject, myProject.projectScope()).single())
+      .isEqualTo(ConsumerDaggerElement(heaterField))
 
-    assertThat(
-        indexValue1.resolveToDaggerElements(
-          otherPsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .isEmpty()
-
-    assertThat(
-        indexValue2.resolveToDaggerElements(
-          heaterPsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .isEmpty()
-    assertThat(
-        indexValue2.resolveToDaggerElements(
-          otherPsiType,
-          myFixture.project,
-          myFixture.project.projectScope()
-        )
-      )
-      .isEmpty()
+    assertThat(indexValue2.resolveToDaggerElements(myProject, myProject.projectScope())).isEmpty()
   }
 }

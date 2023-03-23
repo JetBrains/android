@@ -17,7 +17,7 @@ package com.android.tools.idea.dagger.concepts
 
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.dagger.index.DaggerIndex
-import com.android.tools.idea.dagger.localization.DaggerBundle
+import com.android.tools.idea.dagger.index.getIndexKeys
 import com.android.tools.idea.dagger.unboxed
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
@@ -41,8 +41,13 @@ typealias DaggerRelatedElement = Pair<DaggerElement, String>
  * Wrapper around a PsiElement that represents an item in the Dagger graph, along with associated
  * data.
  */
-abstract class DaggerElement
-internal constructor(val psiElement: PsiElement, val daggerType: Type) {
+sealed class DaggerElement {
+
+  abstract val psiElement: PsiElement
+  abstract val daggerType: Type
+
+  protected val elementPsiType: PsiType
+    get() = psiElement.getPsiType().unboxed
 
   enum class Type {
     PROVIDER,
@@ -59,14 +64,14 @@ internal constructor(val psiElement: PsiElement, val daggerType: Type) {
    * Looks up related Dagger elements using [DaggerIndex]. Derived classes should use this to
    * implement the part of [getRelatedDaggerElements] that finds items stored in the index.
    */
-  internal fun getRelatedDaggerElementsFromIndex(relatedItemTypes: Set<Type>): List<DaggerElement> {
+  internal fun getRelatedDaggerElementsFromIndex(
+    relatedItemTypes: Set<Type>,
+    indexKeys: List<String> = elementPsiType.getIndexKeys()
+  ): List<DaggerElement> {
     val project = psiElement.project
     val scope = project.projectScope()
-    val psiType = psiElement.getPsiType()
 
-    return DaggerIndex
-      // Get index keys
-      .getIndexKeys(psiType.canonicalText, project, scope)
+    return indexKeys
       // Look up the keys in the index
       .flatMap { DaggerIndex.getValues(it, scope) }
       // Remove types we aren't interested in before resolving
@@ -75,26 +80,26 @@ internal constructor(val psiElement: PsiElement, val daggerType: Type) {
       // identical values)
       .distinct()
       // Resolve index values
-      .flatMap { it.resolveToDaggerElements(psiType, project, scope) }
+      .flatMap { it.resolveToDaggerElements(project, scope) }
       // Ensure there are no duplicate resolved values
       .distinct()
+      // Filter out any candidates that are not applicable.
+      .filter(this::filterResolveCandidate)
   }
-}
 
-internal class ProviderDaggerElement(psiElement: PsiElement) :
-  DaggerElement(psiElement, Type.PROVIDER) {
-  override fun getRelatedDaggerElements(): List<DaggerRelatedElement> =
-    getRelatedDaggerElementsFromIndex(setOf(Type.CONSUMER)).map {
-      DaggerRelatedElement(it, DaggerBundle.message("consumers"))
-    }
-}
+  /**
+   * Given a candidate related element that's been resolved from the index, decide if it is actually
+   * applicable. This includes comparing [PsiType]s, although the exact comparison depends on the
+   * relationship between this [DaggerElement] and the candidate.
+   */
+  abstract fun filterResolveCandidate(resolveCandidate: DaggerElement): Boolean
 
-internal class ConsumerDaggerElement(psiElement: PsiElement) :
-  DaggerElement(psiElement, Type.CONSUMER) {
-  override fun getRelatedDaggerElements(): List<DaggerRelatedElement> =
-    getRelatedDaggerElementsFromIndex(setOf(Type.PROVIDER)).map {
-      DaggerRelatedElement(it, DaggerBundle.message("providers"))
-    }
+  /**
+   * Gets the index keys associated with the given [PsiType], using the project and project scope
+   * from the current [DaggerElement]'s [PsiElement].
+   */
+  protected fun PsiType.getIndexKeys() =
+    getIndexKeys(this, psiElement.project, psiElement.project.projectScope())
 }
 
 fun interface DaggerElementIdentifier<T : PsiElement> {

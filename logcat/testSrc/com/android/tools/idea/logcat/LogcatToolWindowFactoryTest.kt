@@ -16,6 +16,7 @@
 package com.android.tools.idea.logcat
 
 import com.android.processmonitor.monitor.ProcessNameMonitor
+import com.android.processmonitor.monitor.testing.FakeProcessNameMonitor
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
@@ -69,7 +70,6 @@ class LogcatToolWindowFactoryTest {
 
   private val project get() = projectRule.project
   private val disposable get() = disposableRule.disposable
-  private val mockProcessNameMonitor = mock<ProcessNameMonitor>()
   private val fakeLogcatService = FakeLogcatService()
 
   @Before
@@ -137,6 +137,8 @@ class LogcatToolWindowFactoryTest {
 
   @Test
   fun startsProcessNameMonitor() {
+    val mockProcessNameMonitor = mock<ProcessNameMonitor>()
+
     logcatToolWindowFactory(mockProcessNameMonitor).init(MockToolWindow(project))
 
     verify(mockProcessNameMonitor).start()
@@ -167,7 +169,7 @@ class LogcatToolWindowFactoryTest {
   }
 
   private fun logcatToolWindowFactory(
-    processNameMonitor: ProcessNameMonitor = mockProcessNameMonitor,
+    processNameMonitor: ProcessNameMonitor = FakeProcessNameMonitor(),
   ): LogcatToolWindowFactory {
     project.registerOrReplaceServiceInstance(ProcessNameMonitor::class.java, processNameMonitor, disposable)
     return LogcatToolWindowFactory()

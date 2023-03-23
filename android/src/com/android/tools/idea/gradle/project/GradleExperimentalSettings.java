@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project;
 
+import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.flags.ExperimentalSettingsConfigurable.TraceProfileItem;
 import com.android.tools.idea.flags.StudioFlags;
 import com.intellij.openapi.application.ApplicationManager;
@@ -31,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 )
 public class GradleExperimentalSettings implements PersistentStateComponent<GradleExperimentalSettings> {
   public boolean USE_L2_DEPENDENCIES_ON_SYNC = true;
-  public boolean SKIP_GRADLE_TASKS_LIST = true;
+  public boolean SKIP_GRADLE_TASKS_LIST = IdeInfo.getInstance().isAndroidStudio();
 
   public boolean ENABLE_PARALLEL_SYNC = true;
 

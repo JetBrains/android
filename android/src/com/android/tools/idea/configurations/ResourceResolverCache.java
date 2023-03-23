@@ -18,8 +18,8 @@ package com.android.tools.idea.configurations;
 import static com.android.SdkConstants.PREFIX_RESOURCE_REF;
 
 import com.android.SdkConstants;
-import com.android.annotations.concurrency.Slow;
 import com.android.annotations.concurrency.GuardedBy;
+import com.android.annotations.concurrency.Slow;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.ide.common.resources.ResourceRepository;
@@ -32,8 +32,9 @@ import com.android.ide.common.util.DisjointUnionMap;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
 import com.android.sdklib.IAndroidTarget;
-import com.android.tools.idea.res.LocalResourceRepository;
+import com.android.tools.idea.res.CacheableResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.utils.SparseArray;
 import com.google.common.annotations.VisibleForTesting;
@@ -44,9 +45,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import com.android.tools.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidPlatforms;
-import org.jetbrains.android.sdk.AndroidTargetData;
+import com.android.tools.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -109,7 +108,7 @@ public class ResourceResolverCache {
     if (repositoryManager == null) {
       return ResourceResolver.create(Collections.emptyMap(), null);
     }
-    LocalResourceRepository resources = repositoryManager.getAppResources();
+    CacheableResourceRepository resources = repositoryManager.getAppResources();
     synchronized (myLock) {
       if (myCachedGeneration != resources.getModificationCount()) {
         myResolverMap.clear();

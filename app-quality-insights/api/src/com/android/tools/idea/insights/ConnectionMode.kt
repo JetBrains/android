@@ -16,10 +16,14 @@
 package com.android.tools.idea.insights
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.insights.events.EnterOfflineMode
+import com.android.tools.idea.insights.events.EnterOnlineMode
 
 enum class ConnectionMode {
   ONLINE,
   OFFLINE;
 
   fun isOfflineMode() = StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED.get() && this == OFFLINE
+
+  fun toEvent() = if (this == ONLINE) EnterOnlineMode else EnterOfflineMode
 }

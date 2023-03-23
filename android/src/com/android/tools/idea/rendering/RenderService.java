@@ -23,7 +23,6 @@ import com.android.ide.common.rendering.api.SessionParams;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.diagnostics.crash.StudioCrashReporter;
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderingException;
 import com.android.tools.idea.layoutlib.UnsupportedJavaRuntimeException;
@@ -31,26 +30,26 @@ import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
-import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
+import com.android.tools.idea.rendering.parsers.RenderXmlTag;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import com.android.tools.sdk.AndroidPlatform;
-import org.jetbrains.android.sdk.AndroidTargetData;
+import com.android.tools.sdk.AndroidTargetData;
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -123,11 +122,6 @@ final public class RenderService implements Disposable {
     }
     return AndroidTargetData.get(platform.getSdkData(), target)
       .getLayoutLibrary(environment.getParentDisposable(), environment::hasLayoutlibCrash);
-  }
-
-  /** Returns true if the given file can be rendered */
-  public static boolean canRender(@Nullable PsiFile file) {
-    return file != null && LayoutPullParsers.isSupported(file);
   }
 
   protected RenderService(@NotNull Consumer<RenderTaskBuilder> configureBuilder) {
@@ -230,13 +224,13 @@ final public class RenderService implements Disposable {
   }
 
   /**
-   * Returns the {@link XmlTag} associated with a {@link ViewInfo}, if any
+   * Returns the {@link RenderXmlTag} associated with a {@link ViewInfo}, if any
    *
    * @param view the view to check
    * @return the corresponding tag, if any
    */
   @Nullable
-  public static XmlTag getXmlTag(@NotNull ViewInfo view) {
+  public static RenderXmlTag getXmlTag(@NotNull ViewInfo view) {
     Object cookie = view.getCookie();
     if (cookie != null) {
       if (cookie instanceof TagSnapshot) {
@@ -250,8 +244,8 @@ final public class RenderService implements Disposable {
           return snapshot.tag;
         }
       }
-      if (cookie instanceof XmlTag) {
-        return (XmlTag)cookie;
+      if (cookie instanceof RenderXmlTag) {
+        return (RenderXmlTag)cookie;
       }
     }
 
@@ -285,7 +279,7 @@ final public class RenderService implements Disposable {
     private final RenderContext myContext;
     private final Object myCredential;
     @NotNull private ImagePool myImagePool;
-    @Nullable private PsiFile myPsiFile;
+    @Nullable private XmlFile myXmlFile;
     @NotNull private final RenderLogger myLogger;
     @Nullable private ILayoutPullParserFactory myParserFactory;
     private boolean isSecurityManagerEnabled = true;
@@ -297,6 +291,7 @@ final public class RenderService implements Disposable {
     private boolean enableLayoutScanner = false;
     private SessionParams.RenderingMode myRenderingMode = null;
     private boolean useTransparentBackground = false;
+    private Function<Object, List<ViewInfo>> myCustomContentHierarchyParser = null;
 
     /**
      * If two RenderTasks share the same ModuleClassLoader they share the same compose framework. This way they share the state. If we would
@@ -365,8 +360,8 @@ final public class RenderService implements Disposable {
     }
 
     @NotNull
-    public RenderTaskBuilder withPsiFile(@NotNull PsiFile psiFile) {
-      this.myPsiFile = psiFile;
+    public RenderTaskBuilder withPsiFile(@NotNull XmlFile xmlFile) {
+      this.myXmlFile = xmlFile;
       return this;
     }
 
@@ -517,6 +512,15 @@ final public class RenderService implements Disposable {
     }
 
     /**
+     * Sets a custom parser for creating the {@link ViewInfo} hierarchy from the layout root view.
+     */
+    @NotNull
+    public RenderTaskBuilder setCustomContentHierarchyParser(@NotNull Function<Object, List<ViewInfo>> parser) {
+      myCustomContentHierarchyParser = parser;
+      return this;
+    }
+
+    /**
      * Builds a new {@link RenderTask}. The returned future always completes successfully but the value might be null if the RenderTask
      * can not be created.
      */
@@ -569,9 +573,8 @@ final public class RenderService implements Disposable {
                            myParserFactory, isSecurityManagerEnabled, myQuality, stackTraceCaptureElement,
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
                            classesToPreload, reportOutOfDateUserClasses, myPriority, myMinDownscalingFactor);
-          if (myPsiFile instanceof XmlFile) {
-            task.setXmlFile((XmlFile)myPsiFile);
-          }
+
+          task.setXmlFile(myXmlFile);
 
           task
             .setDecorations(showDecorations)
@@ -588,6 +591,10 @@ final public class RenderService implements Disposable {
 
           if (myRenderingMode != null) {
             task.setRenderingMode(myRenderingMode);
+          }
+
+          if (myCustomContentHierarchyParser != null) {
+            task.setCustomContentHierarchyParser(myCustomContentHierarchyParser);
           }
 
           return task;

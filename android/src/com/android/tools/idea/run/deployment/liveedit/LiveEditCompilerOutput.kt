@@ -24,9 +24,9 @@ internal enum class LiveEditClassType {
 
 internal class LiveEditCompiledClass(val name: String, var data: ByteArray, val module: Module?, val type: LiveEditClassType)
 
-data class LiveEditCompilerOutput internal constructor (val classes: List<LiveEditCompiledClass>,
-                                                       val groupIds: List<Int>,
-                                                       val resetState: Boolean) {
+data class LiveEditCompilerOutput internal constructor (val classes: List<LiveEditCompiledClass> = emptyList(),
+                                                        val groupIds: List<Int> = emptyList(),
+                                                        val resetState: Boolean = false) {
 
   private fun getMap(type: LiveEditClassType) : Map<String, ByteArray> {
     val map : MutableMap<String, ByteArray> = HashMap()

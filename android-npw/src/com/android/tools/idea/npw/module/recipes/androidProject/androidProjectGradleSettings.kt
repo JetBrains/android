@@ -38,8 +38,11 @@ dependencyResolutionManagement {
     mavenCentral()
   }
 }
+""".gradleSettingsToKtsIfKts(useGradleKts) +
+    """
 rootProject.name = "$escapedAppTitle"
-""".gradleSettingsToKtsIfKts(useGradleKts)
+"""
+
   }
 }
 

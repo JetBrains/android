@@ -26,17 +26,13 @@ import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.progress.impl.BackgroundableProcessIndicator
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiFile
-import java.io.File
 import java.time.Duration
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.time.withTimeout
 import kotlinx.coroutines.withContext
-import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
 
 /** Maximum amount of time to wait for a fast compilation to happen. */
 private val FAST_PREVIEW_COMPILE_TIMEOUT =
@@ -61,7 +57,7 @@ internal suspend fun fastCompile(
   fastPreviewManager: FastPreviewManager = FastPreviewManager.getInstance(files.first().project),
   requestTracker: FastPreviewTrackerManager.Request =
     FastPreviewTrackerManager.getInstance(files.first().project).trackRequest()
-): CompilationResult = coroutineScope {
+): Pair<CompilationResult, String> = coroutineScope {
   val project = files.first().project
 
   val compileProgressIndicator =
@@ -77,17 +73,12 @@ internal suspend fun fastCompile(
       withTimeout(Duration.ofSeconds(FAST_PREVIEW_COMPILE_TIMEOUT)) {
         fastPreviewManager.compileRequest(files, contextModule, tracker = requestTracker)
       }
-    val isSuccess = result == CompilationResult.Success
-    if (isSuccess) {
-      ModuleClassLoaderOverlays.getInstance(contextModule)
-        .pushOverlayPath(File(outputAbsolutePath).toPath())
-    }
 
-    return@coroutineScope result
+    return@coroutineScope result to outputAbsolutePath
   } catch (_: CancellationException) {
-    return@coroutineScope CompilationResult.CompilationAborted()
+    return@coroutineScope CompilationResult.CompilationAborted() to ""
   } catch (_: ProcessCanceledException) {
-    return@coroutineScope CompilationResult.CompilationAborted()
+    return@coroutineScope CompilationResult.CompilationAborted() to ""
   } finally {
     compileProgressIndicator.stop()
     compileProgressIndicator.processFinish()
@@ -108,7 +99,7 @@ internal suspend fun requestFastPreviewRefreshAndTrack(
   files: Set<PsiFile>,
   currentStatus: ComposePreviewManager.Status,
   launcher: UniqueTaskCoroutineLauncher,
-  trackedForceRefresh: () -> Deferred<Unit>
+  trackedForceRefresh: suspend (String) -> Unit
 ): CompilationResult = coroutineScope {
   // We delay the reporting of compilationSucceded until we have the amount of time the refresh
   // took. Either refreshSucceeded or
@@ -169,24 +160,23 @@ internal suspend fun requestFastPreviewRefreshAndTrack(
     CompletableDeferred<CompilationResult>(CompilationResult.CompilationError())
 
   launcher.launch {
-    var refreshResult: Deferred<Unit>? = null
     try {
       if (!currentStatus.hasSyntaxErrors) {
-        val result =
+        val (result, outputAbsolutePath) =
           fastCompile(parentDisposable, contextModule, files, requestTracker = requestTracker)
         deferredCompilationResult.complete(result)
         if (result is CompilationResult.Success) {
           val refreshStartMs = System.currentTimeMillis()
-          refreshResult = trackedForceRefresh()
-          refreshResult.invokeOnCompletion { throwable ->
-            when (throwable) {
-              null -> requestTracker.refreshSucceeded(System.currentTimeMillis() - refreshStartMs)
-              is CancellationException ->
-                requestTracker.refreshCancelled(compilationCompleted = true)
-              else -> requestTracker.refreshFailed()
-            }
+          try {
+            trackedForceRefresh(outputAbsolutePath)
+            requestTracker.refreshSucceeded(System.currentTimeMillis() - refreshStartMs)
+          } catch (t: CancellationException) {
+            requestTracker.refreshCancelled(compilationCompleted = true)
+            throw t
+          } catch (t: Throwable) {
+            requestTracker.refreshFailed()
+            throw t
           }
-          refreshResult.join()
         } else {
           if (result is CompilationResult.CompilationAborted) {
             requestTracker.refreshCancelled(compilationCompleted = false)
@@ -208,7 +198,6 @@ internal suspend fun requestFastPreviewRefreshAndTrack(
       // Use NonCancellable to make sure to wait until the cancellation is completed.
       withContext(NonCancellable) {
         deferredCompilationResult.complete(CompilationResult.CompilationAborted())
-        refreshResult?.cancelAndJoin()
         throw e
       }
     }

@@ -367,24 +367,22 @@ class DeviceViewPanel(
     layeredPane.add(floatingToolbarProvider.floatingToolbar)
     layeredPane.add(scrollPane, BorderLayout.CENTER)
 
-    // Zoom to fit on initial connect
-    model.modificationListeners.add { _, new, _ ->
+    var shouldZoomToFit = true
+    layoutInspector.processModel?.addSelectedProcessListeners {
+      shouldZoomToFit = true
+    }
+
+    model.modificationListeners.add { _, _, _ ->
       if (contentPanel.renderModel.maxWidth == 0) {
+        // renderModel.maxWidth is used as indicator of first render
+        // TODO(b/265150325) move to a more generic place
         layoutInspector.currentClient.stats.recompositionHighlightColor = renderSettings.highlightColor
-        contentPanel.renderModel.refresh()
-        if (!zoom(ZoomType.FIT)) {
-          // If we didn't change the zoom, we need to refresh explicitly. Otherwise the zoom listener will do it.
-          new?.refreshImages(renderSettings.scaleFraction)
-          contentPanel.renderModel.refresh()
-        }
       }
-      else {
-        // refreshImages is done here instead of by the model itself so that we can be sure to zoom to fit first before trying to render
-        // images upon first connecting.
-        if (layoutInspector.currentClient.isConnected) {
-          new?.refreshImages(renderSettings.scaleFraction)
-        }
-        contentPanel.renderModel.refresh()
+
+      if (shouldZoomToFit) {
+        // zoom to fit each time we render something immediately after a process change
+        zoom(ZoomType.FIT)
+        shouldZoomToFit = false
       }
     }
     var prevZoom = renderSettings.scalePercent

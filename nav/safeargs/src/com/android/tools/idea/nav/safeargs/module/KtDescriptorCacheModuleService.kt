@@ -16,34 +16,21 @@
 package com.android.tools.idea.nav.safeargs.module
 
 import com.android.ide.common.gradle.Version
-import com.android.ide.common.rendering.api.ResourceNamespace
-import com.android.resources.ResourceType
 import com.android.tools.idea.nav.safeargs.SafeArgsMode
-import com.android.tools.idea.nav.safeargs.index.NavXmlData
 import com.android.tools.idea.nav.safeargs.index.NavXmlIndex
-import com.android.tools.idea.nav.safeargs.psi.findNavigationVersion
 import com.android.tools.idea.nav.safeargs.psi.kotlin.KtArgsPackageDescriptor
 import com.android.tools.idea.nav.safeargs.psi.kotlin.KtDirectionsPackageDescriptor
 import com.android.tools.idea.nav.safeargs.psi.kotlin.getKotlinType
 import com.android.tools.idea.nav.safeargs.psi.xml.SafeArgsXmlTag
 import com.android.tools.idea.nav.safeargs.psi.xml.XmlSourceElement
 import com.android.tools.idea.nav.safeargs.psi.xml.findXmlTagById
-import com.android.tools.idea.nav.safeargs.safeArgsMode
-import com.android.tools.idea.projectsystem.getModuleSystem
-import com.android.tools.idea.res.StudioResourceRepositoryManager
-import com.android.tools.idea.res.getSourceAsVirtualFile
-import com.android.tools.idea.util.androidFacet
-import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.source.xml.XmlTagImpl
 import com.intellij.psi.xml.XmlFile
 import com.intellij.ui.IconManager
 import com.intellij.ui.PlatformIcons
-import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
 import org.jetbrains.kotlin.descriptors.SourceElement
@@ -61,15 +48,10 @@ import org.jetbrains.kotlin.storage.StorageManager
  * [KtDirectionsPackageDescriptor]s) by querying from [NavXmlIndex].
  *
  */
-class KtDescriptorCacheModuleService(val module: Module) {
-  private val LOG get() = Logger.getInstance(KtDescriptorCacheModuleService::class.java)
+class KtDescriptorCacheModuleService(private val module: Module) {
+  private val fetcher = NavInfoFetcher(module, SafeArgsMode.KOTLIN)
 
   private data class QualifiedDescriptor(val fqName: FqName, val descriptor: PackageFragmentDescriptor)
-
-  class NavEntryKt(
-    val file: VirtualFile,
-    val data: NavXmlData
-  )
 
   companion object {
     @JvmStatic
@@ -79,31 +61,17 @@ class KtDescriptorCacheModuleService(val module: Module) {
   fun getDescriptors(moduleDescriptor: ModuleDescriptor): Map<FqName, List<PackageFragmentDescriptor>> {
     ProgressManager.checkCanceled()
 
-    if (module.androidFacet?.safeArgsMode != SafeArgsMode.KOTLIN) return emptyMap()
-    val facet = module.androidFacet!!
+    val navInfo = fetcher.getCurrentNavInfo() ?: return emptyMap()
 
-    if (DumbService.isDumb(module.project)) {
-      LOG.warn("Safe Args classes may be temporarily unavailable due to indices not being ready right now.")
-      return emptyMap()
-    }
-
-    val packageFqName = facet.getModuleSystem().getPackageName()?.let { packageName -> FqName(packageName) }
-      ?: return emptyMap()
-
-    val currVersion = facet.findNavigationVersion()
-
-    val moduleNavResources = getNavResourceFromIndex()
-    val packageResourceData = SafeArgSyntheticPackageResourceData(moduleNavResources)
-    // TODO(b/159950623): Consolidate with SafeArgsCacheModuleService
-    return packageResourceData.moduleNavResource
+    return navInfo.entries
       .asSequence()
       .flatMap { navEntry ->
         val backingXmlFile = PsiManager.getInstance(module.project).findFile(navEntry.file)
         val sourceElement = backingXmlFile?.let { XmlSourceElement(it) } ?: SourceElement.NO_SOURCE
 
         val packages =
-          createArgsPackages(moduleDescriptor, currVersion, navEntry, sourceElement, packageFqName.asString()) +
-          createDirectionsPackages(moduleDescriptor, currVersion, navEntry, sourceElement, packageFqName.asString())
+          createArgsPackages(moduleDescriptor, navInfo.navVersion, navEntry, sourceElement, navInfo.packageName) +
+          createDirectionsPackages(moduleDescriptor, navInfo.navVersion, navEntry, sourceElement, navInfo.packageName)
 
         packages.asSequence()
       }
@@ -113,7 +81,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
   private fun createDirectionsPackages(
     moduleDescriptor: ModuleDescriptor,
     navigationVersion: Version,
-    entry: NavEntryKt,
+    entry: NavEntry,
     sourceElement: SourceElement,
     modulePackage: String,
     storageManager: StorageManager = LockBasedStorageManager.NO_LOCKS
@@ -163,7 +131,7 @@ class KtDescriptorCacheModuleService(val module: Module) {
   private fun createArgsPackages(
     moduleDescriptor: ModuleDescriptor,
     navigationVersion: Version,
-    entry: NavEntryKt,
+    entry: NavEntry,
     sourceElement: SourceElement,
     modulePackage: String,
     storageManager: StorageManager = LockBasedStorageManager.NO_LOCKS
@@ -214,21 +182,6 @@ class KtDescriptorCacheModuleService(val module: Module) {
       }
       .toList()
   }
-
-  private fun getNavResourceFromIndex(): List<NavEntryKt> {
-    val facet = AndroidFacet.getInstance(module) ?: return emptyList()
-    val moduleResources = StudioResourceRepositoryManager.getModuleResources(facet)
-    val navResources = moduleResources.getResources(ResourceNamespace.RES_AUTO, ResourceType.NAVIGATION)
-
-    return navResources.values()
-      .mapNotNull { resource ->
-        val file = resource.getSourceAsVirtualFile() ?: return@mapNotNull null
-        val project = facet.module.project
-        val data = NavXmlIndex.getDataForFile(project, file) ?: return@mapNotNull null
-        NavEntryKt(file, data)
-      }
-  }
 }
 
-class SafeArgSyntheticPackageResourceData(val moduleNavResource: Collection<KtDescriptorCacheModuleService.NavEntryKt>)
 class SafeArgsModuleInfo(val moduleDescriptor: ModuleDescriptor, val module: Module)

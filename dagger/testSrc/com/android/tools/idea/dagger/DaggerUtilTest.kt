@@ -16,6 +16,7 @@
 package com.android.tools.idea.dagger
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.TruthJUnit.assume
@@ -819,7 +820,7 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    val provider = myFixture.moveCaret("provide|r").parentOfType<PsiMethod>()
+    val provider: PsiMethod = myFixture.findParentElement("provide|r")
 
     // Consumer in JAVA.
     var providers = getProvidersForInjectedField("String")
@@ -886,7 +887,7 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    val provider = myFixture.moveCaret("bindsMet|hod").parentOfType<PsiMethod>()
+    val provider: PsiMethod = myFixture.findParentElement("bindsMet|hod")
 
     // Consumer in JAVA.
     var providers = getProvidersForInjectedField("String")
@@ -949,8 +950,7 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    val provider =
-      myFixture.moveCaret("MyClassWithInjectedConstru|ctor()").parentOfType<PsiMethod>()
+    val provider: PsiMethod = myFixture.findParentElement("MyClassWithInjectedConstru|ctor()")
 
     // Consumer in JAVA.
     var providers = getProvidersForInjectedField("MyClassWithInjectedConstructor")
@@ -1011,7 +1011,7 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    val provider = myFixture.moveCaret("provide|r").parentOfType<PsiMethod>()
+    val provider: PsiMethod = myFixture.findParentElement("provide|r")
 
     // Consumer in Kotlin.
     myFixture.configureByText(
@@ -1262,16 +1262,14 @@ abstract class DaggerUtilTest : DaggerTestCase() {
     )
 
     myFixture.configureFromExistingVirtualFile(classFile)
-    val classProvider = myFixture.moveCaret("@Inject public MyCla|ss").parentOfType<PsiMethod>()!!
+    val classProvider: PsiMethod = myFixture.findParentElement("@Inject public MyCla|ss")
 
     var methodsForProvider = getDaggerComponentMethodsForProvider(classProvider).map { it.name }
     assertThat(methodsForProvider).containsExactly("getMyClass")
 
     myFixture.configureFromExistingVirtualFile(moduleFile)
-    val providerWithQualifier =
-      myFixture
-        .moveCaret("@Provides @MyQualifier MyClass provider|WithQualifier")
-        .parentOfType<PsiMethod>()!!
+    val providerWithQualifier: PsiMethod =
+      myFixture.findParentElement("@Provides @MyQualifier MyClass provider|WithQualifier")
 
     methodsForProvider = getDaggerComponentMethodsForProvider(providerWithQualifier).map { it.name }
     assertThat(methodsForProvider).containsExactly("getMyClassWithQualifier")
@@ -1468,7 +1466,7 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    val bindsString = myFixture.moveCaret("bindsSt|ring").parentOfType<PsiMethod>()!!
+    val bindsString: PsiMethod = myFixture.findParentElement("bindsSt|ring")
     assertThat(bindsString.isDaggerProvider).isTrue()
 
     // Java Component
@@ -1488,7 +1486,7 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    val string = myFixture.moveCaret("@BindsInstance String st|ring").parentOfType<PsiParameter>()!!
+    val string: PsiParameter = myFixture.findParentElement("@BindsInstance String st|ring")
     assertThat(string.isDaggerProvider).isTrue()
 
     // Kotlin Module and Component.
@@ -1516,10 +1514,10 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    val bindsStringKt = myFixture.moveCaret("bindsSt|ringKt").parentOfType<KtFunction>()!!
+    val bindsStringKt: KtFunction = myFixture.findParentElement("bindsSt|ringKt")
     assertThat(bindsStringKt.isDaggerProvider).isTrue()
 
-    val stringKt = myFixture.moveCaret("string|Kt").parentOfType<KtParameter>()!!
+    val stringKt: KtParameter = myFixture.findParentElement("string|Kt")
     assertThat(stringKt.isDaggerProvider).isTrue()
   }
 

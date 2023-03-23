@@ -115,8 +115,7 @@ class DownloadsInfoExecutionConsole(
     reposTable.visibleRowCount = 5
     val browserLink = BrowserLink(
       "Read more on repositories optimization",
-      // TODO (b/231146116):need redirect
-      "https://docs.gradle.org/current/userguide/performance.html#optimize_repository_order"
+      "https://d.android.com/r/build-output-downloads/repositories-optimization"
     ).apply {
       border = JBUI.Borders.empty(10)
       addActionListener { logUserEvent(BuildOutputDownloadsInfoEvent.Interaction.CLICK_LEARN_MORE_LINK) }

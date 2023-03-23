@@ -6,6 +6,10 @@ iml_module(
     srcs = ["src"],
     iml_files = ["intellij.android.gmd-code-completion.iml"],
     test_class = "com.android.gmdcodecompletion.GmdCodeCompletionTestSuite",
+    test_data = [
+        "//prebuilts/studio/sdk:platforms/latest-preview",
+        "//tools/adt/idea/android/testData",
+    ],
     test_srcs = ["testSrc"],
     test_tags = [
         "block-network",
@@ -30,5 +34,7 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/adt/idea/adt-testutils:intellij.android.adt.testutils[module, test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
+        "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module]",
     ],
 )

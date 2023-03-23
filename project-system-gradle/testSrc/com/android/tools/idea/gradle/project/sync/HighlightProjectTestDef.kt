@@ -24,13 +24,17 @@ import com.android.tools.idea.projectsystem.gradle.GradleSourceSetProjectPath
 import com.android.tools.idea.projectsystem.gradle.resolveIn
 import com.android.tools.idea.testing.AgpVersionSoftwareEnvironmentDescriptor
 import com.google.common.truth.Expect
+import com.google.common.truth.Truth.assertThat
+import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
 import com.intellij.util.PathUtil
 import java.io.File
 
 data class HighlightProjectTestDef(
   override val testProject: TestProject,
+  val checkHighlighting: (JavaCodeInsightTestFixture) -> Unit = { fixture -> fixture.checkHighlighting() },
   override val agpVersion: AgpVersionSoftwareEnvironmentDescriptor = AgpVersionSoftwareEnvironmentDescriptor.AGP_CURRENT,
   val modulesAndFiles: Map<GradleSourceSetProjectPath, List<String>>
 ) : SyncedProjectTestDef {
@@ -47,7 +51,7 @@ data class HighlightProjectTestDef(
   }
 
   override fun PreparedTestProject.Context.runTest(root: File, project: Project, expect: Expect) {
-    modulesAndFiles.forEach { gradleProjectPath, filePaths ->
+    modulesAndFiles.forEach { (gradleProjectPath, filePaths) ->
       val module = (gradleProjectPath.copy(buildRoot = PathUtil.toSystemIndependentName(root.resolve(root).path)).resolveIn(project)
         ?: error("Module $gradleProjectPath not found"))
       selectModule(module)
@@ -57,7 +61,7 @@ data class HighlightProjectTestDef(
       filePaths.map { File(moduleRoot).resolve(it).path }.forEach { path ->
         fixture.configureFromExistingVirtualFile(VfsUtil.findFileByIoFile(File(path), false)!!)
         val h = fixture.doHighlighting()
-        fixture.checkHighlighting()
+        checkHighlighting.invoke(fixture)
       }
     }
   }
@@ -74,6 +78,43 @@ data class HighlightProjectTestDef(
           ) to listOf("src/main/java/google/simpleapplication/MyActivity.java")
         )
       ),
+      HighlightProjectTestDef(
+        TestProject.NON_TRANSITIVE_R_CLASS_SYMBOL,
+        checkHighlighting = ::validateNonTransitiveRClass,
+        modulesAndFiles = mapOf(
+          GradleSourceSetProjectPath(
+            "/",
+            ":app",
+            IdeModuleWellKnownSourceSet.ANDROID_TEST
+          ) to listOf("src/androidTest/java/com/example/app/ExampleInstrumentedTest.kt")
+        )
+      ),
+      HighlightProjectTestDef(
+        TestProject.NON_TRANSITIVE_R_CLASS_SYMBOL_TRUE,
+        checkHighlighting = ::validateNonTransitiveRClassTrue,
+        modulesAndFiles = mapOf(
+          GradleSourceSetProjectPath(
+            "/",
+            ":app",
+            IdeModuleWellKnownSourceSet.ANDROID_TEST
+          ) to listOf("src/androidTest/java/com/example/app/ExampleInstrumentedTest.kt")
+        )
+      )
     )
+
+    private fun validateNonTransitiveRClass(fixture: JavaCodeInsightTestFixture) {
+      val unresolvedReferenceWarnings =
+        fixture.doHighlighting(HighlightSeverity.WARNING).map { it.description }.filter { it.startsWith("[UNRESOLVED_REFERENCE]") }
+      assertThat(unresolvedReferenceWarnings).containsExactly("[UNRESOLVED_REFERENCE] Unresolved reference: R")
+    }
+
+    private fun validateNonTransitiveRClassTrue(fixture: JavaCodeInsightTestFixture) {
+      val unresolvedReferenceWarnings =
+        fixture.doHighlighting(HighlightSeverity.WARNING).map { it.description }.filter { it.startsWith("[UNRESOLVED_REFERENCE]") }
+      assertThat(unresolvedReferenceWarnings).containsExactly(
+        "[UNRESOLVED_REFERENCE] Unresolved reference: R",
+        "[UNRESOLVED_REFERENCE] Unresolved reference: view_in_lib"
+      )
+    }
   }
 }

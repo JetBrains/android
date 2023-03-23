@@ -89,8 +89,7 @@ class LayoutQualifierDropdownMenu(file: VirtualFile?)
   private fun createVariationsActions(configuration: Configuration, surface: EditorDesignSurface) {
     val virtualFile = configuration.file
     if (virtualFile != null) {
-      val module = configuration.module ?: return
-      val project = module.project
+      val project = configuration.configModule.project
       val variations = getResourceVariations(virtualFile, true)
       for (file in variations) {
         val title = generateLayoutAndQualifierTitle(file)

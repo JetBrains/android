@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit.desugaring
 
+import com.android.tools.idea.run.deployment.liveedit.LiveEditLogger
 import com.android.tools.r8.ClassFileResourceProvider
 import java.nio.file.Path
 import kotlin.io.path.absolute
@@ -23,7 +24,7 @@ import kotlin.io.path.absolute
 // There is one cache per jar file.
 // Each cache contains all the entries in a jar
 // Each cache is used to provide fast access to .class while R8 desugars.
-internal class JarResourceCacheManager(private val logger: DesugarLogger) : AutoCloseable {
+internal class JarResourceCacheManager(private val logger: LiveEditLogger) : AutoCloseable {
 
   // Mapping path to a jar -> Cache of the the jar entries.
   private val cache : MutableMap<String, JarResourceCacheEntry> = HashMap()

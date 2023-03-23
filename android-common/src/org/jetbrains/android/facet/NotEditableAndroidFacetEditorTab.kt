@@ -2,6 +2,7 @@
 package org.jetbrains.android.facet
 
 import com.intellij.facet.ui.FacetEditorTab
+import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.layout.*
 import org.jetbrains.annotations.Nls
 import javax.swing.JComponent
@@ -17,6 +18,8 @@ class NotEditableAndroidFacetEditorTab : FacetEditorTab() {
   override fun getDisplayName() = "Android SDK Settings"
 
   override fun createComponent(): JComponent = panel {
-    commentRow("This facet cannot be edited because it was created automatically. Only manually created Android facets can be edited.")
+    row {
+      comment("This facet cannot be edited because it was created automatically. Only manually created Android facets can be edited.")
+    }
   }
 }

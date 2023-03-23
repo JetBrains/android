@@ -22,43 +22,57 @@ import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.ui.ApplicationUtils
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.problems.ProblemListener
 import com.intellij.psi.PsiManager
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.assertj.core.api.Assertions
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import kotlin.time.Duration.Companion.seconds
-import kotlin.time.ExperimentalTime
 
 class FlowsTest {
 
-  @get:Rule
-  val projectRule = AndroidProjectRule.inMemory()
+  @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @OptIn(ExperimentalTime::class)
   @Test
   fun `test psiFileChangeFlow`() {
-    val psiFile = projectRule.fixture.addFileToProject("src/Test.kt", """
+    val psiFile =
+      projectRule.fixture.addFileToProject(
+        "src/Test.kt",
+        """
       fun test() {
       }
-    """.trimIndent())
+    """
+          .trimIndent()
+      )
 
     runBlocking {
       val flowReady = CompletableDeferred<Unit>()
       launch(workerThread) {
         withTimeout(20.seconds) {
           try {
-            psiFileChangeFlow(projectRule.project, projectRule.testRootDisposable) { flowReady.complete(Unit) }
+            psiFileChangeFlow(projectRule.project, projectRule.testRootDisposable) {
+                flowReady.complete(Unit)
+              }
               .take(3)
-              .filter { PsiManager.getInstance(projectRule.project).areElementsEquivalent(psiFile, it) }
+              .filter {
+                PsiManager.getInstance(projectRule.project).areElementsEquivalent(psiFile, it)
+              }
               .collect()
           } catch (_: TimeoutCancellationException) {
             Assertions.fail("Timeout waiting for the changes")
@@ -81,6 +95,40 @@ class FlowsTest {
       WriteCommandAction.runWriteCommandAction(projectRule.project) {
         projectRule.fixture.editor.executeAndSave { insertText("Broken") }
       }
+    }
+  }
+
+  @Test
+  fun `syntaxErrorFlow detects all changes`() {
+    val psiFile = projectRule.fixture.addFileToProject("src/Test.kt", "fun test() {}")
+
+    runBlocking {
+      val flowReady = CompletableDeferred<Unit>()
+      val flowScope = createChildScope()
+      val syntaxErrorFlow =
+        syntaxErrorFlow(projectRule.project, projectRule.testRootDisposable) {
+            flowReady.complete(Unit)
+          }
+          // Make it a hot-flow so we can collect.s
+          .shareIn(flowScope, SharingStarted.Eagerly)
+
+      flowReady.await()
+
+      projectRule.project.messageBus
+        .syncPublisher(ProblemListener.TOPIC)
+        .problemsAppeared(psiFile.virtualFile)
+      projectRule.project.messageBus
+        .syncPublisher(ProblemListener.TOPIC)
+        .problemsChanged(psiFile.virtualFile)
+      projectRule.project.messageBus
+        .syncPublisher(ProblemListener.TOPIC)
+        .problemsDisappeared(psiFile.virtualFile)
+      assertEquals(
+        "Appeared,Changed,Disappeared",
+        syntaxErrorFlow.take(3).map { it.javaClass.simpleName }.toList().joinToString(",")
+      )
+      // Stop the flow so runBlocking can finalize
+      flowScope.cancel()
     }
   }
 }

@@ -524,8 +524,7 @@ public class IdeSdks {
       return false;
     }
     Path jdkPath = doGetJdkPath(false);
-    Path embeddedJdkPath = getEmbeddedJdkPath();
-    return jdkPath != null && embeddedJdkPath != null && FileUtil.pathsEqual(jdkPath.toString(), embeddedJdkPath.toString());
+    return jdkPath != null && FileUtil.pathsEqual(jdkPath.toString(), getEmbeddedJdkPath().toString());
   }
 
   /**
@@ -533,15 +532,11 @@ public class IdeSdks {
    */
   public void setUseEmbeddedJdk() {
     checkState(myIdeInfo.isAndroidStudio(), "This method is for use in Android Studio only.");
-    Path embeddedJdkPath = getEmbeddedJdkPath();
-    setJdkPath(embeddedJdkPath);
+    setJdkPath(getEmbeddedJdkPath());
   }
 
-  @Nullable
+  @NotNull
   public Path getEmbeddedJdkPath() {
-    if (!myIdeInfo.isAndroidStudio()) {
-      return null;
-    }
     return myEmbeddedDistributionPaths.getEmbeddedJdkPath();
   }
 
