@@ -1208,11 +1208,11 @@ android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/formatters/cpp
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/formatters/metrics.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/formatters/synth.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/plugins/__init__.py
+android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/plugins/scripted_platform.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/plugins/scripted_process.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/utils/__init__.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/utils/in_call_stack.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/utils/symbolication.py
-android-studio/plugins/android-ndk/resources/lldb/lib/python/six.py
 android-studio/plugins/android-ndk/resources/lldb/lib/queue.py
 android-studio/plugins/android-ndk/resources/lldb/lib/quopri.py
 android-studio/plugins/android-ndk/resources/lldb/lib/random.py

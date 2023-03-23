@@ -1974,11 +1974,11 @@ Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/lib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libc++abi.1.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libedit.0.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libform.6.dylib
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/liblldb.15.0.3git.dylib
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/liblldb.17.0.0.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libncurses.6.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libpanel.6.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libpython3.10.dylib
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libxml2.2.11.0.dylib
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/libxml2.2.dylib
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/__init__.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/diagnose/__init__.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/diagnose/diagnose_nsstring.py
@@ -2000,11 +2000,11 @@ Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/pyt
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/macosx/heap/Makefile
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/macosx/heap/heap_find.cpp
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/plugins/__init__.py
+Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/plugins/scripted_platform.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/plugins/scripted_process.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/utils/__init__.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/utils/in_call_stack.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/lldb/utils/symbolication.py
-Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/lib64/python/six.py
 Android Studio Preview.app/Contents/plugins/android-ndk/resources/lldb/shared/jobject_printers/jstring_reader.py
 Android Studio Preview.app/Contents/plugins/android/lib/HdrHistogram-2.1.12.jar
 Android Studio Preview.app/Contents/plugins/android/lib/aapt2-proto-0.3.1.jar

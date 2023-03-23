@@ -723,11 +723,11 @@ android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/formatters/cpp
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/formatters/metrics.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/formatters/synth.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/plugins/__init__.py
+android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/plugins/scripted_platform.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/plugins/scripted_process.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/utils/__init__.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/utils/in_call_stack.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python/lldb/utils/symbolication.py
-android-studio/plugins/android-ndk/resources/lldb/lib/python/six.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/LICENSE.txt
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/__future__.py
 android-studio/plugins/android-ndk/resources/lldb/lib/python3.10/__phello__.foo.py
@@ -1978,11 +1978,11 @@ android-studio/plugins/android-ndk/resources/lldb/lib64/libc++.so.1
 android-studio/plugins/android-ndk/resources/lldb/lib64/libc++abi.so.1
 android-studio/plugins/android-ndk/resources/lldb/lib64/libedit.so.0
 android-studio/plugins/android-ndk/resources/lldb/lib64/libform.so.6
-android-studio/plugins/android-ndk/resources/lldb/lib64/liblldb.so.15git
+android-studio/plugins/android-ndk/resources/lldb/lib64/liblldb.so.17
 android-studio/plugins/android-ndk/resources/lldb/lib64/libncurses.so.6
 android-studio/plugins/android-ndk/resources/lldb/lib64/libpanel.so.6
 android-studio/plugins/android-ndk/resources/lldb/lib64/libpython3.10.so.1.0
-android-studio/plugins/android-ndk/resources/lldb/lib64/libxml2.so.2.11.0
+android-studio/plugins/android-ndk/resources/lldb/lib64/libxml2.so.2
 android-studio/plugins/android-ndk/resources/lldb/shared/jobject_printers/jstring_reader.py
 android-studio/plugins/android/lib/HdrHistogram-2.1.12.jar
 android-studio/plugins/android/lib/aapt2-proto-0.3.1.jar
