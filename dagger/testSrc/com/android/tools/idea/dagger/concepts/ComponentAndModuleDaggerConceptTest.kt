@@ -24,6 +24,7 @@ import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
@@ -34,6 +35,8 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.util.projectScope
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtFile
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -155,6 +158,92 @@ class ComponentAndModuleDaggerConceptTest {
   }
 
   @Test
+  fun indexer_componentAsClass() {
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
+        package com.example;
+
+        import dagger.Component;
+
+        @Component(
+          modules = { DripCoffeeModule.class, FrenchPressCoffeeModule.class },
+          dependencies = { FilterComponent.class, SteamerComponent.class }
+        )
+        class CoffeeShop {}
+        """
+          .trimIndent()
+      ) as PsiJavaFile
+
+    val element: PsiClass = myFixture.findParentElement("Coffee|Shop")
+    val entries = runIndexer(DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element))
+
+    val expectedModuleIndexValue =
+      setOf(ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_MODULE, "com.example.CoffeeShop"))
+    val expectedDependencyIndexValue =
+      setOf(
+        ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_DEPENDENCY, "com.example.CoffeeShop")
+      )
+
+    assertThat(entries)
+      .containsExactly(
+        "DripCoffeeModule",
+        expectedModuleIndexValue,
+        "FrenchPressCoffeeModule",
+        expectedModuleIndexValue,
+        "FilterComponent",
+        expectedDependencyIndexValue,
+        "SteamerComponent",
+        expectedDependencyIndexValue
+      )
+  }
+
+  @Test
+  fun indexer_componentAsObject() {
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+        package com.example
+
+        import dagger.Component
+
+        @Component(
+          modules = [ DripCoffeeModule::class, FrenchPressCoffeeModule::class ],
+          dependencies = [ FilterComponent::class, SteamerComponent::class ]
+        )
+        object CoffeeShop {}
+        """
+          .trimIndent()
+      ) as KtFile
+
+    val element: KtClassOrObject = myFixture.findParentElement("Coffee|Shop")
+    val entries = runIndexer(DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element))
+
+    val expectedModuleIndexValue =
+      setOf(ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_MODULE, "com.example.CoffeeShop"))
+    val expectedDependencyIndexValue =
+      setOf(
+        ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_DEPENDENCY, "com.example.CoffeeShop")
+      )
+
+    assertThat(entries)
+      .containsExactly(
+        "DripCoffeeModule",
+        expectedModuleIndexValue,
+        "FrenchPressCoffeeModule",
+        expectedModuleIndexValue,
+        "FilterComponent",
+        expectedDependencyIndexValue,
+        "SteamerComponent",
+        expectedDependencyIndexValue
+      )
+  }
+
+  @Test
   fun indexer_subcomponent() {
     val psiFile =
       myFixture.configureByText(
@@ -260,7 +349,19 @@ class ComponentAndModuleDaggerConceptTest {
         modules = [CoffeeShopModule::class],
         dependencies = [DependencyComponent::class]
         )
-      interface CoffeeShopComponent
+      interface CoffeeShopComponentInterface
+
+      @Component(
+        modules = [CoffeeShopModule::class],
+        dependencies = [DependencyComponent::class]
+        )
+      class CoffeeShopComponentClass
+
+      @Component(
+        modules = [CoffeeShopModule::class],
+        dependencies = [DependencyComponent::class]
+        )
+      object CoffeeShopComponentObject
 
       @Module
       interface CoffeeShopModule
@@ -271,25 +372,36 @@ class ComponentAndModuleDaggerConceptTest {
         .trimIndent()
     )
 
-    val componentClass: KtClass = myFixture.findParentElement("interface CoffeeShop|Component")
-
-    val moduleIndexValue =
-      ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_MODULE, "com.example.CoffeeShopComponent")
-    val dependencyIndexValue =
-      ClassIndexValue(
-        IndexValue.DataType.COMPONENT_WITH_DEPENDENCY,
-        "com.example.CoffeeShopComponent"
+    val components =
+      listOf(
+        "CoffeeShopComponentInterface",
+        "CoffeeShopComponentClass",
+        "CoffeeShopComponentObject"
       )
+    for (component in components) {
+      val componentElement = myFixture.findParentElement<KtClassOrObject>("|$component")
+      val fqName = "com.example.$component"
 
-    assertThat(
-        moduleIndexValue.resolveToDaggerElements(myProject, myProject.projectScope()).single()
-      )
-      .isEqualTo(ComponentDaggerElement(componentClass))
+      val moduleIndexValue = ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_MODULE, fqName)
+      val dependencyIndexValue =
+        ClassIndexValue(IndexValue.DataType.COMPONENT_WITH_DEPENDENCY, fqName)
 
-    assertThat(
-        dependencyIndexValue.resolveToDaggerElements(myProject, myProject.projectScope()).single()
-      )
-      .isEqualTo(ComponentDaggerElement(componentClass))
+      assertWithMessage("$fqName - module")
+        .that(
+          moduleIndexValue
+            .resolveToDaggerElements(myProject, myProject.projectScope())
+            .firstOrNull()
+        )
+        .isEqualTo(ComponentDaggerElement(componentElement))
+
+      assertWithMessage("$fqName - dependency")
+        .that(
+          dependencyIndexValue
+            .resolveToDaggerElements(myProject, myProject.projectScope())
+            .firstOrNull()
+        )
+        .isEqualTo(ComponentDaggerElement(componentElement))
+    }
   }
 
   @Test
@@ -518,7 +630,13 @@ class ComponentAndModuleDaggerConceptTest {
       import dagger.Subcomponent
 
       @Component
-      interface CoffeeShopComponent
+      interface CoffeeShopComponentInterface
+
+      @Component
+      class CoffeeShopComponentClass
+
+      @Component
+      object CoffeeShopComponentObject
 
       @Subcomponent
       interface CoffeeShopSubcomponent
@@ -529,11 +647,23 @@ class ComponentAndModuleDaggerConceptTest {
         .trimIndent()
     )
 
-    val componentDaggerElement =
+    val componentInterfaceDaggerElement =
       ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
-        myFixture.moveCaret("CoffeeShop|Component").parentOfType<KtClass>()!!
+        myFixture.moveCaret("CoffeeShop|ComponentInterface").parentOfType<KtClassOrObject>()!!
       )
-    assertThat(componentDaggerElement).isInstanceOf(ComponentDaggerElement::class.java)
+    assertThat(componentInterfaceDaggerElement).isInstanceOf(ComponentDaggerElement::class.java)
+
+    val componentClassDaggerElement =
+      ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
+        myFixture.moveCaret("CoffeeShop|ComponentClass").parentOfType<KtClassOrObject>()!!
+      )
+    assertThat(componentClassDaggerElement).isInstanceOf(ComponentDaggerElement::class.java)
+
+    val componentObjectDaggerElement =
+      ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
+        myFixture.moveCaret("CoffeeShop|ComponentObject").parentOfType<KtClassOrObject>()!!
+      )
+    assertThat(componentObjectDaggerElement).isInstanceOf(ComponentDaggerElement::class.java)
 
     val subcomponentDaggerElement =
       ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
@@ -788,6 +918,160 @@ class ComponentAndModuleDaggerConceptTest {
     val includedComponentDaggerElement =
       ComponentDaggerElement(
         myFixture.moveCaret("interface Included|Component").parentOfType<KtClass>(withSelf = true)!!
+      )
+
+    assertThat(topLevelComponentDaggerElement.getRelatedDaggerElements())
+      .containsExactly(
+        DaggerRelatedElement(myModuleDaggerElement, "Modules included"),
+        DaggerRelatedElement(mySubcomponentDaggerElement, "Subcomponents"),
+      )
+
+    assertThat(includedComponentDaggerElement.getRelatedDaggerElements())
+      .containsExactly(
+        DaggerRelatedElement(topLevelComponentDaggerElement, "Parent components"),
+      )
+  }
+
+  @Ignore // TODO(b/265846405): Start running test when index is enabled
+  @Test
+  fun component_getRelatedDaggerElementsWithClasses() {
+    addDaggerAndHiltClasses(myFixture)
+
+    myFixture.openFileInEditor(
+      myFixture
+        .addFileToProject(
+          "src/com/example/Foo.kt",
+          // language=kotlin
+          """
+          package com.example
+
+          import dagger.Component
+          import dagger.Module
+          import dagger.Subcomponent
+
+          @Component(
+            modules = [MyModule::class],
+            dependencies = [IncludedComponent::class],
+          )
+          class TopLevelComponent
+
+          @Module(
+            subcomponents = [MySubcomponent::class],
+          )
+          class MyModule
+
+          @Subcomponent
+          class MySubcomponent
+
+          @Component
+          class IncludedComponent
+          """
+            .trimIndent()
+        )
+        .virtualFile
+    )
+
+    val topLevelComponentDaggerElement =
+      ComponentDaggerElement(
+        myFixture
+          .moveCaret("class TopLevel|Component")
+          .parentOfType<KtClassOrObject>(withSelf = true)!!
+      )
+
+    val myModuleDaggerElement =
+      ModuleDaggerElement(
+        myFixture.moveCaret("class My|Module").parentOfType<KtClassOrObject>(withSelf = true)!!
+      )
+
+    val mySubcomponentDaggerElement =
+      SubcomponentDaggerElement(
+        myFixture
+          .moveCaret("class My|Subcomponent")
+          .parentOfType<KtClassOrObject>(withSelf = true)!!
+      )
+
+    val includedComponentDaggerElement =
+      ComponentDaggerElement(
+        myFixture
+          .moveCaret("class Included|Component")
+          .parentOfType<KtClassOrObject>(withSelf = true)!!
+      )
+
+    assertThat(topLevelComponentDaggerElement.getRelatedDaggerElements())
+      .containsExactly(
+        DaggerRelatedElement(myModuleDaggerElement, "Modules included"),
+        DaggerRelatedElement(mySubcomponentDaggerElement, "Subcomponents"),
+      )
+
+    assertThat(includedComponentDaggerElement.getRelatedDaggerElements())
+      .containsExactly(
+        DaggerRelatedElement(topLevelComponentDaggerElement, "Parent components"),
+      )
+  }
+
+  @Ignore // TODO(b/265846405): Start running test when index is enabled
+  @Test
+  fun component_getRelatedDaggerElementsWithObjects() {
+    addDaggerAndHiltClasses(myFixture)
+
+    myFixture.openFileInEditor(
+      myFixture
+        .addFileToProject(
+          "src/com/example/Foo.kt",
+          // language=kotlin
+          """
+          package com.example
+
+          import dagger.Component
+          import dagger.Module
+          import dagger.Subcomponent
+
+          @Component(
+            modules = [MyModule::class],
+            dependencies = [IncludedComponent::class],
+          )
+          object TopLevelComponent
+
+          @Module(
+            subcomponents = [MySubcomponent::class],
+          )
+          object MyModule
+
+          @Subcomponent
+          object MySubcomponent
+
+          @Component
+          object IncludedComponent
+          """
+            .trimIndent()
+        )
+        .virtualFile
+    )
+
+    val topLevelComponentDaggerElement =
+      ComponentDaggerElement(
+        myFixture
+          .moveCaret("object TopLevel|Component")
+          .parentOfType<KtClassOrObject>(withSelf = true)!!
+      )
+
+    val myModuleDaggerElement =
+      ModuleDaggerElement(
+        myFixture.moveCaret("object My|Module").parentOfType<KtClassOrObject>(withSelf = true)!!
+      )
+
+    val mySubcomponentDaggerElement =
+      SubcomponentDaggerElement(
+        myFixture
+          .moveCaret("object My|Subcomponent")
+          .parentOfType<KtClassOrObject>(withSelf = true)!!
+      )
+
+    val includedComponentDaggerElement =
+      ComponentDaggerElement(
+        myFixture
+          .moveCaret("object Included|Component")
+          .parentOfType<KtClassOrObject>(withSelf = true)!!
       )
 
     assertThat(topLevelComponentDaggerElement.getRelatedDaggerElements())

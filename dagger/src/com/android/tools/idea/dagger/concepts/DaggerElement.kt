@@ -30,6 +30,7 @@ import com.intellij.psi.PsiType
 import kotlin.reflect.KClass
 import org.jetbrains.kotlin.idea.base.util.projectScope
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
@@ -111,7 +112,7 @@ fun interface DaggerElementIdentifier<T : PsiElement> {
 }
 
 class DaggerElementIdentifiers(
-  val ktClassIdentifiers: List<DaggerElementIdentifier<KtClass>> = emptyList(),
+  val ktClassIdentifiers: List<DaggerElementIdentifier<KtClassOrObject>> = emptyList(),
   val ktConstructorIdentifiers: List<DaggerElementIdentifier<KtConstructor<*>>> = emptyList(),
   val ktFunctionIdentifiers: List<DaggerElementIdentifier<KtFunction>> = emptyList(),
   val ktParameterIdentifiers: List<DaggerElementIdentifier<KtParameter>> = emptyList(),
@@ -140,7 +141,7 @@ class DaggerElementIdentifiers(
 
   fun getDaggerElement(psiElement: PsiElement): DaggerElement? {
     return when (psiElement) {
-      is KtClass -> ktClassIdentifiers.getFirstDaggerElement(psiElement)
+      is KtClassOrObject -> ktClassIdentifiers.getFirstDaggerElement(psiElement)
       is KtFunction ->
         (psiElement as? KtConstructor<*>)?.let {
           ktConstructorIdentifiers.getFirstDaggerElement(psiElement)
@@ -183,7 +184,7 @@ internal fun PsiMethod.getReturnedPsiType(): PsiType =
   (if (isConstructor) AndroidPsiUtils.toPsiType(containingClass!!) else returnType)!!.unboxed
 
 /** Returns the [PsiType] representing this class. */
-internal fun KtClass.classToPsiType(): PsiType = toPsiType()!!.unboxed
+internal fun KtClassOrObject.classToPsiType(): PsiType = toPsiType()!!.unboxed
 
 /** Returns the [PsiType] representing this class. */
 internal fun PsiClass.classToPsiType(): PsiType = AndroidPsiUtils.toPsiType(this)!!.unboxed
@@ -191,7 +192,7 @@ internal fun PsiClass.classToPsiType(): PsiType = AndroidPsiUtils.toPsiType(this
 /** Given a [KtClass] or [PsiClass] as `this`, returns the [PsiType] representing the class. */
 internal fun PsiElement.classToPsiType(): PsiType =
   when (this) {
-    is KtClass -> classToPsiType()
+    is KtClassOrObject -> classToPsiType()
     is PsiClass -> classToPsiType()
     else -> throw IllegalArgumentException("Unsupported type ${this::class}")
   }

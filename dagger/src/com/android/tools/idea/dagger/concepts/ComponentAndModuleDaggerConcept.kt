@@ -40,7 +40,7 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.core.util.readString
 import org.jetbrains.kotlin.idea.core.util.writeString
-import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassOrObject
 
 /**
  * Represents a Component, Subcomponent, or Module in Dagger.
@@ -161,7 +161,7 @@ internal data class ClassIndexValue(
   }
 
   companion object {
-    private fun identify(psiElement: KtClass): DaggerElement? =
+    private fun identify(psiElement: KtClassOrObject): DaggerElement? =
       when {
         psiElement.hasAnnotation(DaggerAnnotations.COMPONENT) -> ComponentDaggerElement(psiElement)
         psiElement.hasAnnotation(DaggerAnnotations.SUBCOMPONENT) ->
@@ -226,7 +226,7 @@ internal sealed class ClassDaggerElement : DaggerElement() {
     val resolveCandidateClassElement =
       when (val element = resolveCandidate.psiElement) {
         is PsiClass -> element
-        is KtClass -> element.toLightClass()
+        is KtClassOrObject -> element.toLightClass()
         else -> null
       }
         ?: return false
@@ -348,7 +348,7 @@ internal sealed class ComponentDaggerElementBase : ClassDaggerElement() {
       val psiClass =
         when (psiElement) {
           is PsiClass -> psiElement
-          is KtClass -> psiElement.toLightClass()
+          is KtClassOrObject -> psiElement.toLightClass()
           else -> null
         }
 

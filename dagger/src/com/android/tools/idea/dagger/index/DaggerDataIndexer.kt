@@ -31,7 +31,7 @@ import com.intellij.util.indexing.DataIndexer
 import com.intellij.util.indexing.FileContent
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtPrimaryConstructor
@@ -92,9 +92,9 @@ internal constructor(private val conceptIndexers: DaggerConceptIndexers = AllCon
       // No need to continue traversing within the field definition.
     }
 
-    override fun visitClass(klass: KtClass) {
-      conceptIndexers.doIndexing(wrapperFactory.of(klass), results)
-      super.visitClass(klass)
+    override fun visitClassOrObject(classOrObject: KtClassOrObject) {
+      conceptIndexers.doIndexing(wrapperFactory.of(classOrObject), results)
+      super.visitClassOrObject(classOrObject)
     }
   }
 

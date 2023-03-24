@@ -33,8 +33,10 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.junit.Assert.assertThrows
@@ -55,7 +57,7 @@ class DaggerElementTest {
 
   private lateinit var myFixture: CodeInsightTestFixture
 
-  private val mockKtClassIdentifier: DaggerElementIdentifier<KtClass> = mock()
+  private val mockKtClassIdentifier: DaggerElementIdentifier<KtClassOrObject> = mock()
   private val mockKtConstructorIdentifier: DaggerElementIdentifier<KtConstructor<*>> = mock()
   private val mockKtFunctionIdentifier: DaggerElementIdentifier<KtFunction> = mock()
   private val mockKtParameterIdentifier: DaggerElementIdentifier<KtParameter> = mock()
@@ -187,6 +189,26 @@ class DaggerElementTest {
   }
 
   @Test
+  fun classToPsiType_ktObject() {
+    myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      // language=kotlin
+      """
+      package com.example
+
+      object Fo<caret>o
+      """
+        .trimIndent()
+    )
+
+    val objectElement =
+      myFixture.elementAtCaret.parentOfType<KtObjectDeclaration>(/* withSelf = */ true)!!
+    assertThat(objectElement.classToPsiType().canonicalText).isEqualTo("com.example.Foo")
+    assertThat((objectElement as PsiElement).classToPsiType().canonicalText)
+      .isEqualTo("com.example.Foo")
+  }
+
+  @Test
   fun classToPsiType_psiClass() {
     myFixture.configureByText(
       JavaFileType.INSTANCE,
@@ -220,6 +242,38 @@ class DaggerElementTest {
       )
 
     assertThrows(IllegalArgumentException::class.java) { psiFile.classToPsiType() }
+  }
+
+  @Test
+  fun getDaggerElement_ktObject() {
+    myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      // language=kotlin
+      """
+      package com.example
+
+      object Fo<caret>o
+      """
+        .trimIndent()
+    )
+
+    val psiElement =
+      myFixture.elementAtCaret.parentOfType<KtObjectDeclaration>(/* withSelf = */ true)!!
+
+    val mockDaggerElement: DaggerElement = mock()
+    whenever(mockKtClassIdentifier.getDaggerElement(any())).thenReturn(mockDaggerElement)
+
+    assertThat(mockIdentifiers.getDaggerElement(psiElement)).isSameAs(mockDaggerElement)
+
+    verify(mockKtClassIdentifier, times(1)).getDaggerElement(any())
+    verify(mockKtConstructorIdentifier, never()).getDaggerElement(any())
+    verify(mockKtFunctionIdentifier, never()).getDaggerElement(any())
+    verify(mockKtParameterIdentifier, never()).getDaggerElement(any())
+    verify(mockKtPropertyIdentifier, never()).getDaggerElement(any())
+    verify(mockPsiClassIdentifier, never()).getDaggerElement(any())
+    verify(mockPsiFieldIdentifier, never()).getDaggerElement(any())
+    verify(mockPsiMethodIdentifier, never()).getDaggerElement(any())
+    verify(mockPsiParameterIdentifier, never()).getDaggerElement(any())
   }
 
   @Test
