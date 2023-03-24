@@ -30,6 +30,7 @@ import com.intellij.ui.table.JBTable;
 import com.intellij.ui.tree.ui.DefaultTreeUI;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import com.intellij.util.ui.tree.TreeModelAdapter;
 import com.intellij.util.ui.tree.WideSelectionTreeUI;
 import java.awt.Adjustable;
@@ -55,6 +56,7 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.swing.BoundedRangeModel;
 import javax.swing.DefaultRowSorter;
+import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -152,6 +154,8 @@ public class ColumnTreeBuilder {
   @Nullable
   private ColumnTreeExpandableItemsHandler myExpandableItemsHandler;
 
+  private boolean myShouldAlwaysPaintExpandControl;
+
   private static final String LAST_TREE_PREFERRED_WIDTH = "last.tree.width";
 
   private static final String PREFERRED_TREE_WIDTH = "tree.width";
@@ -236,6 +240,12 @@ public class ColumnTreeBuilder {
   @NotNull
   public ColumnTreeBuilder setHeaderRowCellRenderer(@NotNull TreeCellRenderer renderer) {
     myHeaderRowCellRenderer = renderer;
+    return this;
+  }
+
+  @NotNull
+  public ColumnTreeBuilder setShouldPaintExpandControl(boolean shouldAlwaysPaintExpandControl) {
+    myShouldAlwaysPaintExpandControl = shouldAlwaysPaintExpandControl;
     return this;
   }
 
@@ -376,10 +386,10 @@ public class ColumnTreeBuilder {
 
   private void setTreeUi(@Nullable ColumnTreeHoverListener hoverListener) {
     if (myHeaderRowCellRenderer == null) {
-      myTree.setUI(new ColumnTreeUI(myHoverColor, hoverListener, myTable, myHScrollBarPanel));
+      myTree.setUI(new ColumnTreeUI(myHoverColor, hoverListener, myTable, myHScrollBarPanel).setShouldAlwaysPaintExpandControl(myShouldAlwaysPaintExpandControl));
     }
     else {
-      myTree.setUI(new HeaderColumnTreeUI(myHoverColor, hoverListener, myTable, myHScrollBarPanel));
+      myTree.setUI(new HeaderColumnTreeUI(myHoverColor, hoverListener, myTable, myHScrollBarPanel).setShouldAlwaysPaintExpandControl(myShouldAlwaysPaintExpandControl));
     }
   }
 
@@ -758,6 +768,7 @@ public class ColumnTreeBuilder {
     @NotNull private final ColumnTreeHoverListener myHoverConfig;
     @Nullable private final JTable myTable;
     private ChangeListener stateChangeListener;
+    @Nullable private boolean myShouldAlwaysPaintExpandControl = false;
 
     ColumnTreeUI() {
       this(null, null, null, null);
@@ -918,7 +929,42 @@ public class ColumnTreeBuilder {
       // Because the bounds move with the column, we need to stop rendering the handle
       // one unit before the row starts moving left, or the handle will move with it.
       if (bounds.x < getTreeColumnWidth(myTable) - 1) {
-        super.paintExpandControl(g, clipBounds, insets, bounds, path, row, isExpanded, hasBeenExpanded, isLeaf);
+        if (!myShouldAlwaysPaintExpandControl) {
+          super.paintExpandControl(g, clipBounds, insets, bounds, path, row, isExpanded, hasBeenExpanded, isLeaf);
+          return;
+        }
+
+        boolean isPathSelected = tree.getSelectionModel().isPathSelected(path);
+        if (!isLeaf(row)) {
+          setExpandedIcon(UIUtil.getTreeNodeIcon(true, isPathSelected, tree.hasFocus()));
+          setCollapsedIcon(UIUtil.getTreeNodeIcon(false, isPathSelected, tree.hasFocus()));
+        }
+
+        // Draw icons if not a leaf and either hasn't been loaded,
+        // or the model child count is > 0.
+        if (!isLeaf) {
+          int middleXOfKnob;
+          boolean leftToRight = tree.getComponentOrientation().isLeftToRight();
+          if (leftToRight) {
+            middleXOfKnob = bounds.x - getRightChildIndent() + 1;
+          } else {
+            middleXOfKnob = bounds.x + bounds.width + getRightChildIndent() - 1;
+          }
+          int middleYOfKnob = bounds.y + (bounds.height / 2);
+
+          if (isExpanded) {
+            Icon expandedIcon = getExpandedIcon();
+            if(expandedIcon != null)
+              drawCentered(tree, g, expandedIcon, middleXOfKnob,
+                           middleYOfKnob );
+          }
+          else {
+            Icon collapsedIcon = getCollapsedIcon();
+            if(collapsedIcon != null)
+              drawCentered(tree, g, collapsedIcon, middleXOfKnob,
+                           middleYOfKnob);
+          }
+        }
       }
     }
 
@@ -934,6 +980,12 @@ public class ColumnTreeBuilder {
         columnX.add(x - 1);
       }
       return columnX;
+    }
+
+    @NotNull
+    protected ColumnTreeUI setShouldAlwaysPaintExpandControl(boolean shouldAlwaysPaintExpandControl) {
+      myShouldAlwaysPaintExpandControl = shouldAlwaysPaintExpandControl;
+      return this;
     }
   }
 
