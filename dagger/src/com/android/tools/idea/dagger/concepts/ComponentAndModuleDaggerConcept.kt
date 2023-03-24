@@ -161,30 +161,28 @@ internal data class ClassIndexValue(
   }
 
   companion object {
-    private val identifyClassKotlin =
-      DaggerElementIdentifier<KtClass> {
-        when {
-          it.hasAnnotation(DaggerAnnotations.COMPONENT) -> ComponentDaggerElement(it)
-          it.hasAnnotation(DaggerAnnotations.SUBCOMPONENT) -> SubcomponentDaggerElement(it)
-          it.hasAnnotation(DaggerAnnotations.MODULE) -> ModuleDaggerElement(it)
-          else -> null
-        }
+    private fun identify(psiElement: KtClass): DaggerElement? =
+      when {
+        psiElement.hasAnnotation(DaggerAnnotations.COMPONENT) -> ComponentDaggerElement(psiElement)
+        psiElement.hasAnnotation(DaggerAnnotations.SUBCOMPONENT) ->
+          SubcomponentDaggerElement(psiElement)
+        psiElement.hasAnnotation(DaggerAnnotations.MODULE) -> ModuleDaggerElement(psiElement)
+        else -> null
       }
 
-    private val identifyClassJava =
-      DaggerElementIdentifier<PsiClass> {
-        when {
-          it.hasAnnotation(DaggerAnnotations.COMPONENT) -> ComponentDaggerElement(it)
-          it.hasAnnotation(DaggerAnnotations.SUBCOMPONENT) -> SubcomponentDaggerElement(it)
-          it.hasAnnotation(DaggerAnnotations.MODULE) -> ModuleDaggerElement(it)
-          else -> null
-        }
+    private fun identify(psiElement: PsiClass): DaggerElement? =
+      when {
+        psiElement.hasAnnotation(DaggerAnnotations.COMPONENT) -> ComponentDaggerElement(psiElement)
+        psiElement.hasAnnotation(DaggerAnnotations.SUBCOMPONENT) ->
+          SubcomponentDaggerElement(psiElement)
+        psiElement.hasAnnotation(DaggerAnnotations.MODULE) -> ModuleDaggerElement(psiElement)
+        else -> null
       }
 
     internal val identifiers =
       DaggerElementIdentifiers(
-        ktClassIdentifiers = listOf(identifyClassKotlin),
-        psiClassIdentifiers = listOf(identifyClassJava),
+        ktClassIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
+        psiClassIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
       )
   }
 

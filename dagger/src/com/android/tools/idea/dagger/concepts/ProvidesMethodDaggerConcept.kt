@@ -121,36 +121,32 @@ internal data class ProvidesMethodIndexValue(
   }
 
   companion object {
-    private val identifyProvidesMethodKotlin =
-      DaggerElementIdentifier<KtFunction> { psiElement ->
-        if (
-          psiElement !is KtConstructor<*> &&
-            psiElement.hasProvidesOrBindsAnnotation() &&
-            psiElement.containingClassOrObject?.selfOrCompanionParentIsModule() == true
-        ) {
-          ProviderDaggerElement(psiElement)
-        } else {
-          null
-        }
+    private fun identify(psiElement: KtFunction): DaggerElement? =
+      if (
+        psiElement !is KtConstructor<*> &&
+          psiElement.hasProvidesOrBindsAnnotation() &&
+          psiElement.containingClassOrObject?.selfOrCompanionParentIsModule() == true
+      ) {
+        ProviderDaggerElement(psiElement)
+      } else {
+        null
       }
 
-    private val identifyProvidesMethodJava =
-      DaggerElementIdentifier<PsiMethod> { psiElement ->
-        if (
-          !psiElement.isConstructor &&
-            psiElement.hasProvidesOrBindsAnnotation() &&
-            psiElement.containingClass?.hasAnnotation(MODULE) == true
-        ) {
-          ProviderDaggerElement(psiElement)
-        } else {
-          null
-        }
+    private fun identify(psiElement: PsiMethod): DaggerElement? =
+      if (
+        !psiElement.isConstructor &&
+          psiElement.hasProvidesOrBindsAnnotation() &&
+          psiElement.containingClass?.hasAnnotation(MODULE) == true
+      ) {
+        ProviderDaggerElement(psiElement)
+      } else {
+        null
       }
 
     internal val identifiers =
       DaggerElementIdentifiers(
-        ktFunctionIdentifiers = listOf(identifyProvidesMethodKotlin),
-        psiMethodIdentifiers = listOf(identifyProvidesMethodJava)
+        ktFunctionIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
+        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify))
       )
   }
 

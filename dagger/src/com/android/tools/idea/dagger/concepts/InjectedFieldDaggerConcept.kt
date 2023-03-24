@@ -84,22 +84,20 @@ internal data class InjectedFieldIndexValue(val classFqName: String, val fieldNa
   }
 
   companion object {
-    private val identifyInjectedFieldKotlin =
-      DaggerElementIdentifier<KtProperty> {
-        if (it.containingClassOrObject != null && it.hasAnnotation(INJECT))
-          ConsumerDaggerElement(it)
-        else null
+    private fun identify(psiElement: KtProperty): DaggerElement? =
+      if (psiElement.containingClassOrObject != null && psiElement.hasAnnotation(INJECT)) {
+        ConsumerDaggerElement(psiElement)
+      } else {
+        null
       }
 
-    private val identifyInjectedFieldJava =
-      DaggerElementIdentifier<PsiField> {
-        if (it.hasAnnotation(INJECT)) ConsumerDaggerElement(it) else null
-      }
+    private fun identify(psiElement: PsiField): DaggerElement? =
+      if (psiElement.hasAnnotation(INJECT)) ConsumerDaggerElement(psiElement) else null
 
     internal val identifiers =
       DaggerElementIdentifiers(
-        ktPropertyIdentifiers = listOf(identifyInjectedFieldKotlin),
-        psiFieldIdentifiers = listOf(identifyInjectedFieldJava)
+        ktPropertyIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
+        psiFieldIdentifiers = listOf(DaggerElementIdentifier(this::identify))
       )
   }
 

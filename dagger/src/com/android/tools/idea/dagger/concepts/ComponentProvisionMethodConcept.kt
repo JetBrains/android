@@ -103,38 +103,34 @@ internal data class ComponentProvisionMethodIndexValue(
   }
 
   companion object {
-    private val identifyComponentProvisionMethodKotlin =
-      DaggerElementIdentifier<KtFunction> { psiElement ->
-        if (
-          psiElement !is KtConstructor<*> &&
-            !psiElement.hasBody() &&
-            psiElement.valueParameters.isEmpty() &&
-            psiElement.containingClassOrObject?.isComponentOrSubcomponent() == true
-        ) {
-          ComponentProvisionMethodDaggerElement(psiElement)
-        } else {
-          null
-        }
+    private fun identify(psiElement: KtFunction): DaggerElement? =
+      if (
+        psiElement !is KtConstructor<*> &&
+          !psiElement.hasBody() &&
+          psiElement.valueParameters.isEmpty() &&
+          psiElement.containingClassOrObject?.isComponentOrSubcomponent() == true
+      ) {
+        ComponentProvisionMethodDaggerElement(psiElement)
+      } else {
+        null
       }
 
-    private val identifyComponentProvisionMethodJava =
-      DaggerElementIdentifier<PsiMethod> { psiElement ->
-        if (
-          !psiElement.isConstructor &&
-            psiElement.body == null &&
-            psiElement.parameters.isEmpty() &&
-            psiElement.containingClass?.isComponentOrSubcomponent() == true
-        ) {
-          ComponentProvisionMethodDaggerElement(psiElement)
-        } else {
-          null
-        }
+    private fun identify(psiElement: PsiMethod): DaggerElement? =
+      if (
+        !psiElement.isConstructor &&
+          psiElement.body == null &&
+          psiElement.parameters.isEmpty() &&
+          psiElement.containingClass?.isComponentOrSubcomponent() == true
+      ) {
+        ComponentProvisionMethodDaggerElement(psiElement)
+      } else {
+        null
       }
 
     internal val identifiers =
       DaggerElementIdentifiers(
-        ktFunctionIdentifiers = listOf(identifyComponentProvisionMethodKotlin),
-        psiMethodIdentifiers = listOf(identifyComponentProvisionMethodJava)
+        ktFunctionIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
+        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify))
       )
 
     private fun KtClassOrObject.isComponentOrSubcomponent() =

@@ -103,40 +103,36 @@ internal data class BindsOptionalOfIndexValue(
   }
 
   companion object {
-    private val identifyBindsOptionalOfKotlin =
-      DaggerElementIdentifier<KtFunction> { psiElement ->
-        if (
-          psiElement !is KtConstructor<*> &&
-            psiElement.hasAnnotation(DaggerAnnotations.BINDS_OPTIONAL_OF) &&
-            !psiElement.hasBody() &&
-            psiElement.valueParameters.isEmpty() &&
-            psiElement.containingClassOrObject?.selfOrCompanionParentIsModule() == true
-        ) {
-          BindsOptionalOfProviderDaggerElement(psiElement)
-        } else {
-          null
-        }
+    private fun identify(psiElement: KtFunction): DaggerElement? =
+      if (
+        psiElement !is KtConstructor<*> &&
+          psiElement.hasAnnotation(DaggerAnnotations.BINDS_OPTIONAL_OF) &&
+          !psiElement.hasBody() &&
+          psiElement.valueParameters.isEmpty() &&
+          psiElement.containingClassOrObject?.selfOrCompanionParentIsModule() == true
+      ) {
+        BindsOptionalOfProviderDaggerElement(psiElement)
+      } else {
+        null
       }
 
-    private val identifyBindsOptionalOfJava =
-      DaggerElementIdentifier<PsiMethod> { psiElement ->
-        if (
-          !psiElement.isConstructor &&
-            psiElement.hasAnnotation(DaggerAnnotations.BINDS_OPTIONAL_OF) &&
-            psiElement.body == null &&
-            psiElement.parameters.isEmpty() &&
-            psiElement.containingClass?.hasAnnotation(DaggerAnnotations.MODULE) == true
-        ) {
-          BindsOptionalOfProviderDaggerElement(psiElement)
-        } else {
-          null
-        }
+    private fun identify(psiElement: PsiMethod): DaggerElement? =
+      if (
+        !psiElement.isConstructor &&
+          psiElement.hasAnnotation(DaggerAnnotations.BINDS_OPTIONAL_OF) &&
+          psiElement.body == null &&
+          psiElement.parameters.isEmpty() &&
+          psiElement.containingClass?.hasAnnotation(DaggerAnnotations.MODULE) == true
+      ) {
+        BindsOptionalOfProviderDaggerElement(psiElement)
+      } else {
+        null
       }
 
     internal val identifiers =
       DaggerElementIdentifiers(
-        ktFunctionIdentifiers = listOf(identifyBindsOptionalOfKotlin),
-        psiMethodIdentifiers = listOf(identifyBindsOptionalOfJava)
+        ktFunctionIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
+        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify))
       )
   }
 

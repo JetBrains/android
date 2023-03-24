@@ -95,20 +95,20 @@ internal data class InjectedConstructorIndexValue(val classFqName: String) : Ind
   }
 
   companion object {
-    private val identifyInjectedConstructorKotlin =
-      DaggerElementIdentifier<KtConstructor<*>> {
-        if (it.hasAnnotation(INJECT)) ProviderDaggerElement(it) else null
-      }
+    private fun identify(psiElement: KtConstructor<*>): DaggerElement? =
+      if (psiElement.hasAnnotation(INJECT)) ProviderDaggerElement(psiElement) else null
 
-    private val identifyInjectedConstructorJava =
-      DaggerElementIdentifier<PsiMethod> {
-        if (it.isConstructor && it.hasAnnotation(INJECT)) ProviderDaggerElement(it) else null
+    private fun identify(psiElement: PsiMethod): DaggerElement? =
+      if (psiElement.isConstructor && psiElement.hasAnnotation(INJECT)) {
+        ProviderDaggerElement(psiElement)
+      } else {
+        null
       }
 
     internal val identifiers =
       DaggerElementIdentifiers(
-        ktConstructorIdentifiers = listOf(identifyInjectedConstructorKotlin),
-        psiMethodIdentifiers = listOf(identifyInjectedConstructorJava)
+        ktConstructorIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
+        psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify))
       )
   }
 
