@@ -22,7 +22,7 @@ import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepres
 import com.android.tools.idea.util.runWhenSmartAndSynced
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.DumbService.DUMB_MODE
+import com.intellij.openapi.project.DumbService.Companion.DUMB_MODE
 import com.intellij.psi.PsiFile
 
 /**
