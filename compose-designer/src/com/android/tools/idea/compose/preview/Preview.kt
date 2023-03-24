@@ -823,7 +823,7 @@ class ComposePreviewRepresentation(
 
       // Flow for Preview changes
       launch(workerThread) {
-        previewElementFlowForFile(this@ComposePreviewRepresentation, psiFilePointer).collect {
+        previewElementFlowForFile(this@launch, psiFilePointer).collect {
           log.debug("PreviewElements updated $it")
           previewElementsFlow.value = it
 
@@ -911,7 +911,7 @@ class ComposePreviewRepresentation(
       // Flow handling file changes and syntax error changes.
       launch(workerThread) {
         merge(
-            psiFileChangeFlow(psiFilePointer.project, this@ComposePreviewRepresentation)
+            psiFileChangeFlow(psiFilePointer.project, this@launch)
               // filter only for the file we care about
               .filter { it.language == KotlinLanguage.INSTANCE }
               .onEach {

@@ -24,7 +24,6 @@ import com.android.tools.idea.testing.replaceText
 import com.android.tools.idea.ui.ApplicationUtils
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.util.Disposer
 import com.intellij.psi.SmartPointerManager
 import kotlin.test.assertEquals
 import kotlinx.coroutines.CompletableDeferred
@@ -70,9 +69,8 @@ class ComposePreviewElementFlowTest {
     val completed = CompletableDeferred<Unit>()
     val listenersReady = CompletableDeferred<Unit>()
     val testJob = launch {
-      val flowForFile =
-        Disposer.newDisposable(projectRule.fixture.testRootDisposable, "flowForFile")
-      val flow = previewElementFlowForFile(flowForFile, psiFilePointer)
+      val flowScope = createChildScope()
+      val flow = previewElementFlowForFile(flowScope, psiFilePointer)
       flow.value.single().let { assertEquals("OtherFileKt.Preview1", it.composableMethodFqn) }
 
       listenersReady.complete(Unit)
@@ -93,6 +91,8 @@ class ComposePreviewElementFlowTest {
 
         completed.complete(Unit)
       }
+
+      flowScope.cancel()
     }
 
     listenersReady.await()
@@ -158,8 +158,7 @@ class ComposePreviewElementFlowTest {
 
     runBlocking {
       val flowScope = createChildScope()
-      val flow =
-        previewElementFlowForFile(flowScope, projectRule.fixture.testRootDisposable, psiFilePointer)
+      val flow = previewElementFlowForFile(flowScope, psiFilePointer)
       assertEquals(
         "Preview1 - A,Preview1 - B",
         flow.filter { it.size == 2 }.first().joinToString(",") { it.displaySettings.name }
@@ -180,6 +179,7 @@ class ComposePreviewElementFlowTest {
         "Preview1 - A,Preview1 - B,Preview1 - C",
         flow.filter { it.size == 3 }.first().joinToString(",") { it.displaySettings.name }
       )
+
       // Terminate the flow
       flowScope.cancel()
     }

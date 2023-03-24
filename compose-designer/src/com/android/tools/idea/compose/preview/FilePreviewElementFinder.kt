@@ -15,17 +15,14 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.psiFileChangeFlow
 import com.android.tools.idea.preview.PreviewElementProvider
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.PsiModificationTracker
-import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +30,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -78,12 +76,9 @@ interface FilePreviewElementFinder {
 @OptIn(FlowPreview::class)
 suspend fun previewElementFlowForFile(
   scope: CoroutineScope,
-  parentDisposable: Disposable,
   psiFilePointer: SmartPsiElementPointer<PsiFile>,
   filePreviewElementProvider: () -> FilePreviewElementFinder = ::defaultFilePreviewElementFinder,
 ): StateFlow<Set<ComposePreviewElement>> {
-  val state = MutableStateFlow<Set<ComposePreviewElement>>(emptySet())
-
   val previewProvider =
     object : PreviewElementProvider<ComposePreviewElement> {
       override suspend fun previewElements(): Sequence<ComposePreviewElement> =
@@ -98,8 +93,16 @@ suspend fun previewElementFlowForFile(
     PsiModificationTracker.getInstance(psiFilePointer.project).forLanguages { lang ->
       lang.`is`(KotlinLanguage.INSTANCE)
     }
+  val state = MutableStateFlow(previewProvider.previewElements().toSet())
   scope.launch(AndroidDispatchers.workerThread) {
-    psiFileChangeFlow(psiFilePointer.project, parentDisposable)
+    psiFileChangeFlow(
+        psiFilePointer.project,
+        scope,
+        onConnected = {
+          // After the flow is connected, emit again to ensure that we have not missed any updates
+          scope.launch { state.emit(previewProvider.previewElements().toSet()) }
+        }
+      )
       // filter only by Kotlin changes. We care about any Kotlin changes since Multi-preview can
       // trigger changes from any file.
       .filter { it.fileType == KotlinFileType.INSTANCE }
@@ -107,22 +110,8 @@ suspend fun previewElementFlowForFile(
       .distinctUntilChangedBy { kotlinPsiTracker.modificationCount }
       // debounce to avoid many equality comparisons of the set
       .debounce(250)
-      .collect { state.value = previewProvider.previewElements().toSet() }
+      .collect { state.update { previewProvider.previewElements().toSet() } }
   }
 
-  // Set the initial state to the first elements found
-  state.value = previewProvider.previewElements().toSet()
   return state
 }
-
-suspend fun previewElementFlowForFile(
-  parentDisposable: Disposable,
-  psiFilePointer: SmartPsiElementPointer<PsiFile>,
-  filePreviewElementProvider: () -> FilePreviewElementFinder = ::defaultFilePreviewElementFinder,
-): StateFlow<Set<ComposePreviewElement>> =
-  previewElementFlowForFile(
-    AndroidCoroutineScope(parentDisposable, coroutineContext),
-    parentDisposable,
-    psiFilePointer,
-    filePreviewElementProvider
-  )

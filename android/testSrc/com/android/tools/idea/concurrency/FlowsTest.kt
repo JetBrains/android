@@ -66,7 +66,7 @@ class FlowsTest {
       launch(workerThread) {
         withTimeout(20.seconds) {
           try {
-            psiFileChangeFlow(projectRule.project, projectRule.testRootDisposable) {
+            psiFileChangeFlow(projectRule.project, this@runBlocking) {
                 flowReady.complete(Unit)
               }
               .take(3)

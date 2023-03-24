@@ -506,8 +506,8 @@ fun smartModeFlow(project: Project, parentDisposable: Disposable, logger: Logger
 /**
  * A [callbackFlow] that produces an element when a [PsiFile] changes.
  */
-fun psiFileChangeFlow(psiManager: PsiManager, parentDisposable: Disposable, logger: Logger? = null, onConnected: (() -> Unit)? = null): Flow<PsiFile> =
-  disposableCallbackFlow<PsiFile>(debugName = "PsiFileChangeFlow", parentDisposable = parentDisposable, logger = logger) {
+fun psiFileChangeFlow(psiManager: PsiManager, scope: CoroutineScope, logger: Logger? = null, onConnected: (() -> Unit)? = null): Flow<PsiFile> =
+  disposableCallbackFlow<PsiFile>(debugName = "PsiFileChangeFlow", parentDisposable = scope.scopeDisposable(), logger = logger) {
     psiManager.addPsiTreeChangeListener(
       object : PsiTreeAnyChangeAbstractAdapter() {
         override fun onChange(changedFile: PsiFile?) {
@@ -523,5 +523,5 @@ fun psiFileChangeFlow(psiManager: PsiManager, parentDisposable: Disposable, logg
     // Avoid repeated change events for no modifications
     .distinctUntilChangedBy { psiManager.modificationTracker.modificationCount }
 
-fun psiFileChangeFlow(project: Project, parentDisposable: Disposable, logger: Logger? = null, onConnected: (() -> Unit)? = null): Flow<PsiFile> =
-  psiFileChangeFlow(PsiManager.getInstance(project), parentDisposable, logger, onConnected)
+fun psiFileChangeFlow(project: Project, scope: CoroutineScope, logger: Logger? = null, onConnected: (() -> Unit)? = null): Flow<PsiFile> =
+  psiFileChangeFlow(PsiManager.getInstance(project), scope, logger, onConnected)
