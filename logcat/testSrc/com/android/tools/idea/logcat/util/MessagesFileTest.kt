@@ -1,20 +1,21 @@
 package com.android.tools.idea.logcat.util
 
-import com.android.testutils.file.createInMemoryFileSystem
-import com.android.testutils.file.getExistingFiles
 import com.android.tools.idea.logcat.logcatMessage
+import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.RuleChain
+import org.junit.Rule
 import org.junit.Test
-import java.io.File
-import java.nio.file.FileSystem
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Tests for [MessagesFile]
  */
-class MessagesFileTest {
-  private val tempFileIndex = AtomicInteger(0)
-  private val fs = createInMemoryFileSystem()
+internal class MessagesFileTest {
+  private val tempFileFactory = TestTempFileFactory()
+
+  @get:Rule
+  val rule = RuleChain(ApplicationRule(), ApplicationServiceRule(TempFileFactory::class.java, tempFileFactory))
 
   @Test
   fun initialize_createsFile() {
@@ -22,7 +23,7 @@ class MessagesFileTest {
 
     messagesFile.initialize()
 
-    assertThat(fs.getExistingFileNames()).containsExactly("studio-test-1.bin")
+    assertThat(tempFileFactory.getExistingFileNames()).containsExactly("studio-test-1.bin")
   }
 
   @Test
@@ -32,7 +33,7 @@ class MessagesFileTest {
 
     messagesFile.delete()
 
-    assertThat(fs.getExistingFileNames()).isEmpty()
+    assertThat(tempFileFactory.getExistingFileNames()).isEmpty()
   }
 
   @Test
@@ -41,7 +42,7 @@ class MessagesFileTest {
     messagesFile.initialize()
 
     assertThat(messagesFile.loadMessagesAndDelete()).isEmpty()
-    assertThat(fs.getExistingFileNames()).isEmpty()
+    assertThat(tempFileFactory.getExistingFileNames()).isEmpty()
   }
 
   @Test
@@ -58,7 +59,7 @@ class MessagesFileTest {
       logcatMessage(message = "Foo"),
       logcatMessage(message = "Bar"),
     )
-    assertThat(fs.getExistingFileNames()).isEmpty()
+    assertThat(tempFileFactory.getExistingFileNames()).isEmpty()
   }
 
   @Test
@@ -75,7 +76,7 @@ class MessagesFileTest {
       logcatMessage(message = "More-12345"), // This message will go into file2
     ))
 
-    assertThat(fs.getExistingFileNames()).containsExactly(
+    assertThat(tempFileFactory.getExistingFileNames()).containsExactly(
       "studio-test-1.bin",
       "studio-test-2.bin",
     )
@@ -84,7 +85,7 @@ class MessagesFileTest {
       logcatMessage(message = "Bar-12345"),
       logcatMessage(message = "More-12345"),
     )
-    assertThat(fs.getExistingFileNames()).isEmpty()
+    assertThat(tempFileFactory.getExistingFileNames()).isEmpty()
   }
 
   @Test
@@ -104,7 +105,7 @@ class MessagesFileTest {
       logcatMessage(message = "Even more"), // This message will go into file3
     ))
 
-    assertThat(fs.getExistingFileNames()).containsExactly(
+    assertThat(tempFileFactory.getExistingFileNames()).containsExactly(
       "studio-test-2.bin",
       "studio-test-3.bin",
     )
@@ -113,13 +114,9 @@ class MessagesFileTest {
       logcatMessage(message = "More-5678"),
       logcatMessage(message = "Even more"),
     )
-    assertThat(fs.getExistingFileNames()).isEmpty()
+    assertThat(tempFileFactory.getExistingFileNames()).isEmpty()
   }
 
   private fun messagesFile(maxSize: Int = Int.MAX_VALUE) =
-    MessagesFile("test", maxSize) { prefix: String, suffix: String ->
-      fs.getPath("$prefix-${tempFileIndex.incrementAndGet()}$suffix")
-    }
+    MessagesFile("test", maxSize)
 }
-
-private fun FileSystem.getExistingFileNames() = getExistingFiles().map { it.substringAfterLast(File.separatorChar) }

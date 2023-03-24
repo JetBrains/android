@@ -18,18 +18,19 @@ package com.android.tools.idea.logcat.util
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.message.readLogcatMessage
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
-import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.diagnostic.trace
 import com.intellij.util.io.inputStream
-import com.intellij.util.io.outputStream
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.nio.file.Path
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.name
+import kotlin.io.path.outputStream
 
 private val eof = LogcatMessage(SYSTEM_HEADER, "EOF")
+private val logger = Logger.getInstance(MessagesFile::class.java)
 
 /**
  * Manages a temporary file of [LogcatMessage]s
@@ -40,11 +41,8 @@ private val eof = LogcatMessage(SYSTEM_HEADER, "EOF")
 internal class MessagesFile(
   private val name: String,
   private val maxSizeBytes: Int,
-  private val createTempFile: (String, String) -> Path = { prefix: String, suffix: String ->
-    FileUtil.createTempFile(prefix, suffix, true).toPath()
-  }
 ) {
-  private val logger = thisLogger()
+  private val tempFileFactory = TempFileFactory.getInstance()
   private var file: Path? = null
   private var previousFile: Path? = null
   private var outputStream: ObjectOutputStream? = null
@@ -54,7 +52,7 @@ internal class MessagesFile(
    * Initialize the temporary file
    */
   fun initialize() {
-    file = createTempFile("studio-$name", ".bin").also {
+    file = tempFileFactory.createTempFile("studio-$name", ".bin").also {
       outputStream = ObjectOutputStream(it.outputStream())
     }
     sizeBytes = 0
@@ -68,7 +66,7 @@ internal class MessagesFile(
    */
   fun appendMessages(messages: List<LogcatMessage>) {
     if (sizeBytes > maxSizeBytes) {
-      logger.debug { "File ${file?.name} exceeded max size ($sizeBytes > $maxSizeBytes)" }
+      logger.trace { "File ${file?.name} exceeded max size ($sizeBytes > $maxSizeBytes)" }
       outputStream?.writeEofAndClose()
       previousFile.delete()
       previousFile = file
@@ -106,32 +104,32 @@ internal class MessagesFile(
     outputStream = null
     sizeBytes = 0
   }
+}
 
-  private fun Path.readMessages(): List<LogcatMessage> {
-    ObjectInputStream(inputStream()).use {
-      val messages = buildList {
-        while (true) {
-          val item = it.readLogcatMessage()
-          if (item == eof) {
-            break
-          }
-          add(item)
+private fun Path.readMessages(): List<LogcatMessage> {
+  ObjectInputStream(inputStream()).use {
+    val messages = buildList {
+      while (true) {
+        val item = it.readLogcatMessage()
+        if (item == eof) {
+          break
         }
+        add(item)
       }
-      logger.debug { "Loaded ${messages.size} messages from file $name" }
-      return messages
     }
+    logger.debug { "Loaded ${messages.size} messages from file $name" }
+    return messages
   }
+}
 
-  private fun Path?.delete() {
-    val deleted = this?.deleteIfExists()
-    if (deleted == true) {
-      logger.debug { "Deleted file ${this?.name}" }
-    }
+private fun Path?.delete() {
+  val deleted = this?.deleteIfExists()
+  if (deleted == true) {
+    logger.debug { "Deleted file ${this?.name}" }
   }
+}
 
-  private fun ObjectOutputStream.writeEofAndClose() {
-    eof.writeExternal(this)
-    close()
-  }
+private fun ObjectOutputStream.writeEofAndClose() {
+  eof.writeExternal(this)
+  close()
 }
