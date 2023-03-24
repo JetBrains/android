@@ -8,8 +8,8 @@ iml_module(
     test_class = "org.jetbrains.android.AndroidPluginTestSuite",
     test_srcs = ["testSrc"],
     test_tags = [
-        "cpu:3",
         "block-network",
+        "cpu:3",
         "no_test_mac",  # b/174646037
     ],
     visibility = ["//visibility:public"],
@@ -17,6 +17,7 @@ iml_module(
     deps = [
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/adt/idea/android:intellij.android.core[module]",
+        "//tools/adt/idea/explainer:intellij.android.explainer[module]",
         "//tools/adt/idea/streaming:intellij.android.streaming[module]",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module]",
         "//tools/adt/idea/app-inspection/ide:app-inspection.ide[module]",

@@ -21,6 +21,7 @@ import com.android.tools.adtui.toolwindow.splittingtabs.state.SplittingTabsState
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
+import com.android.tools.idea.explainer.IssueExplainer
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.LogcatMainPanel.LogcatServiceEvent.PauseLogcat
 import com.android.tools.idea.logcat.LogcatMainPanel.LogcatServiceEvent.StartLogcat
@@ -35,6 +36,7 @@ import com.android.tools.idea.logcat.ProjectApplicationIdsProvider.ProjectApplic
 import com.android.tools.idea.logcat.actions.ClearLogcatAction
 import com.android.tools.idea.logcat.actions.CopyMessageTextAction
 import com.android.tools.idea.logcat.actions.CreateScratchFileAction
+import com.android.tools.idea.logcat.actions.ExplainLogcatCrashAction
 import com.android.tools.idea.logcat.actions.IgnoreTagAction
 import com.android.tools.idea.logcat.actions.LogcatFoldLinesLikeThisAction
 import com.android.tools.idea.logcat.actions.LogcatFormatAction
@@ -416,6 +418,10 @@ internal class LogcatMainPanel @TestOnly constructor(
       add(IgnoreTagAction())
       add(CreateScratchFileAction())
       add(Separator.create())
+      if (IssueExplainer.get().isAvailable()) {
+        add(ExplainLogcatCrashAction())
+        add(Separator.create())
+      }
       actions.forEach { add(it) }
       if (StudioFlags.ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER.get() && StudioFlags.LOGCAT_TERMINATE_APP_ACTIONS_ENABLED.get()) {
         add(Separator.getInstance())
