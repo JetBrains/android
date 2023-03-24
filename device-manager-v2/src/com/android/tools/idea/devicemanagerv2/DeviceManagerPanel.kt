@@ -22,12 +22,15 @@ import com.android.sdklib.deviceprovisioner.DeviceAction
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.SetChange
 import com.android.sdklib.deviceprovisioner.trackSetChanges
+import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.categorytable.CategoryTable
 import com.android.tools.adtui.util.ActionToolbarUtil
+import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.devicemanagerv2.DeviceTableColumns.columns
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
+import com.intellij.icons.AllIcons
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -35,10 +38,11 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.components.service
-import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBScrollPane
+import icons.StudioIcons
 import java.awt.BorderLayout
 import javax.swing.JButton
 import javax.swing.JPanel
@@ -60,9 +64,36 @@ internal class DeviceManagerPanel(val project: Project) : JPanel() {
   init {
     layout = BorderLayout()
 
+    // TODO: Add group selector dropdown
+
+    val groupingActions =
+      DefaultActionGroup("Group", null, AllIcons.Actions.GroupBy).apply {
+        isPopup = true
+        add(Separator.create("Group By"))
+        add(GroupByNoneAction(deviceTable))
+        add(GroupingAction(deviceTable, DeviceTableColumns.Type))
+        add(GroupingAction(deviceTable, DeviceTableColumns.Status))
+        // TODO: Group by Device groups, OEM, Source
+      }
+
     val createDeviceActions = deviceProvisioner.createDeviceActions().map { it.toAnAction() }
     val createTemplateActions = deviceProvisioner.createTemplateActions().map { it.toAnAction() }
-    val toolbar = createToolbar(createDeviceActions + createTemplateActions)
+    val createActions = createDeviceActions + createTemplateActions
+
+    val addDevice =
+      when (createActions.size) {
+        0 -> null
+        1 -> createActions[0]
+        else ->
+          DropDownAction("Add Device", "Add a new device", StudioIcons.Common.ADD).also {
+            it.addAll(createActions)
+          }
+      }
+
+    val toolbar =
+      createToolbar(
+        listOfNotNull(groupingActions, Separator.create(), addDevice, PairDevicesUsingWiFiAction())
+      )
 
     add(toolbar.component, BorderLayout.NORTH)
 
@@ -108,11 +139,8 @@ internal class DeviceManagerPanel(val project: Project) : JPanel() {
       // states
       isEnabled.collect { ActivityTracker.getInstance().inc() }
     }
-    return object : AnAction(label) {
+    return object : AnAction(label, label, StudioIcons.Common.ADD) {
       override fun getActionUpdateThread() = ActionUpdateThread.BGT
-
-      override fun displayTextInToolbar() = true
-      override fun useSmallerFontForTextInToolbar() = true
 
       override fun update(e: AnActionEvent) {
         e.presentation.isEnabled = isEnabled.value
@@ -123,6 +151,7 @@ internal class DeviceManagerPanel(val project: Project) : JPanel() {
       }
     }
   }
+
   private fun CreateDeviceAction.toAnAction() = toAnAction(CreateDeviceAction::create)
   private fun CreateDeviceTemplateAction.toAnAction() =
     toAnAction(CreateDeviceTemplateAction::create)

@@ -18,11 +18,10 @@ package com.android.tools.idea.adb.wireless
 import com.android.annotations.concurrency.UiThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import icons.StudioIcons
 
-/**
- * The action to show the [WiFiPairingDialog] window.
- */
-class PairDevicesUsingWiFiAction : AnAction() {
+/** The action to show the [WiFiPairingDialog] window. */
+class PairDevicesUsingWiFiAction : AnAction(StudioIcons.Avd.PAIR_OVER_WIFI) {
   @UiThread
   override fun update(e: AnActionEvent) {
     super.update(e)
