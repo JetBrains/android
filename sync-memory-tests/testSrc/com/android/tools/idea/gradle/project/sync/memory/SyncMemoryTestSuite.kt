@@ -99,7 +99,7 @@ class Benchmark500MemoryTest : MemoryBenchmarkTestSuite() {
   val memoryUsageBenchmarkRule = MemoryUsageBenchmarkRule(
     projectRule,
     projectName = "500Modules",
-    memoryLimitMb = 4200,
+    memoryLimitMb = 3600,
     lightweightMode = false
   )
 
@@ -137,7 +137,7 @@ class Benchmark2000MemoryTest : MemoryBenchmarkTestSuite() {
   val memoryUsageBenchmarkRule = MemoryUsageBenchmarkRule(
     projectRule,
     projectName = "2000Modules",
-    memoryLimitMb = 25000,
+    memoryLimitMb = 16000,
     lightweightMode = true
   )
 
