@@ -62,8 +62,7 @@ class DeviceAdapterTest {
   private val displayRectangle = Rectangle(deviceDisplaySize)
   private val mousePressedLocations: MutableList<Point> = mutableListOf()
   private val mouseReleasedLocations: MutableList<Point> = mutableListOf()
-  private val typedKeys: MutableList<Char> = mutableListOf()
-  private val pressedKeys: MutableList<Int> = mutableListOf()
+  private val keyEvents: MutableList<Pair<Int, Any>> = mutableListOf()
   private val testTimeSource = TestTimeSource()
   private val p = Point(42, 99)
   private val returnedInputs: MutableList<Pair<Point, TimeMark>> = mutableListOf()
@@ -211,8 +210,18 @@ class DeviceAdapterTest {
     view.notifyFrame(INITIALIZED_FRAME)
 
     UIUtil.pump()
-    assertThat(typedKeys).isEqualTo(listOf(MAX_BITS, LATENCY_MAX_BITS, BITS_PER_CHANNEL).joinToString(",").toList())
-    assertThat(pressedKeys).containsExactly(KeyEvent.VK_UP, KeyEvent.VK_ENTER)
+    val configCharEvents = listOf(MAX_BITS, LATENCY_MAX_BITS, BITS_PER_CHANNEL).joinToString(",").map { KeyEvent.KEY_TYPED to it }
+    val expectedKeyEvents =
+      listOf(
+        KeyEvent.KEY_PRESSED to KeyEvent.VK_UP,
+        KeyEvent.KEY_RELEASED to KeyEvent.VK_UP,
+      ) +
+      configCharEvents +
+      listOf(
+        KeyEvent.KEY_PRESSED to KeyEvent.VK_ENTER,
+        KeyEvent.KEY_RELEASED to KeyEvent.VK_ENTER,
+      )
+    assertThat(keyEvents).isEqualTo(expectedKeyEvents)
   }
 
   @Test
@@ -368,9 +377,10 @@ class DeviceAdapterTest {
       }
       addMouseListener(mouseListener)
       val keyListener = object : KeyListener {
-        override fun keyTyped(e: KeyEvent) { typedKeys.add(e.keyChar) }
-        override fun keyPressed(e: KeyEvent) { pressedKeys.add(e.keyCode) }
-        override fun keyReleased(e: KeyEvent) {}
+        private var index = 0
+        override fun keyTyped(e: KeyEvent) { keyEvents.add(KeyEvent.KEY_TYPED to e.keyChar) }
+        override fun keyPressed(e: KeyEvent) { keyEvents.add(KeyEvent.KEY_PRESSED to e.keyCode) }
+        override fun keyReleased(e: KeyEvent) { keyEvents.add(KeyEvent.KEY_RELEASED to e.keyCode) }
       }
       addKeyListener(keyListener)
       Disposer.register(projectRule.testRootDisposable, this)
