@@ -73,13 +73,17 @@ import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
 import com.android.tools.idea.logcat.util.LOGGER
+import com.android.tools.idea.logcat.util.LogcatEvent.LogcatMessagesEvent
+import com.android.tools.idea.logcat.util.LogcatEvent.LogcatPanelVisibility
 import com.android.tools.idea.logcat.util.LogcatUsageTracker
 import com.android.tools.idea.logcat.util.MostRecentlyAddedSet
+import com.android.tools.idea.logcat.util.consume
 import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.android.tools.idea.logcat.util.getDefaultFilter
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.logcat.util.isScrollAtBottom
 import com.android.tools.idea.logcat.util.toggleFilterTerm
+import com.android.tools.idea.logcat.util.trackVisibility
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager.SyncReason.Companion.USER_REQUEST
 import com.android.tools.idea.run.ClearLogcatListener
@@ -104,6 +108,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys.EDITOR
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.diagnostic.debug
@@ -596,11 +601,26 @@ internal class LogcatMainPanel @TestOnly constructor(
   }
 
 
-  override fun isSoftWrapEnabled(): Boolean  = isSoftWrapEnabled
+  override fun isSoftWrapEnabled(): Boolean = isSoftWrapEnabled
 
   override fun setSoftWrapEnabled(state: Boolean) {
     isSoftWrapEnabled = state
     reloadMessages()
+  }
+
+  override fun getBacklogMessages(): List<LogcatMessage> {
+    return messageBacklog.get().messages
+  }
+
+  override suspend fun enterInvisibleMode() {
+    messageBacklog.set(MessageBacklog(logcatSettings.bufferSize))
+    tags.clear()
+    packages.clear()
+    processNames.clear()
+    documentAppender.reset()
+    withContext(uiThread) {
+      document.setText("")
+    }
   }
 
   override fun clearMessageView() {
@@ -648,6 +668,11 @@ internal class LogcatMainPanel @TestOnly constructor(
 
   override fun isLogcatEmpty() = messageBacklog.get().messages.isEmpty()
 
+  override fun isShowing(): Boolean {
+    // Return true in tests, so we can test the LogcatEvent flow
+    return if (ApplicationManager.getApplication().isUnitTestMode) true else super.isShowing()
+  }
+
   override fun getData(dataId: String): Any? {
     val device = connectedDevice.get()
     return when (dataId) {
@@ -679,10 +704,23 @@ internal class LogcatMainPanel @TestOnly constructor(
     messageBacklog.get().clear()
 
     return coroutineScope.launch(Dispatchers.IO) {
-      val logcatFlow = logcatService.readLogcat(device)
-      val processMonitorFlow = projectAppMonitor.monitorDevice(device.serialNumber).transform { emit(listOf(it)) }
+      val logcatFlow = logcatService.readLogcat(device).transform { emit(LogcatMessagesEvent(it)) }
+      val processMonitorFlow = projectAppMonitor.monitorDevice(device.serialNumber).transform {
+        emit(LogcatMessagesEvent(listOf(it)))
+      }
+
       connectedDevice.set(device)
-      merge(logcatFlow, processMonitorFlow).collect { message -> processMessages(message) }
+
+      if (StudioFlags.LOGCAT_PANEL_MEMORY_SAVER.get()) {
+        val panelVisibilityFlow = trackVisibility().transform {
+          emit(LogcatPanelVisibility(it))
+        }
+        val flow = merge(logcatFlow, processMonitorFlow, panelVisibilityFlow)
+        flow.consume(this@LogcatMainPanel, device.serialNumber, logcatSettings.bufferSize)
+      }
+      else {
+        merge(logcatFlow, processMonitorFlow).collect { processMessages(it.messages) }
+      }
     }
   }
 

@@ -682,6 +682,14 @@ public final class StudioFlags {
     "Set the max number of messages that are appended to the UI component",
     1000
   );
+  public static final Flag<Boolean> LOGCAT_PANEL_MEMORY_SAVER = Flag.create(
+    LOGCAT,
+    "logcat.panel.memory.saver",
+    "Enable Logcat Panel memory saving feature",
+    "Reduces memory usage of Logcat tool by writing data to a file when the panel is not visible",
+    true
+  );
+
   //endregion
 
   //region Gradle Project System

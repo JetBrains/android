@@ -74,7 +74,7 @@ internal class MessagesFile(
     }
 
     val stream = outputStream ?: throw IllegalStateException("message file for $name is not initialized")
-    logger.debug { "Appending ${messages.size} messages to file ${file?.name}" }
+    logger.trace { "Appending ${messages.size} messages to file ${file?.name}" }
     messages.forEach {
       sizeBytes += it.message.length
       it.writeExternal(stream)

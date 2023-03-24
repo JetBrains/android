@@ -42,6 +42,10 @@ internal class DocumentAppender(project: Project, private val document: Document
   @VisibleForTesting
   internal val ranges = ArrayDeque<RangeMarker>()
 
+  fun reset() {
+    ranges.clear()
+  }
+
   @UiThread
   fun appendToDocument(buffer: TextAccumulator) {
     LOGGER.debug { "Appending ${buffer.text.length} bytes to document" }

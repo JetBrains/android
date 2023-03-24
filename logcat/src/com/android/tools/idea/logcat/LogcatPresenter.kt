@@ -93,6 +93,12 @@ internal interface LogcatPresenter : TagsProvider, PackageNamesProvider, Process
 
   fun setSoftWrapEnabled(state: Boolean)
 
+  fun getBacklogMessages() : List<LogcatMessage>
+
+  suspend fun enterInvisibleMode()
+
+  fun isShowing() : Boolean
+
   companion object {
     val LOGCAT_PRESENTER_ACTION = DataKey.create<LogcatPresenter>("LogcatPresenter")
   }
