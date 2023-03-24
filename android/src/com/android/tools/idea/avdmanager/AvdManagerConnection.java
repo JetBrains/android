@@ -275,7 +275,6 @@ public class AvdManagerConnection {
   private boolean initIfNecessary() {
     if (myAvdManager == null) {
       if (mySdkHandler == null) {
-        IJ_LOG.warn("No Android SDK found");
         return false;
       }
       if (myAvdHomeFolder == null) {
