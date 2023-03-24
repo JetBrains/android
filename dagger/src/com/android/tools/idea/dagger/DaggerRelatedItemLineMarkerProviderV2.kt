@@ -31,6 +31,7 @@ import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.navigation.GotoRelatedItem
+import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.ui.popup.JBPopupFactory
@@ -57,9 +58,10 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
     element: PsiElement,
     result: MutableCollection<in RelatedItemLineMarkerInfo<*>>
   ) {
-    if (!element.isDaggerWithIndexEnabled()) return
+    if (!isDaggerWithIndexEnabled()) return
 
     ProgressManager.checkCanceled()
+    if (!element.project.service<DaggerDependencyChecker>().isDaggerPresent()) return
 
     // Only leaf elements should be given markers; see `LineMarkerProvider.getLineMarkerInfo` for
     // details.

@@ -20,6 +20,7 @@ import com.android.tools.idea.dagger.concepts.getDaggerElement
 import com.intellij.find.findUsages.CustomUsageSearcher
 import com.intellij.find.findUsages.FindUsagesOptions
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.components.service
 import com.intellij.psi.PsiElement
 import com.intellij.usageView.UsageInfo
 import com.intellij.usages.Usage
@@ -37,14 +38,18 @@ class DaggerCustomUsageSearcherV2 : CustomUsageSearcher() {
     processor: Processor<in Usage>,
     options: FindUsagesOptions
   ) {
-    if (!element.isDaggerWithIndexEnabled()) return
+    if (!isDaggerWithIndexEnabled()) return
 
-    val relatedDaggerItems = runReadAction {
-      element.getDaggerElement()?.getRelatedDaggerElements()
+    val relatedDaggerUsages = runReadAction {
+      if (element.project.service<DaggerDependencyChecker>().isDaggerPresent()) {
+        element.getDaggerElement()?.getRelatedDaggerElements()?.map { (relatedItem, relationName) ->
+          DaggerUsage(relatedItem.psiElement, relationName)
+        }
+      } else {
+        null
+      }
     }
-    relatedDaggerItems?.forEach { (relatedItem, relationName) ->
-      processor.process(DaggerUsage(relatedItem.psiElement, relationName))
-    }
+    relatedDaggerUsages?.forEach { processor.process(it) }
   }
 
   class DaggerUsage(psiElement: PsiElement, private val usageTypeName: String) :
