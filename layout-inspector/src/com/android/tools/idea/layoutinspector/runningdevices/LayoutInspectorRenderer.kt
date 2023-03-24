@@ -37,6 +37,11 @@ class LayoutInspectorRenderer(
   private val component: Component
 ) {
 
+  init {
+    // TODO(b/265150325) when running devices the zoom does not affect the scale. Move this somewhere else.
+    renderLogic.renderSettings.scalePercent = 30
+  }
+
   /**
    * Transform to the center of the panel and scale Layout Inspector UI to display size.
    * @param displayRectangle The rectangle on which the device display is rendered.
