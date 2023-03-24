@@ -16,7 +16,9 @@
 package com.android.tools.idea.dagger
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.dagger.concepts.DaggerElement
 import com.android.tools.idea.dagger.concepts.getDaggerElement
+import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.find.findUsages.CustomUsageSearcher
 import com.intellij.find.findUsages.FindUsagesOptions
 import com.intellij.openapi.application.runReadAction
@@ -29,6 +31,7 @@ import com.intellij.usages.impl.rules.UsageType
 import com.intellij.usages.impl.rules.UsageWithType
 import com.intellij.util.Processor
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.system.measureTimeMillis
 
 /** Adds custom usages for Dagger-related classes to a find usages window. */
 class DaggerCustomUsageSearcherV2 : CustomUsageSearcher() {
@@ -40,22 +43,55 @@ class DaggerCustomUsageSearcherV2 : CustomUsageSearcher() {
   ) {
     if (!isDaggerWithIndexEnabled()) return
 
-    val relatedDaggerUsages = runReadAction {
-      if (element.project.service<DaggerDependencyChecker>().isDaggerPresent()) {
-        element.getDaggerElement()?.getRelatedDaggerElements()?.map { (relatedItem, relationName) ->
-          DaggerUsage(relatedItem.psiElement, relationName)
-        }
-      } else {
-        null
-      }
-    }
-    relatedDaggerUsages?.forEach { processor.process(it) }
+    val (metricsType, elapsedTimeMillis) =
+      runReadAction { processElementUsagesInReadAction(element, processor) } ?: return
+
+    element.project
+      .service<DaggerAnalyticsTracker>()
+      .trackFindUsagesNodeWasDisplayed(metricsType, elapsedTimeMillis)
   }
 
-  class DaggerUsage(psiElement: PsiElement, private val usageTypeName: String) :
-    UsageInfo2UsageAdapter(UsageInfo(psiElement)), UsageWithType {
+  private fun processElementUsagesInReadAction(
+    element: PsiElement,
+    processor: Processor<in Usage>
+  ): Pair<DaggerEditorEvent.ElementType, Long>? {
+    if (!element.project.service<DaggerDependencyChecker>().isDaggerPresent()) return null
+
+    val metricsType: DaggerEditorEvent.ElementType?
+    val elapsedTimeMillis = measureTimeMillis {
+      val daggerElement = element.getDaggerElement() ?: return null
+
+      val relatedDaggerUsages =
+        daggerElement.getRelatedDaggerElements().map { (relatedItem, relationName) ->
+          DaggerUsage(relatedItem, daggerElement, relationName)
+        }
+
+      relatedDaggerUsages.forEach { processor.process(it) }
+      metricsType = if (relatedDaggerUsages.isNotEmpty()) daggerElement.toMetricsType() else null
+    }
+
+    return metricsType?.let { Pair(it, elapsedTimeMillis) }
+  }
+
+  class DaggerUsage(
+    private val usageElement: DaggerElement,
+    private val targetElement: DaggerElement,
+    private val usageTypeName: String
+  ) : UsageInfo2UsageAdapter(UsageInfo(usageElement.psiElement)), UsageWithType {
+
     override fun getUsageType(): UsageType? {
       return usageTypeMap.getOrPut(usageTypeName) { UsageType { usageTypeName } }
+    }
+
+    override fun navigate(focus: Boolean) {
+      usageInfo.project
+        .service<DaggerAnalyticsTracker>()
+        .trackNavigation(
+          DaggerEditorEvent.NavigationMetadata.NavigationContext.CONTEXT_USAGES,
+          fromElement = targetElement.toMetricsType(),
+          toElement = usageElement.toMetricsType()
+        )
+      super.navigate(focus)
     }
 
     companion object {

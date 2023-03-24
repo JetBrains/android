@@ -16,6 +16,12 @@
 package com.android.tools.idea.dagger
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.dagger.concepts.ComponentDaggerElement
+import com.android.tools.idea.dagger.concepts.ConsumerDaggerElementBase
+import com.android.tools.idea.dagger.concepts.DaggerElement
+import com.android.tools.idea.dagger.concepts.ModuleDaggerElement
+import com.android.tools.idea.dagger.concepts.ProviderDaggerElementBase
+import com.android.tools.idea.dagger.concepts.SubcomponentDaggerElement
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -150,3 +156,12 @@ internal fun getTypeForMetrics(element: PsiElement): DaggerEditorEvent.ElementTy
     else -> error("Invalid PsiElement for metrics")
   }
 }
+
+internal fun DaggerElement.toMetricsType(): DaggerEditorEvent.ElementType =
+  when (this) {
+    is ConsumerDaggerElementBase -> DaggerEditorEvent.ElementType.CONSUMER
+    is ProviderDaggerElementBase -> DaggerEditorEvent.ElementType.PROVIDER
+    is ModuleDaggerElement -> DaggerEditorEvent.ElementType.MODULE
+    is ComponentDaggerElement -> DaggerEditorEvent.ElementType.COMPONENT
+    is SubcomponentDaggerElement -> DaggerEditorEvent.ElementType.SUBCOMPONENT
+  }
