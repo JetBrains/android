@@ -25,7 +25,7 @@ import com.intellij.openapi.diagnostic.Logger
  * [PsiElement]s.
  */
 data class AppInsight(
-  /** [line] where the Insight was found. */
+  /** The 0-based line number where the Insight was found. */
   val line: Int,
 
   /** [Issue] found in this element. */

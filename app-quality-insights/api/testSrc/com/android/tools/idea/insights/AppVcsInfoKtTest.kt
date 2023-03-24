@@ -28,7 +28,7 @@ class AppVcsInfoKtTest {
     val default = BuildStamp.getDefaultInstance()
     val textProto = TextFormat.printer().printToString(default)
 
-    assertThat(AppVcsInfo.fromProto(textProto)).isEqualTo(AppVcsInfo.NULL)
+    assertThat(AppVcsInfo.fromProto(textProto)).isEqualTo(AppVcsInfo.NONE)
   }
 
   // TODO: add more for error cases

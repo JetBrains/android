@@ -29,7 +29,7 @@ const val ABOVE_PROJECT_ROOT_PREFIX = "\$ABOVE_PROJECT_DIR"
 /** Representation of the version control system used by an App. */
 data class AppVcsInfo(val repoInfo: List<RepoInfo>) {
   companion object {
-    val NULL = AppVcsInfo(emptyList())
+    val NONE = AppVcsInfo(emptyList())
 
     fun fromProto(textProto: String): AppVcsInfo {
       val proto = decode(textProto)
@@ -63,7 +63,7 @@ fun mapVcsCategoryFrom(proto: VersionControlSystem): VCS_CATEGORY? {
   return when (proto) {
     VersionControlSystem.GIT -> VCS_CATEGORY.GIT
     else -> {
-      logger().warn("$proto is not really supported.")
+      logger().warn("$proto is not supported.")
       null
     }
   }

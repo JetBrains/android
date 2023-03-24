@@ -23,6 +23,8 @@ import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.Blames
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.enhance.InsightsAttachInlayDiffLinkFilter
+import com.android.tools.idea.insights.enhance.VCS_INFO_OF_SELECTED_CRASH
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
 import com.intellij.execution.filters.FileHyperlinkInfo
 import com.intellij.execution.filters.TextConsoleBuilderFactory
@@ -80,6 +82,7 @@ class StackTraceConsole(
     synchronized(CONSOLE_LOCK) {
       currentIssue = null
       consoleView.clear()
+      consoleView.putClientProperty(VCS_INFO_OF_SELECTED_CRASH, issue.sampleEvent.appVcsInfo)
 
       fun Blames.getConsoleViewContentType() =
         if (this == Blames.BLAMED) ConsoleViewContentType.ERROR_OUTPUT
@@ -155,6 +158,7 @@ class StackTraceConsole(
     builder.filters(AnalyzeStacktraceUtil.EP_NAME.getExtensions(project))
     val consoleView = builder.console as ConsoleViewImpl
     @Suppress("UNUSED_VARIABLE") val unused = consoleView.component // causes editor to be created
+    consoleView.addMessageFilter(InsightsAttachInlayDiffLinkFilter(consoleView))
     (consoleView.editor as EditorEx).apply {
       backgroundColor = primaryContentBackground
       contentComponent.isFocusCycleRoot = false

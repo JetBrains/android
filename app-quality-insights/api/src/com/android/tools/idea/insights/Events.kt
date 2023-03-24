@@ -180,7 +180,7 @@ data class Event(
   // Describes the crash or non-fatal error / exception, and potentially the
   // state of the other threads in the process at time of the Event.
   val stacktraceGroup: StacktraceGroup = StacktraceGroup(),
-  val appVcsInfo: AppVcsInfo = AppVcsInfo.NULL
+  val appVcsInfo: AppVcsInfo = AppVcsInfo.NONE
 ) {
   companion object
 }
