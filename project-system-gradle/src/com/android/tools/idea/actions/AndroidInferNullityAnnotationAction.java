@@ -117,7 +117,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     }
 
     if (usageInfos.length < 5) {
-      ApplicationManager.getApplication().invokeLater(applyRunnable(project, () -> usageInfos));
+      DumbService.getInstance(project).smartInvokeLater(applyRunnable(project, () -> usageInfos));
     }
     else {
       showUsageView(project, usageInfos, scope, this);
