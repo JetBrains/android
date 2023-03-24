@@ -148,7 +148,8 @@
         "virtual-device-wear.svg": "studio/icons/device-explorer/virtual-device-wear.svg"
       },
       "device-process-monitor": {
-        "force-stop.svg": "studio/icons/device-process-monitor/force-stop.svg"
+        "force-stop.svg": "studio/icons/device-process-monitor/force-stop.svg",
+        "kill-process.svg": "studio/icons/device-process-monitor/kill-process.svg"
       },
       "emulator": {
         "menu": {
@@ -723,7 +724,8 @@
           "instant-dynamic-feature.svg": "studio/icons/wizards/modules/instant-dynamic-feature.svg",
           "native.svg": "studio/icons/wizards/modules/native.svg",
           "phone-tablet.svg": "studio/icons/wizards/modules/phone-tablet.svg",
-          "wear-os.svg": "studio/icons/wizards/modules/wear-os.svg"
+          "wear-os.svg": "studio/icons/wizards/modules/wear-os.svg",
+          "baseline-profile.svg": "studio/icons/wizards/modules/baseline-profile.svg"
         }
       }
     }
