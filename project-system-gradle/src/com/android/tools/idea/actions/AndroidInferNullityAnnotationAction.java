@@ -45,7 +45,10 @@ import com.intellij.codeInspection.inferNullity.InferNullityAnnotationsAction;
 import com.intellij.codeInspection.inferNullity.NullityInferrer;
 import com.intellij.history.LocalHistory;
 import com.intellij.history.LocalHistoryAction;
+import com.intellij.openapi.application.AppUIExecutor;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
@@ -60,6 +63,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Factory;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -76,7 +80,6 @@ import com.intellij.usages.UsageViewManager;
 import com.intellij.usages.UsageViewPresentation;
 import com.intellij.util.Processor;
 import com.intellij.util.SequentialModalProgressTask;
-import com.intellij.util.containers.ContainerUtil;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -85,6 +88,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import javax.swing.JComponent;
+import one.util.streamex.StreamEx;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -263,25 +267,25 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
   // Intellij code from InferNullityAnnotationsAction.
   protected static Runnable applyRunnable(Project project, Computable<UsageInfo[]> computable) {
     return () -> {
-      LocalHistoryAction action = LocalHistory.getInstance().startAction(INFER_NULLITY_ANNOTATIONS);
+      final LocalHistoryAction action = LocalHistory.getInstance().startAction(INFER_NULLITY_ANNOTATIONS);
       try {
-        WriteCommandAction.writeCommandAction(project).withName(INFER_NULLITY_ANNOTATIONS).run(() -> {
-          UsageInfo[] infos = computable.compute();
+        ReadAction.run(() -> {
+          final UsageInfo[] infos = computable.compute();
           if (infos.length > 0) {
+            Runnable command = () -> {
+              final Set<VirtualFile> files =
+                StreamEx.of(infos).map(UsageInfo::getElement).nonNull()
+                  .map(PsiElement::getContainingFile).nonNull()
+                  .map(PsiFile::getVirtualFile).nonNull()
+                  .toCollection(LinkedHashSet::new);
+              if (!FileModificationService.getInstance().prepareVirtualFilesForWrite(project, files)) return;
 
-            Set<PsiElement> elements = new LinkedHashSet<>();
-            for (UsageInfo info : infos) {
-              PsiElement element = info.getElement();
-              if (element != null) {
-                ContainerUtil.addIfNotNull(elements, element.getContainingFile());
-              }
-            }
-            if (!FileModificationService.getInstance().preparePsiElementsForWrite(elements)) return;
-
-            SequentialModalProgressTask progressTask = new SequentialModalProgressTask(project, INFER_NULLITY_ANNOTATIONS, false);
-            progressTask.setMinIterationTime(200);
-            progressTask.setTask(new AnnotateTask(project, progressTask, infos));
-            ProgressManager.getInstance().run(progressTask);
+              final SequentialModalProgressTask progressTask = new SequentialModalProgressTask(project, INFER_NULLITY_ANNOTATIONS);
+              progressTask.setMinIterationTime(200);
+              progressTask.setTask(new AnnotateTask(project, progressTask, infos));
+              ProgressManager.getInstance().run(progressTask);
+            };
+            CommandProcessor.getInstance().executeCommand(project, command, INFER_NULLITY_ANNOTATIONS, null);
           }
           else {
             NullityInferrer.nothingFoundMessage(project);
@@ -292,12 +296,6 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
         action.finish();
       }
     };
-  }
-
-  // Intellij code from InferNullityAnnotationsAction.
-  @Override
-  protected void restartAnalysis(Project project, AnalysisScope scope) {
-    DumbService.getInstance(project).smartInvokeLater(() -> analyze(project, scope));
   }
 
   // Intellij code from InferNullityAnnotationsAction.
