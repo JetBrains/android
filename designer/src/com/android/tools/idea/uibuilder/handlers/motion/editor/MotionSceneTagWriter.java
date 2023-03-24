@@ -18,12 +18,13 @@ package com.android.tools.idea.uibuilder.handlers.motion.editor;
 import com.android.SdkConstants;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.NlModel;
+import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
-import com.android.tools.idea.uibuilder.io.PsiFileUtil;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -237,7 +238,7 @@ public class MotionSceneTagWriter extends MotionSceneTag implements MTag.TagWrit
    * @param nlModel
    */
   public static void saveAndNotify(PsiFile xmlFile, NlModel nlModel) {
-    PsiFileUtil.saveFileIfNecessary(xmlFile);
+    LayoutPullParsers.saveFileIfNecessary(xmlFile);
     // Some tests need to read during notifyModified. The invokeLater avoids deadlocks.
     ApplicationManager.getApplication().invokeLater(() -> nlModel.notifyModified(NlModel.ChangeType.EDIT));
   }
