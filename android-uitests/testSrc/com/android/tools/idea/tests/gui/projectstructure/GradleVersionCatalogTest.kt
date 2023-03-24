@@ -35,7 +35,6 @@ import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import java.awt.event.KeyEvent.VK_ENTER
 
 @RunWith(GuiTestRemoteRunner::class)
 class GradleVersionCatalogTest {
@@ -79,7 +78,12 @@ class GradleVersionCatalogTest {
      * <p>
      */
 
-    val ideFrame: IdeFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish(projectName)
+    val ideFrame: IdeFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish(projectName,
+                                                                                       null,
+                                                                                       "7.4.1",
+                                                                                       "1.7.21",
+                                                                                       null,
+                                                                                       GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT)
     guiTest.waitForAllBackgroundTasksToBeCompleted()
 
     ideFrame.clearNotificationsPresentOnIdeFrame()
@@ -166,8 +170,12 @@ class GradleVersionCatalogTest {
      * <p>
      */
 
-    val ideFrame: IdeFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish(projectName)
-    guiTest.waitForAllBackgroundTasksToBeCompleted()
+    val ideFrame: IdeFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish(projectName,
+                                                                                       null,
+                                                                                       "7.4.1",
+                                                                                       "1.7.21",
+                                                                                       null,
+                                                                                       GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT)
 
     ideFrame.clearNotificationsPresentOnIdeFrame()
 
