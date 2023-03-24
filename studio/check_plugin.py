@@ -131,7 +131,7 @@ def check_plugin(plugin_id, files, deps, external_xmls, out):
     print("Expected plugin.xml root item to be 'idea-plugin' but was %s" % element.tag)
     sys.exit(1)
 
-  if element.attrib.get("allow-bundled-update", "false") != "false" and found_id != "org.jetbrains.kotlin":
+  if element.attrib.get("allow-bundled-update", "false") != "false" and found_id != "org.jetbrains.kotlin" and found_id != "org.rust.lang":
       print("Bundled plugin update are not allowed for plugin: %s" % found_id)
       sys.exit(1)
 

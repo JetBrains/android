@@ -1,0 +1,19 @@
+<component name="libraryTable">
+  <library name="studio-plugin-rust">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/rust-plugin/intellij-rust/lib/JavaEWAH-1.1.13.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/rust-plugin/intellij-rust/lib/antlr4-runtime-4.12.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/rust-plugin/intellij-rust/lib/completion-ranking-rust-0.4.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/rust-plugin/intellij-rust/lib/intelliLang.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/rust-plugin/intellij-rust/lib/intellij-rust-0.4.191.SNAPSHOT-231-dev.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/rust-plugin/intellij-rust/lib/jackson-dataformat-toml-2.14.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/rust-plugin/intellij-rust/lib/org.eclipse.jgit-6.4.0.202211300538-r.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../../../prebuilts/tools/common/rust-plugin/intellij-rust/lib/semver-jvm-1.4.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$PROJECT_DIR$/../../../external/jetbrains/intellij-rust/src/main/"/>
+      <root url="file://$PROJECT_DIR$/../../../external/jetbrains/intellij-rust/src/gen/"/>
+    </SOURCES>
+  </library>
+</component>
