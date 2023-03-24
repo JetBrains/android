@@ -99,12 +99,13 @@ internal class LogcatHeaderParser(
     val groups = result.groups
     val pid = parsePid(groups["pid"]!!.value)
     val processNames = processNameMonitor.getProcessNames(serialNumber, pid)
+    val processName = if (pid == 0) "kernel" else processNames?.processName ?: "pid-$pid"
     return LogcatHeader(
       parsePriority(groups["priority"]!!.value),
       pid,
       parseThreadId(groups["tid"]!!.value),
-      processNames?.applicationId ?: "",
-      if (pid == 0) "kernel" else processNames?.processName ?: "pid-$pid",
+      processNames?.applicationId ?: processName,
+      processName,
       groups["tag"]!!.value,
       timestamp
     )

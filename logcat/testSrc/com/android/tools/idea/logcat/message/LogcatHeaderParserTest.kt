@@ -43,7 +43,7 @@ internal class LogcatHeaderParserTest {
         "[ 1517266949.472 5755:601 I/Tag ]",
         "device"
       )
-    ).isEqualTo(LogcatHeader(INFO, 5755, 601, "", "pid-5755", "Tag", Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472))))
+    ).isEqualTo(LogcatHeader(INFO, 5755, 601, "pid-5755", "pid-5755", "Tag", Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472))))
   }
 
   @Test
@@ -60,7 +60,7 @@ internal class LogcatHeaderParserTest {
         INFO,
         5755,
         601,
-        "",
+        "pid-5755",
         "pid-5755",
         "Tag",
         Instant.from(ZonedDateTime.of(2022, 5, 26, 14, 58, 23, TimeUnit.MILLISECONDS.toNanos(972).toInt(), ZoneId.of("Asia/Yerevan")))
@@ -77,7 +77,7 @@ internal class LogcatHeaderParserTest {
         "[     1517266949.472     5755:601     I/Tag     ]",
         "device"
       )
-    ).isEqualTo(LogcatHeader(INFO, 5755, 601, "", "pid-5755", "Tag", Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472))))
+    ).isEqualTo(LogcatHeader(INFO, 5755, 601, "pid-5755", "pid-5755", "Tag", Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472))))
   }
 
   @Test
@@ -90,7 +90,7 @@ internal class LogcatHeaderParserTest {
 
         "device"
       )
-    ).isEqualTo(LogcatHeader(INFO, 5755, 256, "", "pid-5755", "Tag", Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472))))
+    ).isEqualTo(LogcatHeader(INFO, 5755, 256, "pid-5755", "pid-5755", "Tag", Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472))))
   }
 
   @Test
@@ -103,7 +103,7 @@ internal class LogcatHeaderParserTest {
 
         "device"
       )
-    ).isEqualTo(LogcatHeader(INFO, 0, 601, "", "kernel", "Tag", Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472))))
+    ).isEqualTo(LogcatHeader(INFO, 0, 601, "kernel", "kernel", "Tag", Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472))))
   }
 
   @Test
@@ -135,7 +135,7 @@ internal class LogcatHeaderParserTest {
         "[ 1517266949.472 1234567890123456789012345678901234567890:601 I/Tag ]",
         "device"
       )
-    ).isEqualTo(LogcatHeader(INFO, -1, 601, "", "pid--1", "Tag", Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472))))
+    ).isEqualTo(LogcatHeader(INFO, -1, 601, "pid--1", "pid--1", "Tag", Instant.ofEpochSecond(1517266949, TimeUnit.MILLISECONDS.toNanos(472))))
   }
 
   @Test
@@ -147,10 +147,10 @@ internal class LogcatHeaderParserTest {
         "[ 1234567890123456789012345678901234567890.472 5755:601 I/Tag ]",
         "device"
       )
-    ).isEqualTo(LogcatHeader(INFO, 5755, 601, "", "pid-5755", "Tag", Instant.ofEpochSecond(0, TimeUnit.MILLISECONDS.toNanos(472))))
+    ).isEqualTo(LogcatHeader(INFO, 5755, 601, "pid-5755", "pid-5755", "Tag", Instant.ofEpochSecond(0, TimeUnit.MILLISECONDS.toNanos(472))))
   }
 
-  fun logcatHeaderParser(
+  private fun logcatHeaderParser(
     format: LogcatHeaderParser.LogcatFormat,
     processNameMonitor: ProcessNameMonitor = FakeProcessNameMonitor(),
     defaultYear: Int = 2022,
