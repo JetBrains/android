@@ -62,7 +62,9 @@ class CrashToLineNaiveMapperTest {
 
     val provider = InsightsProviderKey("Fake provider")
     val issues = crashToLineMapper.retrieve(file, provider)
-    Truth.assertThat(issues).hasSize(2)
+    // Note: those out-of-bound line numbers will be filtered out later when annotating in
+    // production code.
+    Truth.assertThat(issues).hasSize(5)
     Truth.assertThat(issues[0].line).isEqualTo(9) // lines are offset by -1
   }
 

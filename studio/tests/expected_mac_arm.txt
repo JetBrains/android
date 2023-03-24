@@ -2722,6 +2722,7 @@ Android Studio Preview.app/Contents/plugins/firebase-testing/lib/tightvnc.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/firebase.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0.jar
 Android Studio Preview.app/Contents/plugins/firebase/lib/google-api-services-mobilesdk-v1.jar
+Android Studio Preview.app/Contents/plugins/git4insights/lib/git4insights.jar
 Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/gmd-code-completion.jar
 Android Studio Preview.app/Contents/plugins/gmd-code-completion/lib/google-api-services-testing-v1-rev82-1.22.0.jar
 Android Studio Preview.app/Contents/plugins/google-cloud-tools-as/lib/google-api-services-source.jar

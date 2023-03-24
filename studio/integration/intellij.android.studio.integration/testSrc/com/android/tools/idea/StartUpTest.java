@@ -79,6 +79,7 @@ public class StartUpTest {
         "Firebase Direct Access",
         "Firebase Services",
         "Firebase Testing",
+        "Git for App Insights",
         "Git",
         "GitHub",
         "Google Cloud Tools Core",

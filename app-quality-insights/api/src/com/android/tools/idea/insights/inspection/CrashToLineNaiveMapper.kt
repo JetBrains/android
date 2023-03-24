@@ -21,7 +21,6 @@ import com.android.tools.idea.insights.InsightsProviderKey
 import com.android.tools.idea.insights.IssueInFrame
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.PsiFile
-import org.jetbrains.kotlin.idea.base.psi.getLineCount
 
 /**
  * Maps issues provided by the [issueSupplier] to lines in a [PsiFile].
@@ -38,19 +37,19 @@ class CrashToLineNaiveMapper(
   fun retrieve(file: PsiFile, insightsProvider: InsightsProviderKey): List<AppInsight> {
     return issueSupplier(file)
       .also { logIssues(it, file) }
-      .mapNotNull { issueInFrame ->
-        // Intellij line numbering is 0-based, crashlytics is 1-based
-        val line = issueInFrame.crashFrame.frame.line.toInt() - 1
-        if (file.getLineCount() > line && line >= 0)
-          AppInsight(
-            line,
-            issueInFrame.issue,
-            issueInFrame.crashFrame.frame,
-            issueInFrame.crashFrame.cause,
-            insightsProvider,
-            onIssueClick
-          )
-        else null
+      .map { issueInFrame ->
+        val oldOneBasedLineNumber = issueInFrame.crashFrame.frame.line.toInt()
+
+        // Intellij line numbering is 0-based, whereas crashlytics is 1-based, so we
+        // will have to ensure correct based line number when passing it around.
+        AppInsight(
+          line = oldOneBasedLineNumber - 1,
+          issue = issueInFrame.issue,
+          stackFrame = issueInFrame.crashFrame.frame,
+          cause = issueInFrame.crashFrame.cause,
+          provider = insightsProvider,
+          markAsSelectedCallback = onIssueClick
+        )
       }
   }
 

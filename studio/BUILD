@@ -432,6 +432,17 @@ studio_plugin(
 )
 
 studio_plugin(
+    name = "com.google.services.git4insights",
+    directory = "git4insights",
+    modules = {"git4insights.jar": ["//tools/vendor/google/git4insights:git4insights"]},
+    visibility = ["//visibility:public"],
+    deps = [
+        ":org.jetbrains.android",
+        "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-vcs-git",
+    ],
+)
+
+studio_plugin(
     name = "com.google.services.firebase",
     directory = "firebase",
     libs = [
@@ -656,6 +667,7 @@ android_studio(
         ":com.android.tools.ndk",
         ":com.android.tools.design",
         ":androidx.compose.plugins.idea",
+        ":com.google.services.git4insights",
         ":com.google.services.firebase",
         ":com.google.gct.directaccess",
         ":com.google.gct.testing",
@@ -847,6 +859,7 @@ iml_module(
         "//tools/adt/idea/compose-ide-plugin:intellij.android.compose-ide-plugin[module]",
         "//tools/adt/idea/design-plugin:intellij.android.design-plugin[module]",
         "//tools/vendor/google/android-ndk[module]",
+        "//tools/vendor/google/git4insights[module]",
         "//tools/studio/google/cloud/tools/android-studio-plugin:google-cloud-tools-as[module]",
         "//tools/vendor/google/firebase[module]",
         "//tools/studio/google/cloud/testing/directaccess[module]",

@@ -2710,6 +2710,7 @@ android-studio/plugins/firebase-testing/lib/tightvnc.jar
 android-studio/plugins/firebase/lib/firebase.jar
 android-studio/plugins/firebase/lib/google-api-services-cloudresourcemanager-v1beta1-rev12-1.21.0.jar
 android-studio/plugins/firebase/lib/google-api-services-mobilesdk-v1.jar
+android-studio/plugins/git4insights/lib/git4insights.jar
 android-studio/plugins/gmd-code-completion/lib/gmd-code-completion.jar
 android-studio/plugins/gmd-code-completion/lib/google-api-services-testing-v1-rev82-1.22.0.jar
 android-studio/plugins/google-cloud-tools-as/lib/google-api-services-source.jar
