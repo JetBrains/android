@@ -37,7 +37,7 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 /**
- * Listens for download events during Sync and tracks time when there  are active downloads ghappening.
+ * Listens for download events during Sync and tracks time when there are active downloads happening.
  * Once this time is above threshold notification is shown.
  */
 class LongDownloadsNotifier(
@@ -47,7 +47,7 @@ class LongDownloadsNotifier(
   private val buildStartTimestampMs: Long,
   scheduler: ScheduledExecutorService = EdtExecutorService.getScheduledExecutorInstance(),
   ticker: Ticker = Ticker.systemTicker()
-): DownloadsInfoUIModelNotifier.Listener {
+) {
   private val runningRequestsSet = mutableSetOf<DownloadRequestKey>()
   private val watch = Stopwatch.createUnstarted(ticker)
   @Volatile private var notified = false
@@ -55,7 +55,6 @@ class LongDownloadsNotifier(
   private val notificationRecheckDelayInSeconds = 5L
 
   init {
-    project.messageBus.connect(buildFinishedDisposable).subscribe(DownloadsInfoUIModelNotifier.DOWNLOADS_OUTPUT_TOPIC, this)
     val runnable = object : Runnable {
       override fun run() {
         if (notified) return
@@ -66,8 +65,7 @@ class LongDownloadsNotifier(
     Disposer.register(buildFinishedDisposable) { taskFuture.cancel(false) }
   }
 
-  override fun updateDownloadRequest(taskId: ExternalSystemTaskId, downloadRequest: DownloadRequestItem) {
-    if (this.taskId != taskId) return
+  fun updateDownloadRequest(downloadRequest: DownloadRequestItem) {
     if (notified) return
     if (!downloadRequest.completed) {
       runningRequestsSet.add(downloadRequest.requestKey)

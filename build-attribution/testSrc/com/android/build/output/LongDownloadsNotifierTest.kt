@@ -75,8 +75,8 @@ class LongDownloadsNotifierTest {
 
   @Test
   fun testNotificationShownWithOneLongRunningDownload() {
-    LongDownloadsNotifier(buildId, projectRule.project, buildDisposable, 0, virtualTimeScheduler, manualTicker)
-    updateDownloadRequestViaListener(
+    val notifier = LongDownloadsNotifier(buildId, projectRule.project, buildDisposable, 0, virtualTimeScheduler, manualTicker)
+    notifier.updateDownloadRequest(
       DownloadRequestItem(DownloadRequestKey(0, url1), repository = DownloadsAnalyzer.KnownRepository.GOOGLE)
     )
 
@@ -88,11 +88,11 @@ class LongDownloadsNotifierTest {
 
   @Test
   fun testNotificationShownWithTwoParallelLongRunningDownloads() {
-    LongDownloadsNotifier(buildId, projectRule.project, buildDisposable, 0, virtualTimeScheduler, manualTicker)
-    updateDownloadRequestViaListener(
+    val notifier = LongDownloadsNotifier(buildId, projectRule.project, buildDisposable, 0, virtualTimeScheduler, manualTicker)
+    notifier.updateDownloadRequest(
       DownloadRequestItem(DownloadRequestKey(0, url1), repository = DownloadsAnalyzer.KnownRepository.GOOGLE)
     )
-    updateDownloadRequestViaListener(
+    notifier.updateDownloadRequest(
       DownloadRequestItem(DownloadRequestKey(0, url2), repository = DownloadsAnalyzer.KnownRepository.GOOGLE)
     )
 
@@ -104,14 +104,14 @@ class LongDownloadsNotifierTest {
 
   @Test
   fun testNotificationNotShownWithCompletedDownload() {
-    LongDownloadsNotifier(buildId, projectRule.project, buildDisposable, 0, virtualTimeScheduler, manualTicker)
-    updateDownloadRequestViaListener(
+    val notifier = LongDownloadsNotifier(buildId, projectRule.project, buildDisposable, 0, virtualTimeScheduler, manualTicker)
+    notifier.updateDownloadRequest(
       DownloadRequestItem(DownloadRequestKey(0, url1), repository = DownloadsAnalyzer.KnownRepository.GOOGLE)
     )
     virtualTimeScheduler.advanceBy(10, TimeUnit.SECONDS)
     Truth.assertThat(notificationCounter).isEqualTo(0)
 
-    updateDownloadRequestViaListener(
+    notifier.updateDownloadRequest(
       DownloadRequestItem(DownloadRequestKey(0, url1), repository = DownloadsAnalyzer.KnownRepository.GOOGLE, completed = true)
     )
 
@@ -121,14 +121,14 @@ class LongDownloadsNotifierTest {
 
   @Test
   fun testNotificationShownWhenSumWallTimeForDownloadsAboveThreshold() {
-    LongDownloadsNotifier(buildId, projectRule.project, buildDisposable, 0, virtualTimeScheduler, manualTicker)
-    updateDownloadRequestViaListener(
+    val notifier = LongDownloadsNotifier(buildId, projectRule.project, buildDisposable, 0, virtualTimeScheduler, manualTicker)
+    notifier.updateDownloadRequest(
       DownloadRequestItem(DownloadRequestKey(0, url1), repository = DownloadsAnalyzer.KnownRepository.GOOGLE)
     )
     virtualTimeScheduler.advanceBy(10, TimeUnit.SECONDS)
     Truth.assertThat(notificationCounter).isEqualTo(0)
 
-    updateDownloadRequestViaListener(
+    notifier.updateDownloadRequest(
       DownloadRequestItem(DownloadRequestKey(0, url1), repository = DownloadsAnalyzer.KnownRepository.GOOGLE, completed = true)
     )
 
@@ -136,7 +136,7 @@ class LongDownloadsNotifierTest {
     virtualTimeScheduler.advanceBy(10, TimeUnit.SECONDS)
     Truth.assertThat(notificationCounter).isEqualTo(0)
 
-    updateDownloadRequestViaListener(
+    notifier.updateDownloadRequest(
       DownloadRequestItem(DownloadRequestKey(20000, url1), repository = DownloadsAnalyzer.KnownRepository.GOOGLE)
     )
 
@@ -146,10 +146,5 @@ class LongDownloadsNotifierTest {
     // 59s passed, 39s used on downloads, notification should have been sent
     virtualTimeScheduler.advanceBy(10, TimeUnit.SECONDS)
     Truth.assertThat(notificationCounter).isEqualTo(1)
-  }
-
-  private fun updateDownloadRequestViaListener(requestItem: DownloadRequestItem) {
-    projectRule.project.messageBus.syncPublisher(DownloadsInfoUIModelNotifier.DOWNLOADS_OUTPUT_TOPIC).updateDownloadRequest(buildId, requestItem)
-    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
   }
 }

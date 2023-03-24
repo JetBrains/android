@@ -16,10 +16,9 @@
 package com.android.build.output
 
 import com.android.annotations.concurrency.UiThread
+import com.android.build.attribution.analyzers.DownloadsAnalyzer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -36,28 +35,42 @@ import java.util.concurrent.ConcurrentLinkedQueue
  * events will be missed by UI.
  */
 class DownloadInfoDataModel(
-  val taskId: ExternalSystemTaskId,
-  val buildFinishedDisposable: Disposable
+  buildFinishedDisposable: Disposable,
+  private val longDownloadsNotifier: LongDownloadsNotifier? = null
 ) {
-
   private val updatesQueue = ConcurrentLinkedQueue<DownloadRequestItem>()
   @Volatile private var immediateUpdateScheduled: Boolean = false
 
   init {
     // On build finished schedule last updates processing task unconditionally
     Disposer.register(buildFinishedDisposable) { invokeLater { processUpdatesQueue() } }
-    taskId.findProject()?.let { project: Project ->
-      project.messageBus.connect(buildFinishedDisposable).subscribe(DownloadsInfoUIModelNotifier.DOWNLOADS_OUTPUT_TOPIC, object : DownloadsInfoUIModelNotifier.Listener {
-        override fun updateDownloadRequest(taskId: ExternalSystemTaskId, downloadRequest: DownloadRequestItem) {
-          if (this@DownloadInfoDataModel.taskId != taskId) return
-          onNewItemUpdate(downloadRequest)
-        }
-      })
-    }
+  }
+
+  fun downloadStarted(startTimestamp: Long, url: String, repository: DownloadsAnalyzer.Repository) {
+    val requestKey = DownloadRequestKey(startTimestamp, url)
+    val requestItem = DownloadRequestItem(requestKey, repository, false, 0, 0, null)
+    onNewItemUpdate(requestItem)
+  }
+
+  fun downloadFinished(downloadResult: DownloadsAnalyzer.DownloadResult) {
+    val requestItem = DownloadRequestItem(
+      requestKey = DownloadRequestKey(downloadResult.timestamp, downloadResult.url),
+      repository = downloadResult.repository,
+      completed = true,
+      receivedBytes = downloadResult.bytes,
+      duration = downloadResult.duration,
+      failureMessage = when (downloadResult.status) {
+        DownloadsAnalyzer.DownloadStatus.SUCCESS -> null
+        DownloadsAnalyzer.DownloadStatus.MISSED -> "Not Found"
+        DownloadsAnalyzer.DownloadStatus.FAILURE -> downloadResult.failureMessage
+      }
+    )
+    onNewItemUpdate(requestItem)
   }
 
   fun onNewItemUpdate(downloadRequest: DownloadRequestItem) {
     updatesQueue.add(downloadRequest)
+    longDownloadsNotifier?.updateDownloadRequest(downloadRequest)
     scheduleImmediateUpdateIfNecessary()
   }
 

@@ -62,17 +62,19 @@ class DownloadsInfoPresentableEventTest {
   private val buildStartTimestampMs = System.currentTimeMillis()
   private lateinit var buildDisposable: CheckedDisposable
   private lateinit var buildId: ExternalSystemTaskId
+  private lateinit var dataModel: DownloadInfoDataModel
 
   @Before
   fun setUp() {
     buildId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.RESOLVE_PROJECT, projectRule.project)
     buildDisposable = Disposer.newCheckedDisposable("DownloadsInfoPresentableEventTest_buildDisposable")
     Disposer.register(projectRule.testRootDisposable, buildDisposable)
+    dataModel = DownloadInfoDataModel(buildDisposable)
   }
 
   @Test
   fun testEventFields() {
-    val event = DownloadsInfoPresentableBuildEvent(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0)
+    val event = DownloadsInfoPresentableBuildEvent(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0, dataModel)
 
     assertThat(event.buildId).isSameAs(buildId)
     //Time is not used for this type of event. 0 is a default value for such case.
@@ -90,7 +92,7 @@ class DownloadsInfoPresentableEventTest {
 
   @Test
   fun testNodeIcon() {
-    val event = DownloadsInfoPresentableBuildEvent(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0)
+    val event = DownloadsInfoPresentableBuildEvent(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0, dataModel)
 
     val icon = event.presentationData.nodeIcon as LayeredIcon
     assertThat(icon.allLayers).isEqualTo(arrayOf(
@@ -112,18 +114,18 @@ class DownloadsInfoPresentableEventTest {
     val downloadProcessKey1 = DownloadRequestKey(1000, url1)
     val downloadProcessKey2 = DownloadRequestKey(1500, url2)
 
-    updateDownloadRequestViaListener(DownloadRequestItem(downloadProcessKey1, GOOGLE))
+    updateDownloadRequest(DownloadRequestItem(downloadProcessKey1, GOOGLE))
     assertIconLoading()
-    updateDownloadRequestViaListener(DownloadRequestItem(downloadProcessKey1, GOOGLE, completed = true, receivedBytes = 1000, duration = 300))
+    updateDownloadRequest(DownloadRequestItem(downloadProcessKey1, GOOGLE, completed = true, receivedBytes = 1000, duration = 300))
     assertIconStill()
-    updateDownloadRequestViaListener(DownloadRequestItem(downloadProcessKey2, GOOGLE))
+    updateDownloadRequest(DownloadRequestItem(downloadProcessKey2, GOOGLE))
     assertIconLoading()
-    updateDownloadRequestViaListener(DownloadRequestItem(downloadProcessKey2, GOOGLE, completed = true, receivedBytes = 3000, duration = 700))
+    updateDownloadRequest(DownloadRequestItem(downloadProcessKey2, GOOGLE, completed = true, receivedBytes = 3000, duration = 700))
     assertIconStill()
   }
 
-  private fun updateDownloadRequestViaListener(requestItem: DownloadRequestItem) {
-    projectRule.project.messageBus.syncPublisher(DownloadsInfoUIModelNotifier.DOWNLOADS_OUTPUT_TOPIC).updateDownloadRequest(buildId, requestItem)
+  private fun updateDownloadRequest(requestItem: DownloadRequestItem) {
+    dataModel.onNewItemUpdate(requestItem)
     runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
   }
 }

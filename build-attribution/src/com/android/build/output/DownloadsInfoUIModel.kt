@@ -36,47 +36,6 @@ import javax.swing.SwingConstants
 import javax.swing.event.TableModelEvent
 import javax.swing.table.TableCellRenderer
 
-/**
- * This class is a middle layer between Build Analyzer events processor and live Downloads info UI.
- * It is responsible for converting data about requests to a format useful for this UI and for notifying all created models
- * about this new data.
- *
- * One single instance of it is created for every build (or sync). It publishes processed updates via message bus, attaching task id
- * of the build it was created for. Models should be subscribed to this message bus and should filter the updates by the id.
- */
-class DownloadsInfoUIModelNotifier(
-  val project: Project,
-  val taskId: ExternalSystemTaskId
-) {
-  interface Listener {
-    fun updateDownloadRequest(taskId: ExternalSystemTaskId, downloadRequest: DownloadRequestItem)
-  }
-  companion object {
-    val DOWNLOADS_OUTPUT_TOPIC: Topic<Listener> = Topic.create("DownloadsImpactUIModelNotifier", Listener::class.java)
-  }
-
-  fun downloadStarted(startTimestamp: Long, url: String, repository: DownloadsAnalyzer.Repository) {
-    val requestKey = DownloadRequestKey(startTimestamp, url)
-    val requestItem = DownloadRequestItem(requestKey, repository,false, 0, 0, null)
-    project.messageBus.syncPublisher(DOWNLOADS_OUTPUT_TOPIC).updateDownloadRequest(taskId, requestItem)
-  }
-
-  fun downloadFinished(downloadResult: DownloadsAnalyzer.DownloadResult) {
-    val requestItem = DownloadRequestItem(
-      requestKey = DownloadRequestKey(downloadResult.timestamp, downloadResult.url),
-      repository = downloadResult.repository,
-      completed = true,
-      receivedBytes = downloadResult.bytes,
-      duration = downloadResult.duration,
-      failureMessage = when(downloadResult.status) {
-        DownloadsAnalyzer.DownloadStatus.SUCCESS -> null
-        DownloadsAnalyzer.DownloadStatus.MISSED -> "Not Found"
-        DownloadsAnalyzer.DownloadStatus.FAILURE -> downloadResult.failureMessage
-      }
-    )
-    project.messageBus.syncPublisher(DOWNLOADS_OUTPUT_TOPIC).updateDownloadRequest(taskId, requestItem)
-  }
-}
 
 /**
  * This class describes the logic of how build output Downloads info page [DownloadsInfoExecutionConsole] is updated.

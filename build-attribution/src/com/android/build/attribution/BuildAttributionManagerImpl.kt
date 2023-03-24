@@ -30,7 +30,7 @@ import com.android.build.attribution.ui.BuildAttributionUiManager
 import com.android.build.attribution.ui.analytics.BuildAttributionUiAnalytics
 import com.android.build.attribution.ui.controllers.ConfigurationCacheTestBuildFlowRunner
 import com.android.build.attribution.ui.invokeLaterIfNotDisposed
-import com.android.build.output.DownloadsInfoUIModelNotifier
+import com.android.build.output.DownloadInfoDataModel
 import com.android.build.output.DownloadsInfoPresentableBuildEvent
 import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
 import com.android.ide.common.repository.AgpVersion
@@ -78,8 +78,10 @@ class BuildAttributionManagerImpl(
     analyzersWrapper.onBuildStart()
     ApplicationManager.getApplication().getService(KnownGradlePluginsService::class.java).asyncRefresh()
     analyzersProxy.buildAnalyzers.filterIsInstance<DownloadsAnalyzer>().singleOrNull()?.let {
-      it.eventsProcessor.downloadsUiModelNotifier = DownloadsInfoUIModelNotifier(request.project, request.taskId)
-      project.setUpDownloadsInfoNodeOnBuildOutput(request.taskId, currentBuildDisposable!!)
+      if (!StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()) return
+      val downloadsInfoDataModel = DownloadInfoDataModel(currentBuildDisposable!!)
+      it.eventsProcessor.downloadsInfoDataModel = downloadsInfoDataModel
+      project.setUpDownloadsInfoNodeOnBuildOutput(request.taskId, currentBuildDisposable!!, downloadsInfoDataModel)
     }
   }
 
@@ -193,10 +195,11 @@ class BuildAttributionManagerImpl(
     }
   }
 
-  private fun Project.setUpDownloadsInfoNodeOnBuildOutput(id: ExternalSystemTaskId, buildDisposable: CheckedDisposable) {
-    if (!StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()) return
+  private fun Project.setUpDownloadsInfoNodeOnBuildOutput(id: ExternalSystemTaskId,
+                                                          buildDisposable: CheckedDisposable,
+                                                          downloadsInfoDataModel: DownloadInfoDataModel) {
     val gradleVersion = GradleVersions.getInstance().getGradleVersion(this)
-    val rootDownloadEvent = DownloadsInfoPresentableBuildEvent(id, buildDisposable, System.currentTimeMillis(), gradleVersion)
+    val rootDownloadEvent = DownloadsInfoPresentableBuildEvent(id, buildDisposable, System.currentTimeMillis(), gradleVersion, downloadsInfoDataModel)
     val viewManager = getService(BuildViewManager::class.java)
     viewManager.onEvent(id, rootDownloadEvent)
   }

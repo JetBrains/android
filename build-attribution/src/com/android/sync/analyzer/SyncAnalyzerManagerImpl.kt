@@ -17,7 +17,7 @@ package com.android.sync.analyzer
 
 import com.android.build.attribution.analytics.transformDownloadsAnalyzerData
 import com.android.build.attribution.analyzers.DownloadsAnalyzer
-import com.android.build.output.DownloadsInfoUIModelNotifier
+import com.android.build.output.DownloadInfoDataModel
 import com.android.build.output.DownloadsInfoPresentableBuildEvent
 import com.android.build.output.LongDownloadsNotifier
 import com.android.tools.idea.flags.StudioFlags
@@ -31,7 +31,6 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.CheckedDisposable
 import com.intellij.openapi.util.Disposer
 import org.gradle.tooling.LongRunningOperation
 import org.gradle.tooling.events.OperationType
@@ -55,7 +54,7 @@ class SyncAnalyzerManagerImpl(
   override fun onSyncStarted(id: ExternalSystemTaskId?) {
     if (id == null) return
     val data = project.getService(SyncAnalyzerDataManager::class.java).getOrCreateDataForTask(id)
-    project.setUpDownloadsInfoNodeOnBuildOutput(id, data.buildDisposable)
+    project.setUpDownloadsInfoNodeOnBuildOutput(id, data)
   }
 
   override fun onSyncFinished(id: ExternalSystemTaskId?) {
@@ -63,14 +62,15 @@ class SyncAnalyzerManagerImpl(
     project.getService(SyncAnalyzerDataManager::class.java).clearDataForTask(id)
   }
 
-  private fun Project.setUpDownloadsInfoNodeOnBuildOutput(id: ExternalSystemTaskId, buildDisposable: CheckedDisposable) {
+  private fun Project.setUpDownloadsInfoNodeOnBuildOutput(id: ExternalSystemTaskId, dataHolder: SyncAnalyzerDataManager.DataHolder) {
     if (!StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()) return
+    if (dataHolder.downloadsInfoDataModel == null) return // It is not created if flag is disabled.
     val gradleVersion = GradleVersions.getInstance().getGradleVersion(this)
-    val buildStartTimestampMs = System.currentTimeMillis()
-    val rootDownloadEvent = DownloadsInfoPresentableBuildEvent(id, buildDisposable, buildStartTimestampMs, gradleVersion)
+    val rootDownloadEvent = DownloadsInfoPresentableBuildEvent(id, dataHolder.buildDisposable, dataHolder.buildStartTimestampMs, gradleVersion, dataHolder.downloadsInfoDataModel)
+    //dataHolder.downloadsInfoDataModel.longDownloadsNotifier =
+    //  LongDownloadsNotifier(id, this, dataHolder.buildDisposable, dataHolder.buildStartTimestampMs)
     val viewManager = getService(SyncViewManager::class.java)
     viewManager.onEvent(id, rootDownloadEvent)
-    LongDownloadsNotifier(id, project, buildDisposable, buildStartTimestampMs)
   }
 }
 
@@ -88,8 +88,19 @@ class SyncAnalyzerDataManager {
   }
 
   class DataHolder(val id: ExternalSystemTaskId) {
-    val downloadsStatsAccumulator = DownloadsAnalyzer.DownloadStatsAccumulator()
+    val buildStartTimestampMs: Long = System.currentTimeMillis()
     val buildDisposable = Disposer.newCheckedDisposable("SyncAnalyzer disposable for $id")
+    val downloadsStatsAccumulator = DownloadsAnalyzer.DownloadStatsAccumulator()
+
+    // We don't want it to be created if feature is disabled. Once it is created it will be installed to build events listener and
+    // involve running internal logic. To better isolate the feature using the flag just do not create it at all.
+    val downloadsInfoDataModel = if (StudioFlags.BUILD_OUTPUT_DOWNLOADS_INFORMATION.get()) {
+      id.findProject()?.let { project ->
+        val notifier = LongDownloadsNotifier(id, project, buildDisposable, buildStartTimestampMs)
+        DownloadInfoDataModel(buildDisposable, notifier)
+      }
+    }
+    else null
   }
 }
 
@@ -106,7 +117,7 @@ class SyncAnalyzerOperationHelperExtension : GradleOperationHelperExtension {
 
     val syncData = project.getService(SyncAnalyzerDataManager::class.java).getDataForTaskIfExists(id)
     if (syncData != null) {
-      val downloadEventsProcessor = DownloadsAnalyzer.DownloadEventsProcessor(syncData.downloadsStatsAccumulator, DownloadsInfoUIModelNotifier(project, id))
+      val downloadEventsProcessor = DownloadsAnalyzer.DownloadEventsProcessor(syncData.downloadsStatsAccumulator, syncData.downloadsInfoDataModel)
 
       operation.addProgressListener(ProgressListener(downloadEventsProcessor::receiveEvent), OperationType.FILE_DOWNLOAD)
     }

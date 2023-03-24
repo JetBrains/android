@@ -171,9 +171,9 @@ class DownloadsInfoPresentableBuildEvent(
   val buildId: ExternalSystemTaskId,
   val buildFinishedDisposable: CheckedDisposable,
   val buildStartTimestampMs: Long,
-  val gradleVersion: GradleVersion?
+  val gradleVersion: GradleVersion?,
+  val dataModel: DownloadInfoDataModel
 ) : PresentableBuildEvent {
-  private val dataModel = DownloadInfoDataModel(buildId, buildFinishedDisposable)
   override fun getId(): Any = "Download info"
   override fun getParentId(): Any = buildId
   override fun getEventTime(): Long = 0

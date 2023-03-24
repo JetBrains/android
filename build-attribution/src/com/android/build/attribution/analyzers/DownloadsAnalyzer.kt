@@ -16,7 +16,7 @@
 package com.android.build.attribution.analyzers
 
 import com.android.build.attribution.data.StudioProvidedInfo
-import com.android.build.output.DownloadsInfoUIModelNotifier
+import com.android.build.output.DownloadInfoDataModel
 import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
 import com.android.ide.common.repository.AgpVersion
 import com.google.wireless.android.sdk.stats.BuildDownloadsAnalysisData.RepositoryStats.RepositoryType
@@ -101,14 +101,14 @@ class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(),
 
   class DownloadEventsProcessor(
     var statsAccumulator: DownloadStatsAccumulator?,
-    var downloadsUiModelNotifier: DownloadsInfoUIModelNotifier?
+    var downloadsInfoDataModel: DownloadInfoDataModel?
   ) {
     fun receiveEvent(event: ProgressEvent) {
       if (event is FileDownloadStartEvent) {
         val url = event.descriptor.uri.toString()
         val repository = detectRepository(event.descriptor.uri)
         val startTime = event.eventTime
-        downloadsUiModelNotifier?.downloadStarted(startTime, url, repository)
+        downloadsInfoDataModel?.downloadStarted(startTime, url, repository)
       }
       if (event is FileDownloadFinishEvent) {
         val startTime = event.result.startTime
@@ -129,7 +129,7 @@ class DownloadsAnalyzer : BaseAnalyzer<DownloadsAnalyzer.Result>(),
           failureMessage = failureMessage
         )
         statsAccumulator?.recordNewDownloadResult(downloadResult)
-        downloadsUiModelNotifier?.downloadFinished(downloadResult)
+        downloadsInfoDataModel?.downloadFinished(downloadResult)
       }
     }
   }
