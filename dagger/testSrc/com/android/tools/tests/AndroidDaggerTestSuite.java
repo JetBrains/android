@@ -21,7 +21,4 @@ import org.junit.runner.RunWith;
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(AndroidDaggerTestSuite.class)  // a suite mustn't contain itself
 public class AndroidDaggerTestSuite extends IdeaTestSuiteBase {
-  static {
-    leakChecker.enabled = false;  // TODO(b/264602053): fix leaks.
-  }
 }

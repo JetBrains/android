@@ -26,6 +26,7 @@ import com.intellij.codeInsight.daemon.GutterIconNavigationHandler
 import com.intellij.codeInsight.daemon.GutterMark
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
+import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.navigation.GotoRelatedItem
 import com.intellij.openapi.vfs.VirtualFile
@@ -53,6 +54,12 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     super.setUp()
     trackerService = TestDaggerAnalyticsTracker()
     project.registerServiceInstance(DaggerAnalyticsTracker::class.java, trackerService)
+  }
+
+  override fun tearDown() {
+    // Close the popups created by clickOnIcon(), otherwise they leak the test project.
+    IdeEventQueue.getInstance().popupManager.closeAllPopups()
+    super.tearDown()
   }
 
   private fun getGotoElements(icon: GutterMark): Collection<GotoRelatedItem> {
