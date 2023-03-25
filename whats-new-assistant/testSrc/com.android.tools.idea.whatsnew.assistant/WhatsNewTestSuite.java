@@ -25,7 +25,4 @@ import org.junit.runner.RunWith;
   WhatsNewTestSuite.class
 })
 public class WhatsNewTestSuite extends IdeaTestSuiteBase {
-  static {
-    leakChecker.enabled = false;  // TODO(b/264602053): fix leaks.
-  }
 }

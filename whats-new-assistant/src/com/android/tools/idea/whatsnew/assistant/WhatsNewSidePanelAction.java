@@ -103,7 +103,7 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
       isOpen = true; // Start off as opened so we don't fire an extra opened event
 
       // Need an additional listener for project close, because the below invokeLater isn't fired in time before closing
-      project.getMessageBus().connect(project).subscribe(ProjectManager.TOPIC, new ProjectManagerListener() {
+      ProjectManager.getInstance().addProjectManagerListener(project, new ProjectManagerListener() {
         @Override
         public void projectClosed(@NotNull Project project) {
           if (!project.equals(myProject)) {
