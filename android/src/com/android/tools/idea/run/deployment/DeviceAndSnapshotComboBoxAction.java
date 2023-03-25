@@ -226,8 +226,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
   }
 
   @NotNull
-  Set<Target> getSelectedTargets(@NotNull Project project) {
-    return getSelectedTargets(project, getDevices(project).orElse(Collections.emptyList()));
+  Optional<Set<Target>> getSelectedTargets(@NotNull Project project) {
+    return getDevices(project).map(devices -> getSelectedTargets(project, devices));
   }
 
   @NotNull

@@ -73,7 +73,7 @@ public final class DeviceAndSnapshotComboBoxTargetProviderTest {
     DeviceAndSnapshotComboBoxAction action = Mockito.mock(DeviceAndSnapshotComboBoxAction.class);
     Mockito.when(action.getSelectedDevices(project)).thenReturn(devices);
     Mockito.when(action.getDevices(project)).thenReturn(Optional.of(devices));
-    Mockito.when(action.getSelectedTargets(project)).thenReturn(targets);
+    Mockito.when(action.getSelectedTargets(project)).thenReturn(Optional.of(targets));
 
     DeployTargetProvider provider = new DeviceAndSnapshotComboBoxTargetProvider(() -> action, errorDialogSupplier);
 

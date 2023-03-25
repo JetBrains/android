@@ -146,7 +146,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
     // Assert
     Collection<Target> targets = Collections.singleton(target);
 
-    assertEquals(targets, action.getSelectedTargets(project));
+    assertEquals(Optional.of(targets), action.getSelectedTargets(project));
     Mockito.verify(myExecutionTargetService).setActiveTarget(new DeviceAndSnapshotComboBoxExecutionTarget(targets, myDevicesGetter));
   }
 
