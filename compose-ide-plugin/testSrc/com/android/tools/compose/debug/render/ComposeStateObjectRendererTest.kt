@@ -64,7 +64,7 @@ class ComposeStateObjectRendererTest {
     projectRule.fixture.addFileToProject("src/androidx/compose/runtime/snapshots/SnapshotStateList.kt", source)
 
     // prepare
-    val debugProcess: DebugProcessImpl = mockDebugProcess(project) {
+    val debugProcess: DebugProcessImpl = mockDebugProcess(project, projectRule.testRootDisposable) {
       val vm = this@mockDebugProcess.virtualMachineProxy.virtualMachine
 
       val listType = classType("java.util.List") {
@@ -117,7 +117,7 @@ class ComposeStateObjectRendererTest {
     projectRule.fixture.addFileToProject("src/androidx/compose/runtime/snapshots/SnapshotStateMap.kt", source)
 
     // prepare
-    val debugProcess: DebugProcessImpl = mockDebugProcess(project) {
+    val debugProcess: DebugProcessImpl = mockDebugProcess(project, projectRule.testRootDisposable) {
       val vm = this@mockDebugProcess.virtualMachineProxy.virtualMachine
 
       val mapType = classType("java.util.Map") {
@@ -171,7 +171,7 @@ class ComposeStateObjectRendererTest {
     """.trimIndent()
     projectRule.fixture.addFileToProject("src/androidx/compose/runtime/SnapshotMutableStateImpl.kt", source)
 
-    val debugProcess: DebugProcessImpl = mockDebugProcess(project) {
+    val debugProcess: DebugProcessImpl = mockDebugProcess(project, projectRule.testRootDisposable) {
       val vm = this@mockDebugProcess.virtualMachineProxy.virtualMachine
 
       val snapshotMutableStateImplType = classType("androidx.compose.runtime.SnapshotMutableStateImpl") {
@@ -224,7 +224,7 @@ class ComposeStateObjectRendererTest {
     """.trimIndent()
     projectRule.fixture.addFileToProject("src/androidx/compose/runtime/DerivedSnapshotState.kt", source)
 
-    val debugProcess: DebugProcessImpl = mockDebugProcess(project) {
+    val debugProcess: DebugProcessImpl = mockDebugProcess(project, projectRule.testRootDisposable) {
       val vm = this@mockDebugProcess.virtualMachineProxy.virtualMachine
 
       val stringType = classType("java.lang.String")
@@ -273,7 +273,7 @@ class ComposeStateObjectRendererTest {
     projectRule.fixture.addFileToProject("src/androidx/compose/runtime/snapshots/SnapshotStateList.kt", source)
 
     // prepare
-    val debugProcess: DebugProcessImpl = mockDebugProcess(project) {
+    val debugProcess: DebugProcessImpl = mockDebugProcess(project, projectRule.testRootDisposable) {
       val vm = this@mockDebugProcess.virtualMachineProxy.virtualMachine
       classType("java.lang.Object") {
         method("toString", "()Ljava/lang/String;")

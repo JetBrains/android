@@ -54,7 +54,7 @@ class KotlinMapEntryRendererTest {
   @Test
   fun checkRenderer() {
     // prepare
-    val debugProcess: DebugProcessImpl = mockDebugProcess(project) {
+    val debugProcess: DebugProcessImpl = mockDebugProcess(project, projectRule.testRootDisposable) {
       val vm = this@mockDebugProcess.virtualMachineProxy.virtualMachine
 
       val stringType = classType("java.lang.String")
