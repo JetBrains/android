@@ -21,6 +21,7 @@ import com.android.tools.idea.testartifacts.instrumented.AndroidTestRunConfigura
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.execution.RunManager;
 import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
@@ -104,7 +105,8 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       myGetRunManager = project -> null;
     }
 
-    @NotNull Builder setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(@NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet) {
+    @NotNull
+    private Builder setSelectDeviceSnapshotComboBoxSnapshotsEnabledGet(@NotNull BooleanSupplier selectDeviceSnapshotComboBoxSnapshotsEnabledGet) {
       mySelectDeviceSnapshotComboBoxSnapshotsEnabledGet = selectDeviceSnapshotComboBoxSnapshotsEnabledGet;
       return this;
     }
@@ -127,8 +129,9 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
       return this;
     }
 
-    @NotNull Builder setNewSelectMultipleDevicesDialog(
-      @NotNull BiFunction<Project, List<Device>, DialogWrapper> newSelectMultipleDevicesDialog) {
+    @NotNull
+    @VisibleForTesting
+    Builder setNewSelectMultipleDevicesDialog(@NotNull BiFunction<Project, List<Device>, DialogWrapper> newSelectMultipleDevicesDialog) {
       myNewSelectMultipleDevicesDialog = newSelectMultipleDevicesDialog;
       return this;
     }
@@ -216,16 +219,19 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     return getSelectedDevices(project).size();
   }
 
-  @NotNull List<Device> getSelectedDevices(@NotNull Project project) {
+  @NotNull
+  List<Device> getSelectedDevices(@NotNull Project project) {
     List<Device> devices = getDevices(project).orElse(Collections.emptyList());
     return Target.filterDevices(getSelectedTargets(project, devices), devices);
   }
 
-  @NotNull Set<Target> getSelectedTargets(@NotNull Project project) {
+  @NotNull
+  Set<Target> getSelectedTargets(@NotNull Project project) {
     return getSelectedTargets(project, getDevices(project).orElse(Collections.emptyList()));
   }
 
-  @NotNull Set<Target> getSelectedTargets(@NotNull Project project, @NotNull List<Device> devices) {
+  @NotNull
+  Set<Target> getSelectedTargets(@NotNull Project project, @NotNull List<Device> devices) {
     DevicesSelectedService service = myDevicesSelectedServiceGetInstance.apply(project);
 
     if (service.isMultipleDevicesSelectedInComboBox()) {
@@ -306,6 +312,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     @NotNull
     @Override
     public Font getFont() {
+      // noinspection UnstableApiUsage
       return ExperimentalUI.isNewUI() ? UIUtil.getLabelFont(FontSize.NORMAL) : super.getFont();
     }
   }
@@ -324,6 +331,12 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
     return new PopupActionGroup(getDevices(project).orElseThrow(AssertionError::new), this);
   }
 
+  @NotNull
+  @Override
+  public ActionUpdateThread getActionUpdateThread() {
+    return ActionUpdateThread.EDT;
+  }
+
   @Override
   public void update(@NotNull AnActionEvent event) {
     Presentation presentation = event.getPresentation();
@@ -336,7 +349,7 @@ public final class DeviceAndSnapshotComboBoxAction extends ComboBoxAction {
 
     Optional<List<Device>> optionalDevices = getDevices(project);
 
-    if (!optionalDevices.isPresent()) {
+    if (optionalDevices.isEmpty()) {
       presentation.setEnabled(false);
       presentation.setText("Loading Devices...");
 
