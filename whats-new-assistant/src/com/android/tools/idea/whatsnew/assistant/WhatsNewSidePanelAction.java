@@ -42,13 +42,6 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
   @NotNull
   private static WhatsNewAction action = new WhatsNewAction();
 
-  @NotNull
-  private final Map<Project, WhatsNewToolWindowListener> myProjectToListenerMap;
-
-  public WhatsNewSidePanelAction() {
-    myProjectToListenerMap = new HashMap<>();
-  }
-
   @Override
   public void update(@NotNull AnActionEvent e) {
     // Project being null can happen when Studio first starts and doesn't have window focus
@@ -79,27 +72,14 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
 
     WhatsNewToolWindowListener.fireOpenEvent(project, isAutoOpened);
     openWindow(WhatsNewBundleCreator.BUNDLE_ID, project);
-
-    // Only register a new listener if there isn't already one, to avoid multiple OPEN/CLOSE events
-    myProjectToListenerMap.computeIfAbsent(project, this::newWhatsNewToolWindowListener);
   }
 
-  @NotNull
-  private WhatsNewToolWindowListener newWhatsNewToolWindowListener(@NotNull Project project) {
-    WhatsNewToolWindowListener listener = new WhatsNewToolWindowListener(project, myProjectToListenerMap);
-    project.getMessageBus().connect(project).subscribe(ToolWindowManagerListener.TOPIC, listener);
-    return listener;
-  }
-
-  static class WhatsNewToolWindowListener implements ToolWindowManagerListener {
-    @NotNull private Project myProject;
-    @NotNull Map<Project, WhatsNewToolWindowListener> myProjectToListenerMap;
+  public static class WhatsNewToolWindowListener implements ToolWindowManagerListener {
+    @NotNull private final Project myProject;
     private boolean isOpen;
 
-    private WhatsNewToolWindowListener(@NotNull Project project,
-                                       @NotNull Map<Project, WhatsNewToolWindowListener> projectToListenerMap) {
+    public WhatsNewToolWindowListener(@NotNull Project project) {
       myProject = project;
-      myProjectToListenerMap = projectToListenerMap;
       isOpen = true; // Start off as opened so we don't fire an extra opened event
 
       // Need an additional listener for project close, because the below invokeLater isn't fired in time before closing
@@ -113,7 +93,6 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
             fireClosedEvent(myProject);
             isOpen = false;
           }
-          myProjectToListenerMap.remove(project);
         }
       });
     }
@@ -121,7 +100,6 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
     @Override
     public void toolWindowUnregistered(@NotNull String id, @NotNull ToolWindow toolWindow) {
       if (id.equals(TOOL_WINDOW_TITLE)) {
-        myProjectToListenerMap.remove(myProject);
         WhatsNewMetricsTracker.getInstance().clearDataFor(myProject);
       }
     }
@@ -136,7 +114,6 @@ public class WhatsNewSidePanelAction extends OpenAssistSidePanelAction {
     public void stateChanged(@NotNull ToolWindowManager toolWindowManager) {
       ApplicationManager.getApplication().invokeLater(() -> {
         if (myProject.isDisposed()) {
-          myProjectToListenerMap.remove(myProject);
           return;
         }
 

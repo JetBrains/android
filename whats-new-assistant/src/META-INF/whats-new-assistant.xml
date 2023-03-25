@@ -33,4 +33,9 @@
     <actionHandler implementation="com.android.tools.idea.whatsnew.assistant.actions.AppInspectionShowAction"/>
     <actionHandler implementation="com.android.tools.idea.whatsnew.assistant.actions.OpenDeviceMirroringSettingsAction"/>
   </extensions>
+
+  <projectListeners>
+    <listener class="com.android.tools.idea.whatsnew.assistant.WhatsNewSidePanelAction$WhatsNewToolWindowListener"
+              topic="com.intellij.openapi.wm.ex.ToolWindowManagerListener" />
+  </projectListeners>
 </idea-plugin>
