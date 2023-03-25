@@ -41,7 +41,4 @@ import org.junit.runner.RunWith;
   CaptureDetailsTest.class,
 })
 public class ProfilersAndroidTestSuite extends IdeaTestSuiteBase {
-  static {
-    leakChecker.enabled = false;  // TODO(b/264602053): fix leaks.
-  }
 }
