@@ -120,7 +120,7 @@ internal object DeviceTableColumns {
     LabelColumn<DeviceRowData>(
       DeviceManagerBundle.message("column.title.api"),
       Column.SizeConstraint(min = 20, max = 65),
-      stringAttribute { it.androidVersion?.apiString ?: "" }
+      stringAttribute { it.androidVersion?.apiStringWithExtension ?: "" }
     )
 
   object IsVirtual :
