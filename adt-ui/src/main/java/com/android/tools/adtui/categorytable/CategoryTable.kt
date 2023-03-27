@@ -68,6 +68,7 @@ class CategoryTable<T : Any>(
   private val primaryKey: (T) -> Any = { it },
   private val coroutineDispatcher: CoroutineDispatcher = defaultCoroutineDispatcher,
   colors: Colors = defaultColors,
+  private val rowDataProvider: ValueRowDataProvider<T> = NullValueRowDataProvider,
 ) : JBPanel<CategoryTable<T>>(), Scrollable {
 
   internal val header =
@@ -281,7 +282,9 @@ class CategoryTable<T : Any>(
     val key = primaryKey(rowValue)
     if (!valueRows.contains(key)) {
       valueRows[key] =
-        ValueRowComponent(header, columns, rowValue, key).also { addRowComponent(it) }
+        ValueRowComponent(rowDataProvider, header, columns, rowValue, key).also {
+          addRowComponent(it)
+        }
       updateValues { it + rowValue }
       updateComponents()
     }
@@ -377,7 +380,7 @@ class CategoryTable<T : Any>(
 
       // Update the ValueRow with the new values.
       valueRows[primaryKey(value)]?.apply {
-        updateValues(value)
+        this.value = value
         isVisible = collapsedParentCount == 0
         newRowComponents.add(this)
       }

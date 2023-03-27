@@ -17,9 +17,13 @@ package com.android.tools.adtui.categorytable
 
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
+import com.intellij.ide.DataManager
 import com.intellij.ide.IdeEventQueue
+import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.TestApplicationManager
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBScrollPane
 import javax.swing.BorderFactory
@@ -30,6 +34,7 @@ import org.junit.Test
 
 class CategoryTableTest {
   @get:Rule val edtRule = EdtRule()
+  @get:Rule val disposableRule = DisposableRule()
 
   fun createScrollPane(table: CategoryTable<*>) =
     JBScrollPane().also {
@@ -228,5 +233,25 @@ class CategoryTableTest {
     assertThat(actionColumnComponent.foreground).isEqualTo(colors.selectedForeground)
     assertThat(actionColumnComponent.background).isEqualTo(colors.selectedBackground)
     assertThat(actionButton.foreground).isEqualTo(originalButtonForeground)
+  }
+
+  @Test
+  @RunsInEdt
+  fun rowDataContext() {
+    TestApplicationManager.getInstance()
+    HeadlessDataManager.fallbackToProductionDataManager(disposableRule.disposable)
+
+    val table =
+      CategoryTable(
+        CategoryTableDemo.columns,
+        rowDataProvider = DefaultValueRowDataProvider(DEVICE_DATA_KEY)
+      )
+
+    CategoryTableDemo.devices.forEach { table.addRow(it) }
+
+    val component = (table.rowComponents[0] as ValueRowComponent).componentList[0].component
+    val data = DataManager.getInstance().getDataContext(component).getData(DEVICE_DATA_KEY)
+
+    assertThat(data).isEqualTo(CategoryTableDemo.devices[0])
   }
 }
