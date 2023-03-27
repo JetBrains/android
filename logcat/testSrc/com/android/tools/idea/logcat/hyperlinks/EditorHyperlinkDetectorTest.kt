@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat.hyperlinks
 
-import com.android.tools.idea.logcat.util.createLogcatEditor
+import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.filters.CompositeFilter
 import com.intellij.execution.filters.Filter
@@ -23,14 +23,12 @@ import com.intellij.execution.filters.Filter.Result
 import com.intellij.execution.filters.HyperlinkInfo
 import com.intellij.execution.impl.ConsoleViewUtil
 import com.intellij.execution.impl.EditorHyperlinkSupport
-import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
-import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 
@@ -40,17 +38,13 @@ import org.junit.Test
 @RunsInEdt
 class EditorHyperlinkDetectorTest {
   private val projectRule = ProjectRule()
+  private val logcatEditorRule = LogcatEditorRule(projectRule)
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule())
+  val rule = RuleChain(projectRule, logcatEditorRule, EdtRule())
 
   private val project get() = projectRule.project
-  private val editor by lazy { createLogcatEditor(project) }
-
-  @After
-  fun tearDown() {
-    EditorFactory.getInstance().releaseEditor(editor)
-  }
+  private val editor get() = logcatEditorRule.editor
 
   /**
    * Tests that we are using the correct filter as provided by ConsoleViewUtil.computeConsoleFilters(). This is a CompositeFilter that

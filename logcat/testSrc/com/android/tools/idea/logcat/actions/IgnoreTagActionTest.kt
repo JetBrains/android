@@ -21,12 +21,11 @@ import com.android.tools.idea.logcat.LogcatToolWindowFactory
 import com.android.tools.idea.logcat.messages.LOGCAT_FILTER_HINT_KEY
 import com.android.tools.idea.logcat.messages.TextAccumulator.FilterHint.Tag
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
-import com.android.tools.idea.logcat.util.createLogcatEditor
+import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.testFramework.DisposableRule
@@ -50,12 +49,12 @@ import org.mockito.Mockito.verify
 class IgnoreTagActionTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
+  private val logcatEditorRule = LogcatEditorRule(projectRule)
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), disposableRule)
+  val rule = RuleChain(projectRule, logcatEditorRule, EdtRule(), disposableRule)
 
-  private val project get() = projectRule.project
-  private val editor by lazy { createLogcatEditor(project) }
+  private val editor get() = logcatEditorRule.editor
   private val logcatSettings = AndroidLogcatSettings()
   private val ranges = mutableListOf<RangeMarker>()
 
@@ -66,7 +65,6 @@ class IgnoreTagActionTest {
 
   @After
   fun tearDown() {
-    EditorFactory.getInstance().releaseEditor(editor)
     LogcatToolWindowFactory.logcatPresenters.clear()
   }
 
