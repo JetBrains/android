@@ -101,6 +101,9 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       public @interface Component {
          Class<?>[] modules() default {};
          Class<?>[] dependencies() default {};
+
+         public @interface Builder {}
+         public @interface Factory {}
       }
       """
       .trimIndent()

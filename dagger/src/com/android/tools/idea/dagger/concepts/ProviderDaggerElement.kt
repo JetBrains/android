@@ -17,11 +17,14 @@ package com.android.tools.idea.dagger.concepts
 
 import com.android.tools.idea.dagger.getQualifierInfo
 import com.android.tools.idea.dagger.unboxed
+import com.android.tools.idea.kotlin.psiType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
 import org.jetbrains.kotlin.idea.base.util.projectScope
 import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtParameter
 
 internal abstract class ProviderDaggerElementBase : DaggerElement() {
 
@@ -62,7 +65,11 @@ internal data class ProviderDaggerElement(
 ) : ProviderDaggerElementBase() {
 
   internal constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())
+  internal constructor(
+    psiElement: KtParameter
+  ) : this(psiElement, requireNotNull(psiElement.psiType))
   internal constructor(psiElement: PsiMethod) : this(psiElement, psiElement.getReturnedPsiType())
+  internal constructor(psiElement: PsiParameter) : this(psiElement, psiElement.type)
 
   override fun getIndexKeys(): List<String> {
     val project = psiElement.project

@@ -26,6 +26,7 @@ import com.android.tools.idea.dagger.index.IndexValue
 object AllConcepts : DaggerConcept {
   private val CONCEPTS =
     listOf(
+      BindsInstanceDaggerConcept,
       BindsOptionalOfDaggerConcept,
       ComponentAndModuleDaggerConcept,
       ComponentProvisionMethodConcept,
