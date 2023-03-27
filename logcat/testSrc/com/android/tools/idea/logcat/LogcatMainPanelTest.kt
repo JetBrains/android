@@ -60,8 +60,12 @@ import com.android.tools.idea.logcat.service.LogcatService
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.LOGGER
+import com.android.tools.idea.logcat.util.TIMEOUT_SEC
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.logcat.util.logcatEvents
+import com.android.tools.idea.logcat.util.logcatMessage
+import com.android.tools.idea.logcat.util.onIdle
+import com.android.tools.idea.logcat.util.waitForCondition
 import com.android.tools.idea.run.ClearLogcatListener
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.ApplicationServiceRule
@@ -1214,8 +1218,6 @@ private fun List<AnAction>.mapToStrings(indent: String = ""): List<String> {
     }
   }.map { "$indent$it" }
 }
-
-private fun waitForCondition(condition: () -> Boolean) = waitForCondition(TIMEOUT_SEC, SECONDS, condition)
 
 private fun LogcatMainPanel.findBanner(text: String) =
   TreeWalker(this).descendants().first { it is EditorNotificationPanel && it.text == text } as EditorNotificationPanel

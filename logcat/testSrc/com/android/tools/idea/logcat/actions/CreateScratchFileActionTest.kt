@@ -16,10 +16,10 @@
 package com.android.tools.idea.logcat.actions
 
 import com.android.tools.idea.logcat.actions.CreateScratchFileAction.Companion.findEmbeddedData
-import com.android.tools.idea.logcat.logcatMessage
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.LOGCAT_MESSAGE_KEY
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
+import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.json.JsonLanguage
 import com.intellij.lang.xml.XMLLanguage

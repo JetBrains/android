@@ -1,6 +1,5 @@
 package com.android.tools.idea.logcat.util
 
-import com.android.tools.idea.logcat.logcatMessage
 import com.android.tools.idea.testing.ApplicationServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule

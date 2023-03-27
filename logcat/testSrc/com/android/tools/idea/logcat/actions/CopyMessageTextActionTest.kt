@@ -15,10 +15,10 @@
  */
 package com.android.tools.idea.logcat.actions
 
-import com.android.tools.idea.logcat.logcatMessage
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.LOGCAT_MESSAGE_KEY
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
+import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.editor.RangeMarker

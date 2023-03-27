@@ -25,7 +25,7 @@ import com.android.tools.idea.logcat.filters.StringFilter
 import com.android.tools.idea.logcat.message.LogLevel.WARN
 import com.android.tools.idea.logcat.message.LogcatHeader
 import com.android.tools.idea.logcat.message.LogcatMessage
-import com.android.tools.idea.logcat.onIdle
+import com.android.tools.idea.logcat.util.onIdle
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.Disposer

@@ -1,7 +1,6 @@
 package com.android.tools.idea.logcat.util
 
 import com.android.tools.idea.logcat.FakeLogcatPresenter
-import com.android.tools.idea.logcat.logcatMessage
 import com.android.tools.idea.logcat.util.LogcatEvent.LogcatMessagesEvent
 import com.android.tools.idea.logcat.util.LogcatEvent.LogcatPanelVisibility
 import com.android.tools.idea.testing.ApplicationServiceRule

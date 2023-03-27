@@ -23,7 +23,6 @@ import com.android.tools.idea.logcat.filters.LogcatFilterField.LINE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.MESSAGE
 import com.android.tools.idea.logcat.filters.LogcatFilterField.PROCESS
 import com.android.tools.idea.logcat.filters.LogcatFilterField.TAG
-import com.android.tools.idea.logcat.logcatMessage
 import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.message.LogLevel.ASSERT
 import com.android.tools.idea.logcat.message.LogLevel.DEBUG
@@ -33,6 +32,7 @@ import com.android.tools.idea.logcat.message.LogLevel.VERBOSE
 import com.android.tools.idea.logcat.message.LogLevel.WARN
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
+import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.TextRange.EMPTY_RANGE
