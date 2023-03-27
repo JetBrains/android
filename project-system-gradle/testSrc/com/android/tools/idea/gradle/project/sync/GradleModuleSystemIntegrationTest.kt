@@ -64,7 +64,7 @@ data class GradleModuleSystemIntegrationTest(
           expect.that(overrides[ManifestSystemProperty.Profileable.SHELL]).isNull()
           expect.that(overrides[ManifestSystemProperty.Profileable.ENABLED]).isNull()
           expect.that(overrides[ManifestSystemProperty.Application.TEST_ONLY]).isNull()
-          expect.that(ManifestSystemProperty.values.size).isEqualTo(14)
+          expect.that(ManifestSystemProperty.values.size).isEqualTo(15)
         },
         GradleModuleSystemIntegrationTest(
           name = "manifestOverrides_firstXyzSecondXyzRelease",
@@ -86,7 +86,7 @@ data class GradleModuleSystemIntegrationTest(
           expect.that(overrides[ManifestSystemProperty.Profileable.SHELL]).isNull()
           expect.that(overrides[ManifestSystemProperty.Profileable.ENABLED]).isNull()
           expect.that(overrides[ManifestSystemProperty.Application.TEST_ONLY]).isNull()
-          expect.that(ManifestSystemProperty.values.size).isEqualTo(14)
+          expect.that(ManifestSystemProperty.values.size).isEqualTo(15)
         },
         GradleModuleSystemIntegrationTest(
           name = "manifestOverridesInLibrary",
