@@ -17,6 +17,7 @@ package com.android.build.output
 
 import com.android.build.attribution.analyzers.minGradleVersionProvidingDownloadEvents
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.stats.FeatureSurveys
 import com.android.tools.idea.stats.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildOutputDownloadsInfoEvent
@@ -51,6 +52,7 @@ import javax.swing.SortOrder
 import javax.swing.table.TableModel
 import javax.swing.table.TableRowSorter
 
+private const val DOWNLOAD_INFO_VIEW_SURVEY_NAME = "DOWNLOAD_INFO_VIEW_SURVEY"
 /**
  * This execution console is installed to build output window and is shown when "Download info" node is selected.
  * It is subscribed to processed download requests events received from Gradle TAPI and is updated live.
@@ -60,7 +62,8 @@ class DownloadsInfoExecutionConsole(
   val buildId: ExternalSystemTaskId,
   val buildFinishedDisposable: CheckedDisposable,
   val buildStartTimestampMs: Long,
-  val gradleVersion: GradleVersion?
+  val gradleVersion: GradleVersion?,
+  val featureSurveys: FeatureSurveys = FeatureSurveys
 ) : ExecutionConsole {
   val uiModel = DownloadsInfoUIModel()
 
@@ -158,6 +161,9 @@ class DownloadsInfoExecutionConsole(
           interaction = reportedInteraction
         })
       UsageTracker.log(event.withProjectId(project))
+      if (buildId.type == ExternalSystemTaskType.RESOLVE_PROJECT) {
+        featureSurveys.triggerSurveyByName(DOWNLOAD_INFO_VIEW_SURVEY_NAME)
+      }
     }
   }
 }

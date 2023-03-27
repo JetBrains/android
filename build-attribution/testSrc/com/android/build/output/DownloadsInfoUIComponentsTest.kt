@@ -20,11 +20,13 @@ import com.android.build.attribution.analyzers.DownloadsAnalyzer.KnownRepository
 import com.android.build.attribution.analyzers.url1
 import com.android.build.attribution.analyzers.url2
 import com.android.build.attribution.analyzers.url3
+import com.android.testutils.MockitoKt
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.stats.FeatureSurveys
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
@@ -49,6 +51,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import java.awt.Dimension
 
 private val gradleVersion_7_2 = GradleVersion.version("7.2")
@@ -144,6 +147,7 @@ class DownloadsInfoExecutionConsoleTest {
   private lateinit var buildId: ExternalSystemTaskId
   private lateinit var executionConsole: DownloadsInfoExecutionConsole
   private lateinit var buildDisposable: CheckedDisposable
+  private val featureSurveysMock: FeatureSurveys = MockitoKt.mock()
 
   private val reposTable: TableView<*>
     get() = TreeWalker(executionConsole.component).descendants().filter { it.name == "repositories table" }.filterIsInstance<TableView<*>>().single()
@@ -156,7 +160,7 @@ class DownloadsInfoExecutionConsoleTest {
     buildId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.RESOLVE_PROJECT, projectRule.project)
     buildDisposable = Disposer.newCheckedDisposable("build finished disposable")
     Disposer.register(projectRule.testRootDisposable, buildDisposable)
-    executionConsole = DownloadsInfoExecutionConsole(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0)
+    executionConsole = DownloadsInfoExecutionConsole(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0, featureSurveysMock)
     Disposer.register(projectRule.testRootDisposable, executionConsole)
   }
 
@@ -237,6 +241,28 @@ class DownloadsInfoExecutionConsoleTest {
       .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_DOWNLOADS_INFO_USER_INTERACTION }
       .map { use -> use.studioEvent.buildOutputDownloadsInfoEvent.interaction }
     assertThat(interactions).isEqualTo(listOf(BuildOutputDownloadsInfoEvent.Interaction.OPEN_DOWNLOADS_INFO_UI))
+    Mockito.verify(featureSurveysMock, Mockito.times(1)).triggerSurveyByName("DOWNLOAD_INFO_VIEW_SURVEY")
+  }
+
+  @Test
+  fun testSurveyNotTriggeredForBuild() {
+    buildId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, projectRule.project)
+    executionConsole = DownloadsInfoExecutionConsole(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0, featureSurveysMock)
+    Disposer.register(projectRule.testRootDisposable, executionConsole)
+    val page = executionConsole.component
+    // page is not initially visible
+    page.isVisible = false
+    page.size = Dimension(600, 400)
+
+    val ui = FakeUi(page, createFakeWindow = true)
+    page.isVisible = true
+    ui.layoutAndDispatchEvents()
+
+    val interactions = tracker.usages
+      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_DOWNLOADS_INFO_USER_INTERACTION }
+      .map { use -> use.studioEvent.buildOutputDownloadsInfoEvent.interaction }
+    assertThat(interactions).isEqualTo(listOf(BuildOutputDownloadsInfoEvent.Interaction.OPEN_DOWNLOADS_INFO_UI))
+    Mockito.verifyNoInteractions(featureSurveysMock)
   }
 
   @Test
