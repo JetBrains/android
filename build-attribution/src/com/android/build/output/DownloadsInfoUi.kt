@@ -85,6 +85,7 @@ class DownloadsInfoExecutionConsole(
     }
   }.apply {
     name = "requests table"
+    resetDefaultFocusTraversalKeys()
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
     setShowGrid(false)
     columnSelectionAllowed = false
@@ -97,6 +98,7 @@ class DownloadsInfoExecutionConsole(
 
   val reposTable = TableView(uiModel.repositoriesTableModel).apply {
     name = "repositories table"
+    resetDefaultFocusTraversalKeys()
     setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
     setShowGrid(false)
     columnSelectionAllowed = false
