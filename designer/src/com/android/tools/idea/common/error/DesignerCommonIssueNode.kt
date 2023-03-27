@@ -332,9 +332,6 @@ val DESCEND_ORDER_DEFAULT_SEVERITIES: List<HighlightSeverity> = HighlightSeverit
 open class IssueNode(val file: VirtualFile?, val issue: Issue, val parent: DesignerCommonIssueNode?)
   : DesignerCommonIssueNode(parent?.project, parent) {
 
-  private val offset: Int
-    get() = (issue.source as? NlComponentIssueSource)?.component?.tag?.textRange?.startOffset ?: -1
-
   override fun getLeafState() = LeafState.ALWAYS
 
   override fun getName(): String = createNodeDisplayText()
@@ -345,8 +342,17 @@ open class IssueNode(val file: VirtualFile?, val issue: Issue, val parent: Desig
   override fun getChildren(): List<DesignerCommonIssueNode> = emptyList()
 
   override fun getNavigatable(): Navigatable? {
-    val targetFile = getVirtualFile()
-    return if (project != null && targetFile != null) MyOpenFileDescriptor(project, targetFile, offset) else null
+    var navigatable = (issue.source as? NlComponentIssueSource)?.component?.navigatable
+    if (navigatable == null) {
+      val targetFile = getVirtualFile()
+      if (project != null && targetFile != null) {
+        navigatable = OpenFileDescriptor(project, targetFile, -1)
+      }
+    }
+    if (navigatable is OpenFileDescriptor) {
+      return MyOpenFileDescriptor(navigatable)
+    }
+    return navigatable
   }
 
   override fun updatePresentation(presentation: PresentationData) {
@@ -419,7 +425,8 @@ class VisualLintIssueNode(private val visualLintIssue: VisualLintRenderIssue, pa
   }
 }
 
-private class MyOpenFileDescriptor(project: Project, targetFile: VirtualFile, offset: Int): OpenFileDescriptor(project, targetFile, offset) {
+private class MyOpenFileDescriptor(openFileDescriptor: OpenFileDescriptor) :
+  OpenFileDescriptor(openFileDescriptor.project, openFileDescriptor.file, openFileDescriptor.offset) {
 
   /**
    * [navigate], [navigateIn], and [navigateInEditor] may call each other depending on the implementation of

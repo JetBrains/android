@@ -36,6 +36,7 @@ import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.LogLevel
 import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.Disposer
@@ -177,6 +178,10 @@ class RenderErrorTest {
     val issue = accessibilityIssues[0]
     assertEquals("Insufficient text color contrast ratio", issue.summary)
     assertTrue(issue.source is NlComponentIssueSource)
+    val navigatable = (issue.source as NlComponentIssueSource).component?.navigatable
+    assertTrue(navigatable is OpenFileDescriptor)
+    assertEquals(1521, (navigatable as OpenFileDescriptor).offset)
+    assertEquals("RenderError.kt", navigatable.file.name)
   }
 
   private fun countVisibleActions(actions: List<AnAction>, visibleBefore: Boolean): Int {

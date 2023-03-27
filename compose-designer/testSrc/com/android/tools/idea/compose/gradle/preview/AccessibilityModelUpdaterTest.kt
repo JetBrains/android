@@ -27,6 +27,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.model.w
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
@@ -127,6 +128,9 @@ class AccessibilityModelUpdaterTest {
     assertEquals(0, textViewComponent.childCount)
     assertNotEquals(-1, textViewComponent.accessibilityId)
     assertEquals(148, textViewComponent.w)
+    val textViewNavigatable = textViewComponent.navigatable as OpenFileDescriptor
+    assertEquals(1158, textViewNavigatable.offset)
+    assertEquals("MainActivity.kt", textViewNavigatable.file.name)
 
     children = children[1].children
     assertEquals(2, children.size)
@@ -135,10 +139,16 @@ class AccessibilityModelUpdaterTest {
     assertEquals(0, buttonTextViewComponent.childCount)
     assertNotEquals(-1, buttonTextViewComponent.accessibilityId)
     assertEquals(235, buttonTextViewComponent.w)
+    val buttonTextViewNavigatable = buttonTextViewComponent.navigatable as OpenFileDescriptor
+    assertEquals(1137, buttonTextViewNavigatable.offset)
+    assertEquals("MainActivity.kt", buttonTextViewNavigatable.file.name)
 
     val buttonComponent = children[1]
     assertEquals(0, buttonComponent.childCount)
     assertNotEquals(-1, buttonComponent.accessibilityId)
     assertEquals(323, buttonComponent.w)
+    val buttonNavigatable = buttonComponent.navigatable as OpenFileDescriptor
+    assertEquals(1137, buttonNavigatable.offset)
+    assertEquals("MainActivity.kt", buttonNavigatable.file.name)
   }
 }

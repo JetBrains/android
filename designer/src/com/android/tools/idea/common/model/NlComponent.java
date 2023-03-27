@@ -40,10 +40,13 @@ import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.refactoring.NamesValidator;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.pom.Navigatable;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
@@ -97,6 +100,8 @@ public class NlComponent implements NlAttributesHolder {
    */
   long myAccessibilityId = -1;
 
+  private Navigatable myNavigatable;
+
   public NlComponent(@NotNull NlModel model, @NotNull XmlTag tag) {
     myModel = model;
     myBackend = new NlComponentBackendXml(model.getProject(), tag);
@@ -137,6 +142,18 @@ public class NlComponent implements NlAttributesHolder {
 
   public long getAccessibilityId() {
     return myAccessibilityId;
+  }
+
+  public void setNavigatable(@NotNull Navigatable navigatable) {
+    myNavigatable = navigatable;
+  }
+
+  @Nullable
+  public Navigatable getNavigatable() {
+    if (myNavigatable != null) {
+      return myNavigatable;
+    }
+    return myBackend.getDefaultNavigatable();
   }
 
   /**

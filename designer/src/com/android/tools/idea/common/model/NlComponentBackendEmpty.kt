@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.model
 
 import com.intellij.designer.model.EmptyXmlTag
+import com.intellij.pom.Navigatable
 import com.intellij.psi.xml.XmlTag
 
 /**
@@ -41,4 +42,6 @@ class NlComponentBackendEmpty: NlComponentBackend {
   override fun reformatAndRearrange() { }
 
   override fun isValid() = true
+
+  override fun getDefaultNavigatable() = null
 }

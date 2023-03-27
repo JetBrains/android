@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.preview.navigation
 
-import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.adtui.common.SwingCoordinate
 import com.android.tools.idea.common.model.AndroidCoordinate
 import com.android.tools.idea.common.model.Coordinates
@@ -56,14 +55,11 @@ private fun SourceLocation.toNavigatable(module: Module): Navigatable? {
       PsiManager.getInstance(project).findFile(sourceLocationWithVirtualFile.virtualFile)
     }
       ?: return null
+  // PsiFile.getLineStartOffset is 0 based, while the source information is 1 based so subtract 1
+  val offset =
+    runReadAction { psiFile.getLineStartOffset(sourceLocationWithVirtualFile.lineNumber - 1) } ?: 0
   return PsiNavigationSupport.getInstance()
-    .createNavigatable(
-      project,
-      sourceLocationWithVirtualFile.virtualFile,
-      // PsiFile.getLineStartOffset is 0 based, while the source information is 1 based so subtract
-      // 1
-      psiFile.getLineStartOffset(sourceLocationWithVirtualFile.lineNumber - 1) ?: 0
-    )
+    .createNavigatable(project, sourceLocationWithVirtualFile.virtualFile, offset)
 }
 
 /** Utility method that dumps the given [ComposeViewInfo] list to the log. */
@@ -82,18 +78,10 @@ private fun dumpViewInfosToLog(module: Module, viewInfos: List<ComposeViewInfo>,
  */
 @VisibleForTesting
 fun findComponentHits(
-  module: Module,
-  rootViewInfo: ViewInfo,
+  allViewInfos: List<ComposeViewInfo>,
   @AndroidCoordinate x: Int,
   @AndroidCoordinate y: Int
 ): List<SourceLocation> {
-  val allViewInfos =
-    parseViewInfo(rootViewInfo = rootViewInfo, lineNumberMapper = remapInline(module), logger = LOG)
-
-  if (LOG.isDebugEnabled) {
-    dumpViewInfosToLog(module, allViewInfos)
-  }
-
   return allViewInfos
     .findHitWithDepth(x, y)
     // We do not need to keep hits without source information
@@ -114,12 +102,12 @@ fun findComponentHits(
  */
 fun findNavigatableComponentHit(
   module: Module,
-  rootViewInfo: ViewInfo,
+  allViewInfos: List<ComposeViewInfo>,
   @AndroidCoordinate x: Int,
   @AndroidCoordinate y: Int,
   locationFilter: (SourceLocation) -> Boolean = { true }
 ): Navigatable? {
-  val hits = findComponentHits(module, rootViewInfo, x, y).filter(locationFilter)
+  val hits = findComponentHits(allViewInfos, x, y).filter(locationFilter)
 
   if (LOG.isDebugEnabled) {
     LOG.debug("${hits.size} hits found in")
@@ -147,7 +135,15 @@ private fun findNavigatableComponent(
   // Find component to navigate to
   val root = model.components[0]
   val viewInfo = root.viewInfo ?: return null
-  return findNavigatableComponentHit(model.module, viewInfo, x, y) {
+  val module = model.module
+  val allViewInfos =
+    parseViewInfo(rootViewInfo = viewInfo, lineNumberMapper = remapInline(module), logger = LOG)
+
+  if (LOG.isDebugEnabled) {
+    dumpViewInfosToLog(module, allViewInfos)
+  }
+
+  return findNavigatableComponentHit(module, allViewInfos, x, y) {
     // We apply a filter to the hits. If requestFocus is true (the user double clicked), we allow
     // any hit even if it's not in the current
     // file. If requestFocus is false, we only allow single clicks

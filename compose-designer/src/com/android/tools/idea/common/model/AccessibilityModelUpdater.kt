@@ -16,11 +16,16 @@
 package com.android.tools.idea.common.model
 
 import com.android.ide.common.rendering.api.ViewInfo
+import com.android.tools.idea.compose.preview.ComposeViewInfo
+import com.android.tools.idea.compose.preview.navigation.findNavigatableComponentHit
+import com.android.tools.idea.compose.preview.navigation.remapInline
+import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.rendering.parsers.PsiXmlTag
 import com.android.tools.idea.rendering.parsers.TagSnapshot
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.getAccessibilitySourceId
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.xml.XmlTag
 
 /** Updates the [NlModel] for Compose Preview to match data coming following a render result. */
@@ -55,16 +60,37 @@ class AccessibilityModelUpdater : NlModel.NlModelUpdaterInterface {
       val tag = runReadAction { it.tag }
       val viewInfo = tagToViewInfo[tag]
       it.accessibilityId = viewInfo?.getAccessibilitySourceId() ?: return@forEach
-      createTree(it, viewInfo.children, model)
+      val composeViewInfos =
+        parseViewInfo(
+          rootViewInfo = viewInfo,
+          lineNumberMapper = remapInline(model.module),
+          logger = Logger.getInstance(AccessibilityModelUpdater::class.java)
+        )
+      createTree(it, composeViewInfos, viewInfo.children, model)
     }
   }
 
-  private fun createTree(root: NlComponent, viewInfos: List<ViewInfo>, model: NlModel) {
+  private fun createTree(
+    root: NlComponent,
+    composeViewInfos: List<ComposeViewInfo>,
+    viewInfos: List<ViewInfo>,
+    model: NlModel
+  ) {
     for (viewInfo in viewInfos) {
       val childComponent = NlComponent(model, viewInfo.getAccessibilitySourceId())
       NlComponentRegistrar.accept(childComponent)
       root.addChild(childComponent)
-      createTree(childComponent, viewInfo.children, model)
+      val navigatable =
+        findNavigatableComponentHit(
+          model.module,
+          composeViewInfos,
+          (viewInfo.left + viewInfo.right) / 2,
+          (viewInfo.top + viewInfo.bottom) / 2
+        )
+      if (navigatable != null) {
+        childComponent.setNavigatable(navigatable)
+      }
+      createTree(childComponent, composeViewInfos, viewInfo.children, model)
     }
   }
 }
