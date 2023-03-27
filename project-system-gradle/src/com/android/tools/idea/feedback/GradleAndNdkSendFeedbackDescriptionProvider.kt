@@ -127,7 +127,7 @@ private fun getNdkDetails(
       }
     }
     // Latest NDK package in the SDK (if any)
-    val p = sdkHandler.getLatestLocalPackageForPrefix(SdkConstants.FD_NDK, null, false, progress)
+    val p = sdkHandler.getLatestLocalPackageForPrefix(SdkConstants.FD_NDK_SIDE_BY_SIDE, null, false, progress)
     append("latest from SDK: ${if (p == null) "(not found)" else getNdkVersion(p.location.toAbsolutePath().toString())}")
   }
 }
