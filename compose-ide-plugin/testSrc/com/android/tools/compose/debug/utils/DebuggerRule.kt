@@ -20,6 +20,7 @@ import com.intellij.debugger.engine.DebuggerManagerThreadImpl
 import com.intellij.debugger.engine.events.DebuggerCommandImpl
 import com.intellij.debugger.impl.PrioritizedTask
 import org.junit.rules.ExternalResource
+import java.util.concurrent.CompletableFuture
 
 class DebuggerRule(projectRule: AndroidProjectRule) : ExternalResource() {
   private val debuggerMangerThread: DebuggerManagerThreadImpl by lazy {
@@ -28,12 +29,21 @@ class DebuggerRule(projectRule: AndroidProjectRule) : ExternalResource() {
   }
 
   fun invokeOnDebuggerManagerThread(f: () -> Unit) {
+    val future = CompletableFuture<Unit>()
+
     debuggerMangerThread.invokeAndWait(
       object : DebuggerCommandImpl(PrioritizedTask.Priority.NORMAL) {
         override fun action() {
-          f()
+          try {
+            future.complete(f())
+          }
+          catch (t: Throwable) {
+            future.completeExceptionally(t)
+          }
         }
       }
     )
+
+    future.get()
   }
 }

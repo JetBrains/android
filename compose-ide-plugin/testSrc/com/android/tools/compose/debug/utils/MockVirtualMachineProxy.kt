@@ -19,6 +19,7 @@ import com.android.testutils.MockitoKt
 import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.debugger.jdi.VirtualMachineProxyImpl
 import com.sun.jdi.ReferenceType
+import com.sun.jdi.ThreadGroupReference
 import com.sun.jdi.VirtualMachine
 
 class MockVirtualMachineProxy(
@@ -35,4 +36,5 @@ private class MockVirtualMachine(
   override fun name(): String = "MockDalvik"
   override fun allClasses(): List<ReferenceType> = referencesByName.values.toList()
   override fun classesByName(s: String): List<ReferenceType> = listOfNotNull(referencesByName[s])
+  override fun topLevelThreadGroups(): List<ThreadGroupReference> = emptyList()
 }

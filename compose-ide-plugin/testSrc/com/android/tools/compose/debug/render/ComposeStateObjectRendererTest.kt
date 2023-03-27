@@ -31,14 +31,12 @@ import com.google.common.truth.Truth.assertThat
 import com.intellij.debugger.engine.DebugProcessImpl
 import com.intellij.debugger.settings.NodeRendererSettings
 import com.intellij.debugger.ui.tree.render.CompoundReferenceRenderer
-import com.intellij.debugger.ui.tree.render.DescriptorLabelListener
 import com.sun.jdi.ClassType
 import com.sun.jdi.ReferenceType
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 class ComposeStateObjectRendererTest {
@@ -97,13 +95,15 @@ class ComposeStateObjectRendererTest {
       val evaluationContext = mockEvaluationContext(debugProcess, thisObjectValue)
       val thisValueDescriptor = MockValueDescriptor(project, thisObjectValue)
 
-      // 2. check if the label is properly rendered - it should be size = xx.
-      val label = renderer.calcLabel(thisValueDescriptor, evaluationContext, MockitoKt.mock())
-      assertThat(label).isEqualTo(" size = 7")
+      // 2. check if the label is eventually properly rendered - it should be size = xx.
+      renderer.calcLabel(thisValueDescriptor, evaluationContext, MockitoKt.mock())
+      waitForCondition(500, TimeUnit.MILLISECONDS) {
+        thisValueDescriptor.valueText == " size = 7"
+      }
 
       // 3. check if the children renderer is the same as the label renderer.
       val childrenRenderer = (renderer as CompoundReferenceRenderer).childrenRenderer
-      assertThat(childrenRenderer.uniqueId).isEqualTo("ComposeStateObjectClassRenderer")
+      assertThat(childrenRenderer.uniqueId).isEqualTo("androidx.compose.runtime.snapshots.SnapshotStateList")
     }
   }
 
@@ -148,13 +148,15 @@ class ComposeStateObjectRendererTest {
       val evaluationContext = mockEvaluationContext(debugProcess, thisObjectValue)
       val thisValueDescriptor = MockValueDescriptor(project, thisObjectValue)
 
-      // 2. check if the label is properly rendered - it should be size = xx.
-      val label = renderer.calcLabel(thisValueDescriptor, evaluationContext, MockitoKt.mock())
-      assertThat(label).isEqualTo(" size = 5")
+      // 2. check if the label is eventually properly rendered - it should be size = xx.
+      renderer.calcLabel(thisValueDescriptor, evaluationContext, MockitoKt.mock())
+      waitForCondition(500, TimeUnit.MILLISECONDS) {
+        thisValueDescriptor.valueText == " size = 5"
+      }
 
       // 3. check if the children renderer is the same as the label renderer.
       val childrenRenderer = (renderer as CompoundReferenceRenderer).childrenRenderer
-      assertThat(childrenRenderer.uniqueId).isEqualTo("ComposeStateObjectClassRenderer")
+      assertThat(childrenRenderer.uniqueId).isEqualTo("androidx.compose.runtime.snapshots.SnapshotStateMap")
     }
   }
 
@@ -201,13 +203,15 @@ class ComposeStateObjectRendererTest {
       val thisValueDescriptor = MockValueDescriptor(project, thisObjectValue)
       val evaluationContext = mockEvaluationContext(debugProcess, thisObjectValue)
 
-      // check if the label is properly rendered - it should be the label calculated for the underlying value.
-      val label = renderer.calcLabel(thisValueDescriptor, evaluationContext, MockitoKt.mock())
-      assertThat(label).isEqualTo("2")
+      // check if the label is eventually properly rendered - it should be the label calculated for the underlying value.
+      renderer.calcLabel(thisValueDescriptor, evaluationContext, MockitoKt.mock())
+      waitForCondition(500, TimeUnit.MILLISECONDS) {
+        thisValueDescriptor.valueText == "2"
+      }
 
       // check if the children renderer is the same as the label renderer.
       val childrenRenderer = (renderer as CompoundReferenceRenderer).childrenRenderer
-      assertThat(childrenRenderer.uniqueId).isEqualTo("ComposeStateObjectClassRenderer")
+      assertThat(childrenRenderer.uniqueId).isEqualTo("androidx.compose.runtime.SnapshotMutableStateImpl")
     }
   }
 
@@ -247,13 +251,15 @@ class ComposeStateObjectRendererTest {
       val evaluationContext = mockEvaluationContext(debugProcess, thisObjectValue)
       val thisValueDescriptor = MockValueDescriptor(project, thisObjectValue)
 
-      // check if the label is properly rendered - it should be the label calculated for the underlying value.
-      val label = renderer.calcLabel(thisValueDescriptor, evaluationContext, MockitoKt.mock())
-      assertThat(label).isEqualTo("This is fake string value.")
+      // check if the label is eventually properly rendered - it should be the label calculated for the underlying value.
+      renderer.calcLabel(thisValueDescriptor, evaluationContext, MockitoKt.mock())
+      waitForCondition(500, TimeUnit.MILLISECONDS) {
+        thisValueDescriptor.valueText == "This is fake string value."
+      }
 
       // check if the children renderer is the same as the label renderer.
       val childrenRenderer = (renderer as CompoundReferenceRenderer).childrenRenderer
-      assertThat(childrenRenderer.uniqueId).isEqualTo("ComposeStateObjectClassRenderer")
+      assertThat(childrenRenderer.uniqueId).isEqualTo("androidx.compose.runtime.DerivedSnapshotState")
     }
   }
 
@@ -300,17 +306,12 @@ class ComposeStateObjectRendererTest {
       val evaluationContext = mockEvaluationContext(debugProcess, thisObjectValue)
       val thisValueDescriptor = MockValueDescriptor(project, thisObjectValue)
 
-      // 2. check if the label is properly rendered - no errors like
+      // 2. check if the label is eventually properly rendered - no errors like
       // `Unable to evaluate the expression No such instance method: 'getDebuggerDisplayValue'`.
-      val latch = CountDownLatch(1)
-      val fakeListener = DescriptorLabelListener { latch.countDown() }
-
-      renderer.calcLabel(thisValueDescriptor, evaluationContext, fakeListener)
-      waitForCondition(200, TimeUnit.MILLISECONDS) {
-        latch.count == 0L
+      renderer.calcLabel(thisValueDescriptor, evaluationContext, MockitoKt.mock())
+      waitForCondition(500, TimeUnit.MILLISECONDS) {
+        thisValueDescriptor.valueText == "SnapshotStateList@1234"
       }
-
-      assertThat(thisValueDescriptor.valueText).isEqualTo("SnapshotStateList@1234")
     }
   }
 }
