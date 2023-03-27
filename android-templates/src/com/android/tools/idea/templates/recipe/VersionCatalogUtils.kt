@@ -66,12 +66,10 @@ fun getOrAddDependencyToVersionCatalog(
     libProperty.getMapValue("name")?.setValue(libraryName)
 
     if (resolvedVersion != null) {
-      val versionProperty = versions?.findProperty(pickedNameForVersion)
-      versionProperty?.setValue(resolvedVersion)
+      val versionProperty = versions.findProperty(pickedNameForVersion)
+      versionProperty.setValue(resolvedVersion)
 
-      if (versionProperty != null) {
-        libProperty.getMapValue("version")?.setValue(ReferenceTo(versionProperty))
-      }
+      libProperty.getMapValue("version")?.setValue(ReferenceTo(versionProperty))
     }
     return ReferenceTo(libProperty)
   }
@@ -112,11 +110,9 @@ fun getOrAddPluginToVersionCatalog(
       resolvedVersion = resolvedVersion)
     val pluginProperty = plugins.findProperty(pickedNameForPlugin)
     pluginProperty.getMapValue("id")?.setValue(pluginName)
-    val versionProperty = versions?.findProperty(pickedNameForVersion)
-    versionProperty?.setValue(resolvedVersion)
-    if (versionProperty != null) {
-      pluginProperty.getMapValue("version")?.setValue(ReferenceTo(versionProperty))
-    }
+    val versionProperty = versions.findProperty(pickedNameForVersion)
+    versionProperty.setValue(resolvedVersion)
+    pluginProperty.getMapValue("version")?.setValue(ReferenceTo(versionProperty))
     return ReferenceTo(pluginProperty)
   }
 }
@@ -135,7 +131,7 @@ private fun findLibraryInCatalog(
     append(libraryName)
   }
   val libraries = versionCatalogModel.libraries()
-  return libraries?.properties?.firstOrNull {
+  return libraries.properties.firstOrNull {
     when (it.valueType) {
       ValueType.MAP -> {
         (it.getMapValue("module")?.getValue(STRING_TYPE) == mavenModuleName ||
