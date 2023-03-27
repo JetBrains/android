@@ -19,11 +19,10 @@ import com.android.tools.idea.dagger.addDaggerAndHiltClasses
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.moveCaret
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiPrimitiveType
-import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.psi.KtClass
@@ -75,19 +74,13 @@ class ConsumerAndProviderTypeUtilTest {
       )
     myFixture.openFileInEditor(psiFile.virtualFile)
 
-    val lazyFooType =
-      myFixture.moveCaret("lazy|Foo").parentOfType<KtParameter>(withSelf = true)!!.psiType!!
-    val providerFooType =
-      myFixture.moveCaret("provider|Foo").parentOfType<KtParameter>(withSelf = true)!!.psiType!!
-    val providerLazyFooType =
-      myFixture.moveCaret("providerLazy|Foo").parentOfType<KtParameter>(withSelf = true)!!.psiType!!
-    val lazyProviderFooType =
-      myFixture.moveCaret("lazyProvider|Foo").parentOfType<KtParameter>(withSelf = true)!!.psiType!!
-    val lazyIntType =
-      myFixture.moveCaret("lazy|Int").parentOfType<KtParameter>(withSelf = true)!!.psiType!!
+    val lazyFooType = myFixture.findParentElement<KtParameter>("lazy|Foo").psiType!!
+    val providerFooType = myFixture.findParentElement<KtParameter>("provider|Foo").psiType!!
+    val providerLazyFooType = myFixture.findParentElement<KtParameter>("providerLazy|Foo").psiType!!
+    val lazyProviderFooType = myFixture.findParentElement<KtParameter>("lazyProvider|Foo").psiType!!
+    val lazyIntType = myFixture.findParentElement<KtParameter>("lazy|Int").psiType!!
 
-    val fooType =
-      myFixture.moveCaret("class F|oo").parentOfType<KtClass>(withSelf = true)!!.toPsiType()
+    val fooType = myFixture.findParentElement<KtClass>("class F|oo").toPsiType()
     val integerType = PsiPrimitiveType.INT.getBoxedType(/* context= */ psiFile)
 
     assertThat(lazyFooType.typeInsideDaggerWrapper()).isEqualTo(fooType)
@@ -125,10 +118,8 @@ class ConsumerAndProviderTypeUtilTest {
         .virtualFile
     )
 
-    val fooType =
-      myFixture.moveCaret("fo|o: Foo").parentOfType<KtParameter>(withSelf = true)!!.psiType!!
-    val integerType =
-      myFixture.moveCaret("inte|ger: Int").parentOfType<KtParameter>(withSelf = true)!!.psiType!!
+    val fooType = myFixture.findParentElement<KtParameter>("fo|o: Foo").psiType!!
+    val integerType = myFixture.findParentElement<KtParameter>("inte|ger: Int").psiType!!
 
     assertThat(fooType.typeInsideDaggerWrapper()).isNull()
     assertThat(fooType.withoutDaggerWrapper()).isEqualTo(fooType)

@@ -19,11 +19,11 @@ import com.android.tools.idea.dagger.concepts.classToPsiType
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.psi.PsiField
-import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.base.util.projectScope
@@ -237,14 +237,14 @@ class IndexKeyUtilTest {
         .virtualFile
     )
 
-    val booleanType = myFixture.moveCaret("val foo|Z").parentOfType<KtProperty>()?.psiType!!
-    val byteType = myFixture.moveCaret("val foo|B").parentOfType<KtProperty>()?.psiType!!
-    val charType = myFixture.moveCaret("val foo|C").parentOfType<KtProperty>()?.psiType!!
-    val doubleType = myFixture.moveCaret("val foo|D").parentOfType<KtProperty>()?.psiType!!
-    val floatType = myFixture.moveCaret("val foo|F").parentOfType<KtProperty>()?.psiType!!
-    val intType = myFixture.moveCaret("val foo|I").parentOfType<KtProperty>()?.psiType!!
-    val longType = myFixture.moveCaret("val foo|J").parentOfType<KtProperty>()?.psiType!!
-    val shortType = myFixture.moveCaret("val foo|S").parentOfType<KtProperty>()?.psiType!!
+    val booleanType = myFixture.findParentElement<KtProperty>("val foo|Z").psiType!!
+    val byteType = myFixture.findParentElement<KtProperty>("val foo|B").psiType!!
+    val charType = myFixture.findParentElement<KtProperty>("val foo|C").psiType!!
+    val doubleType = myFixture.findParentElement<KtProperty>("val foo|D").psiType!!
+    val floatType = myFixture.findParentElement<KtProperty>("val foo|F").psiType!!
+    val intType = myFixture.findParentElement<KtProperty>("val foo|I").psiType!!
+    val longType = myFixture.findParentElement<KtProperty>("val foo|J").psiType!!
+    val shortType = myFixture.findParentElement<KtProperty>("val foo|S").psiType!!
 
     assertThat(getIndexKeys(booleanType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Boolean", "")
@@ -298,14 +298,14 @@ class IndexKeyUtilTest {
         .virtualFile
     )
 
-    val unboxedBooleanType = myFixture.moveCaret("unboxed|Z").parentOfType<PsiField>()?.type!!
-    val unboxedByteType = myFixture.moveCaret("unboxed|B").parentOfType<PsiField>()?.type!!
-    val unboxedCharType = myFixture.moveCaret("unboxed|C").parentOfType<PsiField>()?.type!!
-    val unboxedDoubleType = myFixture.moveCaret("unboxed|D").parentOfType<PsiField>()?.type!!
-    val unboxedFloatType = myFixture.moveCaret("unboxed|F").parentOfType<PsiField>()?.type!!
-    val unboxedIntType = myFixture.moveCaret("unboxed|I").parentOfType<PsiField>()?.type!!
-    val unboxedLongType = myFixture.moveCaret("unboxed|J").parentOfType<PsiField>()?.type!!
-    val unboxedShortType = myFixture.moveCaret("unboxed|S").parentOfType<PsiField>()?.type!!
+    val unboxedBooleanType = myFixture.findParentElement<PsiField>("unboxed|Z").type
+    val unboxedByteType = myFixture.findParentElement<PsiField>("unboxed|B").type
+    val unboxedCharType = myFixture.findParentElement<PsiField>("unboxed|C").type
+    val unboxedDoubleType = myFixture.findParentElement<PsiField>("unboxed|D").type
+    val unboxedFloatType = myFixture.findParentElement<PsiField>("unboxed|F").type
+    val unboxedIntType = myFixture.findParentElement<PsiField>("unboxed|I").type
+    val unboxedLongType = myFixture.findParentElement<PsiField>("unboxed|J").type
+    val unboxedShortType = myFixture.findParentElement<PsiField>("unboxed|S").type
 
     assertThat(
         getIndexKeys(unboxedBooleanType, myFixture.project, myFixture.project.projectScope())
@@ -361,14 +361,14 @@ class IndexKeyUtilTest {
         .virtualFile
     )
 
-    val boxedBooleanType = myFixture.moveCaret(" boxed|Z").parentOfType<PsiField>()?.type!!
-    val boxedByteType = myFixture.moveCaret(" boxed|B").parentOfType<PsiField>()?.type!!
-    val boxedCharType = myFixture.moveCaret(" boxed|C").parentOfType<PsiField>()?.type!!
-    val boxedDoubleType = myFixture.moveCaret(" boxed|D").parentOfType<PsiField>()?.type!!
-    val boxedFloatType = myFixture.moveCaret(" boxed|F").parentOfType<PsiField>()?.type!!
-    val boxedIntType = myFixture.moveCaret(" boxed|I").parentOfType<PsiField>()?.type!!
-    val boxedLongType = myFixture.moveCaret(" boxed|J").parentOfType<PsiField>()?.type!!
-    val boxedShortType = myFixture.moveCaret(" boxed|S").parentOfType<PsiField>()?.type!!
+    val boxedBooleanType = myFixture.findParentElement<PsiField>(" boxed|Z").type
+    val boxedByteType = myFixture.findParentElement<PsiField>(" boxed|B").type
+    val boxedCharType = myFixture.findParentElement<PsiField>(" boxed|C").type
+    val boxedDoubleType = myFixture.findParentElement<PsiField>(" boxed|D").type
+    val boxedFloatType = myFixture.findParentElement<PsiField>(" boxed|F").type
+    val boxedIntType = myFixture.findParentElement<PsiField>(" boxed|I").type
+    val boxedLongType = myFixture.findParentElement<PsiField>(" boxed|J").type
+    val boxedShortType = myFixture.findParentElement<PsiField>(" boxed|S").type
 
     assertThat(getIndexKeys(boxedBooleanType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Boolean", "")
@@ -415,7 +415,7 @@ class IndexKeyUtilTest {
         .virtualFile
     )
 
-    val javaStringType = myFixture.moveCaret("java|String").parentOfType<PsiField>()?.type!!
+    val javaStringType = myFixture.findParentElement<PsiField>("java|String").type
 
     myFixture.openFileInEditor(
       myFixture
@@ -431,8 +431,7 @@ class IndexKeyUtilTest {
         .virtualFile
     )
 
-    val kotlinStringType =
-      myFixture.moveCaret("kotlin|String").parentOfType<KtProperty>()?.psiType!!
+    val kotlinStringType = myFixture.findParentElement<KtProperty>("kotlin|String").psiType!!
 
     assertThat(getIndexKeys(javaStringType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("java.lang.String", "String", "")
@@ -461,7 +460,7 @@ class IndexKeyUtilTest {
         .virtualFile
     )
 
-    val psiType1 = myFixture.moveCaret("type|1").parentOfType<KtProperty>()?.psiType!!
+    val psiType1 = myFixture.findParentElement<KtProperty>("type|1").psiType!!
     assertThat(getIndexKeys(psiType1, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("com.example.SomeGenericType", "SomeGenericType", "")
       .inOrder()
@@ -486,7 +485,7 @@ class IndexKeyUtilTest {
         .virtualFile
     )
 
-    val psiType1 = myFixture.moveCaret("val|ue = new").parentOfType<PsiField>()?.type!!
+    val psiType1 = myFixture.findParentElement<PsiField>("val|ue = new").type
     assertThat(getIndexKeys(psiType1, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("com.example.SomeGenericType", "SomeGenericType", "")
       .inOrder()
@@ -517,7 +516,7 @@ class IndexKeyUtilTest {
         .virtualFile
     )
 
-    val psiType1 = myFixture.moveCaret("type|1").parentOfType<KtProperty>()?.psiType!!
+    val psiType1 = myFixture.findParentElement<KtProperty>("type|1").psiType!!
     val indexKeys = getIndexKeys(psiType1, myFixture.project, myFixture.project.projectScope())
 
     assertThat(indexKeys[0]).isEqualTo("com.example.SomeGenericType")
@@ -556,44 +555,43 @@ class IndexKeyUtilTest {
         .virtualFile
     )
 
-    val fooArrayType = myFixture.moveCaret("foo|Array").parentOfType<KtProperty>()?.psiType!!
+    val fooArrayType = myFixture.findParentElement<KtProperty>("foo|Array").psiType!!
     assertThat(getIndexKeys(fooArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Array", "Foo[]", "")
       .inOrder()
-    val stringArrayType = myFixture.moveCaret("string|Array").parentOfType<KtProperty>()?.psiType!!
+    val stringArrayType = myFixture.findParentElement<KtProperty>("string|Array").psiType!!
     assertThat(getIndexKeys(stringArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Array", "String[]", "")
       .inOrder()
-    val booleanArrayType =
-      myFixture.moveCaret("boolean|Array").parentOfType<KtProperty>()?.psiType!!
+    val booleanArrayType = myFixture.findParentElement<KtProperty>("boolean|Array").psiType!!
     assertThat(getIndexKeys(booleanArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("BooleanArray", "boolean[]", "")
       .inOrder()
-    val byteArrayType = myFixture.moveCaret("byte|Array").parentOfType<KtProperty>()?.psiType!!
+    val byteArrayType = myFixture.findParentElement<KtProperty>("byte|Array").psiType!!
     assertThat(getIndexKeys(byteArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("ByteArray", "byte[]", "")
       .inOrder()
-    val charArrayType = myFixture.moveCaret("char|Array").parentOfType<KtProperty>()?.psiType!!
+    val charArrayType = myFixture.findParentElement<KtProperty>("char|Array").psiType!!
     assertThat(getIndexKeys(charArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("CharArray", "char[]", "")
       .inOrder()
-    val doubleArrayType = myFixture.moveCaret("double|Array").parentOfType<KtProperty>()?.psiType!!
+    val doubleArrayType = myFixture.findParentElement<KtProperty>("double|Array").psiType!!
     assertThat(getIndexKeys(doubleArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("DoubleArray", "double[]", "")
       .inOrder()
-    val floatArrayType = myFixture.moveCaret("float|Array").parentOfType<KtProperty>()?.psiType!!
+    val floatArrayType = myFixture.findParentElement<KtProperty>("float|Array").psiType!!
     assertThat(getIndexKeys(floatArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("FloatArray", "float[]", "")
       .inOrder()
-    val intArrayType = myFixture.moveCaret("int|Array").parentOfType<KtProperty>()?.psiType!!
+    val intArrayType = myFixture.findParentElement<KtProperty>("int|Array").psiType!!
     assertThat(getIndexKeys(intArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("IntArray", "int[]", "")
       .inOrder()
-    val longArrayType = myFixture.moveCaret("long|Array").parentOfType<KtProperty>()?.psiType!!
+    val longArrayType = myFixture.findParentElement<KtProperty>("long|Array").psiType!!
     assertThat(getIndexKeys(longArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("LongArray", "long[]", "")
       .inOrder()
-    val shortArrayType = myFixture.moveCaret("short|Array").parentOfType<KtProperty>()?.psiType!!
+    val shortArrayType = myFixture.findParentElement<KtProperty>("short|Array").psiType!!
     assertThat(getIndexKeys(shortArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("ShortArray", "short[]", "")
       .inOrder()
@@ -630,47 +628,47 @@ class IndexKeyUtilTest {
         .virtualFile
     )
 
-    val fooArrayType = myFixture.moveCaret("foo|Array").parentOfType<PsiField>()?.type!!
+    val fooArrayType = myFixture.findParentElement<PsiField>("foo|Array").type!!
     assertThat(getIndexKeys(fooArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Array", "Foo[]", "")
       .inOrder()
-    val stringArrayType = myFixture.moveCaret("string|Array").parentOfType<PsiField>()?.type!!
+    val stringArrayType = myFixture.findParentElement<PsiField>("string|Array").type
     assertThat(getIndexKeys(stringArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Array", "String[]", "")
       .inOrder()
-    val booleanArrayType = myFixture.moveCaret("boolean|Array").parentOfType<PsiField>()?.type!!
+    val booleanArrayType = myFixture.findParentElement<PsiField>("boolean|Array").type
     assertThat(getIndexKeys(booleanArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("BooleanArray", "boolean[]", "")
       .inOrder()
-    val byteArrayType = myFixture.moveCaret("byte|Array").parentOfType<PsiField>()?.type!!
+    val byteArrayType = myFixture.findParentElement<PsiField>("byte|Array").type
     assertThat(getIndexKeys(byteArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("ByteArray", "byte[]", "")
       .inOrder()
-    val charArrayType = myFixture.moveCaret("char|Array").parentOfType<PsiField>()?.type!!
+    val charArrayType = myFixture.findParentElement<PsiField>("char|Array").type
     assertThat(getIndexKeys(charArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("CharArray", "char[]", "")
       .inOrder()
-    val doubleArrayType = myFixture.moveCaret("double|Array").parentOfType<PsiField>()?.type!!
+    val doubleArrayType = myFixture.findParentElement<PsiField>("double|Array").type
     assertThat(getIndexKeys(doubleArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("DoubleArray", "double[]", "")
       .inOrder()
-    val floatArrayType = myFixture.moveCaret("float|Array").parentOfType<PsiField>()?.type!!
+    val floatArrayType = myFixture.findParentElement<PsiField>("float|Array").type
     assertThat(getIndexKeys(floatArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("FloatArray", "float[]", "")
       .inOrder()
-    val intArrayType = myFixture.moveCaret("int|Array").parentOfType<PsiField>()?.type!!
+    val intArrayType = myFixture.findParentElement<PsiField>("int|Array").type
     assertThat(getIndexKeys(intArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("IntArray", "int[]", "")
       .inOrder()
-    val longArrayType = myFixture.moveCaret("long|Array").parentOfType<PsiField>()?.type!!
+    val longArrayType = myFixture.findParentElement<PsiField>("long|Array").type
     assertThat(getIndexKeys(longArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("LongArray", "long[]", "")
       .inOrder()
-    val shortArrayType = myFixture.moveCaret("short|Array").parentOfType<PsiField>()?.type!!
+    val shortArrayType = myFixture.findParentElement<PsiField>("short|Array").type
     assertThat(getIndexKeys(shortArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("ShortArray", "short[]", "")
       .inOrder()
-    val boxedArrayType = myFixture.moveCaret("boxed|Array").parentOfType<PsiField>()?.type!!
+    val boxedArrayType = myFixture.findParentElement<PsiField>("boxed|Array").type
     assertThat(getIndexKeys(boxedArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Array", "Integer[]", "")
       .inOrder()
@@ -697,11 +695,11 @@ class IndexKeyUtilTest {
         .virtualFile
     )
 
-    val fooArrayType = myFixture.moveCaret("foo|Array").parentOfType<KtProperty>()?.psiType!!
+    val fooArrayType = myFixture.findParentElement<KtProperty>("foo|Array").psiType!!
     assertThat(getIndexKeys(fooArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Array", "SomeGenericType[]", "")
       .inOrder()
-    val stringArrayType = myFixture.moveCaret("string|Array").parentOfType<KtProperty>()?.psiType!!
+    val stringArrayType = myFixture.findParentElement<KtProperty>("string|Array").psiType!!
     assertThat(getIndexKeys(stringArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Array", "SomeGenericType[]", "")
       .inOrder()
@@ -729,11 +727,11 @@ class IndexKeyUtilTest {
         .virtualFile
     )
 
-    val fooArrayType = myFixture.moveCaret("foo|Array").parentOfType<PsiField>()?.type!!
+    val fooArrayType = myFixture.findParentElement<PsiField>("foo|Array").type
     assertThat(getIndexKeys(fooArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Array", "SomeGenericType[]", "")
       .inOrder()
-    val stringArrayType = myFixture.moveCaret("string|Array").parentOfType<PsiField>()?.type!!
+    val stringArrayType = myFixture.findParentElement<PsiField>("string|Array").type
     assertThat(getIndexKeys(stringArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Array", "SomeGenericType[]", "")
       .inOrder()
@@ -761,11 +759,11 @@ class IndexKeyUtilTest {
         .virtualFile
     )
 
-    val intType = myFixture.moveCaret("int|Property").parentOfType<KtProperty>()?.psiType!!
+    val intType = myFixture.findParentElement<KtProperty>("int|Property").psiType!!
     assertThat(getIndexKeys(intType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Int", "Integer", "MyInt", "MyInteger", "")
       .inOrder()
-    val charType = myFixture.moveCaret("char|Property").parentOfType<KtProperty>()?.psiType!!
+    val charType = myFixture.findParentElement<KtProperty>("char|Property").psiType!!
     assertThat(getIndexKeys(charType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Char", "Character", "MyChar", "")
       .inOrder()
@@ -795,16 +793,14 @@ class IndexKeyUtilTest {
         .virtualFile
     )
 
-    val intArrayType =
-      myFixture.moveCaret("intArray|Property").parentOfType<KtProperty>()?.psiType!!
+    val intArrayType = myFixture.findParentElement<KtProperty>("intArray|Property").psiType!!
     assertThat(getIndexKeys(intArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("IntArray", "int[]", "MyIntArray", "")
     val integerArrayType =
-      myFixture.moveCaret("integerArray|Property").parentOfType<KtProperty>()?.psiType!!
+      myFixture.findParentElement<KtProperty>("integerArray|Property").psiType!!
     assertThat(getIndexKeys(integerArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Array", "Integer[]", "MyIntegerArray", "MyFooArray", "")
-    val charArrayType =
-      myFixture.moveCaret("charArray|Property").parentOfType<KtProperty>()?.psiType!!
+    val charArrayType = myFixture.findParentElement<KtProperty>("charArray|Property").psiType!!
     assertThat(getIndexKeys(charArrayType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Array", "Foo[]", "MyFooArray", "MyIntegerArray", "")
   }
@@ -855,7 +851,7 @@ class IndexKeyUtilTest {
         .virtualFile
     )
 
-    val fooIntType = myFixture.moveCaret("fooInt|Property").parentOfType<KtProperty>()?.psiType!!
+    val fooIntType = myFixture.findParentElement<KtProperty>("fooInt|Property").psiType!!
     val fooIntIndexKeys =
       getIndexKeys(fooIntType, myFixture.project, myFixture.project.projectScope())
     assertThat(fooIntIndexKeys)
@@ -868,12 +864,11 @@ class IndexKeyUtilTest {
         "OtherFooBar",
         ""
       )
-    val fooBarType = myFixture.moveCaret("fooBar|Property").parentOfType<KtProperty>()?.psiType!!
+    val fooBarType = myFixture.findParentElement<KtProperty>("fooBar|Property").psiType!!
     assertThat(getIndexKeys(fooBarType, myFixture.project, myFixture.project.projectScope()))
       .containsExactlyElementsIn(fooIntIndexKeys)
 
-    val otherFooIntType =
-      myFixture.moveCaret("otherFooInt|Property").parentOfType<KtProperty>()?.psiType!!
+    val otherFooIntType = myFixture.findParentElement<KtProperty>("otherFooInt|Property").psiType!!
     val otherFooIntIndexKeys =
       getIndexKeys(otherFooIntType, myFixture.project, myFixture.project.projectScope())
     assertThat(otherFooIntIndexKeys)
@@ -886,21 +881,17 @@ class IndexKeyUtilTest {
         "OtherFooBar",
         ""
       )
-    val otherFooBarType =
-      myFixture.moveCaret("otherFooBar|Property").parentOfType<KtProperty>()?.psiType!!
+    val otherFooBarType = myFixture.findParentElement<KtProperty>("otherFooBar|Property").psiType!!
     assertThat(getIndexKeys(otherFooBarType, myFixture.project, myFixture.project.projectScope()))
       .containsExactlyElementsIn(otherFooIntIndexKeys)
 
-    val arrayIntType =
-      myFixture.moveCaret("arrayInt|Property").parentOfType<KtProperty>()?.psiType!!
+    val arrayIntType = myFixture.findParentElement<KtProperty>("arrayInt|Property").psiType!!
     assertThat(getIndexKeys(arrayIntType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("IntArray", "int[]", "MyArrayInt", "")
-    val arrayBarType =
-      myFixture.moveCaret("arrayBar|Property").parentOfType<KtProperty>()?.psiType!!
+    val arrayBarType = myFixture.findParentElement<KtProperty>("arrayBar|Property").psiType!!
     assertThat(getIndexKeys(arrayBarType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Array", "Bar[]", "MyArrayBar", "MyArrayFooBar", "")
-    val arrayFooBarType =
-      myFixture.moveCaret("arrayFooBar|Property").parentOfType<KtProperty>()?.psiType!!
+    val arrayFooBarType = myFixture.findParentElement<KtProperty>("arrayFooBar|Property").psiType!!
     assertThat(getIndexKeys(arrayFooBarType, myFixture.project, myFixture.project.projectScope()))
       .containsExactly("Array", "Foo[]", "MyArrayBar", "MyArrayFooBar", "")
   }

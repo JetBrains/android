@@ -17,7 +17,6 @@ package com.android.tools.idea.dagger
 
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.findParentElement
-import com.android.tools.idea.testing.moveCaret
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.TruthJUnit.assume
 import com.intellij.ide.highlighter.JavaFileType
@@ -28,7 +27,6 @@ import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiParameter
-import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.testFramework.builders.JavaModuleFixtureBuilder
 import com.intellij.testFramework.fixtures.IdeaProjectTestFixture
@@ -93,7 +91,7 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    return getDaggerProvidersFor(myFixture.moveCaret("injectedF|ield").parentOfType<KtProperty>()!!)
+    return getDaggerProvidersFor(myFixture.findParentElement<KtProperty>("injectedF|ield"))
       as Collection<PsiNamedElement>
   }
 
@@ -115,7 +113,7 @@ abstract class DaggerUtilTest : DaggerTestCase() {
       """
         .trimIndent()
     )
-    return getDaggerProvidersFor(myFixture.moveCaret("injected|Field").parentOfType<PsiField>()!!)
+    return getDaggerProvidersFor(myFixture.findParentElement<PsiField>("injected|Field"))
       as Collection<PsiNamedElement>
   }
 
@@ -134,9 +132,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    assertThat(myFixture.moveCaret("injected|String").parentOfType<PsiField>().isDaggerConsumer)
-      .isTrue()
-    assertThat(myFixture.moveCaret("notInjected|String").parentOfType<PsiField>().isDaggerConsumer)
+    assertThat(myFixture.findParentElement<PsiField>("injected|String").isDaggerConsumer).isTrue()
+    assertThat(myFixture.findParentElement<PsiField>("notInjected|String").isDaggerConsumer)
       .isFalse()
   }
 
@@ -155,11 +152,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    assertThat(myFixture.moveCaret("injected|String").parentOfType<KtProperty>().isDaggerConsumer)
-      .isTrue()
-    assertThat(
-        myFixture.moveCaret("notInjected|String").parentOfType<KtProperty>().isDaggerConsumer
-      )
+    assertThat(myFixture.findParentElement<KtProperty>("injected|String").isDaggerConsumer).isTrue()
+    assertThat(myFixture.findParentElement<KtProperty>("notInjected|String").isDaggerConsumer)
       .isFalse()
   }
 
@@ -178,10 +172,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    assertThat(myFixture.moveCaret("consum|er").parentOfType<PsiParameter>().isDaggerConsumer)
-      .isTrue()
-    assertThat(myFixture.moveCaret("notConsum|er").parentOfType<PsiParameter>().isDaggerConsumer)
-      .isFalse()
+    assertThat(myFixture.findParentElement<PsiParameter>("consum|er").isDaggerConsumer).isTrue()
+    assertThat(myFixture.findParentElement<PsiParameter>("notConsum|er").isDaggerConsumer).isFalse()
 
     myFixture.configureByText(
       // language=JAVA
@@ -197,10 +189,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    assertThat(myFixture.moveCaret("consum|er").parentOfType<PsiParameter>().isDaggerConsumer)
-      .isTrue()
-    assertThat(myFixture.moveCaret("notConsum|er").parentOfType<PsiParameter>().isDaggerConsumer)
-      .isFalse()
+    assertThat(myFixture.findParentElement<PsiParameter>("consum|er").isDaggerConsumer).isTrue()
+    assertThat(myFixture.findParentElement<PsiParameter>("notConsum|er").isDaggerConsumer).isFalse()
 
     myFixture.configureByText(
       // language=kotlin
@@ -213,8 +203,7 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    assertThat(myFixture.moveCaret("consum|er").parentOfType<KtParameter>().isDaggerConsumer)
-      .isTrue()
+    assertThat(myFixture.findParentElement<KtParameter>("consum|er").isDaggerConsumer).isTrue()
 
     myFixture.configureByText(
       // language=JAVA
@@ -230,10 +219,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    assertThat(myFixture.moveCaret("consum|er").parentOfType<PsiParameter>().isDaggerConsumer)
-      .isTrue()
-    assertThat(myFixture.moveCaret("notConsum|er").parentOfType<PsiParameter>().isDaggerConsumer)
-      .isFalse()
+    assertThat(myFixture.findParentElement<PsiParameter>("consum|er").isDaggerConsumer).isTrue()
+    assertThat(myFixture.findParentElement<PsiParameter>("notConsum|er").isDaggerConsumer).isFalse()
   }
 
   fun testIsConsumer_injectedConstructorParam_kotlin() {
@@ -250,10 +237,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    assertThat(myFixture.moveCaret("consum|er").parentOfType<KtParameter>().isDaggerConsumer)
-      .isTrue()
-    assertThat(myFixture.moveCaret("notConsum|er").parentOfType<KtParameter>().isDaggerConsumer)
-      .isFalse()
+    assertThat(myFixture.findParentElement<KtParameter>("consum|er").isDaggerConsumer).isTrue()
+    assertThat(myFixture.findParentElement<KtParameter>("notConsum|er").isDaggerConsumer).isFalse()
   }
 
   fun testIsConsumer_isAssistedInjectedConstructor() {
@@ -281,15 +266,10 @@ abstract class DaggerUtilTest : DaggerTestCase() {
     """
         .trimIndent()
     )
-    assertThat(
-        myFixture.moveCaret("String reposi|tory,").parentOfType<PsiParameter>().isDaggerConsumer
-      )
+    assertThat(myFixture.findParentElement<PsiParameter>("String reposi|tory,").isDaggerConsumer)
       .isTrue()
     assertThat(
-        myFixture
-          .moveCaret("public FooJava(String i|d) {")
-          .parentOfType<PsiParameter>()
-          .isDaggerConsumer
+        myFixture.findParentElement<PsiParameter>("public FooJava(String i|d) {").isDaggerConsumer
       )
       .isFalse()
   }
@@ -314,21 +294,17 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    assertThat(
-        myFixture.moveCaret("repos|itory: String").parentOfType<KtParameter>().isDaggerConsumer
-      )
+    assertThat(myFixture.findParentElement<KtParameter>("repos|itory: String").isDaggerConsumer)
       .isTrue()
     assertThat(
         myFixture
-          .moveCaret("constructor(i|d: String, nothing: String)")
-          .parentOfType<KtParameter>()
+          .findParentElement<KtParameter>("constructor(i|d: String, nothing: String)")
           .isDaggerConsumer
       )
       .isFalse()
     assertThat(
         myFixture
-          .moveCaret("constructor(id: String, noth|ing: String)")
-          .parentOfType<KtParameter>()
+          .findParentElement<KtParameter>("constructor(id: String, noth|ing: String)")
           .isDaggerConsumer
       )
       .isFalse()
@@ -351,9 +327,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    assertThat(myFixture.moveCaret("provide|r").parentOfType<PsiMethod>().isDaggerProvider).isTrue()
-    assertThat(myFixture.moveCaret("notProv|ider").parentOfType<PsiMethod>().isDaggerProvider)
-      .isFalse()
+    assertThat(myFixture.findParentElement<PsiMethod>("provide|r").isDaggerProvider).isTrue()
+    assertThat(myFixture.findParentElement<PsiMethod>("notProv|ider").isDaggerProvider).isFalse()
   }
 
   fun testIsProvider_kotlin_providesMethod() {
@@ -373,10 +348,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    assertThat(myFixture.moveCaret("provide|r").parentOfType<KtFunction>().isDaggerProvider)
-      .isTrue()
-    assertThat(myFixture.moveCaret("notProv|ider").parentOfType<KtFunction>().isDaggerProvider)
-      .isFalse()
+    assertThat(myFixture.findParentElement<KtFunction>("provide|r").isDaggerProvider).isTrue()
+    assertThat(myFixture.findParentElement<KtFunction>("notProv|ider").isDaggerProvider).isFalse()
   }
 
   fun testIsProvider_injectedConstructor() {
@@ -394,11 +367,9 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    assertThat(myFixture.moveCaret("public MyCl|ass()").parentOfType<PsiMethod>().isDaggerProvider)
+    assertThat(myFixture.findParentElement<PsiMethod>("public MyCl|ass()").isDaggerProvider)
       .isTrue()
-    assertThat(
-        myFixture.moveCaret("public MyCl|ass(String s)").parentOfType<PsiMethod>().isDaggerProvider
-      )
+    assertThat(myFixture.findParentElement<PsiMethod>("public MyCl|ass(String s)").isDaggerProvider)
       .isFalse()
   }
 
@@ -414,8 +385,7 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    assertThat(myFixture.moveCaret("construc|tor").parentOfType<KtFunction>().isDaggerProvider)
-      .isTrue()
+    assertThat(myFixture.findParentElement<KtFunction>("construc|tor").isDaggerProvider).isTrue()
 
     myFixture.configureByText(
       // language=kotlin
@@ -430,8 +400,7 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    assertThat(myFixture.moveCaret("construc|tor").parentOfType<KtFunction>().isDaggerProvider)
-      .isTrue()
+    assertThat(myFixture.findParentElement<KtFunction>("construc|tor").isDaggerProvider).isTrue()
   }
 
   fun testIsProvider_bindsMethod() {
@@ -449,10 +418,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    assertThat(myFixture.moveCaret("bindsMet|hod").parentOfType<PsiMethod>().isDaggerProvider)
-      .isTrue()
-    assertThat(myFixture.moveCaret("notBindsMet|hod").parentOfType<PsiMethod>().isDaggerProvider)
-      .isFalse()
+    assertThat(myFixture.findParentElement<PsiMethod>("bindsMet|hod").isDaggerProvider).isTrue()
+    assertThat(myFixture.findParentElement<PsiMethod>("notBindsMet|hod").isDaggerProvider).isFalse()
   }
 
   fun testIsProvider_kotlin_bindsMethod() {
@@ -470,9 +437,8 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    assertThat(myFixture.moveCaret("bindsMet|hod").parentOfType<KtFunction>().isDaggerProvider)
-      .isTrue()
-    assertThat(myFixture.moveCaret("notBindsMet|hod").parentOfType<PsiMethod>().isDaggerProvider)
+    assertThat(myFixture.findParentElement<KtFunction>("bindsMet|hod").isDaggerProvider).isTrue()
+    assertThat(myFixture.findParentElement<KtFunction>("notBindsMet|hod").isDaggerProvider)
       .isFalse()
   }
 
@@ -492,8 +458,7 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    assertThat(myFixture.moveCaret("FooFac|toryJava").parentOfType<PsiClass>().isDaggerProvider)
-      .isTrue()
+    assertThat(myFixture.findParentElement<PsiClass>("FooFac|toryJava").isDaggerProvider).isTrue()
 
     myFixture.configureByText(
       // language=JAVA
@@ -506,7 +471,7 @@ abstract class DaggerUtilTest : DaggerTestCase() {
       """
         .trimIndent()
     )
-    assertThat(myFixture.moveCaret("NotFooFactor|yJava").parentOfType<PsiClass>().isDaggerProvider)
+    assertThat(myFixture.findParentElement<PsiClass>("NotFooFactor|yJava").isDaggerProvider)
       .isFalse()
   }
 
@@ -535,17 +500,11 @@ abstract class DaggerUtilTest : DaggerTestCase() {
     )
 
     assertThat(
-        myFixture
-          .moveCaret("interface Foo|Factory {")
-          .parentOfType<KtClassOrObject>()
-          .isDaggerProvider
+        myFixture.findParentElement<KtClassOrObject>("interface Foo|Factory {").isDaggerProvider
       )
       .isTrue()
     assertThat(
-        myFixture
-          .moveCaret("interface Not|Factory {")
-          .parentOfType<KtClassOrObject>()
-          .isDaggerProvider
+        myFixture.findParentElement<KtClassOrObject>("interface Not|Factory {").isDaggerProvider
       )
       .isFalse()
   }
@@ -567,17 +526,11 @@ abstract class DaggerUtilTest : DaggerTestCase() {
     )
 
     assertThat(
-        myFixture
-          .moveCaret("Foo cre|ate(String id);")
-          .parentOfType<PsiMethod>()
-          .isAssistedFactoryMethod
+        myFixture.findParentElement<PsiMethod>("Foo cre|ate(String id);").isAssistedFactoryMethod
       )
       .isTrue()
     assertThat(
-        myFixture
-          .moveCaret("void cre|ateNothing();")
-          .parentOfType<PsiMethod>()
-          .isAssistedFactoryMethod
+        myFixture.findParentElement<PsiMethod>("void cre|ateNothing();").isAssistedFactoryMethod
       )
       .isFalse()
 
@@ -592,10 +545,7 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
     assertThat(
-        myFixture
-          .moveCaret("Foo crea|te(String id);")
-          .parentOfType<PsiMethod>()
-          .isAssistedFactoryMethod
+        myFixture.findParentElement<PsiMethod>("Foo crea|te(String id);").isAssistedFactoryMethod
       )
       .isFalse()
   }
@@ -626,20 +576,18 @@ abstract class DaggerUtilTest : DaggerTestCase() {
 
     assertThat(
         myFixture
-          .moveCaret("fun cre|ate(id: String): Foo")
-          .parentOfType<KtFunction>()
+          .findParentElement<KtFunction>("fun cre|ate(id: String): Foo")
           .isAssistedFactoryMethod
       )
       .isTrue()
     assertThat(
         myFixture
-          .moveCaret("fun creat|eNothing(id: String)")
-          .parentOfType<KtFunction>()
+          .findParentElement<KtFunction>("fun creat|eNothing(id: String)")
           .isAssistedFactoryMethod
       )
       .isFalse()
     assertThat(
-        myFixture.moveCaret("fun cre|ate(): Foo").parentOfType<KtFunction>().isAssistedFactoryMethod
+        myFixture.findParentElement<KtFunction>("fun cre|ate(): Foo").isAssistedFactoryMethod
       )
       .isFalse()
   }
@@ -669,16 +617,12 @@ abstract class DaggerUtilTest : DaggerTestCase() {
 
     assertThat(
         myFixture
-          .moveCaret("@AssistedInject public FooJ|ava(@Assisted String id) {")
-          .parentOfType<PsiMethod>()
+          .findParentElement<PsiMethod>("@AssistedInject public FooJ|ava(@Assisted String id) {")
           .isAssistedInjectedConstructor
       )
       .isTrue()
     assertThat(
-        myFixture
-          .moveCaret("public FooJ|ava() {")
-          .parentOfType<PsiMethod>()
-          .isAssistedInjectedConstructor
+        myFixture.findParentElement<PsiMethod>("public FooJ|ava() {").isAssistedInjectedConstructor
       )
       .isFalse()
   }
@@ -704,15 +648,15 @@ abstract class DaggerUtilTest : DaggerTestCase() {
 
     assertThat(
         myFixture
-          .moveCaret("class Foo @AssistedInject construc|tor(")
-          .parentOfType<KtConstructor<*>>()
+          .findParentElement<KtConstructor<*>>("class Foo @AssistedInject construc|tor(")
           .isAssistedInjectedConstructor
       )
       .isTrue()
     assertThat(
         myFixture
-          .moveCaret("constr|uctor(id: String, nothing: String) : this(id) {")
-          .parentOfType<KtConstructor<*>>()
+          .findParentElement<KtConstructor<*>>(
+            "constr|uctor(id: String, nothing: String) : this(id) {"
+          )
           .isAssistedInjectedConstructor
       )
       .isFalse()
@@ -748,9 +692,9 @@ abstract class DaggerUtilTest : DaggerTestCase() {
     )
     val methodList =
       getDaggerAssistedFactoryMethodsForAssistedInjectedConstructor(
-          myFixture
-            .moveCaret("@AssistedInject public Foo|Java(@Assisted String id)")
-            .parentOfType<PsiMethod>()!!
+          myFixture.findParentElement<PsiMethod>(
+            "@AssistedInject public Foo|Java(@Assisted String id)"
+          )
         )
         .toList()
 
@@ -792,9 +736,7 @@ abstract class DaggerUtilTest : DaggerTestCase() {
     )
     val methodList =
       getDaggerAssistedFactoryMethodsForAssistedInjectedConstructor(
-          myFixture
-            .moveCaret("class Foo @AssistedInject cons|tructor")
-            .parentOfType<KtConstructor<*>>()!!
+          myFixture.findParentElement<KtConstructor<*>>("class Foo @AssistedInject cons|tructor")
         )
         .toList()
 
@@ -850,8 +792,7 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    val provider =
-      myFixture.moveCaret("provid|er").parentOfType<KtFunction>()?.toLightElements()?.first()
+    val provider = myFixture.findParentElement<KtFunction>("provid|er")?.toLightElements()?.first()
 
     assume().that(provider).isNotNull()
     // We will compare with string representation, because ide returns different instances of light
@@ -918,7 +859,7 @@ abstract class DaggerUtilTest : DaggerTestCase() {
     )
 
     val provider =
-      myFixture.moveCaret("bindsMeth|od").parentOfType<KtFunction>()?.toLightElements()?.first()
+      myFixture.findParentElement<KtFunction>("bindsMeth|od")?.toLightElements()?.first()
 
     assume().that(provider).isNotNull()
     // We will compare with string representation, because ide returns different instances of light
@@ -976,7 +917,7 @@ abstract class DaggerUtilTest : DaggerTestCase() {
     )
 
     val provider =
-      myFixture.moveCaret("construct|or()").parentOfType<KtFunction>()?.toLightElements()?.first()
+      myFixture.findParentElement<KtFunction>("construct|or()")?.toLightElements()?.first()
 
     assume().that(provider).isNotNull()
     // We will compare with string representation, because ide returns different instances of light
@@ -1025,8 +966,7 @@ abstract class DaggerUtilTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    val providers =
-      getDaggerProvidersFor(myFixture.moveCaret("consum|er").parentOfType<KtParameter>()!!)
+    val providers = getDaggerProvidersFor(myFixture.findParentElement<KtParameter>("consum|er"))
     assertThat(providers).hasSize(1)
     assertThat(providers.first()).isEqualTo(provider)
   }
@@ -1365,7 +1305,7 @@ abstract class DaggerUtilTest : DaggerTestCase() {
 
     myFixture.configureFromExistingVirtualFile(moduleFile)
     var components =
-      getUsagesForDaggerModule(myFixture.moveCaret("class MyMod|ule {}").parentOfType()!!)
+      getUsagesForDaggerModule(myFixture.findParentElement<PsiClass>("class MyMod|ule {}"))
     assertThat(components).hasSize(4)
     assertThat(components.map { it.name })
       .containsAllOf("MyComponentKt", "MyComponent", "MySubcomponentKt", "MyModule2")
@@ -1373,7 +1313,7 @@ abstract class DaggerUtilTest : DaggerTestCase() {
     myFixture.configureFromExistingVirtualFile(kotlinModuleFile)
     components =
       getUsagesForDaggerModule(
-        myFixture.moveCaret("class MyMod|uleKt").parentOfType<KtClass>()!!.toLightClass()!!
+        myFixture.findParentElement<KtClass>("class MyMod|uleKt").toLightClass()!!
       )
     assertThat(components).hasSize(4)
     assertThat(components.map { it.name })
@@ -1432,16 +1372,14 @@ abstract class DaggerUtilTest : DaggerTestCase() {
 
     myFixture.configureFromExistingVirtualFile(componentFile)
     var components =
-      getDependantComponentsForComponent(
-        myFixture.moveCaret("interface MyCompon|ent {}").parentOfType()!!
-      )
+      getDependantComponentsForComponent(myFixture.findParentElement("interface MyCompon|ent {}"))
     assertThat(components).hasSize(1)
     assertThat(components.map { it.name }).contains("MyDependantComponent")
 
     myFixture.configureFromExistingVirtualFile(kotlinComponentFile)
     components =
       getDependantComponentsForComponent(
-        myFixture.moveCaret("interface MyCompon|entKt").parentOfType<KtClass>()!!.toLightClass()!!
+        myFixture.findParentElement<KtClass>("interface MyCompon|entKt").toLightClass()!!
       )
     assertThat(components).hasSize(1)
     assertThat(components.map { it.name }).contains("MyDependantComponent")
@@ -1873,21 +1811,18 @@ class DaggerCrossModuleTest : UsefulTestCase() {
 
     myFixture.configureFromExistingVirtualFile(fileInModuleA)
 
-    var providers =
-      getDaggerProvidersFor(myFixture.moveCaret("consum|er").parentOfType<PsiParameter>()!!)
+    var providers = getDaggerProvidersFor(myFixture.findParentElement<PsiParameter>("consum|er"))
 
     assertThat(providers).hasSize(0)
 
     ModuleRootModificationUtil.addDependency(moduleDependsOnModuleA, moduleA)
 
-    providers =
-      getDaggerProvidersFor(myFixture.moveCaret("consum|er").parentOfType<PsiParameter>()!!)
+    providers = getDaggerProvidersFor(myFixture.findParentElement<PsiParameter>("consum|er"))
     assertThat(providers).hasSize(1)
     assertThat((providers.single() as PsiNamedElement).name).isEqualTo("stringProvider")
 
     myFixture.configureFromExistingVirtualFile(fileInModuleThatDependsOnModuleA)
-    val consumers =
-      getDaggerConsumersFor(myFixture.moveCaret("stringProvid|er").parentOfType<PsiMethod>()!!)
+    val consumers = getDaggerConsumersFor(myFixture.findParentElement<PsiMethod>("stringProvid|er"))
     assertThat(consumers).hasSize(1)
     assertThat((consumers.single() as PsiNamedElement).name).isEqualTo("consumer")
   }

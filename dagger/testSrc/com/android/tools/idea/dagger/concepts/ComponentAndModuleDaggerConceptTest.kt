@@ -21,7 +21,6 @@ import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexClassWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexPsiWrapper
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findParentElement
-import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
@@ -29,7 +28,6 @@ import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiJavaFile
-import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -649,31 +647,31 @@ class ComponentAndModuleDaggerConceptTest {
 
     val componentInterfaceDaggerElement =
       ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
-        myFixture.moveCaret("CoffeeShop|ComponentInterface").parentOfType<KtClassOrObject>()!!
+        myFixture.findParentElement<KtClassOrObject>("CoffeeShop|ComponentInterface")
       )
     assertThat(componentInterfaceDaggerElement).isInstanceOf(ComponentDaggerElement::class.java)
 
     val componentClassDaggerElement =
       ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
-        myFixture.moveCaret("CoffeeShop|ComponentClass").parentOfType<KtClassOrObject>()!!
+        myFixture.findParentElement<KtClassOrObject>("CoffeeShop|ComponentClass")
       )
     assertThat(componentClassDaggerElement).isInstanceOf(ComponentDaggerElement::class.java)
 
     val componentObjectDaggerElement =
       ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
-        myFixture.moveCaret("CoffeeShop|ComponentObject").parentOfType<KtClassOrObject>()!!
+        myFixture.findParentElement<KtClassOrObject>("CoffeeShop|ComponentObject")
       )
     assertThat(componentObjectDaggerElement).isInstanceOf(ComponentDaggerElement::class.java)
 
     val subcomponentDaggerElement =
       ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
-        myFixture.moveCaret("CoffeeShop|Subcomponent").parentOfType<KtClass>()!!
+        myFixture.findParentElement<KtClass>("CoffeeShop|Subcomponent")
       )
     assertThat(subcomponentDaggerElement).isInstanceOf(SubcomponentDaggerElement::class.java)
 
     val moduleDaggerElement =
       ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
-        myFixture.moveCaret("CoffeeShop|Module").parentOfType<KtClass>()!!
+        myFixture.findParentElement<KtClass>("CoffeeShop|Module")
       )
     assertThat(moduleDaggerElement).isInstanceOf(ModuleDaggerElement::class.java)
   }
@@ -706,19 +704,19 @@ class ComponentAndModuleDaggerConceptTest {
 
     val componentDaggerElement =
       ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
-        myFixture.moveCaret("CoffeeShop|Component").parentOfType<PsiClass>()!!
+        myFixture.findParentElement<PsiClass>("CoffeeShop|Component")
       )
     assertThat(componentDaggerElement).isInstanceOf(ComponentDaggerElement::class.java)
 
     val subcomponentDaggerElement =
       ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
-        myFixture.moveCaret("CoffeeShop|Subcomponent").parentOfType<PsiClass>()!!
+        myFixture.findParentElement<PsiClass>("CoffeeShop|Subcomponent")
       )
     assertThat(subcomponentDaggerElement).isInstanceOf(SubcomponentDaggerElement::class.java)
 
     val moduleDaggerElement =
       ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
-        myFixture.moveCaret("CoffeeShop|Module").parentOfType<PsiClass>()!!
+        myFixture.findParentElement<PsiClass>("CoffeeShop|Module")
       )
     assertThat(moduleDaggerElement).isInstanceOf(ModuleDaggerElement::class.java)
   }
@@ -901,24 +899,16 @@ class ComponentAndModuleDaggerConceptTest {
     )
 
     val topLevelComponentDaggerElement =
-      ComponentDaggerElement(
-        myFixture.moveCaret("interface TopLevel|Component").parentOfType<KtClass>(withSelf = true)!!
-      )
+      ComponentDaggerElement(myFixture.findParentElement<KtClass>("interface TopLevel|Component"))
 
     val myModuleDaggerElement =
-      ModuleDaggerElement(
-        myFixture.moveCaret("interface My|Module").parentOfType<KtClass>(withSelf = true)!!
-      )
+      ModuleDaggerElement(myFixture.findParentElement<KtClass>("interface My|Module"))
 
     val mySubcomponentDaggerElement =
-      SubcomponentDaggerElement(
-        myFixture.moveCaret("interface My|Subcomponent").parentOfType<KtClass>(withSelf = true)!!
-      )
+      SubcomponentDaggerElement(myFixture.findParentElement<KtClass>("interface My|Subcomponent"))
 
     val includedComponentDaggerElement =
-      ComponentDaggerElement(
-        myFixture.moveCaret("interface Included|Component").parentOfType<KtClass>(withSelf = true)!!
-      )
+      ComponentDaggerElement(myFixture.findParentElement<KtClass>("interface Included|Component"))
 
     assertThat(topLevelComponentDaggerElement.getRelatedDaggerElements())
       .containsExactly(
@@ -973,28 +963,20 @@ class ComponentAndModuleDaggerConceptTest {
 
     val topLevelComponentDaggerElement =
       ComponentDaggerElement(
-        myFixture
-          .moveCaret("class TopLevel|Component")
-          .parentOfType<KtClassOrObject>(withSelf = true)!!
+        myFixture.findParentElement<KtClassOrObject>("class TopLevel|Component")
       )
 
     val myModuleDaggerElement =
-      ModuleDaggerElement(
-        myFixture.moveCaret("class My|Module").parentOfType<KtClassOrObject>(withSelf = true)!!
-      )
+      ModuleDaggerElement(myFixture.findParentElement<KtClassOrObject>("class My|Module"))
 
     val mySubcomponentDaggerElement =
       SubcomponentDaggerElement(
-        myFixture
-          .moveCaret("class My|Subcomponent")
-          .parentOfType<KtClassOrObject>(withSelf = true)!!
+        myFixture.findParentElement<KtClassOrObject>("class My|Subcomponent")
       )
 
     val includedComponentDaggerElement =
       ComponentDaggerElement(
-        myFixture
-          .moveCaret("class Included|Component")
-          .parentOfType<KtClassOrObject>(withSelf = true)!!
+        myFixture.findParentElement<KtClassOrObject>("class Included|Component")
       )
 
     assertThat(topLevelComponentDaggerElement.getRelatedDaggerElements())
@@ -1050,28 +1032,20 @@ class ComponentAndModuleDaggerConceptTest {
 
     val topLevelComponentDaggerElement =
       ComponentDaggerElement(
-        myFixture
-          .moveCaret("object TopLevel|Component")
-          .parentOfType<KtClassOrObject>(withSelf = true)!!
+        myFixture.findParentElement<KtClassOrObject>("object TopLevel|Component")
       )
 
     val myModuleDaggerElement =
-      ModuleDaggerElement(
-        myFixture.moveCaret("object My|Module").parentOfType<KtClassOrObject>(withSelf = true)!!
-      )
+      ModuleDaggerElement(myFixture.findParentElement<KtClassOrObject>("object My|Module"))
 
     val mySubcomponentDaggerElement =
       SubcomponentDaggerElement(
-        myFixture
-          .moveCaret("object My|Subcomponent")
-          .parentOfType<KtClassOrObject>(withSelf = true)!!
+        myFixture.findParentElement<KtClassOrObject>("object My|Subcomponent")
       )
 
     val includedComponentDaggerElement =
       ComponentDaggerElement(
-        myFixture
-          .moveCaret("object Included|Component")
-          .parentOfType<KtClassOrObject>(withSelf = true)!!
+        myFixture.findParentElement<KtClassOrObject>("object Included|Component")
       )
 
     assertThat(topLevelComponentDaggerElement.getRelatedDaggerElements())
@@ -1127,26 +1101,16 @@ class ComponentAndModuleDaggerConceptTest {
     )
 
     val myComponentDaggerElement =
-      ComponentDaggerElement(
-        myFixture.moveCaret("interface My|Component").parentOfType<KtClass>(withSelf = true)!!
-      )
+      ComponentDaggerElement(myFixture.findParentElement<KtClass>("interface My|Component"))
 
     val mySubcomponentDaggerElement =
-      SubcomponentDaggerElement(
-        myFixture.moveCaret("interface My|Subcomponent").parentOfType<KtClass>(withSelf = true)!!
-      )
+      SubcomponentDaggerElement(myFixture.findParentElement<KtClass>("interface My|Subcomponent"))
 
     val myContainingModuleDaggerElement =
-      ModuleDaggerElement(
-        myFixture
-          .moveCaret("interface My|ContainingModule")
-          .parentOfType<KtClass>(withSelf = true)!!
-      )
+      ModuleDaggerElement(myFixture.findParentElement<KtClass>("interface My|ContainingModule"))
 
     val myModuleDaggerElement =
-      ModuleDaggerElement(
-        myFixture.moveCaret("interface My|Module").parentOfType<KtClass>(withSelf = true)!!
-      )
+      ModuleDaggerElement(myFixture.findParentElement<KtClass>("interface My|Module"))
 
     assertThat(myModuleDaggerElement.getRelatedDaggerElements())
       .containsExactly(
@@ -1202,25 +1166,17 @@ class ComponentAndModuleDaggerConceptTest {
     )
 
     val myComponentDaggerElement =
-      ComponentDaggerElement(
-        myFixture.moveCaret("interface My|Component").parentOfType<KtClass>(withSelf = true)!!
-      )
+      ComponentDaggerElement(myFixture.findParentElement<KtClass>("interface My|Component"))
 
     val mySubcomponentDaggerElement =
-      SubcomponentDaggerElement(
-        myFixture.moveCaret("interface My|Subcomponent").parentOfType<KtClass>(withSelf = true)!!
-      )
+      SubcomponentDaggerElement(myFixture.findParentElement<KtClass>("interface My|Subcomponent"))
 
     val myIncludedModuleDaggerElement =
-      ModuleDaggerElement(
-        myFixture.moveCaret("interface My|IncludedModule").parentOfType<KtClass>(withSelf = true)!!
-      )
+      ModuleDaggerElement(myFixture.findParentElement<KtClass>("interface My|IncludedModule"))
 
     val myIncludedSubcomponentDaggerElement =
       SubcomponentDaggerElement(
-        myFixture
-          .moveCaret("interface My|IncludedSubcomponent")
-          .parentOfType<KtClass>(withSelf = true)!!
+        myFixture.findParentElement<KtClass>("interface My|IncludedSubcomponent")
       )
 
     assertThat(mySubcomponentDaggerElement.getRelatedDaggerElements())

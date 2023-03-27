@@ -17,6 +17,7 @@ package com.android.tools.idea.dagger
 
 import com.android.tools.idea.dagger.DaggerRelatedItemLineMarkerProviderV2.Companion.canReceiveLineMarker
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
@@ -24,7 +25,6 @@ import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
-import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -85,28 +85,19 @@ class DaggerRelatedItemLineMarkerProviderV2Test {
     assertThat(myFixture.moveCaret("cla|ss Foo constructor").canReceiveLineMarker()).isFalse()
     assertThat(myFixture.moveCaret("class Fo|o constructor").canReceiveLineMarker()).isTrue()
     assertThat(
-        myFixture
-          .moveCaret("class Fo|o constructor")
-          .parentOfType<KtClass>()
-          ?.canReceiveLineMarker()
+        myFixture.findParentElement<KtClass>("class Fo|o constructor")?.canReceiveLineMarker()
       )
       .isFalse()
     assertThat(myFixture.moveCaret("class Foo constr|uctor").canReceiveLineMarker()).isTrue()
     assertThat(
-        myFixture
-          .moveCaret("class Foo constr|uctor")
-          .parentOfType<KtFunction>()
-          ?.canReceiveLineMarker()
+        myFixture.findParentElement<KtFunction>("class Foo constr|uctor")?.canReceiveLineMarker()
       )
       .isFalse()
 
     assertThat(myFixture.moveCaret("va|l property: Int = 0").canReceiveLineMarker()).isFalse()
     assertThat(myFixture.moveCaret("val prop|erty: Int = 0").canReceiveLineMarker()).isTrue()
     assertThat(
-        myFixture
-          .moveCaret("val prop|erty: Int = 0")
-          .parentOfType<KtProperty>()
-          ?.canReceiveLineMarker()
+        myFixture.findParentElement<KtProperty>("val prop|erty: Int = 0")?.canReceiveLineMarker()
       )
       .isFalse()
     assertThat(myFixture.moveCaret("val property: In|t = 0").canReceiveLineMarker()).isTrue()
@@ -132,24 +123,19 @@ class DaggerRelatedItemLineMarkerProviderV2Test {
 
     assertThat(myFixture.moveCaret("cla|ss Foo").canReceiveLineMarker()).isFalse()
     assertThat(myFixture.moveCaret("class Fo|o").canReceiveLineMarker()).isTrue()
-    assertThat(myFixture.moveCaret("class Fo|o").parentOfType<PsiClass>()?.canReceiveLineMarker())
+    assertThat(myFixture.findParentElement<PsiClass>("class Fo|o")?.canReceiveLineMarker())
       .isFalse()
 
     assertThat(myFixture.moveCaret("pub|lic Foo()").canReceiveLineMarker()).isFalse()
     assertThat(myFixture.moveCaret("public Fo|o()").canReceiveLineMarker()).isTrue()
-    assertThat(
-        myFixture.moveCaret("public Fo|o()").parentOfType<PsiMethod>()?.canReceiveLineMarker()
-      )
+    assertThat(myFixture.findParentElement<PsiMethod>("public Fo|o()")?.canReceiveLineMarker())
       .isFalse()
 
     assertThat(myFixture.moveCaret("pri|vate int property = 0;").canReceiveLineMarker()).isFalse()
     assertThat(myFixture.moveCaret("private in|t property = 0;").canReceiveLineMarker()).isFalse()
     assertThat(myFixture.moveCaret("private int pro|perty = 0;").canReceiveLineMarker()).isTrue()
     assertThat(
-        myFixture
-          .moveCaret("private int pro|perty = 0;")
-          .parentOfType<PsiField>()
-          ?.canReceiveLineMarker()
+        myFixture.findParentElement<PsiField>("private int pro|perty = 0;")?.canReceiveLineMarker()
       )
       .isFalse()
     assertThat(myFixture.moveCaret("private int property = |0;").canReceiveLineMarker()).isFalse()

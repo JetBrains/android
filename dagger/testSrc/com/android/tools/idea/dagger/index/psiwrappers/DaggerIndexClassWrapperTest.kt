@@ -17,13 +17,11 @@ package com.android.tools.idea.dagger.index.psiwrappers
 
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findParentElement
-import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiJavaFile
-import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
@@ -194,31 +192,28 @@ class DaggerIndexClassWrapperTest {
       ) as KtFile
 
     val foo1 =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile)
-        .of(myFixture.moveCaret("Foo|1").parentOfType<KtClass>()!!)
+      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(myFixture.findParentElement<KtClass>("Foo|1"))
     val foo1Companion =
       DaggerIndexPsiWrapper.KotlinFactory(psiFile)
-        .of(myFixture.moveCaret("obje|ct /* Foo1Companion").parentOfType<KtObjectDeclaration>()!!)
+        .of(myFixture.findParentElement<KtObjectDeclaration>("obje|ct /* Foo1Companion"))
     assertThat(foo1.getIsSelfOrCompanionParentAnnotatedWith("com.example.Annotation1")).isFalse()
     assertThat(foo1Companion.getIsSelfOrCompanionParentAnnotatedWith("com.example.Annotation1"))
       .isFalse()
 
     val foo2 =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile)
-        .of(myFixture.moveCaret("Foo|2").parentOfType<KtClass>()!!)
+      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(myFixture.findParentElement<KtClass>("Foo|2"))
     val foo2Companion =
       DaggerIndexPsiWrapper.KotlinFactory(psiFile)
-        .of(myFixture.moveCaret("obje|ct /* Foo2Companion").parentOfType<KtObjectDeclaration>()!!)
+        .of(myFixture.findParentElement<KtObjectDeclaration>("obje|ct /* Foo2Companion"))
     assertThat(foo2.getIsSelfOrCompanionParentAnnotatedWith("com.example.Annotation1")).isTrue()
     assertThat(foo2Companion.getIsSelfOrCompanionParentAnnotatedWith("com.example.Annotation1"))
       .isTrue()
 
     val foo3 =
-      DaggerIndexPsiWrapper.KotlinFactory(psiFile)
-        .of(myFixture.moveCaret("Foo|3").parentOfType<KtClass>()!!)
+      DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(myFixture.findParentElement<KtClass>("Foo|3"))
     val foo3Companion =
       DaggerIndexPsiWrapper.KotlinFactory(psiFile)
-        .of(myFixture.moveCaret("obje|ct /* Foo3Companion").parentOfType<KtObjectDeclaration>()!!)
+        .of(myFixture.findParentElement<KtObjectDeclaration>("obje|ct /* Foo3Companion"))
     assertThat(foo3.getIsSelfOrCompanionParentAnnotatedWith("com.example.Annotation1")).isFalse()
     assertThat(foo3Companion.getIsSelfOrCompanionParentAnnotatedWith("com.example.Annotation1"))
       .isTrue()
@@ -343,30 +338,27 @@ class DaggerIndexClassWrapperTest {
       ) as PsiJavaFile
 
     val foo1 =
-      DaggerIndexPsiWrapper.JavaFactory(psiFile)
-        .of(myFixture.moveCaret("Foo|1").parentOfType<PsiClass>()!!)
+      DaggerIndexPsiWrapper.JavaFactory(psiFile).of(myFixture.findParentElement<PsiClass>("Foo|1"))
     val inner1 =
       DaggerIndexPsiWrapper.JavaFactory(psiFile)
-        .of(myFixture.moveCaret("Inner|1").parentOfType<PsiClass>()!!)
+        .of(myFixture.findParentElement<PsiClass>("Inner|1"))
     assertThat(foo1.getIsSelfOrCompanionParentAnnotatedWith("com.example.Annotation1")).isFalse()
     assertThat(inner1.getIsSelfOrCompanionParentAnnotatedWith("com.example.Annotation1")).isFalse()
 
     val foo2 =
-      DaggerIndexPsiWrapper.JavaFactory(psiFile)
-        .of(myFixture.moveCaret("Foo|2").parentOfType<PsiClass>()!!)
+      DaggerIndexPsiWrapper.JavaFactory(psiFile).of(myFixture.findParentElement<PsiClass>("Foo|2"))
     val inner2 =
       DaggerIndexPsiWrapper.JavaFactory(psiFile)
-        .of(myFixture.moveCaret("Inner|2").parentOfType<PsiClass>()!!)
+        .of(myFixture.findParentElement<PsiClass>("Inner|2"))
     assertThat(foo2.getIsSelfOrCompanionParentAnnotatedWith("com.example.Annotation1")).isTrue()
     // Inner class is not a Companion, so this is false.
     assertThat(inner2.getIsSelfOrCompanionParentAnnotatedWith("com.example.Annotation1")).isFalse()
 
     val foo3 =
-      DaggerIndexPsiWrapper.JavaFactory(psiFile)
-        .of(myFixture.moveCaret("Foo|3").parentOfType<PsiClass>()!!)
+      DaggerIndexPsiWrapper.JavaFactory(psiFile).of(myFixture.findParentElement<PsiClass>("Foo|3"))
     val inner3 =
       DaggerIndexPsiWrapper.JavaFactory(psiFile)
-        .of(myFixture.moveCaret("Inner|3").parentOfType<PsiClass>()!!)
+        .of(myFixture.findParentElement<PsiClass>("Inner|3"))
     assertThat(foo3.getIsSelfOrCompanionParentAnnotatedWith("com.example.Annotation1")).isFalse()
     assertThat(inner3.getIsSelfOrCompanionParentAnnotatedWith("com.example.Annotation1")).isTrue()
   }
