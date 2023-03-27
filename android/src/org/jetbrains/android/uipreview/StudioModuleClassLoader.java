@@ -74,6 +74,32 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
   );
 
   /**
+   * List of prefixes that can be loaded from the plugin class loader.
+   */
+  private static final ImmutableList<String> ALLOWED_PACKAGES_FROM_PLUGIN = ImmutableList.of(
+      // Android & Java standard libraries (https://developer.android.com/reference/packages)
+      "java.",
+      "javax.",
+      "jdk.",
+      "sun.",
+      "com.sun.",
+      "org.w3c.",
+      "org.xmlss.",
+      "android.",
+      "dalvik.",
+      "org.apache.",
+      "org.xmlpull.",
+      "org.json.",
+      "junit.",
+      // Classes from the plugin that can be referenced by the tooling APIs
+      "com.android.",
+      // Classes for testing
+      "org.jetbrains.android.uipreview.",
+      // Classes to support animation
+      "androidx.compose.animation.tooling."
+  );
+
+  /**
    * Classes are rewritten by applying the following transformations:
    * <ul>
    *   <li>Updates the class file version with a version runnable in the current JDK
@@ -166,9 +192,10 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
     super(
       new LibraryResourceClassLoader(
         new FirewalledResourcesClassLoader(
-          // Do not allow to load kotlin standard library from the plugin class loader since it can lead to
-          // a version mismatch.
-          FilteringClassLoader.disallowedPrefixes(parent, PACKAGES_TO_RENAME)),
+          // Do not allow to load kotlin any unexpected libraries from the plugin classpath. This could cause version
+          // mismatches.
+          FilteringClassLoader.allowedPrefixes(parent, ALLOWED_PACKAGES_FROM_PLUGIN)
+        ),
         renderContext.getModule(),
         loader
       ), loader);
