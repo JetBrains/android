@@ -138,24 +138,22 @@ internal data class InjectedConstructorParameterIndexValue(
   }
 
   companion object {
-    private val identifyInjectedConstructorParameterKotlin =
-      DaggerElementIdentifier<KtParameter> { psiElement ->
-        val parent =
-          psiElement.parentOfType<KtConstructor<*>>() ?: return@DaggerElementIdentifier null
-        if (parent.hasAnnotation(INJECT)) ConsumerDaggerElement(psiElement) else null
-      }
+    private fun identify(psiElement: KtParameter): DaggerElement? =
+      if (psiElement.parentOfType<KtConstructor<*>>()?.hasAnnotation(INJECT) == true)
+        ConsumerDaggerElement(psiElement)
+      else null
 
-    private val identifyInjectedConstructorParameterJava =
-      DaggerElementIdentifier<PsiParameter> { psiElement ->
-        val parent = psiElement.parentOfType<PsiMethod>() ?: return@DaggerElementIdentifier null
-        if (parent.isConstructor && parent.hasAnnotation(INJECT)) ConsumerDaggerElement(psiElement)
-        else null
-      }
+    private fun identify(psiElement: PsiParameter): DaggerElement? {
+      val parent = psiElement.parentOfType<PsiMethod>() ?: return null
+      return if (parent.isConstructor && parent.hasAnnotation(INJECT))
+        ConsumerDaggerElement(psiElement)
+      else null
+    }
 
     internal val identifiers =
       DaggerElementIdentifiers(
-        ktParameterIdentifiers = listOf(identifyInjectedConstructorParameterKotlin),
-        psiParameterIdentifiers = listOf(identifyInjectedConstructorParameterJava)
+        ktParameterIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
+        psiParameterIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
       )
   }
 

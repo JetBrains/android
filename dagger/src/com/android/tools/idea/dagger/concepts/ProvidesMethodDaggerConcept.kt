@@ -180,38 +180,36 @@ internal data class ProvidesMethodParameterIndexValue(
   }
 
   companion object {
-    private val identifyProvidesMethodParameterKotlin =
-      DaggerElementIdentifier<KtParameter> { psiElement ->
-        val parent = psiElement.parentOfType<KtFunction>() ?: return@DaggerElementIdentifier null
-        if (
-          parent !is KtConstructor<*> &&
-            parent.hasProvidesOrBindsAnnotation() &&
-            parent.containingClassOrObject?.selfOrCompanionParentIsModule() == true
-        ) {
-          ConsumerDaggerElement(psiElement)
-        } else {
-          null
-        }
+    private fun identify(psiElement: KtParameter): DaggerElement? {
+      val parent = psiElement.parentOfType<KtFunction>() ?: return null
+      return if (
+        parent !is KtConstructor<*> &&
+          parent.hasProvidesOrBindsAnnotation() &&
+          parent.containingClassOrObject?.selfOrCompanionParentIsModule() == true
+      ) {
+        ConsumerDaggerElement(psiElement)
+      } else {
+        null
       }
+    }
 
-    private val identifyProvidesMethodParameterJava =
-      DaggerElementIdentifier<PsiParameter> { psiElement ->
-        val parent = psiElement.parentOfType<PsiMethod>() ?: return@DaggerElementIdentifier null
-        if (
-          !parent.isConstructor &&
-            parent.hasProvidesOrBindsAnnotation() &&
-            parent.containingClass?.hasAnnotation(MODULE) == true
-        ) {
-          ConsumerDaggerElement(psiElement)
-        } else {
-          null
-        }
+    private fun identify(psiElement: PsiParameter): DaggerElement? {
+      val parent = psiElement.parentOfType<PsiMethod>() ?: return null
+      return if (
+        !parent.isConstructor &&
+          parent.hasProvidesOrBindsAnnotation() &&
+          parent.containingClass?.hasAnnotation(MODULE) == true
+      ) {
+        ConsumerDaggerElement(psiElement)
+      } else {
+        null
       }
+    }
 
     internal val identifiers =
       DaggerElementIdentifiers(
-        ktParameterIdentifiers = listOf(identifyProvidesMethodParameterKotlin),
-        psiParameterIdentifiers = listOf(identifyProvidesMethodParameterJava)
+        ktParameterIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
+        psiParameterIdentifiers = listOf(DaggerElementIdentifier(this::identify))
       )
   }
 
