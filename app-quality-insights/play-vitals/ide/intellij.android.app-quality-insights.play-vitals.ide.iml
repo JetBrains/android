@@ -17,5 +17,6 @@
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.api" />
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.play-vitals.model" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
+    <orderEntry type="module" module-name="google-login-as" />
   </component>
 </module>

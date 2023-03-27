@@ -18,5 +18,6 @@ iml_module(
         "//tools/adt/idea/app-quality-insights/api:intellij.android.app-quality-insights.api[module]",
         "//tools/adt/idea/app-quality-insights/play-vitals/model:intellij.android.app-quality-insights.play-vitals.model[module]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/studio/google/cloud/tools/google-login-plugin:google-login-as[module]",
     ],
 )

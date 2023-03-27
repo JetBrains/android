@@ -32,6 +32,7 @@ import com.android.tools.idea.vitals.client.VitalsClient
 import com.android.tools.idea.vitals.createVitalsFilters
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
@@ -41,6 +42,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flowOf
 
+@Service
 class VitalsConfigurationManager(override val project: Project) :
   AppInsightsConfigurationManager, Disposable {
   private val client = VitalsClient()
@@ -77,8 +79,6 @@ class VitalsConfigurationManager(override val project: Project) :
     MutableSharedFlow<AppInsightsModel>(1).apply {
       tryEmit(AppInsightsModel.Authenticated(controller))
     }
-
-  override fun getController() = controller
 
   override fun dispose() = Unit
 }

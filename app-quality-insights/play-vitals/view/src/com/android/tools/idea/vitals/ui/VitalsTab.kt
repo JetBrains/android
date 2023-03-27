@@ -17,7 +17,7 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
-import com.android.tools.idea.insights.AppInsightsConfigurationManager
+import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.Selection
@@ -39,6 +39,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
@@ -65,11 +66,11 @@ private val offlineAction =
   }
 
 class VitalsTab(
-  private val configurationManager: AppInsightsConfigurationManager,
+  private val projectController: AppInsightsProjectLevelController,
+  private val project: Project,
   private val clock: Clock
 ) : JPanel(BorderLayout()), Disposable {
   private val scope = AndroidCoroutineScope(this)
-  private val projectController = configurationManager.getController()
 
   private val connections =
     projectController.state
@@ -104,8 +105,9 @@ class VitalsTab(
     add(createToolbar().component, BorderLayout.NORTH)
     add(
       VitalsContentContainerPanel(
-        configurationManager,
-        configurationManager.project.service<AppInsightsTracker>(),
+        projectController,
+        project,
+        project.service<AppInsightsTracker>(),
         this
       )
     )
@@ -237,7 +239,7 @@ class VitalsTab(
     actionToolbar.component.addContainerListener(
       ActionToolbarListenerForOfflineBalloon(
         "Play Vitals",
-        configurationManager.project,
+        project,
         offlineAction,
         scope,
         offlineStateFlow

@@ -18,12 +18,13 @@ package com.android.tools.idea.vitals.ui
 import com.android.tools.adtui.common.primaryContentBackground
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.insights.AppInsightsConfigurationManager
+import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.analytics.AppInsightsTracker
 import com.android.tools.idea.insights.ui.AppInsightsContentPanel
 import com.android.tools.idea.insights.ui.AppInsightsIssuesTableCellRenderer
 import com.android.tools.idea.insights.ui.DetailsToolWindow
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.StatusText
@@ -39,8 +40,9 @@ private const val MAIN_CARD = "main"
 private const val GET_STARTED = "get_started"
 
 class VitalsContentContainerPanel(
-  configurationManager: AppInsightsConfigurationManager,
-  private val tracker: AppInsightsTracker,
+  projectController: AppInsightsProjectLevelController,
+  project: Project,
+  tracker: AppInsightsTracker,
   parentDisposable: Disposable
 ) : JPanel(CardLayout()), Disposable {
 
@@ -90,12 +92,12 @@ class VitalsContentContainerPanel(
 
     add(
       AppInsightsContentPanel(
-        configurationManager.getController(),
-        configurationManager.project,
+        projectController,
+        project,
         this,
         tracker,
         AppInsightsIssuesTableCellRenderer,
-        listOfNotNull(DetailsToolWindow.create(scope, configurationManager.getController().state))
+        listOfNotNull(DetailsToolWindow.create(scope, projectController.state))
       ) { _, _, _, _ ->
         // TODO: construct actual link to play vitals console
         "play.google.com"
@@ -104,9 +106,7 @@ class VitalsContentContainerPanel(
     )
 
     scope.launch {
-      configurationManager
-        .getController()
-        .state
+      projectController.state
         .map { it.connections.selected }
         .distinctUntilChanged()
         .collect { selected ->

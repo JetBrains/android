@@ -24,7 +24,4 @@ interface AppInsightsConfigurationManager {
   val project: Project
 
   val configuration: Flow<AppInsightsModel>
-
-  /** Returns an [AppInsightsProjectLevelController] for the project. */
-  fun getController(): AppInsightsProjectLevelController
 }
