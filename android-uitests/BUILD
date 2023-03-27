@@ -132,7 +132,7 @@ maven_repository(
         "@maven//:android.arch.persistence.room.runtime_1.0.0",
         "@maven//:androidx.activity.activity-compose_1.5.1",
         "@maven//:androidx.activity.activity-ktx_1.4.0",
-        "@maven//:androidx.annotation.annotation_1.2.0-rc01",
+        "@maven//:androidx.annotation.annotation_1.5.0",
         "@maven//:androidx.appcompat.appcompat_1.0.2",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
         "@maven//:androidx.appcompat.appcompat_1.4.1",
@@ -3149,9 +3149,9 @@ java_test(
 # fat test
 java_test(
     name = "InferNullityTest",
-    data = COMMON_DATA + glob([
-        "testData/Nullity/**",
-    ]),
+    data = COMMON_DATA + [
+        "@maven//:androidx.annotation.annotation_1.5.0",
+    ],
     jvm_flags = ["-Dtest.suite.class=com.android.tools.idea.tests.gui.editors.InferNullityTest"],
     tags = COMMON_TAGS + [
         "no_windows",
