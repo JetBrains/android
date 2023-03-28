@@ -15,17 +15,12 @@
  */
 package com.android.tools.idea.deviceprovisioner
 
-import com.android.adblib.AdbSession
-import com.android.adblib.SOCKET_CONNECT_TIMEOUT_MS
-import com.android.adblib.testingutils.CloseablesRule
 import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
-import com.android.adblib.testingutils.FakeAdbServerProvider
-import com.android.adblib.testingutils.TestingAdbSessionHost
 import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceProperties
-import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceState.Connected
+import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ui.SimpleColoredText
@@ -33,25 +28,10 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.takeWhile
 import org.junit.Rule
 import org.junit.Test
-import java.time.Duration
 
 class DeviceHandleRendererTest {
 
-  @JvmField @Rule val closeables = CloseablesRule()
-
-  val fakeAdb = closeables.register(FakeAdbServerProvider().buildDefault().start())
-  val host = closeables.register(TestingAdbSessionHost())
-  val session =
-    closeables.register(
-      AdbSession.create(
-        host,
-        fakeAdb.createChannelProvider(host),
-        Duration.ofMillis(SOCKET_CONNECT_TIMEOUT_MS)
-      )
-    )
-
-  val plugin = FakeAdbDeviceProvisionerPlugin(session.scope, fakeAdb)
-  val provisioner = DeviceProvisioner.create(session, listOf(plugin))
+  @JvmField @Rule val deviceProvisionerRule = DeviceProvisionerRule()
 
   private fun DeviceProperties.Builder.baseProperties() {
     manufacturer = "Google"
@@ -69,8 +49,8 @@ class DeviceHandleRendererTest {
       baseProperties()
       disambiguator = "SN2"
     }
-  val device1 = plugin.addNewDevice(properties = properties1)
-  val device2 = plugin.addNewDevice(properties = properties2)
+  val device1 by lazy { deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(properties = properties1) }
+  val device2 by lazy { deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice(properties = properties2) }
 
   @Test
   fun disconnected() = runBlockingWithTimeout {

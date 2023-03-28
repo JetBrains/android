@@ -15,14 +15,10 @@
  */
 package com.android.tools.idea.file.explorer.toolwindow.adbimpl
 
-import com.android.adblib.AdbSession
-import com.android.adblib.SOCKET_CONNECT_TIMEOUT_MS
 import com.android.adblib.connectedDevicesTracker
-import com.android.adblib.testingutils.CloseablesRule
-import com.android.adblib.testingutils.FakeAdbServerProvider
-import com.android.adblib.testingutils.TestingAdbSessionHost
+import com.android.adblib.testingutils.FakeAdbServerProviderRule
 import com.android.fakeadbserver.DeviceState
-import com.android.fakeadbserver.ShellProtocolType
+import com.android.fakeadbserver.ShellProtocolType.SHELL
 import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
 import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.testing.DebugLoggerRule
@@ -52,18 +48,11 @@ class AdbFileOperationsTest(private val testDevice: TestDevices) {
 
   @JvmField
   @Rule
-  val closeables = CloseablesRule()
-
-  val fakeAdb = closeables.register(FakeAdbServerProvider()
-                                      .installDefaultCommandHandlers()
-                                      .installDeviceHandler(TestShellCommandHandler(ShellProtocolType.SHELL, shellCommands))
-                                      .installDeviceHandler(SyncCommandHandler())
-                                      .build().start())
-  val host = closeables.register(TestingAdbSessionHost())
-  val session = closeables.register(AdbSession.create(
-    host,
-    fakeAdb.createChannelProvider(host),
-    Duration.ofMillis(SOCKET_CONNECT_TIMEOUT_MS)))
+  val fakeAdbRule = FakeAdbServerProviderRule {
+    installDefaultCommandHandlers()
+    installDeviceHandler(SyncCommandHandler())
+    installDeviceHandler(TestShellCommandHandler(SHELL, shellCommands))
+  }
 
   val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
   val scope = CoroutineScope(dispatcher)
@@ -77,13 +66,13 @@ class AdbFileOperationsTest(private val testDevice: TestDevices) {
   private fun setupMockDevice(): AdbFileOperations {
     testDevice.addCommands(shellCommands)
 
-    fakeAdb.connectDevice(
+    fakeAdbRule.fakeAdb.connectDevice(
       deviceId = "test_device_01", manufacturer = "Google", deviceModel = "Pixel 10", release = "8.0", sdk = "31",
       hostConnectionType = DeviceState.HostConnectionType.USB)
 
     val device = runBlocking {
       withTimeout(Duration.ofSeconds(5).toMillis()) {
-        session.connectedDevicesTracker.connectedDevices.first { it.isNotEmpty() }.first()
+        fakeAdbRule.adbSession.connectedDevicesTracker.connectedDevices.first { it.isNotEmpty() }.first()
       }
     }
 

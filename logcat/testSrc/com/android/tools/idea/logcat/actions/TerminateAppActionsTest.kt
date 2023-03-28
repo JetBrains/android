@@ -2,15 +2,12 @@
 
 package com.android.tools.idea.logcat.actions
 
-import com.android.adblib.AdbSession
-import com.android.adblib.SOCKET_CONNECT_TIMEOUT_MS
 import com.android.adblib.connectedDevicesTracker
 import com.android.adblib.deviceProperties
 import com.android.adblib.serialNumber
-import com.android.adblib.testingutils.CloseablesRule
 import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
 import com.android.adblib.testingutils.FakeAdbServerProvider
-import com.android.adblib.testingutils.TestingAdbSessionHost
+import com.android.adblib.testingutils.FakeAdbServerProviderRule
 import com.android.adblib.tools.debugging.AppProcess
 import com.android.adblib.tools.debugging.appProcessTracker
 import com.android.adblib.tools.debugging.jdwpProcessTracker
@@ -60,29 +57,21 @@ import java.time.Duration
 class TerminateAppActionsTest {
   private val projectRule = ProjectRule()
   private val editorRule = LogcatEditorRule(projectRule)
-  private val closeables = CloseablesRule()
-  private val fakeAdb = closeables.register(FakeAdbServerProvider().buildDefault().start())
-  private val host = closeables.register(TestingAdbSessionHost())
-  private val adbSession =
-    closeables.register(AdbSession.create(
-      host,
-      fakeAdb.createChannelProvider(host),
-      Duration.ofMillis(SOCKET_CONNECT_TIMEOUT_MS)
-    ))
+  private val fakeAdbRule = FakeAdbServerProviderRule()
 
   @get:Rule
   val rule = RuleChain(
     projectRule,
     editorRule,
-    closeables,
-    ProjectServiceRule(projectRule, AdbLibService::class.java, TestAdbLibService(adbSession)),
+    fakeAdbRule,
+    ProjectServiceRule(projectRule, AdbLibService::class.java) { TestAdbLibService(fakeAdbRule.adbSession) },
     EdtRule(),
   )
 
-
   private val project get() = projectRule.project
-
   private val editor get() = editorRule.editor
+  private val fakeAdb get() = fakeAdbRule.fakeAdb
+  private val adbSession get() = fakeAdbRule.adbSession
 
   /**
    * RangeMarker's are kept in the Document as weak reference (see IntervalTreeImpl#createGetter) so we need to keep them alive as long as

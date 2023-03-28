@@ -15,16 +15,12 @@
  */
 package com.android.tools.idea.file.explorer.toolwindow.adbimpl
 
-import com.android.adblib.AdbSession
 import com.android.adblib.ConnectedDevice
-import com.android.adblib.SOCKET_CONNECT_TIMEOUT_MS
 import com.android.adblib.connectedDevicesTracker
-import com.android.adblib.testingutils.CloseablesRule
-import com.android.adblib.testingutils.FakeAdbServerProvider
-import com.android.adblib.testingutils.TestingAdbSessionHost
+import com.android.adblib.testingutils.FakeAdbServerProviderRule
 import com.android.ddmlib.DdmPreferences
 import com.android.ddmlib.ShellCommandUnresponsiveException
-import com.android.fakeadbserver.ShellProtocolType
+import com.android.fakeadbserver.ShellProtocolType.SHELL
 import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
 import com.android.tools.idea.file.explorer.toolwindow.adbimpl.AdbFileListingEntry.EntryKind
 import com.google.common.truth.Truth.assertThat
@@ -57,18 +53,11 @@ class AdbFileListingTest {
 
   @JvmField
   @Rule
-  val closeables = CloseablesRule()
-
-  val fakeAdb = closeables.register(FakeAdbServerProvider()
-                                      .installDeviceHandler(TestShellCommandHandler(ShellProtocolType.SHELL, commands))
-                                      .installDeviceHandler(SyncCommandHandler())
-                                      .buildDefault())
-  val host = closeables.register(TestingAdbSessionHost())
-  val session = AdbSession.create(
-    host,
-    fakeAdb.createChannelProvider(host),
-    Duration.ofMillis(SOCKET_CONNECT_TIMEOUT_MS)
-  )
+  val fakeAdbRule = FakeAdbServerProviderRule {
+    installDefaultCommandHandlers()
+    installDeviceHandler(SyncCommandHandler())
+    installDeviceHandler(TestShellCommandHandler(SHELL, commands))
+  }
 
   private val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
   private val scope = CoroutineScope(dispatcher)
@@ -88,14 +77,13 @@ class AdbFileListingTest {
     originalTimeout = DdmPreferences.getTimeOut()
     DdmPreferences.setTimeOut(5_000)
 
-    fakeAdb.start()
-    deviceState = fakeAdb.connectDevice(
+    deviceState = fakeAdbRule.fakeAdb.connectDevice(
       deviceId = "test_device_01", manufacturer = "Google", deviceModel = "Pixel 10", release = "8.0", sdk = "31",
       hostConnectionType = com.android.fakeadbserver.DeviceState.HostConnectionType.USB)
 
     device = runBlocking {
       withTimeout(Duration.ofSeconds(5).toMillis()) {
-        session.connectedDevicesTracker.connectedDevices.first { it.isNotEmpty() }.first()
+        fakeAdbRule.adbSession.connectedDevicesTracker.connectedDevices.first { it.isNotEmpty() }.first()
       }
     }
   }

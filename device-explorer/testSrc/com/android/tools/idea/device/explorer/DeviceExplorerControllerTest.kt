@@ -15,16 +15,10 @@
  */
 package com.android.tools.idea.device.explorer
 
-import com.android.adblib.AdbSession
-import com.android.adblib.SOCKET_CONNECT_TIMEOUT_MS
 import com.android.adblib.serialNumber
-import com.android.adblib.testingutils.CloseablesRule
-import com.android.adblib.testingutils.FakeAdbServerProvider
-import com.android.adblib.testingutils.TestingAdbSessionHost
 import com.android.fakeadbserver.DeviceState
 import com.android.sdklib.deviceprovisioner.DeviceHandle
-import com.android.sdklib.deviceprovisioner.DeviceProvisioner
-import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin
+import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFuture
 import com.android.tools.idea.concurrency.pumpEventsAndWaitForFutures
@@ -32,15 +26,14 @@ import com.android.tools.idea.device.explorer.mocks.MockDeviceExplorerView
 import com.android.tools.idea.device.explorer.mocks.MockDeviceFileExplorerController
 import com.android.tools.idea.device.explorer.mocks.MockDeviceMonitorController
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.intellij.openapi.project.Project
-import kotlinx.coroutines.runBlocking
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.project.Project
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.time.Duration
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 
@@ -53,18 +46,7 @@ class DeviceExplorerControllerTest {
 
   @JvmField
   @Rule
-  val closeables = CloseablesRule()
-  private val fakeAdb = closeables.register(FakeAdbServerProvider().buildDefault().start())
-  private val host = closeables.register(TestingAdbSessionHost())
-  private val session =
-    closeables.register(AdbSession.create(
-      host,
-      fakeAdb.createChannelProvider(host),
-      Duration.ofMillis(SOCKET_CONNECT_TIMEOUT_MS)
-    ))
-
-  private val plugin = FakeAdbDeviceProvisionerPlugin(session.scope, fakeAdb)
-  private val deviceProvisioner = DeviceProvisioner.create(session, listOf(plugin))
+  val deviceProvisionerRule = DeviceProvisionerRule()
 
   private lateinit var model: DeviceExplorerModel
   private lateinit var view: MockDeviceExplorerView
@@ -73,7 +55,7 @@ class DeviceExplorerControllerTest {
 
   @Before
   fun setUp() {
-    model = DeviceExplorerModel(deviceProvisioner)
+    model = DeviceExplorerModel(deviceProvisionerRule.deviceProvisioner)
     view = MockDeviceExplorerView(project, model)
     fileController = MockDeviceFileExplorerController()
     monitorController = MockDeviceMonitorController()
@@ -81,9 +63,9 @@ class DeviceExplorerControllerTest {
 
   @After
   fun tearDown() {
-    for (device in deviceProvisioner.devices.value) {
+    for (device in deviceProvisionerRule.deviceProvisioner.devices.value) {
       device.state.connectedDevice?.serialNumber?.let {
-        fakeAdb.disconnectDevice(it)
+        deviceProvisionerRule.fakeAdb.disconnectDevice(it)
       }
     }
   }
@@ -151,7 +133,7 @@ class DeviceExplorerControllerTest {
     DeviceExplorerController(project, model, view, fileController, monitorController)
 
   private fun connectDevice(deviceId: String): DeviceState {
-    val deviceState = fakeAdb.connectDevice(
+    val deviceState = deviceProvisionerRule.fakeAdb.connectDevice(
       deviceId = deviceId,
       manufacturer = "Google",
       deviceModel = "Pixel 10",
