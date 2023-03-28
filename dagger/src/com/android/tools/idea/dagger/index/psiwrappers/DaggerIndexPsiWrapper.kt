@@ -75,7 +75,8 @@ sealed interface DaggerIndexPsiWrapper {
       PsiFieldWrapper(psiElement, importHelper)
     fun of(psiElement: PsiMethod): DaggerIndexMethodWrapper =
       PsiMethodWrapper(psiElement, importHelper)
-    fun of(psiElement: PsiParameter): DaggerIndexParameterWrapper = PsiParameterWrapper(psiElement)
+    fun of(psiElement: PsiParameter): DaggerIndexParameterWrapper =
+      PsiParameterWrapper(psiElement, importHelper)
     fun of(psiElement: PsiTypeElement): DaggerIndexTypeWrapper = PsiTypeElementWrapper(psiElement)
   }
 }
