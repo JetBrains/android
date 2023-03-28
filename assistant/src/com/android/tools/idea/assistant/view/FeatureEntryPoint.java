@@ -114,6 +114,9 @@ public class FeatureEntryPoint extends JPanel implements Accessible {
       addTutorial(tutorial.getLabel(), tutorial.getKey());
     }
     add(myTutorialsList);
+    if (feature.displayTutorials()) {
+     toggleTutorials();
+    }
   }
 
   private void addHandlers(JComponent component, SummaryHandler summaryMouseHandler, KeyboardHandler keyboardHandler) {

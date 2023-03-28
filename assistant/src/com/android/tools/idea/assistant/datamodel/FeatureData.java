@@ -57,6 +57,13 @@ public interface FeatureData {
   @NotNull
   List<? extends TutorialData> getTutorials();
 
+  /**
+   * Returns whether the list of tutorials should be displayed when first opening a Feature.
+   */
+  default boolean displayTutorials() {
+    return false;
+  }
+
 
   /**
    * Sets a class for use in loading resources such as icons.
