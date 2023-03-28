@@ -1115,6 +1115,12 @@ public final class StudioFlags {
     true
   );
 
+  public static final Flag<Boolean> ENABLE_SCREENSHOT_TESTING = Flag.create(
+    TESTING, "screenshot.testing", "Run screenshot tests",
+    "If enabled, a screenshotTest source set will be added for running screenshot tests",
+    false
+  );
+
   public static final Flag<Integer> ANDROID_PLATFORM_TO_AUTOCREATE = Flag.create(
     TESTING,
     "android.platform.to.autocreate",
