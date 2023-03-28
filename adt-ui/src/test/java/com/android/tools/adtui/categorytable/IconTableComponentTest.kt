@@ -16,8 +16,10 @@
 package com.android.tools.adtui.categorytable
 
 import com.android.testutils.ImageDiffUtil
+import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.DisposableRule
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
@@ -30,9 +32,12 @@ import javax.swing.Icon
 import javax.swing.JPanel
 import javax.swing.UIManager
 import org.junit.Assert.assertThrows
+import org.junit.Rule
 import org.junit.Test
 
 class IconTableComponentTest {
+  @get:Rule val disposableRule = DisposableRule()
+
   @Test
   fun updateTablePresentation() {
     val icon = UIManager.get("Tree.expandedIcon", null) as Icon
@@ -100,6 +105,29 @@ class IconTableComponentTest {
     //  }
     //  Thread.sleep(500)
     //  assertThat(renders.get()).isGreaterThan(1)
+  }
+
+  @Test
+  fun focusedButton() {
+    val focusManager = FakeKeyboardFocusManager(disposableRule.disposable)
+    val label = IconButton(UIManager.getIcon("Tree.expandedIcon", null))
+
+    assertThat(label.border).isNull()
+
+    focusManager.focusOwner = label
+
+    assertThat(label.border).isEqualTo(tableCellBorder(selected = false, focused = true))
+
+    label.updateTablePresentation(
+      TablePresentationManager(),
+      TablePresentation(foreground = JBColor.BLUE, background = JBColor.RED, rowSelected = true)
+    )
+
+    assertThat(label.border).isEqualTo(tableCellBorder(selected = true, focused = true))
+
+    focusManager.focusOwner = null
+
+    assertThat(label.border).isEqualTo(tableCellBorder(selected = true, focused = false))
   }
 }
 

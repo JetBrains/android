@@ -85,10 +85,31 @@ class IconLabel(initialBaseIcon: Icon?) : JBLabel(initialBaseIcon), IconTableCom
 open class IconButton(initialBaseIcon: Icon?) : JButton(), IconTableComponent {
   override var baseIcon by IconTableComponentProperty(initialBaseIcon)
   override var iconColor: Color? by IconTableComponentProperty(null)
+  private var rowSelected: Boolean = false
+    set(value) {
+      field = value
+      updateBorder()
+    }
+
+  init {
+    addFocusListener { updateBorder() }
+  }
 
   override fun addNotify() {
     super.addNotify()
     updateIcon()
+  }
+
+  override fun updateTablePresentation(
+    manager: TablePresentationManager,
+    presentation: TablePresentation
+  ) {
+    super.updateTablePresentation(manager, presentation)
+    rowSelected = presentation.rowSelected
+  }
+
+  fun updateBorder() {
+    border = tableCellBorder(rowSelected, isFocusOwner)
   }
 
   override fun updateUI() {

@@ -45,15 +45,27 @@ sealed interface RowKey<T> {
 internal sealed class RowComponent<T> : JBPanel<RowComponent<T>>(), TableComponent {
   init {
     isFocusable = true
+    addFocusListener { updateBorder() }
   }
+
+  private var rowSelected = false
+    set(value) {
+      field = value
+      isOpaque = value
+      updateBorder()
+    }
 
   /** Updates the display of the row based on the current selection status. */
   override fun updateTablePresentation(
     manager: TablePresentationManager,
     presentation: TablePresentation
   ) {
-    isOpaque = presentation.rowSelected
+    rowSelected = presentation.rowSelected
     manager.defaultApplyPresentation(this, presentation)
+  }
+
+  private fun updateBorder() {
+    border = tableCellBorder(selected = rowSelected, focused = isFocusOwner)
   }
 
   abstract var indent: Int

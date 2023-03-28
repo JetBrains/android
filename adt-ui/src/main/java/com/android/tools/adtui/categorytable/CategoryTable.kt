@@ -228,7 +228,7 @@ class CategoryTable<T : Any>(
       rowComponents
         .firstOrNull { it.isVisible && e.y < it.y + it.height }
         ?.let { clickedRow ->
-          requestFocusInWindow()
+          clickedRow.requestFocusInWindow()
           selection.selectRow(clickedRow.rowKey)
         }
     }
@@ -432,8 +432,7 @@ class CategoryTable<T : Any>(
     updateComponents()
   }
 
-  private fun CategoryList<T>.matches(value: T) =
-    all { it.matches(value) }
+  private fun CategoryList<T>.matches(value: T) = all { it.matches(value) }
 
   private fun invalidateRows() {
     rowComponents.forEach { it.invalidate() }
