@@ -268,6 +268,29 @@
     <option name="file" path="ActionManager" hit="Export to Zip File..." />
     <option name="to" path="ActionManager" hit="Export to Zip File..." />
     <option name="zip" path="ActionManager" hit="Export to Zip File..." />
+    <option name="extend" path="ActionManager" hit="Extend Reservation" />
+    <option name="reservation" path="ActionManager" hit="Extend Reservation" />
+    <option name="by" path="ActionManager" hit="Extend Reservation by 1 Hour" />
+    <option name="extend" path="ActionManager" hit="Extend Reservation by 1 Hour" />
+    <option name="hour" path="ActionManager" hit="Extend Reservation by 1 Hour" />
+    <option name="reservation" path="ActionManager" hit="Extend Reservation by 1 Hour" />
+    <option name="by" path="ActionManager" hit="Extend Reservation by 30 Minutes" />
+    <option name="extend" path="ActionManager" hit="Extend Reservation by 30 Minutes" />
+    <option name="minutes" path="ActionManager" hit="Extend Reservation by 30 Minutes" />
+    <option name="reservation" path="ActionManager" hit="Extend Reservation by 30 Minutes" />
+    <option name="device" path="ActionManager" hit="Extend device reservation" />
+    <option name="extend" path="ActionManager" hit="Extend device reservation" />
+    <option name="reservation" path="ActionManager" hit="Extend device reservation" />
+    <option name="by" path="ActionManager" hit="Extend device reservation by 1 hour" />
+    <option name="device" path="ActionManager" hit="Extend device reservation by 1 hour" />
+    <option name="extend" path="ActionManager" hit="Extend device reservation by 1 hour" />
+    <option name="hour" path="ActionManager" hit="Extend device reservation by 1 hour" />
+    <option name="reservation" path="ActionManager" hit="Extend device reservation by 1 hour" />
+    <option name="by" path="ActionManager" hit="Extend device reservation by 30 minutes" />
+    <option name="device" path="ActionManager" hit="Extend device reservation by 30 minutes" />
+    <option name="extend" path="ActionManager" hit="Extend device reservation by 30 minutes" />
+    <option name="minutes" path="ActionManager" hit="Extend device reservation by 30 minutes" />
+    <option name="reservation" path="ActionManager" hit="Extend device reservation by 30 minutes" />
     <option name="controls" path="ActionManager" hit="Extended Controls" />
     <option name="extended" path="ActionManager" hit="Extended Controls" />
     <option name="a" path="ActionManager" hit="Extracts one or more views into a separate layout" />
