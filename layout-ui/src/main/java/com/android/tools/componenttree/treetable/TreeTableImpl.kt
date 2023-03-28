@@ -215,6 +215,9 @@ class TreeTableImpl(
   override fun updateUI() {
     super.updateUI()
     if (initialized) {
+      // The tree row height is not updated correctly after a UI update. See b/275514572
+      tree.rowHeight = getRowHeight()
+
       tableModel.clearRendererCache()
       installKeyboardActions(this)
       registerActionKey(::toggleTree, KeyStrokes.ENTER, "enter")

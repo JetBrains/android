@@ -21,6 +21,7 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeKeyboardFocusManager
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
+import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.laf.HeadlessTableUI
 import com.android.tools.adtui.swing.laf.HeadlessTreeUI
 import com.android.tools.componenttree.api.ComponentTreeBuildResult
@@ -56,6 +57,7 @@ import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
+import org.junit.runners.model.Statement
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
@@ -637,6 +639,22 @@ class TreeTableImplTest {
     val str = transferable?.getTransferData(DataFlavor.stringFlavor) as? String
     assertThat(str).isEqualTo("(${item2.tagName},style:${style1.name})")
     assertThat(transferHandler.draggedItems).containsExactly(item2, style1)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testFontHeight() {
+    val table = createTreeTable()
+    table.tree.expandRow(0)
+    table.tree.expandRow(1)
+    assertThat(table.tree.rowHeight).isEqualTo(table.rowHeight)
+
+    PortableUiFontRule(scale = 4f).apply(object : Statement() {
+      override fun evaluate() {
+        table.updateUI()
+        assertThat(table.tree.rowHeight).isEqualTo(table.rowHeight)
+      }
+    }, mock()).evaluate()
   }
 
   private fun foregroundOf(table: JTable, column: Int, isSelected: Boolean, hasFocus: Boolean): Color {
