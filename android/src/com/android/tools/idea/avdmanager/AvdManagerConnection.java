@@ -966,40 +966,6 @@ public class AvdManagerConnection {
     if (device.getId().equals("13.5in Freeform")) {
       hardwareProperties.put(AVD_INI_DISPLAY_SETTINGS_FILE, "freeform");
     }
-    if (device.getId().equals(("7.6in Foldable"))) {
-      hardwareProperties.put(AVD_INI_HINGE, "yes");
-      hardwareProperties.put(AVD_INI_HINGE_COUNT, "1");
-      hardwareProperties.put(AVD_INI_HINGE_TYPE, "1");
-      hardwareProperties.put(AVD_INI_HINGE_SUB_TYPE, "1");
-      hardwareProperties.put(AVD_INI_HINGE_RANGES, "0-180");
-      hardwareProperties.put(AVD_INI_HINGE_DEFAULTS, "180");
-      hardwareProperties.put(AVD_INI_HINGE_AREAS, "884-0-1-2208");
-      hardwareProperties.put(AVD_INI_POSTURE_LISTS, "1,2,3");
-      hardwareProperties.put(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS, "0-30, 30-150, 150-180");
-    }
-    if (device.getId().equals(("8in Foldable"))) {
-      hardwareProperties.put(AVD_INI_HINGE, "yes");
-      hardwareProperties.put(AVD_INI_HINGE_COUNT, "1");
-      hardwareProperties.put(AVD_INI_HINGE_TYPE, "1");
-      hardwareProperties.put(AVD_INI_HINGE_SUB_TYPE, "1");
-      hardwareProperties.put(AVD_INI_HINGE_RANGES, "180-360");
-      hardwareProperties.put(AVD_INI_HINGE_DEFAULTS, "180");
-      hardwareProperties.put(AVD_INI_HINGE_AREAS, "1148-0-1-2480");
-      hardwareProperties.put(AVD_INI_FOLD_AT_POSTURE, "4");
-      hardwareProperties.put(AVD_INI_POSTURE_LISTS, "3, 4");
-      hardwareProperties.put(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS, "180-330, 330-360");
-    }
-    if (device.getId().equals(("6.7in Foldable"))) {
-      hardwareProperties.put(AVD_INI_HINGE, "yes");
-      hardwareProperties.put(AVD_INI_HINGE_COUNT, "1");
-      hardwareProperties.put(AVD_INI_HINGE_TYPE, "0");
-      hardwareProperties.put(AVD_INI_HINGE_SUB_TYPE, "1");
-      hardwareProperties.put(AVD_INI_HINGE_RANGES, "0-180");
-      hardwareProperties.put(AVD_INI_HINGE_DEFAULTS, "180");
-      hardwareProperties.put(AVD_INI_HINGE_AREAS, "0-1318-1080-1");
-      hardwareProperties.put(AVD_INI_POSTURE_LISTS, "1, 2, 3");
-      hardwareProperties.put(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS, "0-30, 30-150, 150-180");
-    }
     if (device.getId().equals("7.4in Rollable")) {
       hardwareProperties.put(AVD_INI_ROLL, "yes");
       hardwareProperties.put(AVD_INI_ROLL_COUNT, "1");
@@ -1014,15 +980,6 @@ public class AvdManagerConnection {
       hardwareProperties.put(AVD_INI_ROLL_PERCENTAGES_POSTURE_DEFINITIONS, "58.55-76.45, 76.45-94.35, 94.35-100");
     }
     if (device.getId().equals("resizable")) {
-      hardwareProperties.put(AVD_INI_HINGE, "yes");
-      hardwareProperties.put(AVD_INI_HINGE_COUNT, "1");
-      hardwareProperties.put(AVD_INI_HINGE_TYPE, "1");
-      hardwareProperties.put(AVD_INI_HINGE_SUB_TYPE, "1");
-      hardwareProperties.put(AVD_INI_HINGE_RANGES, "0-180");
-      hardwareProperties.put(AVD_INI_HINGE_DEFAULTS, "180");
-      hardwareProperties.put(AVD_INI_HINGE_AREAS, "884-0-1-2208");
-      hardwareProperties.put(AVD_INI_POSTURE_LISTS, "1,2,3");
-      hardwareProperties.put(AVD_INI_HINGE_ANGLES_POSTURE_DEFINITIONS, "0-30, 30-150, 150-180");
       hardwareProperties.put(AVD_INI_RESIZABLE_CONFIG, "phone-0-1080-2340-420, foldable-1-1768-2208-420, tablet-2-1920-1200-240, desktop-3-1920-1080-160");
     }
     if (currentInfo != null && !avdName.equals(currentInfo.getName()) && removePrevious) {
