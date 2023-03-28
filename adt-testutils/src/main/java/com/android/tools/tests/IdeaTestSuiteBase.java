@@ -15,6 +15,8 @@
  */
 package com.android.tools.tests;
 
+import static com.android.testutils.TestUtils.resolveWorkspacePath;
+
 import com.android.repository.testframework.FakeProgressIndicator;
 import com.android.repository.util.InstallerUtil;
 import com.android.testutils.RepoLinker;
@@ -24,10 +26,14 @@ import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.util.SystemInfo;
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import org.jetbrains.annotations.NotNull;
 import org.junit.ClassRule;
 
@@ -54,7 +60,7 @@ public class IdeaTestSuiteBase {
     System.setProperty("idea.config.path", createTmpDir("idea/config").toString());
     System.setProperty("idea.force.use.core.classloader", "true");
     System.setProperty("idea.log.path", TestUtils.getTestOutputDir().toString());
-    System.setProperty("idea.log.config.file", TestUtils.resolveWorkspacePath("tools/adt/idea/adt-testutils/test-log.xml").toString());
+    System.setProperty("idea.log.config.file", resolveWorkspacePath("tools/adt/idea/adt-testutils/test-log.xml").toString());
     System.setProperty("gradle.user.home", createTmpDir(".gradle").toString());
     System.setProperty("user.home", TMP_DIR);
 
@@ -76,13 +82,29 @@ public class IdeaTestSuiteBase {
     System.setProperty("resolve.descriptors.in.resources", "true");
 
     // Configure JNA and other native libs.
+    Map<String,String>  requiredJvmArgs = readJvmArgsProperties(TestUtils.getBinPath("tools/adt/idea/studio/required_jvm_args.txt"));
     System.setProperty("jna.noclasspath", "true");
     System.setProperty("jna.nosys", "true");
-    System.setProperty("jna.boot.library.path", Paths.get(PathManager.getHomePath(), "lib", "jna", SystemInfo.OS_ARCH).toString());
-    System.setProperty("pty4j.preferred.native.folder", Paths.get(PathManager.getHomePath(), "lib", "pty4j").toString());
+    System.setProperty("jna.boot.library.path",
+                       resolveWorkspacePath(requiredJvmArgs.get("jna.boot.library.path")).toString());
+    System.setProperty("pty4j.preferred.native.folder",
+                       resolveWorkspacePath(requiredJvmArgs.get("pty4j.preferred.native.folder")).toString());
 
     // TODO(b/213385827): Fix Kotlin script classpath calculation during tests
     System.setProperty("kotlin.script.classpath", "");
+  }
+
+  private static Map<String, String> readJvmArgsProperties(Path path) throws IOException {
+    Map<String, String> result = new HashMap<>();
+    for (String line : Files.readAllLines(path)) {
+      int eqIndex = line.indexOf('=');
+      if (line.startsWith("-D") && eqIndex > 0) {
+        String key = line.substring(2, eqIndex);
+        String value = line.substring(eqIndex + 1);
+        result.put(key, value);
+      }
+    }
+    return result;
   }
 
   private static void setupKotlinPlugin() {

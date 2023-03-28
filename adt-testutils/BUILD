@@ -5,6 +5,7 @@ iml_module(
     name = "intellij.android.adt.testutils",
     data = [
         ":test-log.xml",  # Used for idea.log.config.file.
+        "//tools/adt/idea/studio:required_jvm_args",  # Used to compute JNA path
     ],
     iml_files = ["intellij.android.adt.testutils.iml"],
     test_srcs = ["src/main/java"],
