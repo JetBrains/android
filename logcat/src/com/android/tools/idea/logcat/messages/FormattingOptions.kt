@@ -21,6 +21,7 @@ import com.android.tools.idea.logcat.messages.FormattingOptions.Style.STANDARD
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat.Style.BOTH
 import com.android.tools.idea.logcat.messages.TimestampFormat.Style.DATETIME
 import com.intellij.openapi.util.NlsActions.ActionText
+import com.intellij.util.Range
 
 private val logcatFormattingOptions = AndroidLogcatFormattingOptions.getInstance()
 
@@ -59,5 +60,29 @@ internal data class FormattingOptions(
       this == logcatFormattingOptions.compactFormattingOptions -> COMPACT
       else -> null
     }
+  }
+
+  fun getTagRange(): Range<Int> {
+    if (!tagFormat.enabled) {
+      return Range(-1, -1)
+    }
+    val start = timestampFormat.width() + processThreadFormat.width()
+    return Range(start, start + tagFormat.width() - 1)
+  }
+
+  fun getAppIdRange(): Range<Int> {
+    if (!appNameFormat.enabled) {
+      return Range(-1, -1)
+    }
+    val start = timestampFormat.width() + processThreadFormat.width() + tagFormat.width()
+    return Range(start, start + appNameFormat.width() - 1)
+  }
+
+  fun getLeveRange(): Range<Int> {
+    if (!levelFormat.enabled) {
+      return Range(-1, -1)
+    }
+    val start = timestampFormat.width() + processThreadFormat.width() + tagFormat.width() + appNameFormat.width()
+    return Range(start, start + levelFormat.width() - 1)
   }
 }

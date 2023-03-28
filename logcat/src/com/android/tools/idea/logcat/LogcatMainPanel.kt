@@ -60,20 +60,19 @@ import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.AndroidLogcatFormattingOptions
 import com.android.tools.idea.logcat.messages.DocumentAppender
 import com.android.tools.idea.logcat.messages.FormattingOptions
-import com.android.tools.idea.logcat.messages.LOGCAT_FILTER_HINT_KEY
 import com.android.tools.idea.logcat.messages.LogcatColors
 import com.android.tools.idea.logcat.messages.MessageBacklog
 import com.android.tools.idea.logcat.messages.MessageFormatter
 import com.android.tools.idea.logcat.messages.MessageProcessor
 import com.android.tools.idea.logcat.messages.ProcessThreadFormat
 import com.android.tools.idea.logcat.messages.TextAccumulator
-import com.android.tools.idea.logcat.messages.TextAccumulator.FilterHint
 import com.android.tools.idea.logcat.messages.TimestampFormat
 import com.android.tools.idea.logcat.service.LogcatService
 import com.android.tools.idea.logcat.service.ProjectAppMonitor
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.AndroidProjectDetectorImpl
+import com.android.tools.idea.logcat.util.FilterHint
 import com.android.tools.idea.logcat.util.LOGGER
 import com.android.tools.idea.logcat.util.LogcatEvent.LogcatMessagesEvent
 import com.android.tools.idea.logcat.util.LogcatEvent.LogcatPanelVisibility
@@ -82,6 +81,7 @@ import com.android.tools.idea.logcat.util.MostRecentlyAddedSet
 import com.android.tools.idea.logcat.util.consume
 import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.android.tools.idea.logcat.util.getDefaultFilter
+import com.android.tools.idea.logcat.util.getFilterHint
 import com.android.tools.idea.logcat.util.isCaretAtBottom
 import com.android.tools.idea.logcat.util.isScrollAtBottom
 import com.android.tools.idea.logcat.util.toggleFilterTerm
@@ -745,12 +745,7 @@ internal class LogcatMainPanel @TestOnly constructor(
   private fun MouseEvent.getFilterHint(): FilterHint? {
     val position = editor.xyToLogicalPosition(Point(x, y))
     val offset = editor.logicalPositionToOffset(position)
-    var filterHint: FilterHint? = null
-    document.processRangeMarkersOverlappingWith(offset, offset) {
-      filterHint = it.getUserData(LOGCAT_FILTER_HINT_KEY)
-      filterHint == null
-    }
-    return filterHint
+    return editor.getFilterHint(offset, formattingOptions)
   }
 
   override fun getFilter(): String = headerPanel.filter

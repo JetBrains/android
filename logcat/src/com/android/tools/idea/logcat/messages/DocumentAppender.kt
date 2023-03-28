@@ -29,7 +29,6 @@ import com.intellij.openapi.util.Key
 import org.jetbrains.annotations.VisibleForTesting
 import kotlin.math.max
 
-internal val LOGCAT_FILTER_HINT_KEY = Key.create<TextAccumulator.FilterHint>("LogcatHint")
 internal val LOGCAT_MESSAGE_KEY = Key.create<LogcatMessage>("LogcatMessage")
 
 internal class DocumentAppender(project: Project, private val document: DocumentEx, private var maxDocumentSize: Int) {
@@ -71,13 +70,6 @@ internal class DocumentAppender(project: Project, private val document: Document
     for (range in buffer.textAttributesKeyRanges) {
       range.applyRange(offset) { start, end, textAttributesKey ->
         markupModel.addRangeHighlighter(textAttributesKey, start, end, HighlighterLayer.SYNTAX, HighlighterTargetArea.EXACT_RANGE)
-      }
-    }
-    for (range in buffer.filterHintRanges) {
-      range.applyRange(offset) { start, end, hint ->
-        ranges.add(document.createRangeMarker(start, end).apply {
-          putUserData(LOGCAT_FILTER_HINT_KEY, hint)
-        })
       }
     }
 

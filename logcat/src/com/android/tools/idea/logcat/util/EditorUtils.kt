@@ -16,6 +16,11 @@
 package com.android.tools.idea.logcat.util
 
 import com.android.annotations.concurrency.UiThread
+import com.android.tools.idea.logcat.messages.FormattingOptions
+import com.android.tools.idea.logcat.messages.LOGCAT_MESSAGE_KEY
+import com.android.tools.idea.logcat.util.FilterHint.AppName
+import com.android.tools.idea.logcat.util.FilterHint.Level
+import com.android.tools.idea.logcat.util.FilterHint.Tag
 import com.intellij.execution.impl.ConsoleViewUtil
 import com.intellij.openapi.command.undo.UndoUtil
 import com.intellij.openapi.editor.EditorFactory
@@ -70,4 +75,23 @@ internal fun EditorEx.isScrollAtBottom(useImmediatePosition: Boolean): Boolean {
   val scrollBar = scrollPane.verticalScrollBar
   val position = if (useImmediatePosition) scrollBar.value else scrollingModel.visibleAreaOnScrollingFinished.y
   return scrollBar.maximum - scrollBar.visibleAmount == position
+}
+
+internal fun EditorEx.getFilterHint(
+  offset: Int,
+  formattingOptions: FormattingOptions,
+): FilterHint? {
+  var result: FilterHint? = null
+  document.processRangeMarkersOverlappingWith(offset, offset) {
+    val header = it.getUserData(LOGCAT_MESSAGE_KEY)?.header ?: return@processRangeMarkersOverlappingWith true
+    val pos = offset - it.startOffset
+    result = when {
+      formattingOptions.getTagRange().isWithin(pos) -> Tag(header.tag, formattingOptions.tagFormat.width() - 1)
+      formattingOptions.getAppIdRange().isWithin(pos) -> AppName(header.applicationId, formattingOptions.appNameFormat.width() - 1)
+      formattingOptions.getLeveRange().isWithin(pos) -> Level(header.logLevel)
+      else -> null
+    }
+    false
+  }
+  return result
 }

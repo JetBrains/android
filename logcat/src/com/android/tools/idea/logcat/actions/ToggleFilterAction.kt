@@ -18,8 +18,9 @@ package com.android.tools.idea.logcat.actions
 import com.android.tools.idea.logcat.LogcatBundle
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.filters.LogcatFilterParser
-import com.android.tools.idea.logcat.messages.LOGCAT_FILTER_HINT_KEY
+import com.android.tools.idea.logcat.util.getFilterHint
 import com.android.tools.idea.logcat.util.toggleFilterTerm
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys.EDITOR
 import com.intellij.openapi.editor.ex.EditorEx
@@ -32,6 +33,8 @@ internal class ToggleFilterAction(
   private val logcatPresenter: LogcatPresenter,
   private val logcatFilterParser: LogcatFilterParser,
 ) : DumbAwareAction("Toggle Filter") {
+
+  override fun getActionUpdateThread() = ActionUpdateThread.EDT
 
   override fun update(e: AnActionEvent) {
     e.presentation.isVisible = false
@@ -61,12 +64,6 @@ internal class ToggleFilterAction(
 
 private fun getFilterHintTerm(e: AnActionEvent): String? {
   val editor = e.getData(EDITOR) as EditorEx? ?: return null
-  val offset = editor.caretModel.offset
-
-  var result: String? = null
-  editor.document.processRangeMarkersOverlappingWith(offset, offset) {
-    result = it.getUserData(LOGCAT_FILTER_HINT_KEY)?.getFilter()
-    result == null
-  }
-  return result
+  val formattingOptions = e.getData(LogcatPresenter.LOGCAT_PRESENTER_ACTION)?.formattingOptions ?: return null
+  return editor.getFilterHint(editor.caretModel.offset, formattingOptions)?.getFilter()
 }

@@ -16,10 +16,11 @@
 package com.android.tools.idea.logcat.actions
 
 import com.android.tools.idea.logcat.LogcatBundle
+import com.android.tools.idea.logcat.LogcatPresenter.Companion.LOGCAT_PRESENTER_ACTION
 import com.android.tools.idea.logcat.LogcatToolWindowFactory
-import com.android.tools.idea.logcat.messages.LOGCAT_FILTER_HINT_KEY
-import com.android.tools.idea.logcat.messages.TextAccumulator.FilterHint.Tag
 import com.android.tools.idea.logcat.settings.AndroidLogcatSettings
+import com.android.tools.idea.logcat.util.FilterHint.Tag
+import com.android.tools.idea.logcat.util.getFilterHint
 import com.intellij.openapi.actionSystem.ActionUpdateThread.EDT
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -50,12 +51,7 @@ internal class IgnoreTagAction : DumbAwareAction("Ignore Tag") {
 
 private fun AnActionEvent.findTagAtCaret(): String? {
   val editor = getData(CommonDataKeys.EDITOR) as EditorEx? ?: return null
+  val formattingOptions = getData(LOGCAT_PRESENTER_ACTION)?.formattingOptions ?: return null
   val offset = editor.caretModel.offset
-
-  var tag: String? = null
-  editor.document.processRangeMarkersOverlappingWith(offset, offset) {
-    tag = it.getUserData(LOGCAT_FILTER_HINT_KEY)?.takeIf { hint -> hint is Tag }?.text
-    tag == null
-  }
-  return tag
+  return editor.getFilterHint(offset, formattingOptions)?.takeIf { it is Tag }?.text
 }
