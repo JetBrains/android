@@ -44,7 +44,6 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -57,7 +56,6 @@ import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.EnumSet
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -713,39 +711,50 @@ class CoroutineUtilsTest {
     }
   }
 
-  @Test(timeout = 2500)
+  @Test(timeout = 6500)
   fun `read action with write priority stops after timeout`() {
     val readActionIsRunning = CompletableDeferred<Unit>()
     runBlocking {
-      var retries = 0
-      val job = launch {
-        try {
-          runReadActionWithWritePriority(
-            maxWaitTime = 1,
-            maxWaitTimeUnit = TimeUnit.SECONDS,
-            callable = { checkCancelled ->
-              readActionIsRunning.complete(Unit)
-              retries++
-              while (true) {
-                checkCancelled()
-                Thread.sleep(50)
+      // We try to start this test logic multiple times as there is a chance that some unrelated write action will be
+      //  consumed to the event queue, and it will affect the test run.
+      // For the particular case, the alarm in [MeteorLibraryUpdater] of JS-Meteor plugin consumes such write action
+      //  what affects tests on TeamCity that run android tests with all plugins enabled.
+      // This approach can be used unless there'll be some way to "wait till all alarms are executed" or "stop accepting events by event queue".
+      repeat(3) {
+        var retries = 0
+        val job = launch {
+          try {
+            runReadActionWithWritePriority(
+              maxWaitTime = 1,
+              maxWaitTimeUnit = TimeUnit.SECONDS,
+              callable = { checkCancelled ->
+                readActionIsRunning.complete(Unit)
+                retries++
+                while (true) {
+                  checkCancelled()
+                  Thread.sleep(50)
+                }
               }
-            }
-          )
-          fail("runReadActionWithWritePriority should never return")
+            )
+            fail("runReadActionWithWritePriority should never return")
+          }
+          catch (ignore: TimeoutException) {
+          }
+          catch (t: Throwable) {
+            fail("Unexpected exception $t")
+          }
         }
-        catch (ignore: TimeoutException) {
-        }
-        catch (t: Throwable) {
-          fail("Unexpected exception $t")
+        readActionIsRunning.await()
+
+        delay(TimeUnit.SECONDS.toMillis(2))
+
+        job.join()
+        if (retries == 1) {
+          // Success test
+          return@runBlocking
         }
       }
-      readActionIsRunning.await()
-
-      delay(TimeUnit.SECONDS.toMillis(2))
-
-      job.join()
-      assertEquals(1, retries)
+      fail("The test wasn't able to be executed without interrupting write action")
     }
   }
 
