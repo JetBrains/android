@@ -25,14 +25,14 @@ import org.jetbrains.annotations.Nullable;
 import static com.android.SdkConstants.*;
 
 /**
- * An extension of {@link LayoutPsiPullParser} specific for Menu xml files.
+ * An extension of {@link LayoutRenderPullParser} specific for Menu xml files.
  */
-class MenuPsiPullParser extends LayoutPsiPullParser.AttributeFilteredLayoutParser {
+class MenuRenderPullParser extends LayoutRenderPullParser.AttributeFilteredLayoutParser {
 
   // Some attributes are not supported by layoutlib and will throw an exception.
   private static final ImmutableSet<String> UNSUPPORTED_ATTRIBUTES = ImmutableSet.of("onClick", "actionViewClass");
 
-  public MenuPsiPullParser(RenderXmlFile file, ILayoutLog logger, ResourceRepositoryManager resourceRepositoryManager) {
+  public MenuRenderPullParser(RenderXmlFile file, ILayoutLog logger, ResourceRepositoryManager resourceRepositoryManager) {
     super(file, logger, new RenderTask.AttributeFilter() {
       @Nullable
       @Override

@@ -61,11 +61,11 @@ import org.kxml2.io.KXmlParser;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-public class LayoutPsiPullParserTest extends AndroidTestCase {
+public class LayoutRenderPullParserTest extends AndroidTestCase {
   @SuppressWarnings("SpellCheckingInspection")
   public static final String BASE_PATH = "xmlpull/";
 
-  public LayoutPsiPullParserTest() {
+  public LayoutRenderPullParserTest() {
   }
 
   public void testDesignAttributes() throws Exception {
@@ -75,8 +75,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
     assertTrue(psiFile instanceof XmlFile);
     RenderXmlFile xmlFile = new PsiXmlFile((XmlFile)psiFile);
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                            StudioResourceRepositoryManager.getInstance(myModule));
+    LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                  StudioResourceRepositoryManager.getInstance(myModule));
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("LinearLayout", parser.getName());
     assertEquals(START_TAG, parser.nextTag());
@@ -108,8 +108,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
     assertTrue(psiFile instanceof XmlFile);
     RenderXmlFile xmlFile = new PsiXmlFile((XmlFile)psiFile);
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                            StudioResourceRepositoryManager.getInstance(myModule));
+    LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                  StudioResourceRepositoryManager.getInstance(myModule));
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("FrameLayout", parser.getName()); // Automatically inserted surrounding the <include>
     assertEquals(7, parser.getAttributeCount());
@@ -134,8 +134,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
     assertTrue(psiFile instanceof XmlFile);
     RenderXmlFile xmlFile = new PsiXmlFile((XmlFile)psiFile);
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                            StudioResourceRepositoryManager.getInstance(myModule));
+    LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                  StudioResourceRepositoryManager.getInstance(myModule));
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("FrameLayout", parser.getName()); // Automatically inserted surrounding the <include>
     assertEquals(3, parser.getAttributeCount());
@@ -158,8 +158,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
     assertTrue(psiFile instanceof XmlFile);
     RenderXmlFile xmlFile = new PsiXmlFile((XmlFile)psiFile);
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                            StudioResourceRepositoryManager.getInstance(myModule));
+    LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                  StudioResourceRepositoryManager.getInstance(myModule));
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("FrameLayout", parser.getName());
     assertEquals(START_TAG, parser.nextTag());
@@ -198,8 +198,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
     assertTrue(psiFile instanceof XmlFile);
     RenderXmlFile xmlFile = new PsiXmlFile((XmlFile)psiFile);
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                            StudioResourceRepositoryManager.getInstance(myModule));
+    LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                  StudioResourceRepositoryManager.getInstance(myModule));
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("LinearLayout", parser.getName());
     assertEquals(START_TAG, parser.nextTag()); // ImageView
@@ -234,8 +234,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
     assertTrue(psiFile instanceof XmlFile);
     RenderXmlFile xmlFile = new PsiXmlFile((XmlFile)psiFile);
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                            StudioResourceRepositoryManager.getInstance(myModule));
+    LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                  StudioResourceRepositoryManager.getInstance(myModule));
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("LinearLayout", parser.getName());
     assertEquals(START_TAG, parser.nextTag()); // ImageView
@@ -274,11 +274,11 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     RenderXmlFile emptyFile = mock(RenderXmlFile.class);
     when(emptyFile.getRootTag()).thenReturn(null);
     RenderLogger logger = RenderLogger.NOP_RENDER_LOGGER;
-    assertEmptyParser(LayoutPsiPullParser.create(emptyFile, logger, StudioResourceRepositoryManager.getInstance(myModule)));
-    assertEmptyParser(new LayoutPsiPullParser(mock(RenderXmlTag.class), logger, true,
-                                              null, StudioResourceRepositoryManager.getInstance(myModule)));
-    assertEmptyParser(new LayoutPsiPullParser(mock(RenderXmlTag.class), logger, true,
-                                              null, StudioResourceRepositoryManager.getInstance(myModule)));
+    assertEmptyParser(LayoutRenderPullParser.create(emptyFile, logger, StudioResourceRepositoryManager.getInstance(myModule)));
+    assertEmptyParser(new LayoutRenderPullParser(mock(RenderXmlTag.class), logger, true,
+                                                 null, StudioResourceRepositoryManager.getInstance(myModule)));
+    assertEmptyParser(new LayoutRenderPullParser(mock(RenderXmlTag.class), logger, true,
+                                                 null, StudioResourceRepositoryManager.getInstance(myModule)));
   }
 
   public void testAaptAttr() throws Exception {
@@ -288,8 +288,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertTrue(psiFile instanceof XmlFile);
     RenderXmlFile xmlFile = new PsiXmlFile((XmlFile)psiFile);
     long expectedId = AaptAttrAttributeSnapshot.ourUniqueId.get();
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                            StudioResourceRepositoryManager.getInstance(myModule));
+    LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                  StudioResourceRepositoryManager.getInstance(myModule));
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("LinearLayout", parser.getName());
     assertEquals(START_TAG, parser.nextTag()); // ImageView
@@ -312,18 +312,18 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertTrue(psiFile instanceof XmlFile);
     RenderXmlFile xmlFile = new PsiXmlFile((XmlFile)psiFile);
 
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                            true, null, StudioResourceRepositoryManager.getInstance(myModule),
-                                                            0);
+    LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                  true, null, StudioResourceRepositoryManager.getInstance(myModule),
+                                                                  0);
     assertEquals("LinearLayout", parser.myRoot.tagName);
     assertEquals(VALUE_MATCH_PARENT, parser.myRoot.getAttribute(ATTR_LAYOUT_WIDTH, ANDROID_URI));
     assertEquals(VALUE_MATCH_PARENT, parser.myRoot.getAttribute(ATTR_LAYOUT_HEIGHT, ANDROID_URI));
     assertEquals("Button1", parser.myRoot.children.get(0).getAttribute("text"));
 
     // Now, do not honor the parentTag. We should get the <merge> tag as root.
-    parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                        false, null, StudioResourceRepositoryManager.getInstance(myModule),
-                                        0);
+    parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                           false, null, StudioResourceRepositoryManager.getInstance(myModule),
+                                           0);
     assertEquals("merge", parser.myRoot.tagName);
     assertEquals("Button1", parser.myRoot.children.get(0).getAttribute("text"));
   }
@@ -348,8 +348,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
     assertTrue(psiFile instanceof XmlFile);
     RenderXmlFile xmlFile = new PsiXmlFile((XmlFile)psiFile);
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                            StudioResourceRepositoryManager.getInstance(myModule));
+    LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                  StudioResourceRepositoryManager.getInstance(myModule));
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("LinearLayout", parser.getName());
     assertEquals(START_TAG, parser.nextTag()); // TextView
@@ -378,8 +378,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
     assertTrue(psiFile instanceof XmlFile);
     RenderXmlFile xmlFile = new PsiXmlFile((XmlFile)psiFile);
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                            StudioResourceRepositoryManager.getInstance(myModule));
+    LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                  StudioResourceRepositoryManager.getInstance(myModule));
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("LinearLayout", parser.getName());
     assertEquals(START_TAG, parser.nextTag()); // TextView
@@ -414,9 +414,9 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
     assertTrue(psiFile instanceof XmlFile);
     RenderXmlFile xmlFile = new PsiXmlFile((XmlFile)psiFile);
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                            false, null, StudioResourceRepositoryManager.getInstance(myModule),
-                                                            3);
+    LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                  false, null, StudioResourceRepositoryManager.getInstance(myModule),
+                                                                  3);
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("LinearLayout", parser.getName());
     assertEquals(START_TAG, parser.nextTag()); // 1st TextView
@@ -459,8 +459,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
     assertTrue(psiFile instanceof XmlFile);
     RenderXmlFile xmlFile = new PsiXmlFile((XmlFile)psiFile);
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                            StudioResourceRepositoryManager.getInstance(myModule));
+    LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                  StudioResourceRepositoryManager.getInstance(myModule));
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("LinearLayout", parser.getName());
     assertEquals(START_TAG, parser.nextTag()); // 1st TextView
@@ -510,8 +510,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
                                                        "<layout>" + contents + "</layout>");
     RenderXmlFile xmlFile = new PsiXmlFile((XmlFile)layoutPsiFile);
 
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                            StudioResourceRepositoryManager.getInstance(myModule));
+    LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                  StudioResourceRepositoryManager.getInstance(myModule));
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("LinearLayout", parser.getName());
     assertEquals(START_TAG, parser.nextTag());
@@ -529,8 +529,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     // Now check that if the file is not a databinding layout, the tags are not included
     xmlFile = new PsiXmlFile((XmlFile)noLayoutPsiFile);
 
-    parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                        StudioResourceRepositoryManager.getInstance(myModule));
+    parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                           StudioResourceRepositoryManager.getInstance(myModule));
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("LinearLayout", parser.getName());
     assertEquals(START_TAG, parser.nextTag());
@@ -558,8 +558,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     PsiFile layoutPsiFile = myFixture.addFileToProject("res/layout/no_data_binding.xml", contents);
     RenderXmlFile xmlFile = new PsiXmlFile((XmlFile)layoutPsiFile);
 
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                            StudioResourceRepositoryManager.getInstance(myModule));
+    LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                  StudioResourceRepositoryManager.getInstance(myModule));
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("LinearLayout", parser.getName());
     assertEquals(START_TAG, parser.nextTag());
@@ -574,8 +574,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
     assertTrue(psiFile instanceof XmlFile);
     RenderXmlFile xmlFile = new PsiXmlFile((XmlFile)psiFile);
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                            StudioResourceRepositoryManager.getInstance(myModule));
+    LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                  StudioResourceRepositoryManager.getInstance(myModule));
 
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("LinearLayout", parser.getName());
@@ -607,8 +607,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
                           "    tools:srcCompat=\"srcCompatValue\" />";
 
     RenderXmlFile xmlFile = new PsiXmlFile((XmlFile)myFixture.addFileToProject("res/layout/my_layout.xml", layout));
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                            StudioResourceRepositoryManager.getInstance(myModule));
+    LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                  StudioResourceRepositoryManager.getInstance(myModule));
     parser.setUseSrcCompat(true); // Enable srcCompat replacing src values
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("ImageView", parser.getName());
@@ -647,10 +647,10 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     Configuration configuration = manager.getConfiguration(psiFile.getVirtualFile());
     ResourceResolver resourceResolver = configuration.getResourceResolver();
 
-    LayoutPsiPullParser parser =
-      LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                 null, Density.MEDIUM, resourceResolver,
-                                 StudioResourceRepositoryManager.getInstance(myModule), true);
+    LayoutRenderPullParser parser =
+      LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                    null, Density.MEDIUM, resourceResolver,
+                                    StudioResourceRepositoryManager.getInstance(myModule), true);
     assertEquals(START_TAG, parser.nextTag());
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("include", parser.getName());
@@ -692,10 +692,10 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     Configuration configuration = manager.getConfiguration(psiFile.getVirtualFile());
     ResourceResolver resourceResolver = configuration.getResourceResolver();
 
-    LayoutPsiPullParser parser =
-      LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                 null, Density.MEDIUM, resourceResolver,
-                                 StudioResourceRepositoryManager.getInstance(myModule), true);
+    LayoutRenderPullParser parser =
+      LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                    null, Density.MEDIUM, resourceResolver,
+                                    StudioResourceRepositoryManager.getInstance(myModule), true);
     assertEquals(START_TAG, parser.nextTag());
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("include", parser.getName());
@@ -722,8 +722,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
     assertTrue(psiFile instanceof XmlFile);
     RenderXmlFile xmlFile = new PsiXmlFile((XmlFile)psiFile);
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                            StudioResourceRepositoryManager.getInstance(myModule));
+    LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                  StudioResourceRepositoryManager.getInstance(myModule));
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("LinearLayout", parser.getName());
     assertEquals(START_TAG, parser.nextTag()); // First TextView
@@ -770,9 +770,9 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
     assertTrue(psiFile instanceof XmlFile);
     RenderXmlFile xmlFile = new PsiXmlFile((XmlFile) psiFile);
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                            null, Density.MEDIUM, null,
-                                                            StudioResourceRepositoryManager.getInstance(myModule), false);
+    LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                  null, Density.MEDIUM, null,
+                                                                  StudioResourceRepositoryManager.getInstance(myModule), false);
 
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("androidx.constraintlayout.widget.ConstraintLayout", parser.getName());
@@ -803,9 +803,9 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
                                               "    android:paddingHorizontal=\"12dp\" />\n";
       PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
       RenderXmlFile xmlFile = new PsiXmlFile((XmlFile) psiFile);
-      LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                              null, Density.MEDIUM, null,
-                                                              StudioResourceRepositoryManager.getInstance(myModule), false);
+      LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                    null, Density.MEDIUM, null,
+                                                                    StudioResourceRepositoryManager.getInstance(myModule), false);
       assertEquals(START_TAG, parser.nextTag());
       assertEquals("12dp", parser.getAttributeValue(ANDROID_URI, "paddingLeft"));
       assertEquals("12dp", parser.getAttributeValue(ANDROID_URI, "paddingRight"));
@@ -824,9 +824,9 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
                                               "    tools:paddingHorizontal=\"12dp\" />\n";
       PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
       RenderXmlFile xmlFile = new PsiXmlFile((XmlFile) psiFile);
-      LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                              null, Density.MEDIUM, null,
-                                                              StudioResourceRepositoryManager.getInstance(myModule), false);
+      LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                    null, Density.MEDIUM, null,
+                                                                    StudioResourceRepositoryManager.getInstance(myModule), false);
       assertEquals(START_TAG, parser.nextTag());
       assertEquals("12dp", parser.getAttributeValue(ANDROID_URI, "paddingLeft"));
       assertEquals("12dp", parser.getAttributeValue(ANDROID_URI, "paddingRight"));
@@ -844,9 +844,9 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
                                               "    android:paddingVertical=\"12dp\" />\n";
       PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
       RenderXmlFile xmlFile = new PsiXmlFile((XmlFile) psiFile);
-      LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                              null, Density.MEDIUM, null,
-                                                              StudioResourceRepositoryManager.getInstance(myModule), false);
+      LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                    null, Density.MEDIUM, null,
+                                                                    StudioResourceRepositoryManager.getInstance(myModule), false);
       assertEquals(START_TAG, parser.nextTag());
       assertEquals("12dp", parser.getAttributeValue(ANDROID_URI, "paddingTop"));
       assertEquals("12dp", parser.getAttributeValue(ANDROID_URI, "paddingBottom"));
@@ -864,9 +864,9 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
                                               "    android:paddingBottom=\"2dp\" />\n";
       PsiFile psiFile = myFixture.addFileToProject("res/layout/layout.xml", content);
       RenderXmlFile xmlFile = new PsiXmlFile((XmlFile) psiFile);
-      LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                              null, Density.MEDIUM, null,
-                                                              StudioResourceRepositoryManager.getInstance(myModule),  false);
+      LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                    null, Density.MEDIUM, null,
+                                                                    StudioResourceRepositoryManager.getInstance(myModule), false);
       assertEquals(START_TAG, parser.nextTag());
       assertEquals("1dp", parser.getAttributeValue(ANDROID_URI, "paddingRight"));
       assertEquals("2dp", parser.getAttributeValue(ANDROID_URI, "paddingBottom"));
@@ -884,8 +884,8 @@ public class LayoutPsiPullParserTest extends AndroidTestCase {
     assertTrue(file instanceof XmlFile);
     RenderXmlFile xmlFile = new PsiXmlFile((XmlFile)file);
     KXmlParser referenceParser = createReferenceParser(file);
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                                            StudioResourceRepositoryManager.getInstance(myModule));
+    LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
+                                                                  StudioResourceRepositoryManager.getInstance(myModule));
 
     assertEquals("Expected " + name(referenceParser.getEventType()) + " but was "
                  + name(parser.getEventType())

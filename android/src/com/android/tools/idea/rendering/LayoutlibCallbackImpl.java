@@ -68,7 +68,7 @@ import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.rendering.parsers.AaptAttrParser;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
-import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
+import com.android.tools.idea.rendering.parsers.LayoutRenderPullParser;
 import com.android.tools.idea.rendering.parsers.RenderXmlFile;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.FileResourceReader;
@@ -406,7 +406,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     if (!myAaptDeclaredResources.isEmpty() && layoutResource.getResourceType() == ResourceType.AAPT) {
       TagSnapshot aaptResource = myAaptDeclaredResources.get(layoutResource.getValue());
       // TODO(namespaces, b/74003372): figure out where to get the namespace from.
-      parser = LayoutPsiPullParser.create(aaptResource, ResourceNamespace.TODO(), myLogger);
+      parser = LayoutRenderPullParser.create(aaptResource, ResourceNamespace.TODO(), myLogger);
     }
     else {
       PathString pathString = ResourcesUtil.toFileResourcePathString(value);
@@ -491,12 +491,12 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
           ResourceResolver resourceResolver = myRenderTask.getContext().getConfiguration().getResourceResolver();
           // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different
           // layout so we already have a parent.
-          LayoutPsiPullParser parser = LayoutPsiPullParser.create(xmlFile,
-                                                                  myLogger,
-                                                                  false,
-                                                                  resourceResolver,
-                                                                  myRenderModule.getResourceRepositoryManager(),
-                                                                  sampleDataCounter.getAndIncrement());
+          LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile,
+                                                                        myLogger,
+                                                                        false,
+                                                                        resourceResolver,
+                                                                        myRenderModule.getResourceRepositoryManager(),
+                                                                        sampleDataCounter.getAndIncrement());
           parser.setUseSrcCompat(myHasLegacyAppCompat || myHasAndroidXAppCompat);
           if (parentName.startsWith(FD_RES_LAYOUT)) {
             // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag.

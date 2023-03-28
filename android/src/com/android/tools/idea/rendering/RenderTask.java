@@ -46,7 +46,6 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.analytics.crash.CrashReporter;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
@@ -55,7 +54,7 @@ import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
-import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
+import com.android.tools.idea.rendering.parsers.LayoutRenderPullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.rendering.parsers.RenderXmlFile;
 import com.android.tools.idea.rendering.parsers.RenderXmlTag;
@@ -92,7 +91,6 @@ import org.jetbrains.android.uipreview.ClassLoaderPreloaderKt;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
 import org.jetbrains.android.uipreview.ModuleRenderContext;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -583,12 +581,12 @@ public class RenderTask {
 
     myLayoutlibCallback.reset();
 
-    if (modelParser instanceof LayoutPsiPullParser) {
+    if (modelParser instanceof LayoutRenderPullParser) {
       // For regular layouts, if we use appcompat, we have to emulat the app:srcCompat attribute behaviour.
       boolean useSrcCompat = context.getModule().getDependencies().getDependsOnAppCompat() ||
                              context.getModule().getDependencies().getDependsOnAndroidXAppCompat();
-      ((LayoutPsiPullParser)modelParser).setUseSrcCompat(useSrcCompat);
-      myLayoutlibCallback.setAaptDeclaredResources(((LayoutPsiPullParser)modelParser).getAaptDeclaredAttrs());
+      ((LayoutRenderPullParser)modelParser).setUseSrcCompat(useSrcCompat);
+      myLayoutlibCallback.setAaptDeclaredResources(((LayoutRenderPullParser)modelParser).getAaptDeclaredAttrs());
     }
 
     ILayoutPullParser includingParser = getIncludingLayoutParser(resolver, modelParser);
@@ -758,8 +756,8 @@ public class RenderTask {
       // Attempt to read from PSI.
       RenderXmlFile fromXmlFile = myIncludedWithin.getFromXmlFile(myContext.getModule().getProject());
       if (fromXmlFile != null) {
-        LayoutPsiPullParser parser = LayoutPsiPullParser.create(fromXmlFile, myLogger,
-                                                                myContext.getModule().getResourceRepositoryManager());
+        LayoutRenderPullParser parser = LayoutRenderPullParser.create(fromXmlFile, myLogger,
+                                                                      myContext.getModule().getResourceRepositoryManager());
         // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
         parser.setProvideViewCookies(myProvideCookiesForIncludedViews);
         topParser = parser;
@@ -1256,10 +1254,10 @@ public class RenderTask {
    */
   @NotNull
   public CompletableFuture<Map<RenderXmlTag, ViewInfo>> measureChildren(@NotNull RenderXmlTag parent, @Nullable AttributeFilter filter) {
-    ILayoutPullParser modelParser = LayoutPsiPullParser.create(filter,
-                                                               parent,
-                                                               myLogger,
-                                                               myContext.getModule().getResourceRepositoryManager());
+    ILayoutPullParser modelParser = LayoutRenderPullParser.create(filter,
+                                                                  parent,
+                                                                  myLogger,
+                                                                  myContext.getModule().getResourceRepositoryManager());
     Map<RenderXmlTag, ViewInfo> map = new HashMap<>();
     return RenderService.getRenderAsyncActionExecutor().runAsyncAction(myPriority, () -> measure(modelParser))
       .thenComposeAsync(session -> {

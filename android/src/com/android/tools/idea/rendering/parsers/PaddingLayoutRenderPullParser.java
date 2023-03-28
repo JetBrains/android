@@ -28,11 +28,11 @@ import java.util.regex.Pattern;
 import static com.android.SdkConstants.*;
 
 /**
- * A custom version of the {@link LayoutPsiPullParser} which
+ * A custom version of the {@link LayoutRenderPullParser} which
  * can add padding to a dedicated set of layout nodes, which for example can be used to
  * ensure that empty view groups have certain minimum size during a palette drop.
  */
-class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
+class PaddingLayoutRenderPullParser extends LayoutRenderPullParser {
   private final static Pattern FLOAT_PATTERN = Pattern.compile("(-?[0-9]+(?:\\.[0-9]+)?)(.*)"); //$NON-NLS-1$
   private final static int PADDING_VALUE = 10;
 
@@ -61,10 +61,10 @@ class PaddingLayoutPsiPullParser extends LayoutPsiPullParser {
   private final Set<RenderXmlTag> myExplodeNodes;
 
   /**
-   * Use the {@link LayoutPsiPullParser#create(RenderXmlFile, IRenderLogger, Set, Density, ResourceRepositoryManager)} factory instead.
+   * Use the {@link LayoutRenderPullParser#create(RenderXmlFile, IRenderLogger, Set, Density, ResourceRepositoryManager)} factory instead.
    */
-  PaddingLayoutPsiPullParser(@NotNull RenderXmlFile file, @NotNull IRenderLogger logger, @NotNull Set<RenderXmlTag> explodeNodes,
-                             @NotNull Density density, @Nullable ResourceRepositoryManager resourceRepositoryManager) {
+  PaddingLayoutRenderPullParser(@NotNull RenderXmlFile file, @NotNull IRenderLogger logger, @NotNull Set<RenderXmlTag> explodeNodes,
+                                @NotNull Density density, @Nullable ResourceRepositoryManager resourceRepositoryManager) {
     super(file, logger, true, resourceRepositoryManager);
     myExplodeNodes = explodeNodes;
     myDensity = density;

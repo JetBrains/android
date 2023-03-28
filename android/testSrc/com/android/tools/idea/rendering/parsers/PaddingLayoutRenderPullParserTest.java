@@ -32,11 +32,11 @@ import static org.xmlpull.v1.XmlPullParser.END_TAG;
 import static org.xmlpull.v1.XmlPullParser.START_TAG;
 
 @SuppressWarnings("ConstantConditions")
-public class PaddingLayoutPsiPullParserTest extends AndroidTestCase {
+public class PaddingLayoutRenderPullParserTest extends AndroidTestCase {
   @SuppressWarnings("SpellCheckingInspection")
   public static final String BASE_PATH = "xmlpull/";
 
-  public PaddingLayoutPsiPullParserTest() {
+  public PaddingLayoutRenderPullParserTest() {
   }
 
   public void test() throws Exception {
@@ -55,7 +55,8 @@ public class PaddingLayoutPsiPullParserTest extends AndroidTestCase {
     assertNull(element.getAttributeValue(ATTR_ID, ATTR_PADDING));
 
     Set<RenderXmlTag> explode = Sets.newHashSet(new PsiXmlTag(element));
-    LayoutPsiPullParser parser = LayoutPsiPullParser.create(new PsiXmlFile(xmlFile), RenderLogger.NOP_RENDER_LOGGER, explode, Density.MEDIUM, null, null, true);
+    LayoutRenderPullParser
+      parser = LayoutRenderPullParser.create(new PsiXmlFile(xmlFile), RenderLogger.NOP_RENDER_LOGGER, explode, Density.MEDIUM, null, null, true);
     assertEquals(START_TAG, parser.nextTag());
     assertEquals("LinearLayout", parser.getName());
     assertEquals(START_TAG, parser.nextTag());

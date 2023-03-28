@@ -60,7 +60,6 @@ import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
-import com.android.tools.idea.rendering.AndroidXmlFiles;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.ResourceRepositoryManager;
@@ -172,7 +171,7 @@ public class LayoutPullParsers {
         HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
         ResourceResolver resourceResolver = renderTask.getContext().getConfiguration().getResourceResolver();
         boolean useToolsNamespace = renderTask.getShowWithToolsVisibilityAndPosition();
-        return LayoutPsiPullParser
+        return LayoutRenderPullParser
           .create(file, logger, Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver, manager, useToolsNamespace);
       }
       case DRAWABLE:
@@ -197,7 +196,7 @@ public class LayoutPullParsers {
             IRenderLogger logger = renderTask.getLogger();
             HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
             ResourceResolver resourceResolver = renderTask.getContext().getConfiguration().getResourceResolver();
-            return LayoutPsiPullParser.create(file, logger,  Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver, manager, true);
+            return LayoutRenderPullParser.create(file, logger, Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver, manager, true);
           }
         }
         return null;
