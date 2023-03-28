@@ -19,15 +19,21 @@ import com.android.tools.idea.assistant.OpenAssistSidePanelAction
 import com.android.tools.idea.lint.common.AndroidQuickfixContexts
 import com.android.tools.idea.lint.common.DefaultLintQuickFix
 import com.android.tools.lint.checks.GradleDetector
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 
 class LaunchTargetSdkVersionAssistantFix :
   DefaultLintQuickFix("Launch Android SDK Upgrade Assistant") {
+
   override fun isApplicable(
     startElement: PsiElement,
     endElement: PsiElement,
     contextType: AndroidQuickfixContexts.ContextType
   ): Boolean = true
+
   override fun apply(
     startElement: PsiElement,
     endElement: PsiElement,
@@ -37,4 +43,10 @@ class LaunchTargetSdkVersionAssistantFix :
     OpenAssistSidePanelAction()
       .openWindow("DeveloperServices.TargetSDKVersionUpgradeAssistant", startElement.project)
   }
+
+  override fun generatePreview(
+    project: Project,
+    editor: Editor,
+    file: PsiFile
+  ): IntentionPreviewInfo = IntentionPreviewInfo.EMPTY
 }
