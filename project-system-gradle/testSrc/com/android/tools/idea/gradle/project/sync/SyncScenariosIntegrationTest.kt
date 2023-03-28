@@ -319,6 +319,15 @@ class SyncScenariosIntegrationTest {
     }
   }
 
+  @Test
+  fun `fatal errors are failing sync and not ignored`() {
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.SIMPLE_APPLICATION)
+    preparedProject.open { project ->
+      val result = kotlin.runCatching { project.requestSyncAndWait(syncRequest = testRequest(SyncTestMode.TEST_EXCEPTION_WITH_UNRESOLVED_MODULE)) }
+      expect.that(result.exceptionOrNull()?.message).contains("**internal error for tests**")
+    }
+  }
+
   private fun Project.syncAndDumpProject(): String {
     requestSyncAndWait()
     return this.saveAndDump()

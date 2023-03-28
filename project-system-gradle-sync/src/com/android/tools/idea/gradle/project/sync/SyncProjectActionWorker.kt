@@ -293,7 +293,15 @@ internal class SyncProjectActionWorker(
             }
           }
         }
-        updatedResult.ignoreExceptionsAndGet()?.module?.recordExceptions(updatedResult.exceptions) // TODO(solodkyy): Record exceptions when module is unresolved.
+        if (syncOptions.syncTestMode == SyncTestMode.TEST_EXCEPTION_WITH_UNRESOLVED_MODULE) error("**internal error for tests**")
+        val androidModule = updatedResult.ignoreExceptionsAndGet()?.module
+        if (androidModule != null) {
+          androidModule.recordExceptions(updatedResult.exceptions)
+        }
+        else {
+          // TODO(b/276454275): Record exceptions when module is unresolved.
+          updatedResult.exceptions.firstOrNull()?.let { throw it }
+        }
       }
       propagatedToModules =
         preModuleDependencies
