@@ -22,7 +22,7 @@
     </action>
   </actions>
   <extensions defaultExtensionNs="com.intellij">
-    <applicationConfigurable parentId="preferences.general"
+    <applicationConfigurable parentId="language"
                              displayName="Android SDK"
                              provider="com.android.tools.idea.updater.configure.SdkUpdaterConfigurableProvider"
                              id="AndroidSdkUpdater"/>

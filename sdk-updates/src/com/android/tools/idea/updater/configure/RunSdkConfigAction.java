@@ -61,6 +61,6 @@ public class RunSdkConfigAction extends DumbAwareAction {
     }
     Configurable configurable =
       ConfigurableExtensionPointUtil.createApplicationConfigurableForProvider(SdkUpdaterConfigurableProvider.class);
-    ShowSettingsUtil.getInstance().showSettingsDialog(null, configurable.getClass());
+    ShowSettingsUtil.getInstance().showSettingsDialog(e.getProject(), configurable.getClass());
   }
 }
