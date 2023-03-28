@@ -22,6 +22,7 @@ import com.android.tools.idea.rendering.ActionBarHandler;
 import com.android.tools.idea.rendering.LayoutlibCallbackImpl;
 import com.android.tools.idea.rendering.RenderModuleDependencies;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
 import org.intellij.lang.annotations.Language;

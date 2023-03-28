@@ -38,5 +38,6 @@
     <orderEntry type="module" module-name="intellij.android.observable" />
     <orderEntry type="module" module-name="intellij.android.observable.ui" />
     <orderEntry type="module" module-name="intellij.android.newProjectWizard" />
+    <orderEntry type="module" module-name="intellij.android.rendering" />
   </component>
 </module>

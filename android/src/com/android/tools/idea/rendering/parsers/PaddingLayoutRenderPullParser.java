@@ -19,6 +19,8 @@ import com.android.annotations.Nullable;
 import com.android.resources.Density;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.rendering.parsers.RenderXmlFile;
+import com.android.tools.rendering.parsers.RenderXmlTag;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;

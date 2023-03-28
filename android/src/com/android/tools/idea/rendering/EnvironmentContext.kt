@@ -17,7 +17,7 @@ package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.util.PathString
-import com.android.tools.idea.rendering.parsers.RenderXmlFile
+import com.android.tools.rendering.parsers.RenderXmlFile
 import com.intellij.openapi.Disposable
 
 /**

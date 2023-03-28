@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.parsers
+package com.android.tools.rendering.parsers
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.resources.ResourceFolderType

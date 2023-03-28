@@ -29,6 +29,7 @@ iml_module(
         "//tools/adt/idea/observable:intellij.android.observable[module]",
         "//tools/adt/idea/observable-ui:intellij.android.observable.ui[module]",
         "//tools/adt/idea/android-npw:intellij.android.newProjectWizard[module]",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module]",
     ],
 )
 

@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering.parsers
 
 import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.tools.rendering.parsers.RenderXmlAttribute
 import com.intellij.psi.xml.XmlAttribute
 
 /** Studio specific [XmlAttribute]-based implementation of [RenderXmlAttribute]. */

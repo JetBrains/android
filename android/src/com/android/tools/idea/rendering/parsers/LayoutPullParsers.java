@@ -63,6 +63,8 @@ import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.rendering.parsers.RenderXmlFile;
+import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeInsight.template.emmet.generators.LoremGenerator;

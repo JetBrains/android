@@ -130,6 +130,7 @@ iml_module(
         "//tools/base/process-monitor:studio.android.sdktools.process-monitor[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//prebuilts/r8",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module]",
     ],
 )
 
@@ -359,6 +360,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
         "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
     ],
 )
 

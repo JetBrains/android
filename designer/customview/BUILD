@@ -23,6 +23,7 @@ iml_module(
         "//tools/adt/idea/layout-ui:intellij.android.layout-ui[module]",
         "//tools/adt/idea/preview-designer:intellij.android.preview-designer[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module]",
     ],
 )
 

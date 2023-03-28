@@ -47,6 +47,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/base/lint:studio.android.sdktools.lint-api[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module]",
     ],
 )
 
@@ -136,6 +137,7 @@ iml_module(
         "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",
         "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
     ],
 )
 

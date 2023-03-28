@@ -24,6 +24,7 @@ import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.XmlElementFactory;

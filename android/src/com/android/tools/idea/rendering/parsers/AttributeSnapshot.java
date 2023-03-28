@@ -16,6 +16,8 @@
 package com.android.tools.idea.rendering.parsers;
 
 import com.android.utils.DataBindingUtils;
+import com.android.tools.rendering.parsers.RenderXmlAttribute;
+import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

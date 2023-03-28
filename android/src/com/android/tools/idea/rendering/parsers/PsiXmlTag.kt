@@ -2,6 +2,8 @@ package com.android.tools.idea.rendering.parsers
 
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.tools.idea.res.resourceNamespace
+import com.android.tools.rendering.parsers.RenderXmlAttribute
+import com.android.tools.rendering.parsers.RenderXmlTag
 import com.intellij.openapi.project.Project
 import com.intellij.psi.xml.XmlTag
 

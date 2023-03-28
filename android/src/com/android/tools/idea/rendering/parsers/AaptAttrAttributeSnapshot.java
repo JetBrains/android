@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
+import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.xml.util.XmlUtil;
 import java.util.List;

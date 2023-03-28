@@ -20,7 +20,7 @@ import com.android.ide.common.util.PathString
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
-import com.android.tools.idea.rendering.parsers.RenderXmlFile
+import com.android.tools.rendering.parsers.RenderXmlFile
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project

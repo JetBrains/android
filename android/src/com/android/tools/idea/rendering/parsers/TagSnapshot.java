@@ -24,6 +24,8 @@ import static com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.google.common.base.Charsets.UTF_8;
 
+import com.android.tools.rendering.parsers.RenderXmlAttribute;
+import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;

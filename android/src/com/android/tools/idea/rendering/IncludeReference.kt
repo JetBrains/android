@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering
 
-import com.android.tools.idea.rendering.parsers.RenderXmlFile
+import com.android.tools.rendering.parsers.RenderXmlFile
 import com.intellij.openapi.project.Project
 import java.io.File
 

@@ -32,7 +32,7 @@ import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
-import com.android.tools.idea.rendering.parsers.RenderXmlTag;
+import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;

@@ -20,6 +20,8 @@ import com.android.resources.ResourceFolderType
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.res.getFolderType
 import com.android.tools.idea.res.resourceNamespace
+import com.android.tools.rendering.parsers.RenderXmlFile
+import com.android.tools.rendering.parsers.RenderXmlTag
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
