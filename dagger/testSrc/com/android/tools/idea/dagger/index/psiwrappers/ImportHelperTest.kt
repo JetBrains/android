@@ -50,8 +50,8 @@ class ImportHelperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
-      """
+        package com.example
+        """
           .trimIndent()
       ) as KtFile
 
@@ -70,9 +70,9 @@ class ImportHelperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
-      import javax.inject.*
-      """
+        package com.example
+        import javax.inject.*
+        """
           .trimIndent()
       ) as KtFile
 
@@ -91,9 +91,9 @@ class ImportHelperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
-      import javax.inject.Inject
-      """
+        package com.example
+        import javax.inject.Inject
+        """
           .trimIndent()
       ) as KtFile
 
@@ -112,9 +112,9 @@ class ImportHelperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
-      import javax.inject.Inject as OtherInject
-      """
+        package com.example
+        import javax.inject.Inject as OtherInject
+        """
           .trimIndent()
       ) as KtFile
 
@@ -133,11 +133,11 @@ class ImportHelperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
-      import javax.inject.*
-      import javax.inject.Inject
-      import javax.inject.Inject as OtherInject
-      """
+        package com.example
+        import javax.inject.*
+        import javax.inject.Inject
+        import javax.inject.Inject as OtherInject
+        """
           .trimIndent()
       ) as KtFile
 
@@ -150,14 +150,64 @@ class ImportHelperTest {
   }
 
   @Test
+  fun kotlin_getPossibleAnnotationText_nestedClasses() {
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+        package com.example
+        import com.other.Foo1
+        import com.other.Foo2.Inner
+        import com.other.Foo3 as MyFoo3
+
+        import com.other.Foo4
+        import com.other.Foo4.Inner4
+        """
+          .trimIndent()
+      ) as KtFile
+
+    val importHelper = KotlinImportHelper(psiFile)
+
+    assertThat(importHelper.getPossibleAnnotationText("com.example.Foo0.Inner"))
+      .containsExactly("com.example.Foo0.Inner", "Foo0.Inner")
+    assertThat(importHelper.getPossibleAnnotationText("com.example.Foo0.Inner.NestedAgain"))
+      .containsExactly("com.example.Foo0.Inner.NestedAgain", "Foo0.Inner.NestedAgain")
+
+    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo1.Inner"))
+      .containsExactly("com.other.Foo1.Inner", "Foo1.Inner")
+    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo1.Inner.NestedAgain"))
+      .containsExactly("com.other.Foo1.Inner.NestedAgain", "Foo1.Inner.NestedAgain")
+
+    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo2.Inner"))
+      .containsExactly("com.other.Foo2.Inner", "Inner")
+    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo2.Inner.NestedAgain"))
+      .containsExactly("com.other.Foo2.Inner.NestedAgain", "Inner.NestedAgain")
+
+    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo3.Inner"))
+      .containsExactly("com.other.Foo3.Inner", "MyFoo3.Inner")
+    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo3.Inner.NestedAgain"))
+      .containsExactly("com.other.Foo3.Inner.NestedAgain", "MyFoo3.Inner.NestedAgain")
+
+    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo4.Inner4"))
+      .containsExactly("com.other.Foo4.Inner4", "Foo4.Inner4", "Inner4")
+    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo4.Inner4.NestedAgain"))
+      .containsExactly(
+        "com.other.Foo4.Inner4.NestedAgain",
+        "Foo4.Inner4.NestedAgain",
+        "Inner4.NestedAgain"
+      )
+  }
+
+  @Test
   fun kotlin_aliasMap_noImports() {
     val psiFile =
       myFixture.configureByText(
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
-      """
+        package com.example
+        """
           .trimIndent()
       ) as KtFile
 
@@ -173,12 +223,12 @@ class ImportHelperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import javax.import.*
-      import com.other.Foo
-      import java.util.List
-      """
+        import javax.import.*
+        import com.other.Foo
+        import java.util.List
+        """
           .trimIndent()
       ) as KtFile
 
@@ -194,12 +244,12 @@ class ImportHelperTest {
         KotlinFileType.INSTANCE,
         // language=kotlin
         """
-      package com.example
+        package com.example
 
-      import javax.import.*
-      import com.other.Foo as Bar
-      import java.util.List as MyList
-      """
+        import javax.import.*
+        import com.other.Foo as Bar
+        import java.util.List as MyList
+        """
           .trimIndent()
       ) as KtFile
 
@@ -215,8 +265,8 @@ class ImportHelperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
-      """
+        package com.example;
+        """
           .trimIndent()
       ) as PsiJavaFile
 
@@ -235,9 +285,9 @@ class ImportHelperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
-      import javax.inject.*;
-      """
+        package com.example;
+        import javax.inject.*;
+        """
           .trimIndent()
       ) as PsiJavaFile
 
@@ -256,9 +306,9 @@ class ImportHelperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
-      import javax.inject.Inject;
-      """
+        package com.example;
+        import javax.inject.Inject;
+        """
           .trimIndent()
       ) as PsiJavaFile
 
@@ -277,10 +327,10 @@ class ImportHelperTest {
         JavaFileType.INSTANCE,
         // language=java
         """
-      package com.example;
-      import javax.inject.*
-      import javax.inject.Inject;
-      """
+        package com.example;
+        import javax.inject.*;
+        import javax.inject.Inject;
+        """
           .trimIndent()
       ) as PsiJavaFile
 
@@ -290,5 +340,49 @@ class ImportHelperTest {
       .containsExactly("javax.inject.Inject", "Inject")
     assertThat(importHelper.getPossibleAnnotationText("com.example.Inject"))
       .containsExactly("com.example.Inject", "Inject")
+  }
+
+  @Test
+  fun java_getPossibleAnnotationText_nestedClasses() {
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
+        package com.example;
+        import com.other.Foo1;
+        import com.other.Foo2.Inner;
+
+        import com.other.Foo3;
+        import com.other.Foo3.Inner3;
+        """
+          .trimIndent()
+      ) as PsiJavaFile
+
+    val importHelper = JavaImportHelper(psiFile)
+
+    assertThat(importHelper.getPossibleAnnotationText("com.example.Foo0.Inner"))
+      .containsExactly("com.example.Foo0.Inner", "Foo0.Inner")
+    assertThat(importHelper.getPossibleAnnotationText("com.example.Foo0.Inner.NestedAgain"))
+      .containsExactly("com.example.Foo0.Inner.NestedAgain", "Foo0.Inner.NestedAgain")
+
+    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo1.Inner"))
+      .containsExactly("com.other.Foo1.Inner", "Foo1.Inner")
+    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo1.Inner.NestedAgain"))
+      .containsExactly("com.other.Foo1.Inner.NestedAgain", "Foo1.Inner.NestedAgain")
+
+    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo2.Inner"))
+      .containsExactly("com.other.Foo2.Inner", "Inner")
+    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo2.Inner.NestedAgain"))
+      .containsExactly("com.other.Foo2.Inner.NestedAgain", "Inner.NestedAgain")
+
+    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo3.Inner3"))
+      .containsExactly("com.other.Foo3.Inner3", "Foo3.Inner3", "Inner3")
+    assertThat(importHelper.getPossibleAnnotationText("com.other.Foo3.Inner3.NestedAgain"))
+      .containsExactly(
+        "com.other.Foo3.Inner3.NestedAgain",
+        "Foo3.Inner3.NestedAgain",
+        "Inner3.NestedAgain"
+      )
   }
 }
