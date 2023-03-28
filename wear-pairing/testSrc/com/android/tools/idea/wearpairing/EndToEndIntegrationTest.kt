@@ -43,6 +43,7 @@ import com.intellij.testFramework.LightPlatform4TestCase
 import com.intellij.ui.components.JBLabel
 import org.junit.Test
 import org.mockito.Mockito
+import java.io.File
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import javax.swing.JButton
@@ -104,7 +105,10 @@ class EndToEndIntegrationTest : LightPlatform4TestCase() {
       whenever(serialNumber).thenReturn("serialNumber")
       whenever(state).thenReturn(IDevice.DeviceState.ONLINE)
       whenever(version).thenReturn(AndroidVersion(28, null))
-      whenever(avdData).thenReturn(Futures.immediateFuture(AvdData(avdWearInfo.name, avdWearInfo.dataFolderPath.toString())))
+      whenever(avdData).thenReturn(Futures.immediateFuture(
+        AvdData(avdWearInfo.name,
+                // The path is formatted in this way as a regression test for b/275128556
+                "${avdWearInfo.dataFolderPath}${File.separator}..${File.separator}${avdWearInfo.dataFolderPath}")))
       whenever(getProperty("dev.bootcomplete")).thenReturn("1")
       whenever(getSystemProperty("ro.oem.companion_package")).thenReturn(Futures.immediateFuture(""))
       addExecuteShellCommandReply { request ->

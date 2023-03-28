@@ -67,6 +67,7 @@ import java.io.IOException
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
+import kotlin.io.path.Path
 
 private val LOG get() = logger<WearPairingManager>()
 
@@ -554,8 +555,13 @@ private val WIFI_DEVICE_SERIAL_PATTERN = Pattern.compile("adb-(.*)-.*\\._adb-tls
 
 private fun IDevice.getDeviceID(): String {
   return when {
-    isEmulator && avdData?.isDone == true -> avdData.get()?.path ?: name
-    isEmulator -> EmulatorConsole.getConsole(this)?.avdPath ?: name
+    // Path.normalize is applied to the returned path from the AVD data to remove any .. in the path.
+    // They were added in https://r.android.com/2441481 and, since we use the path as an ID, the .. does
+    // not match the path information we have in Studio.
+    // We intentionally use normalize since it does not access disk and will just normalize the path removing
+    // the ..
+    isEmulator && avdData?.isDone == true -> avdData.get()?.path?.let { Path(it).normalize().toString() } ?: name
+    isEmulator -> EmulatorConsole.getConsole(this)?.avdPath?.let { Path(it).normalize().toString() } ?: name
     else -> {
       val matcher = WIFI_DEVICE_SERIAL_PATTERN.matcher(this.serialNumber)
       if (matcher.matches()) matcher.group(1) else this.serialNumber
