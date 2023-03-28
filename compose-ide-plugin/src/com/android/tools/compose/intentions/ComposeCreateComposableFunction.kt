@@ -18,14 +18,14 @@ package com.android.tools.compose.intentions
 import com.android.tools.compose.COMPOSABLE_ANNOTATION_NAME
 import com.android.tools.compose.ComposeBundle
 import com.android.tools.compose.getComposableAnnotation
+import com.android.tools.compose.isComposableFunction
 import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.openapi.diagnostic.thisLogger
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.idea.caches.resolve.analyzeAndGetResult
-import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.quickfix.KotlinSingleIntentionActionFactory
 import org.jetbrains.kotlin.idea.quickfix.QuickFixContributor
@@ -40,7 +40,6 @@ import org.jetbrains.kotlin.idea.quickfix.createFromUsage.callableBuilder.getTyp
 import org.jetbrains.kotlin.idea.quickfix.createFromUsage.callableBuilder.guessTypes
 import org.jetbrains.kotlin.idea.quickfix.createFromUsage.createCallable.CreateCallableFromUsageFix
 import org.jetbrains.kotlin.idea.refactoring.getExtractionContainers
-import org.jetbrains.kotlin.nj2k.replace
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtLambdaArgument
 import org.jetbrains.kotlin.psi.KtNamedFunction
@@ -84,14 +83,14 @@ private class ComposeUnresolvedFunctionFixFactory : KotlinSingleIntentionActionF
   override fun createAction(diagnostic: Diagnostic): IntentionAction? {
     val unresolvedCall = diagnostic.psiElement.parent as? KtCallExpression ?: return null
     val parentFunction = unresolvedCall.getStrictParentOfType<KtNamedFunction>() ?: return null
-    val composableAnnotationDescriptor = parentFunction.getComposableAnnotation()?.resolveToDescriptorIfAny() ?: return null
+    if (!parentFunction.isComposableFunction()) return null
 
     val name = (unresolvedCall.calleeExpression as? KtSimpleNameExpression)?.getReferencedName() ?: return null
     // Composable function usually starts with uppercase first letter.
     if (name.isBlank() || !name[0].isUpperCase()) return null
 
     val ktCreateCallableFromUsageFix = CreateCallableFromUsageFix(unresolvedCall) {
-      listOfNotNull(createNewComposeFunctionInfo(name, it, composableAnnotationDescriptor))
+      listOfNotNull(createNewComposeFunctionInfo(name, it, parentFunction))
     }
 
     // Since CreateCallableFromUsageFix is no longer an 'open' class, we instead use delegation to customize the text.
@@ -106,7 +105,7 @@ private class ComposeUnresolvedFunctionFixFactory : KotlinSingleIntentionActionF
   // (see https://github.com/JetBrains/intellij-community/commit/608589428c).
   private fun createNewComposeFunctionInfo(name: String,
                                            element: KtCallExpression,
-                                           composableAnnotationDescriptor: AnnotationDescriptor): CallableInfo? {
+                                           parentComposableFunction: KtNamedFunction): CallableInfo? {
     val analysisResult = element.analyzeAndGetResult()
     val fullCallExpression = element.getQualifiedExpressionForSelectorOrThis()
     val expectedType = fullCallExpression.guessTypes(analysisResult.bindingContext, analysisResult.moduleDescriptor).singleOrNull()
@@ -122,7 +121,7 @@ private class ComposeUnresolvedFunctionFixFactory : KotlinSingleIntentionActionF
         val parameterInfos = element.getParameterInfos()
         val modifiedLastParameter = parameterInfos.last().let {
           ParameterInfo(
-            typeInfo = ComposableLambdaTypeInfo(it.typeInfo, composableAnnotationDescriptor),
+            typeInfo = ComposableLambdaTypeInfo(it.typeInfo, parentComposableFunction),
             nameSuggestions = listOf("content") + it.nameSuggestions)
         }
 
@@ -139,9 +138,17 @@ private class ComposeUnresolvedFunctionFixFactory : KotlinSingleIntentionActionF
 
   /** Wrapper around [TypeInfo] adding a @Composable annotation to the argument type. */
   private class ComposableLambdaTypeInfo(private val wrapped: TypeInfo,
-                                         private val composableAnnotationDescriptor: AnnotationDescriptor) : TypeInfo(wrapped.variance) {
+                                         private val parentComposableFunction: KtNamedFunction) : TypeInfo(wrapped.variance) {
     override fun getPossibleTypes(builder: CallableBuilder): List<KotlinType> {
-      return wrapped.getPossibleTypes(builder).map {
+      val wrappedTypes = wrapped.getPossibleTypes(builder)
+      val composableAnnotationDescriptor = parentComposableFunction.getComposableAnnotation()?.resolveToDescriptorIfAny()
+
+      if (composableAnnotationDescriptor == null) {
+        thisLogger().warn("Could not resolve @Composable annotation descriptor.")
+        return wrappedTypes
+      }
+
+      return wrappedTypes.map {
         val newAnnotations = Annotations.create(it.annotations + listOf(composableAnnotationDescriptor))
         it.replaceAnnotations(newAnnotations)
       }
