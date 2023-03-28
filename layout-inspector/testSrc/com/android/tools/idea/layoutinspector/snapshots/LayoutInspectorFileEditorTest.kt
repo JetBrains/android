@@ -27,7 +27,7 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capabilit
 import com.android.tools.idea.layoutinspector.tree.EditorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.EditorRenderSettings
 import com.android.tools.idea.layoutinspector.util.CheckUtil
-import com.android.tools.idea.layoutinspector.util.ComponentUtil
+import com.android.tools.idea.testing.ui.flatten
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.openapi.util.Disposer
@@ -86,7 +86,7 @@ class LayoutInspectorFileEditorTest {
     val editorComponent = editor.component
 
     val inspector = DataManager.getDataProvider(
-      ComponentUtil.flatten(editorComponent).firstIsInstance<WorkBench<*>>()
+      editorComponent.flatten(false).firstIsInstance<WorkBench<*>>()
     )?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
 
     val settings = inspector.renderLogic.renderSettings
@@ -106,7 +106,7 @@ class LayoutInspectorFileEditorTest {
     val editorComponent = editor.component
 
     val inspector = DataManager.getDataProvider(
-      ComponentUtil.flatten(editorComponent).firstIsInstance<WorkBench<*>>()
+      editorComponent.flatten(false).firstIsInstance<WorkBench<*>>()
     )?.getData(LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
 
     val settings = inspector.renderLogic.renderSettings

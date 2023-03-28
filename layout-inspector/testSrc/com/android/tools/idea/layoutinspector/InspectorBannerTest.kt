@@ -22,7 +22,7 @@ import com.android.tools.adtui.actions.ZoomToFitAction
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
-import com.android.tools.idea.layoutinspector.util.ComponentUtil
+import com.android.tools.idea.testing.ui.flatten
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -98,7 +98,7 @@ class InspectorBannerTest {
   fun testSynchronization() {
     val banner = InspectorBanner(projectRule.project)
     val service = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
-    val table = ComponentUtil.flatten(banner).single { it is JTable } as JTable
+    val table = banner.flatten(false).single { it is JTable } as JTable
     val cellRenderer = table.getCellRenderer(0, 0)
     var addedSecond = false
     // Add a listener that will change the banner in the middle of when it's being changed initially
@@ -133,7 +133,7 @@ class InspectorBannerTest {
   fun testMouseHandling() {
     val banner = InspectorBanner(projectRule.project)
     val service = InspectorBannerService.getInstance(projectRule.project) ?: error("no banner")
-    val table = ComponentUtil.flatten(banner).single { it is JTable } as JTable
+    val table = banner.flatten(false).single { it is JTable } as JTable
     service.addNotification("First error")
     service.addNotification("Second error")
     service.addNotification("Third error")

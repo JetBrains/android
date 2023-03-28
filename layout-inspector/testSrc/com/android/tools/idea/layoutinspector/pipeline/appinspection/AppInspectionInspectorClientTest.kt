@@ -79,7 +79,6 @@ import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.ViewLa
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
-import com.android.tools.idea.layoutinspector.util.ComponentUtil
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.project.AndroidRunConfigurations
@@ -87,6 +86,7 @@ import com.android.tools.idea.protobuf.ByteString
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.addManifest
+import com.android.tools.idea.testing.ui.flatten
 import com.android.tools.idea.util.ListenerCollection
 import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
@@ -234,7 +234,7 @@ class AppInspectionInspectorClientTest {
     runInEdtAndWait { UIUtil.dispatchAllInvocationEvents() }
 
     // Check that the table header for showing recompositions are shown initially:
-    val header = ComponentUtil.flatten(panel.component).filterIsInstance<TreeTableHeader>().single()
+    val header = panel.component.flatten(false).filterIsInstance<TreeTableHeader>().single()
     val table = panel.focusComponent as JTable
     assertThat(header.isVisible).isTrue()
     assertThat(table.columnCount).isEqualTo(3)

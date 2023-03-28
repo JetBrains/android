@@ -75,7 +75,6 @@ import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetectio
 import com.android.tools.idea.layoutinspector.resource.data.AppContext
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.ICON_LEGACY_PHONE
-import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
@@ -84,6 +83,7 @@ import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorVie
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol.Command.SpecializedCase.UPDATE_SCREENSHOT_TYPE_COMMAND
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.ui.flatten
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common
 import com.google.common.truth.Truth.assertThat
@@ -191,8 +191,8 @@ class DeviceViewPanelWithFullInspectorTest {
     val banner = InspectorBannerService.getInstance(inspectorRule.project) ?: error("no banner")
     val deviceModel = panel.getData(DEVICE_VIEW_MODEL_KEY.name) as RenderModel
     delegateDataProvider(panel)
-    flatten(panel).filterIsInstance<ActionToolbar>().forEach { it.updateActionsImmediately() }
-    val toggle = flatten(panel).filterIsInstance<ActionButton>().single { it.action is Toggle3dAction }
+    panel.flatten(false).filterIsInstance<ActionToolbar>().forEach { it.updateActionsImmediately() }
+    val toggle = panel.flatten(false).filterIsInstance<ActionButton>().single { it.action is Toggle3dAction }
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isFalse()
 
@@ -475,8 +475,8 @@ class DeviceViewPanelWithFullInspectorTest {
       inspectorRule.inspector,
       projectRule.fixture.testRootDisposable
     )
-    val loadingPane = flatten(panel).filterIsInstance<JBLoadingPanel>().first()
-    val contentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
+    val loadingPane = panel.flatten(false).filterIsInstance<JBLoadingPanel>().first()
+    val contentPanel = panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first()
 
     assertThat(loadingPane.isLoading).isFalse()
     assertThat(contentPanel.showEmptyText).isTrue()
@@ -508,8 +508,8 @@ class DeviceViewPanelWithFullInspectorTest {
       projectRule.fixture.testRootDisposable,
     )
 
-    val loadingPane = flatten(panel).filterIsInstance<JBLoadingPanel>().first()
-    val contentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
+    val loadingPane = panel.flatten(false).filterIsInstance<JBLoadingPanel>().first()
+    val contentPanel = panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first()
     assertThat(loadingPane.isLoading).isFalse()
     assertThat(contentPanel.showEmptyText).isTrue()
 
@@ -548,7 +548,7 @@ class DeviceViewPanelWithFullInspectorTest {
       projectRule.fixture.testRootDisposable
     )
 
-    val selectTargetAction = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first().selectTargetAction!!
+    val selectTargetAction = panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first().selectTargetAction!!
     val dropDownAction = selectTargetAction.dropDownAction
     installCommandHandlers()
     connect(MODERN_PROCESS)
@@ -626,7 +626,7 @@ class DeviceViewPanelWithFullInspectorTest {
     )
     delegateDataProvider(panel)
     val focusManager = FakeKeyboardFocusManager(projectRule.testRootDisposable)
-    focusManager.focusOwner = flatten(panel).filterIsInstance<DeviceViewContentPanel>().single()
+    focusManager.focusOwner = panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().single()
     val dispatcher = IdeKeyEventDispatcher(null)
     val modifier = if (SystemInfo.isMac) KeyEvent.META_DOWN_MASK else KeyEvent.CTRL_DOWN_MASK
 
@@ -738,7 +738,7 @@ class DeviceViewPanelTest {
       disposableRule.disposable
     )
 
-    val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
+    val scrollPane = panel.flatten(false).filterIsInstance<JBScrollPane>().first()
     scrollPane.setSize(200, 300)
 
     assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(100)
@@ -801,7 +801,7 @@ class DeviceViewPanelTest {
       disposableRule.disposable
     )
 
-    val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
+    val scrollPane = panel.flatten(false).filterIsInstance<JBScrollPane>().first()
     scrollPane.setSize(200, 300)
 
     assertThat(inspector.renderLogic.renderSettings.scalePercent).isEqualTo(100)
@@ -851,7 +851,7 @@ class DeviceViewPanelTest {
       disposableRule.disposable
     )
 
-    val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
+    val scrollPane = panel.flatten(false).filterIsInstance<JBScrollPane>().first()
     scrollPane.setSize(200, 300)
     model.resourceLookup.screenDimension = Dimension(200, 300)
 
@@ -903,7 +903,7 @@ class DeviceViewPanelTest {
       MoreExecutors.directExecutor()
     )
 
-    val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
+    val scrollPane = panel.flatten(false).filterIsInstance<JBScrollPane>().first()
     scrollPane.setSize(200, 300)
 
     val window1 = window(ROOT, ROOT, 0, 0, 100, 200) {
@@ -961,8 +961,8 @@ class DeviceViewPanelTest {
       MoreExecutors.directExecutor()
     )
 
-    val scrollPane = flatten(panel).filterIsInstance<JBScrollPane>().first()
-    val contentPanelModel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first().renderModel
+    val scrollPane = panel.flatten(false).filterIsInstance<JBScrollPane>().first()
+    val contentPanelModel = panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first().renderModel
     scrollPane.setSize(200, 300)
 
     val window1 = window(ROOT, ROOT, 0, 0, 100, 200) {
@@ -1123,8 +1123,8 @@ class DeviceViewPanelTest {
       disposableRule.disposable,
     )
 
-    val contentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
-    val viewport = flatten(panel).filterIsInstance<JViewport>().first()
+    val contentPanel = panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first()
+    val viewport = panel.flatten(false).filterIsInstance<JViewport>().first()
 
     (DataManager.getInstance() as HeadlessDataManager).setTestDataProvider {
         id -> if (id == LAYOUT_INSPECTOR_DATA_KEY.name) inspector else null
@@ -1417,8 +1417,8 @@ class DeviceViewPanelWithNoClientsTest {
       inspectorRule.inspector,
       projectRule.fixture.testRootDisposable,
     )
-    val loadingPane = flatten(panel).filterIsInstance<JBLoadingPanel>().first()
-    val contentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
+    val loadingPane = panel.flatten(false).filterIsInstance<JBLoadingPanel>().first()
+    val contentPanel = panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first()
     assertThat(loadingPane.isLoading).isFalse()
     assertThat(contentPanel.showEmptyText).isTrue()
 
@@ -1443,7 +1443,7 @@ class DeviceViewPanelWithNoClientsTest {
       projectRule.fixture.testRootDisposable,
     )
 
-    val deviceViewContentPanel = flatten(panel).filterIsInstance<DeviceViewContentPanel>().first()
+    val deviceViewContentPanel = panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first()
 
     // false by default
     assertThat(deviceViewContentPanel.showProcessNotDebuggableText).isFalse()
@@ -1494,7 +1494,7 @@ class DeviceViewPanelWithNoClientsTest {
 }
 
 private fun getToolbar(panel: DeviceViewPanel): JComponent =
-  (flatten(panel).find { it.name == DEVICE_VIEW_ACTION_TOOLBAR_NAME } as JComponent).run {
+  (panel.flatten(false).find { it.name == DEVICE_VIEW_ACTION_TOOLBAR_NAME } as JComponent).run {
     size = Dimension(800, 200)
     doLayout()
     return this
