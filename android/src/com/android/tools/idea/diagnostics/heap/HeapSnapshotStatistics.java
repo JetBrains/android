@@ -170,7 +170,10 @@ final class HeapSnapshotStatistics {
       public void serialize(@NonNull final MultipartEntityBuilder builder) {
         super.serialize(builder);
         GoogleCrashReporter.addBodyToBuilder(builder, "Total used memory", getOptimalUnitsStatisticsPresentation(totalStats.objectsStat));
-        GoogleCrashReporter.addBodyToBuilder(builder, "Clusters that exceeded the threshold", String.join(",", exceededClusters));
+        GoogleCrashReporter.addBodyToBuilder(builder, "signature",
+                                             "Clusters that exceeded the memory usage threshold:" + String.join(",", exceededClusters));
+        GoogleCrashReporter.addBodyToBuilder(builder, "Clusters that exceeded the memory usage threshold",
+                                             String.join(",", exceededClusters));
         for (CategoryClusterObjectsStatistics stat : categoryComponentStats) {
           StringBuilder categoryReportBuilder = new StringBuilder();
           categoryReportBuilder.append(

@@ -547,7 +547,7 @@ public class HeapAnalyzerTest extends PlatformLiteFixture {
     MultipartEntityBuilder builder = MultipartEntityBuilder.create();
     report.serialize(builder);
     String serializedExtendedReport = new String(ByteStreams.toByteArray(builder.build().getContent()), Charset.defaultCharset());
-    assertRequestContainsField(serializedExtendedReport, "Clusters that exceeded the threshold", "A,B");
+    assertRequestContainsField(serializedExtendedReport, "Clusters that exceeded the memory usage threshold", "A,B");
     assertRequestContainsField(serializedExtendedReport, "Total used memory", "56/3 objects");
     assertRequestContainsField(serializedExtendedReport, "Category android:uncategorized", """
       Owned: 0/0 objects
