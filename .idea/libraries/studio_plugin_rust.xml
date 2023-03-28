@@ -12,8 +12,8 @@
     </CLASSES>
     <JAVADOC />
     <SOURCES>
-      <root url="file://$PROJECT_DIR$/../../../external/jetbrains/intellij-rust/src/main/"/>
-      <root url="file://$PROJECT_DIR$/../../../external/jetbrains/intellij-rust/src/gen/"/>
+      <root url="file://$PROJECT_DIR$/../../../external/jetbrains/rust/src/main/"/>
+      <root url="file://$PROJECT_DIR$/../../../external/jetbrains/rust/src/gen/"/>
     </SOURCES>
   </library>
 </component>
