@@ -253,6 +253,7 @@ maven_repository(
         "@maven//:org.jdeferred.jdeferred-android-aar_1.2.3",
         "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.7.21",
         "@maven//:org.jetbrains.kotlin.kotlin-android-extensions-runtime_1.7.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-bom_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-compiler-embeddable_1.7.21",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.21",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.21",

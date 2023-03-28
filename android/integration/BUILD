@@ -308,10 +308,14 @@ maven_repository(
         "@maven//:com.google.protobuf.protobuf-java_3.17.2",
         "@maven//:junit.junit_4.13.2",
         "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-bom_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-reflect_1.6.21",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-common_1.8.0",  # Needed for kotlin-bom_1.8.0
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.0",  # Needed for kotlin-bom_1.8.0
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib_1.8.0",  # Needed for kotlin-bom_1.8.0
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.5.2",
         "@maven//:org.jetbrains.markdown_0.2.1",
@@ -495,6 +499,7 @@ maven_repository(
         "@maven//:com.google.testing.platform.launcher_0.0.8-alpha07",
         "@maven//:javax.annotation.javax.annotation-api_1.3.2",
         "@maven//:junit.junit_4.13.2",
+        "@maven//:org.jetbrains.kotlin.kotlin-bom_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",

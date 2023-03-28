@@ -48,6 +48,7 @@ iml_module(
         },
         "other": {
             "data": [
+                "//prebuilts/studio/sdk:build-tools/latest",
                 "//tools/adt/idea/android/testData",
             ],
             # TODO(b/234749894) restore after fixing flakes
@@ -59,11 +60,11 @@ iml_module(
         ":test_deps",
         "//prebuilts/studio/jdk/jdk11",
         "//prebuilts/studio/sdk:platforms/latest",
-        "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
+        "//tools/adt/idea/android/testData:projects",
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
         "//tools/base/build-system:gradle-distrib",
-        "//tools/adt/idea/android/testData:projects",
+        "//tools/base/build-system/integration-test:kotlin_gradle_plugin_prebuilts",
     ] + glob(["testData/**"]),
     test_srcs = ["testSrc"],
     test_tags = [],
@@ -88,8 +89,10 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/observable:intellij.android.observable[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
         "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade[module, test]",
+        "//tools/adt/idea/wizard-model:intellij.android.wizard.model[module, test]",
         "//tools/base/wizard/template-impl:studio.intellij.android.wizardTemplate.impl[module, test]",
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",
         "//tools/adt/idea/lint:intellij.lint[module, test]",
@@ -128,8 +131,14 @@ maven_repository(
         "@maven//:androidx.legacy.legacy-support-v13_1.0.0",
         "@maven//:androidx.lifecycle.lifecycle-common-java8_2.4.0",
         "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.4.1",
+        "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.6.1",  # To test transitive dep to kotlin-stdlib:1.8.0 in KotlinBomPlatformDependencyTest
+        "@maven//:androidx.lifecycle.lifecycle-process_2.6.1",  # To test transitive dep to kotlin-stdlib:1.8.0 in KotlinBomPlatformDependencyTest
         "@maven//:androidx.lifecycle.lifecycle-runtime_2.3.0-rc01",
+        "@maven//:androidx.lifecycle.lifecycle-runtime_2.6.1",  # To test transitive dep to kotlin-stdlib:1.8.0 in KotlinBomPlatformDependencyTest
+        "@maven//:androidx.lifecycle.lifecycle-service_2.6.1",  # To test transitive dep to kotlin-stdlib:1.8.0 in KotlinBomPlatformDependencyTest
         "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.4.1",
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.6.1",  # To test transitive dep to kotlin-stdlib:1.8.0 in KotlinBomPlatformDependencyTest
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-savedstate_2.6.1",  # To test transitive dep to kotlin-stdlib:1.8.0 in KotlinBomPlatformDependencyTest
         "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.3.0-rc01",
         "@maven//:androidx.media.media_1.5.0",
         "@maven//:androidx.navigation.navigation-fragment-ktx_2.5.2",
@@ -147,6 +156,7 @@ maven_repository(
         "@maven//:androidx.wear.tiles.tiles_1.1.0",
         "@maven//:androidx.wear.watchface.watchface-complications-data-source-ktx_1.1.1",
         "@maven//:androidx.wear.wear_1.2.0",
+        "@maven//:com.android.support.appcompat-v7_28.0.0",
         "@maven//:com.github.bumptech.glide.glide_4.11.0",
         "@maven//:com.google.android.gms.play-services-ads_20.6.0",
         "@maven//:com.google.android.gms.play-services-base_17.6.0",
@@ -172,11 +182,22 @@ maven_repository(
         "@maven//:junit.junit_4.12",
         "@maven//:org.codehaus.mojo.animal-sniffer-annotations_1.17",
         "@maven//:org.hamcrest.hamcrest-library_1.3",
+        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.7.20",  # Needed for KotlinBomPlatformDependencyTest
+        "@maven//:org.jetbrains.kotlin.android.org.jetbrains.kotlin.android.gradle.plugin_1.8.10",  # Needed for KotlinBomPlatformDependencyTest
+        "@maven//:org.jetbrains.kotlin.kotlin-bom_1.8.0",
         "@maven//:org.jetbrains.kotlin.kotlin-compiler-embeddable_1.7.20",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin-api_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-gradle-plugin_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.8.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-script-runtime_1.8.10",
         "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.7.20",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.0",
+        "@maven//:org.jetbrains.kotlin.kotlin-stdlib-jdk8_1.8.10",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-android_1.6.1",
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.6.1",
         "@maven//:xmlpull.xmlpull_1.1.3.1",
