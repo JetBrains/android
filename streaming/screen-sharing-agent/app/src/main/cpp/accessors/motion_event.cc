@@ -16,6 +16,7 @@
 
 #include "motion_event.h"
 
+#include "agent.h"
 #include "jvm.h"
 #include "log.h"
 
@@ -29,7 +30,7 @@ MotionEvent::MotionEvent(Jni jni)
 
 JObject MotionEvent::ToJava() const {
   InitializeStatics(jni_);
-  return android_get_device_api_level() >= 29 ?
+  return Agent::api_level() >= 29 ?
       motion_event_class_.CallStaticObjectMethod(
           jni_, obtain_method_, down_time_millis, event_time_millis, action, pointer_count, pointer_properties, pointer_coordinates,
           meta_state, button_state, x_precision, y_precision, device_id, edge_flags, source, display_id, flags) :
@@ -42,7 +43,7 @@ void MotionEvent::InitializeStatics(Jni jni) {
   if (!statics_initialized_) {
     statics_initialized_ = true;
     motion_event_class_ = jni.GetClass("android/view/MotionEvent");
-    const char* signature = android_get_device_api_level() >= 29 ?
+    const char* signature = Agent::api_level() >= 29 ?
         "(JJII[Landroid/view/MotionEvent$PointerProperties;[Landroid/view/MotionEvent$PointerCoords;IIFFIIIII)Landroid/view/MotionEvent;" :
         "(JJII[Landroid/view/MotionEvent$PointerProperties;[Landroid/view/MotionEvent$PointerCoords;IIFFIIII)Landroid/view/MotionEvent;";
     obtain_method_ = motion_event_class_.GetStaticMethod("obtain", signature);

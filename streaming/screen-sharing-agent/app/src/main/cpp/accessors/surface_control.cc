@@ -18,6 +18,7 @@
 
 #include <mutex>
 
+#include "agent.h"
 #include "log.h"
 #include "surface.h"
 
@@ -51,7 +52,6 @@ void SurfaceControl::InitializeStatics(Jni jni) {
 
 JObject SurfaceControl::GetInternalDisplayToken(Jni jni) {
   InitializeStatics(jni);
-  int api_level = android_get_device_api_level();
   {
     scoped_lock lock(static_initialization_mutex);
     if (get_internal_display_token_method_not_available_) {
@@ -59,9 +59,9 @@ JObject SurfaceControl::GetInternalDisplayToken(Jni jni) {
     }
     if (get_internal_display_token_method_ == nullptr) {
       get_internal_display_token_method_ =
-          api_level >= 33 ?
+          Agent::api_level() >= 33 ?
               surface_control_class_.FindStaticMethod(jni, "getInternalDisplayToken", "()Landroid/os/IBinder;") :
-          api_level >= 29 ?
+          Agent::api_level() >= 29 ?
           surface_control_class_.GetStaticMethod(jni, "getInternalDisplayToken", "()Landroid/os/IBinder;") :
           surface_control_class_.GetStaticMethod(jni, "getBuiltInDisplay", "(I)Landroid/os/IBinder;");
       if (get_internal_display_token_method_ == nullptr) {
@@ -70,7 +70,7 @@ JObject SurfaceControl::GetInternalDisplayToken(Jni jni) {
       }
     }
   }
-  return api_level >= 29 ?
+  return Agent::api_level() >= 29 ?
       surface_control_class_.CallStaticObjectMethod(jni, get_internal_display_token_method_) :
       surface_control_class_.CallStaticObjectMethod(jni, get_internal_display_token_method_, 0);
 }

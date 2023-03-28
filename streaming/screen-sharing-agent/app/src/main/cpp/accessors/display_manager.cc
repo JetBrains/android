@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "accessors/display_listener_dispatcher.h"
+#include "agent.h"
 #include "jvm.h"
 #include "log.h"
 #include "service_manager.h"
@@ -50,12 +51,11 @@ void DisplayManager::InitializeStatics(Jni jni) {
     layer_stack_field_ = display_info_class.GetFieldId("layerStack", "I");
     flags_field_ = display_info_class.GetFieldId("flags", "I");
 
-    int api_level = android_get_device_api_level();
-    if (api_level >= 29) {
+    if (Agent::api_level() >= 29) {
       display_listener_dispatcher_ = new DisplayListenerDispatcher();
     }
 
-    if (api_level >= 33) {
+    if (Agent::api_level() >= 33) {
       display_manager_class_ = jni.GetClass("android/hardware/display/DisplayManager");
       create_virtual_display_method_ = display_manager_class_.FindStaticMethod(
           "createVirtualDisplay", "(Ljava/lang/String;IIILandroid/view/Surface;)Landroid/hardware/display/VirtualDisplay;");
