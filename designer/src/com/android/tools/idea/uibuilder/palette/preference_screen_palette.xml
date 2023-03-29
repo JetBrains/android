@@ -19,7 +19,6 @@
     <item tag="EditTextPreference" suggested="true"/>
     <item tag="ListPreference" suggested="true"/>
     <item tag="MultiSelectListPreference"/>
-    <item tag="RingtonePreference"/>
     <item tag="SwitchPreference" suggested="true"/>
   </group>
 
