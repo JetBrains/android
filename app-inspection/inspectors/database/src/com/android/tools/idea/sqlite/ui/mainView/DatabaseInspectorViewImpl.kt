@@ -85,7 +85,7 @@ class DatabaseInspectorViewImpl(
       isTabDraggingEnabled = true
       setUiDecorator(object : UiDecorator {
         override fun getDecoration(): UiDecorator.UiDecoration {
-          return UiDecorator.UiDecoration(labelInsets = JBUI.insets(5, 10))
+          return UiDecorator.UiDecoration(labelInsets = JBUI.insets(5, 6))
         }
       })
       addTabMouseListener(object : MouseAdapter() {
