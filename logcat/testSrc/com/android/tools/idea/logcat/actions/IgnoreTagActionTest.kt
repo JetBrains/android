@@ -62,7 +62,8 @@ class IgnoreTagActionTest {
 
   private val editor get() = logcatEditorRule.editor
   private val logcatSettings = AndroidLogcatSettings()
-  private val documentAppender get() = DocumentAppender(projectRule.project, editor.document, 1000000)
+  // We need to retain a reference to documentAppender so that ranges don't get GC'ed
+  private val documentAppender by lazy { DocumentAppender(projectRule.project, editor.document, 1_000_000) }
 
   @Before
   fun setUp() {
