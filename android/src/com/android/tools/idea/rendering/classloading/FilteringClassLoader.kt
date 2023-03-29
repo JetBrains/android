@@ -33,22 +33,6 @@ class FilteringClassLoader(parent: ClassLoader?, private val allow: (String) -> 
 
   companion object {
     /**
-     * Utility method that creates a [FilteringClassLoader] that does not allow the loading of classes that start
-     * with any of the given prefixes.
-     */
-    @JvmStatic
-    fun disallowedPrefixes(
-      parent: ClassLoader?,
-      prefixes: Collection<String>): FilteringClassLoader {
-      // Sort by increasing length to make the shorter (more generic) prefixes first
-      val prefixesArray = prefixes
-        .distinct()
-        .sortedBy { it.length }
-        .toTypedArray()
-      return FilteringClassLoader(parent) { fqcn -> prefixesArray.none { fqcn.startsWith(it) } }
-    }
-
-    /**
      * Utility method that creates a [FilteringClassLoader] that allows
      * only the classes from the given prefixes.
      */

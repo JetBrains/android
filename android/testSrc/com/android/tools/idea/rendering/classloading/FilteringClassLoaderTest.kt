@@ -89,30 +89,6 @@ class FilteringClassLoaderTest {
   }
 
   @Test
-  fun `test prefix filtering disallow`() {
-    val filteringClassLoader =
-      FilteringClassLoader.disallowedPrefixes(
-        parentClassLoader,
-        listOf("com.android.tools.idea.rendering.classloading.prefix.", "androidx.test.")
-      )
-
-    filteringClassLoader.loadClass(A1::class.java.name)
-    filteringClassLoader.loadClass(B1::class.java.name)
-
-    // The following will not be found
-    listOf(
-        com.android.tools.idea.rendering.classloading.prefix.A1::class.java.name,
-        com.android.tools.idea.rendering.classloading.prefix.A2::class.java.name,
-      )
-      .forEach {
-        try {
-          filteringClassLoader.loadClass(it)
-          fail("ClassNotFoundException expected for '$it'")
-        } catch (_: ClassNotFoundException) {}
-      }
-  }
-
-  @Test
   fun `test prefix filtering allow`() {
     val filteringClassLoader =
       FilteringClassLoader.allowedPrefixes(
