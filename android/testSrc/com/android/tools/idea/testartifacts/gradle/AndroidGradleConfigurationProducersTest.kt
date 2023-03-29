@@ -121,7 +121,7 @@ class AndroidGradleConfigurationProducersTest : AndroidGradleTestCase() {
     val executionSettings = GradleManager()
       .executionSettingsProvider
       .`fun`(Pair.create(project, project.basePath))
-      .apply { putUserData(GradleConstants.RUN_TASK_AS_TEST, true) }
+      .apply { putUserData(GradleRunConfiguration.RUN_TASK_AS_TEST, true) }
 
     AndroidGradleTaskManager().executeTasks(
       ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, project),
