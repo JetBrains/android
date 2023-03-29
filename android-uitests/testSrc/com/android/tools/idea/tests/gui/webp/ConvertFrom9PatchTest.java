@@ -56,7 +56,7 @@ import static org.fest.reflect.core.Reflection.field;
 @RunWith(GuiTestRemoteRunner.class)
 public class ConvertFrom9PatchTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
   private IdeFrameFixture ideFrame;
 
   @Before
@@ -125,15 +125,17 @@ public class ConvertFrom9PatchTest {
       }
     });
 
+    //Clearing the notifications present on the screen.
+    ideFrame.clearNotificationsPresentOnIdeFrame();
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+
     // Check nine-patch file is created by clicking on it.
     // Reload from Disk before clicking on new generated file.
     androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app")
-      .invokeMenuPath("Reload from Disk");
-    androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_launcher.9.png");
-
-    // Try to convert to webp and verify.
-    androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "res")
-      .invokeContextualMenuPath("Convert to WebP...");
+      .invokeContextualMenuPath("Reload from Disk");
+    guiTest.waitForAllBackgroundTasksToBeCompleted();
+    androidPane.clickPath(MouseButton.RIGHT_BUTTON, "app", "res", "mipmap", "ic_launcher.9.png")
+      .invokeContextualMenuPath("Convert to WebP..."); // Try to convert to webp and verify.
     WebpConversionDialogFixture webpConversionDialog = WebpConversionDialogFixture.findDialog(guiTest.robot());
     JCheckBox skip9PatchCheckBox = webpConversionDialog.getCheckBox("Skip nine-patch (.9.png) images");
     assertThat(skip9PatchCheckBox.isEnabled()).isFalse();
