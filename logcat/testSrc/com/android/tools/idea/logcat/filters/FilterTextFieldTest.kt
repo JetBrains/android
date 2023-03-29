@@ -21,13 +21,11 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.FakeAndroidProjectDetector
-import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.logcat.FakeLogcatPresenter
 import com.android.tools.idea.logcat.FakePackageNamesProvider
 import com.android.tools.idea.logcat.LogcatPresenter
 import com.android.tools.idea.logcat.PACKAGE_NAMES_PROVIDER_KEY
 import com.android.tools.idea.logcat.TAGS_PROVIDER_KEY
-import com.android.tools.idea.logcat.filters.FilterTextField.FilterHistoryItem.Item
 import com.android.tools.idea.logcat.filters.FilterTextField.HistoryList
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.logcatEvents
@@ -53,7 +51,8 @@ import com.intellij.ui.EditorTextField
 import com.intellij.ui.SimpleColoredComponent
 import icons.StudioIcons
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Rule
 import org.junit.Test
@@ -62,7 +61,6 @@ import java.awt.Dimension
 import java.awt.event.FocusEvent
 import java.awt.event.KeyEvent
 import java.awt.event.KeyEvent.VK_ENTER
-import java.util.concurrent.TimeUnit.SECONDS
 import javax.swing.GroupLayout
 import javax.swing.Icon
 import javax.swing.JLabel
@@ -231,18 +229,19 @@ class FilterTextFieldTest {
         .build())
   }
 
-  @Suppress("OPT_IN_USAGE") // runBlockingTest is experimental
+  @Suppress("OPT_IN_USAGE") // runTest is experimental
   @Test
   @RunsInEdt
-  fun historyList_render() = runBlockingTest {
+  fun historyList_render() = runTest(dispatchTimeoutMs = 5_000) {
     filterHistory.add(logcatFilterParser, "foo", isFavorite = true)
     filterHistory.add(logcatFilterParser, "bar", isFavorite = false)
     fakeLogcatPresenter.processMessages(listOf(
       logcatMessage(tag = "foobar"),
       logcatMessage(tag = "bar"),
     ))
+
     val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
-    historyList.waitForCounts()
+    advanceUntilIdle()
 
     assertThat(historyList.renderToStrings()).containsExactly(
       "*: foo ( 1 )",
@@ -251,18 +250,19 @@ class FilterTextFieldTest {
     ).inOrder() // Order is reverse of the order added
   }
 
-  @Suppress("OPT_IN_USAGE") // runBlockingTest is experimental
+  @Suppress("OPT_IN_USAGE") // runTest is experimental
   @Test
   @RunsInEdt
-  fun historyList_renderOnlyFavorites() = runBlockingTest {
+  fun historyList_renderOnlyFavorites() = runTest(dispatchTimeoutMs = 5_000) {
     filterHistory.add(logcatFilterParser, "foo", isFavorite = true)
     filterHistory.add(logcatFilterParser, "bar", isFavorite = true)
     fakeLogcatPresenter.processMessages(listOf(
       logcatMessage(tag = "foobar"),
       logcatMessage(tag = "bar"),
     ))
+
     val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
-    historyList.waitForCounts()
+    advanceUntilIdle()
 
     assertThat(historyList.renderToStrings()).containsExactly(
       "*: bar ( 2 )",
@@ -270,18 +270,19 @@ class FilterTextFieldTest {
     ).inOrder() // Order is reverse of the order added
   }
 
-  @Suppress("OPT_IN_USAGE") // runBlockingTest is experimental
+  @Suppress("OPT_IN_USAGE") // runTest is experimental
   @Test
   @RunsInEdt
-  fun historyList_renderNoFavorites() = runBlockingTest {
+  fun historyList_renderNoFavorites() = runTest(dispatchTimeoutMs = 5_000) {
     filterHistory.add(logcatFilterParser, "foo", isFavorite = false)
     filterHistory.add(logcatFilterParser, "bar", isFavorite = false)
     fakeLogcatPresenter.processMessages(listOf(
       logcatMessage(tag = "foobar"),
       logcatMessage(tag = "bar"),
     ))
+
     val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
-    historyList.waitForCounts()
+    advanceUntilIdle()
 
     assertThat(historyList.renderToStrings()).containsExactly(
       " : bar ( 2 )",
@@ -289,24 +290,25 @@ class FilterTextFieldTest {
     ).inOrder() // Order is reverse of the order added
   }
 
-  @Suppress("OPT_IN_USAGE") // runBlockingTest is experimental
+  @Suppress("OPT_IN_USAGE") // runTest is experimental
   @Test
   @RunsInEdt
-  fun historyList_renderNamedFilter() = runBlockingTest {
+  fun historyList_renderNamedFilter() = runTest(dispatchTimeoutMs = 5_000) {
     filterHistory.add(logcatFilterParser, "name:Foo tag:Foo", isFavorite = false)
     fakeLogcatPresenter.processMessages(listOf(logcatMessage(tag = "Foo")))
+
     val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
-    historyList.waitForCounts()
+    advanceUntilIdle()
 
     assertThat(historyList.renderToStrings()).containsExactly(
       " : Foo ( 1 )",
     ).inOrder()
   }
 
-  @Suppress("OPT_IN_USAGE") // runBlockingTest is experimental
+  @Suppress("OPT_IN_USAGE") // runTest is experimental
   @Test
   @RunsInEdt
-  fun historyList_renderNamedFilterWithSameName() = runBlockingTest {
+  fun historyList_renderNamedFilterWithSameName() = runTest(dispatchTimeoutMs = 5_000) {
     filterHistory.add(logcatFilterParser, "name:Foo tag:Foo", isFavorite = false)
     filterHistory.add(logcatFilterParser, "name:Foo tag:Foobar", isFavorite = false)
     fakeLogcatPresenter.processMessages(listOf(
@@ -314,8 +316,9 @@ class FilterTextFieldTest {
       logcatMessage(tag = "FooBar"),
     ))
     fakeLogcatPresenter.processMessages(listOf())
+
     val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
-    historyList.waitForCounts()
+    advanceUntilIdle()
 
     assertThat(historyList.renderToStrings()).containsExactly(
       " : Foo: tag:Foobar ( 1 )",
@@ -323,16 +326,17 @@ class FilterTextFieldTest {
     ).inOrder() // Order is reverse of the order added
   }
 
-  @Suppress("OPT_IN_USAGE") // runBlockingTest is experimental
+  @Suppress("OPT_IN_USAGE") // runTest is experimental
   @Test
   @RunsInEdt
-  fun historyList_renderNamedNamedOrder() = runBlockingTest {
+  fun historyList_renderNamedNamedOrder() = runTest(dispatchTimeoutMs = 5_000) {
     filterHistory.add(logcatFilterParser, "name:Foo named favorite", isFavorite = true)
     filterHistory.add(logcatFilterParser, "favorite", isFavorite = true)
     filterHistory.add(logcatFilterParser, "name:Foo named", isFavorite = false)
     filterHistory.add(logcatFilterParser, "unnamed", isFavorite = false)
+
     val historyList = filterTextField().HistoryList(disposableRule.disposable, coroutineContext)
-    historyList.waitForCounts()
+    advanceUntilIdle()
 
     // The order should be:
     //   Favorites in reverse order added
@@ -474,13 +478,6 @@ class FilterTextFieldTest {
 
   private fun getHistoryNonFavorites(): List<String> = filterHistory.nonFavorites
   private fun getHistoryFavorites(): List<String> = filterHistory.favorites
-
-  private fun HistoryList.waitForCounts() {
-    waitForCondition(2, SECONDS) {
-      val counts = model.asSequence().filterIsInstance<Item>().count { it.count != null }
-      counts == filterHistory.items.size
-    }
-  }
 }
 
 private fun FilterTextField.getButtonWithIcon(icon: Icon) =

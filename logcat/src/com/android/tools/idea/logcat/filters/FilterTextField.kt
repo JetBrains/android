@@ -395,7 +395,7 @@ internal class FilterTextField(
   @UiThread
   internal inner class HistoryList(
     parentDisposable: Disposable,
-    coroutineContext: CoroutineContext = EmptyCoroutineContext,
+    parentContext: CoroutineContext = EmptyCoroutineContext,
   ) : JBList<FilterHistoryItem>() {
     private val listModel = CollectionListModel<FilterHistoryItem>()
     private val inactiveColor = String.format("%06x", NamedColorUtil.getInactiveTextColor().rgb and 0xffffff)
@@ -425,14 +425,14 @@ internal class FilterTextField(
       cellRenderer = HistoryListCellRenderer()
 
       // In a background thread, calculate the count of all the items and update the model.
-      AndroidCoroutineScope(parentDisposable, coroutineContext).launch {
+      AndroidCoroutineScope(parentDisposable, parentContext).launch {
         val application = ApplicationManager.getApplication()
         listModel.items.forEachIndexed { index, item ->
           if (item is Item) {
             launch {
               val count = application.runReadAction<Int> { logcatPresenter.countFilterMatches(filters[index]) }
               // Replacing an item in the model will remove the selection. Save the selected index, so we can restore it after.
-              withContext(uiThread) {
+              withContext(uiThread + parentContext) {
                 val selected = selectedIndex
                 listModel.setElementAt(Item(item.filter, item.isFavorite, count, filterParser), index)
                 if (selected >= 0) {
