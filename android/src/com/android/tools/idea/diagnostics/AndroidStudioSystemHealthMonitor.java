@@ -299,23 +299,15 @@ public final class AndroidStudioSystemHealthMonitor {
     }
     try {
       if (reason != MemoryReportReason.OutOfMemory) {
-        // Don't clear weak/soft references if there is still plenty of free memory
         long freeMemory = getFreeMemory();
         if (freeMemory >= FREE_MEMORY_THRESHOLD_FOR_HEAP_REPORT) {
           UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
             HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.EXCESS_FREE_MEMORY).build()));
           return false;
         }
-
-        // Free up some memory by clearing weak/soft references
-        long memoryFreed = freeUpMemory();
-        LOG.warn("Forced clear of soft/weak references. Reason: " + reason + ", freed memory: " + (memoryFreed / 1_000_000) + "MB");
-        if (memoryFreed >= MEMORY_FREED_THRESHOLD_FOR_HEAP_REPORT) {
-          // Enough memory was freed, so there is no reason to send the report.
-          UsageTracker.log(AndroidStudioEvent.newBuilder().setKind(EventKind.HEAP_REPORT_EVENT).setHeapReportEvent(
-            HeapReportEvent.newBuilder().setStatus(HeapReportEvent.Status.EXCESS_FREE_MEMORY_AFTER_GC).build()));
-          return false;
-        }
+      }
+      if (reason == MemoryReportReason.FrequentLowMemoryNotification) {
+        return false;
       }
 
       // Create only one report per session
