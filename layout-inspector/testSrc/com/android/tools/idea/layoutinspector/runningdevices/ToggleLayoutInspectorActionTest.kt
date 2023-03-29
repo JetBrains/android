@@ -20,7 +20,6 @@ import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.streaming.AbstractDisplayView
 import com.android.tools.idea.streaming.DISPLAY_VIEW_KEY
-import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.streaming.STREAMING_CONTENT_PANEL_KEY
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
@@ -31,21 +30,22 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
-import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
-import com.intellij.ui.content.Content
-import com.intellij.ui.content.ContentManager
 import com.intellij.util.ui.components.BorderLayoutPanel
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.JPanel
 
+@RunsInEdt
 class ToggleLayoutInspectorActionTest {
+
+  @get:Rule
+  val edtRule = EdtRule()
 
   @get:Rule
   val applicationRule = ApplicationRule()
@@ -56,12 +56,16 @@ class ToggleLayoutInspectorActionTest {
   private lateinit var fakeLayoutInspectorManager: FakeLayoutInspectorManager
   private lateinit var displayView: AbstractDisplayView
 
+  private lateinit var tab1: TabInfo
+
   @Before
   fun setUp() {
+    tab1 = TabInfo(TabId("tab1"), JPanel(), JPanel(), displayViewRule.newEmulatorView())
+
     // replace ToolWindowManager with fake one
     displayViewRule.project.replaceService(
       ToolWindowManager::class.java,
-      FakeToolWindowManager(displayViewRule.project),
+      FakeToolWindowManager(displayViewRule.project, listOf(tab1)),
       displayViewRule.testRootDisposable
     )
 
@@ -123,32 +127,11 @@ class ToggleLayoutInspectorActionTest {
 
     override fun addStateListener(listener: LayoutInspectorManager.StateListener) { }
 
-    override fun enableLayoutInspector(runningDevicesTabContext: RunningDevicesTabContext, enable: Boolean) {
+    override fun enableLayoutInspector(tabId: TabId, enable: Boolean) {
       toggleLayoutInspectorInvocations += 1
       isEnabled = enable
     }
 
-    override fun isEnabled(runningDevicesTabContext: RunningDevicesTabContext) = isEnabled
-  }
-
-  private class FakeToolWindowManager(project: Project) : ToolWindowHeadlessManagerImpl(project) {
-    private var toolWindow = FakeToolWindow(project)
-
-    override fun getToolWindow(id: String?): ToolWindow? {
-      return if (id == RUNNING_DEVICES_TOOL_WINDOW_ID) toolWindow else super.getToolWindow(id)
-    }
-  }
-
-  private class FakeToolWindow(project: Project) : ToolWindowHeadlessManagerImpl.MockToolWindow(project) {
-    private val mockContentManager = mock<ContentManager>()
-
-    init {
-      val mockContent = mock<Content>()
-      whenever(mockContentManager.selectedContent).thenAnswer { mockContent }
-    }
-
-    override fun getContentManager(): ContentManager {
-      return mockContentManager
-    }
+    override fun isEnabled(tabId: TabId) = isEnabled
   }
 }

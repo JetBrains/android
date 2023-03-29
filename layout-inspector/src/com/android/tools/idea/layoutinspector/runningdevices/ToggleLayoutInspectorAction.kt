@@ -16,13 +16,9 @@
 package com.android.tools.idea.layoutinspector.runningdevices
 
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.streaming.DISPLAY_VIEW_KEY
-import com.android.tools.idea.streaming.RUNNING_DEVICES_TOOL_WINDOW_ID
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
-import com.android.tools.idea.streaming.STREAMING_CONTENT_PANEL_KEY
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.wm.ToolWindowManager
 
 /**
  * Action used to turn Layout Inspector on and off in Running Devices tool window.
@@ -30,41 +26,23 @@ import com.intellij.openapi.wm.ToolWindowManager
 class ToggleLayoutInspectorAction : ToggleAction() {
   override fun isSelected(e: AnActionEvent): Boolean {
     val project = e.project ?: return false
-    val runningDevicesTabContext = e.createRunningDevicesTabContext() ?: return false
+    val deviceSerialNumber = SERIAL_NUMBER_KEY.getData(e.dataContext) ?: return false
 
-    return LayoutInspectorManager.getInstance(project).isEnabled(runningDevicesTabContext)
+    return LayoutInspectorManager.getInstance(project).isEnabled(TabId(deviceSerialNumber))
   }
 
   override fun setSelected(e: AnActionEvent, state: Boolean) {
     val project = e.project ?: return
-    val runningDevicesTabContext = e.createRunningDevicesTabContext() ?: return
+    val deviceSerialNumber = SERIAL_NUMBER_KEY.getData(e.dataContext) ?: return
 
-    LayoutInspectorManager.getInstance(project).enableLayoutInspector(runningDevicesTabContext, state)
+    LayoutInspectorManager.getInstance(project).enableLayoutInspector(TabId(deviceSerialNumber), state)
   }
 
   override fun update(e: AnActionEvent) {
-    e.presentation.isVisible = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
+    val isEnabled = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
+    e.presentation.isVisible = isEnabled
+
+    val project = e.project ?: return
+    RunningDevicesStateObserver.getInstance(project).update(isEnabled)
   }
-}
-
-/**
- * Creates a [RunningDevicesTabContext] using data from the Running Devices Tool Window.
- */
-private fun AnActionEvent.createRunningDevicesTabContext(): RunningDevicesTabContext? {
-  val project = project ?: return null
-  val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(RUNNING_DEVICES_TOOL_WINDOW_ID) ?: return null
-  val selectedContent = toolWindow.contentManager.selectedContent ?: return null
-
-  val deviceSerialNumber = SERIAL_NUMBER_KEY.getData(dataContext) ?: return null
-  val contentPanel = STREAMING_CONTENT_PANEL_KEY.getData(dataContext) ?: return null
-  val displayView = DISPLAY_VIEW_KEY.getData(dataContext) ?: return null
-
-  return RunningDevicesTabContext(
-    project,
-    selectedContent,
-    deviceSerialNumber,
-    contentPanel,
-    contentPanel.parent,
-    displayView
-  )
 }
