@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering.parsers;
 
-import com.android.tools.idea.databinding.util.DataBindingUtil;
+import com.android.utils.DataBindingUtils;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,7 +49,7 @@ public class AttributeSnapshot {
     String namespace = attribute.getNamespace();
     String prefix = attribute.getNamespacePrefix();
     String value = attribute.getValue();
-    if (value != null && DataBindingUtil.isBindingExpression(value)) {
+    if (value != null && DataBindingUtils.isBindingExpression(value)) {
       // if this is a binding expression, get the default value.
       value = attribute.getBindingExprDefault();
       if (value == null) {

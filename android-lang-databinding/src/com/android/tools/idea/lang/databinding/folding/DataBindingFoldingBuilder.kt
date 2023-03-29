@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.lang.databinding.folding
 
-import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.utils.isBindingExpression
 import com.intellij.lang.ASTNode
 import com.intellij.lang.folding.FoldingBuilderEx
 import com.intellij.lang.folding.FoldingDescriptor
@@ -67,7 +67,7 @@ class DataBindingFoldingBuilder : FoldingBuilderEx() {
    */
   private fun isDbExpression(xmlToken: XmlToken): Boolean {
     val xmlAttributeValue = xmlToken.parent as? XmlAttributeValue ?: return false
-    return DataBindingUtil.isBindingExpression(xmlAttributeValue.value)
+    return isBindingExpression(xmlAttributeValue.value)
   }
 
   /**

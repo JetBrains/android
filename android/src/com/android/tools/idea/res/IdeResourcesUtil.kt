@@ -80,6 +80,7 @@ import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.lint.detector.api.computeResourceName
 import com.android.tools.lint.detector.api.stripIdPrefix
 import com.android.utils.SdkUtils
+import com.android.utils.isBindingExpression
 import com.google.common.base.CharMatcher
 import com.google.common.base.Joiner
 import com.google.common.base.Preconditions
@@ -811,7 +812,7 @@ fun RenderResources.resolveLayout(layout: ResourceValue?): VirtualFile? {
 
   var depth = 0
   while (value != null && depth < MAX_RESOURCE_INDIRECTION) {
-    if (DataBindingUtil.isBindingExpression(value)) {
+    if (isBindingExpression(value)) {
       value = DataBindingUtil.getBindingExprDefault(value) ?: return null
     }
     if (value.startsWith(PREFIX_RESOURCE_REF)) {

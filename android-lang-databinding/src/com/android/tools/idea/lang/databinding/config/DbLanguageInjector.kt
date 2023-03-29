@@ -19,7 +19,7 @@ import com.android.SdkConstants.PREFIX_BINDING_EXPR
 import com.android.SdkConstants.PREFIX_TWOWAY_BINDING_EXPR
 import com.android.SdkConstants.TAG_LAYOUT
 
-import com.android.tools.idea.databinding.util.DataBindingUtil
+import com.android.utils.isBindingExpression
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.InjectedLanguagePlaces
 import com.intellij.psi.LanguageInjector
@@ -35,7 +35,7 @@ class DbLanguageInjector : LanguageInjector {
     }
 
     val valueText = (host as? XmlAttributeValue)?.value ?: return
-    if (!DataBindingUtil.isBindingExpression(valueText)) {
+    if (!isBindingExpression(valueText)) {
       return
     }
 

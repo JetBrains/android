@@ -24,6 +24,7 @@ import com.android.tools.idea.lang.databinding.model.PsiModelClass.MemberAccess
 import com.android.tools.idea.lang.databinding.model.PsiModelMethod
 import com.android.tools.idea.projectsystem.ScopeType
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.android.utils.isBindingExpression
 import com.android.utils.usLocaleCapitalize
 import com.intellij.codeInsight.AnnotationUtil
 import com.intellij.patterns.PlatformPatterns
@@ -58,7 +59,7 @@ class DataBindingXmlAttributeReferenceContributor : PsiReferenceContributor() {
       override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
         val attribute = element as XmlAttribute
         val attributeValue = attribute.value ?: return arrayOf()
-        if (!DataBindingUtil.isBindingExpression(attributeValue)) {
+        if (!isBindingExpression(attributeValue)) {
           return arrayOf()
         }
         val model = AttributeReferenceModel.getInstance(attribute) ?: return arrayOf()

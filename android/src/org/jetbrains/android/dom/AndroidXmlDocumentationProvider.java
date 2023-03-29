@@ -19,9 +19,9 @@ import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.resources.ResourceUrl;
-import com.android.tools.idea.databinding.util.DataBindingUtil;
 import com.android.tools.idea.javadoc.AndroidJavaDocRenderer;
 import com.android.tools.idea.res.psi.ResourceReferencePsiElement;
+import com.android.utils.DataBindingUtils;
 import com.android.utils.Pair;
 import com.intellij.lang.Language;
 import com.intellij.lang.documentation.DocumentationProvider;
@@ -457,7 +457,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     }
     Converter converter = domValue.getConverter();
 
-    if ((value.startsWith(PREFIX_RESOURCE_REF) || value.startsWith(PREFIX_THEME_REF)) && !DataBindingUtil.isBindingExpression(value)) {
+    if ((value.startsWith(PREFIX_RESOURCE_REF) || value.startsWith(PREFIX_THEME_REF)) && !DataBindingUtils.isBindingExpression(value)) {
       return new ResourceReferenceCompletionElement(element, value);
     }
 

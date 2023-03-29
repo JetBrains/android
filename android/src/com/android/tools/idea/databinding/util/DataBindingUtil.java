@@ -358,10 +358,6 @@ public final class DataBindingUtil {
     return null;
   }
 
-  public static boolean isBindingExpression(@NotNull String string) {
-    return string.startsWith(SdkConstants.PREFIX_BINDING_EXPR) || string.startsWith(SdkConstants.PREFIX_TWOWAY_BINDING_EXPR);
-  }
-
   public static boolean isTwoWayBindingExpression(@NotNull String string) {
     return string.startsWith(SdkConstants.PREFIX_TWOWAY_BINDING_EXPR);
   }
