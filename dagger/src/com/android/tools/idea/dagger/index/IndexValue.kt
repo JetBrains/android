@@ -16,6 +16,8 @@
 package com.android.tools.idea.dagger.index
 
 import com.android.tools.idea.dagger.concepts.AllConcepts
+import com.android.tools.idea.dagger.concepts.AssistedFactoryMethodDaggerElement
+import com.android.tools.idea.dagger.concepts.AssistedInjectConstructorDaggerElement
 import com.android.tools.idea.dagger.concepts.BindsOptionalOfProviderDaggerElement
 import com.android.tools.idea.dagger.concepts.ComponentDaggerElement
 import com.android.tools.idea.dagger.concepts.ComponentProvisionMethodDaggerElement
@@ -63,6 +65,10 @@ abstract class IndexValue {
     BINDS_OPTIONAL_OF_METHOD(BindsOptionalOfProviderDaggerElement::class),
     BINDS_INSTANCE_BUILDER_METHOD(ProviderDaggerElement::class),
     BINDS_INSTANCE_FACTORY_METHOD_PARAMETER(ProviderDaggerElement::class),
+    ASSISTED_INJECT_CONSTRUCTOR(AssistedInjectConstructorDaggerElement::class),
+    ASSISTED_INJECT_CONSTRUCTOR_UNASSISTED_PARAMETER(ConsumerDaggerElement::class),
+    ASSISTED_FACTORY_CLASS(ProviderDaggerElement::class),
+    ASSISTED_FACTORY_METHOD(AssistedFactoryMethodDaggerElement::class),
   }
 
   abstract fun save(output: DataOutput)

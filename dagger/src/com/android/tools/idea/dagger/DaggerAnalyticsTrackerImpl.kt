@@ -16,6 +16,8 @@
 package com.android.tools.idea.dagger
 
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.dagger.concepts.AssistedFactoryMethodDaggerElement
+import com.android.tools.idea.dagger.concepts.AssistedInjectConstructorDaggerElement
 import com.android.tools.idea.dagger.concepts.ComponentDaggerElement
 import com.android.tools.idea.dagger.concepts.ConsumerDaggerElementBase
 import com.android.tools.idea.dagger.concepts.DaggerElement
@@ -159,9 +161,12 @@ internal fun getTypeForMetrics(element: PsiElement): DaggerEditorEvent.ElementTy
 
 internal fun DaggerElement.toMetricsType(): DaggerEditorEvent.ElementType =
   when (this) {
-    is ConsumerDaggerElementBase -> DaggerEditorEvent.ElementType.CONSUMER
-    is ProviderDaggerElementBase -> DaggerEditorEvent.ElementType.PROVIDER
-    is ModuleDaggerElement -> DaggerEditorEvent.ElementType.MODULE
+    is AssistedInjectConstructorDaggerElement ->
+      DaggerEditorEvent.ElementType.ASSISTED_INJECTED_CONSTRUCTOR
+    is AssistedFactoryMethodDaggerElement -> DaggerEditorEvent.ElementType.ASSISTED_FACTORY_METHOD
     is ComponentDaggerElement -> DaggerEditorEvent.ElementType.COMPONENT
+    is ConsumerDaggerElementBase -> DaggerEditorEvent.ElementType.CONSUMER
+    is ModuleDaggerElement -> DaggerEditorEvent.ElementType.MODULE
+    is ProviderDaggerElementBase -> DaggerEditorEvent.ElementType.PROVIDER
     is SubcomponentDaggerElement -> DaggerEditorEvent.ElementType.SUBCOMPONENT
   }

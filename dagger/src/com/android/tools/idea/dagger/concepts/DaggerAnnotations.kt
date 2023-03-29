@@ -17,6 +17,9 @@ package com.android.tools.idea.dagger.concepts
 
 /** Shared definitions of annotation names used when building the Dagger index. */
 object DaggerAnnotations {
+  internal const val ASSISTED = "dagger.assisted.Assisted"
+  internal const val ASSISTED_FACTORY = "dagger.assisted.AssistedFactory"
+  internal const val ASSISTED_INJECT = "dagger.assisted.AssistedInject"
   internal const val BINDS = "dagger.Binds"
   internal const val BINDS_INSTANCE = "dagger.BindsInstance"
   internal const val BINDS_OPTIONAL_OF = "dagger.BindsOptionalOf"

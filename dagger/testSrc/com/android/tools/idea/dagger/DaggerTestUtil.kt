@@ -177,6 +177,16 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       .trimIndent()
   )
   fixture.addFileToProject(
+    "dagger/assisted/Assisted.java",
+    // language=JAVA
+    """
+      package dagger.assisted;
+
+      public @interface Assisted {}
+      """
+      .trimIndent()
+  )
+  fixture.addFileToProject(
     "dagger/assisted/AssistedInject.java",
     // language=JAVA
     """

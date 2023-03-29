@@ -16,6 +16,8 @@
 package com.android.tools.idea.dagger
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.dagger.concepts.AssistedFactoryMethodDaggerElement
+import com.android.tools.idea.dagger.concepts.AssistedInjectConstructorDaggerElement
 import com.android.tools.idea.dagger.concepts.ComponentDaggerElement
 import com.android.tools.idea.dagger.concepts.ConsumerDaggerElementBase
 import com.android.tools.idea.dagger.concepts.DaggerElement
@@ -121,7 +123,9 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
     /** Returns the gutter icon to use for a given Dagger element type. */
     private fun DaggerElement.getIcon(): Icon =
       when (this) {
+        is AssistedFactoryMethodDaggerElement,
         is ConsumerDaggerElementBase -> StudioIcons.Misc.DEPENDENCY_PROVIDER
+        is AssistedInjectConstructorDaggerElement,
         is ProviderDaggerElementBase,
         is ComponentDaggerElement,
         is SubcomponentDaggerElement,
