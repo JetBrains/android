@@ -20,16 +20,14 @@ import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
 import com.android.tools.idea.testing.ProjectServiceRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.Disposable
-import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.ui.CollectionComboBoxModel
 import com.intellij.ui.components.JBList
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.test.TestCoroutineScope
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.any
@@ -38,17 +36,15 @@ import org.mockito.Mockito.spy
 /**
  * Tests for [DeviceComboBox]
  */
-@Suppress("OPT_IN_USAGE") // runBlockingTest is experimental
+@Suppress("OPT_IN_USAGE") // runTest is experimental
 class DeviceComboBoxTest {
   private val projectRule = ProjectRule()
-  private val disposableRule = DisposableRule()
   private val deviceTracker = FakeDeviceComboBoxDeviceTracker()
 
   @get:Rule
   val rule = RuleChain(
     projectRule,
     ProjectServiceRule(projectRule, DeviceComboBoxDeviceTrackerFactory::class.java, DeviceComboBoxDeviceTrackerFactory { deviceTracker }),
-    disposableRule,
   )
 
   private val selectionEvents = mutableListOf<Any?>()
@@ -58,7 +54,7 @@ class DeviceComboBoxTest {
   private val emulator = Device.createEmulator("emulator-5555", false, "11", 30, "AVD")
 
   @Test
-  fun noDevice_noSelection(): Unit = runBlockingTest {
+  fun noDevice_noSelection(): Unit = runTest(dispatchTimeoutMs = 5_000) {
     val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
 
     val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
@@ -69,8 +65,7 @@ class DeviceComboBoxTest {
   }
 
   @Test
-  fun noInitialDevice_selectsFirstDevice(): Unit = runBlockingTest {
-
+  fun noInitialDevice_selectsFirstDevice(): Unit = runTest(dispatchTimeoutMs = 5_000) {
     val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
     val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
 
@@ -79,6 +74,7 @@ class DeviceComboBoxTest {
         Added(device1),
         Added(device2),
       )
+      advanceUntilIdle()
     }
 
     assertThat(selectionEvents).containsExactly(device1)
@@ -90,9 +86,8 @@ class DeviceComboBoxTest {
   }
 
   @Test
-  fun withInitialDevice_selectsInitialDevice(): Unit = runBlockingTest {
+  fun withInitialDevice_selectsInitialDevice(): Unit = runTest(dispatchTimeoutMs = 5_000) {
     val deviceComboBox = deviceComboBox(initialDevice = device2, selectionEvents = selectionEvents)
-
     val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
 
     deviceTracker.use {
@@ -100,6 +95,7 @@ class DeviceComboBoxTest {
         Added(device1),
         Added(device2),
       )
+      advanceUntilIdle()
     }
 
     assertThat(selectionEvents).containsExactly(device2)
@@ -111,7 +107,7 @@ class DeviceComboBoxTest {
   }
 
   @Test
-  fun selectedDeviceStateChanges_selectsDevice(): Unit = runBlockingTest {
+  fun selectedDeviceStateChanges_selectsDevice(): Unit = runTest(dispatchTimeoutMs = 5_000) {
     val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
     val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
 
@@ -120,6 +116,7 @@ class DeviceComboBoxTest {
         Added(device2.online()),
         StateChanged(device2.offline()),
       )
+      advanceUntilIdle()
     }
 
     assertThat(selectionEvents).containsExactly(
@@ -133,16 +130,17 @@ class DeviceComboBoxTest {
   }
 
   @Test
-  fun unselectedDeviceStateChanges_doesNotSelect(): Unit = runBlockingTest {
+  fun unselectedDeviceStateChanges_doesNotSelect(): Unit = runTest(dispatchTimeoutMs = 5_000) {
     val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
     val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
 
     deviceTracker.use {
       it.sendEvents(
-          Added(device1),
-          Added(device2.online()),
-          StateChanged(device2.offline()),
+        Added(device1),
+        Added(device2.online()),
+        StateChanged(device2.offline()),
       )
+      advanceUntilIdle()
     }
 
     assertThat(selectionEvents).containsExactly(device1)
@@ -154,16 +152,18 @@ class DeviceComboBoxTest {
   }
 
   @Test
-  fun userSelection_sendsToFlow(): Unit = runBlockingTest {
+  fun userSelection_sendsToFlow(): Unit = runTest(dispatchTimeoutMs = 5_000) {
     val deviceComboBox = deviceComboBox(selectionEvents = selectionEvents)
     val selectedDevices = async { deviceComboBox.trackSelectedDevice().toList() }
 
     deviceTracker.use {
       it.sendEvents(
-          Added(device1),
-          Added(device2),
+        Added(device1),
+        Added(device2),
       )
+      advanceUntilIdle()
       deviceComboBox.selectedItem = device2
+      advanceUntilIdle()
     }
 
     assertThat(selectedDevices.await()).containsExactly(device1, device2)
@@ -202,11 +202,10 @@ class DeviceComboBoxTest {
   }
 
   private fun deviceComboBox(
-    disposable: Disposable = disposableRule.disposable,
     initialDevice: Device? = null,
     selectionEvents: MutableList<Any?> = mutableListOf(),
   ): DeviceComboBox {
-    return DeviceComboBox(projectRule.project, disposable, initialDevice, TestCoroutineScope()).also {
+    return DeviceComboBox(projectRule.project, initialDevice).also {
       // Replace the model with a spy that records all the calls to setSelectedItem()
       it.model = spy(it.model)
       whenever(it.model.setSelectedItem(any())).thenAnswer { invocation ->
@@ -218,6 +217,7 @@ class DeviceComboBoxTest {
 }
 
 private fun Device.offline() = copy(isOnline = false)
+
 private fun Device.online() = copy(isOnline = true)
 
 private fun DeviceComboBox.getRenderedText(device: Device) =
