@@ -60,7 +60,7 @@ class BatteryDrainTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Rang
   }
 
   companion object {
-    private fun getUnitFromTrackName(trackName: String): String {
+    fun getUnitFromTrackName(trackName: String): String {
       return if (trackName.contains("pct")) "%"
       else if (trackName.contains("uah")) "µah"
       else if (trackName.contains("ua")) "µa"
