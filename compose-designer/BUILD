@@ -1,5 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 iml_module(
@@ -64,12 +65,12 @@ iml_module(
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData",
+        "//tools/adt/idea/compose-designer:kotlin-compiler-daemon-libs",
         "//tools/adt/idea/compose-designer/testData",
         "//tools/adt/idea/compose-ide-plugin/testData",
-        "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
-        "//tools/adt/idea/compose-designer:kotlin-compiler-daemon-libs",
+        "//tools/base/build-system:gradle-distrib",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
     ],
     test_friends = ["//tools/adt/idea/compose-designer:intellij.android.compose-designer"],
@@ -121,8 +122,6 @@ filegroup(
     srcs = ["lib/kotlin-compiler-daemon-1.2.0-fallback.jar"],
     visibility = ["//visibility:public"],
 )
-
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 jvm_import(

@@ -3,7 +3,8 @@ load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/adt/idea/android-test-framework:check_tests.bzl", "check_tests")
 load("//tools/adt/idea/studio:studio.bzl", "studio_data")
-load("//tools/base/bazel:proto.bzl", "android_java_proto_library", "java_proto_library")
+load("//tools/base/bazel:proto.bzl", "java_proto_library")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 java_proto_library(
     name = "android-core-proto",
@@ -249,8 +250,8 @@ iml_module(
     test_resources = ["testResources"],
     test_srcs = ["testSrc"],
     test_tags = [
-        "cpu:3",
         "block-network",
+        "cpu:3",
         "no_test_mac",
     ],
     test_timeout = "long",
@@ -382,8 +383,8 @@ filegroup(
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
         "//conditions:default": [
-            "//tools/base/deploy/installer:test-installer",
             "//tools/base/deploy/installer:android-installer",
+            "//tools/base/deploy/installer:test-installer",
             "//tools/base/deploy/installer/tests:artifacts",
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
@@ -450,6 +451,8 @@ filegroup(
         ":layout-inspector-artifacts",
         ":profiler-artifacts",
         ":transport-artifacts",
+        "//tools/adt/idea/as-driver:as_driver_deploy.jar",
+        "//tools/adt/idea/build-attribution/proto:build-analysis-results-proto",
         "//tools/adt/idea/server-flags:server-flag-test-proto",
         "//tools/adt/idea/streaming/screen-sharing-agent:bundle",
         "//tools/adt/idea/studio:default_user_jvm_args",
@@ -458,7 +461,9 @@ filegroup(
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
         "//tools/base/bazel:studio-grpc",
         "//tools/base/bazel:studio-proto",
+        "//tools/base/bazel:utp-core-proto-jarjar",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
+        "//tools/base/common:version",
         "//tools/base/ddmlib:am-instrumentation-data-proto",
         "//tools/base/ddmlib:app-processes-proto",
         "//tools/base/emulator/proto:emulator_java_proto",
@@ -469,18 +474,14 @@ filegroup(
         "//tools/base/third_party/kotlin:kotlin-m2repository",
         "//tools/base/threading-agent:threading_agent.jar",
         "//tools/base/tracer:trace_agent",
-        "//tools/adt/idea/as-driver:as_driver_deploy.jar",
-        "//tools/base/bazel:utp-core-proto-jarjar",
         "//tools/base/utp/android-test-plugin-host-device-info-proto:libstudio.android-test-plugin-host-device-info-proto",
         "//tools/base/utp/android-test-plugin-host-retention-proto:libstudio.android-test-plugin-host-retention-proto",
         "//tools/base/utp/android-test-plugin-result-listener-gradle-proto:libstudio.android-test-plugin-result-listener-gradle-proto",
-        "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
         "//tools/data-binding:compilerCommon.antlr.shaded",
+        "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
         "//tools/vendor/google/firebase/src/proto:firebase_java_proto",
         "//tools/vendor/google/ml/sml-core/aida:aida_artifacts",
         "//tools/vendor/google/url-assistant/src/proto:urlassistant_proto",
-        "//tools/adt/idea/build-attribution/proto:build-analysis-results-proto",
-        "//tools/base/common:version",
     ] + select({
         "//tools/base/bazel:windows": [],
         "//conditions:default": [
@@ -602,8 +603,6 @@ java_binary(
         ":update_offline_gmaven_index",
     ],
 )
-
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 jvm_import(
