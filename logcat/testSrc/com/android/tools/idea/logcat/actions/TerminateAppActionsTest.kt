@@ -25,10 +25,11 @@ import com.android.tools.idea.logcat.actions.TerminateAppActions.CrashAppAction
 import com.android.tools.idea.logcat.actions.TerminateAppActions.ForceStopAppAction
 import com.android.tools.idea.logcat.actions.TerminateAppActions.KillAppAction
 import com.android.tools.idea.logcat.devices.Device
-import com.android.tools.idea.logcat.util.logcatMessage
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.android.tools.idea.logcat.messages.LOGCAT_MESSAGE_KEY
 import com.android.tools.idea.logcat.testing.LogcatEditorRule
+import com.android.tools.idea.logcat.util.logcatMessage
+import com.android.tools.idea.logcat.util.waitForCondition
 import com.android.tools.idea.testing.ProjectServiceRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.CommonDataKeys.EDITOR
@@ -272,7 +273,7 @@ class TerminateAppActionsTest {
 
     KillAppAction().actionPerformed(event)
 
-    device.waitForNoProcesses()
+    waitForCondition { device.getClient(101) == null }
   }
 
   /**
@@ -328,16 +329,6 @@ class TerminateAppActionsTest {
       false -> device.jdwpProcessTracker.processesFlow
     }
     flow.waitFor { it.pid == pid }
-  }
-
-  private suspend fun DeviceState.waitForNoProcesses() {
-    val device = adbSession.connectedDevicesTracker.connectedDevices.value.find { it.serialNumber == deviceId }
-                 ?: throw IllegalStateException("Device $deviceId not found")
-    val flow = when (device.deviceProperties().api() >= 31) {
-      true -> device.appProcessTracker.appProcessFlow.asJdwpProcessFlow()
-      false -> device.jdwpProcessTracker.processesFlow
-    }
-    flow.first { it.isEmpty() }
   }
 
   private class ActivityManagerService : Service {
