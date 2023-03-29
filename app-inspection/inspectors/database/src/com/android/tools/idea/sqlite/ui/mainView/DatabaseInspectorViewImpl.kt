@@ -38,7 +38,6 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.UIBundle
 import com.intellij.ui.tabs.JBTabsBorder
 import com.intellij.ui.tabs.TabInfo
@@ -66,7 +65,7 @@ class DatabaseInspectorViewImpl(
   private val leftPanelView = LeftPanelView(this)
   private val viewContext = SqliteViewContext(leftPanelView.component)
   private val workBench: WorkBench<SqliteViewContext> = WorkBench(project, "Database Inspector", null, parentDisposable)
-  private val tabs = BorderedTabs(project, IdeFocusManager.getInstance(project), project)
+  private val tabs = BorderedTabs(project, project)
 
   override val component: JComponent = workBench
 
@@ -268,11 +267,7 @@ class DatabaseInspectorViewImpl(
    * Extends [JBTabsImpl] by using a [JBEditorTabsBorder], which adds a tab border to all the tabs.
    * The [JBTabsBorder] used by [JBTabsImpl] does not add a border to the first tab, if there is only one tab.
    */
-  private class BorderedTabs(
-    project: Project,
-    focusManager: IdeFocusManager,
-    parent: Disposable
-  ) : JBTabsImpl(project, focusManager, parent) {
+  private class BorderedTabs(project: Project, parent: Disposable) : JBTabsImpl(project, parent) {
     override fun createTabBorder() = JBEditorTabsBorder(this)
   }
 }

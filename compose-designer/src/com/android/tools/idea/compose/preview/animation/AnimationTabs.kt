@@ -21,7 +21,6 @@ import com.android.tools.idea.compose.preview.ComposePreviewBundle.message
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.ui.popup.IconButton
-import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.InplaceButton
 import com.intellij.ui.JBColor
 import com.intellij.ui.tabs.TabInfo
@@ -43,13 +42,8 @@ import javax.swing.border.MatteBorder
 /**
  * Tabs panel with enabled navigation.
  */
-class AnimationTabs(surface: DesignSurface<*>) :
-  JBTabsImpl(
-    surface.project,
-    IdeFocusManager.getInstance(surface.project),
-    surface.project) {
+class AnimationTabs(surface: DesignSurface<*>) : JBTabsImpl(surface.project, surface.project) {
   private val decoration = UiDecorator.UiDecoration(labelInsets = Insets(5, 10, 5, 2))
-
 
   init {
     border = MatteBorder(0, 0, 1, 0, JBColor.border())
