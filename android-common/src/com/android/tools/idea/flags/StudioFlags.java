@@ -682,6 +682,7 @@ public final class StudioFlags {
     "Set the max number of messages that are appended to the UI component",
     1000
   );
+
   public static final Flag<Boolean> LOGCAT_PANEL_MEMORY_SAVER = Flag.create(
     LOGCAT,
     "logcat.panel.memory.saver",
@@ -690,7 +691,6 @@ public final class StudioFlags {
     true
   );
 
-
   public static final Flag<Boolean> LOGCAT_TERMINATE_APP_ACTIONS_ENABLED = Flag.create(
     LOGCAT,
     "logcat.terminate.app.actions.enable",
@@ -698,6 +698,14 @@ public final class StudioFlags {
     "Enable right-click actions for terminating the application. " +
     "Note that this feature is only enabled if the flag ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER is also true. " +
     "Changing the value of this flag requires restarting Android Studio.",
+    true
+  );
+
+  public static final Flag<Boolean> LOGCAT_IGNORE_STUDIO_SPAM_TAGS = Flag.create(
+    LOGCAT,
+    "logcat.ignore.studio.spam.tags",
+    "Ignore tags that Studio itself is responsible for",
+    "Ignore tags that Studio itself is responsible for",
     true
   );
   //endregion

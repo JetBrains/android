@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.logcat.filters
 
+import com.android.flags.junit.FlagRule
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.FakePackageNamesProvider
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.filters.LogcatFilterField.APP
@@ -61,7 +63,7 @@ class LogcatFilterTest {
   private val disposableRule = DisposableRule()
 
   @get:Rule
-  val rule = RuleChain(ApplicationRule(), disposableRule)
+  val rule = RuleChain(ApplicationRule(), disposableRule, FlagRule(StudioFlags.LOGCAT_IGNORE_STUDIO_SPAM_TAGS))
 
   private val logcatSettings = AndroidLogcatSettings()
 
@@ -109,6 +111,32 @@ class LogcatFilterTest {
     }
 
     assertThat(LogcatMasterFilter(filter).filter(messages)).isEqualTo(listOf(MESSAGE2))
+  }
+
+  @Test
+  fun logcatMasterFilter_studioSpam() {
+    StudioFlags.LOGCAT_IGNORE_STUDIO_SPAM_TAGS.override(false)
+    val spam = logcatMessage(tag = "studio.ignore")
+    val messages = listOf(MESSAGE1, spam)
+    val filter = object : LogcatFilter(EMPTY_RANGE) {
+      override val displayText: String = ""
+
+      override fun matches(message: LogcatMessageWrapper) = true
+    }
+
+    assertThat(LogcatMasterFilter(filter).filter(messages)).isEqualTo(listOf(MESSAGE1, spam))
+  }
+
+  @Test
+  fun logcatMasterFilter_studioSpam_withoutFlag() {
+    val messages = listOf(MESSAGE1, logcatMessage(tag = "studio.ignore"))
+    val filter = object : LogcatFilter(EMPTY_RANGE) {
+      override val displayText: String = ""
+
+      override fun matches(message: LogcatMessageWrapper) = true
+    }
+
+    assertThat(LogcatMasterFilter(filter).filter(messages)).isEqualTo(listOf(MESSAGE1))
   }
 
   @Test
