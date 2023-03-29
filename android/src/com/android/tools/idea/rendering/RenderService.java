@@ -44,9 +44,7 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import com.android.tools.sdk.AndroidPlatform;
@@ -102,13 +100,6 @@ final public class RenderService implements Disposable {
     return ourExecutor;
   }
 
-  /**
-   * Returns true if the current thread is the render thread managed by this executor.
-   */
-  public static boolean isCurrentThreadARenderThread() {
-    return ourExecutor.isCurrentThreadARenderThread();
-  }
-
   @Nullable
   public static LayoutLibrary getLayoutLibrary(
     @Nullable IAndroidTarget target,
@@ -154,30 +145,6 @@ final public class RenderService implements Disposable {
   @Override
   public void dispose() {
     myImagePool.dispose();
-  }
-
-  /**
-   * Runs a action that requires the rendering lock. Layoutlib is not thread safe so any rendering actions should be called using this
-   * method.
-   *
-   * @deprecated This method is not safe to call, it might block unexpectedly waiting for the render thread.
-   *  Use {@link RenderService#getRenderAsyncActionExecutor()} instead.
-   */
-  @Deprecated
-  public static void runRenderAction(@NotNull final Runnable runnable) throws Exception {
-    runRenderAction(Executors.callable(runnable));
-  }
-
-  /**
-   * Runs a action that requires the rendering lock. Layoutlib is not thread safe so any rendering actions should be called using this
-   * method.
-   *
-   * @deprecated This method is not safe to call, it might block unexpectedly waiting for the render thread.
-   *  Use {@link RenderService#getRenderAsyncActionExecutor()} instead.
-   */
-  @Deprecated
-  public static <T> T runRenderAction(@NotNull Callable<T> callable) throws Exception {
-    return ourExecutor.runAction(callable);
   }
 
   /**
