@@ -2613,8 +2613,6 @@ Android Studio Preview.app/Contents/plugins/java/lib/jshell-frontend.jar
 Android Studio Preview.app/Contents/plugins/java/lib/jshell-protocol.jar
 Android Studio Preview.app/Contents/plugins/java/lib/resources/jdkAnnotations.jar
 Android Studio Preview.app/Contents/plugins/java/lib/rt/debugger-agent.jar
-Android Studio Preview.app/Contents/plugins/java/lib/rt/jps-javac-rt-rpc.jar
-Android Studio Preview.app/Contents/plugins/java/lib/rt/protobuf-java6.jar
 Android Studio Preview.app/Contents/plugins/java/lib/sa-jdwp.jar
 Android Studio Preview.app/Contents/plugins/junit/lib/idea-junit.jar
 Android Studio Preview.app/Contents/plugins/junit/lib/junit-rt.jar

@@ -2054,8 +2054,6 @@ android-studio/plugins/java/lib/jshell-frontend.jar
 android-studio/plugins/java/lib/jshell-protocol.jar
 android-studio/plugins/java/lib/resources/jdkAnnotations.jar
 android-studio/plugins/java/lib/rt/debugger-agent.jar
-android-studio/plugins/java/lib/rt/jps-javac-rt-rpc.jar
-android-studio/plugins/java/lib/rt/protobuf-java6.jar
 android-studio/plugins/java/lib/sa-jdwp.jar
 android-studio/plugins/junit/lib/idea-junit.jar
 android-studio/plugins/junit/lib/junit-rt.jar
