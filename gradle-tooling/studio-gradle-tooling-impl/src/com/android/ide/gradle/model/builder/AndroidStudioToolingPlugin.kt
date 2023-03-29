@@ -21,7 +21,7 @@ import com.android.ide.gradle.model.composites.BuildMapModelBuilder
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
-import org.gradle.util.VersionNumber
+import org.gradle.util.GradleVersion
 import javax.inject.Inject
 
 class AndroidStudioToolingPlugin @Inject
@@ -34,15 +34,11 @@ internal constructor(private val registry: ToolingModelBuilderRegistry) : Plugin
     registry.register(GradlePropertiesModelBuilder())
     // NOTE: The minimum supported AGP version is 3.2 and it requires Gradle 4.6.
     // AdditionalArtifactsModelBuilder extends ParameterizedToolingModelBuilder, which is available since Gradle 4.4.
-    if (isGradleAtLeast(project.gradle.gradleVersion, "4.4")) {
+    if (GradleVersion.current() >= minGradleVersion) {
       LegacyApplicationIdModelBuilder.maybeRegister(project, registry)
       registry.register(AdditionalClassifierArtifactsModelBuilder())
     }
   }
 }
 
-internal fun isGradleAtLeast(gradleVersion: String, expectedVersion: String): Boolean {
-  val currentVersion = VersionNumber.parse(gradleVersion)
-  val givenVersion = VersionNumber.parse(expectedVersion)
-  return currentVersion >= givenVersion
-}
+private val minGradleVersion = GradleVersion.version("4.4")
