@@ -15,14 +15,14 @@
  */
 package com.android.tools.adtui.toolwindow.splittingtabs.actions
 
-import com.android.testutils.MockitoKt
 import com.android.tools.adtui.toolwindow.splittingtabs.ChildComponentFactory
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingPanel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.Presentation
-import com.intellij.openapi.project.Project
-import com.intellij.testFramework.ApplicationRule
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.content.Content
 import org.junit.Rule
@@ -34,13 +34,15 @@ import javax.swing.JPanel
  * Tests for [MoveTabAction]
  */
 class MoveTabActionTest {
-  @get:Rule
-  val appRule = ApplicationRule()
+  //@get:Rule
+  private val projectRule = ProjectRule()
 
-  private val project = MockitoKt.mock<Project>()
+  @get:Rule
+  val rule = RuleChain(projectRule, EdtRule())
+
   private val moveLeftAction = MoveTabAction.Left()
   private val moveRightAction = MoveTabAction.Right()
-  private val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
+  private val toolWindow  by lazy { ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)}
   private val content1 by lazy { createContent(toolWindow) }
   private val content2 by lazy { createContent(toolWindow) }
   private val content3 by lazy { createContent(toolWindow) }

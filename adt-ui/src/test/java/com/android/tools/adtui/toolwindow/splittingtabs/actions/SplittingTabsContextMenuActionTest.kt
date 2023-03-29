@@ -15,13 +15,14 @@
  */
 package com.android.tools.adtui.toolwindow.splittingtabs.actions
 
-import com.android.testutils.MockitoKt
 import com.android.tools.adtui.toolwindow.splittingtabs.ChildComponentFactory
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingPanel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.project.Project
-import com.intellij.testFramework.ApplicationRule
+import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.content.Content
@@ -34,12 +35,13 @@ import javax.swing.JPanel
  * Tests for [SplittingTabsContextMenuAction]
  */
 class SplittingTabsContextMenuActionTest {
-  @get:Rule
-  val appRule = ApplicationRule()
+  private val projectRule = ProjectRule()
 
-  private val project = MockitoKt.mock<Project>()
+  @get:Rule
+  val rule = RuleChain(projectRule, EdtRule())
+
   private val splittingTabsContextMenuAction = TestSplittingTabsContextMenuAction("")
-  private val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
+  private val toolWindow by lazy { ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)}
   private val event by lazy { TestActionEvent({ }, splittingTabsContextMenuAction) }
   private val content by lazy {
     toolWindow.contentManager.factory.createContent(null, "Content", false).also {
@@ -109,6 +111,7 @@ class SplittingTabsContextMenuActionTest {
         override fun createChildComponent(state: String?, popupActionGroup: ActionGroup): JComponent = JPanel()
       })
     }
+    Disposer.register(toolWindow.contentManager, content)
 
     splittingTabsContextMenuAction.actionPerformed(event, toolWindow, content)
 

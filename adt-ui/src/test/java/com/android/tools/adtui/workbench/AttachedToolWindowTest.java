@@ -112,9 +112,7 @@ public class AttachedToolWindowTest extends WorkBenchTestCase {
   @Override
   public void tearDown() throws Exception {
     try {
-      if (myToolWindow != null) {
-        Disposer.dispose(myToolWindow);
-      }
+      Disposer.dispose(myWorkBench);
       KeyboardFocusManager.setCurrentKeyboardFocusManager(null);
       myMocks.close();
       super.tearDown();
