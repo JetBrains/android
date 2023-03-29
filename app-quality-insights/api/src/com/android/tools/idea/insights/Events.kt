@@ -144,21 +144,6 @@ data class Version(
     val ALL = Version(buildVersion = "", displayVersion = "ALL", displayName = "ALL")
   }
 
-  // TODO(vkryachko): remove equals and hashCode.
-  override fun equals(other: Any?): Boolean {
-    if (other !is Version) return false
-    return other.buildVersion == buildVersion &&
-      other.displayVersion == displayVersion &&
-      other.displayName == displayName
-  }
-
-  override fun hashCode(): Int {
-    var result = buildVersion.hashCode()
-    result = 31 * result + displayVersion.hashCode()
-    result = 31 * result + displayName.hashCode()
-    return result
-  }
-
   override fun toString(): String {
     if (this == ALL) {
       return "All app versions"
@@ -170,7 +155,7 @@ data class Version(
 /** Event metadata captured at the time of the event, plus additional analysis. */
 data class EventData(
   // Metadata about the device.
-  val device: Device = Device("", ""),
+  val device: Device = Device("", "", ""),
 
   // Metadata about operating system.
   val operatingSystemInfo: OperatingSystemInfo = OperatingSystemInfo("", ""),

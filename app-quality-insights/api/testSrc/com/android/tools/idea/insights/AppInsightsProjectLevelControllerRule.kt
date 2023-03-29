@@ -220,12 +220,18 @@ class CallInProgress<T> {
 
 /** Test client that gives precise control and synchronization useful in tests. */
 class TestCrashlyticsClient(private val cache: AppInsightsCache) : AppInsightsClient {
+  private val listConnections = CallInProgress<LoadingState.Done<List<Connection>>>()
   private val topIssuesCall = CallInProgress<LoadingState.Done<IssueResponse>>()
   private val detailsCall = CallInProgress<LoadingState.Done<DetailedIssueStats?>>()
   private val setIssueStateCall = CallInProgress<LoadingState.Done<Unit>>()
   private val listNotesCall = CallInProgress<LoadingState.Done<List<Note>>>()
   private val createNoteCall = CallInProgress<LoadingState.Done<Note>>()
   private val deleteNoteCall = CallInProgress<LoadingState.Done<Unit>>()
+  override suspend fun listConnections(): LoadingState.Done<List<Connection>> =
+    listConnections.initiateCall()
+
+  suspend fun completeConnectionsCallWith(value: LoadingState.Done<List<Connection>>) =
+    listConnections.completeWith(value)
 
   override suspend fun listTopOpenIssues(
     request: IssueRequest,

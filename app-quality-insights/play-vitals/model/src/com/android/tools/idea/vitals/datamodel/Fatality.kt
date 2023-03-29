@@ -13,6 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.vitals.client
+package com.android.tools.idea.vitals.datamodel
 
-interface VitalsGrpcClient {}
+import com.android.tools.idea.insights.FailureType
+import com.google.play.developer.reporting.ErrorType
+
+internal fun ErrorType.toFailureType(): FailureType {
+  return when (this) {
+    ErrorType.ERROR_TYPE_UNSPECIFIED,
+    ErrorType.UNRECOGNIZED -> FailureType.UNSPECIFIED
+    ErrorType.APPLICATION_NOT_RESPONDING -> FailureType.ANR
+    ErrorType.CRASH -> FailureType.FATAL
+  }
+}

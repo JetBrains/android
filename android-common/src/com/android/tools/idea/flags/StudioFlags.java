@@ -1675,6 +1675,22 @@ public final class StudioFlags {
       "Enable the play vitals tool window tab.",
       "Enables the play vitals tab and its associated functionality.",
       false);
+
+  public static final Flag<String> PLAY_VITALS_GRPC_SERVER =
+    Flag.create(
+      APP_INSIGHTS,
+      "play.vitals.grpc.server",
+      "Set Play Vitals gRpc server address",
+      "Set Play Vitals gRpc server address, mainly used for testing purposes.",
+      "playdeveloperreporting.googleapis.com");
+
+  public static final Flag<Boolean> PLAY_VITALS_GRPC_USE_TRANSPORT_SECURITY =
+    Flag.create(
+      APP_INSIGHTS,
+      "play.vitals.grpc.use.transport.security",
+      "Use transport security",
+      "Set Play Vitals gRpc channel to use transport security",
+      true);
   // endregion App Insights
 
   // region App Links Assistant

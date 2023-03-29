@@ -3,7 +3,7 @@ syntax = "proto3";
 
 package google.type;
 
-option java_package = "com.google.type";
+option java_package = "com.google.play.developer.reporting";
 option java_outer_classname = "DecimalProto";
 option java_multiple_files = true;
 option objc_class_prefix = "GTP";

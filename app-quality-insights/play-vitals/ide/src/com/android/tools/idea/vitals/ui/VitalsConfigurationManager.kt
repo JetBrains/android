@@ -45,7 +45,7 @@ import kotlinx.coroutines.flow.flowOf
 @Service
 class VitalsConfigurationManager(override val project: Project) :
   AppInsightsConfigurationManager, Disposable {
-  private val client = VitalsClient()
+  private val client = VitalsClient(this)
 
   // TODO(b/265153845): implement getting of connections when API is ready
   private val module = project.modules.first { it.isHolderModule() }

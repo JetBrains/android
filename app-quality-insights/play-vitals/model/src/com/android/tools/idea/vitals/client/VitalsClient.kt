@@ -15,38 +15,92 @@
  */
 package com.android.tools.idea.vitals.client
 
+import com.android.tools.idea.insights.AppInsightsIssue
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.ConnectionMode
 import com.android.tools.idea.insights.DetailedIssueStats
+import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.IssueState
 import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.Note
 import com.android.tools.idea.insights.NoteId
+import com.android.tools.idea.insights.OperatingSystemInfo
 import com.android.tools.idea.insights.Permission
+import com.android.tools.idea.insights.Version
+import com.android.tools.idea.insights.WithCount
 import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.client.IssueRequest
 import com.android.tools.idea.insights.client.IssueResponse
+import com.android.tools.idea.insights.client.QueryFilters
+import com.android.tools.idea.insights.client.runGrpcCatching
+import com.android.tools.idea.vitals.client.grpc.VitalsGrpcClient
+import com.android.tools.idea.vitals.client.grpc.VitalsGrpcClientImpl
+import com.android.tools.idea.vitals.datamodel.DimensionType
+import com.android.tools.idea.vitals.datamodel.DimensionsAndMetrics
+import com.android.tools.idea.vitals.datamodel.MetricType
+import com.android.tools.idea.vitals.datamodel.extractValue
+import com.android.tools.idea.vitals.datamodel.fromDimensions
 import com.google.wireless.android.sdk.stats.AppQualityInsightsUsageEvent
+import com.intellij.openapi.Disposable
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.supervisorScope
+
+private const val NOT_SUPPORTED_ERROR_MSG = "Vitals doesn't support this."
 
 // TODO(b/265153845): implement vitals client.
-class VitalsClient : AppInsightsClient {
+class VitalsClient(
+  parentDisposable: Disposable,
+  private val grpcClient: VitalsGrpcClient = VitalsGrpcClientImpl.create(parentDisposable)
+) : AppInsightsClient {
+  override suspend fun listConnections(): LoadingState.Done<List<Connection>> = supervisorScope {
+    runGrpcCatching(notFoundFallbackValue = LoadingState.Ready(emptyList())) {
+      LoadingState.Ready(grpcClient.listAccessibleApps())
+    }
+  }
+
   override suspend fun listTopOpenIssues(
     request: IssueRequest,
     fetchSource: AppQualityInsightsUsageEvent.AppQualityInsightsFetchDetails.FetchSource?,
     mode: ConnectionMode,
     permission: Permission
-  ): LoadingState.Done<IssueResponse> {
-    return LoadingState.Ready(
-      IssueResponse(emptyList(), emptyList(), emptyList(), emptyList(), Permission.FULL)
-    )
+  ): LoadingState.Done<IssueResponse> = supervisorScope {
+    runGrpcCatching(
+      notFoundFallbackValue =
+        LoadingState.Ready(
+          IssueResponse(
+            issues = emptyList(),
+            versions = emptyList(),
+            devices = emptyList(),
+            operatingSystems = emptyList(),
+            permission = Permission.NONE
+          )
+        )
+    ) {
+      val versions = async { listVersions(request.connection, request.filters) }
+      val devices = async { listDevices(request.connection, request.filters) }
+      val oses = async { listOperatingSystems(request.connection, request.filters) }
+      val issues = async { fetchIssues(request) } // TODO: add "fetchEventsForAllIssues: Boolean"
+
+      LoadingState.Ready(
+        IssueResponse(
+          issues.await(),
+          versions.await(),
+          devices.await(),
+          oses.await(),
+          Permission.READ_ONLY
+        )
+      )
+    }
   }
 
   override suspend fun getIssueDetails(
     issueId: IssueId,
     request: IssueRequest
   ): LoadingState.Done<DetailedIssueStats?> {
-    TODO("Not yet implemented")
+    throw UnsupportedOperationException(NOT_SUPPORTED_ERROR_MSG)
   }
 
   override suspend fun updateIssueState(
@@ -54,7 +108,7 @@ class VitalsClient : AppInsightsClient {
     issueId: IssueId,
     state: IssueState
   ): LoadingState.Done<Unit> {
-    TODO("Not yet implemented")
+    throw UnsupportedOperationException(NOT_SUPPORTED_ERROR_MSG)
   }
 
   override suspend fun listNotes(
@@ -62,7 +116,7 @@ class VitalsClient : AppInsightsClient {
     issueId: IssueId,
     mode: ConnectionMode
   ): LoadingState.Done<List<Note>> {
-    TODO("Not yet implemented")
+    throw UnsupportedOperationException(NOT_SUPPORTED_ERROR_MSG)
   }
 
   override suspend fun createNote(
@@ -70,10 +124,130 @@ class VitalsClient : AppInsightsClient {
     issueId: IssueId,
     message: String
   ): LoadingState.Done<Note> {
-    TODO("Not yet implemented")
+    throw UnsupportedOperationException(NOT_SUPPORTED_ERROR_MSG)
   }
 
   override suspend fun deleteNote(connection: Connection, id: NoteId): LoadingState.Done<Unit> {
-    TODO("Not yet implemented")
+    throw UnsupportedOperationException(NOT_SUPPORTED_ERROR_MSG)
   }
+
+  private suspend fun fetchIssues(request: IssueRequest): List<AppInsightsIssue> = coroutineScope {
+    val topIssues = grpcClient.listTopIssues(request.connection, request.filters)
+
+    // TODO: revisit once we have a new API.
+    val topEvents =
+      topIssues
+        .map { issueDetails ->
+          async {
+            grpcClient
+              .searchErrorReports(request.connection, request.filters, issueDetails.id, 1)
+              .firstOrNull()
+              ?: throw IllegalStateException(
+                "No sample report got for $issueDetails by request: $request."
+              )
+          }
+        }
+        .awaitAll()
+
+    // TODO: add fetching from cache logic.
+    return@coroutineScope topEvents.mapIndexed { index, event ->
+      AppInsightsIssue(issueDetails = topIssues[index], sampleEvent = event)
+    }
+  }
+
+  private suspend fun listVersions(
+    connection: Connection,
+    filters: QueryFilters
+  ): List<WithCount<Version>> {
+    // First we get versions that are part of the releases/tracks.
+    val releases = grpcClient.getReleases(connection)
+
+    // Next we get all versions from the "metrics" call. And then we are able to combine the both
+    // info to build up the [Version] list.
+    return getMetrics(
+        connection = connection,
+        filters = filters,
+        dimensions = listOf(DimensionType.REPORT_TYPE, DimensionType.VERSION_CODE),
+        metrics = listOf(MetricType.ERROR_REPORT_COUNT)
+      )
+      .map { dataPoint ->
+        val version =
+          Version.fromDimensions(dataPoint.dimensions).let { rawVersion ->
+            val tracks =
+              releases
+                .singleOrNull { release -> release.buildVersion == rawVersion.buildVersion }
+                ?.tracks
+                ?: emptySet()
+            rawVersion.copy(tracks = tracks)
+          }
+
+        val count = dataPoint.metrics.extractValue(MetricType.ERROR_REPORT_COUNT)
+
+        version to count
+      }
+      .aggregateToWithCount()
+      .sortedByDescending { it.value.buildVersion }
+  }
+
+  private suspend fun listDevices(
+    connection: Connection,
+    filters: QueryFilters
+  ): List<WithCount<Device>> {
+    return getMetrics(
+        connection = connection,
+        filters = filters,
+        dimensions =
+          listOf(DimensionType.REPORT_TYPE, DimensionType.DEVICE_TYPE, DimensionType.DEVICE_MODEL),
+        metrics = listOf(MetricType.ERROR_REPORT_COUNT)
+      )
+      .map { dataPoint ->
+        val device = Device.fromDimensions(dataPoint.dimensions)
+        val count = dataPoint.metrics.extractValue(MetricType.ERROR_REPORT_COUNT)
+
+        device to count
+      }
+      .aggregateToWithCount()
+      .sortedByDescending { it.count }
+  }
+
+  private suspend fun listOperatingSystems(
+    connection: Connection,
+    filters: QueryFilters
+  ): List<WithCount<OperatingSystemInfo>> {
+    return getMetrics(
+        connection = connection,
+        filters = filters,
+        dimensions = listOf(DimensionType.REPORT_TYPE, DimensionType.API_LEVEL),
+        metrics = listOf(MetricType.ERROR_REPORT_COUNT)
+      )
+      .map { dataPoint ->
+        val os = OperatingSystemInfo.fromDimensions(dataPoint.dimensions)
+        val count = dataPoint.metrics.extractValue(MetricType.ERROR_REPORT_COUNT)
+
+        os to count
+      }
+      .aggregateToWithCount()
+      .sortedByDescending { it.count }
+  }
+
+  private suspend fun getMetrics(
+    connection: Connection,
+    filters: QueryFilters,
+    dimensions: List<DimensionType>,
+    metrics: List<MetricType>
+  ): List<DimensionsAndMetrics> {
+    val freshness =
+      grpcClient.getErrorCountMetricsFreshnessInfo(connection).minByOrNull { it.timeGranularity }
+        ?: throw IllegalStateException("No freshness info found for app: ${connection.appId}.")
+
+    return grpcClient.queryErrorCountMetrics(connection, filters, dimensions, metrics, freshness)
+  }
+}
+
+internal fun <T> List<Pair<T, Long>>.aggregateToWithCount(): List<WithCount<T>> {
+  return fold(mutableMapOf<T, Long>()) { acc, pair ->
+      acc[pair.first] = (acc[pair.first] ?: 0L) + pair.second
+      acc
+    }
+    .map { (version, count) -> WithCount(count = count, value = version) }
 }
