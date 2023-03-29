@@ -24,6 +24,7 @@ import com.android.fakeadbserver.services.ServiceOutput
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
+import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.execution.common.processhandler.AndroidRemoteDebugProcessHandler
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.runners.ExecutionEnvironment
@@ -78,21 +79,25 @@ class StartReattachingDebuggerTest {
 
   @Test
   fun testStartReattachingDebuggerForOneClient() {
+    val masterProcessHandler = AndroidProcessHandler(executionEnvironment.project, MASTER_PROCESS_NAME,{})
     FakeAdbTestRule.launchAndWaitForProcess(deviceState, true)
     val firstSession = DebugSessionStarter.attachReattachingDebuggerToStartedProcess(
       device,
       APP_ID,
-      MASTER_PROCESS_NAME,
+      masterProcessHandler,
       executionEnvironment,
       AndroidJavaDebugger(),
       AndroidJavaDebugger().createState(),
-      destroyRunningProcess = { },
       EmptyProgressIndicator()
     )
 
     assertThat(firstSession.sessionName).isEqualTo("myTestConfiguration")
     assertThat(firstSession.debugProcess.processHandler).isInstanceOf(
       AndroidRemoteDebugProcessHandler::class.java)
+
+    // Clean up.
+    // force close process monitor, as SingleDeviceAndroidProcessMonitor never connected and keep holding Project reference for 3 minutes
+    masterProcessHandler.destroyProcess()
   }
 
 
