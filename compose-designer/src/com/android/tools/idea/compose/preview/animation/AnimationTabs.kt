@@ -48,13 +48,15 @@ class AnimationTabs(surface: DesignSurface<*>) :
     surface.project,
     IdeFocusManager.getInstance(surface.project),
     surface.project) {
-  private val decoration = UiDecorator.UiDecoration(null, Insets(5, 10, 5, 2))
+  private val decoration = UiDecorator.UiDecoration(labelInsets = Insets(5, 10, 5, 2))
 
 
   init {
     border = MatteBorder(0, 0, 1, 0, JBColor.border())
     ActionToolbarUtil.makeToolbarNavigable(myMoreToolbar)
-    setUiDecorator { decoration }
+    setUiDecorator(object : UiDecorator {
+      override fun getDecoration(): UiDecorator.UiDecoration = decoration
+    })
   }
 
   fun addTabWithCloseButton(info: TabInfo, closeAction: (tabInfo: TabInfo) -> Unit): TabInfo {
