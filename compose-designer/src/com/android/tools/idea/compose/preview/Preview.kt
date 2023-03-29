@@ -101,7 +101,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
-import java.awt.Color
 import java.io.File
 import java.time.Duration
 import java.util.UUID
@@ -141,6 +140,12 @@ import org.jetbrains.kotlin.psi.KtFile
 
 /** Background color for the surface while "Interactive" is enabled. */
 private val INTERACTIVE_BACKGROUND_COLOR = JBColor(0xF7F8FA, 0x2B2D30)
+
+/**
+ * Default background used by the surface. This is used to restore the state after disabling the
+ * interactive preview.
+ */
+private val DEFAULT_BACKGROUND_COLOR = JBColor(0xFFFFFF, 0x1E1F22)
 
 /** [Notification] group ID. Must match the `groupNotification` entry of `compose-designer.xml`. */
 const val PREVIEW_NOTIFICATION_GROUP_ID = "Compose Preview Notification"
@@ -445,7 +450,7 @@ class ComposePreviewRepresentation(
 
   private fun onStaticPreviewStart() {
     sceneComponentProvider.enabled = true
-    surface.background = defaultSurfaceBackground
+    surface.background = DEFAULT_BACKGROUND_COLOR
   }
 
   private fun onInteractivePreviewStop() {
@@ -564,24 +569,25 @@ class ComposePreviewRepresentation(
 
   private val composeWorkBench: ComposePreviewView =
     UIUtil.invokeAndWaitIfNeeded(
-      Computable {
-        composePreviewViewProvider.invoke(
-          project,
-          psiFilePointer,
-          projectBuildStatusManager,
-          dataProvider,
-          createMainDesignSurfaceBuilder(
+        Computable {
+          composePreviewViewProvider.invoke(
             project,
-            navigationHandler,
-            delegateInteractionHandler,
-            dataProvider, // Will be overridden by the preview provider
-            this,
-            sceneComponentProvider
-          ),
-          this
-        )
-      }
-    )
+            psiFilePointer,
+            projectBuildStatusManager,
+            dataProvider,
+            createMainDesignSurfaceBuilder(
+              project,
+              navigationHandler,
+              delegateInteractionHandler,
+              dataProvider, // Will be overridden by the preview provider
+              this,
+              sceneComponentProvider
+            ),
+            this
+          )
+        }
+      )
+      .apply { mainSurface.background = DEFAULT_BACKGROUND_COLOR }
 
   @VisibleForTesting
   val staticPreviewInteractionHandler =
@@ -599,12 +605,6 @@ class ComposePreviewRepresentation(
   @get:VisibleForTesting
   val surface: NlDesignSurface
     get() = composeWorkBench.mainSurface
-
-  /**
-   * Default background used by the surface. This is used to restore the state after disabling the
-   * interactive preview.
-   */
-  private val defaultSurfaceBackground: Color = surface.background
 
   /** List of [ComposePreviewElement] being rendered by this editor */
   private var renderedElements: List<ComposePreviewElement> = emptyList()
