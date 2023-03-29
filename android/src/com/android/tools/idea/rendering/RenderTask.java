@@ -149,7 +149,6 @@ public class RenderTask {
   @NotNull private RenderingMode myRenderingMode = RenderingMode.NORMAL;
   private boolean mySetTransparentBackground = false;
   private boolean myShowDecorations = true;
-  private boolean myShadowEnabled = true;
   private boolean myEnableLayoutScanner = false;
   private boolean myShowWithToolsVisibilityAndPosition = true;
   private Function<Object, List<ViewInfo>> myCustomContentHierarchyParser = null;
@@ -1167,52 +1166,6 @@ public class RenderTask {
           return immediateFailedFuture(exception);
         }
       });
-  }
-
-  /**
-   * Renders the given resource value (which should refer to a drawable) and returns it
-   * as an image
-   *
-   * @param drawableResourceValue the drawable resource value to be rendered, or null
-   * @return the image, or null if something went wrong
-   */
-  @NotNull
-  @SuppressWarnings("unchecked")
-  public List<BufferedImage> renderDrawableAllStates(@Nullable ResourceValue drawableResourceValue) {
-    if (drawableResourceValue == null) {
-      return Collections.emptyList();
-    }
-
-    HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
-
-    RenderContext context = getContext();
-    RenderConfiguration configuration = context.getConfiguration();
-    DrawableParams params =
-      new DrawableParams(drawableResourceValue, context.getModule().getModuleKey(), hardwareConfig, configuration.getResourceResolver(),
-                         myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
-                         myLogger);
-    params.setForceNoDecor();
-    params.setAssetRepository(context.getModule().getAssetRepository());
-    params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_ALL_DRAWABLE_STATES, Boolean.TRUE);
-    params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
-    params.setFlag(RenderParamsFlags.FLAG_KEY_USE_THEMED_ICON, configuration.getUseThemedIcon());
-    params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
-
-    try {
-      Result result = RenderService.runRenderAction(() -> myLayoutLib.renderDrawable(params));
-
-      if (result != null && result.isSuccess()) {
-        Object data = result.getData();
-        if (data instanceof List) {
-          return (List<BufferedImage>)data;
-        }
-      }
-    }
-    catch (Exception e) {
-      // ignore
-    }
-
-    return Collections.emptyList();
   }
 
   @NotNull
