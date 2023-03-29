@@ -31,6 +31,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -70,7 +71,7 @@ class ComposePreviewElementFlowTest {
     val listenersReady = CompletableDeferred<Unit>()
     val testJob = launch {
       val flowScope = createChildScope()
-      val flow = previewElementFlowForFile(flowScope, psiFilePointer)
+      val flow = previewElementFlowForFile(psiFilePointer).stateIn(flowScope)
       flow.value.single().let { assertEquals("OtherFileKt.Preview1", it.composableMethodFqn) }
 
       listenersReady.complete(Unit)
@@ -158,7 +159,7 @@ class ComposePreviewElementFlowTest {
 
     runBlocking {
       val flowScope = createChildScope()
-      val flow = previewElementFlowForFile(flowScope, psiFilePointer)
+      val flow = previewElementFlowForFile(psiFilePointer).stateIn(flowScope)
       assertEquals(
         "Preview1 - A,Preview1 - B",
         flow.filter { it.size == 2 }.first().joinToString(",") { it.displaySettings.name }

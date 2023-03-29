@@ -15,24 +15,21 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.psiFileChangeFlow
-import com.android.tools.idea.preview.PreviewElementProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.util.PsiModificationTracker
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.onStart
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
@@ -68,50 +65,43 @@ interface FilePreviewElementFinder {
 }
 
 /**
- * Creates a new [StateFlow] containing all the [ComposePreviewElement]s contained in the given
+ * Creates a new [Flow] containing all the [ComposePreviewElement]s contained in the given
  * [psiFilePointer]. The given [FilePreviewElementFinder] is used to parse the file and obtain the
  * [ComposePreviewElement]s. This flow takes into account any changes in any Kotlin files since
  * Multi-Preview can cause previews to be altered in this file.
  */
 @OptIn(FlowPreview::class)
 suspend fun previewElementFlowForFile(
-  scope: CoroutineScope,
   psiFilePointer: SmartPsiElementPointer<PsiFile>,
   filePreviewElementProvider: () -> FilePreviewElementFinder = ::defaultFilePreviewElementFinder,
-): StateFlow<Set<ComposePreviewElement>> {
-  val previewProvider =
-    object : PreviewElementProvider<ComposePreviewElement> {
-      override suspend fun previewElements(): Sequence<ComposePreviewElement> =
-        withContext(AndroidDispatchers.workerThread) {
-          filePreviewElementProvider()
-            .findPreviewMethods(psiFilePointer.project, psiFilePointer.virtualFile)
-            .asSequence()
-        }
-    }
-
+): Flow<Set<ComposePreviewElement>> {
   val kotlinPsiTracker =
     PsiModificationTracker.getInstance(psiFilePointer.project).forLanguages { lang ->
       lang.`is`(KotlinLanguage.INSTANCE)
     }
-  val state = MutableStateFlow(previewProvider.previewElements().toSet())
-  scope.launch(AndroidDispatchers.workerThread) {
-    psiFileChangeFlow(
-        psiFilePointer.project,
-        scope,
-        onConnected = {
-          // After the flow is connected, emit again to ensure that we have not missed any updates
-          scope.launch { state.emit(previewProvider.previewElements().toSet()) }
+  return channelFlow {
+    coroutineScope {
+      psiFileChangeFlow(psiFilePointer.project, this@coroutineScope)
+        .onStart {
+          // After the flow is connected, emit a forced notification to ensure the listener
+          // gets the latest change.
+          psiFilePointer.element?.let { emit(it) }
         }
-      )
-      // filter only by Kotlin changes. We care about any Kotlin changes since Multi-preview can
-      // trigger changes from any file.
-      .filter { it.fileType == KotlinFileType.INSTANCE }
-      // do not generate events if there has not been modifications to the file since the last time
-      .distinctUntilChangedBy { kotlinPsiTracker.modificationCount }
-      // debounce to avoid many equality comparisons of the set
-      .debounce(250)
-      .collect { state.update { previewProvider.previewElements().toSet() } }
+        // filter only by Kotlin changes. We care about any Kotlin changes since Multi-preview can
+        // trigger changes from any file.
+        .filter { it.fileType == KotlinFileType.INSTANCE }
+        // do not generate events if there has not been modifications to the file since the last
+        // time
+        .distinctUntilChangedBy { kotlinPsiTracker.modificationCount }
+        // debounce to avoid many equality comparisons of the set
+        .debounce(250)
+        .collectLatest {
+          send(
+            filePreviewElementProvider()
+              .findPreviewMethods(psiFilePointer.project, psiFilePointer.virtualFile)
+              .toSet()
+          )
+        }
+    }
   }
-
-  return state
 }

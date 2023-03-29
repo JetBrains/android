@@ -823,7 +823,7 @@ class ComposePreviewRepresentation(
 
       // Flow for Preview changes
       launch(workerThread) {
-        previewElementFlowForFile(this@launch, psiFilePointer).collect {
+        previewElementFlowForFile(psiFilePointer).collect {
           log.debug("PreviewElements updated $it")
           previewElementsFlow.value = it
 
