@@ -38,7 +38,6 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.UIBundle
 import com.intellij.ui.tabs.JBTabsBorder
 import com.intellij.ui.tabs.TabInfo
@@ -86,7 +85,7 @@ class DatabaseInspectorViewImpl(project: Project, parentDisposable: Disposable) 
     tabs.apply {
       setTabDraggingEnabled(true)
       setUiDecorator(object : UiDecorator {
-        override fun getDecoration() = UiDecorator.UiDecoration(labelInsets = JBUI.insets(5, 10))
+        override fun getDecoration() = UiDecorator.UiDecoration(labelInsets = JBUI.insets(5, 6))
       })
       addTabMouseListener(
         object : MouseAdapter() {
