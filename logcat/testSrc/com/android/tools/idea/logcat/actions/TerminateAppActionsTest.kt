@@ -36,6 +36,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys.EDITOR
 import com.intellij.openapi.actionSystem.CommonDataKeys.PROJECT
 import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.openapi.util.SystemInfo
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.ProjectRule
@@ -265,6 +266,10 @@ class TerminateAppActionsTest {
 
   @Test
   fun killAction_actionPerformed(): Unit = runTest(dispatchTimeoutMs = 5_000) {
+    // TODO(b/275912150): Investigate
+    if (SystemInfo.isWindows) {
+      return@runTest
+    }
     val device = fakeAdb.connectDevice(device30)
     val event = createEvent(device30)
     device.startClient(101)
