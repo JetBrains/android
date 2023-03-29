@@ -15,20 +15,24 @@
  */
 package com.android.tools.idea.gradle.dsl.api.dependencies
 
-/**
- * Holding data for library dependency declaration for version catalog
- * This is model for TOML representation of dependency declaration
- * Name and Group are required attributes, Version is not
- */
-interface LibraryDeclarationSpec {
+import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
+import com.android.tools.idea.gradle.dsl.api.util.GradleDslElementModel
+import com.android.tools.idea.gradle.dsl.api.util.PsiElementHolder
 
-  fun getName(): String
+interface VersionDeclarationModel : PsiElementHolder, GradleDslElementModel {
+  fun compactNotation(): String?
 
-  fun getGroup(): String
+  fun getSpec(): VersionDeclarationSpec
 
-  fun getVersion(): VersionDeclarationSpec?
+  fun require (): ResolvedPropertyModel
 
-  override fun toString(): String
+  fun strictly(): ResolvedPropertyModel
 
-  fun compactNotation(): String
+  fun prefer(): ResolvedPropertyModel
+
+  // TODO add following implementation
+  //fun reject(): ResolvedPropertyModel
+  //fun rejectAll(): ResolvedPropertyModel
+
+  fun completeModel(): ResolvedPropertyModel?
 }

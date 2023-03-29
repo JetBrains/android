@@ -60,7 +60,7 @@ public class GradleVersionCatalogPropertyModel extends GradlePropertyModelImpl {
   }
 
 
-  public @Nullable GradlePropertyModel getMapValue(@NotNull String key) {
+  public @NotNull GradlePropertyModel getMapValue(@NotNull String key) {
     if (!"version".equals(key)) {
       return super.getMapValue(key);
     }

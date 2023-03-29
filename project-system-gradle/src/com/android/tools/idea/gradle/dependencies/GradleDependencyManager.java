@@ -16,7 +16,6 @@
 package com.android.tools.idea.gradle.dependencies;
 
 import static com.android.SdkConstants.SUPPORT_LIB_GROUP_ID;
-import static com.android.ide.common.repository.VersionCatalogNamingUtilKt.pickLibraryVariableName;
 import static com.android.tools.idea.gradle.dependencies.AddDependencyPolicy.calculateAddDependencyPolicy;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.COMPILE;
 import static com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel.DEFAULT_CATALOG_NAME;
@@ -35,6 +34,7 @@ import com.android.tools.idea.gradle.dsl.api.catalog.GradleVersionCatalogLibrari
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.LibraryDeclarationSpec;
+import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationSpec;
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo;
 import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.project.sync.GradleSyncInvoker;
@@ -99,9 +99,10 @@ public class GradleDependencyManager {
       Optional<Pair<String, GradleCoordinate>> maybeCoordinate = libraries.getAll().entrySet().stream()
         .filter(entry -> {
           LibraryDeclarationSpec spec = entry.getValue().getSpec();
+          VersionDeclarationSpec version = spec.getVersion();
           return (Objects.equal(spec.getGroup(), coordinate.getGroupId()) &&
                   Objects.equal(spec.getName(), coordinate.getArtifactId()) &&
-                  Objects.equal(spec.getVersion(), coordinate.getRevision()));
+                  Objects.equal(version == null ? null : version.compactNotation(), coordinate.getRevision()));
         }).map(dep -> new Pair<>(dep.getKey(), coordinate)).findFirst();
       if (maybeCoordinate.isEmpty()) {
         searchResult.missingLibraries.add(finalCoordinate);
@@ -275,8 +276,7 @@ public class GradleDependencyManager {
     GradleVersionCatalogLibraries libraries = catalogModel.libraryDeclarations();
     Set<String> names = libraries.getAllAliases();
     for (GradleCoordinate coordinate : coordinates) {
-      String alias = pickLibraryVariableName(coordinate, false, names);
-      libraries.addDeclaration(alias, coordinate.toString());
+      String alias = DependenciesHelper.addCatalogLibrary(catalogModel, coordinate);
       names.add(alias);
       addedCoordinates.add(new Pair<>(alias, coordinate));
     }

@@ -15,8 +15,10 @@
  */
 package com.android.tools.idea.gradle.dependencies
 
+import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleCoordinate.*
 import com.android.ide.common.repository.pickLibraryVariableName
+import com.android.ide.common.repository.pickVersionVariableName
 import com.android.tools.idea.gradle.dependencies.AddDependencyPolicy.Companion.calculateAddDependencyPolicy
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel
@@ -24,18 +26,15 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel
+import com.intellij.openapi.diagnostic.Logger
+
+typealias Alias = String
 
 class DependenciesHelper(private val projectModel: ProjectBuildModel) {
 
-  fun addDependency(configuration:String, dependency:String, parsedModel: GradleBuildModel){
-    when(calculateAddDependencyPolicy(projectModel)) {
-      AddDependencyPolicy.VERSION_CATALOG -> {
-        val catalogModel = projectModel.versionCatalogsModel.getVersionCatalogModel(VersionCatalogModel.DEFAULT_CATALOG_NAME)
-        val dependenciesModel = parsedModel.dependencies()
-        assert(catalogModel != null) { "Catalog ${VersionCatalogModel.DEFAULT_CATALOG_NAME} must be available on add dependency" }
-        val alias = findCatalogDeclaration(catalogModel!!, dependency) ?: addCatalogLibrary(catalogModel, dependency)
-        addCatalogReference(alias, configuration, catalogModel, dependenciesModel)
-      }
+  fun addDependency(configuration: String, dependency: String, parsedModel: GradleBuildModel) {
+    when (calculateAddDependencyPolicy(projectModel)) {
+      AddDependencyPolicy.VERSION_CATALOG -> addDependencyToCatalog(configuration, dependency, parsedModel)
       AddDependencyPolicy.BUILD_FILE -> {
         val dependenciesModel = parsedModel.dependencies()
         dependenciesModel.addArtifact(configuration, dependency);
@@ -43,27 +42,62 @@ class DependenciesHelper(private val projectModel: ProjectBuildModel) {
     }
   }
 
+  private fun addDependencyToCatalog(configuration: String, dependency: String, parsedModel: GradleBuildModel) {
+    val catalogModel = projectModel.versionCatalogsModel.getVersionCatalogModel(VersionCatalogModel.DEFAULT_CATALOG_NAME)
+    val dependenciesModel = parsedModel.dependencies()
+    assert(catalogModel != null) { "Catalog ${VersionCatalogModel.DEFAULT_CATALOG_NAME} must be available on add dependency" }
+    val alias = findCatalogDeclaration(catalogModel!!, dependency) ?: addCatalogLibrary(catalogModel, dependency)
+    if (alias == null) {
+      log.warn("Cannot add catalog reference to build as we cannot find/add catalog declaration")
+      return
+    }
+    addCatalogReference(alias, configuration, catalogModel, dependenciesModel)
+  }
+
   private fun findCatalogDeclaration(catalogModel: GradleVersionCatalogModel,
-                                     coordinate: String): String? {
+                                     coordinate: String): Alias? {
     val declarations = catalogModel.libraryDeclarations().getAll()
     return declarations.filter { it.value.compactNotation() == coordinate }.map { it.key }.firstOrNull()
   }
 
-  private fun addCatalogLibrary(catalogModel: GradleVersionCatalogModel,
-                                coordinate: String): String {
-    val gc = parseCoordinateString(coordinate)
-    assert(gc != null)
-    val libraries = catalogModel.libraryDeclarations()
-    val names = libraries.getAllAliases()
-    val alias: String = pickLibraryVariableName(gc!!, false, names)
-    libraries.addDeclaration(alias, coordinate)
-    return alias
+  companion object {
+    val log = Logger.getInstance(DependenciesHelper::class.java)
+    @JvmStatic fun addCatalogLibrary(catalogModel: GradleVersionCatalogModel,
+                                     coordinate: GradleCoordinate): Alias {
+      val libraries = catalogModel.libraryDeclarations()
+      val names = libraries.getAllAliases()
+      val alias: Alias = pickLibraryVariableName(coordinate, false, names)
+
+      val reference = addCatalogVersion(catalogModel, coordinate)
+      log.warn("Cannot add catalog library. Wrong version format.") // this depends on correct version syntax
+      libraries.addDeclaration(alias, coordinate.artifactId, coordinate.groupId, reference!!)
+      return alias
+    }
+
+    @JvmStatic fun addCatalogLibrary(catalogModel: GradleVersionCatalogModel,
+                                     coordinate: String): Alias? {
+      val gc = parseCoordinateString(coordinate)
+      if(gc == null){
+        log.warn("Cannot add catalog library. Wrong format:$coordinate")
+        return null
+      }
+      return addCatalogLibrary(catalogModel, gc)
+    }
+
+    private fun addCatalogVersion(catalogModel: GradleVersionCatalogModel,
+                                  gc: GradleCoordinate): ReferenceTo? {
+      val versions = catalogModel.versionDeclarations()
+      val names = versions.getAllAliases()
+      val alias: Alias = pickVersionVariableName(gc, names)
+      return versions.addDeclaration(alias, gc.revision)
+    }
+
   }
 
-  private fun addCatalogReference(alias:String,
-                                  configName:String,
+  private fun addCatalogReference(alias: Alias,
+                                  configName: String,
                                   catalogModel: GradleVersionCatalogModel,
-                                  dependenciesModel: DependenciesModel){
+                                  dependenciesModel: DependenciesModel) {
     val reference = ReferenceTo(catalogModel.libraries().findProperty(alias), dependenciesModel)
     dependenciesModel.addArtifact(configName, reference)
   }

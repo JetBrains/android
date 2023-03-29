@@ -48,9 +48,13 @@ import com.intellij.psi.PsiManager;
 import com.intellij.testFramework.RunsInEdt;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -305,7 +309,11 @@ public class GradleDependencyManagerTest {
         dependencyManager.computeCatalogDependenciesInfo(appModule, dependencies, catalogModel).missingLibraries).isEmpty();
 
       assertTrue(isInCatalog(project, "group=androidx.room,name=room-ktx,version=2.5.0"));
-      assertTrue(isInCatalog(project, "group=androidx.room,name=room-ktx,version=2.5.1"));
+
+      String versionRef = extractVersionRef(project,"group=androidx.room,name=room-ktx,version.ref=([a-zA-Z-]+)");
+      assertNotNull(versionRef);
+      assertTrue(isInCatalog(project, versionRef + "=2.5.1"));
+
 
       assertBuildGradle(project, str -> !str.contains("androidx.room:room-ktx:2.5"));
       assertBuildGradle(project, str -> str.contains("implementation libs.room.ktx"));
@@ -313,14 +321,11 @@ public class GradleDependencyManagerTest {
     });
   }
 
-  private boolean checkFileContent(Project project, VirtualFile file, Predicate<String> check) {
-    PsiFile buildGradlePsi = PsiManager.getInstance(project).findFile(file);
-    assertNotNull(buildGradlePsi.getText());
-    return check.test(buildGradlePsi.getText().replace(" ", "").replace("\"", ""));
-  }
+  private boolean isRecyclerInCatalog(Project project){
+    String versionRef = extractVersionRef(project,"group=com.android.support,name=recyclerview-v7,version.ref=([a-z0-9A-z-]+)");
+    if(versionRef==null) return false;
+    return isInCatalog(project, versionRef + "=+");
 
-  private boolean isRecyclerInCatalog(Project project) {
-    return isInCatalog(project, "group=com.android.support,name=recyclerview-v7,version=+");
   }
 
   private boolean isInCatalog(Project project, String catalogSnippet) {
@@ -332,4 +337,31 @@ public class GradleDependencyManagerTest {
                             file,
                             str -> str.contains(catalogSnippet));
   }
+
+  private boolean checkFileContent(Project project, VirtualFile file, Predicate<String> check) {
+    PsiFile buildGradlePsi = PsiManager.getInstance(project).findFile(file);
+    assertNotNull(buildGradlePsi.getText());
+    return check.test(buildGradlePsi.getText().replace(" ", "").replace("\"", ""));
+  }
+
+  @Nullable
+  private String extractVersionRef(Project project, String regexp) {
+    GradleVersionCatalogsModel catalog = ProjectBuildModel.get(project).getVersionCatalogsModel();
+    GradleVersionCatalogModel catalogModel = catalog.getVersionCatalogModel("libs");
+    if (catalogModel == null) return null;
+    VirtualFile file = catalogModel.getVirtualFile();
+    return getFirstGroup(project,
+                         file,
+                         str -> {
+                           Matcher matcher = Pattern.compile(regexp).matcher(str);
+                           return (matcher.find()) ? matcher.group(1) : null;
+                         });
+  }
+
+  private String getFirstGroup(Project project, VirtualFile file, Function<String, String> check) {
+    PsiFile buildGradlePsi = PsiManager.getInstance(project).findFile(file);
+    assertNotNull(buildGradlePsi.getText());
+    return check.apply(buildGradlePsi.getText().replace(" ", "").replace("\"", ""));
+  }
+
 }

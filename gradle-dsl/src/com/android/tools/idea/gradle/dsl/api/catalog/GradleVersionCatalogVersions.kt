@@ -15,23 +15,22 @@
  */
 package com.android.tools.idea.gradle.dsl.api.catalog
 
-import com.android.tools.idea.gradle.dsl.api.dependencies.LibraryDeclarationModel
-import com.android.tools.idea.gradle.dsl.api.dependencies.LibraryDeclarationSpec
+import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.VersionDeclarationSpec
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
 import com.android.tools.idea.gradle.dsl.api.util.GradleBlockModel
 
-interface GradleVersionCatalogLibraries : GradleBlockModel {
-
+interface GradleVersionCatalogVersions : GradleBlockModel {
   fun getAllAliases(): Set<String>
 
-  fun getAll(): Map<String, LibraryDeclarationModel>
+  fun getAll(): Map<String, VersionDeclarationModel>
 
-  fun addDeclaration(alias: String, compactNotation: String)
+  /**
+   * Adds version declaration. Returns null if string has invalid format.
+   */
+  fun addDeclaration(alias: String, version: String): ReferenceTo?
 
-  fun addDeclaration(alias: String, dependencySpec: LibraryDeclarationSpec)
-
-  fun addDeclaration(alias: String, name:String, group:String, versionReference: ReferenceTo)
+  fun addDeclaration(alias: String, version: VersionDeclarationSpec): ReferenceTo?
 
   fun remove(alias: String)
 }

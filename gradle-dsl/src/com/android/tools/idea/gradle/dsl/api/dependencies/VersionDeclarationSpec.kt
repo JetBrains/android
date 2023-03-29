@@ -15,20 +15,18 @@
  */
 package com.android.tools.idea.gradle.dsl.api.dependencies
 
-/**
- * Holding data for library dependency declaration for version catalog
- * This is model for TOML representation of dependency declaration
- * Name and Group are required attributes, Version is not
- */
-interface LibraryDeclarationSpec {
+interface VersionDeclarationSpec {
 
-  fun getName(): String
+  fun getRequire(): String?
 
-  fun getGroup(): String
+  fun getStrictly(): String?
 
-  fun getVersion(): VersionDeclarationSpec?
+  fun getPrefer(): String?
 
   override fun toString(): String
 
-  fun compactNotation(): String
+  /**
+   * Returns null in case there is no compact notation (string representation) for such version
+   */
+  fun compactNotation(): String?
 }

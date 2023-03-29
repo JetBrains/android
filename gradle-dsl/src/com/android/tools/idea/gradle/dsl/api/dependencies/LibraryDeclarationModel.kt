@@ -15,13 +15,14 @@
  */
 package com.android.tools.idea.gradle.dsl.api.dependencies
 
+import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel
 import com.android.tools.idea.gradle.dsl.api.ext.ResolvedPropertyModel
 import com.android.tools.idea.gradle.dsl.api.util.PsiElementHolder
 
 /**
  * Model for library declaration in version catalog.
  */
-interface LibraryDeclarationModel: PsiElementHolder {
+interface LibraryDeclarationModel : PsiElementHolder {
   fun compactNotation(): String
 
   fun getSpec(): LibraryDeclarationSpec
@@ -30,7 +31,7 @@ interface LibraryDeclarationModel: PsiElementHolder {
 
   fun group(): ResolvedPropertyModel
 
-  fun version(): ResolvedPropertyModel
+  fun version(): VersionDeclarationModel
 
   fun completeModel(): ResolvedPropertyModel?
 }
