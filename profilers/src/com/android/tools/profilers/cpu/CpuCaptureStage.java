@@ -78,6 +78,7 @@ import com.android.tools.profilers.event.LifecycleEventDataSeries;
 import com.android.tools.profilers.event.LifecycleTooltip;
 import com.android.tools.profilers.event.UserEventDataSeries;
 import com.android.tools.profilers.event.UserEventTooltip;
+import com.android.tools.profilers.perfetto.config.PerfettoTraceConfigBuilders;
 import com.android.tools.profilers.perfetto.traceprocessor.TraceProcessorModelKt;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.wireless.android.sdk.stats.AndroidProfilerEvent;
@@ -795,9 +796,8 @@ public class CpuCaptureStage extends Stage<Timeline> {
   private TrackGroupModel createPowerRailsTrackGroup(@NotNull CpuSystemTraceData systemTraceData) {
     TrackGroupModel power = TrackGroupModel.newBuilder()
       .setTitle("Power Rails")
-      .setTitleHelpText("This section shows the device's power consumption per hardware component." +
-                        "<p><b>Power Rails</b> are wires in your device that connect the battery to hardware modules.</p>")
-      .setTitleHelpLink("Learn more", "https://perfetto.dev/docs/data-sources/battery-counters#odpm")
+      .setTitleHelpText("This section shows the device's power consumption per hardware component.<br/>" +
+                        "<b>Power Rails</b> are wires in your device that connect the battery to hardware modules.")
       .setCollapsedInitially(false)
       .build();
 
@@ -816,12 +816,38 @@ public class CpuCaptureStage extends Stage<Timeline> {
   }
 
   private TrackGroupModel createBatteryDrainTrackGroup(@NotNull CpuSystemTraceData systemTraceData) {
+    // If there is no power rail data, that means the device does not have the supporting hardware (ODPM).
+    boolean containsODPM = !systemTraceData.getPowerRailCounters().isEmpty();
+
+    // If the device contains a coulomb counter, then all the battery counters located in the
+    // Perfetto tracing configuration should have returned data in the system trace.
+    boolean containsCoulombCounter = systemTraceData.getBatteryDrainCounters().size() ==
+                                     PerfettoTraceConfigBuilders.getBatteryCountersCount();
+
+    String compatibilityMessage = "";
+
+    // The device does not contain ODPM or a coulomb counter.
+    if (!containsODPM && !containsCoulombCounter) {
+      compatibilityMessage = "You are currently using a device which does not support coulomb counters. " +
+                             "To view additional power data (such as charge, current, etc), we recommend " +
+                             "using a device which supports coulomb counters.";
+    }
+    // The device does not contain ODPM but contains a coulomb counter.
+    else if (!containsODPM) {
+      compatibilityMessage = "You are currently using a device which does not support On Device Power Monitor (ODPM). " +
+                             "To view additional power rails (such as Modem, CPU, GPU, GPS, etc), " +
+                             "we recommend using a device which supports ODPM, such as Pixel 6, Pixel 6 Pro, " +
+                             "Pixel 7, Pixel 7 Pro and beyond.";
+    }
+
     TrackGroupModel battery = TrackGroupModel.newBuilder()
       .setTitle("Battery")
       .setTitleHelpText("This section shows the device's battery consumption in three contexts (in order): " +
                         "<ol><li>Remaining battery percentage (%)</li>" +
                         "<li>Remaining battery charge in microampere-hours (µAh)</li>" +
-                        "<li>Instantaneous current in microampere (µA)</li></ol>")
+                        "<li>Instantaneous current in microampere (µA)</li></ol>" +
+                        "<b>" + compatibilityMessage + "</b>"
+                        )
       .setCollapsedInitially(false)
       .build();
 
