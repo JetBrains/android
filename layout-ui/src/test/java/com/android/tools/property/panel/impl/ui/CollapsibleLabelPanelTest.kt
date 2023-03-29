@@ -15,13 +15,16 @@
  */
 package com.android.tools.property.panel.impl.ui
 
+import com.android.testutils.MockitoKt.mock
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.workbench.PropertiesComponentMock
 import com.android.tools.property.panel.impl.model.CollapsibleLabelModel
 import com.android.tools.property.ptable.ColumnFraction
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.ui.UIUtil
 import org.junit.Test
+import org.junit.runners.model.Statement
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Font
@@ -64,5 +67,19 @@ class CollapsibleLabelPanelTest {
     ui.mouse.moveTo(300, -100)
     assertThat(label.cursor).isSameAs(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR))
     assertThat(columnFraction.value).isWithin(0.01f).of(0.6f)
+  }
+
+  @Test
+  fun testFontUpdate() {
+    val model = CollapsibleLabelModel("Label", null, false, PropertiesComponentMock())
+    val panel = CollapsibleLabelPanel(model, UIUtil.FontSize.NORMAL, Font.BOLD)
+    val size = panel.label.font.size
+
+    PortableUiFontRule(scale = 4f).apply(object : Statement() {
+      override fun evaluate() {
+        panel.updateUI()
+        assertThat(panel.label.font.size).isEqualTo(size * 4)
+      }
+    }, mock()).evaluate()
   }
 }
