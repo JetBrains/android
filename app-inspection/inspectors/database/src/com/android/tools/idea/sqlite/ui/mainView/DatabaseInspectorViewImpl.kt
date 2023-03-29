@@ -60,7 +60,7 @@ class DatabaseInspectorViewImpl(
   project: Project,
   parentDisposable: Disposable
 ) : DatabaseInspectorView {
-  val listeners = mutableListOf<DatabaseInspectorView.Listener>()
+  val listeners: MutableList<DatabaseInspectorView.Listener> = mutableListOf()
 
   private val centerPanel = JPanel(BorderLayout())
   private val leftPanelView = LeftPanelView(this)

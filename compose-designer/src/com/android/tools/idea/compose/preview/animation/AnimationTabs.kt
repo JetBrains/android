@@ -53,7 +53,7 @@ class AnimationTabs(surface: DesignSurface<*>) :
 
   init {
     border = MatteBorder(0, 0, 1, 0, JBColor.border())
-    ActionToolbarUtil.makeToolbarNavigable(myMoreToolbar)
+    ActionToolbarUtil.makeToolbarNavigable(moreToolbar!!)
     setUiDecorator(object : UiDecorator {
       override fun getDecoration(): UiDecorator.UiDecoration = decoration
     })
@@ -65,7 +65,7 @@ class AnimationTabs(surface: DesignSurface<*>) :
     }
   }
 
-  override fun addTab(info: TabInfo?): TabInfo {
+  override fun addTab(info: TabInfo): TabInfo {
     return super.addTab(info).also { tabInfo ->
       getTabLabel(tabInfo).add(JPanel(), BorderLayout.EAST)
     }
