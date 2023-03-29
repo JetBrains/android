@@ -22,10 +22,4 @@ import org.junit.runner.RunWith
 
 @RunWith(JarTestSuiteRunner::class)
 @ExcludeClasses(LogcatTestSuite::class) // a suite mustn't contain itself
-class LogcatTestSuite : IdeaTestSuiteBase() {
-  companion object {
-    init {
-      leakChecker.enabled = false // TODO(b/264602053): fix leaks.
-    }
-  }
-}
+class LogcatTestSuite : IdeaTestSuiteBase()

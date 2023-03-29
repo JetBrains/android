@@ -26,6 +26,8 @@ import com.android.tools.idea.logcat.message.LogcatHeader
 import com.android.tools.idea.logcat.message.LogcatHeaderParser.LogcatFormat.EPOCH_FORMAT
 import com.android.tools.idea.logcat.message.LogcatMessage
 import com.google.common.truth.Truth.assertThat
+import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import kotlinx.coroutines.channels.Channel
@@ -52,8 +54,10 @@ import kotlin.text.Charsets.UTF_8
  */
 @Suppress("OPT_IN_USAGE") // runTest is experimental
 class LogcatMessageAssemblerTest {
+  private val disposableRule = DisposableRule()
+
   @get:Rule
-  val rule = RuleChain(ProjectRule())
+  val rule = RuleChain(ProjectRule(), disposableRule)
 
   private val processNameMonitor = FakeProcessNameMonitor()
 
@@ -434,14 +438,17 @@ class LogcatMessageAssemblerTest {
     serialNumber: String,
     channel: SendChannel<List<LogcatMessage>>,
     processNameMonitor: ProcessNameMonitor = this@LogcatMessageAssemblerTest.processNameMonitor,
-  ) =
-    LogcatMessageAssembler(
+  ): LogcatMessageAssembler {
+    val logcatMessageAssembler = LogcatMessageAssembler(
       serialNumber,
       EPOCH_FORMAT,
       channel,
       processNameMonitor,
       coroutineContext,
       lastMessageDelayMs = 100)
+    Disposer.register(disposableRule.disposable, logcatMessageAssembler)
+    return logcatMessageAssembler
+  }
 }
 
 private fun logcatMessage(

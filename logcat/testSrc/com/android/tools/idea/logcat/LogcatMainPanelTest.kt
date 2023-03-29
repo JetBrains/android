@@ -324,7 +324,7 @@ class LogcatMainPanelTest {
       size = Dimension(100, 500)
       editor.document.setText("foo") // put some text so 'Fold Lines Like This' is enabled
     }
-    val fakeUi = FakeUi(logcatMainPanel, createFakeWindow = true)
+    val fakeUi = FakeUi(logcatMainPanel, createFakeWindow = true, parentDisposable = disposableRule.disposable)
 
     fakeUi.rightClickOn(logcatMainPanel)
 

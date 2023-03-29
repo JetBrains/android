@@ -21,14 +21,17 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeMouse.Button.LEFT
 import com.android.tools.adtui.swing.FakeMouse.Button.RIGHT
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.openapi.wm.impl.IdeGlassPaneImpl
 import com.intellij.openapi.wm.impl.TestWindowManager
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.registerServiceInstance
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ui.UIUtil
 import org.mockito.Mockito.anyInt
 import org.mockito.Mockito.mock
@@ -56,8 +59,14 @@ import javax.swing.SwingUtilities
  *
  * @param root the top-level component
  * @param screenScale size of a virtual pixel in physical pixels; used for emulating a HiDPI screen
+ * @param parentDisposable if provided, FakeUi will use it to clean up
  */
-class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Double = 1.0, createFakeWindow: Boolean = false) {
+class FakeUi @JvmOverloads constructor(
+  val root: Component,
+  val screenScale: Double = 1.0,
+  createFakeWindow: Boolean = false,
+  parentDisposable: Disposable? = null,
+) {
 
   @JvmField
   val keyboard: FakeKeyboard = FakeKeyboard()
@@ -80,7 +89,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
         // Replace TestWindowManager with a more lenient version.
         application.registerServiceInstance(WindowManager::class.java, FakeUiWindowManager())
       }
-      wrapInFakeWindow(rootPane)
+      wrapInFakeWindow(rootPane, parentDisposable)
     }
 
     if (screenScale != 1.0) {
@@ -352,7 +361,7 @@ class FakeUi @JvmOverloads constructor(val root: Component, val screenScale: Dou
   }
 }
 
-private fun wrapInFakeWindow(rootPane: JRootPane) {
+private fun wrapInFakeWindow(rootPane: JRootPane, parentDisposable: Disposable?) {
   // A mock is used here because in a headless environment it is not possible to instantiate
   // Window or any of its subclasses due to checks in the Window constructor.
   val mockWindow = mock(Window::class.java)
@@ -372,6 +381,9 @@ private fun wrapInFakeWindow(rootPane: JRootPane) {
   ComponentAccessor.setPeer(mockWindow, FakeWindowPeer())
   ComponentAccessor.setParent(rootPane, mockWindow)
   rootPane.addNotify()
+  if (parentDisposable != null) {
+    Disposer.register(parentDisposable) { runInEdtAndWait { rootPane.removeNotify() } }
+  }
 }
 
 private fun getTopLevelComponent(component: Component): Component {
