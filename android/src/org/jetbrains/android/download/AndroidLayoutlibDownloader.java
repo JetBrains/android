@@ -1,7 +1,6 @@
 // Copyright 2000-2020 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
 package org.jetbrains.android.download;
 
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.util.download.FileDownloader;
 import java.io.File;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
@@ -30,6 +29,16 @@ public class AndroidLayoutlibDownloader extends AndroidComponentDownloader {
   @Override
   protected String getArtifactName() {
     return "layoutlib-resources";
+  }
+
+  /**
+   * Checks if layoutlib directory is pre-downloaded in plugins/android/resources directory.
+   * <p>
+   * This handles a case where Layoutlib resources jar is already pre-downloaded.
+   */
+  @Override
+  protected File getPreInstalledPluginDir() {
+    return getPreInstalledPluginDir("plugins/android/resources/layoutlib/");
   }
 
   @NotNull

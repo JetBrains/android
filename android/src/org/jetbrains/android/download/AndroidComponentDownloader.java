@@ -74,10 +74,11 @@ public abstract class AndroidComponentDownloader {
 
   private boolean isAlreadyDownloaded() {
     File pluginDir = getPluginDir();
+    File preInstalledDir = getPreInstalledPluginDir();
     if (downloadLock.readLock().tryLock()) {
       try {
         // nobody is downloading/unzipping in parallel. The directory has valid content if it exists.
-        return pluginDir.exists();
+        return preInstalledDir.exists() || pluginDir.exists();
       }
       finally {
         downloadLock.readLock().unlock();
@@ -162,7 +163,18 @@ public abstract class AndroidComponentDownloader {
     return new File(PathManager.getSystemPath(), "android/" + getArtifactName() + "/" + getVersion());
   }
 
+
+  protected abstract File getPreInstalledPluginDir();
+
+  protected File getPreInstalledPluginDir(String hostReleaseDir) {
+    return new File(PathManager.getHomePath(), hostReleaseDir);
+  }
+
   public File getHostDir(String hostReleaseDir) {
+    File preinstalledDir = getPreInstalledPluginDir(hostReleaseDir);
+
+    if (preinstalledDir.exists()) return preinstalledDir;
+
     return new File(getPluginDir(), hostReleaseDir);
   }
 }
