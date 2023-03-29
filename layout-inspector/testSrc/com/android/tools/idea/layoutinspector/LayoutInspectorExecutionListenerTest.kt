@@ -15,47 +15,39 @@
  */
 package com.android.tools.idea.layoutinspector
 
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.testing.FakeAdbRule
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.layoutinspector.pipeline.adb.AdbUtils
+import com.android.tools.idea.gradle.project.sync.snapshots.LightGradleSyncTestProjects
 import com.android.tools.idea.layoutinspector.pipeline.adb.FakeShellCommandHandler
 import com.android.tools.idea.layoutinspector.pipeline.adb.findDevice
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.DebugViewAttributes
-import com.android.tools.idea.run.AndroidLaunchTasksProvider
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
-import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.DefaultStudioProgramRunner
-import com.android.tools.idea.run.LaunchOptions
-import com.android.tools.idea.run.tasks.LaunchContext
-import com.android.tools.idea.run.tasks.LaunchTask
+import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
-import com.intellij.execution.ExecutionManager
-import com.intellij.execution.executors.DefaultDebugExecutor
+import com.intellij.execution.RunManager
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder
-import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
 
+// Comes from LightGradleSyncTestProjects.SIMPLE_APPLICATION
+private const val PROCESS_NAME = "applicationId"
 
-private const val PROCESS_NAME = "com.example.p1"
-
-class LayoutInspectorLaunchTaskContributorTest {
+class LayoutInspectorExecutionListenerTest {
   private val commandHandler = FakeShellCommandHandler()
-  private val projectRule = AndroidProjectRule.onDisk()
+  private val projectRule = AndroidProjectRule.testProject(LightGradleSyncTestProjects.SIMPLE_APPLICATION)
   private val adbRule = FakeAdbRule().withDeviceCommandHandler(commandHandler)
   private val adbService = AdbServiceRule(projectRule::project, adbRule)
-  lateinit var env: ExecutionEnvironment
-
+  private lateinit var env: ExecutionEnvironment
 
   @get:Rule
   val ruleChain = RuleChain.outerRule(projectRule).around(adbRule).around(adbService)!!
@@ -65,20 +57,21 @@ class LayoutInspectorLaunchTaskContributorTest {
     DebugViewAttributes.reset()
     env = ExecutionEnvironmentBuilder.create(
       DefaultRunExecutor.getRunExecutorInstance(),
-      AndroidRunConfiguration(projectRule.project, AndroidRunConfigurationType.getInstance().factory)
+      RunManager.getInstance(projectRule.project).createConfiguration("app", AndroidRunConfigurationType.getInstance().factory)
     ).build()
+
+    (env.runProfile as AndroidRunConfiguration).setModule(projectRule.module)
   }
 
   @Test
   fun testLaunchWithoutDebugAttributes() {
-    val (iDevice, task) = createLaunchTask(MODERN_DEVICE, debugAttributes = false)
+    val device = attachDevice(MODERN_DEVICE)
+    env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(listOf(device)))
+    (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = false
 
     // Start the process
-    val project = projectRule.project
-    val handler = AndroidProcessHandler(project, PROCESS_NAME)
-    val launchContext = LaunchContext(env, iDevice, mock(), handler, mock())
-    task.run(launchContext)
-    handler.startNotify()
+    val handler = AndroidProcessHandler(projectRule.project, PROCESS_NAME)
+    LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
     // Make sure the debug attributes are untouched.
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
@@ -90,15 +83,13 @@ class LayoutInspectorLaunchTaskContributorTest {
 
   @Test
   fun testLaunchWithDebugAttributes() = runWithFlagState(false) {
-    val (iDevice, task) = createLaunchTask(MODERN_DEVICE, debugAttributes = true)
+    val device = attachDevice(MODERN_DEVICE)
+    env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(listOf(device)))
+    (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
 
     // Start the process
-    val project = projectRule.project
-    val handler = AndroidProcessHandler(project, PROCESS_NAME)
-    val launchContext = LaunchContext(env, iDevice, mock(), handler, mock())
-    task.run(launchContext)
-    project.messageBus.syncPublisher(ExecutionManager.EXECUTION_TOPIC).processStarted(DefaultRunExecutor.EXECUTOR_ID, env, handler)
-    handler.startNotify()
+    val handler = AndroidProcessHandler(projectRule.project, PROCESS_NAME).apply { startNotify() }
+    LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
     // Make sure the debug attributes are set.
     assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(PROCESS_NAME)
@@ -114,14 +105,13 @@ class LayoutInspectorLaunchTaskContributorTest {
   fun testLaunchWithDebugAttributesAlreadySet() = runWithFlagState(false) {
     commandHandler.debugViewAttributesApplicationPackage = PROCESS_NAME
 
-    val (iDevice, task) = createLaunchTask(MODERN_DEVICE, debugAttributes = true)
+    val device = attachDevice(MODERN_DEVICE)
+    env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(listOf(device)))
+    (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
 
     // Start the process
-    val project = projectRule.project
-    val handler = AndroidProcessHandler(project, PROCESS_NAME)
-    val launchContext = LaunchContext(env, iDevice, mock(), handler, mock())
-    task.run(launchContext)
-    handler.startNotify()
+    val handler = AndroidProcessHandler(projectRule.project, PROCESS_NAME).apply { startNotify() }
+    LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
     // Make sure the debug attributes are untouched.
     assertThat(commandHandler.debugViewAttributesApplicationPackage).isEqualTo(PROCESS_NAME)
@@ -135,14 +125,13 @@ class LayoutInspectorLaunchTaskContributorTest {
 
   @Test
   fun testLaunchWithDebugAttributesOnLegacyDevice() {
-    val (iDevice, task) = createLaunchTask(LEGACY_DEVICE, debugAttributes = true)
+    val device = attachDevice(LEGACY_DEVICE)
+    env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(listOf(device)))
+    (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
 
     // Start the process
-    val project = projectRule.project
-    val handler = AndroidProcessHandler(project, PROCESS_NAME)
-    val launchContext = LaunchContext(env, iDevice, mock(), handler, mock())
-    task.run(launchContext)
-    handler.startNotify()
+    val handler = AndroidProcessHandler(projectRule.project, PROCESS_NAME).apply { startNotify() }
+    LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
     // Make sure the debug attributes are untouched.
     assertThat(commandHandler.debugViewAttributesChangesCount).isEqualTo(0)
@@ -154,15 +143,13 @@ class LayoutInspectorLaunchTaskContributorTest {
 
   @Test
   fun testPerDeviceViewDebugAttributesIsNotCleared() = runWithFlagState(true) {
-    val (iDevice, task) = createLaunchTask(MODERN_DEVICE, debugAttributes = true)
+    val device = attachDevice(MODERN_DEVICE)
+    env.putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(listOf(device)))
+    (env.runProfile as AndroidRunConfiguration).INSPECTION_WITHOUT_ACTIVITY_RESTART = true
 
     // Start the process
-    val project = projectRule.project
-    val handler = AndroidProcessHandler(project, PROCESS_NAME)
-    val launchContext = LaunchContext(env, iDevice, mock(), handler, mock())
-    task.run(launchContext)
-    project.messageBus.syncPublisher(ExecutionManager.EXECUTION_TOPIC).processStarted(DefaultRunExecutor.EXECUTOR_ID, env, handler)
-    handler.startNotify()
+    val handler = AndroidProcessHandler(projectRule.project, PROCESS_NAME).apply { startNotify() }
+    LayoutInspectorExecutionListener().processStarted("123", env, handler)
 
     // Make sure the debug attributes are set.
     assertThat(commandHandler.debugViewAttributes).isEqualTo("1")
@@ -186,42 +173,9 @@ class LayoutInspectorLaunchTaskContributorTest {
     flag.override(flagPreviousState)
   }
 
-  private fun createLaunchTask(
-    device: DeviceDescriptor,
-    debugAttributes: Boolean
-  ): Pair<IDevice, LaunchTask> {
+  private fun attachDevice(device: DeviceDescriptor): IDevice {
     adbRule.attachDevice(device.serial, device.manufacturer, device.model, device.version, device.apiLevel.toString())
-
-    val project = projectRule.project
-    val ex = DefaultDebugExecutor.getDebugExecutorInstance()
-    val runner = DefaultStudioProgramRunner()
-    val env = ExecutionEnvironment(ex, runner, mock(), project)
-    val applicationIdProvider: ApplicationIdProvider = object : ApplicationIdProvider {
-      override fun getPackageName(): String = PROCESS_NAME
-      override fun getTestPackageName(): String? = null
-    }
-
-    val configuration = AndroidRunConfigurationType.getInstance().factory.createTemplateConfiguration(project) as AndroidRunConfiguration
-
-    configuration.INSPECTION_WITHOUT_ACTIVITY_RESTART = debugAttributes
-
-    val launchTaskProvider = AndroidLaunchTasksProvider(
-      configuration,
-      env,
-      AndroidFacet.getInstance(projectRule.module)!!,
-      applicationIdProvider,
-      mock(),
-      LaunchOptions.builder().build(),
-      false
-    )
-
-    val adb = AdbUtils.getAdbFuture(project).get()!!
-    val iDevice = adb.findDevice(device)!!
-    val tasks = launchTaskProvider.getTasks(iDevice)
-      .filterIsInstance(LayoutInspectorLaunchTask::class.java)
-
-    // Make sure the LayoutInspectorLaunchTaskContributor is registered.
-    assertThat(tasks).hasSize(1)
-    return iDevice to tasks.single()
+    val adb = AndroidDebugBridge.getBridge()!!
+    return adb.findDevice(device)!!
   }
 }

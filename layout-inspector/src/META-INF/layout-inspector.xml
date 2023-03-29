@@ -51,15 +51,16 @@
 
     <applicationService serviceImplementation="com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings"/>
 
-    <projectService serviceImplementation="com.android.tools.idea.layoutinspector.LayoutInspectorProjectService" />
+    <projectService serviceImplementation="com.android.tools.idea.layoutinspector.LayoutInspectorProjectService"/>
     <projectService
         serviceInterface="com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManager"
-        serviceImplementation="com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerImpl" />
+        serviceImplementation="com.android.tools.idea.layoutinspector.runningdevices.LayoutInspectorManagerImpl"/>
   </extensions>
 
-  <extensions defaultExtensionNs="com.android.run">
-    <androidLaunchTaskContributor implementation="com.android.tools.idea.layoutinspector.LayoutInspectorLaunchTaskContributor"/>
-  </extensions>
+  <projectListeners>
+    <listener class="com.android.tools.idea.layoutinspector.LayoutInspectorExecutionListener"
+              topic="com.intellij.execution.ExecutionListener"/>
+  </projectListeners>
 
   <applicationListeners>
     <listener
