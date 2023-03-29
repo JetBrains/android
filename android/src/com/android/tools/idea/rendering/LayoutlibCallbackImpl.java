@@ -454,7 +454,9 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myParserCount++;
 
     if (myLayoutPullParserFactory != null) {
-      ILayoutPullParser parser = myLayoutPullParserFactory.create(xml, this, myRenderModule.getResourceRepositoryManager());
+      ILayoutPullParser parser = myLayoutPullParserFactory.create(
+        myRenderModule.getProject(),
+        myLogger, xml, this, myRenderModule.getResourceRepositoryManager());
       if (parser != null) {
         return parser;
       }

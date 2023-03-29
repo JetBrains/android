@@ -84,7 +84,7 @@ public class DrawableRenderer implements Disposable {
   public DrawableRenderer(@NotNull AndroidFacet facet, @NotNull Configuration configuration) {
     Module module = facet.getModule();
     RenderLogger logger = new RenderLogger(module.getProject(), null, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory.INSTANCE);
-    myParserFactory = new MyLayoutPullParserFactory(module.getProject(), logger);
+    myParserFactory = new MyLayoutPullParserFactory();
     // The ThemeEditorUtils.getConfigurationForModule and RenderService.createTask calls are pretty expensive.
     // Executing them off the UI thread.
     RenderService service = StudioRenderService.getInstance(module.getProject());
@@ -143,25 +143,22 @@ public class DrawableRenderer implements Disposable {
 
   private static class MyLayoutPullParserFactory implements ILayoutPullParserFactory {
     @NotNull private final ConcurrentMap<PathString, String> myFileContent = new ConcurrentHashMap<>();
-    @NotNull private final Project myProject;
-    @NotNull private final RenderLogger myLogger;
-
-    MyLayoutPullParserFactory(@NotNull Project project, @NotNull RenderLogger logger) {
-      myProject = project;
-      myLogger = logger;
-    }
 
     @Override
     @Nullable
-    public ILayoutPullParser create(@NotNull PathString file, @NotNull LayoutlibCallback layoutlibCallback,
-                                    @Nullable ResourceRepositoryManager resourceRepositoryManager) {
+    public ILayoutPullParser create(
+      @NotNull Project project,
+      @NotNull IRenderLogger logger,
+      @NotNull PathString file,
+      @NotNull LayoutlibCallback layoutlibCallback,
+      @Nullable ResourceRepositoryManager resourceRepositoryManager) {
       String content = myFileContent.remove(file); // File contents is removed upon use to avoid leaking memory.
       if (content == null) {
         return null;
       }
 
-      XmlFile xmlFile = (XmlFile)createEphemeralPsiFile(myProject, file.getFileName(), XmlFileType.INSTANCE, content);
-      return LayoutRenderPullParser.create(new PsiXmlFile(xmlFile), myLogger, resourceRepositoryManager);
+      XmlFile xmlFile = (XmlFile)createEphemeralPsiFile(project, file.getFileName(), XmlFileType.INSTANCE, content);
+      return LayoutRenderPullParser.create(new PsiXmlFile(xmlFile), logger, resourceRepositoryManager);
     }
 
     void addFileContent(@NotNull PathString file, @NotNull String content) {
