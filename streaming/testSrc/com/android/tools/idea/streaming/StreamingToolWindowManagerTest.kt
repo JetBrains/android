@@ -410,6 +410,34 @@ class StreamingToolWindowManagerTest {
   }
 
   @Test
+  fun testMirroringDisablementEnablement() {
+    if (!isFFmpegAvailableToTest()) {
+      return
+    }
+    createToolWindowContent()
+    assertThat(contentManager.contents).isEmpty()
+    assertThat(toolWindow.isVisible).isFalse()
+    toolWindow.show()
+
+    val device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
+
+    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
+
+    deviceMirroringSettings.deviceMirroringEnabled = false
+    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+    waitForCondition(2, TimeUnit.SECONDS) { !device.agent.isRunning }
+
+    deviceMirroringSettings.deviceMirroringEnabled = true
+    waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
+    assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
+
+    agentRule.disconnectDevice(device)
+    waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
+    waitForCondition(2, TimeUnit.SECONDS) { !device.agent.isRunning }
+  }
+
+  @Test
   fun testMirroringConfirmationDialogAccept() {
     if (!isFFmpegAvailableToTest()) {
       return

@@ -228,7 +228,7 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     if (deviceMirroringSettings.deviceMirroringEnabled) {
       UIUtil.invokeLaterIfNeeded {
         if (!toolWindow.isDisposed) {
-          physicalDeviceWatcher = PhysicalDeviceWatcher(toolWindow.disposable)
+          physicalDeviceWatcher = PhysicalDeviceWatcher(this)
         }
       }
     }
@@ -459,7 +459,9 @@ internal class StreamingToolWindowManager @AnyThread constructor(
   }
 
   private fun removePhysicalDevicePanel(panel: DeviceToolWindowPanel) {
-    deviceClients.remove(panel.id.serialNumber)?.let { Disposer.dispose(it) }
+    val serialNumber = panel.id.serialNumber
+    deviceClients.remove(serialNumber)?.let { Disposer.dispose(it) }
+    mirroredDevices.remove(serialNumber)
     removePanel(panel)
   }
 
@@ -667,7 +669,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
 
     private fun onlineDevicesChanged() {
       val removed = deviceClients.keys.minus(onlineDevices.keys)
-      mirroredDevices.removeAll(removed)
       for (device in removed) {
         removePhysicalDevicePanel(device)
       }
