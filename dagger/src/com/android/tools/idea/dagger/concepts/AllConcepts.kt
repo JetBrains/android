@@ -32,6 +32,7 @@ object AllConcepts : DaggerConcept {
       BindsOptionalOfDaggerConcept,
       ComponentAndModuleDaggerConcept,
       ComponentProvisionMethodConcept,
+      EntryPointMethodDaggerConcept,
       InjectedConstructorDaggerConcept,
       InjectedFieldDaggerConcept,
       ProvidesMethodDaggerConcept,

@@ -26,7 +26,7 @@ import com.intellij.psi.PsiType
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 
-internal abstract class ConsumerDaggerElementBase : DaggerElement() {
+internal sealed class ConsumerDaggerElementBase : DaggerElement() {
 
   /** Returns a string indicating the group shown in related items for this element. */
   abstract val relatedElementGrouping: String

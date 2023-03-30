@@ -28,7 +28,7 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
 
-internal abstract class ProviderDaggerElementBase : DaggerElement() {
+internal sealed class ProviderDaggerElementBase : DaggerElement() {
 
   protected abstract fun getIndexKeys(): List<String>
 

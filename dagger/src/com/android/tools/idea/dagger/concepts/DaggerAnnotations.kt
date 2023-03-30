@@ -26,6 +26,7 @@ object DaggerAnnotations {
   internal const val COMPONENT = "dagger.Component"
   internal const val COMPONENT_BUILDER = "dagger.Component.Builder"
   internal const val COMPONENT_FACTORY = "dagger.Component.Factory"
+  internal const val ENTRY_POINT = "dagger.hilt.EntryPoint"
   internal const val INJECT = "javax.inject.Inject"
   internal const val MODULE = "dagger.Module"
   internal const val PROVIDES = "dagger.Provides"

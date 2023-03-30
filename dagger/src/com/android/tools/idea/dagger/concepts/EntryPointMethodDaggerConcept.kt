@@ -24,7 +24,6 @@ import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.android.tools.idea.kotlin.hasAnnotation
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiType
@@ -34,58 +33,58 @@ import java.io.DataOutput
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.idea.core.util.readString
 import org.jetbrains.kotlin.idea.core.util.writeString
-import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 
 /**
- * Represents a Component's
- * [provision method](https://dagger.dev/api/latest/dagger/Component.html#provision-methods).
+ * Represents a method in a class annotated with @EntryPoint.
  *
  * Example:
  * ```java
- *   @Component
- *   interface ApplicationComponent {
- *     Foo getFoo();
+ *   @EntryPoint
+ *   @InstallIn(SingletonComponent.class)
+ *   public interface FooBarInterface {
+ *     @Foo Bar bar();
  *   }
  * ```
  *
- * The `getFoo` method is a Component provision method, and is considered a Consumer of the type
- * `Foo`.
+ * In the above example, `bar` is an entry point method.
+ *
+ * See [EntryPoint](https://dagger.dev/hilt/entry-points) for details.
  */
-internal object ComponentProvisionMethodConcept : DaggerConcept {
-  override val indexers =
-    DaggerConceptIndexers(methodIndexers = listOf(ComponentProvisionMethodIndexer))
+object EntryPointMethodDaggerConcept : DaggerConcept {
+  override val indexers = DaggerConceptIndexers(methodIndexers = listOf(EntryPointMethodIndexer))
   override val indexValueReaders: List<IndexValue.Reader> =
-    listOf(ComponentProvisionMethodIndexValue.Reader)
-  override val daggerElementIdentifiers = ComponentProvisionMethodIndexValue.identifiers
+    listOf(EntryPointMethodIndexValue.Reader)
+  override val daggerElementIdentifiers =
+    DaggerElementIdentifiers.of(EntryPointMethodIndexValue.identifiers)
 }
 
-private object ComponentProvisionMethodIndexer : DaggerConceptIndexer<DaggerIndexMethodWrapper> {
+private object EntryPointMethodIndexer : DaggerConceptIndexer<DaggerIndexMethodWrapper> {
   override fun addIndexEntries(wrapper: DaggerIndexMethodWrapper, indexEntries: IndexEntries) {
-    // A provision method must specify a type and have no parameters.
-    if (wrapper.getParameters().isNotEmpty()) return
-    val returnType = wrapper.getReturnType() ?: return
+    if (wrapper.getIsConstructor() || wrapper.getParameters().any()) return
 
-    // A provision method must be on a @Component or @Subcomponent.
     val containingClass = wrapper.getContainingClass() ?: return
-    if (
-      containingClass.getIsAnnotatedWithAnyOf(
-        DaggerAnnotations.COMPONENT,
-        DaggerAnnotations.SUBCOMPONENT
-      )
-    ) {
-      indexEntries.addIndexValue(
-        returnType.getSimpleName(),
-        ComponentProvisionMethodIndexValue(containingClass.getFqName(), wrapper.getSimpleName())
-      )
-    }
+    if (!containingClass.getIsAnnotatedWith(DaggerAnnotations.ENTRY_POINT)) return
+
+    // If the method doesn't have a defined return type, then we don't need to index it - an
+    // entry point function is abstract so type inference can't be used to figure out the intended
+    // type; any function without a specified return can't be an entry point function.
+    val methodReturnTypeSimpleName = wrapper.getReturnType()?.getSimpleName() ?: return
+
+    val classFqName = containingClass.getFqName()
+    val methodSimpleName = wrapper.getSimpleName()
+
+    indexEntries.addIndexValue(
+      methodReturnTypeSimpleName,
+      EntryPointMethodIndexValue(classFqName, methodSimpleName)
+    )
   }
 }
 
 @VisibleForTesting
-internal data class ComponentProvisionMethodIndexValue(
+internal data class EntryPointMethodIndexValue(
   val classFqName: String,
   val methodSimpleName: String
 ) : IndexValue() {
@@ -97,9 +96,9 @@ internal data class ComponentProvisionMethodIndexValue(
   }
 
   object Reader : IndexValue.Reader {
-    override val supportedType: DataType = DataType.COMPONENT_PROVISION_METHOD
+    override val supportedType = DataType.ENTRY_POINT_METHOD
     override fun read(input: DataInput) =
-      ComponentProvisionMethodIndexValue(input.readString(), input.readString())
+      EntryPointMethodIndexValue(input.readString(), input.readString())
   }
 
   companion object {
@@ -108,9 +107,9 @@ internal data class ComponentProvisionMethodIndexValue(
         psiElement !is KtConstructor<*> &&
           !psiElement.hasBody() &&
           psiElement.valueParameters.isEmpty() &&
-          psiElement.containingClassOrObject?.isComponentOrSubcomponent() == true
+          psiElement.containingClassOrObject?.hasAnnotation(DaggerAnnotations.ENTRY_POINT) == true
       ) {
-        ComponentProvisionMethodDaggerElement(psiElement)
+        EntryPointMethodDaggerElement(psiElement)
       } else {
         null
       }
@@ -120,9 +119,9 @@ internal data class ComponentProvisionMethodIndexValue(
         !psiElement.isConstructor &&
           psiElement.body == null &&
           !psiElement.hasParameters() &&
-          psiElement.containingClass?.isComponentOrSubcomponent() == true
+          psiElement.containingClass?.hasAnnotation(DaggerAnnotations.ENTRY_POINT) == true
       ) {
-        ComponentProvisionMethodDaggerElement(psiElement)
+        EntryPointMethodDaggerElement(psiElement)
       } else {
         null
       }
@@ -132,12 +131,6 @@ internal data class ComponentProvisionMethodIndexValue(
         ktFunctionIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
         psiMethodIdentifiers = listOf(DaggerElementIdentifier(this::identify))
       )
-
-    private fun KtClassOrObject.isComponentOrSubcomponent() =
-      hasAnnotation(DaggerAnnotations.COMPONENT) || hasAnnotation(DaggerAnnotations.SUBCOMPONENT)
-
-    private fun PsiClass.isComponentOrSubcomponent() =
-      hasAnnotation(DaggerAnnotations.COMPONENT) || hasAnnotation(DaggerAnnotations.SUBCOMPONENT)
   }
 
   override fun getResolveCandidates(project: Project, scope: GlobalSearchScope): List<PsiElement> {
@@ -149,13 +142,13 @@ internal data class ComponentProvisionMethodIndexValue(
   override val daggerElementIdentifiers = identifiers
 }
 
-internal data class ComponentProvisionMethodDaggerElement(
+internal data class EntryPointMethodDaggerElement(
   override val psiElement: PsiElement,
-  override val rawType: PsiType,
+  override val rawType: PsiType
 ) : ConsumerDaggerElementBase() {
 
   internal constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())
   internal constructor(psiElement: PsiMethod) : this(psiElement, psiElement.getReturnedPsiType())
 
-  override val relatedElementGrouping: String = DaggerBundle.message("exposed.by.components")
+  override val relatedElementGrouping = DaggerBundle.message("exposed.by.entry.points")
 }

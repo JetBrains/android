@@ -25,6 +25,7 @@ import com.android.tools.idea.dagger.concepts.ConsumerDaggerElement
 import com.android.tools.idea.dagger.concepts.DaggerConcept
 import com.android.tools.idea.dagger.concepts.DaggerElement
 import com.android.tools.idea.dagger.concepts.DaggerElementIdentifiers
+import com.android.tools.idea.dagger.concepts.EntryPointMethodDaggerElement
 import com.android.tools.idea.dagger.concepts.ModuleDaggerElement
 import com.android.tools.idea.dagger.concepts.ProviderDaggerElement
 import com.android.tools.idea.dagger.concepts.SubcomponentDaggerElement
@@ -69,6 +70,7 @@ abstract class IndexValue {
     ASSISTED_INJECT_CONSTRUCTOR_UNASSISTED_PARAMETER(ConsumerDaggerElement::class),
     ASSISTED_FACTORY_CLASS(ProviderDaggerElement::class),
     ASSISTED_FACTORY_METHOD(AssistedFactoryMethodDaggerElement::class),
+    ENTRY_POINT_METHOD(EntryPointMethodDaggerElement::class),
   }
 
   abstract fun save(output: DataOutput)
