@@ -94,7 +94,7 @@ public abstract class AndroidResourceExternalAnnotatorBase
       GutterIconRenderer gutterIconRenderer;
       if (element.getResource() != null) {
         gutterIconRenderer =
-          getResourceGutterIconRender(element.getResource(), element.getPsiElement(), resolver, facet, configuration);
+          getResourceGutterIconRenderer(element.getResource(), element.getPsiElement(), resolver, facet, configuration);
       }
       else {
         // Inline color
@@ -110,11 +110,11 @@ public abstract class AndroidResourceExternalAnnotatorBase
   }
 
   @Nullable
-  private static GutterIconRenderer getResourceGutterIconRender(@NotNull ResourceReference reference,
-                                                                @NotNull PsiElement element,
-                                                                @NotNull ResourceResolver resolver,
-                                                                @NotNull AndroidFacet facet,
-                                                                @NotNull Configuration configuration) {
+  private static GutterIconRenderer getResourceGutterIconRenderer(@NotNull ResourceReference reference,
+                                                                  @NotNull PsiElement element,
+                                                                  @NotNull ResourceResolver resolver,
+                                                                  @NotNull AndroidFacet facet,
+                                                                  @NotNull Configuration configuration) {
     ResourceValue resolvedResource = null;
     if (reference.getResourceType() == ResourceType.ATTR) {
       // Resolve the theme attribute
