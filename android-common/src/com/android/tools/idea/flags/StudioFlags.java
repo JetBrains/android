@@ -1096,7 +1096,7 @@ public final class StudioFlags {
     EDITOR, "suggested.imports.with.version.catalogs.enabled",
     "Enable Suggested Imports with Version Catalogs",
     "If enabled, allows suggested imports to be shown in projects that are using version catalogs",
-    false
+    true
   );
 
   public static final Flag<Boolean> ESSENTIAL_HIGHLIGHTING_ACTION_VISIBLE = Flag.create(
