@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.repositories
 
 import com.android.ide.common.gradle.Component
+import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate
@@ -112,9 +113,9 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
     return null
   }
 
-  fun findCompileDependencies(groupId: String, artifactId: String, version: Version): List<GradleCoordinate> {
+  fun findCompileDependencies(groupId: String, artifactId: String, version: Version): List<Dependency> {
     // First check the Google maven repository, which has most versions.
-    val result: List<GradleCoordinate>
+    val result: List<Dependency>
     if (ApplicationManager.getApplication().isDispatchThread) {
       result = cachedGoogleMavenRepository.findCompileDependencies(groupId, artifactId, version)
       refreshCacheInBackground(groupId, artifactId)

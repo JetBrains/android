@@ -378,7 +378,7 @@ class GradleDependencyCompatibilityAnalyzerTest : AndroidTestCase() {
       listOf(GradleCoordinate(SdkConstants.SUPPORT_LIB_GROUP_ID, SdkConstants.APPCOMPAT_LIB_ARTIFACT_ID, "22.17.3"))
     ).get(TIMEOUT, TimeUnit.SECONDS)
 
-    assertThat(warning).isEqualTo("The dependency was not found: com.android.support:appcompat-v7:22.17.3")
+    assertThat(warning).isEqualTo("The dependency was not found: com.android.support:appcompat-v7:[22.17.3,22.17.4)")
     assertThat(missing).containsExactly(GradleCoordinate("com.android.support", "appcompat-v7", "22.17.3"))
     assertThat(found).isEmpty()
   }

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.projectsystem.gradle
 
+import com.android.ide.common.gradle.Dependency
+import com.android.ide.common.gradle.Module as ExternalModule
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.manifmerger.ManifestSystemProperty
@@ -158,25 +160,38 @@ class GradleModuleSystem(
   }
 
   // TODO: b/129297171
-  override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? {
-    return getDirectDependencies(module).find { it.matches(coordinate) }
-  }
+  override fun getRegisteredDependency(coordinate: GradleCoordinate): GradleCoordinate? =
+    getRegisteredDependency(ExternalModule(coordinate.groupId, coordinate.artifactId))?.toIdentifier()
+      ?.let { GradleCoordinate.parseCoordinateString(it) }
+      // TODO(xof): I'm reasonably convinced that this interface (in terms of GradleCoordinate) and its implementation
+      //  verifying that any version field specified in the GradleCoordinate matches (in some sense, where "+" is treated
+      //  specially in the coordinate but not in any of the matches) is not reasonably supportable.  Almost all uses of this in production
+      //  use a bare version of "+", which will match any version.  There is an exception, which attempts to insert specific versions
+      //  taken from fragments of other Gradle build files (or Maven XML).
+      //  I think the ideal final state will involve removing this function from the AndroidModuleSystem interface; converting users of
+      //  this to the getRegisteredDependency(ExternalModule) method below; and require clients who want to query or add specific
+      //  dependency versions to Gradle build files to accept that they are using GradleModuleSystem facilities, which we will allow from
+      //  a limited set of modules.  In the meantime, preserve existing behavior by performing this matches(...) check.
+      ?.takeIf { it.matches(coordinate) }
 
-  fun getDirectDependencies(module: Module): Sequence<GradleCoordinate> {
+  fun getRegisteredDependency(externalModule: ExternalModule): Dependency? =
+    getDirectDependencies(module).find { it.name == externalModule.name && it.group == externalModule.group }
+
+  fun getDirectDependencies(module: Module): Sequence<Dependency> {
     // TODO: b/129297171
     @Suppress("ConstantConditionIf")
     return if (CHECK_DIRECT_GRADLE_DEPENDENCIES) {
       projectBuildModelHandler.read {
         // TODO: Replace the below artifacts with the direct dependencies from the AndroidModuleModel see b/128449813
-        val artifacts = getModuleBuildModel(module)?.dependencies()?.artifacts() ?: return@read emptySequence<GradleCoordinate>()
+        val artifacts = getModuleBuildModel(module)?.dependencies()?.artifacts() ?: return@read emptySequence<Dependency>()
         artifacts
           .asSequence()
-          .mapNotNull { GradleCoordinate.parseCoordinateString("${it.group()}:${it.name().forceString()}:${it.version()}") }
+          .mapNotNull { Dependency.parse("${it.group()}:${it.name().forceString()}:${it.version()}") }
       }
     } else {
       getCompileDependenciesFor(module, DependencyScopeType.MAIN)
         ?.let { it.androidLibraries.asSequence() + it.javaLibraries.asSequence() }
-        ?.mapNotNull { GradleCoordinate.parseCoordinateString(it.target.artifactAddress) } ?: emptySequence()
+        ?.mapNotNull { Dependency.parse(it.target.artifactAddress) } ?: emptySequence()
     }
   }
 
