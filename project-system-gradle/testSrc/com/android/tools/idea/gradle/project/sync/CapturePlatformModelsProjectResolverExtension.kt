@@ -129,5 +129,5 @@ sealed class CapturePlatformModelsProjectResolverExtension(val mode: TestGradleM
   }
 }
 
-fun KotlinGradleModel.testSourceSetNames(): Collection<String> = cachedCompilerArgumentsBySourceSet.keys
+fun KotlinGradleModel.testSourceSetNames(): Collection<String> = compilerArgumentsBySourceSet.keys
 fun KaptGradleModel.testSourceSetNames(): Collection<String> = sourceSets.map { it.sourceSetName }

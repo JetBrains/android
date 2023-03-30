@@ -212,8 +212,6 @@ import org.jetbrains.kotlin.idea.base.externalSystem.findAll
 import org.jetbrains.kotlin.idea.core.script.configuration.ScriptingSupport
 import org.jetbrains.kotlin.idea.core.script.configuration.listener.ScriptChangeListener
 import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptDependenciesLibraryRootProvider
-import org.jetbrains.kotlin.idea.gradleJava.configuration.CompilerArgumentsCacheMergeManager
-import org.jetbrains.kotlin.idea.gradleTooling.arguments.CompilerArgumentsCacheHolder
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtension
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtensions
 import org.jetbrains.plugins.gradle.model.ExternalProject
@@ -2168,21 +2166,12 @@ private fun <T> openPreparedProject(
   // Use per-project code style settings so we never modify the IDE defaults.
   CodeStyleSettingsManager.getInstance().USE_PER_PROJECT_SETTINGS = true;
 
-  fun clearKotlinPluginCompilerArgumentCaches() {
-    val privateCache = CompilerArgumentsCacheHolder::class.memberProperties.single { it.name == "cacheAwareWithMergeByIdentifier" }
-    privateCache.isAccessible = true
-    (privateCache.get(CompilerArgumentsCacheMergeManager.compilerArgumentsCacheHolder) as MutableMap<*, *>).clear()
-  }
-
   fun body(): T {
     val disposable = Disposer.newDisposable()
     try {
       val project = runInEdtAndGet {
         PlatformTestUtil.dispatchAllEventsInIdeEventQueue();
 
-        // This method is used to simulate what happens when the IDE is restarted before re-opening a project in order to catch issues
-        // that cannot be reproduced otherwise.
-        clearKotlinPluginCompilerArgumentCaches()
         if (options.disableKtsRelatedIndexing) {
           // NOTE: We do not re-register the extensions since (1) we do not know whether we removed it and (2) there is no simple way to
           //       re-register it by its class name. It means that this test might affect tests running after this one.
