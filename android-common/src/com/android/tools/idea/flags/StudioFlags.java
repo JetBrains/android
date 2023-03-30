@@ -1770,6 +1770,16 @@ public final class StudioFlags {
   );
   // endregion
 
+  // region AVD Command Line Options
+  private static final FlagGroup
+    AVD_COMMAND_LINE_OPTIONS = new FlagGroup(FLAGS, "avd.command.line.options", "AVD Command-Line Options");
+  public static final Flag<Boolean> AVD_COMMAND_LINE_OPTIONS_ENABLED = Flag.create(
+    AVD_COMMAND_LINE_OPTIONS, "enable", "Enable the AVD Command-Line Options setting",
+    "Enable the AVD Command-Line Options setting in the AVD advanced settings panel.",
+    false
+  );
+  // endregion
+
   // region PRIVACY_SANDBOX_SDK
   private static final FlagGroup PRIVACY_SANDBOX_SDK = new FlagGroup(FLAGS, "privacysandboxsdk", "Privacy Sandbox SDK");
   public static final Flag<Boolean> LAUNCH_SANDBOX_SDK_PROCESS_WITH_DEBUGGER_ATTACHED_ON_DEBUG = Flag.create(
