@@ -44,11 +44,11 @@ class NewKtsModuleTest {
    *
    * Test Steps
    * 1. Import "Simple Application" (a basic java project)
-   * 2. Add a new Java "Phone/Tablet" Module and selected "Kotlin script (Recommended)".
-   * 3. Add a new Kotlin "Android Library" Module and select "Kotlin script (Recommended)".
-   * 4. Add a new Java "Automotive" Module and selected "Kotlin script (Recommended)".
-   * 5. Add a new Java "Wear OS" Module and selected "Kotlin script (Recommended)".
-   * 6. Add a new Java "Android Tv" Module and selected "Kotlin script (Recommended)".
+   * 2. Add a new Java "Phone/Tablet" Module and selected "Kotlin DSL".
+   * 3. Add a new Kotlin "Android Library" Module and select "Kotlin DSL".
+   * 4. Add a new Java "Automotive" Module and selected "Kotlin DSL".
+   * 5. Add a new Java "Wear OS" Module and selected "Kotlin DSL".
+   * 6. Add a new Java "Android Tv" Module and selected "Kotlin DSL".
    * - Make sure the projects can build ("Build" > "Make Project")
    * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
    */
@@ -204,7 +204,7 @@ class NewKtsModuleTest {
    *
    * Test Steps
    * 1. Import "Simple Application" (a basic non kts java project)
-   * 2. Add a new "Dynamic Feature" module, with Java Language and "Kotlin script (Recommended)" selected.
+   * 2. Add a new "Dynamic Feature" module, with Java Language and "Kotlin DSL" selected.
    * - Make sure the projects can build ("Build" > "Make Project")
    * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
    */
@@ -234,7 +234,7 @@ class NewKtsModuleTest {
    *
    * Test Steps
    * 1. Import "Simple Application" (a basic non kts java project)
-   * 2. Add a new "Instant Dynamic Feature" module, with Java Language and "Kotlin script (Recommended)" selected.
+   * 2. Add a new "Instant Dynamic Feature" module, with Java Language and "Kotlin DSL" selected.
    * - Make sure the projects can build ("Build" > "Make Project")
    * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
    */

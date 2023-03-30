@@ -43,7 +43,7 @@ class NewKtsProjectTest {
    * Verifies that a new Java Project, with kts, has the expected content and builds.
    *
    * Test Steps
-   * 1. Create New Project, with language Java and "Kotlin script (Recommended)" item selected in the Build configuration language
+   * 1. Create New Project, with language Java and "Kotlin DSL" item selected in the Build configuration language
    * combo box
    * - "settings.gradle.kts" should have an entry -> include("app")
    * - "app/build.gradle.kts" should have versionCode(1)/versionName("1.0")/minifyEnabled=false instead of
