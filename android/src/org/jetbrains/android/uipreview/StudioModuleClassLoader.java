@@ -19,6 +19,7 @@ import com.android.tools.idea.rendering.classloading.RenderActionAllocationLimit
 import com.android.tools.idea.rendering.classloading.RepackageTransform;
 import com.android.tools.idea.rendering.classloading.RequestExecutorTransform;
 import com.android.tools.idea.rendering.classloading.ResourcesCompatTransform;
+import com.android.tools.idea.rendering.classloading.SdkIntReplacer;
 import com.android.tools.idea.rendering.classloading.ThreadControllingTransform;
 import com.android.tools.idea.rendering.classloading.ThreadLocalTrackingTransform;
 import com.android.tools.idea.rendering.classloading.VersionClassTransform;
@@ -129,6 +130,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
       StudioFlags.COMPOSE_ALLOCATION_LIMITER.get() ?
         new RenderActionAllocationLimiterTransform(visitor) :
         visitor, // Do not apply if the allocation limiter is disabled
+    SdkIntReplacer::new,
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
   );
@@ -142,6 +144,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
     ResourcesCompatTransform::new,
     RequestExecutorTransform::new,
     ViewTreeLifecycleTransform::new,
+    SdkIntReplacer::new,
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
   );
