@@ -72,7 +72,6 @@ import com.android.tools.idea.rendering.parsers.LayoutRenderPullParser;
 import com.android.tools.idea.rendering.parsers.RenderXmlFile;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.FileResourceReader;
-import com.android.tools.lint.detector.api.Lint;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
@@ -534,7 +533,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       if (file == null || !file.exists()) {
         continue;
       }
-      String layoutName = Lint.getLayoutName(file);
+      String layoutName = SdkUtils.getLayoutName(file);
       layoutToFile.put(layoutName, file);
       try {
         String xml = Files.toString(file, UTF_8);
