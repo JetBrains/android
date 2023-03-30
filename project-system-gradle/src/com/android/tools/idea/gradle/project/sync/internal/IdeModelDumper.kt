@@ -61,14 +61,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.util.io.sanitizeFileName
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
-import org.jetbrains.kotlin.idea.gradle.configuration.CachedArgumentsRestoring.restoreExtractedArgs
-import org.jetbrains.kotlin.idea.gradle.configuration.EntityArgsInfo
-import org.jetbrains.kotlin.idea.gradleJava.configuration.CompilerArgumentsCacheMergeManager
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinGradleModel
 import org.jetbrains.kotlin.idea.gradleTooling.KotlinMPPGradleModel
-import org.jetbrains.kotlin.idea.gradleTooling.arguments.CachedExtractedArgsInfo
 import org.jetbrains.kotlin.idea.gradleTooling.model.kapt.KaptGradleModel
-import org.jetbrains.kotlin.idea.projectModel.CompilerArgumentsCacheAware
 import org.jetbrains.kotlin.idea.projectModel.KotlinTaskProperties
 import org.jetbrains.plugins.gradle.model.ExternalProject
 import java.io.File
@@ -161,20 +156,6 @@ fun ProjectDumper.dumpAllVariantsSyncAndroidModuleModel(androidModuleModel: Grad
 }
 
 private val jbModelDumpers = listOf(
-  SpecializedDumper<CompilerArgumentsCacheAware> { Unit },
-  SpecializedDumper<EntityArgsInfo> {
-    head(propertyName)
-    nest {
-      prop("compilerArguments", it.currentCompilerArguments, it.defaultCompilerArguments)
-      prop("dependencyClasspath", it.dependencyClasspath)
-    }
-  },
-  SpecializedDumper<CachedExtractedArgsInfo> {
-    prop(
-      propertyName,
-      restoreExtractedArgs(it, CompilerArgumentsCacheMergeManager.compilerArgumentsCacheHolder)
-    )
-  },
   SpecializedDumper(property = CommonCompilerArguments::pluginOptions) {
   },
   SpecializedDumper(property = IdeDependencies::androidLibraries) {

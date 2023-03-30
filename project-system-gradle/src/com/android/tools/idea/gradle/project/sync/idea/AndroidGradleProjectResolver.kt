@@ -203,7 +203,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     createAndAttachModelsToDataNode(projectDataNode, moduleDataNode, gradleModule, androidModels)
     patchLanguageLevels(moduleDataNode, gradleModule, androidModels?.androidProject)
     registerModuleData(gradleModule, moduleDataNode)
-    recordKotlinCacheOriginIdentifiers(gradleModule)
     return moduleDataNode
   }
 
@@ -227,17 +226,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
           myGradlePathByModuleId[node.data.id] = gradleProjectPath
         }
       }
-    }
-  }
-
-  private fun recordKotlinCacheOriginIdentifiers(gradleModule: IdeaModule) {
-    val mppModel = resolverCtx.getExtraProject(gradleModule, KotlinMPPGradleModel::class.java)
-    val kotlinModel = resolverCtx.getExtraProject(gradleModule, KotlinGradleModel::class.java)
-    if (mppModel != null) {
-      myKotlinCacheOriginIdentifiers.add(mppModel.cacheAware.cacheOriginIdentifier)
-    }
-    if (kotlinModel != null) {
-      myKotlinCacheOriginIdentifiers.add(kotlinModel.cacheAware.cacheOriginIdentifier)
     }
   }
 
@@ -524,7 +512,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
 
   @Suppress("UnstableApiUsage")
   override fun resolveFinished(projectDataNode: DataNode<ProjectData>) {
-    projectDataNode.preserveKotlinUserDataInDataNodes(myKotlinCacheOriginIdentifiers)
     disableOrphanModuleNotifications()
   }
 
@@ -728,16 +715,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
       VariantProjectDataNodes::class.java, 1 /* not used */
     )
 
-    /**
-     * Stores a collection of internal in-memory properties used by Kotlin 1.6.20 IDE plugin so that they can be restored when the data node
-     * tree is re-used to re-import a build variant it represents.
-     *
-     *
-     * NOTE: This key/data is not directly processed by any data importers.
-     */
-    val KOTLIN_PROPERTIES = Key.create(
-      KotlinProperties::class.java, 1 /* not used */
-    )
     private const val BUILD_SYNC_ORPHAN_MODULES_NOTIFICATION_GROUP_NAME = "Build sync orphan modules"
     private val IS_ANDROID_PLUGIN_REQUESTING_KOTLIN_GRADLE_MODEL_KEY =
       com.intellij.openapi.util.Key.create<Boolean>("IS_ANDROID_PLUGIN_REQUESTING_KOTLIN_GRADLE_MODEL_KEY")

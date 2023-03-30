@@ -17,7 +17,6 @@ package com.android.tools.idea.gradle.variant.view;
 
 import static com.android.tools.idea.gradle.project.sync.SelectedVariantCollectorKt.getModuleIdForSyncRequest;
 import static com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor.ALWAYS_SKIP_SYNC;
-import static com.android.tools.idea.gradle.project.sync.idea.KotlinPropertiesKt.restoreKotlinUserDataFromDataNodes;
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_VARIANT_SELECTION_CHANGED_BY_USER;
 import static com.intellij.util.ThreeState.YES;
 
@@ -126,7 +125,6 @@ public class BuildVariantUpdater {
     if (data != null && variantProjectDataNode != null) {
       VariantSwitcher.findAndSetupSelectedCachedVariantData(data, variantProjectDataNode);
       disableKotlinCompilerPluginImportHandlers(myProject); // TODO(b/215522894)
-      restoreKotlinUserDataFromDataNodes(variantProjectDataNode);
       setupCachedVariant(myProject, variantProjectDataNode);
       return;
     }
