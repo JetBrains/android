@@ -22,6 +22,7 @@ import com.intellij.debugger.ui.tree.render.ChildrenRenderer
 import com.intellij.debugger.ui.tree.render.CompoundReferenceRenderer
 import com.intellij.debugger.ui.tree.render.CompoundRendererProvider
 import com.intellij.debugger.ui.tree.render.ValueLabelRenderer
+import com.intellij.openapi.project.Project
 import com.sun.jdi.ClassType
 import com.sun.jdi.Type
 import org.jetbrains.kotlin.idea.debugger.isInKotlinSources
@@ -51,7 +52,7 @@ class KotlinMapEntryRenderer : CompoundRendererProvider() {
     return "Kotlin MapEntry"
   }
 
-  override fun getIsApplicableChecker(): Function<Type?, CompletableFuture<Boolean>> {
+  override fun getIsApplicableChecker(project: Project): Function<Type?, CompletableFuture<Boolean>> {
     return Function { type: Type? ->
       if (type !is ClassType || !type.isInKotlinSources()) return@Function CompletableFuture.completedFuture(false)
 
