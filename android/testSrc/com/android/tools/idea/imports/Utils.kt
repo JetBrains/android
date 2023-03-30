@@ -139,7 +139,7 @@ internal val fakeMavenClassRegistryManager: MavenClassRegistryManager
               {
                 "groupId": "com.google.android.gms",
                 "artifactId": "play-services-maps",
-                "version": "17.0.0",
+                "version": "17.0.1",
                 "ktxTargets": [],
                 "fqcns": [
                   "com.google.android.gms.maps.SupportMapFragment"

@@ -75,7 +75,7 @@ class AndroidMavenImportIntentionActionTest {
       // in the test prebuilts right now
       performWithoutSync(action, element)
 
-      assertBuildGradle(project) { it.contains("implementation 'androidx.recyclerview:recyclerview:") }
+      assertBuildGradle(project) { it.contains("implementation 'androidx.recyclerview:recyclerview:1.1.0") }
 
       // Make sure we've imported the RecyclerView correctly as well, including transforming to AndroidX package name
       val newSource = fixture.editor.document.text
@@ -120,7 +120,7 @@ class AndroidMavenImportIntentionActionTest {
       // in the test prebuilts right now
       performWithoutSync(action, element)
 
-      assertBuildGradle(project) { it.contains("implementation 'androidx.recyclerview:recyclerview:") }
+      assertBuildGradle(project) { it.contains("implementation 'androidx.recyclerview:recyclerview:1.1.0") }
 
       // Make sure we've haven't added a second import statement; the source code should not have changed
       val newSource = fixture.editor.document.text
@@ -155,7 +155,7 @@ class AndroidMavenImportIntentionActionTest {
       // in the test prebuilts right now
       performWithoutSync(action, element)
 
-      assertBuildGradle(project) { it.contains("implementation 'androidx.recyclerview:recyclerview:") }
+      assertBuildGradle(project) { it.contains("implementation 'androidx.recyclerview:recyclerview:1.1.0") }
 
       // Make sure we haven't modified the source to add a new import statement since the
       // reference is already fully qualified
@@ -191,7 +191,7 @@ class AndroidMavenImportIntentionActionTest {
       // in the test prebuilts right now
       performWithoutSync(action, element)
 
-      assertBuildGradle(project) { it.contains("implementation 'androidx.recyclerview:recyclerview:") }
+      assertBuildGradle(project) { it.contains("implementation 'androidx.recyclerview:recyclerview:1.1.0") }
 
       // Make sure we haven't modified the source to add a new import statement since the
       // reference is already fully qualified
@@ -224,7 +224,7 @@ class AndroidMavenImportIntentionActionTest {
       // in the test prebuilts right now
       performWithoutSync(action, element)
 
-      assertBuildGradle(project) { it.contains("implementation 'androidx.recyclerview:recyclerview:") }
+      assertBuildGradle(project) { it.contains("implementation 'androidx.recyclerview:recyclerview:1.1.0") }
 
       // Make sure we haven't added an import statement since the reference is already fully qualified
       val newSource = fixture.editor.document.text
@@ -256,7 +256,7 @@ class AndroidMavenImportIntentionActionTest {
       // in the test prebuilts right now
       performWithoutSync(action, element)
 
-      assertBuildGradle(project) { it.contains("implementation 'androidx.recyclerview:recyclerview:") }
+      assertBuildGradle(project) { it.contains("implementation 'androidx.recyclerview:recyclerview:1.1.0") }
 
       // Make sure we haven't added an import statement since the reference is already fully qualified
       val newSource = fixture.editor.document.text
@@ -286,7 +286,7 @@ class AndroidMavenImportIntentionActionTest {
       // in the test prebuilts right now
       performWithoutSync(action, element)
 
-      assertBuildGradle(project) { it.contains("implementation 'androidx.palette:palette-ktx:") }
+      assertBuildGradle(project) { it.contains("implementation 'androidx.palette:palette-ktx:1.0.0") }
 
       // Make sure we've imported the RecyclerView correctly as well
       val newSource = fixture.editor.document.text
@@ -327,7 +327,7 @@ class AndroidMavenImportIntentionActionTest {
       // in the test prebuilts right now
       performWithoutSync(action, element)
 
-      assertBuildGradle(project) { it.contains("implementation 'androidx.palette:palette:") }
+      assertBuildGradle(project) { it.contains("implementation 'androidx.palette:palette:1.0.0") }
     }
   }
 
@@ -354,8 +354,8 @@ class AndroidMavenImportIntentionActionTest {
       // in the test prebuilts right now
       performWithoutSync(action, element)
 
-      assertBuildGradle(project) { it.contains("implementation 'androidx.room:room-runtime:") }
-      assertBuildGradle(project) { it.contains("annotationProcessor 'androidx.room:room-compiler:") }
+      assertBuildGradle(project) { it.contains("implementation 'androidx.room:room-runtime:2.2.6") }
+      assertBuildGradle(project) { it.contains("annotationProcessor 'androidx.room:room-compiler:2.2.6") }
     }
   }
 
@@ -386,8 +386,8 @@ class AndroidMavenImportIntentionActionTest {
       // in the test prebuilts right now
       performWithoutSync(action, element)
 
-      assertBuildGradle(project) { it.contains("implementation 'androidx.compose.ui:ui-tooling-preview:") }
-      assertBuildGradle(project) { it.contains("debugImplementation 'androidx.compose.ui:ui-tooling:") }
+      assertBuildGradle(project) { it.contains("implementation 'androidx.compose.ui:ui-tooling-preview:1.0.5") }
+      assertBuildGradle(project) { it.contains("debugImplementation 'androidx.compose.ui:ui-tooling:1.0.5") }
     }
   }
 
@@ -440,7 +440,7 @@ class AndroidMavenImportIntentionActionTest {
 
       // The deterministic order of suggestions are ensured, so the first option `androidx.palette:palette` is applied.
       assertBuildGradle(project) {
-        it.contains("implementation 'androidx.palette:palette-ktx:")
+        it.contains("implementation 'androidx.palette:palette-ktx:1.0.0")
       }
 
       val newSource = fixture.editor.document.text
@@ -487,7 +487,7 @@ class AndroidMavenImportIntentionActionTest {
       // in the test prebuilts right now
       performWithoutSync(action, element)
 
-      assertBuildGradle(project) { it.contains("implementation 'androidx.camera:camera-core:") }
+      assertBuildGradle(project) { it.contains("implementation 'androidx.camera:camera-core:1.1.0-alpha03") }
 
       // Make sure we haven't added an import statement since the reference is already fully qualified
       val newSource = fixture.editor.document.text
@@ -519,7 +519,7 @@ class AndroidMavenImportIntentionActionTest {
       // in the test prebuilts right now
       performWithoutSync(action, element)
 
-      assertBuildGradle(project) { it.contains("implementation 'androidx.camera:camera-core:") }
+      assertBuildGradle(project) { it.contains("implementation 'androidx.camera:camera-core:1.1.0-alpha03") }
 
       // Make sure we haven't added an import statement since the reference is already fully qualified
       val newSource = fixture.editor.document.text
