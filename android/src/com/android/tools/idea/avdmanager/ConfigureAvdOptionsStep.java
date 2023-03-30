@@ -39,6 +39,7 @@ import com.android.tools.adtui.ASGallery;
 import com.android.tools.adtui.util.FormScalingUtil;
 import com.android.tools.adtui.validation.Validator;
 import com.android.tools.adtui.validation.ValidatorPanel;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.observable.AbstractProperty;
 import com.android.tools.idea.observable.BindingsManager;
@@ -126,6 +127,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -223,6 +225,8 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   private JRadioButton myChooseBootRadioButton;
   private JComboBox myChosenSnapshotComboBox;
   private JBLabel myDeviceFrameTitle;
+  private JPanel myCommandLineOptionsPanel;
+  private JTextArea myCommandLineOptions;
   private Iterable<JComponent> myAdvancedOptionsComponents;
 
   private Project myProject;
@@ -594,6 +598,7 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myExternalSdCard.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Location of external SD Card image");
     myExternalRadioButton.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Location of external SD Card image");
     myNoSDCardRadioButton.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "No SD Card");
+    myCommandLineOptions.putClientProperty(AvdConfigurationOptionHelpPanel.TITLE_KEY, "Command Line Options");
   }
 
   private void initComponents() {
@@ -1316,9 +1321,16 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
   }
 
   private void registerAdvancedOptionsVisibility() {
-    myAdvancedOptionsComponents =
+    var advancedOptionsComponents =
       Lists.<JComponent>newArrayList(myStoragePanel, myCameraPanel, myNetworkPanel, myQemu2Panel, myKeyboardPanel, myCustomSkinPanel,
                                      myAvdIdRow);
+
+    if (StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.get()) {
+      myCommandLineOptionsPanel.setVisible(true);
+      advancedOptionsComponents.add(myCommandLineOptionsPanel);
+    }
+
+    myAdvancedOptionsComponents = advancedOptionsComponents;
   }
 
   @Override
