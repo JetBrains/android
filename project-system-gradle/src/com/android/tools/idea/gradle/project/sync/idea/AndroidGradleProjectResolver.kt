@@ -34,6 +34,7 @@ import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeVariantCore
 import com.android.tools.idea.gradle.model.impl.IdeLibraryModelResolverImpl.Companion.fromLibraryTable
 import com.android.tools.idea.gradle.model.impl.IdeResolvedLibraryTable
+import com.android.tools.idea.gradle.model.impl.IdeSyncIssueImpl
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTable
 import com.android.tools.idea.gradle.model.impl.IdeUnresolvedLibraryTableImpl
 import com.android.tools.idea.gradle.model.ndk.v1.IdeNativeVariantAbi
@@ -47,7 +48,7 @@ import com.android.tools.idea.gradle.project.sync.GradleSyncEventLogger
 import com.android.tools.idea.gradle.project.sync.IdeAndroidModels
 import com.android.tools.idea.gradle.project.sync.IdeAndroidNativeVariantsModels
 import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncError
-import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncExceptions
+import com.android.tools.idea.gradle.project.sync.IdeAndroidSyncIssuesAndExceptions
 import com.android.tools.idea.gradle.project.sync.IdeSyncExecutionReport
 import com.android.tools.idea.gradle.project.sync.SdkSync
 import com.android.tools.idea.gradle.project.sync.SimulatedSyncErrors
@@ -63,6 +64,7 @@ import com.android.tools.idea.gradle.project.sync.idea.data.service.AndroidProje
 import com.android.tools.idea.gradle.project.sync.idea.issues.validateProjectGradleJdk
 import com.android.tools.idea.gradle.project.sync.issues.SyncIssuesReporter
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
+import com.android.tools.idea.gradle.project.sync.stackTraceAsMultiLineMessage
 import com.android.tools.idea.gradle.project.sync.toException
 import com.android.tools.idea.gradle.project.upgrade.AssistantInvoker
 import com.android.tools.idea.gradle.util.AndroidGradleSettings
@@ -229,14 +231,16 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   }
 
   override fun createModule(gradleModule: IdeaModule, projectDataNode: DataNode<ProjectData>): DataNode<ModuleData>? {
-    val ideAndroidSyncExceptions = resolverCtx.getExtraProject(gradleModule, IdeAndroidSyncExceptions::class.java)
-    ideAndroidSyncExceptions?.log()
+    val ideAndroidSyncIssuesAndExceptions = resolverCtx.getExtraProject(gradleModule, IdeAndroidSyncIssuesAndExceptions::class.java)
     if (!isAndroidGradleProject) {
-      return nextResolver.createModule(gradleModule, projectDataNode)
+      return nextResolver.createModule(gradleModule, projectDataNode)?.also {
+        ideAndroidSyncIssuesAndExceptions?.process(it)
+      }
     }
     val androidModels = resolverCtx.getExtraProject(gradleModule, IdeAndroidModels::class.java)
     val moduleDataNode = nextResolver.createModule(gradleModule, projectDataNode) ?: return null
     createAndAttachModelsToDataNode(projectDataNode, moduleDataNode, gradleModule, androidModels)
+    ideAndroidSyncIssuesAndExceptions?.process(moduleDataNode)
     patchLanguageLevels(moduleDataNode, gradleModule, androidModels?.androidProject)
     registerModuleData(gradleModule, moduleDataNode)
     recordKotlinCacheOriginIdentifiers(gradleModule)
@@ -359,7 +363,6 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     var issueData: Collection<IdeSyncIssue>? = null
     if (androidModels != null) {
       androidModel = createGradleAndroidModel(moduleName, rootModulePath, androidModels, mppModel)
-      issueData = androidModels.syncIssues
       val ndkModuleName = moduleName + "." + getModuleName(androidModel.mainArtifactCore.name)
       ndkModuleModel = maybeCreateNdkModuleModel(ndkModuleName, rootModulePath!!, androidModels)
     }
@@ -383,7 +386,7 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
     if (ndkModuleModel != null) {
       moduleNode.createChild(AndroidProjectKeys.NDK_MODEL, ndkModuleModel)
     }
-    issueData?.forEach { it: IdeSyncIssue -> moduleNode.createChild(AndroidProjectKeys.SYNC_ISSUE, it) }
+
     // We also need to patch java modules as we disabled the kapt resolver.
     // Setup Kapt this functionality should be done by KaptProjectResovlerExtension if possible.
     // If we have module per sourceSet turned on we need to fill in the GradleSourceSetData for each of the artifacts.
@@ -1104,12 +1107,26 @@ class AndroidGradleProjectResolver @NonInjectable @VisibleForTesting internal co
   }
 }
 
-private val logger = logger<AndroidGradleProjectResolver>()
-
-private fun IdeAndroidSyncExceptions.log() {
-  exceptions.forEach {
-    logger.error("Error syncing with Gradle:", it)
+private fun IdeAndroidSyncIssuesAndExceptions.process(moduleDataNode: DataNode<ModuleData>) {
+  fun Collection<Throwable>.toSyncIssues(): List<IdeSyncIssue> {
+    return map {
+      IdeSyncIssueImpl(
+        message = it.message ?: "",
+        data = null,
+        multiLineMessage = it.stackTraceAsMultiLineMessage(),
+        severity = IdeSyncIssue.SEVERITY_ERROR,
+        type = IdeSyncIssue.TYPE_EXCEPTION
+      )
+    }
   }
+  val allSyncIssues = (exceptions.toSyncIssues() + syncIssues)
+
+  fun Collection<IdeSyncIssue>.createAsDataNodesAndAttach(moduleDataNode: DataNode<ModuleData>) {
+    forEach { it: IdeSyncIssue -> moduleDataNode.createChild(AndroidProjectKeys.SYNC_ISSUE, it) }
+  }
+
+  allSyncIssues.createAsDataNodesAndAttach(moduleDataNode)
+  exceptions.forEach { logger<AndroidGradleProjectResolver>().warn(it) }
 }
 
 private val COMPOSITE_BUILD_MAP = com.intellij.openapi.util.Key.create<CompositeBuildMap>("COMPOSITE_BUILD_MAP")

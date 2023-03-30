@@ -226,7 +226,7 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
     assertThat(strategy).isInstanceOf(UnhandledIssuesReporter.class);
 
     Map<Integer, BaseSyncIssuesReporter> strategies = reporter.getStrategies();
-    assertThat(strategies).hasSize(13);
+    assertThat(strategies).hasSize(14);
 
     strategy = strategies.get(TYPE_UNRESOLVED_DEPENDENCY);
     assertThat(strategy).isInstanceOf(UnresolvedDependenciesReporter.class);
@@ -266,6 +266,8 @@ public class SyncIssuesReporterTest extends AndroidGradleTestCase {
 
     strategy = strategies.get(TYPE_AGP_USED_JAVA_VERSION_TOO_LOW);
     assertThat(strategy).isInstanceOf(AgpUsedJavaTooLowReporter.class);
+    strategy = strategies.get(IdeSyncIssue.TYPE_EXCEPTION);
+    assertThat(strategy).isInstanceOf(ExceptionSyncIssuesReporter.class);
   }
 
   public void testReportErrorBeforeWarning() throws Exception {

@@ -292,5 +292,10 @@ interface IdeSyncIssue {
     // NOTE: When adding a new type here, increment the index by 1. This index may not be consistent
     // with the corresponding value in studio_stats.proto (e.g., it could be lower by 1), because of
     // an indexing issue in the past (see http://issuetracker.google.com/138278313).
+
+    /**
+     * A sync issue type for exceptions that were converted to a sync issue.
+     */
+    const val TYPE_EXCEPTION = 53
   }
 }

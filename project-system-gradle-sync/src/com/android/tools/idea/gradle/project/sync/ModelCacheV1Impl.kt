@@ -1528,5 +1528,5 @@ internal fun LegacyApplicationIdModel?.getProblemsAsSyncIssues(): List<IdeSyncIs
   }
 }
 
-private fun Throwable.stackTraceAsMultiLineMessage(): List<String> =
+public fun Throwable.stackTraceAsMultiLineMessage(): List<String> =
   StringWriter().use { stringWriter -> PrintWriter(stringWriter).use { printStackTrace(it) }; stringWriter.toString().split(System.lineSeparator()) }

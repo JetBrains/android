@@ -63,8 +63,8 @@ sealed class DeliverableGradleModule(
 
   final override fun deliverModels(consumer: ProjectImportModelProvider.BuildModelConsumer) {
     with(ModelConsumer(consumer)) {
-      if (exceptions.isNotEmpty()) {
-        IdeAndroidSyncExceptions(exceptions).deliver()
+      if (projectSyncIssues.isNotEmpty() || exceptions.isNotEmpty()) {
+        IdeAndroidSyncIssuesAndExceptions(projectSyncIssues, exceptions).deliver()
       }
       deliverModels()
     }
@@ -101,7 +101,6 @@ class DeliverableAndroidModule(
       fetchedVariants,
       selectedVariantName,
       selectedAbiName,
-      projectSyncIssues,
       nativeModule,
       nativeAndroidProject,
       syncedNativeVariant,
@@ -133,7 +132,7 @@ class DeliverableNativeVariantsAndroidModule(
   private val nativeVariants: List<IdeNativeVariantAbi>? // Null means V2.
 ) : DeliverableGradleModule(gradleProject, projectSyncIssues, exceptions) {
   override fun ModelConsumer.deliverModels() {
-    IdeAndroidNativeVariantsModels(nativeVariants, projectSyncIssues).deliver()
+    IdeAndroidNativeVariantsModels(nativeVariants).deliver()
   }
 }
 
