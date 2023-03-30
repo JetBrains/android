@@ -110,7 +110,7 @@ class AssertOnDiskConfig(
     expect.that(currentJdkName).isEqualTo(expectedJdkName)
   }
 
-  fun assertGradleLocalJavaHome(expectedJavaHome: String, gradleRootName: String = "") {
+  fun assertGradleLocalJavaHome(expectedJavaHome: String?, gradleRootName: String = "") {
     val gradleRootFile = projectFile.resolve(gradleRootName)
     val currentGradleLocalJavaHome = GradleConfigProperties(gradleRootFile).javaHome
     expect.that("$gradleRootName:$currentGradleLocalJavaHome").isEqualTo("$gradleRootName:$expectedJavaHome")

@@ -28,14 +28,19 @@ import org.jetbrains.annotations.SystemIndependent
  */
 class SelectJdkFromFileSystemHyperlink private constructor(
   private val settingsService: AndroidProjectSettingsService,
-  private val gradleRootProjectPath: @SystemIndependent String?
-) : NotificationHyperlink("select.jdk", "Select the Gradle JDK location") {
+  private val gradleRootProjectPath: @SystemIndependent String?,
+  text: String
+) : NotificationHyperlink("select.jdk", text) {
 
   companion object {
     @JvmStatic
-    fun create(project: Project, rootProjectPath: @SystemIndependent String?): SelectJdkFromFileSystemHyperlink? {
+    fun create(
+      project: Project,
+      rootProjectPath: @SystemIndependent String?,
+      text: String = "Select the Gradle JDK location"
+    ): SelectJdkFromFileSystemHyperlink? {
       (ProjectSettingsService.getInstance(project) as? AndroidProjectSettingsService)?.let { service ->
-        return SelectJdkFromFileSystemHyperlink(service, rootProjectPath)
+        return SelectJdkFromFileSystemHyperlink(service, rootProjectPath, text)
       }
       return null
     }

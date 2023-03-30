@@ -737,6 +737,12 @@ public final class StudioFlags {
     "When creating new projects the gradleJvm will be configured with #GRADLE_LOCAL_JAVA_HOME macro, using the java.home value " +
     "specified under .gradle/config.properties to trigger Gradle sync.", true);
 
+  public static final Flag<Boolean> MIGRATE_PROJECT_TO_GRADLE_LOCAL_JAVA_HOME = Flag.create(
+    GRADLE_IDE, "migrate.project.to.gradle.local.java.home",
+    "Migrate project to Gradle local java.home",
+    "Suggest migrating current project JDK configuration to .gradle/config.properties where gradleJvm uses the " +
+    "#GRADLE_LOCAL_JAVA_HOME macro and the java.home stores the JDK path to trigger Gradle sync.", true);
+
   public static final Flag<Boolean> GRADLE_VERSION_CATALOG_DISPLAY_BANNERS =
     Flag.create(GRADLE_IDE, "gradle.version.catalog.banners", "IDE banners if Version Catalogs used",
                 "Display banners in Gradle-related tools when Version Catalogs are in use", false);

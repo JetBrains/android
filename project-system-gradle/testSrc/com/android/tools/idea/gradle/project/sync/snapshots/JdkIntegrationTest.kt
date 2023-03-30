@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync.snapshots
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.project.sync.assertions.AssertInMemoryConfig
 import com.android.tools.idea.gradle.project.sync.assertions.AssertOnDiskConfig
 import com.android.tools.idea.gradle.project.sync.assertions.AssertOnFailure
@@ -41,7 +42,7 @@ class JdkIntegrationTest(
 
   fun run(
     project: JdkTestProject,
-    environment: TestEnvironment? = null,
+    environment: TestEnvironment = TestEnvironment(),
     body: ProjectRunnable.() -> Unit
   ) {
     val preparedProject = projectRule.prepareTestProject(
@@ -59,27 +60,38 @@ class JdkIntegrationTest(
       expect = expect,
       preparedProject = preparedProject
     ))
+    cleanTestEnvironment()
   }
 
   private fun prepareTestEnvironment(
-    testEnvironment: TestEnvironment?,
+    testEnvironment: TestEnvironment,
     disposable: Disposable,
     tempDir: File
   ) {
     JdkTableUtils.removeAllJavaSdkFromJdkTable()
-    testEnvironment?.run {
+    testEnvironment.run {
       userHomeGradlePropertiesJdkPath?.let {
         ProjectJdkUtils.setUserHomeGradlePropertiesJdk(it, disposable)
       }
+      StudioFlags.MIGRATE_PROJECT_TO_GRADLE_LOCAL_JAVA_HOME.override(studioFlags.migrateToGradleLocalJavaHome)
       JdkTableUtils.populateJdkTableWith(jdkTable, tempDir)
       EnvironmentUtils.overrideEnvironmentVariables(environmentVariables, disposable)
     }
+  }
+
+  private fun cleanTestEnvironment() {
+    StudioFlags.MIGRATE_PROJECT_TO_GRADLE_LOCAL_JAVA_HOME.clearOverride()
   }
 
   data class TestEnvironment(
     val userHomeGradlePropertiesJdkPath: String? = null,
     val environmentVariables: Map<String, String?> = mapOf(),
     val jdkTable: List<JdkTableUtils.Jdk> = emptyList(),
+    val studioFlags: StudioFeatureFlags = StudioFeatureFlags()
+  )
+
+  data class StudioFeatureFlags(
+    val migrateToGradleLocalJavaHome: Boolean = false
   )
 
   class ProjectRunnable(

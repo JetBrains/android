@@ -24,14 +24,12 @@ import com.android.tools.idea.gradle.project.sync.idea.GradleSyncExecutor
 import com.android.tools.idea.gradle.project.sync.messages.GradleSyncMessages
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.project.AndroidNotification
-import com.android.tools.idea.projectsystem.requiresAndroidModel
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
-import com.intellij.project.isDirectoryBased
 import com.intellij.ui.AppUIUtil
 import com.intellij.util.ui.UIUtil
 

@@ -206,7 +206,7 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
 
     logSyncEvent(AndroidStudioEvent.EventKind.GRADLE_SYNC_STARTED, rootProjectPath)
     project.getService(SyncAnalyzerManager::class.java)?.onSyncStarted(externalSystemTaskId)
-    syncPublisher() { syncStarted(project, rootProjectPath) }
+    syncPublisher { syncStarted(project, rootProjectPath) }
     return true
   }
 
@@ -519,7 +519,6 @@ class GradleSyncStateHolder constructor(private val project: Project)  {
       if (!GradleSyncStateHolder.getInstance(project)
           .syncStarted(trigger ?: GradleSyncStats.Trigger.TRIGGER_UNKNOWN, rootProjectPath = workingDir)
       ) {
-        stopTrackingTask(project, id)
         return
       }
       project.getService(SyncViewManager::class.java).addListener(this, disposable)

@@ -18,6 +18,8 @@ package com.android.tools.idea.gradle.project.sync.jdk
 import com.android.tools.analytics.UsageTracker
 import com.android.tools.analytics.withProjectId
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventCategory.PROJECT_SYSTEM
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.GRADLE_JDK_INVALID
 import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent
 import com.google.wireless.android.sdk.stats.GradleJdkInvalidEvent.InvalidJdkReason
 import com.intellij.openapi.project.Project
@@ -28,10 +30,12 @@ import com.intellij.openapi.project.Project
 object JdkAnalyticsTracker {
 
   fun reportInvalidJdkException(project: Project, reason: InvalidJdkReason) {
-    UsageTracker.log(AndroidStudioEvent.newBuilder()
-                       .setCategory(AndroidStudioEvent.EventCategory.PROJECT_SYSTEM)
-                       .setKind(AndroidStudioEvent.EventKind.GRADLE_JDK_INVALID)
-                       .setGradleJdkInvalidEvent(GradleJdkInvalidEvent.newBuilder().setReason(reason))
-                       .withProjectId(project))
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .setCategory(PROJECT_SYSTEM)
+        .setKind(GRADLE_JDK_INVALID)
+        .setGradleJdkInvalidEvent(GradleJdkInvalidEvent.newBuilder().setReason(reason))
+        .withProjectId(project)
+    )
   }
 }

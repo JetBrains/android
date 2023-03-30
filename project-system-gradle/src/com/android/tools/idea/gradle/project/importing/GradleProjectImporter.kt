@@ -22,6 +22,7 @@ import com.android.tools.idea.gradle.config.GradleConfigManager
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.sync.SdkSync
 import com.android.tools.idea.gradle.project.sync.jdk.JdkUtils
+import com.android.tools.idea.gradle.project.ProjectMigrationsPersistentState
 import com.android.tools.idea.gradle.util.GradleUtil
 import com.android.tools.idea.gradle.util.LocalProperties
 import com.android.tools.idea.io.FilePaths
@@ -208,6 +209,8 @@ class GradleProjectImporter @NonInjectable @VisibleForTesting internal construct
         projectSettings.gradleJvm = USE_GRADLE_LOCAL_JAVA_HOME
         ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)
         GradleConfigManager.initializeJavaHome(newProject, externalProjectPath)
+        val projectMigration = ProjectMigrationsPersistentState.getInstance(newProject)
+        projectMigration.migratedGradleRootsToGradleLocalJavaHome.add(externalProjectPath)
       } else {
         projectSettings.gradleJvm = ExternalSystemJdkUtil.USE_PROJECT_JDK
         ExternalSystemApiUtil.getSettings(newProject, GradleConstants.SYSTEM_ID).linkProject(projectSettings)
