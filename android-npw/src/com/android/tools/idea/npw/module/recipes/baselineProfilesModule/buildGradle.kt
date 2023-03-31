@@ -112,9 +112,9 @@ android {
     $flavorsConfiguration
 
     $gmdDefinition
-
-    $pluginConfiguration
 }
+
+$pluginConfiguration
 
 dependencies {
 }
