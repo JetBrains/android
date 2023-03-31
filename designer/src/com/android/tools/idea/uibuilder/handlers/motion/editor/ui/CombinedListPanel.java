@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
-import static com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI.ourTextColor;
-
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEList;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEScrollPane;
@@ -123,6 +121,7 @@ public class CombinedListPanel extends JPanel {
     Border mNoBorder = BorderFactory.createEmptyBorder(mScaledListMargin, mScaledListMargin, 0, mScaledListMargin);
     Color mUnselectedColor = MEUI.ourSecondaryPanelBackground;
     Color mSelectedColor = MEUI.ourMySelectedLineColor;
+    Color mSelectedAndFocusedColor = MEUI.ourMySelectedAndFocusedLineColor;
 
     {
       title.setOpaque(true);
@@ -175,10 +174,10 @@ public class CombinedListPanel extends JPanel {
       }
       title.setBackground(MEUI.ourSecondaryHeaderBackgroundColor);
       title.setForeground(MEUI.ourSecondaryPanelHeaderTitleColor);
-      label.setBackground(isSelected ? mSelectedColor : mUnselectedColor);
-      label.setForeground(isSelected ? Color.WHITE : ourTextColor);
-      panel.setBackground(isSelected ? mSelectedColor : mUnselectedColor);
-      panel.setForeground(isSelected ? Color.WHITE : ourTextColor);
+      label.setBackground(isSelected && cellHasFocus ? mSelectedAndFocusedColor : (isSelected ? mSelectedColor : mUnselectedColor));
+      label.setForeground(isSelected && cellHasFocus ? MEUI.ourSelectedAndFocusedTextColor : MEUI.ourTextColor);
+      panel.setBackground(isSelected && cellHasFocus ? mSelectedAndFocusedColor : (isSelected ? mSelectedColor : mUnselectedColor));
+      panel.setForeground(isSelected && cellHasFocus ? MEUI.ourSelectedAndFocusedTextColor : MEUI.ourTextColor);
       return panel;
     }
   };
