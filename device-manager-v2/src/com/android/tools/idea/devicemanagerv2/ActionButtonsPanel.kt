@@ -15,32 +15,54 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
+import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceTemplate
+import com.android.tools.adtui.categorytable.IconButton
 import com.android.tools.adtui.categorytable.constrainSize
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBDimension
-import java.awt.Component
-import java.awt.Dimension
 import javax.swing.BoxLayout
+import kotlinx.coroutines.CoroutineScope
 
-internal class ActionButtonsPanel(val project: Project, deviceRowData: DeviceRowData) :
-  JBPanel<ActionButtonsPanel>() {
-  val startStopButton = StartStopButton(deviceRowData.handle)
-  val openDeviceExplorer = OpenDeviceExplorerButton(project, deviceRowData.handle)
-  val editButton = EditButton(deviceRowData.handle)
-
-  init {
+internal open class ActionButtonsPanel : JBPanel<ActionButtonsPanel>() {
+  protected fun setUp(vararg buttons: IconButton) {
     layout = BoxLayout(this, BoxLayout.X_AXIS)
     isOpaque = false
 
     val size = JBDimension(22, 22)
-    for (button in listOf(startStopButton, openDeviceExplorer, editButton)) {
+    for (button in buttons) {
       button.constrainSize(size)
       add(button)
     }
   }
 
-  fun updateState(state: DeviceRowData) {
+  open fun updateState(state: DeviceRowData) {}
+}
+
+internal class DeviceHandleButtonsPanel(val project: Project, handle: DeviceHandle) :
+  ActionButtonsPanel() {
+
+  val startStopButton = StartStopButton(handle)
+  val openDeviceExplorer = OpenDeviceExplorerButton(project, handle)
+  val editButton = EditButton(handle)
+
+  init {
+    setUp(startStopButton, openDeviceExplorer, editButton)
+  }
+
+  override fun updateState(state: DeviceRowData) {
     openDeviceExplorer.updateState(state)
+  }
+}
+
+internal class DeviceTemplateButtonsPanel(
+  coroutineScope: CoroutineScope,
+  deviceTemplate: DeviceTemplate
+) : ActionButtonsPanel() {
+  val activateTemplateButton = ActivateTemplateButton(coroutineScope, deviceTemplate)
+
+  init {
+    setUp(activateTemplateButton)
   }
 }

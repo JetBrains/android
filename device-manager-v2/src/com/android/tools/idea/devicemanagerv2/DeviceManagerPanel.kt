@@ -20,6 +20,7 @@ import com.android.sdklib.deviceprovisioner.CreateDeviceAction
 import com.android.sdklib.deviceprovisioner.CreateDeviceTemplateAction
 import com.android.sdklib.deviceprovisioner.DeviceAction
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.SetChange
 import com.android.sdklib.deviceprovisioner.trackSetChanges
 import com.android.tools.adtui.actions.DropDownAction
@@ -30,6 +31,7 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.devicemanagerv2.DeviceTableColumns.columns
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
+import com.google.common.collect.ConcurrentHashMultiset
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ActivityTracker
 import com.intellij.openapi.actionSystem.ActionManager
@@ -59,7 +61,10 @@ internal class DeviceManagerPanel(val project: Project) : JPanel() {
   private val deviceProvisioner = project.service<DeviceProvisionerService>().deviceProvisioner
 
   private val scrollPane = JBScrollPane()
-  private var deviceTable = CategoryTable(columns(project), DeviceRowData.primaryKey, uiThread)
+  private var deviceTable =
+    CategoryTable(columns(project, panelScope), DeviceRowData::key, uiThread)
+
+  private val templateInstantiationCount = ConcurrentHashMultiset.create<DeviceTemplate>()
 
   init {
     layout = BorderLayout()
@@ -97,10 +102,12 @@ internal class DeviceManagerPanel(val project: Project) : JPanel() {
 
     add(toolbar.component, BorderLayout.NORTH)
 
+    deviceTable.toggleSortOrder(DeviceTableColumns.nameAttribute)
     deviceTable.addToScrollPane(scrollPane)
     add(scrollPane, BorderLayout.CENTER)
 
     panelScope.launch(uiThread) { trackDevices() }
+    panelScope.launch(uiThread) { trackDeviceTemplates() }
   }
 
   private suspend fun trackDevices() {
@@ -114,9 +121,25 @@ internal class DeviceManagerPanel(val project: Project) : JPanel() {
         }
       }
   }
+  private suspend fun trackDeviceTemplates() {
+    deviceProvisioner.templates
+      .map { it.toSet() }
+      .trackSetChanges()
+      .collect { change ->
+        when (change) {
+          is SetChange.Add -> deviceTable.addRow(DeviceRowData.create(change.value))
+          is SetChange.Remove -> deviceTable.removeRowByKey(change.value)
+        }
+      }
+  }
 
   private suspend fun trackDevice(handle: DeviceHandle) {
     deviceTable.addRow(DeviceRowData.create(handle))
+    handle.sourceTemplate?.let {
+      if (templateInstantiationCount.add(it, 1) == 0) {
+        withContext(uiThread) { deviceTable.setRowVisibleByKey(it, false) }
+      }
+    }
 
     panelScope.launch {
       // As long as the device scope is active, update its state in the table.
@@ -129,7 +152,14 @@ internal class DeviceManagerPanel(val project: Project) : JPanel() {
         }
         .join()
 
-      withContext(uiThread) { deviceTable.removeRow(DeviceRowData.create(handle)) }
+      withContext(uiThread) {
+        deviceTable.removeRow(DeviceRowData.create(handle))
+        handle.sourceTemplate?.let {
+          if (templateInstantiationCount.remove(it, 1) == 1) {
+            deviceTable.setRowVisibleByKey(it, true)
+          }
+        }
+      }
     }
   }
 

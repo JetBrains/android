@@ -18,6 +18,7 @@ package com.android.tools.idea.devicemanagerv2
 import com.android.adblib.deviceInfo
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceHandle
+import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.devices.Abi
 import com.android.tools.adtui.categorytable.Attribute
@@ -28,10 +29,19 @@ import com.android.tools.idea.wearpairing.WearPairingManager
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBLabel
 import icons.StudioIcons
+import kotlinx.coroutines.CoroutineScope
 
-/** Immutable snapshot of relevant parts of a [DeviceHandle] for use in CategoryTable. */
+/**
+ * Immutable snapshot of relevant parts of a [DeviceHandle] or [DeviceTemplate] for use in
+ * CategoryTable.
+ */
 internal data class DeviceRowData(
-  val handle: DeviceHandle,
+  /**
+   * If this row represents a template, this value is set and handle is null. Otherwise, handle must
+   * be set, and this is also set to handle.sourceTemplate (which may be null).
+   */
+  val template: DeviceTemplate?,
+  val handle: DeviceHandle?,
   val name: String,
   val type: DeviceType,
   val androidVersion: AndroidVersion?,
@@ -39,13 +49,18 @@ internal data class DeviceRowData(
   val status: String,
   val isVirtual: Boolean,
 ) {
-  companion object {
-    val primaryKey = DeviceRowData::handle
+  init {
+    checkNotNull(handle ?: template) { "Either template or handle must be set" }
+  }
 
+  fun key() = handle ?: template!!
+
+  companion object {
     fun create(handle: DeviceHandle): DeviceRowData {
       val state = handle.state
       val properties = state.properties
       return DeviceRowData(
+        template = handle.sourceTemplate,
         handle = handle,
         name = properties.title,
         type = properties.deviceType ?: DeviceType.HANDHELD,
@@ -57,17 +72,33 @@ internal data class DeviceRowData(
       )
     }
 
+    fun create(template: DeviceTemplate): DeviceRowData {
+      val properties = template.properties
+      return DeviceRowData(
+        template = template,
+        handle = null,
+        name = properties.title,
+        type = properties.deviceType ?: DeviceType.HANDHELD,
+        androidVersion = properties.androidVersion,
+        abi = properties.abi,
+        status = "Disconnected",
+        isVirtual = properties.isVirtual ?: false,
+      )
+    }
+
     private fun String.titlecase() = lowercase().let { it.replaceFirstChar { it.uppercase() } }
   }
 }
 
 internal object DeviceTableColumns {
 
+  val nameAttribute = stringAttribute<DeviceRowData>(isGroupable = false) { it.name }
+
   class Name(private val wearPairingManager: WearPairingManager) :
     Column<DeviceRowData, String, DeviceNamePanel> {
     override val name = DeviceManagerBundle.message("column.title.name")
     override val widthConstraint = Column.SizeConstraint(min = 200, preferred = 400)
-    override val attribute = stringAttribute<DeviceRowData>(isGroupable = false) { it.name }
+    override val attribute = nameAttribute
     override fun createUi(rowValue: DeviceRowData) = DeviceNamePanel(wearPairingManager)
 
     override fun updateValue(rowValue: DeviceRowData, component: DeviceNamePanel, value: String) =
@@ -141,7 +172,8 @@ internal object DeviceTableColumns {
       stringAttribute { it.status }
     )
 
-  class Actions(private val project: Project) : Column<DeviceRowData, Unit, ActionButtonsPanel> {
+  class Actions(private val project: Project, val coroutineScope: CoroutineScope) :
+    Column<DeviceRowData, Unit, ActionButtonsPanel> {
     override val name = DeviceManagerBundle.message("column.title.actions")
     override val attribute = Attribute.Unit
 
@@ -150,7 +182,10 @@ internal object DeviceTableColumns {
     }
 
     override fun createUi(rowValue: DeviceRowData): ActionButtonsPanel {
-      return ActionButtonsPanel(project, rowValue)
+      return when (rowValue.handle) {
+        null -> DeviceTemplateButtonsPanel(coroutineScope, rowValue.template!!)
+        else -> DeviceHandleButtonsPanel(project, rowValue.handle)
+      }
     }
 
     // TODO: Precomputing this is a hack... can we base it on the panel after it has been
@@ -159,6 +194,13 @@ internal object DeviceTableColumns {
       Column.SizeConstraint.exactly((StudioIcons.Avd.RUN.iconWidth + 7) * 3)
   }
 
-  fun columns(project: Project) =
-    listOf(Type, Name(WearPairingManager.getInstance()), Api, IsVirtual, Status, Actions(project))
+  fun columns(project: Project, coroutineScope: CoroutineScope) =
+    listOf(
+      Type,
+      Name(WearPairingManager.getInstance()),
+      Api,
+      IsVirtual,
+      Status,
+      Actions(project, coroutineScope)
+    )
 }
