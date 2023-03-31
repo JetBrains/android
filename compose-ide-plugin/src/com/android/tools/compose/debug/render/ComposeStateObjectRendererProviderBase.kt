@@ -19,7 +19,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.intellij.debugger.ui.tree.render.ChildrenRenderer
 import com.intellij.debugger.ui.tree.render.CompoundRendererProvider
 import com.intellij.debugger.ui.tree.render.ValueLabelRenderer
-import com.intellij.openapi.project.Project
 import com.sun.jdi.Type
 import java.util.concurrent.CompletableFuture
 import java.util.function.Function
@@ -46,7 +45,7 @@ sealed class ComposeStateObjectRendererProviderBase(private val fqcn: String) : 
     return StudioFlags.COMPOSE_STATE_OBJECT_CUSTOM_RENDERER.get()
   }
 
-  override fun getIsApplicableChecker(project: Project): Function<Type?, CompletableFuture<Boolean>> {
+  override fun getIsApplicableChecker(): Function<Type?, CompletableFuture<Boolean>> {
     return Function { type: Type? ->
       stateObjectClassRenderer.isApplicableAsync(type)
     }
