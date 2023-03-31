@@ -34,7 +34,9 @@ class DisplayViewManager(
   private val layoutInspectorRenderer = LayoutInspectorRenderer(
     renderLogic,
     renderModel,
-    displayView
+    displayView,
+    { displayView.displayRectangle },
+    { displayView.screenScalingFactor }
   )
 
   private val repaintDisplayView = {

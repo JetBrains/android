@@ -19,6 +19,7 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.imagediff.ImageDiffTestUtil
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.COMPOSE1
 import com.android.tools.idea.layoutinspector.model.ROOT
@@ -27,6 +28,7 @@ import com.android.tools.idea.layoutinspector.ui.FakeRenderSettings
 import com.android.tools.idea.layoutinspector.ui.RenderLogic
 import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
+import com.google.common.truth.Truth.assertThat
 import com.jetbrains.rd.swing.fillRect
 import org.junit.Before
 import org.junit.Rule
@@ -67,8 +69,8 @@ class LayoutInspectorRendererTest {
 
   private val screenDimension = Dimension(200, 250)
   private val deviceFrameDimension = Dimension(100, 150)
-
   private val deviceFrame = Rectangle(10, 10, deviceFrameDimension.width, deviceFrameDimension.height)
+
   private lateinit var component: Component
 
   @Before
@@ -83,30 +85,52 @@ class LayoutInspectorRendererTest {
 
   @Test
   fun testViewBordersAreRendered() {
-    val layoutInspectorRenderer = LayoutInspectorRenderer(renderLogic, renderModel, component)
+    val layoutInspectorRenderer = LayoutInspectorRenderer(renderLogic, renderModel, component, { deviceFrame }, { 1.0 })
 
     @Suppress("UndesirableClassUsage")
     val renderImage = BufferedImage(screenDimension.width, screenDimension.height, BufferedImage.TYPE_INT_ARGB)
-    paint(renderImage, screenDimension, layoutInspectorRenderer)
+    paint(renderImage, layoutInspectorRenderer)
     assertSimilar(renderImage, testName.methodName)
   }
 
   @Test
   fun testOverlayIsRendered() {
-    val layoutInspectorRenderer = LayoutInspectorRenderer(renderLogic, renderModel, component)
+    val layoutInspectorRenderer = LayoutInspectorRenderer(renderLogic, renderModel, component, { deviceFrame }, { 1.0 })
 
     renderModel.overlay = ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile())
 
     @Suppress("UndesirableClassUsage")
     val renderImage = BufferedImage(screenDimension.width, screenDimension.height, BufferedImage.TYPE_INT_ARGB)
-    paint(renderImage, screenDimension, layoutInspectorRenderer)
+    paint(renderImage, layoutInspectorRenderer)
     assertSimilar(renderImage, testName.methodName)
   }
 
-  private fun paint(image: BufferedImage, renderDimension: Dimension, layoutInspectorRenderer: LayoutInspectorRenderer) {
+  @Test
+  fun testMouseHover() {
+    val layoutInspectorRenderer = LayoutInspectorRenderer(renderLogic, renderModel, component, { deviceFrame }, { 1.0 })
+    val fakeUi = FakeUi(component)
+
+    assertThat(renderModel.model.hoveredNode).isNull()
+
+    // move mouse above VIEW1.
+    fakeUi.mouse.moveTo(deviceFrame.x + 10, deviceFrame.y + 15)
+
+    fakeUi.render()
+
+    assertThat(renderModel.model.hoveredNode).isEqualTo(renderModel.model[VIEW1])
+
+    renderModel.overlay = ImageIO.read(TestUtils.resolveWorkspacePathUnchecked("${TEST_DATA_PATH}/overlay.png").toFile())
+
+    @Suppress("UndesirableClassUsage")
+    val renderImage = BufferedImage(screenDimension.width, screenDimension.height, BufferedImage.TYPE_INT_ARGB)
+    paint(renderImage, layoutInspectorRenderer)
+    assertSimilar(renderImage, testName.methodName)
+  }
+
+  private fun paint(image: BufferedImage, layoutInspectorRenderer: LayoutInspectorRenderer) {
     val graphics = image.createGraphics()
     // add a gray background
-    graphics.fillRect(Rectangle(0, 0, renderDimension.width, renderDimension.height), Color(250, 250, 250))
+    graphics.fillRect(Rectangle(0, 0, screenDimension.width, screenDimension.height), Color(250, 250, 250))
     graphics.font = ImageDiffTestUtil.getDefaultFont()
 
     layoutInspectorRenderer.paint(graphics, deviceFrame)
