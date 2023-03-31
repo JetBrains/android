@@ -99,7 +99,7 @@ private fun Recipe.doRender(c: RenderingContext, e: RecipeExecutor): Boolean {
         if (e is DefaultRecipeExecutor) {
           e.applyChanges()
         }
-    }
+      }
   }
   catch (e: IOException) {
     if (c.showErrors) {
@@ -195,7 +195,7 @@ fun titleToTemplateRenderer(title: String, formFactor: FormFactor): TemplateRend
   "Google Maps Views Activity" -> TemplateRenderer.GOOGLE_MAPS_ACTIVITY
   "Navigation Drawer Views Activity" -> TemplateRenderer.NAVIGATION_DRAWER_ACTIVITY
   "Settings Views Activity" -> TemplateRenderer.SETTINGS_ACTIVITY
-  "Responsive Views Activity" ->  TemplateRenderer.RESPONSIVE_ACTIVITY
+  "Responsive Views Activity" -> TemplateRenderer.RESPONSIVE_ACTIVITY
   "Primary/Detail Views Flow" -> TemplateRenderer.MASTER_DETAIL_FLOW
   "Android Things Empty Activity" -> TemplateRenderer.THINGS_ACTIVITY
   "Messaging Service" -> TemplateRenderer.AUTOMOTIVE_MESSAGING_SERVICE
@@ -339,7 +339,7 @@ fun moduleTemplateRendererToModuleType(moduleTemplateRenderer: TemplateRenderer)
     TemplateRenderer.DYNAMIC_FEATURE_MODULE -> ModuleType.DYNAMIC_FEATURE
     TemplateRenderer.INSTANT_DYNAMIC_FEATURE_MODULE -> ModuleType.INSTANT_DYNAMIC_FEATURE
     TemplateRenderer.AUTOMOTIVE_MODULE -> ModuleType.AUTOMOTIVE
-    TemplateRenderer.ANDROID_WEAR_MODULE ->  ModuleType.WEAR_OS
+    TemplateRenderer.ANDROID_WEAR_MODULE -> ModuleType.WEAR_OS
     TemplateRenderer.ANDROID_TV_MODULE -> ModuleType.ANDROID_TV
     TemplateRenderer.THINGS_MODULE -> ModuleType.ANDROID_THINGS
     TemplateRenderer.JAVA_LIBRARY -> ModuleType.JAVA_OR_KOTLIN_LIBRARY
@@ -362,6 +362,14 @@ fun logRendering(projectData: ProjectTemplateData, project: Project, templateRen
         .setIncludeKotlinSupport(projectData.language == Language.Kotlin)
         .setKotlinSupportVersion(projectData.kotlinVersion))
   UsageTracker.log(aseBuilder.withProjectId(project))
+
+  // Log event if user declined to add kotlin support in a new project
+  if (templateRenderer == TemplateRenderer.ANDROID_PROJECT && projectData.language != Language.Kotlin) {
+    UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
+      kind = AndroidStudioEvent.EventKind.KOTLIN_SUPPORT_DECLINED_EVENT
+      this.templateRenderer = templateRenderer
+    }.withProjectId(project))
+  }
 }
 
 fun logRendering(projectData: ProjectTemplateData, project: Project, metrics: TemplateMetrics) {
