@@ -46,8 +46,8 @@ const val MACROBENCHMARKS_CLASS_NAME = "StartupBenchmarks"
 const val BENCHMARKS_CLASS_NAME = "StartupBenchmarks"
 const val RUN_CONFIGURATION_NAME = "Generate Baseline Profile"
 const val PROFILE_INSTALLER_MIN_REV = "1.3.0-beta01"
-const val BASELINE_PROFILES_PLUGIN_MIN_REV = "1.2.0-SNAPSHOT" // TODO(b/269581369): Need to update prebuilts to the latest public version of the plugin
-const val MACROBENCHMARK_MIN_REV = "1.2.0-alpha09"
+const val BASELINE_PROFILES_PLUGIN_MIN_REV = "1.2.0-alpha13"
+const val MACROBENCHMARK_MIN_REV = "1.2.0-alpha13"
 
 fun RecipeExecutor.generateBaselineProfilesModule(
   newModule: ModuleTemplateData,
@@ -60,13 +60,6 @@ fun RecipeExecutor.generateBaselineProfilesModule(
   val targetModuleAndroidModel = projectBuildModel.getModuleBuildModel(targetModule)?.android() ?: return
   val targetModuleGradleModel = GradleAndroidModel.get(targetModule) ?: return
   val targetApplicationId = targetModuleAndroidModel.namespace().valueAsString() ?: "com.example.application"
-
-  // TODO(b/269581369): Remove once alpha build of the plugin is released.
-  projectBuildModel.projectSettingsModel?.pluginManagement()?.repositories()?.addMavenRepositoryByUrl(
-    "https://androidx.dev/snapshots/builds/9664109/artifacts/repository",
-    "AndroidX Snapshot Repository"
-  )
-  projectBuildModel.applyChanges()
 
   addClasspathDependency("androidx.benchmark:benchmark-baseline-profile-gradle-plugin:+", BASELINE_PROFILES_PLUGIN_MIN_REV)
 
