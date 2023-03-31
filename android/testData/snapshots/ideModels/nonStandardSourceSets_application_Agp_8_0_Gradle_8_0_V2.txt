@@ -732,7 +732,7 @@ MODULE                        : application.app
     GradleModuleModel
         agpVersion                    : 8.0.0-beta04
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/application/app/build.gradle
         buildFilePath                 : <ROOT>/application/app/build.gradle
         rootFolderPath                : <ROOT>/application

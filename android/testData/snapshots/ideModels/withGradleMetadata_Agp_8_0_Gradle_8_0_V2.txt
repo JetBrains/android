@@ -185,7 +185,7 @@ MODULE                        : withGradleMetadata.app
     GradleModuleModel
         agpVersion                    : 8.0.0-beta04
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/app/build.gradle
         buildFilePath                 : <ROOT>/app/build.gradle
         rootFolderPath                : <ROOT>

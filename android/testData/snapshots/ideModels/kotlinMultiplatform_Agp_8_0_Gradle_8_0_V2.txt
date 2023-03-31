@@ -1124,7 +1124,7 @@ MODULE                        : kotlinMultiPlatform.app
     GradleModuleModel
         agpVersion                    : 8.0.0-beta04
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/app/build.gradle
         buildFilePath                 : <ROOT>/app/build.gradle
         rootFolderPath                : <ROOT>
@@ -2375,7 +2375,7 @@ MODULE                        : kotlinMultiPlatform.module2
     GradleModuleModel
         agpVersion                    : 8.0.0-beta04
         gradlePath                    : :module2
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/module2/build.gradle
         buildFilePath                 : <ROOT>/module2/build.gradle
         rootFolderPath                : <ROOT>

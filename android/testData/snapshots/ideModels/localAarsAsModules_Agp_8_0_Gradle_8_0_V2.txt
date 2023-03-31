@@ -308,7 +308,7 @@ MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 8.0.0-beta04
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/app/build.gradle
         buildFilePath                 : <ROOT>/app/build.gradle
         rootFolderPath                : <ROOT>
@@ -652,7 +652,7 @@ MODULE                        : project.library
     GradleModuleModel
         agpVersion                    : 8.0.0-beta04
         gradlePath                    : :library
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/library/build.gradle
         buildFilePath                 : <ROOT>/library/build.gradle
         rootFolderPath                : <ROOT>
@@ -960,7 +960,7 @@ MODULE                        : project.library
 MODULE                        : project.library-debug
     GradleModuleModel
         gradlePath                    : :library-debug
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/library-debug/build.gradle
         buildFilePath                 : <ROOT>/library-debug/build.gradle
         rootFolderPath                : <ROOT>

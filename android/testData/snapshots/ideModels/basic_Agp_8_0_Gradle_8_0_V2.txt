@@ -544,7 +544,7 @@ MODULE                        : project
     GradleModuleModel
         agpVersion                    : 8.0.0-beta04
         gradlePath                    : :
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/build.gradle
         buildFilePath                 : <ROOT>/build.gradle
         rootFolderPath                : <ROOT>

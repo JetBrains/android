@@ -868,7 +868,7 @@ MODULE                        : project.app
     GradleModuleModel
         agpVersion                    : 8.0.0-beta04
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/app/build.gradle
         buildFilePath                 : <ROOT>/app/build.gradle
         rootFolderPath                : <ROOT>
@@ -1248,7 +1248,7 @@ MODULE                        : project.benchmark
     GradleModuleModel
         agpVersion                    : 8.0.0-beta04
         gradlePath                    : :benchmark
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/benchmark/build.gradle
         buildFilePath                 : <ROOT>/benchmark/build.gradle
         rootFolderPath                : <ROOT>
@@ -1716,7 +1716,7 @@ MODULE                        : project.test
     GradleModuleModel
         agpVersion                    : 8.0.0-beta04
         gradlePath                    : :test
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/test/build.gradle
         buildFilePath                 : <ROOT>/test/build.gradle
         rootFolderPath                : <ROOT>
@@ -2176,7 +2176,7 @@ MODULE                        : project.test2
     GradleModuleModel
         agpVersion                    : 8.0.0-beta04
         gradlePath                    : :test2
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/test2/build.gradle
         buildFilePath                 : <ROOT>/test2/build.gradle
         rootFolderPath                : <ROOT>

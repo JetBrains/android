@@ -1608,7 +1608,7 @@ MODULE                        : MainActivity.app
     GradleModuleModel
         agpVersion                    : 8.0.0-beta04
         gradlePath                    : :app
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/app/build.gradle
         buildFilePath                 : <ROOT>/app/build.gradle
         rootFolderPath                : <ROOT>
@@ -2630,7 +2630,7 @@ MODULE                        : MainActivity.app.unitTest
 MODULE                        : MainActivity.javaLib
     GradleModuleModel
         gradlePath                    : :javaLib
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/javaLib/build.gradle
         buildFilePath                 : <ROOT>/javaLib/build.gradle
         rootFolderPath                : <ROOT>
@@ -2758,7 +2758,7 @@ MODULE                        : MainActivity.lib
     GradleModuleModel
         agpVersion                    : 8.0.0-beta04
         gradlePath                    : :lib
-        gradleVersion                 : <GRADLE_VERSION>
+        gradleVersion                 : 8.0
         buildFile                     : <ROOT>/lib/build.gradle
         buildFilePath                 : <ROOT>/lib/build.gradle
         rootFolderPath                : <ROOT>
