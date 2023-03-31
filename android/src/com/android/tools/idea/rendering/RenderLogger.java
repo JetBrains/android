@@ -49,6 +49,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jetbrains.annotations.NotNull;
@@ -148,7 +150,7 @@ public class RenderLogger implements IRenderLogger {
   private String myResourceClass;
   private boolean myMissingResourceClass;
   private boolean myHasLoadedClasses;
-  private StudioHtmlLinkManager myLinkManager;
+  private HtmlLinkManager myLinkManager;
   private boolean myMissingSize;
   private List<String> myMissingFragments;
   private Object myCredential;
@@ -157,22 +159,26 @@ public class RenderLogger implements IRenderLogger {
 
   private final RenderProblem.RunnableFixFactory myFixFactory;
 
+  private final Supplier<HtmlLinkManager> myHtmlLinkManagerFactory;
+
   public RenderLogger(
     @Nullable Project project,
     @Nullable Object credential,
     boolean logFramework,
-    @NotNull RenderProblem.RunnableFixFactory fixFactory) {
+    @NotNull RenderProblem.RunnableFixFactory fixFactory,
+    @NotNull Supplier<HtmlLinkManager> linkManagerFactory) {
     myProject = project;
     myCredential = credential;
     myLogFramework = logFramework;
     myFixFactory = fixFactory;
+    myHtmlLinkManagerFactory = linkManagerFactory;
   }
 
   /**
    * Construct a logger for the given named layout. Don't call this method directly; obtain via {@link RenderService}.
    */
   public RenderLogger(@Nullable Project project) {
-    this(project, null, false, RenderProblem.NOOP_RUNNABLE_FIX_FACTORY);
+    this(project, null, false, RenderProblem.NOOP_RUNNABLE_FIX_FACTORY, () -> HtmlLinkManager.NOOP_LINK_MANAGER);
   }
 
   @VisibleForTesting
@@ -488,7 +494,7 @@ public class RenderLogger implements IRenderLogger {
         if (lineNumber != -1) {
           builder.add(" (");
           File file = new File(path);
-          String url = StudioHtmlLinkManager.createFilePositionUrl(file, lineNumber, column);
+          String url = HtmlLinkManager.createFilePositionUrl(file, lineNumber, column);
           if (url != null) {
             builder.addLink("Show", url);
             builder.add(")");
@@ -665,9 +671,9 @@ public class RenderLogger implements IRenderLogger {
 
   @Override
   @NotNull
-  public StudioHtmlLinkManager getLinkManager() {
+  public HtmlLinkManager getLinkManager() {
     if (myLinkManager == null) {
-      myLinkManager = new StudioHtmlLinkManager();
+      myLinkManager = myHtmlLinkManagerFactory.get();
     }
     return myLinkManager;
   }

@@ -29,15 +29,30 @@ import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_FALSE;
 import static com.android.support.FragmentTagUtil.isFragmentTag;
+import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_ACTION_IGNORE_FRAGMENTS;
+import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_ADD_DEPENDENCY;
+import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_ASSIGN_FRAGMENT_URL;
+import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_ASSIGN_LAYOUT_URL;
+import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_BUILD;
+import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_CLEAR_CACHE_AND_NOTIFY;
+import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_CREATE_CLASS;
+import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_DISABLE_SANDBOX;
+import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_EDIT_ATTRIBUTE;
+import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_EDIT_CLASSPATH;
+import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_OPEN;
+import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_OPEN_CLASS;
+import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_REFRESH_RENDER;
+import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_REPLACE_ATTRIBUTE_VALUE;
+import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_REPLACE_TAGS;
+import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_SHOW_TAG;
+import static com.android.tools.idea.rendering.HtmlLinkManagerKt.URL_SYNC;
 
 import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.idea.ui.resourcechooser.util.ResourceChooserHelperKt;
 import com.android.tools.idea.ui.resourcemanager.ResourcePickerDialog;
 import com.android.tools.idea.util.DependencyManagementUtil;
@@ -53,7 +68,6 @@ import com.intellij.notification.NotificationDisplayType;
 import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
-import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
@@ -104,27 +118,10 @@ import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class StudioHtmlLinkManager {
-  private static final String URL_EDIT_CLASSPATH = "action:classpath";
-  private static final String URL_BUILD = "action:build";
-  private static final String URL_SYNC = "action:sync";
+public class StudioHtmlLinkManager implements HtmlLinkManager {
   private static final String URL_SHOW_XML = "action:showXml";
-  private static final String URL_ACTION_IGNORE_FRAGMENTS = "action:ignoreFragment";
   private static final String URL_RUNNABLE = "runnable:";
   private static final String URL_COMMAND = "command:";
-  private static final String URL_REPLACE_TAGS = "replaceTags:";
-  private static final String URL_SHOW_TAG = "showTag:";
-  private static final String URL_OPEN = "open:";
-  private static final String URL_CREATE_CLASS = "createClass:";
-  private static final String URL_OPEN_CLASS = "openClass:";
-  private static final String URL_ASSIGN_FRAGMENT_URL = "assignFragmentUrl:";
-  private static final String URL_ASSIGN_LAYOUT_URL = "assignLayoutUrl:";
-  private static final String URL_EDIT_ATTRIBUTE = "editAttribute:";
-  private static final String URL_REPLACE_ATTRIBUTE_VALUE = "replaceAttributeValue:";
-  private static final String URL_DISABLE_SANDBOX = "disableSandbox:";
-  private static final String URL_REFRESH_RENDER = "refreshRender";
-  private static final String URL_ADD_DEPENDENCY = "addDependency:";
-  private static final String URL_CLEAR_CACHE_AND_NOTIFY = "clearCacheAndNotify";
 
   private SparseArray<Runnable> myLinkRunnables;
   private SparseArray<CommandLink> myLinkCommands;
@@ -150,8 +147,9 @@ public class StudioHtmlLinkManager {
     );
   }
 
-  public void handleUrl(@NotNull String url, @Nullable Module module, @Nullable PsiFile file, @Nullable DataContext dataContext,
-                        boolean hasRenderResult, @Nullable EditorDesignSurface surface) {
+  @Override
+  public void handleUrl(@NotNull String url, @Nullable Module module, @Nullable PsiFile file,
+                        boolean hasRenderResult, @NotNull HtmlLinkManager.RefreshableSurface surface) {
     if (url.startsWith("http:") || url.startsWith("https:")) {
       BrowserLauncher.getInstance().browse(url, null, module == null ? null : module.getProject());
     }
@@ -247,46 +245,17 @@ public class StudioHtmlLinkManager {
       }
     }
     else if (url.startsWith(URL_REFRESH_RENDER)) {
-      handleRefreshRenderUrl(surface);
+      surface.handleRefreshRenderUrl();
     }
     else if (url.startsWith(URL_CLEAR_CACHE_AND_NOTIFY)) {
       // This does the same as URL_REFRESH_RENDERER with the only difference of displaying a notification afterwards. The reason to have
       // handler is that we have different entry points for the action, one of which is "Clear cache". The user probably expects a result
       // of clicking that link that has something to do with the cache being cleared.
-      handleRefreshRenderUrl(surface);
+      surface.handleRefreshRenderUrl();
       showNotification("Cache cleared");
     }
     else {
       assert false : "Unexpected URL: " + url;
-    }
-  }
-
-  /**
-   * Creates a file url for the given file and line position
-   *
-   * @param file   the file
-   * @param line   the line, or -1 if not known
-   * @param column the column, or 0 if not known
-   * @return a URL which points to a given position in a file
-   */
-  @Nullable
-  public static String createFilePositionUrl(@NotNull File file, int line, int column) {
-    try {
-      String fileUrl = SdkUtils.fileToUrlString(file);
-      if (line != -1) {
-        if (column > 0) {
-          return fileUrl + ':' + line + ':' + column;
-        }
-        else {
-          return fileUrl + ':' + line;
-        }
-      }
-      return fileUrl;
-    }
-    catch (MalformedURLException e) {
-      // Ignore
-      Logger.getInstance(StudioHtmlLinkManager.class).error(e);
-      return null;
     }
   }
 
@@ -324,29 +293,33 @@ public class StudioHtmlLinkManager {
     }
   }
 
-  static abstract class CommandLink implements Runnable {
+  static abstract class StudioCommandLink implements CommandLink {
     private final String myCommandName;
     private final PsiFile myFile;
 
-    CommandLink(@NotNull String commandName, @NotNull PsiFile file) {
+    StudioCommandLink(@NotNull String commandName, @NotNull PsiFile file) {
       myCommandName = commandName;
       myFile = file;
     }
-    void executeCommand() {
+
+    @Override
+    public void executeCommand() {
       WriteCommandAction.writeCommandAction(myFile.getProject(), myFile).withName(myCommandName).run(() -> run());
     }
   }
 
-  String createCommandLink(@NotNull CommandLink command) {
+  @Override
+  public String createCommandLink(@NotNull CommandLink command) {
     String url = URL_COMMAND + myNextLinkId;
     if (myLinkCommands == null) {
-      myLinkCommands = new SparseArray<CommandLink>(5);
+      myLinkCommands = new SparseArray<>(5);
     }
     myLinkCommands.put(myNextLinkId, command);
     myNextLinkId++;
     return url;
   }
 
+  @Override
   public String createRunnableLink(@NotNull Runnable runnable) {
     String url = URL_RUNNABLE + myNextLinkId;
     if (myLinkRunnables == null) {
@@ -368,10 +341,6 @@ public class StudioHtmlLinkManager {
     return null;
   }
 
-  public String createReplaceTagsUrl(String from, String to) {
-    return URL_REPLACE_TAGS + from + '/' + to;
-  }
-
   private static void handleReplaceTagsUrl(@NotNull String url, @NotNull Module module, @NotNull PsiFile file) {
     assert url.startsWith(URL_REPLACE_TAGS) : url;
     int start = URL_REPLACE_TAGS.length();
@@ -383,17 +352,9 @@ public class StudioHtmlLinkManager {
     }
   }
 
-  public String createBuildProjectUrl() {
-    return URL_BUILD;
-  }
-
   private static void handleBuildProjectUrl(@NotNull String url, @NotNull Project project) {
     assert url.equals(URL_BUILD) : url;
     ProjectSystemUtil.getProjectSystem(project).getBuildManager().compileProject();
-  }
-
-  public String createSyncProjectUrl() {
-    return URL_SYNC;
   }
 
   private static void handleSyncProjectUrl(@NotNull String url, @NotNull Project project) {
@@ -403,17 +364,9 @@ public class StudioHtmlLinkManager {
     ProjectSystemUtil.getProjectSystem(project).getSyncManager().syncProject(reason);
   }
 
-  public String createEditClassPathUrl() {
-    return URL_EDIT_CLASSPATH;
-  }
-
   private static void handleEditClassPathUrl(@NotNull String url, @NotNull Module module) {
     assert url.equals(URL_EDIT_CLASSPATH) : url;
     ProjectSettingsService.getInstance(module.getProject()).openModuleSettings(module);
-  }
-
-  public String createOpenClassUrl(@NotNull String className) {
-    return URL_OPEN_CLASS + className;
   }
 
   private static void handleOpenClassUrl(@NotNull String url, @NotNull Module module) {
@@ -432,10 +385,6 @@ public class StudioHtmlLinkManager {
   private static void handleShowXmlUrl(@NotNull String url, @NotNull Module module, @NotNull PsiFile file) {
     assert url.equals(URL_SHOW_XML) : url;
     openEditor(module.getProject(), file, 0, -1);
-  }
-
-  public String createShowTagUrl(String tag) {
-    return URL_SHOW_TAG + tag;
   }
 
   private static void handleShowTagUrl(@NotNull String url, @NotNull Module module, @NotNull final PsiFile file) {
@@ -460,10 +409,6 @@ public class StudioHtmlLinkManager {
       // Fall back to just opening the editor
       openEditor(module.getProject(), file, 0, -1);
     }
-  }
-
-  public String createNewClassUrl(String className) {
-    return URL_CREATE_CLASS + className;
   }
 
   private static void handleNewClassUrl(@NotNull String url, @NotNull Module module) {
@@ -563,10 +508,6 @@ public class StudioHtmlLinkManager {
         }
       }
     }
-  }
-
-  public String createOpenStackUrl(@NotNull String className, @NotNull String methodName, @NotNull String fileName, int lineNumber) {
-    return URL_OPEN + className + '#' + methodName + ';' + fileName + ':' + lineNumber;
   }
 
   private static void handleOpenStackUrl(@NotNull String url, @NotNull Module module) {
@@ -679,10 +620,6 @@ public class StudioHtmlLinkManager {
     return !FileEditorManager.getInstance(project).openEditor(descriptor, true).isEmpty();
   }
 
-  public String createAssignFragmentUrl(@Nullable String id) {
-    return URL_ASSIGN_FRAGMENT_URL + (id != null ? id : "");
-  }
-
   /**
    * Converts a (possibly ambiguous) class name like A.B.C.D into an Android-style class name
    * like A.B$C$D where package names are separated by dots and inner classes are separated by dollar
@@ -764,14 +701,6 @@ public class StudioHtmlLinkManager {
       });
   }
 
-  public String createPickLayoutUrl(@NotNull String activityName) {
-    return URL_ASSIGN_LAYOUT_URL + activityName;
-  }
-
-  public String createAssignLayoutUrl(@NotNull String activityName, @NotNull String layout) {
-    return URL_ASSIGN_LAYOUT_URL + activityName + ':' + layout;
-  }
-
   private static void handleAssignLayoutUrl(@NotNull String url, @NotNull final Module module, @NotNull final PsiFile file) {
     assert url.startsWith(URL_ASSIGN_LAYOUT_URL) : url;
     int start = URL_ASSIGN_LAYOUT_URL.length();
@@ -843,18 +772,10 @@ public class StudioHtmlLinkManager {
     });
   }
 
-  public String createIgnoreFragmentsUrl() {
-    return URL_ACTION_IGNORE_FRAGMENTS;
-  }
-
-  private static void handleIgnoreFragments(@NotNull String url, @Nullable EditorDesignSurface surface) {
+  private static void handleIgnoreFragments(@NotNull String url, @NotNull HtmlLinkManager.RefreshableSurface surface) {
     assert url.equals(URL_ACTION_IGNORE_FRAGMENTS);
     RenderLogger.ignoreFragments();
-    requestRender(surface);
-  }
-
-  public String createEditAttributeUrl(String attribute, String value) {
-    return URL_EDIT_ATTRIBUTE + attribute + '/' + value;
+    surface.requestRender();
   }
 
   private static void handleEditAttribute(@NotNull String url, @NotNull Module module, @NotNull final PsiFile file) {
@@ -882,10 +803,6 @@ public class StudioHtmlLinkManager {
       // Fall back to just opening the editor
       openEditor(module.getProject(), file, 0, -1);
     }
-  }
-
-  public String createReplaceAttributeValueUrl(String attribute, String oldValue, String newValue) {
-    return URL_REPLACE_ATTRIBUTE_VALUE + attribute + '/' + oldValue + '/' + newValue;
   }
 
   private static void handleReplaceAttributeValue(@NotNull String url, @NotNull Module module, @NotNull final PsiFile file) {
@@ -924,13 +841,9 @@ public class StudioHtmlLinkManager {
     });
   }
 
-  public String createDisableSandboxUrl() {
-    return URL_DISABLE_SANDBOX;
-  }
-
-  private static void handleDisableSandboxUrl(@NotNull Module module, @Nullable EditorDesignSurface surface) {
+  private static void handleDisableSandboxUrl(@NotNull Module module, @Nullable HtmlLinkManager.RefreshableSurface surface) {
     RenderSecurityManager.sEnabled = false;
-    requestRender(surface);
+    surface.requestRender();
 
     Messages.showInfoMessage(module.getProject(),
                              "The custom view rendering sandbox was disabled for this session.\n\n" +
@@ -938,31 +851,6 @@ public class StudioHtmlLinkManager {
                              RenderSecurityManager.ENABLED_PROPERTY + "=" + VALUE_FALSE + "\n" +
                              "to {install}/bin/idea.properties.",
                              "Disabled Rendering Sandbox");
-  }
-
-  public String createRefreshRenderUrl() {
-    return URL_REFRESH_RENDER;
-  }
-
-  public String createClearCacheUrl() {
-    return URL_CLEAR_CACHE_AND_NOTIFY;
-  }
-
-  private static void handleRefreshRenderUrl(@Nullable EditorDesignSurface surface) {
-      if (surface != null) {
-        RenderUtils.clearCache(surface.getConfigurations());
-        surface.forceUserRequestedRefresh();
-      }
-  }
-
-  private static void requestRender(@Nullable EditorDesignSurface surface) {
-      if (surface != null) {
-        surface.forceUserRequestedRefresh();
-      }
-  }
-
-  public String createAddDependencyUrl(GoogleMavenArtifactId artifactId) {
-    return URL_ADD_DEPENDENCY + artifactId;
   }
 
   @VisibleForTesting

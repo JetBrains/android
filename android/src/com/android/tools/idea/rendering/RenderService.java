@@ -49,6 +49,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.AndroidTargetData;
+import java.util.function.Supplier;
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -121,8 +122,12 @@ final public class RenderService implements Disposable {
   }
 
   @NotNull
-  public RenderLogger createLogger(@Nullable Project project, boolean logFramework, @NotNull RenderProblem.RunnableFixFactory fixFactory) {
-    return new RenderLogger(project, myCredential, logFramework, fixFactory);
+  public RenderLogger createLogger(
+    @Nullable Project project,
+    boolean logFramework,
+    @NotNull RenderProblem.RunnableFixFactory fixFactory,
+    @NotNull Supplier<HtmlLinkManager> linkManagerFactory) {
+    return new RenderLogger(project, myCredential, logFramework, fixFactory, linkManagerFactory);
   }
 
   @NotNull

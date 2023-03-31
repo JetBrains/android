@@ -41,6 +41,7 @@ import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
+import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.tools.idea.rendering.StudioHtmlLinkManager;
 import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
@@ -224,7 +225,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     HyperlinkListener hyperLinkListener = e -> {
       if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
         String url = e.getDescription();
-        myHtmlLinkManager.handleUrl(url, facet.getModule(), null, null, false, null);
+        myHtmlLinkManager.handleUrl(url, facet.getModule(), null, false, HtmlLinkManager.NOOP_SURFACE);
       }
     };
     details.addHyperlinkListener(hyperLinkListener);
@@ -739,7 +740,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   static String getErrorHtml(final @NotNull AndroidFacet facet,
                              @NotNull String message,
                              @NotNull final SourceFilePosition position,
-                             @NotNull StudioHtmlLinkManager htmlLinkManager,
+                             @NotNull HtmlLinkManager htmlLinkManager,
                              final @Nullable VirtualFile currentlyOpenFile,
                              final boolean manifestEditable) {
     HtmlBuilder sb = new HtmlBuilder();
@@ -771,7 +772,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private static String getErrorAddHtml(final @NotNull AndroidFacet facet,
                                         @NotNull String message,
                                         @NotNull final SourceFilePosition position,
-                                        @NotNull StudioHtmlLinkManager htmlLinkManager,
+                                        @NotNull HtmlLinkManager htmlLinkManager,
                                         final @Nullable VirtualFile currentlyOpenFile) {
     /*
     Example Input:
@@ -857,7 +858,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private static String getErrorUseHtml(final @NotNull AndroidFacet facet,
                                         @NotNull String message,
                                         @NotNull final SourceFilePosition position,
-                                        @NotNull StudioHtmlLinkManager htmlLinkManager,
+                                        @NotNull HtmlLinkManager htmlLinkManager,
                                         final @Nullable VirtualFile currentlyOpenFile) {
     /*
     Example Input:

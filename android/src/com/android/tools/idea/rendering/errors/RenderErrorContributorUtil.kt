@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering.errors
 
 import com.android.tools.idea.rendering.HtmlBuilderHelper
-import com.android.tools.idea.rendering.StudioHtmlLinkManager
+import com.android.tools.idea.rendering.HtmlLinkManager
 import com.android.tools.idea.rendering.ShowExceptionFix
 import com.android.utils.HtmlBuilder
 import com.intellij.openapi.project.Project
@@ -24,7 +24,7 @@ import com.intellij.openapi.project.Project
 /**
  * Adds a build call action to the given {@link HtmlBuilder}.
  */
-fun HtmlBuilder.addBuildAction(linkManager: StudioHtmlLinkManager): HtmlBuilder {
+fun HtmlBuilder.addBuildAction(linkManager: HtmlLinkManager): HtmlBuilder {
   newlineIfNecessary()
     .newline()
     .addIcon(HtmlBuilderHelper.getRefreshIconPath())
@@ -37,7 +37,7 @@ fun HtmlBuilder.addBuildAction(linkManager: StudioHtmlLinkManager): HtmlBuilder 
 /**
  * Adds "Show Exception" call action.
  */
-fun HtmlBuilder.addShowException(linkManager: StudioHtmlLinkManager, project: Project?, throwable: Throwable?): HtmlBuilder {
+fun HtmlBuilder.addShowException(linkManager: HtmlLinkManager, project: Project?, throwable: Throwable?): HtmlBuilder {
   throwable?.let {
     newline()
     addLink("Show Exception", linkManager.createRunnableLink(ShowExceptionFix(project, throwable)))

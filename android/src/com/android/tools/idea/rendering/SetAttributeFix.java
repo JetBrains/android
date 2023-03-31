@@ -23,7 +23,7 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class SetAttributeFix extends StudioHtmlLinkManager.CommandLink {
+class SetAttributeFix extends StudioHtmlLinkManager.StudioCommandLink {
   private final XmlTag myTag;
   private final String myNamespace;
   private final String myAttribute;

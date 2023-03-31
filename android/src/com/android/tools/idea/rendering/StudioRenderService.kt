@@ -68,7 +68,7 @@ open class StudioRenderService {
 }
 
 fun RenderService.createLogger(project: Project?): RenderLogger {
-  return createLogger(project, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory)
+  return createLogger(project, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory, ::StudioHtmlLinkManager)
 }
 
 /**

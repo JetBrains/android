@@ -38,7 +38,7 @@ import java.util.Objects;
 
 import static com.android.SdkConstants.*;
 
-public class AddMissingAttributesFix extends StudioHtmlLinkManager.CommandLink {
+public class AddMissingAttributesFix extends StudioHtmlLinkManager.StudioCommandLink {
   @NotNull private final XmlFile myFile;
   @Nullable private final ResourceResolver myResourceResolver;
 

@@ -125,7 +125,7 @@ public class RenderErrorContributor {
   private static final String APP_COMPAT_REQUIRED_MSG = "You need to use a Theme.AppCompat";
 
   private final Set<RenderErrorModel.Issue> myIssues = new LinkedHashSet<>();
-  private final StudioHtmlLinkManager myLinkManager;
+  private final HtmlLinkManager myLinkManager;
   private final HyperlinkListener myLinkHandler;
   @NotNull private final Module myModule;
   @NotNull protected final PsiFile mySourceFile;
@@ -341,7 +341,7 @@ public class RenderErrorContributor {
 
   private static void addHtmlForIssue164378(@NotNull Throwable throwable,
                                             Project project,
-                                            StudioHtmlLinkManager linkManager,
+                                            HtmlLinkManager linkManager,
                                             HtmlBuilder builder,
                                             boolean addShowExceptionLink) {
     builder.add("Rendering failed with a known bug. ");
@@ -361,7 +361,22 @@ public class RenderErrorContributor {
 
   @VisibleForTesting
   public void performClick(@NotNull String url) {
-    myLinkManager.handleUrl(url, myModule, mySourceFile, myDataContext, true, myDesignSurface);
+    myLinkManager.handleUrl(url, myModule, mySourceFile, true, new HtmlLinkManager.RefreshableSurface() {
+      @Override
+      public void handleRefreshRenderUrl() {
+        if (myDesignSurface != null) {
+          RenderUtils.clearCache(myDesignSurface.getConfigurations());
+          myDesignSurface.forceUserRequestedRefresh();
+        }
+      }
+
+      @Override
+      public void requestRender() {
+        if (myDesignSurface != null) {
+          myDesignSurface.forceUserRequestedRefresh();
+        }
+      }
+    });
   }
 
   private void reportRelevantCompilationErrors(@NotNull RenderLogger logger) {
@@ -561,7 +576,7 @@ public class RenderErrorContributor {
                 }
               }
               if (classFile != null) {
-                url = StudioHtmlLinkManager.createFilePositionUrl(classFile, lineNumber, 0);
+                url = HtmlLinkManager.createFilePositionUrl(classFile, lineNumber, 0);
               }
             }
           }
@@ -984,13 +999,13 @@ public class RenderErrorContributor {
                                          GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT :
                                          GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
         builder.addLink("Add constraint-layout library dependency to the project",
-                        myLinkManager.createAddDependencyUrl(artifact));
+                        myLinkManager.createAddDependencyUrl(artifact.toString()));
         builder.add(", ");
       }
       if (CLASS_FLEXBOX_LAYOUT.equals(className)) {
         builder.newline().addNbsps(3);
         builder.addLink("Add flexbox layout library dependency to the project",
-                        myLinkManager.createAddDependencyUrl(GoogleMavenArtifactId.FLEXBOX_LAYOUT));
+                        myLinkManager.createAddDependencyUrl(GoogleMavenArtifactId.FLEXBOX_LAYOUT.toString()));
         builder.add(", ");
       }
 
@@ -1257,7 +1272,7 @@ public class RenderErrorContributor {
     return getIssues();
   }
 
-  protected StudioHtmlLinkManager getLinkManager() {
+  protected HtmlLinkManager getLinkManager() {
     return myLinkManager;
   }
 
