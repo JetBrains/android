@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.idea.common.model.NlComponent
 import com.intellij.ui.ColoredListCellRenderer
+import com.intellij.ui.ExperimentalUI.isNewUI
 import javax.swing.Icon
 import javax.swing.JList
 
@@ -29,7 +30,7 @@ open class NavListCellRenderer(private val regularIcon: Icon) : ColoredListCellR
   private val whiteIcon = ColoredIconGenerator.generateWhiteIcon(regularIcon)
 
   override fun customizeCellRenderer(list: JList<out NlComponent>, value: NlComponent?, index: Int, selected: Boolean, hasFocus: Boolean) {
-    icon = if (selected && hasFocus) whiteIcon else regularIcon
+    icon = if (selected && hasFocus && !isNewUI()) whiteIcon else regularIcon
 
     if (!selected) {
       background = secondaryPanelBackground

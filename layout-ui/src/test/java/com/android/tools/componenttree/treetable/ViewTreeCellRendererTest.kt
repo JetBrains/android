@@ -26,6 +26,7 @@ import com.android.tools.componenttree.util.ItemNodeType
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.ui.ExperimentalUI.isNewUI
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons.LayoutEditor.Palette
@@ -200,23 +201,24 @@ class ViewTreeCellRendererTest {
     val faint = ColoredIconGenerator.generateDeEmphasizedIcon(Palette.TEXT_VIEW)
     assertThat(hasNonWhiteColors(white)).isFalse()
     IconLoader.activate()
+    val selectedWithFocus = if (isNewUI()) normal else white
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
     assertThat(getIcon(item, selected = false, hasFocus = false, enabled = true, deEmphasized = false)).isSameAs(normal)
     assertThat(getIcon(item, selected = false, hasFocus = true, enabled = true, deEmphasized = false)).isSameAs(normal)
     assertThat(getIcon(item, selected = true, hasFocus = false, enabled = true, deEmphasized = false)).isSameAs(normal)
-    assertIconsEqual(getIcon(item, selected = true, hasFocus = true, enabled = true, deEmphasized = false)!!, white)
+    assertIconsEqual(getIcon(item, selected = true, hasFocus = true, enabled = true, deEmphasized = false)!!, selectedWithFocus)
     assertIconsEqual(getIcon(item, selected = false, hasFocus = false, enabled = false, deEmphasized = false)!!, faint)
     assertIconsEqual(getIcon(item, selected = false, hasFocus = true, enabled = false, deEmphasized = false)!!, faint)
     assertThat(getIcon(item, selected = true, hasFocus = false, enabled = false, deEmphasized = false)).isSameAs(normal)
-    assertIconsEqual(getIcon(item, selected = true, hasFocus = true, enabled = false, deEmphasized = false)!!, white)
+    assertIconsEqual(getIcon(item, selected = true, hasFocus = true, enabled = false, deEmphasized = false)!!, selectedWithFocus)
     assertIconsEqual(getIcon(item, selected = false, hasFocus = false, enabled = true, deEmphasized = true)!!, faint)
     assertIconsEqual(getIcon(item, selected = false, hasFocus = true, enabled = true, deEmphasized = true)!!, faint)
     assertThat(getIcon(item, selected = true, hasFocus = false, enabled = true, deEmphasized = true)).isSameAs(normal)
-    assertIconsEqual(getIcon(item, selected = true, hasFocus = true, enabled = true, deEmphasized = true)!!, white)
+    assertIconsEqual(getIcon(item, selected = true, hasFocus = true, enabled = true, deEmphasized = true)!!, selectedWithFocus)
     assertIconsEqual(getIcon(item, selected = false, hasFocus = false, enabled = false, deEmphasized = true)!!, faint)
     assertIconsEqual(getIcon(item, selected = false, hasFocus = true, enabled = false, deEmphasized = true)!!, faint)
     assertThat(getIcon(item, selected = true, hasFocus = false, enabled = false, deEmphasized = true)).isSameAs(normal)
-    assertIconsEqual(getIcon(item, selected = true, hasFocus = true, enabled = false, deEmphasized = true)!!, white)
+    assertIconsEqual(getIcon(item, selected = true, hasFocus = true, enabled = false, deEmphasized = true)!!, selectedWithFocus)
   }
 
   @Suppress("UndesirableClassUsage")
