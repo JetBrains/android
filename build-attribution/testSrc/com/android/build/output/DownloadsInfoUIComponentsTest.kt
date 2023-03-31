@@ -233,7 +233,7 @@ class DownloadsInfoExecutionConsoleTest {
     page.isVisible = false
     page.size = Dimension(600, 400)
 
-    val ui = FakeUi(page, createFakeWindow = true)
+    val ui = FakeUi(page)
     page.isVisible = true
     ui.layoutAndDispatchEvents()
 
@@ -254,7 +254,7 @@ class DownloadsInfoExecutionConsoleTest {
     page.isVisible = false
     page.size = Dimension(600, 400)
 
-    val ui = FakeUi(page, createFakeWindow = true)
+    val ui = FakeUi(page)
     page.isVisible = true
     ui.layoutAndDispatchEvents()
 
