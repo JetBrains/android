@@ -226,7 +226,7 @@ class CategoryTable<T : Any>(
   private fun mouseClickedOnRow(e: MouseEvent) {
     if (SwingUtilities.isLeftMouseButton(e)) {
       rowComponents
-        .firstOrNull { e.y < it.y + it.height }
+        .firstOrNull { it.isVisible && e.y < it.y + it.height }
         ?.let { clickedRow ->
           requestFocusInWindow()
           selection.selectRow(clickedRow.rowKey)

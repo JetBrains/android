@@ -306,6 +306,11 @@ class CategoryTableTest {
 
     assertThat(fakeUi.getPosition(table.rowComponents[2])).isEqualTo(position)
 
+    // Clicking the row that shares the location of the hidden row should select
+    // the visible row
+    fakeUi.clickOn(table.rowComponents[2])
+    assertThat(table.selection.selectedKeys()).containsExactly(table.rowComponents[2].rowKey)
+
     table.setRowVisibleByKey(CategoryTableDemo.devices[1], true)
     fakeUi.layout()
 
