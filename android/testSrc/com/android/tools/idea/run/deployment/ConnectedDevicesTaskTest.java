@@ -70,7 +70,7 @@ public final class ConnectedDevicesTaskTest {
   public void getNameNameIsNull() throws Exception {
     // Arrange
     Mockito.when(myDevice.isEmulator()).thenReturn(true);
-    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData(null, null)));
+    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData(null, (Path)null)));
     Mockito.when(myDevice.getSerialNumber()).thenReturn("emulator-5554");
 
     myTask = new ConnectedDevicesTask(myBridge, null);
@@ -86,7 +86,7 @@ public final class ConnectedDevicesTaskTest {
   public void getNameNameEqualsBuild() throws Exception {
     // Arrange
     Mockito.when(myDevice.isEmulator()).thenReturn(true);
-    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData("<build>", null)));
+    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData("<build>", (Path)null)));
     Mockito.when(myDevice.getSerialNumber()).thenReturn("emulator-5554");
 
     myTask = new ConnectedDevicesTask(myBridge, null);
@@ -102,7 +102,7 @@ public final class ConnectedDevicesTaskTest {
   public void getName() throws Exception {
     // Arrange
     Mockito.when(myDevice.isEmulator()).thenReturn(true);
-    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData("Pixel_6_API_33", null)));
+    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData("Pixel_6_API_33", (Path)null)));
     Mockito.when(myDevice.getSerialNumber()).thenReturn("emulator-5554");
 
     myTask = new ConnectedDevicesTask(myBridge, null);
@@ -165,7 +165,7 @@ public final class ConnectedDevicesTaskTest {
   @Test
   public void getKeyPathIsntNull() throws Exception {
     // Arrange
-    var path = Path.of(System.getProperty("user.home"), ".android", "avd", "Pixel_6_API_33.avd").toString();
+    var path = Path.of(System.getProperty("user.home"), ".android", "avd", "Pixel_6_API_33.avd");
 
     Mockito.when(myDevice.isEmulator()).thenReturn(true);
     Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData(null, path)));
@@ -177,14 +177,14 @@ public final class ConnectedDevicesTaskTest {
     var future = myTask.get();
 
     // Assert
-    assertEquals(new VirtualDevicePath(path), ((List<ConnectedDevice>)future.get(60, TimeUnit.SECONDS)).get(0).getKey());
+    assertEquals(new VirtualDevicePath(path.toString()), ((List<ConnectedDevice>)future.get(60, TimeUnit.SECONDS)).get(0).getKey());
   }
 
   @Test
   public void getKeyNameIsNull() throws Exception {
     // Arrange
     Mockito.when(myDevice.isEmulator()).thenReturn(true);
-    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData(null, null)));
+    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData(null, (Path)null)));
     Mockito.when(myDevice.getSerialNumber()).thenReturn("emulator-5554");
 
     myTask = new ConnectedDevicesTask(myBridge, null);
@@ -200,7 +200,7 @@ public final class ConnectedDevicesTaskTest {
   public void getKeyNameEqualsBuild() throws Exception {
     // Arrange
     Mockito.when(myDevice.isEmulator()).thenReturn(true);
-    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData("<build>", null)));
+    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData("<build>", (Path)null)));
     Mockito.when(myDevice.getSerialNumber()).thenReturn("emulator-5554");
 
     myTask = new ConnectedDevicesTask(myBridge, null);
@@ -216,7 +216,7 @@ public final class ConnectedDevicesTaskTest {
   public void getKey() throws Exception {
     // Arrange
     Mockito.when(myDevice.isEmulator()).thenReturn(true);
-    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData("Pixel_6_API_33", null)));
+    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData("Pixel_6_API_33", (Path)null)));
     Mockito.when(myDevice.getSerialNumber()).thenReturn("emulator-5554");
 
     myTask = new ConnectedDevicesTask(myBridge, null);
@@ -232,7 +232,7 @@ public final class ConnectedDevicesTaskTest {
   public void getLaunchCompatibilityAsyncLaunchCompatibilityCheckerIsNull() throws Exception {
     // Arrange
     Mockito.when(myDevice.isEmulator()).thenReturn(true);
-    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData(null, null)));
+    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData(null, (Path)null)));
     Mockito.when(myDevice.getSerialNumber()).thenReturn("emulator-5554");
 
     myTask = new ConnectedDevicesTask(myBridge, null);
@@ -248,7 +248,7 @@ public final class ConnectedDevicesTaskTest {
   public void getLaunchCompatibilityAsync() throws Exception {
     // Arrange
     Mockito.when(myDevice.isEmulator()).thenReturn(true);
-    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData(null, null)));
+    Mockito.when(myDevice.getAvdData()).thenReturn(Futures.immediateFuture(new AvdData(null, (Path)null)));
     Mockito.when(myDevice.getSerialNumber()).thenReturn("emulator-5554");
 
     var device = new ConnectedAndroidDevice(myDevice);
