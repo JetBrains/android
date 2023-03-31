@@ -35,6 +35,7 @@ import com.android.sdklib.internal.avd.AvdNetworkSpeed;
 import com.android.sdklib.internal.avd.EmulatedProperties;
 import com.android.sdklib.internal.avd.GpuMode;
 import com.android.sdklib.internal.avd.HardwareProperties;
+import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.log.LogWrapper;
 import com.android.tools.idea.observable.core.BoolProperty;
 import com.android.tools.idea.observable.core.BoolValueProperty;
@@ -133,6 +134,7 @@ public final class AvdOptionsModel extends WizardModel {
   private OptionalProperty<File> myBackupSkinFile = new OptionalValueProperty<>();
   private OptionalProperty<SystemImageDescription> mySystemImage = new OptionalValueProperty<>();
   private OptionalProperty<Device> myDevice = new OptionalValueProperty<>();
+  private StringProperty myCommandLineOptions = new StringValueProperty();
 
   private ObservableString existingSdLocation = new StringValueProperty();
   private ObservableObject<Storage> myOriginalSdCard;
@@ -474,6 +476,11 @@ public final class AvdOptionsModel extends WizardModel {
     return myAvdDeviceData;
   }
 
+  @NotNull
+  public StringProperty commandLineOptions() {
+    return myCommandLineOptions;
+  }
+
   private void updateValuesWithAvdInfo(@NotNull AvdInfo avdInfo) {
     List<Device> devices = DeviceManagerConnection.getDefaultDeviceManagerConnection().getDevices();
     Device selectedDevice = null;
@@ -591,6 +598,10 @@ public final class AvdOptionsModel extends WizardModel {
     String modeString = properties.get(AvdWizardUtils.HOST_GPU_MODE_KEY);
     myHostGpuMode.setValue(GpuMode.fromGpuSetting(modeString));
 
+    if (StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.get() && properties.containsKey(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY)) {
+      myCommandLineOptions.set(properties.get(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY));
+    }
+
     myIsInEditMode.set(true);
   }
 
@@ -679,6 +690,9 @@ public final class AvdOptionsModel extends WizardModel {
 
     if (mySdCardStorage.get().isPresent()) {
       map.put(AvdWizardUtils.DISPLAY_SD_SIZE_KEY, mySdCardStorage.getValue());
+    }
+    if (StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.get()) {
+      map.put(AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY, myCommandLineOptions.get());
     }
     return map;
   }

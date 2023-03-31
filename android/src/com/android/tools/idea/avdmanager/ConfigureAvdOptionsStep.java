@@ -1040,6 +1040,10 @@ public class ConfigureAvdOptionsStep extends ModelWizardStep<AvdOptionsModel> {
     myBindings.bindTwoWay(new SelectedProperty(myExternalRadioButton), getModel().useExternalSdCard());
     myBindings.bindTwoWay(new SelectedProperty(myBuiltInRadioButton), getModel().useBuiltInSdCard());
     myBindings.bind(new SelectedProperty(myNoSDCardRadioButton), getModel().useBuiltInSdCard().not().and(getModel().useExternalSdCard().not()));
+
+    if (StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.get()) {
+      myBindings.bindTwoWay(new TextProperty(myCommandLineOptions), getModel().commandLineOptions());
+    }
   }
 
   // TODO: jameskaye Add unit tests for these validators. (b.android.com/230192)

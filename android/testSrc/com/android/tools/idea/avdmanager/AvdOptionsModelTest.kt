@@ -22,6 +22,7 @@ import com.android.repository.impl.meta.TypeDetails
 import com.android.repository.testframework.FakePackage
 import com.android.repository.testframework.FakeProgressIndicator
 import com.android.repository.testframework.FakeRepoManager
+import com.android.sdklib.ISystemImage
 import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
 import com.android.sdklib.devices.Storage
@@ -34,12 +35,14 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.NoErrorsOrWarningsLogger
 import com.android.testutils.file.createInMemoryFileSystemAndFolder
 import com.android.testutils.file.recordExistingFile
+import com.android.tools.idea.flags.StudioFlags
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Maps
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.AndroidTestCase
 import org.mockito.Mockito
 import java.io.File
+import java.nio.file.Path
 import java.nio.file.Paths
 
 class AvdOptionsModelTest : AndroidTestCase() {
@@ -89,8 +92,8 @@ class AvdOptionsModelTest : AndroidTestCase() {
     val googlePlayImage = systemImageManager.getImageAt(sdkHandler.getLocalPackage(googlePlayPath, progress)!!.location)
     val nonPlayImage = systemImageManager.getImageAt(sdkHandler.getLocalPackage(nonPlayPath, progress)!!.location)
 
-    myGooglePlayAvdInfo = AvdInfo("name", Paths.get("ini"), Paths.get("folder"), googlePlayImage!!, myPropertiesMap)
-    myNonPlayAvdInfo = AvdInfo("name", Paths.get("ini"), Paths.get("folder"), nonPlayImage!!, myPropertiesMap)
+    myGooglePlayAvdInfo = anAvdInfo(systemImage = googlePlayImage!!, properties = myPropertiesMap)
+    myNonPlayAvdInfo = anAvdInfo(systemImage = nonPlayImage!!, properties = myPropertiesMap)
 
     // Get a phone device that supports Google Play
     val devMgr = DeviceManager.createInstance(sdkHandler, NoErrorsOrWarningsLogger())
@@ -271,4 +274,34 @@ class AvdOptionsModelTest : AndroidTestCase() {
     assertThat(model.avdDeviceData.customSkinFile().value).isEqualTo(File(
       SkinUtils.NO_SKIN))
   }
+
+  fun testAvdCommandLineOptions_StudioFlagEnabled() {
+    StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(true)
+    val avdInfo = anAvdInfo(properties = mapOf(
+      AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY to "some command line option"
+    ))
+
+    val model = AvdOptionsModel(avdInfo)
+
+    assertThat(model.commandLineOptions().get()).isEqualTo("some command line option")
+  }
+
+  fun testAvdCommandLineOptions_StudioFlagDisabled() {
+    StudioFlags.AVD_COMMAND_LINE_OPTIONS_ENABLED.override(false)
+    val avdInfo = anAvdInfo(properties = mapOf(
+      AvdWizardUtils.COMMAND_LINE_OPTIONS_KEY to "some command line option"
+    ))
+
+    val model = AvdOptionsModel(avdInfo)
+
+    assertThat(model.commandLineOptions().get()).isEmpty()
+  }
+
+  private fun anAvdInfo(
+    name: String = "name",
+    iniFile: Path = Paths.get("ini"),
+    folderPath: Path = Paths.get("folder"),
+    systemImage: ISystemImage = Mockito.mock(ISystemImage::class.java),
+    properties: Map<String, String>) =
+    AvdInfo(name, iniFile, folderPath, systemImage, properties)
 }
