@@ -1962,11 +1962,11 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     if (file.isDirectory()) {
       for (var iterator = mySources.entrySet().iterator(); iterator.hasNext(); ) {
         var entry = iterator.next();
-        iterator.remove();
         VirtualFile sourceFile = entry.getKey();
         if (VfsUtilCore.isAncestor(file, sourceFile, true)) {
           ResourceItemSource<?> source = entry.getValue();
           removeSource(sourceFile, source);
+          iterator.remove();
         }
       }
     }
