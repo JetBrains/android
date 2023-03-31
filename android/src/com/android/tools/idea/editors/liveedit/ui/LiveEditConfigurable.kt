@@ -31,11 +31,12 @@ import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.ui.layout.CellBuilder
-import com.intellij.ui.layout.panel
-import com.intellij.ui.layout.selected
+import com.intellij.ui.components.JBRadioButton
+import com.intellij.ui.dsl.builder.Cell
+import com.intellij.ui.dsl.builder.bind
+import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.builder.selected
 import org.jetbrains.android.util.AndroidBundle.message
-import javax.swing.JRadioButton
 
 class LiveEditConfigurable : BoundSearchableConfigurable(
   message("live.edit.configurable.display.name"), "android.live.edit"
@@ -43,64 +44,49 @@ class LiveEditConfigurable : BoundSearchableConfigurable(
   override fun createPanel(): DialogPanel {
     val config = LiveEditApplicationConfiguration.getInstance()
 
+    // https://plugins.jetbrains.com/docs/intellij/kotlin-ui-dsl-version-2.html
     return panel {
-      buttonGroup {
+      buttonsGroup {
         row {
           radioButton(
             message("live.literals.configurable.select.live.literals"),
-            { config.mode == LIVE_LITERALS },
-            { enabled -> if (enabled) config.mode = LIVE_LITERALS },
-            message("live.literals.configurable.select.live.literals.comment")
-          )
+            LIVE_LITERALS
+          ).comment(message("live.literals.configurable.select.live.literals.comment"))
         }
 
         if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT.get()) {
-          lateinit var rb : CellBuilder<JRadioButton>
+          lateinit var rb : Cell<JBRadioButton>
           row {
             rb = radioButton(
               message("live.edit.configurable.display.name"),
-              { config.mode == LIVE_EDIT },
-              { enabled -> if (enabled) config.mode = LIVE_EDIT },
-              message("live.edit.configurable.display.name.comment")
-            )
+              LIVE_EDIT
+            ).comment(message("live.edit.configurable.display.name.comment"))
           }
           row { // Add a row to indent
-            buttonGroup {
+            this@buttonsGroup.buttonsGroup(indent = true) {
               row {
                 radioButton(
                   message("live.edit.mode.manual", LiveEditAnActionListener.getLiveEditTriggerShortCutString()),
-                  { config.leTriggerMode == LE_TRIGGER_MANUAL },
-                  { enabled ->
-                    if (enabled) {
-                      config.leTriggerMode = LE_TRIGGER_MANUAL
-                    }
-                  },
-                ).enableIf(rb.selected)
+                  LE_TRIGGER_MANUAL
+                ).enabledIf(rb.selected)
               }
               row {
                 radioButton(
                   message("live.edit.mode.automatic"),
-                  { config.leTriggerMode == LE_TRIGGER_AUTOMATIC },
-                  { enabled ->
-                    if (enabled) {
-                      config.leTriggerMode = LE_TRIGGER_AUTOMATIC
-                    }
-                  },
-                ).enableIf(rb.selected)
+                  LE_TRIGGER_AUTOMATIC
+                ).enabledIf(rb.selected)
               }
-            }
+            }.bind(config::leTriggerMode)
           }
         }
 
         row {
           radioButton(
             message("live.edit.disable.all"),
-            { config.mode == DISABLED },
-            { enabled -> if (enabled) config.mode = DISABLED },
-            message("live.edit.disable.all.description")
-          )
+            DISABLED
+          ).comment(message("live.edit.disable.all.description"))
         }
-      }
+      }.bind(config::mode)
     }
   }
 
