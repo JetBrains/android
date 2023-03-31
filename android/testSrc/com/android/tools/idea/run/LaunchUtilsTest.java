@@ -38,7 +38,7 @@ public class LaunchUtilsTest extends AndroidGradleTestCase {
     assertFalse(result);
   }
 
-  @Bombed(year = 2023, month = Calendar.MARCH, day = 30, user = "Nebojsa Viksic",
+  @Bombed(year = 2023, month = Calendar.JUNE, day = 30, user = "Nebojsa Viksic",
   description = "Timed out due to: 'Calling invokeAndWait from read-action leads to possible deadlock.' exception")
   public void testWatchFaceService() throws Exception {
     loadProject(RUN_CONFIG_WATCHFACE);
