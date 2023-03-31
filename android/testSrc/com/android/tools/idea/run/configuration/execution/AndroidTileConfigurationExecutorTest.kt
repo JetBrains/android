@@ -17,7 +17,7 @@ package com.android.tools.idea.run.configuration.execution
 
 
 import com.android.ddmlib.AndroidDebugBridge
-import com.android.fakeadbserver.services.ServiceOutput
+import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.deployer.DeployerException
@@ -75,19 +75,19 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
     val receivedAmCommands = ArrayList<String>()
 
-    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+    deviceState.setActivityManager { args: List<String>, shellCommandOutput: ShellCommandOutput ->
       val wholeCommand = args.joinToString(" ")
 
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> serviceOutput.writeStdout(
+        checkVersion -> shellCommandOutput.writeStdout(
           "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
           "Broadcast completed: result=1, data=\"3\"")
-        addTile -> serviceOutput.writeStdout(
+        addTile -> shellCommandOutput.writeStdout(
           "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
           "Broadcast completed: result=1, data=\"Index=[101]\"")
-        showTile -> serviceOutput.writeStdout(
+        showTile -> shellCommandOutput.writeStdout(
           "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
           // Unsuccessful execution of show tile.
           "Broadcast completed: result=2")
@@ -151,16 +151,16 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
     val receivedAmCommands = ArrayList<String>()
 
-    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+    deviceState.setActivityManager { args: List<String>, shellCommandOutput: ShellCommandOutput ->
       val wholeCommand = args.joinToString(" ")
 
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> serviceOutput.writeStdout(
+        checkVersion -> shellCommandOutput.writeStdout(
           "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
           "Broadcast completed: result=1, data=\"3\"")
-        addTile -> serviceOutput.writeStdout(failedResponse)
+        addTile -> shellCommandOutput.writeStdout(failedResponse)
       }
     }
 
@@ -197,13 +197,13 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
     val receivedAmCommands = ArrayList<String>()
 
-    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+    deviceState.setActivityManager { args: List<String>, shellCommandOutput: ShellCommandOutput ->
       val wholeCommand = args.joinToString(" ")
 
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> serviceOutput.writeStdout(
+        checkVersion -> shellCommandOutput.writeStdout(
           "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
           "Broadcast completed: result=1, data=\"3\"")
       }
@@ -246,23 +246,23 @@ class AndroidTileConfigurationExecutorTest : AndroidConfigurationExecutorBaseTes
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
     val receivedAmCommands = ArrayList<String>()
 
-    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+    deviceState.setActivityManager { args: List<String>, shellCommandOutput: ShellCommandOutput ->
       val wholeCommand = args.joinToString(" ")
 
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> serviceOutput.writeStdout(
+        checkVersion -> shellCommandOutput.writeStdout(
           "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
           "Broadcast completed: result=1, data=\"3\"")
         addTile -> {
           deviceState.startClient(1234, 1235, appId, true)
-          serviceOutput.writeStdout("Broadcast completed: result=1, data=\"Index=[101]\"")
+          shellCommandOutput.writeStdout("Broadcast completed: result=1, data=\"Index=[101]\"")
         }
-        setDebugAppBroadcast -> serviceOutput.writeStdout("Broadcast completed: result=2, data=\"Failed to set up the debug app\"")
+        setDebugAppBroadcast -> shellCommandOutput.writeStdout("Broadcast completed: result=2, data=\"Failed to set up the debug app\"")
         removeTile -> {
           deviceState.stopClient(1234)
-          serviceOutput.writeStdout("Broadcast completed: result=1")
+          shellCommandOutput.writeStdout("Broadcast completed: result=1")
         }
         clearDebugAppBroadcast -> processTerminatedLatch.countDown()
         clearDebugAppAm -> processTerminatedLatch.countDown()

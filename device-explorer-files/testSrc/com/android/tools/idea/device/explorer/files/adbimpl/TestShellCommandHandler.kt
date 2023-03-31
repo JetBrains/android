@@ -20,7 +20,7 @@ import com.android.ddmlib.ShellCommandUnresponsiveException
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.ShellProtocolType
-import com.android.fakeadbserver.services.ServiceOutput
+import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.fakeadbserver.shellcommandhandlers.ShellHandler
 import com.android.fakeadbserver.shellcommandhandlers.StatusWriter
 import java.lang.Thread.sleep
@@ -38,7 +38,7 @@ class TestShellCommandHandler(shellProtocolType: ShellProtocolType, val shellCom
 
   override fun execute(fakeAdbServer: FakeAdbServer,
                        statusWriter: StatusWriter,
-                       serviceOutput: ServiceOutput,
+                       shellCommandOutput: ShellCommandOutput,
                        device: DeviceState,
                        shellCommand: String,
                        shellCommandArgs: String?) {
@@ -48,17 +48,17 @@ class TestShellCommandHandler(shellProtocolType: ShellProtocolType, val shellCom
     when (result.error) {
       is ShellCommandUnresponsiveException -> {
         statusWriter.writeOk()
-        serviceOutput.writeStdout("Starting output...")
+        shellCommandOutput.writeStdout("Starting output...")
         sleep(DdmPreferences.getTimeOut() + 1000L)
         return
       }
       null -> {
         statusWriter.writeOk()
-        serviceOutput.writeStdout(checkNotNull(result.output))
+        shellCommandOutput.writeStdout(checkNotNull(result.output))
       }
       else -> {
         statusWriter.writeFail()
-        serviceOutput.writeStdout(result.error.toString())
+        shellCommandOutput.writeStdout(result.error.toString())
       }
     }
   }

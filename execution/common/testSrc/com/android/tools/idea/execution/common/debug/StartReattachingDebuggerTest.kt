@@ -20,7 +20,7 @@ import com.android.ddmlib.AndroidDebugBridge.IDeviceChangeListener
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.FakeAdbTestRule
 import com.android.fakeadbserver.DeviceState
-import com.android.fakeadbserver.services.ServiceOutput
+import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.execution.common.debug.impl.java.AndroidJavaDebugger
@@ -170,7 +170,7 @@ class StartReattachingDebuggerTest {
 
     val latch = CountDownLatch(1)
 
-    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+    deviceState.setActivityManager { args: List<String>, shellCommandOutput: ShellCommandOutput ->
       val wholeCommand = args.joinToString(" ")
 
 

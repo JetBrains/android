@@ -16,7 +16,7 @@
 package com.android.tools.idea.run.configuration.execution
 
 import com.android.ddmlib.AndroidDebugBridge
-import com.android.fakeadbserver.services.ServiceOutput
+import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.deployer.DeployerException
@@ -71,17 +71,17 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
     val receivedAmCommands = ArrayList<String>()
 
-    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+    deviceState.setActivityManager { args: List<String>, shellCommandOutput: ShellCommandOutput ->
       val wholeCommand = args.joinToString(" ")
 
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> serviceOutput.writeStdout(
+        checkVersion -> shellCommandOutput.writeStdout(
           "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
           "Broadcast completed: result=1, data=\"3\"")
 
-        setWatchFace -> serviceOutput.writeStdout(
+        setWatchFace -> shellCommandOutput.writeStdout(
           "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
           "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\"")
       }
@@ -129,30 +129,30 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     val receivedAmCommands = ArrayList<String>()
     val processTerminatedLatch = CountDownLatch(1)
 
-    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+    deviceState.setActivityManager { args: List<String>, shellCommandOutput: ShellCommandOutput ->
       val wholeCommand = args.joinToString(" ")
 
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> serviceOutput.writeStdout(
+        checkVersion -> shellCommandOutput.writeStdout(
           "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
           "Broadcast completed: result=1, data=\"3\"")
         // clearDebugAppBroadcast -> serviceOutput.writeStdout("")
         clearDebugAppAm -> {
-          serviceOutput.writeStdout("")
+          shellCommandOutput.writeStdout("")
           processTerminatedLatch.countDown()
         }
         setWatchFace -> {
           deviceState.startClient(1234, 1235, appId, true)
-          serviceOutput.writeStdout(
+          shellCommandOutput.writeStdout(
             "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
             "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\"")
         }
 
         unsetWatchFace -> {
           deviceState.stopClient(1234)
-          serviceOutput.writeStdout("Broadcast completed: result=1")
+          shellCommandOutput.writeStdout("Broadcast completed: result=1")
         }
       }
     }
@@ -211,11 +211,11 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
 
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
 
-    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+    deviceState.setActivityManager { args: List<String>, shellCommandOutput: ShellCommandOutput ->
       val wholeCommand = args.joinToString(" ")
 
       when (wholeCommand) {
-        checkVersion -> serviceOutput.writeStdout("Broadcast completed: result=1, data=\"3\"")
+        checkVersion -> shellCommandOutput.writeStdout("Broadcast completed: result=1, data=\"3\"")
       }
     }
 
@@ -259,7 +259,7 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
     val receivedAmCommands = ArrayList<String>()
 
-    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+    deviceState.setActivityManager { args: List<String>, shellCommandOutput: ShellCommandOutput ->
       val wholeCommand = args.joinToString(" ")
 
       receivedAmCommands.add(wholeCommand)
@@ -269,24 +269,24 @@ class AndroidWatchFaceConfigurationExecutorTest : AndroidConfigurationExecutorBa
           deviceState.stopClient(1234)
           processTerminatedLatch.countDown()
         }
-        checkVersion -> serviceOutput.writeStdout(
+        checkVersion -> shellCommandOutput.writeStdout(
           "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
           "Broadcast completed: result=1, data=\"3\"")
         // clearDebugAppBroadcast -> serviceOutput.writeStdout("")
         clearDebugAppAm -> {
-          serviceOutput.writeStdout("")
+          shellCommandOutput.writeStdout("")
           processTerminatedLatch.countDown()
         }
         setWatchFace -> {
           deviceState.startClient(1234, 1235, appId, true)
-          serviceOutput.writeStdout(
+          shellCommandOutput.writeStdout(
             "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
             "Broadcast completed: result=1, data=\"Favorite Id=[2] Runtime=[1]\"")
         }
 
         unsetWatchFace -> {
           deviceState.stopClient(1234)
-          serviceOutput.writeStdout("Broadcast completed: result=1")
+          shellCommandOutput.writeStdout("Broadcast completed: result=1")
           processTerminatedLatch.countDown()
         }
       }

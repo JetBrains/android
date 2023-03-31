@@ -17,7 +17,7 @@ package com.android.tools.idea.run.configuration.execution
 
 
 import com.android.ddmlib.AndroidDebugBridge
-import com.android.fakeadbserver.services.ServiceOutput
+import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.testutils.MockitoKt.any
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestResources
@@ -91,18 +91,18 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
     val receivedAmCommands = ArrayList<String>()
 
-    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+    deviceState.setActivityManager { args: List<String>, shellCommandOutput: ShellCommandOutput ->
       val wholeCommand = args.joinToString(" ")
 
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> serviceOutput.writeStdout(
+        checkVersion -> shellCommandOutput.writeStdout(
           "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
           "Broadcast completed: result=1, data=\"2\"")
-        setComplicationSlot1 -> serviceOutput.writeStdout("Broadcast completed: result=1")
-        setComplicationSlot3 -> serviceOutput.writeStdout("Broadcast completed: result=1")
-        showWatchFace -> serviceOutput.writeStdout("Broadcast completed: result=1")
+        setComplicationSlot1 -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
+        setComplicationSlot3 -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
+        showWatchFace -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
       }
     }
 
@@ -183,24 +183,24 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
     val receivedAmCommands = ArrayList<String>()
 
-    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+    deviceState.setActivityManager { args: List<String>, shellCommandOutput: ShellCommandOutput ->
       val wholeCommand = args.joinToString(" ")
 
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> serviceOutput.writeStdout(
+        checkVersion -> shellCommandOutput.writeStdout(
           "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
           "Broadcast completed: result=1, data=\"2\"")
         setComplicationSlot1 -> {
           deviceState.startClient(1234, 1235, appId, true)
-          serviceOutput.writeStdout("Broadcast completed: result=1")
+          shellCommandOutput.writeStdout("Broadcast completed: result=1")
         }
-        setComplicationSlot3 -> serviceOutput.writeStdout("Broadcast completed: result=1")
-        showWatchFace -> serviceOutput.writeStdout("Broadcast completed: result=1")
+        setComplicationSlot3 -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
+        showWatchFace -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
         unsetWatchFace -> {
           deviceState.stopClient(1234)
-          serviceOutput.writeStdout("Broadcast completed: result=1")
+          shellCommandOutput.writeStdout("Broadcast completed: result=1")
         }
 
         clearDebugAppAm -> processTerminatedLatch.countDown()
@@ -285,19 +285,19 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
     val receivedAmCommands = ArrayList<String>()
 
-    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+    deviceState.setActivityManager { args: List<String>, shellCommandOutput: ShellCommandOutput ->
       val wholeCommand = args.joinToString(" ")
 
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> serviceOutput.writeStdout(
+        checkVersion -> shellCommandOutput.writeStdout(
           "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
           "Broadcast completed: result=1, data=\"2\"")
-        setComplicationSlot1 -> serviceOutput.writeStdout("Broadcast completed: result=1")
-        setComplicationSlot3 -> serviceOutput.writeStdout("Broadcast completed: result=1")
+        setComplicationSlot1 -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
+        setComplicationSlot3 -> shellCommandOutput.writeStdout("Broadcast completed: result=1")
         // Unsuccessful show watchface case.
-        showWatchFace -> serviceOutput.writeStdout("Broadcast completed: result=2")
+        showWatchFace -> shellCommandOutput.writeStdout("Broadcast completed: result=2")
       }
     }
 
@@ -360,17 +360,17 @@ class AndroidComplicationConfigurationExecutorTest : AndroidConfigurationExecuto
     val deviceState = fakeAdbRule.connectAndWaitForDevice()
     val receivedAmCommands = ArrayList<String>()
 
-    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+    deviceState.setActivityManager { args: List<String>, shellCommandOutput: ShellCommandOutput ->
       val wholeCommand = args.joinToString(" ")
 
       receivedAmCommands.add(wholeCommand)
 
       when (wholeCommand) {
-        checkVersion -> serviceOutput.writeStdout(
+        checkVersion -> shellCommandOutput.writeStdout(
           "Broadcasting: Intent { act=com.google.android.wearable.app.DEBUG_SURFACE flg=0x400000 (has extras) }\n" +
           "Broadcast completed: result=1, data=\"3\"")
         // Unsuccessful result
-        setComplicationSlot1 -> serviceOutput.writeStdout(failedResponse)
+        setComplicationSlot1 -> shellCommandOutput.writeStdout(failedResponse)
       }
     }
 

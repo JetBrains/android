@@ -14,7 +14,7 @@ import com.android.adblib.tools.debugging.jdwpProcessTracker
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.DeviceState.HostConnectionType.USB
 import com.android.fakeadbserver.services.Service
-import com.android.fakeadbserver.services.ServiceOutput
+import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
 import com.android.tools.idea.logcat.LogcatPresenter
@@ -323,11 +323,11 @@ class TerminateAppActionsTest {
   private class ActivityManagerService : Service {
     val commands = Channel<String?>()
 
-    override fun process(args: List<String>, serviceOutput: ServiceOutput) {
+    override fun process(args: List<String>, shellCommandOutput: ShellCommandOutput) {
       runBlocking {
         commands.send(args.joinToString(" ") { it })
       }
-      serviceOutput.writeExitCode(0)
+      shellCommandOutput.writeExitCode(0)
     }
   }
 }
