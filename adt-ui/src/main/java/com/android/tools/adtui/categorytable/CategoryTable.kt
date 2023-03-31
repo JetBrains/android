@@ -43,8 +43,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 
@@ -104,7 +102,7 @@ class CategoryTable<T : Any>(
   var columnSorters: List<ColumnSortOrder<T>> = emptyList()
     private set
 
-  private val collapsedNodes = MutableStateFlow(emptySet<CategoryList<T>>())
+  private val collapsedNodes = mutableSetOf<CategoryList<T>>()
 
   val selection = CategoryTableSingleSelection(this)
 
@@ -180,12 +178,6 @@ class CategoryTable<T : Any>(
     scope.launch {
       // TODO: Make this efficient
       selection.asFlow().collect { selectedKeys -> updateTablePresentation(selectedKeys) }
-    }
-    scope.launch {
-      collapsedNodes.collect { collapsedNodes ->
-        categoryRows.values.forEach { it.isExpanded = !collapsedNodes.contains(it.path) }
-        updateComponents()
-      }
     }
   }
 
@@ -353,8 +345,8 @@ class CategoryTable<T : Any>(
     var collapsedParentCount = 0
     for (value in values) {
       // Remove categories that no longer apply.
-      while (categoryList.isNotEmpty() && !categoryList.all { it.matches(value) }) {
-        if (collapsedNodes.value.contains(categoryList)) {
+      while (categoryList.isNotEmpty() && !categoryList.matches(value)) {
+        if (collapsedNodes.contains(categoryList)) {
           collapsedParentCount--
         }
         categoryList = categoryList.subList(0, categoryList.size - 1)
@@ -371,7 +363,7 @@ class CategoryTable<T : Any>(
         newRowComponents.add(categoryRow)
         categoryRow.isVisible = collapsedParentCount == 0
 
-        val isCollapsed = collapsedNodes.value.contains(categoryList)
+        val isCollapsed = collapsedNodes.contains(categoryList)
         categoryRow.isExpanded = !isCollapsed
         if (isCollapsed) {
           collapsedParentCount++
@@ -416,18 +408,26 @@ class CategoryTable<T : Any>(
     }
 
   fun setCollapsed(path: CategoryList<T>, collapsed: Boolean) {
-    collapsedNodes.update { if (collapsed) it.plusElement(path) else it.minusElement(path) }
+    updateCollapsedNodes { if (collapsed) add(path) else remove(path) }
   }
 
   fun toggleCollapsed(path: CategoryList<T>) {
-    collapsedNodes.update { nodes ->
+    updateCollapsedNodes {
       when {
-        // Overload resolution picks the wrong option for "nodes - path"
-        nodes.contains(path) -> nodes.minusElement(path)
-        else -> nodes.plusElement(path)
+        contains(path) -> remove(path)
+        else -> add(path)
       }
     }
   }
+
+  private fun updateCollapsedNodes(update: MutableSet<CategoryList<T>>.() -> Unit) {
+    collapsedNodes.update()
+    categoryRows.values.forEach { it.isExpanded = !collapsedNodes.contains(it.path) }
+    updateComponents()
+  }
+
+  private fun CategoryList<T>.matches(value: T) =
+    all { it.matches(value) }
 
   private fun invalidateRows() {
     rowComponents.forEach { it.invalidate() }

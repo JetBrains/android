@@ -237,6 +237,40 @@ class CategoryTableTest {
 
   @Test
   @RunsInEdt
+  fun collapsedRows() {
+    val table = CategoryTable(CategoryTableDemo.columns)
+    val scrollPane = createScrollPane(table)
+    val fakeUi = FakeUi(scrollPane)
+
+    CategoryTableDemo.devices.forEach { table.addRow(it) }
+    table.addGrouping(Status.attribute)
+
+    fakeUi.layout()
+
+    val categoryRow = table.rowComponents[0] as CategoryRowComponent<CategoryTableDemo.Device>
+    val category2Row = table.rowComponents[4] as CategoryRowComponent<CategoryTableDemo.Device>
+    val row2Position = fakeUi.getPosition(table.rowComponents[1])
+    val category2Position = fakeUi.getPosition(category2Row)
+
+    assertThat(table.rowComponents[1].isVisible).isTrue()
+
+    fakeUi.clickOn(categoryRow)
+    fakeUi.layout()
+
+    assertThat(table.rowComponents[1].isVisible).isFalse()
+    assertThat(table.rowComponents[2].isVisible).isFalse()
+    assertThat(fakeUi.getPosition(category2Row)).isEqualTo(row2Position)
+
+    fakeUi.clickOn(categoryRow)
+    fakeUi.layout()
+
+    assertThat(table.rowComponents[1].isVisible).isTrue()
+    assertThat(table.rowComponents[2].isVisible).isTrue()
+    assertThat(fakeUi.getPosition(category2Row)).isEqualTo(category2Position)
+  }
+
+  @Test
+  @RunsInEdt
   fun rowDataContext() {
     TestApplicationManager.getInstance()
     HeadlessDataManager.fallbackToProductionDataManager(disposableRule.disposable)
