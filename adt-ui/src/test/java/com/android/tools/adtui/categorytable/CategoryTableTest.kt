@@ -288,4 +288,60 @@ class CategoryTableTest {
 
     assertThat(data).isEqualTo(CategoryTableDemo.devices[0])
   }
+
+  @Test
+  @RunsInEdt
+  fun hiddenRows() {
+    val table = CategoryTable(CategoryTableDemo.columns)
+    val scrollPane = createScrollPane(table)
+    val fakeUi = FakeUi(scrollPane)
+
+    CategoryTableDemo.devices.forEach { table.addRow(it) }
+    fakeUi.layout()
+
+    val position = fakeUi.getPosition(table.rowComponents[1])
+
+    table.setRowVisibleByKey(CategoryTableDemo.devices[1], false)
+    fakeUi.layout()
+
+    assertThat(fakeUi.getPosition(table.rowComponents[2])).isEqualTo(position)
+
+    table.setRowVisibleByKey(CategoryTableDemo.devices[1], true)
+    fakeUi.layout()
+
+    assertThat(fakeUi.getPosition(table.rowComponents[2])).isNotEqualTo(position)
+  }
+
+  @Test
+  @RunsInEdt
+  fun hiddenCollapsedRows() {
+    val table = CategoryTable(CategoryTableDemo.columns)
+    val scrollPane = createScrollPane(table)
+    val fakeUi = FakeUi(scrollPane)
+
+    CategoryTableDemo.devices.forEach { table.addRow(it) }
+    table.addGrouping(Status.attribute)
+    fakeUi.layout()
+
+    val categoryRow = table.rowComponents[0] as CategoryRowComponent<CategoryTableDemo.Device>
+    fakeUi.clickOn(categoryRow)
+    fakeUi.layout()
+
+    assertThat(table.rowComponents[1].isVisible).isFalse()
+
+    // Setting visibility of a collapsed row does not make it visible
+    val value = (table.rowComponents[1] as ValueRowComponent<CategoryTableDemo.Device>).value
+    table.setRowVisibleByKey(value, true)
+
+    assertThat(table.rowComponents[1].isVisible).isFalse()
+
+    // Un-collapsing an invisible row does not make it visible
+    table.setRowVisibleByKey(value, false)
+
+    fakeUi.clickOn(categoryRow)
+    fakeUi.layout()
+
+    assertThat(table.rowComponents[1].isVisible).isFalse()
+    assertThat(table.rowComponents[2].isVisible).isTrue()
+  }
 }

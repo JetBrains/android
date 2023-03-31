@@ -94,6 +94,8 @@ class CategoryTable<T : Any>(
   /** ValueRowComponents indexed by their primary key. These are reused when the value changes. */
   private val valueRows = mutableMapOf<Any, ValueRowComponent<T>>()
 
+  private val hiddenRows = mutableSetOf<Any>()
+
   /** The attributes we are grouping by, in order. */
   var groupByAttributes: AttributeList<T> = emptyList()
     private set
@@ -289,7 +291,11 @@ class CategoryTable<T : Any>(
 
   /** Removes the row (i.e. the row with the same primary key as the given value) from the table. */
   fun removeRow(rowValue: T) {
-    val key = primaryKey(rowValue)
+    removeRowByKey(primaryKey(rowValue))
+  }
+
+  /** Removes the row with the given primary key from the table. */
+  fun removeRowByKey(key: Any) {
     updateValues { it.filterNot { primaryKey(it) == key } }
     valueRows.remove(key)?.let { remove(it) }
     updateComponents()
@@ -373,7 +379,7 @@ class CategoryTable<T : Any>(
       // Update the ValueRow with the new values.
       valueRows[primaryKey(value)]?.apply {
         this.value = value
-        isVisible = collapsedParentCount == 0
+        isVisible = !hiddenRows.contains(primaryKey(value)) && collapsedParentCount == 0
         newRowComponents.add(this)
       }
     }
@@ -432,6 +438,15 @@ class CategoryTable<T : Any>(
   private fun invalidateRows() {
     rowComponents.forEach { it.invalidate() }
     revalidate()
+  }
+
+  fun setRowVisibleByKey(key: Any, visible: Boolean) {
+    when {
+      visible -> hiddenRows.remove(key)
+      else -> hiddenRows.add(key)
+    }
+    val row = valueRows[key] ?: return
+    row.isVisible = visible && collapsedNodes.none { it.matches(row.value) }
   }
 
   private fun Column.SizeConstraint.toSizeRequirements() = SizeRequirements(min, preferred, max, 0f)
