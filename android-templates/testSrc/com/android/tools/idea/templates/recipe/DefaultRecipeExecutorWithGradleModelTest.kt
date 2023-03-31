@@ -325,6 +325,192 @@ org-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.re
     verifyFileContents(myBuildFile, TestFile.APPLY_PLUGIN_BUILD_FILE)
   }
 
+  @Test
+  fun testAddAgpPlugin_noAgpPluginHasNotDeclared() {
+    writeToSettingsFile("""
+pluginManagement {
+  plugins {
+  }
+}
+"""
+    )
+    writeToVersionCatalogFile("""
+[versions]
+[libraries]
+[plugins]
+    """)
+
+    recipeExecutor.applyPlugin("com.android.application", "8.0.0")
+
+    applyChanges(recipeExecutor.projectBuildModel!!)
+
+    verifyFileContents(myVersionCatalogFile, """
+[versions]
+agp = "8.0.0"
+[libraries]
+[plugins]
+com-android-application = { id = "com.android.application", version.ref = "agp" }
+    """)
+  }
+
+  @Test
+  fun testAddAgpPlugin_anotherAgpPluginHasDeclared() {
+    writeToSettingsFile("""
+pluginManagement {
+  plugins {
+  }
+}
+    """)
+    writeToVersionCatalogFile("""
+[versions]
+agp = "8.0.0"
+[libraries]
+[plugins]
+com-android-application = { id = "com.android.application", version.ref = "agp" }
+    """)
+
+    recipeExecutor.applyPlugin("com.android.library", "8.0.0")
+
+    applyChanges(recipeExecutor.projectBuildModel!!)
+
+    verifyFileContents(myVersionCatalogFile, """
+[versions]
+agp = "8.0.0"
+[libraries]
+[plugins]
+com-android-application = { id = "com.android.application", version.ref = "agp" }
+com-android-library = { id = "com.android.library", version.ref = "agp" }
+    """)
+  }
+
+  @Test
+  fun testAddAgpPlugin_anotherAgpPluginHasDeclaredInDifferentVersion() {
+    writeToSettingsFile("""
+pluginManagement {
+  plugins {
+  }
+}
+    """)
+    writeToVersionCatalogFile("""
+[versions]
+agp = "8.0.0"
+[libraries]
+[plugins]
+com-android-application = { id = "com.android.application", version.ref = "agp" }
+    """)
+
+    // Apply a plugin with the different version from the existing agp version in the catalog
+    recipeExecutor.applyPlugin("com.android.library", "8.0.0-beta04")
+
+    applyChanges(recipeExecutor.projectBuildModel!!)
+
+    // Existing agp version is respected
+    verifyFileContents(myVersionCatalogFile, """
+[versions]
+agp = "8.0.0"
+[libraries]
+[plugins]
+com-android-application = { id = "com.android.application", version.ref = "agp" }
+com-android-library = { id = "com.android.library", version.ref = "agp" }
+    """)
+  }
+
+  @Test
+  fun testAddAgpPlugin_anotherAgpPluginHasDeclared_withDifferentNameFromDefault() {
+    writeToSettingsFile("""
+pluginManagement {
+  plugins {
+  }
+}
+    """)
+    // Another AGP plugin is declared with the version name different from the default
+    writeToVersionCatalogFile("""
+[versions]
+agp-version = "8.0.0"
+[libraries]
+[plugins]
+com-android-application = { id = "com.android.application", version.ref = "agp-version" }
+    """)
+
+    recipeExecutor.applyPlugin("com.android.library", "8.0.0-beta04")
+
+    applyChanges(recipeExecutor.projectBuildModel!!)
+
+    // The new declared plugin will use the same version name as the existing one
+    verifyFileContents(myVersionCatalogFile, """
+[versions]
+agp-version = "8.0.0"
+[libraries]
+[plugins]
+com-android-application = { id = "com.android.application", version.ref = "agp-version" }
+com-android-library = { id = "com.android.library", version.ref = "agp-version" }
+    """)
+  }
+
+  @Test
+  fun testAddAgpPlugin_anotherAgpPluginHasDeclared_inLiteral() {
+    writeToSettingsFile("""
+pluginManagement {
+  plugins {
+  }
+}
+    """)
+    // Existing AGP plugin's version is written as a string literal
+    writeToVersionCatalogFile("""
+[versions]
+[libraries]
+[plugins]
+com-android-application = { id = "com.android.application", version = "8.0.0" }
+    """)
+
+    recipeExecutor.applyPlugin("com.android.library", "8.0.0-beta04")
+
+    applyChanges(recipeExecutor.projectBuildModel!!)
+
+    // Version in literal isn't touched. The new version entry named "agp" is created instead.
+    verifyFileContents(myVersionCatalogFile, """
+[versions]
+agp = "8.0.0-beta04"
+[libraries]
+[plugins]
+com-android-application = { id = "com.android.application", version = "8.0.0" }
+com-android-library = { id = "com.android.library", version.ref = "agp" }
+    """)
+  }
+
+  @Test
+  fun testAddAgpPlugin_differentPluginUseDefaultNameForAgp() {
+    writeToSettingsFile("""
+pluginManagement {
+  plugins {
+  }
+}
+    """)
+    // Another plugin already use the default name ("agp") for AGP plugins
+    writeToVersionCatalogFile("""
+[versions]
+agp = "1.0.0"
+[libraries]
+[plugins]
+fake-plugin = { id = "fake.plugin", version.ref = "agp" }
+    """)
+
+    recipeExecutor.applyPlugin("com.android.library", "8.0.0")
+
+    applyChanges(recipeExecutor.projectBuildModel!!)
+
+    // Different name is picked for the declared AGP plugin
+    verifyFileContents(myVersionCatalogFile, """
+[versions]
+agp = "1.0.0"
+agp2 = "8.0.0"
+[libraries]
+[plugins]
+fake-plugin = { id = "fake.plugin", version.ref = "agp" }
+com-android-library = { id = "com.android.library", version.ref = "agp2" }
+    """)
+  }
+
   enum class TestFile(private val path: @SystemDependent String) : TestFileName {
     VERSION_CATALOG_ADD_DEPENDENCY("versionCatalogAddDependency"),
     VERSION_CATALOG_ADD_DEPENDENCY_AVOID_SAME_NAME("versionCatalogAddDependencyAvoidSameName"),
