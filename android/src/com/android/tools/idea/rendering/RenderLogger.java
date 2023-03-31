@@ -171,9 +171,8 @@ public class RenderLogger implements IRenderLogger {
   /**
    * Construct a logger for the given named layout. Don't call this method directly; obtain via {@link RenderService}.
    */
-  @VisibleForTesting
-  public RenderLogger(@Nullable Project module) {
-    this(module, null, false, RenderProblem.NOOP_RUNNABLE_FIX_FACTORY);
+  public RenderLogger(@Nullable Project project) {
+    this(project, null, false, RenderProblem.NOOP_RUNNABLE_FIX_FACTORY);
   }
 
   @VisibleForTesting
