@@ -29,9 +29,9 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-public class HtmlLinkManagerTest extends PlatformTestCase {
+public class StudioHtmlLinkManagerTest extends PlatformTestCase {
   public void testRunnable() {
-    HtmlLinkManager manager = new HtmlLinkManager();
+    StudioHtmlLinkManager manager = new StudioHtmlLinkManager();
     final AtomicBoolean result1 = new AtomicBoolean(false);
     final AtomicBoolean result2 = new AtomicBoolean(false);
     Runnable runnable1 = new Runnable() {
@@ -75,18 +75,18 @@ public class HtmlLinkManagerTest extends PlatformTestCase {
     TestDialogManager.setTestDialog(testDialog);
 
     // try multiple invalid links
-    HtmlLinkManager.handleAddDependency("addDependency:", myModule);
-    HtmlLinkManager.handleAddDependency("addDependency:com.android.support", myModule);
-    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:", myModule);
-    HtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:palette-v7", myModule);
+    StudioHtmlLinkManager.handleAddDependency("addDependency:", myModule);
+    StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support", myModule);
+    StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support:", myModule);
+    StudioHtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:palette-v7", myModule);
     assertThat(dialogMessage[0]).isEqualTo("Can't find com.google.android.gms:palette-v7:+");
-    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7-broken", myModule);
+    StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7-broken", myModule);
     assertThat(dialogMessage[0]).isEqualTo("Can't find com.android.support:palette-v7-broken:+");
     assertThat(testProjectSystem.getAddedDependencies(myModule)).isEmpty();
 
-    HtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7", myModule);
-    HtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:play-services", myModule);
-    HtmlLinkManager.handleAddDependency("addDependency:com.android.support.constraint:constraint-layout", myModule);
+    StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support:palette-v7", myModule);
+    StudioHtmlLinkManager.handleAddDependency("addDependency:com.google.android.gms:play-services", myModule);
+    StudioHtmlLinkManager.handleAddDependency("addDependency:com.android.support.constraint:constraint-layout", myModule);
     assertThat(
       testProjectSystem.getAddedDependencies(myModule).stream()
                        .map(artifact -> artifact.getGroupId() + ":" + artifact.getArtifactId())

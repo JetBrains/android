@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 public interface IRenderLogger extends ILayoutLog {
   /** Empty logger producing no side effects. */
   IRenderLogger NULL_LOGGER = new IRenderLogger() {
-    private final HtmlLinkManager myLinkManager = new HtmlLinkManager();
+    private final StudioHtmlLinkManager myLinkManager = new StudioHtmlLinkManager();
 
     @Override
     public void addMessage(@NotNull RenderProblem message) {
@@ -53,7 +53,7 @@ public interface IRenderLogger extends ILayoutLog {
 
     @Override
     @NotNull
-    public HtmlLinkManager getLinkManager() {
+    public StudioHtmlLinkManager getLinkManager() {
       return myLinkManager;
     }
   };
@@ -71,5 +71,5 @@ public interface IRenderLogger extends ILayoutLog {
   void setMissingResourceClass();
 
   @NotNull
-  HtmlLinkManager getLinkManager();
+  StudioHtmlLinkManager getLinkManager();
 }

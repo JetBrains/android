@@ -148,7 +148,7 @@ public class RenderLogger implements IRenderLogger {
   private String myResourceClass;
   private boolean myMissingResourceClass;
   private boolean myHasLoadedClasses;
-  private HtmlLinkManager myLinkManager;
+  private StudioHtmlLinkManager myLinkManager;
   private boolean myMissingSize;
   private List<String> myMissingFragments;
   private Object myCredential;
@@ -488,7 +488,7 @@ public class RenderLogger implements IRenderLogger {
         if (lineNumber != -1) {
           builder.add(" (");
           File file = new File(path);
-          String url = HtmlLinkManager.createFilePositionUrl(file, lineNumber, column);
+          String url = StudioHtmlLinkManager.createFilePositionUrl(file, lineNumber, column);
           if (url != null) {
             builder.addLink("Show", url);
             builder.add(")");
@@ -665,9 +665,9 @@ public class RenderLogger implements IRenderLogger {
 
   @Override
   @NotNull
-  public HtmlLinkManager getLinkManager() {
+  public StudioHtmlLinkManager getLinkManager() {
     if (myLinkManager == null) {
-      myLinkManager = new HtmlLinkManager();
+      myLinkManager = new StudioHtmlLinkManager();
     }
     return myLinkManager;
   }

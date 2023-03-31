@@ -56,7 +56,7 @@ public abstract class RenderProblem implements Comparable<RenderProblem> {
   public static RenderProblem createPlain(@NotNull ProblemSeverity severity,
                                           @NotNull String message,
                                           @Nullable Project project,
-                                          @NotNull HtmlLinkManager linkManager,
+                                          @NotNull StudioHtmlLinkManager linkManager,
                                           @Nullable Throwable throwable,
                                           @NotNull RunnableFixFactory fixFactory) {
     Html problem = new Html(severity, ourNextOrdinal++);

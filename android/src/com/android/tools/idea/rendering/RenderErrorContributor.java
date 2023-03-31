@@ -125,7 +125,7 @@ public class RenderErrorContributor {
   private static final String APP_COMPAT_REQUIRED_MSG = "You need to use a Theme.AppCompat";
 
   private final Set<RenderErrorModel.Issue> myIssues = new LinkedHashSet<>();
-  private final HtmlLinkManager myLinkManager;
+  private final StudioHtmlLinkManager myLinkManager;
   private final HyperlinkListener myLinkHandler;
   @NotNull private final Module myModule;
   @NotNull protected final PsiFile mySourceFile;
@@ -341,7 +341,7 @@ public class RenderErrorContributor {
 
   private static void addHtmlForIssue164378(@NotNull Throwable throwable,
                                             Project project,
-                                            HtmlLinkManager linkManager,
+                                            StudioHtmlLinkManager linkManager,
                                             HtmlBuilder builder,
                                             boolean addShowExceptionLink) {
     builder.add("Rendering failed with a known bug. ");
@@ -561,7 +561,7 @@ public class RenderErrorContributor {
                 }
               }
               if (classFile != null) {
-                url = HtmlLinkManager.createFilePositionUrl(classFile, lineNumber, 0);
+                url = StudioHtmlLinkManager.createFilePositionUrl(classFile, lineNumber, 0);
               }
             }
           }
@@ -580,7 +580,7 @@ public class RenderErrorContributor {
       String text = Throwables.getStackTraceAsString(throwable);
       try {
         CopyPasteManager.getInstance().setContents(new StringSelection(text));
-        HtmlLinkManager.showNotification("Stack trace copied to clipboard");
+        StudioHtmlLinkManager.showNotification("Stack trace copied to clipboard");
       }
       catch (Exception ignore) {
       }
@@ -1257,7 +1257,7 @@ public class RenderErrorContributor {
     return getIssues();
   }
 
-  protected HtmlLinkManager getLinkManager() {
+  protected StudioHtmlLinkManager getLinkManager() {
     return myLinkManager;
   }
 

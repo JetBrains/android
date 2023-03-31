@@ -104,7 +104,7 @@ import org.jetbrains.android.uipreview.ChooseClassDialog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class HtmlLinkManager {
+public class StudioHtmlLinkManager {
   private static final String URL_EDIT_CLASSPATH = "action:classpath";
   private static final String URL_BUILD = "action:build";
   private static final String URL_SYNC = "action:sync";
@@ -130,7 +130,7 @@ public class HtmlLinkManager {
   private SparseArray<CommandLink> myLinkCommands;
   private int myNextLinkId = 0;
 
-  public HtmlLinkManager() {
+  public StudioHtmlLinkManager() {
   }
 
   /**
@@ -285,7 +285,7 @@ public class HtmlLinkManager {
     }
     catch (MalformedURLException e) {
       // Ignore
-      Logger.getInstance(HtmlLinkManager.class).error(e);
+      Logger.getInstance(StudioHtmlLinkManager.class).error(e);
       return null;
     }
   }
@@ -972,13 +972,13 @@ public class HtmlLinkManager {
     String coordinateStr = url.substring(URL_ADD_DEPENDENCY.length());
     GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(coordinateStr + ":+");
     if (coordinate == null) {
-      Logger.getInstance(HtmlLinkManager.class).warn("Invalid coordinate " + coordinateStr);
+      Logger.getInstance(StudioHtmlLinkManager.class).warn("Invalid coordinate " + coordinateStr);
       return;
     }
     if (DependencyManagementUtil.addDependenciesWithUiConfirmation(module, Collections.singletonList(coordinate), false, false)
                                 .isEmpty()) {
       return;
     }
-    Logger.getInstance(HtmlLinkManager.class).warn("Could not add dependency " + coordinate);
+    Logger.getInstance(StudioHtmlLinkManager.class).warn("Could not add dependency " + coordinate);
   }
 }

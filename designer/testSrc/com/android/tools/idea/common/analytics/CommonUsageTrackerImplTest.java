@@ -23,7 +23,7 @@ import com.android.ide.common.rendering.api.Result;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.Configuration;
-import com.android.tools.idea.rendering.HtmlLinkManager;
+import com.android.tools.idea.rendering.StudioHtmlLinkManager;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderResultStats;
@@ -82,7 +82,7 @@ public class CommonUsageTrackerImplTest extends BaseUsageTrackerImplTest {
 
     Result renderResult = mock (Result.class);
     when(renderResult.getStatus()).thenReturn(Result.Status.SUCCESS);
-    HtmlLinkManager linkManager = mock(HtmlLinkManager.class);
+    StudioHtmlLinkManager linkManager = mock(StudioHtmlLinkManager.class);
     RenderLogger logger = mock(RenderLogger.class);
     when(logger.getLinkManager()).thenReturn(linkManager);
     ImmutableMap<String, Throwable> brokenClasses = ImmutableMap.of("com.test.mock", new Throwable("mock error"));
