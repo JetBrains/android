@@ -21,15 +21,20 @@ import com.intellij.openapi.editor.markup.GutterIconRenderer
 import icons.StudioIcons
 import javax.swing.Icon
 
+/**
+ * Provides the rendering for app insights gutter popups.
+ *
+ * Supports multiple sources of gutter insights grouped by the key in [insights].
+ */
 data class AppInsightsGutterRenderer(
-  val insights: List<AppInsight>,
-  val itemChosenCallback: (AppInsight) -> Unit
+  val insights: Map<String, List<AppInsight>>,
+  val itemChosenCallback: (AppInsight, String) -> Unit
 ) : GutterIconRenderer() {
 
   override fun getIcon(): Icon = StudioIcons.AppQualityInsights.ISSUE
 
   override fun getTooltipText(): String {
-    val eventsCount = insights.sumOf { it.issue.issueDetails.eventsCount }
+    val eventsCount = insights.flatMap { it.value }.sumOf { it.issue.issueDetails.eventsCount }
     val issuesCount = insights.size
 
     val eventsString =

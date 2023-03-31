@@ -68,6 +68,9 @@ class VitalsTabProvider : AppInsightsTabProvider {
 
   override fun isApplicable() = StudioFlags.PLAY_VITALS_ENABLED.get()
 
+  override fun getConfigurationManager(project: Project) =
+    project.service<VitalsConfigurationManager>()
+
   // TODO(b/274775776): implement 0 state screen
   private fun placeholderContent(): JPanel =
     object : JPanel() {
