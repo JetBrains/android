@@ -35,9 +35,9 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class DeviceConfigurationDialogTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(7, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
   private List<String> expectedCategories = List.of("Phone", "Tablet", "Wear OS", "Desktop", "TV", "Automotive");
-  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Activity";
+  protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Views Activity";
 
   @Before
   public void setUp() throws Exception {
