@@ -22,6 +22,7 @@ import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.ThreadState
 import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeFactory
+import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel.Companion.isPowerRailShown
 import java.util.concurrent.TimeUnit
 import java.util.function.UnaryOperator
 import kotlin.math.max
@@ -224,7 +225,7 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
   }
 
   private fun buildPowerRailCountersData(): Map<String, List<SeriesData<Long>>> {
-    return model.getPowerRails().associate {
+    return model.getPowerRails().filter { isPowerRailShown(it.name) }.associate {
       it.name.replace("power.rails.", "") to convertCounterToSeriesData(it)
     }.toSortedMap()
   }

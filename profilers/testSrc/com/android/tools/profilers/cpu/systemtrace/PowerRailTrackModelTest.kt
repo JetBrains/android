@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.systemtrace
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
+import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel.Companion.isPowerRailShown
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -44,6 +45,22 @@ class PowerRailTrackModelTest {
     assertThat(powerRailTrackModel.series.size).isEqualTo(1)
     assertThat(powerRailTrackModel.series[0].yRange.min).isEqualTo(1000.0)
     assertThat(powerRailTrackModel.series[0].yRange.max).isEqualTo(1000.0)
+  }
+
+  @Test
+  fun hiddenPowerRailsDetected() {
+    val powerRails = listOf(
+      "power.foo",
+      "power.rails.aoc.logic",
+      "power.rails.aoc.memory",
+      "power.rails.system.fabric",
+      "power.rails.foo"
+    )
+
+    val hiddenPowerRails = powerRails.filter { isPowerRailShown(it) }
+
+    assertThat(hiddenPowerRails.size).isEqualTo(1)
+    assertThat(hiddenPowerRails).containsAllIn(listOf("power.rails.foo"))
   }
 
   companion object {

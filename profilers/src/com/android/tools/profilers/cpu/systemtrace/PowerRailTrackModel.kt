@@ -49,5 +49,18 @@ class PowerRailTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Range) 
       "power.S10M_VDD_TPU_uws" to "power.rails.tpu",
       "power.VSYS_PWR_DISPLAY_uws" to "power.rails.display"
     )
+
+    // List of filters used to detect power rails that should be hidden.
+    private val powerRailNameFilters = listOf<(String) -> Boolean>(
+      { i -> i.startsWith("power.rails.") },
+      { i -> !i.endsWith("aoc.logic") },
+      { i -> !i.endsWith("aoc.memory") },
+      { i -> !i.endsWith("system.fabric") },
+    )
+
+    // This method runs a power rail name through filters to see if it should be hidden.
+    fun isPowerRailShown(railName: String): Boolean = powerRailNameFilters.fold(true) { filterResult, filter ->
+      filterResult && filter.invoke(railName)
+    }
   }
 }
