@@ -313,6 +313,11 @@ public final class StudioFlags {
     "Allow running accessibility checks for Compose using ATF.",
     false);
 
+  public static final Flag<Boolean> NELE_COMPOSE_UI_CHECK_MODE = Flag.create(
+    NELE, "compose.ui.check.mode", "Enable UI Check mode for Compose preview",
+    "Enable UI Check mode in Compose preview for running ATF checks and Visual Linting",
+    false);
+
   public static final Flag<Boolean> NELE_WARN_NEW_THREADS = Flag.create(
     NELE, "preview.warn.new.threads", "Enable new threads warning",
     "Display a warning if user code creates new threads in the preview",

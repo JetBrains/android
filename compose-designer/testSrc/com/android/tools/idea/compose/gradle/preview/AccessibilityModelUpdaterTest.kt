@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.gradle.preview
 
-import com.android.flags.junit.FlagRule
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.gradle.ComposeGradleProjectRule
 import com.android.tools.idea.compose.gradle.activateAndWaitForRender
@@ -23,7 +22,6 @@ import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.model.w
 import com.intellij.openapi.application.runReadAction
@@ -49,7 +47,6 @@ import org.junit.Test
 
 class AccessibilityModelUpdaterTest {
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
-  @get:Rule val atfForComposeFlag = FlagRule(StudioFlags.NELE_ATF_FOR_COMPOSE, true)
 
   private val project: Project
     get() = projectRule.project
@@ -99,6 +96,7 @@ class AccessibilityModelUpdaterTest {
     val previewRepresentation =
       ComposePreviewRepresentation(psiFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ -> view }
     Disposer.register(fixture.testRootDisposable, previewRepresentation)
+    previewRepresentation.atfChecksEnabled = true
     return previewRepresentation
   }
 

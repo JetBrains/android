@@ -60,7 +60,7 @@ import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
  * devices do not have a consistent device id used in their definitions so this patches the device
  * id so it shows correctly in our metrics.
  */
-private val referenceDeviceIds =
+val referenceDeviceIds =
   mapOf(
     "spec:id=reference_phone,shape=Normal,width=411,height=891,unit=dp,dpi=420" to
       DEVICE_CLASS_PHONE_ID,

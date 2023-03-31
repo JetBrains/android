@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.compose.gradle.preview
 
-import com.android.flags.junit.FlagRule
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.common.error.NlComponentIssueSource
@@ -27,7 +26,6 @@ import com.android.tools.idea.compose.preview.ComposePreviewRepresentation
 import com.android.tools.idea.compose.preview.SIMPLE_COMPOSE_PROJECT_PATH
 import com.android.tools.idea.compose.preview.SimpleComposeAppPaths
 import com.android.tools.idea.concurrency.waitForCondition
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreferredVisibility
 import com.android.tools.idea.uibuilder.scene.hasRenderErrors
 import com.intellij.openapi.actionSystem.AnAction
@@ -62,7 +60,6 @@ import org.junit.Test
 class RenderErrorTest {
 
   @get:Rule val projectRule = ComposeGradleProjectRule(SIMPLE_COMPOSE_PROJECT_PATH)
-  @get:Rule val flagRule = FlagRule(StudioFlags.NELE_ATF_FOR_COMPOSE, true)
 
   private val project: Project
     get() = projectRule.project
@@ -89,6 +86,7 @@ class RenderErrorTest {
       ComposePreviewRepresentation(psiMainFile, PreferredVisibility.SPLIT) { _, _, _, _, _, _ ->
         previewView
       }
+    composePreviewRepresentation.atfChecksEnabled = true
     Disposer.register(fixture.testRootDisposable, composePreviewRepresentation)
 
     lateinit var fakeUi: FakeUi
@@ -131,8 +129,8 @@ class RenderErrorTest {
     assertTrue(visibleErrorsPanel.isVisible)
 
     val actions = sceneViewPanelWithErrors.getToolbarActions()
-    // 3 actions expected: animation, interactive and deploy to device
-    assertEquals(3, actions.size)
+    // 4 actions expected: ui check, animation, interactive and deploy to device
+    assertEquals(4, actions.size)
     // The visible/invisible state before the update shouldn't affect the final result
     for (visibleBefore in listOf(true, false)) {
       // All actions should be invisible when there are render errors

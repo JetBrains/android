@@ -23,6 +23,7 @@ import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.LayoutlibInteractionHandler
 import com.android.tools.idea.common.util.ControllableTicker
+import com.android.tools.idea.compose.pickers.preview.property.referenceDeviceIds
 import com.android.tools.idea.compose.preview.PreviewGroup.Companion.ALL_PREVIEW_GROUP
 import com.android.tools.idea.compose.preview.analytics.InteractivePreviewUsageTracker
 import com.android.tools.idea.compose.preview.animation.ComposePreviewAnimationManager
@@ -377,13 +378,15 @@ class ComposePreviewRepresentation(
   /** Whether the preview needs a full refresh or not. */
   private val invalidated = AtomicBoolean(true)
 
-  private val previewElementProvider =
+  private val defaultPreviewElementProvider =
     PreviewFilters(
       object : PreviewElementProvider<ComposePreviewElement> {
         override suspend fun previewElements(): Sequence<ComposePreviewElement> =
           previewElementsFlow.value.asSequence()
       }
     )
+
+  private var previewElementProvider = defaultPreviewElementProvider
 
   override var groupFilter: PreviewGroup by
     Delegates.observable(ALL_PREVIEW_GROUP) { _, oldValue, newValue ->
@@ -466,6 +469,48 @@ class ComposePreviewRepresentation(
     forceRefresh().invokeOnCompletion {
       interactiveMode = ComposePreviewManager.InteractiveMode.DISABLED
     }
+  }
+
+  override fun startUiCheckPreview(instance: ComposePreviewElementInstance) {
+    atfChecksEnabled = StudioFlags.NELE_ATF_FOR_COMPOSE.get()
+    previewElementProvider =
+      PreviewFilters(
+        object : PreviewElementProvider<ComposePreviewElement> {
+          override suspend fun previewElements(): Sequence<ComposePreviewElement> =
+            buildReferenceDevicesPreviewList(instance).asSequence()
+        }
+      )
+    surface.background = INTERACTIVE_BACKGROUND_COLOR
+    forceRefresh().invokeOnCompletion { isUiCheckPreview = true }
+  }
+
+  private fun buildReferenceDevicesPreviewList(
+    base: ComposePreviewElementInstance
+  ): List<ComposePreviewElement> {
+    val baseConfig = base.configuration
+    val baseDisplaySettings = base.displaySettings
+    return referenceDeviceIds.keys.map { device ->
+      val config = baseConfig.copy(deviceSpec = device)
+      val displaySettings =
+        baseDisplaySettings.copy(
+          name = "${baseDisplaySettings.name} - ${referenceDeviceIds[device]}",
+          group = message("ui.check.mode.screen.size.group")
+        )
+      SingleComposePreviewElementInstance(
+        base.composableMethodFqn,
+        displaySettings,
+        base.previewElementDefinitionPsi,
+        base.previewBodyPsi,
+        config
+      )
+    }
+  }
+
+  override fun stopUiCheckPreview() {
+    previewElementProvider = defaultPreviewElementProvider
+    atfChecksEnabled = false
+    onStaticPreviewStart()
+    forceRefresh().invokeOnCompletion { isUiCheckPreview = false }
   }
 
   private fun onStaticPreviewStart() {
@@ -571,7 +616,9 @@ class ComposePreviewRepresentation(
 
   override var isFilterEnabled: Boolean = false
 
-  override var atfChecksEnabled: Boolean = StudioFlags.NELE_ATF_FOR_COMPOSE.get()
+  override var atfChecksEnabled: Boolean = false
+
+  override var isUiCheckPreview: Boolean = false
 
   private val dataProvider = DataProvider {
     when (it) {

@@ -61,5 +61,11 @@ class TestComposePreviewManager(
 
   override var atfChecksEnabled: Boolean = false
 
+  override var isUiCheckPreview: Boolean = false
+
+  override fun startUiCheckPreview(instance: ComposePreviewElementInstance) {}
+
+  override fun stopUiCheckPreview() {}
+
   override fun dispose() {}
 }

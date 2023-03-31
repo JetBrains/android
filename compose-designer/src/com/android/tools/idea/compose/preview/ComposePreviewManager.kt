@@ -140,6 +140,8 @@ interface ComposePreviewManager : Disposable {
       animationInspectionPreviewElementInstance == null &&
         status().interactiveMode == InteractiveMode.DISABLED
 
+  var isUiCheckPreview: Boolean
+
   /**
    * Starts the interactive preview focusing in the given [ComposePreviewElementInstance] [instance]
    * .
@@ -148,6 +150,14 @@ interface ComposePreviewManager : Disposable {
 
   /** Stops the interactive preview. */
   fun stopInteractivePreview()
+
+  /**
+   * Starts the UI check preview focusing in the given [ComposePreviewElementInstance] [instance] .
+   */
+  fun startUiCheckPreview(instance: ComposePreviewElementInstance)
+
+  /** Stops the UI check preview. */
+  fun stopUiCheckPreview()
 
   /**
    * Invalidates the cached preview status. This ensures that the @Preview annotations lookup
@@ -176,8 +186,12 @@ class NopComposePreviewManager : ComposePreviewManager {
   override var isInspectionTooltipEnabled: Boolean = false
   override var isFilterEnabled: Boolean = false
   override var atfChecksEnabled: Boolean = false
+  override var isUiCheckPreview: Boolean = false
   override suspend fun startInteractivePreview(instance: ComposePreviewElementInstance) {}
   override fun stopInteractivePreview() {}
+  override fun startUiCheckPreview(instance: ComposePreviewElementInstance) {}
+  override fun stopUiCheckPreview() {}
+
   override fun invalidate() {}
   override fun dispose() {}
 }

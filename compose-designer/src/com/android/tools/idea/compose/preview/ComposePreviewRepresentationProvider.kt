@@ -28,6 +28,7 @@ import com.android.tools.idea.compose.preview.actions.GroupSwitchAction
 import com.android.tools.idea.compose.preview.actions.ShowDebugBoundaries
 import com.android.tools.idea.compose.preview.actions.StopAnimationInspectorAction
 import com.android.tools.idea.compose.preview.actions.StopInteractivePreviewAction
+import com.android.tools.idea.compose.preview.actions.StopUiCheckPreviewAction
 import com.android.tools.idea.compose.preview.actions.visibleOnlyInComposeStaticPreview
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.flags.StudioFlags
@@ -61,6 +62,7 @@ private class ComposePreviewToolbar(private val surface: DesignSurface<*>) :
       listOfNotNull(
         StopInteractivePreviewAction(),
         StopAnimationInspectorAction(),
+        StopUiCheckPreviewAction(),
         StudioFlags.COMPOSE_VIEW_FILTER.ifEnabled { ComposeFilterShowHistoryAction() },
         StudioFlags.COMPOSE_VIEW_FILTER.ifEnabled {
           ComposeFilterTextAction(ComposeViewSingleWordFilter(surface))

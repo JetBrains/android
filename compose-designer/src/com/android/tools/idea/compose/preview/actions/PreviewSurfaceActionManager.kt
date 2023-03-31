@@ -80,6 +80,7 @@ internal class PreviewSurfaceActionManager(
         DefaultActionGroup(
           listOf(Separator()) +
             listOfNotNull(
+                EnableUiCheckAction { sceneView.scene.sceneManager.model.dataContext },
                 AnimationInspectorAction { sceneView.scene.sceneManager.model.dataContext },
                 EnableInteractiveAction { sceneView.scene.sceneManager.model.dataContext },
                 DeployToDeviceAction { sceneView.scene.sceneManager.model.dataContext },
