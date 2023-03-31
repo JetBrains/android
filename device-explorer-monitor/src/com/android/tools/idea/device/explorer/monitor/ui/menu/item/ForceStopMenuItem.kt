@@ -21,7 +21,12 @@ import javax.swing.Icon
 
 class ForceStopMenuItem(listener: DeviceMonitorActionsListener, private val context: MenuContext) : TreeMenuItem(listener) {
   override fun getText(numOfNodes: Int): String {
-    return if (numOfNodes > 1) "Force stop processes" else "Force stop process"
+    val processStr = if (listener.numOfSelectedNodes > 1) "processes" else "process"
+    return if (context == MenuContext.Toolbar) {
+      "<html><b>Force stop $processStr</b><br>Executes command: <code>am force-stop</code></html>"
+    } else {
+      "Force stop $processStr"
+    }
   }
 
   override val icon: Icon
