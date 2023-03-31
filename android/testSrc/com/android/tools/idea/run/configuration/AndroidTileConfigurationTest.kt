@@ -22,7 +22,6 @@ import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.openapi.project.Project
 import com.intellij.testFramework.ProjectRule
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 
@@ -35,7 +34,6 @@ class AndroidTileConfigurationTest {
     get() = projectRule.project
 
   @Test
-  @Ignore("b/275535109")
   fun testProgramRunnerAvailable() {
     val configSettings = RunManager.getInstance(project).createConfiguration(
       "run complication", AndroidTileConfigurationType().configurationFactories.single())

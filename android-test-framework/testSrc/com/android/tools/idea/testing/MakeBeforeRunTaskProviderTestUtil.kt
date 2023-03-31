@@ -77,8 +77,8 @@ fun RunConfiguration.executeMakeBeforeRunStepInTest(deviceFutures: DeviceFutures
         override fun getId(): String = "target"
         override fun getDisplayName(): String = "target"
         override fun getIcon(): Icon? = null
-        override fun getAvailableDeviceCount(): Int = 1
-        override fun getRunningDevices(): Collection<IDevice> = emptyList()
+        override fun getAvailableDeviceCount(): Int = deviceFutures?.devices?.size ?: 0
+        override fun getRunningDevices(): Collection<IDevice> = deviceFutures?.get()?.map { it.get() } ?: emptyList()
         override fun canRun(configuration: RunConfiguration): Boolean = configuration === this@executeMakeBeforeRunStepInTest
       }
       ExecutionTargetManager.getInstance(this.project).activeTarget = target
@@ -163,6 +163,7 @@ fun mockDeviceFor(androidVersion: Int, abis: List<Abi>, density: Int? = null): I
   val device = MockitoKt.mock<IDevice>()
   whenever(device.abis).thenReturn(abis.map { it.toString() })
   whenever(device.version).thenReturn(AndroidVersion(androidVersion))
+  whenever(device.serialNumber).thenReturn("1234")
   density?.let { whenever(device.density).thenReturn(density) }
   return device
 }

@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.run;
 
-import static com.android.tools.idea.gradle.project.sync.snapshots.PreparedTestProject.openPreparedTestProject;
-import static com.android.tools.idea.gradle.project.sync.snapshots.TestProjectDefinition.prepareTestProject;
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getProjectSystem;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.android.tools.idea.testing.MakeBeforeRunTaskProviderTestUtilKt.mockDeviceFor;
@@ -29,7 +27,6 @@ import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProje
 import com.android.tools.idea.projectsystem.AndroidProjectSystem;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.testing.AndroidProjectRule;
-import com.android.tools.idea.testing.IntegrationTestEnvironmentRule;
 import com.android.tools.idea.testing.MakeBeforeRunTaskProviderTestUtilKt;
 import com.google.common.collect.ImmutableList;
 import com.intellij.execution.Executor;
@@ -41,8 +38,8 @@ import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import java.util.List;
-import kotlin.Unit;
 import one.util.streamex.MoreCollectors;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
@@ -51,24 +48,26 @@ import org.junit.Test;
 
 public class AndroidLaunchTaskProviderTest {
   @Rule
-  public IntegrationTestEnvironmentRule projectRule = AndroidProjectRule.withIntegrationTestEnvironment();
+  public AndroidProjectRule projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.DYNAMIC_APP);
 
   @NotNull
   private static String getDebuggerType() {
     return AndroidJavaDebugger.ID;
   }
 
+  private Project getProject() {
+    return projectRule.getProject();
+  }
+
   @Test
   public void testDynamicAppApks() throws Exception {
-    final var preparedProject = prepareTestProject(projectRule, AndroidCoreTestProject.DYNAMIC_APP);
-    openPreparedTestProject(preparedProject, project -> {
-      AndroidFacet androidFacet = AndroidFacet.getInstance(gradleModule(project, ":app"));
-      // Prepare
-      final boolean debug = true;
+    AndroidFacet androidFacet = AndroidFacet.getInstance(gradleModule(getProject(), ":app"));
+    // Prepare
+    final boolean debug = true;
 
-      RunnerAndConfigurationSettings configSettings =
-        RunManager.getInstance(project)
-          .getAllSettings()
+    RunnerAndConfigurationSettings configSettings =
+      RunManager.getInstance(getProject())
+        .getAllSettings()
           .stream()
           .filter(it -> it.getConfiguration() instanceof AndroidRunConfiguration)
           .collect(MoreCollectors.onlyOne())
@@ -90,11 +89,11 @@ public class AndroidLaunchTaskProviderTest {
 
       ProgramRunner<RunnerSettings> runner = new DefaultStudioProgramRunner();
 
-      Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
-      ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, project);
+    Executor ex = DefaultDebugExecutor.getDebugExecutorInstance();
+    ExecutionEnvironment env = new ExecutionEnvironment(ex, runner, configSettings, getProject());
 
-      AndroidProjectSystem projectSystem = getProjectSystem(project);
-      ApplicationIdProvider appIdProvider = projectSystem.getApplicationIdProvider(config);
+    AndroidProjectSystem projectSystem = getProjectSystem(getProject());
+    ApplicationIdProvider appIdProvider = projectSystem.getApplicationIdProvider(config);
       ApkProvider apkProvider = projectSystem.getApkProvider(config);
 
       LaunchOptions launchOptions = LaunchOptions.builder()
@@ -117,7 +116,5 @@ public class AndroidLaunchTaskProviderTest {
 
       // Assert
       launchTasks.forEach(task -> Logger.getInstance(this.getClass()).info("LaunchTask: " + task));
-      return Unit.INSTANCE;
-    });
   }
 }

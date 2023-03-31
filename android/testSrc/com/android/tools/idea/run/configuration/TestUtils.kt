@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.run.configuration
 
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import org.jetbrains.kotlin.idea.base.util.allScope
 
-internal fun JavaCodeInsightTestFixture.addWatchFace(): PsiClass {
+internal fun CodeInsightTestFixture.addWatchFace(): PsiClass {
   addFileToProject(
     "src/lib/WatchFace.kt",
     """
@@ -35,5 +37,5 @@ internal fun JavaCodeInsightTestFixture.addWatchFace(): PsiClass {
       class MyWatchFace : androidx.wear.watchface.WatchFaceService
     """.trimIndent())
 
-  return javaFacade.findClass("com.example.MyWatchFace")
+  return JavaPsiFacade.getInstance(project).findClass("com.example.MyWatchFace", project.allScope())!!
 }

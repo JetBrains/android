@@ -15,31 +15,38 @@
  */
 package com.android.tools.idea.run;
 
+import static com.android.tools.idea.util.ModuleExtensionsKt.getAndroidFacet;
+import static com.intellij.testFramework.UsefulTestCase.assertContainsElements;
+import static junit.framework.TestCase.assertEquals;
 import static org.mockito.Mockito.when;
 
 import com.android.ddmlib.IDevice;
 import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.editor.NoApksProvider;
 import com.android.tools.idea.run.tasks.ActivityLaunchTask;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.util.ReflectionUtil;
 import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.mockito.Mockito;
 
-public class AndroidRunConfigurationTest extends AndroidTestCase {
+public class AndroidRunConfigurationTest {
+  @Rule
+  public AndroidProjectRule myProjectRule = AndroidProjectRule.inMemory();
   private AndroidRunConfiguration myRunConfiguration;
   private IDevice myDevice;
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     ConfigurationFactory configurationFactory = AndroidRunConfigurationType.getInstance().getFactory();
-    myRunConfiguration = new AndroidRunConfiguration(getProject(), configurationFactory);
+    myRunConfiguration = new AndroidRunConfiguration(myProjectRule.getProject(), configurationFactory);
     myDevice = Mockito.mock(IDevice.class);
   }
 
@@ -47,6 +54,7 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
    * Verifies that public fields, which are save in configuration files (workspace.xml) are
    * not accidentally renamed during a code refactoring.
    */
+  @Test
   public void testPersistentFieldNames() {
     assertContainsElements(
       ContainerUtil.map(ReflectionUtil.collectFields(myRunConfiguration.getClass()), f -> f.getName()),
@@ -55,6 +63,7 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
       "ACTIVITY_EXTRA_FLAGS", "MODE", "CLEAR_APP_STORAGE");
   }
 
+  @Test
   public void testContributorsAmStartOptionsIsInlinedWithAmStartCommand() throws ExecutionException {
     myRunConfiguration.setLaunchActivity("MyActivity");
 
@@ -62,7 +71,7 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
     IDevice device = Mockito.mock(IDevice.class);
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.S_V2));
     ActivityLaunchTask task = (ActivityLaunchTask)myRunConfiguration.getApplicationLaunchTask(new FakeApplicationIdProvider(),
-                                                                                              myFacet,
+                                                                                              getAndroidFacet(myProjectRule.getModule()),
                                                                                               "--start-profiling",
                                                                                               false,
                                                                                               new NoApksProvider(),
@@ -73,6 +82,7 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
                  "--start-profiling", task.getStartActivityCommand(myDevice, Mockito.mock(ConsoleView.class)));
   }
 
+  @Test
   public void testEmptyContributorsAmStartOptions() throws ExecutionException {
     myRunConfiguration.setLaunchActivity("MyActivity");
 
@@ -80,7 +90,7 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
     IDevice device = Mockito.mock(IDevice.class);
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.S_V2));
     ActivityLaunchTask task = (ActivityLaunchTask)myRunConfiguration.getApplicationLaunchTask(new FakeApplicationIdProvider(),
-                                                                                              myFacet,
+                                                                                              getAndroidFacet(myProjectRule.getModule()),
                                                                                               "",
                                                                                               false,
                                                                                               new NoApksProvider(),
@@ -91,7 +101,7 @@ public class AndroidRunConfigurationTest extends AndroidTestCase {
 
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.TIRAMISU));
     task = (ActivityLaunchTask)myRunConfiguration.getApplicationLaunchTask(new FakeApplicationIdProvider(),
-                                                                           myFacet,
+                                                                           getAndroidFacet(myProjectRule.getModule()),
                                                                            "",
                                                                            false,
                                                                            new NoApksProvider(),

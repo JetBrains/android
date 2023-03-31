@@ -48,16 +48,15 @@ import com.intellij.execution.runners.ExecutionEnvironment
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder
 import com.intellij.execution.runners.showRunContent
 import com.intellij.execution.ui.RunContentManager
-import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.openapi.progress.EmptyProgressIndicator
+import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.content.Content
-import com.intellij.util.ui.UIUtil
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
 import org.mockito.Mockito.mock
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -69,30 +68,22 @@ import kotlin.test.fail
  */
 class LaunchTaskRunnerTest {
 
-  @get:Rule
+  val fakeAdb: FakeAdbTestRule = FakeAdbTestRule()
+
   val projectRule = AndroidProjectRule.testProject(LightGradleSyncTestProjects.SIMPLE_APPLICATION)
 
-  @get:Rule
-  val fakeAdb = FakeAdbTestRule()
-
-  @get:Rule
   val cleaner = MockitoCleanerRule()
 
-  private val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
+  @get:Rule
+  val chain = RuleChain
+    .outerRule(cleaner)
+    .around(projectRule)
+    .around(fakeAdb)
 
   @Before
   fun setUp() {
     val androidFacet = projectRule.project.gradleModule(":app")!!.androidFacet
     AndroidRunConfigurations.instance.createRunConfiguration(androidFacet!!)
-  }
-
-  @After
-  fun after() {
-    invokeAndWaitIfNeeded { UIUtil.dispatchAllInvocationEvents() }
-
-    AndroidDebugBridge.getBridge()!!.devices.forEach {
-      fakeAdb.server.disconnectDevice(it.serialNumber)
-    }
   }
 
   @Test
@@ -133,6 +124,7 @@ class LaunchTaskRunnerTest {
     //if (!processHandler.waitFor(5000)) {
     //  fail("Process handler didn't stop when debug process terminated")
     //}
+    processHandler.destroyProcess()
   }
 
   @Test
@@ -167,6 +159,7 @@ class LaunchTaskRunnerTest {
 
   @Test
   fun swapRunSucceeded() {
+    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
     val deviceFutures = DeviceFutures.forDevices(listOf(device))
     val env = getExecutionEnvironment(listOf(device))
     val runningProcessHandler = setSwapInfo(env)
@@ -257,6 +250,9 @@ class LaunchTaskRunnerTest {
 
     val processHandlerForSwap = AndroidProcessHandler(projectRule.project, "applicationId")
     processHandlerForSwap.startNotify()
+    Disposer.register(projectRule.project) {
+      processHandlerForSwap.detachProcess()
+    }
     runInEdtAndWait {
       val runContentDescriptor = showRunContent(DefaultExecutionResult(EmptyTestConsoleView(), processHandlerForSwap), env)!!.apply {
         setAttachedContent(mock(Content::class.java))

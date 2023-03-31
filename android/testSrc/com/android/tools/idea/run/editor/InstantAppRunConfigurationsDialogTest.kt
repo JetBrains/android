@@ -16,32 +16,33 @@
 package com.android.tools.idea.run.editor
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths.INSTANT_APP_WITH_DYNAMIC_FEATURES
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
 import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import javax.swing.JTable
 
-class InstantAppRunConfigurationsDialogTest : AndroidGradleTestCase() {
+class InstantAppRunConfigurationsDialogTest {
   lateinit var myRunConfiguration: AndroidRunConfiguration
   var parameters = DynamicFeaturesParameters()
 
+  @get:Rule
+  val projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.INSTANT_APP_WITH_DYNAMIC_FEATURES)
+
   @Before
-  override fun setUp()
-  {
+  fun setUp() {
     StudioFlags.UAB_ENABLE_NEW_INSTANT_APP_RUN_CONFIGURATIONS.override(true)
 
-    super.setUp()
-    loadProject(INSTANT_APP_WITH_DYNAMIC_FEATURES)
-
-    var configurationFactory = AndroidRunConfigurationType.getInstance().factory
-    myRunConfiguration = AndroidRunConfiguration(project, configurationFactory)
-    parameters.setActiveModule(getModule("app"), DynamicFeaturesParameters.AvailableDeployTypes.INSTANT_AND_INSTALLED)
+    val configurationFactory = AndroidRunConfigurationType.getInstance().factory
+    myRunConfiguration = AndroidRunConfiguration(projectRule.project, configurationFactory)
+    parameters.setActiveModule(projectRule.module, DynamicFeaturesParameters.AvailableDeployTypes.INSTANT_AND_INSTALLED)
   }
 
-  private fun getFeatureNameCellRenderer(table : JTable, row : Int, column : Int) : DynamicFeaturesParameters.FeatureNameCellRenderer {
+  private fun getFeatureNameCellRenderer(table: JTable, row: Int, column: Int): DynamicFeaturesParameters.FeatureNameCellRenderer {
     return table.getCellRenderer(row, column).getTableCellRendererComponent(
       table,
       table.model.getValueAt(row, column),
@@ -52,16 +53,19 @@ class InstantAppRunConfigurationsDialogTest : AndroidGradleTestCase() {
     ) as DynamicFeaturesParameters.FeatureNameCellRenderer
   }
 
+  @Test
   fun testVerifyDynamicFeatureAnnotations() {
     Truth.assertThat(getFeatureNameCellRenderer(parameters.tableComponent, 1, 1).text).contains(" (not instant app enabled)")
     Truth.assertThat(getFeatureNameCellRenderer(parameters.tableComponent, 2, 1).text).doesNotContain(" (not instant app enabled)")
   }
 
+  @Test
   fun testVerifyBaseModuleAnnotations() {
     Truth.assertThat(getFeatureNameCellRenderer(parameters.tableComponent, 0, 1).text).contains(" (base)")
     Truth.assertThat(parameters.tableComponent.model.isCellEditable(0, 0)).isFalse()
   }
 
+  @Test
   fun testVerifyInstantStateUpdate() {
     Truth.assertThat(parameters.tableComponent.model.isCellEditable(0, 0)).isFalse()
     Truth.assertThat(parameters.tableComponent.model.isCellEditable(1, 0)).isTrue()
@@ -70,7 +74,7 @@ class InstantAppRunConfigurationsDialogTest : AndroidGradleTestCase() {
     Truth.assertThat(parameters.tableComponent.model.getValueAt(1, 0)).isEqualTo(true)
     Truth.assertThat(parameters.tableComponent.model.getValueAt(2, 0)).isEqualTo(true)
 
-    parameters.updateBasedOnInstantState(getModule("app"), true)
+    parameters.updateBasedOnInstantState(projectRule.module, true)
     Truth.assertThat(parameters.tableComponent.model.isCellEditable(0, 0)).isFalse()
     Truth.assertThat(parameters.tableComponent.model.isCellEditable(1, 0)).isFalse()
     Truth.assertThat(parameters.tableComponent.model.isCellEditable(2, 0)).isTrue()
@@ -78,7 +82,7 @@ class InstantAppRunConfigurationsDialogTest : AndroidGradleTestCase() {
     Truth.assertThat(parameters.tableComponent.model.getValueAt(1, 0)).isEqualTo(false)
     Truth.assertThat(parameters.tableComponent.model.getValueAt(2, 0)).isEqualTo(true)
 
-    parameters.updateBasedOnInstantState(getModule("app"), false)
+    parameters.updateBasedOnInstantState(projectRule.module, false)
     Truth.assertThat(parameters.tableComponent.model.isCellEditable(0, 0)).isFalse()
     Truth.assertThat(parameters.tableComponent.model.isCellEditable(1, 0)).isTrue()
     Truth.assertThat(parameters.tableComponent.model.isCellEditable(2, 0)).isTrue()

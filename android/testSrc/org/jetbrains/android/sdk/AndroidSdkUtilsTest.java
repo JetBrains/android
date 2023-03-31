@@ -98,10 +98,14 @@ public class AndroidSdkUtilsTest extends PlatformTestCase {
 
     try {
       AndroidSdkUtils.getDebugBridge(myProject);
-    } catch(RuntimeException ex) {
+    }
+    catch (RuntimeException ex) {
       // If the error message contains "ADB not responding." then it's using the correct ADB defined above.
       // or else it will simply return null.
       assertThat(ex.getMessage()).contains("ADB not responding.");
+    }
+    finally {
+      System.clearProperty(AndroidSdkUtils.ADB_PATH_PROPERTY);
     }
   }
 

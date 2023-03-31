@@ -15,14 +15,14 @@
  */
 package com.android.tools.idea.run.editor;
 
-import static com.android.tools.idea.testing.TestProjectPaths.DYNAMIC_APP;
+import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.testutils.TestUtils;
 import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.adtui.swing.laf.HeadlessTableUI;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.testing.AndroidGradleProjectRule;
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.TestModuleUtil;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
@@ -42,27 +42,17 @@ import org.junit.runners.Parameterized;
 public class DynamicFeaturesParametersTest {
   @Parameterized.Parameter(0)
   public boolean featureOnFeatureFlagEnabled = true;
-
-  // We need this name to be short because we can't create a gradle project in a long path on Windows (260 char limit)
-  // The name (+ value) is used to create the test directory
-  @Parameterized.Parameters(name = "P1={0}")
-  public static List<Boolean> paramValues() {
-    return ImmutableList.of(false, true);
-  }
-
   @Rule
-  public final AndroidGradleProjectRule projectRule = new AndroidGradleProjectRule();
+  public final AndroidProjectRule projectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.DYNAMIC_APP);
 
   @Before
   public void setUp() throws Exception {
-    projectRule.getFixture().setTestDataPath(TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").toString());
-
     StudioFlags.SUPPORT_FEATURE_ON_FEATURE_DEPS.override(featureOnFeatureFlagEnabled);
   }
 
   @After
   public void tearDown() throws Exception {
-      StudioFlags.SUPPORT_FEATURE_ON_FEATURE_DEPS.clearOverride();
+    StudioFlags.SUPPORT_FEATURE_ON_FEATURE_DEPS.clearOverride();
   }
 
   @Test
@@ -87,9 +77,9 @@ public class DynamicFeaturesParametersTest {
     assertThat(table.getColumnCount()).isEqualTo(3);
 
     // These will always be sorted by name
-    assertThat(table.getValueAt(0, 1)).isEqualTo(projectRule.getModule("app").getName());
-    assertThat(table.getValueAt(1, 1)).isEqualTo(projectRule.getModule("dependsOnFeature1").getName());
-    assertThat(table.getValueAt(2, 1)).isEqualTo(projectRule.getModule("feature1").getName());
+    assertThat(table.getValueAt(0, 1)).isEqualTo(gradleModule(projectRule.getProject(), ":app").getName());
+    assertThat(table.getValueAt(1, 1)).isEqualTo(gradleModule(projectRule.getProject(), ":dependsOnFeature1").getName());
+    assertThat(table.getValueAt(2, 1)).isEqualTo(gradleModule(projectRule.getProject(), ":feature1").getName());
 
     assertThat(parameters.getUndoPanel().isVisible()).isFalse();
 
@@ -97,7 +87,8 @@ public class DynamicFeaturesParametersTest {
     clickCheckboxInRow(1, fakeUi, table);
 
     // Check that the feature is now disabled
-    assertThat(parameters.getDisabledDynamicFeatures()).containsExactly(projectRule.getModule("dependsOnFeature1").getName());
+    assertThat(parameters.getDisabledDynamicFeatures()).containsExactly(
+      gradleModule(projectRule.getProject(), ":dependsOnFeature1").getName());
   }
 
   @Test
@@ -106,11 +97,12 @@ public class DynamicFeaturesParametersTest {
     initializeUi(parameters);
     JTable table = parameters.getTableComponent();
 
-    assertThat(table.getModel().getValueAt(2, 1)).isEqualTo(projectRule.getModule("feature1").getName());
-    String depLabel = (String) table.getValueAt(2, 2);
+    assertThat(table.getModel().getValueAt(2, 1)).isEqualTo(gradleModule(projectRule.getProject(), ":feature1").getName());
+    String depLabel = (String)table.getValueAt(2, 2);
     if (featureOnFeatureFlagEnabled) {
-      assertThat(depLabel).isEqualTo("Required by " + projectRule.getModule("dependsOnFeature1").getName());
-    } else {
+      assertThat(depLabel).isEqualTo("Required by " + gradleModule(projectRule.getProject(), ":dependsOnFeature1").getName());
+    }
+    else {
       assertThat(depLabel).isNull();
     }
   }
@@ -127,20 +119,21 @@ public class DynamicFeaturesParametersTest {
     if (featureOnFeatureFlagEnabled) {
       // dependsOnFeature1 should have been unchecked
       assertThat(parameters.getDisabledDynamicFeatures())
-        .containsExactly(projectRule.getModule("dependsOnFeature1").getName(), projectRule.getModule("feature1").getName());
+        .containsExactly(gradleModule(projectRule.getProject(), ":dependsOnFeature1").getName(),
+                         gradleModule(projectRule.getProject(), ":feature1").getName());
 
       // Check that undo works
       assertThat(parameters.getUndoPanel().isVisible()).isTrue();
       assertThat(parameters.getUndoLabel().getText())
-        .isEqualTo("1 module requiring " + projectRule.getModule("feature1").getName() + " has been deselected");
+        .isEqualTo("1 module requiring " + gradleModule(projectRule.getProject(), ":feature1").getName() + " has been deselected");
 
       parameters.getUndoLink().doClick();
 
       assertThat(parameters.getUndoPanel().isVisible()).isFalse();
       assertThat(parameters.getDisabledDynamicFeatures()).isEmpty();
-
-    } else {
-      assertThat(parameters.getDisabledDynamicFeatures()).containsExactly(projectRule.getModule("feature1").getName());
+    }
+    else {
+      assertThat(parameters.getDisabledDynamicFeatures()).containsExactly(gradleModule(projectRule.getProject(), ":feature1").getName());
       assertThat(parameters.getUndoPanel().isVisible()).isFalse();
     }
   }
@@ -165,22 +158,21 @@ public class DynamicFeaturesParametersTest {
       // Check that undo works
       assertThat(parameters.getUndoPanel().isVisible()).isTrue();
       assertThat(parameters.getUndoLabel().getText())
-        .isEqualTo("1 module required by " + projectRule.getModule("dependsOnFeature1").getName() + " has been selected");
+        .isEqualTo("1 module required by " + gradleModule(projectRule.getProject(), ":dependsOnFeature1").getName() + " has been selected");
       parameters.getUndoLink().doClick();
 
       assertThat(parameters.getUndoPanel().isVisible()).isFalse();
       assertThat(parameters.getDisabledDynamicFeatures())
-        .containsExactly(projectRule.getModule("feature1").getName(), projectRule.getModule("dependsOnFeature1").getName());
-    } else {
-      assertThat(parameters.getDisabledDynamicFeatures()).containsExactly(projectRule.getModule("feature1").getName());
+        .containsExactly(gradleModule(projectRule.getProject(), ":feature1").getName(),
+                         gradleModule(projectRule.getProject(), ":dependsOnFeature1").getName());
+    }
+    else {
+      assertThat(parameters.getDisabledDynamicFeatures()).containsExactly(gradleModule(projectRule.getProject(), ":feature1").getName());
       assertThat(parameters.getUndoPanel().isVisible()).isFalse();
     }
   }
 
-
   private DynamicFeaturesParameters loadParametersForDynamicApp() {
-    projectRule.load(DYNAMIC_APP);
-
     Module appModule = TestModuleUtil.findAppModule(projectRule.getProject());
     DynamicFeaturesParameters parameters = new DynamicFeaturesParameters();
     parameters.setActiveModule(appModule, DynamicFeaturesParameters.AvailableDeployTypes.INSTALLED_ONLY);
@@ -203,5 +195,12 @@ public class DynamicFeaturesParametersTest {
     Rectangle checkbox = featuresTable.getCellRect(row, 0, true);
     Point tableLocation = fakeUi.getPosition(featuresTable);
     fakeUi.mouse.click(tableLocation.x + checkbox.x + checkbox.width / 2, tableLocation.y + checkbox.y + checkbox.height / 2);
+  }
+
+  // We need this name to be short because we can't create a gradle project in a long path on Windows (260 char limit)
+  // The name (+ value) is used to create the test directory
+  @Parameterized.Parameters(name = "P1={0}")
+  public static List<Boolean> paramValues() {
+    return ImmutableList.of(false, true);
   }
 }

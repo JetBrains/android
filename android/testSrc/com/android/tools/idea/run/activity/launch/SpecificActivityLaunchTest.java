@@ -16,6 +16,9 @@
 package com.android.tools.idea.run.activity.launch;
 
 import static com.android.tools.idea.run.configuration.execution.TestUtilsKt.createApp;
+import static com.android.tools.idea.util.ModuleExtensionsKt.getAndroidFacet;
+import static com.intellij.testFramework.UsefulTestCase.assertEmpty;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -36,7 +39,8 @@ import com.android.tools.idea.run.activity.StartActivityFlagsProvider;
 import com.android.tools.idea.run.editor.NoApksProvider;
 import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.tasks.LaunchTask;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.idea.testing.AndroidProjectRule;
+import com.intellij.testFramework.EdtRule;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,43 +49,56 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.MockitoAnnotations;
 
-public class SpecificActivityLaunchTest extends AndroidGradleTestCase {
+public class SpecificActivityLaunchTest {
 
   @Mock StartActivityFlagsProvider startActivityFlagsProvider;
   @Mock ProfilerState profilerState;
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @Rule
+  public EdtRule edt = new EdtRule();
 
-    loadSimpleApplication();
-    initMocks(this);
+  @Rule
+  public AndroidProjectRule myProjectRule = AndroidProjectRule.inMemory();
+
+  @Before
+  public void before() {
+    MockitoAnnotations.initMocks(this);
   }
 
+  @Test
   public void testGetLaunchTask() {
     SpecificActivityLaunch.State state = new SpecificActivityLaunch.State();
     ApkProvider apkProvider = new NoApksProvider();
-    LaunchTask launchTask = state.getLaunchTask("applicationId", myAndroidFacet, startActivityFlagsProvider, profilerState, apkProvider);
+    LaunchTask launchTask =
+      state.getLaunchTask("applicationId", getAndroidFacet(myProjectRule.getModule()), startActivityFlagsProvider, profilerState,
+                          apkProvider);
     assertNotNull(launchTask);
   }
 
+  @Test
   public void testGetActivity() {
 
     SpecificActivityLaunch.State state = new SpecificActivityLaunch.State();
-    SpecificActivityLocator activityLocator = state.getActivityLocator(myAndroidFacet);
+    SpecificActivityLocator activityLocator = state.getActivityLocator(getAndroidFacet(myProjectRule.getModule()));
     assertNotNull(activityLocator);
   }
 
+  @Test
   public void testCheckConfigurationSkipValidation() {
     SpecificActivityLaunch.State state = new SpecificActivityLaunch.State();
     state.SKIP_ACTIVITY_VALIDATION = true;
-    List<ValidationError> errors = state.checkConfiguration(myAndroidFacet);
+    List<ValidationError> errors = state.checkConfiguration(getAndroidFacet(myProjectRule.getModule()));
     assertEmpty(errors);
   }
 
+  @Test
   public void testCheckConfiguration() {
     SpecificActivityLocator specificActivityLocator = mock(SpecificActivityLocator.class);
     initMocks(this);
@@ -93,10 +110,11 @@ public class SpecificActivityLaunchTest extends AndroidGradleTestCase {
         return specificActivityLocator;
       }
     };
-    List<ValidationError> errors = state.checkConfiguration(myAndroidFacet);
+    List<ValidationError> errors = state.checkConfiguration(getAndroidFacet(myProjectRule.getModule()));
     assertEmpty(errors);
   }
 
+  @Test
   public void testLaunch() throws ShellCommandUnresponsiveException, AdbCommandRejectedException, IOException, TimeoutException {
     SpecificActivityLaunch.State state = new SpecificActivityLaunch.State();
     state.ACTIVITY_CLASS = "com.example.app.MyActivity";

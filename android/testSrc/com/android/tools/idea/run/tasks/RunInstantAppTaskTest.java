@@ -27,6 +27,7 @@ import com.android.ddmlib.IDevice;
 import com.android.tools.idea.instantapp.InstantAppSdks;
 import com.android.tools.idea.run.ApkFileUnit;
 import com.android.tools.idea.run.ApkInfo;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.android.tools.idea.testing.IdeComponents;
 import com.google.android.instantapps.sdk.api.ExtendedSdk;
 import com.google.android.instantapps.sdk.api.RunHandler;
@@ -41,20 +42,25 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import java.io.File;
 import java.net.URL;
-import org.jetbrains.android.AndroidTestCase;
+import junit.framework.TestCase;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-public class RunInstantAppTaskTest extends AndroidTestCase {
+public class RunInstantAppTaskTest {
   private final String DEVICE_ID = "dev1234";
   private final File zipFile = new File("/tmp/fake.zip");
   private final ImmutableList<ApkInfo> apkInfoListForZip = ImmutableList.of(new ApkInfo(zipFile, "com.foo"));
 
+  @Rule
+  public AndroidProjectRule myProjectRule = AndroidProjectRule.inMemory();
+
   private InstantAppSdks instantAppSdks;
   @Mock private ExtendedSdk sdkLib;
   @Mock private RunHandler runHandler;
-  @Mock private Project project;
+  private Project project;
   @Mock private Executor executor;
   @Mock private IDevice device;
   @Mock private ConsoleView consolePrinter;
@@ -62,11 +68,11 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
   @Mock private ProgressIndicator indicator;
   @Mock private ExecutionEnvironment env;
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
+    project = myProjectRule.getProject();
     MockitoAnnotations.initMocks(this);
-    instantAppSdks = new IdeComponents(null, getTestRootDisposable()).mockApplicationService(InstantAppSdks.class);
+    instantAppSdks = new IdeComponents(null, myProjectRule.getTestRootDisposable()).mockApplicationService(InstantAppSdks.class);
     when(instantAppSdks.loadLibrary()).thenReturn(sdkLib);
     when(sdkLib.getRunHandler()).thenReturn(runHandler);
     when(env.getProject()).thenReturn(project);
@@ -79,7 +85,7 @@ public class RunInstantAppTaskTest extends AndroidTestCase {
     RunInstantAppTask task = new RunInstantAppTask(ImmutableList.of(), "");
     try {
       task.run(new LaunchContext(env, device, consolePrinter, handler, indicator));
-      fail("Run should fail");
+      TestCase.fail("Run should fail");
     }
     catch (ExecutionException e) {
       assertThat(e.getMessage()).isEqualTo("Uploading and launching Instant App: Package not found or not unique");

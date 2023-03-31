@@ -26,6 +26,7 @@ import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.ComplicationSlot
 import com.android.tools.idea.run.configuration.ComplicationWatchFaceInfo
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.android.utils.PositionXmlParser
 import com.android.utils.concurrency.AsyncSupplier
 import com.google.common.base.Charsets
@@ -39,8 +40,7 @@ import com.intellij.execution.impl.RunnerAndConfigurationSettingsImpl
 import com.intellij.execution.impl.SingleConfigurationConfigurable
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.testFramework.EdtRule
-import com.intellij.testFramework.fixtures.JavaCodeInsightTestFixture
+import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBTextField
@@ -49,7 +49,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import org.mockito.Mockito
 import org.w3c.dom.Element
 import java.awt.event.ActionEvent
@@ -65,14 +64,12 @@ import javax.swing.ListCellRenderer
 
 
 class AndroidComplicationConfigurationEditorTest {
-  private val projectRule = AndroidProjectRule.onDisk()
-
   @get:Rule
-  val chain: RuleChain = RuleChain.outerRule(projectRule).around(EdtRule())
+  val projectRule = AndroidProjectRule.inMemory().onEdt()
 
-  private val fixture get() = projectRule.fixture as JavaCodeInsightTestFixture
+  private val fixture get() = projectRule.fixture
 
-  private val module get() = projectRule.module
+  private val module get() = projectRule.projectRule.module
 
   private lateinit var manifestSnapshot: MergedManifestSnapshot
   private lateinit var runConfiguration: AndroidComplicationConfiguration
@@ -93,7 +90,7 @@ class AndroidComplicationConfigurationEditorTest {
 
   @Before
   fun setUp() {
-    manifestSnapshot = TestMergedManifestSnapshotBuilder.builder(projectRule.module).build()
+    manifestSnapshot = TestMergedManifestSnapshotBuilder.builder(module).build()
     fixture.addComplicationServiceClass()
 
     //List of FQ Complication names added and their supported types as String in manifest.
@@ -318,7 +315,7 @@ class AndroidComplicationConfigurationEditorTest {
     configurationConfigurable.reset()
     modulesComboBox.item = module
     editor.apply()
-    //region MyIconComplication
+    // Choose complication provider
     componentComboBox.item = "com.example.MyIconComplication"
     editor.apply()
     assertThat(countCheckedSlots(slotsPanel)).isEqualTo(0)
@@ -496,12 +493,13 @@ class AndroidComplicationConfigurationEditorTest {
     assertThat(componentComboBox.selectedItem).isEqualTo("com.example.MyIconComplication")
   }
 
+  @Test
   fun testApkFound() {
     assertThat(Files.isRegularFile(Paths.get(runConfiguration.componentLaunchOptions.watchFaceInfo.apk))).isTrue()
   }
 }
 
-private fun JavaCodeInsightTestFixture.addComplicationServiceClass() {
+private fun CodeInsightTestFixture.addComplicationServiceClass() {
   addFileToProject(
     "src/lib/ComplicationDataSourceService.kt",
     """
@@ -511,13 +509,13 @@ private fun JavaCodeInsightTestFixture.addComplicationServiceClass() {
     """.trimIndent())
 }
 
-private fun JavaCodeInsightTestFixture.addComplication(complicationFqName: String) {
-  addClass(
-    """
+private fun CodeInsightTestFixture.addComplication(complicationFqName: String) {
+  addFileToProject("src/lib/${complicationFqName.replace(".", "/")}.java",
+                   """
     package ${complicationFqName.substringBeforeLast(".")}
 
     public class ${
-      complicationFqName.substringAfterLast(".")
-    } extends androidx.wear.watchface.complications.datasource.ComplicationDataSourceService
+                     complicationFqName.substringAfterLast(".")
+                   } extends androidx.wear.watchface.complications.datasource.ComplicationDataSourceService
   """.trimIndent())
 }

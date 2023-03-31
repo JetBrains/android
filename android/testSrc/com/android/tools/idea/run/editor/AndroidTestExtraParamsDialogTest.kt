@@ -15,46 +15,59 @@
  */
 package com.android.tools.idea.run.editor
 
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.EdtAndroidProjectRule
+import com.android.tools.idea.testing.onEdt
+import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
+import com.intellij.testFramework.RunsInEdt
+import org.junit.Rule
 import org.junit.Test
 
 /**
  * Unit tests for [AndroidTestExtraParamsDialog].
  */
-class AndroidTestExtraParamsDialogTest : AndroidGradleTestCase() {
+class AndroidTestExtraParamsDialogTest {
+
+  @get:Rule
+  val projectRule: EdtAndroidProjectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.RUN_CONFIG_RUNNER_ARGUMENTS).onEdt()
+
+  val project get() = projectRule.project
+
+  val androidFacet get() = projectRule.fixture.module.androidFacet!!
+
 
   @Test
+  @RunsInEdt
   fun testAndroidTestExtraParamsDialog() {
-    loadProject(TestProjectPaths.RUN_CONFIG_RUNNER_ARGUMENTS)
 
     // RUN_CONFIG_RUNNER_ARGUMENTS test project defines two extra params in its Gradle build file as follows.
-    assertThat(myAndroidFacet.getAndroidTestExtraParams().toList()).containsExactly(
+    assertThat(androidFacet.getAndroidTestExtraParams().toList()).containsExactly(
       AndroidTestExtraParam("size", "medium", "medium", AndroidTestExtraParamSource.GRADLE),
       AndroidTestExtraParam("foo", "bar", "bar", AndroidTestExtraParamSource.GRADLE))
 
     // Create dialog with includeGradleExtraParams true.
-    var dialog = AndroidTestExtraParamsDialog(project, myAndroidFacet, "")
+    var dialog = AndroidTestExtraParamsDialog(project, androidFacet, "")
     assertThat(dialog.instrumentationExtraParams).isEqualTo("-e size medium -e foo bar")
     assertThat(dialog.userModifiedInstrumentationExtraParams).isEqualTo("")
     dialog.close(0)
 
     // Supplying instrumentation extra params but dialog.userModifiedInstrumentationExtraParams still returns empty because those
     // supplied params are identical to Gradle build file.
-    dialog = AndroidTestExtraParamsDialog(project, myAndroidFacet, "-e foo bar -e size medium")
+    dialog = AndroidTestExtraParamsDialog(project, androidFacet, "-e foo bar -e size medium")
     assertThat(dialog.instrumentationExtraParams).isEqualTo("-e size medium -e foo bar")
     assertThat(dialog.userModifiedInstrumentationExtraParams).isEqualTo("")
     dialog.close(0)
 
     // Now override the value.
-    dialog = AndroidTestExtraParamsDialog(project, myAndroidFacet, "-e foo new_value -e size medium")
+    dialog = AndroidTestExtraParamsDialog(project, androidFacet, "-e foo new_value -e size medium")
     assertThat(dialog.instrumentationExtraParams).isEqualTo("-e size medium -e foo new_value")
     assertThat(dialog.userModifiedInstrumentationExtraParams).isEqualTo("-e foo new_value")
     dialog.close(0)
 
     // Also supply additional value with new param name.
-    dialog = AndroidTestExtraParamsDialog(project, myAndroidFacet, "-e new_key and_value -e foo new_value -e size medium")
+    dialog = AndroidTestExtraParamsDialog(project, androidFacet, "-e new_key and_value -e foo new_value -e size medium")
     assertThat(dialog.instrumentationExtraParams).isEqualTo("-e size medium -e foo new_value -e new_key and_value")
     assertThat(dialog.userModifiedInstrumentationExtraParams).isEqualTo("-e foo new_value -e new_key and_value")
     dialog.close(0)

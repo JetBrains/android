@@ -19,24 +19,34 @@ import com.android.tools.adtui.TreeWalker
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfiguration
 import com.android.tools.idea.run.configuration.AndroidWatchFaceConfigurationType
 import com.android.tools.idea.run.configuration.addWatchFace
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.SimpleListCellRenderer
-import org.jetbrains.android.AndroidTestCase
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
 import javax.swing.JList
 
-class AndroidWearConfigurationEditorTest : AndroidTestCase() {
+class AndroidWearConfigurationEditorTest {
+
+  @get:Rule
+  val projectRule = AndroidProjectRule.inMemory().onEdt()
+
   private lateinit var runConfiguration: AndroidWatchFaceConfiguration
   private lateinit var settingsEditor: AndroidWearConfigurationEditor<AndroidWatchFaceConfiguration>
 
-  override fun setUp() {
-    super.setUp()
+  @Before
+  fun setUp() {
     val runConfigurationFactory = AndroidWatchFaceConfigurationType().configurationFactories[0]
-    runConfiguration = AndroidWatchFaceConfiguration(project, runConfigurationFactory)
+    runConfiguration = AndroidWatchFaceConfiguration(projectRule.project, runConfigurationFactory)
     settingsEditor = runConfiguration.configurationEditor as AndroidWearConfigurationEditor<AndroidWatchFaceConfiguration>
   }
 
+  @Test
   fun testComponentComboBoxDisabled() {
     val editor = settingsEditor.component as DialogPanel
     val modulesComboBox = TreeWalker(editor).descendants().filterIsInstance<ComboBox<*>>().first()
@@ -49,7 +59,7 @@ class AndroidWearConfigurationEditorTest : AndroidTestCase() {
     assertThat(componentComboBox.isEnabled).isFalse()
     assertThat(comboBoxRenderer.text).isEqualTo("Module is not chosen")
 
-    runConfiguration.setModule(myModule)
+    runConfiguration.setModule(projectRule.projectRule.module)
     // To set myModule
     settingsEditor.resetFrom(runConfiguration)
     assertThat(componentComboBox.isEnabled).isFalse()
@@ -59,10 +69,12 @@ class AndroidWearConfigurationEditorTest : AndroidTestCase() {
     assertThat(comboBoxRenderer.text).isEqualTo("Watch Face not found")
   }
 
+  @Test
+  @RunsInEdt
   fun testComponentComboBoxEnabled() {
-    val watchFaceClass = myFixture.addWatchFace().qualifiedName
+    val watchFaceClass = projectRule.fixture.addWatchFace().qualifiedName
 
-    runConfiguration.setModule(myModule)
+    runConfiguration.setModule(projectRule.projectRule.module)
     runConfiguration.componentLaunchOptions.componentName = watchFaceClass
     settingsEditor.resetFrom(runConfiguration)
 

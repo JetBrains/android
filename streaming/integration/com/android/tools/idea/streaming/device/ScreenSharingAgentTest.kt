@@ -431,6 +431,7 @@ class ScreenSharingAgentTest {
           waitForLog("Success", LONG_DEVICE_OPERATION_TIMEOUT)
         }
       }
+      System.clearProperty(AndroidSdkUtils.ADB_PATH_PROPERTY)
     }
 
     @JvmStatic

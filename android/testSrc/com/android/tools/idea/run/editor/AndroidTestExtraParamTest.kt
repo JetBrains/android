@@ -15,17 +15,23 @@
  */
 package com.android.tools.idea.run.editor
 
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.run.editor.AndroidTestExtraParam.Companion.parseFromString
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.util.androidFacet
 import com.google.common.truth.Truth.assertThat
 import org.jetbrains.android.facet.AndroidFacet
+import org.junit.Rule
 import org.junit.Test
 
 /**
  * Unit tests for [AndroidTestExtraParam]
  */
-class AndroidTestExtraParamTest : AndroidGradleTestCase() {
+class AndroidTestExtraParamTest {
+
+  @get:Rule
+  val projectRule: AndroidProjectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.RUN_CONFIG_RUNNER_ARGUMENTS)
+
   @Test
   fun testParseFromString() {
     assertThat(parseFromString("-e key1 value1 -e key2 value2").toList())
@@ -100,8 +106,7 @@ class AndroidTestExtraParamTest : AndroidGradleTestCase() {
 
   @Test
   fun testGetAndroidTestExtraParamsFromAndroidModuleModel() {
-    loadProject(TestProjectPaths.RUN_CONFIG_RUNNER_ARGUMENTS)
-    assertThat(myAndroidFacet.getAndroidTestExtraParams().toList()).containsExactly(
+    assertThat(projectRule.module.androidFacet.getAndroidTestExtraParams().toList()).containsExactly(
       AndroidTestExtraParam("size", "medium", "medium", AndroidTestExtraParamSource.GRADLE),
       AndroidTestExtraParam("foo", "bar", "bar", AndroidTestExtraParamSource.GRADLE))
   }
@@ -113,8 +118,7 @@ class AndroidTestExtraParamTest : AndroidGradleTestCase() {
 
   @Test
   fun testGetAndroidTestExtraParamsFromAndroidFacet() {
-    loadProject(TestProjectPaths.RUN_CONFIG_RUNNER_ARGUMENTS)
-    assertThat(myAndroidFacet.getAndroidTestExtraParams().toList()).containsExactly(
+    assertThat(projectRule.module.androidFacet.getAndroidTestExtraParams().toList()).containsExactly(
       AndroidTestExtraParam("size", "medium", "medium", AndroidTestExtraParamSource.GRADLE),
       AndroidTestExtraParam("foo", "bar", "bar", AndroidTestExtraParamSource.GRADLE))
   }

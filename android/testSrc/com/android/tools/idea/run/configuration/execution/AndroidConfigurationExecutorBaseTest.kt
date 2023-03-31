@@ -29,6 +29,7 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.xdebugger.XDebuggerManager
 import org.junit.After
 import org.junit.Rule
+import org.junit.rules.RuleChain
 import java.io.File
 
 
@@ -36,14 +37,17 @@ abstract class AndroidConfigurationExecutorBaseTest {
   protected val appId = "com.example.app"
   protected val componentName = "com.example.app.Component"
 
-  @get:Rule
+  val fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
+
   val projectRule = ProjectRule()
 
-  @get:Rule
-  var fakeAdbRule: FakeAdbTestRule = FakeAdbTestRule()
+  val cleaner = MockitoCleanerRule()
 
   @get:Rule
-  val cleaner = MockitoCleanerRule()
+  val chain = RuleChain
+    .outerRule(cleaner)
+    .around(projectRule)
+    .around(fakeAdbRule)
 
   val project: Project
     get() = projectRule.project

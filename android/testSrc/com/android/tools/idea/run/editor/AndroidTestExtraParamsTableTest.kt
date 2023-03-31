@@ -15,23 +15,33 @@
  */
 package com.android.tools.idea.run.editor
 
-import com.android.tools.idea.testing.AndroidGradleTestCase
 import com.google.common.truth.Truth.assertThat
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ex.ActionUtil.createEmptyEvent
+import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil.dispatchAllEventsInIdeEventQueue
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.CommonActionsPanel
 import com.intellij.ui.ToolbarDecorator.findAddButton
 import com.intellij.ui.ToolbarDecorator.findRemoveButton
 import com.intellij.util.ui.UIUtil.findComponentOfType
+import org.junit.Rule
 import org.junit.Test
 
 /**
  * Unit tests for [AndroidTestExtraParamsTable].
  */
-class AndroidTestExtraParamsTableTest : AndroidGradleTestCase() {
+class AndroidTestExtraParamsTableTest {
+
+  @get:Rule
+  val projectRule = ProjectRule()
+
+  @get:Rule
+  val edtRule = EdtRule()
 
   @Test
+  @RunsInEdt
   fun testAddAndDeleteButton() {
     // Creates the table with add/delete element button.
     val table = AndroidTestExtraParamsTable(true, false)
@@ -66,6 +76,7 @@ class AndroidTestExtraParamsTableTest : AndroidGradleTestCase() {
   }
 
   @Test
+  @RunsInEdt
   fun testRevertButton() {
     // Creates the table with revert element button.
     val table = AndroidTestExtraParamsTable(false, true)

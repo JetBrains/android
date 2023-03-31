@@ -16,27 +16,29 @@
 package com.android.tools.idea.run.editor
 
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
 import com.android.tools.idea.run.AndroidRunConfiguration
-import com.android.tools.idea.testing.AndroidGradleTestCase
-import com.android.tools.idea.testing.TestProjectPaths.BASIC
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.execution.ui.ConfigurationModuleSelector
-import com.intellij.openapi.module.Module
 import com.intellij.ui.components.JBCheckBox
+import org.junit.Assert.assertFalse
+import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock
 import java.awt.event.ActionEvent
 
-class ApplicationRunParametersTest : AndroidGradleTestCase() {
+class ApplicationRunParametersTest {
   private lateinit var myApplicationRunParameters: ApplicationRunParameters<AndroidRunConfiguration>
-  private lateinit var myModule : Module
-  private lateinit var myModuleSelector : ConfigurationModuleSelector
+  private lateinit var myModuleSelector: ConfigurationModuleSelector
 
-  override fun setUp() {
-    super.setUp()
-    loadProject(BASIC)
-    myModule = mock(Module::class.java)
+  @get:Rule
+  val projectRule: AndroidProjectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.BASIC)
+
+  @Before
+  fun setUp() {
     myModuleSelector = mock(ConfigurationModuleSelector::class.java)
-    myApplicationRunParameters = ApplicationRunParameters(project, myModuleSelector)
+    myApplicationRunParameters = ApplicationRunParameters(projectRule.project, myModuleSelector)
   }
 
   @Test

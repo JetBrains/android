@@ -15,23 +15,39 @@
  */
 package com.android.tools.idea.run.activity;
 
+import static kotlin.test.AssertionsKt.fail;
+
 import com.android.tools.compose.ComposeLibraryNamespaceKt;
-import com.android.tools.idea.testing.AndroidGradleTestCase;
-import com.android.tools.idea.testing.TestProjectPaths;
+import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
+import org.jetbrains.android.facet.AndroidFacet;
+import org.junit.Rule;
+import org.junit.Test;
 
-public class SpecificActivityLocatorGradleTest extends AndroidGradleTestCase {
+public class SpecificActivityLocatorGradleTest {
 
+  @Rule
+  public EdtRule edt = new EdtRule();
+
+  @Rule
+  public AndroidProjectRule myProjectRule = AndroidProjectRule.testProject(AndroidCoreTestProject.UI_TOOLING_DEPENDENCY);
+
+  @Test
+  @RunsInEdt
   public void testFindActivity() throws Exception {
-    loadProject(TestProjectPaths.UI_TOOLING_DEPENDENCY);
 
     final String appActivity = "com.android.test.uitoolingdependency.MainActivity";
     final String externalActivity = ComposeLibraryNamespaceKt.COMPOSE_PREVIEW_ACTIVITY_FQN;
 
-    Project project = myAndroidFacet.getModule().getProject();
+    Project project = myProjectRule.getProject();
     GlobalSearchScope projectScope = GlobalSearchScope.projectScope(project);
     GlobalSearchScope globalScope = GlobalSearchScope.allScope(project);
+
+    AndroidFacet myAndroidFacet = AndroidFacet.getInstance(myProjectRule.getModule());
 
     SpecificActivityLocator locator = new SpecificActivityLocator(myAndroidFacet, appActivity, globalScope);
     // Activities within the project scope should be found regardless.

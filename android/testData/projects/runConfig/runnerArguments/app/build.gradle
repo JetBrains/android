@@ -1,0 +1,38 @@
+apply plugin: 'com.android.application'
+
+android {
+  compileSdkVersion 23
+  buildToolsVersion "23.0.2"
+  useLibrary 'org.apache.http.legacy'
+  namespace "com.android.runnerarguments"
+
+  defaultConfig {
+    applicationId "com.android.runnerarguments"
+    minSdkVersion 19
+    targetSdkVersion 23
+    versionCode 1
+    versionName "1.0"
+    testInstrumentationRunnerArguments size: "medium", foo: "bar"
+    testOptions {
+      animationsDisabled true
+    }
+  }
+  buildTypes {
+    release {
+      minifyEnabled false
+    }
+  }
+  lintOptions {
+    abortOnError false
+  }
+
+  buildFeatures {
+    buildConfig true
+  }
+}
+
+dependencies {
+  testImplementation 'junit:junit:4.12'
+  androidTestImplementation 'com.android.support.test:runner:+'
+  androidTestImplementation 'com.android.support.test.espresso:espresso-core:+'
+}

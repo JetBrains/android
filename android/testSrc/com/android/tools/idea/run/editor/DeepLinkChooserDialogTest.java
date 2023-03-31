@@ -15,32 +15,43 @@
  */
 package com.android.tools.idea.run.editor;
 
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertTrue;
+
+import com.android.testutils.TestUtils;
+import com.android.tools.idea.testing.AndroidProjectRule;
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.android.AndroidTestCase;
-
+import com.intellij.testFramework.EdtRule;
+import com.intellij.testFramework.RunsInEdt;
 import java.util.List;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
-public class DeepLinkChooserDialogTest extends AndroidTestCase {
-  private static final String BASE_PATH = "deeplink/launch/";
-  private static final String ANDROID_MANIFEST = "AndroidManifest.xml";
+public class DeepLinkChooserDialogTest {
 
-  @Override
-  protected boolean providesCustomManifest() {
-    return true;
-  }
+  private static final String ANDROID_MANIFEST =
+    TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData/deeplink/launch/AndroidManifest.xml").toString();
 
-  @Override
+  @Rule
+  public AndroidProjectRule myProjectRule = AndroidProjectRule.onDisk();
+
+  @Rule
+  public EdtRule edtRule = new EdtRule();
+
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
-    TemplateManagerImpl.setTemplateTesting(getTestRootDisposable());
+    TemplateManagerImpl.setTemplateTesting(myProjectRule.getTestRootDisposable());
   }
 
-  public void testMatchDeeplink() throws Exception {
-    PsiFile file = myFixture.configureByFile(BASE_PATH + ANDROID_MANIFEST);
+  @Test
+  @RunsInEdt
+  public void testMatchDeeplink() {
+    PsiFile file = myProjectRule.getFixture().configureByFile(ANDROID_MANIFEST);
 
-    XmlFile xmlFile = (XmlFile) file;
+    XmlFile xmlFile = (XmlFile)file;
 
     List<String> deepLinks = DeepLinkChooserDialog.getAllDeepLinks(xmlFile.getRootTag());
     assertEquals(3, deepLinks.size());

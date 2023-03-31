@@ -62,7 +62,6 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
   @Before
   fun setup() {
     StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.override(true)
-    whenever(myModelWizardDialog.showAndGet()).thenReturn(true)
     myProvider = TestAttachAndroidSdkSourcesNotificationProvider(myAndroidProjectRule.project)
   }
 
@@ -82,7 +81,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
   @Test
   fun createNotificationPanel_javaClassNotInAndroidSdk_returnsNull() {
-    val javaClassFile = myAndroidProjectRule.fixture.createFile("someclass.class", "file contents")
+    val javaClassFile = myAndroidProjectRule.fixture.createFile("someclass.class", "")
 
     assertThat(javaClassFile.fileType).isEqualTo(JavaClassFileType.INSTANCE)
     val panel = invokeCreateNotificationPanel(javaClassFile)
@@ -145,6 +144,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
   @Test
   fun createNotificationPanel_flagOff_downloadLinkDownloadsSources() {
+    whenever(myModelWizardDialog.showAndGet()).thenReturn(true)
     StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.override(false)
 
     val panel = invokeCreateNotificationPanel(androidSdkClassWithoutSources)
@@ -163,6 +163,7 @@ class AttachAndroidSdkSourcesNotificationProviderTest {
 
   @Test
   fun createNotificationPanel_downloadLinkDownloadsSources() {
+    whenever(myModelWizardDialog.showAndGet()).thenReturn(true)
     val panel = invokeCreateNotificationPanel(androidSdkClassWithoutSources)
 
     val rootProvider = AndroidSdks.getInstance().allAndroidSdks[0].rootProvider
