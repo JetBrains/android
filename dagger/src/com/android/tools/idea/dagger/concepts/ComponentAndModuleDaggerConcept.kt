@@ -284,13 +284,25 @@ internal data class ModuleDaggerElement(override val psiElement: PsiElement) :
       )
 
     return fromIndex.filterIsInstance<ComponentDaggerElement>().map {
-      DaggerRelatedElement(it, DaggerBundle.message("included.in.components"))
+      DaggerRelatedElement(
+        it,
+        DaggerBundle.message("included.in.components"),
+        "navigate.to.component.that.include"
+      )
     } +
       fromIndex.filterIsInstance<SubcomponentDaggerElement>().map {
-        DaggerRelatedElement(it, DaggerBundle.message("included.in.subcomponents"))
+        DaggerRelatedElement(
+          it,
+          DaggerBundle.message("included.in.subcomponents"),
+          "navigate.to.subcomponent.that.include"
+        )
       } +
       fromIndex.filterIsInstance<ModuleDaggerElement>().map {
-        DaggerRelatedElement(it, DaggerBundle.message("included.in.modules"))
+        DaggerRelatedElement(
+          it,
+          DaggerBundle.message("included.in.modules"),
+          "navigate.to.module.that.include"
+        )
       }
   }
 }
@@ -322,14 +334,16 @@ internal sealed class ComponentDaggerElementBase : ClassDaggerElement() {
       moduleClasses.map {
         DaggerRelatedElement(
           ModuleDaggerElement(it.navigationElement),
-          DaggerBundle.message("modules.included")
+          DaggerBundle.message("modules.included"),
+          "navigate.to.included.module"
         )
       }
     val subcomponentElements =
       subcomponentClasses.map {
         DaggerRelatedElement(
           SubcomponentDaggerElement(it.navigationElement),
-          DaggerBundle.message("subcomponents")
+          DaggerBundle.message("subcomponents"),
+          "navigate.to.subcomponent"
         )
       }
 
@@ -397,7 +411,11 @@ internal data class ComponentDaggerElement(override val psiElement: PsiElement) 
   override fun getRelatedDaggerElements(): List<DaggerRelatedElement> {
     val elementsFromIndex =
       getRelatedDaggerElementsFromIndex<ComponentDaggerElement>(classPsiType.getIndexKeys()).map {
-        DaggerRelatedElement(it, DaggerBundle.message("parent.components"))
+        DaggerRelatedElement(
+          it,
+          DaggerBundle.message("parent.components"),
+          "navigate.to.parent.component"
+        )
       }
     return elementsFromIndex + getIncludedModulesAndSubcomponents()
   }
@@ -429,7 +447,13 @@ internal data class SubcomponentDaggerElement(override val psiElement: PsiElemen
             it.classPsiType.getIndexKeys()
           )
         }
-        .map { DaggerRelatedElement(it, DaggerBundle.message("parent.components")) }
+        .map {
+          DaggerRelatedElement(
+            it,
+            DaggerBundle.message("parent.components"),
+            "navigate.to.parent.component"
+          )
+        }
 
     return containingComponents + getIncludedModulesAndSubcomponents()
   }

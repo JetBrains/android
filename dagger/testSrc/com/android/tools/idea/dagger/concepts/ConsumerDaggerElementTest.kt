@@ -78,7 +78,7 @@ class ConsumerDaggerElementTest {
 
     assertThat(consumerDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(providerDaggerElement, "Providers"),
+        DaggerRelatedElement(providerDaggerElement, "Providers", "navigate.to.provider"),
       )
   }
 
@@ -128,13 +128,19 @@ class ConsumerDaggerElementTest {
     val providerDaggerElement = ProviderDaggerElement(providerPsiElement)
 
     assertThat(consumerOfLazyFooDaggerElement.getRelatedDaggerElements())
-      .containsExactly(DaggerRelatedElement(providerDaggerElement, "Providers"))
+      .containsExactly(
+        DaggerRelatedElement(providerDaggerElement, "Providers", "navigate.to.provider")
+      )
 
     assertThat(consumerOfProviderFooDaggerElement.getRelatedDaggerElements())
-      .containsExactly(DaggerRelatedElement(providerDaggerElement, "Providers"))
+      .containsExactly(
+        DaggerRelatedElement(providerDaggerElement, "Providers", "navigate.to.provider")
+      )
 
     assertThat(consumerOfProviderLazyFooDaggerElement.getRelatedDaggerElements())
-      .containsExactly(DaggerRelatedElement(providerDaggerElement, "Providers"))
+      .containsExactly(
+        DaggerRelatedElement(providerDaggerElement, "Providers", "navigate.to.provider")
+      )
   }
 
   @Test
@@ -187,13 +193,19 @@ class ConsumerDaggerElementTest {
     val providerDaggerElement = ProviderDaggerElement(providerPsiElement)
 
     assertThat(consumerOfLazyFooDaggerElement.getRelatedDaggerElements())
-      .containsExactly(DaggerRelatedElement(providerDaggerElement, "Providers"))
+      .containsExactly(
+        DaggerRelatedElement(providerDaggerElement, "Providers", "navigate.to.provider")
+      )
 
     assertThat(consumerOfProviderFooDaggerElement.getRelatedDaggerElements())
-      .containsExactly(DaggerRelatedElement(providerDaggerElement, "Providers"))
+      .containsExactly(
+        DaggerRelatedElement(providerDaggerElement, "Providers", "navigate.to.provider")
+      )
 
     assertThat(consumerOfProviderLazyFooDaggerElement.getRelatedDaggerElements())
-      .containsExactly(DaggerRelatedElement(providerDaggerElement, "Providers"))
+      .containsExactly(
+        DaggerRelatedElement(providerDaggerElement, "Providers", "navigate.to.provider")
+      )
   }
 
   @Test
@@ -269,9 +281,13 @@ class ConsumerDaggerElementTest {
     val consumerOfFooRelatedElements = consumerOfFooDaggerElement.getRelatedDaggerElements()
     assertThat(consumerOfFooRelatedElements)
       .containsExactly(
-        DaggerRelatedElement(provideFooDaggerElement, "Providers"),
-        DaggerRelatedElement(provideNullableFooDaggerElement, "Providers"),
-        DaggerRelatedElement(provideMyNullableFooDaggerElement, "Providers"),
+        DaggerRelatedElement(provideFooDaggerElement, "Providers", "navigate.to.provider"),
+        DaggerRelatedElement(provideNullableFooDaggerElement, "Providers", "navigate.to.provider"),
+        DaggerRelatedElement(
+          provideMyNullableFooDaggerElement,
+          "Providers",
+          "navigate.to.provider"
+        ),
       )
 
     assertThat(consumerOfNullableFooDaggerElement.getRelatedDaggerElements())
@@ -392,28 +408,42 @@ class ConsumerDaggerElementTest {
 
     assertThat(consumerOfJavaOptionalFooDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(bindOptionalFooDaggerElement, "Providers"),
-        DaggerRelatedElement(provideJavaOptionalFooDaggerElement, "Providers"),
+        DaggerRelatedElement(bindOptionalFooDaggerElement, "Providers", "navigate.to.provider"),
+        DaggerRelatedElement(
+          provideJavaOptionalFooDaggerElement,
+          "Providers",
+          "navigate.to.provider"
+        ),
       )
 
     assertThat(consumerOfGuavaOptionalFooDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(bindOptionalFooDaggerElement, "Providers"),
-        DaggerRelatedElement(provideGuavaOptionalFooDaggerElement, "Providers"),
+        DaggerRelatedElement(bindOptionalFooDaggerElement, "Providers", "navigate.to.provider"),
+        DaggerRelatedElement(
+          provideGuavaOptionalFooDaggerElement,
+          "Providers",
+          "navigate.to.provider"
+        ),
       )
 
     assertThat(consumerOfMyOptionalFooDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(provideMyOptionalFooDaggerElement, "Providers"),
+        DaggerRelatedElement(
+          provideMyOptionalFooDaggerElement,
+          "Providers",
+          "navigate.to.provider"
+        ),
       )
 
     assertThat(consumerOfFooDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(provideFooDaggerElement, "Providers"),
+        DaggerRelatedElement(provideFooDaggerElement, "Providers", "navigate.to.provider"),
       )
 
     assertThat(consumerOfJavaOptionalLazyFooDaggerElement.getRelatedDaggerElements())
-      .containsExactly(DaggerRelatedElement(bindOptionalFooDaggerElement, "Providers"))
+      .containsExactly(
+        DaggerRelatedElement(bindOptionalFooDaggerElement, "Providers", "navigate.to.provider")
+      )
   }
 
   @Test
@@ -507,21 +537,41 @@ class ConsumerDaggerElementTest {
       ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|ErnieBar"))
 
     assertThat(unqualifiedIntConsumerDaggerElement.getRelatedDaggerElements())
-      .containsExactly(DaggerRelatedElement(provideUnqualifiedIntDaggerElement, "Providers"))
+      .containsExactly(
+        DaggerRelatedElement(
+          provideUnqualifiedIntDaggerElement,
+          "Providers",
+          "navigate.to.provider"
+        )
+      )
 
     assertThat(bertIntConsumerDaggerElement.getRelatedDaggerElements())
-      .containsExactly(DaggerRelatedElement(providerBertIntDaggerElement, "Providers"))
+      .containsExactly(
+        DaggerRelatedElement(providerBertIntDaggerElement, "Providers", "navigate.to.provider")
+      )
 
     assertThat(ernieIntConsumerDaggerElement.getRelatedDaggerElements())
-      .containsExactly(DaggerRelatedElement(provideErnieIntDaggerElement, "Providers"))
+      .containsExactly(
+        DaggerRelatedElement(provideErnieIntDaggerElement, "Providers", "navigate.to.provider")
+      )
 
     assertThat(unqualifiedBarConsumerDaggerElement.getRelatedDaggerElements())
-      .containsExactly(DaggerRelatedElement(provideUnqualifiedBarDaggerElement, "Providers"))
+      .containsExactly(
+        DaggerRelatedElement(
+          provideUnqualifiedBarDaggerElement,
+          "Providers",
+          "navigate.to.provider"
+        )
+      )
 
     assertThat(bertBarConsumerDaggerElement.getRelatedDaggerElements())
-      .containsExactly(DaggerRelatedElement(provideBertBarDaggerElement, "Providers"))
+      .containsExactly(
+        DaggerRelatedElement(provideBertBarDaggerElement, "Providers", "navigate.to.provider")
+      )
 
     assertThat(ernieBarConsumerDaggerElement.getRelatedDaggerElements())
-      .containsExactly(DaggerRelatedElement(provideErnieBarDaggerElement, "Providers"))
+      .containsExactly(
+        DaggerRelatedElement(provideErnieBarDaggerElement, "Providers", "navigate.to.provider")
+      )
   }
 }

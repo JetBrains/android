@@ -246,15 +246,37 @@ class EntryPointMethodDaggerConceptTest {
       ProviderDaggerElement(myFixture.findParentElement<PsiMethod>("public Ba|r()"))
 
     assertThat(bar1EntryPointDaggerElement.getRelatedDaggerElements())
-      .containsExactly(DaggerRelatedElement(barProviderDaggerElement, "Providers"))
+      .containsExactly(
+        DaggerRelatedElement(
+          barProviderDaggerElement,
+          "Providers",
+          "navigate.to.provider.from.component"
+        )
+      )
 
     assertThat(bar2EntryPointDaggerElement.getRelatedDaggerElements())
-      .containsExactly(DaggerRelatedElement(barProviderDaggerElement, "Providers"))
+      .containsExactly(
+        DaggerRelatedElement(
+          barProviderDaggerElement,
+          "Providers",
+          "navigate.to.provider.from.component"
+        )
+      )
 
     assertThat(barProviderDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(bar1EntryPointDaggerElement, "Exposed by entry points"),
-        DaggerRelatedElement(bar2EntryPointDaggerElement, "Exposed by entry points")
+        DaggerRelatedElement(
+          bar1EntryPointDaggerElement,
+          "Exposed by entry points",
+          "navigate.to.component.exposes",
+          "MyEntryPoint"
+        ),
+        DaggerRelatedElement(
+          bar2EntryPointDaggerElement,
+          "Exposed by entry points",
+          "navigate.to.component.exposes",
+          "MyEntryPoint"
+        )
       )
   }
 }

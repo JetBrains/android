@@ -39,6 +39,7 @@ import icons.StudioIcons
 import java.awt.event.MouseEvent
 import javax.swing.Icon
 import kotlin.system.measureTimeMillis
+import org.jetbrains.annotations.PropertyKey
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.lexer.KtTokens
 
@@ -80,7 +81,7 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
           element,
           element.textRange,
           daggerElement.getIcon(),
-          ::tooltipProvider,
+          { getTooltip(daggerElement.psiElement, gotoItems) },
           NavigationHandler(gotoItems, metricsType),
           GutterIconRenderer.Alignment.RIGHT,
           { gotoItems },
@@ -94,18 +95,42 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
   }
 
   companion object {
-    /** Tooltip provider for related link marker. */
-    @VisibleForTesting
-    internal fun tooltipProvider(element: PsiElement) =
-      DaggerBundle.message(
-        "dependency.related.files.for",
-        SymbolPresentationUtil.getSymbolPresentableText(element)
-      )
+    private fun getTooltip(
+      fromElement: PsiElement,
+      gotoItems: List<GotoItemWithAnalytics>
+    ): String {
+      val fromElementString = SymbolPresentationUtil.getSymbolPresentableText(fromElement)
 
-    /** Given a [DaggerElement], find its related items. */
-    private fun DaggerElement.getGotoItems(): List<GotoRelatedItem> =
-      getRelatedDaggerElements().map { (relatedItem, relationName) ->
-        GotoItemWithAnalytics(this, relatedItem, relationName)
+      if (gotoItems.size == 1) {
+        val gotoItem = gotoItems[0]
+        val toElementString =
+          gotoItem.customName
+            ?: gotoItem.element?.let { SymbolPresentationUtil.getSymbolPresentableText(it) }
+        if (toElementString != null) {
+          return DaggerBundle.message(
+            gotoItem.relationDescriptionKey,
+            fromElementString,
+            toElementString
+          )
+        }
+      }
+
+      return DaggerBundle.message("dependency.related.files.for", fromElementString)
+    }
+
+    /**
+     * Returns [GotoRelatedItem]s representing related [DaggerElement]s for a given source element.
+     */
+    private fun DaggerElement.getGotoItems(): List<GotoItemWithAnalytics> =
+      getRelatedDaggerElements().map {
+        (relatedItem, relationName, relationDescriptionKey, customDisplayName) ->
+        GotoItemWithAnalytics(
+          this,
+          relatedItem,
+          relationName,
+          relationDescriptionKey,
+          customDisplayName
+        )
       }
 
     /**
@@ -158,10 +183,12 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
     }
   }
 
-  private class GotoItemWithAnalytics(
+  internal class GotoItemWithAnalytics(
     fromElement: DaggerElement,
     toElement: DaggerElement,
-    group: String
+    group: String,
+    @PropertyKey(resourceBundle = DaggerBundle.BUNDLE_NAME) val relationDescriptionKey: String,
+    private val customDisplayName: String?
   ) : GotoRelatedItem(toElement.psiElement, group) {
     private val fromElementType = fromElement.metricsElementType
     private val toElementType = toElement.metricsElementType
@@ -177,5 +204,7 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
         )
       super.navigate()
     }
+
+    override fun getCustomName() = customDisplayName
   }
 }

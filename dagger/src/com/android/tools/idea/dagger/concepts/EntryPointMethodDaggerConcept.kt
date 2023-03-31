@@ -154,4 +154,5 @@ internal data class EntryPointMethodDaggerElement(
   override val metricsElementType = DaggerEditorEvent.ElementType.ENTRY_POINT_METHOD
 
   override val relatedElementGrouping = DaggerBundle.message("exposed.by.entry.points")
+  override val relationDescriptionKey: String = "navigate.to.provider.from.component"
 }

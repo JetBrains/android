@@ -21,13 +21,17 @@ import com.android.tools.idea.kotlin.psiType
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiField
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
+import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.idea.base.util.projectScope
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.psi.KtProperty
 
 internal sealed class ProviderDaggerElementBase : DaggerElement() {
 
@@ -41,7 +45,38 @@ internal sealed class ProviderDaggerElementBase : DaggerElement() {
 
   override fun getRelatedDaggerElements(): List<DaggerRelatedElement> =
     getRelatedDaggerElementsFromIndex<ConsumerDaggerElementBase>(getIndexKeys()).map {
-      DaggerRelatedElement(it, it.relatedElementGrouping)
+      DaggerRelatedElement(
+        it,
+        it.relatedElementGrouping,
+        it.getRelationDescriptionKey(),
+        it.psiElement.getCustomRelatedElementDisplayName()
+      )
+    }
+
+  /**
+   * Gets a custom name for use when displaying a related consumer in navigation text. This
+   * generally returns the name of a higher-level element than the consumer itself.
+   */
+  private fun PsiElement.getCustomRelatedElementDisplayName() =
+    when (this) {
+      is PsiField,
+      is PsiMethod -> parentOfType<PsiClass>()?.name
+      is PsiParameter -> parentOfType<PsiMethod>()?.name
+      is KtProperty,
+      is KtFunction -> parentOfType<KtClass>()?.name
+      is KtParameter -> parentOfType<KtFunction>()?.name
+      else -> null
+    }
+
+  /**
+   * When displaying the relationship between this provider and a consumer, the description of the
+   * relationship has to change when the consumer is a top-level component or entry point.
+   */
+  private fun ConsumerDaggerElementBase.getRelationDescriptionKey(): String =
+    when (this) {
+      is ComponentProvisionMethodDaggerElement,
+      is EntryPointMethodDaggerElement -> "navigate.to.component.exposes"
+      else -> "navigate.to.consumer"
     }
 
   override fun filterResolveCandidate(resolveCandidate: DaggerElement): Boolean =

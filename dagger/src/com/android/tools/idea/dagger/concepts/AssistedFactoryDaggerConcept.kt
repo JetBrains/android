@@ -204,11 +204,16 @@ internal data class AssistedFactoryMethodIndexValue(
 
 internal data class AssistedFactoryMethodDaggerElement(
   override val psiElement: PsiElement,
-  internal val returnedType: PsiType
+  internal val returnedType: PsiType,
+  internal val methodName: String?
 ) : DaggerElement() {
 
-  internal constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())
-  internal constructor(psiElement: PsiMethod) : this(psiElement, psiElement.getReturnedPsiType())
+  internal constructor(
+    psiElement: KtFunction
+  ) : this(psiElement, psiElement.getReturnedPsiType(), psiElement.name)
+  internal constructor(
+    psiElement: PsiMethod
+  ) : this(psiElement, psiElement.getReturnedPsiType(), psiElement.name)
 
   override val metricsElementType = DaggerEditorEvent.ElementType.ASSISTED_FACTORY_METHOD
 
@@ -217,7 +222,14 @@ internal data class AssistedFactoryMethodDaggerElement(
     // we have to look up.
     val indexKeys = listOf(returnedType.canonicalText)
     return getRelatedDaggerElementsFromIndex<AssistedInjectConstructorDaggerElement>(indexKeys)
-      .map { DaggerRelatedElement(it, DaggerBundle.message("assisted.inject")) }
+      .map {
+        DaggerRelatedElement(
+          it,
+          DaggerBundle.message("assisted.inject"),
+          "navigate.to.assisted.inject",
+          it.methodName
+        )
+      }
   }
 
   override fun filterResolveCandidate(resolveCandidate: DaggerElement) =

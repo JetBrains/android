@@ -300,7 +300,12 @@ class AssistedFactoryDaggerConceptTest {
 
     assertThat(assistedFactoryMethodDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(assistedInjectConstructorDaggerElement, "AssistedInject constructors")
+        DaggerRelatedElement(
+          assistedInjectConstructorDaggerElement,
+          "AssistedInject constructors",
+          "navigate.to.assisted.inject",
+          "CreatedObject"
+        )
       )
   }
 }

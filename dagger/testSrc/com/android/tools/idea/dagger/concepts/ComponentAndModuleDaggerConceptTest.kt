@@ -878,10 +878,15 @@ class ComponentAndModuleDaggerConceptTest {
 
     assertThat(componentDaggerElement.getIncludedModulesAndSubcomponents())
       .containsExactly(
-        DaggerRelatedElement(ModuleDaggerElement(coffeeShopModuleElement), "Modules included"),
+        DaggerRelatedElement(
+          ModuleDaggerElement(coffeeShopModuleElement),
+          "Modules included",
+          "navigate.to.included.module"
+        ),
         DaggerRelatedElement(
           SubcomponentDaggerElement(coffeeShopSubcomponentElement),
-          "Subcomponents"
+          "Subcomponents",
+          "navigate.to.subcomponent"
         ),
       )
   }
@@ -926,10 +931,15 @@ class ComponentAndModuleDaggerConceptTest {
 
     assertThat(componentDaggerElement.getIncludedModulesAndSubcomponents())
       .containsExactly(
-        DaggerRelatedElement(ModuleDaggerElement(coffeeShopModuleElement), "Modules included"),
+        DaggerRelatedElement(
+          ModuleDaggerElement(coffeeShopModuleElement),
+          "Modules included",
+          "navigate.to.included.module"
+        ),
         DaggerRelatedElement(
           SubcomponentDaggerElement(coffeeShopSubcomponentElement),
-          "Subcomponents"
+          "Subcomponents",
+          "navigate.to.subcomponent"
         ),
       )
   }
@@ -960,21 +970,26 @@ class ComponentAndModuleDaggerConceptTest {
         .trimIndent()
     )
 
-    val componentPsiElement: PsiClass = myFixture.findParentElement("CoffeeShop|Component")
+    val componentDaggerElement =
+      ComponentDaggerElement(
+        myFixture.findParentElement<PsiClass>("interface CoffeeShop|Component")
+      )
+    val moduleDaggerElement =
+      ModuleDaggerElement(myFixture.findParentElement<PsiClass>("interface CoffeeShop|Module"))
+    val subcomponentDaggerElement =
+      SubcomponentDaggerElement(
+        myFixture.findParentElement<PsiClass>("interface CoffeeShop|Subcomponent")
+      )
 
-    val componentDaggerElement = ComponentDaggerElement(componentPsiElement)
-    val modulesAndSubcomponents = componentDaggerElement.getIncludedModulesAndSubcomponents()
-
-    assertThat(modulesAndSubcomponents).hasSize(2)
-
-    assertThat(modulesAndSubcomponents[0].first).isInstanceOf(ModuleDaggerElement::class.java)
-    assertThat(modulesAndSubcomponents[1].first).isInstanceOf(SubcomponentDaggerElement::class.java)
-
-    assertThat(modulesAndSubcomponents[0].first.psiElement.text).contains("CoffeeShopModule")
-    assertThat(modulesAndSubcomponents[1].first.psiElement.text).contains("CoffeeShopSubcomponent")
-
-    assertThat(modulesAndSubcomponents[0].second).isEqualTo("Modules included")
-    assertThat(modulesAndSubcomponents[1].second).isEqualTo("Subcomponents")
+    assertThat(componentDaggerElement.getIncludedModulesAndSubcomponents())
+      .containsExactly(
+        DaggerRelatedElement(
+          moduleDaggerElement,
+          "Modules included",
+          "navigate.to.included.module"
+        ),
+        DaggerRelatedElement(subcomponentDaggerElement, "Subcomponents", "navigate.to.subcomponent")
+      )
   }
 
   @Ignore // TODO(b/265846405): Start running test when index is enabled
@@ -1030,13 +1045,25 @@ class ComponentAndModuleDaggerConceptTest {
 
     assertThat(topLevelComponentDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(myModuleDaggerElement, "Modules included"),
-        DaggerRelatedElement(mySubcomponentDaggerElement, "Subcomponents"),
+        DaggerRelatedElement(
+          myModuleDaggerElement,
+          "Modules included",
+          "navigate.to.included.module"
+        ),
+        DaggerRelatedElement(
+          mySubcomponentDaggerElement,
+          "Subcomponents",
+          "navigate.to.subcomponent"
+        ),
       )
 
     assertThat(includedComponentDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(topLevelComponentDaggerElement, "Parent components"),
+        DaggerRelatedElement(
+          topLevelComponentDaggerElement,
+          "Parent components",
+          "navigate.to.parent.component"
+        ),
       )
   }
 
@@ -1099,13 +1126,25 @@ class ComponentAndModuleDaggerConceptTest {
 
     assertThat(topLevelComponentDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(myModuleDaggerElement, "Modules included"),
-        DaggerRelatedElement(mySubcomponentDaggerElement, "Subcomponents"),
+        DaggerRelatedElement(
+          myModuleDaggerElement,
+          "Modules included",
+          "navigate.to.included.module"
+        ),
+        DaggerRelatedElement(
+          mySubcomponentDaggerElement,
+          "Subcomponents",
+          "navigate.to.subcomponent"
+        ),
       )
 
     assertThat(includedComponentDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(topLevelComponentDaggerElement, "Parent components"),
+        DaggerRelatedElement(
+          topLevelComponentDaggerElement,
+          "Parent components",
+          "navigate.to.parent.component"
+        ),
       )
   }
 
@@ -1168,13 +1207,25 @@ class ComponentAndModuleDaggerConceptTest {
 
     assertThat(topLevelComponentDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(myModuleDaggerElement, "Modules included"),
-        DaggerRelatedElement(mySubcomponentDaggerElement, "Subcomponents"),
+        DaggerRelatedElement(
+          myModuleDaggerElement,
+          "Modules included",
+          "navigate.to.included.module"
+        ),
+        DaggerRelatedElement(
+          mySubcomponentDaggerElement,
+          "Subcomponents",
+          "navigate.to.subcomponent"
+        ),
       )
 
     assertThat(includedComponentDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(topLevelComponentDaggerElement, "Parent components"),
+        DaggerRelatedElement(
+          topLevelComponentDaggerElement,
+          "Parent components",
+          "navigate.to.parent.component"
+        ),
       )
   }
 
@@ -1232,9 +1283,21 @@ class ComponentAndModuleDaggerConceptTest {
 
     assertThat(myModuleDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(myComponentDaggerElement, "Included in components"),
-        DaggerRelatedElement(mySubcomponentDaggerElement, "Included in subcomponents"),
-        DaggerRelatedElement(myContainingModuleDaggerElement, "Included in modules"),
+        DaggerRelatedElement(
+          myComponentDaggerElement,
+          "Included in components",
+          "navigate.to.component.that.include"
+        ),
+        DaggerRelatedElement(
+          mySubcomponentDaggerElement,
+          "Included in subcomponents",
+          "navigate.to.subcomponent.that.include"
+        ),
+        DaggerRelatedElement(
+          myContainingModuleDaggerElement,
+          "Included in modules",
+          "navigate.to.module.that.include"
+        ),
       )
   }
 
@@ -1299,14 +1362,30 @@ class ComponentAndModuleDaggerConceptTest {
 
     assertThat(mySubcomponentDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(myComponentDaggerElement, "Parent components"),
-        DaggerRelatedElement(myIncludedModuleDaggerElement, "Modules included"),
-        DaggerRelatedElement(myIncludedSubcomponentDaggerElement, "Subcomponents"),
+        DaggerRelatedElement(
+          myComponentDaggerElement,
+          "Parent components",
+          "navigate.to.parent.component"
+        ),
+        DaggerRelatedElement(
+          myIncludedModuleDaggerElement,
+          "Modules included",
+          "navigate.to.included.module"
+        ),
+        DaggerRelatedElement(
+          myIncludedSubcomponentDaggerElement,
+          "Subcomponents",
+          "navigate.to.subcomponent"
+        ),
       )
 
     assertThat(myIncludedSubcomponentDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(mySubcomponentDaggerElement, "Parent components"),
+        DaggerRelatedElement(
+          mySubcomponentDaggerElement,
+          "Parent components",
+          "navigate.to.parent.component"
+        ),
       )
   }
 }

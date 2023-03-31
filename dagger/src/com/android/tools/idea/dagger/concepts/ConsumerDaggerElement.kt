@@ -32,6 +32,12 @@ internal sealed class ConsumerDaggerElementBase : DaggerElement() {
   /** Returns a string indicating the group shown in related items for this element. */
   abstract val relatedElementGrouping: String
 
+  /**
+   * Returns a string indicated which resource to use when describing related items for this
+   * element.
+   */
+  abstract val relationDescriptionKey: String
+
   /** Type being consumer, as specified in code. */
   protected abstract val rawType: PsiType
 
@@ -45,7 +51,7 @@ internal sealed class ConsumerDaggerElementBase : DaggerElement() {
 
   override fun getRelatedDaggerElements(): List<DaggerRelatedElement> =
     getRelatedDaggerElementsFromIndex<ProviderDaggerElementBase>(consumedType.getIndexKeys()).map {
-      DaggerRelatedElement(it, DaggerBundle.message("providers"))
+      DaggerRelatedElement(it, DaggerBundle.message("providers"), relationDescriptionKey)
     }
 
   override fun filterResolveCandidate(resolveCandidate: DaggerElement) =
@@ -65,4 +71,5 @@ internal data class ConsumerDaggerElement(
   override val metricsElementType = DaggerEditorEvent.ElementType.CONSUMER
 
   override val relatedElementGrouping: String = DaggerBundle.message("consumers")
+  override val relationDescriptionKey: String = "navigate.to.provider"
 }

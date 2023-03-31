@@ -18,6 +18,7 @@ package com.android.tools.idea.dagger.concepts
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.dagger.index.DaggerIndex
 import com.android.tools.idea.dagger.index.getIndexKeys
+import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.android.tools.idea.dagger.unboxed
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
@@ -29,6 +30,7 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
 import kotlin.reflect.KClass
+import org.jetbrains.annotations.PropertyKey
 import org.jetbrains.kotlin.idea.base.util.projectScope
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -37,8 +39,6 @@ import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
-
-typealias DaggerRelatedElement = Pair<DaggerElement, String>
 
 /**
  * Wrapper around a PsiElement that represents an item in the Dagger graph, along with associated
@@ -199,3 +199,31 @@ internal fun PsiElement.classToPsiType(): PsiType =
     is PsiClass -> classToPsiType()
     else -> throw IllegalArgumentException("Unsupported type ${this::class}")
   }
+
+/**
+ * A [DaggerElement] that is related to some other source [DaggerElement]. For example, if the
+ * source is a Consumer of the type `Foo`, this related element may refer to a Provider of that type
+ * `Foo`.
+ */
+data class DaggerRelatedElement(
+  /** Related [DaggerElement]. */
+  val relatedElement: DaggerElement,
+  /**
+   * Display string for the type of related element. Multiple elements with the same group name can
+   * be displayed together.
+   */
+  val groupName: String,
+  /**
+   * Longer-form description of the relationship between a source element and this element. This is
+   * a key and should correspond to a value in DaggerBundle.properties. The value should have {0}
+   * and {1} placeholders, to be filled in by the "from" element and "to" element display names
+   * respectively.
+   */
+  @PropertyKey(resourceBundle = DaggerBundle.BUNDLE_NAME) val relationDescriptionKey: String,
+  /**
+   * A custom display name to use when filling in the "to" element placeholder in
+   * [relationDescriptionKey]. If this is null, a standard presentation of the underlying
+   * [PsiElement] is used.
+   */
+  val customDisplayName: String? = null
+)

@@ -552,7 +552,7 @@ abstract class DaggerRelatedItemLineMarkerProviderTestBase(
     assertThat(gotoRelatedItems).hasSize(1)
     val method = gotoRelatedItems.first()
     assertThat(method.group).isEqualTo("Parent components")
-    assertThat((method.element as PsiClass).name).isEqualTo("MyDependantComponent")
+    assertThat(method.element?.className()).isEqualTo("MyDependantComponent")
 
     clickOnIcon(icon)
     assertThat(trackerService.calledMethods).hasSize(3)

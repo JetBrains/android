@@ -247,6 +247,7 @@ internal data class ComponentProvisionMethodDaggerElement(
   override val metricsElementType = DaggerEditorEvent.ElementType.COMPONENT_METHOD
 
   override val relatedElementGrouping: String = DaggerBundle.message("exposed.by.components")
+  override val relationDescriptionKey: String = "navigate.to.provider.from.component"
 }
 
 private fun KtClassOrObject.isComponentOrSubcomponent() =
