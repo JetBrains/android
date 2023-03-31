@@ -808,7 +808,7 @@
                     <properties>
                       <lineWrap value="true"/>
                       <margin top="5" left="5" bottom="5" right="5"/>
-                      <toolTipText value="&lt;html&gt;The command line options passed to the emulator when running it.&lt;/html&gt;"/>
+                      <toolTipText value="&lt;html&gt;&lt;p&gt;The command line options passed to the emulator when running it.&lt;/p&gt;&lt;p&gt;These options can prevent the emulator from starting if entered incorrectly. Options defined here will override any options defined in previous settings.&lt;/p&gt;&lt;p&gt;Any changes to this setting require the emulator to be restarted to take effect.&lt;/p&gt;&lt;/html&gt;"/>
                     </properties>
                   </component>
                 </children>
