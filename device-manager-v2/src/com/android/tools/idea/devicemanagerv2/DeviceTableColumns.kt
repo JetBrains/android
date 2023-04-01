@@ -38,7 +38,7 @@ internal object DeviceTableColumns {
     override val name = DeviceManagerBundle.message("column.title.name")
     override val widthConstraint = Column.SizeConstraint(min = 200, preferred = 400)
     override val attribute = nameAttribute
-    override fun createUi(rowValue: DeviceRowData) = DeviceNamePanel(wearPairingManager)
+    override fun createUi(rowValue: DeviceRowData) = DeviceNamePanel()
 
     override fun updateValue(rowValue: DeviceRowData, component: DeviceNamePanel, value: String) =
       component.update(rowValue)

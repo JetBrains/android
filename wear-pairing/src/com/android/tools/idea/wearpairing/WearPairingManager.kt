@@ -74,7 +74,7 @@ private val LOG get() = logger<WearPairingManager>()
 @Service(
   Service.Level.APP
 )
-class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
+class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener, ObservablePairedDevicesList {
   enum class PairingState {
     UNKNOWN,
     OFFLINE, // One or both device are offline/disconnected
@@ -212,7 +212,7 @@ class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   }
 
   @Synchronized
-  fun addDevicePairingStatusChangedListener(listener: PairingStatusChangedListener) {
+  override fun addDevicePairingStatusChangedListener(listener: PairingStatusChangedListener) {
     pairingStatusListeners.addIfAbsent(listener)
     if (pairingStatusListeners.size > 2) { // We should have no more than two pairing details panels listening
       LOG.error("Memory leak adding listeners")
@@ -222,7 +222,7 @@ class WearPairingManager : AndroidDebugBridge.IDeviceChangeListener {
   }
 
   @Synchronized
-  fun removeDevicePairingStatusChangedListener(listener: PairingStatusChangedListener) {
+  override fun removeDevicePairingStatusChangedListener(listener: PairingStatusChangedListener) {
     pairingStatusListeners.remove(listener)
   }
 
@@ -631,4 +631,9 @@ fun WearPairingManager.removePairedDevicesAsync(phoneWearPair: WearPairingManage
   GlobalScope.launch(Dispatchers.IO) {
     removePairedDevices(phoneWearPair, restartWearGmsCore)
   }
+}
+
+interface ObservablePairedDevicesList {
+  fun addDevicePairingStatusChangedListener(listener: WearPairingManager.PairingStatusChangedListener)
+  fun removeDevicePairingStatusChangedListener(listener: WearPairingManager.PairingStatusChangedListener)
 }

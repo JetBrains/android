@@ -15,11 +15,14 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
+import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
+import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.deviceprovisioner.Reservation
 import com.android.sdklib.deviceprovisioner.ReservationState
+import com.android.sdklib.devices.Abi
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.categorytable.TablePresentation
@@ -32,6 +35,7 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.AppUIUtil
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
+import icons.StudioIcons
 import java.awt.Color
 import java.time.Instant
 import java.time.ZoneId
@@ -54,7 +58,7 @@ class DeviceNamePanelTest {
   fun changeTheme() {
     themeManagerRule.setDarkTheme(false)
 
-    val panel = DeviceNamePanel(WearPairingManager.getInstance())
+    val panel = DeviceNamePanel()
     panel.updateTablePresentation(
       TablePresentationManager(),
       TablePresentation(foreground = JBColor.BLACK, background = JBColor.WHITE, false)
@@ -127,6 +131,38 @@ class DeviceNamePanelTest {
           .line2Text(ZoneId.of("UTC"))
       )
       .isNull()
+  }
+
+  @Test
+  fun wearPairing() {
+    val panel = DeviceNamePanel()
+    val row =
+      DeviceRowData(
+        template = null,
+        handle = mock<DeviceHandle>(),
+        name = "Pixel 6",
+        type = DeviceType.HANDHELD,
+        androidVersion = AndroidVersion(31),
+        abi = Abi.ARM64_V8A,
+        status = DeviceRowData.Status.ONLINE,
+        isVirtual = false,
+        wearPairingId = "abcd1234",
+        pairingStatus = emptyList()
+      )
+    panel.update(row)
+    assertThat(panel.pairedLabel.isVisible).isFalse()
+
+    panel.update(
+      row.copy(
+        pairingStatus =
+          listOf(PairingStatus("watch2", "Pixel Watch", WearPairingManager.PairingState.CONNECTED))
+      )
+    )
+
+    assertThat(panel.pairedLabel.isVisible).isTrue()
+    assertThat(panel.pairedLabel.baseIcon)
+      .isEqualTo(StudioIcons.DeviceExplorer.DEVICE_PAIRED_AND_CONNECTED)
+    assertThat(panel.pairedLabel.accessibleContext.accessibleDescription).contains("Pixel Watch")
   }
 }
 

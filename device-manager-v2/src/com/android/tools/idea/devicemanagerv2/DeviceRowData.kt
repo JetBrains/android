@@ -40,6 +40,8 @@ internal data class DeviceRowData(
   val abi: Abi?,
   val status: Status,
   val isVirtual: Boolean,
+  val wearPairingId: String?,
+  val pairingStatus: List<PairingStatus>,
 ) {
   init {
     checkNotNull(handle ?: template) { "Either template or handle must be set" }
@@ -48,7 +50,7 @@ internal data class DeviceRowData(
   fun key() = handle ?: template!!
 
   companion object {
-    fun create(handle: DeviceHandle): DeviceRowData {
+    fun create(handle: DeviceHandle, pairingStatus: List<PairingStatus>): DeviceRowData {
       val state = handle.state
       val properties = state.properties
       return DeviceRowData(
@@ -64,6 +66,8 @@ internal data class DeviceRowData(
             else -> Status.OFFLINE
           },
         isVirtual = properties.isVirtual ?: false,
+        wearPairingId = properties.wearPairingId,
+        pairingStatus = pairingStatus,
       )
     }
 
@@ -78,6 +82,8 @@ internal data class DeviceRowData(
         abi = properties.abi,
         status = Status.OFFLINE,
         isVirtual = properties.isVirtual ?: false,
+        wearPairingId = properties.wearPairingId,
+        pairingStatus = emptyList(),
       )
     }
 

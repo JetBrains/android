@@ -18,15 +18,18 @@ package com.android.tools.idea.devicemanagerv2
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.Reservation
 import com.android.sdklib.getReleaseNameAndDetails
+import com.android.tools.adtui.categorytable.IconLabel
 import com.android.tools.adtui.categorytable.TableComponent
 import com.android.tools.adtui.categorytable.TablePresentation
 import com.android.tools.adtui.categorytable.TablePresentationManager
-import com.android.tools.idea.wearpairing.WearPairingManager
+import com.android.tools.idea.wearpairing.AndroidWearPairingBundle.Companion.message
+import com.android.tools.idea.wearpairing.WearPairingManager.PairingState
 import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
 import java.awt.Color
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -40,12 +43,11 @@ import org.jetbrains.annotations.VisibleForTesting
  * A panel that renders the name of the device, along with its wear pairing status and a second line
  * to indicate more details, such as its Android version or an error state.
  */
-internal class DeviceNamePanel(private val wearPairingManager: WearPairingManager) :
-  JBPanel<DeviceNamePanel>(null), TableComponent {
+internal class DeviceNamePanel : JBPanel<DeviceNamePanel>(null), TableComponent {
 
   internal val nameLabel = JBLabel()
   internal val line2Label = JBLabel()
-  private val pairedLabel = JBLabel()
+  internal val pairedLabel = IconLabel(StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN)
 
   init {
     isOpaque = false
@@ -89,8 +91,33 @@ internal class DeviceNamePanel(private val wearPairingManager: WearPairingManage
   fun update(deviceRowData: DeviceRowData) {
     nameLabel.text = deviceRowData.name
     line2Label.text = deviceRowData.toLine2Text()
+    updatePairingState(deviceRowData.pairingStatus)
+  }
 
-    // TODO: Update pairedLabel
+  private fun updatePairingState(pairList: List<PairingStatus>) {
+    pairedLabel.isVisible = pairList.isNotEmpty()
+    if (pairList.isNotEmpty()) {
+      pairedLabel.baseIcon =
+        when {
+          pairList.any { it.state == PairingState.CONNECTED } ->
+            StudioIcons.DeviceExplorer.DEVICE_PAIRED_AND_CONNECTED
+          else -> StudioIcons.LayoutEditor.Toolbar.INSERT_HORIZ_CHAIN
+        }
+    }
+
+    fun PairingStatus.pairingStatusString() =
+      when (state) {
+        PairingState.CONNECTED ->
+          message("wear.assistant.device.list.accessible.description.status.connected", displayName)
+        else ->
+          message("wear.assistant.device.list.accessible.description.status.paired", displayName)
+      }
+
+    pairedLabel.accessibleContext.accessibleDescription =
+      when {
+        pairList.isEmpty() -> null
+        else -> pairList.joinToString(separator = "\n") { it.pairingStatusString() }
+      }
   }
 
   /**
@@ -121,6 +148,7 @@ internal class DeviceNamePanel(private val wearPairingManager: WearPairingManage
     presentation: TablePresentation
   ) {
     manager.applyPresentation(nameLabel, presentation)
+    manager.applyPresentation(pairedLabel, presentation)
     manager.applyPresentation(
       line2Label,
       presentation.copy(foreground = presentation.foreground.lighten())

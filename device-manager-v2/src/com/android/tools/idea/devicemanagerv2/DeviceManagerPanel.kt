@@ -27,11 +27,11 @@ import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.categorytable.CategoryTable
 import com.android.tools.adtui.categorytable.IconButton
 import com.android.tools.adtui.util.ActionToolbarUtil
-import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.devicemanagerv2.DeviceTableColumns.columns
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerService
+import com.android.tools.idea.wearpairing.WearPairingManager
 import com.google.common.collect.ConcurrentHashMultiset
 import com.intellij.icons.AllIcons
 import com.intellij.ide.ActivityTracker
@@ -47,9 +47,13 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBScrollPane
 import icons.StudioIcons
 import java.awt.BorderLayout
-import javax.swing.JButton
 import javax.swing.JPanel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.android.AndroidPluginDisposable
@@ -71,6 +75,11 @@ internal class DeviceManagerPanel(val project: Project) : JPanel() {
     )
 
   private val templateInstantiationCount = ConcurrentHashMultiset.create<DeviceTemplate>()
+
+  private val pairedDevicesFlow =
+    WearPairingManager.getInstance()
+      .pairedDevicesFlow()
+      .stateIn(panelScope, SharingStarted.Lazily, emptyMap())
 
   init {
     layout = BorderLayout()
@@ -101,7 +110,8 @@ internal class DeviceManagerPanel(val project: Project) : JPanel() {
           }
       }
 
-    val typeSpecificActions = ActionManager.getInstance().getAction("Android.DeviceManager.TypeSpecificActions")
+    val typeSpecificActions =
+      ActionManager.getInstance().getAction("Android.DeviceManager.TypeSpecificActions")
     val toolbar =
       createToolbar(
         listOfNotNull(groupingActions, Separator.create(), addDevice, typeSpecificActions)
@@ -140,8 +150,10 @@ internal class DeviceManagerPanel(val project: Project) : JPanel() {
       }
   }
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   private suspend fun trackDevice(handle: DeviceHandle) {
-    deviceTable.addRow(DeviceRowData.create(handle))
+    deviceTable.addRow(DeviceRowData.create(handle, emptyList()))
+
     handle.sourceTemplate?.let {
       if (templateInstantiationCount.add(it, 1) == 0) {
         withContext(uiThread) { deviceTable.setRowVisibleByKey(it, false) }
@@ -153,14 +165,24 @@ internal class DeviceManagerPanel(val project: Project) : JPanel() {
       // When it completes, remove it from the table.
       handle.scope
         .launch {
-          handle.stateFlow.collect {
-            withContext(uiThread) { deviceTable.updateRow(DeviceRowData.create(handle)) }
-          }
+          // When the device's state changes, or its paired devices change, update the row.
+          // It would be more natural to use combine() here, but we need to get the wearPairingId
+          // from state.
+          handle.stateFlow
+            .flatMapLatest { state ->
+              pairedDevicesFlow
+                .map { allPairedDevices ->
+                  allPairedDevices[state.properties.wearPairingId] ?: emptyList()
+                }
+                .distinctUntilChanged()
+                .map { pairedDevices -> DeviceRowData.create(handle, pairedDevices) }
+            }
+            .collect { withContext(uiThread) { deviceTable.updateRow(it) } }
         }
         .join()
 
       withContext(uiThread) {
-        deviceTable.removeRow(DeviceRowData.create(handle))
+        deviceTable.removeRowByKey(handle)
         handle.sourceTemplate?.let {
           if (templateInstantiationCount.remove(it, 1) == 1) {
             deviceTable.setRowVisibleByKey(it, true)
@@ -210,10 +232,11 @@ internal class DeviceManagerPanel(val project: Project) : JPanel() {
 internal suspend fun IconButton.trackActionPresentation(action: DeviceAction?) =
   when (action) {
     null -> isEnabled = false
-    else -> action.presentation.collect {
-      isEnabled = it.enabled
-      baseIcon = it.icon
-    }
+    else ->
+      action.presentation.collect {
+        isEnabled = it.enabled
+        baseIcon = it.icon
+      }
   }
 
 private const val TOOLBAR_ID = "DeviceManager2"

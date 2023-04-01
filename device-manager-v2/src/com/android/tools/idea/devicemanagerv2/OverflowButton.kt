@@ -33,11 +33,19 @@ class OverflowButton : IconButton(StudioIcons.Common.OVERFLOW) {
         CustomActionsSchema.getInstance()
           .getCorrectedAction("android.device.reservation.extend.one.hour"),
       )
+    private val wearableActions =
+      DefaultActionGroup(
+        PairWearableDeviceAction(),
+        ViewPairedDevicesAction(),
+        UnpairWearableDeviceAction(),
+      )
     val actions =
       DefaultActionGroup(
         EditDeviceAction(),
         Separator.create(),
         reservationActions,
+        Separator.create(),
+        wearableActions,
       )
   }
 
