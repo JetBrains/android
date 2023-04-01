@@ -212,8 +212,8 @@ internal class DeviceClient(
   }
 
   private suspend fun connectChannels(serverSocketChannel: SuspendingServerSocketChannel) {
-    val channel1 = serverSocketChannel.accept()
-    val channel2 = serverSocketChannel.accept()
+    val channel1 = serverSocketChannel.acceptAndEnsureClosing(this)
+    val channel2 = serverSocketChannel.acceptAndEnsureClosing(this)
     // The channels are distinguished by single-byte markers, 'V' for video and 'C' for control.
     // Read the markers to assign the channels appropriately.
     coroutineScope {
@@ -245,32 +245,6 @@ internal class DeviceClient(
   }
 
   override fun dispose() {
-    // Disconnect socket channels asynchronously.
-    CoroutineScope(Dispatchers.Default).launch { disconnect() }
-  }
-
-  private suspend fun disconnect() {
-    coroutineScope {
-      val videoChannelClosed = async {
-        try {
-          if (::videoChannel.isInitialized) {
-            videoChannel.close()
-          }
-        }
-        catch (e: IOException) {
-          logger.warn(e)
-        }
-      }
-      try {
-        if (::controlChannel.isInitialized) {
-          controlChannel.close()
-        }
-      }
-      catch (e: IOException) {
-        logger.warn(e)
-      }
-      videoChannelClosed.await()
-    }
   }
 
   private suspend fun pushAgent(deviceSelector: DeviceSelector, adb: AdbDeviceServices) {
@@ -435,9 +409,27 @@ internal class DeviceClient(
     connectionState.set(null)
   }
 
+  private suspend fun SuspendingServerSocketChannel.acceptAndEnsureClosing(parentDisposable: Disposable): SuspendingSocketChannel =
+      accept().also { Disposer.register(parentDisposable, DisposableCloser(it)) }
+
   interface AgentTerminationListener {
     fun agentTerminated(exitCode: Int)
     fun deviceDisconnected()
+  }
+
+  private class DisposableCloser(private val channel: SuspendingSocketChannel) : Disposable {
+
+    override fun dispose() {
+      // Disconnect the socket channel asynchronously.
+      CoroutineScope(Dispatchers.IO).launch {
+        try {
+          channel.close()
+        }
+        catch (e: IOException) {
+          thisLogger().warn(e)
+        }
+      }
+    }
   }
 
   private class ClosableReverseForwarding(

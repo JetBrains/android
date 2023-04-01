@@ -379,7 +379,7 @@ internal class DeviceView(
 
   @UiThread
   override fun settingsChanged(settings: DeviceMirroringSettings) {
-    if (deviceController == null) {
+    if (disposed || deviceController == null) {
       return
     }
     if (settings.synchronizeClipboard) {

@@ -65,6 +65,7 @@ import com.intellij.ui.content.ContentManager
 import com.intellij.ui.content.ContentManagerEvent
 import com.intellij.ui.content.ContentManagerListener
 import com.intellij.util.Alarm
+import com.intellij.util.IncorrectOperationException
 import com.intellij.util.concurrency.AppExecutorUtil.createBoundedApplicationPoolExecutor
 import com.intellij.util.concurrency.EdtExecutorService
 import com.intellij.util.ui.UIUtil
@@ -482,8 +483,14 @@ internal class StreamingToolWindowManager @AnyThread constructor(
       isCloseable = false
     }
     val contentManager = getContentManager()
-    contentManager.addContent(content)
-    contentManager.setSelectedContent(content)
+    try {
+      contentManager.addContent(content)
+      contentManager.setSelectedContent(content)
+    }
+    catch (e: IncorrectOperationException) {
+      // Content manager has been disposed already.
+      Disposer.dispose(content)
+    }
   }
 
   private fun viewSelectionChanged() {
@@ -570,7 +577,6 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     else {
       physicalDeviceWatcher?.let { Disposer.dispose(it) }
       physicalDeviceWatcher = null
-      removeAllPhysicalDevicePanels()
     }
   }
 
@@ -738,6 +744,8 @@ internal class StreamingToolWindowManager @AnyThread constructor(
     }
 
     override fun dispose() {
+      deviceClients.clear() // The clients have been disposed already.
+      removeAllPhysicalDevicePanels()
     }
   }
 }

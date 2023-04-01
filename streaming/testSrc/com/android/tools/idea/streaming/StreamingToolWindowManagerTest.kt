@@ -33,6 +33,7 @@ import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.concurrency.waitForCondition
 import com.android.tools.idea.protobuf.TextFormat
 import com.android.tools.idea.run.DeviceHeadsUpListener
+import com.android.tools.idea.streaming.device.DeviceToolWindowPanel
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule
 import com.android.tools.idea.streaming.device.isFFmpegAvailableToTest
 import com.android.tools.idea.streaming.emulator.EmulatorController
@@ -424,6 +425,13 @@ class StreamingToolWindowManagerTest {
     waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
 
+    // Wait until the first frame is rendered before disabling mirroring.
+    val panel = contentManager.contents[0].component as DeviceToolWindowPanel
+    panel.setSize(250, 500)
+    val ui = FakeUi(panel)
+    val displayView = ui.getComponent<AbstractDisplayView>()
+    waitForCondition(2, TimeUnit.SECONDS) { renderAndGetFrameNumber(ui, displayView) > 0 }
+
     deviceMirroringSettings.deviceMirroringEnabled = false
     waitForCondition(2, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName == null }
     waitForCondition(2, TimeUnit.SECONDS) { !device.agent.isRunning }
@@ -569,9 +577,9 @@ class StreamingToolWindowManagerTest {
     return windowManager.toolWindow
   }
 
-  private fun renderAndGetFrameNumber(fakeUi: FakeUi, emulatorView: EmulatorView): Int {
+  private fun renderAndGetFrameNumber(fakeUi: FakeUi, displayView: AbstractDisplayView): Int {
     fakeUi.render() // The frame number may get updated as a result of rendering.
-    return emulatorView.frameNumber
+    return displayView.frameNumber
   }
 
   private class TestToolWindowManager(project: Project) : ToolWindowHeadlessManagerImpl(project) {
