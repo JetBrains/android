@@ -20,10 +20,12 @@ import com.intellij.util.download.FileDownloader;
 import com.intellij.util.io.ZipUtil;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.swing.SwingUtilities;
 import org.jetbrains.android.util.AndroidBundle;
@@ -32,7 +34,6 @@ import org.jetbrains.annotations.NotNull;
 public abstract class AndroidComponentDownloader {
 
   private static final Logger LOG = Logger.getInstance(AndroidComponentDownloader.class);
-  private static final String VERSION = "221.0.19.0";
   public static final String BINTRAY_ANDROID_TOOLS_BASE =
     "https://cache-redirector.jetbrains.com/intellij-dependencies/org/jetbrains/intellij/deps/android/tools/base/";
   public static final String ZIP = "zip";
@@ -148,7 +149,15 @@ public abstract class AndroidComponentDownloader {
 
   @NotNull
   protected String getVersion() {
-    return VERSION;
+    try {
+      Properties properties = new Properties();
+      try (InputStream is = getClass().getResourceAsStream("/componentDownloader/versions.properties")) {
+        properties.load(is);
+      }
+      return properties.getProperty("pluginComponentsVersion");
+    } catch (Exception t) {
+      throw new RuntimeException(t.getMessage(), t);
+    }
   }
 
   @NotNull
