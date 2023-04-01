@@ -62,7 +62,12 @@ internal class DeviceManagerPanel(val project: Project) : JPanel() {
 
   private val scrollPane = JBScrollPane()
   private var deviceTable =
-    CategoryTable(columns(project, panelScope), DeviceRowData::key, uiThread)
+    CategoryTable(
+      columns(project, panelScope),
+      DeviceRowData::key,
+      uiThread,
+      rowDataProvider = ::provideRowData
+    )
 
   private val templateInstantiationCount = ConcurrentHashMultiset.create<DeviceTemplate>()
 

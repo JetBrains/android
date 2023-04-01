@@ -45,10 +45,10 @@ internal class DeviceHandleButtonsPanel(val project: Project, handle: DeviceHand
 
   val startStopButton = StartStopButton(handle)
   val openDeviceExplorer = OpenDeviceExplorerButton(project, handle)
-  val editButton = EditButton(handle)
+  val overflowButton = OverflowButton()
 
   init {
-    setUp(startStopButton, openDeviceExplorer, editButton)
+    setUp(startStopButton, openDeviceExplorer, overflowButton)
   }
 
   override fun updateState(state: DeviceRowData) {

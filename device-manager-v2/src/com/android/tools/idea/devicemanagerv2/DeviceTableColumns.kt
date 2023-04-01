@@ -25,7 +25,9 @@ import com.android.tools.adtui.categorytable.Attribute
 import com.android.tools.adtui.categorytable.Attribute.Companion.stringAttribute
 import com.android.tools.adtui.categorytable.Column
 import com.android.tools.adtui.categorytable.LabelColumn
+import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.android.tools.idea.wearpairing.WearPairingManager
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBLabel
 import icons.StudioIcons
@@ -89,6 +91,15 @@ internal data class DeviceRowData(
     private fun String.titlecase() = lowercase().let { it.replaceFirstChar { it.uppercase() } }
   }
 }
+
+internal val DEVICE_ROW_DATA_KEY = DataKey.create<DeviceRowData>("DeviceRowData")
+
+internal fun provideRowData(dataId: String, row: DeviceRowData): Any? =
+  when {
+    DEVICE_ROW_DATA_KEY.`is`(dataId) -> row
+    DEVICE_HANDLE_KEY.`is`(dataId) -> row.handle
+    else -> null
+  }
 
 internal object DeviceTableColumns {
 
