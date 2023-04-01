@@ -55,6 +55,7 @@ import com.android.tools.idea.gradle.util.GradleProperties;
 import com.android.tools.idea.gradle.util.GradleWrapper;
 import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
+import com.android.tools.idea.sdk.AndroidSdkPathStore;
 import com.android.tools.idea.sdk.IdeSdks;
 import com.android.tools.idea.sdk.Jdks;
 import com.android.tools.idea.util.StudioPathManager;
@@ -72,6 +73,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VfsUtil;
@@ -591,7 +593,13 @@ public class AndroidGradleTests {
       }
 
       Sdks.allowAccessToSdk(projectDisposable);
+      final var oldAndroidSdkPath = ideSdks.getAndroidSdkPath();
       ideSdks.setAndroidSdkPath(androidSdkPath);
+      Disposer.register(projectDisposable, () -> {
+        WriteAction.runAndWait(() -> {
+            AndroidSdkPathStore.getInstance().setAndroidSdkPath(oldAndroidSdkPath != null ? oldAndroidSdkPath.toPath() : null);
+        });
+      });
       IdeSdks.removeJdksOn(projectDisposable);
 
       LOG.info("Set IDE Sdk Path to " + androidSdkPath);

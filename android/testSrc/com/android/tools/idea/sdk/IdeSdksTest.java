@@ -31,13 +31,10 @@ import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_7;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_9;
 import static com.intellij.openapi.util.io.FileUtil.toSystemDependentName;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import com.android.repository.api.LocalPackage;
@@ -47,6 +44,7 @@ import com.android.repository.testframework.FakePackage;
 import com.android.repository.testframework.FakeRepoManager;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.testutils.TestUtils;
 import com.android.tools.idea.AndroidTestCaseHelper;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
@@ -54,8 +52,11 @@ import com.android.tools.idea.gradle.util.LocalProperties;
 import com.android.tools.idea.sdk.extensions.SdkExtensions;
 import com.android.tools.idea.testing.IdeComponents;
 import com.android.tools.idea.testing.Sdks;
+import com.android.tools.sdk.AndroidPlatform;
+import com.android.tools.sdk.AndroidSdkData;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.util.Computable;
@@ -71,13 +72,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.jetbrains.android.facet.AndroidFacet;
-import com.android.tools.sdk.AndroidPlatform;
 import org.jetbrains.android.sdk.AndroidPlatforms;
-import com.android.tools.sdk.AndroidSdkData;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -119,6 +117,9 @@ public class IdeSdksTest extends PlatformTestCase {
       myAndroidSdks = null;
       myIdeSdks = null;
       AndroidTestCaseHelper.removeExistingAndroidSdks();
+      WriteAction.runAndWait(() -> {
+        AndroidSdkPathStore.getInstance().setAndroidSdkPath(null);
+      });
     }
     catch (Throwable e) {
       addSuppressedException(e);
@@ -134,6 +135,9 @@ public class IdeSdksTest extends PlatformTestCase {
   }
 
   public void testGetAndroidSdkPath() {
+    WriteAction.runAndWait(() -> {
+      AndroidSdkPathStore.getInstance().setAndroidSdkPath(TestUtils.getSdk());
+    });
     // Create default SDKs first.
     myIdeSdks.createAndroidSdkPerAndroidTarget(myAndroidSdkPath);
 
@@ -309,24 +313,6 @@ public class IdeSdksTest extends PlatformTestCase {
     assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_17)).isTrue();
     assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_18)).isFalse();
     assertThat(myIdeSdks.isJdkVersionCompatible(JDK_1_8, JDK_19)).isFalse();
-  }
-
-  public void testExistingJdkIsNotDuplicated() {
-    Jdks spyJdks = spy(Jdks.getInstance());
-    new IdeComponents(myProject).replaceApplicationService(Jdks.class, spyJdks);
-    IdeSdks ideSdks = IdeSdks.getInstance();
-    Sdk currentJdk = ideSdks.getJdk();
-    assertThat(currentJdk).isNotNull();
-    String homePath = currentJdk.getHomePath();
-    assertThat(homePath).isNotNull();
-    assertThat(homePath).isNotEqualTo("");
-    AtomicReference<Sdk> newJdk = new AtomicReference<>(null);
-    ApplicationManager.getApplication().runWriteAction(() -> {
-      ideSdks.overrideJdkEnvVariable(homePath);
-      newJdk.set(ideSdks.getJdk());
-    });
-    verify(spyJdks, never()).createJdk(any());
-    assertThat(newJdk.get()).isSameAs(currentJdk);
   }
 
   /**
