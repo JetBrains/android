@@ -71,7 +71,8 @@ class NewAndroidNativeModuleModel(
           useKts = useGradleKts.get(),
           bytecodeLevel = BytecodeLevel.default,
           enableCpp = true,
-          cppStandard = cppStandard.value
+          cppStandard = cppStandard.value,
+          useVersionCatalog = useVersionCatalog.get()
         )
         val nativeLibraryName = data.packageName.deriveNativeLibraryName()
         val nativeSourceName = "$nativeLibraryName.cpp"

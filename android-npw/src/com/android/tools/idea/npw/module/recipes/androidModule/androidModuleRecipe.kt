@@ -37,7 +37,8 @@ fun RecipeExecutor.generateAndroidModule(
   useKts: Boolean,
   bytecodeLevel: BytecodeLevel,
   enableCpp: Boolean = false,
-  cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
+  cppStandard: CppStandardType = CppStandardType.`Toolchain Default`,
+  useVersionCatalog: Boolean = false
 ) {
   val useAndroidX = data.projectTemplateData.androidXSupport
   val addBackupRules = data.projectTemplateData.isNewProject && data.apis.targetApi.api >= 31
@@ -65,6 +66,7 @@ fun RecipeExecutor.generateAndroidModule(
     enableCpp = enableCpp,
     cppStandard = cppStandard,
     bytecodeLevel = bytecodeLevel,
+    useVersionCatalog = useVersionCatalog
   )
   val projectData = data.projectTemplateData
   val formFactorNames = projectData.includedFormFactorNames

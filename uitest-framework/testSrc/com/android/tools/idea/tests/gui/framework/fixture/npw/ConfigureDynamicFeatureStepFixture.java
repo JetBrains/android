@@ -19,7 +19,8 @@ import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowi
 
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
-import com.android.tools.idea.wizard.template.BuildConfigurationLanguage;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewProject;
 import com.android.tools.idea.wizard.template.Language;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -76,7 +77,7 @@ public class ConfigureDynamicFeatureStepFixture<W extends AbstractWizardFixture>
   }
 
   @NotNull
-  public ConfigureDynamicFeatureStepFixture<W> setBuildConfigurationLanguage(@NotNull BuildConfigurationLanguage buildConfigurationLanguage) {
+  public ConfigureDynamicFeatureStepFixture<W> setBuildConfigurationLanguage(@NotNull BuildConfigurationLanguageForNewModule buildConfigurationLanguage) {
     new JComboBoxFixture(robot(), robot().finder().findByName(target(), "buildConfigurationLanguageCombo", JComboBox.class, true))
       .selectItem(buildConfigurationLanguage.toString());
     return this;

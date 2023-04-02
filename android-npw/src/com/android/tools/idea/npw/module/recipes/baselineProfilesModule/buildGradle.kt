@@ -32,6 +32,7 @@ fun baselineProfilesBuildGradle(
   useGradleKts: Boolean,
   targetModule: Module,
   useGmd: GmdSpec?,
+  useVersionCatalog: Boolean
 ): String {
   val packageName = newModule.packageName
   val apis = newModule.apis
@@ -86,7 +87,7 @@ fun baselineProfilesBuildGradle(
 
   return """
 ${renderIf(useGmd != null) { "import com.android.build.api.dsl.ManagedVirtualDevice" }}
-${emptyPluginsBlock()}
+${emptyPluginsBlock(isKts = useGradleKts, useVersionCatalog = useVersionCatalog)}
 
 android {
   namespace '$packageName'

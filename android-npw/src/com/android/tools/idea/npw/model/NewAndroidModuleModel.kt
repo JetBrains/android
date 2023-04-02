@@ -37,6 +37,7 @@ import com.android.tools.idea.observable.core.OptionalProperty
 import com.android.tools.idea.observable.core.OptionalValueProperty
 import com.android.tools.idea.observable.core.StringValueProperty
 import com.android.tools.idea.projectsystem.NamedModuleTemplate
+import com.android.tools.idea.templates.determineVersionCatalogUseForNewModule
 import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
@@ -62,6 +63,8 @@ class ExistingProjectModelData(
   override val packageName: StringValueProperty = StringValueProperty()
   override val projectLocation: StringValueProperty = StringValueProperty(project.basePath!!)
   override val useGradleKts = BoolValueProperty(project.hasKtsUsage())
+  override val useVersionCatalog = BoolValueProperty(
+    determineVersionCatalogUseForNewModule(project, isNewProject = false))
   override val viewBindingSupport = OptionalValueProperty<ViewBindingSupport>(project.isViewBindingSupported())
   override val isNewProject = false
   override val language: OptionalValueProperty<Language> = OptionalValueProperty(getInitialSourceLanguage(project))
@@ -154,16 +157,29 @@ class NewAndroidModuleModel(
           data = data as ModuleTemplateData,
           appTitle = applicationName.get(),
           useKts = useGradleKts.get(),
-          bytecodeLevel = bytecodeLevel.value)
+          bytecodeLevel = bytecodeLevel.value,
+          useVersionCatalog = useVersionCatalog.get())
       }
       FormFactor.Wear -> { data: TemplateData ->
-        generateWearModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get())
+        generateWearModule(
+          data = data as ModuleTemplateData,
+          appTitle = applicationName.get(),
+          useKts = useGradleKts.get(),
+          useVersionCatalog = useVersionCatalog.get())
       }
       FormFactor.Automotive -> { data: TemplateData ->
-        generateAutomotiveModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get())
+        generateAutomotiveModule(
+          data = data as ModuleTemplateData,
+          appTitle = applicationName.get(),
+          useKts = useGradleKts.get(),
+          useVersionCatalog = useVersionCatalog.get())
       }
       FormFactor.Tv -> { data: TemplateData ->
-        generateTvModule(data as ModuleTemplateData, applicationName.get(), useGradleKts.get())
+        generateTvModule(
+          data = data as ModuleTemplateData,
+          appTitle = applicationName.get(),
+          useKts = useGradleKts.get(),
+          useVersionCatalog = useVersionCatalog.get())
       }
       FormFactor.Generic -> { data: TemplateData ->
         generateGenericModule(data as ModuleTemplateData)

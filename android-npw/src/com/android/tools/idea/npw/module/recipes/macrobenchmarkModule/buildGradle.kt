@@ -33,6 +33,7 @@ fun macrobenchmarksBuildGradle(
   useGradleKts: Boolean,
   targetModule: Module,
   benchmarkBuildTypeName: String,
+  useVersionCatalog: Boolean
 ): String {
   val packageName = newModule.packageName
   val apis = newModule.apis
@@ -69,7 +70,7 @@ fun macrobenchmarksBuildGradle(
   }
 
   return """
-${emptyPluginsBlock()}
+${emptyPluginsBlock(isKts = useGradleKts, useVersionCatalog = useVersionCatalog)}
 
 android {
     namespace '$packageName'

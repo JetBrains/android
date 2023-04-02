@@ -43,6 +43,7 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
   newModule: ModuleTemplateData,
   useGradleKts: Boolean,
   targetModule: Module,
+  useVersionCatalog: Boolean
 ) {
   val projectBuildModel = ProjectBuildModel.getOrLog(targetModule.project)
   val targetModuleAndroidModel = projectBuildModel?.getModuleBuildModel(targetModule)?.android() ?: return
@@ -70,6 +71,7 @@ fun RecipeExecutor.generateMacrobenchmarkModule(
       targetModule = targetModule,
       flavors = flavors,
       benchmarkBuildTypeName = benchmarkBuildTypeName,
+      useVersionCatalog = useVersionCatalog
     ),
     customizeModule = {
       createTestClasses(newModule, targetApplicationId)

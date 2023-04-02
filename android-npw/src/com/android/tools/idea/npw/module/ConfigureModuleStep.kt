@@ -58,9 +58,9 @@ import com.android.tools.idea.sdk.wizard.LicenseAgreementStep
 import com.android.tools.idea.templates.determineVersionCatalogUseForNewModule
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.android.tools.idea.wizard.model.SkippableWizardStep
-import com.android.tools.idea.wizard.template.BuildConfigurationLanguage
-import com.android.tools.idea.wizard.template.BuildConfigurationLanguage.Groovy
-import com.android.tools.idea.wizard.template.BuildConfigurationLanguage.KTS
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule.KTS
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule.Groovy
 import com.android.tools.idea.wizard.template.Language
 import com.android.tools.idea.wizard.ui.WizardUtils.WIZARD_BORDER.SMALL
 import com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll
@@ -95,7 +95,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
   private val versionCatalogUseForNewModule: OptionalValueProperty<Boolean> = OptionalValueProperty()
   // If StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX is false, the Combobox for Build configuration language is not visible,
   // thus, build script is determined if the existing project has KTS usage
-  private val buildConfigurationLanguage: OptionalValueProperty<BuildConfigurationLanguage> = OptionalValueProperty(
+  private val buildConfigurationLanguage: OptionalValueProperty<BuildConfigurationLanguageForNewModule> = OptionalValueProperty(
     if(model.project.hasKtsUsage()) KTS else Groovy)
 
   private val androidVersionsInfo = AndroidVersionsInfo()
@@ -106,7 +106,7 @@ abstract class ConfigureModuleStep<ModuleModelKind : ModuleModel>(
   protected val packageName: JTextField = JBTextField()
   protected val languageCombo: JComboBox<Language> = LanguageComboProvider().createComponent()
   protected val apiLevelCombo: AndroidApiLevelComboBox = AndroidApiLevelComboBox()
-  protected val buildConfigurationLanguageCombo: JComboBox<BuildConfigurationLanguage> = BuildConfigurationLanguageComboProvider().createComponent()
+  protected val buildConfigurationLanguageCombo: JComboBox<BuildConfigurationLanguageForNewModule> = BuildConfigurationLanguageComboProvider().createComponent()
 
   protected val validatorPanel: ValidatorPanel by lazy {
     ValidatorPanel(this, createMainPanel()).apply {

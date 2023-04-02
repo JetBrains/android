@@ -59,12 +59,14 @@ class NewBenchmarkModuleModel(
         when (benchmarkModuleType.get()) {
           MICROBENCHMARK -> generateBenchmarkModule(
             moduleData = td as ModuleTemplateData,
-            useGradleKts = useGradleKts.get()
+            useGradleKts = useGradleKts.get(),
+            useVersionCatalog = useVersionCatalog.get()
           )
           MACROBENCHMARK -> generateMacrobenchmarkModule(
             newModule = td as ModuleTemplateData,
             useGradleKts = useGradleKts.get(),
             targetModule = targetModule.value,
+            useVersionCatalog = useVersionCatalog.get()
           )
         }
       }

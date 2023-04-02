@@ -17,7 +17,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.npw;
 
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
-import com.android.tools.idea.wizard.template.BuildConfigurationLanguage;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule;
 import com.android.tools.idea.wizard.template.CppStandardType;
 import com.android.tools.idea.wizard.template.Language;
 import javax.swing.JComboBox;
@@ -63,7 +63,7 @@ public class ConfigureAndroidModuleStepFixture<W extends AbstractWizardFixture>
   }
 
   @NotNull
-  public ConfigureAndroidModuleStepFixture<W> setBuildConfigurationLanguage(@NotNull BuildConfigurationLanguage language) {
+  public ConfigureAndroidModuleStepFixture<W> setBuildConfigurationLanguage(@NotNull BuildConfigurationLanguageForNewModule language) {
     new JComboBoxFixture(robot(), robot().finder().findByLabel(target(), "Build configuration language", JComboBox.class, true))
       .selectItem(language.toString());
     return this;

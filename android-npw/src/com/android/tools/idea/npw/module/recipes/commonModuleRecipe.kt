@@ -23,6 +23,7 @@ import com.android.tools.idea.npw.module.recipes.androidModule.buildGradle
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleColors
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleStrings
 import com.android.tools.idea.npw.module.recipes.androidModule.res.values.androidModuleThemes
+import com.android.tools.idea.npw.module.recipes.androidProject.androidProjectBuildGradle
 import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.CppStandardType
@@ -52,6 +53,7 @@ fun RecipeExecutor.generateCommonModule(
   enableCpp: Boolean = false,
   cppStandard: CppStandardType = CppStandardType.`Toolchain Default`,
   bytecodeLevel: BytecodeLevel = BytecodeLevel.default,
+  useVersionCatalog: Boolean
   ) {
   val (projectData, srcOut, resOut, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) = data
   val (useAndroidX, agpVersion) = projectData
@@ -81,7 +83,8 @@ fun RecipeExecutor.generateCommonModule(
       hasTests = generateGenericLocalTests,
       addLintOptions = addLintOptions,
       enableCpp = enableCpp,
-      cppStandard = cppStandard
+      cppStandard = cppStandard,
+      useVersionCatalog = useVersionCatalog
     ),
     moduleOut.resolve(buildFile)
   )

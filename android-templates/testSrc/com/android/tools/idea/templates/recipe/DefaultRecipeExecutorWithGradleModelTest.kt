@@ -31,7 +31,6 @@ class DefaultRecipeExecutorWithGradleModelTest : GradleFileModelTestCase("tools/
 
   private val mockProjectTemplateData = MockitoKt.mock<ProjectTemplateData>()
   private val mockModuleTemplateData = MockitoKt.mock<ModuleTemplateData>()
-  private val mockVersionCatalogDetector = MockitoKt.mock<GradleVersionCatalogDetector>()
 
   private val renderingContext by lazy {
     RenderingContext(
@@ -45,15 +44,13 @@ class DefaultRecipeExecutorWithGradleModelTest : GradleFileModelTestCase("tools/
     )
   }
   private val recipeExecutor by lazy {
-    DefaultRecipeExecutor(renderingContext, mockVersionCatalogDetector)
+    DefaultRecipeExecutor(renderingContext, useVersionCatalog = true)
   }
 
   @Before
   fun init() {
     MockitoKt.whenever(mockModuleTemplateData.projectTemplateData).thenReturn(mockProjectTemplateData)
     MockitoKt.whenever(mockProjectTemplateData.gradlePluginVersion).thenReturn("8.0.0")
-    MockitoKt.whenever(mockVersionCatalogDetector.versionCatalogDetectorResult).thenReturn(
-      GradleVersionCatalogDetector.DetectorResult.IMPLICIT_LIBS_VERSIONS)
   }
 
   @Test

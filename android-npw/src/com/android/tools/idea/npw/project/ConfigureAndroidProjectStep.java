@@ -55,7 +55,7 @@ import com.android.tools.idea.sdk.wizard.LicenseAgreementStep;
 import com.android.tools.idea.ui.validation.validators.PathValidator;
 import com.android.tools.idea.wizard.model.ModelWizard;
 import com.android.tools.idea.wizard.model.ModelWizardStep;
-import com.android.tools.idea.wizard.template.BuildConfigurationLanguage;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewProject;
 import com.android.tools.idea.wizard.template.Category;
 import com.android.tools.idea.wizard.template.FormFactor;
 import com.android.tools.idea.wizard.template.Language;
@@ -114,7 +114,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private HyperlinkLabel myDocumentationLink;
   private JPanel myFormFactorSdkControlsPanel;
   private JComboBox myMinSdkCombo;
-  private JComboBox<BuildConfigurationLanguage> myBuildConfigurationLanguageCombo;
+  private JComboBox<BuildConfigurationLanguageForNewProject> myBuildConfigurationLanguageCombo;
   private JLabel myBuildConfigurationLanguageLabel;
   private FormFactorSdkControls myFormFactorSdkControls;
 
@@ -170,8 +170,9 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myBindings.bindTwoWay(new SelectedItemProperty<>(myProjectLanguage), myProjectModel.getLanguage());
 
     if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
-      myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguage.KTS);
-      myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguage.Groovy);
+      myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.KTS);
+      myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.KTS_VERSION_CATALOG);
+      myBuildConfigurationLanguageCombo.addItem(BuildConfigurationLanguageForNewProject.Groovy);
     } else {
       myBuildConfigurationLanguageLabel.setVisible(false);
       myBuildConfigurationLanguageCombo.setVisible(false);
@@ -236,8 +237,11 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
       getModel().formFactor.get() == FormFactor.Automotive // Automotive projects include a mobile module for Android Auto by default
     );
     if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get() && myBuildConfigurationLanguageCombo.getSelectedItem() != null) {
+      BuildConfigurationLanguageForNewProject selected = (BuildConfigurationLanguageForNewProject) myBuildConfigurationLanguageCombo.getSelectedItem();
       myProjectModel.getUseGradleKts()
-        .set(myBuildConfigurationLanguageCombo.getSelectedItem().toString().equals(BuildConfigurationLanguage.KTS.getDescription()));
+        .set(selected.getUseKts());
+      myProjectModel.getUseVersionCatalog()
+        .set(selected.getUseVersionCatalog());
     }
     myInstallRequests.clear();
     myInstallLicenseRequests.clear();

@@ -18,7 +18,7 @@ package com.android.tools.idea.tests.gui.framework.fixture.npw;
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.wizard.AbstractWizardStepFixture;
-import com.android.tools.idea.wizard.template.BuildConfigurationLanguage;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule;
 import com.android.tools.idea.wizard.template.Language;
 import javax.swing.JComboBox;
 import javax.swing.JRadioButton;
@@ -72,7 +72,7 @@ public class ConfigureBenchmarkModuleStepFixture<W extends AbstractWizardFixture
   }
 
   @NotNull
-  public ConfigureBenchmarkModuleStepFixture<W> setBuildConfigurationLanguage(@NotNull BuildConfigurationLanguage buildConfigurationLanguage) {
+  public ConfigureBenchmarkModuleStepFixture<W> setBuildConfigurationLanguage(@NotNull BuildConfigurationLanguageForNewModule buildConfigurationLanguage) {
     new JComboBoxFixture(robot(), robot().finder().findByName(target(), "buildConfigurationLanguageCombo", JComboBox.class, true))
       .selectItem(buildConfigurationLanguage.toString());
     return this;

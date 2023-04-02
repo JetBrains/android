@@ -15,12 +15,10 @@
  */
 package com.android.tools.idea.tests.gui.uibuilder;
 
-import static com.android.tools.idea.wizard.template.Language.Java;
-
 import com.android.sdklib.SdkVersionInfo;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.wizard.template.BuildConfigurationLanguage;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewProject;
 import org.jetbrains.annotations.NotNull;
 
 class NewProjectDescriptor {
@@ -30,7 +28,7 @@ class NewProjectDescriptor {
   // TODO(qumeric): consider adding "save location"
   private String myActivity = "Empty Views Activity";
 
-  private BuildConfigurationLanguage myBuildConfigurationLanguage = BuildConfigurationLanguage.KTS;
+  private BuildConfigurationLanguageForNewProject myBuildConfigurationLanguage = BuildConfigurationLanguageForNewProject.KTS;
 
   protected NewProjectDescriptor(@NotNull String name) {
     withName(name);
@@ -85,7 +83,7 @@ class NewProjectDescriptor {
     return this;
   }
 
-  NewProjectDescriptor withBuildConfigurationLanguage(BuildConfigurationLanguage buildConfigurationLanguage) {
+  NewProjectDescriptor withBuildConfigurationLanguage(BuildConfigurationLanguageForNewProject buildConfigurationLanguage) {
     myBuildConfigurationLanguage = buildConfigurationLanguage;
     return this;
   }

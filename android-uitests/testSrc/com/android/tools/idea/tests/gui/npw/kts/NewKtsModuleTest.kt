@@ -22,7 +22,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
-import com.android.tools.idea.wizard.template.BuildConfigurationLanguage
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule
 import com.android.tools.idea.wizard.template.Language
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
@@ -72,7 +72,7 @@ class NewKtsModuleTest {
       .enterModuleName("mobile")
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Language.Java)
-      .setBuildConfigurationLanguage(BuildConfigurationLanguage.KTS)
+      .setBuildConfigurationLanguage(BuildConfigurationLanguageForNewModule.KTS)
       .wizard()
       .clickNext()
       .chooseActivity("No Activity")
@@ -95,7 +95,7 @@ class NewKtsModuleTest {
       .enterModuleName("android_lib")
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Language.Kotlin)
-      .setBuildConfigurationLanguage(BuildConfigurationLanguage.KTS)
+      .setBuildConfigurationLanguage(BuildConfigurationLanguageForNewModule.KTS)
       .wizard()
       .clickFinishAndWaitForSyncToFinish()
 
@@ -114,7 +114,7 @@ class NewKtsModuleTest {
       .enterModuleName("automotive")
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Language.Java)
-      .setBuildConfigurationLanguage(BuildConfigurationLanguage.KTS)
+      .setBuildConfigurationLanguage(BuildConfigurationLanguageForNewModule.KTS)
       .wizard()
       .clickNext()
       .chooseActivity("Media Service")
@@ -134,7 +134,7 @@ class NewKtsModuleTest {
       .enterModuleName("wear")
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Language.Java)
-      .setBuildConfigurationLanguage(BuildConfigurationLanguage.KTS)
+      .setBuildConfigurationLanguage(BuildConfigurationLanguageForNewModule.KTS)
       .wizard()
       .clickNext()
       .chooseActivity("Blank Activity")
@@ -154,7 +154,7 @@ class NewKtsModuleTest {
       .enterModuleName("tv")
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Language.Java)
-      .setBuildConfigurationLanguage(BuildConfigurationLanguage.KTS)
+      .setBuildConfigurationLanguage(BuildConfigurationLanguageForNewModule.KTS)
       .wizard()
       .clickNext()
       .chooseActivity("Blank Activity")
@@ -217,7 +217,7 @@ class NewKtsModuleTest {
       .enterFeatureModuleName("DynamicFeature")
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Language.Java)
-      .setBuildConfigurationLanguage(BuildConfigurationLanguage.KTS)
+      .setBuildConfigurationLanguage(BuildConfigurationLanguageForNewModule.KTS)
       .clickNextToConfigureConditionalDelivery()
       .wizard()
       .clickFinishAndWaitForSyncToFinish()
@@ -247,7 +247,7 @@ class NewKtsModuleTest {
       .enterFeatureModuleName("InstantFeature")
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Language.Java)
-      .setBuildConfigurationLanguage(BuildConfigurationLanguage.KTS)
+      .setBuildConfigurationLanguage(BuildConfigurationLanguageForNewModule.KTS)
       .wizard()
       .clickFinishAndWaitForSyncToFinish()
 
@@ -276,7 +276,7 @@ class NewKtsModuleTest {
       .selectBenchmarkType(BenchmarkModuleType.MICROBENCHMARK)
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Language.Java)
-      .setBuildConfigurationLanguage(BuildConfigurationLanguage.KTS)
+      .setBuildConfigurationLanguage(BuildConfigurationLanguageForNewModule.KTS)
       .wizard()
       .clickFinishAndWaitForSyncToFinish()
 

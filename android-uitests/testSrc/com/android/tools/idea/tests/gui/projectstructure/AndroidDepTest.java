@@ -32,7 +32,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.DependenciesPer
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.ProjectStructureDialogFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture;
 import com.android.tools.idea.tests.util.WizardUtils;
-import com.android.tools.idea.wizard.template.BuildConfigurationLanguage;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewProject;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
@@ -64,7 +64,7 @@ public class AndroidDepTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void transitiveDependenciesResolve() {
-    WizardUtils.createNewProject(guiTest, "Empty Views Activity", Java, BuildConfigurationLanguage.KTS);
+    WizardUtils.createNewProject(guiTest, "Empty Views Activity", Java, BuildConfigurationLanguageForNewProject.KTS);
     guiTest.waitForAllBackgroundTasksToBeCompleted();
 
     IdeFrameFixture ideFrame = guiTest.ideFrame();

@@ -39,7 +39,7 @@ class NewBaselineProfilesModuleModel(
   isLibrary = true,
   projectModelData = ExistingProjectModelData(project, projectSyncInvoker),
   moduleParent = moduleParent,
-  wizardContext = WizardUiContext.NEW_MODULE
+  wizardContext = WizardUiContext.NEW_MODULE,
 ) {
   override val loggingEvent: AndroidStudioEvent.TemplateRenderer
     get() = AndroidStudioEvent.TemplateRenderer.BASELINE_PROFILES_MODULE
@@ -56,6 +56,7 @@ class NewBaselineProfilesModuleModel(
             useGradleKts = useGradleKts.get(),
             useGmd = useGmd.get(),
             targetModule = targetModule.value,
+            useVersionCatalog = useVersionCatalog.get()
           )
         }
     }
