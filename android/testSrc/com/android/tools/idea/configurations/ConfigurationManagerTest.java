@@ -138,6 +138,43 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     assertTrue(HardwareConfigHelper.isWear(config.getDevice()));
   }
 
+  public void testDefaultThemeCompute() {
+    Manifest manifest = Manifest.getMainManifest(myFacet);
+    assertNotNull(manifest);
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      manifest.getApplication().getTheme().setStringValue("@style/break");
+    });
+
+    PsiFile file = myFixture.addFileToProject("res/layout/layout.xml", LAYOUT_FILE_TEXT);
+    Configuration config = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.getVirtualFile());
+    assertEquals("@style/break", config.getTheme());
+  }
+
+  public void testPostSplashScreenThemeResolution() {
+    myFixture.addFileToProject("res/values/styles.xml", """
+        <resources>
+          <!-- Base application theme. -->
+          <style name="Theme.TheTheme">
+          </style>
+          <!-- Base application theme. -->
+          <style name="Theme.SplashTheme" parent="Theme">
+              <item name="postSplashScreenTheme">@style/Theme.TheTheme</item>
+          </style>
+        </resources>
+      """);
+
+
+    Manifest manifest = Manifest.getMainManifest(myFacet);
+    assertNotNull(manifest);
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      manifest.getApplication().getTheme().setStringValue("@style/Theme.SplashTheme");
+    });
+
+    PsiFile file = myFixture.addFileToProject("res/layout/layout.xml", LAYOUT_FILE_TEXT);
+    Configuration config = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.getVirtualFile());
+    assertEquals("@style/Theme.TheTheme", config.getTheme());
+  }
+
   @Language("xml")
   private static final String LAYOUT_FILE_TEXT = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                                                  "<FrameLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +

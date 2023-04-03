@@ -30,6 +30,7 @@ import org.jetbrains.android.dom.Styleable;
 import org.jetbrains.android.dom.converters.AndroidBooleanValueConverter;
 import org.jetbrains.android.dom.converters.PackageClassConverter;
 import org.jetbrains.android.dom.converters.ResourceReferenceConverter;
+import org.jetbrains.android.dom.converters.StyleResourceReferenceConverter;
 import org.jetbrains.android.dom.resources.ResourceValue;
 import org.jetbrains.android.dom.structure.manifest.ApplicationPresentationProvider;
 
@@ -53,6 +54,9 @@ public interface Application extends ManifestElement {
   List<Service> getServices();
 
   Service addService();
+
+  @Convert(StyleResourceReferenceConverter.class)
+  AndroidAttributeValue<ResourceValue> getTheme();
 
   @Convert(AndroidBooleanValueConverter.class)
   AndroidAttributeValue<String> getDebuggable();
