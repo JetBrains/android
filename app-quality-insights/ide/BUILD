@@ -25,7 +25,7 @@ iml_module(
     name = "intellij.android.app-quality-insights.ide.tests",
     iml_files = ["intellij.android.app-quality-insights.ide.tests.iml"],
     test_class = "com.android.tools.idea.insights.InsightsIdeTestSuite",
-    test_srcs = ["tests"],
+    test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
     deps = [
