@@ -23,18 +23,32 @@ import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.findModelessDialog
 import com.android.tools.adtui.swing.optionsAsString
 import com.android.tools.adtui.swing.selectFirstMatch
+import com.android.tools.analytics.UsageTrackerRule
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE_SCREENSHOT_EVENT
+import com.google.wireless.android.sdk.stats.DeviceScreenshotEvent
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.fileChooser.FileChooserFactory
+import com.intellij.openapi.fileChooser.FileSaverDescriptor
+import com.intellij.openapi.fileChooser.FileSaverDialog
+import com.intellij.openapi.fileChooser.impl.FileChooserFactoryImpl
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper.CLOSE_EXIT_CODE
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileWrapper
+import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
+import com.intellij.testFramework.replaceService
 import com.intellij.util.ui.EDT
+import com.intellij.util.ui.UIUtil
 import org.intellij.images.ui.ImageComponent
 import org.intellij.images.ui.ImageComponentDecorator
 import org.junit.After
@@ -43,7 +57,9 @@ import org.junit.Rule
 import org.junit.Test
 import java.awt.Color
 import java.awt.image.BufferedImage
+import java.nio.file.Path
 import java.util.EnumSet
+import javax.swing.JButton
 import javax.swing.JComboBox
 import javax.swing.UIManager
 
@@ -89,9 +105,12 @@ private const val DISPLAY_INFO_WATCH_SQUARE =
 @RunsInEdt
 class ScreenshotViewerTest {
   private val projectRule = ProjectRule()
+  private val usageTrackerRule = UsageTrackerRule()
+  private val disposableRule = DisposableRule()
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), PortableUiFontRule(), HeadlessDialogRule())
+  val rule = RuleChain(projectRule, EdtRule(), PortableUiFontRule(), HeadlessDialogRule(), disposableRule, usageTrackerRule)
+
 
   private val testFrame = object : FramingOption {
     override val displayName = "Test frame"
@@ -335,6 +354,86 @@ class ScreenshotViewerTest {
     assertThat(clipComboBox.selectedItem?.toString()).isEqualTo("Rectangular")
   }
 
+  @Test
+  fun testScreenshotUsageIsTracked_OkAction_Phone() {
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    overrideSaveFileDialog()
+
+    viewer.doOKAction()
+
+    EDT.dispatchAllInvocationEvents()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertThat(usageTrackerRule.screenshotEvents()).containsExactly(
+      DeviceScreenshotEvent.newBuilder()
+        .setDeviceType(DeviceScreenshotEvent.DeviceType.PHONE)
+        .setDecorationOption(DeviceScreenshotEvent.DecorationOption.RECTANGULAR)
+        .build()
+    )
+  }
+
+  @Test
+  fun testScreenshotUsageIsTracked_CopyClipboard_Phone() {
+    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.PHONE, DISPLAY_INFO_PHONE)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val ui = FakeUi(viewer.rootPane)
+    val copyClipboardButton = ui.getComponent<JButton> { it.text == "Copy to Clipboard" }
+
+    copyClipboardButton.doClick()
+
+    EDT.dispatchAllInvocationEvents()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertThat(usageTrackerRule.screenshotEvents()).containsExactly(
+      DeviceScreenshotEvent.newBuilder()
+        .setDeviceType(DeviceScreenshotEvent.DeviceType.PHONE)
+        .setDecorationOption(DeviceScreenshotEvent.DecorationOption.RECTANGULAR)
+        .build()
+    )
+  }
+
+  @Test
+  fun testScreenshotUsageIsTracked_OkAction_Wear() {
+    val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val ui = FakeUi(viewer.rootPane)
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+    overrideSaveFileDialog()
+
+    clipComboBox.selectFirstMatch("Play Store Compatible")
+    viewer.doOKAction()
+
+    EDT.dispatchAllInvocationEvents()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertThat(usageTrackerRule.screenshotEvents()).containsExactly(
+      DeviceScreenshotEvent.newBuilder()
+        .setDeviceType(DeviceScreenshotEvent.DeviceType.WEAR)
+        .setDecorationOption(DeviceScreenshotEvent.DecorationOption.PLAY_COMPATIBLE)
+        .build()
+    )
+  }
+
+
+  @Test
+  fun testScreenshotUsageIsTracked_CopyClipboard_Wear() {
+    val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val ui = FakeUi(viewer.rootPane)
+    val copyClipboardButton = ui.getComponent<JButton> { it.text == "Copy to Clipboard" }
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+
+    clipComboBox.selectFirstMatch("Display Shape")
+    copyClipboardButton.doClick()
+
+    EDT.dispatchAllInvocationEvents()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    assertThat(usageTrackerRule.screenshotEvents()).containsExactly(
+      DeviceScreenshotEvent.newBuilder()
+        .setDeviceType(DeviceScreenshotEvent.DeviceType.WEAR)
+        .setDecorationOption(DeviceScreenshotEvent.DecorationOption.DISPLAY_SHAPE_CLIP)
+        .build()
+    )
+  }
+
   private fun createImage(width: Int, height: Int): BufferedImage {
     val image = ImageUtils.createDipImage(width, height, BufferedImage.TYPE_INT_ARGB)
     val graphics = image.createGraphics()
@@ -353,4 +452,22 @@ class ScreenshotViewerTest {
     viewer.show()
     return viewer
   }
+
+  private fun overrideSaveFileDialog() {
+    val tempFile = FileUtil.createTempFile("foo", "screenshot")
+    val virtualFileWrapper = VirtualFileWrapper(tempFile)
+    val factory = object : FileChooserFactoryImpl() {
+      override fun createSaveFileDialog(descriptor: FileSaverDescriptor, project: Project?): FileSaverDialog {
+        return object : FileSaverDialog {
+          override fun save(baseDir: VirtualFile?, filename: String?) = virtualFileWrapper
+          override fun save(baseDir: Path?, filename: String?) = virtualFileWrapper
+        }
+      }
+    }
+    ApplicationManager.getApplication().replaceService(FileChooserFactory::class.java, factory, disposableRule.disposable)
+  }
+
+  private fun UsageTrackerRule.screenshotEvents(): List<DeviceScreenshotEvent> =
+    usages.filter { it.studioEvent.kind == DEVICE_SCREENSHOT_EVENT }.map { it.studioEvent.deviceScreenshotEvent }
+
 }

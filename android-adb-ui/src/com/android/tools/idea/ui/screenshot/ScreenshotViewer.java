@@ -16,13 +16,17 @@
 package com.android.tools.idea.ui.screenshot;
 
 import static com.android.SdkConstants.EXT_PNG;
+import static com.google.wireless.android.sdk.stats.AndroidStudioEvent.EventKind.DEVICE_SCREENSHOT_EVENT;
 import static com.intellij.openapi.components.StoragePathMacros.NON_ROAMABLE_FILE;
 
+import com.android.tools.analytics.UsageTracker;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.ui.AndroidAdbUiBundle;
 import com.android.tools.pixelprobe.color.Colors;
 import com.android.utils.HashCodes;
 import com.google.common.base.Preconditions;
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent;
+import com.google.wireless.android.sdk.stats.DeviceScreenshotEvent;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.notification.NotificationGroup;
@@ -308,6 +312,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
       NotificationGroup group = NotificationGroup.findRegisteredGroup("Screen Capture");
       assert group != null;
       Notifications.Bus.notify(group.createNotification(AndroidAdbUiBundle.message("screenshot.notification.copied.to.clipboard"), NotificationType.INFORMATION), project);
+      logScreenshotUsage();
     });
 
     updateEditorImage();
@@ -490,6 +495,7 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     myScreenshotFile = fileWrapper.getFile().toPath();
     try {
       writePng(myDisplayedImageRef.get(), myScreenshotFile);
+      logScreenshotUsage();
     }
     catch (IOException e) {
       Messages.showErrorDialog(myProject, AndroidAdbUiBundle.message("screenshot.dialog.error", e),
@@ -591,6 +597,39 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
 
   private static @NotNull Logger logger() {
     return Logger.getInstance(ScreenshotViewer.class);
+  }
+
+  private void logScreenshotUsage() {
+    var event = DeviceScreenshotEvent.newBuilder()
+      .setDeviceType(getUsageDeviceType())
+      .setDecorationOption(getUsageDecorationOption());
+
+    UsageTracker.log(
+      AndroidStudioEvent.newBuilder()
+        .setKind(DEVICE_SCREENSHOT_EVENT)
+        .setDeviceScreenshotEvent(event));
+  }
+
+  private @NotNull DeviceScreenshotEvent.DeviceType getUsageDeviceType() {
+    return switch (mySourceImageRef.get().getDeviceType()) {
+      case WEAR -> DeviceScreenshotEvent.DeviceType.WEAR;
+      case PHONE -> DeviceScreenshotEvent.DeviceType.PHONE;
+      case TV -> DeviceScreenshotEvent.DeviceType.TV;
+    };
+  }
+
+  private @NotNull DeviceScreenshotEvent.DecorationOption getUsageDecorationOption() {
+    DecorationOption selectedDecoration = (DecorationOption)Objects.requireNonNull(myDecorationComboBox.getSelectedItem());
+    if (DecorationOption.RECTANGULAR.equals(selectedDecoration)) {
+      return DeviceScreenshotEvent.DecorationOption.RECTANGULAR;
+    }
+    if (DecorationOption.DISPLAY_SHAPE_CLIP.equals(selectedDecoration)) {
+      return DeviceScreenshotEvent.DecorationOption.DISPLAY_SHAPE_CLIP;
+    }
+    if (DecorationOption.PLAY_COMPATIBLE.equals(selectedDecoration)) {
+      return DeviceScreenshotEvent.DecorationOption.PLAY_COMPATIBLE;
+    }
+    return DeviceScreenshotEvent.DecorationOption.FRAMED;
   }
 
   private static class BufferedImageTransferable implements Transferable {
