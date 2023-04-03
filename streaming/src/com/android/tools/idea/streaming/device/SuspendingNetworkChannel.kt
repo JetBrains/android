@@ -23,6 +23,7 @@ import java.io.IOException
 import java.net.SocketAddress
 import java.net.SocketOption
 import java.nio.channels.NetworkChannel
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Base class for [SuspendingSocketChannel] and [SuspendingServerSocketChannel].
@@ -30,7 +31,7 @@ import java.nio.channels.NetworkChannel
 abstract class SuspendingNetworkChannel<T : NetworkChannel>(val networkChannel: T) : SuspendingCloseable {
 
   override suspend fun close() {
-    withContext(Dispatchers.IO) {
+    withContextWithoutLoggingExceptions(Dispatchers.IO) {
       networkChannel.close()
     }
   }
@@ -45,21 +46,21 @@ abstract class SuspendingNetworkChannel<T : NetworkChannel>(val networkChannel: 
 
   /** See [NetworkChannel.bind]. */
   suspend fun bind(local: SocketAddress) {
-    withContext(Dispatchers.IO) {
+    withContextWithoutLoggingExceptions(Dispatchers.IO) {
       networkChannel.bind(local)
     }
   }
 
   /** See [NetworkChannel.setOption]. */
   suspend fun <U : Any?> setOption(name: SocketOption<U>, value: U) {
-    withContext(Dispatchers.IO) {
+    withContextWithoutLoggingExceptions(Dispatchers.IO) {
       networkChannel.setOption(name, value)
     }
   }
 
   /** See [NetworkChannel.getOption]. */
   suspend fun <U : Any?> getOption(name: SocketOption<U>): U {
-    return withContext(Dispatchers.IO) {
+    return withContextWithoutLoggingExceptions(Dispatchers.IO) {
       networkChannel.getOption(name)
     }
   }
@@ -81,4 +82,7 @@ abstract class SuspendingNetworkChannel<T : NetworkChannel>(val networkChannel: 
       }
     }
   }
+
+  private suspend fun <T> withContextWithoutLoggingExceptions(context: CoroutineContext, block: () -> T): T =
+      withContext(context) { runCatching(block) }.getOrThrow()
 }
