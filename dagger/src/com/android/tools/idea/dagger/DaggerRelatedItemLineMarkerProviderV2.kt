@@ -21,8 +21,6 @@ import com.android.tools.idea.dagger.concepts.ConsumerDaggerElementBase
 import com.android.tools.idea.dagger.concepts.DaggerElement
 import com.android.tools.idea.dagger.concepts.getDaggerElement
 import com.android.tools.idea.dagger.localization.DaggerBundle
-import com.google.common.base.Supplier
-import com.google.common.base.Suppliers
 import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.codeInsight.daemon.GutterIconNavigationHandler
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
@@ -32,7 +30,6 @@ import com.intellij.navigation.GotoRelatedItem
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.impl.source.tree.LeafPsiElement
@@ -75,16 +72,18 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
       val daggerElement = element.parent.getDaggerElement() ?: return
       metricsType = daggerElement.metricsElementType
 
-      val gotoTargetsSupplier = Suppliers.memoize { daggerElement.getGotoItems() }
+      val gotoItems = daggerElement.getGotoItems()
+      if (gotoItems.isEmpty()) return
+
       lineMarkerInfo =
         RelatedItemLineMarkerInfo(
           element,
           element.textRange,
           daggerElement.getIcon(),
           ::tooltipProvider,
-          NavigationHandler(gotoTargetsSupplier, metricsType),
+          NavigationHandler(gotoItems, metricsType),
           GutterIconRenderer.Alignment.RIGHT,
-          gotoTargetsSupplier::get,
+          { gotoItems },
         )
     }
 
@@ -141,24 +140,20 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
    * navigating immediately.
    */
   private class NavigationHandler(
-    private val targetsSupplier: Supplier<List<GotoRelatedItem>>,
+    private val gotoItems: List<GotoRelatedItem>,
     private val metricsType: DaggerEditorEvent.ElementType
   ) : GutterIconNavigationHandler<PsiElement> {
     override fun navigate(mouseEvent: MouseEvent, psiElement: PsiElement) {
       psiElement.project.service<DaggerAnalyticsTracker>().trackClickOnGutter(metricsType)
 
-      val gotoTargets = targetsSupplier.get()
-      val displayLocation = RelativePoint(mouseEvent)
-      if (gotoTargets.isNotEmpty()) {
+      if (gotoItems.size == 1) {
+        gotoItems.first().navigate()
+      } else {
         NavigationUtil.getRelatedItemsPopup(
-            gotoTargets,
+            gotoItems,
             DaggerBundle.message("dagger.related.items.popup.title")
           )
-          .show(displayLocation)
-      } else {
-        JBPopupFactory.getInstance()
-          .createMessage(DaggerBundle.message("dagger.related.items.none.found"))
-          .show(displayLocation)
+          .show(RelativePoint(mouseEvent))
       }
     }
   }
