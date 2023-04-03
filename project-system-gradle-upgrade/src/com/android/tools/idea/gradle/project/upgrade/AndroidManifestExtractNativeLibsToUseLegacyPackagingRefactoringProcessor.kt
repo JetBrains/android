@@ -73,6 +73,10 @@ class AndroidManifestExtractNativeLibsToUseLegacyPackagingRefactoringProcessor :
   override fun findComponentUsages(): Array<UsageInfo> {
     val usages = ArrayList<UsageInfo>()
     projectBuildModel.allIncludedBuildModels.forEach model@{ model ->
+      val moduleKind = model.moduleKind ?: return@model
+      if (moduleKind==ModuleKind.LIBRARY) {
+        return@model
+      }
       val modelPsiElement = model.psiElement ?: return@model
       val moduleDirectory = model.moduleRootDirectory
       val manifestValue = moduleDirectory.computeExtractNativeLibsWith { attribute ->
