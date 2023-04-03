@@ -172,6 +172,8 @@ suspend fun <T : PreviewElement> NlDesignSurface.updatePreviewsAndRefresh(
         // Reconfigure the model by setting the new display name and applying the configuration values
         reusedModel.modelDisplayName = previewElement.displaySettings.name
         reusedModel.dataContext = previewElementModelAdapter.createDataContext(previewElement)
+        // Even when reusing the same model, the situation may require a different model updater
+        reusedModel.setModelUpdater(modelUpdater)
         // We call addModel even though the model might not be new. If we try to add an existing model,
         // this will trigger a new render which is exactly what we want.
         configureLayoutlibSceneManager(

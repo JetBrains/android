@@ -142,7 +142,13 @@ public class NlModel implements ModificationTracker, DataContextHolder {
    */
   @NotNull private final Consumer<NlComponent> myComponentRegistrar;
 
-  @NotNull private final NlModelUpdaterInterface myModelUpdater;
+  /**
+   * Adds information to the model from a render result.
+   * A given model can use different updaters depending on what its usage requires.
+   * E.g. interactive preview may need less information from an {@link NlModel} than
+   * a standard preview, so different updaters can be used in those cases.
+   */
+  @NotNull private NlModelUpdaterInterface myModelUpdater;
 
   @NotNull private DataContext myDataContext;
 
@@ -1063,5 +1069,9 @@ public class NlModel implements ModificationTracker, DataContextHolder {
   @Override
   public final void setDataContext(@NotNull DataContext dataContext) {
     myDataContext = dataContext;
+  }
+
+  public void setModelUpdater(@NotNull NlModelUpdaterInterface modelUpdater) {
+    myModelUpdater = modelUpdater;
   }
 }
