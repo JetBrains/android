@@ -16,6 +16,7 @@
 package com.android.tools.idea.dagger.concepts
 
 import com.android.tools.idea.dagger.addDaggerAndHiltClasses
+import com.android.tools.idea.kotlin.toPsiType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.onEdt
@@ -28,8 +29,10 @@ import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.base.util.projectScope
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtProperty
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -67,6 +70,8 @@ class ComponentProvisionMethodConceptTest {
           fun provisionMethodComponent(): Foo
           fun nonProvisionMethodComponent(bar: Bar): Foo
           fun methodWithoutTypeComponent() = { return "" }
+          val provisionPropertyComponent: Foo
+          val provisionPropertyNotAbstractComponent = Foo()
         }
 
         @Subcomponent
@@ -74,12 +79,16 @@ class ComponentProvisionMethodConceptTest {
           fun provisionMethodSubcomponent(): Foo
           fun nonProvisionMethodSubcomponent(bar: Bar): Foo
           fun methodWithoutTypeSubcomponent() = { return "" }
+          val provisionPropertySubcomponent: Foo
+          val provisionPropertyNotAbstractComponent = Foo()
         }
 
         interface NotAComponent {
           fun provisionMethodNotAComponent(): Foo
           fun nonProvisionMethodNotAComponent(bar: Bar): Foo
           fun methodWithoutTypeNotAComponent() = { return "" }
+          val provisionPropertyNotAComponent: Foo
+          val provisionPropertyNotAbstractNotAComponent = Foo()
         }
 
         fun provisionMethodOutsideClass(): Foo
@@ -98,6 +107,14 @@ class ComponentProvisionMethodConceptTest {
             "com.example.MySubcomponent",
             "provisionMethodSubcomponent"
           ),
+          ComponentProvisionPropertyIndexValue(
+            "com.example.MyComponent",
+            "provisionPropertyComponent"
+          ),
+          ComponentProvisionPropertyIndexValue(
+            "com.example.MySubcomponent",
+            "provisionPropertySubcomponent"
+          )
         )
       )
   }
@@ -109,7 +126,7 @@ class ComponentProvisionMethodConceptTest {
   }
 
   @Test
-  fun componentProvisionMethod_resolveToPsiElements_kotlin() {
+  fun componentProvisionMethodAndProperty_resolveToPsiElements_kotlin() {
     addDaggerAndHiltClasses(myFixture)
 
     myFixture.configureByText(
@@ -126,6 +143,8 @@ class ComponentProvisionMethodConceptTest {
         fun provisionMethodComponent(): Foo
         fun nonProvisionMethodComponent(bar: Bar): Foo
         fun concreteMethodComponent() = { return "" }
+        val fooPropertyComponent: Foo
+        val fooPropertyConcreteComponent = Foo()
       }
 
       @Subcomponent
@@ -133,12 +152,16 @@ class ComponentProvisionMethodConceptTest {
         fun provisionMethodSubcomponent(): Foo
         fun nonProvisionMethodSubcomponent(bar: Bar): Foo
         fun concreteMethodSubcomponent() = { return "" }
+        val fooPropertySubcomponent: Foo
+        val fooPropertyConcreteSubComponent = Foo()
       }
 
       interface NotAComponent {
         fun provisionMethodNotAComponent(): Foo
         fun nonProvisionMethodNotAComponent(bar: Bar): Foo
         fun concreteMethodNotAComponent() = { return "" }
+        val fooPropertyNotAComponent: Foo
+        val fooPropertyConcreteNotAComponent = Foo()
       }
 
       class Foo
@@ -146,6 +169,8 @@ class ComponentProvisionMethodConceptTest {
       """
         .trimIndent()
     )
+
+    val fooPsiType = myFixture.findParentElement<KtClass>("class F|oo").toPsiType()!!
 
     val provisionMethodComponentDaggerElement =
       ComponentProvisionMethodDaggerElement(
@@ -155,6 +180,16 @@ class ComponentProvisionMethodConceptTest {
       ComponentProvisionMethodDaggerElement(
         myFixture.findParentElement<KtFunction>("provisionMethod|Subcomponent")
       )
+    val provisionPropertyComponentDaggerElement =
+      ComponentProvisionMethodDaggerElement(
+        myFixture.findParentElement<KtProperty>("fooProperty|Component"),
+        fooPsiType
+      )
+    val provisionPropertySubcomponentDaggerElement =
+      ComponentProvisionMethodDaggerElement(
+        myFixture.findParentElement<KtProperty>("fooProperty|Subcomponent"),
+        fooPsiType
+      )
 
     // Expected to resolve
     assertThat(
@@ -163,6 +198,12 @@ class ComponentProvisionMethodConceptTest {
       )
       .containsExactly(provisionMethodComponentDaggerElement)
     assertThat(
+        ComponentProvisionPropertyIndexValue("com.example.MyComponent", "fooPropertyComponent")
+          .resolveToDaggerElements(myProject, myProject.projectScope())
+      )
+      .containsExactly(provisionPropertyComponentDaggerElement)
+
+    assertThat(
         ComponentProvisionMethodIndexValue(
             "com.example.MySubcomponent",
             "provisionMethodSubcomponent"
@@ -170,23 +211,42 @@ class ComponentProvisionMethodConceptTest {
           .resolveToDaggerElements(myProject, myProject.projectScope())
       )
       .containsExactly(provisionMethodSubcomponentDaggerElement)
+    assertThat(
+        ComponentProvisionPropertyIndexValue(
+            "com.example.MySubcomponent",
+            "fooPropertySubcomponent"
+          )
+          .resolveToDaggerElements(myProject, myProject.projectScope())
+      )
+      .containsExactly(provisionPropertySubcomponentDaggerElement)
 
     // Expected to not resolve
     val nonResolving =
       listOf(
         "com.example.MyComponent" to "nonProvisionMethodComponent",
         "com.example.MyComponent" to "concreteMethodComponent",
+        "com.example.MyComponent" to "fooPropertyConcreteComponent",
         "com.example.MySubcomponent" to "nonProvisionMethodSubcomponent",
         "com.example.MySubcomponent" to "concreteMethodSubcomponent",
+        "com.example.MySubcomponent" to "fooPropertyConcreteSubComponent",
         "com.example.NotAComponent" to "provisionMethodNotAComponent",
         "com.example.NotAComponent" to "nonProvisionMethodNotAComponent",
-        "com.example.NotAComponent" to "concreteMethodNotAComponent"
+        "com.example.NotAComponent" to "concreteMethodNotAComponent",
+        "com.example.NotAComponent" to "fooPropertyNotAComponent",
+        "com.example.NotAComponent" to "fooPropertyConcreteNotAComponent",
       )
 
     for ((classFqName, methodName) in nonResolving) {
       assertWithMessage("Resolution for ($classFqName, $methodName)")
         .that(
           ComponentProvisionMethodIndexValue(classFqName, methodName)
+            .resolveToDaggerElements(myProject, myProject.projectScope()),
+        )
+        .isEmpty()
+
+      assertWithMessage("Resolution for ($classFqName, $methodName)")
+        .that(
+          ComponentProvisionPropertyIndexValue(classFqName, methodName)
             .resolveToDaggerElements(myProject, myProject.projectScope()),
         )
         .isEmpty()
@@ -276,5 +336,11 @@ class ComponentProvisionMethodConceptTest {
         )
         .isEmpty()
     }
+  }
+
+  @Test
+  fun componentProvisionPropertyIndexValue_serialization() {
+    val indexValue = ComponentProvisionPropertyIndexValue("abc", "def")
+    assertThat(serializeAndDeserializeIndexValue(indexValue)).isEqualTo(indexValue)
   }
 }

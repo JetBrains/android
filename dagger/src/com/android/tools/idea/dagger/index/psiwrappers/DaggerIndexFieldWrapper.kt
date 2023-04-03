@@ -24,7 +24,7 @@ interface DaggerIndexFieldWrapper : DaggerIndexAnnotatedWrapper {
   /** Simple name of the field. Eg: "someFieldName" */
   fun getSimpleName(): String
   fun getType(): DaggerIndexTypeWrapper?
-  fun getContainingClass(): DaggerIndexClassWrapper
+  fun getContainingClass(): DaggerIndexClassWrapper?
 }
 
 internal class KtPropertyWrapper(
@@ -36,8 +36,8 @@ internal class KtPropertyWrapper(
   override fun getType(): DaggerIndexTypeWrapper? =
     ktProperty.typeReference?.let { KtTypeReferenceWrapper(it, importHelper) }
 
-  override fun getContainingClass(): DaggerIndexClassWrapper =
-    KtClassOrObjectWrapper(ktProperty.containingClassOrObject!!, importHelper)
+  override fun getContainingClass(): DaggerIndexClassWrapper? =
+    ktProperty.containingClassOrObject?.let { KtClassOrObjectWrapper(it, importHelper) }
 }
 
 internal class PsiFieldWrapper(
@@ -49,6 +49,6 @@ internal class PsiFieldWrapper(
   override fun getType(): DaggerIndexTypeWrapper? =
     psiField.typeElement?.let { PsiTypeElementWrapper(it) }
 
-  override fun getContainingClass(): DaggerIndexClassWrapper =
-    PsiClassWrapper(psiField.containingClass!!, importHelper)
+  override fun getContainingClass(): DaggerIndexClassWrapper? =
+    psiField.containingClass?.let { PsiClassWrapper(it, importHelper) }
 }

@@ -63,6 +63,7 @@ abstract class IndexValue {
     MODULE_WITH_INCLUDE(ModuleDaggerElement::class),
     MODULE_WITH_SUBCOMPONENT(ModuleDaggerElement::class),
     COMPONENT_PROVISION_METHOD(ComponentProvisionMethodDaggerElement::class),
+    COMPONENT_PROVISION_PROPERTY(ComponentProvisionMethodDaggerElement::class),
     BINDS_OPTIONAL_OF_METHOD(BindsOptionalOfProviderDaggerElement::class),
     BINDS_INSTANCE_BUILDER_METHOD(ProviderDaggerElement::class),
     BINDS_INSTANCE_FACTORY_METHOD_PARAMETER(ProviderDaggerElement::class),

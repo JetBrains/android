@@ -59,9 +59,9 @@ internal object InjectedFieldDaggerConcept : DaggerConcept {
 private object InjectedFieldIndexer : DaggerConceptIndexer<DaggerIndexFieldWrapper> {
   override fun addIndexEntries(wrapper: DaggerIndexFieldWrapper, indexEntries: IndexEntries) {
     if (!wrapper.getIsAnnotatedWith(INJECT)) return
+    val classFqName = wrapper.getContainingClass()?.getFqName() ?: return
 
     val fieldTypeSimpleName = wrapper.getType()?.getSimpleName() ?: ""
-    val classFqName = wrapper.getContainingClass().getFqName()
     val fieldName = wrapper.getSimpleName()
     indexEntries.addIndexValue(fieldTypeSimpleName, InjectedFieldIndexValue(classFqName, fieldName))
   }
