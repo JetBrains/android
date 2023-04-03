@@ -41,7 +41,7 @@ private const val FILE_CAP = 60000
 
 class ProjectSizeUsageTrackerListener(private val project: Project) : SyncResultListener {
   override fun syncEnded(result: SyncResult) {
-    if (!result.isSuccessful && result != SyncResult.PARTIAL_SUCCESS) {
+    if (!result.isSuccessful) {
       return
     }
     if (AnalyticsSettings.optedIn) {
