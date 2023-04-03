@@ -16,6 +16,7 @@
 package com.android.tools.idea.devicemanagerv2
 
 import com.android.sdklib.AndroidVersion
+import com.android.sdklib.deviceprovisioner.Reservation
 import com.android.sdklib.getReleaseNameAndDetails
 import com.android.tools.adtui.categorytable.TableComponent
 import com.android.tools.adtui.categorytable.TablePresentation
@@ -27,6 +28,9 @@ import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import javax.swing.GroupLayout
 import javax.swing.LayoutStyle.ComponentPlacement
 import kotlin.math.min
@@ -89,7 +93,19 @@ internal class DeviceNamePanel(private val wearPairingManager: WearPairingManage
     // TODO: Update pairedLabel
   }
 
+  /**
+   * Returns the appropriate text for the second line of the device cell, using the following in
+   * order:
+   * 1. The status message, if the device state is transitioning and one is present.
+   * 2. Reservation information, if present.
+   * 3. Android version
+   */
   private fun DeviceRowData.toLine2Text() =
+    stateTransitionText() ?: reservationText() ?: androidVersionText()
+
+  private fun DeviceRowData.reservationText() = handle?.state?.reservation?.line2Text()
+
+  private fun DeviceRowData.androidVersionText() =
     when (androidVersion) {
       null -> ""
       else -> androidVersion.toLabelText() + (abi?.cpuArch?.let { " | $it" } ?: "")
@@ -123,4 +139,21 @@ internal fun Color.lighten() =
     val green = min(green + 50, 255)
     val blue = min(blue + 50, 255)
     JBColor(Color(red, green, blue), darker())
+  }
+
+internal fun DeviceRowData.stateTransitionText() =
+  handle?.state?.takeIf { it.isTransitioning }?.status?.takeIf { it.isNotEmpty() }
+
+internal fun Reservation.line2Text(zoneId: ZoneId = ZoneId.systemDefault()): String? =
+  when {
+    endTime != null -> {
+      val formattedDate =
+        DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withZone(zoneId).format(endTime)
+      when {
+        stateMessage.isEmpty() -> "Device will expire at $formattedDate"
+        else -> "${stateMessage}; device will expire at $formattedDate"
+      }
+    }
+    stateMessage.isNotEmpty() -> stateMessage
+    else -> null
   }
