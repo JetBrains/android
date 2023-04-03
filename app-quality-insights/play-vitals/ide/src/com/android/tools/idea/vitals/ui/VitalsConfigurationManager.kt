@@ -23,7 +23,7 @@ import com.android.tools.idea.insights.AppInsightsProjectLevelControllerImpl
 import com.android.tools.idea.insights.AppInsightsService
 import com.android.tools.idea.insights.Connection
 import com.android.tools.idea.insights.VariantConnection
-import com.android.tools.idea.insights.client.AppInsightsCache
+import com.android.tools.idea.insights.client.AppInsightsCacheImpl
 import com.android.tools.idea.insights.events.actions.AppInsightsActionQueueImpl
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowFactory
 import com.android.tools.idea.projectsystem.isHolderModule
@@ -71,9 +71,7 @@ class VitalsConfigurationManager(override val project: Project) :
       },
       connectionInferrer = VitalsConnectionInferrer(),
       defaultFilters = createVitalsFilters(),
-      // TODO(b/275428405): this likely needs to be a project service and separate from other
-      // caches.
-      cache = service<AppInsightsCache>()
+      cache = AppInsightsCacheImpl()
     )
   override val configuration =
     MutableSharedFlow<AppInsightsModel>(1).apply {
