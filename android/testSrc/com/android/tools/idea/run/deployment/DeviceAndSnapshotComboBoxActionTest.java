@@ -121,11 +121,9 @@ public final class DeviceAndSnapshotComboBoxActionTest {
   @Test
   public void setTargetSelectedWithComboBox() {
     // Arrange
-    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(key)
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -138,7 +136,7 @@ public final class DeviceAndSnapshotComboBoxActionTest {
       .build();
 
     Project project = myRule.getProject();
-    Target target = new QuickBootTarget(key);
+    Target target = new QuickBootTarget(Keys.PIXEL_4_API_30);
 
     // Act
     action.setTargetSelectedWithComboBox(project, target);

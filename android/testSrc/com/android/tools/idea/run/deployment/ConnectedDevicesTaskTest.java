@@ -177,7 +177,7 @@ public final class ConnectedDevicesTaskTest {
     var future = myTask.get();
 
     // Assert
-    assertEquals(new VirtualDevicePath(path.toString()), ((List<ConnectedDevice>)future.get(60, TimeUnit.SECONDS)).get(0).getKey());
+    assertEquals(new VirtualDevicePath(path), ((List<ConnectedDevice>)future.get(60, TimeUnit.SECONDS)).get(0).getKey());
   }
 
   @Test

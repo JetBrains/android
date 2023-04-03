@@ -62,11 +62,9 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void getTargetSelectedWithComboBoxTargetSelectedWithDropDownIsNull() {
     // Arrange
-    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(key)
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -76,19 +74,17 @@ public final class DevicesSelectedServiceTest {
     Object target = myService.getTargetSelectedWithComboBox(devices);
 
     // Assert
-    assertEquals(Optional.of(new QuickBootTarget(key)), target);
+    assertEquals(Optional.of(new QuickBootTarget(Keys.PIXEL_4_API_30)), target);
   }
 
   @Test
   public void getTargetSelectedWithComboBoxSelectedDeviceIsntPresent() {
     // Arrange
-    myService.setTargetSelectedWithComboBox(new QuickBootTarget(new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_30.avd")));
-
-    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+    myService.setTargetSelectedWithComboBox(new QuickBootTarget(Keys.PIXEL_3_API_30));
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(key)
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -98,20 +94,19 @@ public final class DevicesSelectedServiceTest {
     Object target = myService.getTargetSelectedWithComboBox(devices);
 
     // Assert
-    assertEquals(Optional.of(new QuickBootTarget(key)), target);
+    assertEquals(Optional.of(new QuickBootTarget(Keys.PIXEL_4_API_30)), target);
   }
 
   @Test
   public void getTargetSelectedWithComboBoxConnectedDeviceIsntPresent() {
     // Arrange
-    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-    Target target = new ColdBootTarget(key);
+    Target target = new ColdBootTarget(Keys.PIXEL_4_API_30);
 
     myService.setTargetSelectedWithComboBox(target);
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(key)
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -127,21 +122,17 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void getTargetSelectedWithComboBoxTimeTargetWasSelectedWithDropDownIsBeforeConnectionTime() {
     // Arrange
-    Key disconnectedDeviceKey = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-
-    myService.setTargetSelectedWithComboBox(new QuickBootTarget(disconnectedDeviceKey));
+    myService.setTargetSelectedWithComboBox(new QuickBootTarget(Keys.PIXEL_4_API_30));
 
     Device disconnectedDevice = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(disconnectedDeviceKey)
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
-    Key connectedDeviceKey = new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_30.avd");
-
     Device connectedDevice = new VirtualDevice.Builder()
       .setName("Pixel 3 API 30")
-      .setKey(connectedDeviceKey)
+      .setKey(Keys.PIXEL_3_API_30)
       .setConnectionTime(Instant.parse("2018-11-28T01:15:28Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
@@ -152,26 +143,24 @@ public final class DevicesSelectedServiceTest {
     Object target = myService.getTargetSelectedWithComboBox(devices);
 
     // Assert
-    assertEquals(Optional.of(new RunningDeviceTarget(connectedDeviceKey)), target);
+    assertEquals(Optional.of(new RunningDeviceTarget(Keys.PIXEL_3_API_30)), target);
   }
 
   @Test
   public void getTargetSelectedWithComboBox() {
     // Arrange
-    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-    Target target = new ColdBootTarget(key);
-
+    Target target = new ColdBootTarget(Keys.PIXEL_4_API_30);
     myService.setTargetSelectedWithComboBox(target);
 
     Device disconnectedDevice = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(key)
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device connectedDevice = new VirtualDevice.Builder()
       .setName("Pixel 3 API 30")
-      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_30.avd"))
+      .setKey(Keys.PIXEL_3_API_30)
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
@@ -192,12 +181,11 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void getTargetSelectedWithComboBoxTimeTargetWasSelectedWithDropDownAssertionDoesntFail() {
     // Arrange
-    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-    Target target = new RunningDeviceTarget(key);
+    Target target = new RunningDeviceTarget(Keys.PIXEL_4_API_30);
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(key)
+      .setKey(Keys.PIXEL_4_API_30)
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
@@ -217,20 +205,17 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void setTargetSelectedWithComboBox() {
     // Arrange
-    Key key2 = new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_30.avd");
-    Target target2 = new QuickBootTarget(key2);
-
-    Key key1 = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
+    Target target2 = new QuickBootTarget(Keys.PIXEL_3_API_30);
 
     Device device1 = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(key1)
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     Device device2 = new VirtualDevice.Builder()
       .setName("Pixel 3 API 30")
-      .setKey(key2)
+      .setKey(Keys.PIXEL_3_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -246,7 +231,7 @@ public final class DevicesSelectedServiceTest {
     myService.setTargetSelectedWithComboBox(null);
 
     // Assert
-    assertEquals(Optional.of(new QuickBootTarget(key1)), myService.getTargetSelectedWithComboBox(devices));
+    assertEquals(Optional.of(new QuickBootTarget(Keys.PIXEL_4_API_30)), myService.getTargetSelectedWithComboBox(devices));
   }
 
   @Test
@@ -261,7 +246,7 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void setTargetsSelectedWithDialog() {
     // Arrange
-    Set<Target> targets = Collections.singleton(new QuickBootTarget(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd")));
+    Set<Target> targets = Collections.singleton(new QuickBootTarget(Keys.PIXEL_4_API_30));
 
     // Act
     myService.setTargetsSelectedWithDialog(targets);
@@ -273,7 +258,7 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void targetStateTargetIsInstanceOfColdBootTarget() {
     // Arrange
-    Set<Target> targets = Collections.singleton(new ColdBootTarget(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd")));
+    Set<Target> targets = Collections.singleton(new ColdBootTarget(Keys.PIXEL_4_API_30));
 
     // Act
     myService.setTargetsSelectedWithDialog(targets);
@@ -286,11 +271,9 @@ public final class DevicesSelectedServiceTest {
   public void targetStateTargetIsInstanceOfBootWithSnapshotTarget() {
     // Arrange
     FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
-
-    Key deviceKey = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
     Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
 
-    Set<Target> targets = Collections.singleton(new BootWithSnapshotTarget(deviceKey, snapshotKey));
+    Set<Target> targets = Collections.singleton(new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, snapshotKey));
 
     // Act
     myService.setTargetsSelectedWithDialog(targets);

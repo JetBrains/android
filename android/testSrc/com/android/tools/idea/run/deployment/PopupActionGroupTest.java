@@ -109,7 +109,7 @@ public final class PopupActionGroupTest {
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
       .setType(Type.PHONE)
-      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
+      .setKey(Keys.PIXEL_4_API_30)
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
@@ -141,7 +141,7 @@ public final class PopupActionGroupTest {
     Device runningDevice = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
       .setType(Type.PHONE)
-      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
+      .setKey(Keys.PIXEL_4_API_30)
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
@@ -149,7 +149,7 @@ public final class PopupActionGroupTest {
     Device availableDevice = new VirtualDevice.Builder()
       .setName("Pixel 3 API 30")
       .setType(Type.PHONE)
-      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_30.avd"))
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -185,7 +185,7 @@ public final class PopupActionGroupTest {
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
       .setType(Type.PHONE)
-      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .addSnapshot(new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58")))
       .build();

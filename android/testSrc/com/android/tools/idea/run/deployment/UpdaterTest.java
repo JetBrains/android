@@ -252,19 +252,17 @@ public final class UpdaterTest {
   @Test
   public void updateInToolbarForMultipleDevicesDeviceIsLaunchedAfterTargetWasSelected() {
     // Arrange
-    Key deviceKey = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-
     FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
     Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58");
 
     DevicesSelectedService service = newDevicesSelectedService();
     service.setMultipleDevicesSelectedInComboBox(true);
-    service.setTargetsSelectedWithDialog(Collections.singleton(new BootWithSnapshotTarget(deviceKey, snapshotKey)));
+    service.setTargetsSelectedWithDialog(Collections.singleton(new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, snapshotKey)));
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
       .setType(Type.PHONE)
-      .setKey(deviceKey)
+      .setKey(Keys.PIXEL_4_API_30)
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .addSnapshot(new Snapshot(snapshotKey))
@@ -284,7 +282,7 @@ public final class UpdaterTest {
     updater.update();
 
     // Assert
-    Object target = new RunningDeviceTarget(deviceKey);
+    Object target = new RunningDeviceTarget(Keys.PIXEL_4_API_30);
 
     assertEquals(Collections.singleton(target), service.getTargetsSelectedWithDialog(devices));
     assertTrue(service.isMultipleDevicesSelectedInComboBox());
@@ -297,18 +295,16 @@ public final class UpdaterTest {
   @Test
   public void updateInToolbarForMultipleDevicesRunningDeviceTargetIsReplacedWithQuickBootTarget() {
     // Arrange
-    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-
     DevicesSelectedService service = newDevicesSelectedService();
     service.setMultipleDevicesSelectedInComboBox(true);
-    service.setTargetsSelectedWithDialog(Collections.singleton(new RunningDeviceTarget(key)));
+    service.setTargetsSelectedWithDialog(Collections.singleton(new RunningDeviceTarget(Keys.PIXEL_4_API_30)));
 
     FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
       .setType(Type.PHONE)
-      .setKey(key)
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .addSnapshot(new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58")))
       .build();
@@ -408,17 +404,15 @@ public final class UpdaterTest {
   @Test
   public void updateInToolbarForSingleDeviceRunningDeviceTargetIsReplacedWithQuickBootTarget() {
     // Arrange
-    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-
     DevicesSelectedService service = newDevicesSelectedService();
-    service.setTargetSelectedWithComboBox(new RunningDeviceTarget(key));
+    service.setTargetSelectedWithComboBox(new RunningDeviceTarget(Keys.PIXEL_4_API_30));
 
     FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
       .setType(Type.PHONE)
-      .setKey(key)
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .addSnapshot(new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58")))
       .build();
@@ -447,15 +441,13 @@ public final class UpdaterTest {
   @Test
   public void getTextDeviceHasSnapshot() {
     // Arrange
-    Key deviceKey = new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_29.avd");
-
     FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
     Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_3_API_29.avd/snapshots/snap_2018-08-07_16-27-58");
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
       .setType(Type.PHONE)
-      .setKey(deviceKey)
+      .setKey(Keys.PIXEL_3_API_29)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .addSnapshot(new Snapshot(snapshotKey))
       .build();
@@ -464,7 +456,7 @@ public final class UpdaterTest {
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
 
-    Target target = new BootWithSnapshotTarget(deviceKey, snapshotKey);
+    Target target = new BootWithSnapshotTarget(Keys.PIXEL_3_API_29, snapshotKey);
     Mockito.when(service.getTargetSelectedWithComboBox(devices)).thenReturn(Optional.of(target));
 
     Updater updater = new Updater.Builder()
@@ -490,7 +482,7 @@ public final class UpdaterTest {
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 29")
       .setType(Type.PHONE)
-      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_29.avd"))
+      .setKey(Keys.PIXEL_3_API_29)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .addSnapshot(new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_3_API_29.avd/snapshots/snap_2018-08-07_16-27-58")))
       .build();
@@ -498,7 +490,7 @@ public final class UpdaterTest {
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
 
     Mockito.when(service.getTargetSelectedWithComboBox(Collections.singletonList(device)))
-      .thenReturn(Optional.of(new QuickBootTarget(new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_29.avd"))));
+      .thenReturn(Optional.of(new QuickBootTarget(Keys.PIXEL_3_API_29)));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
@@ -553,12 +545,10 @@ public final class UpdaterTest {
   @Test
   public void getTextDeviceIsConnected() {
     // Arrange
-    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
       .setType(Type.PHONE)
-      .setKey(key)
+      .setKey(Keys.PIXEL_4_API_30)
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
@@ -566,7 +556,7 @@ public final class UpdaterTest {
     List<Device> devices = Collections.singletonList(device);
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
-    Mockito.when(service.getTargetSelectedWithComboBox(devices)).thenReturn(Optional.of(new QuickBootTarget(key)));
+    Mockito.when(service.getTargetSelectedWithComboBox(devices)).thenReturn(Optional.of(new QuickBootTarget(Keys.PIXEL_4_API_30)));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())
@@ -586,19 +576,17 @@ public final class UpdaterTest {
   @Test
   public void getTextSnapshotsIsEmpty() {
     // Arrange
-    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
       .setType(Type.PHONE)
-      .setKey(key)
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
     List<Device> devices = Collections.singletonList(device);
 
     DevicesSelectedService service = Mockito.mock(DevicesSelectedService.class);
-    Mockito.when(service.getTargetSelectedWithComboBox(devices)).thenReturn(Optional.of(new QuickBootTarget(key)));
+    Mockito.when(service.getTargetSelectedWithComboBox(devices)).thenReturn(Optional.of(new QuickBootTarget(Keys.PIXEL_4_API_30)));
 
     Updater updater = new Updater.Builder()
       .setProject(myRule.getProject())

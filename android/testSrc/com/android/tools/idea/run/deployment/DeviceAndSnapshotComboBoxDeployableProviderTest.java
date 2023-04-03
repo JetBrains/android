@@ -27,6 +27,7 @@ import com.android.tools.idea.run.deployment.Device.Type;
 import com.android.tools.idea.run.deployment.DeviceAndSnapshotComboBoxDeployableProvider.DeployableDevice;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import java.nio.file.Path;
 import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -47,7 +48,7 @@ public final class DeviceAndSnapshotComboBoxDeployableProviderTest {
 
     myDevice = new VirtualDevice.Builder()
       .setName("Pixel 5 API 31")
-      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_5_API_31.avd"))
+      .setKey(new VirtualDevicePath(Path.of(System.getProperty("user.home"), ".android", "avd", "Pixel_5_API_31.avd")))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setType(Type.PHONE)
       .build();

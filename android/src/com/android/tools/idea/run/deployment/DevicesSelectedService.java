@@ -469,7 +469,7 @@ final class DevicesSelectedService {
 
       switch (type) {
         case VIRTUAL_DEVICE_PATH:
-          return new VirtualDevicePath(value);
+          return new VirtualDevicePath(Path.of(value));
         case VIRTUAL_DEVICE_NAME:
           return new VirtualDeviceName(value);
         case SERIAL_NUMBER:

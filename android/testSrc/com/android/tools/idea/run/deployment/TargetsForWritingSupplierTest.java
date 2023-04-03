@@ -35,10 +35,10 @@ public final class TargetsForWritingSupplierTest {
   public void targetsForWritingSupplierNewDeviceIsntRunningDevicesAreSame() {
     // Arrange
     Path oldSnapshotKey = myFileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
-    Target oldTarget = new BootWithSnapshotTarget(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"), oldSnapshotKey);
+    Target oldTarget = new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, oldSnapshotKey);
 
     Path newSnapshotKey = myFileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
-    Target newTarget = new BootWithSnapshotTarget(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"), newSnapshotKey);
+    Target newTarget = new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, newSnapshotKey);
 
     TargetsForWritingSupplier supplier = new TargetsForWritingSupplier(oldTarget, newTarget);
 
@@ -55,10 +55,10 @@ public final class TargetsForWritingSupplierTest {
   public void targetsForWritingSupplierNewDeviceIsntRunningDevicesAreDifferent() {
     // Arrange
     Path oldSnapshotKey = myFileSystem.getPath("/home/user/.android/avd/Pixel_3_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
-    Target oldTarget = new BootWithSnapshotTarget(new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_30.avd"), oldSnapshotKey);
+    Target oldTarget = new BootWithSnapshotTarget(Keys.PIXEL_3_API_30, oldSnapshotKey);
 
     Path newSnapshotKey = myFileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
-    Target newTarget = new BootWithSnapshotTarget(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"), newSnapshotKey);
+    Target newTarget = new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, newSnapshotKey);
 
     TargetsForWritingSupplier supplier = new TargetsForWritingSupplier(oldTarget, newTarget);
 
@@ -75,9 +75,9 @@ public final class TargetsForWritingSupplierTest {
   public void targetsForWritingSupplierNewDeviceIsRunningDevicesAreDifferent() {
     // Arrange
     Path oldSnapshotKey = myFileSystem.getPath("/home/user/.android/avd/Pixel_3_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
-    Target oldTarget = new BootWithSnapshotTarget(new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_30.avd"), oldSnapshotKey);
+    Target oldTarget = new BootWithSnapshotTarget(Keys.PIXEL_3_API_30, oldSnapshotKey);
 
-    Target newTarget = new RunningDeviceTarget(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"));
+    Target newTarget = new RunningDeviceTarget(Keys.PIXEL_4_API_30);
 
     TargetsForWritingSupplier supplier = new TargetsForWritingSupplier(oldTarget, newTarget);
 
@@ -94,9 +94,9 @@ public final class TargetsForWritingSupplierTest {
   public void targetsForWritingSupplierNewDeviceIsRunningDevicesAreSame() {
     // Arrange
     Path oldSnapshotKey = myFileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
-    Target oldTarget = new BootWithSnapshotTarget(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"), oldSnapshotKey);
+    Target oldTarget = new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, oldSnapshotKey);
 
-    Target newTarget = new RunningDeviceTarget(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"));
+    Target newTarget = new RunningDeviceTarget(Keys.PIXEL_4_API_30);
 
     TargetsForWritingSupplier supplier = new TargetsForWritingSupplier(oldTarget, newTarget);
 

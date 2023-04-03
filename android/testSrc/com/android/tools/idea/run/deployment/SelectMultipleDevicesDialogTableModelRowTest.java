@@ -26,15 +26,14 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class SelectMultipleDevicesDialogTableModelRowTest {
-  private static final Key KEY = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-  private static final Target TARGET = new QuickBootTarget(KEY);
+  private static final Target TARGET = new QuickBootTarget(Keys.PIXEL_4_API_30);
 
   @Test
   public void getBootOptionDeviceIsConnected() {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(KEY)
+      .setKey(Keys.PIXEL_4_API_30)
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
@@ -53,7 +52,7 @@ public final class SelectMultipleDevicesDialogTableModelRowTest {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(KEY)
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 

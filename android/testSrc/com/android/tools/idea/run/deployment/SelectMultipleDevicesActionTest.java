@@ -78,7 +78,7 @@ public final class SelectMultipleDevicesActionTest {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 

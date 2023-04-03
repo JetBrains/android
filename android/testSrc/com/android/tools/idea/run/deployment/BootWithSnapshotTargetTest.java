@@ -31,18 +31,14 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class BootWithSnapshotTargetTest {
-  private final @NotNull Key myDeviceKey;
   private final @NotNull Path mySnapshotKey;
-
   private final @NotNull Target myTarget;
 
   public BootWithSnapshotTargetTest() {
     FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
-
-    myDeviceKey = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
     mySnapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
 
-    myTarget = new BootWithSnapshotTarget(myDeviceKey, mySnapshotKey);
+    myTarget = new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, mySnapshotKey);
   }
 
   @Test
@@ -50,7 +46,7 @@ public final class BootWithSnapshotTargetTest {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 3 API 30")
-      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_3_API_30.avd"))
+      .setKey(Keys.PIXEL_3_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -66,7 +62,7 @@ public final class BootWithSnapshotTargetTest {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(myDeviceKey)
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .addSnapshot(new Snapshot(mySnapshotKey))
       .build();

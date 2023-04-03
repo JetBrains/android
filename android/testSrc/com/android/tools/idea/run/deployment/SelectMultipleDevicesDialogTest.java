@@ -153,11 +153,9 @@ public final class SelectMultipleDevicesDialogTest {
   @Test
   public void doOkAction() {
     // Arrange
-    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(key)
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setType(Device.Type.PHONE)
       .build();
@@ -170,7 +168,7 @@ public final class SelectMultipleDevicesDialogTest {
     ApplicationManager.getApplication().invokeAndWait(() -> myDialog.getOKAction().actionPerformed(null));
 
     // Assert
-    Mockito.verify(service).setTargetsSelectedWithDialog(Collections.singleton(new QuickBootTarget(key)));
+    Mockito.verify(service).setTargetsSelectedWithDialog(Collections.singleton(new QuickBootTarget(Keys.PIXEL_4_API_30)));
   }
 
   @Test
@@ -180,7 +178,7 @@ public final class SelectMultipleDevicesDialogTest {
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setType(Device.Type.PHONE)
       .addSnapshot(new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58")))

@@ -67,14 +67,12 @@ public final class SnapshotActionGroupTest {
   @Test
   public void getChildren() {
     // Arrange
-    Key deviceKey = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-
     FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
     Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58");
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(deviceKey)
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setType(Device.Type.PHONE)
       .addSnapshot(new Snapshot(snapshotKey))
@@ -87,9 +85,9 @@ public final class SnapshotActionGroupTest {
 
     // Assert
     Object[] expectedChildren = {
-      new SelectTargetAction(new ColdBootTarget(deviceKey), device, myComboBoxAction),
-      new SelectTargetAction(new QuickBootTarget(deviceKey), device, myComboBoxAction),
-      new SelectTargetAction(new BootWithSnapshotTarget(deviceKey, snapshotKey), device, myComboBoxAction)};
+      new SelectTargetAction(new ColdBootTarget(Keys.PIXEL_4_API_30), device, myComboBoxAction),
+      new SelectTargetAction(new QuickBootTarget(Keys.PIXEL_4_API_30), device, myComboBoxAction),
+      new SelectTargetAction(new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, snapshotKey), device, myComboBoxAction)};
 
     assertArrayEquals(expectedChildren, actualChildren);
   }
@@ -100,7 +98,7 @@ public final class SnapshotActionGroupTest {
     Device device = new VirtualDevice.Builder()
       .setName("Pixel_4_API_30")
       .setLaunchCompatibility(new LaunchCompatibility(State.ERROR, "Missing system image"))
-      .setKey(new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd"))
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setType(Device.Type.PHONE)
       .build();

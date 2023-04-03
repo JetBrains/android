@@ -34,17 +34,15 @@ public final class DeviceAndSnapshotComboBoxTargetTest {
   @Test
   public void getDevices() {
     // Arrange
-    Key key = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-
     Target target = Mockito.mock(Target.class);
-    Mockito.when(target.getDeviceKey()).thenReturn(key);
+    Mockito.when(target.getDeviceKey()).thenReturn(Keys.PIXEL_4_API_30);
 
     Project project = Mockito.mock(Project.class);
     AndroidDevice androidDevice = Mockito.mock(AndroidDevice.class);
 
     VirtualDevice device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(key)
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(androidDevice)
       .build();
 

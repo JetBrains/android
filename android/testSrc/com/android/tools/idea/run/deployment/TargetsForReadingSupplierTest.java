@@ -33,21 +33,20 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class TargetsForReadingSupplierTest {
-  private static final Key DEVICE_KEY = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
   private final Target myTarget;
 
   public TargetsForReadingSupplierTest() {
     FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
     Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
 
-    myTarget = new BootWithSnapshotTarget(DEVICE_KEY, snapshotKey);
+    myTarget = new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, snapshotKey);
   }
 
   @Test
   public void targetsForReadingSupplierDeviceIsntRunningAndRunningDeviceTargetIsntNull() {
     // Arrange
     Collection<Device> devices = Collections.emptyList();
-    RunningDeviceTarget runningDeviceTarget = new RunningDeviceTarget(DEVICE_KEY);
+    RunningDeviceTarget runningDeviceTarget = new RunningDeviceTarget(Keys.PIXEL_4_API_30);
 
     // Act
     Object optionalTarget = new TargetsForReadingSupplier(devices, runningDeviceTarget, null).getDropDownTarget();
@@ -61,7 +60,7 @@ public final class TargetsForReadingSupplierTest {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(DEVICE_KEY)
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -79,7 +78,7 @@ public final class TargetsForReadingSupplierTest {
     // Arrange
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(DEVICE_KEY)
+      .setKey(Keys.PIXEL_4_API_30)
       .setConnectionTime(Instant.parse("2018-11-28T01:15:27Z"))
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
@@ -90,6 +89,6 @@ public final class TargetsForReadingSupplierTest {
     Object optionalTarget = new TargetsForReadingSupplier(devices, null, myTarget).getDropDownTarget();
 
     // Assert
-    assertEquals(Optional.of(new RunningDeviceTarget(DEVICE_KEY)), optionalTarget);
+    assertEquals(Optional.of(new RunningDeviceTarget(Keys.PIXEL_4_API_30)), optionalTarget);
   }
 }

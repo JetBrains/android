@@ -35,16 +35,14 @@ public final class SelectTargetActionTest {
   @Test
   public void update() {
     // Arrange
-    Key deviceKey = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-
     FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
     Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58");
 
-    Target target = new BootWithSnapshotTarget(deviceKey, snapshotKey);
+    Target target = new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, snapshotKey);
 
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
-      .setKey(deviceKey)
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .addSnapshot(new Snapshot(snapshotKey))
       .build();

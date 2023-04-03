@@ -68,7 +68,7 @@ public final class VirtualDevicesTaskTest {
     Object device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
       .setType(Type.PHONE)
-      .setKey(new VirtualDevicePath(path.toString()))
+      .setKey(new VirtualDevicePath(path))
       .setAndroidDevice(myAndroidDevice)
       .setNameKey(new VirtualDeviceName("Pixel_4_API_30"))
       .build();

@@ -43,13 +43,10 @@ public final class DeviceAndSnapshotComboBoxTargetProviderTest {
   @Test
   public void showErrorMessage() {
     // Arrange
-    Key key30 = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_30.avd");
-    Key key29 = new VirtualDevicePath("/home/user/.android/avd/Pixel_4_API_29.avd");
-
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
       .setType(Type.PHONE)
-      .setKey(key30)
+      .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -57,7 +54,7 @@ public final class DeviceAndSnapshotComboBoxTargetProviderTest {
       .setName("Pixel 4 API 29")
       .setType(Type.PHONE)
       .setLaunchCompatibility(new LaunchCompatibility(State.ERROR, "error"))
-      .setKey(key29)
+      .setKey(Keys.PIXEL_4_API_29)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .build();
 
@@ -68,7 +65,7 @@ public final class DeviceAndSnapshotComboBoxTargetProviderTest {
     DialogSupplier errorDialogSupplier = Mockito.mock(DialogSupplier.class);
     Mockito.when(errorDialogSupplier.get(any(Project.class), anyList())).thenReturn(errorDialog);
 
-    Set<Target> targets = new HashSet<>(Arrays.asList(new QuickBootTarget(key29), new QuickBootTarget(key30)));
+    Set<Target> targets = new HashSet<>(Arrays.asList(new QuickBootTarget(Keys.PIXEL_4_API_29), new QuickBootTarget(Keys.PIXEL_4_API_30)));
 
     DeviceAndSnapshotComboBoxAction action = Mockito.mock(DeviceAndSnapshotComboBoxAction.class);
     Mockito.when(action.getSelectedDevices(project)).thenReturn(devices);
