@@ -18,10 +18,13 @@ package com.android.tools.idea.res
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.AndroidManifestPackageNameUtils
 import com.android.projectmodel.ExternalAndroidLibrary
+import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.findAllLibrariesWithResources
 import com.android.tools.idea.findDependenciesWithResources
 import com.android.tools.idea.projectsystem.LightResourceClassService
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_BUILD_TOPIC
 import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_SYNC_TOPIC
+import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.getProjectSystem
@@ -111,6 +114,20 @@ class ProjectLightResourceClassService(private val project: Project) : LightReso
       override fun syncEnded(result: ProjectSystemSyncManager.SyncResult) {
         moduleClassesCache.invalidateAll()
         invokeAndWaitIfNeeded { PsiManager.getInstance(project).dropPsiCaches() }
+      }
+    })
+
+    connection.subscribe(PROJECT_SYSTEM_BUILD_TOPIC, object : ProjectSystemBuildManager.BuildListener {
+      override fun buildCompleted(result: ProjectSystemBuildManager.BuildResult) {
+        if (
+          result.mode != ProjectSystemBuildManager.BuildMode.CLEAN &&
+          result.status == ProjectSystemBuildManager.BuildStatus.SUCCESS
+        ) {
+          // The light R classes might use the actual IDs when available. If the project is successfully compiled,
+          // new IDs might have been generated. This ensures the IDs are invalidated.
+          moduleClassesCache.invalidateAll()
+          invokeAndWaitIfNeeded { PsiManager.getInstance(project).dropPsiCaches() }
+        }
       }
     })
 
