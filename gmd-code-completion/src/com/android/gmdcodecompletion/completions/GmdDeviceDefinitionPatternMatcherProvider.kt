@@ -65,7 +65,7 @@ enum class DeviceType(val interfaceName: String, val availableDeviceProperties: 
     else {
       when (this) {
         FTL -> persistentListOf("managedDevices", "firebaseTestLab")
-        MANAGED_VIRTUAL -> persistentListOf("virtual", "managedDevices", "testOptions", "android")
+        MANAGED_VIRTUAL -> persistentListOf("localDevices", "managedDevices", "testOptions", "android")
       }
     }
   }
