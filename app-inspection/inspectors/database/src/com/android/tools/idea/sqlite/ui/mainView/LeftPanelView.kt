@@ -38,6 +38,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.util.IconLoader
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.DoubleClickListener
+import com.intellij.ui.ExperimentalUI.isNewUI
 import com.intellij.ui.IdeBorderFactory
 import com.intellij.ui.JBColor
 import com.intellij.ui.PopupHandler
@@ -511,7 +512,7 @@ class LeftPanelView(private val mainView: DatabaseInspectorViewImpl) {
         }
       }
 
-      if (hasFocus && icon != null) {
+      if (hasFocus && !isNewUI() && icon != null) {
         icon = ColoredIconGenerator.generateWhiteIcon(icon)
       }
     }

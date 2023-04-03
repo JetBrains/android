@@ -16,6 +16,8 @@
 package com.android.tools.profilers.cpu;
 
 
+import static com.intellij.ui.ExperimentalUI.isNewUI;
+
 import com.android.tools.adtui.TabularLayout;
 import com.android.tools.adtui.chart.statechart.StateChart;
 import com.android.tools.adtui.chart.statechart.StateChartColorProvider;
@@ -99,7 +101,7 @@ public class ThreadCellRenderer extends CpuCellRenderer<CpuThreadsModel.RangedCp
     if (myHoveredIndex == index) {
       // Draw drag icon next to label
       myLabel.setBorder(ProfilerLayout.CPU_THREADS_RIGHT_BORDER);
-      myLabel.setIcon(isSelected ? ColoredIconGenerator.INSTANCE.generateWhiteIcon(reorderIcon) : reorderIcon);
+      myLabel.setIcon(isSelected && !isNewUI() ? ColoredIconGenerator.INSTANCE.generateWhiteIcon(reorderIcon) : reorderIcon);
     }
 
     panel.add(myLabel, new TabularLayout.Constraint(0, 0));

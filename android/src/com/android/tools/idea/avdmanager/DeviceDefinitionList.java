@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.intellij.ui.ExperimentalUI.isNewUI;
+
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.devices.Device;
@@ -615,7 +617,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
           label.setForeground(table.getSelectionForeground());
           label.setOpaque(true);
           if (theIcon != null) {
-            label.setIcon(highlightedPlayStoreIcon);
+            label.setIcon(isNewUI() ? StudioIcons.Avd.DEVICE_PLAY_STORE : highlightedPlayStoreIcon);
           }
         }
         return label;

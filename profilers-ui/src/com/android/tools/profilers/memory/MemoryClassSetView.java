@@ -24,6 +24,7 @@ import static com.android.tools.profilers.memory.SimpleColumnRenderer.makeCondit
 import static com.android.tools.profilers.memory.SimpleColumnRenderer.makeIntColumn;
 import static com.android.tools.profilers.memory.SimpleColumnRenderer.makeSizeColumn;
 import static com.android.tools.profilers.memory.SimpleColumnRenderer.onSubclass;
+import static com.intellij.ui.ExperimentalUI.isNewUI;
 
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.android.tools.adtui.common.ColumnTreeBuilder;
@@ -500,7 +501,7 @@ public final class MemoryClassSetView extends AspectObserver {
         if (myIsLeaked) {
           int width = getWidth();
           int height = getHeight();
-          Icon i = mySelected && isFocused()
+          Icon i = mySelected && isFocused() && !isNewUI()
                    ? ColoredIconGenerator.generateWhiteIcon(StudioIcons.Common.WARNING)
                    : StudioIcons.Common.WARNING;
           int iconWidth = i.getIconWidth();
