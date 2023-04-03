@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.layoutinspector.ui.toolbar
+package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 
 import com.android.sdklib.AndroidVersion
 import com.android.tools.adtui.actions.DropDownAction
@@ -24,7 +24,6 @@ import com.android.tools.idea.appinspection.ide.ui.buildDeviceName
 import com.android.tools.idea.appinspection.inspector.api.process.DeviceDescriptor
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
-import com.android.tools.idea.layoutinspector.ui.SelectDeviceAction
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent

@@ -30,7 +30,8 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.matchToProcessDescriptor
 import com.android.tools.idea.layoutinspector.ui.toolbar.FloatingToolbarProvider
-import com.android.tools.idea.layoutinspector.ui.toolbar.TargetSelectionActionFactory
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_LAYER_SPACING
 import com.android.tools.idea.layoutinspector.ui.toolbar.createLayoutInspectorMainToolbar
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo

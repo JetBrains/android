@@ -72,7 +72,10 @@ import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetectio
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
 import com.android.tools.idea.layoutinspector.resource.data.AppContext
 import com.android.tools.idea.layoutinspector.tree.GotoDeclarationAction
-import com.android.tools.idea.layoutinspector.ui.toolbar.ICON_LEGACY_PHONE
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ICON_LEGACY_PHONE
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_LAYER_SPACING
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.SelectDeviceAction
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.Toggle3dAction
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.layoutinspector.util.FileOpenCaptureRule
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
