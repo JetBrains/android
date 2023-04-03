@@ -16,17 +16,6 @@
 package com.android.tools.idea.dagger
 
 import com.android.tools.analytics.UsageTracker
-import com.android.tools.idea.dagger.concepts.AssistedFactoryMethodDaggerElement
-import com.android.tools.idea.dagger.concepts.AssistedInjectConstructorDaggerElement
-import com.android.tools.idea.dagger.concepts.BindsOptionalOfProviderDaggerElement
-import com.android.tools.idea.dagger.concepts.ComponentDaggerElement
-import com.android.tools.idea.dagger.concepts.ComponentProvisionMethodDaggerElement
-import com.android.tools.idea.dagger.concepts.ConsumerDaggerElement
-import com.android.tools.idea.dagger.concepts.DaggerElement
-import com.android.tools.idea.dagger.concepts.EntryPointMethodDaggerElement
-import com.android.tools.idea.dagger.concepts.ModuleDaggerElement
-import com.android.tools.idea.dagger.concepts.ProviderDaggerElement
-import com.android.tools.idea.dagger.concepts.SubcomponentDaggerElement
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.stats.AnonymizerUtil
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
@@ -161,18 +150,3 @@ internal fun getTypeForMetrics(element: PsiElement): DaggerEditorEvent.ElementTy
     else -> error("Invalid PsiElement for metrics")
   }
 }
-
-internal fun DaggerElement.toMetricsType(): DaggerEditorEvent.ElementType =
-  when (this) {
-    is AssistedInjectConstructorDaggerElement ->
-      DaggerEditorEvent.ElementType.ASSISTED_INJECTED_CONSTRUCTOR
-    is AssistedFactoryMethodDaggerElement -> DaggerEditorEvent.ElementType.ASSISTED_FACTORY_METHOD
-    is BindsOptionalOfProviderDaggerElement -> DaggerEditorEvent.ElementType.PROVIDER
-    is ComponentDaggerElement -> DaggerEditorEvent.ElementType.COMPONENT
-    is ComponentProvisionMethodDaggerElement -> DaggerEditorEvent.ElementType.COMPONENT_METHOD
-    is ConsumerDaggerElement -> DaggerEditorEvent.ElementType.CONSUMER
-    is EntryPointMethodDaggerElement -> DaggerEditorEvent.ElementType.ENTRY_POINT_METHOD
-    is ModuleDaggerElement -> DaggerEditorEvent.ElementType.MODULE
-    is ProviderDaggerElement -> DaggerEditorEvent.ElementType.PROVIDER
-    is SubcomponentDaggerElement -> DaggerEditorEvent.ElementType.SUBCOMPONENT
-  }

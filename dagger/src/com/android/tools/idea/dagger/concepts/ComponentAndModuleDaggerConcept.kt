@@ -24,6 +24,7 @@ import com.android.tools.idea.dagger.index.IndexValue
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexClassWrapper
 import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.android.tools.idea.kotlin.hasAnnotation
+import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiArrayInitializerMemberValue
@@ -254,6 +255,8 @@ internal sealed class ClassDaggerElement : DaggerElement() {
 internal data class ModuleDaggerElement(override val psiElement: PsiElement) :
   ClassDaggerElement() {
 
+  override val metricsElementType = DaggerEditorEvent.ElementType.MODULE
+
   override fun getRelatedAnnotationForRelatedIndexElement(
     relatedType: DaggerElement
   ): Pair<String, String>? =
@@ -374,6 +377,8 @@ internal sealed class ComponentDaggerElementBase : ClassDaggerElement() {
 internal data class ComponentDaggerElement(override val psiElement: PsiElement) :
   ComponentDaggerElementBase() {
 
+  override val metricsElementType = DaggerEditorEvent.ElementType.COMPONENT
+
   override val definingAnnotationName = DaggerAnnotations.COMPONENT
 
   override fun getRelatedAnnotationForRelatedIndexElement(
@@ -395,6 +400,8 @@ internal data class ComponentDaggerElement(override val psiElement: PsiElement) 
 
 internal data class SubcomponentDaggerElement(override val psiElement: PsiElement) :
   ComponentDaggerElementBase() {
+
+  override val metricsElementType = DaggerEditorEvent.ElementType.SUBCOMPONENT
 
   override val definingAnnotationName = DaggerAnnotations.SUBCOMPONENT
 

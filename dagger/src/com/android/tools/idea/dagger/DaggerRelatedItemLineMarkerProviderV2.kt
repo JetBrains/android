@@ -78,7 +78,7 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
       // Since element is either an identifier or the `constructor` keyword, its parent is the
       // potential Dagger element.
       val daggerElement = element.parent.getDaggerElement() ?: return
-      metricsType = daggerElement.toMetricsType()
+      metricsType = daggerElement.metricsElementType
 
       val gotoTargetsSupplier = Suppliers.memoize { daggerElement.getGotoItems() }
       lineMarkerInfo =
@@ -177,8 +177,8 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
     toElement: DaggerElement,
     group: String
   ) : GotoRelatedItem(toElement.psiElement, group) {
-    private val fromElementType = fromElement.toMetricsType()
-    private val toElementType = toElement.toMetricsType()
+    private val fromElementType = fromElement.metricsElementType
+    private val toElementType = toElement.metricsElementType
 
     override fun navigate() {
       element

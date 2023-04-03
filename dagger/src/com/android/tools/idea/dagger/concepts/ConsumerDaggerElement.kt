@@ -19,6 +19,7 @@ import com.android.tools.idea.dagger.getQualifierInfo
 import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.android.tools.idea.dagger.unboxed
 import com.android.tools.idea.kotlin.psiType
+import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
 import com.intellij.psi.PsiParameter
@@ -60,6 +61,8 @@ internal data class ConsumerDaggerElement(
   internal constructor(psiElement: KtProperty) : this(psiElement, psiElement.psiType!!.unboxed)
   internal constructor(psiElement: PsiField) : this(psiElement, psiElement.type.unboxed)
   internal constructor(psiElement: PsiParameter) : this(psiElement, psiElement.type.unboxed)
+
+  override val metricsElementType = DaggerEditorEvent.ElementType.CONSUMER
 
   override val relatedElementGrouping: String = DaggerBundle.message("consumers")
 }

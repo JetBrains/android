@@ -18,6 +18,7 @@ package com.android.tools.idea.dagger.concepts
 import com.android.tools.idea.dagger.getQualifierInfo
 import com.android.tools.idea.dagger.unboxed
 import com.android.tools.idea.kotlin.psiType
+import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiMethod
@@ -74,6 +75,8 @@ internal data class ProviderDaggerElement(
   internal constructor(psiElement: PsiClass) : this(psiElement, psiElement.classToPsiType())
   internal constructor(psiElement: PsiMethod) : this(psiElement, psiElement.getReturnedPsiType())
   internal constructor(psiElement: PsiParameter) : this(psiElement, psiElement.type)
+
+  override val metricsElementType = DaggerEditorEvent.ElementType.PROVIDER
 
   override fun getIndexKeys(): List<String> {
     val project = psiElement.project

@@ -22,6 +22,7 @@ import com.android.tools.idea.dagger.index.IndexValue
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
 import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.android.tools.idea.kotlin.hasAnnotation
+import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
@@ -156,6 +157,8 @@ internal data class ComponentProvisionMethodDaggerElement(
 
   internal constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())
   internal constructor(psiElement: PsiMethod) : this(psiElement, psiElement.getReturnedPsiType())
+
+  override val metricsElementType = DaggerEditorEvent.ElementType.COMPONENT_METHOD
 
   override val relatedElementGrouping: String = DaggerBundle.message("exposed.by.components")
 }

@@ -21,6 +21,7 @@ import com.android.tools.idea.dagger.index.getIndexKeys
 import com.android.tools.idea.dagger.unboxed
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
+import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiField
@@ -46,6 +47,8 @@ typealias DaggerRelatedElement = Pair<DaggerElement, String>
 sealed class DaggerElement {
 
   abstract val psiElement: PsiElement
+
+  abstract val metricsElementType: DaggerEditorEvent.ElementType
 
   /** Looks up related Dagger elements. */
   abstract fun getRelatedDaggerElements(): List<DaggerRelatedElement>

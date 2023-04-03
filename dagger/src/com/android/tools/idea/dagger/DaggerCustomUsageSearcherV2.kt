@@ -67,7 +67,7 @@ class DaggerCustomUsageSearcherV2 : CustomUsageSearcher() {
         }
 
       relatedDaggerUsages.forEach { processor.process(it) }
-      metricsType = if (relatedDaggerUsages.isNotEmpty()) daggerElement.toMetricsType() else null
+      metricsType = if (relatedDaggerUsages.isNotEmpty()) daggerElement.metricsElementType else null
     }
 
     return metricsType?.let { Pair(it, elapsedTimeMillis) }
@@ -88,8 +88,8 @@ class DaggerCustomUsageSearcherV2 : CustomUsageSearcher() {
         .service<DaggerAnalyticsTracker>()
         .trackNavigation(
           DaggerEditorEvent.NavigationMetadata.NavigationContext.CONTEXT_USAGES,
-          fromElement = targetElement.toMetricsType(),
-          toElement = usageElement.toMetricsType()
+          fromElement = targetElement.metricsElementType,
+          toElement = usageElement.metricsElementType
         )
       super.navigate(focus)
     }

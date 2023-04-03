@@ -23,6 +23,7 @@ import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexClassWrapper
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexMethodWrapper
 import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.android.tools.idea.kotlin.hasAnnotation
+import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
@@ -208,6 +209,8 @@ internal data class AssistedFactoryMethodDaggerElement(
 
   internal constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())
   internal constructor(psiElement: PsiMethod) : this(psiElement, psiElement.getReturnedPsiType())
+
+  override val metricsElementType = DaggerEditorEvent.ElementType.ASSISTED_FACTORY_METHOD
 
   override fun getRelatedDaggerElements(): List<DaggerRelatedElement> {
     // The assisted inject constructor is always indexed with a fully-qualified name, so that's all
