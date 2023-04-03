@@ -51,14 +51,12 @@ import com.android.tools.idea.layoutinspector.LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.LayoutInspectorRule
-import com.android.tools.idea.layoutinspector.LegacyClientProvider
 import com.android.tools.idea.layoutinspector.MODERN_DEVICE
 import com.android.tools.idea.layoutinspector.OLDER_LEGACY_DEVICE
 import com.android.tools.idea.layoutinspector.createProcess
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow
 import com.android.tools.idea.layoutinspector.model.InspectorModel
-import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.model.ROOT
 import com.android.tools.idea.layoutinspector.model.ROOT2
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
@@ -90,14 +88,11 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.keymap.impl.IdeKeyEventDispatcher
 import com.intellij.openapi.util.SystemInfo
@@ -111,7 +106,8 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import junit.framework.TestCase
-import org.jetbrains.android.util.AndroidBundle
+import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -241,226 +237,6 @@ class DeviceViewPanelWithFullInspectorTest {
         else -> panel.getData(dataId)
       }
     }
-  }
-
-  @Test
-  fun testLiveControlEnabledAndSetByDefaultWhenDisconnected() {
-    val toolbar = getToolbar(
-      DeviceViewPanel(
-        inspectorRule.inspector,
-        projectRule.fixture.testRootDisposable)
-    )
-
-    val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
-    assertThat(toggle.isEnabled).isTrue()
-    assertThat(toggle.isSelected).isTrue()
-    assertThat(getPresentation(toggle).description).isEqualTo(
-      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
-      "impact runtime performance.")
-  }
-
-  @Test
-  fun testLiveControlEnabledAndNotSetInSnapshotModeWhenDisconnected() {
-    val clientSettings = InspectorClientSettings(projectRule.project)
-    clientSettings.isCapturingModeOn = false
-
-    val toolbar = getToolbar(
-      DeviceViewPanel(
-        inspectorRule.inspector,
-        projectRule.fixture.testRootDisposable))
-
-    val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
-    assertThat(toggle.isEnabled).isTrue()
-    assertThat(toggle.isSelected).isFalse()
-    assertThat(getPresentation(toggle).description).isEqualTo(
-      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
-      "impact runtime performance.")
-  }
-
-  @Test
-  fun testLiveControlEnabledAndSetByDefaultWhenConnected() {
-    installCommandHandlers()
-    latch = CountDownLatch(1)
-    connect(MODERN_PROCESS)
-    assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
-
-    val toolbar = getToolbar(
-      DeviceViewPanel(
-        inspectorRule.inspector,
-        projectRule.fixture.testRootDisposable
-      )
-    )
-
-    val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
-    assertThat(toggle.isEnabled).isTrue()
-    assertThat(toggle.isSelected).isTrue()
-    assertThat(getPresentation(toggle).description).isEqualTo(
-      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
-      "impact runtime performance.")
-    assertThat(commands).hasSize(1)
-    assertThat(commands[0].hasStartFetchCommand()).isTrue()
-  }
-
-  @Test
-  fun testLiveControlEnabledAndNotSetInSnapshotModeWhenConnected() {
-    val clientSettings = InspectorClientSettings(projectRule.project)
-    clientSettings.isCapturingModeOn = false
-
-    installCommandHandlers()
-    latch = CountDownLatch(1)
-    connect(MODERN_PROCESS)
-    assertThat(latch?.await(1L, TimeUnit.SECONDS)).isTrue()
-    val toolbar = getToolbar(
-      DeviceViewPanel(
-        inspectorRule.inspector,
-        projectRule.fixture.testRootDisposable
-      )
-    )
-
-    val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
-    assertThat(toggle.isEnabled).isTrue()
-    assertThat(toggle.isSelected).isFalse()
-    assertThat(getPresentation(toggle).description).isEqualTo(
-      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
-      "impact runtime performance.")
-    assertThat(commands).hasSize(1)
-    assertThat(commands[0].startFetchCommand.continuous).isFalse()
-  }
-
-  @Test
-  fun testTurnOnSnapshotModeWhenDisconnected() {
-    installCommandHandlers()
-
-    val clientSettings = InspectorClientSettings(projectRule.project)
-    clientSettings.isCapturingModeOn = true
-
-    val stats = inspectorRule.inspector.currentClient.stats
-    stats.currentModeIsLive = true
-    val toolbar = getToolbar(
-      DeviceViewPanel(
-        inspectorRule.inspector,
-        projectRule.fixture.testRootDisposable
-      )
-    )
-
-    val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
-    val fakeUi = FakeUi(toggle)
-    fakeUi.mouse.click(10, 10)
-    assertThat(toggle.isEnabled).isTrue()
-    assertThat(toggle.isSelected).isFalse()
-    assertThat(getPresentation(toggle).description).isEqualTo(
-      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
-      "impact runtime performance.")
-
-    assertThat(commands).isEmpty()
-    assertThat(clientSettings.isCapturingModeOn).isFalse()
-    assertThat(stats.currentModeIsLive).isTrue() // unchanged
-  }
-
-  @Test
-  fun testTurnOnLiveModeWhenDisconnected() {
-    installCommandHandlers()
-    val clientSettings = InspectorClientSettings(projectRule.project)
-    clientSettings.isCapturingModeOn = false
-
-    val stats = inspectorRule.inspector.currentClient.stats
-    stats.currentModeIsLive = false
-    val toolbar = getToolbar(
-      DeviceViewPanel(
-        inspectorRule.inspector,
-        projectRule.fixture.testRootDisposable
-      )
-    )
-
-    val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
-    toolbar.size = Dimension(800, 200)
-    toolbar.doLayout()
-    val fakeUi = FakeUi(toggle)
-    fakeUi.mouse.click(10, 10)
-    assertThat(toggle.isEnabled).isTrue()
-    assertThat(toggle.isSelected).isTrue()
-    assertThat(getPresentation(toggle).description).isEqualTo(
-      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
-      "impact runtime performance.")
-
-    assertThat(commands).isEmpty()
-    assertThat(clientSettings.isCapturingModeOn).isTrue()
-    assertThat(stats.currentModeIsLive).isFalse() // unchanged
-  }
-
-  @Test
-  fun testTurnOnSnapshotMode() {
-    latch = CountDownLatch(1)
-    installCommandHandlers()
-    connect(MODERN_PROCESS)
-    assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
-    val stats = inspectorRule.inspector.currentClient.stats
-    stats.currentModeIsLive = true
-    latch = CountDownLatch(2)
-    val toolbar = getToolbar(
-      DeviceViewPanel(
-        inspectorRule.inspector,
-        projectRule.fixture.testRootDisposable
-      )
-    )
-    val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
-
-    val fakeUi = FakeUi(toggle)
-    fakeUi.mouse.click(10, 10)
-    assertThat(toggle.isEnabled).isTrue()
-    assertThat(toggle.isSelected).isFalse()
-    assertThat(getPresentation(toggle).description).isEqualTo(
-      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
-      "impact runtime performance.")
-
-    assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
-    assertThat(commands).hasSize(3)
-    assertThat(commands[0].hasStartFetchCommand()).isTrue()
-    // stop and update screenshot type can come in either order
-    assertThat(commands.find { it.hasStopFetchCommand() }).isNotNull()
-    assertThat(commands.find { it.hasUpdateScreenshotTypeCommand() }).isNotNull()
-    assertThat(stats.currentModeIsLive).isFalse()
-  }
-
-  @Test
-  fun testTurnOnLiveMode() {
-    latch = CountDownLatch(1)
-
-    installCommandHandlers()
-
-    val clientSettings = InspectorClientSettings(projectRule.project)
-    clientSettings.isCapturingModeOn = false
-
-    connect(MODERN_PROCESS)
-    assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
-    val stats = inspectorRule.inspector.currentClient.stats
-    stats.currentModeIsLive = false
-
-    latch = CountDownLatch(1)
-    val toolbar = getToolbar(
-      DeviceViewPanel(
-        inspectorRule.inspector,
-        projectRule.fixture.testRootDisposable
-      )
-    )
-    val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
-    toolbar.size = Dimension(800, 200)
-    toolbar.doLayout()
-
-    val fakeUi = FakeUi(toggle)
-    fakeUi.mouse.click(10, 10)
-    assertThat(toggle.isEnabled).isTrue()
-    assertThat(toggle.isSelected).isTrue()
-    assertThat(getPresentation(toggle).description).isEqualTo(
-      "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might" +
-      " impact runtime performance.")
-
-    assertThat(latch?.await(1, TimeUnit.SECONDS)).isTrue()
-    assertThat(commands).hasSize(2)
-    assertThat(commands[0].startFetchCommand.continuous).isFalse()
-    assertThat(commands[1].startFetchCommand.continuous).isTrue()
-
-    assertThat(stats.currentModeIsLive).isTrue()
   }
 
   @Test
@@ -991,43 +767,6 @@ class DeviceViewPanelTest {
   }
 
   @Test
-  fun testFocusableActionButtons() {
-    val model = model { view(1, 0, 0, 1200, 1600, qualifiedName = "RelativeLayout") }
-    val processModel = ProcessesModel(TestProcessDiscovery())
-    val deviceModel = DeviceModel(disposableRule.disposable, processModel)
-    val coroutineScope = AndroidCoroutineScope(disposableRule.disposable)
-    val launcher = InspectorClientLauncher(
-      processModel,
-      listOf(),
-      projectRule.project,
-      coroutineScope,
-      disposableRule.disposable,
-      executor = MoreExecutors.directExecutor()
-    )
-    val clientSettings = InspectorClientSettings(projectRule.project)
-    val treeSettings = FakeTreeSettings()
-    val inspector = LayoutInspector(
-      coroutineScope,
-      processModel,
-      deviceModel,
-      null,
-      clientSettings,
-      launcher,
-      model,
-      treeSettings,
-      MoreExecutors.directExecutor()
-    )
-    treeSettings.hideSystemNodes = false
-    val panel = DeviceViewPanel(
-      inspector,
-      disposableRule.disposable,
-    )
-    val toolbar = getToolbar(panel)
-
-    toolbar.components.forEach { assertThat(it.isFocusable).isTrue() }
-  }
-
-  @Test
   fun testDragWithSpace() {
     testPan({ ui, _ -> ui.keyboard.press(FakeKeyboard.Key.SPACE) },
             { ui, _ -> ui.keyboard.release(FakeKeyboard.Key.SPACE) })
@@ -1174,54 +913,6 @@ class DeviceViewPanelTest {
       processes?.selectedProcess = null
       assertThat(panel.isPanning).isFalse()
     }
-  }
-}
-
-@RunsInEdt
-class DeviceViewPanelLegacyClientOnLegacyDeviceTest {
-  @get:Rule
-  val edtRule = EdtRule()
-
-  private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
-  private val inspectorRule = LayoutInspectorRule(listOf(LegacyClientProvider({ projectRule.testRootDisposable } )), projectRule)
-
-  @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(inspectorRule)!!
-
-  @Test
-  fun testLiveControlDisabledWithProcessFromLegacyDevice() {
-    inspectorRule.attachDevice(LEGACY_DEVICE)
-    inspectorRule.processes.selectedProcess = LEGACY_DEVICE.createProcess()
-    waitForCondition(5, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
-
-    val toolbar = getToolbar(
-      DeviceViewPanel(
-        inspectorRule.inspector,
-        projectRule.fixture.testRootDisposable,
-      )
-    )
-
-    val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
-    assertThat(toggle.isEnabled).isFalse()
-    assertThat(getPresentation(toggle).description).isEqualTo("Live updates not available for devices below API 29")
-  }
-
-  @Test
-  fun testLiveControlDisabledWithProcessFromModernDevice() {
-    inspectorRule.launchSynchronously = false
-    inspectorRule.processes.selectedProcess = MODERN_PROCESS
-    waitForCondition(5, TimeUnit.SECONDS) { inspectorRule.inspectorClient.isConnected }
-
-    val toolbar = getToolbar(
-      DeviceViewPanel(
-        inspectorRule.inspector,
-        projectRule.fixture.testRootDisposable,
-      )
-    )
-
-    val toggle = toolbar.components.find { it is ActionButton && it.action is DeviceViewPanel.PauseLayoutInspectorAction } as ActionButton
-    assertThat(toggle.isEnabled).isFalse()
-    assertThat(getPresentation(toggle).description).isEqualTo(AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY))
   }
 }
 
@@ -1479,33 +1170,6 @@ class DeviceViewPanelWithNoClientsTest {
     assertThat(deviceViewContentPanel.showProcessNotDebuggableText).isFalse()
     assertThat(deviceViewContentPanel.showNavigateToDebuggableProcess).isFalse()
   }
-
-  @Test
-  fun testDeviceSelectionToolbarIsImportant() {
-    val toolbar = getToolbar(
-      DeviceViewPanel(
-        inspectorRule.inspector,
-        projectRule.fixture.testRootDisposable
-      )
-    )
-    val isImportant = toolbar.getClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY) as? Boolean ?: false
-    assertThat(isImportant).isTrue()
-  }
-}
-
-private fun getToolbar(panel: DeviceViewPanel): JComponent =
-  (panel.flatten(false).find { it.name == DEVICE_VIEW_ACTION_TOOLBAR_NAME } as JComponent).run {
-    size = Dimension(800, 200)
-    doLayout()
-    return this
-  }
-
-private fun getPresentation(button: ActionButton): Presentation {
-  val presentation = Presentation()
-  val event = AnActionEvent(null, DataManager.getInstance().getDataContext(button), "DynamicLayoutInspectorLeft", presentation,
-                            ActionManager.getInstance(), 0)
-  button.action.update(event)
-  return presentation
 }
 
 private fun Common.Stream.createFakeProcess(name: String? = null, pid: Int = 0): ProcessDescriptor {

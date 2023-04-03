@@ -19,8 +19,8 @@ import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_TOOL_WINDOW_ID
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.tree.COMPONENT_TREE_NAME
-import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_ACTION_TOOLBAR_NAME
 import com.android.tools.idea.layoutinspector.ui.LayerSpacingSliderAction
+import com.android.tools.idea.layoutinspector.ui.toolbar.LAYOUT_INSPECTOR_MAIN_TOOLBAR
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentTreeFixture
@@ -175,6 +175,6 @@ class LayoutInspectorFixture(
 
   private val toolbar: JComponent by lazy(LazyThreadSafetyMode.NONE) {
     val content = getContent("")
-    GuiTests.waitUntilFound(myRobot, content!!.component, Matchers.byName(JComponent::class.java, DEVICE_VIEW_ACTION_TOOLBAR_NAME))
+    GuiTests.waitUntilFound(myRobot, content!!.component, Matchers.byName(JComponent::class.java, LAYOUT_INSPECTOR_MAIN_TOOLBAR))
   }
 }

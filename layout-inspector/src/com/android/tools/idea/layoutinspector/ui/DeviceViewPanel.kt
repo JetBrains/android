@@ -23,46 +23,27 @@ import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.adtui.common.AdtPrimaryPanel
 import com.android.tools.adtui.common.AdtUiCursorType
 import com.android.tools.adtui.common.AdtUiCursorsProvider
-import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.appinspection.api.process.ProcessesModel
 import com.android.tools.idea.concurrency.AndroidExecutors
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
-import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
-import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.matchToProcessDescriptor
-import com.android.tools.idea.layoutinspector.snapshots.SnapshotAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.FloatingToolbarProvider
 import com.android.tools.idea.layoutinspector.ui.toolbar.TargetSelectionActionFactory
+import com.android.tools.idea.layoutinspector.ui.toolbar.createLayoutInspectorMainToolbar
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
-import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.actionSystem.Separator
-import com.intellij.openapi.actionSystem.ToggleAction
-import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider
-import com.intellij.openapi.actionSystem.ex.TooltipLinkProvider
 import com.intellij.openapi.actionSystem.impl.ActionButton
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.components.JBLoadingPanel
 import com.intellij.ui.components.JBLoadingPanelListener
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
-import icons.StudioIcons.LayoutInspector.LIVE_UPDATES
-import kotlinx.coroutines.launch
-import org.jetbrains.android.util.AndroidBundle
 import org.jetbrains.annotations.TestOnly
 import java.awt.BorderLayout
 import java.awt.Container
@@ -90,13 +71,10 @@ private const val MIN_ZOOM = 10
 
 private const val TOOLBAR_INSET = 14
 
-@TestOnly
-const val DEVICE_VIEW_ACTION_TOOLBAR_NAME = "DeviceViewPanel.ActionToolbar"
-
 const val PERFORMANCE_WARNING_3D = "performance.warning.3d"
 const val PERFORMANCE_WARNING_HIDDEN = "performance.warning.hidden"
 
-val TOGGLE_3D_ACTION_BUTTON_KEY = DataKey.create<ActionButton?>("$DEVICE_VIEW_ACTION_TOOLBAR_NAME.FloatingToolbar")
+val TOGGLE_3D_ACTION_BUTTON_KEY = DataKey.create<ActionButton?>("Toggle3DActionButtonKey")
 
 /**
  * Panel that shows the device screen in the layout inspector.
@@ -204,7 +182,7 @@ class DeviceViewPanel(
   private val viewportLayoutManager = MyViewportLayoutManager(scrollPane.viewport, { contentPanel.renderModel.layerSpacing },
                                                               { contentPanel.rootLocation })
 
-  private val actionToolbar: ActionToolbar = createToolbar(targetSelectedAction?.dropDownAction)
+  private val actionToolbar = createLayoutInspectorMainToolbar(this, layoutInspector, targetSelectedAction?.dropDownAction)
 
   private var isLoading = false
   private var isCurrentForegroundProcessDebuggable = false
@@ -491,84 +469,14 @@ class DeviceViewPanel(
     get() = scrollPane.viewport.viewPosition
     set(_) {}
 
-  private fun createToolbar(selectProcessAction: AnAction?): ActionToolbar {
-    val leftGroup = DefaultActionGroup()
-    selectProcessAction?.let { leftGroup.add(it) }
-    leftGroup.add(Separator.getInstance())
-    leftGroup.add(ViewMenuAction)
-    leftGroup.add(ToggleOverlayAction)
-    if (!layoutInspector.isSnapshot) {
-      leftGroup.add(SnapshotAction)
-    }
-    leftGroup.add(AlphaSliderAction)
-    if (!layoutInspector.isSnapshot) {
-      leftGroup.add(Separator.getInstance())
-      leftGroup.add(PauseLayoutInspectorAction(layoutInspector.inspectorClientSettings))
-      leftGroup.add(RefreshAction)
-    }
-    leftGroup.add(Separator.getInstance())
-    leftGroup.add(LayerSpacingSliderAction)
-    val actionToolbar = ActionManager.getInstance().createActionToolbar("DynamicLayoutInspectorLeft", leftGroup, true)
-    ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
-    actionToolbar.component.name = DEVICE_VIEW_ACTION_TOOLBAR_NAME
-    actionToolbar.component.putClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY, true)
-    actionToolbar.targetComponent = this
-    actionToolbar.updateActionsImmediately()
-    return actionToolbar
-  }
-
   private fun createToolbarPanel(actionToolbar: ActionToolbar): JComponent {
     val panel = AdtPrimaryPanel(BorderLayout())
-    panel.border = BorderFactory.createMatteBorder(0, 0, 1, 0, com.android.tools.adtui.common.border)!!
+    panel.border = BorderFactory.createMatteBorder(0, 0, 1, 0, com.android.tools.adtui.common.border)
 
     val leftPanel = AdtPrimaryPanel(BorderLayout())
     leftPanel.add(actionToolbar.component, BorderLayout.CENTER)
     panel.add(leftPanel, BorderLayout.CENTER)
     return panel
-  }
-
-  inner class PauseLayoutInspectorAction(
-    private val inspectorClientSettings: InspectorClientSettings
-  ) : ToggleAction({ "Live Updates" }, LIVE_UPDATES), TooltipDescriptionProvider, TooltipLinkProvider {
-
-    override fun update(event: AnActionEvent) {
-      val currentClient = client(event)
-      val isLiveInspector = !currentClient.isConnected || currentClient.capabilities.contains(Capability.SUPPORTS_CONTINUOUS_MODE)
-      val isLowerThenApi29 = currentClient.isConnected && currentClient.process.device.apiLevel < 29
-      event.presentation.isEnabled = isLiveInspector || !currentClient.isConnected
-      super.update(event)
-      event.presentation.description = when {
-        isLowerThenApi29 -> "Live updates not available for devices below API 29"
-        !isLiveInspector -> AndroidBundle.message(REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY)
-        else -> "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device " +
-                "resources and might impact runtime performance."
-      }
-    }
-
-    @Suppress("DialogTitleCapitalization")
-    override fun getTooltipLink(owner: JComponent?) = TooltipLinkProvider.TooltipLink("Learn More") {
-      BrowserUtil.browse("https://d.android.com/r/studio-ui/layout-inspector-live-updates")
-    }
-
-    // When disconnected: display the default value after the inspector is connected to the device.
-    override fun isSelected(event: AnActionEvent): Boolean {
-      return inspectorClientSettings.isCapturingModeOn
-    }
-
-    override fun setSelected(event: AnActionEvent, state: Boolean) {
-      event.getData(DEVICE_VIEW_MODEL_KEY)?.fireModified()
-      val currentClient = client(event)
-      if (currentClient.capabilities.contains(Capability.SUPPORTS_CONTINUOUS_MODE)) {
-        when (state) {
-          true -> layoutInspector.coroutineScope.launch { currentClient.startFetching() }
-          false -> layoutInspector.coroutineScope.launch { currentClient.stopFetching() }
-        }
-      }
-      inspectorClientSettings.isCapturingModeOn = state
-    }
-
-    private fun client(event: AnActionEvent): InspectorClient =
-      LayoutInspector.get(event)?.currentClient ?: DisconnectedClient
   }
 }
 
