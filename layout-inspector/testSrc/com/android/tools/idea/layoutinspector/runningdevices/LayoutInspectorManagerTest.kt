@@ -29,6 +29,7 @@ import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
@@ -235,12 +236,26 @@ class LayoutInspectorManagerTest {
   private fun assertHasWorkbench(tabInfo: TabInfo) {
     assertThat(tabInfo.content.parents().filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(1)
     assertThat(tabInfo.container.components.filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(1)
+
+    val toolbars = tabInfo.container
+      .children()
+      .filterIsInstance<ActionToolbar>()
+      .filter { it.component.name == "LayoutInspector.MainToolbar" }
+
+    assertThat(toolbars).hasSize(1)
   }
 
   private fun assertDoesNotHaveWorkbench(tabInfo: TabInfo) {
     assertThat(tabInfo.content.parents().filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(0)
     assertThat(tabInfo.container.components.filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(0)
     assertThat(tabInfo.content.parent).isEqualTo(tabInfo.container)
+
+    val toolbars = tabInfo.container
+      .children()
+      .filterIsInstance<ActionToolbar>()
+      .filter { it.component.name == "LayoutInspector.MainToolbar" }
+
+    assertThat(toolbars).hasSize(0)
   }
 
   private fun Component.parents(): List<Container> {
@@ -251,5 +266,16 @@ class LayoutInspectorManagerTest {
       component = component.parent
     }
     return parents
+  }
+
+  private fun Container.children(): List<Component> {
+    val children = mutableListOf<Component>()
+    for (component in components) {
+      children.add(component)
+      if (component is Container) {
+        children.addAll(component.children())
+      }
+    }
+    return children
   }
 }

@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
+import com.android.tools.idea.layoutinspector.ui.toolbar.createLayoutInspectorMainToolbar
 import com.android.tools.idea.streaming.AbstractDisplayView
 import com.android.tools.idea.streaming.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
@@ -33,6 +34,8 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.content.Content
+import com.intellij.util.ui.components.BorderLayoutPanel
+import java.awt.BorderLayout
 import java.awt.Container
 import javax.swing.JComponent
 
@@ -238,7 +241,13 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
 
     fun enableLayoutInspector() {
       wrapLogic.wrapComponent { centerPanel ->
-        createLayoutInspectorWorkbench(project, layoutInspector, centerPanel)
+        val mainPanel = BorderLayoutPanel()
+
+        // TODO(b/26515032) add optional process picker for when auto-connect fails
+        val toolbar = createLayoutInspectorMainToolbar(mainPanel, layoutInspector, null)
+        mainPanel.add(toolbar.component, BorderLayout.NORTH)
+        mainPanel.add(centerPanel, BorderLayout.CENTER)
+        createLayoutInspectorWorkbench(project, layoutInspector, mainPanel)
       }
       displayViewManager.startRendering()
     }
