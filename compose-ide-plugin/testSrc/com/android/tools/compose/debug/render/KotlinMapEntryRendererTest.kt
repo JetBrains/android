@@ -16,10 +16,10 @@
 package com.android.tools.compose.debug.render
 
 import com.android.testutils.MockitoKt
-import com.android.tools.compose.debug.utils.DebuggerRule
 import com.android.tools.compose.debug.utils.MockClassObjectReference
 import com.android.tools.compose.debug.utils.MockStringReference
 import com.android.tools.compose.debug.utils.MockValueDescriptor
+import com.android.tools.compose.debug.utils.invokeOnDebuggerManagerThread
 import com.android.tools.compose.debug.utils.mockDebugProcess
 import com.android.tools.compose.debug.utils.mockEvaluationContext
 import com.android.tools.idea.flags.StudioFlags
@@ -34,14 +34,10 @@ import com.sun.jdi.ReferenceType
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 
 class KotlinMapEntryRendererTest {
-  private val projectRule = AndroidProjectRule.inMemory()
-  private val debuggerRule = DebuggerRule(projectRule)
-
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule).around(debuggerRule)
+  val projectRule = AndroidProjectRule.inMemory()
 
   private val project
     get() = projectRule.project
@@ -74,7 +70,7 @@ class KotlinMapEntryRendererTest {
       .classesByName("java.util.Map\$Entry")
       .first()
 
-    debuggerRule.invokeOnDebuggerManagerThread {
+    debugProcess.invokeOnDebuggerManagerThread {
       // 1. check `Kotlin MapEntry` is the first selected renderer by default.
       val renderer = NodeRendererSettings.getInstance().getAllRenderers(projectRule.project)
         .filter { it.isEnabled }
