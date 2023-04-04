@@ -242,6 +242,52 @@ class ComponentAndModuleDaggerConceptTest {
   }
 
   @Test
+  fun indexer_componentOnEnum_kotlin() {
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+        package com.example
+
+        import dagger.Component
+
+        @Component
+        enum class NotAComponent {
+          @Component
+          ONE
+        }
+        """
+          .trimIndent()
+      ) as KtFile
+
+    assertThat(ComponentAndModuleDaggerConcept.indexers.runIndexerOn(psiFile)).isEmpty()
+  }
+
+  @Test
+  fun indexer_componentOnEnum_java() {
+    val psiFile =
+      myFixture.configureByText(
+        JavaFileType.INSTANCE,
+        // language=java
+        """
+        package com.example;
+
+        import dagger.Component;
+
+        @Component
+        enum NotAComponent {
+          @Component
+          ONE
+        }
+        """
+          .trimIndent()
+      ) as PsiJavaFile
+
+    assertThat(ComponentAndModuleDaggerConcept.indexers.runIndexerOn(psiFile)).isEmpty()
+  }
+
+  @Test
   fun indexer_subcomponent() {
     val psiFile =
       myFixture.configureByText(
@@ -677,6 +723,42 @@ class ComponentAndModuleDaggerConceptTest {
   }
 
   @Test
+  fun daggerElementIdentifiers_kotlin_enums() {
+    addDaggerAndHiltClasses(myFixture)
+
+    myFixture.configureByText(
+      KotlinFileType.INSTANCE,
+      // language=kotlin
+      """
+      package com.example
+
+      import dagger.Component
+
+      @Component
+      enum class NotAComponent {
+        @Component
+        ONE
+      }
+      """
+        .trimIndent()
+    )
+
+    assertThat(
+        ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
+          myFixture.findParentElement<KtClassOrObject>("NotA|Component")
+        )
+      )
+      .isNull()
+
+    assertThat(
+        ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
+          myFixture.findParentElement<KtClassOrObject>("ON|E")
+        )
+      )
+      .isNull()
+  }
+
+  @Test
   fun daggerElementIdentifiers_java() {
     addDaggerAndHiltClasses(myFixture)
 
@@ -719,6 +801,42 @@ class ComponentAndModuleDaggerConceptTest {
         myFixture.findParentElement<PsiClass>("CoffeeShop|Module")
       )
     assertThat(moduleDaggerElement).isInstanceOf(ModuleDaggerElement::class.java)
+  }
+
+  @Test
+  fun daggerElementIdentifiers_java_enums() {
+    addDaggerAndHiltClasses(myFixture)
+
+    myFixture.configureByText(
+      JavaFileType.INSTANCE,
+      // language=java
+      """
+      package com.example;
+
+      import dagger.Component;
+
+      @Component
+      enum NotAComponent {
+        @Component
+        ONE
+      }
+      """
+        .trimIndent()
+    )
+
+    assertThat(
+        ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
+          myFixture.findParentElement<PsiClass>("NotA|Component")
+        )
+      )
+      .isNull()
+
+    assertThat(
+        ComponentAndModuleDaggerConcept.daggerElementIdentifiers.getDaggerElement(
+          myFixture.findParentElement<PsiClass>("ON|E")
+        )
+      )
+      .isNull()
   }
 
   @Test

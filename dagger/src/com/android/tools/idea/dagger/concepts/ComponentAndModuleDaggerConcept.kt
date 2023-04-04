@@ -41,7 +41,9 @@ import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.core.util.readString
 import org.jetbrains.kotlin.idea.core.util.writeString
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtEnumEntry
 
 /**
  * Represents a Component, Subcomponent, or Module in Dagger.
@@ -164,6 +166,8 @@ internal data class ClassIndexValue(
   companion object {
     private fun identify(psiElement: KtClassOrObject): DaggerElement? =
       when {
+        psiElement is KtEnumEntry -> null
+        (psiElement as? KtClass)?.isEnum() == true -> null
         psiElement.hasAnnotation(DaggerAnnotations.COMPONENT) -> ComponentDaggerElement(psiElement)
         psiElement.hasAnnotation(DaggerAnnotations.SUBCOMPONENT) ->
           SubcomponentDaggerElement(psiElement)
@@ -173,6 +177,7 @@ internal data class ClassIndexValue(
 
     private fun identify(psiElement: PsiClass): DaggerElement? =
       when {
+        psiElement.isEnum -> null
         psiElement.hasAnnotation(DaggerAnnotations.COMPONENT) -> ComponentDaggerElement(psiElement)
         psiElement.hasAnnotation(DaggerAnnotations.SUBCOMPONENT) ->
           SubcomponentDaggerElement(psiElement)
