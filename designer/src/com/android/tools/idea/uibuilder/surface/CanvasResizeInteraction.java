@@ -62,6 +62,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.swing.JComponent;
 import org.intellij.lang.annotations.JdkConstants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -354,22 +355,20 @@ public class CanvasResizeInteraction extends Interaction {
 
   private static class DeviceLayer extends Layer {
     private final String myName;
-    @NotNull private final NlDesignSurface myDesignSurface;
     @NotNull private final ScreenView myScreenView;
     @NotNull private final Configuration myConfiguration;
     private final int myNameWidth;
     private final int myBigDimension;
     private final int mySmallDimension;
 
-    public DeviceLayer(@NotNull NlDesignSurface designSurface, @NotNull ScreenView screenView, @NotNull Configuration configuration,
+    public DeviceLayer(@NotNull JComponent designSurface, @NotNull ScreenView screenView, @NotNull Configuration configuration,
                        int pxWidth, int pxHeight, @NotNull String name) {
-      myDesignSurface = designSurface;
       myScreenView = screenView;
       myConfiguration = configuration;
       myBigDimension = Math.max(pxWidth, pxHeight);
       mySmallDimension = Math.min(pxWidth, pxHeight);
       myName = name;
-      FontMetrics fontMetrics = myDesignSurface.getFontMetrics(myDesignSurface.getFont());
+      FontMetrics fontMetrics = designSurface.getFontMetrics(designSurface.getFont());
       myNameWidth = (int)fontMetrics.getStringBounds(myName, null).getWidth();
     }
 
