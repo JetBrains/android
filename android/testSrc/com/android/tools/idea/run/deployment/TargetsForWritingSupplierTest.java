@@ -17,28 +17,18 @@ package com.android.tools.idea.run.deployment;
 
 import static org.junit.Assert.assertEquals;
 
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
-import java.nio.file.FileSystem;
-import java.nio.file.Path;
 import java.util.Optional;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
 public final class TargetsForWritingSupplierTest {
-  private final @NotNull FileSystem myFileSystem = Jimfs.newFileSystem(Configuration.unix());
-
   @Test
   public void targetsForWritingSupplierNewDeviceIsntRunningDevicesAreSame() {
     // Arrange
-    Path oldSnapshotKey = myFileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
-    Target oldTarget = new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, oldSnapshotKey);
-
-    Path newSnapshotKey = myFileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
-    Target newTarget = new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, newSnapshotKey);
+    Target oldTarget = new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, Keys.PIXEL_4_API_30_SNAPSHOT_2);
+    Target newTarget = new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, Keys.PIXEL_4_API_30_SNAPSHOT_2);
 
     TargetsForWritingSupplier supplier = new TargetsForWritingSupplier(oldTarget, newTarget);
 
@@ -54,11 +44,8 @@ public final class TargetsForWritingSupplierTest {
   @Test
   public void targetsForWritingSupplierNewDeviceIsntRunningDevicesAreDifferent() {
     // Arrange
-    Path oldSnapshotKey = myFileSystem.getPath("/home/user/.android/avd/Pixel_3_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
-    Target oldTarget = new BootWithSnapshotTarget(Keys.PIXEL_3_API_30, oldSnapshotKey);
-
-    Path newSnapshotKey = myFileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
-    Target newTarget = new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, newSnapshotKey);
+    Target oldTarget = new BootWithSnapshotTarget(Keys.PIXEL_3_API_30, Keys.PIXEL_3_API_30_SNAPSHOT_1);
+    Target newTarget = new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, Keys.PIXEL_4_API_30_SNAPSHOT_2);
 
     TargetsForWritingSupplier supplier = new TargetsForWritingSupplier(oldTarget, newTarget);
 
@@ -74,9 +61,7 @@ public final class TargetsForWritingSupplierTest {
   @Test
   public void targetsForWritingSupplierNewDeviceIsRunningDevicesAreDifferent() {
     // Arrange
-    Path oldSnapshotKey = myFileSystem.getPath("/home/user/.android/avd/Pixel_3_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
-    Target oldTarget = new BootWithSnapshotTarget(Keys.PIXEL_3_API_30, oldSnapshotKey);
-
+    Target oldTarget = new BootWithSnapshotTarget(Keys.PIXEL_3_API_30, Keys.PIXEL_3_API_30_SNAPSHOT_1);
     Target newTarget = new RunningDeviceTarget(Keys.PIXEL_4_API_30);
 
     TargetsForWritingSupplier supplier = new TargetsForWritingSupplier(oldTarget, newTarget);
@@ -93,9 +78,7 @@ public final class TargetsForWritingSupplierTest {
   @Test
   public void targetsForWritingSupplierNewDeviceIsRunningDevicesAreSame() {
     // Arrange
-    Path oldSnapshotKey = myFileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
-    Target oldTarget = new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, oldSnapshotKey);
-
+    Target oldTarget = new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, Keys.PIXEL_4_API_30_SNAPSHOT_2);
     Target newTarget = new RunningDeviceTarget(Keys.PIXEL_4_API_30);
 
     TargetsForWritingSupplier supplier = new TargetsForWritingSupplier(oldTarget, newTarget);

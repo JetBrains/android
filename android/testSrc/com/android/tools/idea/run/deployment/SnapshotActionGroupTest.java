@@ -24,8 +24,6 @@ import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibility.State;
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
 import com.intellij.openapi.actionSystem.ActionGroup;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
@@ -38,8 +36,6 @@ import com.intellij.util.IconUtil;
 import com.intellij.util.ui.ImageUtil;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 import org.junit.After;
 import org.junit.Before;
@@ -67,15 +63,12 @@ public final class SnapshotActionGroupTest {
   @Test
   public void getChildren() {
     // Arrange
-    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
-    Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58");
-
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
       .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setType(Device.Type.PHONE)
-      .addSnapshot(new Snapshot(snapshotKey))
+      .addSnapshot(new Snapshot(Keys.PIXEL_4_API_30_SNAPSHOT_1))
       .build();
 
     ActionGroup group = new SnapshotActionGroup(device, myComboBoxAction);
@@ -87,7 +80,7 @@ public final class SnapshotActionGroupTest {
     Object[] expectedChildren = {
       new SelectTargetAction(new ColdBootTarget(Keys.PIXEL_4_API_30), device, myComboBoxAction),
       new SelectTargetAction(new QuickBootTarget(Keys.PIXEL_4_API_30), device, myComboBoxAction),
-      new SelectTargetAction(new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, snapshotKey), device, myComboBoxAction)};
+      new SelectTargetAction(new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, Keys.PIXEL_4_API_30_SNAPSHOT_1), device, myComboBoxAction)};
 
     assertArrayEquals(expectedChildren, actualChildren);
   }

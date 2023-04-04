@@ -27,8 +27,6 @@ import static org.junit.Assert.assertEquals;
 import com.android.testutils.ImageDiffUtil;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.openapi.util.IconLoader;
 import com.intellij.ui.IconManager;
@@ -38,8 +36,6 @@ import com.intellij.util.IconUtil;
 import com.intellij.util.ui.ImageUtil;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.nio.file.FileSystem;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
@@ -128,15 +124,12 @@ public final class VirtualDeviceTest {
   @Test
   public void getTargets() {
     // Arrange
-    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
-    Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
-
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
       .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setType(Device.Type.PHONE)
-      .addSnapshot(new Snapshot(snapshotKey))
+      .addSnapshot(new Snapshot(Keys.PIXEL_4_API_30_SNAPSHOT_2))
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(true)
       .build();
 
@@ -146,7 +139,7 @@ public final class VirtualDeviceTest {
     // Assert
     Object expectedTargets = Arrays.asList(new ColdBootTarget(Keys.PIXEL_4_API_30),
                                            new QuickBootTarget(Keys.PIXEL_4_API_30),
-                                           new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, snapshotKey));
+                                           new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, Keys.PIXEL_4_API_30_SNAPSHOT_2));
 
     assertEquals(expectedTargets, actualTargets);
   }

@@ -21,9 +21,6 @@ import static org.junit.Assert.assertTrue;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.android.tools.idea.run.LaunchCompatibility.State;
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
-import java.nio.file.FileSystem;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
@@ -178,14 +175,12 @@ public final class SelectMultipleDevicesDialogTableTest {
   @Test
   public void setModelBootOption() {
     // Arrange
-    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
-
     Device device = new VirtualDevice.Builder()
       .setName("Pixel 4 API 30")
       .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
       .setType(Device.Type.PHONE)
-      .addSnapshot(new Snapshot(fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-07_16-36-58")))
+      .addSnapshot(new Snapshot(Keys.PIXEL_4_API_30_SNAPSHOT_1))
       .setSelectDeviceSnapshotComboBoxSnapshotsEnabled(true)
       .build();
 

@@ -18,10 +18,6 @@ package com.android.tools.idea.run.deployment;
 import static org.junit.Assert.assertEquals;
 
 import com.android.tools.idea.run.AndroidDevice;
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
-import java.nio.file.FileSystem;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,10 +32,7 @@ public final class TargetsForReadingSupplierTest {
   private final Target myTarget;
 
   public TargetsForReadingSupplierTest() {
-    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
-    Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
-
-    myTarget = new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, snapshotKey);
+    myTarget = new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, Keys.PIXEL_4_API_30_SNAPSHOT_2);
   }
 
   @Test

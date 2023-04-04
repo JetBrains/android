@@ -20,10 +20,6 @@ import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.deployment.DevicesSelectedService.PersistentStateComponent;
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
-import java.nio.file.FileSystem;
-import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -270,10 +266,7 @@ public final class DevicesSelectedServiceTest {
   @Test
   public void targetStateTargetIsInstanceOfBootWithSnapshotTarget() {
     // Arrange
-    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
-    Path snapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
-
-    Set<Target> targets = Collections.singleton(new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, snapshotKey));
+    Set<Target> targets = Collections.singleton(new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, Keys.PIXEL_4_API_30_SNAPSHOT_2));
 
     // Act
     myService.setTargetsSelectedWithDialog(targets);

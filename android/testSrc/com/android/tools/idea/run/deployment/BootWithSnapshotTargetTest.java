@@ -19,10 +19,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.android.tools.idea.run.AndroidDevice;
-import com.google.common.jimfs.Configuration;
-import com.google.common.jimfs.Jimfs;
-import java.nio.file.FileSystem;
-import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,14 +27,10 @@ import org.mockito.Mockito;
 
 @RunWith(JUnit4.class)
 public final class BootWithSnapshotTargetTest {
-  private final @NotNull Path mySnapshotKey;
   private final @NotNull Target myTarget;
 
   public BootWithSnapshotTargetTest() {
-    FileSystem fileSystem = Jimfs.newFileSystem(Configuration.unix());
-    mySnapshotKey = fileSystem.getPath("/home/user/.android/avd/Pixel_4_API_30.avd/snapshots/snap_2020-12-17_12-26-30");
-
-    myTarget = new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, mySnapshotKey);
+    myTarget = new BootWithSnapshotTarget(Keys.PIXEL_4_API_30, Keys.PIXEL_4_API_30_SNAPSHOT_2);
   }
 
   @Test
@@ -64,7 +56,7 @@ public final class BootWithSnapshotTargetTest {
       .setName("Pixel 4 API 30")
       .setKey(Keys.PIXEL_4_API_30)
       .setAndroidDevice(Mockito.mock(AndroidDevice.class))
-      .addSnapshot(new Snapshot(mySnapshotKey))
+      .addSnapshot(new Snapshot(Keys.PIXEL_4_API_30_SNAPSHOT_2))
       .build();
 
     // Act

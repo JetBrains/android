@@ -19,27 +19,35 @@ import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
 final class Keys {
-  @NotNull
-  static final Key PIXEL_2_API_Q = newKey("Pixel_2_API_Q");
+  static final Key PIXEL_2_API_Q = new VirtualDevicePath(virtualDevicePathOf("Pixel_2_API_Q"));
+  static final Key PIXEL_3_API_Q = new VirtualDevicePath(virtualDevicePathOf("Pixel_3_API_Q"));
+  static final Key PIXEL_3_API_29 = new VirtualDevicePath(virtualDevicePathOf("Pixel_3_API_29"));
 
   @NotNull
-  static final Key PIXEL_3_API_Q = newKey("Pixel_3_API_Q");
+  static final Path PIXEL_3_API_29_SNAPSHOT_1 = snapshotPathOf("Pixel_3_API_29", "snap_2018-08-07_16-27-58");
+
+  static final Key PIXEL_3_API_30 = new VirtualDevicePath(virtualDevicePathOf("Pixel_3_API_30"));
 
   @NotNull
-  static final Key PIXEL_3_API_29 = newKey("Pixel_3_API_29");
+  static final Path PIXEL_3_API_30_SNAPSHOT_1 = snapshotPathOf("Pixel_3_API_30", "snap_2020-12-17_12-26-30");
+
+  static final Key PIXEL_4_API_29 = new VirtualDevicePath(virtualDevicePathOf("Pixel_4_API_29"));
+  static final Key PIXEL_4_API_30 = new VirtualDevicePath(virtualDevicePathOf("Pixel_4_API_30"));
 
   @NotNull
-  static final Key PIXEL_3_API_30 = newKey("Pixel_3_API_30");
+  static final Path PIXEL_4_API_30_SNAPSHOT_1 = snapshotPathOf("Pixel_4_API_30", "snap_2020-12-07_16-36-58");
 
   @NotNull
-  static final Key PIXEL_4_API_29 = newKey("Pixel_4_API_29");
+  static final Path PIXEL_4_API_30_SNAPSHOT_2 = snapshotPathOf("Pixel_4_API_30", "snap_2020-12-17_12-26-30");
 
   @NotNull
-  static final Key PIXEL_4_API_30 = newKey("Pixel_4_API_30");
+  private static Path virtualDevicePathOf(@NotNull String deviceName) {
+    return Path.of(System.getProperty("user.home"), ".android", "avd", deviceName + ".avd");
+  }
 
   @NotNull
-  private static Key newKey(@NotNull String name) {
-    return new VirtualDevicePath(Path.of(System.getProperty("user.home"), ".android", "avd", name + ".avd"));
+  private static Path snapshotPathOf(@NotNull String deviceName, @NotNull String snapshotName) {
+    return virtualDevicePathOf(deviceName).resolve(Path.of("snapshots", snapshotName));
   }
 
   private Keys() {
