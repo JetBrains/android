@@ -22,7 +22,7 @@ import com.android.ide.common.resources.configuration.FolderConfiguration;
 import com.android.resources.ResourceType;
 import com.android.sdklib.IAndroidTarget;
 import com.android.tools.idea.configurations.ConfigurationManager;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.res.ResourceRepositoryManager;
 import com.intellij.openapi.diagnostic.Logger;
 import com.android.tools.sdk.AndroidTargetData;
 import org.jetbrains.annotations.NotNull;

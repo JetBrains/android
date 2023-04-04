@@ -19,7 +19,7 @@ import com.android.ide.common.rendering.api.ILayoutPullParser
 import com.android.ide.common.rendering.api.LayoutlibCallback
 import com.android.ide.common.util.PathString
 import com.android.tools.idea.rendering.IRenderLogger
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.res.ResourceRepositoryManager
 import com.intellij.openapi.project.Project
 
 /**

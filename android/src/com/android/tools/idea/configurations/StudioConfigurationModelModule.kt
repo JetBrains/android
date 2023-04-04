@@ -19,8 +19,8 @@ import com.android.tools.idea.model.AndroidModuleInfo
 import com.android.tools.idea.model.StudioAndroidModuleInfo
 import com.android.tools.idea.rendering.EnvironmentContext
 import com.android.tools.idea.rendering.StudioEnvironmentContext
-import com.android.tools.idea.res.ResourceRepositoryManager
 import com.android.tools.idea.res.StudioResourceRepositoryManager
+import com.android.tools.res.ResourceRepositoryManager
 import com.android.tools.sdk.AndroidPlatform
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project

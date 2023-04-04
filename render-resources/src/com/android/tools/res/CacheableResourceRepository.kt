@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res
+package com.android.tools.res
 
 import com.android.ide.common.resources.ResourceRepository
 import com.intellij.openapi.util.ModificationTracker

@@ -48,7 +48,7 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceFilesUtil;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseIntArray;
 import com.google.common.collect.ImmutableList;

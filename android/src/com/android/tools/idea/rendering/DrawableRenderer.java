@@ -31,7 +31,7 @@ import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutRenderPullParser;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.res.ResourceRepositoryManager;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;

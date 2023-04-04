@@ -22,5 +22,6 @@
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="android.sdktools.resource-repository" />
     <orderEntry type="module" module-name="android.sdktools.manifest-merger" />
+    <orderEntry type="module" module-name="intellij.android.render-resources" />
   </component>
 </module>
