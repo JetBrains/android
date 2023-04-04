@@ -177,7 +177,7 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     @VisibleForTesting
     fun adjustForPainting() {
       val maxWidth = currentTable?.computeMaxRenderWidth(currentDepth) ?: 0
-      if (preferredSize.width > maxWidth) {
+      if (preferredSize.width > maxWidth && currentTable?.expandedRow != currentRow) {
         generate(maxWidth)
       }
       foreground = UIUtil.getTreeForeground(selectedValue, focusedValue)
@@ -205,6 +205,10 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
         val availableSpace = maxWidth - preferredSize.width
         if (metrics.stringWidth(actual) > availableSpace) {
           actual = AdtUiUtils.shrinkToFit(text, metrics, availableSpace.toFloat())
+          if (actual.isEmpty() && text.isNotEmpty() && getFragmentTag(0) == null) {
+            // For the 1st fragment: Always keep at least 1 character:
+            actual = text.first() + "..."
+          }
           unchanged = actual != text
         }
       }

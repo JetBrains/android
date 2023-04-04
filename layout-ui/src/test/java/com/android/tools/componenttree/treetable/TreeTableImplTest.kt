@@ -30,10 +30,12 @@ import com.android.tools.componenttree.api.ContextPopupHandler
 import com.android.tools.componenttree.api.DoubleClickHandler
 import com.android.tools.componenttree.api.IconColumn
 import com.android.tools.componenttree.api.createIntColumn
+import com.android.tools.componenttree.treetable.ViewTreeCellRenderer.ColoredViewRenderer
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
 import com.android.tools.componenttree.util.Style
 import com.android.tools.componenttree.util.StyleNodeType
+import com.android.tools.componenttree.util.fragments
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.options.advanced.AdvancedSettingType
@@ -62,6 +64,7 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoInteractions
 import java.awt.Color
+import java.awt.Dimension
 import java.awt.Point
 import java.awt.Rectangle
 import java.awt.datatransfer.DataFlavor
@@ -655,6 +658,24 @@ class TreeTableImplTest {
         assertThat(table.tree.rowHeight).isEqualTo(table.rowHeight)
       }
     }, mock()).evaluate()
+  }
+
+  @Test
+  fun testExpand() {
+    val table = createTreeTable()
+    val otherColumnsWidth = listOf(1,2,3).sumOf { table.getCellRect(0, it, true).width }
+    setScrollPaneSize(table, table.tree.getRowBounds(0).width + otherColumnsWidth + table.computeLeftOffset(1), 800)
+    table.tree.size = Dimension(table.width - otherColumnsWidth, table.height)
+    val cellRenderer = table.tree.cellRenderer
+    val renderer1 = cellRenderer.getTreeCellRendererComponent(table.tree, item1, false, true, false, 0, false) as ColoredViewRenderer
+    renderer1.adjustForPainting()
+    assertThat(renderer1.fragments[0].text).endsWith("Layout")
+
+    setScrollPaneSize(table, table.tree.getRowBounds(0).width + otherColumnsWidth + table.computeLeftOffset(1) - 1, 800)
+    table.tree.size = Dimension(table.width - otherColumnsWidth, table.height)
+    val renderer2 = cellRenderer.getTreeCellRendererComponent(table.tree, item1, false, true, false, 0, false) as ColoredViewRenderer
+    renderer2.adjustForPainting()
+    assertThat(renderer2.fragments[0].text).endsWith("...")
   }
 
   private fun foregroundOf(table: JTable, column: Int, isSelected: Boolean, hasFocus: Boolean): Color {
