@@ -15,101 +15,19 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
-import com.android.sdklib.AndroidVersion
-import com.android.sdklib.deviceprovisioner.DeviceHandle
-import com.android.sdklib.deviceprovisioner.DeviceTemplate
 import com.android.sdklib.deviceprovisioner.DeviceType
-import com.android.sdklib.devices.Abi
 import com.android.tools.adtui.categorytable.Attribute
 import com.android.tools.adtui.categorytable.Attribute.Companion.stringAttribute
 import com.android.tools.adtui.categorytable.ColorableAnimatedSpinnerIcon
 import com.android.tools.adtui.categorytable.Column
 import com.android.tools.adtui.categorytable.IconLabel
 import com.android.tools.adtui.categorytable.LabelColumn
-import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.android.tools.idea.wearpairing.WearPairingManager
-import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.project.Project
 import com.intellij.util.ui.JBDimension
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
-
-/**
- * Immutable snapshot of relevant parts of a [DeviceHandle] or [DeviceTemplate] for use in
- * CategoryTable.
- */
-internal data class DeviceRowData(
-  /**
-   * If this row represents a template, this value is set and handle is null. Otherwise, handle must
-   * be set, and this is also set to handle.sourceTemplate (which may be null).
-   */
-  val template: DeviceTemplate?,
-  val handle: DeviceHandle?,
-  val name: String,
-  val type: DeviceType,
-  val androidVersion: AndroidVersion?,
-  val abi: Abi?,
-  val status: DeviceRowStatus,
-  val isVirtual: Boolean,
-) {
-  init {
-    checkNotNull(handle ?: template) { "Either template or handle must be set" }
-  }
-
-  fun key() = handle ?: template!!
-
-  companion object {
-    fun create(handle: DeviceHandle): DeviceRowData {
-      val state = handle.state
-      val properties = state.properties
-      return DeviceRowData(
-        template = handle.sourceTemplate,
-        handle = handle,
-        name = properties.title,
-        type = properties.deviceType ?: DeviceType.HANDHELD,
-        androidVersion = properties.androidVersion,
-        abi = properties.abi,
-        status =
-          when {
-            state.isOnline() -> DeviceRowStatus.ONLINE
-            else -> DeviceRowStatus.OFFLINE
-          },
-        isVirtual = properties.isVirtual ?: false,
-      )
-    }
-
-    fun create(template: DeviceTemplate): DeviceRowData {
-      val properties = template.properties
-      return DeviceRowData(
-        template = template,
-        handle = null,
-        name = properties.title,
-        type = properties.deviceType ?: DeviceType.HANDHELD,
-        androidVersion = properties.androidVersion,
-        abi = properties.abi,
-        status = DeviceRowStatus.OFFLINE,
-        isVirtual = properties.isVirtual ?: false,
-      )
-    }
-
-    private fun String.titlecase() = lowercase().let { it.replaceFirstChar { it.uppercase() } }
-  }
-}
-
-enum class DeviceRowStatus {
-  OFFLINE,
-  ONLINE,
-}
-
-internal val DEVICE_ROW_DATA_KEY = DataKey.create<DeviceRowData>("DeviceRowData")
-
-internal fun provideRowData(dataId: String, row: DeviceRowData): Any? =
-  when {
-    DEVICE_ROW_DATA_KEY.`is`(dataId) -> row
-    DEVICE_HANDLE_KEY.`is`(dataId) -> row.handle
-    else -> null
-  }
 
 internal object DeviceTableColumns {
 
@@ -186,11 +104,11 @@ internal object DeviceTableColumns {
       }
     )
 
-  object Status : Column<DeviceRowData, DeviceRowStatus, IconLabel> {
+  object Status : Column<DeviceRowData, DeviceRowData.Status, IconLabel> {
     override val name = "Status"
     override val attribute =
-      object : Attribute<DeviceRowData, DeviceRowStatus> {
-        override val sorter: Comparator<DeviceRowStatus> = naturalOrder()
+      object : Attribute<DeviceRowData, DeviceRowData.Status> {
+        override val sorter: Comparator<DeviceRowData.Status> = naturalOrder()
 
         override fun value(t: DeviceRowData) = t.status
       }
@@ -200,15 +118,15 @@ internal object DeviceTableColumns {
     override fun updateValue(
       rowValue: DeviceRowData,
       component: IconLabel,
-      value: DeviceRowStatus
+      value: DeviceRowData.Status
     ) {
       component.baseIcon =
         when {
           rowValue.handle?.state?.isTransitioning == true -> ColorableAnimatedSpinnerIcon()
           else ->
             when (value) {
-              DeviceRowStatus.OFFLINE -> null
-              DeviceRowStatus.ONLINE -> StudioIcons.Avd.STATUS_DECORATOR_ONLINE
+              DeviceRowData.Status.OFFLINE -> null
+              DeviceRowData.Status.ONLINE -> StudioIcons.Avd.STATUS_DECORATOR_ONLINE
             }
         }
     }
