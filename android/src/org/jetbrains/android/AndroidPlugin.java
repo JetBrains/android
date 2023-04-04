@@ -99,7 +99,7 @@ public final class AndroidPlugin {
     }
   }
 
-  private static class StudioToggleEssentialHighlightingAction extends ToggleAction {
+  public static class StudioToggleEssentialHighlightingAction extends ToggleAction {
     private final ToggleEssentialHighlightingAction delegate = new ToggleEssentialHighlightingAction();
     private final Flag<Boolean> enabled;
 

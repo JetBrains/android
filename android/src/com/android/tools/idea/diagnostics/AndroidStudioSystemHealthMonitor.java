@@ -62,7 +62,9 @@ import com.intellij.diagnostic.ThreadDumper;
 import com.intellij.diagnostic.VMOptions;
 import com.intellij.ide.AndroidStudioSystemHealthMonitorAdapter;
 import com.intellij.ide.AppLifecycleListener;
+import com.intellij.ide.EssentialHighlightingMode;
 import com.intellij.ide.IdeBundle;
+import com.intellij.ide.PowerSaveMode;
 import com.intellij.ide.actions.CopyAction;
 import com.intellij.ide.actions.CutAction;
 import com.intellij.ide.actions.DeleteAction;
@@ -142,6 +144,7 @@ import java.util.stream.Collectors;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import org.HdrHistogram.SingleWriterRecorder;
+import org.jetbrains.android.AndroidPlugin;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -478,6 +481,7 @@ public final class AndroidStudioSystemHealthMonitor {
     ourInitialPersistedExceptionCount.set(ourStudioExceptionCount.get());
     ourBundledPluginsExceptionCount.set(getPersistedExceptionCount(BUNDLED_PLUGINS_EXCEPTION_COUNT_FILE));
     ourNonBundledPluginsExceptionCount.set(getPersistedExceptionCount(NON_BUNDLED_PLUGINS_EXCEPTION_COUNT_FILE));
+    sendInitialIDEModes();
 
     StudioCrashDetection.start();
     StudioCrashDetection.updateRecordedVersionNumber(ApplicationInfo.getInstance().getStrictVersion());
@@ -516,6 +520,39 @@ public final class AndroidStudioSystemHealthMonitor {
       }
     });
     ThreadSamplingReport.startCollectingThreadSamplingReports(this::tryAppendReportToDatabase);
+  }
+
+  /**
+   * Send the initial mode of Studio including whether it is in Power Save Mode
+   * or Essential Highlighting Mode.
+   *
+   */
+  private void sendInitialIDEModes() {
+    // Essential Highlighting
+    String essentialAction = metricsNameForClass(AndroidPlugin.StudioToggleEssentialHighlightingAction.class);
+    UIActionStats.Builder essentialMode = getInitialUIStateAction();
+    essentialMode.setActionClassName(essentialAction);
+    essentialMode.setTogglingOn(EssentialHighlightingMode.Companion.isEnabled());
+    AndroidStudioEvent.Builder essentialModeBuilder = buildStudioUiEvent(essentialMode);
+
+    // Power save mode
+    String powerSaveAction = metricsNameForClass(ActionManager.getInstance().getAction("TogglePowerSave").getClass());
+    UIActionStats.Builder powerSaveMode = getInitialUIStateAction();
+    powerSaveMode.setActionClassName(powerSaveAction);
+    powerSaveMode.setTogglingOn(PowerSaveMode.isEnabled());
+    AndroidStudioEvent.Builder powerSaveModeBuilder = buildStudioUiEvent(powerSaveMode);
+
+    UsageTracker.log(essentialModeBuilder);
+    UsageTracker.log(powerSaveModeBuilder);
+  }
+
+  @NotNull
+  private static UIActionStats.Builder getInitialUIStateAction() {
+    return UIActionStats.newBuilder()
+      .setInvocationKind(InvocationKind.UNKNOWN_INVOCATION_KIND)
+      .setInvocations(0)
+      .setDirect(true)
+      .setUiPlace("INITIAL_STARTUP");
   }
 
   /**
@@ -990,14 +1027,20 @@ public final class AndroidStudioSystemHealthMonitor {
           // events are tracked right before they occur, therefore take the negation of the current state
           uiActionStatbuilder.setTogglingOn(!toggleAction.isSelected(event));
         }
-        AndroidStudioEvent.Builder builder = AndroidStudioEvent.newBuilder()
-          .setCategory(EventCategory.STUDIO_UI)
-          .setKind(EventKind.STUDIO_UI_ACTION_STATS)
-          .setUiActionStats(uiActionStatbuilder);
+        AndroidStudioEvent.Builder builder = buildStudioUiEvent(uiActionStatbuilder);
         UsageTracker.log(builder);
       }
     }
   }
+
+  @NotNull
+  private static AndroidStudioEvent.Builder buildStudioUiEvent(UIActionStats.Builder uiActionStatbuilder) {
+    return AndroidStudioEvent.newBuilder()
+      .setCategory(EventCategory.STUDIO_UI)
+      .setKind(EventKind.STUDIO_UI_ACTION_STATS)
+      .setUiActionStats(uiActionStatbuilder);
+  }
+
   /**
    * Checks if the action is one we need to aggregate.
    * We only aggregate actions the user takes many times in the course of editing code (key events, copy/paste etc...).
