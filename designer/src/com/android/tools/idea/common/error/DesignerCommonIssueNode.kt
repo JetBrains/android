@@ -508,12 +508,17 @@ object FileNameComparator : Comparator<DesignerCommonIssueNode> {
  */
 object PreprocessNodeComparator : Comparator<DesignerCommonIssueNode> {
   override fun compare(o1: DesignerCommonIssueNode?, o2: DesignerCommonIssueNode?): Int {
-    if (o1 !is IssueNode || o2 !is IssueNode) {
-      return 0
+    return when {
+      o1 == o2 -> 0
+      o1 == null -> -1
+      o2 == null -> 1
+      o1 is IssueNode && o2 !is IssueNode -> -1
+      o1 !is IssueNode && o2 is IssueNode -> 1
+      // Force sorted the ATF issue by name. This avoid the jumping order of ATF issue when there is no sorting option is selected.
+      o1 is IssueNode && o2 is IssueNode && o1.issue is NlAtfIssue && o2.issue is NlAtfIssue ->
+        o1.issue.summary.compareTo(o2.issue.summary)
+      // Provide consistent ordering for everything else
+      else -> o1.name.compareTo(o2.name)
     }
-    // Force sorted the ATF issue by name. This avoid the jumping order of ATF issue when there is no sorting option is selected.
-    val issue1 = o1.issue as? NlAtfIssue ?: return 0
-    val issue2 = o2.issue as? NlAtfIssue ?: return 0
-    return issue1.summary.compareTo(issue2.summary)
   }
 }
