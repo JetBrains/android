@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.common.diagnostics
 
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags.NELE_RENDER_DIAGNOSTICS
 import com.google.common.cache.CacheBuilder
 import com.google.common.collect.EvictingQueue
@@ -82,20 +81,25 @@ private class NlDiagnosticsImpl : NlDiagnosticsRead, NlDiagnosticsWrite {
   else -1
 }
 
+/**
+ * Key for [NlDiagnosticsManager] to read/write from cache.
+ */
+interface NlDiagnosticKey
+
 object NlDiagnosticsManager {
   private val cache = CacheBuilder.newBuilder()
     .weakKeys()
     .expireAfterAccess(5, TimeUnit.MINUTES)
-    .build<DesignSurface<*>, NlDiagnosticsImpl>()
+    .build<NlDiagnosticKey, NlDiagnosticsImpl>()
 
   /**
    * Returns the [NlDiagnosticsRead] instance associated to the given surface
    */
   @JvmStatic
-  fun getReadInstance(surface: DesignSurface<*>?): NlDiagnosticsRead = if (surface == null || !NELE_RENDER_DIAGNOSTICS.get()) {
+  fun getReadInstance(key: NlDiagnosticKey?): NlDiagnosticsRead = if (key == null || !NELE_RENDER_DIAGNOSTICS.get()) {
     NopNlDiagnosticsImpl
   }
-  else cache.get(surface) {
+  else cache.get(key) {
     return@get NlDiagnosticsImpl()
   }
 
@@ -103,10 +107,10 @@ object NlDiagnosticsManager {
    * Returns the [NlDiagnosticsWrite] instance associated to the given surface
    */
   @JvmStatic
-  fun getWriteInstance(surface: DesignSurface<*>?): NlDiagnosticsWrite = if (surface == null || !NELE_RENDER_DIAGNOSTICS.get()) {
+  fun getWriteInstance(key: NlDiagnosticKey?): NlDiagnosticsWrite = if (key == null || !NELE_RENDER_DIAGNOSTICS.get()) {
     NopNlDiagnosticsImpl
   }
-  else cache.get(surface) {
+  else cache.get(key) {
     return@get NlDiagnosticsImpl()
   }
 }

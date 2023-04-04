@@ -61,6 +61,7 @@ import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewGroupHandler;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
+import com.android.tools.idea.common.diagnostics.NlDiagnosticKey;
 import com.android.tools.idea.uibuilder.editor.NlActionManager;
 import com.android.tools.idea.uibuilder.error.RenderIssueProvider;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
@@ -108,7 +109,7 @@ import org.jetbrains.annotations.TestOnly;
  * or more device renderings, etc
  */
 public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
-  implements ViewGroupHandler.AccessoryPanelVisibility, LayoutPreviewHandler {
+  implements ViewGroupHandler.AccessoryPanelVisibility, LayoutPreviewHandler, NlDiagnosticKey {
 
   private boolean myPreviewWithToolsVisibilityAndPosition = true;
 

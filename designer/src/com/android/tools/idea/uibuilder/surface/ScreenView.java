@@ -25,9 +25,9 @@ import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.common.model.Coordinates;
 import com.android.tools.idea.common.scene.draw.ColorSet;
-import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.Layer;
 import com.android.tools.idea.common.surface.SceneLayer;
+import com.android.tools.idea.uibuilder.surface.layer.DiagnosticsLayer;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.RenderResult;
@@ -156,7 +156,7 @@ public class ScreenView extends ScreenViewBase {
     }
     builder.add(new ScreenViewLayer(screenView));
 
-    DesignSurface<?> surface = screenView.getSurface();
+    NlDesignSurface surface = screenView.getSurface();
     SceneLayer sceneLayer = new SceneLayer(surface, screenView, false);
     sceneLayer.setAlwaysShowSelection(true);
     builder.add(sceneLayer);
@@ -170,7 +170,7 @@ public class ScreenView extends ScreenViewBase {
     }
 
     if (NELE_RENDER_DIAGNOSTICS.get()) {
-      builder.add(new DiagnosticsLayer(surface));
+      builder.add(new DiagnosticsLayer(surface, surface.getProject()));
     }
 
     return builder.build();

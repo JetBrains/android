@@ -17,9 +17,10 @@ package com.android.tools.idea.uibuilder.surface.layer
 
 import com.android.tools.adtui.stdui.setColorAndAlpha
 import com.android.tools.idea.common.surface.Layer
-import com.android.tools.idea.uibuilder.surface.FONT
+import com.android.tools.idea.uibuilder.surface.LAYER_FONT
 import com.android.tools.idea.uibuilder.surface.drawMultilineString
 import com.intellij.openapi.module.Module
+import com.intellij.ui.JBColor
 import org.jetbrains.android.uipreview.HATCHERY
 import java.awt.Color
 import java.awt.Graphics2D
@@ -37,8 +38,8 @@ class ClassLoadingDebugLayer(val module: Module) : Layer() {
   override fun paint(gc: Graphics2D) {
     val g = gc.create() as Graphics2D
     g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
-    g.setColorAndAlpha(Color.BLUE)
-    g.font = FONT
+    g.setColorAndAlpha(JBColor.BLUE)
+    g.font = LAYER_FONT
 
     val clipBounds = g.clipBounds
     var startY = clipBounds.y + 20

@@ -15,13 +15,11 @@
  */
 package com.android.tools.idea.common.diagnostics
 
-import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.flags.StudioFlags
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito.mock
 import kotlin.test.assertTrue
 
 class NlDiagnosticsTest {
@@ -40,15 +38,15 @@ class NlDiagnosticsTest {
     assertTrue(NlDiagnosticsManager.getWriteInstance(null) === NopNlDiagnosticsImpl)
     assertTrue(NlDiagnosticsManager.getReadInstance(null) === NopNlDiagnosticsImpl)
 
-    val surface1 = mock(DesignSurface::class.java)
-    val surface2 = mock(DesignSurface::class.java)
+    val surface1 = object : NlDiagnosticKey {}
+    val surface2 = object : NlDiagnosticKey {}
     assertNotEquals(NlDiagnosticsManager.getWriteInstance(surface1), NlDiagnosticsManager.getWriteInstance(surface2))
     assertNotEquals(NlDiagnosticsManager.getReadInstance(surface1), NlDiagnosticsManager.getReadInstance(surface2))
   }
 
   @Test
   fun testRecording() {
-    val surface = mock(DesignSurface::class.java)
+    val surface =  object : NlDiagnosticKey {}
     val write = NlDiagnosticsManager.getWriteInstance(surface)
     val read = NlDiagnosticsManager.getReadInstance(surface)
 
