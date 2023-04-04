@@ -88,8 +88,8 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
       LiveEditUpdateException(Error.NON_PRIVATE_INLINE_FUNCTION, "Inline functions visible outside of the file cannot be live edited. " +
                                                                  "Application needs to be rebuild.", source, null)
 
-    fun desugarFailure(details: String) {
-      throw LiveEditUpdateException(Error.UNABLE_TO_DESUGAR, details, null, null)
+    fun desugarFailure(details: String, cause: Throwable? = null) {
+      throw LiveEditUpdateException(Error.UNABLE_TO_DESUGAR, details, null, cause)
     }
   }
 }
