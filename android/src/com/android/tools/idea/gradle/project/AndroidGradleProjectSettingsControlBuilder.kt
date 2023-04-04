@@ -20,6 +20,9 @@ import com.android.tools.idea.gradle.ui.GradleJdkComboBox
 import com.android.tools.idea.gradle.util.GradleJdkComboBoxUtil
 import com.android.tools.idea.sdk.IdeSdks
 import com.android.tools.idea.sdk.IdeSdks.JDK_LOCATION_ENV_VARIABLE_NAME
+import com.android.tools.idea.sdk.DefaultAndroidGradleJvmNames.ANDROID_STUDIO_DEFAULT_JDK_NAME
+import com.android.tools.idea.sdk.DefaultAndroidGradleJvmNames.ANDROID_STUDIO_JAVA_HOME_NAME
+import com.android.tools.idea.sdk.DefaultAndroidGradleJvmNames.EMBEDDED_JDK_NAME
 import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.externalSystem.service.execution.ExternalSystemJdkUtil
@@ -218,6 +221,7 @@ class AndroidGradleProjectSettingsControlBuilder(
     var resolvedProjectSdk = projectSdk
     sdksModel.reset(project)
     deduplicateSdkNames(sdksModel)
+    removeHardcodedSdkNames(sdksModel)
     if (resolvedProjectSdk == null) {
       resolvedProjectSdk = sdksModel.projectSdk
       // Find real sdk
@@ -246,6 +250,15 @@ class AndroidGradleProjectSettingsControlBuilder(
         sdkModificator.commitChanges()
       }
       processedNames.add(sdk.name)
+    }
+  }
+
+  private fun removeHardcodedSdkNames(sdksModel: ProjectSdksModel) {
+    sdksModel.sdks.filter {
+      val undesiredHardcodedNaming = listOf(EMBEDDED_JDK_NAME, ANDROID_STUDIO_JAVA_HOME_NAME, ANDROID_STUDIO_DEFAULT_JDK_NAME)
+      undesiredHardcodedNaming.contains(it.name)
+    }.forEach {
+      sdksModel.removeSdk(it)
     }
   }
 
