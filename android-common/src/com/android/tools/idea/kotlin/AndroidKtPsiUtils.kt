@@ -170,16 +170,7 @@ fun KtAnalysisSession.fqNameMatches(ktAnnotationEntry: KtAnnotationEntry, fqName
 /** Computes the qualified name for a Kotlin Class. Returns null if the class is a kotlin built-in. */
 fun KtClass.getQualifiedName(analysisSession: KtAnalysisSession? = null): String? {
   return if (isK2Plugin()) {
-    analysisSession.applyOrAnalyze(this) {
-      val symbol = getClassOrObjectSymbol()
-      val classId = symbol.classIdIfNonLocal ?: return null
-
-      if (symbol.classKind != KtClassKind.CLASS || classId.packageFqName.startsWith(StandardNames.BUILT_INS_PACKAGE_NAME)) {
-        null
-      } else {
-        classId.asFqNameString()
-      }
-    }
+    error("K2 not supported in Android Studio Flamingo")
   } else {
     val classDescriptor = analyzeFe10(BodyResolveMode.PARTIAL).get(BindingContext.CLASS, this) ?: return null
     if (KotlinBuiltIns.isUnderKotlinPackage(classDescriptor) || classDescriptor.kind != ClassKind.CLASS) {
