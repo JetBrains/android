@@ -24,6 +24,7 @@ import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.ScreenView.DEVICE_CONTENT_SIZE_POLICY
 import com.android.tools.idea.uibuilder.surface.layer.BorderLayer
 import com.android.tools.idea.uibuilder.surface.layer.CanvasResizeLayer
+import com.android.tools.idea.uibuilder.surface.layer.WarningLayer
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList

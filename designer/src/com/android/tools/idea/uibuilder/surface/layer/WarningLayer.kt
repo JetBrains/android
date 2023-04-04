@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.surface
+package com.android.tools.idea.uibuilder.surface.layer
 
 import com.android.tools.idea.common.error.Issue
 import com.android.tools.idea.common.error.IssuePanelService
@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.w
 import com.android.tools.idea.uibuilder.model.x
 import com.android.tools.idea.uibuilder.model.y
+import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintHighlightingIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
 import java.awt.Color
