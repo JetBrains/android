@@ -87,10 +87,13 @@ public class VerifyNpwPhoneAndTabletTemplatesTest {
     assertThat(guiTest.ideFrame().invokeProjectMake(Wait.seconds(180)).isBuildSuccessful()).isTrue();
     validateGradleFile(); //Validate Gradle file contains Material 3 dependencies
     validateMainActivity();//Validate MainActivity has @Composable
+    /*
+    // This needs to be enabled once Gradle Version Catalog is enabled by default
     guiTest.ideFrame().getProjectView().assertFilesExist(
     "gradle/libs.versions.toml"
     );
     validateTomlForMaterial3();
+     */
   }
 
   @Test
@@ -125,10 +128,10 @@ public class VerifyNpwPhoneAndTabletTemplatesTest {
 
   private void validateGradleFile() {
     String buildGradleContents = guiTest.getProjectFileText("app/build.gradle.kts");
-    assertThat((buildGradleContents).contains("implementation(libs.ui)")).isTrue();
-    assertThat((buildGradleContents).contains("implementation(libs.material3)")).isTrue();
-    assertThat((buildGradleContents).contains("implementation(libs.ui.tooling.preview)")).isTrue();
-    assertThat((buildGradleContents).contains("debugImplementation(libs.ui.tooling)")).isTrue();
+    assertThat((buildGradleContents).contains("implementation(\"androidx.compose.ui:ui\")")).isTrue();
+    assertThat((buildGradleContents).contains("implementation(\"androidx.compose.material3:material3\")")).isTrue();
+    assertThat((buildGradleContents).contains("implementation(\"androidx.compose.ui:ui-tooling-preview\")")).isTrue();
+    assertThat((buildGradleContents).contains("debugImplementation(\"androidx.compose.ui:ui-tooling\")")).isTrue();
   }
 
   private void validateTomlForMaterial3() {
