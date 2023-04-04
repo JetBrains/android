@@ -17,9 +17,9 @@ package com.android.tools.idea.device.explorer.files.ui.menu.item
 
 import com.android.tools.idea.device.explorer.files.DeviceFileEntryNode
 import com.android.tools.idea.device.explorer.files.ui.DeviceFileExplorerActionListener
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.KeyboardShortcut
 import com.intellij.openapi.actionSystem.Shortcut
-import icons.StudioIcons
 import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import javax.swing.Icon
@@ -33,7 +33,7 @@ class SaveAsMenuItem(
     if (nodes.size > 1) "Save To..." else "Save As..."
 
   override val icon: Icon
-    get() = StudioIcons.LayoutEditor.Extras.PALETTE_DOWNLOAD
+    get() = AllIcons.Actions.Download
 
   override val shortcuts: Array<Shortcut?>
     get() = arrayOf(
