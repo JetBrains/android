@@ -22,7 +22,6 @@ import com.intellij.openapi.actionSystem.ActionButtonComponent
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import icons.StudioIcons
@@ -32,11 +31,11 @@ import icons.StudioIcons
  */
 internal class DisplayModeActionGroup : DefaultActionGroup() {
 
-  override fun isDumbAware(): Boolean {
-    return true
+  init {
+    templatePresentation.isPerformGroup = true
   }
 
-  override fun canBePerformed(context: DataContext): Boolean {
+  override fun isDumbAware(): Boolean {
     return true
   }
 
@@ -67,7 +66,6 @@ internal class DisplayModeActionGroup : DefaultActionGroup() {
     presentation.isVisible = hasDisplayModes
     if (hasDisplayModes) {
       presentation.isEnabled = isEmulatorConnected(event)
-      presentation.isPerformGroup = true
       presentation.icon = when (getCurrentDisplayMode(event)) {
         DisplayModeValue.DESKTOP -> StudioIcons.Emulator.Menu.MODE_DESKTOP
         DisplayModeValue.FOLDABLE -> StudioIcons.Emulator.Menu.MODE_FOLDABLE
