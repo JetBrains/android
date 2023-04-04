@@ -18,7 +18,7 @@ package com.android.tools.idea.common.surface
 import com.android.tools.adtui.PANNABLE_KEY
 import com.android.tools.adtui.Pannable
 import com.android.tools.adtui.actions.ZoomType
-import com.android.tools.idea.uibuilder.surface.PanInteraction
+import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
 import java.awt.Cursor
 import java.awt.dnd.DropTargetDragEvent
 import java.awt.event.KeyEvent
