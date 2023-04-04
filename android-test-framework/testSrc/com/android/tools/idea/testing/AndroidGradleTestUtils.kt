@@ -2218,17 +2218,17 @@ private fun <T> openPreparedProject(
         val project = GradleProjectImporter.withAfterCreate(afterCreate = { project -> afterCreate(project) }) {
           ProjectUtil.openOrImport(
             projectPath.toPath(),
-            OpenProjectTask(
-              projectToClose = null,
-              forceOpenInNewFrame = true
-            ).copy(
-              beforeOpen = {
-                blockingContext {
-                  afterCreate(it)
-                  true
-                }
-              },
-            )
+            OpenProjectTask.build()
+              .withProjectToClose(null)
+              .withForceOpenInNewFrame(true)
+              .copy(
+                beforeOpen = {
+                  blockingContext {
+                    afterCreate(it)
+                    true
+                  }
+                },
+              )
           )!!
         }
         // Unfortunately we do not have start-up activities run in tests so we have to trigger a refresh here.
