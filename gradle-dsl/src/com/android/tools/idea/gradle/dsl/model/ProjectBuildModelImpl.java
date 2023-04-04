@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model;
 
-import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleSettingsModel;
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogsModel;
@@ -199,20 +198,7 @@ public class ProjectBuildModelImpl implements ProjectBuildModel {
   @Override
   public @NotNull GradleVersionCatalogsModel getVersionCatalogsModel() {
     Collection<GradleVersionCatalogFile> files;
-    if (StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.get()) {
-      files = getContext().getVersionCatalogFiles();
-    }
-    else {
-      // this whole section will be deleted once extended catalog support is enabled
-      VirtualFile versionCatalogVirtualFile = myBuildModelContext.getVersionCatalogFile("libs");
-      if (!GradleDslModelExperimentalSettings.getInstance().isVersionCatalogEnabled() || versionCatalogVirtualFile == null) {
-        files = Collections.emptyList();
-      }
-      else {
-        files = Arrays.asList(
-          myBuildModelContext.getOrCreateVersionCatalogFile(versionCatalogVirtualFile, "libs"));
-      }
-    }
+    files = getContext().getVersionCatalogFiles();
     return new GradleVersionCatalogsModelImpl(files);
   }
 
