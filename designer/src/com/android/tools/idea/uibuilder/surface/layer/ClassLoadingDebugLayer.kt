@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.surface
+package com.android.tools.idea.uibuilder.surface.layer
 
 import com.android.tools.adtui.stdui.setColorAndAlpha
 import com.android.tools.idea.common.surface.Layer
+import com.android.tools.idea.uibuilder.surface.FONT
+import com.android.tools.idea.uibuilder.surface.drawMultilineString
 import com.intellij.openapi.module.Module
 import org.jetbrains.android.uipreview.HATCHERY
 import java.awt.Color
