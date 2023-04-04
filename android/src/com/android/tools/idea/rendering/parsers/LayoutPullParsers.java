@@ -50,7 +50,6 @@ import static com.android.SdkConstants.XMLNS_ANDROID;
 import static com.android.SdkConstants.XMLNS_URI;
 import static com.android.ide.common.rendering.api.SessionParams.RenderingMode.V_SCROLL;
 
-import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.rendering.api.HardwareConfig;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
@@ -58,7 +57,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.rendering.NavGraphResolver;
 import com.android.tools.idea.rendering.RenderTask;
@@ -79,7 +77,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -335,12 +332,7 @@ public class LayoutPullParsers {
       // This might be a downloadable font. Check if we have it.
       FontFamily downloadedFont = getDownloadableFont.apply(fontRefName);
 
-      DownloadableFontCacheService fontCacheService = DownloadableFontCacheService.getInstance();
-      @SuppressWarnings("ConstantConditions")
-      Predicate<FontDetail> exists = font -> fontCacheService.getCachedFontFile(font).exists();
-
       fontStream = downloadedFont != null ? downloadedFont.getFonts().stream()
-        .filter(exists)
         .map(font -> new String[]{fontRefName, font.getFontStyle()}) : Stream.empty();
     }
     else {

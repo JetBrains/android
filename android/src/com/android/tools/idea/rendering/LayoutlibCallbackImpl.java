@@ -98,10 +98,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.jetbrains.android.uipreview.ViewLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 import org.kxml2.io.KXmlParser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -340,10 +345,20 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
         FontFamily family = myProjectFonts.getFont(resourceValue.getResourceUrl().toString());
         String fontFamilyXml = myFontCacheService.toXml(family);
         if (fontFamilyXml == null) {
-          return null;
+          try {
+            CompletableFuture<Void> refreshFuture = new CompletableFuture<>();
+            myFontCacheService.refresh(() -> refreshFuture.complete(null), () -> refreshFuture.complete(null));
+            boolean success = refreshFuture.thenCompose(unused -> myFontCacheService.download(family)).get(1, TimeUnit.SECONDS);
+            if (success) {
+              fontFamilyXml = myFontCacheService.toXml(family);
+            }
+          }
+          catch (InterruptedException | ExecutionException | TimeoutException e) {
+            return null;
+          }
         }
 
-        return getParserFromText(fileName, fontFamilyXml);
+        return fontFamilyXml != null ? getParserFromText(fileName, fontFamilyXml) : null;
       }
       String fileText = myRenderModule.getEnvironment().getFileText(fileName);
       if (fileText != null) {
@@ -988,5 +1003,10 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     public String toString() {
       return myName != null ? myName : super.toString();
     }
+  }
+
+  @TestOnly
+  public void setProjectFonts(@Nullable ProjectFonts projectFonts) {
+    myProjectFonts = projectFonts;
   }
 }

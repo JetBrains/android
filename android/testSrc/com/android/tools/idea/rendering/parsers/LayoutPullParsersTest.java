@@ -18,11 +18,7 @@ package com.android.tools.idea.rendering.parsers;
 import static com.android.ide.common.rendering.api.ResourceNamespace.ANDROID;
 import static com.android.ide.common.rendering.api.ResourceNamespace.RES_AUTO;
 import static com.android.tools.idea.util.FileExtensions.toVirtualFile;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
-import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
 import com.android.ide.common.fonts.FontSource;
@@ -31,22 +27,18 @@ import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.ui.ColorUtil;
 import com.intellij.util.ui.UIUtil;
-import java.io.File;
 import java.util.List;
 import java.util.function.Consumer;
 import org.jetbrains.android.AndroidTestCase;
@@ -55,15 +47,10 @@ import org.w3c.dom.Element;
 
 @SuppressWarnings("SpellCheckingInspection")
 public class LayoutPullParsersTest extends AndroidTestCase {
-  private DownloadableFontCacheService myFontCacheServiceMock;
-
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     RenderTestUtil.beforeRenderTestCase();
-    myFontCacheServiceMock = mock(DownloadableFontCacheService.class);
-    ServiceContainerUtil.replaceService(
-        ApplicationManager.getApplication(), DownloadableFontCacheService.class, myFontCacheServiceMock, getTestRootDisposable());
   }
 
   @Override
@@ -298,17 +285,8 @@ public class LayoutPullParsersTest extends AndroidTestCase {
       new MutableFontDetail(700, 100, true, "https://fonts.google.com/roboto700i", "", false, false)));
   }
 
-  @NotNull
-  private FontFamily createMockFontFamily(boolean fileExists) {
-    File fileMock = mock(File.class);
-    when(fileMock.exists()).thenReturn(fileExists);
-    FontFamily family = createRobotoFontFamily();
-    when(myFontCacheServiceMock.getCachedFontFile(any(FontDetail.class))).thenReturn(fileMock);
-    return family;
-  }
-
   public void testDownloadedFontFamily() {
-    FontFamily compoundFontFamily = createMockFontFamily(true);
+    FontFamily compoundFontFamily = createRobotoFontFamily();
 
     VirtualFile file = myFixture.copyFileToProject("fonts/roboto_bold.xml", "res/font/roboto_bold.xml");
     assertNotNull(file);
@@ -339,17 +317,6 @@ public class LayoutPullParsersTest extends AndroidTestCase {
       "");
 
     assertEquals(expectedLayout, actualLayout);
-  }
-
-  public void testDownloadableFontWithoutFile() {
-    // This is a downloadable font that hasn't been cached yet
-    FontFamily compoundFontFamily = createMockFontFamily(false);
-
-    VirtualFile file = myFixture.copyFileToProject("fonts/my_downloadable_font_family.xml", "res/font/my_downloadable_font_family.xml");
-    assertNotNull(file);
-
-    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
-    assertNull(LayoutPullParsers.createFontFamilyParser(new PsiXmlFile((XmlFile)psiFile), (name) -> compoundFontFamily));
   }
 
   public void testNamespace() throws Exception {

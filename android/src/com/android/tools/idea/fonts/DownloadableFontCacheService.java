@@ -19,6 +19,7 @@ import com.android.ide.common.fonts.FontDetail;
 import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontProvider;
 import com.intellij.openapi.application.ApplicationManager;
+import java.util.concurrent.CompletableFuture;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -82,7 +83,7 @@ public interface DownloadableFontCacheService {
   /**
    * Start downloading the specified font without waiting for the outcome.
    */
-  void download(@NotNull FontFamily family);
+  CompletableFuture<Boolean> download(@NotNull FontFamily family);
 
   /**
    * Lookup the {@link FontFamily} of a certain font.

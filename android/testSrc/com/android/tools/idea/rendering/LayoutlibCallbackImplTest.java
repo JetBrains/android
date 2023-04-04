@@ -17,31 +17,47 @@ package com.android.tools.idea.rendering;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LAYOUT;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.android.SdkConstants;
+import com.android.ide.common.fonts.FontDetail;
+import com.android.ide.common.fonts.FontFamily;
+import com.android.ide.common.fonts.FontProvider;
+import com.android.ide.common.fonts.FontSource;
+import com.android.ide.common.fonts.MutableFontDetail;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValueImpl;
 import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.fonts.DownloadableFontCacheService;
+import com.android.tools.idea.fonts.DownloadableFontCacheServiceImpl;
+import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.rendering.IRenderLogger;
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.PsiTestUtil;
+import com.intellij.testFramework.ServiceContainerUtil;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.android.sdk.StudioEmbeddedRenderTarget;
@@ -49,8 +65,37 @@ import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.android.uipreview.ModuleRenderContext;
 import org.jetbrains.android.uipreview.ModuleRenderContexts;
+import org.mockito.ArgumentMatchers;
 
 public class LayoutlibCallbackImplTest extends AndroidTestCase {
+  private DownloadableFontCacheService myFontCacheServiceMock;
+  private ProjectFonts myProjectFonts;
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    myFontCacheServiceMock = mock(DownloadableFontCacheServiceImpl.class);
+    when(myFontCacheServiceMock.toXml(any())).thenCallRealMethod();
+    doAnswer(mock -> {
+      mock.getArgument(0, Runnable.class).run();
+      return null;
+    }).when(myFontCacheServiceMock).refresh(any(), any());
+    when(myFontCacheServiceMock.download(ArgumentMatchers.any(FontFamily.class))).thenAnswer(mock -> {
+      FontDetail fontDetail = mock.getArgument(0, FontFamily.class).getFonts().get(0);
+      File fileMock = mock(File.class);
+      when(fileMock.exists()).thenReturn(true);
+      when(fileMock.getCanonicalPath()).thenReturn(fontDetail.getFontUrl());
+      when(myFontCacheServiceMock.getCachedFontFile(fontDetail)).thenReturn(fileMock);
+      return CompletableFuture.completedFuture(true);
+    });
+    ServiceContainerUtil.replaceService(
+      ApplicationManager.getApplication(), DownloadableFontCacheService.class, myFontCacheServiceMock, getTestRootDisposable());
+    myProjectFonts = mock(ProjectFonts.class);
+    FontFamily fontFamily = new FontFamily(FontProvider.GOOGLE_PROVIDER, FontSource.DOWNLOADABLE, "Roboto", "", "", ImmutableList.of(
+      new MutableFontDetail(700, 100, true, "https://fonts.google.com/roboto700i", "", false, false)));
+    when(myProjectFonts.getFont(any())).thenReturn(fontFamily);
+  }
+
   /**
    * Regression test for b/136632498<br/>
    * Resource resolver must be passed to the LayoutPullParser so the navigation graph <code>@layout</code> references can be resolved.
@@ -136,6 +181,35 @@ public class LayoutlibCallbackImplTest extends AndroidTestCase {
         new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
 
       assertNotNull(layoutlibCallback.createXmlParserForPsiFile(fontsFolder.toPath().resolve("aar_font_family.xml").toAbsolutePath().toString()));
+
+      StudioModuleClassLoaderManager.get().release(classLoader, this);
+    });
+
+  }
+
+  public void testDownloadableFont() {
+    @Language("XML") final String main = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                                         "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                                         "    android:layout_width=\"wrap_content\"\n" +
+                                         "    android:layout_height=\"wrap_content\">\n" +
+                                         "</LinearLayout>";
+    PsiFile psiFile = myFixture.addFileToProject("res/layout/main.xml", main);
+    VirtualFile fontFile = myFixture.copyFileToProject("fonts/roboto_bold.xml", "res/font/roboto_bold.xml");
+
+    Configuration configuration = RenderTestUtil.getConfiguration(myModule, psiFile.getVirtualFile());
+    RenderLogger logger = mock(RenderLogger.class);
+    RenderTestUtil.withRenderTask(myFacet, psiFile.getVirtualFile(), configuration, logger, task -> {
+      LayoutLibrary layoutlib = StudioRenderServiceKt.getLayoutLibrary(myModule, StudioEmbeddedRenderTarget.getCompatibilityTarget(
+        ConfigurationManager.getOrCreateInstance(myModule).getHighestApiTarget()));
+
+      ModuleRenderContext renderContext = ModuleRenderContexts.forFile(psiFile);
+      ModuleClassLoader classLoader = StudioModuleClassLoaderManager.get().getShared(layoutlib.getClassLoader(), renderContext, this);
+      RenderModelModule module = new AndroidFacetRenderModelModule(myFacet);
+      LayoutlibCallbackImpl layoutlibCallback =
+        new LayoutlibCallbackImpl(task, layoutlib, module, IRenderLogger.NULL_LOGGER, null, null, null, classLoader);
+      layoutlibCallback.setProjectFonts(myProjectFonts);
+
+      assertNotNull(layoutlibCallback.createXmlParserForPsiFile(fontFile.getPath()));
 
       StudioModuleClassLoaderManager.get().release(classLoader, this);
     });

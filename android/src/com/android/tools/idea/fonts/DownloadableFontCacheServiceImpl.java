@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,7 +52,7 @@ import org.jetbrains.kotlin.utils.ThreadSafe;
  * {@link DownloadableFontCacheServiceImpl} is a threadsafe implementation of {link {@link DownloadableFontCacheService}.
  */
 @ThreadSafe
-class DownloadableFontCacheServiceImpl extends FontLoader implements DownloadableFontCacheService {
+public class DownloadableFontCacheServiceImpl extends FontLoader implements DownloadableFontCacheService {
   private static final String FONTS = "fonts";
   private static final String FONT = "font";
   private static final String V1 = "v1";
@@ -163,8 +164,10 @@ class DownloadableFontCacheServiceImpl extends FontLoader implements Downloadabl
   }
 
   @Override
-  public void download(@NotNull FontFamily family) {
-    FontDownloadService.download(Collections.singletonList(family), false, null, null);
+  public CompletableFuture<Boolean> download(@NotNull FontFamily family) {
+    CompletableFuture<Boolean> success = new CompletableFuture<>();
+    FontDownloadService.download(Collections.singletonList(family), false, () -> success.complete(true), () -> success.complete(false));
+    return success;
   }
 
   @Override
