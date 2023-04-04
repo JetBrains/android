@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.uibuilder.surface
+package com.android.tools.idea.uibuilder.surface.layer
 
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneView
@@ -48,6 +48,7 @@ enum class BorderColor(internal val colorInside: Color, internal val colorOutsid
 
 class BorderLayer @JvmOverloads constructor(private val myScreenView: SceneView,
                                             private val myMustPaintBorder: Boolean = false,
+                                            private val rotation : () -> Float,
                                             private val colorProvider: (SceneView) -> BorderColor = {
                                               BorderColor.DEFAULT_WITH_SHADOW
                                             }) : Layer() {
@@ -59,13 +60,10 @@ class BorderLayer @JvmOverloads constructor(private val myScreenView: SceneView,
     }
 
     // When screen rotation feature is enabled, we want to hide the border.
-    val surface = myScreenView.surface
-    if (surface is NlDesignSurface) {
-      val degree = surface.rotateSurfaceDegree
-      if (!java.lang.Float.isNaN(degree)) {
-        return
-      }
+    if (!java.lang.Float.isNaN(rotation())) {
+      return
     }
+
     BorderPainter.paint(g2d, myScreenView, colorProvider(myScreenView))
   }
 }

@@ -34,6 +34,7 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.surface.layer.BorderLayer;
 import com.android.tools.idea.uibuilder.surface.layer.CanvasResizeLayer;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.google.common.collect.ImmutableList;
@@ -150,7 +151,7 @@ public class ScreenView extends ScreenViewBase {
     ImmutableList.Builder<Layer> builder = ImmutableList.builder();
 
     if (screenView.hasBorderLayer()) {
-      builder.add(new BorderLayer(screenView));
+      builder.add(new BorderLayer(screenView, () -> screenView.getSurface().getRotateSurfaceDegree()));
     }
     builder.add(new ScreenViewLayer(screenView));
 
