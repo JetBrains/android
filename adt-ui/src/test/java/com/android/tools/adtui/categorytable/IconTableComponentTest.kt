@@ -16,17 +16,21 @@
 package com.android.tools.adtui.categorytable
 
 import com.android.testutils.ImageDiffUtil
+import com.android.tools.adtui.swing.FakeUi
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.util.IconLoader
+import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.ImageUtil
-import com.intellij.util.ui.UIUtil
-import org.junit.Test
+import java.awt.BorderLayout
 import java.awt.Component
+import java.awt.Dimension
 import java.awt.image.BufferedImage
 import javax.swing.Icon
+import javax.swing.JPanel
 import javax.swing.UIManager
+import org.junit.Assert.assertThrows
+import org.junit.Test
 
 class IconTableComponentTest {
   @Test
@@ -34,8 +38,10 @@ class IconTableComponentTest {
     val icon = UIManager.get("Tree.expandedIcon", null) as Icon
     val label = IconLabel(icon)
     val presentationManager = TablePresentationManager()
-    val selected = TablePresentation(foreground = JBColor.BLUE, background = JBColor.RED, rowSelected = true)
-    val unselected = TablePresentation(foreground = JBColor.BLUE, background = JBColor.RED, rowSelected = false)
+    val selected =
+      TablePresentation(foreground = JBColor.BLUE, background = JBColor.RED, rowSelected = true)
+    val unselected =
+      TablePresentation(foreground = JBColor.BLUE, background = JBColor.RED, rowSelected = false)
 
     assertThat(label.icon).isEqualTo(icon)
 
@@ -44,6 +50,56 @@ class IconTableComponentTest {
 
     label.updateTablePresentation(presentationManager, unselected)
     assertThat(label.icon).isEqualTo(icon)
+  }
+
+  @Test
+  fun nullIcon() {
+    val panel =
+      JPanel().apply {
+        layout = BorderLayout()
+        size = Dimension(32, 32)
+      }
+    val fakeUi = FakeUi(panel)
+
+    val renderNoIcon = fakeUi.render()
+
+    val label = IconLabel(null).apply { size = Dimension(32, 32) }
+    panel.add(label)
+    fakeUi.layout()
+    val renderNullIcon = fakeUi.render()
+
+    assertSameImage(renderNoIcon, renderNullIcon)
+
+    label.baseIcon = UIManager.get("Tree.expandedIcon", null) as Icon
+
+    assertThrows(AssertionError::class.java) { assertSameImage(fakeUi.render(), renderNullIcon) }
+  }
+
+  @Test
+  fun animatedIcon() {
+    val panel =
+      JPanel().apply {
+        layout = BorderLayout()
+        size = Dimension(32, 32)
+      }
+    val icon = ColorableAnimatedSpinnerIcon()
+    val iconLabel = IconLabel(icon)
+    panel.add(iconLabel)
+
+    iconLabel.iconColor = JBColor.RED
+    assertThat(iconLabel.icon).isInstanceOf(AnimatedIcon::class.java)
+
+    // If we want to test that rendering actually happens repeatedly, we can do the
+    // following, but it depends on an experimental API:
+    //  val fakeUi = FakeUi(panel, createFakeWindow = true)
+    //  val renders = AtomicInteger()
+    //  iconLabel.putClientProperty(AnimatedIcon.REFRESH_DELEGATE, Runnable {
+    // renders.incrementAndGet(); fakeUi.render() })
+    //  runInEdtAndWait {
+    //    fakeUi.render()
+    //  }
+    //  Thread.sleep(500)
+    //  assertThat(renders.get()).isGreaterThan(1)
   }
 }
 
