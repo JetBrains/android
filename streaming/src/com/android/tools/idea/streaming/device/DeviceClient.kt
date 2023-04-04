@@ -143,6 +143,9 @@ internal class DeviceClient(
       }
       catch (e: Throwable) {
         connectionState.set(null)
+        if (isDeviceConnected() == false) {
+          throw CancellationException() // The device has been disconnected.
+        }
         connection.completeExceptionally(e)
       }
     }
@@ -208,6 +211,21 @@ internal class DeviceClient(
   fun stopVideoStream() {
     if (videoStreamActive.compareAndSet(true, false)) {
       deviceController?.sendControlMessage(StopVideoStreamMessage.instance)
+    }
+  }
+
+  /**
+   * Checks if the device is connected. Returns null if it cannot be determined.
+   */
+  private suspend fun isDeviceConnected(): Boolean? {
+    return try {
+      return AdbLibService.getSession(project).hostServices.devices().entries.find { it.serialNumber == deviceSerialNumber } != null
+    }
+    catch (e: CancellationException) {
+      throw e
+    }
+    catch (_: Throwable) {
+      null
     }
   }
 
