@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.rendering
 
+import com.android.tools.rendering.IRenderLogger
 import com.intellij.psi.PsiClass
 
 /** Information about module dependencies required for rendering. */

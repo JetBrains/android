@@ -36,7 +36,7 @@ import static com.android.SdkConstants.LIST_VIEW;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.SdkConstants.VIEW_INCLUDE;
-import static com.android.tools.idea.rendering.ProblemSeverity.WARNING;
+import static com.android.tools.rendering.ProblemSeverity.WARNING;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.android.annotations.NonNull;
@@ -70,6 +70,8 @@ import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutRenderPullParser;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.FileResourceReader;
+import com.android.tools.rendering.IRenderLogger;
+import com.android.tools.rendering.RenderProblem;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.res.ResourceNamespacing;
 import com.android.utils.HtmlBuilder;

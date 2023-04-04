@@ -27,6 +27,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
+import com.android.tools.rendering.IRenderLogger;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.intellij.openapi.module.Module;

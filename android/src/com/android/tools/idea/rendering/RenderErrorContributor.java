@@ -49,6 +49,8 @@ import com.android.tools.idea.rendering.errors.ComposeRenderErrorContributor;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
+import com.android.tools.rendering.HtmlLinkManager;
+import com.android.tools.rendering.RenderProblem;
 import com.android.utils.HtmlBuilder;
 import com.android.xml.AndroidManifest;
 import com.google.common.annotations.VisibleForTesting;

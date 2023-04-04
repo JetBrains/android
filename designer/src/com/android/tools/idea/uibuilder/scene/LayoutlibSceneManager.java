@@ -19,7 +19,7 @@ import static com.android.SdkConstants.ATTR_SHOW_IN;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.resources.Density.DEFAULT_DENSITY;
 import static com.android.tools.idea.common.surface.SceneView.SQUARE_SHAPE_POLICY;
-import static com.android.tools.idea.rendering.ProblemSeverity.ERROR;
+import static com.android.tools.rendering.ProblemSeverity.ERROR;
 import static com.intellij.util.ui.update.Update.HIGH_PRIORITY;
 import static com.intellij.util.ui.update.Update.LOW_PRIORITY;
 
@@ -61,7 +61,7 @@ import com.android.tools.idea.rendering.InteractionEventResult;
 import com.android.tools.idea.rendering.RenderConfiguration;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.RenderModelModule;
-import com.android.tools.idea.rendering.RenderProblem;
+import com.android.tools.rendering.RenderProblem;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderResults;
 import com.android.tools.idea.rendering.RenderService;

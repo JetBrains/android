@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.android.tools.rendering.RenderProblem;
 import com.google.common.collect.Iterables;
 import com.intellij.lang.annotation.HighlightSeverity;
 import java.util.Arrays;

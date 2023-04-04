@@ -76,7 +76,7 @@ import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.ide.common.resources.sampledata.SampleDataManager;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
-import com.android.tools.idea.rendering.IRenderLogger;
+import com.android.tools.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.LayoutMetadata;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.rendering.parsers.RenderXmlAttribute;

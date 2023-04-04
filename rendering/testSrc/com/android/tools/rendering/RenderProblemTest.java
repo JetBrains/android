@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.rendering;
 
 import static org.junit.Assert.assertEquals;
 
+import com.android.tools.rendering.RenderProblem;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.junit.Test;
 
-import static com.android.tools.idea.rendering.ProblemSeverity.ERROR;
-import static com.android.tools.idea.rendering.RenderProblem.PRIORITY_RENDERING_FIDELITY;
-import static com.android.tools.idea.rendering.RenderProblem.PRIORITY_UNEXPECTED;
+import static com.android.tools.rendering.ProblemSeverity.ERROR;
+import static com.android.tools.rendering.RenderProblem.PRIORITY_RENDERING_FIDELITY;
+import static com.android.tools.rendering.RenderProblem.PRIORITY_UNEXPECTED;
 
 public class RenderProblemTest {
   @Test

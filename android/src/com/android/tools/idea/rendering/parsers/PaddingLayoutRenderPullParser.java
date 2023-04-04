@@ -17,7 +17,7 @@ package com.android.tools.idea.rendering.parsers;
 
 import com.android.annotations.Nullable;
 import com.android.resources.Density;
-import com.android.tools.idea.rendering.IRenderLogger;
+import com.android.tools.rendering.IRenderLogger;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.android.tools.res.ResourceRepositoryManager;

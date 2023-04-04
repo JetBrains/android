@@ -17,8 +17,8 @@ package com.android.tools.idea.rendering;
 
 import static com.android.tools.idea.configurations.AdditionalDeviceService.DEVICE_CLASS_DESKTOP_ID;
 import static com.android.tools.idea.configurations.AdditionalDeviceService.DEVICE_CLASS_TABLET_ID;
-import static com.android.tools.idea.rendering.ProblemSeverity.ERROR;
-import static com.android.tools.idea.rendering.ProblemSeverity.WARNING;
+import static com.android.tools.rendering.ProblemSeverity.ERROR;
+import static com.android.tools.rendering.ProblemSeverity.WARNING;
 
 import com.android.SdkConstants;
 import com.android.ide.common.rendering.HardwareConfigHelper;
@@ -56,6 +56,8 @@ import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutRenderPullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
+import com.android.tools.rendering.IRenderLogger;
+import com.android.tools.rendering.RenderProblem;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.android.tools.sdk.CompatibilityRenderTarget;

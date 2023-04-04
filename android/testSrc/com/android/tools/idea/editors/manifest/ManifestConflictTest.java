@@ -18,9 +18,9 @@ package com.android.tools.idea.editors.manifest;
 import com.android.manifmerger.MergingReport;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.model.MergedManifestManager;
-import com.android.tools.idea.rendering.HtmlLinkManager;
 import com.android.tools.idea.rendering.StudioHtmlLinkManager;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
+import com.android.tools.rendering.HtmlLinkManager;
 import com.google.common.collect.ImmutableList;
 
 import com.intellij.openapi.module.Module;

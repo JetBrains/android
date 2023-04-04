@@ -26,6 +26,9 @@ import com.android.tools.idea.projectsystem.requiresAndroidModel
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.util.dependsOn
 import com.android.tools.idea.util.dependsOnAndroidx
+import com.android.tools.rendering.IRenderLogger
+import com.android.tools.rendering.ProblemSeverity
+import com.android.tools.rendering.RenderProblem
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService

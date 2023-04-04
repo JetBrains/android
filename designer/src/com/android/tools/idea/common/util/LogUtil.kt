@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.common.util
 
-import com.android.tools.idea.rendering.RenderProblem
+import com.android.tools.rendering.RenderProblem
 import java.io.PrintWriter
 import java.io.StringWriter
 

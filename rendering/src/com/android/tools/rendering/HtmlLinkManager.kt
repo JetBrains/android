@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering
+package com.android.tools.rendering
 
 import com.android.utils.SdkUtils
 import com.intellij.openapi.diagnostic.Logger

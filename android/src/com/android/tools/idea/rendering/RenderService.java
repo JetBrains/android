@@ -16,7 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import static com.android.tools.idea.rendering.RenderAsyncActionExecutor.*;
-import static com.android.tools.idea.rendering.ProblemSeverity.ERROR;
+import static com.android.tools.rendering.ProblemSeverity.ERROR;
 
 import com.android.ide.common.rendering.api.MergeCookie;
 import com.android.ide.common.rendering.api.SessionParams;
@@ -32,6 +32,8 @@ import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
+import com.android.tools.rendering.HtmlLinkManager;
+import com.android.tools.rendering.RenderProblem;
 import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;

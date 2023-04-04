@@ -16,8 +16,8 @@
 package com.android.tools.idea.rendering.errors
 
 import com.android.tools.idea.rendering.HtmlBuilderHelper
-import com.android.tools.idea.rendering.HtmlLinkManager
 import com.android.tools.idea.rendering.ShowExceptionFix
+import com.android.tools.rendering.HtmlLinkManager
 import com.android.utils.HtmlBuilder
 import com.intellij.openapi.project.Project
 

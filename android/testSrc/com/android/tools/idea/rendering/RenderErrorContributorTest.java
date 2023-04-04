@@ -16,8 +16,8 @@
 package com.android.tools.idea.rendering;
 
 import static com.android.tools.idea.diagnostics.ExceptionTestUtils.createExceptionFromDesc;
-import static com.android.tools.idea.rendering.ProblemSeverity.ERROR;
-import static com.android.tools.idea.rendering.ProblemSeverity.WARNING;
+import static com.android.tools.rendering.ProblemSeverity.ERROR;
+import static com.android.tools.rendering.ProblemSeverity.WARNING;
 
 import com.android.sdklib.IAndroidTarget;
 import com.android.testutils.TestUtils;
@@ -25,6 +25,7 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel;
 import com.android.tools.idea.sdk.AndroidSdks;
+import com.android.tools.rendering.RenderProblem;
 import com.google.common.util.concurrent.Futures;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.application.ApplicationManager;

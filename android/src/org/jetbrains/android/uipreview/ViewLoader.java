@@ -25,7 +25,7 @@ import static com.android.tools.idea.log.LogAnonymizerUtil.anonymizeClassName;
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
-import com.android.tools.idea.rendering.IRenderLogger;
+import com.android.tools.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.RenderModelModule;
 import com.android.tools.idea.rendering.RenderSecurityManager;
 import com.android.tools.idea.res.ResourceIdManager;
