@@ -63,7 +63,6 @@ import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.rendering.parsers.AaptAttrParser;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
@@ -72,6 +71,7 @@ import com.android.tools.idea.rendering.parsers.LayoutRenderPullParser;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.FileResourceReader;
 import com.android.tools.rendering.parsers.RenderXmlFile;
+import com.android.tools.res.ResourceNamespacing;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
 import com.android.utils.XmlUtils;
@@ -134,7 +134,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Nullable private final Object myCredential;
   private final boolean myHasLegacyAppCompat;
   private final boolean myHasAndroidXAppCompat;
-  private final Namespacing myNamespacing;
+  private final ResourceNamespacing myNamespacing;
   @NotNull private IRenderLogger myLogger;
   @NotNull private final ViewLoader myClassLoader;
   @Nullable private String myLayoutName;
@@ -193,7 +193,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     myHasAndroidXAppCompat = renderModule.getDependencies().getDependsOnAndroidXAppCompat();
 
     myNamespacing = renderModule.getResourceRepositoryManager().getNamespacing();
-    if (myNamespacing == Namespacing.DISABLED) {
+    if (myNamespacing == ResourceNamespacing.DISABLED) {
       myImplicitNamespaces = ResourceNamespace.Resolver.TOOLS_ONLY;
     } else {
       myImplicitNamespaces = ResourceNamespace.Resolver.EMPTY_RESOLVER;
@@ -863,7 +863,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
 
   @Override
   public boolean isResourceNamespacingRequired() {
-    return myNamespacing == Namespacing.REQUIRED;
+    return myNamespacing == ResourceNamespacing.REQUIRED;
   }
 
   @Override

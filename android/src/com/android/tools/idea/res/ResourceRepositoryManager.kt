@@ -19,7 +19,7 @@ import com.android.annotations.concurrency.Slow
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.Locale
 import com.android.ide.common.resources.ResourceRepository
-import com.android.tools.idea.model.Namespacing
+import com.android.tools.res.ResourceNamespacing
 import com.google.common.collect.ImmutableList
 
 /**
@@ -54,7 +54,7 @@ interface ResourceRepositoryManager {
    *
    * <p>This is read from the manifest, so needs to be run inside a read action.
    */
-  val namespacing: Namespacing
+  val namespacing: ResourceNamespacing
   val namespace: ResourceNamespace
 
   /** Returns all locales of the project resources. */

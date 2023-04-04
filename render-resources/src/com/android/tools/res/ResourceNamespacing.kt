@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res
+package com.android.tools.res
 
-import com.android.tools.res.ResourceNamespacing
+enum class ResourceNamespacing {
+  /**
+   * Resources are not namespaced.
+   */
+  DISABLED,
 
-/** Representation of an Android module required for a [ResourceIdManager]. */
-interface ResourceIdManagerModelModule {
-  val isAppOrFeature: Boolean
-
-  val namespacing: ResourceNamespacing
+  /**
+   * Resources must be namespaced.
+   */
+  REQUIRED
 }

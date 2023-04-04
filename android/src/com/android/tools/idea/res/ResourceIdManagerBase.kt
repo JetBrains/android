@@ -20,7 +20,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
 import com.android.tools.idea.layoutlib.LayoutLibraryLoader
-import com.android.tools.idea.model.Namespacing
+import com.android.tools.res.ResourceNamespacing
 import gnu.trove.TIntObjectHashMap
 import gnu.trove.TObjectIntHashMap
 import java.lang.reflect.Field
@@ -98,7 +98,7 @@ open class ResourceIdManagerBase(private val module: ResourceIdManagerModelModul
 
   override val finalIdsUsed: Boolean
     get() {
-      return module.isAppOrFeature && module.namespacing == Namespacing.DISABLED
+      return module.isAppOrFeature && module.namespacing == ResourceNamespacing.DISABLED
     }
 
   @Synchronized

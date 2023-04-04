@@ -35,13 +35,13 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.configurations.ResourceResolverCache;
 import com.android.tools.idea.editors.theme.datamodels.ConfiguredThemeEditorStyle;
-import com.android.tools.idea.model.Namespacing;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.res.AndroidDependenciesCache;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceRepositoryManager;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.util.DependencyManagementUtil;
+import com.android.tools.res.ResourceNamespacing;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Pair;
@@ -356,6 +356,6 @@ public class ThemeResolver {
 
   private static boolean isNamespacingEnabled(@NotNull Module module) {
     StudioResourceRepositoryManager repositoryManager = StudioResourceRepositoryManager.getInstance(module);
-    return repositoryManager != null && repositoryManager.getNamespacing() == Namespacing.REQUIRED;
+    return repositoryManager != null && repositoryManager.getNamespacing() == ResourceNamespacing.REQUIRED;
   }
 }

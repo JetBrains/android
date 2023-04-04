@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.res
 
-import com.android.tools.idea.model.Namespacing
+import com.android.tools.res.ResourceNamespacing
 import org.jetbrains.android.facet.AndroidFacet
 
 /** Studio-specific [ResourceIdManagerModelModule] implementation based on [AndroidFacet]. */
@@ -23,6 +23,6 @@ class AndroidFacetResourceIdManagerModelModule(private val facet: AndroidFacet) 
   override val isAppOrFeature: Boolean
     get() = facet.configuration.isAppOrFeature
 
-  override val namespacing: Namespacing
+  override val namespacing: ResourceNamespacing
     get() = StudioResourceRepositoryManager.getInstance(facet).namespacing
 }
