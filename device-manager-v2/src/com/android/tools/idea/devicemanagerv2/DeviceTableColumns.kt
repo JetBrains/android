@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.devicemanagerv2
 
-import com.android.adblib.deviceInfo
 import com.android.sdklib.AndroidVersion
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceTemplate
@@ -23,13 +22,16 @@ import com.android.sdklib.deviceprovisioner.DeviceType
 import com.android.sdklib.devices.Abi
 import com.android.tools.adtui.categorytable.Attribute
 import com.android.tools.adtui.categorytable.Attribute.Companion.stringAttribute
+import com.android.tools.adtui.categorytable.ColorableAnimatedSpinnerIcon
 import com.android.tools.adtui.categorytable.Column
+import com.android.tools.adtui.categorytable.IconLabel
 import com.android.tools.adtui.categorytable.LabelColumn
 import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.android.tools.idea.wearpairing.WearPairingManager
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.project.Project
-import com.intellij.ui.components.JBLabel
+import com.intellij.util.ui.JBDimension
+import com.intellij.util.ui.JBUI
 import icons.StudioIcons
 import kotlinx.coroutines.CoroutineScope
 
@@ -48,7 +50,7 @@ internal data class DeviceRowData(
   val type: DeviceType,
   val androidVersion: AndroidVersion?,
   val abi: Abi?,
-  val status: String,
+  val status: DeviceRowStatus,
   val isVirtual: Boolean,
 ) {
   init {
@@ -68,8 +70,11 @@ internal data class DeviceRowData(
         type = properties.deviceType ?: DeviceType.HANDHELD,
         androidVersion = properties.androidVersion,
         abi = properties.abi,
-        status = state.connectedDevice?.deviceInfo?.deviceState?.toString()?.titlecase()
-            ?: "Disconnected",
+        status =
+          when {
+            state.isOnline() -> DeviceRowStatus.ONLINE
+            else -> DeviceRowStatus.OFFLINE
+          },
         isVirtual = properties.isVirtual ?: false,
       )
     }
@@ -83,13 +88,18 @@ internal data class DeviceRowData(
         type = properties.deviceType ?: DeviceType.HANDHELD,
         androidVersion = properties.androidVersion,
         abi = properties.abi,
-        status = "Disconnected",
+        status = DeviceRowStatus.OFFLINE,
         isVirtual = properties.isVirtual ?: false,
       )
     }
 
     private fun String.titlecase() = lowercase().let { it.replaceFirstChar { it.uppercase() } }
   }
+}
+
+enum class DeviceRowStatus {
+  OFFLINE,
+  ONLINE,
 }
 
 internal val DEVICE_ROW_DATA_KEY = DataKey.create<DeviceRowData>("DeviceRowData")
@@ -126,16 +136,16 @@ internal object DeviceTableColumns {
   }
 
   /** Renders the type of device as an icon. */
-  object Type : Column<DeviceRowData, DeviceType, JBLabel> {
+  object Type : Column<DeviceRowData, DeviceType, IconLabel> {
     override val name = DeviceManagerBundle.message("column.title.formfactor")
 
     override val attribute = TypeAttribute
 
-    override fun createUi(rowValue: DeviceRowData): JBLabel = JBLabel()
+    override fun createUi(rowValue: DeviceRowData): IconLabel = IconLabel(null)
 
-    override fun updateValue(rowValue: DeviceRowData, component: JBLabel, value: DeviceType) {
+    override fun updateValue(rowValue: DeviceRowData, component: IconLabel, value: DeviceType) {
       // While we use isVirtual to tweak the icon, this column groups based on device type only.
-      component.icon =
+      component.baseIcon =
         if (rowValue.isVirtual) {
           when (value) {
             DeviceType.HANDHELD -> StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE
@@ -176,12 +186,36 @@ internal object DeviceTableColumns {
       }
     )
 
-  object Status :
-    LabelColumn<DeviceRowData>(
-      DeviceManagerBundle.message("column.title.status"),
-      Column.SizeConstraint(min = 20, max = 100),
-      stringAttribute { it.status }
-    )
+  object Status : Column<DeviceRowData, DeviceRowStatus, IconLabel> {
+    override val name = "Status"
+    override val attribute =
+      object : Attribute<DeviceRowData, DeviceRowStatus> {
+        override val sorter: Comparator<DeviceRowStatus> = naturalOrder()
+
+        override fun value(t: DeviceRowData) = t.status
+      }
+
+    override val widthConstraint = Column.SizeConstraint.exactly(JBUI.scale(24))
+
+    override fun updateValue(
+      rowValue: DeviceRowData,
+      component: IconLabel,
+      value: DeviceRowStatus
+    ) {
+      component.baseIcon =
+        when {
+          rowValue.handle?.state?.isTransitioning == true -> ColorableAnimatedSpinnerIcon()
+          else ->
+            when (value) {
+              DeviceRowStatus.OFFLINE -> null
+              DeviceRowStatus.ONLINE -> StudioIcons.Avd.STATUS_DECORATOR_ONLINE
+            }
+        }
+    }
+
+    override fun createUi(rowValue: DeviceRowData) =
+      IconLabel(null).apply { size = JBDimension(24, 24) }
+  }
 
   class Actions(private val project: Project, val coroutineScope: CoroutineScope) :
     Column<DeviceRowData, Unit, ActionButtonsPanel> {
@@ -207,11 +241,11 @@ internal object DeviceTableColumns {
 
   fun columns(project: Project, coroutineScope: CoroutineScope) =
     listOf(
+      Status,
       Type,
       Name(WearPairingManager.getInstance()),
       Api,
       IsVirtual,
-      Status,
       Actions(project, coroutineScope)
     )
 }
