@@ -25,16 +25,19 @@ import com.intellij.ide.projectView.ViewSettings
 import com.intellij.ide.projectView.impl.nodes.ProjectViewDirectoryHelper
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode
 import com.intellij.ide.projectView.impl.nodes.PsiFileNode
+import com.intellij.ide.projectView.impl.nodes.PsiFileSystemItemFilter
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Queryable
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDirectory
+import com.intellij.psi.PsiFileSystemItem
 import com.intellij.psi.PsiManager
 import com.intellij.ui.SimpleTextAttributes
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidSourceType
+import org.jetbrains.kotlin.idea.util.isKotlinFileType
 import java.util.Objects
 
 /**
@@ -46,12 +49,13 @@ open class AndroidSourceTypeNode internal constructor(
   androidFacet: AndroidFacet,
   settings: ViewSettings,
   private val sourceType: AndroidSourceType,
-  private val sourceRoots: Set<VirtualFile>
+  private val sourceRoots: Set<VirtualFile>,
+  private val filter: PsiFileSystemItemFilter? = null
 ) : ProjectViewNode<AndroidFacet?>(project, androidFacet, settings), FolderGroupNode {
   override fun getChildren(): Collection<AbstractTreeNode<*>> {
     val projectViewDirectoryHelper = ProjectViewDirectoryHelper.getInstance(myProject)
     return sourceFolders.flatMap { directory ->
-      annotateWithSourceProvider(projectViewDirectoryHelper.getDirectoryChildren(directory, settings, true))
+      annotateWithSourceProvider(projectViewDirectoryHelper.getDirectoryChildren(directory, settings, true, filter))
     }
   }
 
@@ -62,7 +66,7 @@ open class AndroidSourceTypeNode internal constructor(
           val folder = child.value!!
           val (first, file) = findSourceProvider(folder.virtualFile)
           val psiDir = if (file == null) null else PsiManager.getInstance(myProject).findDirectory(file)
-          AndroidPsiDirectoryNode(myProject, folder, settings, first, psiDir)
+          AndroidPsiDirectoryNode(myProject, folder, settings, first, psiDir, child.filter)
         }
 
         is PsiFileNode -> {

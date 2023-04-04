@@ -31,12 +31,15 @@ import com.google.common.collect.HashMultimap
 import com.intellij.ide.projectView.ViewSettings
 import com.intellij.ide.projectView.impl.nodes.ExternalLibrariesNode
 import com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode
+import com.intellij.ide.projectView.impl.nodes.PsiFileSystemItemFilter
 import com.intellij.ide.util.treeView.AbstractTreeNode
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.android.facet.AndroidSourceType
 import org.jetbrains.android.facet.BUILT_IN_TYPES
+import org.jetbrains.kotlin.idea.util.isKotlinFileType
 
 class AndroidViewNodeDefaultProvider : AndroidViewNodeProvider {
   override fun getModuleNodes(module: Module, settings: ViewSettings): List<AbstractTreeNode<*>>? {
@@ -91,6 +94,28 @@ class AndroidViewNodeDefaultProvider : AndroidViewNodeProvider {
             )
           )
         }
+        sourceType == AndroidSourceType.JAVA -> {
+          val kotlinSources = sourcesByType[AndroidSourceType.KOTLIN]
+          val filter = PsiFileSystemItemFilter { item ->
+            // Remove kotlin files covered by kotlin sources
+            if (item.virtualFile.isKotlinFileType()) {
+              kotlinSources.none { source ->  VfsUtilCore.isAncestor(source, item.virtualFile, false) }
+            }
+            else true
+          }
+          result.add(AndroidSourceTypeNode(project, facet, settings, sourceType, sourcesByType[sourceType], filter))
+        }
+
+        sourceType == AndroidSourceType.KOTLIN -> {
+          val javaSources = sourcesByType[AndroidSourceType.JAVA]
+          val filter = PsiFileSystemItemFilter { item ->
+            // From java source folders take only kotlin files.
+            if (javaSources.any { root -> VfsUtilCore.isAncestor(root, item.virtualFile, false)})
+              item.isDirectory || item.virtualFile.isKotlinFileType()
+            else true
+          }
+          result.add(AndroidSourceTypeNode(project, facet, settings, sourceType, sourcesByType[sourceType], filter))
+        }
         else -> {
           result.add(AndroidSourceTypeNode(project, facet, settings, sourceType, sourcesByType[sourceType]))
         }
@@ -133,8 +158,14 @@ private fun getSourcesBySourceType(
       continue
     }
 
-    // if we have a partial overlap, we put just the non overlapping sources into this source type
-    sourcesByType.putAll(sourceType, sources - allSources)
+    if (sourceType == AndroidSourceType.KOTLIN || sourceType == AndroidSourceType.JAVA) {
+      // For kotlin and java allow intersections as kotlin is mapped to both /java and /kotlin folders physically.
+      sourcesByType.putAll(sourceType, sources)
+    }
+    else {
+      // if we have a partial overlap, we put just the non overlapping sources into this source type
+      sourcesByType.putAll(sourceType, sources - allSources)
+    }
     allSources.addAll(sources)
   }
 
