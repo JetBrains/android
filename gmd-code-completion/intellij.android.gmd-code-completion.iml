@@ -18,7 +18,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../studio/google/cloud/testing/firebase-testing/lib/google-api-services-testing-v1-revsnapshot-1.20.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../prebuilts/tools/common/m2/repository/com/google/apis/google-api-services-testing/v1-rev82-1.22.0/google-api-services-testing-v1-rev82-1.22.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
