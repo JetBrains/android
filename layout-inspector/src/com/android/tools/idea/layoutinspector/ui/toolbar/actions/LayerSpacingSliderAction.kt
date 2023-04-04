@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 
-import com.android.tools.idea.layoutinspector.LayoutInspector
-import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_MODEL_KEY
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -61,10 +59,10 @@ object LayerSpacingSliderAction : AnAction(), CustomComponentAction {
   }
 
   override fun update(e: AnActionEvent) {
-    val client = LayoutInspector.get(e)?.currentClient
-    e.presentation.isVisible = client?.capabilities?.contains(InspectorClient.Capability.SUPPORTS_SKP) ?: false
     val model = e.getData(DEVICE_VIEW_MODEL_KEY)
-    e.presentation.isEnabled = model?.isRotated == true
+    val isRotated = model?.isRotated == true
+    e.presentation.isEnabled = isRotated
+    e.presentation.isVisible = isRotated
     val component = e.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY) as? JPanel ?: return
     component.components.forEach { it.isEnabled = e.presentation.isEnabled }
   }

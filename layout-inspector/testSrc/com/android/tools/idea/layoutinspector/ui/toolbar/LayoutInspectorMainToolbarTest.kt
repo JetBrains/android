@@ -31,16 +31,19 @@ import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.toImageType
+import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_MODEL_KEY
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.LayerSpacingSliderAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ToggleLiveUpdatesAction
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.property.panel.impl.model.util.FakeAction
 import com.google.common.truth.Truth
-import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl
@@ -93,7 +96,7 @@ class LayoutInspectorMainToolbarTest {
     val toggle = toolbar.component.components.find { it is ActionButton && it.action is ToggleLiveUpdatesAction } as ActionButton
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isTrue()
-    assertThat(getPresentation(toggle).description).isEqualTo(
+    assertThat(getPresentation(toggle.action).description).isEqualTo(
       "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
       "impact runtime performance.")
   }
@@ -108,7 +111,7 @@ class LayoutInspectorMainToolbarTest {
     val toggle = toolbar.component.components.find { it is ActionButton && it.action is ToggleLiveUpdatesAction } as ActionButton
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isFalse()
-    assertThat(getPresentation(toggle).description).isEqualTo(
+    assertThat(getPresentation(toggle.action).description).isEqualTo(
       "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
       "impact runtime performance."
     )
@@ -126,7 +129,7 @@ class LayoutInspectorMainToolbarTest {
     val toggle = toolbar.component.components.find { it is ActionButton && it.action is ToggleLiveUpdatesAction } as ActionButton
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isTrue()
-    assertThat(getPresentation(toggle).description).isEqualTo(
+    assertThat(getPresentation(toggle.action).description).isEqualTo(
       "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
       "impact runtime performance.")
     assertThat(commands).hasSize(1)
@@ -148,7 +151,7 @@ class LayoutInspectorMainToolbarTest {
     val toggle = toolbar.component.components.find { it is ActionButton && it.action is ToggleLiveUpdatesAction } as ActionButton
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isFalse()
-    assertThat(getPresentation(toggle).description).isEqualTo(
+    assertThat(getPresentation(toggle.action).description).isEqualTo(
       "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
       "impact runtime performance.")
     assertThat(commands).hasSize(1)
@@ -174,7 +177,7 @@ class LayoutInspectorMainToolbarTest {
     fakeUi.mouse.click(10, 10)
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isFalse()
-    assertThat(getPresentation(toggle).description).isEqualTo(
+    assertThat(getPresentation(toggle.action).description).isEqualTo(
       "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
       "impact runtime performance.")
 
@@ -200,7 +203,7 @@ class LayoutInspectorMainToolbarTest {
     fakeUi.mouse.click(10, 10)
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isTrue()
-    assertThat(getPresentation(toggle).description).isEqualTo(
+    assertThat(getPresentation(toggle.action).description).isEqualTo(
       "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
       "impact runtime performance.")
 
@@ -227,7 +230,7 @@ class LayoutInspectorMainToolbarTest {
     fakeUi.mouse.click(10, 10)
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isFalse()
-    assertThat(getPresentation(toggle).description).isEqualTo(
+    assertThat(getPresentation(toggle.action).description).isEqualTo(
       "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might " +
       "impact runtime performance.")
 
@@ -263,7 +266,7 @@ class LayoutInspectorMainToolbarTest {
     fakeUi.mouse.click(10, 10)
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isTrue()
-    assertThat(getPresentation(toggle).description).isEqualTo(
+    assertThat(getPresentation(toggle.action).description).isEqualTo(
       "Stream updates to your app's layout from your device in realtime. Enabling live updates consumes more device resources and might" +
       " impact runtime performance.")
 
@@ -286,6 +289,22 @@ class LayoutInspectorMainToolbarTest {
     val toolbar = createToolbar()
     val isImportant = toolbar.component.getClientProperty(ActionToolbarImpl.IMPORTANT_TOOLBAR_KEY) as? Boolean ?: false
     Truth.assertThat(isImportant).isTrue()
+  }
+
+  @Test
+  fun showLayerSpacingSliderOnlyIfModelIsRotated() {
+    val toolbar = createToolbar()
+    val slider = toolbar.actions.find { it is LayerSpacingSliderAction } as LayerSpacingSliderAction
+
+    val presentationDisabled = getPresentation(slider)
+    assertThat(presentationDisabled.isEnabled).isFalse()
+    assertThat(presentationDisabled.isVisible).isFalse()
+
+    layoutInspectorRule.inspector.renderModel.rotate(10.0, 10.0)
+
+    val presentationEnabled = getPresentation(slider)
+    assertThat(presentationEnabled.isEnabled).isTrue()
+    assertThat(presentationEnabled.isVisible).isTrue()
   }
 
   // Used by all tests that install command handlers
@@ -330,13 +349,22 @@ class LayoutInspectorMainToolbarTest {
     return createLayoutInspectorMainToolbar(JPanel(), layoutInspectorRule.inspector, fakeAction)
   }
 
-  private fun getPresentation(button: ActionButton): Presentation {
+  private fun getPresentation(action: AnAction): Presentation {
     val presentation = Presentation()
     val event = AnActionEvent(
-      null, DataManager.getInstance().getDataContext(button),
+      null, getDataContext(),
       "LayoutInspector.MainToolbar", presentation, ActionManager.getInstance(), 0
     )
-    button.action.update(event)
+    action.update(event)
     return presentation
+  }
+
+  private fun getDataContext(): DataContext {
+    return DataContext {
+      when (it) {
+        DEVICE_VIEW_MODEL_KEY.name -> layoutInspectorRule.inspector.renderModel
+        else -> null
+      }
+    }
   }
 }
