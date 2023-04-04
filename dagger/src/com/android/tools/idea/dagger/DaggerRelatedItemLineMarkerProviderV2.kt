@@ -17,13 +17,8 @@ package com.android.tools.idea.dagger
 
 import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.idea.dagger.concepts.AssistedFactoryMethodDaggerElement
-import com.android.tools.idea.dagger.concepts.AssistedInjectConstructorDaggerElement
-import com.android.tools.idea.dagger.concepts.ComponentDaggerElement
 import com.android.tools.idea.dagger.concepts.ConsumerDaggerElementBase
 import com.android.tools.idea.dagger.concepts.DaggerElement
-import com.android.tools.idea.dagger.concepts.ModuleDaggerElement
-import com.android.tools.idea.dagger.concepts.ProviderDaggerElementBase
-import com.android.tools.idea.dagger.concepts.SubcomponentDaggerElement
 import com.android.tools.idea.dagger.concepts.getDaggerElement
 import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.google.common.base.Supplier
@@ -136,11 +131,7 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
       when (this) {
         is AssistedFactoryMethodDaggerElement,
         is ConsumerDaggerElementBase -> StudioIcons.Misc.DEPENDENCY_PROVIDER
-        is AssistedInjectConstructorDaggerElement,
-        is ProviderDaggerElementBase,
-        is ComponentDaggerElement,
-        is SubcomponentDaggerElement,
-        is ModuleDaggerElement -> StudioIcons.Misc.DEPENDENCY_CONSUMER
+        else -> StudioIcons.Misc.DEPENDENCY_CONSUMER
       }
   }
 
