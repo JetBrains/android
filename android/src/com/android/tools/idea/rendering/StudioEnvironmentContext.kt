@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering
 
 import com.android.ide.common.rendering.api.RenderResources
+import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.util.PathString
 import com.android.tools.idea.AndroidPsiUtils
 import com.android.tools.idea.util.toVirtualFile
@@ -29,6 +30,7 @@ import com.intellij.openapi.project.ex.ProjectEx
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.xml.XmlFile
+import org.jetbrains.android.dom.navigation.getStartDestLayoutId
 
 /** Studio-specific implementation of [EnvironmentContext]. */
 class StudioEnvironmentContext(private val project: Project) : EnvironmentContext {
@@ -56,5 +58,9 @@ class StudioEnvironmentContext(private val project: Project) : EnvironmentContex
   override fun getXmlFile(filePath: PathString): RenderXmlFile? {
     val file = filePath.toVirtualFile()
     return file?.let { AndroidPsiUtils.getPsiFileSafely(project, it) as? XmlFile }?.let { PsiXmlFile(it) }
+  }
+
+  override fun getNavGraphResolver(resourceResolver: ResourceResolver): NavGraphResolver {
+    return NavGraphResolver { navGraph -> getStartDestLayoutId(navGraph, project, resourceResolver) }
   }
 }

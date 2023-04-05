@@ -60,8 +60,9 @@ import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
-import com.android.tools.rendering.IRenderLogger;
+import com.android.tools.idea.rendering.NavGraphResolver;
 import com.android.tools.idea.rendering.RenderTask;
+import com.android.tools.rendering.IRenderLogger;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.android.tools.res.ResourceRepositoryManager;
@@ -172,9 +173,10 @@ public class LayoutPullParsers {
         IRenderLogger logger = renderTask.getLogger();
         HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
         ResourceResolver resourceResolver = renderTask.getContext().getConfiguration().getResourceResolver();
+        NavGraphResolver navGraphResolver = renderTask.getContext().getModule().getEnvironment().getNavGraphResolver(resourceResolver);
         boolean useToolsNamespace = renderTask.getShowWithToolsVisibilityAndPosition();
         return LayoutRenderPullParser
-          .create(file, logger, Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver, manager, useToolsNamespace);
+          .create(file, logger, Collections.emptySet(), hardwareConfig.getDensity(), navGraphResolver, manager, useToolsNamespace);
       }
       case DRAWABLE:
       case MIPMAP:
@@ -198,7 +200,8 @@ public class LayoutPullParsers {
             IRenderLogger logger = renderTask.getLogger();
             HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
             ResourceResolver resourceResolver = renderTask.getContext().getConfiguration().getResourceResolver();
-            return LayoutRenderPullParser.create(file, logger, Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver, manager, true);
+            NavGraphResolver navGraphResolver = renderTask.getContext().getModule().getEnvironment().getNavGraphResolver(resourceResolver);
+            return LayoutRenderPullParser.create(file, logger, Collections.emptySet(), hardwareConfig.getDensity(), navGraphResolver, manager, true);
           }
         }
         return null;

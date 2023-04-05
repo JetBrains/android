@@ -491,12 +491,13 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
         RenderXmlFile xmlFile = myRenderModule.getEnvironment().getXmlFile(xml);
         if (xmlFile != null) {
           ResourceResolver resourceResolver = myRenderTask.getContext().getConfiguration().getResourceResolver();
+          NavGraphResolver navGraphResolver = myRenderTask.getContext().getModule().getEnvironment().getNavGraphResolver(resourceResolver);
           // Do not honor the merge tag for layouts that are inflated via this call. This is just being inflated as part of a different
           // layout so we already have a parent.
           LayoutRenderPullParser parser = LayoutRenderPullParser.create(xmlFile,
                                                                         myLogger,
                                                                         false,
-                                                                        resourceResolver,
+                                                                        navGraphResolver,
                                                                         myRenderModule.getResourceRepositoryManager(),
                                                                         sampleDataCounter.getAndIncrement());
           parser.setUseSrcCompat(myHasLegacyAppCompat || myHasAndroidXAppCompat);

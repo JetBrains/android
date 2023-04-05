@@ -71,13 +71,13 @@ import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.ResourceNamespace;
-import com.android.ide.common.resources.ResourceResolver;
 import com.android.ide.common.resources.ValueXmlHelper;
 import com.android.ide.common.resources.sampledata.SampleDataManager;
 import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.LayoutMetadata;
+import com.android.tools.idea.rendering.NavGraphResolver;
 import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.rendering.parsers.RenderXmlAttribute;
 import com.android.tools.rendering.parsers.RenderXmlFile;
@@ -104,7 +104,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import org.jetbrains.android.dom.navigation.NavXmlHelperKt;
 import org.jetbrains.annotations.NotNull;
 import org.xmlpull.v1.XmlPullParserException;
 
@@ -118,7 +117,7 @@ import org.xmlpull.v1.XmlPullParserException;
  * are of type {@link RenderXmlTag}.
  */
 public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttrParser {
-  @Nullable final ResourceResolver myResourceResolver;
+  @Nullable final NavGraphResolver myNavGraphResolver;
 
   /**
    * Set of views that support the use of the app:srcCompat attribute when the support library is being used. This list must contain
@@ -216,20 +215,21 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
    * @param file         The {@link RenderXmlFile} containing the root node.
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
-   * @param sampleDataCounter start index for displaying sample data
+   * @param navGraphResolver Optional {@link NavGraphResolver}.
    * @param resourceRepositoryManager for namespace
+   * @param sampleDataCounter start index for displaying sample data
    */
   @NotNull
   public static LayoutRenderPullParser create(@NotNull RenderXmlFile file,
                                               @NotNull IRenderLogger logger,
                                               boolean honorMergeParentTag,
-                                              @Nullable ResourceResolver resolver,
+                                              @Nullable NavGraphResolver navGraphResolver,
                                               @Nullable ResourceRepositoryManager resourceRepositoryManager,
                                               int sampleDataCounter) {
     if (file.getFolderType() == ResourceFolderType.MENU) {
       return new MenuRenderPullParser(file, logger, resourceRepositoryManager);
     }
-    return new LayoutRenderPullParser(file, logger, honorMergeParentTag, resolver, resourceRepositoryManager, sampleDataCounter);
+    return new LayoutRenderPullParser(file, logger, honorMergeParentTag, navGraphResolver, resourceRepositoryManager, sampleDataCounter);
   }
 
   /**
@@ -255,8 +255,7 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
    *                     padding ({@link PaddingLayoutRenderPullParser#FIXED_PADDING_VALUE}).
    *                     This is intended for use with nodes that (without padding) would be
    *                     invisible.
-   * @param resourceResolver Optional {@link ResourceResolver} that will be used by the parser to
-   *                         resolve any resources.
+   * @param navGraphResolver Optional {@link NavGraphResolver}.
    * @param density      the density factor for the screen.
    * @param useToolsPositionAndVisibility When false, 'visibility', 'layout_editor_absoluteX' and 'layout_editor_absoluteY' tools namespaced
    *                                     attributes will be ignored by the parser.
@@ -266,7 +265,7 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
                                               @NotNull IRenderLogger logger,
                                               @Nullable Set<RenderXmlTag> explodeNodes,
                                               @NotNull Density density,
-                                              @Nullable ResourceResolver resourceResolver,
+                                              @Nullable NavGraphResolver navGraphResolver,
                                               @Nullable ResourceRepositoryManager resourceRepositoryManager,
                                               @NotNull Boolean useToolsPositionAndVisibility) {
     if (explodeNodes != null && !explodeNodes.isEmpty()) {
@@ -274,7 +273,7 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
     } else {
       // This method is only called to create layouts from the preview/editor (not inflated by custom components) so we always honor
       // the tools:parentTag
-      return new LayoutRenderPullParser(file, logger, true, resourceResolver, resourceRepositoryManager, useToolsPositionAndVisibility);
+      return new LayoutRenderPullParser(file, logger, true, navGraphResolver, resourceRepositoryManager, useToolsPositionAndVisibility);
     }
   }
 
@@ -308,17 +307,16 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
    * @param file         The {@link RenderXmlFile} containing the root node.
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
-   * @param resolver Optional {@link ResourceResolver} that will be used by the parser to
-   *                         resolve any resources.
+   * @param navGraphResolver Optional {@link NavGraphResolver}.
    * @param sampleDataCounter start index for displaying sample data
    */
   protected LayoutRenderPullParser(@NotNull RenderXmlFile file,
                                    @NotNull ILayoutLog logger,
                                    boolean honorMergeParentTag,
-                                   @Nullable ResourceResolver resolver,
+                                   @Nullable NavGraphResolver navGraphResolver,
                                    @Nullable ResourceRepositoryManager resourceRepositoryManager,
                                    int sampleDataCounter) {
-    this(file.getRootTag(), logger, honorMergeParentTag, resolver, resourceRepositoryManager, sampleDataCounter, true);
+    this(file.getRootTag(), logger, honorMergeParentTag, navGraphResolver, resourceRepositoryManager, sampleDataCounter, true);
   }
 
   /**
@@ -327,18 +325,17 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
    * @param file         The {@link RenderXmlFile} containing the root node.
    * @param logger       The logger to emit warnings too, such as missing fragment associations
    * @param honorMergeParentTag if true, this method will look into the {@code tools:parentTag} to replace the root {@code <merge>} tag.
-   * @param resourceResolver Optional {@link ResourceResolver} that will be used by the parser to
-   *                         resolve any resources.
+   * @param navGraphResolver Optional NavGraphResolver.
    * @param useToolsPositionAndVisibility When false, 'visibility', 'layout_editor_absoluteX' and 'layout_editor_absoluteY' tools namespaced
    *                                     attributes will be ignored by the parser.
    */
   protected LayoutRenderPullParser(@NotNull RenderXmlFile file,
                                    @NotNull ILayoutLog logger,
                                    boolean honorMergeParentTag,
-                                   @Nullable ResourceResolver resourceResolver,
+                                   @Nullable NavGraphResolver navGraphResolver,
                                    @Nullable ResourceRepositoryManager resourceRepositoryManager,
                                    boolean useToolsPositionAndVisibility) {
-    this(file.getRootTag(), logger, honorMergeParentTag, resourceResolver, resourceRepositoryManager, 0, useToolsPositionAndVisibility);
+    this(file.getRootTag(), logger, honorMergeParentTag, navGraphResolver, resourceRepositoryManager, 0, useToolsPositionAndVisibility);
   }
 
   /**
@@ -374,9 +371,9 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
   protected LayoutRenderPullParser(@Nullable final RenderXmlTag root,
                                    @NotNull ILayoutLog logger,
                                    boolean honorMergeParentTag,
-                                   @Nullable ResourceResolver resourceResolver,
+                                   @Nullable NavGraphResolver navGraphResolver,
                                    @Nullable ResourceRepositoryManager resourceRepositoryManager) {
-    this(root, logger, honorMergeParentTag, resourceResolver, resourceRepositoryManager, 0, true);
+    this(root, logger, honorMergeParentTag, navGraphResolver, resourceRepositoryManager, 0, true);
   }
 
   /**
@@ -387,11 +384,11 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
   protected LayoutRenderPullParser(@Nullable final RenderXmlTag root,
                                    @NotNull ILayoutLog logger,
                                    boolean honorMergeParentTag,
-                                   @Nullable ResourceResolver resourceResolver,
+                                   @Nullable NavGraphResolver navGraphResolver,
                                    @Nullable ResourceRepositoryManager repositoryManager,
                                    int sampleDataCounter,
                                    boolean useToolsPositionAndVisibility) {
-    myResourceResolver = resourceResolver;
+    myNavGraphResolver = navGraphResolver;
     myLogger = logger;
     mySampleDataCounter = sampleDataCounter;
     myUseToolsPositionAndVisibility = useToolsPositionAndVisibility;
@@ -415,7 +412,7 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
   }
 
   protected LayoutRenderPullParser(@NotNull TagSnapshot root, @NotNull ResourceNamespace layoutNamespace, @NotNull ILayoutLog log) {
-    myResourceResolver = null;
+    myNavGraphResolver = null;
     myLogger = log;
     myDeclaredAaptAttrs = ImmutableMap.of();
     myRoot = ApplicationManager.getApplication().runReadAction((Computable<TagSnapshot>)() -> {
@@ -680,8 +677,8 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
         return layout;
       }
       String navGraph = tag.getAttribute(ATTR_NAV_GRAPH, AUTO_URI);
-      if (navGraph != null) {
-        return NavXmlHelperKt.getStartDestLayoutId(navGraph, myRoot.tag.getProject(), myResourceResolver);
+      if (navGraph != null && myNavGraphResolver != null) {
+        return myNavGraphResolver.resolve(navGraph);
       }
     }
     else if (myUseSrcCompat && ATTR_SRC.equals(localName) && TAGS_SUPPORTING_SRC_COMPAT.contains(tag.tagName)) {
@@ -811,8 +808,8 @@ public class LayoutRenderPullParser extends LayoutPullParser implements AaptAttr
         String layout = currentNode.getAttribute(LayoutMetadata.KEY_FRAGMENT_LAYOUT, TOOLS_URI);
         if (layout == null) {
           String navGraph = currentNode.getAttribute(ATTR_NAV_GRAPH, AUTO_URI);
-          if (navGraph != null && myResourceResolver != null) {
-            layout = NavXmlHelperKt.getStartDestLayoutId(navGraph, myRoot.tag.getProject(), myResourceResolver);
+          if (navGraph != null && myNavGraphResolver != null) {
+            layout = myNavGraphResolver.resolve(navGraph);
           }
         }
         if (layout != null) {

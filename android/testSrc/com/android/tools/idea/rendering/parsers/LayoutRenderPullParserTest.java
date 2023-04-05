@@ -43,7 +43,10 @@ import com.android.resources.Density;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
+import com.android.tools.idea.rendering.EnvironmentContext;
+import com.android.tools.idea.rendering.NavGraphResolver;
 import com.android.tools.idea.rendering.RenderLogger;
+import com.android.tools.idea.rendering.StudioEnvironmentContext;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.rendering.parsers.RenderXmlAttribute;
 import com.android.tools.rendering.parsers.RenderXmlFile;
@@ -649,10 +652,11 @@ public class LayoutRenderPullParserTest extends AndroidTestCase {
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = manager.getConfiguration(psiFile.getVirtualFile());
     ResourceResolver resourceResolver = configuration.getResourceResolver();
+    NavGraphResolver navGraphResolver = new StudioEnvironmentContext(myModule.getProject()).getNavGraphResolver(resourceResolver);
 
     LayoutRenderPullParser parser =
       LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                    null, Density.MEDIUM, resourceResolver,
+                                    null, Density.MEDIUM, navGraphResolver,
                                     StudioResourceRepositoryManager.getInstance(myModule), true);
     assertEquals(START_TAG, parser.nextTag());
     assertEquals(START_TAG, parser.nextTag());
@@ -694,10 +698,11 @@ public class LayoutRenderPullParserTest extends AndroidTestCase {
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     Configuration configuration = manager.getConfiguration(psiFile.getVirtualFile());
     ResourceResolver resourceResolver = configuration.getResourceResolver();
+    NavGraphResolver navGraphResolver = new StudioEnvironmentContext(myModule.getProject()).getNavGraphResolver(resourceResolver);
 
     LayoutRenderPullParser parser =
       LayoutRenderPullParser.create(xmlFile, RenderLogger.NOP_RENDER_LOGGER,
-                                    null, Density.MEDIUM, resourceResolver,
+                                    null, Density.MEDIUM, navGraphResolver,
                                     StudioResourceRepositoryManager.getInstance(myModule), true);
     assertEquals(START_TAG, parser.nextTag());
     assertEquals(START_TAG, parser.nextTag());
