@@ -1,6 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
-load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
+load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE")
 
 # managed by go/iml_to_build
 iml_module(
@@ -63,7 +63,7 @@ iml_test(
     data = [
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
-        "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
+        INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
     module = ":intellij.android.core.integration",
     tags_linux = ["block-network"],
@@ -94,7 +94,7 @@ iml_test(
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
         INTEGRATION_TEST_GRADLE_VERSION,
-        "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
+        INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
     module = ":intellij.android.core.integration",
     tags_linux = ["block-network"],
@@ -110,7 +110,7 @@ iml_test(
     data = [
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
-        "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
+        INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
     module = ":intellij.android.core.integration",
     tags = ["manual"],  # b/243923041
@@ -136,7 +136,7 @@ iml_test(
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
         "//tools/base/build-system:gradle-distrib-7.2",
-        "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
+        INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
     module = ":intellij.android.core.integration",
     tags_linux = ["block-network"],
@@ -164,7 +164,7 @@ iml_test(
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
         "//tools/base/build-system:gradle-distrib-7.2",
-        "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
+        INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
     module = ":intellij.android.core.integration",
     tags_linux = [
@@ -232,7 +232,7 @@ build_and_run_test_data = select({
     "//prebuilts/studio/sdk:emulator",
     "//prebuilts/studio/sdk:platform-tools",
     INTEGRATION_TEST_GRADLE_VERSION,
-    "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
+    INTEGRATION_TEST_SYSTEM_IMAGE,
 ]
 
 iml_test(
@@ -421,7 +421,7 @@ iml_test(
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
         "//tools/base/build-system:gradle-distrib-7.5",
-        "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
+        INTEGRATION_TEST_SYSTEM_IMAGE,
     ],
     module = ":intellij.android.core.integration",
     tags_linux = ["block-network"],

@@ -200,7 +200,6 @@ layout_editor_data = select({
     "//tools/adt/idea/designer/testData:simpleApplication",
     "//tools/adt/idea/designer/testData:visualLintApplication",
     "//tools/base/build-system:gradle-distrib-7.3.3",
-    "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
 ]
 
 maven_repository(

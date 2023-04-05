@@ -1,5 +1,5 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
-load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
+load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE")
 
 # managed by go/iml_to_build
 iml_module(
@@ -88,13 +88,13 @@ iml_test(
         ],
         "//conditions:default": [],
     }) + [
-        "//tools/adt/idea/android/integration:buildproject_deps",
-        "//tools/adt/idea/android/integration:minapp",
         "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:emulator",
         "//prebuilts/studio/sdk:platform-tools",
+        "//tools/adt/idea/android/integration:buildproject_deps",
+        "//tools/adt/idea/android/integration:minapp",
         INTEGRATION_TEST_GRADLE_VERSION,
-        "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
+        INTEGRATION_TEST_SYSTEM_IMAGE,
         "@maven//:org.jetbrains.kotlinx.kotlinx-coroutines-core_1.4.1",
         "@maven//:org.jetbrains.markdown_0.2.1",
     ],
