@@ -23,8 +23,8 @@ import org.jetbrains.plugins.gradle.issue.GradleIssueData
 import org.junit.Test
 
 @Suppress("UnstableApiUsage")
-class JvmOldIssueCheckerTest {
-  private val issueChecker = JvmOldIssueChecker()
+class UnsupportedClassVersionIssueCheckerTest {
+  private val issueChecker = UnsupportedClassVersionIssueChecker()
 
   @Test
   fun `consumeBuildOutputFailureMessage is false when pattern is not present`() {
