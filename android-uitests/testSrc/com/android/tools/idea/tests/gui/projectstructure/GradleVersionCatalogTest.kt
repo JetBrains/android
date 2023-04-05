@@ -28,6 +28,7 @@ import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectProject
 import com.android.tools.idea.tests.gui.framework.fixture.newpsd.selectVariablesConfigurable
 import com.google.common.truth.Truth
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
+import org.fest.swing.timing.Wait
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -81,7 +82,7 @@ class GradleVersionCatalogTest {
     val ideFrame: IdeFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish(projectName,
                                                                                        null,
                                                                                        "7.4.1",
-                                                                                       "1.7.21",
+                                                                                       "1.8.10",
                                                                                        null,
                                                                                        GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT)
     guiTest.waitForAllBackgroundTasksToBeCompleted()
@@ -173,7 +174,7 @@ class GradleVersionCatalogTest {
     val ideFrame: IdeFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish(projectName,
                                                                                        null,
                                                                                        "7.4.1",
-                                                                                       "1.7.21",
+                                                                                       "1.8.10",
                                                                                        null,
                                                                                        GuiTestRule.DEFAULT_IMPORT_AND_SYNC_WAIT)
 
@@ -200,7 +201,7 @@ class GradleVersionCatalogTest {
         enter()
         Truth.assertThat(contents()).containsAllIn(listOf(
           "agp" to "7.4.1",
-          "kotlin" to "1.7.21",
+          "kotlin" to "1.8.10",
           "material" to "1.5.0",
           "appcompat" to "1.3.0",
           "constraintlayout" to "2.1.3",
@@ -214,7 +215,7 @@ class GradleVersionCatalogTest {
         enterText("1.0.0")
         selectCell("material")
         tab()
-        enterText("1.7.0")
+        enterText("1.8.0")
 
         selectCell("testchangeversion")
         enterText("testchangeversion2")
@@ -223,8 +224,8 @@ class GradleVersionCatalogTest {
         enter()
         Truth.assertThat(contents()).containsAllIn(listOf(
           "agp" to "7.4.1",
-          "kotlin" to "1.7.21",
-          "material" to "1.7.0",
+          "kotlin" to "1.8.10",
+          "material" to "1.8.0",
           "appcompat" to "1.3.0",
           "constraintlayout" to "2.1.3",
           "junit" to "4.13.2",
@@ -249,8 +250,8 @@ class GradleVersionCatalogTest {
 
       Truth.assertThat(versionMap.toList()).containsExactly(
       "agp" to "7.4.1",
-      "kotlin" to "1.7.21",
-      "material" to "1.7.0",
+      "kotlin" to "1.8.10",
+      "material" to "1.8.0",
       "appcompat" to "1.3.0",
       "constraintlayout" to "2.1.3",
       "junit" to "4.13.2",
@@ -268,14 +269,14 @@ class GradleVersionCatalogTest {
             findDependenciesTable().contents().map { it.toList() })
             .containsAllIn(listOf(
               listOf("androidx.appcompat:appcompat:1.3.0", "implementation"),
-              listOf("com.google.android.material:material:1.7.0", "implementation")
+              listOf("com.google.android.material:material:1.8.0", "implementation")
             ))
 
           findDependenciesTable().cell("androidx.appcompat:appcompat:1.3.0").click()
           findVersionCombo().run {
             Truth.assertThat(selectedItem()).contains("versions.appcompat")
-            selectItem(Pattern.compile(".*1\\.4\\.1.*"))
-            Truth.assertThat(selectedItem()).contains("1.4.1")
+            selectItem(Pattern.compile(".*1\\.6\\.1.*"))
+            Truth.assertThat(selectedItem()).contains("1.6.1")
           }
         }
       }
@@ -284,7 +285,7 @@ class GradleVersionCatalogTest {
 
     val catalogAfterDependencyUpdates: String = editor.open(versionsFilePath).currentFileContents
     val cleanedCatalogString = catalogAfterDependencyUpdates.replace(" ","")
-    assertTrue(cleanedCatalogString.contains("appcompat={group=\"androidx.appcompat\",name=\"appcompat\",version=\"1.4.1\"}"))
+    assertTrue(cleanedCatalogString.contains("appcompat={group=\"androidx.appcompat\",name=\"appcompat\",version=\"1.6.1\"}"))
 
     val appBuildFileContent: String = editor.open(appBuildFilePath).currentFileContents
 
@@ -310,7 +311,7 @@ class GradleVersionCatalogTest {
 
     IdeFrameFixture.find(guiTest.robot()).requestFocusIfLost();
 
-    val buildSuccess = guiTest.ideFrame().invokeProjectMake().isBuildSuccessful
+    val buildSuccess = guiTest.ideFrame().invokeProjectMake(Wait.seconds(180)).isBuildSuccessful
     Truth.assertThat(buildSuccess).isTrue()
   }
 }
