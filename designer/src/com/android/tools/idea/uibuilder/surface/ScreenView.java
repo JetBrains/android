@@ -36,6 +36,7 @@ import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColor
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.layer.BorderLayer;
 import com.android.tools.idea.uibuilder.surface.layer.CanvasResizeLayer;
+import com.android.tools.idea.uibuilder.surface.layer.OverlayLayer;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.google.common.collect.ImmutableList;
 import java.awt.Dimension;
