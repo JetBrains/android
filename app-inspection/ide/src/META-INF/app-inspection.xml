@@ -26,8 +26,8 @@
                       factoryClass="com.android.tools.idea.appinspection.ide.ui.AppInspectionToolWindowFactory"
                       doNotActivateOnStart="true"/>
   </extensions>
-
-  <extensions defaultExtensionNs="com.android.run">
-    <androidLaunchTaskContributor implementation="com.android.tools.idea.appinspection.ide.ui.AppInspectionLaunchTaskContributor" />
-  </extensions>
+  <projectListeners>
+    <listener class="com.android.tools.idea.appinspection.ide.ui.AppInspectionExecutionListener"
+              topic="com.intellij.execution.ExecutionListener"/>
+  </projectListeners>
 </idea-plugin>

@@ -17,76 +17,49 @@ package com.android.tools.idea.appinspection.ide.ui
 
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.DeviceImpl
-import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
-import com.android.tools.idea.run.AndroidLaunchTasksProvider
 import com.android.tools.idea.run.AndroidRunConfiguration
 import com.android.tools.idea.run.AndroidRunConfigurationType
-import com.android.tools.idea.run.ApplicationIdProvider
-import com.android.tools.idea.run.LaunchOptions
-import com.android.tools.idea.run.tasks.LaunchContext
+import com.android.tools.idea.run.DeviceFutures
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.ExecutionManager
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder
 import kotlin.random.Random
-import org.jetbrains.android.facet.AndroidFacet
 import org.junit.Rule
 import org.junit.Test
 
-class AppInspectionLaunchTaskContributorTest {
+class AppInspectionExecutionListenerTest {
   @get:Rule val projectRule = AndroidProjectRule.inMemory()
 
   @Test
   fun testRecentProcess() {
     val project = projectRule.project
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
-    fun env() =
+    fun env(appId: String) =
       ExecutionEnvironmentBuilder.create(
           DefaultRunExecutor.getRunExecutorInstance(),
-          AndroidRunConfiguration(
-            projectRule.project,
-            AndroidRunConfigurationType.getInstance().factory
-          )
+          object :
+            AndroidRunConfiguration(
+              projectRule.project,
+              AndroidRunConfigurationType.getInstance().factory
+            ) {
+            override val appId: String?
+              get() = appId
+          }
         )
         .build()
-        .apply { executionId = Random.nextLong() }
-
-    val applicationIdProvider: ApplicationIdProvider =
-      object : ApplicationIdProvider {
-        override fun getPackageName(): String = "com.example.p1"
-        override fun getTestPackageName(): String? = null
-      }
-
-    val launchOptions = LaunchOptions.builder().setClearLogcatBeforeStart(false).build()
-
-    val androidFacet = AndroidFacet.getInstance(projectRule.module)!!
+        .apply {
+          executionId = Random.nextLong()
+          putCopyableUserData(DeviceFutures.KEY, DeviceFutures.forDevices(listOf(device)))
+        }
 
     val handler1 = AndroidProcessHandler(project, "com.example.p1")
 
     run { // Start process "p1"
-      val env = env()
-      val launchTaskProvider =
-        AndroidLaunchTasksProvider(
-          env.runProfile as AndroidRunConfiguration,
-          env,
-          androidFacet,
-          applicationIdProvider,
-          mock(),
-          launchOptions,
-          false
-        )
+      val env = env("com.example.p1")
 
-      val task1 =
-        launchTaskProvider
-          .getTasks(device)
-          .filterIsInstance(AppInspectionLaunchTask::class.java)
-          .single()
-
-      val launchContext1 = LaunchContext(env, device, mock(), handler1, mock())
-      task1.run(launchContext1)
-      handler1.startNotify()
       project.messageBus
         .syncPublisher(ExecutionManager.EXECUTION_TOPIC)
         .processStarted(DefaultRunExecutor.EXECUTOR_ID, env, handler1)
@@ -98,32 +71,9 @@ class AppInspectionLaunchTaskContributorTest {
 
     // Start process "p2"
     run {
-      val env = env()
-      val applicationIdProvider: ApplicationIdProvider =
-        object : ApplicationIdProvider {
-          override fun getPackageName(): String = "com.example.p2"
-          override fun getTestPackageName(): String? = null
-        }
-      val launchTaskProvider2 =
-        AndroidLaunchTasksProvider(
-          env.runProfile as AndroidRunConfiguration,
-          env,
-          androidFacet,
-          applicationIdProvider,
-          mock(),
-          launchOptions,
-          false
-        )
-      val task2 =
-        launchTaskProvider2
-          .getTasks(device)
-          .filterIsInstance(AppInspectionLaunchTask::class.java)
-          .single()
+      val env = env("com.example.p2")
 
       val handler2 = AndroidProcessHandler(project, "com.example.p2")
-      val launchContext2 = LaunchContext(env, device, mock(), handler2, mock())
-      task2.run(launchContext2)
-      handler2.startNotify()
       project.messageBus
         .syncPublisher(ExecutionManager.EXECUTION_TOPIC)
         .processStarted(DefaultRunExecutor.EXECUTOR_ID, env, handler2)
