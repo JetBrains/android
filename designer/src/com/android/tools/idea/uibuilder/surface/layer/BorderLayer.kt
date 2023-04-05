@@ -48,7 +48,7 @@ enum class BorderColor(internal val colorInside: Color, internal val colorOutsid
 
 class BorderLayer @JvmOverloads constructor(private val myScreenView: SceneView,
                                             private val myMustPaintBorder: Boolean = false,
-                                            private val rotation : () -> Float,
+                                            private val isRotating : () -> Boolean,
                                             private val colorProvider: (SceneView) -> BorderColor = {
                                               BorderColor.DEFAULT_WITH_SHADOW
                                             }) : Layer() {
@@ -60,7 +60,7 @@ class BorderLayer @JvmOverloads constructor(private val myScreenView: SceneView,
     }
 
     // When screen rotation feature is enabled, we want to hide the border.
-    if (!java.lang.Float.isNaN(rotation())) {
+    if (isRotating()) {
       return
     }
 

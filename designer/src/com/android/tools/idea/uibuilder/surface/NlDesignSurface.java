@@ -1066,6 +1066,13 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
   public float getRotateSurfaceDegree() {
     return myRotateSurfaceDegree;
   }
+
+  /**
+   * Return whenever surface is rotating.
+   */
+  public boolean isRotating() {
+    return !Float.isNaN(myRotateSurfaceDegree);
+  }
   public boolean isInAnimationScrubbing() { return myIsAnimationScrubbing; }
 
   /**

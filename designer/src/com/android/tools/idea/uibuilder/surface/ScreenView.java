@@ -152,7 +152,7 @@ public class ScreenView extends ScreenViewBase {
     ImmutableList.Builder<Layer> builder = ImmutableList.builder();
 
     if (screenView.hasBorderLayer()) {
-      builder.add(new BorderLayer(screenView, () -> screenView.getSurface().getRotateSurfaceDegree()));
+      builder.add(new BorderLayer(screenView, () -> screenView.getSurface().isRotating()));
     }
     builder.add(new ScreenViewLayer(screenView));
 

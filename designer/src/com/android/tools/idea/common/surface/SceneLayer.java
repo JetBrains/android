@@ -97,8 +97,7 @@ public class SceneLayer extends Layer {
       DesignSurface<?> sufrace = mySceneView.getSurface();
       if (sufrace instanceof NlDesignSurface) {
         NlDesignSurface nlSurface = (NlDesignSurface)sufrace;
-        float degree = nlSurface.getRotateSurfaceDegree();
-        if (!Float.isNaN(degree)) {
+        if (nlSurface.isRotating()) {
           return;
         }
       }

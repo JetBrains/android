@@ -51,7 +51,7 @@ internal val COMPOSE_SCREEN_VIEW_PROVIDER =
             .apply {
               if (it.hasBorderLayer()) {
                 add(
-                  BorderLayer(it, true, { surface.rotateSurfaceDegree }) { sceneView ->
+                  BorderLayer(it, true, { surface.isRotating }) { sceneView ->
                     when {
                       StudioFlags.COMPOSE_PREVIEW_SELECTION.get() &&
                         sceneView.isRootComponentSelected() -> BorderColor.SELECTED

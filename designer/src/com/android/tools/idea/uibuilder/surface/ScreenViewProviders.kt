@@ -173,7 +173,7 @@ internal fun blueprintProvider(surface: NlDesignSurface,
     .withLayersProvider {
       ImmutableList.builder<Layer>().apply {
         if (it.hasBorderLayer()) {
-          add(BorderLayer(it, rotation = { surface.rotateSurfaceDegree }))
+          add(BorderLayer(it, isRotating = { surface.isRotating }))
         }
         if (!isSecondary) {
           add(CanvasResizeLayer(it) { surface.repaint() })
@@ -194,7 +194,7 @@ internal fun visualizationProvider(surface: NlDesignSurface,
     .withLayersProvider {
       ImmutableList.builder<Layer>().apply {
         // Always has border in visualization tool.
-        add(BorderLayer(it, rotation = { surface.rotateSurfaceDegree }))
+        add(BorderLayer(it, isRotating = { surface.isRotating }))
         add(ScreenViewLayer(it, colorBlindMode))
         add(SceneLayer(it.surface, it, false).apply { isShowOnHover = true })
         add(WarningLayer(it))
@@ -236,7 +236,7 @@ internal fun colorBlindProvider(surface: NlDesignSurface,
     .withLayersProvider {
       ImmutableList.builder<Layer>().apply {
         // Always has border in visualization tool.
-        add(BorderLayer(it, rotation = { surface.rotateSurfaceDegree }))
+        add(BorderLayer(it, isRotating = { surface.isRotating }))
         // Try to get the specific blind mode for this manager/model
         val colorBlindMode: ColorBlindMode? = findColorBlindMode(manager)
         if (colorBlindMode != null) {
