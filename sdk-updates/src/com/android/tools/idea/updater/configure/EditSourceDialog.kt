@@ -25,6 +25,7 @@ import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.builder.selected
 import com.intellij.ui.dsl.builder.text
 import com.intellij.ui.layout.selected
 import java.awt.event.FocusAdapter
@@ -150,7 +151,7 @@ class EditSourceDialog(private val provider: RepositorySourceProvider, private v
       }
       row {
         useAuthentication = checkBox("Use Authentication")
-          .applyToComponent { isSelected = existingAuth != null }
+          .selected(existingAuth != null)
           .component
       }
       panel {
