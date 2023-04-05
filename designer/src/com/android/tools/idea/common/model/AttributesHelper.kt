@@ -16,6 +16,9 @@
 package com.android.tools.idea.common.model
 
 import com.android.SdkConstants.ANDROID_URI
+import com.android.SdkConstants.TAG_INCLUDE
+import com.android.SdkConstants.TAG_LAYOUT
+import com.android.SdkConstants.TAG_STYLE
 import com.intellij.util.xml.DomManager
 import org.jetbrains.android.dom.AndroidDomElement
 import org.jetbrains.android.dom.AttributeProcessingUtil
@@ -34,6 +37,12 @@ fun getObsoleteAttributes(component: NlComponent): Set<QualifiedName> {
   AttributeProcessingUtil.processAttributes(domElement, facet, false) { xmlName, attributeDefinition, _ ->
     validAttributes.add(QualifiedName(xmlName.namespaceKey ?: ANDROID_URI, attributeDefinition.name))
     return@processAttributes null
+  }
+  if (tag.name == TAG_INCLUDE) {
+    // Attributes without namespace in the include needs special handling so they are
+    // not removed.
+    validAttributes.add(QualifiedName("", TAG_LAYOUT))
+    validAttributes.add(QualifiedName("", TAG_STYLE))
   }
   val currentAttibutes = tag.attributes.map { attibute ->
     QualifiedName(attibute.namespace, attibute.localName)
