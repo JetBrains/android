@@ -17,10 +17,10 @@ package com.android.tools.idea.editors.liveedit.ui
 
 import com.android.tools.adtui.compose.POPUP_ACTION
 import com.android.tools.adtui.compose.REFRESH_BUTTON
-import com.android.tools.idea.editors.literals.LiveEditAnActionListener
 import com.android.tools.idea.editors.literals.LiveEditService
-import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_AUTOMATIC
-import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_MANUAL
+import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC
+import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.ON_HOTKEY
+import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
@@ -56,6 +56,7 @@ import java.awt.Point
 import javax.swing.JComponent
 
 const val MANUAL_LIVE_EDIT_ACTION_ID = "Compose.Live.Edit.ManualLiveEdit"
+const val REFRESH_ACTION_ID = "Compose.Live.Edit.Refresh"
 const val SHOW_LOGCAT_ACTION_ID = "Compose.Live.Edit.ShowLogcat"
 
 /**
@@ -151,15 +152,20 @@ internal class RedeployAction :
 }
 
 /**
- * [AnAction] that performs a Save All and manually triggers Live Edit.
+ * [AnAction] for the UI that manually triggers Live Edit.
  */
-internal class ManualLiveEditAction : AnAction("Refresh") {
+internal class RefreshAction : AnAction("Refresh") {
   override fun actionPerformed(e: AnActionEvent) {
-    val project = e.project ?: return
-    // Since there's no easy way to trigger a keyboard shortcut short of simulating AWT events,
-    // we instead perform Save All followed by a manual Live Edit trigger.
-    invokeActionNow(e, ActionManager.getInstance().getAction(LiveEditService.PIGGYBACK_ACTION_ID))
-    LiveEditAnActionListener.triggerLiveEdit(project)
+    e.project?.let { LiveEditService.manualLiveEdit(it) }
+  }
+}
+
+/**
+ * [AnAction] that manually triggers Live Edit.
+ */
+internal class ManualLiveEditAction : AnAction("Manual Live Edit") {
+  override fun actionPerformed(e: AnActionEvent) {
+    e.project?.let { LiveEditService.manualLiveEdit(it) }
   }
 }
 
@@ -199,21 +205,31 @@ internal class ConfigureLiveEditAction : DefaultActionGroup(), DataProvider {
     add(ConfigureLiveEditActionOption(
       "Push Edits Automatically",
       {
-        config.leTriggerMode = LE_TRIGGER_AUTOMATIC
+        config.leTriggerMode = AUTOMATIC
         config.mode = LIVE_EDIT
       },
       {
-        config.mode == LIVE_EDIT && config.leTriggerMode == LE_TRIGGER_AUTOMATIC
+        config.mode == LIVE_EDIT && config.leTriggerMode == AUTOMATIC
       })
     )
     add(ConfigureLiveEditActionOption(
       "Push Edits Manually",
       {
-        config.leTriggerMode = LE_TRIGGER_MANUAL
+        config.leTriggerMode = ON_HOTKEY
         config.mode = LIVE_EDIT
       },
       {
-        config.mode == LIVE_EDIT && config.leTriggerMode == LE_TRIGGER_MANUAL
+        config.mode == LIVE_EDIT && config.leTriggerMode == ON_HOTKEY
+      })
+    )
+    add(ConfigureLiveEditActionOption(
+      "Push Edits Manually on Save",
+      {
+        config.leTriggerMode = ON_SAVE
+        config.mode = LIVE_EDIT
+      },
+      {
+        config.mode == LIVE_EDIT && config.leTriggerMode == ON_SAVE
       })
     )
     addSeparator()

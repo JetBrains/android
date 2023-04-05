@@ -91,7 +91,7 @@ class BasicAndroidMonitorTest {
     `when`(device.clients).thenReturn(clients)
     `when`(mySyncState.lastSyncFinishedTimeStamp).thenReturn(1)
 
-    LiveEditApplicationConfiguration.getInstance().leTriggerMode = LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_AUTOMATIC
+    LiveEditApplicationConfiguration.getInstance().leTriggerMode = LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC
     LiveEditApplicationConfiguration.getInstance().mode = LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 
     monitor.notifyAppDeploy(appId, device, LiveEditApp(emptySet(), 24))

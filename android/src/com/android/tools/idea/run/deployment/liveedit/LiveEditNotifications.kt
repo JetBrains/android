@@ -16,7 +16,7 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.ddmlib.IDevice
-import com.android.tools.idea.editors.literals.LiveEditAnActionListener.getLiveEditTriggerShortCutString
+import com.android.tools.idea.editors.literals.LiveEditService
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 import com.android.tools.idea.editors.liveedit.ui.ConfigureLiveEditStatusAction
@@ -39,10 +39,14 @@ internal class LiveEditNotifications(val project: Project) {
     }
 
     shouldNotifyProjectOfLiveEdit = false
+    val shortcut = LiveEditService.getLiveEditShortcut()
     NotificationGroupManager.getInstance().getNotificationGroup("Deploy")
       .createNotification(
         "Enable Live Edit on Device",
-        "Push code edits to the device without rerunning the app ${getLiveEditTriggerShortCutString()}.${getBuildSystemRequirements().let { if (Strings.isEmpty(it)) "" else "<br>$it" }}",
+        "Push code edits to the device without rerunning the app${
+          if (Strings.isEmpty(shortcut)) ""
+          else " $shortcut"
+        }.${getBuildSystemRequirements().let { if (Strings.isEmpty(it)) "" else "<br>$it" }}",
         NotificationType.INFORMATION)
       .apply {
         if (LiveEditProjectMonitor.supportLiveEdits(device)) {

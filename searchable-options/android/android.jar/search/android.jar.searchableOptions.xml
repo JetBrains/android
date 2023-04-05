@@ -407,6 +407,9 @@
     <option name="s" path="ActionManager" hit="Make Module(s)" />
     <option name="make" path="ActionManager" hit="Make Project" />
     <option name="project" path="ActionManager" hit="Make Project" />
+    <option name="edit" path="ActionManager" hit="Manual Live Edit" />
+    <option name="live" path="ActionManager" hit="Manual Live Edit" />
+    <option name="manual" path="ActionManager" hit="Manual Live Edit" />
     <option name="androidx" path="ActionManager" hit="Migrate to AndroidX..." />
     <option name="migrate" path="ActionManager" hit="Migrate to AndroidX..." />
     <option name="to" path="ActionManager" hit="Migrate to AndroidX..." />
@@ -1064,11 +1067,17 @@
     <option name="automatically" hit="Push Edits Automatically" />
     <option name="edits" hit="Push Edits Automatically" />
     <option name="push" hit="Push Edits Automatically" />
-    <option name="ctrl" hit="Push Edits Manually (Ctrl+S)" />
-    <option name="edits" hit="Push Edits Manually (Ctrl+S)" />
-    <option name="manually" hit="Push Edits Manually (Ctrl+S)" />
-    <option name="push" hit="Push Edits Manually (Ctrl+S)" />
-    <option name="s" hit="Push Edits Manually (Ctrl+S)" />
+    <option name="ctrl" hit="Push Edits Manually (Ctrl+\)" />
+    <option name="edits" hit="Push Edits Manually (Ctrl+\)" />
+    <option name="manually" hit="Push Edits Manually (Ctrl+\)" />
+    <option name="push" hit="Push Edits Manually (Ctrl+\)" />
+    <option name="ctrl" hit="Push Edits Manually on Save (Ctrl+S)" />
+    <option name="edits" hit="Push Edits Manually on Save (Ctrl+S)" />
+    <option name="manually" hit="Push Edits Manually on Save (Ctrl+S)" />
+    <option name="on" hit="Push Edits Manually on Save (Ctrl+S)" />
+    <option name="push" hit="Push Edits Manually on Save (Ctrl+S)" />
+    <option name="s" hit="Push Edits Manually on Save (Ctrl+S)" />
+    <option name="save" hit="Push Edits Manually on Save (Ctrl+S)" />
   </configurable>
   <configurable id="database.inspector" configurable_name="Database Inspector">
     <option name="database" hit="Database Inspector" />

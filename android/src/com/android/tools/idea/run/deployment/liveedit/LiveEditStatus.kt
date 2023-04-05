@@ -16,7 +16,7 @@
 package com.android.tools.idea.run.deployment.liveedit
 
 import com.android.tools.adtui.compose.ComposeStatus
-import com.android.tools.idea.editors.liveedit.ui.MANUAL_LIVE_EDIT_ACTION_ID
+import com.android.tools.idea.editors.liveedit.ui.REFRESH_ACTION_ID
 import com.android.tools.idea.editors.liveedit.ui.SHOW_LOGCAT_ACTION_ID
 import com.android.tools.idea.run.deployment.liveedit.LiveEditBundle.message
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus.Companion.Priority.DEFAULT
@@ -150,7 +150,7 @@ open class LiveEditStatus(
       message("le.status.out_of_date.description"),
       REFRESH_NEEDED,
       redeployMode = RedeployMode.REFRESH,
-      actionId = MANUAL_LIVE_EDIT_ACTION_ID
+      actionId = REFRESH_ACTION_ID
     )
 
   object NoMultiDeploy :

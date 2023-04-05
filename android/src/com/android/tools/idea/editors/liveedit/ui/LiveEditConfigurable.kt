@@ -21,11 +21,13 @@ import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
-import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_MANUAL
-import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_AUTOMATIC
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.AUTOMATIC
+import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.ON_HOTKEY
+import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
 import com.android.tools.idea.rendering.classloading.ProjectConstantRemapper
 import com.intellij.ide.ActivityTracker
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.options.BoundSearchableConfigurable
 import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
@@ -43,6 +45,8 @@ class LiveEditConfigurable : BoundSearchableConfigurable(
 ), Configurable.NoScroll {
   override fun createPanel(): DialogPanel {
     val config = LiveEditApplicationConfiguration.getInstance()
+    val shortcut = ActionManager.getInstance().getAction(MANUAL_LIVE_EDIT_ACTION_ID)
+      .shortcutSet.shortcuts.firstOrNull()?.let { KeymapUtil.getShortcutText(it) } ?: ""
 
     // https://plugins.jetbrains.com/docs/intellij/kotlin-ui-dsl-version-2.html
     return panel {
@@ -65,14 +69,20 @@ class LiveEditConfigurable : BoundSearchableConfigurable(
           this@buttonsGroup.buttonsGroup(indent = true) {
             row {
               radioButton(
-                message("live.edit.mode.manual", LiveEditAnActionListener.getLiveEditTriggerShortCutString()),
-                LE_TRIGGER_MANUAL
+                message("live.edit.mode.automatic"),
+                AUTOMATIC
               ).enabledIf(rb.selected)
             }
             row {
               radioButton(
-                message("live.edit.mode.automatic"),
-                LE_TRIGGER_AUTOMATIC
+                message("live.edit.mode.manual.onkey", shortcut),
+                ON_HOTKEY
+              ).enabledIf(rb.selected)
+            }
+            row {
+              radioButton(
+                message("live.edit.mode.manual.onsave", LiveEditAnActionListener.getLiveEditTriggerShortCutString()),
+                ON_SAVE
               ).enabledIf(rb.selected)
             }
           }.bind(config::leTriggerMode)

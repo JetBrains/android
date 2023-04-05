@@ -21,6 +21,8 @@ import com.android.tools.adtui.compose.InformationPopupImpl
 import com.android.tools.adtui.compose.IssueNotificationAction
 import com.android.tools.idea.actions.BrowserHelpAction
 import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.ON_SAVE
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.sourcecode.isKotlinFileType
 import com.android.tools.idea.run.deployment.liveedit.LiveEditStatus
 import com.intellij.ide.DataManager
@@ -81,7 +83,10 @@ internal fun defaultCreateInformationPopup(
     }
 
     val link = status.actionId?.let {
-      val id = if (it == MANUAL_LIVE_EDIT_ACTION_ID) LiveEditService.PIGGYBACK_ACTION_ID else it
+      val id = when (it) {
+        REFRESH_ACTION_ID -> if (LiveEditApplicationConfiguration.getInstance().leTriggerMode == ON_SAVE) LiveEditService.PIGGYBACK_ACTION_ID else MANUAL_LIVE_EDIT_ACTION_ID
+        else -> it
+      }
       val action = ActionManager.getInstance().getAction(it)
       val shortcut = KeymapManager.getInstance()?.activeKeymap?.getShortcuts(id)?.toList()?.firstOrNull()
       AnActionLink("${action.templateText}${if (shortcut != null) " (${KeymapUtil.getShortcutText(shortcut)})" else ""}", action)

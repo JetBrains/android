@@ -21,6 +21,7 @@ import com.android.ddmlib.IDevice
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration
 import com.android.tools.idea.editors.liveedit.ui.EmulatorLiveEditAdapter
 import com.android.tools.idea.editors.liveedit.ui.LiveEditIssueNotificationAction
+import com.android.tools.idea.editors.liveedit.ui.MANUAL_LIVE_EDIT_ACTION_ID
 import com.android.tools.idea.execution.common.AndroidExecutionTarget
 import com.android.tools.idea.projectsystem.ProjectSystemService
 import com.android.tools.idea.run.deployment.liveedit.EditEvent
@@ -40,9 +41,11 @@ import com.intellij.notification.BrowseNotificationAction
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.keymap.KeymapUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.util.Disposer
@@ -161,16 +164,30 @@ class LiveEditService constructor(val project: Project,
     val PIGGYBACK_ACTION_ID: String = "SaveAll"
 
     enum class LiveEditTriggerMode {
-      LE_TRIGGER_MANUAL,
-      LE_TRIGGER_AUTOMATIC,
+      ON_SAVE,
+      ON_HOTKEY,
+      AUTOMATIC,
     }
 
     fun isLeTriggerManual(mode : LiveEditTriggerMode) : Boolean {
-      return mode == LiveEditTriggerMode.LE_TRIGGER_MANUAL
+      return mode == LiveEditTriggerMode.ON_SAVE || mode == LiveEditTriggerMode.ON_HOTKEY
     }
 
     @JvmStatic
     fun isLeTriggerManual() = isLeTriggerManual(LiveEditApplicationConfiguration.getInstance().leTriggerMode)
+
+    @JvmStatic
+    fun manualLiveEdit(project: Project) {
+      if (!LiveEditApplicationConfiguration.getInstance().isLiveEdit) {
+        return
+      }
+
+      if (!isLeTriggerManual()) {
+        return
+      }
+
+      getInstance(project).triggerLiveEdit()
+    }
 
     @JvmStatic
     fun getInstance(project: Project): LiveEditService = project.getService(LiveEditService::class.java)
@@ -183,6 +200,12 @@ class LiveEditService constructor(val project: Project,
     fun hasLiveEditSupportedDeviceConnected() = AndroidDebugBridge.getBridge()!!.devices.any { device ->
       LiveEditProjectMonitor.supportLiveEdits(device)
     }
+
+    fun getLiveEditShortcut() : String =
+      if (LiveEditApplicationConfiguration.getInstance().leTriggerMode === LiveEditTriggerMode.ON_SAVE)
+        LiveEditAnActionListener.getLiveEditTriggerShortCutString()
+      else
+        ActionManager.getInstance().getAction(MANUAL_LIVE_EDIT_ACTION_ID).shortcutSet.shortcuts.firstOrNull()?.let { KeymapUtil.getShortcutText(it) } ?: ""
   }
 
   // TODO: Refactor this away when AndroidLiveEditDeployMonitor functionality is moved to LiveEditService/other classes.
@@ -228,7 +251,7 @@ class LiveEditService constructor(val project: Project,
   fun toggleLiveEditMode(oldMode: LiveEditTriggerMode, newMode: LiveEditTriggerMode) {
     if (oldMode == newMode) {
       return
-    } else if (newMode == LiveEditTriggerMode.LE_TRIGGER_AUTOMATIC) {
+    } else if (newMode == LiveEditTriggerMode.AUTOMATIC) {
       deployMonitor.onManualLETrigger()
     }
   }
