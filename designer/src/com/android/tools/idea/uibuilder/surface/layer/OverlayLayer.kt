@@ -17,6 +17,7 @@ package com.android.tools.idea.uibuilder.surface.layer
 
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneView
+import com.android.tools.idea.ui.designer.overlays.OverlayConfiguration
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
 import org.jetbrains.annotations.VisibleForTesting
@@ -36,7 +37,7 @@ const val PLACEHOLDER_ALPHA = 0.7f
 /**
  * The Overlay Layer to be displayed on top of the layout preview
  */
-class OverlayLayer(private val sceneView: SceneView) : Layer() {
+class OverlayLayer(private val sceneView: SceneView, private val overlayConfiguration: () -> OverlayConfiguration) : Layer() {
   private var screenViewSize = Dimension()
   private fun paintPlaceholder(g: Graphics2D) {
     g.composite = AlphaComposite.SrcOver.derive(PLACEHOLDER_ALPHA)
@@ -61,7 +62,7 @@ class OverlayLayer(private val sceneView: SceneView) : Layer() {
   }
 
   private fun paintOverlay(g: Graphics2D, image: BufferedImage?) {
-    val overlayConfiguration = sceneView.surface.overlayConfiguration
+    val overlayConfiguration = overlayConfiguration()
     if (image == null) {
       return
     }
@@ -71,7 +72,7 @@ class OverlayLayer(private val sceneView: SceneView) : Layer() {
   }
 
   override fun paint(gc: Graphics2D) {
-    val overlayConfiguration = sceneView.surface.overlayConfiguration
+    val overlayConfiguration = overlayConfiguration()
     if (overlayConfiguration.overlayVisibility) {
       screenViewSize = sceneView.getScaledContentSize(screenViewSize)
       if (overlayConfiguration.isPlaceholderVisible) {

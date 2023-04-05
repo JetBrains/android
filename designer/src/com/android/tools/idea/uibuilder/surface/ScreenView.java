@@ -163,7 +163,7 @@ public class ScreenView extends ScreenViewBase {
     builder.add(sceneLayer);
 
     if(StudioFlags.NELE_OVERLAY_PROVIDER.get()) {
-      builder.add(new OverlayLayer(screenView));
+      builder.add(new OverlayLayer(screenView, surface::getOverlayConfiguration));
     }
 
     if (screenView.myIsResizeable && screenView.getSceneManager().getModel().getType().isEditable()) {
