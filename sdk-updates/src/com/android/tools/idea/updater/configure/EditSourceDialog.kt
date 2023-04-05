@@ -107,7 +107,7 @@ class EditSourceDialog(private val provider: RepositorySourceProvider, private v
       row { comment("Please enter the Name and URL of the addon.xml for the update site") }
       row("Name:") { cell(nameField).align(AlignX.FILL) }
       row("URL:") { cell(urlField).align(AlignX.FILL) }
-      row { useAuthentication = checkBox("Use Authentication").also { it.component.isSelected = existingAuth != null } }
+      row { useAuthentication = checkBox("Use Authentication").selected(existingAuth != null) }
       row("Login:") { cell(loginField).align(AlignX.FILL) }.enabledIf(useAuthentication.selected)
       row("Password:") { cell(passwordField).align(AlignX.FILL) }.enabledIf(useAuthentication.selected)
     }
