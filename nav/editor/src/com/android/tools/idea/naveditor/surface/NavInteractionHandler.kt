@@ -66,7 +66,7 @@ class NavInteractionHandler(private val surface: DesignSurface<NavSceneManager>)
 
     if (component?.parent == null) {
       // Dragging on the background/root view: start a marquee selection
-      return MarqueeInteraction(sceneView)
+      return MarqueeInteraction(sceneView) { surface.repaint() }
     }
 
     return null

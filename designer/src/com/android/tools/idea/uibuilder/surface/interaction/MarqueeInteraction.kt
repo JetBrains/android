@@ -36,7 +36,7 @@ import java.awt.Graphics2D
  * With a modifier key, items that intersect the rectangle can be toggled
  * instead of added to the new selection set.
  */
-class MarqueeInteraction(private val sceneView: SceneView) : Interaction() {
+class MarqueeInteraction(private val sceneView: SceneView, private val repaint: () -> Unit) : Interaction() {
   /** The [Layer] drawn for the marquee.  */
   private var overlay: MarqueeLayer? = null
   override fun begin(event: InteractionEvent) {
@@ -70,7 +70,7 @@ class MarqueeInteraction(private val sceneView: SceneView) : Interaction() {
     val within: Collection<SceneComponent> = sceneView.scene.findWithin(ax, ay, aw, ah)
     val result = ContainerUtil.map(within) { it.nlComponent }
     sceneView.selectionModel.setSelection(result)
-    sceneView.surface.repaint()
+    repaint()
   }
 
   override fun commit(event: InteractionEvent) { // Do nothing

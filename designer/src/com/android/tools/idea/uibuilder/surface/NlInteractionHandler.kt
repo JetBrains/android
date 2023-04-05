@@ -106,7 +106,7 @@ open class NlInteractionHandler(private val surface: DesignSurface<*>): Interact
                                        @JdkConstants.InputEventMask modifiersEx: Int): Interaction? {
     if (surface.getSceneViewAt(mouseX, mouseY) == null) {
       val focusedSceneView = surface.focusedSceneView ?: return null
-      return MarqueeInteraction(focusedSceneView)
+      return MarqueeInteraction(focusedSceneView) { surface.repaint() }
     }
     return null
   }
