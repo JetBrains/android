@@ -81,7 +81,6 @@ object ComposeRenderErrorContributor {
                           linkManager: HtmlLinkManager,
                           linkHandler: HyperlinkListener): List<RenderErrorModel.Issue> =
     logger.messages
-      .filter { it.tag == ILayoutLog.TAG_INFLATE }
       .mapNotNull {
         when {
           isViewModelStackTrace(it.throwable) -> {
