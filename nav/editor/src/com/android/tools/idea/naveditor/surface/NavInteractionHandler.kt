@@ -24,7 +24,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.Interaction
 import com.android.tools.idea.common.surface.InteractionHandlerBase
 import com.android.tools.idea.naveditor.scene.NavSceneManager
-import com.android.tools.idea.uibuilder.surface.MarqueeInteraction
+import com.android.tools.idea.uibuilder.surface.interaction.MarqueeInteraction
 import org.intellij.lang.annotations.JdkConstants
 
 class NavInteractionHandler(private val surface: DesignSurface<NavSceneManager>): InteractionHandlerBase(surface) {
