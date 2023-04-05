@@ -16,10 +16,8 @@
 package com.android.tools.idea.uibuilder.surface.layer
 
 import com.android.tools.idea.common.error.Issue
-import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.model.Coordinates
 import com.android.tools.idea.common.surface.Layer
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.model.h
 import com.android.tools.idea.uibuilder.model.w
@@ -28,16 +26,16 @@ import com.android.tools.idea.uibuilder.model.y
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintHighlightingIssue
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
-import java.awt.Color
+import com.intellij.ui.JBColor
 import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.awt.Shape
 
-class WarningLayer(private val screenView: ScreenView) : Layer() {
+class WarningLayer(private val screenView: ScreenView, private val issuesProvider: () -> List<Issue>) : Layer() {
 
   override fun paint(gc: Graphics2D) {
     val screenShape: Shape? = screenView.screenShape
-    gc.color = Color.ORANGE
+    gc.color = JBColor.ORANGE
     gc.stroke = NlConstants.DASHED_STROKE
     val selectedIssueSources = getSelectedIssues().map { it.source }
     val relevantComponents = selectedIssueSources.filterIsInstance<VisualLintIssueProvider.VisualLintIssueSource>()
@@ -80,11 +78,6 @@ class WarningLayer(private val screenView: ScreenView) : Layer() {
     }
 
   private fun getSelectedIssues(): List<Issue> {
-    return if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get()) {
-      IssuePanelService.getInstance(screenView.surface.project).getSelectedIssues()
-    }
-    else {
-      listOfNotNull(screenView.surface.issuePanel.selectedIssue)
-    }
+    return issuesProvider()
   }
 }

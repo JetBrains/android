@@ -15,10 +15,12 @@
  */
 package com.android.tools.idea.uibuilder.surface
 
+import com.android.tools.idea.common.error.IssuePanelService
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.scene.SceneManager
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.common.surface.SceneLayer
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.ScreenView.DEVICE_CONTENT_SIZE_POLICY
@@ -197,7 +199,12 @@ internal fun visualizationProvider(surface: NlDesignSurface,
         add(BorderLayer(it, isRotating = { surface.isRotating }))
         add(ScreenViewLayer(it, colorBlindMode))
         add(SceneLayer(it.surface, it, false).apply { isShowOnHover = true })
-        add(WarningLayer(it))
+        add(WarningLayer(it) {
+          if (StudioFlags.NELE_USE_SHARED_ISSUE_PANEL_FOR_DESIGN_TOOLS.get())
+            IssuePanelService.getInstance(surface.project).getSelectedIssues()
+          else
+            listOfNotNull(surface.issuePanel.selectedIssue)
+        })
       }.build()
     }
     .withContentSizePolicy(DEVICE_CONTENT_SIZE_POLICY)
