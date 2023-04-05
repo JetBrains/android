@@ -138,15 +138,9 @@ internal class DeviceClient(
         startAgentAndConnect(maxVideoSize, initialDisplayOrientation, startVideoStream)
         connection.complete(Unit)
       }
-      catch (e: CancellationException) {
-        throw e
-      }
       catch (e: Throwable) {
         connectionState.set(null)
-        if (isDeviceConnected() == false) {
-          throw CancellationException() // The device has been disconnected.
-        }
-        connection.completeExceptionally(e)
+        connection.completeExceptionally(adjustException(e))
       }
     }
     connection.await()
@@ -214,9 +208,16 @@ internal class DeviceClient(
     }
   }
 
-  /**
-   * Checks if the device is connected. Returns null if it cannot be determined.
-   */
+  /** Returns the original exception if the device is still connected, or a CancellationException otherwise. */
+  private suspend fun adjustException(e: Throwable): Throwable {
+    return when {
+      e is CancellationException -> e
+      isDeviceConnected() == false -> CancellationException()
+      else -> e
+    }
+  }
+
+  /** Checks if the device is connected. Returns null if it cannot be determined. */
   private suspend fun isDeviceConnected(): Boolean? {
     return try {
       return AdbLibService.getSession(project).hostServices.devices().entries.find { it.serialNumber == deviceSerialNumber } != null
@@ -384,6 +385,9 @@ internal class DeviceClient(
         for (listener in agentTerminationListeners) {
           listener.deviceDisconnected()
         }
+      }
+      catch (e: Throwable) {
+        throw adjustException(e)
       }
     }
   }
