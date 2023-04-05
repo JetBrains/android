@@ -150,7 +150,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @NotNull public ImmutableMap<String, TagSnapshot> myAaptDeclaredResources = ImmutableMap.of();
   private final Map<String, ResourceValue> myFontFamilies;
   private ProjectFonts myProjectFonts;
-  private String myAdaptiveIconMaskPath;
   @Nullable private final ILayoutPullParserFactory myLayoutPullParserFactory;
   @NotNull private final ResourceNamespace.Resolver myImplicitNamespaces;
   /**
@@ -847,10 +846,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @Override
   public ResourceNamespace.Resolver getImplicitNamespaces() {
     return myImplicitNamespaces;
-  }
-
-  public void setAdaptiveIconMaskPath(@NotNull String adaptiveIconMaskPath) {
-    myAdaptiveIconMaskPath = adaptiveIconMaskPath;
   }
 
   @Override
