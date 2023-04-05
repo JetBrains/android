@@ -61,6 +61,10 @@ public class CodeSwapAction extends BaseAction {
   public void update(@NotNull AnActionEvent e) {
     super.update(e);
 
+    if (!e.getPresentation().isVisible() || !e.getPresentation().isEnabled()) {
+      return;
+    }
+
     Project project = e.getProject();
     if (project == null) {
       return;

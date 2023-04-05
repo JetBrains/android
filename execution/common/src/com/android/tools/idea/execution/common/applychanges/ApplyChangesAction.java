@@ -64,7 +64,7 @@ public class ApplyChangesAction extends BaseAction {
   public void update(@NotNull AnActionEvent e) {
     super.update(e);
 
-    if (!e.getPresentation().isEnabled()) {
+    if (!e.getPresentation().isVisible() || !e.getPresentation().isEnabled()) {
       return;
     }
 
