@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.surface.layer;
 
+import static com.android.tools.idea.uibuilder.surface.layer.OverlayLayerKt.PLACEHOLDER_ALPHA;
+import static com.android.tools.idea.uibuilder.surface.layer.OverlayLayerKt.PLACEHOLDER_TEXT;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -104,10 +106,8 @@ public class OverlayLayerTest {
                                                              SCREEN_VIEW_HEIGHT,
                                                              BufferedImage.TYPE_INT_ARGB);
     paintColor(sceneViewBaseImage, Color.BLACK, null);
-    paintColor(sceneViewBaseImage, Color.WHITE, OverlayLayer.getPlaceholderAlpha(), null);
-    paintText(sceneViewBaseImage,
-              OverlayLayer.getPlaceholderText(),
-              OverlayLayer.getPlaceholderAlpha());
+    paintColor(sceneViewBaseImage, Color.WHITE, PLACEHOLDER_ALPHA, null);
+    paintText(sceneViewBaseImage, PLACEHOLDER_TEXT, PLACEHOLDER_ALPHA);
 
     ImageDiffUtil.assertImageSimilar("overlaylayer_result.png",
                                      sceneViewBaseImage,
@@ -135,10 +135,8 @@ public class OverlayLayerTest {
                                                              SCREEN_VIEW_HEIGHT,
                                                              BufferedImage.TYPE_INT_ARGB);
     paintColor(sceneViewBaseImage, Color.BLACK, shape);
-    paintColor(sceneViewBaseImage, Color.WHITE, OverlayLayer.getPlaceholderAlpha(), shape);
-    paintText(sceneViewBaseImage,
-              OverlayLayer.getPlaceholderText(),
-              OverlayLayer.getPlaceholderAlpha());
+    paintColor(sceneViewBaseImage, Color.WHITE, PLACEHOLDER_ALPHA, shape);
+    paintText(sceneViewBaseImage, PLACEHOLDER_TEXT, PLACEHOLDER_ALPHA);
 
     ImageDiffUtil.assertImageSimilar("overlaylayer_result.png",
                                      sceneViewBaseImage,
