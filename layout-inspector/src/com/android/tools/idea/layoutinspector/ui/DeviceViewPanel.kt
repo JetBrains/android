@@ -30,8 +30,8 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcess
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.matchToProcessDescriptor
 import com.android.tools.idea.layoutinspector.ui.toolbar.FloatingToolbarProvider
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_LAYER_SPACING
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
 import com.android.tools.idea.layoutinspector.ui.toolbar.createLayoutInspectorMainToolbar
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo
@@ -351,17 +351,20 @@ class DeviceViewPanel(
       shouldZoomToFit = true
     }
 
-    model.modificationListeners.add { _, _, _ ->
-      if (contentPanel.renderModel.maxWidth == 0) {
-        // renderModel.maxWidth is used as indicator of first render
+    model.modificationListeners.add { oldWindow, newWindow, _ ->
+      if (oldWindow == null && newWindow != null) {
         // TODO(b/265150325) move to a more generic place
         layoutInspector.currentClient.stats.recompositionHighlightColor = renderSettings.highlightColor
-      }
 
-      if (shouldZoomToFit) {
-        // zoom to fit each time we render something immediately after a process change
-        zoom(ZoomType.FIT)
-        shouldZoomToFit = false
+        if (shouldZoomToFit) {
+          // Zoom to fit each time a new window shows up immediately after a process change
+          // we should do this only after a process change, because the new window showing up could be a dialog being open, in which case
+          // we don't want to change the zoom.
+          // And we should do it only if the new window is different from null, so we know the view is available and we can scroll to
+          // center it.
+          zoom(ZoomType.FIT)
+          shouldZoomToFit = false
+        }
       }
     }
     var prevZoom = renderSettings.scalePercent
@@ -393,27 +396,22 @@ class DeviceViewPanel(
 
   override fun zoom(type: ZoomType): Boolean {
     var newZoom = renderSettings.scalePercent
-    if (layoutInspector.inspectorModel.isEmpty) {
-      newZoom = 100
-      scrollPane.viewport.revalidate()
+    viewportLayoutManager.currentZoomOperation = type
+    when (type) {
+      ZoomType.FIT -> newZoom = getFitZoom()
+      ZoomType.ACTUAL -> newZoom = 100
+      ZoomType.IN -> newZoom += 10
+      ZoomType.OUT -> newZoom -= 10
     }
-    else {
-      viewportLayoutManager.currentZoomOperation = type
-      when (type) {
-        ZoomType.FIT -> newZoom = getFitZoom()
-        ZoomType.ACTUAL -> newZoom = 100
-        ZoomType.IN -> newZoom += 10
-        ZoomType.OUT -> newZoom -= 10
-      }
-      newZoom = newZoom.coerceIn(MIN_ZOOM, MAX_ZOOM)
-    }
-    if (newZoom != renderSettings.scalePercent) {
+    newZoom = newZoom.coerceIn(MIN_ZOOM, MAX_ZOOM)
+    return if (newZoom != renderSettings.scalePercent) {
       renderSettings.scalePercent = newZoom
       contentPanel.revalidate()
-      return true
+      true
     }
-
-    return false
+    else {
+      false
+    }
   }
 
   private fun getFitZoom(): Int {
@@ -422,8 +420,12 @@ class DeviceViewPanel(
     val availableHeight = scrollPane.height - scrollPane.horizontalScrollBar.height
     val desiredWidth = (size.width).toDouble()
     val desiredHeight = (size.height).toDouble()
-    return if (desiredHeight == 0.0 || desiredWidth == 0.0) 100
-    else (90 * min(availableHeight / desiredHeight, availableWidth / desiredWidth)).toInt()
+    return if (desiredHeight == 0.0 || desiredWidth == 0.0) {
+      100
+    }
+    else {
+      (90 * min(availableHeight / desiredHeight, availableWidth / desiredWidth)).toInt()
+    }
   }
 
   private fun getScreenSize(): Dimension {
