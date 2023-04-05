@@ -39,7 +39,7 @@ public abstract class AndroidComponentDownloader {
   public static final String ZIP = "zip";
   public static final String ANDROID_GROUP_DISPLAY_ID = "Android";
 
-  private ReentrantReadWriteLock downloadLock = new ReentrantReadWriteLock();
+  private final ReentrantReadWriteLock downloadLock = new ReentrantReadWriteLock();
 
   public boolean makeSureComponentIsInPlace() {
     if (ApplicationManager.getApplication() == null || ApplicationManager.getApplication().isDisposed()) return false; // to support regular junit tests with no Application initialized
@@ -104,7 +104,7 @@ public abstract class AndroidComponentDownloader {
     }
   }
 
-  private boolean downloadWithProgress(Computable<Boolean> downloadTask) {
+  private static boolean downloadWithProgress(Computable<Boolean> downloadTask) {
     if (ProgressManager.getInstance().hasProgressIndicator()) {
       return downloadTask.compute();
     }
@@ -121,8 +121,8 @@ public abstract class AndroidComponentDownloader {
     try {
       tempDir = Files.createTempDirectory("android-component-download");
       List<Pair<File, DownloadableFileDescription>> list = downloader.download(tempDir.toFile());
-      File file = list.get(0).first;
-      ZipUtil.extract(file, getTargetDir(pluginDir), null);
+      Path file = list.get(0).first.toPath();
+      ZipUtil.extract(file, getTargetDir(pluginDir).toPath(), null);
       return true;
     }
     catch (IOException e) {
@@ -148,16 +148,8 @@ public abstract class AndroidComponentDownloader {
   }
 
   @NotNull
-  protected String getVersion() {
-    try {
-      Properties properties = new Properties();
-      try (InputStream is = getClass().getResourceAsStream("/componentDownloader/versions.properties")) {
-        properties.load(is);
-      }
-      return properties.getProperty("pluginComponentsVersion");
-    } catch (Exception t) {
-      throw new RuntimeException(t.getMessage(), t);
-    }
+  protected final String getVersion() {
+    return LazyComponentVersions.getVersion(getArtifactName());
   }
 
   @NotNull
@@ -185,5 +177,31 @@ public abstract class AndroidComponentDownloader {
     if (preinstalledDir.exists()) return preinstalledDir;
 
     return new File(getPluginDir(), hostReleaseDir);
+  }
+
+  private static final class LazyComponentVersions {
+    private static final String PROPERTIES_RESOURCE_NAME = "/componentDownloader/versions.properties";
+    private static final Properties VERSIONS_MAP;
+
+    static {
+      try {
+        Properties properties = new Properties();
+        try (InputStream is = LazyComponentVersions.class.getResourceAsStream(PROPERTIES_RESOURCE_NAME)) {
+          properties.load(is);
+        }
+        VERSIONS_MAP = properties;
+      } catch (Exception t) {
+        throw new RuntimeException(t.getMessage(), t);
+      }
+    }
+
+    @NotNull
+    public static String getVersion(String componentName) {
+      String version = VERSIONS_MAP.getProperty(componentName);
+      if (version == null) {
+        throw new IllegalStateException("Could not find property '" + componentName + "' in " + LazyComponentVersions.class.getResource(PROPERTIES_RESOURCE_NAME));
+      }
+      return version;
+    }
   }
 }
