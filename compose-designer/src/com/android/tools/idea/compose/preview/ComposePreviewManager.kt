@@ -135,6 +135,11 @@ interface ComposePreviewManager : Disposable {
   /** Flag to indicate whether ATF checks should be run on the preview. */
   var atfChecksEnabled: Boolean
 
+  val isInStaticAndNonAnimationMode: Boolean
+    get() =
+      animationInspectionPreviewElementInstance == null &&
+        status().interactiveMode == InteractiveMode.DISABLED
+
   /**
    * Starts the interactive preview focusing in the given [ComposePreviewElementInstance] [instance]
    * .
@@ -151,10 +156,31 @@ interface ComposePreviewManager : Disposable {
   fun invalidate()
 }
 
-val ComposePreviewManager.isInStaticAndNonAnimationMode: Boolean
-  get() =
-    animationInspectionPreviewElementInstance == null &&
-      status().interactiveMode == ComposePreviewManager.InteractiveMode.DISABLED
+class NopComposePreviewManager : ComposePreviewManager {
+  override fun status() =
+    ComposePreviewManager.Status(
+      hasRuntimeErrors = false,
+      hasSyntaxErrors = false,
+      isOutOfDate = false,
+      areResourcesOutOfDate = false,
+      isRefreshing = false,
+      ComposePreviewManager.InteractiveMode.DISABLED
+    )
+
+  override val availableGroups = emptyList<PreviewGroup>()
+  override var groupFilter = PreviewGroup.ALL_PREVIEW_GROUP
+  override val interactivePreviewElementInstance: ComposePreviewElementInstance? = null
+  override var animationInspectionPreviewElementInstance: ComposePreviewElementInstance? = null
+  override val hasDesignInfoProviders: Boolean = false
+  override val previewedFile: PsiFile? = null
+  override var isInspectionTooltipEnabled: Boolean = false
+  override var isFilterEnabled: Boolean = false
+  override var atfChecksEnabled: Boolean = false
+  override suspend fun startInteractivePreview(instance: ComposePreviewElementInstance) {}
+  override fun stopInteractivePreview() {}
+  override fun invalidate() {}
+  override fun dispose() {}
+}
 
 /**
  * Interface that provides access to the Compose Preview logic that is not stable or meant for

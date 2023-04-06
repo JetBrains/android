@@ -26,6 +26,7 @@ import com.android.tools.idea.common.surface.NopInteractionHandler
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
+import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.editors.build.ProjectBuildStatusManager
 import com.android.tools.idea.editors.build.ProjectStatus
@@ -181,7 +182,8 @@ class ComposePreviewViewImplTest {
         interactionHandler,
         nopDataProvider,
         fixture.testRootDisposable,
-        sceneComponentProvider
+        sceneComponentProvider,
+        ComposeScreenViewProvider(NopComposePreviewManager())
       )
     val composePreviewViewImpl =
       ComposePreviewViewImpl(

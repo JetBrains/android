@@ -20,7 +20,6 @@ import com.android.tools.idea.common.model.NopSelectionModel
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.common.surface.InteractionHandler
 import com.android.tools.idea.compose.preview.actions.PreviewSurfaceActionManager
-import com.android.tools.idea.compose.preview.scene.COMPOSE_SCREEN_VIEW_PROVIDER
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
 import com.android.tools.idea.compose.preview.scene.ComposeSceneUpdateListener
 import com.android.tools.idea.flags.StudioFlags
@@ -31,6 +30,7 @@ import com.android.tools.idea.uibuilder.scene.RealTimeSessionClock
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
+import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GroupedGridSurfaceLayoutManager
 import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager
@@ -131,7 +131,8 @@ private fun createPreviewDesignSurfaceBuilder(
   delegateInteractionHandler: InteractionHandler,
   dataProvider: DataProvider,
   parentDisposable: Disposable,
-  sceneComponentProvider: ComposeSceneComponentProvider
+  sceneComponentProvider: ComposeSceneComponentProvider,
+  screenViewProvider: ScreenViewProvider
 ): NlDesignSurface.Builder =
   NlDesignSurface.builder(project, parentDisposable)
     .setNavigationHandler(navigationHandler)
@@ -162,7 +163,7 @@ private fun createPreviewDesignSurfaceBuilder(
     .setZoomControlsPolicy(DesignSurface.ZoomControlsPolicy.AUTO_HIDE)
     .setSupportedActions(COMPOSE_SUPPORTED_ACTIONS)
     .setShouldRenderErrorsPanel(true)
-    .setScreenViewProvider(COMPOSE_SCREEN_VIEW_PROVIDER, false)
+    .setScreenViewProvider(screenViewProvider, false)
     .setMaxFitIntoZoomLevel(2.0) // Set fit into limit to 200%
     .setMinScale(0.01) // Allow down to 1% zoom level
 
@@ -173,7 +174,8 @@ internal fun createMainDesignSurfaceBuilder(
   delegateInteractionHandler: InteractionHandler,
   dataProvider: DataProvider,
   parentDisposable: Disposable,
-  sceneComponentProvider: ComposeSceneComponentProvider
+  sceneComponentProvider: ComposeSceneComponentProvider,
+  screenViewProvider: ScreenViewProvider
 ) =
   createPreviewDesignSurfaceBuilder(
       project,
@@ -181,6 +183,7 @@ internal fun createMainDesignSurfaceBuilder(
       delegateInteractionHandler,
       dataProvider, // Will be overridden by the preview provider
       parentDisposable,
-      sceneComponentProvider
+      sceneComponentProvider,
+      screenViewProvider
     )
     .setLayoutManager(DEFAULT_PREVIEW_LAYOUT_MANAGER)

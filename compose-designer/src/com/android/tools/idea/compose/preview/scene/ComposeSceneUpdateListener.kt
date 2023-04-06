@@ -24,7 +24,6 @@ import com.android.tools.idea.compose.preview.ComposePreviewElementInstance
 import com.android.tools.idea.compose.preview.ComposePreviewManager
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingEvent
 import com.android.tools.idea.compose.preview.analytics.AnimationToolingUsageTracker
-import com.android.tools.idea.compose.preview.isInStaticAndNonAnimationMode
 import com.android.tools.idea.uibuilder.model.viewInfo
 import com.google.wireless.android.sdk.stats.ComposeAnimationToolingEvent
 import com.intellij.openapi.diagnostic.Logger

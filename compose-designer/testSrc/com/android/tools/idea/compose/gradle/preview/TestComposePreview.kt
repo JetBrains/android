@@ -19,9 +19,11 @@ import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.common.surface.SurfaceInteractable
 import com.android.tools.idea.compose.preview.ComposePreviewView
+import com.android.tools.idea.compose.preview.NopComposePreviewManager
 import com.android.tools.idea.compose.preview.createMainDesignSurfaceBuilder
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
+import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
 import com.android.tools.idea.uibuilder.surface.NavigationHandler
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.intellij.openapi.Disposable
@@ -50,7 +52,8 @@ internal class TestComposePreviewView(
         delegateInteractionHandler,
         { null },
         parentDisposable,
-        ComposeSceneComponentProvider()
+        ComposeSceneComponentProvider(),
+        ComposeScreenViewProvider(NopComposePreviewManager())
       )
       .setInteractableProvider {
         object : SurfaceInteractable(it) {

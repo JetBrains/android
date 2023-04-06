@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.ide.common.rendering.api.Bridge
-import com.android.tools.idea.modes.EssentialModeMessenger
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.model.AccessibilityModelUpdater
 import com.android.tools.idea.common.model.DefaultModelUpdater
@@ -31,6 +30,7 @@ import com.android.tools.idea.compose.preview.designinfo.hasDesignInfoProviders
 import com.android.tools.idea.compose.preview.fast.FastPreviewSurface
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
 import com.android.tools.idea.compose.preview.scene.ComposeSceneComponentProvider
+import com.android.tools.idea.compose.preview.scene.ComposeScreenViewProvider
 import com.android.tools.idea.compose.preview.util.FpsCalculator
 import com.android.tools.idea.compose.preview.util.containsOffset
 import com.android.tools.idea.concurrency.AndroidCoroutinesAware
@@ -55,6 +55,7 @@ import com.android.tools.idea.editors.powersave.PreviewPowerSaveManager
 import com.android.tools.idea.editors.shortcuts.getBuildAndRefreshShortcut
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.log.LoggerWithFixedInfo
+import com.android.tools.idea.modes.EssentialModeMessenger
 import com.android.tools.idea.preview.NavigatingInteractionHandler
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewElementProvider
@@ -366,8 +367,7 @@ class ComposePreviewRepresentation(
     fpsLimit =
       if (PreviewPowerSaveManager.isInPowerSaveMode) {
         StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get() / 3
-      }
-      else {
+      } else {
         StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get()
       }
     fpsCounter.resetAndStart()
@@ -600,7 +600,8 @@ class ComposePreviewRepresentation(
               delegateInteractionHandler,
               dataProvider, // Will be overridden by the preview provider
               this,
-              sceneComponentProvider
+              sceneComponentProvider,
+              ComposeScreenViewProvider(this)
             ),
             this
           )
