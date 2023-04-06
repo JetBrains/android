@@ -22,10 +22,12 @@ import static org.junit.Assert.assertNotNull;
 import android.view.View;
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.testing.FakeAdbRule;
-import com.android.fakeadbserver.CommandHandler;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
-import com.android.fakeadbserver.execcommandhandlers.SimpleExecHandler;
+import com.android.fakeadbserver.ShellProtocolType;
+import com.android.fakeadbserver.services.ShellCommandOutput;
+import com.android.fakeadbserver.shellcommandhandlers.ShellHandler;
+import com.android.fakeadbserver.shellcommandhandlers.StatusWriter;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.RunIn;
@@ -45,8 +47,6 @@ import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.Socket;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.fest.swing.core.MouseButton;
@@ -97,19 +97,21 @@ public class NlEditorTest {
     Wait.seconds(10).expecting("Bridge is initialized").until(() -> debugBridge.isConnected() && debugBridge.hasInitialDeviceList());
     adbRule.attachDevice("emulator-test", "Google", "Pix3l", "versionX", "29");
     CountDownLatch installedLatch = new CountDownLatch(1);
-    adbRule.addDeviceCommandHandler(new SimpleExecHandler("/data/local/tmp/.studio/bin/installer") {
+    adbRule.addDeviceCommandHandler(new ShellHandler(ShellProtocolType.EXEC) {
+      @Override
+      public boolean shouldExecute(@NotNull String shellCommand, @Nullable String shellCommandArgs) {
+        return shellCommand.equals("/data/local/tmp/.studio/bin/installer");
+      }
+
       @Override
       public void execute(@NotNull FakeAdbServer fakeAdbServer,
-                          @NotNull Socket responseSocket,
+                          @NotNull StatusWriter statusWriter,
+                          @NotNull ShellCommandOutput shellCommandOutput,
                           @NotNull DeviceState device,
-                          @Nullable String args) {
+                          @NotNull String shellCommand,
+                          @Nullable String shellCommandArgs) {
         installedLatch.countDown();
-        try {
-          OutputStream output = responseSocket.getOutputStream();
-          CommandHandler.writeOkay(output);
-        }
-        catch (IOException ignore) {
-        }
+        statusWriter.writeOk();
       }
     });
 
