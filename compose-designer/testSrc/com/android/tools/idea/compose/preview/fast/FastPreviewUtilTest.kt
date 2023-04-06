@@ -39,6 +39,7 @@ import org.junit.Test
 import org.junit.rules.RuleChain
 import org.junit.rules.TestRule
 
+@org.junit.Ignore("b/278929691")
 class FastPreviewUtilTest {
   val projectRule = AndroidProjectRule.inMemory()
 

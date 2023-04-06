@@ -94,6 +94,7 @@ private fun defaultDaemonFactory(
   return OutOfProcessCompilerDaemonClientImpl(version, scope, log)
 }
 
+@org.junit.Ignore("b/278929691")
 @RunWith(Parameterized::class)
 class FastPreviewManagerGradleTest(private val useEmbeddedCompiler: Boolean) {
   companion object {

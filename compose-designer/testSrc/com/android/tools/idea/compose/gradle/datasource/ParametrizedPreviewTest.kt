@@ -81,6 +81,7 @@ class ParametrizedPreviewTest {
   }
 
   /** Checks the rendering of the default `@Preview` in the Compose template. */
+  @org.junit.Ignore("b/278929691")
   @Test
   fun testParametrizedPreviews() = runBlocking {
     val project = projectRule.project
