@@ -20,6 +20,7 @@ import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.rendering.parsers.RenderXmlAttribute;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.rendering.parsers.RenderXmlTag;
+import com.android.tools.rendering.parsers.TagSnapshot;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;

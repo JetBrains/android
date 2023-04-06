@@ -19,10 +19,9 @@ import android.graphics.Rect
 import android.widget.TextView
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.model.NlModel
-import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.rendering.RenderConfiguration
 import com.android.tools.idea.rendering.RenderResult
-import com.android.tools.idea.rendering.parsers.TagSnapshot
+import com.android.tools.rendering.parsers.TagSnapshot
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintAnalyzer
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintBaseConfigIssues
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType

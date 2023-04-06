@@ -17,7 +17,7 @@ package com.android.tools.idea.common.model;
 
 import android.view.View;
 import com.android.ide.common.rendering.api.ViewInfo;
-import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
+import com.android.tools.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.uibuilder.handlers.constraint.ComponentModification;
 import com.android.tools.idea.uibuilder.model.LayoutParamsManager;

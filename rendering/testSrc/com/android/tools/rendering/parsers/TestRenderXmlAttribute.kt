@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.parsers
-
-import com.android.tools.rendering.parsers.RenderXmlAttribute
+package com.android.tools.rendering.parsers
 
 /** Simple implementation of [RenderXmlAttribute]. */
 class TestRenderXmlAttribute(override val value: String?,

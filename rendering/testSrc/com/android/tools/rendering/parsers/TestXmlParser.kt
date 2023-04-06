@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 @file:JvmName("TestXmlParser")
-package com.android.tools.idea.rendering.parsers
+package com.android.tools.rendering.parsers
 
-import com.android.tools.rendering.parsers.RenderXmlTag
 import org.kxml2.io.KXmlParser
 import org.xmlpull.v1.XmlPullParser
 import java.io.StringReader

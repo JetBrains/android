@@ -21,9 +21,9 @@ import com.android.tools.idea.compose.preview.navigation.findNavigatableComponen
 import com.android.tools.idea.compose.preview.navigation.remapInline
 import com.android.tools.idea.compose.preview.parseViewInfo
 import com.android.tools.idea.rendering.parsers.PsiXmlTag
-import com.android.tools.idea.rendering.parsers.TagSnapshot
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.getAccessibilitySourceId
+import com.android.tools.rendering.parsers.TagSnapshot
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.xml.XmlTag

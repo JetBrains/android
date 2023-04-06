@@ -22,7 +22,7 @@ import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.parsers.PsiXmlTag
-import com.android.tools.idea.rendering.parsers.TagSnapshot
+import com.android.tools.rendering.parsers.TagSnapshot
 import com.android.tools.idea.uibuilder.lint.createDefaultHyperLinkListener
 import com.android.tools.idea.uibuilder.visual.analytics.VisualLintUsageTracker
 import com.android.utils.HtmlBuilder

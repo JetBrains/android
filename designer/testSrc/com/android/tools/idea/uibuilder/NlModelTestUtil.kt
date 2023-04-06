@@ -19,8 +19,7 @@ import com.android.SdkConstants
 import com.android.tools.idea.common.model.NlComponent
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.rendering.parsers.TagSnapshot
-import com.android.tools.idea.uibuilder.model.NlComponentHelper
+import com.android.tools.rendering.parsers.TagSnapshot
 import com.android.tools.idea.uibuilder.model.NlComponentMixin
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.intellij.ide.highlighter.XmlFileType
@@ -31,7 +30,6 @@ import com.intellij.testFramework.LightVirtualFile
 import com.intellij.testFramework.runInEdtAndGet
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
-import java.util.function.Consumer
 
 /**
  * Utility method that creates a [NlModel] with the provided [xmlContent] as the root component.

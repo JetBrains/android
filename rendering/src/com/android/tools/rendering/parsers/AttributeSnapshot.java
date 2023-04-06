@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.parsers;
+package com.android.tools.rendering.parsers;
 
 import com.android.utils.DataBindingUtils;
-import com.android.tools.rendering.parsers.RenderXmlAttribute;
-import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.google.common.collect.Lists;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +31,7 @@ public class AttributeSnapshot {
   @NotNull public String name;
   @Nullable public String value;
 
-  AttributeSnapshot(@Nullable String namespace, @Nullable String prefix, @NotNull String name, @Nullable String value) {
+  public AttributeSnapshot(@Nullable String namespace, @Nullable String prefix, @NotNull String name, @Nullable String value) {
     this.namespace = namespace;
     this.prefix = prefix == null || prefix.isEmpty() ? null : prefix;
     this.name = name;

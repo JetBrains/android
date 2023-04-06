@@ -66,7 +66,7 @@ import static com.android.ide.common.resources.ResourcesUtil.stripPrefixFromId;
 
 import com.android.tools.idea.common.model.AttributesTransaction;
 import com.android.tools.idea.common.model.NlComponent;
-import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
+import com.android.tools.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import java.util.ArrayList;

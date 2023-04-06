@@ -52,7 +52,7 @@ import com.android.tools.idea.layoutlib.RenderParamsFlags;
 import com.android.tools.idea.model.ActivityAttributesSnapshot;
 import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
-import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
+import com.android.tools.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutRenderPullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;

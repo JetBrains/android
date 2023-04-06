@@ -12,6 +12,8 @@ iml_module(
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk",
         "//tools/base/common:studio.android.sdktools.common[module]",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
     ],
 )
 
@@ -26,6 +28,9 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk[test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
+        "//tools/adt/idea/.idea/libraries:kxml2[test]",
+        "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module, test]",
     ],
 )
 
@@ -39,8 +44,10 @@ kotlin_library(
     visibility = ["//visibility:public"],
     deps = [
         "//prebuilts/tools/common/lint-psi/intellij-core",
+        "//tools/adt/idea/render-resources:tools.render-resources",
         "//tools/base/common:tools.common",
         "//tools/base/layoutlib-api:tools.layoutlib-api",
+        "//tools/base/sdk-common:tools.sdk-common",
         "//tools/base/sdklib:tools.sdklib",
     ],
 )
@@ -57,10 +64,14 @@ kotlin_test(
     deps = [
         ":tools.rendering",
         "//prebuilts/tools/common/lint-psi/intellij-core",
+        "//tools/adt/idea/render-resources:tools.render-resources",
         "//tools/base/common:tools.common",
         "//tools/base/layoutlib-api:tools.layoutlib-api",
+        "//tools/base/sdk-common:tools.sdk-common",
         "//tools/base/sdklib:tools.sdklib",
         "//tools/base/testutils:tools.testutils",
+        "@maven//:com.google.truth.truth",
         "@maven//:junit.junit",
+        "@maven//:net.sf.kxml.kxml2",
     ],
 )

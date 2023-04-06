@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.parsers;
+package com.android.tools.rendering.parsers;
 
 import static com.android.SdkConstants.AAPT_URI;
 import static com.android.SdkConstants.ATTR_ATTR;
@@ -24,8 +24,6 @@ import static com.android.SdkConstants.CLASS_COMPOSE_VIEW_ADAPTER;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.google.common.base.Charsets.UTF_8;
 
-import com.android.tools.rendering.parsers.RenderXmlAttribute;
-import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hasher;
@@ -78,7 +76,7 @@ public class TagSnapshot {
    *
    * @param afterCreate If not null, it will be applied to the {@link TagSnapshot} created in a post processing step
    */
-  static TagSnapshot createSyntheticTag(@Nullable RenderXmlTag tag, @Nullable String tagName, @Nullable String prefix,
+  public static TagSnapshot createSyntheticTag(@Nullable RenderXmlTag tag, @Nullable String tagName, @Nullable String prefix,
                                         @Nullable String namespace, @NotNull List<AttributeSnapshot> attributes,
                                         @NotNull List<TagSnapshot> children, @Nullable Consumer<TagSnapshot> afterCreate) {
     TagSnapshot newSnapshot = new TagSnapshot(tag, tagName, prefix, namespace, attributes, children, false);

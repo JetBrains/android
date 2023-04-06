@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.parsers;
+package com.android.tools.rendering.parsers;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.ATTR_LAYOUT_HEIGHT;
@@ -23,7 +23,6 @@ import static com.android.SdkConstants.VALUE_VERTICAL;
 import static com.android.SdkConstants.VALUE_WRAP_CONTENT;
 import static com.google.common.truth.Truth.assertThat;
 
-import com.android.tools.rendering.parsers.RenderXmlTag;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.intellij.lang.annotations.Language;

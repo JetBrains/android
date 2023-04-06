@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.parsers;
+package com.android.tools.rendering.parsers;
 
-import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.android.xml.AttrNameSplitter;
 import com.google.common.annotations.VisibleForTesting;
 import java.util.List;
@@ -32,13 +31,13 @@ import static com.android.SdkConstants.ATTR_NAME;
  * Aapt attributes are attributes that instead of containing a reference, contain the inlined value of the reference. This snapshot will
  * generate a dynamic reference that will be used by the resource resolution to be able to retrieve the inlined value.
  */
-class AaptAttrAttributeSnapshot extends AttributeSnapshot {
+public class AaptAttrAttributeSnapshot extends AttributeSnapshot {
   /**
    * Each attribute must keep a dynamic unique ID so it can be referenced by the parent. We simply generate a sequential number.
    * This counter is thread safe in order to be able to use {@link AaptAttrAttributeSnapshot} in parallel streams.
    */
   @VisibleForTesting
-  static final AtomicLong ourUniqueId = new AtomicLong(0L);
+  public static final AtomicLong ourUniqueId = new AtomicLong(0L);
 
   private final String myId;
   private final TagSnapshot myBundledTag;

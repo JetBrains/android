@@ -17,7 +17,7 @@ package com.android.tools.idea.uibuilder.scene
 
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.idea.common.model.NlModel.TagSnapshotTreeNode
-import com.android.tools.idea.rendering.parsers.TagSnapshot
+import com.android.tools.rendering.parsers.TagSnapshot
 import com.intellij.util.containers.ContainerUtil
 
 

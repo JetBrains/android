@@ -31,7 +31,7 @@ import com.android.ide.common.rendering.api.DataBindingItem;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.rendering.parsers.TagSnapshot;
+import com.android.tools.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;

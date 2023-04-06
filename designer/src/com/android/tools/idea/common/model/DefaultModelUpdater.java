@@ -21,7 +21,7 @@ import static com.android.SdkConstants.ATTR_ID;
 
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
-import com.android.tools.idea.rendering.parsers.TagSnapshot;
+import com.android.tools.rendering.parsers.TagSnapshot;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Maps;

@@ -66,7 +66,7 @@ import com.android.tools.idea.naveditor.scene.NavSceneManagerKt;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
-import com.android.tools.idea.rendering.parsers.TagSnapshot;
+import com.android.tools.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.util.DependencyManagementUtil;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;

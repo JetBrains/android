@@ -26,7 +26,7 @@ import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.RenderService;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
-import com.android.tools.idea.rendering.parsers.TagSnapshot;
+import com.android.tools.rendering.parsers.TagSnapshot;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.type.MenuFileType;
 import com.google.common.collect.ImmutableList;
