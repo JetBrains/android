@@ -40,6 +40,7 @@ import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.lint.checks.ApiLookup;
+import com.android.xml.AttrNameSplitter;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
@@ -89,16 +90,6 @@ public class ResolutionUtils {
     ResourceUrl url = ResourceUrl.parse(styleResourceUrl);
     assert url != null : styleResourceUrl;
     return url.namespace != null ? url.namespace + ':' + url.name : url.name;
-  }
-
-  /**
-   * @return name without qualifier
-   * e.g. for "android:Theme" returns "Theme" or for "AppTheme" returns "AppTheme"
-   */
-  @NotNull
-  public static String getNameFromQualifiedName(@NotNull String qualifiedName) {
-    int colonIndex = qualifiedName.indexOf(':');
-    return colonIndex != -1 ? qualifiedName.substring(colonIndex + 1) : qualifiedName;
   }
 
   /**
@@ -168,7 +159,7 @@ public class ResolutionUtils {
 
       definitions = ModuleResourceManagers.getInstance(facet).getLocalResourceManager().getAttributeDefinitions();
     }
-    return definitions.getAttrDefByName(getNameFromQualifiedName(name));
+    return definitions.getAttrDefByName(AttrNameSplitter.findLocalName(name));
   }
 
   /**
@@ -220,7 +211,7 @@ public class ResolutionUtils {
     Map<String, StyleItemResourceValue> allItems = new HashMap<>();
     String themeName = getQualifiedNameFromResourceUrl(themeUrl);
     do {
-      StyleResourceValue theme = resolver.getStyle(getNameFromQualifiedName(themeName), themeName.startsWith(PREFIX_ANDROID));
+      StyleResourceValue theme = resolver.getStyle(AttrNameSplitter.findLocalName(themeName), themeName.startsWith(PREFIX_ANDROID));
       if (theme == null) {
         break;
       }

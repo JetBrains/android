@@ -16,6 +16,7 @@
 package com.android.tools.idea.configurations;
 
 import com.android.SdkConstants;
+import com.android.xml.AttrNameSplitter;
 import com.google.common.annotations.VisibleForTesting;
 import com.android.ide.common.rendering.api.StyleResourceValue;
 import com.android.tools.adtui.actions.DropDownAction;
@@ -197,7 +198,7 @@ public class ThemeMenuAction extends DropDownAction {
 
   @NotNull
   private static String getThemeLabel(@NotNull String theme) {
-    return ResolutionUtils.getNameFromQualifiedName(theme.substring(theme.indexOf('/') + 1));
+    return AttrNameSplitter.findLocalName(theme.substring(theme.indexOf('/') + 1));
   }
 
   private static boolean isSameTheme(@Nullable String left, @Nullable String right) {

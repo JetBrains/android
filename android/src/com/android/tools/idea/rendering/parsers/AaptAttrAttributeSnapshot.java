@@ -16,8 +16,8 @@
 package com.android.tools.idea.rendering.parsers;
 
 import com.android.tools.rendering.parsers.RenderXmlTag;
+import com.android.xml.AttrNameSplitter;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.xml.util.XmlUtil;
 import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,13 +68,13 @@ class AaptAttrAttributeSnapshot extends AttributeSnapshot {
 
     RenderXmlTag bundledTag = subTags.get(0);
 
-    String prefix = XmlUtil.findPrefixByQualifiedName(name);
+    String prefix = AttrNameSplitter.findPrefix(name);
 
     // Generate a dynamic reference back to the child TagSnapshot
     return new AaptAttrAttributeSnapshot(
       tag.getNamespaceByPrefix(prefix),
       prefix,
-      XmlUtil.findLocalNameByQualifiedName(name), Long.toString(ourUniqueId.getAndIncrement()),
+      AttrNameSplitter.findLocalName(name), Long.toString(ourUniqueId.getAndIncrement()),
       TagSnapshot.createTagSnapshot(bundledTag, null));
   }
 

@@ -18,6 +18,7 @@ package com.android.tools.idea.ui.resourcemanager.actions
 import com.android.resources.ResourceType
 import com.android.tools.idea.editors.theme.ResolutionUtils
 import com.android.tools.idea.fonts.MoreFontsDialog
+import com.android.xml.findLocalName
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import org.jetbrains.android.facet.AndroidFacet
@@ -35,7 +36,7 @@ class AddFontAction(
       dialog.resultingFont?.let {
         createdResourceCallback(
           // This returns a font name as a resource url '@font/name', but we just need the name.
-          ResolutionUtils.getNameFromQualifiedName(ResolutionUtils.getQualifiedNameFromResourceUrl(it)),
+          findLocalName(ResolutionUtils.getQualifiedNameFromResourceUrl(it)),
           ResourceType.FONT)
       }
     }

@@ -54,15 +54,6 @@ public class ResolutionUtilsTest extends AndroidTestCase {
     // for theme attributes, the "attr/" is optional: http://developer.android.com/guide/topics/resources/accessing-resources.html
   }
 
-  /**
-   * Tests {@link ResolutionUtils#getNameFromQualifiedName(String)}
-   */
-  public void testGetNameFromQualifiedName() {
-    assertEquals("Theme", ResolutionUtils.getNameFromQualifiedName("app:Theme"));
-    assertEquals("Theme", ResolutionUtils.getNameFromQualifiedName("android:Theme"));
-    assertEquals("AppTheme", ResolutionUtils.getNameFromQualifiedName("AppTheme"));
-  }
-
   public void testGetOriginalApiLevel() {
     assertEquals(-1, ResolutionUtils.getOriginalApiLevel(null, getProject()));
 
