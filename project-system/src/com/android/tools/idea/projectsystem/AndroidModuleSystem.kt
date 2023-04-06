@@ -372,16 +372,6 @@ interface AndroidModuleSystem: SampleDataDirectoryProvider, ModuleHierarchyProvi
   val desugarLibraryConfigFilesNotKnownUserMessage: String? get() = "Only supported for Gradle projects"
 
   val desugarLibraryConfigFiles: List<Path> get() = listOf()
-
-  /**
-   * Whether Gradle version catalogs are in use.
-   *
-   * This should ideally not be exposed to higher levels of the stack, but is necessary to disable certain actions that aren't yet
-   * supported with Version Catalogs.
-   *
-   * TODO(b/273530751): Remove this utility method once adding dependencies for catalogs is supported.
-   */
-  val usesVersionCatalogs: Boolean get() = false
 }
 
 /**
