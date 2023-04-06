@@ -18,6 +18,7 @@ package com.android.tools.idea.streaming.device
 import com.android.adblib.DevicePropertyNames
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
@@ -36,7 +37,6 @@ import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.DeviceView.Companion.ANDROID_SCROLL_ADJUSTMENT_FACTOR
-import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.executeDeviceAction
 import com.android.tools.idea.testing.AndroidExecutorsRule
 import com.android.tools.idea.testing.CrashReporterRule
@@ -87,8 +87,8 @@ import org.junit.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito
 import java.awt.Component
+import java.awt.DefaultKeyboardFocusManager
 import java.awt.Dimension
-import java.awt.KeyboardFocusManager
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.PointerInfo
@@ -113,7 +113,6 @@ import java.awt.event.KeyEvent.VK_LEFT
 import java.awt.event.KeyEvent.VK_PAGE_DOWN
 import java.awt.event.KeyEvent.VK_PAGE_UP
 import java.awt.event.KeyEvent.VK_RIGHT
-import java.awt.event.KeyEvent.VK_SHIFT
 import java.awt.event.KeyEvent.VK_TAB
 import java.awt.event.KeyEvent.VK_UP
 import java.nio.file.Path
@@ -453,21 +452,14 @@ internal class DeviceViewTest {
       }
     }
 
-    val mockFocusManager: KeyboardFocusManager = mock()
-    whenever(mockFocusManager.redispatchEvent(any(Component::class.java), any(KeyEvent::class.java))).thenCallRealMethod()
+    val mockFocusManager: DefaultKeyboardFocusManager = mock()
+    whenever(mockFocusManager.processKeyEvent(any(Component::class.java), any(KeyEvent::class.java))).thenCallRealMethod()
     replaceKeyboardFocusManager(mockFocusManager, testRootDisposable)
-    // Shift+Tab should trigger a forward local focus traversal.
-    with(fakeUi.keyboard) {
-      setFocus(view)
-      press(VK_SHIFT)
-      pressAndRelease(VK_TAB)
-      release(VK_SHIFT)
-    }
-    val arg1 = ArgumentCaptor.forClass(EmulatorView::class.java)
-    val arg2 = ArgumentCaptor.forClass(KeyEvent::class.java)
-    Mockito.verify(mockFocusManager, Mockito.atLeast(1)).processKeyEvent(arg1.capture(), arg2.capture())
-    val tabEvent = arg2.allValues.firstOrNull { it.id == KEY_PRESSED && it.keyCode == VK_TAB && it.modifiersEx == 0 }
-    assertThat(tabEvent).isNotNull()
+
+    mockFocusManager.processKeyEvent(
+      view, KeyEvent(view, KEY_PRESSED, System.nanoTime(), KeyEvent.SHIFT_DOWN_MASK, VK_TAB, VK_TAB.toChar()))
+
+    Mockito.verify(mockFocusManager, Mockito.atLeast(1)).focusNextComponent(eq(view))
   }
 
   @Test

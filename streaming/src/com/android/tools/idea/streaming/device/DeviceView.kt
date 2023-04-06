@@ -546,15 +546,6 @@ internal class DeviceView(
         }
       }
 
-      // The Tab character is passed to the device, but Shift+Tab is converted to Tab and processed locally.
-      if (keyCode == VK_TAB && modifiers == SHIFT_DOWN_MASK) {
-        if (event.id == KEY_PRESSED) {
-          val tabEvent = KeyEvent(event.component, event.id, event.getWhen(), 0, keyCode, event.keyChar, event.keyLocation)
-          traverseFocusLocally(tabEvent)
-        }
-        return
-      }
-
       if (!isConnected) {
         return
       }

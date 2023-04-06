@@ -30,13 +30,14 @@ import java.awt.Color
 import java.awt.Dimension
 import java.awt.Graphics
 import java.awt.Graphics2D
-import java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager
+import java.awt.KeyboardFocusManager
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.RadialGradientPaint
 import java.awt.Rectangle
 import java.awt.RenderingHints
 import java.awt.event.ActionEvent
+import java.awt.event.InputEvent
 import java.awt.event.KeyEvent
 import java.awt.geom.Area
 import java.awt.geom.Ellipse2D
@@ -45,6 +46,7 @@ import javax.swing.AbstractAction
 import javax.swing.Box
 import javax.swing.JButton
 import javax.swing.JComponent
+import javax.swing.KeyStroke
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import kotlin.math.floor
@@ -95,25 +97,9 @@ abstract class AbstractDisplayView(val displayId: Int) : ZoomablePanel(), Dispos
     addToCenter(disconnectedStatePanel)
 
     isFocusable = true // Must be focusable to receive keyboard events.
-    focusTraversalKeysEnabled = false // Receive focus traversal keys to send them to the device.
-  }
-
-  /**
-   * Processes a focus traversal key event by passing it to the keyboard focus manager.
-   */
-  protected fun traverseFocusLocally(event: KeyEvent) {
-    if (!focusTraversalKeysEnabled) {
-      focusTraversalKeysEnabled = true
-      try {
-        getCurrentKeyboardFocusManager().processKeyEvent(this, event)
-      }
-      finally {
-        focusTraversalKeysEnabled = false
-      }
-    }
-
-    revalidate()
-    repaint()
+    setFocusTraversalKeys(KeyboardFocusManager.BACKWARD_TRAVERSAL_KEYS, emptySet())
+    setFocusTraversalKeys(KeyboardFocusManager.FORWARD_TRAVERSAL_KEYS,
+                          setOf(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK)))
   }
 
   protected fun drawMultiTouchFeedback(graphics: Graphics2D, displayRectangle: Rectangle, dragging: Boolean) {

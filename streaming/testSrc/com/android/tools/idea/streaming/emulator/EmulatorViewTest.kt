@@ -19,6 +19,7 @@ import com.android.emulator.control.FoldedDisplay
 import com.android.emulator.control.ThemingStyle
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
@@ -77,13 +78,12 @@ import com.intellij.util.ui.UIUtil
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.anyBoolean
 import org.mockito.Mockito.atLeast
 import org.mockito.Mockito.verify
 import java.awt.Component
+import java.awt.DefaultKeyboardFocusManager
 import java.awt.Dimension
-import java.awt.KeyboardFocusManager
 import java.awt.MouseInfo
 import java.awt.Point
 import java.awt.PointerInfo
@@ -406,21 +406,14 @@ class EmulatorViewTest {
       release(VK_CONTROL)
     }
 
-    val mockFocusManager: KeyboardFocusManager = mock()
-    whenever(mockFocusManager.redispatchEvent(any(Component::class.java), any(KeyEvent::class.java))).thenCallRealMethod()
+    val mockFocusManager: DefaultKeyboardFocusManager = mock()
+    whenever(mockFocusManager.processKeyEvent(any(Component::class.java), any(KeyEvent::class.java))).thenCallRealMethod()
     replaceKeyboardFocusManager(mockFocusManager, testRootDisposable)
-    // Shift+Tab should trigger a forward local focus traversal.
-    with(ui.keyboard) {
-      setFocus(view)
-      press(VK_SHIFT)
-      pressAndRelease(VK_TAB)
-      release(VK_SHIFT)
-    }
-    val arg1 = ArgumentCaptor.forClass(EmulatorView::class.java)
-    val arg2 = ArgumentCaptor.forClass(KeyEvent::class.java)
-    verify(mockFocusManager, atLeast(1)).processKeyEvent(arg1.capture(), arg2.capture())
-    val tabEvent = arg2.allValues.firstOrNull { it.id == KEY_PRESSED && it.keyCode == VK_TAB && it.modifiersEx == 0 }
-    assertThat(tabEvent).isNotNull()
+
+    mockFocusManager.processKeyEvent(
+        view, KeyEvent(view, KEY_PRESSED, System.nanoTime(), KeyEvent.SHIFT_DOWN_MASK, VK_TAB, VK_TAB.toChar()))
+
+    verify(mockFocusManager, atLeast(1)).focusNextComponent(eq(view))
   }
 
   @Test
