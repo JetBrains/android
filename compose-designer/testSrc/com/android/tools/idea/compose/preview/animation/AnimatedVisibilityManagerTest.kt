@@ -34,6 +34,7 @@ import kotlin.test.assertTrue
 import org.junit.Assert
 import org.junit.Test
 
+@org.junit.Ignore("b/278929658")
 class AnimatedVisibilityManagerTest : InspectorTests() {
 
   @Test

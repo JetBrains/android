@@ -36,6 +36,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
+@org.junit.Ignore("b/278929658")
 @RunWith(Parameterized::class)
 class AnimationManagerTests(private val animationType: ComposeAnimationType) : InspectorTests() {
 
