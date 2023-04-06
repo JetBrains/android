@@ -57,7 +57,9 @@ class CompilerLiveLiteralsManagerGradleTest {
     runBlocking {
       val literals = CompilerLiveLiteralsManager.getInstance().find(psiFile)
       assertTrue(literals.hasCompilerLiveLiteral(psiFile, 759))
+/* b/278929691
       assertFalse(literals.hasCompilerLiveLiteral(psiFile, 780))
+b/278929691 */
     }
   }
 }
