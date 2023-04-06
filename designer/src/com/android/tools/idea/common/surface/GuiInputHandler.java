@@ -25,7 +25,7 @@ import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.uibuilder.graphics.NlConstants;
 import com.android.tools.idea.uibuilder.model.NlDropEvent;
-import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
+import com.android.tools.idea.uibuilder.surface.interaction.DragDropInteraction;
 import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;

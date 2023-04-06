@@ -24,6 +24,7 @@ import com.android.tools.idea.common.surface.InteractionHandlerBase
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.android.tools.idea.uibuilder.model.layoutHandler
+import com.android.tools.idea.uibuilder.surface.interaction.CanvasResizeInteraction
 import com.android.tools.idea.uibuilder.surface.interaction.MarqueeInteraction
 import org.intellij.lang.annotations.JdkConstants
 import java.awt.Cursor

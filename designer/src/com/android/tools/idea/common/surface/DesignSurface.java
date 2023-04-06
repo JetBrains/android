@@ -55,6 +55,7 @@ import com.android.tools.idea.common.type.DesignerEditorFileType;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
+import com.android.tools.idea.uibuilder.surface.interaction.DragDropInteraction;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContent;
 import com.android.tools.idea.uibuilder.surface.layout.PositionableContentLayoutManager;
 import com.google.common.base.Predicate;
@@ -895,7 +896,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   /**
    * Gives us a chance to change layers behaviour upon drag and drop interaction starting
    * <p>
-   * TODO(b/142953949): move this function into {@link com.android.tools.idea.uibuilder.surface.DragDropInteraction}
+   * TODO(b/142953949): move this function into {@link DragDropInteraction}
    */
   public void startDragDropInteraction() {
     for (SceneView sceneView : getSceneViews()) {
@@ -907,7 +908,7 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   /**
    * Gives us a chance to change layers behaviour upon drag and drop interaction ending
    * <p>
-   * TODO(b/142953949): move this function into {@link com.android.tools.idea.uibuilder.surface.DragDropInteraction}
+   * TODO(b/142953949): move this function into {@link DragDropInteraction}
    */
   public void stopDragDropInteraction() {
     for (SceneView sceneView : getSceneViews()) {

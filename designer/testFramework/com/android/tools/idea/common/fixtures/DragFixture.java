@@ -30,7 +30,7 @@ import com.android.tools.idea.common.surface.KeyReleasedEvent;
 import com.android.tools.idea.uibuilder.model.*;
 import com.android.tools.adtui.common.SwingCoordinate;
 import com.android.tools.idea.common.surface.DesignSurface;
-import com.android.tools.idea.uibuilder.surface.DragDropInteraction;
+import com.android.tools.idea.uibuilder.surface.interaction.DragDropInteraction;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DropTargetContext;

@@ -533,7 +533,7 @@
         id="JbUiStored"
         message="Do not store `JBUI.scale` scaled results in fields; this will not work correctly on dynamic theme or font size changes">
         <location
-            file="src/com/android/tools/idea/uibuilder/surface/CanvasResizeInteraction.java"
+            file="src/com/android/tools/idea/uibuilder/surface/interaction/CanvasResizeInteraction.java"
             line="120"/>
     </issue>
 
