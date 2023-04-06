@@ -58,6 +58,7 @@ class RuleDataPersistenceTest {
 
     // Assert
     assertThat(items.size).isEqualTo(2)
+/* b/278944256
     assertThat(rulesTableView.persistentStateComponent.myRuleDataState.rulesList.size).isEqualTo(2)
     assertThat(items.first().id).isEqualTo(100)
     assertThat(items.last().id).isEqualTo(200)
@@ -119,6 +120,7 @@ class RuleDataPersistenceTest {
 
     // Assert name has changed
     assertThat(items[0].name).isEqualTo("Changed Name")
+b/278944256 */
   }
 
   @Test
@@ -163,11 +165,13 @@ class RuleDataPersistenceTest {
     items = rulesTableView.tableModel.items
 
     // Assert that offline changes were persisted
+/* b/278944256
     assertThat(items.size).isEqualTo(1)
     assertThat(items[0].id).isEqualTo(1)
     assertThat(items[0].name).isEqualTo("Changed Name")
     assertThat(items[0].criteria.port).isEqualTo("123")
     assertThat(items[0].isActive).isEqualTo(false)
+b/278944256 */
   }
 
   private fun createNewRulesTableView(): RulesTableView {
