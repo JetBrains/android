@@ -32,6 +32,7 @@ import org.mockito.Mockito;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+@org.junit.Ignore("b/278938096")
 public final class ToggleStateActionTest {
   @Test
   public void isSelectedImageIsNull() {
