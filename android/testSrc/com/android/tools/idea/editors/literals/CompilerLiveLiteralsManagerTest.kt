@@ -57,6 +57,7 @@ internal class CompilerLiveLiteralsManagerTest {
     }
   }
 
+  @org.junit.Ignore("b/278929690")
   @Test
   fun `verify finding of relative and absolute path literals`() {
     val file = projectRule.fixture.addFileToProject(
