@@ -20,6 +20,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.intellij.psi.PsiParameter
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.kotlin.psi.KtConstructor
@@ -644,6 +645,106 @@ class ProviderDaggerElementTest {
           "navigate.to.consumer",
           "Foo"
         )
+      )
+  }
+
+  @Test
+  fun getRelatedDaggerElement_kotlinFunctionType() {
+    addDaggerAndHiltClasses(myFixture)
+
+    myFixture.addFileToProject(
+      "src/kotlin/jvm/functions/Function0.kt",
+      // language=kotlin
+      """
+      package kotlin.jvm.functions
+      public interface Function<out R>
+      public interface Function0<out R> : Function<R> {
+        public operator fun invoke(): R
+      }
+      """
+        .trimIndent()
+    )
+
+    myFixture.openFileInEditor(
+      myFixture
+        .addFileToProject(
+          "src/com/example/MyKotlinConsumer.kt",
+          // language=kotlin
+          """
+          package com.example
+
+          import javax.inject.Inject
+
+          class MyKotlinConsumer @Inject constructor(
+            arg: () -> String
+          )
+          """
+            .trimIndent()
+        )
+        .virtualFile
+    )
+
+    val kotlinConsumer =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("ar|g: () -> String"))
+
+    myFixture.openFileInEditor(
+      myFixture
+        .addFileToProject(
+          "src/com/example/MyJavaConsumer.java",
+          // language=java
+          """
+          package com.example;
+
+          import javax.inject.Inject;
+          import kotlin.jvm.functions.Function0;
+
+          class MyJavaConsumer {
+            @Inject
+            public MyJavaConsumer(Function0<String> arg) {}
+          }
+          """
+            .trimIndent()
+        )
+        .virtualFile
+    )
+
+    val javaConsumer =
+      ConsumerDaggerElement(myFixture.findParentElement<PsiParameter>("Function0<String> ar|g"))
+
+    myFixture.openFileInEditor(
+      myFixture
+        .addFileToProject(
+          "src/com/example/MyModule.kt",
+          // language=kotlin
+          """
+          package com.example
+
+          import dagger.Module
+          import dagger.Provides
+
+          @Module
+          class MyModule {
+            @Provides
+            fun getFunctionType(): () -> String = { "hello" }
+          }
+          """
+            .trimIndent()
+        )
+        .virtualFile
+    )
+
+    val providerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("fun getFunction|Type()"))
+
+    assertThat(providerElement.getRelatedDaggerElements())
+      .containsExactly(
+        DaggerRelatedElement(
+          kotlinConsumer,
+          "Consumers",
+          "navigate.to.consumer",
+          "MyKotlinConsumer"
+        ),
+        DaggerRelatedElement(javaConsumer, "Consumers", "navigate.to.consumer", "MyJavaConsumer"),
       )
   }
 

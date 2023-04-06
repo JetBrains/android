@@ -19,6 +19,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.google.common.truth.Truth.assertWithMessage
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.psi.PsiJavaFile
 import com.intellij.psi.PsiMethod
@@ -451,6 +452,51 @@ class DaggerIndexTypeWrapperTest {
       DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(nullable6ReturnTypeElement)
 
     assertThat(nullable6ReturnTypeWrapper.getSimpleName()).isEqualTo("IntArray")
+  }
+
+  @Test
+  fun kotlinFunctionType() {
+    val psiFile =
+      myFixture.configureByText(
+        KotlinFileType.INSTANCE,
+        // language=kotlin
+        """
+        package com.example
+
+        interface Foo {
+          fun getFunction0Type(): () -> String
+          fun getFunction1Type(): (Int) -> String
+          fun getFunction2Type(): (Int, Int) -> String
+          fun getFunction22Type(): (
+            Int, Int, Int, Int, Int,
+            Int, Int, Int, Int, Int,
+            Int, Int, Int, Int, Int,
+            Int, Int, Int, Int, Int,
+            Int, Int
+          ) -> String
+          fun getFunctionNType(): (
+            Int, Int, Int, Int, Int,
+            Int, Int, Int, Int, Int,
+            Int, Int, Int, Int, Int,
+            Int, Int, Int, Int, Int,
+            Int, Int, Int
+          ) -> String
+        }
+        """
+          .trimIndent()
+      ) as KtFile
+
+    for (argCount in listOf("0", "1", "2", "22", "N")) {
+      val window = "getFunction${argCount}Ty|pe()"
+      val functionReturnTypeElement =
+        myFixture.findParentElement<KtFunction>(window).getReturnTypeReference()!!
+      val functionReturnTypeWrapper =
+        DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(functionReturnTypeElement)
+
+      assertWithMessage("Expected return value 'Function$argCount'")
+        .that(functionReturnTypeWrapper.getSimpleName())
+        .isEqualTo("Function$argCount")
+    }
   }
 
   @Test

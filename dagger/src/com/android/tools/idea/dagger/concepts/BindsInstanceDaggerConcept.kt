@@ -94,7 +94,7 @@ private object BindsInstanceIndexer : DaggerConceptIndexer<DaggerIndexMethodWrap
     val singleParameter = wrapper.getParameters().singleOrNull() ?: return
 
     indexEntries.addIndexValue(
-      singleParameter.getType().getSimpleName(),
+      singleParameter.getType().getSimpleName() ?: "",
       BindsInstanceBuilderMethodIndexValue(containingClass.getFqName(), wrapper.getSimpleName())
     )
   }
@@ -108,7 +108,7 @@ private object BindsInstanceIndexer : DaggerConceptIndexer<DaggerIndexMethodWrap
       wrapper.getParameters().filter { it.getIsAnnotatedWith(DaggerAnnotations.BINDS_INSTANCE) }
     for (parameter in bindsInstanceParameters) {
       indexEntries.addIndexValue(
-        parameter.getType().getSimpleName(),
+        parameter.getType().getSimpleName() ?: "",
         BindsInstanceFactoryMethodParameterIndexValue(
           containingClass.getFqName(),
           wrapper.getSimpleName(),

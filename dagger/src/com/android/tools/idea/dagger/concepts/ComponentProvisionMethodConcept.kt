@@ -99,7 +99,7 @@ private object ComponentProvisionMethodIndexer : DaggerConceptIndexer<DaggerInde
       )
     ) {
       indexEntries.addIndexValue(
-        returnType.getSimpleName(),
+        returnType.getSimpleName() ?: "",
         ComponentProvisionMethodIndexValue(containingClass.getFqName(), wrapper.getSimpleName())
       )
     }
@@ -122,7 +122,7 @@ private object ComponentProvisionPropertyIndexer : DaggerConceptIndexer<DaggerIn
       )
     ) {
       indexEntries.addIndexValue(
-        propertyType.getSimpleName(),
+        propertyType.getSimpleName() ?: "",
         ComponentProvisionPropertyIndexValue(containingClass.getFqName(), wrapper.getSimpleName())
       )
     }
