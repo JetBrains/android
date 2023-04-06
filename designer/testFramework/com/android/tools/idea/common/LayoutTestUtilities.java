@@ -32,6 +32,7 @@ import com.android.tools.idea.uibuilder.model.NlComponentMixin;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.surface.ScreenView;
+import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.KeyboardShortcut;
 import com.intellij.openapi.actionSystem.Shortcut;
@@ -233,6 +234,7 @@ public class LayoutTestUtilities {
     };
     screenView.setLocation(x, y);
     when(spy.getSceneView()).thenReturn(screenView);
+    when(surface.getSceneViews()).thenReturn(ImmutableList.of(screenView));
     surface.getScene().buildDisplayList(new DisplayList(), 0);
     return screenView;
   }

@@ -287,7 +287,7 @@ public abstract class SceneView {
   /**
    * Called when a drag operation starts on the {@link DesignSurface}
    */
-  final void onDragStart() {
+  public final void onDragStart() {
     for (Layer layer : getLayers()) {
       if (layer instanceof SceneLayer) {
         SceneLayer sceneLayer = (SceneLayer)layer;
@@ -301,7 +301,7 @@ public abstract class SceneView {
   /**
    * Called when a drag operation ends on the {@link DesignSurface}
    */
-  final void onDragEnd() {
+  public final void onDragEnd() {
     for (Layer layer : getLayers()) {
       if (layer instanceof SceneLayer) {
         SceneLayer sceneLayer = (SceneLayer)layer;

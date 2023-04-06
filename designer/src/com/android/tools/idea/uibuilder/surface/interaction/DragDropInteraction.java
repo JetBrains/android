@@ -178,7 +178,10 @@ public class DragDropInteraction extends Interaction {
   public void begin(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask int modifiersEx) {
     super.begin(x, y, modifiersEx);
     moveTo(x, y, modifiersEx, false);
-    myDesignSurface.startDragDropInteraction();
+    for (SceneView sceneView : myDesignSurface.getSceneViews()) {
+      sceneView.onDragStart();
+    }
+    myDesignSurface.repaint();
   }
 
   @Override
@@ -271,7 +274,7 @@ public class DragDropInteraction extends Interaction {
       // Do not select the dragged components here
       // These components are either already selected, or they are being created will be selected later
     }
-    myDesignSurface.stopDragDropInteraction();
+    stopDragDropInteraction();
   }
 
   @Override
@@ -291,13 +294,20 @@ public class DragDropInteraction extends Interaction {
     if (myDragHandler != null) {
       myDragHandler.cancel();
     }
-    myDesignSurface.stopDragDropInteraction();
+    stopDragDropInteraction();
   }
 
   @Nullable
   @Override
   public Cursor getCursor() {
     return Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR);
+  }
+
+  private void stopDragDropInteraction() {
+    for (SceneView sceneView : myDesignSurface.getSceneViews()) {
+      sceneView.onDragEnd();
+    }
+    myDesignSurface.repaint();
   }
 
   private void moveTo(@SwingCoordinate int x, @SwingCoordinate int y, @InputEventMask final int modifiers, boolean commit) {
