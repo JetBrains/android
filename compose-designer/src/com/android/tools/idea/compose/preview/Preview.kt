@@ -16,6 +16,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.ide.common.rendering.api.Bridge
+import com.android.tools.idea.modes.EssentialModeMessenger
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
 import com.android.tools.idea.common.model.AccessibilityModelUpdater
 import com.android.tools.idea.common.model.DefaultModelUpdater
@@ -84,6 +85,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.fileEditor.FileEditor
@@ -335,23 +337,40 @@ class ComposePreviewRepresentation(
 
   init {
     val project = psiFile.project
+    /* b/277124475 */
     project.messageBus
       .connect(this)
       .subscribe(
         PowerSaveMode.TOPIC,
         PowerSaveMode.Listener {
-          fpsLimit =
-            if (PreviewPowerSaveManager.isInPowerSaveMode) {
-              StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get() / 3
-            } else {
-              StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get()
-            }
-          fpsCounter.resetAndStart()
+          updateFpsForCurrentMode()
 
           // When getting out of power save mode, request a refresh
           if (!PreviewPowerSaveManager.isInPowerSaveMode) requestRefresh()
         }
       )
+    val essentialsModeMessengingService = service<EssentialModeMessenger>()
+    project.messageBus
+      .connect(this)
+      .subscribe(
+        essentialsModeMessengingService.TOPIC,
+        EssentialModeMessenger.Listener {
+          updateFpsForCurrentMode()
+          // When getting out of Essential Highlighting mode, request a refresh
+          if (!PreviewPowerSaveManager.isInPowerSaveMode) requestRefresh()
+        }
+      )
+  }
+
+  private fun updateFpsForCurrentMode() {
+    fpsLimit =
+      if (PreviewPowerSaveManager.isInPowerSaveMode) {
+        StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get() / 3
+      }
+      else {
+        StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get()
+      }
+    fpsCounter.resetAndStart()
   }
 
   /** Whether the preview needs a full refresh or not. */
