@@ -11,7 +11,7 @@ import java.io.File;
 import java.util.List;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.plugins.gradle.service.project.open.GradleProjectImportUtil;
-import org.jetbrains.plugins.gradle.util.GradleImportingTestUtil;
+import org.jetbrains.plugins.gradle.testFramework.util.GradleOperationTestUtil;
 
 public class ModuleModelDataServiceTest extends AndroidGradleTestCase {
   public void testLinkedProjectsDoNotRemoveEachOtherFacetsConcurrent() throws Exception {
@@ -23,8 +23,8 @@ public class ModuleModelDataServiceTest extends AndroidGradleTestCase {
 
     var linkedProjectPath1 = NioPathUtil.toCanonicalPath(linkedProject1.toPath());
     var linkedProjectPath2 = NioPathUtil.toCanonicalPath(linkedProject2.toPath());
-    GradleImportingTestUtil.waitForProjectReload(linkedProjectPath1, () ->
-      GradleImportingTestUtil.waitForProjectReload(linkedProjectPath2, () -> {
+    GradleOperationTestUtil.waitForGradleProjectReload(linkedProjectPath1, () ->
+      GradleOperationTestUtil.waitForGradleProjectReload(linkedProjectPath2, () -> {
         GradleProjectImportUtil.linkAndRefreshGradleProject(linkedProject1.getAbsolutePath(), getProject());
         GradleProjectImportUtil.linkAndRefreshGradleProject(linkedProject2.getAbsolutePath(), getProject());
         return null;
@@ -45,12 +45,12 @@ public class ModuleModelDataServiceTest extends AndroidGradleTestCase {
     prepareProjectForImport(SIMPLE_APPLICATION, linkedProject1);
     prepareProjectForImport(SIMPLE_APPLICATION, linkedProject2);
 
-    GradleImportingTestUtil.waitForProjectReload(() -> {
+    GradleOperationTestUtil.waitForAnyGradleProjectReload(() -> {
       GradleProjectImportUtil.linkAndRefreshGradleProject(linkedProject1.getAbsolutePath(), getProject());
       return null;
     });
 
-    GradleImportingTestUtil.waitForProjectReload(() -> {
+    GradleOperationTestUtil.waitForAnyGradleProjectReload(() -> {
       GradleProjectImportUtil.linkAndRefreshGradleProject(linkedProject2.getAbsolutePath(), getProject());
       return null;
     });
