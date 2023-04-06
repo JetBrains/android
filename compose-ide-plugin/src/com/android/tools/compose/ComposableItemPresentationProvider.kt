@@ -44,7 +44,7 @@ class ComposableItemPresentationProvider : ItemPresentationProvider<KtFunction> 
   private val ktFunctionPresenter = KtFunctionPresenter()
 
   override fun getPresentation(function: KtFunction): ItemPresentation? {
-    if (function.name?.isNotEmpty() == true && function.descriptor?.hasComposableAnnotation() == true) {
+    if (function.name?.isNotEmpty() == true && function.hasComposableAnnotation()) {
       return ComposableFunctionPresentation(function)
     }
 
