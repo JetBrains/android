@@ -530,8 +530,8 @@ class GradleModuleSystem(
     get() = GradleAndroidModel.get(module)?.agpVersion?.let {it >= (DESUGAR_LIBRARY_CONFIG_MINIMUM_AGP_VERSION) } ?: false
   override val desugarLibraryConfigFilesNotKnownUserMessage: String?
     get() = when {
-      GradleAndroidModel.get(module) == null -> "Not supported for non-Android modules"
-      !desugarLibraryConfigFilesKnown -> "Only supported for projects using Android Gradle plugin '$DESUGAR_LIBRARY_CONFIG_MINIMUM_AGP_VERSION' and above"
+      GradleAndroidModel.get(module) == null -> "Not supported for non-Android modules."
+      !desugarLibraryConfigFilesKnown -> "Only supported for projects using Android Gradle plugin '$DESUGAR_LIBRARY_CONFIG_MINIMUM_AGP_VERSION' and above."
       else -> null
     }
   override val desugarLibraryConfigFiles: List<Path>
