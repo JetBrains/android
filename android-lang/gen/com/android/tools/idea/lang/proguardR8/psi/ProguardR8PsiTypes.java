@@ -69,6 +69,7 @@ public interface ProguardR8PsiTypes {
   IElementType ANY_TYPE_AND_NUM_OF_ARGS = new ProguardR8TokenType("...");
   IElementType ASTERISK = new ProguardR8TokenType("*");
   IElementType AT = new ProguardR8TokenType("@");
+  IElementType AT_INTERFACE = new ProguardR8TokenType("AT_INTERFACE");
   IElementType BOOLEAN = new ProguardR8TokenType("boolean");
   IElementType BYTE = new ProguardR8TokenType("byte");
   IElementType CHAR = new ProguardR8TokenType("char");

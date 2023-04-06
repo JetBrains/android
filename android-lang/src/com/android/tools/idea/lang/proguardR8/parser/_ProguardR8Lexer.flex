@@ -42,6 +42,13 @@ WILDCARD_FOLLOWED_BY_DIGITS_OR_LETTERS= {WILDCARD}[:jletterdigit:]+
 // Like JAVA_IDENTIFIER but contain the "?" symbol (no more than one in row) and the "*" (no more than two in row).
 JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGITS_OR_LETTERS}+{WILDCARD}?)|{WILDCARD})
 
+// "@interface" must be followed by whitespace to be considered a valid token. This expression matches the space,
+// which then needs to be pushed back. Per JFlex docs at https://www.jflex.de/manual.html#performance, this is
+// preferred to doing a look-ahead:
+// "The cases of fixed-length look-ahead and fixed-length base expressions are handled efficiently by matching the
+// concatenation and then pushing back the required amount of characters."
+AT_INTERFACE=@interface\s
+
 %state STATE_JAVA_SECTION_HEADER
 %state STATE_JAVA_SECTION_BODY
 %state STATE_FLAG_ARGS
@@ -99,6 +106,7 @@ JAVA_IDENTIFIER_WITH_WILDCARDS = {JAVA_IDENTIFIER}? (({WILDCARD_FOLLOWED_BY_DIGI
   "."                                    { return DOT; }
   "**"                                   { return DOUBLE_ASTERISK; }
   "*"                                    { return ASTERISK; }
+  {AT_INTERFACE}                         { yypushback(1); yybegin(STATE_JAVA_SECTION_HEADER); return AT_INTERFACE; }
   "@"                                    { yybegin(STATE_JAVA_SECTION_HEADER); return AT; }
   "includedescriptorclasses"             { return INCLUDEDESCRIPTORCLASSES; }
   "includecode"                          { return INCLUDECODE; }

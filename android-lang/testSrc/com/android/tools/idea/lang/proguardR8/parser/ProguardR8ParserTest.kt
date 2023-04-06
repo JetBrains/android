@@ -1597,4 +1597,31 @@ class ProguardR8ParserTest : AndroidParsingTestCase(ProguardR8FileType.INSTANCE.
       )
     )
   }
+
+  /** Regression test for b/158189488. */
+  fun testAtInterface() {
+    // See syntax at https://www.guardsquare.com/manual/configuration/usage#classspecification.
+    // In this case, "@interface" is interpreted as the class type (interface|class|enum) before the class name.
+    assertEquals(
+      """
+        FILE
+          ProguardR8RuleWithClassSpecificationImpl(RULE_WITH_CLASS_SPECIFICATION)
+            ProguardR8FlagImpl(FLAG)
+              PsiElement(FLAG_TOKEN)('-keep')
+            ProguardR8ClassSpecificationHeaderImpl(CLASS_SPECIFICATION_HEADER)
+              ProguardR8ClassTypeImpl(CLASS_TYPE)
+                PsiElement(AT_INTERFACE)('@interface')
+              ProguardR8ClassNameImpl(CLASS_NAME)
+                ProguardR8QualifiedNameImpl(QUALIFIED_NAME)
+                  PsiElement(JAVA_IDENTIFIER)('butterknife')
+                  PsiElement(dot)('.')
+                  PsiElement(asterisk)('*')
+      """.trimIndent(),
+      toParseTreeText(
+        """
+          -keep @interface butterknife.*
+        """.trimIndent()
+      )
+    )
+  }
 }
