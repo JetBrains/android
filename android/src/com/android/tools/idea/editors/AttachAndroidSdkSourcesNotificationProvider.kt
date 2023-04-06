@@ -54,8 +54,6 @@ open class AttachAndroidSdkSourcesNotificationProvider(private val myProject: Pr
   }
 
   private fun createNotificationPanelForDebugSession(file: VirtualFile, fileEditor: FileEditor): EditorNotificationPanel? {
-    if (!StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.get()) return null
-
     // AndroidPositionManager is responsible for detecting that a specific SDK is needed during a debugging session, and will set the
     // REQUIRED_SOURCES_KEY when necessary.
     val missingApiLevel = file.getUserData(REQUIRED_SOURCES_KEY) ?: return null
@@ -78,13 +76,7 @@ open class AttachAndroidSdkSourcesNotificationProvider(private val myProject: Pr
     val apiVersion = getInstance(sdk)?.apiVersion ?: return null
     val refresh = Runnable { AndroidSdkUtils.updateSdkSourceRoot(sdk) }
 
-    return if (StudioFlags.DEBUG_DEVICE_SDK_SOURCES_ENABLE.get()) {
-      createPanel(fileEditor, apiVersion, refresh)
-    }
-    else {
-      val title = "Sources for '${jdkOrderEntry.jdkName}' not found."
-      createLegacyPanel(fileEditor, title, apiVersion, refresh)
-    }
+    return createPanel(fileEditor, apiVersion, refresh)
   }
 
   private fun createPanel(
@@ -100,24 +92,6 @@ open class AttachAndroidSdkSourcesNotificationProvider(private val myProject: Pr
         refreshAfterDownload?.run()
       }
     }
-    return panel
-  }
-
-  private fun createLegacyPanel(
-    fileEditor: FileEditor,
-    title: String,
-    requestedSourceVersion: AndroidVersion,
-    refresh: Runnable
-  ): MyEditorNotificationPanel {
-    val panel = MyEditorNotificationPanel(fileEditor)
-    panel.text = title
-    panel.createAndAddLink("Download") {
-      val sourcesPaths = listOf(DetailsTypes.getSourcesPath(requestedSourceVersion))
-      if (createSdkDownloadDialog(sourcesPaths)?.showAndGet() == true) {
-        refresh.run()
-      }
-    }
-    panel.createAndAddLink("Refresh (if already downloaded)", refresh)
     return panel
   }
 
