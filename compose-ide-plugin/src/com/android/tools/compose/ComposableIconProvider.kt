@@ -15,13 +15,11 @@
  */
 package com.android.tools.compose
 
-import androidx.compose.compiler.plugins.kotlin.hasComposableAnnotation
 import com.intellij.openapi.util.Iconable
 import com.intellij.psi.PsiElement
 import com.intellij.ui.RowIcon
 import icons.StudioIcons.Compose.Editor.COMPOSABLE_FUNCTION
 import org.jetbrains.kotlin.idea.KotlinIconProvider
-import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.idea.util.hasMatchingExpected
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFunction
@@ -35,7 +33,7 @@ import javax.swing.Icon
 class ComposableIconProvider : KotlinIconProvider() {
 
   override fun getIcon(psiElement: PsiElement, flags: Int): Icon? {
-    if (psiElement is KtFunction && psiElement.descriptor?.hasComposableAnnotation() == true) {
+    if (psiElement is KtFunction && psiElement.hasComposableAnnotation()) {
       if (flags and Iconable.ICON_FLAG_VISIBILITY > 0) {
         return createRowIcon(COMPOSABLE_FUNCTION, getVisibilityIcon(psiElement.modifierList))
       }
