@@ -16,7 +16,9 @@
 package com.android.tools.idea.editors.liveedit
 
 import com.android.tools.idea.editors.literals.LiveEditService
+import com.android.tools.idea.editors.literals.LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_MANUAL
 import com.android.tools.idea.editors.literals.internal.LiveLiteralsDiagnosticsManager
+import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.DISABLED
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_EDIT
 import com.android.tools.idea.editors.liveedit.LiveEditApplicationConfiguration.LiveEditMode.LIVE_LITERALS
 import com.android.tools.idea.flags.StudioFlags
@@ -40,8 +42,8 @@ class LiveEditApplicationConfiguration : SimplePersistentStateComponent<LiveEdit
   }
 
   class State : BaseState() {
-    var mode by enum(LIVE_EDIT)
-    var leTriggerMode by enum(LiveEditService.Companion.LiveEditTriggerMode.LE_TRIGGER_MANUAL)
+    var mode by enum(DISABLED)
+    var leTriggerMode by enum(LE_TRIGGER_MANUAL)
   }
 
   var mode
