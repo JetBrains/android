@@ -98,10 +98,10 @@ class SdkBuildToolsTooLowIssueChecker: GradleIssueChecker {
                           if (buildFiles.isNotEmpty()) ", update version in build file and sync project" else " and sync project"
 
         buildIssueComposer.addQuickFix(linkMessage,
-                                InstallBuildToolsQuickFix(minVersion, buildFiles, doesAndroidGradlePluginPackageBuildTools(modules)))
+                                InstallBuildToolsQuickFix(minVersion, buildFiles, doesAndroidGradlePluginPackageBuildTools(ideaProject)))
       }
       else if(buildFiles.isNotEmpty()) {
-        val removeBuildTools = doesAndroidGradlePluginPackageBuildTools(modules)
+        val removeBuildTools = doesAndroidGradlePluginPackageBuildTools(ideaProject)
         buildIssueComposer.addQuickFix("${if (removeBuildTools) "Remove" else "Update"} Build Tools version and sync project",
                                 FixBuildToolsVersionQuickFix(minVersion, buildFiles, removeBuildTools))
       }
@@ -124,18 +124,12 @@ class SdkBuildToolsTooLowIssueChecker: GradleIssueChecker {
 }
 
 @Slow
-fun doesAndroidGradlePluginPackageBuildTools(modules: List<Module>): Boolean {
-  // All modules should be using the same version of the AGP
-  for (module in modules) {
-    if (AndroidFacet.getInstance(module) == null) {
-      continue
-    }
-    val pluginInfo = AndroidPluginInfo.find(module.project)
-    if (pluginInfo != null) {
-      val agpVersion = pluginInfo.pluginVersion
-      if (agpVersion != null && !agpVersion.isAtLeast(3, 0, 0)) {
-        return false
-      }
+fun doesAndroidGradlePluginPackageBuildTools(project: Project): Boolean {
+  val pluginInfo = AndroidPluginInfo.find(project)
+  if (pluginInfo != null) {
+    val agpVersion = pluginInfo.pluginVersion
+    if (agpVersion != null && !agpVersion.isAtLeast(3, 0, 0)) {
+      return false
     }
   }
   return true

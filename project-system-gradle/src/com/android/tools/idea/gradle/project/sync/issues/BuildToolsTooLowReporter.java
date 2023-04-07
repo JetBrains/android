@@ -61,11 +61,12 @@ class BuildToolsTooLowReporter extends SimpleDeduplicatingSyncIssueReporter {
       return ImmutableList.of();
     }
 
-    return getQuickFixHyperlinks(minimumVersion, affectedModules, buildFileMap);
+    return getQuickFixHyperlinks(project, minimumVersion, affectedModules, buildFileMap);
   }
 
   @NotNull
-  public List<SyncIssueNotificationHyperlink> getQuickFixHyperlinks(@NotNull String minimumVersion,
+  public List<SyncIssueNotificationHyperlink> getQuickFixHyperlinks(@NotNull Project project,
+                                                                    @NotNull String minimumVersion,
                                                                     @NotNull List<Module> affectedModules,
                                                                     @NotNull Map<Module, VirtualFile> buildFileMap) {
     List<SyncIssueNotificationHyperlink> hyperlinks = new ArrayList<>();
@@ -90,11 +91,11 @@ class BuildToolsTooLowReporter extends SimpleDeduplicatingSyncIssueReporter {
 
     if (!buildToolInstalled) {
       hyperlinks
-        .add(new InstallBuildToolsHyperlink(minimumVersion, buildFiles, doesAndroidGradlePluginPackageBuildTools(affectedModules)));
+        .add(new InstallBuildToolsHyperlink(minimumVersion, buildFiles, doesAndroidGradlePluginPackageBuildTools(project)));
     }
     else if (!buildFiles.isEmpty()) {
       hyperlinks
-        .add(new FixBuildToolsVersionHyperlink(minimumVersion, buildFiles, doesAndroidGradlePluginPackageBuildTools(affectedModules)));
+        .add(new FixBuildToolsVersionHyperlink(minimumVersion, buildFiles, doesAndroidGradlePluginPackageBuildTools(project)));
     }
 
     return hyperlinks;
