@@ -424,7 +424,6 @@ bool DisplayStreamer::ProcessFramesUntilCodecStopped(AMediaCodec* codec, VideoPa
   return end_of_stream;
 }
 
-
 void DisplayStreamer::SetVideoOrientation(int32_t orientation) {
   Jni jni = Jvm::GetJni();
   bool rotation_was_frozen = WindowManager::IsRotationFrozen(jni);
