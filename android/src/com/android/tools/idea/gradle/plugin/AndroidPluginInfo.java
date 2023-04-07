@@ -31,6 +31,7 @@ import com.android.tools.idea.gradle.project.model.AndroidModuleModel;
 import com.android.tools.idea.gradle.util.BuildFileProcessor;
 import com.android.tools.idea.projectsystem.AndroidModuleSystem;
 import com.google.common.annotations.VisibleForTesting;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
@@ -101,17 +102,19 @@ public class AndroidPluginInfo {
   @Slow
   @Nullable
   private static AndroidPluginInfo findInBuildFiles(@NotNull Project project, @Nullable Module appModule) {
-    Module fileAppModule = null;
-    // Try to find 'app' module or plugin version by reading build.gradle files.
-    BuildFileSearchResult result = searchInBuildFiles(project, appModule == null);
-    if (result.appVirtualFile != null) {
-      fileAppModule = findModuleForFile(result.appVirtualFile, project);
-    }
-    if (fileAppModule != null || appModule != null) {
-      AgpVersion pluginVersion = isNotEmpty(result.pluginVersion) ? AgpVersion.tryParse(result.pluginVersion) : null;
-      return new AndroidPluginInfo(fileAppModule == null ? appModule : fileAppModule, pluginVersion, result.pluginVirtualFile);
-    }
-    return null;
+    return ReadAction.compute(() -> {
+      Module fileAppModule = null;
+      // Try to find 'app' module or plugin version by reading build.gradle files.
+      BuildFileSearchResult result = searchInBuildFiles(project, appModule == null);
+      if (result.appVirtualFile != null) {
+        fileAppModule = findModuleForFile(result.appVirtualFile, project);
+      }
+      if (fileAppModule != null || appModule != null) {
+        AgpVersion pluginVersion = isNotEmpty(result.pluginVersion) ? AgpVersion.tryParse(result.pluginVersion) : null;
+        return new AndroidPluginInfo(fileAppModule == null ? appModule : fileAppModule, pluginVersion, result.pluginVirtualFile);
+      }
+      return null;
+    });
   }
 
   @Slow
