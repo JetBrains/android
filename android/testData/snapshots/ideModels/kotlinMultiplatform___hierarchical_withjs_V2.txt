@@ -2248,8 +2248,10 @@
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
+                        useFirLT                      : true
                 debugAndroidTest
                     compilerArguments             : K2JVMCompilerArguments
                         allowNoSourceFiles            : true
@@ -2310,8 +2312,10 @@
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
+                        useFirLT                      : true
                 debugUnitTest
                     compilerArguments             : K2JVMCompilerArguments
                         allowNoSourceFiles            : true
@@ -2369,8 +2373,10 @@
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
+                        useFirLT                      : true
             gradleUserHome                : <GRADLE>
             hasKotlinPlugin               : true
             kotlinTarget                  : kotlin-android
@@ -2456,6 +2462,8 @@ Required by:
                     arguments                     : KotlinCompilationArgumentsImpl
                     cachedArgsInfo
                         compilerArguments             : K2JSCompilerArguments
+                            generatePolyfills             : true
+                            irModuleName                  : kotlinMultiPlatform:jsModule
                             irNewIr2Js                    : true
                             irOnly                        : true
                             irPerModuleOutputName         : kotlinMultiPlatform-jsModule
@@ -2464,7 +2472,7 @@ Required by:
                             main                          : call
                             metaInfo                      : true
                             moduleKind                    : umd
-                            moduleName                    : kotlinMultiPlatform:jsModule
+                            moduleName                    : jsModule
                             noStdlib                      : true
                             outputDir                     : <ROOT>/jsModule/build/classes/kotlin/main [-]
                             sourceMap                     : true
@@ -2474,8 +2482,10 @@ Required by:
                             wasmDebug                     : true
                             autoAdvanceApiVersion         : true
                             autoAdvanceLanguageVersion    : true
+                            enableSignatureClashChecks    : true
                             errors                        : ArgumentParseErrors
                             explicitApi                   : disable
+                            useFirLT                      : true
                     - declaredSourceSets          : main (KotlinSourceSetImpl) (*seen*)
                     - dependencies                : 2
                     - dependencies                : 3
@@ -2508,6 +2518,8 @@ Required by:
                         targetName                    : js
                     cachedArgsInfo
                         compilerArguments             : K2JSCompilerArguments
+                            generatePolyfills             : true
+                            irModuleName                  : kotlinMultiPlatform:jsModule_test
                             irNewIr2Js                    : true
                             irOnly                        : true
                             irPerModuleOutputName         : kotlinMultiPlatform-jsModule-test
@@ -2516,7 +2528,7 @@ Required by:
                             main                          : call
                             metaInfo                      : true
                             moduleKind                    : umd
-                            moduleName                    : kotlinMultiPlatform:jsModule_test
+                            moduleName                    : jsModule_test
                             noStdlib                      : true
                             outputDir                     : <ROOT>/jsModule/build/classes/kotlin/test [-]
                             sourceMap                     : true
@@ -2526,8 +2538,10 @@ Required by:
                             wasmDebug                     : true
                             autoAdvanceApiVersion         : true
                             autoAdvanceLanguageVersion    : true
+                            enableSignatureClashChecks    : true
                             errors                        : ArgumentParseErrors
                             explicitApi                   : disable
+                            useFirLT                      : true
                     - declaredSourceSets          : test (KotlinSourceSetImpl) (*seen*)
                     - dependencies                : 4
                     - dependencies                : 5
@@ -3255,6 +3269,7 @@ Required by:
                             serializeIr                   : none
                             autoAdvanceApiVersion         : true
                             autoAdvanceLanguageVersion    : true
+                            enableSignatureClashChecks    : true
                             errors                        : ArgumentParseErrors
                             explicitApi                   : disable
                             multiPlatform                 : true
@@ -3266,6 +3281,7 @@ Required by:
                             - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                             - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                             - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                            useFirLT                      : true
                     - declaredSourceSets          : androidMain (KotlinSourceSetImpl) (*seen*)
                     - dependencies                : 2
                     - dependencies                : 3
@@ -3356,6 +3372,7 @@ Required by:
                             serializeIr                   : none
                             autoAdvanceApiVersion         : true
                             autoAdvanceLanguageVersion    : true
+                            enableSignatureClashChecks    : true
                             errors                        : ArgumentParseErrors
                             explicitApi                   : disable
                             multiPlatform                 : true
@@ -3367,6 +3384,7 @@ Required by:
                             - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                             - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                             - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                            useFirLT                      : true
                     - declaredSourceSets          : androidAndroidTest (KotlinSourceSetImpl) (*seen*)
                     - dependencies                : 10
                     - dependencies                : 11
@@ -3467,6 +3485,7 @@ Required by:
                             serializeIr                   : none
                             autoAdvanceApiVersion         : true
                             autoAdvanceLanguageVersion    : true
+                            enableSignatureClashChecks    : true
                             errors                        : ArgumentParseErrors
                             explicitApi                   : disable
                             multiPlatform                 : true
@@ -3478,6 +3497,7 @@ Required by:
                             - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                             - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                             - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                            useFirLT                      : true
                     - declaredSourceSets          : androidTest (KotlinSourceSetImpl) (*seen*)
                     - dependencies                : 10
                     - dependencies                : 11

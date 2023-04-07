@@ -2199,8 +2199,10 @@ MODULE                        : kotlinMultiPlatform.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
+                    useFirLT                      : true
             debugAndroidTest
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
@@ -2261,8 +2263,10 @@ MODULE                        : kotlinMultiPlatform.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
+                    useFirLT                      : true
             debugUnitTest
                 compilerArguments             : K2JVMCompilerArguments
                     allowNoSourceFiles            : true
@@ -2320,8 +2324,10 @@ MODULE                        : kotlinMultiPlatform.app
                     serializeIr                   : none
                     autoAdvanceApiVersion         : true
                     autoAdvanceLanguageVersion    : true
+                    enableSignatureClashChecks    : true
                     errors                        : ArgumentParseErrors
                     explicitApi                   : disable
+                    useFirLT                      : true
         gradleUserHome                : <GRADLE>
         hasKotlinPlugin               : true
         kotlinTarget                  : kotlin-android
@@ -3083,7 +3089,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     - sourceDirs                  : <ROOT>/module2/src/androidDebug/kotlin [-]
                     - sourceDirs                  : <ROOT>/module2/src/debug/kotlin [-]
                     - sourceDirs                  : <ROOT>/module2/src/debug/java [-]
-                    - dependsOnSourceSets         : commonMain
                     platform                      : ANDROID
                 arguments                     : KotlinCompilationArgumentsImpl
                 cachedArgsInfo
@@ -3107,6 +3112,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -3118,6 +3124,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                        useFirLT                      : true
                 - declaredSourceSets          : commonMain (KotlinSourceSetImpl) (*seen*)
                 - declaredSourceSets          : androidMain (KotlinSourceSetImpl) (*seen*)
                 - dependencies                : 12
@@ -3226,7 +3233,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     - sourceDirs                  : <ROOT>/module2/src/androidDebugAndroidTest/kotlin [-]
                     - sourceDirs                  : <ROOT>/module2/src/androidAndroidTestDebug/kotlin [-]
                     - sourceDirs                  : <ROOT>/module2/src/androidTestDebug/java [-]
-                    - dependsOnSourceSets         : commonTest
                     platform                      : ANDROID
                 arguments                     : KotlinCompilationArgumentsImpl
                 - associateCompilations       : KotlinCompilationCoordinatesImpl
@@ -3262,6 +3268,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -3273,6 +3280,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                        useFirLT                      : true
                 - declaredSourceSets          : commonTest (KotlinSourceSetImpl) (*seen*)
                 - declaredSourceSets          : androidAndroidTest (KotlinSourceSetImpl) (*seen*)
                 - dependencies                : 1
@@ -3364,7 +3372,6 @@ MODULE                        : kotlinMultiPlatform.module2
                     - sourceDirs                  : <ROOT>/module2/src/androidTestDebug/kotlin [-]
                     - sourceDirs                  : <ROOT>/module2/src/testDebug/kotlin [-]
                     - sourceDirs                  : <ROOT>/module2/src/testDebug/java [-]
-                    - dependsOnSourceSets         : commonTest
                     platform                      : ANDROID
                 arguments                     : KotlinCompilationArgumentsImpl
                 - associateCompilations       : KotlinCompilationCoordinatesImpl
@@ -3400,6 +3407,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         serializeIr                   : none
                         autoAdvanceApiVersion         : true
                         autoAdvanceLanguageVersion    : true
+                        enableSignatureClashChecks    : true
                         errors                        : ArgumentParseErrors
                         explicitApi                   : disable
                         multiPlatform                 : true
@@ -3411,6 +3419,7 @@ MODULE                        : kotlinMultiPlatform.module2
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-stdlib-common/<KOTLIN_VERSION>/kotlin-stdlib-common-<KOTLIN_VERSION>.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/annotations/13.0/annotations-13.0.jar
                         - pluginClasspaths            : <M2>/org/jetbrains/kotlin/kotlin-script-runtime/<KOTLIN_VERSION>/kotlin-script-runtime-<KOTLIN_VERSION>.jar
+                        useFirLT                      : true
                 - declaredSourceSets          : commonTest (KotlinSourceSetImpl) (*seen*)
                 - declaredSourceSets          : androidTest (KotlinSourceSetImpl) (*seen*)
                 - dependencies                : 1
