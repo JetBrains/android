@@ -968,6 +968,21 @@ public final class StudioFlags {
     "vp8");
   //endregion
 
+  // region Device Definition Download Service
+  private static final FlagGroup DEVICE_DEFINITION_DOWNLOAD_SERVICE =
+    new FlagGroup(FLAGS,
+                  "device.definition.download.service",
+                  "Device Definition Download Service");
+
+  @NotNull
+  public static final Flag<String> DEVICE_DEFINITION_DOWNLOAD_SERVICE_URL =
+    Flag.create(DEVICE_DEFINITION_DOWNLOAD_SERVICE,
+                "url",
+                "URL",
+                "The URL to download the device definitions from",
+                "");
+  // endregion
+
   //region Refactorings
   private static final FlagGroup REFACTORINGS = new FlagGroup(FLAGS, "refactor", "Refactor menu");
 
