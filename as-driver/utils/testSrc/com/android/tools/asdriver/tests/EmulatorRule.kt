@@ -15,6 +15,7 @@
  */
 package com.android.tools.asdriver.tests
 
+import com.android.utils.withResources
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -29,15 +30,13 @@ class EmulatorRule : TestRule {
     val androidSystem = AndroidSystem.basic()
     return androidSystem.apply(object : Statement() {
       override fun evaluate() {
-        androidSystem.runAdb().use { adb ->
+        withResources(androidSystem.runAdb(), { androidSystem.runEmulator() }, { adb, emulator ->
           this@EmulatorRule.adb = adb
-          androidSystem.runEmulator().use { emulator ->
-            this@EmulatorRule.emulator = emulator
-            emulator.waitForBoot()
-            adb.waitForDevice(emulator)
-            base.evaluate()
-          }
-        }
+          this@EmulatorRule.emulator = emulator
+          emulator.waitForBoot()
+          adb.waitForDevice(emulator)
+          base.evaluate()
+        })
       }
     }, description)
   }
