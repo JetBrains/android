@@ -15,6 +15,7 @@ add_library(
         SHARED
 
         accessors/clipboard_manager.cc
+        accessors/device_state_manager.cc
         accessors/display_info.cc
         accessors/display_listener_dispatcher.cc
         accessors/display_manager.cc
@@ -42,6 +43,7 @@ add_library(
         session_environment.cc
         settings.cc
         string_printf.cc
+        string_util.cc
         surface.cc
         video_packet_header.cc
 )

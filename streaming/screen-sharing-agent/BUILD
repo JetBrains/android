@@ -56,17 +56,31 @@ aidl_library(
     srcs = glob(["app/src/main/aidl/**/*.aidl"]),
     tags = ["no_windows"],
     deps = [
+        ":android_extras_lib",
         "//prebuilts/studio/sdk:platforms/latest_jar",
         "//tools/base/annotations",
     ],
 )
 
 java_library(
+    name = "android_extras_lib",
+    srcs = glob(["app/src/main/java/android/**/*.java"]),
+    tags = ["no_windows"],
+    deps = [
+        "//prebuilts/studio/sdk:platforms/latest_jar",
+    ],
+)
+
+java_library(
     name = "apk_lib",
-    srcs = glob(["app/src/main/java/**/*.java"]),
+    srcs = glob(
+        ["app/src/main/java/**/*.java"],
+        exclude = ["app/src/main/java/android/**/*.java"],
+    ),
     tags = ["no_windows"],
     deps = [
         ":aidl_lib",
+        ":android_extras_lib",
         "//prebuilts/studio/sdk:platforms/latest_jar",
     ],
 )

@@ -16,8 +16,8 @@
 
 #include "settings.h"
 
-#include "shell_command_executor.h"
 #include "log.h"
+#include "shell_command_executor.h"
 
 namespace screensharing {
 

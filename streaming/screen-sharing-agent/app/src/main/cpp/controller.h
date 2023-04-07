@@ -20,6 +20,7 @@
 #include <mutex>
 
 #include "accessors/clipboard_manager.h"
+#include "accessors/device_state_manager.h"
 #include "accessors/key_character_map.h"
 #include "accessors/pointer_helper.h"
 #include "base128_input_stream.h"
@@ -52,6 +53,17 @@ private:
     Controller* controller_;
   };
 
+  struct DeviceStateListener : public DeviceStateManager::DeviceStateListener {
+    DeviceStateListener(Controller* controller)
+        : controller_(controller) {
+    }
+    virtual ~DeviceStateListener();
+
+    virtual void OnDeviceStateChanged(int32_t device_state) override;
+
+    Controller* controller_;
+  };
+
   void Initialize();
   void ProcessMessage(const ControlMessage& message);
   void ProcessMotionEvent(const MotionEventMessage& message);
@@ -69,6 +81,9 @@ private:
   void OnPrimaryClipChanged();
   void ProcessClipboardChange();
   void RequestDeviceState(const RequestDeviceStateMessage& message);
+  void OnDeviceStateChanged(int32_t device_state);
+  int32_t TakeChangedDeviceState();
+  void SendDeviceStateNotification(int32_t device_state);
   static void WakeUpDevice();
 
   Jni jni_ = nullptr;
@@ -85,6 +100,12 @@ private:
   int max_synced_clipboard_length_;
   std::string last_clipboard_text_;
   std::atomic_bool clipboard_changed_;
+
+  DeviceStateListener device_state_listener_;
+  bool device_supports_multiple_states_ = false;
+  std::mutex device_state_mutex_;
+  int32_t device_state_ = -1;  // GUARDED_BY(device_state_mutex_)
+  bool device_state_changed_ = false;  // GUARDED_BY(device_state_mutex_)
 
   DISALLOW_COPY_AND_ASSIGN(Controller);
 };

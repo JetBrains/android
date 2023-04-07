@@ -21,6 +21,7 @@
 
 #include <cassert>
 
+#include "accessors/device_state_manager.h"
 #include "accessors/input_manager.h"
 #include "accessors/key_event.h"
 #include "accessors/motion_event.h"
@@ -82,6 +83,10 @@ void SetReceiveTimeoutMillis(int timeout_millis, int socket_fd) {
   setsockopt(socket_fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 }
 
+bool ContainsMultipleDeviceStates(const string& states_text) {
+  return states_text.find_first_of("DeviceState{") != states_text.find_last_of("DeviceState{");
+}
+
 }  // namespace
 
 Controller::Controller(int socket_fd)
@@ -93,7 +98,8 @@ Controller::Controller(int socket_fd)
       key_character_map_(),
       clipboard_listener_(this),
       max_synced_clipboard_length_(0),
-      clipboard_changed_() {
+      clipboard_changed_(),
+      device_state_listener_(this) {
   assert(socket_fd > 0);
   char channel_marker = 'C';
   write(socket_fd_, &channel_marker, sizeof(channel_marker));  // Control channel marker.
@@ -106,6 +112,9 @@ Controller::~Controller() {
 }
 
 void Controller::Shutdown() {
+  if (device_supports_multiple_states_) {
+    DeviceStateManager::RemoveDeviceStateListener(&device_state_listener_);
+  }
   input_stream_.Close();
   output_stream_.Close();
   close(socket_fd_);
@@ -131,6 +140,32 @@ void Controller::Initialize() {
   if ((Agent::flags() & START_VIDEO_STREAM) != 0) {
     WakeUpDevice();
   }
+
+  if ((Agent::flags() & FOLDING_SUPPORT) != 0) {
+    string states_text = DeviceStateManager::GetSupportedStates();
+    Log::D("Controller::Initialize: states_text=%s", states_text.c_str());
+    if (ContainsMultipleDeviceStates(states_text)) {
+      device_supports_multiple_states_ = true;
+      SupportedDeviceStatesNotification supported_device_states_notification(std::move(states_text));
+      try {
+        supported_device_states_notification.Serialize(output_stream_);
+        output_stream_.Flush();
+      } catch (EndOfFile& e) {
+        // The socket has been closed - ignore.
+      }
+      DeviceStateManager::AddDeviceStateListener(&device_state_listener_);
+      int32_t device_state = DeviceStateManager::GetDeviceState(jni_);
+      Log::D("Controller::Initialize: device_state=%d", device_state);
+      {
+        scoped_lock lock(device_state_mutex_);
+        if (!device_state_changed_) {
+          device_state_ = device_state;
+          device_state_changed_ = true;
+        }
+      }
+    }
+  }
+
   Agent::InitializeSessionEnvironment();
 }
 
@@ -144,7 +179,17 @@ void Controller::Run() {
         if (clipboard_changed_.exchange(false)) {
           ProcessClipboardChange();
         }
-        // Set a receive timeout to check for clipboard changes frequently.
+      }
+
+      if (device_supports_multiple_states_) {
+        int32_t device_state = TakeChangedDeviceState();
+        if (device_state >= 0) {
+          SendDeviceStateNotification(device_state);
+        }
+      }
+
+      if (max_synced_clipboard_length_ != 0 || device_supports_multiple_states_) {
+        // Set a receive timeout to check for clipboard and device state changes frequently.
         SetReceiveTimeoutMillis(SOCKET_RECEIVE_TIMEOUT_MILLIS, socket_fd_);
       }
 
@@ -386,12 +431,37 @@ void Controller::ProcessClipboardChange() {
 }
 
 void Controller::RequestDeviceState(const RequestDeviceStateMessage& message) {
-  // TODO: Implement
+  DeviceStateManager::RequestState(jni_, message.state(), 0);
+}
+
+int32_t Controller::TakeChangedDeviceState() {
+  scoped_lock lock(device_state_mutex_);
+  if (device_state_changed_) {
+    device_state_changed_ = false;
+    Log::D("Controller::TakeChangedDeviceState: device_state_=%d", device_state_);
+    return device_state_;
+  }
+  return -1;
+}
+
+void Controller::SendDeviceStateNotification(int32_t device_state) {
+  DeviceStateNotification notification(device_state);
+  notification.Serialize(output_stream_);
+  output_stream_.Flush();
 }
 
 void Controller::OnPrimaryClipChanged() {
   Log::D("Controller::OnPrimaryClipChanged");
   clipboard_changed_ = true;
+}
+
+void Controller::OnDeviceStateChanged(int32_t device_state) {
+  Log::D("Controller::OnDeviceStateChanged(%d)", device_state);
+  scoped_lock lock(device_state_mutex_);
+  if (device_state_ != device_state) {
+    device_state_ = device_state;
+    device_state_changed_ = true;
+  }
 }
 
 void Controller::WakeUpDevice() {
@@ -402,6 +472,12 @@ Controller::ClipboardListener::~ClipboardListener() = default;
 
 void Controller::ClipboardListener::OnPrimaryClipChanged() {
   controller_->OnPrimaryClipChanged();
+}
+
+Controller::DeviceStateListener::~DeviceStateListener() = default;
+
+void Controller::DeviceStateListener::OnDeviceStateChanged(int32_t device_state) {
+  controller_->OnDeviceStateChanged(device_state);
 }
 
 }  // namespace screensharing
