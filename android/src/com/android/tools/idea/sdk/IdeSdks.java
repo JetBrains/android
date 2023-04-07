@@ -702,7 +702,7 @@ public class IdeSdks {
       if (SystemInfo.isLinux) {
         for (File child : notNullize(jdkPath.listFiles())) {
           if (child.isDirectory() && checkForJdk(child.toPath())) {
-            Sdk jdk = myJdks.createJdk(child.getPath());
+            Sdk jdk = myJdks.createAndAddJdk(child.getPath());
             if (isJdkCompatible(jdk, preferredVersion)) {
               return jdk;
             }
@@ -805,7 +805,7 @@ public class IdeSdks {
         return jdk;
       }
     }
-    return myJdks.createJdk(homeDirectory.toString());
+    return myJdks.createAndAddJdk(homeDirectory.toString());
   }
 
   @NotNull

@@ -32,7 +32,6 @@ import static com.google.common.truth.Truth.assertAbout;
 import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.ide.impl.NewProjectUtil.applyJdkToProject;
 import static com.intellij.openapi.application.ActionsKt.invokeAndWaitIfNeeded;
-import static com.intellij.openapi.application.ActionsKt.runWriteAction;
 import static com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction;
 import static com.intellij.openapi.projectRoots.JavaSdkVersion.JDK_1_8;
 import static com.intellij.openapi.util.io.FileUtil.copyDir;
@@ -70,7 +69,6 @@ import com.intellij.openapi.externalSystem.service.project.manage.SourceFolderMa
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Disposer;
@@ -730,12 +728,7 @@ public class AndroidGradleTests {
 
   public static void addJdk8ToTableButUseCurrent() throws IOException {
     String jdk8Path = getEmbeddedJdk8Path();
-    Sdk jdk = Jdks.getInstance().createJdk(jdk8Path);
-    assertThat(jdk).isNotNull();
-    runWriteAction(() -> {
-      ProjectJdkTable.getInstance().addJdk(jdk);
-      return null;
-    });
+    Jdks.getInstance().createAndAddJdk(jdk8Path);
     overrideJdkToCurrentJdk();
   }
 

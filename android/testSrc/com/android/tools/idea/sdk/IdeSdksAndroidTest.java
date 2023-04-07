@@ -165,7 +165,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
    * Confirm that isJdkCompatible returns true with embedded JDK 8
    */
   public void testIsJdkCompatibleJdk8() throws IOException {
-    @Nullable Sdk jdk = Jdks.getInstance().createJdk(getEmbeddedJdk8Path());
+    @Nullable Sdk jdk = Jdks.getInstance().createAndAddJdk(getEmbeddedJdk8Path());
     assertThat(IdeSdks.getInstance().isJdkCompatible(jdk, myIdeSdks.getRunningVersionOrDefault())).isTrue();
   }
 
@@ -173,7 +173,7 @@ public class IdeSdksAndroidTest extends AndroidGradleTestCase {
    * Confirm that isJdkCompatible returns true with embedded JDK
    */
   public void testIsJdkCompatibleEmbedded() {
-    @Nullable Sdk jdk = Jdks.getInstance().createJdk(myIdeSdks.getEmbeddedJdkPath().toString());
+    @Nullable Sdk jdk = Jdks.getInstance().createAndAddJdk(myIdeSdks.getEmbeddedJdkPath().toString());
     assertThat(IdeSdks.getInstance().isJdkCompatible(jdk, myIdeSdks.getRunningVersionOrDefault())).isTrue();
   }
 

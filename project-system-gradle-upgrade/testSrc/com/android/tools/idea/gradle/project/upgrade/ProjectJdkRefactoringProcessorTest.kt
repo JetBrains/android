@@ -45,7 +45,7 @@ class ProjectJdkRefactoringProcessorTest: UpgradeGradleFileModelTestCase() {
   fun ensureJdk17InProjectTable() {
     // for whatever reason, without this the project is set up using prebuilts/studio/jdk/mock-jdk17, which despite its name is
     // treated as Java 1.5.
-    jdk17 = Jdks.getInstance().createJdk(JDK_17_PATH)
+    jdk17 = Jdks.getInstance().createAndAddJdk(JDK_17_PATH)
   }
 
   @After

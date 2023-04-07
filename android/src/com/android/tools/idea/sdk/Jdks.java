@@ -21,7 +21,6 @@ import static com.intellij.openapi.util.text.StringUtil.isEmpty;
 import com.android.tools.idea.IdeInfo;
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.Lists;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.CapturingAnsiEscapesAwareProcessHandler;
@@ -36,9 +35,6 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.serviceContainer.NonInjectable;
 import com.intellij.util.system.CpuArch;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -81,10 +77,8 @@ public class Jdks {
   }
 
   @Nullable
-  public Sdk createJdk(@NotNull String jdkHomePath) {
-    Sdk jdk = ExternalSystemApiUtil.executeOnEdt(() -> {
-      return createAndAddSDK(jdkHomePath, JavaSdk.getInstance());
-    });
+  public Sdk createAndAddJdk(@NotNull String jdkHomePath) {
+    Sdk jdk = ExternalSystemApiUtil.executeOnEdt(() -> createAndAddSDK(jdkHomePath, JavaSdk.getInstance()));
     if (jdk == null) {
       String msg = String.format("Unable to create JDK from path '%1$s'", jdkHomePath);
       LOG.error(msg);
@@ -99,7 +93,7 @@ public class Jdks {
       if (path == null) {
         return null;
       }
-      Sdk jdk = createJdk(path.toString());
+      Sdk jdk = createAndAddJdk(path.toString());
       assert jdk != null;
       return jdk;
     }

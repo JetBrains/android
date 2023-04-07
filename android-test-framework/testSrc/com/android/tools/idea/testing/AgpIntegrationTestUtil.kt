@@ -76,7 +76,7 @@ object AgpIntegrationTestUtil {
   }
 
   private fun createEmbeddedJdkInstance(embeddedPath: String): Sdk? {
-    return Jdks.getInstance().createJdk(EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot(embeddedPath).toString())
+    return Jdks.getInstance().createAndAddJdk(EmbeddedDistributionPaths.getJdkRootPathFromSourcesRoot(embeddedPath).toString())
   }
 
   internal fun maybeCreateJdkOverride(forVersion: JavaSdkVersion): Sdk? {
