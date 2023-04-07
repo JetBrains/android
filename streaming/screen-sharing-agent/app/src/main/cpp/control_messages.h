@@ -292,6 +292,33 @@ private:
   DISALLOW_COPY_AND_ASSIGN(StopClipboardSyncMessage);
 };
 
+// Requests a device state (folding pose) change. A DeviceStateNotification message will be sent
+// when and if the device state actually changes. If state is equal to PHYSICAL_STATE, the device
+// will return to its actual physical state.
+class RequestDeviceStateMessage : ControlMessage {
+public:
+  RequestDeviceStateMessage(int state)
+      : ControlMessage(TYPE),
+        state_(state) {
+  }
+  virtual ~RequestDeviceStateMessage() = default;
+
+  int state() const { return state_; }
+
+  static constexpr int PHYSICAL_STATE = -1;
+
+  static constexpr int TYPE = 10;
+
+private:
+  friend class ControlMessage;
+
+  static RequestDeviceStateMessage* Deserialize(Base128InputStream& stream);
+
+  int state_;
+
+  DISALLOW_COPY_AND_ASSIGN(RequestDeviceStateMessage);
+};
+
 // Notification of clipboard content change.
 class ClipboardChangedNotification : ControlMessage {
 public:
@@ -309,7 +336,7 @@ public:
 
   virtual void Serialize(Base128OutputStream& stream) const;
 
-  static constexpr int TYPE = 10;
+  static constexpr int TYPE = 11;
 
 private:
   friend class ControlMessage;
@@ -317,6 +344,57 @@ private:
   std::string text_;
 
   DISALLOW_COPY_AND_ASSIGN(ClipboardChangedNotification);
+};
+
+// Notification of supported device states.
+class SupportedDeviceStatesNotification : ControlMessage {
+public:
+  SupportedDeviceStatesNotification(const std::string& text)
+      : ControlMessage(TYPE),
+        text_(text) {
+  }
+  SupportedDeviceStatesNotification(std::string&& text)
+      : ControlMessage(TYPE),
+        text_(text) {
+  }
+  virtual ~SupportedDeviceStatesNotification() = default;
+
+  const std::string& text() const { return text_; }
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  static constexpr int TYPE = 12;
+
+private:
+  friend class ControlMessage;
+
+  std::string text_;
+
+  DISALLOW_COPY_AND_ASSIGN(SupportedDeviceStatesNotification);
+};
+
+// Notification of a device state change. One such notification is always sent when the screen
+// sharing agent starts on a foldable device,
+class DeviceStateNotification : ControlMessage {
+public:
+  DeviceStateNotification(int32_t device_state)
+      : ControlMessage(TYPE),
+        device_state_(device_state) {
+  }
+  virtual ~DeviceStateNotification() = default;
+
+  int32_t device_state() const { return device_state_; }
+
+  virtual void Serialize(Base128OutputStream& stream) const;
+
+  static constexpr int TYPE = 13;
+
+private:
+  friend class ControlMessage;
+
+  int32_t device_state_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeviceStateNotification);
 };
 
 }  // namespace screensharing

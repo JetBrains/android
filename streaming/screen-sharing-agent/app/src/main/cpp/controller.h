@@ -17,6 +17,7 @@
 #pragma once
 
 #include <atomic>
+#include <mutex>
 
 #include "accessors/clipboard_manager.h"
 #include "accessors/key_character_map.h"
@@ -62,11 +63,12 @@ private:
   static void ProcessSetDeviceOrientation(const SetDeviceOrientationMessage& message);
   static void ProcessSetMaxVideoResolution(const SetMaxVideoResolutionMessage& message);
   static void StopVideoStream();
-  void StartVideoStream();
+  static void StartVideoStream();
   void StartClipboardSync(const StartClipboardSyncMessage& message);
   void StopClipboardSync();
   void OnPrimaryClipChanged();
   void ProcessClipboardChange();
+  void RequestDeviceState(const RequestDeviceStateMessage& message);
   static void WakeUpDevice();
 
   Jni jni_ = nullptr;

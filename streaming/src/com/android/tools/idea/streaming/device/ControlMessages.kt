@@ -60,7 +60,10 @@ sealed class ControlMessage(val type: Int) {
         StopVideoStreamMessage.TYPE -> StopVideoStreamMessage.deserialize(stream)
         StartClipboardSyncMessage.TYPE -> StartClipboardSyncMessage.deserialize(stream)
         StopClipboardSyncMessage.TYPE -> StopClipboardSyncMessage.deserialize(stream)
+        RequestDeviceStateMessage.TYPE -> RequestDeviceStateMessage.deserialize(stream)
         ClipboardChangedNotification.TYPE -> ClipboardChangedNotification.deserialize(stream)
+        SupportedDeviceStatesNotification.TYPE -> SupportedDeviceStatesNotification.deserialize(stream)
+        DeviceStateNotification.TYPE -> DeviceStateNotification.deserialize(stream)
         else -> throw StreamFormatException("Unrecognized control message type $type")
       }
     }
@@ -326,6 +329,34 @@ internal class StopClipboardSyncMessage private constructor(): ControlMessage(TY
   }
 }
 
+/**
+ * Requests a device state (folding pose) change. A DeviceStateNotification message will be sent
+ * when and if the device state actually changes. If [state] is equal to [PHYSICAL_STATE],
+ * the device will return to its actual physical state.
+ */
+internal data class RequestDeviceStateMessage(val state: Int) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeInt(state + 1) // Add 1 to make sure that PHYSICAL_STATE is encoded efficiently.
+  }
+
+  override fun toString(): String {
+    return "RequestDeviceStateMessage(state=$state)"
+  }
+
+  companion object : Deserializer {
+    const val TYPE = 10
+
+    const val PHYSICAL_STATE = -1;
+
+    override fun deserialize(stream: Base128InputStream): RequestDeviceStateMessage {
+      val state = stream.readInt() - 1 // Subtracting 1 to account for shifted encoding.
+      return RequestDeviceStateMessage(state)
+    }
+  }
+}
+
 /** A clipboard update from the device. */
 internal data class ClipboardChangedNotification(val text: String) : ControlMessage(TYPE) {
 
@@ -339,11 +370,69 @@ internal data class ClipboardChangedNotification(val text: String) : ControlMess
   }
 
   companion object : Deserializer {
-    const val TYPE = 10
+    const val TYPE = 11
 
     override fun deserialize(stream: Base128InputStream): ClipboardChangedNotification {
       val bytes = stream.readBytes()
       return ClipboardChangedNotification(bytes.toString(UTF_8))
+    }
+  }
+}
+
+/**
+ * A notification that the device supports multiple folding states. The text of the notification
+ * is the same as output of  the 'adb shell cmd device_state print-states' command, e.g.
+ * ```
+ * Supported states: [
+ *   DeviceState{identifier=0, name='CLOSE', app_accessible=true},
+ *   DeviceState{identifier=1, name='TENT', app_accessible=true},
+ *   DeviceState{identifier=2, name='HALF_FOLDED', app_accessible=true},
+ *   DeviceState{identifier=3, name='OPEN', app_accessible=true},
+ * ]
+ * ```
+ */
+internal data class SupportedDeviceStatesNotification(val text: String) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeBytes(text.toByteArray(UTF_8))
+  }
+
+  override fun toString(): String {
+    return "SupportedDeviceStateNotification(text=\"$text\")"
+  }
+
+  companion object : Deserializer {
+    const val TYPE = 12
+
+    override fun deserialize(stream: Base128InputStream): SupportedDeviceStatesNotification {
+      val bytes = stream.readBytes()
+      return SupportedDeviceStatesNotification(bytes.toString(UTF_8))
+    }
+  }
+}
+
+/**
+ * Notification of a device state change. One such notification is always sent when the screen
+ * sharing agent starts on a foldable device,
+ */
+internal data class DeviceStateNotification(val deviceState: Int) : ControlMessage(TYPE) {
+
+  override fun serialize(stream: Base128OutputStream) {
+    super.serialize(stream)
+    stream.writeInt(deviceState)
+  }
+
+  override fun toString(): String {
+    return "DeviceStateNotification(deviceState=$deviceState)"
+  }
+
+  companion object : Deserializer {
+    const val TYPE = 13
+
+    override fun deserialize(stream: Base128InputStream): DeviceStateNotification {
+      val deviceState = stream.readInt()
+      return DeviceStateNotification(deviceState)
     }
   }
 }

@@ -89,6 +89,8 @@ class DeviceController(
           suspendingInputStream.waitForData(1)
           when (val message = ControlMessage.deserialize(inputStream)) {
             is ClipboardChangedNotification -> onDeviceClipboardChanged(message)
+            is SupportedDeviceStatesNotification -> onSupportedDeviceStatesChanged(message)
+            is DeviceStateNotification -> onDeviceStateChanged(message)
             else -> thisLogger().error("Unexpected type of a received message: ${message.type}")
           }
         }
@@ -110,6 +112,14 @@ class DeviceController(
     for (listener in deviceClipboardListeners) {
       listener.onDeviceClipboardChanged(text)
     }
+  }
+
+  private fun onSupportedDeviceStatesChanged(message: SupportedDeviceStatesNotification) {
+    // TODO: Implement
+  }
+
+  private fun onDeviceStateChanged(message: DeviceStateNotification) {
+    // TODO: Implement
   }
 
   internal interface DeviceClipboardListener {
