@@ -16,28 +16,39 @@
 package com.android.gmdcodecompletion.completions.lookupelementprovider
 
 import com.android.gmdcodecompletion.AndroidDeviceInfo
-import com.android.gmdcodecompletion.DevicePropertyName
+import com.android.gmdcodecompletion.ConfigurationParameterName
+import com.android.gmdcodecompletion.ConfigurationParameterName.API_LEVEL
+import com.android.gmdcodecompletion.ConfigurationParameterName.API_PREVIEW
+import com.android.gmdcodecompletion.ConfigurationParameterName.DEVICE_ID
+import com.android.gmdcodecompletion.ConfigurationParameterName.REQUIRE64BIT
+import com.android.gmdcodecompletion.ConfigurationParameterName.SYS_IMAGE_SOURCE
 import com.android.gmdcodecompletion.GmdDeviceCatalog
 import com.android.gmdcodecompletion.completions.GmdCodeCompletionLookupElement
 import com.android.gmdcodecompletion.completions.GmdDevicePropertyInsertHandler
-import com.android.gmdcodecompletion.lookupElementProviderTestHelper
 import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalog
 import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalog.ApiVersionInfo
 import com.android.gmdcodecompletion.testMinAndTargetApiLevel
+import com.android.gmdcodecompletion.verifyConfigurationLookupElementProviderResult
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import org.junit.Test
 
 class ManagedVirtualDeviceLookupElementProviderTest {
 
-  private fun managedVirtualTestHelper(devicePropertyName: DevicePropertyName, currentDeviceProperties: CurrentDeviceProperties,
-                                       deviceCatalog: GmdDeviceCatalog, expectedResult: List<GmdCodeCompletionLookupElement>) =
-    lookupElementProviderTestHelper(devicePropertyName, currentDeviceProperties, deviceCatalog, expectedResult,
-                                    ManagedVirtualLookupElementProvider)
+  private fun managedVirtualTestHelper(configurationParameterName: ConfigurationParameterName,
+                                       currentDeviceProperties: CurrentDeviceProperties,
+                                       deviceCatalog: GmdDeviceCatalog,
+                                       expectedResult: Collection<GmdCodeCompletionLookupElement>) {
+    val result = ManagedVirtualLookupElementProvider.generateDevicePropertyValueSuggestionList(configurationParameterName,
+                                                                                               currentDeviceProperties,
+                                                                                               testMinAndTargetApiLevel,
+                                                                                               deviceCatalog)
+    verifyConfigurationLookupElementProviderResult(result, expectedResult)
+  }
 
   @Test
   fun testGenerateDeviceIdSuggestion_matchApiPreview() {
     val testApiPreview = "testPreview"
-    val currentDeviceProperties: CurrentDeviceProperties = hashMapOf(DevicePropertyName.API_PREVIEW to testApiPreview)
+    val currentDeviceProperties: CurrentDeviceProperties = hashMapOf(API_PREVIEW to testApiPreview)
     val deviceMap = mapOf(
       "device1" to AndroidDeviceInfo(
         deviceName = "Phone1",
@@ -67,7 +78,7 @@ class ManagedVirtualDeviceLookupElementProviderTest {
                                        tailText = "  Phone2  virtual"
                                      })
     )
-    managedVirtualTestHelper(DevicePropertyName.DEVICE_ID, currentDeviceProperties, testDeviceCatalog, expectedResult)
+    managedVirtualTestHelper(DEVICE_ID, currentDeviceProperties, testDeviceCatalog, expectedResult)
   }
 
   @Test
@@ -76,7 +87,7 @@ class ManagedVirtualDeviceLookupElementProviderTest {
       GmdCodeCompletionLookupElement(myValue = "${testMinAndTargetApiLevel.targetSdk}", myScore = 1u),
       GmdCodeCompletionLookupElement(myValue = "${testMinAndTargetApiLevel.targetSdk - 2}", myScore = 0u)
     )
-    testApiLevelAndPreviewHelper(DevicePropertyName.API_LEVEL, expectedResult)
+    testApiLevelAndPreviewHelper(API_LEVEL, expectedResult)
   }
 
   @Test
@@ -85,7 +96,7 @@ class ManagedVirtualDeviceLookupElementProviderTest {
       GmdCodeCompletionLookupElement(myValue = "preview1", myScore = 1u),
       GmdCodeCompletionLookupElement(myValue = "preview4", myScore = 0u)
     )
-    testApiLevelAndPreviewHelper(DevicePropertyName.API_PREVIEW, expectedResult)
+    testApiLevelAndPreviewHelper(API_PREVIEW, expectedResult)
   }
 
   @Test
@@ -95,9 +106,9 @@ class ManagedVirtualDeviceLookupElementProviderTest {
     val testRequires64Bit = true
     val testApiPreview = "preview1"
     val currentDeviceProperties: CurrentDeviceProperties = hashMapOf(
-      DevicePropertyName.DEVICE_ID to testDeviceId,
-      DevicePropertyName.SYS_IMAGE_SOURCE to testImageSource,
-      DevicePropertyName.API_PREVIEW to testApiPreview
+      DEVICE_ID to testDeviceId,
+      SYS_IMAGE_SOURCE to testImageSource,
+      API_PREVIEW to testApiPreview
     )
     val deviceMap = mapOf(
       testDeviceId to AndroidDeviceInfo(
@@ -105,7 +116,7 @@ class ManagedVirtualDeviceLookupElementProviderTest {
         deviceForm = "physical",
         formFactor = "phone",
         brand = "Google",
-        supportedApis = (testMinAndTargetApiLevel.minSdk .. testMinAndTargetApiLevel.targetSdk).toList()
+        supportedApis = (testMinAndTargetApiLevel.minSdk..testMinAndTargetApiLevel.targetSdk).toList()
       )
     )
     val testApiInfo = listOf(
@@ -127,7 +138,7 @@ class ManagedVirtualDeviceLookupElementProviderTest {
       this.apiLevels.addAll(testApiInfo)
     }
     val expectedResult = listOf(GmdCodeCompletionLookupElement(myValue = testRequires64Bit.toString()))
-    managedVirtualTestHelper(DevicePropertyName.REQUIRE64BIT, currentDeviceProperties, testDeviceCatalog, expectedResult)
+    managedVirtualTestHelper(REQUIRE64BIT, currentDeviceProperties, testDeviceCatalog, expectedResult)
   }
 
   @Test
@@ -136,8 +147,8 @@ class ManagedVirtualDeviceLookupElementProviderTest {
     val testRequires64Bit = true
     val testApiPreview = "preview1"
     val currentDeviceProperties: CurrentDeviceProperties = hashMapOf(
-      DevicePropertyName.API_PREVIEW to testApiPreview,
-      DevicePropertyName.REQUIRE64BIT to testRequires64Bit.toString()
+      API_PREVIEW to testApiPreview,
+      REQUIRE64BIT to testRequires64Bit.toString()
     )
     val testApiInfo = listOf(
       ApiVersionInfo(
@@ -157,7 +168,7 @@ class ManagedVirtualDeviceLookupElementProviderTest {
       this.apiLevels.addAll(testApiInfo)
     }
     val expectedResult = listOf(GmdCodeCompletionLookupElement(myValue = testImageSource))
-    managedVirtualTestHelper(DevicePropertyName.SYS_IMAGE_SOURCE, currentDeviceProperties, testDeviceCatalog, expectedResult)
+    managedVirtualTestHelper(SYS_IMAGE_SOURCE, currentDeviceProperties, testDeviceCatalog, expectedResult)
   }
 
   @Test
@@ -165,8 +176,8 @@ class ManagedVirtualDeviceLookupElementProviderTest {
     val testImageSource = "google"
     val testRequires64Bit = true
     val currentDeviceProperties: CurrentDeviceProperties = hashMapOf(
-      DevicePropertyName.API_LEVEL to testMinAndTargetApiLevel.targetSdk.toString(),
-      DevicePropertyName.REQUIRE64BIT to testRequires64Bit.toString()
+      API_LEVEL to testMinAndTargetApiLevel.targetSdk.toString(),
+      REQUIRE64BIT to testRequires64Bit.toString()
     )
     val testApiInfo = listOf(
       ApiVersionInfo(
@@ -199,24 +210,25 @@ class ManagedVirtualDeviceLookupElementProviderTest {
       GmdCodeCompletionLookupElement(myValue = "${testImageSource}-atd", myScore = 3u),
       GmdCodeCompletionLookupElement(myValue = "${testImageSource}_atd_custom_test"),
     )
-    managedVirtualTestHelper(DevicePropertyName.SYS_IMAGE_SOURCE, currentDeviceProperties, testDeviceCatalog, expectedResult)
+    managedVirtualTestHelper(SYS_IMAGE_SOURCE, currentDeviceProperties, testDeviceCatalog, expectedResult)
   }
 
-  private fun testApiLevelAndPreviewHelper(devicePropertyName: DevicePropertyName, expectedResult: List<GmdCodeCompletionLookupElement>) {
+  private fun testApiLevelAndPreviewHelper(configurationParameterName: ConfigurationParameterName,
+                                           expectedResult: List<GmdCodeCompletionLookupElement>) {
     val testDeviceId = "testDeviceId"
     val testImageSource = "testSource"
     val testRequires64Bit = true
     val currentDeviceProperties: CurrentDeviceProperties = hashMapOf(
-      DevicePropertyName.DEVICE_ID to testDeviceId,
-      DevicePropertyName.REQUIRE64BIT to testRequires64Bit.toString(),
-      DevicePropertyName.SYS_IMAGE_SOURCE to testImageSource)
+      DEVICE_ID to testDeviceId,
+      REQUIRE64BIT to testRequires64Bit.toString(),
+      SYS_IMAGE_SOURCE to testImageSource)
     val deviceMap = mapOf(
       testDeviceId to AndroidDeviceInfo(
         deviceName = "Phone1",
         deviceForm = "physical",
         formFactor = "phone",
         brand = "Google",
-        supportedApis = (testMinAndTargetApiLevel.minSdk .. testMinAndTargetApiLevel.targetSdk).toList()
+        supportedApis = (testMinAndTargetApiLevel.minSdk..testMinAndTargetApiLevel.targetSdk).toList()
       )
     )
     val testApiInfo = listOf(
@@ -249,6 +261,6 @@ class ManagedVirtualDeviceLookupElementProviderTest {
       this.devices.putAll(deviceMap)
       this.apiLevels.addAll(testApiInfo)
     }
-    managedVirtualTestHelper(devicePropertyName, currentDeviceProperties, testDeviceCatalog, expectedResult)
+    managedVirtualTestHelper(configurationParameterName, currentDeviceProperties, testDeviceCatalog, expectedResult)
   }
 }

@@ -16,10 +16,12 @@
 package com.android.gmdcodecompletion
 
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
-import com.intellij.psi.PsiElement
-import kotlinx.collections.immutable.persistentListOf
-import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
+import kotlinx.collections.immutable.PersistentList
+import kotlinx.collections.immutable.persistentListOf
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.GrReferenceExpression
+import org.jetbrains.plugins.groovy.lang.psi.api.statements.expressions.path.GrMethodCallExpression
 
 internal fun String.removeDoubleQuote() = this.replace("\"", "")
 internal fun PsiElement.superParent(level: Int = 2): PsiElement? {
@@ -28,6 +30,9 @@ internal fun PsiElement.superParent(level: Int = 2): PsiElement? {
   }
   else this
 }
+
+internal fun GrMethodCallExpression.getQualifiedNameList(): List<String>? = (this.invokedExpression as? GrReferenceExpression)
+  ?.qualifiedReferenceName?.split('.')?.reversed()
 
 internal fun PsiElement.superParentAsGrMethodCall(level: Int = 2): GrMethodCallExpression? = this.superParent(
   level) as? GrMethodCallExpression
@@ -51,9 +56,9 @@ data class AndroidDeviceInfo(
  * Describes number levels in Psi element we need to search for a given suggestion type (device property name or value)
  * in order to get its siblings
  */
-enum class CurrentPsiElement(val psiElementLevel: Int) {
+enum class PsiElementLevel(val psiElementLevel: Int) {
   DEVICE_PROPERTY_NAME(1),
-  DEVICE_PROPERTY_VALUE(2),
+  COMPLETION_PROPERTY_VALUE(2),
 }
 
 data class MinAndTargetApiLevel(val minSdk: Int, val targetSdk: Int)
@@ -63,24 +68,73 @@ data class MinAndTargetApiLevel(val minSdk: Int, val targetSdk: Int)
  * @property propertyName is the variable name in the interface
  * @property needCustomComparable set to true if this variable needs custom ordering in suggestion list. Else set to false
  */
-enum class DevicePropertyName(val propertyName: String, val needCustomComparable: Boolean = false) {
+enum class ConfigurationParameterName(val propertyName: String, val needCustomComparable: Boolean = false) {
   DEVICE_ID("device", true),
   API_LEVEL("apiLevel", true),
   SYS_IMAGE_SOURCE("systemImageSource", true),
   ORIENTATION("orientation"),
   LOCALE("locale"),
   API_PREVIEW("apiPreview", true),
-  REQUIRE64BIT("require64Bit");
+  REQUIRE64BIT("require64Bit"),
+  GRANTED_PERMISSIONS("grantedPermissions"),
+  EXTRA_DEVICE_FILES("extraDeviceFiles"),
+  NETWORK_PROFILE("networkProfile"),
+  TIMEOUT_MINUTES("timeoutMinutes"),
+  MAX_TEST_RERUNS("maxTestReruns"),
+  FAIL_FAST("failFast"),
+  NUM_UNIFORM_SHARDS("numUniformShards"),
+  CLOUD_STORAGE_BUCKET("cloudStorageBucket"),
+  RESULTS_HISTORY_NAME("resultsHistoryName"),
+  DIRECTORIES_TO_PULL("directoriesToPull"),
+  RECORD_VIDEO("recordVideo"),
+  PERFORMANCE_METRICS("performanceMetrics");
 
   companion object {
     // Returns corresponding DevicePropertyField if type is one of propertyName. Else return null
-    fun fromOrNull(type: String): DevicePropertyName? = values().find { it.propertyName == type }
+    fun fromOrNull(type: String): ConfigurationParameterName? = values().find { it.propertyName == type }
+  }
+}
 
-    // All the available properties in managed virtual devices
-    val MANAGED_VIRTUAL_DEVICE_PROPERTY = persistentListOf(DEVICE_ID, API_LEVEL, SYS_IMAGE_SOURCE, REQUIRE64BIT, API_PREVIEW)
+/**
+ * Describes interface of leaf DSL blocks within GMD configuration block
+ */
+enum class GmdConfigurationInterfaceInfo(val interfaceName: String,
+                                         val availableConfigurations: PersistentList<ConfigurationParameterName>,
+                                         val leafDslBlock: String = "") {
+  FTL_DEVICE("com.google.firebase.testlab.gradle.ManagedDevice", persistentListOf(ConfigurationParameterName.DEVICE_ID,
+                                                                                  ConfigurationParameterName.API_LEVEL,
+                                                                                  ConfigurationParameterName.ORIENTATION,
+                                                                                  ConfigurationParameterName.LOCALE)),
 
-    // All the available properties in FTL devices
-    val FTL_DEVICE_PROPERTY = persistentListOf(DEVICE_ID, API_LEVEL, ORIENTATION, LOCALE)
+  FTL_FIXTURE("com.google.firebase.testlab.gradle.Fixture", persistentListOf(ConfigurationParameterName.GRANTED_PERMISSIONS,
+                                                                             ConfigurationParameterName.EXTRA_DEVICE_FILES,
+                                                                             ConfigurationParameterName.NETWORK_PROFILE), "fixture"),
+
+  FTL_EXECUTION("com.google.firebase.testlab.gradle.Execution", persistentListOf(ConfigurationParameterName.TIMEOUT_MINUTES,
+                                                                                 ConfigurationParameterName.MAX_TEST_RERUNS,
+                                                                                 ConfigurationParameterName.FAIL_FAST), "execution"),
+
+  FTL_RESULTS("com.google.firebase.testlab.gradle.Results", persistentListOf(ConfigurationParameterName.CLOUD_STORAGE_BUCKET,
+                                                                             ConfigurationParameterName.RESULTS_HISTORY_NAME,
+                                                                             ConfigurationParameterName.DIRECTORIES_TO_PULL,
+                                                                             ConfigurationParameterName.RECORD_VIDEO,
+                                                                             ConfigurationParameterName.PERFORMANCE_METRICS), "results"),
+
+  MANAGED_VIRTUAL_DEVICE("com.android.build.api.dsl.ManagedVirtualDevice", persistentListOf(ConfigurationParameterName.DEVICE_ID,
+                                                                                            ConfigurationParameterName.API_LEVEL,
+                                                                                            ConfigurationParameterName.SYS_IMAGE_SOURCE,
+                                                                                            ConfigurationParameterName.REQUIRE64BIT,
+                                                                                            ConfigurationParameterName.API_PREVIEW));
+
+  fun getDslSequence(leafBlockName: String, isSimplified: Boolean): PersistentList<String> {
+    return if (!isSimplified) persistentListOf(leafBlockName, "devices", "managedDevices", "testOptions", "android")
+    else {
+      when (this) {
+        FTL_DEVICE -> persistentListOf(leafBlockName, "managedDevices", "firebaseTestLab")
+        MANAGED_VIRTUAL_DEVICE -> persistentListOf(leafBlockName, "localDevices", "managedDevices", "testOptions", "android")
+        FTL_FIXTURE, FTL_EXECUTION, FTL_RESULTS -> persistentListOf(this.leafDslBlock, "testOptions", "firebaseTestLab")
+      }
+    }
   }
 }
 

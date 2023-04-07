@@ -16,7 +16,7 @@
 package com.android.gmdcodecompletion.completions.lookupelementprovider
 
 import com.android.gmdcodecompletion.AndroidDeviceInfo
-import com.android.gmdcodecompletion.DevicePropertyName
+import com.android.gmdcodecompletion.ConfigurationParameterName
 import com.android.gmdcodecompletion.GmdDeviceCatalog
 import com.android.gmdcodecompletion.MinAndTargetApiLevel
 import com.android.gmdcodecompletion.completions.GmdCodeCompletionLookupElement
@@ -26,7 +26,7 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
-internal typealias CurrentDeviceProperties = HashMap<DevicePropertyName, String>
+internal typealias CurrentDeviceProperties = HashMap<ConfigurationParameterName, String>
 
 // Hardcoded order for ranking device ID suggestions
 private val BRAND_PRIORITY: Array<String> = arrayOf("sony", "vivo", "xiaomi", "samsung", "google")
@@ -85,9 +85,34 @@ abstract class BaseLookupElementProvider {
     }
   }
 
-  // The only public interface used to obtain GMD device property suggestion list. Do not put any PSI related fields
-  abstract fun generateDevicePropertyValueSuggestionList(devicePropertyName: DevicePropertyName,
-                                                         deviceProperties: CurrentDeviceProperties,
-                                                         minAndTargetApiLevel: MinAndTargetApiLevel,
-                                                         deviceCatalog: GmdDeviceCatalog): Collection<LookupElement>
+  // Set defaultValue to prioritize desired value in suggestion list
+  protected fun generateSimpleBooleanSuggestion(defaultValue: Boolean): Collection<LookupElement> {
+    return listOf(GmdCodeCompletionLookupElement(myValue = defaultValue.toString(), myScore = 1u),
+                  GmdCodeCompletionLookupElement(myValue = (!defaultValue).toString(), myScore = 0u))
+  }
+
+  /**
+   * If hasDefault is set to true, first element in enumValues is the default value.
+   * Default value will be prioritized in the suggestion list
+   * Set insertDoubleQuotation to true to insert double quotation marks around the value after insertion
+   */
+  protected fun generateSimpleEnumSuggestion(enumValues: List<String>,
+                                             hasDefault: Boolean = true,
+                                             insertDoubleQuotation: Boolean = true): Collection<LookupElement> {
+    return enumValues.mapIndexed { index, value ->
+      GmdCodeCompletionLookupElement(myValue = value,
+                                     myScore = if (index == 0 && hasDefault) 1u else 0u,
+                                     myInsertHandler = if (insertDoubleQuotation) GmdDevicePropertyInsertHandler() else null)
+    }
+  }
+
+  // Used to obtain GMD device property suggestion list. Do not put any PSI related fields
+  open fun generateDevicePropertyValueSuggestionList(configurationParameterName: ConfigurationParameterName,
+                                                     deviceProperties: CurrentDeviceProperties,
+                                                     minAndTargetApiLevel: MinAndTargetApiLevel,
+                                                     deviceCatalog: GmdDeviceCatalog): Collection<LookupElement> = emptyList()
+
+  // Used to obtain simple device property suggestion list that does not require GmdDeviceCatalog. Do not put any PSI related fields
+  open fun generateSimpleValueSuggestionList(configurationParameterName: ConfigurationParameterName,
+                                             deviceProperties: CurrentDeviceProperties): Collection<LookupElement> = emptyList()
 }

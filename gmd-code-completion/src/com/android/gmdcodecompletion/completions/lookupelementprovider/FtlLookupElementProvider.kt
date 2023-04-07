@@ -15,7 +15,8 @@
  */
 package com.android.gmdcodecompletion.completions.lookupelementprovider
 
-import com.android.gmdcodecompletion.DevicePropertyName
+import com.android.gmdcodecompletion.ConfigurationParameterName
+import com.android.gmdcodecompletion.ConfigurationParameterName.*
 import com.android.gmdcodecompletion.GmdDeviceCatalog
 import com.android.gmdcodecompletion.MinAndTargetApiLevel
 import com.android.gmdcodecompletion.completions.GmdCodeCompletionLookupElement
@@ -31,16 +32,16 @@ import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
  */
 object FtlLookupElementProvider : BaseLookupElementProvider() {
 
-  override fun generateDevicePropertyValueSuggestionList(devicePropertyName: DevicePropertyName,
+  override fun generateDevicePropertyValueSuggestionList(configurationParameterName: ConfigurationParameterName,
                                                          deviceProperties: CurrentDeviceProperties,
                                                          minAndTargetApiLevel: MinAndTargetApiLevel,
                                                          deviceCatalog: GmdDeviceCatalog): Collection<LookupElement> {
     deviceCatalog as FtlDeviceCatalog
-    return when (devicePropertyName) {
-      DevicePropertyName.DEVICE_ID -> generateFtlDeviceIdSuggestion(deviceProperties, minAndTargetApiLevel, deviceCatalog)
-      DevicePropertyName.LOCALE -> generateFtlLocaleSuggestion(deviceCatalog)
-      DevicePropertyName.ORIENTATION -> generateFtlOrientationSuggestion(deviceCatalog)
-      DevicePropertyName.API_LEVEL -> generateFtlApiLevelSuggestion(deviceProperties, minAndTargetApiLevel, deviceCatalog)
+    return when (configurationParameterName) {
+      DEVICE_ID -> generateFtlDeviceIdSuggestion(deviceProperties, minAndTargetApiLevel, deviceCatalog)
+      LOCALE -> generateFtlLocaleSuggestion(deviceCatalog)
+      ORIENTATION -> generateFtlOrientationSuggestion(deviceCatalog)
+      API_LEVEL -> generateFtlApiLevelSuggestion(deviceProperties, minAndTargetApiLevel, deviceCatalog)
       else -> emptyList()
     }
   }
@@ -48,8 +49,8 @@ object FtlLookupElementProvider : BaseLookupElementProvider() {
   private fun generateFtlApiLevelSuggestion(deviceProperties: CurrentDeviceProperties,
                                             minAndTargetApiLevel: MinAndTargetApiLevel,
                                             ftlDeviceCatalog: FtlDeviceCatalog): Collection<LookupElement> {
-    if (deviceProperties[DevicePropertyName.API_LEVEL] != null) return emptyList()
-    val deviceId = deviceProperties[DevicePropertyName.DEVICE_ID]?.removeDoubleQuote() ?: ""
+    if (deviceProperties[API_LEVEL] != null) return emptyList()
+    val deviceId = deviceProperties[DEVICE_ID]?.removeDoubleQuote() ?: ""
 
     val apiList = if (deviceId.isEmpty() || !ftlDeviceCatalog.devices.contains(deviceId)) {
       ftlDeviceCatalog.apiLevels.map { it }
@@ -83,7 +84,7 @@ object FtlLookupElementProvider : BaseLookupElementProvider() {
   private fun generateFtlDeviceIdSuggestion(deviceProperties: CurrentDeviceProperties,
                                             minAndTargetApiLevel: MinAndTargetApiLevel,
                                             deviceCatalog: FtlDeviceCatalog): Collection<LookupElement> {
-    val specifiedApiLevel = deviceProperties[DevicePropertyName.API_LEVEL]?.toIntOrNull() ?: -1
+    val specifiedApiLevel = deviceProperties[API_LEVEL]?.toIntOrNull() ?: -1
     return generateGmdDeviceIdSuggestionHelper(minAndTargetApiLevel, specifiedApiLevel, deviceCatalog.devices)
   }
 }
