@@ -21,6 +21,7 @@ import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.api.PropertyItem
@@ -207,7 +208,7 @@ class PropertyComboBoxTest {
 
   private fun createComboBox(property: PropertyItem, enumSupport: EnumSupport, editable: Boolean): PropertyComboBox {
     val model = ComboBoxPropertyEditorModel(property, enumSupport, editable)
-    val comboBox = PropertyComboBox(model, true)
+    val comboBox = PropertyComboBox(model, EditorContext.TABLE_EDITOR)
     val wrapped = getWrappedComboBox(comboBox)
     wrapped.setUI(FakeComboBoxUI())
     return comboBox

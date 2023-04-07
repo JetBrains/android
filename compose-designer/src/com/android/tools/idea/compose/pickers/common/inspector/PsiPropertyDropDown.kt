@@ -20,6 +20,7 @@ import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
 import com.intellij.ide.actions.UndoRedoAction
@@ -43,10 +44,10 @@ import javax.swing.event.PopupMenuEvent
  */
 internal class PsiPropertyDropDown(
   model: PsiDropDownModel,
-  asTableCellEditor: Boolean,
+  context: EditorContext,
   listCellRenderer: ListCellRenderer<EnumValue>
 ) : JPanel(BorderLayout()) {
-  private val comboBox = WrappedComboBox(model, asTableCellEditor, listCellRenderer)
+  private val comboBox = WrappedComboBox(model, context, listCellRenderer)
 
   init {
     background = UIUtil.TRANSPARENT_COLOR
@@ -58,7 +59,7 @@ internal class PsiPropertyDropDown(
 
 private class WrappedComboBox(
   model: PsiDropDownModel,
-  asTableCellEditor: Boolean,
+  context: EditorContext,
   renderer: ListCellRenderer<EnumValue>
 ) : CommonComboBox<EnumValue, PsiDropDownModel>(model) {
   private val textField = editor.editorComponent as CommonTextField<*>
@@ -109,7 +110,7 @@ private class WrappedComboBox(
       { model.property },
       JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT
     )
-    if (asTableCellEditor) {
+    if (context != EditorContext.STAND_ALONE_EDITOR) {
       putClientProperty("JComboBox.isTableCellEditor", true)
     }
 

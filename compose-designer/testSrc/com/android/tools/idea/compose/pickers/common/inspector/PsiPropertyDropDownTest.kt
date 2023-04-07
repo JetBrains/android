@@ -22,6 +22,7 @@ import com.android.tools.adtui.swing.FakeKeyboard
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.pickers.base.property.PsiPropertyItem
 import com.android.tools.idea.compose.pickers.common.enumsupport.PsiEnumValueCellRenderer
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.impl.model.util.FakeComboBoxUI
@@ -159,7 +160,8 @@ internal class PsiPropertyDropDownTest {
     getWrappedComboBox(dropDown).isPopupVisible
 
   private fun createDropDown(model: PsiDropDownModel): PsiPropertyDropDown {
-    val dropdown = PsiPropertyDropDown(model, true, PsiEnumValueCellRenderer())
+    val dropdown =
+      PsiPropertyDropDown(model, EditorContext.TABLE_EDITOR, PsiEnumValueCellRenderer())
     val wrapped = getWrappedComboBox(dropdown)
     wrapped.setUI(FakeComboBoxUI())
     return dropdown

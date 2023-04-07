@@ -19,6 +19,7 @@ import com.android.tools.adtui.stdui.CommonComboBox
 import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.impl.model.ComboBoxPropertyEditorModel
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
@@ -44,8 +45,8 @@ import javax.swing.event.PopupMenuListener
  *
  * This control will act as a ComboBox or a DropDown depending on the model.
  */
-class PropertyComboBox(model: ComboBoxPropertyEditorModel, asTableCellEditor: Boolean): JPanel(BorderLayout()) {
-  private val comboBox = WrappedComboBox(model, asTableCellEditor)
+class PropertyComboBox(model: ComboBoxPropertyEditorModel, context: EditorContext): JPanel(BorderLayout()) {
+  private val comboBox = WrappedComboBox(model, context)
 
   init {
     background = UIUtil.TRANSPARENT_COLOR
@@ -62,7 +63,7 @@ class PropertyComboBox(model: ComboBoxPropertyEditorModel, asTableCellEditor: Bo
     get() = comboBox.editor.editorComponent as CommonTextField<*>
 }
 
-private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEditor: Boolean)
+private class WrappedComboBox(model: ComboBoxPropertyEditorModel, context: EditorContext)
   : CommonComboBox<EnumValue, ComboBoxPropertyEditorModel>(model), DataProvider {
   private val textField = editor.editorComponent as CommonTextField<*>
   private var inSetup = false
@@ -81,7 +82,7 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, asTableCellEdi
     background = UIUtil.TRANSPARENT_COLOR
     isOpaque = false
     HelpSupportBinding.registerHelpKeyActions(this, { model.property }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-    if (asTableCellEditor) {
+    if (context != EditorContext.STAND_ALONE_EDITOR) {
       putClientProperty("JComboBox.isTableCellEditor", true)
     }
 

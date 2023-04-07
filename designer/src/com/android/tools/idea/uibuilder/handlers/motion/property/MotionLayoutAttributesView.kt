@@ -38,6 +38,7 @@ import com.android.tools.idea.uibuilder.property.ui.EmptyTablePanel
 import com.android.tools.idea.uibuilder.property.ui.TransformsPanel
 import com.android.tools.idea.uibuilder.property.ui.spring.SpringWidget
 import com.android.tools.idea.uibuilder.property.ui.spring.SpringWidgetModel
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.FilteredPTableModel
 import com.android.tools.property.panel.api.FilteredPTableModel.PTableModelFactory.alphabeticalSortOrder
@@ -176,7 +177,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) : Propertie
       for (attributeName in rotationAttributes) {
         val property = properties.getOrNull(SdkConstants.ANDROID_URI, attributeName)
         if (property != null) {
-          inspector.addEditor(editorProvider.createEditor(property, false), titleModel)
+          inspector.addEditor(editorProvider.createEditor(property), titleModel)
         }
       }
       inspector.addComponent(MySeparator(), titleModel)
@@ -184,7 +185,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) : Propertie
       for (attributeName in attributes) {
         val property = properties.getOrNull(SdkConstants.ANDROID_URI, attributeName)
         if (property != null) {
-          inspector.addEditor(editorProvider.createEditor(property, false), titleModel)
+          inspector.addEditor(editorProvider.createEditor(property), titleModel)
         }
       }
     }
@@ -204,7 +205,7 @@ class MotionLayoutAttributesView(model: MotionLayoutAttributesModel) : Propertie
       for (attributeName in attributes) {
         val property = properties.getOrNull(SdkConstants.AUTO_URI, attributeName)
         if (property != null) {
-          inspector.addEditor(editorProvider.createEditor(property, false), titleModel)
+          inspector.addEditor(editorProvider.createEditor(property), titleModel)
         }
       }
     }

@@ -19,6 +19,7 @@ import com.android.tools.idea.layoutinspector.model.ResolutionStackModel
 import com.android.tools.idea.layoutinspector.ui.ResolutionElementEditor
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.EnumSupportProvider
 import com.android.tools.property.panel.api.PropertyEditorModel
@@ -37,8 +38,8 @@ class ResolutionStackEditorProvider(
   private val resolutionStackModel = ResolutionStackModel(model)
   private val linkEditorTypes = listOf(PropertyType.LAMBDA, PropertyType.FUNCTION_REFERENCE, PropertyType.SHOW_MORE_LINK)
 
-  override fun createEditor(property: InspectorPropertyItem, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
-    val (model, editor) = editorProvider.createEditor(property, asTableCellEditor)
+  override fun createEditor(property: InspectorPropertyItem, context: EditorContext): Pair<PropertyEditorModel, JComponent> {
+    val (model, editor) = editorProvider.createEditor(property, context)
     model.readOnly = true
     if (!property.needsResolutionEditor) {
       return Pair(model, editor)

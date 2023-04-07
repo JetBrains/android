@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.adtui.stdui.CommonTextField
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.NewPropertyItem
 import com.android.tools.property.panel.api.PropertyEditorModel
@@ -75,7 +76,7 @@ class PTableCellEditorProviderImpl<N : NewPropertyItem, P : PropertyItem>(
   private fun configureEditorForNewPropertyItemName(table: PTable, property: PTableItem): PTableCellEditor {
     val newProperty = nameType.cast(property)
     val controlType = nameControlTypeProvider(newProperty)
-    val (newModel, newEditor) = nameEditorProvider.createEditor(newProperty, asTableCellEditor = true)
+    val (newModel, newEditor) = nameEditorProvider.createEditor(newProperty, EditorContext.TABLE_EDITOR)
     val border = JBUI.Borders.empty(0, LEFT_STANDARD_INDENT - newEditor.insets.left, 0, 0)
     editor.nowEditing(table, property, PTableColumn.NAME, controlType, newModel,
                       EditorPanel(newEditor, border, table.backgroundColor))
@@ -86,7 +87,7 @@ class PTableCellEditorProviderImpl<N : NewPropertyItem, P : PropertyItem>(
   private fun configureEditorPropertyValue(table: PTable, property: PTableItem): PTableCellEditor {
     val valueProperty = valueType.cast(property)
     val controlType = valueControlTypeProvider(valueProperty)
-    val (newModel, newEditor) = valueEditorProvider.createEditor(valueProperty, asTableCellEditor = true)
+    val (newModel, newEditor) = valueEditorProvider.createEditor(valueProperty, EditorContext.TABLE_EDITOR)
     val border = JBUI.Borders.customLine(table.gridLineColor, 0, 1, 0, 0)
     newModel.isExpandedTableItem = (property as? PTableGroupItem)?.let { table.isExpanded(it) } ?: false
     editor.nowEditing(table, property, PTableColumn.VALUE, controlType, newModel,

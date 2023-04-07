@@ -20,6 +20,15 @@ import com.android.tools.property.panel.impl.support.NameEditorProviderImpl
 import javax.swing.JComponent
 
 /**
+ * The context the editor will be used.
+ */
+enum class EditorContext {
+  STAND_ALONE_EDITOR,
+  TABLE_EDITOR,
+  TABLE_RENDERER
+}
+
+/**
  * Provider of an editor component with a corresponding model for a property.
  *
  * A client can either provide a custom editor provider or use the default
@@ -34,7 +43,7 @@ interface EditorProvider<in P : PropertyItem> {
    * The editor created may be different if it is supposed to be used as a cell editor in a table.
    * We may choose to either hide or make the border different inside a table.
    */
-  fun createEditor(property: P, asTableCellEditor: Boolean = false): Pair<PropertyEditorModel, JComponent>
+  fun createEditor(property: P, context: EditorContext = EditorContext.STAND_ALONE_EDITOR): Pair<PropertyEditorModel, JComponent>
 
   companion object {
     /**

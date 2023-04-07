@@ -17,6 +17,7 @@ package com.android.tools.property.panel.impl.table
 
 import com.android.tools.property.panel.api.ControlType
 import com.android.tools.property.panel.api.ControlTypeProvider
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.property.panel.api.PropertyItem
@@ -83,7 +84,7 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
                            column: PTableColumn,
                            depth: Int,
                            gridLineColor: Color): Pair<PropertyEditorModel, JComponent> {
-    val (model, editor) = editorProvider.createEditor(property, asTableCellEditor = true)
+    val (model, editor) = editorProvider.createEditor(property, EditorContext.TABLE_RENDERER)
     editor.font = UIUtil.getLabelFont(fontSize)
     val panel = VariableHeightPanel(editor)
     panel.border = createBorder(column, depth, editor, gridLineColor)
