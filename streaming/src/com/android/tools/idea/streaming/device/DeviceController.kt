@@ -74,11 +74,11 @@ class DeviceController(
     }
   }
 
-  fun addDeviceClipboardListener(listener: DeviceClipboardListener) {
+  internal fun addDeviceClipboardListener(listener: DeviceClipboardListener) {
     deviceClipboardListeners.add(listener)
   }
 
-  fun removeDeviceClipboardListener(listener: DeviceClipboardListener) {
+  internal fun removeDeviceClipboardListener(listener: DeviceClipboardListener) {
     deviceClipboardListeners.remove(listener)
   }
 
@@ -112,7 +112,7 @@ class DeviceController(
     }
   }
 
-  interface DeviceClipboardListener {
+  internal interface DeviceClipboardListener {
     @AnyThread
     fun onDeviceClipboardChanged(text: String)
   }
