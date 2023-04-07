@@ -18,6 +18,7 @@ package com.android.tools.property.panel.impl.ui
 import com.android.tools.adtui.common.AdtSecondaryPanel
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.model.stdui.ValueChangedListener
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.impl.model.FlagPropertyEditorModel
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.AnAction
@@ -64,7 +65,10 @@ private const val WINDOW_MARGIN = 40
  * Clicking the flag will bring up a balloon control where the individual flags
  * can be changed.
  */
-class FlagPropertyEditor(val editorModel: FlagPropertyEditorModel) : PropertyTextFieldWithLeftButton(editorModel) {
+class FlagPropertyEditor(
+  val editorModel: FlagPropertyEditorModel,
+  context: EditorContext
+) : PropertyTextFieldWithLeftButton(editorModel, context) {
 
   override fun requestFocus() {
     leftButton?.requestFocus()
@@ -124,7 +128,7 @@ class FlagPropertyPanel(private val editorModel: FlagPropertyEditorModel,
     isFocusCycleRoot = true
     focusTraversalPolicy = CustomFocusTraversalPolicy(searchField.textEditor)
 
-    editorModel.addListener(ValueChangedListener { handleValueChanged() })
+    editorModel.addListener { handleValueChanged() }
 
     // If there are too many controls to fit inside the Application Window, set the preferred height of the scroll pane.
     if (preferredSize.height + 2 * JBUI.scale(WINDOW_MARGIN) > windowHeight) {

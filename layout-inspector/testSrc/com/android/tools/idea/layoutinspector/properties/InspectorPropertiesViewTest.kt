@@ -49,7 +49,7 @@ import com.android.tools.property.panel.api.PropertiesTable
 import com.android.tools.property.panel.impl.model.util.FakeInspectorLineModel
 import com.android.tools.property.panel.impl.model.util.FakeInspectorPanel
 import com.android.tools.property.panel.impl.model.util.FakeTableLineModel
-import com.android.tools.property.panel.impl.ui.PropertyTextField
+import com.android.tools.property.panel.impl.ui.PropertyLabel
 import com.android.tools.property.ptable.PTable
 import com.android.tools.property.ptable.PTableColumn
 import com.google.common.collect.HashBasedTable
@@ -87,7 +87,7 @@ class InspectorPropertiesViewTest {
     // Regression test for: b/182947968
     // It used to be that property with resolution stack would show up as a simple PropertyTextField editor if a prior property
     // of the same control type was rendered first.
-    assertThat(declared.getComponentFor(text)).isInstanceOf(PropertyTextField::class.java)
+    assertThat(declared.getComponentFor(text)).isInstanceOf(PropertyLabel::class.java)
     assertThat(declared.getComponentFor(prop)).isInstanceOf(ResolutionElementEditor::class.java)
   }
 

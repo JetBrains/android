@@ -17,6 +17,7 @@ package com.android.tools.property.panel.impl.ui
 
 import com.android.SdkConstants
 import com.android.tools.adtui.common.secondaryPanelBackground
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.impl.model.ThreeStateBooleanPropertyEditorModel
 import com.android.tools.property.panel.impl.support.EditorFocusListener
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
@@ -27,8 +28,10 @@ import com.intellij.util.ui.ThreeStateCheckBox
 /**
  * A standard control for editing a boolean property value with 3 states: on/off/unset.
  */
-class PropertyThreeStateCheckBox(model: ThreeStateBooleanPropertyEditorModel) :
-  PropertyTextFieldWithLeftButton(model, CustomThreeStateCheckBox(model)) {
+class PropertyThreeStateCheckBox(
+  model: ThreeStateBooleanPropertyEditorModel,
+  context: EditorContext
+) : PropertyTextFieldWithLeftButton(model, context, CustomThreeStateCheckBox(model)) {
 
   private val checkBox = leftComponent as CustomThreeStateCheckBox
 
@@ -75,7 +78,7 @@ private class CustomThreeStateCheckBox(
     }
   }
 
-  override fun getToolTipText(): String? {
+  override fun getToolTipText(): String {
     return propertyModel.tooltip
   }
 

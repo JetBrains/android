@@ -96,6 +96,8 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, context: Edito
     textField.background = UIUtil.TRANSPARENT_COLOR
     textField.isOpaque = false
     textField.putClientProperty(UndoRedoAction.IGNORE_SWING_UNDO_MANAGER, true)
+    // For table cell renderers: avoid unwanted horizontal scrolling:
+    textField.enableScrollInView = context != EditorContext.TABLE_RENDERER
 
     val focusListener = TextEditorFocusListener(textField, this, model)
     addFocusListener(focusListener)

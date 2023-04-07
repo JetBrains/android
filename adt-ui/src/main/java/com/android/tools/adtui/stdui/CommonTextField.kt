@@ -24,6 +24,7 @@ import com.intellij.ui.components.TextComponentEmptyText
 import com.intellij.util.ui.SwingUndoUtil
 import java.awt.Graphics
 import java.awt.Graphics2D
+import java.awt.Rectangle
 import java.awt.RenderingHints
 import java.awt.event.FocusAdapter
 import java.awt.event.FocusEvent
@@ -44,6 +45,12 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
   private var _lookup: Lookup<M>? = null
   private var updatingFromModel = false
   private var documentChangeFromSetText = false
+
+  /**
+   * If false ignore all calls to scrollRectToVisible.
+   * Do this to disable scrolling in table renderer that use this component.
+   */
+  var enableScrollInView = true
 
   val lookup: Lookup<M>?
     get() = _lookup
@@ -157,6 +164,12 @@ open class CommonTextField<out M: CommonTextFieldModel>(val editorModel: M) : JB
     }
     finally {
       documentChangeFromSetText = false
+    }
+  }
+
+  override fun scrollRectToVisible(r: Rectangle) {
+    if (enableScrollInView) {
+      super.scrollRectToVisible(r)
     }
   }
 

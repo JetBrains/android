@@ -25,6 +25,7 @@ import com.android.tools.idea.uibuilder.property.support.NlControlTypeProvider
 import com.android.tools.idea.uibuilder.property.support.NlEnumSupportProvider
 import com.android.tools.idea.uibuilder.property.ui.EmptyTablePanel
 import com.android.tools.property.panel.api.ControlType
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.FlagsPropertyItem
 import com.android.tools.property.panel.api.InspectorLineModel
@@ -112,7 +113,7 @@ class FakeEditorProviderImpl(model: NlPropertiesModel): EditorProvider<NlPropert
   private val enumSupportProvider = NlEnumSupportProvider(model)
   private val controlTypeProvider = NlControlTypeProvider(enumSupportProvider)
 
-  override fun createEditor(property: NlPropertyItem, asTableCellEditor: Boolean): Pair<PropertyEditorModel, JComponent> {
+  override fun createEditor(property: NlPropertyItem, context: EditorContext): Pair<PropertyEditorModel, JComponent> {
     val enumSupport = enumSupportProvider(property)
 
     return when (val type = controlTypeProvider(property)) {

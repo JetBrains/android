@@ -33,14 +33,18 @@ import com.android.tools.property.panel.impl.model.util.FakePropertyItem
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.util.ui.UIUtil
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test
+import java.awt.Dimension
+import java.awt.Rectangle
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
+import javax.swing.JTextField
 import kotlin.test.assertEquals
 
 class PropertyComboBoxTest {
@@ -58,7 +62,7 @@ class PropertyComboBoxTest {
   fun testInitialTextWithEmptyValue() {
     val property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "")
     val enumSupport = FakeEnumSupport("visible", "invisible", "gone")
-    val comboBox = createComboBox(property, enumSupport, false)
+    val comboBox = createComboBox(property, enumSupport, editable = false)
 
     assertEquals("", comboBox.editor.text)
   }
@@ -67,7 +71,7 @@ class PropertyComboBoxTest {
   fun testEnter() {
     val property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible")
     val enumSupport = FakeEnumSupport("visible", "invisible", "gone")
-    val comboBox = createComboBox(property, enumSupport, true)
+    val comboBox = createComboBox(property, enumSupport)
     comboBox.editor.text = "gone"
     val ui = createFakeUiForComboBoxEditor(comboBox)
     ui.keyboard.pressAndRelease(KeyEvent.VK_ENTER)
@@ -79,7 +83,7 @@ class PropertyComboBoxTest {
   fun testEscape() {
     val property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible")
     val enumSupport = FakeEnumSupport("visible", "invisible", "gone")
-    val comboBox = createComboBox(property, enumSupport, true)
+    val comboBox = createComboBox(property, enumSupport)
     val keyboardConsumer = wrapComboBoxInKeyboardConsumer(comboBox)
     comboBox.editor.text = "gone"
     val ui = createFakeUiForComboBoxEditor(comboBox)
@@ -94,11 +98,36 @@ class PropertyComboBoxTest {
     assertThat(keyboardConsumer.keyCount).isEqualTo(1)
   }
 
+  @RunsInEdt
+  @Test
+  fun testEditorCanScroll() {
+    val editor = createComboBoxEditorAndScrollRight(EditorContext.TABLE_EDITOR)
+    assertThat(editor.scrollOffset).isGreaterThan(0)
+  }
+
+  @RunsInEdt
+  @Test
+  fun testRendererCannotScroll() {
+    val editor = createComboBoxEditorAndScrollRight(EditorContext.TABLE_RENDERER)
+    assertThat(editor.scrollOffset).isEqualTo(0)
+  }
+
+  private fun createComboBoxEditorAndScrollRight(context: EditorContext): JTextField {
+    val property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible")
+    val enumSupport = FakeEnumSupport("visible", "invisible", "gone")
+    val comboBox = createComboBox(property, enumSupport, context)
+    val editor = comboBox.editor
+    createFakeUiForComboBoxEditor(comboBox, Dimension(20, 20))
+    PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue()
+    editor.scrollRectToVisible(Rectangle(800, 0, 50, 20))
+    return editor
+  }
+
   @Test
   fun testSpace() {
     val property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible")
     val enumSupport = FakeEnumSupport("visible", "invisible", "gone")
-    val comboBox = createComboBox(property, enumSupport, true)
+    val comboBox = createComboBox(property, enumSupport)
     val ui = createFakeUiForComboBoxEditor(comboBox)
     ui.keyboard.type(KeyEvent.VK_SPACE)
     assertThat(property.value).isEqualTo("visible")
@@ -109,7 +138,7 @@ class PropertyComboBoxTest {
   fun testEnterInPopup() {
     val property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible")
     val enumSupport = FakeEnumSupport("visible", "invisible", "gone")
-    val comboBox = createComboBox(property, enumSupport, true)
+    val comboBox = createComboBox(property, enumSupport)
     val ui = createFakeUiForComboBoxEditor(comboBox)
     getWrappedComboBox(comboBox).showPopup()
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
@@ -122,7 +151,7 @@ class PropertyComboBoxTest {
   fun testEnterInPopupOfDropDown() {
     val property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible")
     val enumSupport = FakeEnumSupport("visible", "invisible", "gone")
-    val comboBox = createComboBox(property, enumSupport, false)
+    val comboBox = createComboBox(property, enumSupport, editable = false)
     val ui = createFakeUiForComboBoxWrapper(comboBox)
     getWrappedComboBox(comboBox).showPopup()
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
@@ -137,7 +166,7 @@ class PropertyComboBoxTest {
     val property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible")
     val action = FakeAction("testAction")
     val enumSupport = FakeEnumSupport("visible", "invisible", action = action)
-    val comboBox = createComboBox(property, enumSupport, true)
+    val comboBox = createComboBox(property, enumSupport)
     val ui = createFakeUiForComboBoxEditor(comboBox)
     getWrappedComboBox(comboBox).showPopup()
     ui.keyboard.pressAndRelease(KeyEvent.VK_PAGE_DOWN)
@@ -154,7 +183,7 @@ class PropertyComboBoxTest {
   fun testEscapeInPopup() {
     val property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible")
     val enumSupport = FakeEnumSupport("visible", "invisible", "gone")
-    val comboBox = createComboBox(property, enumSupport, true)
+    val comboBox = createComboBox(property, enumSupport)
     val keyboardConsumer = wrapComboBoxInKeyboardConsumer(comboBox)
     comboBox.editor.text = "gone"
     val ui = createFakeUiForComboBoxEditor(comboBox)
@@ -173,7 +202,7 @@ class PropertyComboBoxTest {
   fun testSpaceInPopupEditor() {
     val property = FakePropertyItem(ANDROID_URI, ATTR_VISIBILITY, "visible")
     val enumSupport = FakeEnumSupport("visible", "invisible", "gone")
-    val comboBox = createComboBox(property, enumSupport, true)
+    val comboBox = createComboBox(property, enumSupport)
     val ui = createFakeUiForComboBoxEditor(comboBox)
     getWrappedComboBox(comboBox).showPopup()
     ui.keyboard.pressAndRelease(KeyEvent.VK_DOWN)
@@ -182,8 +211,9 @@ class PropertyComboBoxTest {
     assertThat(isPopupVisible(comboBox)).isFalse()
   }
 
-  private fun createFakeUiForComboBoxEditor(comboBox: PropertyComboBox): FakeUi {
+  private fun createFakeUiForComboBoxEditor(comboBox: PropertyComboBox, size: Dimension = Dimension(200,20)): FakeUi {
     val editor = comboBox.editor
+    editor.size = size
     val ui = FakeUi(editor)
     ui.keyboard.setFocus(editor)
     editor.selectAll()
@@ -206,9 +236,14 @@ class PropertyComboBoxTest {
   private fun isPopupVisible(comboBox: PropertyComboBox): Boolean =
     getWrappedComboBox(comboBox).isPopupVisible()
 
-  private fun createComboBox(property: PropertyItem, enumSupport: EnumSupport, editable: Boolean): PropertyComboBox {
+  private fun createComboBox(
+    property: PropertyItem, 
+    enumSupport: EnumSupport, 
+    context: EditorContext = EditorContext.TABLE_EDITOR, 
+    editable: Boolean = true
+  ): PropertyComboBox {
     val model = ComboBoxPropertyEditorModel(property, enumSupport, editable)
-    val comboBox = PropertyComboBox(model, EditorContext.TABLE_EDITOR)
+    val comboBox = PropertyComboBox(model, context)
     val wrapped = getWrappedComboBox(comboBox)
     wrapped.setUI(FakeComboBoxUI())
     return comboBox

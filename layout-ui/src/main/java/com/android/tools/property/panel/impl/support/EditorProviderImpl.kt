@@ -37,6 +37,7 @@ import com.android.tools.property.panel.impl.ui.ActionButtonBinding
 import com.android.tools.property.panel.impl.ui.FlagPropertyEditor
 import com.android.tools.property.panel.impl.ui.PropertyCheckBox
 import com.android.tools.property.panel.impl.ui.PropertyComboBox
+import com.android.tools.property.panel.impl.ui.PropertyLabel
 import com.android.tools.property.panel.impl.ui.PropertyLink
 import com.android.tools.property.panel.impl.ui.PropertyTextField
 import com.android.tools.property.panel.impl.ui.PropertyTextFieldWithLeftButton
@@ -57,6 +58,10 @@ open class EditorProviderImpl<in P : PropertyItem>(
   private val controlTypeProvider: ControlTypeProvider<P>
 ) : EditorProvider<P> {
 
+  /**
+   * Create an editor for [property].
+   *
+   */
   override fun createEditor(property: P, context: EditorContext): Pair<PropertyEditorModel, JComponent> =
     when (controlTypeProvider(property)) {
       ControlType.COMBO_BOX ->
@@ -66,32 +71,34 @@ open class EditorProviderImpl<in P : PropertyItem>(
         createComboBoxEditor(property, false, enumSupportProvider(property)!!, context)
 
       ControlType.TEXT_EDITOR -> {
+        // For table cell renderers: use a JLabel based component instead of a JTextEdit based component,
+        // to avoid unwanted horizontal scrolling.
         val model = TextFieldPropertyEditorModel(property, true)
-        val editor = PropertyTextField(model)
+        val editor = if (context != EditorContext.TABLE_RENDERER) PropertyTextField(model) else PropertyLabel(model)
         Pair(model, addActionButtonBinding(model, editor))
       }
 
       ControlType.COLOR_EDITOR -> {
         val model = ColorFieldPropertyEditorModel(property)
-        val editor = PropertyTextFieldWithLeftButton(model)
+        val editor = PropertyTextFieldWithLeftButton(model, context)
         Pair(model, addActionButtonBinding(model, editor))
       }
 
       ControlType.THREE_STATE_BOOLEAN -> {
         val model = ThreeStateBooleanPropertyEditorModel(property)
-        val editor = PropertyThreeStateCheckBox(model)
+        val editor = PropertyThreeStateCheckBox(model, context)
         Pair(model, addActionButtonBinding(model, editor))
       }
 
       ControlType.FLAG_EDITOR -> {
         val model = FlagPropertyEditorModel(property as FlagsPropertyItem<*>)
-        val editor = FlagPropertyEditor(model)
+        val editor = FlagPropertyEditor(model, context)
         Pair(model, addActionButtonBinding(model, editor))
       }
 
       ControlType.BOOLEAN -> {
         val model = BooleanPropertyEditorModel(property)
-        val editor = PropertyCheckBox(model)
+        val editor = PropertyCheckBox(model, context)
         Pair(model, addActionButtonBinding(model, editor))
       }
 

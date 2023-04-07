@@ -16,6 +16,7 @@
 package com.android.tools.property.panel.impl.ui
 
 import com.android.SdkConstants
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.impl.model.BooleanPropertyEditorModel
 import com.android.tools.property.panel.impl.support.EditorFocusListener
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
@@ -27,7 +28,10 @@ import javax.swing.JCheckBox
 /**
  * A standard control for editing a boolean property.
  */
-class PropertyCheckBox(model: BooleanPropertyEditorModel) : PropertyTextFieldWithLeftButton(model, CustomCheckBox(model)) {
+class PropertyCheckBox(
+  model: BooleanPropertyEditorModel,
+  context: EditorContext
+) : PropertyTextFieldWithLeftButton(model, context, CustomCheckBox(model)) {
 
   private val checkBox = leftComponent as CustomCheckBox
 

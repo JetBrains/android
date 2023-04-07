@@ -16,6 +16,7 @@
 package com.android.tools.property.panel.impl.ui
 
 import com.android.tools.adtui.common.AdtSecondaryPanel
+import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.impl.model.TextFieldWithLeftButtonEditorModel
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
@@ -36,12 +37,17 @@ private const val ICON_LEFT_BORDER = 2
  */
 open class PropertyTextFieldWithLeftButton(
   private val editorModel: TextFieldWithLeftButtonEditorModel,
+  context: EditorContext,
   component: JComponent? = null
 ) : AdtSecondaryPanel(BorderLayout()), DataProvider {
   protected open val buttonAction = editorModel.buttonAction
   protected val leftComponent = component ?: IconWithFocusBorder { buttonAction }
   protected val leftButton = leftComponent as? IconWithFocusBorder
-  protected val textField = PropertyTextField(editorModel)
+
+  // For table cell renderers: use a JLabel based component instead of a JTextEdit based component,
+  // to avoid unwanted horizontal scrolling.
+  protected val textField: JComponent =
+    if (context != EditorContext.TABLE_RENDERER) PropertyTextField(editorModel) else PropertyLabel(editorModel)
 
   init {
     background = UIUtil.TRANSPARENT_COLOR
