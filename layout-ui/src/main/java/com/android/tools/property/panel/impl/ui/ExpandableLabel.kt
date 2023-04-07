@@ -15,7 +15,7 @@
  */
 package com.android.tools.property.panel.impl.ui
 
-import com.google.common.html.HtmlEscapers
+import com.android.tools.property.panel.impl.support.toHtmlString
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.AbstractExpandableItemsHandler
 import com.intellij.util.ui.JBUI
@@ -48,7 +48,7 @@ class ExpandableLabel : JLabel() {
   var actualText: String = ""
     set(value) {
       field = value
-      htmlText = if (value.isEmpty()) "" else toHtml(value)
+      htmlText = if (value.isEmpty()) "" else toHtmlString(value)
       updateText()
     }
 
@@ -63,8 +63,6 @@ class ExpandableLabel : JLabel() {
     super.repaint(r)
     showEllipsis = !expandableLabelHandler.isShowing
   }
-
-  private fun toHtml(value: String): String = "<html><nobr>${HtmlEscapers.htmlEscaper().escape(value)}</nobr></html>"
 
   /**
    * Handles expansion of property labels.

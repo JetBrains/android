@@ -7,6 +7,7 @@ iml_module(
     iml_files = ["intellij.android.layout-ui.iml"],
     lint_baseline = "lint_baseline.xml",
     test_class = "com.android.tools.LayoutUiTestSuite",
+    test_resources = ["testResources"],
     test_srcs = ["src/test/java"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order

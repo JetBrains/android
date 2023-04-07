@@ -15,12 +15,18 @@
  */
 package com.android.tools.property.panel.impl.ui
 
+import com.android.tools.adtui.stdui.CommonTextBorder
+import com.android.tools.adtui.stdui.HIDE_RIGHT_BORDER
 import com.android.tools.adtui.stdui.OUTLINE_PROPERTY
+import com.android.tools.property.panel.api.TableExpansionState
 import com.android.tools.property.panel.impl.model.BasePropertyEditorModel
-import com.google.common.html.HtmlEscapers
-import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
+import com.android.tools.property.panel.impl.support.expandableText
+import com.android.tools.property.ptable.KEY_IS_VISUALLY_RESTRICTED
+import com.intellij.openapi.ui.ErrorBorderCapable
+import com.intellij.ui.ClientProperty
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
+import javax.swing.JComponent
 import javax.swing.plaf.UIResource
 
 /**
@@ -34,35 +40,49 @@ class PropertyLabel(private val model: BasePropertyEditorModel) : JBLabel() {
     background = UIUtil.TRANSPARENT_COLOR
     isOpaque = false
     model.addListener { updateFromModel() }
+    ClientProperty.put(this, KEY_IS_VISUALLY_RESTRICTED) {
+      // Allow expansion when the user is hovering over this label:
+      model.tableExpansionState != TableExpansionState.NORMAL || width < preferredSize.width
+    }
   }
 
   private fun updateFromModel() {
-    text = model.value
+    text = expandableText(model.value, model.tableExpansionState)
     isVisible = model.visible
     foreground = model.displayedForeground(UIUtil.getLabelForeground())
     background = model.displayedBackground(UIUtil.TRANSPARENT_COLOR)
     isOpaque = model.isUsedInRendererWithSelection
     updateOutline()
+    // Avoid painting the right vertical edge of the cell border if this is the left part of the complete value:
+    ClientProperty.put(this, HIDE_RIGHT_BORDER, model.tableExpansionState == TableExpansionState.EXPANDED_CELL_FOR_POPUP)
   }
 
   // Update the outline property on component such that the Darcula border will
   // be able to indicate an error by painting a red border.
   private fun updateOutline() {
+    // If this label is a renderer in a complex edit control,
+    // set the property on the nearest parent that has an error border (which may be this Label).
+    val component = getComponentWithErrorBorder() ?: return
     val (code, _) = model.property.editingSupport.validation(model.value)
     val newOutline = code.outline
-    val current = getClientProperty(OUTLINE_PROPERTY)
+    val current = component.getClientProperty(OUTLINE_PROPERTY)
     if (current != newOutline) {
-      putClientProperty(OUTLINE_PROPERTY, newOutline)
+      component.putClientProperty(OUTLINE_PROPERTY, newOutline)
     }
   }
 
-  private fun toHtml(str: String): String =
-    "<html><nobr>${HtmlEscapers.htmlEscaper().escape(str)}</nobr></html>"
+  private fun getComponentWithErrorBorder(): JComponent? {
+    var component: JComponent? = this
+    while (component != null && component.border !is ErrorBorderCapable) {
+      component = component.parent as? JComponent
+    }
+    return component
+  }
 
   override fun updateUI() {
     super.updateUI()
     if (border == null || border is UIResource) {
-      border = DarculaTextBorder()
+      border = CommonTextBorder()
     }
   }
 }

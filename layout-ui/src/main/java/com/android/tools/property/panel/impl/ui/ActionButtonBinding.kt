@@ -18,6 +18,7 @@ package com.android.tools.property.panel.impl.ui
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.api.HelpSupport
+import com.android.tools.property.panel.api.TableExpansionState
 import com.android.tools.property.panel.impl.model.BasePropertyEditorModel
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DataProvider
@@ -57,6 +58,9 @@ class ActionButtonBinding(
 
   private fun updateFromModel() {
     actionButton.icon = model.displayedIcon(actionButtonModel?.actionIcon)
+    // Hide the action button if this is for an expanded table cell renderer.
+    // Since the user cannot click on the popup, it doesn't make sense to show it.
+    actionButton.isVisible = model.tableExpansionState == TableExpansionState.NORMAL
     background = model.displayedBackground(secondaryPanelBackground)
     isVisible = model.visible
   }

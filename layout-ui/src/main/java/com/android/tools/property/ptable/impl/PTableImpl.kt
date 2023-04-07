@@ -20,6 +20,9 @@ import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.property.ptable.ColumnFraction
 import com.android.tools.property.ptable.ColumnFractionChangeHandler
+import com.android.tools.property.ptable.DefaultPTableCellEditorProvider
+import com.android.tools.property.ptable.DefaultPTableCellRendererProvider
+import com.android.tools.property.ptable.KEY_IS_VISUALLY_RESTRICTED
 import com.android.tools.property.ptable.PTable
 import com.android.tools.property.ptable.PTableCellEditorProvider
 import com.android.tools.property.ptable.PTableCellRendererProvider
@@ -31,6 +34,7 @@ import com.android.tools.property.ptable.PTableModel
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Pair
 import com.intellij.openapi.wm.IdeFocusManager
+import com.intellij.ui.ClientProperty
 import com.intellij.ui.ExpandableItemsHandler
 import com.intellij.ui.Gray
 import com.intellij.ui.JBColor
@@ -39,13 +43,16 @@ import com.intellij.ui.TableActions
 import com.intellij.ui.TableCell
 import com.intellij.ui.TableExpandableItemsHandler
 import com.intellij.ui.TableUtil
-import com.intellij.util.ui.JBUI
+import com.intellij.ui.scale.JBUIScale
 import com.intellij.util.ui.UIUtil
+import org.jetbrains.annotations.TestOnly
+import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
 import java.awt.Component
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Font
+import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.ActionEvent
 import java.awt.event.KeyAdapter
@@ -72,7 +79,7 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
-private const val EXPANSION_RIGHT_PADDING = 4
+const val EXPANSION_RIGHT_PADDING = 4
 private const val COLUMN_COUNT = 2
 
 /**
@@ -80,22 +87,21 @@ private const val COLUMN_COUNT = 2
  *
  * The intention is to hide implementation details in this class, and only
  * expose a minimal API in [PTable].
+ * This class is open for testing purposes only.
  */
-class PTableImpl(
+open class PTableImpl(
   override val tableModel: PTableModel,
-  override val context: Any?,
-  private val rendererProvider: PTableCellRendererProvider,
-  private val editorProvider: PTableCellEditorProvider,
+  override val context: Any? = null,
+  private val rendererProvider: PTableCellRendererProvider = DefaultPTableCellRendererProvider(),
+  private val editorProvider: PTableCellEditorProvider = DefaultPTableCellEditorProvider(),
   private val customToolTipHook: (MouseEvent) -> String? = { null },
   private val updatingUI: () -> Unit = {},
   private val nameColumnFraction: ColumnFraction = ColumnFraction()
 ) : PFormTableImpl(PTableModelImpl(tableModel)), PTable {
-
   private val nameRowSorter = TableRowSorter<TableModel>()
   private val nameRowFilter = NameRowFilter(model)
   private val tableCellRenderer = PTableCellRendererWrapper()
   private val tableCellEditor = PTableCellEditorWrapper()
-  private val expandableNameHandler = PTableExpandableItemsHandler(this)
   private val resizeHandler = ColumnFractionChangeHandler(nameColumnFraction, { 0 }, { width }, ::onResizeModeChange)
   private var lastLeftFractionValue = nameColumnFraction.value
   private var initialized = false
@@ -115,7 +121,7 @@ class PTableImpl(
 
     setShowGrid(false)
     setShowHorizontalLines(true)
-    intercellSpacing = Dimension(0, JBUI.scale(1))
+    intercellSpacing = Dimension(0, JBUIScale.scale(1))
     setGridColor(JBColor(Gray._224, Gray._44))
 
     columnSelectionAllowed = false
@@ -174,8 +180,30 @@ class PTableImpl(
     return model.depth(item)
   }
 
+  /**
+   * Return true if the group is current open/expanded for showing child items.
+   */
   override fun isExpanded(item: PTableGroupItem): Boolean {
     return model.isExpanded(item)
+  }
+
+  /**
+   * Return true if the [column] of [item] is currently expanded to show the full value that doesn't normally fit in the cell.
+   */
+  override fun isExpandedRendererItem(item: PTableItem, column: PTableColumn): Boolean {
+    val cell = expandableItemsHandler.expandedItems.singleOrNull() ?: return false
+    if (column.ordinal != cell.column) {
+      return false
+    }
+    val value = getValueAt(cell.row, cell.column)
+    return value === item
+  }
+
+  /**
+   * Return true if a popup is currently showing for a value that doesn't normally fit in the cell.
+   */
+  override fun isExpandedRendererPopupShowing(): Boolean {
+    return (expandableItemsHandler as? TableExpandableItemsHandler)?.isShowing ?: false
   }
 
   override fun toggle(item: PTableGroupItem) {
@@ -199,12 +227,12 @@ class PTableImpl(
     }
   }
 
-  override fun getExpandableItemsHandler(): ExpandableItemsHandler<TableCell> {
-    return expandableNameHandler
+  override fun createExpandableItemsHandler(): ExpandableItemsHandler<TableCell> {
+    return PTableExpandableItemsHandler(this)
   }
 
   fun isExpandedItem(row: Int, column: Int): Boolean {
-    return expandableNameHandler.expandedItems.find { it.row == row && it.column == column } != null
+    return expandableItemsHandler.expandedItems.find { it.row == row && it.column == column } != null
   }
 
   override fun startEditing(row: Int) {
@@ -774,13 +802,88 @@ private class NameRowFilter(private val model: PTableModelImpl) : RowFilter<Tabl
   }
 }
 
-private class PTableExpandableItemsHandler(table: PTableImpl) : TableExpandableItemsHandler(table) {
-  override fun getCellRendererAndBounds(key: TableCell): Pair<Component, Rectangle>? {
-    if (key.column != 0) {
-      return null
+/**
+ * A custom [TableExpandableItemsHandler] for a properties table.
+ */
+@VisibleForTesting
+class PTableExpandableItemsHandler(table: PTableImpl) : TableExpandableItemsHandler(table) {
+  private var expandedCell: TableCell? = null
+
+  @TestOnly // Get access to a protected method:
+  fun computeCellRendererAndBounds(key: TableCell): Pair<Component, Rectangle>? {
+    return getCellRendererAndBounds(key)
+  }
+
+  /**
+   * Return the currently expanded items.
+   *
+   * The super class will return nothing if the popup is not shown.
+   * Some controls may be rendered differently when "expanded" to see the entire value.
+   * Such an "expended" renderer may fit in the table cell i.e. no popup will be shown.
+   * We still need to know that the item is "expanded" versus showing in its normal form.
+   *
+   * Override this method to provide this functionality.
+   */
+  override fun getExpandedItems(): Collection<TableCell> {
+    return if (expandedCell == null) emptyList() else setOf(expandedCell!!)
+  }
+
+  /**
+   * Find the [TableCell] over the [point] for the parent [TableExpandableItemsHandler].
+   *
+   * The parent handler may decide not to display a popup for several reasons.
+   *
+   * We may be using a different renderer for the expanded value (to hide buttons that doesn't make sense).
+   * That could mean the expanded renderer fits in the table cell. Save the expandedCell in this class and let
+   * the parent handler handle the popup.
+   *
+   * When the expanded cell changes: invalidate the affected cells such that we can repaint them with the proper renderer.
+   */
+  override fun getCellKeyForPoint(point: Point): TableCell? {
+    val cell = computeRestrictedCellAtPoint(point)
+    if (expandedCell != cell) {
+      cell?.invalidate()
+      expandedCell?.invalidate()
     }
+    expandedCell = cell
+    return cell
+  }
+
+  private fun TableCell.invalidate() =
+    myComponent.repaint(myComponent.getCellRect(row, column, true))
+
+  /**
+   * Compute the [TableCell] at [point] that has a cell renderer where the value is restricted due to limited space in the cell.
+   * Find the component under the mouse and check if the component is visually restricted.
+   * In that way a ComboBox can reject expansions when hovering over the drop down button, but accept expansions when hovering over
+   * the text part of the ComboBox.
+   */
+  private fun computeRestrictedCellAtPoint(point: Point): TableCell? {
+    val cell = super.getCellKeyForPoint(point) ?: return null
+    val value = myComponent.getValueAt(cell.row, cell.column)
+    val renderer = myComponent.getCellRenderer(cell.row, cell.column)
+    val component = renderer.getTableCellRendererComponent(myComponent, value, false, false, cell.row, cell.column)
+    val bounds = myComponent.getCellRect(cell.row, cell.column, true)
+    val componentUnderMouse = SwingUtilities.getDeepestComponentAt(component, point.x - bounds.x, point.y - bounds.y) ?: return null
+    val isVisuallyRestricted = ClientProperty.get(componentUnderMouse, KEY_IS_VISUALLY_RESTRICTED) ?: return null
+    return cell.takeIf { isVisuallyRestricted() }
+  }
+
+  /**
+   * Return a little extra space on the right, such that expanded text has a little empty space on the right.
+   */
+  override fun getCellRendererAndBounds(key: TableCell): Pair<Component, Rectangle>? {
     val rendererAndBounds = super.getCellRendererAndBounds(key) ?: return null
-    rendererAndBounds.second.width += JBUI.scale(EXPANSION_RIGHT_PADDING)
+    rendererAndBounds.second.width += JBUIScale.scale(EXPANSION_RIGHT_PADDING)
     return rendererAndBounds
+  }
+
+  /**
+   * Intellij has disabled [TableExpandableItemsHandler] is the table is not in a [javax.swing.JScrollPane].
+   * Our property table has a scroll pane around the parent JPanel of the table, and we still want to support
+   * table expansion.
+   */
+  override fun isEnabled(): Boolean {
+    return true
   }
 }

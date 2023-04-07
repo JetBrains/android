@@ -17,7 +17,12 @@ package com.android.tools.property.panel.impl.model
 
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.model.stdui.ValueChangedListener
-import com.android.tools.property.panel.api.*
+import com.android.tools.property.panel.api.HelpSupport
+import com.android.tools.property.panel.api.InspectorLineModel
+import com.android.tools.property.panel.api.PropertyEditorModel
+import com.android.tools.property.panel.api.PropertyItem
+import com.android.tools.property.panel.api.TableExpansionState
+import com.android.tools.property.panel.api.TableSupport
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.ui.ExperimentalUI.isNewUI
 import com.intellij.util.ui.ColorIcon
@@ -89,6 +94,9 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
     if (isUsedInRendererWithSelection) UIUtil.getTableBackground(true, true) else background
 
   override var isExpandedTableItem: Boolean by Delegates.observable(false) { _, _, _ -> fireValueChanged() }
+
+  override var tableExpansionState: TableExpansionState
+    by Delegates.observable(TableExpansionState.NORMAL) { _, _, _ -> fireValueChanged() }
 
   override var isCustomHeight = false
 

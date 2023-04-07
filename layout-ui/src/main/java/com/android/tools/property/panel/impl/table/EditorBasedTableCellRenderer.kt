@@ -21,6 +21,7 @@ import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.api.EditorProvider
 import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.property.panel.api.PropertyItem
+import com.android.tools.property.panel.api.TableExpansionState
 import com.android.tools.property.panel.impl.ui.PropertyComboBox
 import com.android.tools.property.panel.impl.ui.PropertyTextField
 import com.android.tools.property.ptable.PTable
@@ -28,6 +29,8 @@ import com.android.tools.property.ptable.PTableCellRenderer
 import com.android.tools.property.ptable.PTableColumn
 import com.android.tools.property.ptable.PTableGroupItem
 import com.android.tools.property.ptable.PTableItem
+import com.intellij.ui.ClientProperty
+import com.intellij.ui.ExpandableItemsHandler
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
@@ -66,11 +69,27 @@ class EditorBasedTableCellRenderer<in P : PropertyItem>(private val itemClass: C
     val (model, editor) = componentCache[key] ?: createEditor(key, property, column, depth, table.gridLineColor)
     model.isUsedInRendererWithSelection = isSelected && hasFocus
     model.isExpandedTableItem = (item as? PTableGroupItem)?.let { table.isExpanded(it) } ?: false
+    model.tableExpansionState = computeTableExpansionState(table, item, column)
     model.property = property
     if (model.isCustomHeight) {
       table.updateRowHeight(item, column, editor.preferredSize.height, false)
     }
     return editor
+  }
+
+  /**
+   * Compute the expansion state for the renderer being requested.
+   */
+  private fun computeTableExpansionState(table: PTable, item: PTableItem, column: PTableColumn): TableExpansionState = when {
+    // This item is not expanded: use the normal renderer.
+    !table.isExpandedRendererItem(item, column) -> TableExpansionState.NORMAL
+    // The EXPANDED_RENDERER client property is set in AbstractExpandableItemsHandler for painting the right part of the value in the popup.
+    ClientProperty.isTrue(table.component, ExpandableItemsHandler.EXPANDED_RENDERER) -> TableExpansionState.EXPANDED_POPUP
+    // If the popup is currently showing, this must be a renderer for the cell itself (painting the left part of the value).
+    table.isExpandedRendererPopupShowing() -> TableExpansionState.EXPANDED_CELL_FOR_POPUP
+    // If no popup is currently showing, this must be a renderer for the cell itself that is adequate for painting the whole value.
+    // This can happen when a different (smaller) component is used to render the expanded value.
+    else -> TableExpansionState.EXPANDED_CELL_NO_POPUP
   }
 
   fun updateUI(newDefaultRenderer: PTableCellRenderer) {

@@ -230,7 +230,7 @@ class PropertyComboBoxTest {
   private fun getWrappedComboBox(comboBox: PropertyComboBox): CommonComboBox<EnumValue, *> {
     val editor = comboBox.editor
     @Suppress("UNCHECKED_CAST")
-    return (editor.parent ?: comboBox.components.single()) as CommonComboBox<EnumValue, *>
+    return (editor.parent ?: comboBox.components.single { it.isVisible }) as CommonComboBox<EnumValue, *>
   }
 
   private fun isPopupVisible(comboBox: PropertyComboBox): Boolean =

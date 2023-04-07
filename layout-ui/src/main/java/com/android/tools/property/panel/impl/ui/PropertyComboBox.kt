@@ -16,20 +16,28 @@
 package com.android.tools.property.panel.impl.ui
 
 import com.android.tools.adtui.stdui.CommonComboBox
+import com.android.tools.adtui.stdui.CommonTextBorder
 import com.android.tools.adtui.stdui.CommonTextField
+import com.android.tools.adtui.stdui.HIDE_RIGHT_BORDER
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.property.panel.api.EditorContext
 import com.android.tools.property.panel.api.EnumValue
+import com.android.tools.property.panel.api.TableExpansionState
 import com.android.tools.property.panel.impl.model.ComboBoxPropertyEditorModel
 import com.android.tools.property.panel.impl.support.HelpSupportBinding
 import com.android.tools.property.panel.impl.support.TextEditorFocusListener
+import com.android.tools.property.ptable.KEY_IS_VISUALLY_RESTRICTED
 import com.intellij.ide.actions.UndoRedoAction
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.ui.ClientProperty
+import com.intellij.util.ui.JBInsets
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import java.awt.BorderLayout
 import java.awt.Color
+import java.awt.Rectangle
 import java.awt.event.ActionEvent
 import java.awt.event.MouseEvent
 import javax.swing.ComboBoxEditor
@@ -37,22 +45,42 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import javax.swing.ListCellRenderer
+import javax.swing.UIManager
 import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
+import javax.swing.plaf.UIResource
+
+private const val RIGHT_OVERLAY_MARGIN = 6
 
 /**
  * A standard control for editing property values with a popup list.
  *
  * This control will act as a ComboBox or a DropDown depending on the model.
+ *
+ * When this control is used as a table cell renderer that is currently expanded,
+ * we will show a [PropertyLabel] instead of the ComboBox (or DropDown) since
+ * the user will not be able to click on the DropDown button in the popup
+ * (the popup will close when the cursor is moved outside of the table).
  */
-class PropertyComboBox(model: ComboBoxPropertyEditorModel, context: EditorContext): JPanel(BorderLayout()) {
+class PropertyComboBox(
+  private val model: ComboBoxPropertyEditorModel,
+  private val context: EditorContext
+): JPanel(BorderLayout()) {
   private val comboBox = WrappedComboBox(model, context)
+  private val label = PropertyLabel(model)
+  private var initialized = false
 
   init {
     background = UIUtil.TRANSPARENT_COLOR
     isOpaque = false
     comboBox.actionOnKeyNavigation = false
-    add(comboBox, BorderLayout.CENTER)
+    label.border = JBUI.Borders.emptyRight(RIGHT_OVERLAY_MARGIN)
+    add(comboBox)
+    add(label)
+    model.addListener { updateFromModel() }
+    initialized = true
+    updateUI()
+    updateFromModel()
   }
 
   var renderer: ListCellRenderer<in EnumValue>
@@ -61,6 +89,43 @@ class PropertyComboBox(model: ComboBoxPropertyEditorModel, context: EditorContex
 
   val editor: CommonTextField<*>
     get() = comboBox.editor.editorComponent as CommonTextField<*>
+
+  override fun updateUI() {
+    super.updateUI()
+    if (initialized) {
+      // Editors in a table should have the border here (to be shared by the label and the ComboBox).
+      // Standalone editor should have the border on the ComboBox (then it becomes rounded).
+      if (context != EditorContext.STAND_ALONE_EDITOR && (border == null || border is UIResource)) {
+        border = CommonTextBorder()
+      }
+    }
+  }
+
+  override fun doLayout() {
+    // The ComboBox should fill up the entire area of this component.
+    comboBox.bounds = Rectangle(0, 0, width, height).apply { JBInsets.removeFrom(this, insets) }
+
+    // The label should be placed indented from the left edge to match the ComboBox.
+    val labelBounds = comboBox.bounds.apply { JBInsets.removeFrom(this, UIManager.getInsets("ComboBox.padding")) }
+    labelBounds.width = when (model.tableExpansionState) {
+      // The label for the left part of a popup should go to the right edge of the table.
+      TableExpansionState.EXPANDED_CELL_FOR_POPUP -> this.width - labelBounds.x
+      // The label width of the popup should hold the entire text. The handler will only use the part beyond the right edge of the table.
+      TableExpansionState.EXPANDED_POPUP -> label.preferredSize.width
+      // If the label fits: use the computation from above.
+      else -> labelBounds.width
+    }
+    label.bounds = labelBounds
+  }
+
+  private fun updateFromModel() {
+    // Choose either the ComboBox or the PropertyLabel based on the expansion state:
+    val editing = model.tableExpansionState == TableExpansionState.NORMAL
+    comboBox.isVisible = editing
+    label.isVisible = !editing
+    // Avoid painting the right vertical edge of the cell border if this is the left part of the complete value:
+    ClientProperty.put(this, HIDE_RIGHT_BORDER, model.tableExpansionState == TableExpansionState.EXPANDED_CELL_FOR_POPUP)
+  }
 }
 
 private class WrappedComboBox(model: ComboBoxPropertyEditorModel, context: EditorContext)
@@ -84,6 +149,8 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, context: Edito
     HelpSupportBinding.registerHelpKeyActions(this, { model.property }, JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
     if (context != EditorContext.STAND_ALONE_EDITOR) {
       putClientProperty("JComboBox.isTableCellEditor", true)
+      // A table cell renderer and editor has a border on the parent PropertyComboBox. Remove the border from the ComboBox itself:
+      border = JBUI.Borders.empty()
     }
 
     // Register key stroke navigation for dropdowns (textField is editable)
@@ -95,9 +162,13 @@ private class WrappedComboBox(model: ComboBoxPropertyEditorModel, context: Edito
     textField.focusTraversalKeysEnabled = false // handle tab and shift-tab ourselves
     textField.background = UIUtil.TRANSPARENT_COLOR
     textField.isOpaque = false
-    textField.putClientProperty(UndoRedoAction.IGNORE_SWING_UNDO_MANAGER, true)
-    // For table cell renderers: avoid unwanted horizontal scrolling:
+    // For table cell renderers that are not currently expanded: avoid unwanted horizontal scrolling:
     textField.enableScrollInView = context != EditorContext.TABLE_RENDERER
+    textField.putClientProperty(UndoRedoAction.IGNORE_SWING_UNDO_MANAGER, true)
+    textField.putClientProperty(KEY_IS_VISUALLY_RESTRICTED) {
+      // Allow for table expansion when the mouse is hovering over the textField (but not the button):
+      model.tableExpansionState != TableExpansionState.NORMAL || width < preferredSize.width
+    }
 
     val focusListener = TextEditorFocusListener(textField, this, model)
     addFocusListener(focusListener)

@@ -21,11 +21,13 @@ import com.android.tools.adtui.stdui.registerActionKey
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.api.TableSupport
 import com.android.tools.property.panel.impl.ui.PropertyTooltip
+import com.android.tools.property.ptable.KEY_IS_VISUALLY_RESTRICTED
 import com.android.tools.property.ptable.PTable
 import com.android.tools.property.ptable.PTableGroupItem
 import com.android.tools.property.ptable.PTableItem
 import com.intellij.ide.ui.laf.darcula.DarculaUIUtil
 import com.intellij.ide.ui.laf.darcula.ui.DarculaTextBorder
+import com.intellij.ui.ClientProperty
 import com.intellij.ui.ExperimentalUI.isNewUI
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.EmptyIcon
@@ -218,6 +220,12 @@ class DefaultNameComponent(private val tableSupport: TableSupport? = null) : JPa
    * The label itself does not have the context to display tooltip for the property.
    */
   private open class LabelWithTooltipFromParent : JBLabel() {
+    init {
+      ClientProperty.put(this, KEY_IS_VISUALLY_RESTRICTED) {
+        width < preferredSize.width
+      }
+    }
+
     override fun getToolTipText(event: MouseEvent): String? =
       (parent as? JComponent)?.getToolTipText(event)
   }

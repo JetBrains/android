@@ -18,6 +18,26 @@ package com.android.tools.property.panel.api
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 
 /**
+ * The expansion state of a table cell editor.
+ *
+ * If the editor is in a table cell, the cell may be too small to show the complete value.
+ * The [TableExpansionState] describes the state the editor should be rendered as.
+ */
+enum class TableExpansionState {
+  /** The property editor is not expanded or not in a table. */
+  NORMAL,
+
+  /** The property editor should render the left part of an expanded value inside a table cell. */
+  EXPANDED_CELL_FOR_POPUP,
+
+  /** The property editor should render expanded, but the text fits in the table cell. */
+  EXPANDED_CELL_NO_POPUP,
+
+  /** The property editor is being used to render the entire value. The right part will be shown in a popup. */
+  EXPANDED_POPUP,
+}
+
+/**
  * Model for a property editor.
  *
  * Instances of this class will be created for each property editor in the
@@ -80,6 +100,13 @@ interface PropertyEditorModel {
    * The editor may decide to show different content based on this value.
    */
   var isExpandedTableItem: Boolean
+
+  /**
+   * Controls the visuals of the editor.
+   *
+   * An item can be expanded in a popup when the value if too large to display in a table cell.
+   */
+  var tableExpansionState: TableExpansionState
 
   /**
    * Returns true if the editor may require a custom height.

@@ -72,10 +72,16 @@ interface PTable {
   /** Returns the parent depth of a specified table item */
   fun depth(item: PTableItem): Int
 
-  /** Returns true if the item is currently expanded. */
+  /** Return true if the group is current open/expanded for showing child items. */
   fun isExpanded(item: PTableGroupItem): Boolean
 
-  /** Toggles the expansion state of the specified [group] */
+  /** Returns true if the expanded item handler popup is currently showing */
+  fun isExpandedRendererPopupShowing(): Boolean
+
+  /** Return true if the [column] of [item] is currently expanded to show the full value that doesn't normally fit in the cell. */
+  fun isExpandedRendererItem(item: PTableItem, column: PTableColumn): Boolean
+
+  /** Toggles the expansion state of the specified [PTableGroupItem] */
   fun toggle(item: PTableGroupItem)
 
   /** Set the row [height] corresponding to the [item] and optionally [scrollIntoView] */
@@ -97,7 +103,8 @@ interface PTable {
                editorProvider: PTableCellEditorProvider = DefaultPTableCellEditorProvider(),
                customToolTipHook: (MouseEvent) -> String? = { null },
                updatingUI: () -> Unit = { },
-               nameColumnFraction: ColumnFraction = ColumnFraction()): PTable {
+               nameColumnFraction: ColumnFraction = ColumnFraction()
+    ): PTable {
       return PTableImpl(tableModel, context, rendererProvider, editorProvider, customToolTipHook, updatingUI, nameColumnFraction)
     }
   }

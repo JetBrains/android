@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools;
+package com.android.tools.property.panel.impl.model.util
 
-import com.android.testutils.JarTestSuiteRunner;
-import com.android.tools.adtui.swing.IconLoaderRule;
-import com.android.tools.tests.IdeaTestSuiteBase;
-import org.junit.runner.RunWith;
+import com.android.tools.property.panel.api.LinkPropertyItem
+import com.intellij.openapi.actionSystem.AnAction
 
-@RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses(LayoutUiTestSuite.class)  // a suite mustn't contain itself
-public class LayoutUiTestSuite extends IdeaTestSuiteBase {
-}
+class FakeLinkPropertyItem(
+  namespace: String,
+  name: String,
+  initialValue: String? = null,
+  override val link: AnAction
+) : FakePropertyItem(namespace, name, initialValue), LinkPropertyItem

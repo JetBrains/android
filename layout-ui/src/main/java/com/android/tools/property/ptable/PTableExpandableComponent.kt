@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools;
+package com.android.tools.property.ptable
 
-import com.android.testutils.JarTestSuiteRunner;
-import com.android.tools.adtui.swing.IconLoaderRule;
-import com.android.tools.tests.IdeaTestSuiteBase;
-import org.junit.runner.RunWith;
+import com.intellij.openapi.util.Key
 
-@RunWith(JarTestSuiteRunner.class)
-@JarTestSuiteRunner.ExcludeClasses(LayoutUiTestSuite.class)  // a suite mustn't contain itself
-public class LayoutUiTestSuite extends IdeaTestSuiteBase {
-}
+/**
+ * A component in cell renderer that allows the cell expansion should set this client property.
+ * The lambda should return true if the value is currently visually restricted.
+ */
+val KEY_IS_VISUALLY_RESTRICTED = Key.create<() -> Boolean>("IsVisuallyRestricted")

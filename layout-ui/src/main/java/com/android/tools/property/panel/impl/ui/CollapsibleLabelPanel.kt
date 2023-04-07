@@ -18,9 +18,9 @@ package com.android.tools.property.panel.impl.ui
 import com.android.tools.adtui.common.secondaryPanelBackground
 import com.android.tools.adtui.common.selectionBackground
 import com.android.tools.property.panel.impl.model.CollapsibleLabelModel
+import com.android.tools.property.panel.impl.support.toHtmlString
 import com.android.tools.property.ptable.ColumnFraction
 import com.android.tools.property.ptable.ColumnFractionChangeHandler
-import com.google.common.html.HtmlEscapers
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ToolbarUpdater
@@ -63,7 +63,7 @@ class CollapsibleLabelPanel(
   // The label wil automatically display ellipsis at the end of a string that is too long for the width
   private val valueWithTrailingEllipsis = model.name
   // As html the value will not have ellipsis at the end but simply cut off when the string is too long
-  private val valueWithoutEllipsis = toHtml(model.name)
+  private val valueWithoutEllipsis = toHtmlString(model.name)
 
   private val expandAction = object : AnAction() {
     override fun actionPerformed(event: AnActionEvent) {
@@ -171,9 +171,5 @@ class CollapsibleLabelPanel(
     expandButton.icon = model.icon
     revalidateParent?.revalidate()
     revalidateParent?.repaint()
-  }
-
-  private fun toHtml(text: String): String {
-    return "<html><nobr>${HtmlEscapers.htmlEscaper().escape(text)}</nobr></html>"
   }
 }

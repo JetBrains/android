@@ -19,6 +19,7 @@ import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.api.InspectorLineModel
 import com.android.tools.property.panel.api.PropertyEditorModel
 import com.android.tools.property.panel.api.PropertyItem
+import com.android.tools.property.panel.api.TableExpansionState
 import com.android.tools.property.panel.api.TableSupport
 
 class FakePropertyEditorModel(override var property: PropertyItem): PropertyEditorModel {
@@ -51,6 +52,8 @@ class FakePropertyEditorModel(override var property: PropertyItem): PropertyEdit
   override var isUsedInRendererWithSelection = false
 
   override var isExpandedTableItem = false
+
+  override var tableExpansionState = TableExpansionState.NORMAL
 
   override var isCustomHeight = false
 
