@@ -128,9 +128,9 @@ public final class StudioFlags {
     false
   );
 
-  public static final Flag<Boolean> PROFILER_VERBOSE_LOGGING = Flag.create(
-    PROFILER, "verbose.logging", "Enable Profiler verbose logging",
-    "Toggles if profiler verbose logging is enabled for testing.",
+  public static final Flag<Boolean> PROFILER_TESTING_MODE = Flag.create(
+    PROFILER, "testing.mode", "Enable the testing mode in Profiler",
+    "Toggles the testing mode for more logging and Actions to facilitate automatic testing.",
     false
   );
 

@@ -252,7 +252,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
       }
 
       @Override
-      public boolean isVerboseLoggingEnabled() {
+      public boolean isTestingModeEnabled() {
         return false;
       }
 

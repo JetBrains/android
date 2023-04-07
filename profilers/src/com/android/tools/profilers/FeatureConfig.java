@@ -29,7 +29,7 @@ public interface FeatureConfig {
   boolean isMemoryCSVExportEnabled();
   boolean isPerformanceMonitoringEnabled();
   boolean isProfileableBuildsEnabled();
-  boolean isVerboseLoggingEnabled();
+  boolean isTestingModeEnabled();
   boolean isTaskBasedUxEnabled();
 
   PowerProfilerDisplayMode getSystemTracePowerProfilerDisplayMode();

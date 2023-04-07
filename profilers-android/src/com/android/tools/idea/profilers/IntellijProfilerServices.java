@@ -391,8 +391,8 @@ public class IntellijProfilerServices implements IdeProfilerServices, Disposable
     }
 
     @Override
-    public boolean isVerboseLoggingEnabled() {
-      return StudioFlags.PROFILER_VERBOSE_LOGGING.get();
+    public boolean isTestingModeEnabled() {
+      return StudioFlags.PROFILER_TESTING_MODE.get();
     }
 
     @Override
