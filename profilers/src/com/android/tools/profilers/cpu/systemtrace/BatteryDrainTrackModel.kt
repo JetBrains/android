@@ -26,7 +26,7 @@ import com.android.tools.adtui.model.formatter.SingleUnitAxisFormatter
 import com.android.tools.profilers.cpu.LazyDataSeries
 import kotlin.math.abs
 
-class BatteryDrainTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Range, trackName: String) : LineChartModel() {
+class BatteryDrainTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Range, unit: String) : LineChartModel() {
   val batteryDrainCounterSeries: RangedContinuousSeries
   val axisComponentModel: AxisComponentModel
 
@@ -34,7 +34,6 @@ class BatteryDrainTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Rang
     val maxValue = dataSeries.asSequence().map { it.value }.maxOrNull() ?: 0
     val minValue = dataSeries.asSequence().map { it.value }.minOrNull() ?: 0
 
-    val unit = getUnitFromTrackName(trackName)
     val negValuePresent = minValue < 0 || maxValue < 0
 
     val axisFormatter = when (unit) {
@@ -60,6 +59,7 @@ class BatteryDrainTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Rang
   }
 
   companion object {
+    @JvmStatic
     fun getUnitFromTrackName(trackName: String): String {
       return if (trackName.contains("pct")) "%"
       else if (trackName.contains("uah")) "µah"

@@ -29,7 +29,7 @@ class BatteryDrainTrackRendererTest {
   @Test
   fun render() {
     val batteryDrainTrackModel = TrackModel.newBuilder(
-      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "foo"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
+      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), ""), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
     ).build()
     val component = BatteryDrainTrackRenderer().render(batteryDrainTrackModel)
     assertThat(component.componentCount).isEqualTo(2)
@@ -40,25 +40,25 @@ class BatteryDrainTrackRendererTest {
   @Test
   fun axisLabelIsCorrect() {
     var percentBatteryDrainTrackModel = TrackModel.newBuilder(
-      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "foo.pct"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
+      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "%"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
     ).build()
     var formatter = percentBatteryDrainTrackModel.dataModel.axisComponentModel.formatter
     assertThat(formatter.getFormattedString(100.0, 100.0, true)).isEqualTo("100%")
 
     val microAmpHoursBatteryDrainTrackModel = TrackModel.newBuilder(
-      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "foo.uah"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
+      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "µah"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
     ).build()
     formatter = microAmpHoursBatteryDrainTrackModel.dataModel.axisComponentModel.formatter
     assertThat(formatter.getFormattedString(100.0, 100.0, true)).isEqualTo("100 µah")
 
     val microAmpsBatteryDrainTrackModel = TrackModel.newBuilder(
-      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "foo.ua"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
+      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "µa"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
     ).build()
     formatter = microAmpsBatteryDrainTrackModel.dataModel.axisComponentModel.formatter
     assertThat(formatter.getFormattedString(100.0, 100.0, true)).isEqualTo("100 µa")
 
     var noUnitBatteryDrainTrackModel = TrackModel.newBuilder(
-      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), "foo"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
+      BatteryDrainTrackModel(BATTERY_DRAIN_COUNTERS, Range(), ""), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
     ).build()
     formatter = noUnitBatteryDrainTrackModel.dataModel.axisComponentModel.formatter
     assertThat(formatter.getFormattedString(100.0, 100.0, true)).isEqualTo("100")
@@ -67,7 +67,7 @@ class BatteryDrainTrackRendererTest {
   @Test
   fun batteryCurrentDrainNegativeMinRangeValuesGivesCorrectRange() {
     val batteryDrainTrackModel = TrackModel.newBuilder(
-      BatteryDrainTrackModel(NEGATIVE_MIN_DRAIN_COUNTERS, Range(), "ua"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
+      BatteryDrainTrackModel(NEGATIVE_MIN_DRAIN_COUNTERS, Range(), "µa"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, "Battery Drain"
     ).build()
 
     val component = BatteryDrainTrackRenderer().render(batteryDrainTrackModel)
@@ -81,7 +81,7 @@ class BatteryDrainTrackRendererTest {
   @Test
   fun batteryCurrentDrainNegativeMinAndMaxRangeValuesGivesCorrectRange() {
     val batteryDrainTrackModel = TrackModel.newBuilder(
-      BatteryDrainTrackModel(NEGATIVE_MIN_AND_MAX_DRAIN_COUNTERS, Range(), "ua"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN,
+      BatteryDrainTrackModel(NEGATIVE_MIN_AND_MAX_DRAIN_COUNTERS, Range(), "µa"), ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN,
       "Battery Drain"
     ).build()
 

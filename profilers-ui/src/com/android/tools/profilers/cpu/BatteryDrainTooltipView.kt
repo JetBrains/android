@@ -39,11 +39,10 @@ class BatteryDrainTooltipView(parent: JComponent, val tooltip: BatteryDrainToolt
   private fun updateView() {
     descriptionLabel.text = "<html>${getDescriptionText(tooltip.counterName)}</html>"
     val batteryDrainValueText = NumberFormatter.formatInteger(tooltip.activeValue)
-    val unit = getUnitFromTrackName(tooltip.counterName)
     valueLabel.text = "${getTitle(tooltip.counterName)}: $batteryDrainValueText"
-    valueLabel.text += when (unit) {
-      "µah", "µa" -> " $unit"
-      else -> unit
+    valueLabel.text += when (tooltip.unit) {
+      "µah", "µa" -> " ${tooltip.unit}"
+      else -> tooltip.unit
     }
   }
 

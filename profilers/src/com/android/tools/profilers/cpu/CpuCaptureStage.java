@@ -104,6 +104,8 @@ import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel.getUnitFromTrackName;
+
 /**
  * This class holds the models and capture data for the {@code com.android.tools.profilers.cpu.CpuCaptureStageView}.
  * This stage is set when a capture is selected from the {@link CpuProfilerStage}, or when a capture is imported.
@@ -823,8 +825,11 @@ public class CpuCaptureStage extends Stage<Timeline> {
 
     systemTraceData.getBatteryDrainCounters().forEach(
       (trackName, trackData) -> {
-        BatteryDrainTrackModel trackModel = new BatteryDrainTrackModel(trackData, myTrackGroupTimeline.getViewRange(), trackName);
-        BatteryDrainTooltip tooltip = new BatteryDrainTooltip(myTrackGroupTimeline, trackName, trackModel.getBatteryDrainCounterSeries());
+        String unit = getUnitFromTrackName(trackName);
+
+        BatteryDrainTrackModel trackModel = new BatteryDrainTrackModel(trackData, myTrackGroupTimeline.getViewRange(), unit);
+        BatteryDrainTooltip tooltip =
+          new BatteryDrainTooltip(myTrackGroupTimeline, trackName, unit, trackModel.getBatteryDrainCounterSeries());
 
         battery.addTrackModel(
           TrackModel.newBuilder(trackModel, ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, trackName).setDefaultTooltipModel(tooltip)
