@@ -59,6 +59,19 @@ class BatteryDrainTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Rang
   }
 
   companion object {
+    /**
+     * This method returns a more human-readable version of a battery drain counter name.
+     */
+    @JvmStatic
+    fun getFormattedBatteryDrainName(batteryDrainCounterName: String): String {
+      return when (val formattedBatteryDrainCounterName = batteryDrainCounterName.replace("batt.", "")) {
+        "capacity_pct" -> "Capacity"
+        "charge_uah" -> "Charge"
+        "current_ua" -> "Current"
+        else -> formattedBatteryDrainCounterName
+      }
+    }
+
     @JvmStatic
     fun getUnitFromTrackName(trackName: String): String {
       return if (trackName.contains("pct")) "%"

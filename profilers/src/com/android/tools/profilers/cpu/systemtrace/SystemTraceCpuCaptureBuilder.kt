@@ -232,7 +232,7 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
 
   private fun buildBatteryDrainCountersData(): Map<String, List<SeriesData<Long>>> {
     return model.getBatteryDrain().associate {
-      it.name.replace("batt.", "") to convertCounterToSeriesData(it)
+      it.name to convertCounterToSeriesData(it)
     }.toSortedMap()
   }
 

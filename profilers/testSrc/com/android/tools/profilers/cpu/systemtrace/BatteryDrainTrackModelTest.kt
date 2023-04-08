@@ -17,6 +17,7 @@ package com.android.tools.profilers.cpu.systemtrace
 
 import com.android.tools.adtui.model.Range
 import com.android.tools.adtui.model.SeriesData
+import com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel.Companion.getFormattedBatteryDrainName
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
@@ -29,6 +30,26 @@ class BatteryDrainTrackModelTest {
     assertThat(batteryDrainTrackModel.series.size).isEqualTo(1)
     assertThat(batteryDrainTrackModel.series[0].yRange.min).isEqualTo(0.0)
     assertThat(batteryDrainTrackModel.series[0].yRange.max).isEqualTo(3000.0)
+  }
+
+  @Test
+  fun batteryDrainCounterNamesFormattedCorrectly() {
+    val batteryDrainCounters = listOf(
+      // Case 1: The following three predefined names should use the static mapping.
+      // These names are predefined by perfetto.
+      "batt.capacity_pct",
+      "batt.charge_uah",
+      "batt.current_ua",
+      // Case 2: There is no static mapping, but the "batt." prefix is present.
+      // Here, we remove the prefix and return the rest of the name.
+      "batt.foo",
+      // Case 3: There is no static mapping and the "batt." prefix is not present.
+      // Here, we simply return the exact name back.
+      "foo.bar"
+    )
+
+    val formattedBatteryDrainCounters = batteryDrainCounters.map { getFormattedBatteryDrainName(it) }
+    assertThat(formattedBatteryDrainCounters).containsExactly("Capacity", "Charge", "Current", "foo", "foo.bar").inOrder()
   }
 
   companion object {

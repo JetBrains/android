@@ -105,6 +105,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel.getUnitFromTrackName;
+import static com.android.tools.profilers.cpu.systemtrace.BatteryDrainTrackModel.getFormattedBatteryDrainName;
+
 
 /**
  * This class holds the models and capture data for the {@code com.android.tools.profilers.cpu.CpuCaptureStageView}.
@@ -826,13 +828,15 @@ public class CpuCaptureStage extends Stage<Timeline> {
     systemTraceData.getBatteryDrainCounters().forEach(
       (trackName, trackData) -> {
         String unit = getUnitFromTrackName(trackName);
+        String formattedTrackName = getFormattedBatteryDrainName(trackName);
 
         BatteryDrainTrackModel trackModel = new BatteryDrainTrackModel(trackData, myTrackGroupTimeline.getViewRange(), unit);
         BatteryDrainTooltip tooltip =
-          new BatteryDrainTooltip(myTrackGroupTimeline, trackName, unit, trackModel.getBatteryDrainCounterSeries());
+          new BatteryDrainTooltip(myTrackGroupTimeline, formattedTrackName, unit, trackModel.getBatteryDrainCounterSeries());
 
         battery.addTrackModel(
-          TrackModel.newBuilder(trackModel, ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, trackName).setDefaultTooltipModel(tooltip)
+          TrackModel.newBuilder(trackModel, ProfilerTrackRendererType.ANDROID_BATTERY_DRAIN, formattedTrackName)
+            .setDefaultTooltipModel(tooltip)
         );
       }
     );

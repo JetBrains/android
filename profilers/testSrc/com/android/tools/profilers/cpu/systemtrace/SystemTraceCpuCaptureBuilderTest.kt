@@ -272,8 +272,8 @@ class SystemTraceCpuCaptureBuilderTest {
       CounterModel("power.rails.bar", sortedMapOf(3L to 300.0, 4L to 400.0)))
 
     val batteryDrain = listOf(
-      CounterModel("batt.foo", sortedMapOf(1L to 100.0, 2L to 200.0)),
-      CounterModel("batt.bar", sortedMapOf(3L to 300.0, 4L to 400.0)))
+      CounterModel("foo", sortedMapOf(1L to 100.0, 2L to 200.0)),
+      CounterModel("bar", sortedMapOf(3L to 300.0, 4L to 400.0)))
 
     val model = TestModel(processes, emptyMap(), emptyList(), powerRails, batteryDrain, emptyList())
 
