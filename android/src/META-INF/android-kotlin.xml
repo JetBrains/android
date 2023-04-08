@@ -70,7 +70,8 @@
         </intentionAction>
 
         <codeInsight.unresolvedReferenceQuickFixProvider
-            implementation="org.jetbrains.kotlin.android.inspection.KotlinAndroidResourceQuickFixProvider"/>
+            implementation="org.jetbrains.kotlin.android.inspection.KotlinAndroidResourceQuickFixProvider"
+            includeUnless="idea.kotlin.plugin.use.k2"/>
 
         <lang.foldingBuilder language="kotlin" implementationClass="org.jetbrains.kotlin.android.folding.ResourceFoldingBuilder" />
 
@@ -90,6 +91,8 @@
         <quickFixContributor implementation="com.android.tools.idea.imports.AndroidMavenImportKotlinResolver"/>
         <resolveScopeEnlarger implementation="org.jetbrains.kotlin.android.AndroidKotlinResolveScopeEnlarger"/>
         <renameHandler implementation="org.jetbrains.android.refactoring.renaming.KotlinResourceRenameHandler" order="first"/>
+        <codeinsight.quickfix.registrar implementation="org.jetbrains.kotlin.android.inspection.KotlinAndroidResourceQuickFixRegistrarK2"
+                                        includeIf="idea.kotlin.plugin.use.k2"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.android.tools.idea.lint.common">
