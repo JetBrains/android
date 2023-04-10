@@ -1,6 +1,26 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/adt/idea/studio:studio.bzl", "android_studio", "iml_studio_test", "studio_plugin")
 load(":version.bzl", "STUDIO_CODENAME", "STUDIO_MICRO_PATCH", "STUDIO_RELEASE_NUMBER", "STUDIO_VERSION")
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag", "string_flag")
+
+bool_flag(
+    name = "create-nightly-build",
+    build_setting_default = False,
+)
+
+# Examples of version suffix are
+# Canary 2, RC 1, Patch 1, Nightly 2023-04-10.
+string_flag(
+    name = "version-suffix",
+    build_setting_default = "",
+)
+
+config_setting(
+    name = "nightly-build",
+    flag_values = {
+        ":create-nightly-build": "True",
+    },
+)
 
 studio_plugin(
     name = "org.jetbrains.android",
@@ -683,7 +703,16 @@ android_studio(
     # This will get added to the end of the full-version string.
     # TODO(b/240707039): automate this.
     version_release_number = STUDIO_RELEASE_NUMBER,
-    version_type = STUDIO_VERSION,
+    version_suffix = select({
+        ":nightly-build": ":version-suffix",
+        # The android_studio rule will generate suffixes depending on the
+        # version_type and version_release_number.
+        "//conditions:default": None,
+    }),
+    version_type = select({
+        ":nightly-build": "Nightly",
+        "//conditions:default": STUDIO_VERSION,
+    }),
     visibility = ["//visibility:public"],
 )
 

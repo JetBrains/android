@@ -3,6 +3,7 @@ load("//tools/base/bazel:merge_archives.bzl", "run_singlejar")
 load("//tools/base/bazel:functions.bzl", "create_option_file")
 load("//tools/base/bazel:utils.bzl", "dir_archive", "is_release")
 load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
+load("@bazel_skylib//rules:common_settings.bzl", "BuildSettingInfo")
 
 PluginInfo = provider(
     doc = "Info for IntelliJ plugins, including those built by the studio_plugin rule",
@@ -32,6 +33,7 @@ IntellijInfo = provider(
 # Valid types (and their corresponding channels) which can be specified
 # by the android_studio rule.
 type_channel_mappings = {
+    "Nightly": "Dev",
     "Canary": "Canary",
     "Beta": "Beta",
     "RC": "Beta",
@@ -40,7 +42,7 @@ type_channel_mappings = {
 
 # Types considered to be EAP. This should be a subset of
 # type_channel_mappings.keys().
-eap_types = ["Canary", "Beta"]
+eap_types = ["Canary", "Beta", "Dev"]
 
 def _zipper(ctx, desc, map, out, deps = []):
     files = [f for (p, f) in map if f]
@@ -487,6 +489,8 @@ def _form_version_full(ctx):
             return code_name_and_patch_components
 
         return code_name_and_patch_components + " Patch " + str(ctx.attr.version_release_number - 1)
+    if ctx.attr.version_suffix:
+        return code_name_and_patch_components + " " + ctx.attr.version_suffix[BuildSettingInfo].value
 
     return (code_name_and_patch_components +
             " " +
@@ -746,6 +750,9 @@ _android_studio = rule(
         "version_release_number": attr.int(),
         "version_type": attr.string(),
         "update_message_template": attr.label(allow_single_file = True),
+        "version_suffix": attr.label(
+            providers = [BuildSettingInfo],
+        ),
         "_singlejar": attr.label(
             default = Label("@bazel_tools//tools/jdk:singlejar"),
             cfg = "host",
