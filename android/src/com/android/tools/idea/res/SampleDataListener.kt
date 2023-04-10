@@ -41,7 +41,7 @@ import com.intellij.psi.PsiTreeChangeListener
  * When a [SampleDataResourceRepository] is created, it calls [ensureSubscribed] to make sure that
  * the project's [SampleDataListener] is tracking VFS and PSI events.
  */
-internal class SampleDataListener(project: Project) : PoliteAndroidVirtualFileListener(project), PsiTreeChangeListener {
+class SampleDataListener(project: Project) : PoliteAndroidVirtualFileListener(project), PsiTreeChangeListener {
 
   companion object {
     private val LOG = Logger.getInstance(SampleDataListener::class.java)
@@ -59,7 +59,7 @@ internal class SampleDataListener(project: Project) : PoliteAndroidVirtualFileLi
   }
 
   /** Project service responsible for subscribing a new [SampleDataListener] to listen for both VFS and PSI changes. */
-  private class Subscriber(val project: Project) :
+  class Subscriber(val project: Project) :
     LazyFileListenerSubscriber<SampleDataListener>(SampleDataListener(project), project) {
 
     override fun subscribe() {

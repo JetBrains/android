@@ -216,7 +216,7 @@ public class DownloadableFontCacheServiceImpl extends FontLoader implements Down
   }
 
   @VisibleForTesting
-  DownloadableFontCacheServiceImpl() {
+  public DownloadableFontCacheServiceImpl() {
     myDownloadServiceMap = new HashMap<>();
     init();
     mySystemFonts = new SystemFonts(this);
