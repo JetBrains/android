@@ -25,6 +25,7 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import org.jetbrains.android.facet.AndroidFacet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -56,7 +57,7 @@ public class AndroidProjectRootUtil {
     if (moduleDirPath != null) {
       String absPath = toSystemIndependentName(moduleDirPath + relativePath);
       ProgressManager.checkCanceled();
-      VirtualFile file = LocalFileSystem.getInstance().findFileByPath(absPath);
+      VirtualFile file = VirtualFileManager.getInstance().getFileSystem(LocalFileSystem.PROTOCOL).findFileByPath(absPath);
       if (file != null) {
         return file;
       }
@@ -67,7 +68,7 @@ public class AndroidProjectRootUtil {
       for (VirtualFile contentRoot : contentRoots) {
         String absPath = toSystemIndependentName(contentRoot.getPath() + relativePath);
         ProgressManager.checkCanceled();
-        VirtualFile file = LocalFileSystem.getInstance().findFileByPath(absPath);
+        VirtualFile file = VirtualFileManager.getInstance().getFileSystem(LocalFileSystem.PROTOCOL).findFileByPath(absPath);
         if (file != null) {
           return file;
         }
