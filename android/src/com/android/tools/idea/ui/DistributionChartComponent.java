@@ -201,7 +201,7 @@ public class DistributionChartComponent extends JPanel {
     int totalWidth = getBounds().width;
     int rightGutter = (int)Math.round(totalWidth * RIGHT_GUTTER_PERCENTAGE);
     int width = totalWidth - rightGutter;
-    int normalBoxSize = (int)Math.round((float)width/EXPANSION_ON_SELECTION);
+    int normalBoxSize = (int)Math.round((float)width / EXPANSION_ON_SELECTION);
     int leftGutter = (width - normalBoxSize) / 2;
 
     // Measure our fonts
@@ -265,7 +265,8 @@ public class DistributionChartComponent extends JPanel {
       g.setColor(RECT_COLORS[recColorIdx % RECT_COLORS.length]);
       if (d.equals(mySelectedDistribution)) {
         g.fillRect(0, bottom - calculatedHeight, width, calculatedHeight);
-      } else {
+      }
+      else {
         g.fillRect(leftGutter, bottom - calculatedHeight, normalBoxSize, calculatedHeight);
       }
 
@@ -283,7 +284,7 @@ public class DistributionChartComponent extends JPanel {
       // Write the version number
       g.setColor(API_LEVEL_COLOR);
       g.setFont(VERSION_NUMBER_FONT);
-      String versionString = d.getVersion().toString().substring(0, 3);
+      String versionString = d.getVersion().toShortString();
       g.drawString(versionString, leftGutter + NUMBER_OFFSET, currentMidY + halfVersionNumberHeight);
 
       // Write the API level
@@ -310,6 +311,7 @@ public class DistributionChartComponent extends JPanel {
 
   /**
    * Get an S-Curve value between min and max
+   *
    * @param normalizedValue a value between 0 and 1
    * @return an integer between the given MIN_API_FONT_SIZE and MAX_API_FONT_SIZE value
    */
