@@ -3,9 +3,9 @@
     "name": "KitKat",
     "version": "4.4",
     "apiLevel": 19,
-    "distributionPercentage": 0.007,
+    "distributionPercentage": 0.006,
     "url": "https://developer.android.com/about/versions/android-4.4.html",
-    "descriptionBlocks" : [
+    "descriptionBlocks": [
       {
         "title": "Printing Framework",
         "body": "Print generic content<br>Print images<br>OEM print services"
@@ -40,7 +40,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: January 6th, 2023"
+        "body": "Last updated: April 10, 2023"
       }
     ]
   },
@@ -50,8 +50,7 @@
     "apiLevel": 21,
     "distributionPercentage": 0.003,
     "url": "https://developer.android.com/about/versions/android-5.0.html",
-    "descriptionBlocks" : [
-
+    "descriptionBlocks": [
       {
         "title": "User Interface",
         "body": "Material design support<br>Concurrent documents and activities in the recents screen<br>WebView updates<br>Screen capturing and sharing"
@@ -106,7 +105,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: January 6th, 2023"
+        "body": "Last updated: April 10, 2023"
       }
     ]
   },
@@ -114,9 +113,9 @@
     "name": "Lollipop",
     "version": "5.1",
     "apiLevel": 22,
-    "distributionPercentage": 0.018,
+    "distributionPercentage": 0.016,
     "url": "https://developer.android.com/about/versions/android-5.1.html",
-    "descriptionBlocks" : [
+    "descriptionBlocks": [
       {
         "title": "Wireless & Connectivity",
         "body": "Multiple SIM Card Support<br>Carrier Provisioning"
@@ -127,7 +126,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: January 6th, 2023"
+        "body": "Last updated: April 10, 2023"
       }
     ]
   },
@@ -135,9 +134,9 @@
     "name": "Marshmallow",
     "version": "6.0",
     "apiLevel": 23,
-    "distributionPercentage": 0.028,
+    "distributionPercentage": 0.025,
     "url": "https://developer.android.com/about/versions/marshmallow/android-6.0.html",
-    "descriptionBlocks" : [
+    "descriptionBlocks": [
       {
         "title": "Security",
         "body": "Fingerprint Authentication<br>Confirm Credential"
@@ -168,7 +167,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: January 6th, 2023"
+        "body": "Last updated: April 10, 2023"
       }
     ]
   },
@@ -176,9 +175,9 @@
     "name": "Nougat",
     "version": "7.0",
     "apiLevel": 24,
-    "distributionPercentage": 0.019,
+    "distributionPercentage": 0.017,
     "url": "https://developer.android.com/about/versions/nougat/android-7.0.html",
-    "descriptionBlocks" : [
+    "descriptionBlocks": [
       {
         "title": "User Interface",
         "body": "Multi-window Support<br>Notifications<br>Quick Settings Tile API<br>Custom Pointer API"
@@ -225,7 +224,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: January 6th, 2023"
+        "body": "Last updated: April 10, 2023"
       }
     ]
   },
@@ -233,9 +232,9 @@
     "name": "Nougat",
     "version": "7.1",
     "apiLevel": 25,
-    "distributionPercentage": 0.018,
+    "distributionPercentage": 0.016,
     "url": "https://developer.android.com/about/versions/nougat/android-7.1.html",
-    "descriptionBlocks" : [
+    "descriptionBlocks": [
       {
         "title": "System",
         "body": "Enhanced Live Wallpaper Metadata<br>Storage Manager Intent<br>Demo User Hint"
@@ -262,7 +261,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: January 6th, 2023"
+        "body": "Last updated: April 10, 2023"
       }
     ]
   },
@@ -270,9 +269,9 @@
     "name": "Oreo",
     "version": "8.0",
     "apiLevel": 26,
-    "distributionPercentage": 0.026,
+    "distributionPercentage": 0.023,
     "url": "https://developer.android.com/about/versions/oreo/android-8.0",
-    "descriptionBlocks" : [
+    "descriptionBlocks": [
       {
         "title": "System",
         "body": "Custom data store<br>JobScheduler improvements<br>Cached data"
@@ -299,7 +298,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: January 6th, 2023"
+        "body": "Last updated: April 10, 2023"
       }
     ]
   },
@@ -307,9 +306,9 @@
     "name": "Oreo",
     "version": "8.1",
     "apiLevel": 27,
-    "distributionPercentage": 0.069,
+    "distributionPercentage": 0.064,
     "url": "https://developer.android.com/about/versions/oreo/android-8.1",
-    "descriptionBlocks" : [
+    "descriptionBlocks": [
       {
         "title": "System",
         "body": "Android Go<br>Neural Networks API<br>Programmatic Safe Browsing actions<br>Shared memory API"
@@ -328,7 +327,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: January 6th, 2023"
+        "body": "Last updated: April 10, 2023"
       }
     ]
   },
@@ -336,9 +335,9 @@
     "name": "Pie",
     "version": "9.0",
     "apiLevel": 28,
-    "distributionPercentage": 0.132,
+    "distributionPercentage": 0.123,
     "url": "https://developer.android.com/about/versions/pie/android-9.0",
-    "descriptionBlocks" : [
+    "descriptionBlocks": [
       {
         "title": "System",
         "body": "Indoor positioning with Wi-Fi RTT<br>Multi-camera support<br>Display cutout support"
@@ -361,7 +360,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: January 6th, 2023"
+        "body": "Last updated: April 10, 2023"
       }
     ]
   },
@@ -369,9 +368,9 @@
     "name": "Q",
     "version": "10.0",
     "apiLevel": 29,
-    "distributionPercentage": 0.195,
+    "distributionPercentage": 0.185,
     "url": "https://developer.android.com/about/versions/10",
-    "descriptionBlocks" : [
+    "descriptionBlocks": [
       {
         "title": "System",
         "body": "Foldables support<br>5G support<br>Gesture navigation<br>ART optimizations<br>Neural Networks API 1.2<br>Thermal API"
@@ -390,7 +389,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: January 6th, 2023"
+        "body": "Last updated: April 10, 2023"
       }
     ]
   },
@@ -398,9 +397,9 @@
     "name": "R",
     "version": "11.0",
     "apiLevel": 30,
-    "distributionPercentage": 0.244,
+    "distributionPercentage": 0.235,
     "url": "https://developer.android.com/about/versions/11",
-    "descriptionBlocks" : [
+    "descriptionBlocks": [
       {
         "title": "New features",
         "body": "Chat Bubbles<br>Conversation improvements<br>Wireless debugging<br>Neural Networks API 1.3<br>Frame rate API"
@@ -415,7 +414,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: January 6th, 2023"
+        "body": "Last updated: April 10, 2023"
       }
     ]
   },
@@ -423,9 +422,9 @@
     "name": "S",
     "version": "12.0",
     "apiLevel": 31,
-    "distributionPercentage": 0.189,
+    "distributionPercentage": 0.165,
     "url": "https://developer.android.com/about/versions/12",
-    "descriptionBlocks" : [
+    "descriptionBlocks": [
       {
         "title": "New features",
         "body": "Material You<br>Redesigned widgets<br><br>Game Mode<br>Rich content insertion<br>AppSearch API<br>Compatible media transcoding<br>Improved notifications"
@@ -439,8 +438,12 @@
         "body": "App hibernation<br>Nearby device permissions<br>Approximate location<br>Bluetooth permissions<br>Permission group lookup<br>Clipboard access notifications<br>Permission package visibility"
       },
       {
+        "title": "Large screen support (12L)",
+        "body": "System UI optimizations<br>App taskbar<br>Drag and drop an app into split-screen mode<br>fast app-switching<br>Visual and stability improvements to compatibility mode<br>Activity embedding with Jetpack WindowManager"
+      },
+      {
         "title": "",
-        "body": "Last updated: January 6th, 2023"
+        "body": "Last updated: April 10, 2023"
       }
     ]
   },
@@ -448,9 +451,9 @@
     "name": "T",
     "version": "13.0",
     "apiLevel": 33,
-    "distributionPercentage": 0.05,
+    "distributionPercentage": 0.121,
     "url": "https://developer.android.com/about/versions/13",
-    "descriptionBlocks" : [
+    "descriptionBlocks": [
       {
         "title": "New features",
         "body": "Tablet and large screen support<br>Programmable shaders<br>Color vector fonts<br>Predictive back gesture<br>Bluetooth LE Audio<br>Splash screen efficiency improvements<br>ART optimizations"
@@ -465,7 +468,7 @@
       },
       {
         "title": "",
-        "body": "Last updated: January 6th, 2023"
+        "body": "Last updated: April 10, 2023"
       }
     ]
   }
