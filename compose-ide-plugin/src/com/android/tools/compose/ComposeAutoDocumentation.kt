@@ -17,6 +17,7 @@ package com.android.tools.compose
 
 import com.android.tools.idea.flags.StudioFlags.COMPOSE_AUTO_DOCUMENTATION
 import com.android.tools.idea.projectsystem.getModuleSystem
+import com.google.common.annotations.VisibleForTesting
 import com.intellij.codeInsight.CodeInsightSettings
 import com.intellij.codeInsight.completion.CompletionService
 import com.intellij.codeInsight.documentation.DocumentationManager
@@ -31,7 +32,11 @@ import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
+import com.intellij.psi.PsiElement
 import com.intellij.util.Alarm
+import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
+import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import java.beans.PropertyChangeListener
 
 /**
@@ -73,6 +78,16 @@ class ComposeAutoDocumentation(private val project: Project) {
   companion object {
     @JvmStatic
     fun getInstance(project: Project): ComposeAutoDocumentation = project.getService(ComposeAutoDocumentation::class.java)
+
+    @VisibleForTesting
+    internal fun PsiElement?.shouldShowDocumentation(): Boolean =
+      when {
+        this == null -> false
+        isComposableFunction() -> true
+        this is KtNamedFunction -> receiverTypeReference?.text == "androidx.compose.ui.Modifier" ||
+                                   containingClass()?.fqName?.asString() == "androidx.compose.ui.Modifier"
+        else -> false
+      }
   }
 
   private fun showJavaDoc(lookup: Lookup) {
@@ -86,9 +101,9 @@ class ComposeAutoDocumentation(private val project: Project) {
       return
     }
 
-    val psiElement = lookup.currentItem?.psiElement ?: return
     val docManager = DocumentationManager.getInstance(project)
-    if (!psiElement.isComposableFunction()) {
+    val psiElement = lookup.currentItem?.let { it.psiElement ?: (it.`object` as? DeclarationLookupObject)?.psiElement }
+    if (!psiElement.shouldShowDocumentation()) {
       // Close documentation for not composable function if it was opened by [AndroidComposeAutoDocumentation].
       // Case docManager.docInfoHint?.isFocused == true: user clicked on doc window and after that clicked on lookup and selected another
       // element. Due to bug docManager.docInfoHint?.isFocused == true even after clicking on lookup element, in that case if we close
