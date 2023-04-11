@@ -41,7 +41,10 @@ android {
   }
 
   composeOptions {
-    kotlinCompilerExtensionVersion = "+"
+    // This version needs to be kept compatible with ComposeGradleProjectRule.DEFAULT_KOTLIN_VERSION,
+    // currently set at 1.7.20.
+    // See https://developer.android.com/jetpack/androidx/releases/compose-kotlin for compatibility table.
+    kotlinCompilerExtensionVersion = "1.3.2"
   }
 
   kotlinOptions {
