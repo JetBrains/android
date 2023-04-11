@@ -95,6 +95,12 @@ class ComposeAutoDocumentation(private val project: Project) {
       return
     }
 
+    // Don't bother if we're already showing JavaDoc for everything.
+    if (CodeInsightSettings.getInstance().AUTO_POPUP_JAVADOC_INFO) {
+      documentationOpenedByCompose = false
+      return
+    }
+
     // If we open doc when lookup is not visible, doc will have wrong parent window (editor window instead of lookup).
     if ((lookup as? LookupImpl)?.isVisible != true) {
       Alarm().addRequest({ showJavaDoc(lookup) }, CodeInsightSettings.getInstance().JAVADOC_INFO_DELAY)
