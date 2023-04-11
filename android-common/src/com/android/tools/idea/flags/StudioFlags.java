@@ -1779,7 +1779,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> AVD_COMMAND_LINE_OPTIONS_ENABLED = Flag.create(
     AVD_COMMAND_LINE_OPTIONS, "enable", "Enable the AVD Command-Line Options setting",
     "Enable the AVD Command-Line Options setting in the AVD advanced settings panel.",
-    false
+    true
   );
   // endregion
 
