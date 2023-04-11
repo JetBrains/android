@@ -20,4 +20,9 @@
                 icon="StudioIcons.Shell.ToolWindows.DEVICE_MANAGER"
                 factoryClass="com.android.tools.idea.devicemanagerv2.DeviceManager2ToolWindowFactory"/>
   </extensions>
+  <actions>
+    <group id="Android.DeviceManager.TypeSpecificActions">
+      <action id="PairDevicesUsingWiFiAction" class="com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction"/>
+    </group>
+  </actions>
 </idea-plugin>

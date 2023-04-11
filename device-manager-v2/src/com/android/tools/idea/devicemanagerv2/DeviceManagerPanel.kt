@@ -100,9 +100,10 @@ internal class DeviceManagerPanel(val project: Project) : JPanel() {
           }
       }
 
+    val typeSpecificActions = ActionManager.getInstance().getAction("Android.DeviceManager.TypeSpecificActions")
     val toolbar =
       createToolbar(
-        listOfNotNull(groupingActions, Separator.create(), addDevice, PairDevicesUsingWiFiAction())
+        listOfNotNull(groupingActions, Separator.create(), addDevice, typeSpecificActions)
       )
 
     add(toolbar.component, BorderLayout.NORTH)
