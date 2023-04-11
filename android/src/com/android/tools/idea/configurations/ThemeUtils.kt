@@ -46,6 +46,7 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.util.SlowOperations
 import org.jetbrains.android.facet.AndroidFacet
+import kotlin.math.max
 
 private const val ANDROID_THEME = PREFIX_ANDROID + "Theme"
 private const val ANDROID_THEME_PREFIX = PREFIX_ANDROID + "Theme."
@@ -268,11 +269,12 @@ fun getDefaultTheme(moduleInfo: AndroidModuleInfo?, renderingTarget: IAndroidTar
   }
 
   // From manifest theme documentation: "If that attribute is also not set, the default system theme is used."
-  val targetSdk = moduleInfo.targetSdkVersion.apiLevel
+  // We do use a max between targetSdk and minSdk because when targetSdk is not defined, targetSdkVersion.apiLevel is set to 1.
+  val targetOrMinSdk = max(moduleInfo.targetSdkVersion.apiLevel, moduleInfo.minSdkVersion.apiLevel)
 
-  val renderingTargetSdk = renderingTarget?.version?.apiLevel ?: targetSdk
+  val renderingTargetSdk = renderingTarget?.version?.apiLevel ?: targetOrMinSdk
 
-  val apiLevel = targetSdk.coerceAtMost(renderingTargetSdk)
+  val apiLevel = targetOrMinSdk.coerceAtMost(renderingTargetSdk)
   return SdkConstants.ANDROID_STYLE_RESOURCE_PREFIX + when {
     apiLevel >= 21 -> "Theme.Material.Light"
     apiLevel >= 14 || apiLevel >= 11 && screenSize == ScreenSize.XLARGE -> "Theme.Holo"
