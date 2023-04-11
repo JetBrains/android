@@ -18,12 +18,12 @@ package com.android.tools.idea.layoutinspector.metrics.statistics
 import com.android.tools.idea.layoutinspector.model.ComposeViewNode
 import com.android.tools.idea.layoutinspector.model.RecompositionData
 import com.android.tools.idea.layoutinspector.model.ViewNode
-import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_BLUE
-import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_GREEN
-import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_ORANGE
-import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_PURPLE
-import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_RED
-import com.android.tools.idea.layoutinspector.ui.HIGHLIGHT_COLOR_YELLOW
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_BLUE
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_GREEN
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_ORANGE
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_PURPLE
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_RED
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_YELLOW
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorCompose
 
 /**

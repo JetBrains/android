@@ -16,6 +16,9 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.adtui.workbench.PropertiesComponentMock
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_PURPLE
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_COLOR_RED
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_DEFAULT_COLOR
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.application.ApplicationManager

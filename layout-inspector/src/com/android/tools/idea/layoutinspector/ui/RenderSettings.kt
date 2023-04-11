@@ -16,6 +16,7 @@
 package com.android.tools.idea.layoutinspector.ui
 
 import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.HIGHLIGHT_DEFAULT_COLOR
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.DataKey
 import kotlin.properties.Delegates

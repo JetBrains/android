@@ -18,7 +18,7 @@ package com.android.tools.idea.layoutinspector.ui.toolbar
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.snapshots.SnapshotAction
-import com.android.tools.idea.layoutinspector.ui.ViewMenuAction
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ViewMenuAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.AlphaSliderAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.LayerSpacingSliderAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RefreshAction
