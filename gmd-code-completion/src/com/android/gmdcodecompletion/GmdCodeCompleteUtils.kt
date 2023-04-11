@@ -15,7 +15,9 @@
  */
 package com.android.gmdcodecompletion
 
+import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import kotlinx.collections.immutable.PersistentList
@@ -138,6 +140,12 @@ enum class GmdConfigurationInterfaceInfo(val interfaceName: String,
   }
 }
 
-fun isFtlPluginEnabled(project: Project): Boolean = ProjectBuildModel.get(project)?.projectBuildModel?.plugins()?.any { pluginModel ->
-  pluginModel.psiElement?.text?.contains("com.google.firebase.testlab") == true
-} == true
+fun isFtlPluginEnabled(project: Project, selectedModules: Array<Module>): Boolean {
+  fun GradleBuildModel.getPluginNames(): List<String> = this.plugins().orEmpty().mapNotNull { it.psiElement?.text }
+  val projectBuildModel = ProjectBuildModel.get(project) ?: return false
+  val selectedPlugins: HashSet<String> = projectBuildModel.projectBuildModel?.getPluginNames().orEmpty().toHashSet()
+  selectedModules.forEach { selectedPlugins.addAll(projectBuildModel.getModuleBuildModel(it)?.getPluginNames().orEmpty()) }
+  return selectedPlugins.any { pluginName ->
+    pluginName.contains("com.google.firebase.testlab")
+  }
+}

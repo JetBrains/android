@@ -17,15 +17,20 @@ package com.android.gmdcodecompletion.ftl
 
 import com.android.gmdcodecompletion.freshFtlDeviceCatalogState
 import com.android.gmdcodecompletion.fullAndroidDeviceCatalog
+import com.android.gmdcodecompletion.isFtlPluginEnabled
 import com.android.gmdcodecompletion.matchFtlDeviceCatalog
 import com.android.testutils.MockitoKt.any
+import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.mockStatic
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.gradle.dsl.api.PluginModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.google.gct.testing.launcher.CloudAuthenticator
+import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
 import com.intellij.testFramework.LightPlatformTestCase
 import com.intellij.testFramework.TestApplicationManager
 import org.mockito.Answers
@@ -43,6 +48,9 @@ class FtlDeviceCatalogServiceTest : LightPlatformTestCase() {
 
   @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   private lateinit var mockPluginModel: PluginModel
+
+  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+  private lateinit var mockModule: Module
 
   @Mock
   private lateinit var mockCloudAuthenticator: CloudAuthenticator
@@ -91,13 +99,30 @@ class FtlDeviceCatalogServiceTest : LightPlatformTestCase() {
     }
   }
 
-  fun testFtlNotEnabled() {
+  private fun ftlEnabledTestHelper(modules: Array<Module> = emptyArray(), callback: () -> Unit) {
+    val mockModuleManager = mock<ModuleManager>()
+    whenever(mockProject.getService(ModuleManager::class.java)).thenReturn(mockModuleManager)
+    whenever(mockModuleManager.modules).thenReturn(modules)
     ftlDeviceCatalogServiceTestHelper {
+      callback()
+    }
+  }
+
+  fun testFtlNotEnabled() {
+    ftlEnabledTestHelper {
       whenever(mockPluginModel.psiElement!!.text).thenReturn("com.google.testPlugin")
       val ftlDeviceCatalogService = FtlDeviceCatalogService()
       ftlDeviceCatalogService.updateDeviceCatalog(mockProject)
       verifyNoInteractions(mockCloudAuthenticator)
       assertFalse(ftlDeviceCatalogService.state.isCacheFresh())
+    }
+  }
+
+  fun testFtlEnabled_moduleLevelSetting() {
+    whenever(mockProjectBuildModel.projectBuildModel!!.plugins()).thenReturn(emptyList())
+    whenever(mockProjectBuildModel.getModuleBuildModel(mockModule)!!.plugins()).thenReturn(listOf(mockPluginModel))
+    ftlEnabledTestHelper(arrayOf(mockModule)) {
+      assertTrue(isFtlPluginEnabled(mockProject, mockProject.modules))
     }
   }
 }
