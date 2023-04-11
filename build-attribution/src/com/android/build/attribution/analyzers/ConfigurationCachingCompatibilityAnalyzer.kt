@@ -19,8 +19,8 @@ import com.android.build.attribution.data.GradlePluginsData
 import com.android.build.attribution.data.PluginData
 import com.android.build.attribution.data.StudioProvidedInfo
 import com.android.buildanalyzer.common.AndroidGradlePluginAttributionData
+import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Version
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.AgpVersion
 import kotlinx.collections.immutable.toImmutableMap
 import org.gradle.util.GradleVersion
@@ -34,7 +34,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
     KnownPluginsDataAnalyzer,
     PostBuildProcessAnalyzer {
 
-  private val buildscriptClasspath = mutableListOf<GradleCoordinate>()
+  private val buildscriptClasspath = mutableListOf<Component>()
   private var appliedPlugins: Map<String, List<PluginData>> = emptyMap()
   private var knownPlugins: List<GradlePluginsData.PluginInfo> = emptyList()
   private var currentAgpVersion: AgpVersion? = null
@@ -56,7 +56,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
 
   override fun receiveBuildAttributionReport(androidGradlePluginAttributionData: AndroidGradlePluginAttributionData) {
     buildscriptClasspath.addAll(
-      androidGradlePluginAttributionData.buildscriptDependenciesInfo.mapNotNull { GradleCoordinate.parseCoordinateString(it) }
+      androidGradlePluginAttributionData.buildscriptDependenciesInfo.mapNotNull { Component.tryParse(it) }
     )
     configurationCacheInBuildState = androidGradlePluginAttributionData.buildInfo?.configurationCacheIsOn
     currentAgpVersion = androidGradlePluginAttributionData.buildInfo?.agpVersion?.let { AgpVersion.tryParse(it) }
@@ -101,7 +101,7 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
     val upgradePluginWarnings = mutableListOf<IncompatiblePluginWarning>()
     pluginsByPluginInfo.forEach { (pluginInfo, plugins) ->
       if (pluginInfo?.pluginArtifact == null) return@forEach
-      val detectedVersion = buildscriptClasspath.find { it.isSameCoordinate(pluginInfo.pluginArtifact) }?.lowerBoundVersion
+      val detectedVersion = buildscriptClasspath.find { it.isSameCoordinate(pluginInfo.pluginArtifact) }?.version
       if (detectedVersion != null) {
         when {
           pluginInfo.configurationCachingCompatibleFrom == null -> incompatiblePluginWarnings.addAll(
@@ -121,8 +121,8 @@ class ConfigurationCachingCompatibilityAnalyzer : BaseAnalyzer<ConfigurationCach
     }
   }
 
-  private fun GradleCoordinate.isSameCoordinate(dependencyCoordinates: GradlePluginsData.DependencyCoordinates) =
-    dependencyCoordinates.group == groupId && dependencyCoordinates.name == artifactId
+  private fun Component.isSameCoordinate(dependencyCoordinates: GradlePluginsData.DependencyCoordinates) =
+    dependencyCoordinates.group == group && dependencyCoordinates.name == name
 
   private fun List<PluginData>.filterOutInternalPlugins() = filter {
     // ignore Gradle, AGP and Kotlin plugins, buildscript
