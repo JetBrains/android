@@ -52,7 +52,7 @@ class DeviceViewPanelFixture(
 
   val mode3DActionButton: ActionButtonFixture
     get() = ActionButtonFixture.findByActionInstance(
-      Toggle3dAction, robot(), target())
+      Toggle3dAction { contentPanel.renderModel}, robot(), target())
 
   val zoomInButton: ActionButtonFixture
     get() = ActionButtonFixture.findByActionClass(

@@ -454,9 +454,6 @@ class DeviceViewPanel(
     if (ZOOMABLE_KEY.`is`(dataId) || PANNABLE_KEY.`is`(dataId)) {
       return this
     }
-    if (DEVICE_VIEW_MODEL_KEY.`is`(dataId)) {
-      return contentPanel.renderModel
-    }
     if (TOGGLE_3D_ACTION_BUTTON_KEY.`is`(dataId)) {
       return floatingToolbarProvider.toggle3dActionButton
     }

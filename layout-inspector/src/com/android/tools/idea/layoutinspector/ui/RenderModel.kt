@@ -37,8 +37,6 @@ import kotlin.math.hypot
 import kotlin.math.min
 import kotlin.math.sqrt
 
-val DEVICE_VIEW_MODEL_KEY = DataKey.create<RenderModel>(RenderModel::class.qualifiedName!!)
-
 data class ViewDrawInfo(
   val bounds: Shape,
   val transform: AffineTransform,

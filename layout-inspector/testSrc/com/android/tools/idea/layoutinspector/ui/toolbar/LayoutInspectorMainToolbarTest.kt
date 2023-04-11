@@ -31,7 +31,6 @@ import com.android.tools.idea.layoutinspector.model.VIEW3
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.AppInspectionInspectorRule
 import com.android.tools.idea.layoutinspector.pipeline.appinspection.view.toImageType
-import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_MODEL_KEY
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.LayerSpacingSliderAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ToggleLiveUpdatesAction
 import com.android.tools.idea.layoutinspector.view.inspection.LayoutInspectorViewProtocol
@@ -352,19 +351,10 @@ class LayoutInspectorMainToolbarTest {
   private fun getPresentation(action: AnAction): Presentation {
     val presentation = Presentation()
     val event = AnActionEvent(
-      null, getDataContext(),
+      null, DataContext.EMPTY_CONTEXT,
       "LayoutInspector.MainToolbar", presentation, ActionManager.getInstance(), 0
     )
     action.update(event)
     return presentation
-  }
-
-  private fun getDataContext(): DataContext {
-    return DataContext {
-      when (it) {
-        DEVICE_VIEW_MODEL_KEY.name -> layoutInspectorRule.inspector.renderModel
-        else -> null
-      }
-    }
   }
 }

@@ -17,10 +17,11 @@ package com.android.tools.idea.tests.gui.framework.fixture.inspector
 
 import com.android.tools.idea.appinspection.ide.ui.SelectProcessAction
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_TOOL_WINDOW_ID
+import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.tree.COMPONENT_TREE_NAME
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.LayerSpacingSliderAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.LAYOUT_INSPECTOR_MAIN_TOOLBAR
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.LayerSpacingSliderAction
 import com.android.tools.idea.tests.gui.framework.GuiTests
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture
 import com.android.tools.idea.tests.gui.framework.fixture.ComponentTreeFixture
@@ -155,7 +156,7 @@ class LayoutInspectorFixture(
   }
 
   val layerSpacingSlider: JSliderFixture by lazy(LazyThreadSafetyMode.NONE) {
-    findSliderByAction(LayerSpacingSliderAction)
+    findSliderByAction(LayerSpacingSliderAction { LayoutInspectorProjectService.getInstance(project).getLayoutInspector().renderModel })
   }
 
   fun waitUntilMode3dSliderEnabled(enabled: Boolean) {

@@ -32,7 +32,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButton
 
 /** Creates the actions toolbar used on the [DeviceViewPanel] */
 class FloatingToolbarProvider(
-  deviceViewPanel: DeviceViewPanel,
+  private val deviceViewPanel: DeviceViewPanel,
   parentDisposable: Disposable
 ) : EditorActionsFloatingToolbarProvider(deviceViewPanel, parentDisposable) {
 
@@ -50,7 +50,7 @@ class FloatingToolbarProvider(
     }
 
     val panSurfaceGroup = DefaultActionGroup().apply { add(PanSurfaceAction) }
-    val toggle3dGroup = DefaultActionGroup().apply { add(Toggle3dAction) }
+    val toggle3dGroup = DefaultActionGroup().apply { add(Toggle3dAction { deviceViewPanel.layoutInspector.renderModel }) }
 
     override val otherGroups: List<ActionGroup> = listOf(
       panSurfaceGroup,
@@ -58,7 +58,8 @@ class FloatingToolbarProvider(
     )
   }
 
-  val toggle3dActionButton: ActionButton? get() = findActionButton(actionGroup.toggle3dGroup, Toggle3dAction)
+  val toggle3dActionButton: ActionButton?
+    get() = findActionButton(actionGroup.toggle3dGroup, Toggle3dAction { deviceViewPanel.layoutInspector.renderModel })
 
   init {
     updateToolbar()

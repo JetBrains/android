@@ -20,7 +20,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.tree.isActionActive
-import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_MODEL_KEY
+import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.android.tools.idea.layoutinspector.ui.RenderSettings
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -45,6 +45,7 @@ const val HIGHLIGHT_DEFAULT_COLOR = HIGHLIGHT_COLOR_BLUE
  * Action shown in Layout Inspector toolbar, used to control Layout Inspector [RenderSettings].
  */
 class RenderSettingsAction(
+  private val renderModelProvider: () -> RenderModel,
   renderSettingsProvider: () -> RenderSettings
 ) : DropDownAction(null, "View Options", StudioIcons.Common.VISIBILITY_INLINE) {
 
@@ -57,11 +58,11 @@ class RenderSettingsAction(
   }
 
   override fun update(e: AnActionEvent) {
-    val enabled = e.getData(DEVICE_VIEW_MODEL_KEY)?.isActive ?: return
+    val enabled = renderModelProvider().isActive
     e.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY)?.isEnabled = enabled
   }
 
-  override fun canBePerformed(context: DataContext) = context.getData(DEVICE_VIEW_MODEL_KEY)?.isActive == true
+  override fun canBePerformed(context: DataContext) = renderModelProvider().isActive
 }
 
 private class ToggleRenderSettingsAction(

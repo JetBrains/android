@@ -23,7 +23,6 @@ import com.android.ide.common.resources.configuration.FolderConfiguration
 import com.android.resources.ResourceType
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
-import com.android.testutils.PropertySetterRule
 import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.actions.ZoomType
@@ -109,8 +108,6 @@ import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons
 import junit.framework.TestCase
-import kotlinx.coroutines.runBlocking
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -133,8 +130,6 @@ private val MODERN_PROCESS = MODERN_DEVICE.createProcess(streamId = DEFAULT_TEST
 @RunsInEdt
 class DeviceViewPanelWithFullInspectorTest {
   private val scheduler = VirtualTimeScheduler()
-  private val executorRule = PropertySetterRule({ scheduler }, Toggle3dAction::executorFactory)
-  private val timeRule = PropertySetterRule({ scheduler.currentTimeMillis }, Toggle3dAction::getCurrentTimeMillis)
   private val projectRule: AndroidProjectRule = AndroidProjectRule.onDisk()
   private val appInspectorRule = AppInspectionInspectorRule(projectRule, withDefaultResponse = false)
   private val inspectorRule = LayoutInspectorRule(
@@ -152,8 +147,6 @@ class DeviceViewPanelWithFullInspectorTest {
     .around(fileOpenCaptureRule)
     .around(IconLoaderRule())
     .around(EdtRule())
-    .around(executorRule)
-    .around(timeRule)!!
 
   // Used by all tests that install command handlers
   private var latch: CountDownLatch? = null
@@ -188,10 +181,12 @@ class DeviceViewPanelWithFullInspectorTest {
       projectRule.fixture.testRootDisposable
     )
     val banner = InspectorBannerService.getInstance(inspectorRule.project) ?: error("no banner")
-    val deviceModel = panel.getData(DEVICE_VIEW_MODEL_KEY.name) as RenderModel
+    val renderModel = panel.flatten(false).filterIsInstance<DeviceViewContentPanel>().first().renderModel
     delegateDataProvider(panel)
     panel.flatten(false).filterIsInstance<ActionToolbar>().forEach { it.updateActionsImmediately() }
     val toggle = panel.flatten(false).filterIsInstance<ActionButton>().single { it.action is Toggle3dAction }
+    (toggle.action as Toggle3dAction).executorFactory = { scheduler }
+    (toggle.action as Toggle3dAction).getCurrentTimeMillis = { scheduler.currentTimeMillis }
     assertThat(toggle.isEnabled).isTrue()
     assertThat(toggle.isSelected).isFalse()
 
@@ -210,7 +205,7 @@ class DeviceViewPanelWithFullInspectorTest {
 
     // Verify we are rotated
     assertThat(scheduler.isShutdown).isTrue()
-    assertThat(deviceModel.isRotated).isTrue()
+    assertThat(renderModel.isRotated).isTrue()
     UIUtil.dispatchAllInvocationEvents()
     val notification1 = banner.notifications.single()
     assertThat(notification1.message).isEqualTo(LayoutInspectorBundle.message(PERFORMANCE_WARNING_3D))

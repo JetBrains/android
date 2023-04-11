@@ -20,7 +20,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
-import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_MODEL_KEY
+import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
 import icons.StudioIcons
@@ -32,9 +32,11 @@ import icons.StudioIcons
 /**
  * Filter menu group
  */
-object FilterGroupAction : DropDownAction("Filter", "View Options for Component Tree", StudioIcons.Common.VISIBILITY_INLINE) {
+class FilterGroupAction(
+  renderModelProvider: () -> RenderModel?
+) : DropDownAction("Filter", "View Options for Component Tree", StudioIcons.Common.VISIBILITY_INLINE) {
   init {
-    add(SystemNodeFilterAction)
+    add(SystemNodeFilterAction(renderModelProvider))
     add(HighlightSemanticsAction)
     add(CallstackAction)
     add(RecompositionCounts)
@@ -45,7 +47,7 @@ object FilterGroupAction : DropDownAction("Filter", "View Options for Component 
 /**
  * Filter system nodes from view hierarchy and compose hierarchy.
  */
-object SystemNodeFilterAction : ToggleAction("Filter System-Defined Layers") {
+class SystemNodeFilterAction(private val renderModelProvider: () -> RenderModel?) : ToggleAction("Filter System-Defined Layers") {
   override fun isSelected(event: AnActionEvent): Boolean =
     LayoutInspector.get(event)?.treeSettings?.hideSystemNodes ?: DEFAULT_HIDE_SYSTEM_NODES
 
@@ -69,8 +71,7 @@ object SystemNodeFilterAction : ToggleAction("Filter System-Defined Layers") {
 
     // Update the component tree:
     event.treePanel()?.refresh()
-
-    event.getData(DEVICE_VIEW_MODEL_KEY)?.refresh()
+    renderModelProvider()?.refresh()
   }
 
   override fun update(event: AnActionEvent) {

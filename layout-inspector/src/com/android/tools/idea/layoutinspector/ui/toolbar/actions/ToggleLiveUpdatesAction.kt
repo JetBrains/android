@@ -19,7 +19,6 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.model.REBOOT_FOR_LIVE_INSPECTOR_MESSAGE_KEY
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
-import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_MODEL_KEY
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -65,7 +64,7 @@ class ToggleLiveUpdatesAction(
   }
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
-    event.getData(DEVICE_VIEW_MODEL_KEY)?.fireModified()
+    layoutInspector.renderModel.fireModified()
     val currentClient = client(event)
     if (currentClient.capabilities.contains(InspectorClient.Capability.SUPPORTS_CONTINUOUS_MODE)) {
       when (state) {

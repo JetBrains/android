@@ -80,9 +80,10 @@ class TreeSettingsActionsTest {
 
   @Test
   fun testFilterSystemNodeAction() {
+    val systemNodeFilterAction = SystemNodeFilterAction { null }
     val event = createEvent()
-    SystemNodeFilterAction.testActionVisibility(event, Capability.SUPPORTS_SYSTEM_NODES)
-    SystemNodeFilterAction.testToggleAction(event, statsValue = { stats.hideSystemNodes }) { treeSettings.hideSystemNodes }
+    systemNodeFilterAction.testActionVisibility(event, Capability.SUPPORTS_SYSTEM_NODES)
+    systemNodeFilterAction.testToggleAction(event, statsValue = { stats.hideSystemNodes }) { treeSettings.hideSystemNodes }
   }
 
   @Test
@@ -114,11 +115,12 @@ class TreeSettingsActionsTest {
 
   @Test
   fun testAddingFilterRemovesSystemSelectedAndHoveredNodes() {
+    val systemNodeFilterAction = SystemNodeFilterAction { null }
     treeSettings.hideSystemNodes = false
     val event = createEvent()
     model.setSelection(model[VIEW3]!!, SelectionOrigin.INTERNAL)
     model.hoveredNode = model[VIEW2]!!
-    SystemNodeFilterAction.setSelected(event, true)
+    systemNodeFilterAction.setSelected(event, true)
 
     assertThat(model.selection).isSameAs(model[VIEW1]!!)
     assertThat(model.hoveredNode).isNull()
@@ -126,11 +128,12 @@ class TreeSettingsActionsTest {
 
   @Test
   fun testAddingFilterKeepsUserSelectedAndHoveredNode() {
+    val systemNodeFilterAction = SystemNodeFilterAction { null }
     treeSettings.hideSystemNodes = false
     val event = createEvent()
     model.setSelection(model[VIEW1]!!, SelectionOrigin.INTERNAL)
     model.hoveredNode = model[VIEW1]!!
-    SystemNodeFilterAction.setSelected(event, true)
+    systemNodeFilterAction.setSelected(event, true)
 
     assertThat(model.selection).isSameAs(model[VIEW1]!!)
     assertThat(model.hoveredNode).isSameAs(model[VIEW1]!!)

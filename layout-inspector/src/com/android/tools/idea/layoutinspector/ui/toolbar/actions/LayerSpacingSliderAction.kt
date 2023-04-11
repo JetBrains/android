@@ -15,10 +15,9 @@
  */
 package com.android.tools.idea.layoutinspector.ui.toolbar.actions
 
-import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_MODEL_KEY
+import com.android.tools.idea.layoutinspector.ui.RenderModel
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.Presentation
@@ -34,15 +33,14 @@ private const val SLIDER_KEY = "SliderKey"
 const val INITIAL_LAYER_SPACING = 150
 const val MAX_LAYER_SPACING = 500
 
-object LayerSpacingSliderAction : AnAction(), CustomComponentAction {
+class LayerSpacingSliderAction(private val renderModelProvider: () -> RenderModel) : AnAction(), CustomComponentAction {
   override fun actionPerformed(event: AnActionEvent) {
     val component = event.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY) ?: return
     val slider = component.getClientProperty(SLIDER_KEY) as JSlider
     // The event for Custom components actions are constructed differently than normal actions.
     // If this action is shown in a popup toolbar (when there is not enough space to show the whole toolbar in-place),
     // go through the action toolbar data context to find the model.
-    val model = ActionToolbar.getDataContextFor(component).getData(DEVICE_VIEW_MODEL_KEY) ?: return
-    model.layerSpacing = slider.value
+    renderModelProvider().layerSpacing = slider.value
   }
 
   override fun createCustomComponent(presentation: Presentation, place: String): JComponent {
@@ -59,8 +57,7 @@ object LayerSpacingSliderAction : AnAction(), CustomComponentAction {
   }
 
   override fun update(e: AnActionEvent) {
-    val model = e.getData(DEVICE_VIEW_MODEL_KEY)
-    val isRotated = model?.isRotated == true
+    val isRotated = renderModelProvider().isRotated
     e.presentation.isEnabled = isRotated
     e.presentation.isVisible = isRotated
     val component = e.presentation.getClientProperty(CustomComponentAction.COMPONENT_KEY) as? JPanel ?: return

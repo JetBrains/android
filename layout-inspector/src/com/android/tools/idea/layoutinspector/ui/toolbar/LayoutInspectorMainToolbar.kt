@@ -61,18 +61,21 @@ private class LayoutInspectorActionGroup(layoutInspector: LayoutInspector, selec
       add(selectProcessAction)
     }
     add(Separator.getInstance())
-    add(RenderSettingsAction { layoutInspector.renderLogic.renderSettings } )
-    add(ToggleOverlayAction)
+    add(RenderSettingsAction(
+      renderModelProvider = { layoutInspector.renderModel },
+      renderSettingsProvider = { layoutInspector.renderLogic.renderSettings })
+    )
+    add(ToggleOverlayAction { layoutInspector.renderModel })
     if (!layoutInspector.isSnapshot) {
       add(SnapshotAction)
     }
-    add(AlphaSliderAction)
+    add(AlphaSliderAction { layoutInspector.renderModel })
     if (!layoutInspector.isSnapshot) {
       add(Separator.getInstance())
       add(ToggleLiveUpdatesAction(layoutInspector))
       add(RefreshAction)
     }
     add(Separator.getInstance())
-    add(LayerSpacingSliderAction)
+    add(LayerSpacingSliderAction { layoutInspector.renderModel })
   }
 }
