@@ -162,7 +162,7 @@ public class StageNavigationToolbarTest {
   }
 
   private void setFakeStage() {
-    FakeStage stage = new FakeStage(myProfilers, "Really?");
+    FakeStage stage = new FakeStage(myProfilers, "Really?", false);
     myProfilers.setStage(stage);
   }
 

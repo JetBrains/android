@@ -247,7 +247,7 @@ class CpuCaptureStageViewTest {
     captureNode.startGlobal = 0
     captureNode.endGlobal = 10
 
-    val zoomToSelectionButton = (profilersView as SessionProfilersView).zoomToSelectionButton
+    val zoomToSelectionButton = profilersView.stageWithToolbarView.zoomToSelectionButton
     assertThat(zoomToSelectionButton.isEnabled).isFalse()
     stage.multiSelectionModel.setSelection(captureNode, setOf(CaptureNodeAnalysisModel(captureNode, stage.capture, Utils::runOnUi)))
     assertThat(zoomToSelectionButton.isEnabled).isTrue()
@@ -271,7 +271,7 @@ class CpuCaptureStageViewTest {
                                           PerfettoTrace.FrameTimelineEvent.PresentType.PRESENT_LATE,
                                           PerfettoTrace.FrameTimelineEvent.JankType.JANK_APP_DEADLINE_MISSED,
                                           false, false, 0)
-    val zoomToSelectionButton = (profilersView as SessionProfilersView).zoomToSelectionButton
+    val zoomToSelectionButton = profilersView.stageWithToolbarView.zoomToSelectionButton
     assertThat(zoomToSelectionButton.isEnabled).isFalse()
     stage.multiSelectionModel.setSelection(frame, setOf(JankAnalysisModel(frame, capture, Utils::runOnUi)))
     assertThat(zoomToSelectionButton.isEnabled).isTrue()

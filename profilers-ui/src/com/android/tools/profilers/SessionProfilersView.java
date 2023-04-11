@@ -15,26 +15,13 @@
  */
 package com.android.tools.profilers;
 
-import static com.android.tools.adtui.common.AdtUiUtils.DEFAULT_BOTTOM_BORDER;
-import static com.android.tools.profilers.ProfilerFonts.H4_FONT;
-import static com.android.tools.profilers.ProfilerLayout.TOOLBAR_HEIGHT;
 import static com.android.tools.profilers.sessions.SessionsView.SESSION_EXPANDED_WIDTH;
 import static com.android.tools.profilers.sessions.SessionsView.SESSION_IS_COLLAPSED;
-import static java.awt.event.InputEvent.CTRL_DOWN_MASK;
-import static java.awt.event.InputEvent.META_DOWN_MASK;
 
-import com.android.tools.adtui.flat.FlatSeparator;
-import com.android.tools.adtui.model.Range;
-import com.android.tools.adtui.model.StreamingTimeline;
-import com.android.tools.adtui.model.Timeline;
 import com.android.tools.adtui.model.ViewBinder;
-import com.android.tools.adtui.stdui.CommonButton;
-import com.android.tools.adtui.stdui.CommonToggleButton;
 import com.android.tools.adtui.stdui.ContextMenuItem;
-import com.android.tools.adtui.stdui.DefaultContextMenuItem;
 import com.android.tools.adtui.stdui.TooltipLayeredPane;
 import com.android.tools.inspectors.common.ui.ContextMenuInstaller;
-import com.android.tools.profiler.proto.Common;
 import com.android.tools.profilers.cpu.CpuCaptureStage;
 import com.android.tools.profilers.cpu.CpuCaptureStageView;
 import com.android.tools.profilers.cpu.CpuProfilerStage;
@@ -49,46 +36,30 @@ import com.android.tools.profilers.memory.MainMemoryProfilerStage;
 import com.android.tools.profilers.memory.MainMemoryProfilerStageView;
 import com.android.tools.profilers.memory.MemoryCaptureStage;
 import com.android.tools.profilers.memory.MemoryCaptureStageView;
-import com.android.tools.profilers.sessions.SessionAspect;
 import com.android.tools.profilers.sessions.SessionsView;
-import com.android.tools.profilers.stacktrace.LoadingPanel;
 import com.google.common.annotations.VisibleForTesting;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.ui.ThreeComponentsSplitter;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.util.IconLoader;
-import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.wm.IdeGlassPane;
 import com.intellij.openapi.wm.IdeGlassPaneUtil;
-import com.intellij.util.ui.JBEmptyBorder;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.update.Activatable;
 import com.intellij.util.ui.update.UiNotifyConnector;
-import icons.StudioIcons;
 import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.KeyboardFocusManager;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.function.BiFunction;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.JToggleButton;
-import javax.swing.KeyStroke;
 import javax.swing.LayoutFocusTraversalPolicy;
-import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A view containing a sessions panel, toolbar, and stage view.
  */
 public class SessionProfilersView extends StudioProfilersView {
-  private static final int SHORTCUT_MODIFIER_MASK_NUMBER = SystemInfo.isMac ? META_DOWN_MASK : CTRL_DOWN_MASK;
 
   private final ViewBinder<SessionProfilersView, Stage, StageView> myBinder;
   @NotNull
@@ -98,34 +69,16 @@ public class SessionProfilersView extends StudioProfilersView {
    * divider while still handling mouse resize properly.
    */
   @NotNull private final ThreeComponentsSplitter mySplitter;
-  @NotNull private final LoadingPanel myStageLoadingPanel;
   private final JPanel myStageComponent;
-  private final JPanel myStageCenterComponent;
-  private final CardLayout myStageCenterCardLayout;
   private SessionsView mySessionsView;
-  private JPanel myToolbar;
-  private JPanel myStageToolbar;
-  private StageNavigationToolbar myStageNavigationToolbar;
-  private JPanel myGoLiveToolbar;
-  private JPanel myRightToolbar;
-  private JToggleButton myGoLive;
-  private CommonButton myZoomOut;
-  private CommonButton myZoomIn;
-  private CommonButton myResetZoom;
-  private CommonButton myZoomToSelection;
-  private DefaultContextMenuItem myZoomToSelectionAction;
+  @NotNull
+  private final StageWithToolbarView myStageWithToolbarView;
 
   public SessionProfilersView(@NotNull StudioProfilers profiler,
                               @NotNull IdeProfilerComponents ideProfilerComponents,
                               @NotNull Disposable parentDisposable) {
     super(profiler, ideProfilerComponents);
     myStageComponent = new JPanel(new BorderLayout());
-    myStageCenterCardLayout = new CardLayout();
-    myStageCenterComponent = new JPanel(myStageCenterCardLayout);
-
-    myStageLoadingPanel = myIdeProfilerComponents.createLoadingPanel(0);
-    myStageLoadingPanel.setLoadingText("");
-    myStageLoadingPanel.getComponent().setBackground(ProfilerColors.DEFAULT_BACKGROUND);
 
     mySplitter = new ThreeComponentsSplitter(this);
     // Override the splitter's custom traversal policy back to the default, because the custom policy prevents the profilers from tabbing
@@ -134,11 +87,9 @@ public class SessionProfilersView extends StudioProfilersView {
     mySplitter.setDividerWidth(0);
     mySplitter.setDividerMouseZoneSize(-1);
     mySplitter.setHonorComponentsMinimumSize(true);
-    mySplitter.setLastComponent(myStageComponent);
 
     myLayeredPane = new TooltipLayeredPane(mySplitter);
     initializeSessionUi();
-    initializeStageUi();
 
     myBinder = new ViewBinder<>();
     myBinder.bind(StudioMonitorStage.class, StudioMonitorStageView::new);
@@ -151,12 +102,8 @@ public class SessionProfilersView extends StudioProfilersView {
     myBinder.bind(EnergyProfilerStage.class, EnergyProfilerStageView::new);
     myBinder.bind(CustomEventProfilerStage.class, CustomEventProfilerStageView::new);
 
-    myProfiler.addDependency(this)
-      .onChange(ProfilerAspect.STAGE, this::updateStageView)
-      .onChange(ProfilerAspect.AGENT, this::toggleStageLayout)
-      .onChange(ProfilerAspect.PREFERRED_PROCESS, this::toggleStageLayout);
-    updateStageView();
-    toggleStageLayout();
+    myStageWithToolbarView = new StageWithToolbarView(profiler, myStageComponent, ideProfilerComponents, this::buildStageView, mySplitter);
+    mySplitter.setLastComponent(getStageComponent());
 
     Disposer.register(parentDisposable, this);
   }
@@ -167,38 +114,8 @@ public class SessionProfilersView extends StudioProfilersView {
 
   @VisibleForTesting
   <S extends Stage, T extends StageView> void bind(@NotNull Class<S> clazz,
-                                                          @NotNull BiFunction<SessionProfilersView, S, T> constructor) {
+                                                   @NotNull BiFunction<SessionProfilersView, S, T> constructor) {
     myBinder.bind(clazz, constructor);
-  }
-
-  @VisibleForTesting
-  @NotNull
-  CommonButton getZoomInButton() {
-    return myZoomIn;
-  }
-
-  @VisibleForTesting
-  @NotNull
-  CommonButton getZoomOutButton() {
-    return myZoomOut;
-  }
-
-  @VisibleForTesting
-  @NotNull
-  CommonButton getResetZoomButton() {
-    return myResetZoom;
-  }
-
-  @VisibleForTesting
-  @NotNull
-  public CommonButton getZoomToSelectionButton() {
-    return myZoomToSelection;
-  }
-
-  @VisibleForTesting
-  @NotNull
-  JToggleButton getGoLiveButton() {
-    return myGoLive;
   }
 
   @VisibleForTesting
@@ -207,10 +124,8 @@ public class SessionProfilersView extends StudioProfilersView {
     return mySessionsView;
   }
 
-  @VisibleForTesting
-  @NotNull
-  JPanel getRightToolbar() {
-    return myRightToolbar;
+  private StageView buildStageView(Stage stage) {
+    return myBinder.build(this, stage);
   }
 
   private void initializeSessionUi() {
@@ -259,171 +174,6 @@ public class SessionProfilersView extends StudioProfilersView {
     });
   }
 
-  private void initializeStageUi() {
-    myToolbar = new JPanel(new BorderLayout());
-    myToolbar.setBorder(DEFAULT_BOTTOM_BORDER);
-    myToolbar.setPreferredSize(new Dimension(0, TOOLBAR_HEIGHT));
-
-    myStageNavigationToolbar = new StageNavigationToolbar(myProfiler);
-    myToolbar.add(myStageNavigationToolbar, BorderLayout.WEST);
-
-    myRightToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
-    myToolbar.add(myRightToolbar, BorderLayout.EAST);
-    myRightToolbar.setBorder(new JBEmptyBorder(0, 0, 0, 2));
-
-    myZoomOut = new CommonButton(AllIcons.General.ZoomOut);
-    myZoomOut.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.General.ZoomOut));
-    myZoomOut.addActionListener(event -> {
-      myStageView.getStage().getTimeline().zoomOut();
-      myProfiler.getIdeServices().getFeatureTracker().trackZoomOut();
-    });
-    DefaultContextMenuItem zoomOutAction =
-      new DefaultContextMenuItem.Builder(ZOOM_OUT).setContainerComponent(mySplitter).setActionRunnable(() -> myZoomOut.doClick(0))
-        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, SHORTCUT_MODIFIER_MASK_NUMBER),
-                       KeyStroke.getKeyStroke(KeyEvent.VK_SUBTRACT, SHORTCUT_MODIFIER_MASK_NUMBER))
-        .build();
-
-    myZoomOut.setToolTipText(zoomOutAction.getDefaultToolTipText());
-    myRightToolbar.add(myZoomOut);
-
-    myZoomIn = new CommonButton(AllIcons.General.ZoomIn);
-    myZoomIn.setDisabledIcon(IconLoader.getDisabledIcon(AllIcons.General.ZoomIn));
-    myZoomIn.addActionListener(event -> {
-      myStageView.getStage().getTimeline().zoomIn();
-      myProfiler.getIdeServices().getFeatureTracker().trackZoomIn();
-    });
-    DefaultContextMenuItem zoomInAction =
-      new DefaultContextMenuItem.Builder(ZOOM_IN).setContainerComponent(mySplitter)
-        .setActionRunnable(() -> myZoomIn.doClick(0))
-        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, SHORTCUT_MODIFIER_MASK_NUMBER),
-                       KeyStroke.getKeyStroke(KeyEvent.VK_EQUALS, SHORTCUT_MODIFIER_MASK_NUMBER),
-                       KeyStroke.getKeyStroke(KeyEvent.VK_ADD, SHORTCUT_MODIFIER_MASK_NUMBER)).build();
-    myZoomIn.setToolTipText(zoomInAction.getDefaultToolTipText());
-    myRightToolbar.add(myZoomIn);
-
-    myResetZoom = new CommonButton(StudioIcons.Common.RESET_ZOOM);
-    myResetZoom.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.RESET_ZOOM));
-    myResetZoom.addActionListener(event -> {
-      myStageView.getStage().getTimeline().resetZoom();
-      myProfiler.getIdeServices().getFeatureTracker().trackResetZoom();
-    });
-    DefaultContextMenuItem resetZoomAction =
-      new DefaultContextMenuItem.Builder("Reset zoom").setContainerComponent(mySplitter)
-        .setActionRunnable(() -> myResetZoom.doClick(0))
-        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, 0),
-                       KeyStroke.getKeyStroke(KeyEvent.VK_0, 0)).build();
-    myResetZoom.setToolTipText(resetZoomAction.getDefaultToolTipText());
-    myRightToolbar.add(myResetZoom);
-
-    myZoomToSelection = new CommonButton(StudioIcons.Common.ZOOM_SELECT);
-    myZoomToSelection.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Common.ZOOM_SELECT));
-    myZoomToSelection.addActionListener(event -> {
-      myStageView.getStage().getTimeline().frameViewToRange(myStageView.getStage().getTimeline().getSelectionRange());
-      myProfiler.getIdeServices().getFeatureTracker().trackZoomToSelection();
-    });
-    myZoomToSelectionAction = new DefaultContextMenuItem.Builder("Zoom to Selection")
-      .setContainerComponent(mySplitter)
-      .setActionRunnable(() -> myZoomToSelection.doClick(0))
-      .setEnableBooleanSupplier(() -> myStageView != null && !myStageView.getStage().getTimeline().getSelectionRange().isEmpty())
-      .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_M, 0))
-      .build();
-    myZoomToSelection.setToolTipText(myZoomToSelectionAction.getDefaultToolTipText());
-    myRightToolbar.add(myZoomToSelection);
-
-    myGoLiveToolbar = new JPanel(ProfilerLayout.createToolbarLayout());
-    myGoLiveToolbar.add(new FlatSeparator());
-
-    myGoLive = new CommonToggleButton("", StudioIcons.Profiler.Toolbar.GOTO_LIVE);
-    myGoLive.setDisabledIcon(IconLoader.getDisabledIcon(StudioIcons.Profiler.Toolbar.GOTO_LIVE));
-    myGoLive.setFont(H4_FONT);
-    myGoLive.setHorizontalTextPosition(SwingConstants.LEFT);
-    myGoLive.setHorizontalAlignment(SwingConstants.LEFT);
-    myGoLive.setBorder(new JBEmptyBorder(3, 7, 3, 7));
-    // Configure shortcuts for GoLive.
-    DefaultContextMenuItem attachAction =
-      new DefaultContextMenuItem.Builder(ATTACH_LIVE).setContainerComponent(mySplitter)
-        .setActionRunnable(() -> myGoLive.doClick(0))
-        .setEnableBooleanSupplier(
-          () -> myGoLive.isEnabled() &&
-                !myGoLive.isSelected() &&
-                myStageView.supportsStreaming())
-        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, SHORTCUT_MODIFIER_MASK_NUMBER))
-        .build();
-    DefaultContextMenuItem detachAction =
-      new DefaultContextMenuItem.Builder(DETACH_LIVE).setContainerComponent(mySplitter)
-        .setActionRunnable(() -> myGoLive.doClick(0))
-        .setEnableBooleanSupplier(
-          () -> myGoLive.isEnabled() &&
-                myGoLive.isSelected() &&
-                myStageView.supportsStreaming())
-        .setKeyStrokes(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0)).build();
-
-    myGoLive.setToolTipText(detachAction.getDefaultToolTipText());
-    myGoLive.addActionListener(event -> {
-      Timeline currentStageTimeline = myStageView.getStage().getTimeline();
-      // b/221920489 Hot key may trigger this action from another stage without the streaming timeline
-      if (currentStageTimeline instanceof StreamingTimeline) {
-        ((StreamingTimeline)currentStageTimeline).toggleStreaming();
-        myProfiler.getIdeServices().getFeatureTracker().trackToggleStreaming();
-      }
-    });
-    myGoLive.addChangeListener(e -> {
-      boolean isSelected = myGoLive.isSelected();
-      myGoLive.setIcon(isSelected ? StudioIcons.Profiler.Toolbar.PAUSE_LIVE : StudioIcons.Profiler.Toolbar.GOTO_LIVE);
-      myGoLive.setToolTipText(isSelected ? detachAction.getDefaultToolTipText() : attachAction.getDefaultToolTipText());
-    });
-    myProfiler.getTimeline().addDependency(this).onChange(StreamingTimeline.Aspect.STREAMING, this::updateStreaming);
-    myGoLiveToolbar.add(myGoLive);
-    myRightToolbar.add(myGoLiveToolbar);
-
-    ProfilerContextMenu.createIfAbsent(myStageComponent)
-      .add(attachAction, detachAction, ContextMenuItem.SEPARATOR, zoomInAction, zoomOutAction);
-    myProfiler.getSessionsManager().addDependency(this).onChange(SessionAspect.SELECTED_SESSION, this::toggleTimelineButtons);
-    toggleTimelineButtons();
-
-    myStageToolbar = new JPanel(new BorderLayout());
-    myToolbar.add(myStageToolbar, BorderLayout.CENTER);
-
-    myStageComponent.add(myToolbar, BorderLayout.NORTH);
-    myStageComponent.add(myStageCenterComponent, BorderLayout.CENTER);
-
-    updateStreaming();
-  }
-
-  private void toggleTimelineButtons() {
-    boolean isAlive = myProfiler.getSessionsManager().isSessionAlive();
-    if (isAlive) {
-      Common.AgentData agentData = myProfiler.getAgentData();
-      boolean waitForAgent = agentData.getStatus() == Common.AgentData.Status.UNSPECIFIED;
-      if (waitForAgent) {
-        // Disable all controls if the agent is still initialization/attaching.
-        myZoomOut.setEnabled(false);
-        myZoomIn.setEnabled(false);
-        myResetZoom.setEnabled(false);
-        myZoomToSelection.setEnabled(false);
-        myGoLive.setEnabled(false);
-        myGoLive.setSelected(false);
-      }
-      else {
-        myZoomOut.setEnabled(true);
-        myZoomIn.setEnabled(true);
-        myResetZoom.setEnabled(true);
-        myZoomToSelection.setEnabled(myZoomToSelectionAction.isEnabled());
-        myGoLive.setEnabled(true);
-        myGoLive.setSelected(true);
-      }
-    }
-    else {
-      boolean isValidSession = !Common.Session.getDefaultInstance().equals(myProfiler.getSessionsManager().getSelectedSession());
-      myZoomOut.setEnabled(isValidSession);
-      myZoomIn.setEnabled(isValidSession);
-      myResetZoom.setEnabled(isValidSession);
-      myZoomToSelection.setEnabled(isValidSession && myZoomToSelectionAction.isEnabled());
-      myGoLive.setEnabled(false);
-      myGoLive.setSelected(false);
-    }
-  }
-
   private void toggleSessionsPanel(boolean isCollapsed) {
     if (isCollapsed) {
       mySplitter.setDividerMouseZoneSize(-1);
@@ -440,67 +190,6 @@ public class SessionProfilersView extends StudioProfilersView {
 
     mySplitter.revalidate();
     mySplitter.repaint();
-  }
-
-  private void updateStreaming() {
-    myGoLive.setSelected(myProfiler.getTimeline().isStreaming());
-  }
-
-  private void updateStageView() {
-    Stage stage = myProfiler.getStage();
-    if (myStageView != null && myStageView.getStage() == stage) {
-      return;
-    }
-
-    if (myStageView != null) {
-      myStageView.getStage().getTimeline().getSelectionRange().removeDependencies(this);
-    }
-    myStageView = myBinder.build(this, stage);
-    myStageView.getStage().getTimeline().getSelectionRange().addDependency(this).onChange(Range.Aspect.RANGE, () -> {
-      myZoomToSelection.setEnabled(myZoomToSelectionAction.isEnabled());
-    });
-    SwingUtilities.invokeLater(() -> {
-      Component focussed = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-      if (focussed == null || !SwingUtilities.isDescendingFrom(focussed, mySplitter)) {
-        mySplitter.requestFocusInWindow();
-      }
-    });
-
-    myStageCenterComponent.removeAll();
-    myStageCenterComponent.add(myStageView.getComponent(), STAGE_VIEW_CARD);
-    myStageCenterComponent.add(myStageLoadingPanel.getComponent(), LOADING_VIEW_CARD);
-    myStageCenterComponent.revalidate();
-    myStageToolbar.removeAll();
-    myStageToolbar.add(myStageView.getToolbar(), BorderLayout.CENTER);
-    myStageToolbar.revalidate();
-    myToolbar.setVisible(myStageView.isToolbarVisible());
-    myGoLiveToolbar.setVisible(myStageView.supportsStreaming());
-
-    boolean topLevel = myStageView == null || myStageView.needsProcessSelection();
-    myStageNavigationToolbar.setVisible(!topLevel && myStageView.supportsStageNavigation());
-
-    myRightToolbar.setVisible(stage.isInteractingWithTimeline());
-  }
-
-  private void toggleStageLayout() {
-    // Show the loading screen if StudioProfilers is waiting for a process to profile or if it is waiting for an agent to attach.
-    boolean loading = (myProfiler.getAutoProfilingEnabled() && myProfiler.getPreferredProcessName() != null) &&
-                      !myProfiler.getSessionsManager().isSessionAlive();
-    Common.AgentData agentData = myProfiler.getAgentData();
-    loading |= (agentData.getStatus() == Common.AgentData.Status.UNSPECIFIED && myProfiler.getSessionsManager().isSessionAlive());
-
-    // Show the loading screen only if the device is supported.
-    loading &= (myProfiler.getDevice() != null && myProfiler.getDevice().getUnsupportedReason().isEmpty());
-
-    if (loading) {
-      myStageLoadingPanel.startLoading();
-      myStageCenterCardLayout.show(myStageCenterComponent, LOADING_VIEW_CARD);
-    }
-    else {
-      myStageLoadingPanel.stopLoading();
-      myStageCenterCardLayout.show(myStageCenterComponent, STAGE_VIEW_CARD);
-    }
-    toggleTimelineButtons();
   }
 
   @Override
@@ -521,19 +210,21 @@ public class SessionProfilersView extends StudioProfilersView {
       .forEach(item -> contextMenuInstaller.installGenericContextMenu(component, item));
   }
 
-  @VisibleForTesting
   @Override
+  @NotNull
+  public StageWithToolbarView getStageWithToolbarView() {
+    return myStageWithToolbarView;
+  }
+
+  @Override
+  @NotNull
   public final JPanel getStageComponent() {
     return myStageComponent;
   }
 
-  @VisibleForTesting
-  final JComponent getStageLoadingComponent() {
-    return myStageLoadingPanel.getComponent();
-  }
-
-  @VisibleForTesting
-  final JComponent getStageViewComponent() {
-    return myStageView.getComponent();
+  @Override
+  @Nullable
+  public StageView getStageView() {
+    return myStageWithToolbarView.getStageView();
   }
 }

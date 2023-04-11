@@ -33,6 +33,7 @@ import com.android.tools.profilers.FakeIdeProfilerServices
 import com.android.tools.profilers.ProfilerClient
 import com.android.tools.profilers.RecordingOptionsView
 import com.android.tools.profilers.SessionProfilersView
+import com.android.tools.profilers.StageWithToolbarView
 import com.android.tools.profilers.StudioProfilers
 import com.android.tools.profilers.StudioProfilersView
 import com.android.tools.profilers.event.FakeEventService
@@ -168,11 +169,12 @@ class CpuProfilerStageViewTest(private val isTestingProfileable: Boolean) {
     // Create a CpuProfilerStageView. We don't need its value, so we don't store it in a variable.
     CpuProfilerStageView(myProfilersView, myStage)
 
-    val expectedCommonMenus = listOf(StudioProfilersView.ATTACH_LIVE,
-                                     StudioProfilersView.DETACH_LIVE,
-                                     ContextMenuItem.SEPARATOR.text,
-                                     StudioProfilersView.ZOOM_IN,
-                                     StudioProfilersView.ZOOM_OUT)
+    val expectedCommonMenus = listOf(
+      StageWithToolbarView.ATTACH_LIVE,
+      StageWithToolbarView.DETACH_LIVE,
+      ContextMenuItem.SEPARATOR.text,
+      StageWithToolbarView.ZOOM_IN,
+      StageWithToolbarView.ZOOM_OUT)
     val items = myComponents.allContextMenuItems
     // CPU specific menus should be added.
     assertThat(items.size).isGreaterThan(expectedCommonMenus.size)
