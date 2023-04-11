@@ -20,6 +20,7 @@ import com.android.tools.idea.compose.preview.PreviewGroup.Companion.namedGroup
 import com.android.tools.idea.preview.PreviewElementProvider
 import com.android.tools.idea.preview.StaticPreviewProvider
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.android.uipreview.ModuleRenderContext
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -57,8 +58,9 @@ class PreviewFiltersTest {
             SingleComposePreviewElementInstance.forTesting("Instance2", groupName = "TemplateGroup")
           )
 
-        override fun instances(): Sequence<ComposePreviewElementInstance> =
-          templateInstances.asSequence()
+        override fun instances(
+          renderContext: ModuleRenderContext?
+        ): Sequence<ComposePreviewElementInstance> = templateInstances.asSequence()
       }
     val staticPreviewProvider =
       StaticPreviewProvider(

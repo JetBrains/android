@@ -18,6 +18,7 @@ package com.android.tools.idea.compose.preview
 import com.android.tools.idea.preview.StaticPreviewProvider
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.`is`
+import org.jetbrains.android.uipreview.ModuleRenderContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -178,7 +179,9 @@ class FilteringTest {
     private val basePreviewElement: ComposePreviewElement,
     private val instanceCount: Int
   ) : ComposePreviewElementTemplate, ComposePreviewElement by basePreviewElement {
-    override fun instances(): Sequence<ComposePreviewElementInstance> =
+    override fun instances(
+      renderContext: ModuleRenderContext?
+    ): Sequence<ComposePreviewElementInstance> =
       generateSequence(instanceCount, { if (it > 1) it - 1 else null }).map {
         TestComposePreviewElementTemplateInstance(basePreviewElement, it)
       }

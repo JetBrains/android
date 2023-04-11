@@ -56,6 +56,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.full.functions
 import kotlin.reflect.jvm.isAccessible
+import org.jetbrains.android.uipreview.ModuleRenderContext
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager
 import org.jetbrains.android.uipreview.forFile
 import org.jetbrains.annotations.TestOnly
@@ -90,7 +91,7 @@ private const val NO_WALLPAPER_SELECTED = -1
 const val FAKE_PREVIEW_PARAMETER_PROVIDER_METHOD = "${'$'}FailToLoadPreviewParameterProvider"
 
 /** [InMemoryLayoutVirtualFile] for composable functions. */
-internal class ComposeAdapterLightVirtualFile(
+class ComposeAdapterLightVirtualFile(
   name: String,
   content: String,
   originFileProvider: () -> VirtualFile?
@@ -386,7 +387,7 @@ interface ComposePreviewElement : PreviewElement {
  * [ComposePreviewElementInstance]s.
  */
 interface ComposePreviewElementTemplate : ComposePreviewElement {
-  fun instances(): Sequence<ComposePreviewElementInstance>
+  fun instances(renderContext: ModuleRenderContext? = null): Sequence<ComposePreviewElementInstance>
 }
 
 /** Definition of a preview element */
@@ -494,7 +495,7 @@ class SingleComposePreviewElementInstance(
   }
 }
 
-private class ParametrizedComposePreviewElementInstance(
+public class ParametrizedComposePreviewElementInstance(
   private val basePreviewElement: ComposePreviewElement,
   parameterName: String,
   val providerClassFqn: String,
@@ -544,7 +545,9 @@ class ParametrizedComposePreviewElementTemplate(
    * Returns a [Sequence] of "instantiated" [ComposePreviewElement]s. The will be
    * [ComposePreviewElement] populated with data from the parameter providers.
    */
-  override fun instances(): Sequence<ComposePreviewElementInstance> {
+  override fun instances(
+    renderContext: ModuleRenderContext?
+  ): Sequence<ComposePreviewElementInstance> {
     assert(parameterProviders.isNotEmpty()) { "ParametrizedPreviewElement used with no parameters" }
 
     val file = basePreviewElement.containingFile ?: return sequenceOf()
@@ -553,7 +556,7 @@ class ParametrizedComposePreviewElementTemplate(
         .warn("Currently only one ParameterProvider is supported, rest will be ignored")
     }
 
-    val moduleRenderContext = forFile(file)
+    val moduleRenderContext = renderContext ?: forFile(file)
     val classLoader =
       StudioModuleClassLoaderManager.get()
         .getPrivate(
