@@ -45,7 +45,7 @@ import org.mockito.Mockito.doAnswer
 import java.awt.event.InputEvent
 import java.util.EnumSet
 
-class ViewMenuActionTest {
+class RenderSettingsActionTest {
   private lateinit var event: AnActionEvent
 
   companion object {

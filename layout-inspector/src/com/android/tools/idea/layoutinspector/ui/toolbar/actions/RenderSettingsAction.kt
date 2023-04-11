@@ -41,15 +41,18 @@ const val HIGHLIGHT_COLOR_ORANGE = 0xE1A336
 
 const val HIGHLIGHT_DEFAULT_COLOR = HIGHLIGHT_COLOR_BLUE
 
-class ViewMenuAction(
+/**
+ * Action shown in Layout Inspector toolbar, used to control Layout Inspector [RenderSettings].
+ */
+class RenderSettingsAction(
   renderSettingsProvider: () -> RenderSettings
 ) : DropDownAction(null, "View Options", StudioIcons.Common.VISIBILITY_INLINE) {
 
   init {
-    add(SettingsAction("Show Borders", renderSettingsProvider, RenderSettings::drawBorders))
-    add(SettingsAction("Show Layout Bounds", renderSettingsProvider, RenderSettings::drawUntransformedBounds))
-    add(SettingsAction("Show View Label", renderSettingsProvider, RenderSettings::drawLabel))
-    add(SettingsAction("Show Fold Hinge and Angle", renderSettingsProvider, RenderSettings::drawFold))
+    add(ToggleRenderSettingsAction("Show Borders", renderSettingsProvider, RenderSettings::drawBorders))
+    add(ToggleRenderSettingsAction("Show Layout Bounds", renderSettingsProvider, RenderSettings::drawUntransformedBounds))
+    add(ToggleRenderSettingsAction("Show View Label", renderSettingsProvider, RenderSettings::drawLabel))
+    add(ToggleRenderSettingsAction("Show Fold Hinge and Angle", renderSettingsProvider, RenderSettings::drawFold))
     add(HighlightColorAction(renderSettingsProvider))
   }
 
@@ -61,7 +64,7 @@ class ViewMenuAction(
   override fun canBePerformed(context: DataContext) = context.getData(DEVICE_VIEW_MODEL_KEY)?.isActive == true
 }
 
-private class SettingsAction(
+private class ToggleRenderSettingsAction(
   actionName: String,
   private val renderSettingsProvider: () -> RenderSettings,
   private val property: KMutableProperty1<RenderSettings, Boolean>
@@ -106,8 +109,7 @@ private class ColorSettingAction(
   private val color: Int,
   private val renderSettingsProvider: () -> RenderSettings
 ): CheckboxAction(actionName, null, null) {
-  override fun isSelected(event: AnActionEvent): Boolean =
-    renderSettingsProvider().highlightColor == color
+  override fun isSelected(event: AnActionEvent): Boolean = renderSettingsProvider().highlightColor == color
 
   override fun setSelected(event: AnActionEvent, state: Boolean) {
     renderSettingsProvider().highlightColor = color

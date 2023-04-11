@@ -21,9 +21,9 @@ import com.android.tools.idea.layoutinspector.snapshots.SnapshotAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.AlphaSliderAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.LayerSpacingSliderAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RefreshAction
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.RenderSettingsAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ToggleLiveUpdatesAction
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ToggleOverlayAction
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.ViewMenuAction
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnAction
@@ -61,7 +61,7 @@ private class LayoutInspectorActionGroup(layoutInspector: LayoutInspector, selec
       add(selectProcessAction)
     }
     add(Separator.getInstance())
-    add(ViewMenuAction { layoutInspector.renderLogic.renderSettings } )
+    add(RenderSettingsAction { layoutInspector.renderLogic.renderSettings } )
     add(ToggleOverlayAction)
     if (!layoutInspector.isSnapshot) {
       add(SnapshotAction)
