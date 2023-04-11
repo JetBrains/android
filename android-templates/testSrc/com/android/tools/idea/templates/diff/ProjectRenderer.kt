@@ -16,6 +16,7 @@
 package com.android.tools.idea.templates.diff
 
 import com.android.SdkConstants
+import com.android.testutils.TestUtils
 import com.android.tools.idea.gradle.npw.project.GradleAndroidModuleTemplate
 import com.android.tools.idea.npw.model.render
 import com.android.tools.idea.npw.module.recipes.androidModule.generateAndroidModule
@@ -25,14 +26,14 @@ import com.android.tools.idea.npw.module.recipes.tvModule.generateTvModule
 import com.android.tools.idea.npw.module.recipes.wearModule.generateWearModule
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.templates.ProjectStateCustomizer
-import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.getPinnedAgpVersion
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.getTestDataRoot
 import com.android.tools.idea.templates.getDefaultModuleState
 import com.android.tools.idea.templates.getModifiedModuleName
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
-import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.TestProjectPaths
+import com.android.tools.idea.testing.prepareGradleProject
 import com.android.tools.idea.util.toIoFile
 import com.android.tools.idea.wizard.template.BytecodeLevel
 import com.android.tools.idea.wizard.template.FormFactor
@@ -59,7 +60,7 @@ val FILES_TO_IGNORE = arrayOf(".gradle", ".idea", "local.properties")
 abstract class ProjectRenderer(private val template: Template) {
   private lateinit var moduleState: ModuleTemplateDataBuilder
 
-  fun renderProject(projectRule: AndroidGradleProjectRule,
+  fun renderProject(projectRule: AndroidProjectRule,
                     moduleName: String,
                     avoidModifiedModuleName: Boolean = false,
                     vararg customizers: ProjectStateCustomizer) {
@@ -79,16 +80,16 @@ abstract class ProjectRenderer(private val template: Template) {
     }
   }
 
-  private fun createProject(projectRule: AndroidGradleProjectRule, moduleName: String) {
+  private fun createProject(projectRule: AndroidProjectRule, moduleName: String) {
     val projectRoot = projectRule.project.guessProjectDir()!!.toIoFile()
     println("Checking project $moduleName in $projectRoot")
     createProject(projectRule)
   }
 
   /**
-   * Renders project, module and possibly activity template. Also checks if logging was correct after each rendering step.
+   * Renders project, module and possibly activity template.
    */
-  private fun createProject(projectRule: AndroidGradleProjectRule) {
+  private fun createProject(projectRule: AndroidProjectRule) {
     val moduleName = moduleState.name!!
 
     val projectRoot = moduleState.projectTemplateDataBuilder.topOut!!
@@ -131,15 +132,19 @@ abstract class ProjectRenderer(private val template: Template) {
     WizardParameterData(moduleState.packageName!!, false, "main", template.parameters)
     (template.parameters.find { it.name == "Package name" } as StringParameter?)?.value = moduleState.packageName!!
 
-    // Without the AGP version specified, it uses the current version, which could change often
-    projectRule.load(TestProjectPaths.NO_MODULES, getPinnedAgpVersion()) {
-      runWriteActionAndWait {
-        writeDefaultTomlFile(projectRule.project, moduleRecipeExecutor)
-        moduleRecipe.render(context, moduleRecipeExecutor)
-        // Executor for the template needs to apply changes so that the toml file is visible in the executor
-        templateRecipeExecutor.applyChanges()
-        template.render(context, templateRecipeExecutor)
-      }
+    // This copies in build.gradle, gradle.properties, and settings.gradle from testData/projects/projectWithNoModules
+    prepareGradleProject(getNoModulesTestProjectPath(), projectRoot) {
+      // Normally, a "patcher" function here would generate the gradlew and gradlew.bat files and fill out build.gradle, but since the
+      // templates don't affect those files, we can skip them in the diff and make our golden snapshots smaller.
+    }
+
+    runWriteActionAndWait {
+      // TODO: enable the toml writing when Version Catalog becomes the default again
+      //writeDefaultTomlFile(projectRule.project, moduleRecipeExecutor)
+      moduleRecipe.render(context, moduleRecipeExecutor)
+      // Executor for the template needs to apply changes so that the toml file is visible in the executor
+      //templateRecipeExecutor.applyChanges()
+      template.render(context, templateRecipeExecutor)
     }
 
     // TODO: generify this to use probably the unmodified module name as the golden directory name
@@ -150,6 +155,7 @@ abstract class ProjectRenderer(private val template: Template) {
   abstract fun handleDirectories(goldenDir: Path, projectDir: Path)
 }
 
+@Suppress("unused")
 private fun writeDefaultTomlFile(project: Project, executor: DefaultRecipeExecutor) {
   WriteCommandAction.writeCommandAction(project).run<IOException> {
     executor.copy(
@@ -157,4 +163,8 @@ private fun writeDefaultTomlFile(project: Project, executor: DefaultRecipeExecut
       File(project.basePath, FileUtils.join("gradle", SdkConstants.FN_VERSION_CATALOG)))
     executor.applyChanges()
   }
+}
+
+private fun getNoModulesTestProjectPath(): File {
+  return TestUtils.resolveWorkspacePath("tools/adt/idea/android/testData").resolve(TestProjectPaths.NO_MODULES).toFile()
 }

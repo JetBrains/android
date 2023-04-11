@@ -25,6 +25,7 @@ import java.nio.file.Path
  */
 class BaselineGenerator(template: Template) : ProjectRenderer(template) {
   override fun handleDirectories(goldenDir: Path, projectDir: Path) {
+    FileUtils.deleteRecursivelyIfExists(goldenDir.toFile())
     FileUtils.copyDirectory(projectDir.toFile(), goldenDir.toFile())
     FILES_TO_IGNORE.forEach { FileUtils.deleteRecursivelyIfExists(goldenDir.resolve(it).toFile()) }
   }

@@ -1,32 +1,14 @@
 buildscript {
     repositories {
-maven {
-  url "file:/C:/src/studio-main/prebuilts/tools/common/m2/repository/"
-  try {
-    metadataSources() {
-      mavenPom()
-      artifact()
-    }
-  } catch (Throwable ignored) { /* In case this Gradle version does not support this. */}
-}
         // This will be populated by AndroidGradleTestCase
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.0.0-beta04'
+        classpath 'com.android.tools.build:gradle:+'
     }
 }
 
 allprojects {
     repositories {
-maven {
-  url "file:/C:/src/studio-main/prebuilts/tools/common/m2/repository/"
-  try {
-    metadataSources() {
-      mavenPom()
-      artifact()
-    }
-  } catch (Throwable ignored) { /* In case this Gradle version does not support this. */}
-}
         // This will be populated by AndroidGradleTestCase
     }
 }

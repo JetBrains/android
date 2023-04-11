@@ -20,7 +20,7 @@ import com.android.tools.idea.npw.template.TemplateResolver
 import com.android.tools.idea.templates.ProjectStateCustomizer
 import com.android.tools.idea.templates.TemplateStateCustomizer
 import com.android.tools.idea.templates.diff.TemplateDiffTestUtils.getPinnedAgpVersion
-import com.android.tools.idea.testing.AndroidGradleProjectRule
+import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.wizard.template.Category
 import com.android.tools.idea.wizard.template.FormFactor
 import com.android.tools.idea.wizard.template.StringParameter
@@ -41,7 +41,7 @@ const val OVERWRITE_GOLDEN_FILES = false
  */
 class TemplateDiffTest {
   @get:Rule
-  val projectRule = AndroidGradleProjectRule()
+  val projectRule = AndroidProjectRule.withAndroidModels()
 
   @get:Rule
   val disposableRule = DisposableRule()
