@@ -12,11 +12,12 @@ struct StackNode {
 
 struct ObjectMapNode {
     jweak obj_ref;
-    jint ref_weight;
     jlong owned_by_component_mask;
     jlong retained_mask;
     jint retained_mask_for_categories;
-    jboolean is_merge_point;
+    jbyte ref_weight;
+    jboolean is_merge_point : 1;
+    jboolean is_retained_by_platform : 1;
 };
 
 struct ObjectMapExtendedNode {
@@ -222,7 +223,7 @@ std::unordered_map<int, ObjectMapExtendedNode*>::iterator objectIdToTraverseNode
 
 JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverseNode_cacheHeapSnapshotTraverseNodeConstructorId
     (JNIEnv *env, jclass klass, jclass heap_traverse_node_class) {
-    heap_snapshot_traverse_node_constructor = env->GetMethodID(heap_traverse_node_class, "<init>", "(Ljava/lang/Object;IJJIZI)V");
+    heap_snapshot_traverse_node_constructor = env->GetMethodID(heap_traverse_node_class, "<init>", "(Ljava/lang/Object;BJJIZZI)V");
 }
 
 JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverseNode_clearObjectIdToTraverseNodeMap
@@ -262,8 +263,8 @@ JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverse
 }
 
 JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverseNode_putOrUpdateObjectIdToTraverseNodeMap
-    (JNIEnv *env, jclass klass, jint id, jobject obj, jint ref_weight, jlong owned_by_component_mask, jlong retained_mask,
-    jint retained_mask_for_categories, jboolean is_merge_point) {
+    (JNIEnv *env, jclass klass, jint id, jobject obj, jbyte ref_weight, jlong owned_by_component_mask, jlong retained_mask,
+    jint retained_mask_for_categories, jboolean is_merge_point, jboolean is_retained_by_platform) {
     ObjectMapNode* node;
     auto element_iterator = object_id_to_traverse_node_map.find(id);
     if (element_iterator != object_id_to_traverse_node_map.end()) {
@@ -279,6 +280,7 @@ JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverse
     node->retained_mask = retained_mask;
     node->retained_mask_for_categories = retained_mask_for_categories;
     node->is_merge_point = is_merge_point;
+    node->is_retained_by_platform = is_retained_by_platform;
 }
 
 JNIEXPORT jobject JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverseNode_getObjectIdToTraverseNodeMapElement
@@ -301,6 +303,7 @@ JNIEXPORT jobject JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTrave
                                                                                       node->retained_mask,
                                                                                       node->retained_mask_for_categories,
                                                                                       node->is_merge_point,
+                                                                                      node->is_retained_by_platform,
                                                                                       owning_roots_hashcode);
 }
 

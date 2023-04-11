@@ -67,8 +67,8 @@ JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverse
 // Adds a new node to the native map initialized with the passed Object, reference weight, masks and tag if the passed id was not yet
 // added to the native map. Otherwise, updates the existing element.
 JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverseNode_putOrUpdateObjectIdToTraverseNodeMap
-    (JNIEnv *, jclass, jint id, jobject obj, jint ref_weight, jlong owned_by_component_mask, jlong retained_mask, jint retained_mask_for_categories,
-    jboolean is_merge_point);
+    (JNIEnv *, jclass, jint id, jobject obj, jbyte ref_weight, jlong owned_by_component_mask, jlong retained_mask, jint retained_mask_for_categories,
+    jboolean is_merge_point, jboolean is_retained_by_platform);
 JNIEXPORT void JNICALL Java_com_android_tools_idea_diagnostics_heap_HeapTraverseNode_putOrUpdateObjectIdToExtendedTraverseNodeMap
     (JNIEnv *env, jclass klass, jint id, jint owning_roots_hashcode);
 

@@ -235,9 +235,7 @@ public class ExtendedReportStatistics {
 
     private boolean classNameIsStudioSource(@NotNull final String className) {
       return className.startsWith("com.android.") ||
-             className.startsWith("org.jetbrains") ||
-             className.startsWith("com.intellij") ||
-             className.startsWith("com.jetbrains");
+             HeapSnapshotTraverse.isPlatformObject(className);
     }
 
     public void print(Consumer<String> writer) {

@@ -157,7 +157,7 @@ public final class HeapSnapshotTraverse implements Disposable {
           putOrUpdateObjectIdToTraverseNodeMap(rootObjectId, root, HeapTraverseNode.RefWeight.DEFAULT.getValue(), 0L, 0L,
                                                0,
                                                statistics.getConfig().getComponentsSet().getComponentOfObject(root) !=
-                                               null, 0);
+                                               null, false, 0);
         }
         // By this moment all the reachable heap objects are enumerated in topological order and
         // marked as visited. Order id, visited and the iteration id are stored in objects tags.
@@ -195,7 +195,11 @@ public final class HeapSnapshotTraverse implements Disposable {
           long currentObjectSize = getObjectSize(currentObject);
           String currentObjectClassName = currentObject.getClass().getName();
 
-          statistics.addObjectToTotal(currentObjectSize);
+          boolean isPlatformObject = isPlatformObject(currentObject, currentObjectClassName);
+          if (isPlatformObject) {
+            node.isRetainedByPlatform = true;
+          }
+          statistics.addObjectToTotal(currentObjectSize, isPlatformObject, node.isRetainedByPlatform);
 
           if (statistics.getConfig().collectDisposerTreeInfo && currentObject instanceof Disposable) {
             //noinspection deprecation
@@ -221,17 +225,20 @@ public final class HeapSnapshotTraverse implements Disposable {
 
           // If current object is retained by any components - propagate their stats.
           processMask(node.retainedMask,
-                      (index) -> statistics.addRetainedObjectSizeToComponent(index, currentObjectSize));
+                      (index) -> statistics.addRetainedObjectSizeToComponent(index, currentObjectSize, isPlatformObject,
+                                                                             node.isRetainedByPlatform));
           // If current object is retained by any component categories - propagate their stats.
           processMask(node.retainedMaskForCategories,
                       (index) -> statistics.addRetainedObjectSizeToCategoryComponent(index,
-                                                                                     currentObjectSize
+                                                                                     currentObjectSize, isPlatformObject,
+                                                                                     node.isRetainedByPlatform
                       ));
 
           if (category != null) {
             statistics.addOwnedObjectSizeToCategoryComponent(category.getId(),
                                                              currentObjectSize,
-                                                             currentObjectClassName, objectIsAComponentRoot);
+                                                             currentObjectClassName, objectIsAComponentRoot, isPlatformObject,
+                                                             node.isRetainedByPlatform);
             if (isExtendedReportCollection && statistics.getExtendedReportStatistics() != null) {
               statistics.getExtendedReportStatistics()
                 .addOwnedObjectSizeToCategoryRoots(category.getId(), node.owningRootsSetHashcode, currentObjectSize);
@@ -248,9 +255,10 @@ public final class HeapSnapshotTraverse implements Disposable {
               statistics.getConfig().getComponentsSet().getUncategorizedComponent().getComponentCategory()
                 .getId();
             statistics.addOwnedObjectSizeToComponent(uncategorizedComponentId, currentObjectSize,
-                                                     currentObjectClassName, false);
+                                                     currentObjectClassName, false, isPlatformObject, node.isRetainedByPlatform);
             statistics.addOwnedObjectSizeToCategoryComponent(uncategorizedCategoryId,
-                                                             currentObjectSize, currentObjectClassName, false);
+                                                             currentObjectSize, currentObjectClassName, false, isPlatformObject,
+                                                             node.isRetainedByPlatform);
           }
           else if (isPowerOfTwo(node.ownedByComponentMask)) {
             int componentId = log2(node.ownedByComponentMask, RoundingMode.UP);
@@ -263,12 +271,14 @@ public final class HeapSnapshotTraverse implements Disposable {
 
             // if only owned by one component
             statistics.addOwnedObjectSizeToComponent(componentId, currentObjectSize,
-                                                     currentObjectClassName, objectIsAComponentRoot);
+                                                     currentObjectClassName, objectIsAComponentRoot, isPlatformObject,
+                                                     node.isRetainedByPlatform);
           }
           else {
             // if owned by multiple components -> add to shared
             statistics.addObjectSizeToSharedComponent(node.ownedByComponentMask, currentObjectSize,
-                                                      currentObjectClassName, node.isMergePoint);
+                                                      currentObjectClassName, node.isMergePoint, isPlatformObject,
+                                                      node.isRetainedByPlatform);
           }
 
           // propagate to referred objects
@@ -294,19 +304,35 @@ public final class HeapSnapshotTraverse implements Disposable {
     return StatusCode.NO_ERROR;
   }
 
+  static boolean isPlatformObject(@NotNull final String className) {
+    return className.startsWith("org.jetbrains") ||
+           className.startsWith("com.intellij") ||
+           className.startsWith("com.jetbrains") ||
+           className.startsWith("org.intellij");
+  }
+
+  static boolean isPlatformObject(@NotNull final Object obj, @NotNull final String objClassName) {
+    if (obj instanceof Class<?>) {
+      return isPlatformObject(((Class<?>)obj).getName());
+    }
+    return isPlatformObject(objClassName);
+  }
+
   private void putOrUpdateObjectIdToTraverseNodeMap(int id,
                                                     @NotNull final Object obj,
-                                                    int refWeight,
+                                                    byte refWeight,
                                                     long ownedByComponentMask,
                                                     long retainedMask,
                                                     int retainedMaskForCategories,
                                                     boolean isMergePoint,
+                                                    boolean isRetainedByPlatform,
                                                     int owningRootsSetHashcode) {
     HeapTraverseNode.putOrUpdateObjectIdToTraverseNodeMap(id, obj,
                                                           refWeight, ownedByComponentMask,
                                                           retainedMask,
                                                           retainedMaskForCategories,
-                                                          isMergePoint);
+                                                          isMergePoint,
+                                                          isRetainedByPlatform);
     if (isExtendedReportCollection) {
       HeapTraverseNode.putOrUpdateObjectIdToExtendedTraverseNodeMap(id, owningRootsSetHashcode);
     }
@@ -581,11 +607,13 @@ public final class HeapSnapshotTraverse implements Disposable {
                                                              HeapTraverseNode.class);
       if (currentNode == null) {
         currentNode = new HeapTraverseNode(value, ownershipWeight, parentNode.ownedByComponentMask, parentNode.retainedMask,
-                                           parentNode.retainedMaskForCategories, false, parentNode.owningRootsSetHashcode);
+                                           parentNode.retainedMaskForCategories, false, parentNode.isRetainedByPlatform,
+                                           parentNode.owningRootsSetHashcode);
       }
 
       currentNode.retainedMask &= parentNode.retainedMask;
       currentNode.retainedMaskForCategories &= parentNode.retainedMaskForCategories;
+      currentNode.isRetainedByPlatform &= parentNode.isRetainedByPlatform;
 
       if (ownershipWeight.compareTo(currentNode.ownershipWeight) > 0) {
         currentNode.ownershipWeight = ownershipWeight;
@@ -614,7 +642,7 @@ public final class HeapSnapshotTraverse implements Disposable {
                                            currentNode.ownershipWeight.getValue(),
                                            currentNode.ownedByComponentMask, currentNode.retainedMask,
                                            currentNode.retainedMaskForCategories, currentNode.isMergePoint,
-                                           currentNode.owningRootsSetHashcode);
+                                           currentNode.isRetainedByPlatform, currentNode.owningRootsSetHashcode);
     }, fieldCache);
   }
 
