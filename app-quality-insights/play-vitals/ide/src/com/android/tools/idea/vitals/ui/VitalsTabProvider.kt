@@ -19,6 +19,8 @@ import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.insights.AppInsightsModel
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl
 import com.android.tools.idea.insights.ui.AppInsightsTabPanel
 import com.android.tools.idea.insights.ui.AppInsightsTabProvider
 import com.google.gct.login.GoogleLogin
@@ -51,7 +53,12 @@ class VitalsTabProvider : AppInsightsTabProvider {
           }
           is AppInsightsModel.Authenticated -> {
             tabPanel.setComponent(
-              VitalsTab(appInsightsModel.controller, project, Clock.systemDefaultZone())
+              VitalsTab(
+                appInsightsModel.controller,
+                project,
+                Clock.systemDefaultZone(),
+                AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS)
+              )
             )
           }
         }

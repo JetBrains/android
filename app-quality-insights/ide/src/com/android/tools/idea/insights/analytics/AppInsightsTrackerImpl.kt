@@ -24,7 +24,10 @@ import com.intellij.openapi.project.Project
 import java.security.MessageDigest
 import java.util.Random
 
-class AppInsightsTrackerImpl(private val project: Project) : AppInsightsTracker {
+class AppInsightsTrackerImpl(
+  private val project: Project,
+  private val insightsProductType: AppInsightsTracker.ProductType
+) : AppInsightsTracker {
   private val appIdSalt: Int = Random().nextInt()
 
   override fun logZeroState(
@@ -37,6 +40,7 @@ class AppInsightsTrackerImpl(private val project: Project) : AppInsightsTracker 
             appId = anonymizeAppId(project.name)
             type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.ZERO_STATE
             zeroStateDetails = event
+            productType = insightsProductType.toProtoProductType()
           }
         )
         .withProjectId(project)
@@ -56,6 +60,7 @@ class AppInsightsTrackerImpl(private val project: Project) : AppInsightsTracker 
             type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.CRASHES_FETCHED
             fetchDetails = event
             isOffline = mode.isOfflineMode()
+            productType = insightsProductType.toProtoProductType()
           }
         )
         .withProjectId(project)
@@ -73,6 +78,7 @@ class AppInsightsTrackerImpl(private val project: Project) : AppInsightsTracker 
             type =
               AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.CRASH_LIST_DETAILS_VIEW
             crashOpenDetails = event
+            productType = insightsProductType.toProtoProductType()
           }
         )
         .withProjectId(project)
@@ -91,6 +97,7 @@ class AppInsightsTrackerImpl(private val project: Project) : AppInsightsTracker 
             type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.STACKTRACE_CLICKED
             stacktraceDetails = event
             isOffline = mode.isOfflineMode()
+            productType = insightsProductType.toProtoProductType()
           }
         )
         .withProjectId(project)
@@ -110,6 +117,7 @@ class AppInsightsTrackerImpl(private val project: Project) : AppInsightsTracker 
               AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.FB_CONSOLE_LINK_CLICKED
             consoleLinkDetails = event
             isOffline = mode.isOfflineMode()
+            productType = insightsProductType.toProtoProductType()
           }
         )
         .withProjectId(project)
@@ -124,6 +132,7 @@ class AppInsightsTrackerImpl(private val project: Project) : AppInsightsTracker 
             appId = anonymizeAppId(project.name)
             type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.MATCHERS_INITIATED
             matcherDetails = event
+            productType = insightsProductType.toProtoProductType()
           }
         )
         .withProjectId(project)
@@ -142,6 +151,7 @@ class AppInsightsTrackerImpl(private val project: Project) : AppInsightsTracker 
             type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.ERROR
             errorDetails = event
             isOffline = mode.isOfflineMode()
+            productType = insightsProductType.toProtoProductType()
           }
         )
         .withProjectId(project)
@@ -162,6 +172,7 @@ class AppInsightsTrackerImpl(private val project: Project) : AppInsightsTracker 
               AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.ISSUE_STATUS_CHANGED
             issueChangedDetails = event
             isOffline = mode.isOfflineMode()
+            productType = insightsProductType.toProtoProductType()
           }
         )
         .withProjectId(project)
@@ -181,6 +192,7 @@ class AppInsightsTrackerImpl(private val project: Project) : AppInsightsTracker 
             type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.NOTE
             notesDetails = event
             isOffline = mode.isOfflineMode()
+            productType = insightsProductType.toProtoProductType()
           }
         )
         .withProjectId(project)
@@ -209,10 +221,11 @@ class AppInsightsTrackerImpl(private val project: Project) : AppInsightsTracker 
       generateAndroidStudioEventBuilder()
         .setAppQualityInsightsUsageEvent(
           AppQualityInsightsUsageEvent.newBuilder().apply {
-            appId = unanonymizedAppId?.let { anonymizeAppId(it) }
+            appId = anonymizeAppId(unanonymizedAppId)
             type = AppQualityInsightsUsageEvent.AppQualityInsightsUsageEventType.MODE_TRANSITION
             modeTransitionDetails = event
             isOffline = mode.isOfflineMode()
+            productType = insightsProductType.toProtoProductType()
           }
         )
         .withProjectId(project)

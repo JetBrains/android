@@ -38,7 +38,6 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
@@ -68,7 +67,8 @@ private val offlineAction =
 class VitalsTab(
   private val projectController: AppInsightsProjectLevelController,
   private val project: Project,
-  private val clock: Clock
+  private val clock: Clock,
+  tracker: AppInsightsTracker
 ) : JPanel(BorderLayout()), Disposable {
   private val scope = AndroidCoroutineScope(this)
 
@@ -103,14 +103,7 @@ class VitalsTab(
 
   init {
     add(createToolbar().component, BorderLayout.NORTH)
-    add(
-      VitalsContentContainerPanel(
-        projectController,
-        project,
-        project.service<AppInsightsTracker>(),
-        this
-      )
-    )
+    add(VitalsContentContainerPanel(projectController, project, tracker, this))
   }
 
   private fun createToolbar(): ActionToolbar {
