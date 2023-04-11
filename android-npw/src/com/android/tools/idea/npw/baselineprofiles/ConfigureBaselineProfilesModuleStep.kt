@@ -99,6 +99,14 @@ class ConfigureBaselineProfilesModuleStep(
   }
 
   override fun createMainPanel(): JPanel = panel {
+    row {
+      comment("<strong>" + AndroidBundle.message("android.wizard.module.new.baselineprofiles.module.description") + "</strong>")
+    }
+
+    row {
+      comment(AndroidBundle.message("android.wizard.module.new.baselineprofiles.module.description.extra"))
+    }
+
     row(
       contextLabel("Target application", AndroidBundle.message("android.wizard.module.help.baselineprofiles.target.module.description"))) {
       cell(targetModuleCombo).horizontalAlign(HorizontalAlign.FILL)
