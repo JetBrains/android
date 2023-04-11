@@ -148,12 +148,14 @@ public class ConfigurationManager implements Disposable {
 
     return configurationManager.getConfiguration(projectFile);
   }
-
-  protected ConfigurationManager(@NotNull Module module) {
-    myConfigurationModule = new StudioConfigurationModelModule(module);
+  protected ConfigurationManager(@NotNull Module module, ConfigurationModelModule config) {
+    myConfigurationModule = config;
     myModule = module;
     Disposer.register(myModule, this);
+  }
 
+  protected ConfigurationManager(@NotNull Module module) {
+    this(module,new StudioConfigurationModelModule(module));
   }
 
   /**
