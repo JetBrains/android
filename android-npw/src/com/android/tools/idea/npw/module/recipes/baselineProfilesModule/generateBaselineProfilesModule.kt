@@ -103,6 +103,9 @@ fun RecipeExecutor.generateBaselineProfilesModule(
 fun RecipeExecutor.updateTargetModule(newModule: ModuleTemplateData, targetModule: Module) {
   val targetModuleDir = AndroidRootUtil.getModuleDirPath(targetModule)?.let { File(it) } ?: return
 
+  // This needs to be added, because many projects don't define this plugin in plugins { } block, and therefore it fails with unknown version.
+  applyPluginInModule("com.android.application", targetModule, newModule.projectTemplateData.gradlePluginVersion)
+
   applyPluginInModule("androidx.baselineprofile", targetModule, BASELINE_PROFILES_PLUGIN_MIN_REV)
 
   addDependency(
