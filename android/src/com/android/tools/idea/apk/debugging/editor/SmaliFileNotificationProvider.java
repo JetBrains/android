@@ -28,7 +28,9 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiAnchor;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.ui.EditorNotificationPanel;
@@ -39,42 +41,61 @@ import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SmaliFileNotificationProvider implements EditorNotificationProvider {
+public final class SmaliFileNotificationProvider implements EditorNotificationProvider {
   @Override
   public @Nullable Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> collectNotificationData(@NotNull Project project,
                                                                                                                  @NotNull VirtualFile file) {
-    return fileEditor -> createNotificationPanel(file, fileEditor, project);
-  }
-
-  @Nullable
-  public EditorNotificationPanel createNotificationPanel(@NotNull VirtualFile file, @NotNull FileEditor fileEditor, @NotNull Project project) {
     Module module = ProjectFileIndex.getInstance(project).getModuleForFile(file);
+    if (module == null) return null;
+
     DexSourceFiles dexSourceFiles = DexSourceFiles.getInstance(project);
-    if (module != null && ApkFacet.getInstance(module) != null && dexSourceFiles.isSmaliFile(file)) {
+    if (ApkFacet.getInstance(module) != null && dexSourceFiles.isSmaliFile(file)) {
       File outputFolderPath = dexSourceFiles.getDefaultSmaliOutputFolderPath();
       File filePath = virtualToIoFile(file);
       if (isAncestor(outputFolderPath, filePath, false)) {
-        // The smali file is inside the folder where baksmali generated the smali files by disassembling classes.dex.
-        EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info);
-        panel.setText("Disassembled classes.dex file. To set up breakpoints for debugging, please attach Kotlin/Java source files.");
+        PsiAnchor psiClassAnchor = null;
+        String classFqn = null;
 
         PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
         if (psiFile instanceof SmaliFile) {
-          String classFqn = dexSourceFiles.findJavaClassName((SmaliFile)psiFile);
+          classFqn = dexSourceFiles.findJavaClassName((SmaliFile)psiFile);
           if (isNotEmpty(classFqn)) {
             PsiClass javaPsiClass = dexSourceFiles.findJavaPsiClass(classFqn);
-            if (javaPsiClass != null) {
-              panel.createActionLabel("Open Kotlin/Java file", () -> openFileWithPsiElement(javaPsiClass, true, true));
-            }
-            else {
-              panel.createActionLabel("Attach Kotlin/Java Sources...", new ChooseAndAttachJavaSourcesTask(classFqn, module, dexSourceFiles));
-            }
+            psiClassAnchor = javaPsiClass != null ? PsiAnchor.create(javaPsiClass) : null;
           }
         }
 
-        return panel;
+        PsiAnchor finalPsiClassAnchor = psiClassAnchor;
+        String finalClassFqn = classFqn;
+        return fileEditor -> createPanel(module, fileEditor, finalPsiClassAnchor, finalClassFqn);
       }
     }
+
     return null;
+  }
+
+  private static @NotNull EditorNotificationPanel createPanel(@NotNull Module module,
+                                                              @NotNull FileEditor fileEditor,
+                                                              @Nullable PsiAnchor psiClassAnchor,
+                                                              @Nullable String classFqn) {
+    EditorNotificationPanel panel = new EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info);
+    panel.setText("Disassembled classes.dex file. To set up breakpoints for debugging, please attach Kotlin/Java source files.");
+
+    if (isNotEmpty(classFqn)) {
+      if (psiClassAnchor != null) {
+        panel.createActionLabel("Open Kotlin/Java file", () -> {
+          PsiElement element = psiClassAnchor.retrieve();
+          if (element == null) return;
+
+          openFileWithPsiElement(element, true, true);
+        });
+      }
+      else {
+        panel.createActionLabel("Attach Kotlin/Java Sources...",
+                                new ChooseAndAttachJavaSourcesTask(classFqn, module, DexSourceFiles.getInstance(module.getProject())));
+      }
+    }
+
+    return panel;
   }
 }

@@ -43,7 +43,10 @@ import com.intellij.testFramework.PlatformTestCase;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.ui.EditorNotificationPanel;
 import java.io.File;
+import java.util.function.Function;
+import javax.swing.JComponent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.mockito.Mock;
 
 /**
@@ -76,15 +79,20 @@ public class SmaliFileNotificationProviderTest extends PlatformTestCase {
     VirtualFile rSmaliFile = findFileByIoFile(rSmaliFilePath, true);
     assertNotNull(rSmaliFile);
 
-    EditorNotificationPanel notificationPanel = myNotificationProvider.createNotificationPanel(rSmaliFile, myFileEditor, getProject());
+    Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> function =
+      myNotificationProvider.collectNotificationData(getProject(), rSmaliFile);
+
+    EditorNotificationPanel notificationPanel = (EditorNotificationPanel)function.apply(myFileEditor);
     assertNotNull(notificationPanel);
   }
 
   public void testCreateNotificationPanelWithNonSmaliFile() throws Exception {
     loadProject(APK_SAN_ANGELES);
-    EditorNotificationPanel notificationPanel = myNotificationProvider.createNotificationPanel(
-      PlatformTestUtil.getOrCreateProjectBaseDir(getProject()), myFileEditor, myProject);
-    assertNull(notificationPanel);
+
+    Function<? super @NotNull FileEditor, ? extends @Nullable JComponent> function =
+      myNotificationProvider.collectNotificationData(getProject(), PlatformTestUtil.getOrCreateProjectBaseDir(getProject()));
+
+    assertNull(function);
   }
 
   private void loadProject(@NotNull String relativePath) throws Exception {
