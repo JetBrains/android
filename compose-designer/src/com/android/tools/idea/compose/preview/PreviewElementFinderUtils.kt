@@ -35,6 +35,8 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiLiteralExpression
 import com.intellij.psi.PsiModifierListOwner
+import com.intellij.psi.impl.compiled.ClsClassImpl
+import com.intellij.psi.impl.compiled.ClsMethodImpl
 import com.intellij.util.containers.sequenceOfNotNull
 import com.intellij.util.text.nullize
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
@@ -123,57 +125,54 @@ internal fun getPreviewElements(uMethod: UMethod, overrideGroupName: String? = n
  *   the MultiPreview annotations and the root composable [uMethod]. These nodes, will be not just a
  *   [PreviewNode], but specifically a [MultiPreviewNode]
  */
-internal fun getPreviewNodes(
-  uMethod: UMethod,
-  overrideGroupName: String? = null,
-  includeAllNodes: Boolean
-) = runReadAction {
-  if (uMethod.isComposable()) {
-    val visitedAnnotationClasses = mutableMapOf<String, MultiPreviewNodeInfo?>()
+fun getPreviewNodes(uMethod: UMethod, overrideGroupName: String? = null, includeAllNodes: Boolean) =
+  runReadAction {
+    if (uMethod.isComposable()) {
+      val visitedAnnotationClasses = mutableMapOf<String, MultiPreviewNodeInfo?>()
 
-    sequence {
-        val nDirectPreviews = uMethod.uAnnotations.count { it.isPreviewAnnotation() }
-        val nonPreviewTraversedChildrenFqcn = mutableListOf<String?>()
-        // First, traverse over the whole MultiPreview graph for this Composable
-        yield(
-          uMethod.uAnnotations.asSequence().flatMap {
-            if (it.shouldTraverse(visitedAnnotationClasses) && !it.isPreviewAnnotation()) {
-              nonPreviewTraversedChildrenFqcn.add((it.tryResolve() as? PsiClass)?.qualifiedName)
-            }
-            it.getPreviewNodes(
-              visitedAnnotationClasses,
-              uMethod,
-              it,
-              overrideGroupName,
-              includeAllNodes
-            )
-          }
-        )
-        // Then, add this root composable node if wanted
-        yield(
-          if (includeAllNodes) {
-            // Set the corresponding MultiPreviewNodeInfo
-            val node =
-              MultiPreviewNodeImpl(
-                MultiPreviewNodeInfo(
-                    ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType
-                      .ROOT_COMPOSABLE_FUNCTION_NODE
-                  )
-                  .withChildNodes(
-                    nonPreviewTraversedChildrenFqcn.filterNotNull().map {
-                      visitedAnnotationClasses[it]
-                    },
-                    nDirectPreviews
-                  )
-                  .withDepthLevel(0)
-                  .withComposableFqn(uMethod.qualifiedName)
+      sequence {
+          val nDirectPreviews = uMethod.uAnnotations.count { it.isPreviewAnnotation() }
+          val nonPreviewTraversedChildrenFqcn = mutableListOf<String?>()
+          // First, traverse over the whole MultiPreview graph for this Composable
+          yield(
+            uMethod.uAnnotations.asSequence().flatMap {
+              if (it.shouldTraverse(visitedAnnotationClasses) && !it.isPreviewAnnotation()) {
+                nonPreviewTraversedChildrenFqcn.add((it.tryResolve() as? PsiClass)?.qualifiedName)
+              }
+              it.getPreviewNodes(
+                visitedAnnotationClasses,
+                uMethod,
+                it,
+                overrideGroupName,
+                includeAllNodes
               )
-            sequenceOf(node)
-          } else emptySequence()
-        )
-      }
-      .flatten()
-  } else emptySequence() // for non-composable methods, return an empty sequence
+            }
+          )
+          // Then, add this root composable node if wanted
+          yield(
+            if (includeAllNodes) {
+              // Set the corresponding MultiPreviewNodeInfo
+              val node =
+                MultiPreviewNodeImpl(
+                  MultiPreviewNodeInfo(
+                      ComposeMultiPreviewEvent.ComposeMultiPreviewNodeInfo.NodeType
+                        .ROOT_COMPOSABLE_FUNCTION_NODE
+                    )
+                    .withChildNodes(
+                      nonPreviewTraversedChildrenFqcn.filterNotNull().map {
+                        visitedAnnotationClasses[it]
+                      },
+                      nDirectPreviews
+                    )
+                    .withDepthLevel(0)
+                    .withComposableFqn(uMethod.qualifiedName)
+                )
+              sequenceOf(node)
+            } else emptySequence()
+          )
+        }
+        .flatten()
+    } else emptySequence() // for non-composable methods, return an empty sequence
 }
 
 private fun UAnnotation.getPreviewNodes(
@@ -316,12 +315,27 @@ internal fun UAnnotation.getContainingComposableUMethod() =
 private fun UMethod?.isComposable() = this.isAnnotatedWith(COMPOSABLE_FQ_NAMES)
 
 internal fun UAnnotation.findPreviewDefaultValues(): Map<String, String?> =
-  (this.resolve() as KtLightClass)
-    .methods
-    .map { psiMethod ->
-      Pair(psiMethod.name, (psiMethod as KtLightMethod).defaultValue?.text?.trim('"')?.nullize())
-    }
-    .toMap()
+  when (val resolvedImplmentation = this.resolve()) {
+    is ClsClassImpl ->
+      resolvedImplmentation.methods
+        .map { psiMethod ->
+          Pair(
+            psiMethod.name,
+            (psiMethod as ClsMethodImpl).defaultValue?.text?.trim('"')?.nullize()
+          )
+        }
+        .toMap()
+    is KtLightClass ->
+      resolvedImplmentation.methods
+        .map { psiMethod ->
+          Pair(
+            psiMethod.name,
+            (psiMethod as KtLightMethod).defaultValue?.text?.trim('"')?.nullize()
+          )
+        }
+        .toMap()
+    else -> mapOf()
+  }
 
 private fun UAnnotation.findClassNameValue(name: String) =
   (findAttributeValue(name) as? UClassLiteralExpression)?.type?.canonicalText
@@ -432,7 +446,7 @@ private fun previewAnnotationToPreviewElement(
  * Returns a list of [PreviewParameter] for the given [Collection<UParameter>]. If the parameters
  * are annotated with `PreviewParameter`, then they will be returned as part of the collection.
  */
-private fun getPreviewParameters(parameters: Collection<UParameter>): Collection<PreviewParameter> =
+public fun getPreviewParameters(parameters: Collection<UParameter>): Collection<PreviewParameter> =
   parameters.mapIndexedNotNull { index, parameter ->
     val annotation =
       parameter.uAnnotations.firstOrNull {
