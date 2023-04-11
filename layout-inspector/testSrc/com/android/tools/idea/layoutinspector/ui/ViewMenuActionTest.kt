@@ -32,7 +32,6 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
@@ -62,7 +61,7 @@ class ViewMenuActionTest {
     .around(FlagRule(StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_ENABLE_RECOMPOSITION_HIGHLIGHTS, true))
 
   private val treeSettings = FakeTreeSettings().apply { showRecompositions = true }
-  private val viewSettings = FakeRenderSettings()
+  private val fakeRenderSettings = FakeRenderSettings()
   private val capabilities = EnumSet.noneOf(Capability::class.java).apply { add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS) }
   private var isConnected = true
 
@@ -73,29 +72,31 @@ class ViewMenuActionTest {
 
   @Test
   fun testActionVisibility() {
+    val highlightColorAction = HighlightColorAction { fakeRenderSettings }
+
     isConnected = false
     treeSettings.showRecompositions = false
     capabilities.clear()
 
-    HighlightColorAction.update(event)
+    highlightColorAction.update(event)
     assertThat(event.presentation.isVisible).isFalse()
 
     treeSettings.showRecompositions = true
-    HighlightColorAction.update(event)
+    highlightColorAction.update(event)
     assertThat(event.presentation.isVisible).isTrue()
     assertThat(event.presentation.isEnabled).isFalse()
 
     isConnected = true
-    HighlightColorAction.update(event)
+    highlightColorAction.update(event)
     assertThat(event.presentation.isVisible).isFalse()
 
     capabilities.add(Capability.SUPPORTS_COMPOSE_RECOMPOSITION_COUNTS)
-    HighlightColorAction.update(event)
+    highlightColorAction.update(event)
     assertThat(event.presentation.isVisible).isTrue()
     assertThat(event.presentation.isEnabled).isTrue()
 
     treeSettings.showRecompositions = false
-    HighlightColorAction.update(event)
+    highlightColorAction.update(event)
     assertThat(event.presentation.isVisible).isFalse()
   }
 
@@ -109,21 +110,22 @@ class ViewMenuActionTest {
       0x871094 to "Purple",
       0xE1A336 to "Orange"
     )
+    val highlightColorAction = HighlightColorAction { fakeRenderSettings }
 
     for ((color, text) in colors) {
-      viewSettings.highlightColor = color
-      for (action in HighlightColorAction.getChildren(event)) {
+      fakeRenderSettings.highlightColor = color
+      for (action in highlightColorAction.getChildren(event)) {
         action.update(event)
         assertThat(Toggleable.isSelected(event.presentation)).isEqualTo(action.templateText == text)
       }
     }
 
-    for (action in HighlightColorAction.getChildren(event)) {
-      viewSettings.highlightColor = 0
+    for (action in highlightColorAction.getChildren(event)) {
+      fakeRenderSettings.highlightColor = 0
       action.update(event)
       (action as CheckboxAction).setSelected(event, true)
       val expected = colors.filter { it.value == action.templateText }.map { it.key }.single()
-      assertThat(viewSettings.highlightColor).isEqualTo(expected)
+      assertThat(fakeRenderSettings.highlightColor).isEqualTo(expected)
     }
   }
 
@@ -135,18 +137,10 @@ class ViewMenuActionTest {
     doAnswer { capabilities }.whenever(client).capabilities
     doAnswer { isConnected }.whenever(client).isConnected
 
-    val dataContext = object : DataContext {
-      override fun getData(dataId: String): Any? {
-        return null
-      }
-
-      override fun <T> getData(key: DataKey<T>): T? {
-        @Suppress("UNCHECKED_CAST")
-        return when (key) {
-          DEVICE_VIEW_SETTINGS_KEY -> viewSettings as T
-          LAYOUT_INSPECTOR_DATA_KEY -> inspector as T
-          else -> null
-        }
+    val dataContext = DataContext { dataId ->
+      when (dataId) {
+        LAYOUT_INSPECTOR_DATA_KEY.name -> inspector
+        else -> null
       }
     }
     val actionManager: ActionManager = mock()

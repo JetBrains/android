@@ -21,7 +21,6 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.tree.isActionActive
 import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_MODEL_KEY
-import com.android.tools.idea.layoutinspector.ui.DEVICE_VIEW_SETTINGS_KEY
 import com.android.tools.idea.layoutinspector.ui.RenderSettings
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
@@ -30,6 +29,7 @@ import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.actionSystem.ex.CheckboxAction
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import icons.StudioIcons
+import org.jetbrains.annotations.VisibleForTesting
 import kotlin.reflect.KMutableProperty1
 
 const val HIGHLIGHT_COLOR_RED = 0xFF0000
@@ -41,22 +41,16 @@ const val HIGHLIGHT_COLOR_ORANGE = 0xE1A336
 
 const val HIGHLIGHT_DEFAULT_COLOR = HIGHLIGHT_COLOR_BLUE
 
-object ViewMenuAction : DropDownAction(null, "View Options", StudioIcons.Common.VISIBILITY_INLINE) {
-  class SettingsAction(name: String, val property: KMutableProperty1<RenderSettings, Boolean>) : ToggleAction(name) {
-    override fun isSelected(event: AnActionEvent) =
-      event.getData(DEVICE_VIEW_SETTINGS_KEY)?.let { settings -> return property.get(settings) } ?: false
-
-    override fun setSelected(event: AnActionEvent, state: Boolean) {
-      event.getData(DEVICE_VIEW_SETTINGS_KEY)?.let { settings -> property.set(settings, state) }
-    }
-  }
+class ViewMenuAction(
+  renderSettingsProvider: () -> RenderSettings
+) : DropDownAction(null, "View Options", StudioIcons.Common.VISIBILITY_INLINE) {
 
   init {
-    add(SettingsAction("Show Borders", RenderSettings::drawBorders))
-    add(SettingsAction("Show Layout Bounds", RenderSettings::drawUntransformedBounds))
-    add(SettingsAction("Show View Label", RenderSettings::drawLabel))
-    add(SettingsAction("Show Fold Hinge and Angle", RenderSettings::drawFold))
-    add(HighlightColorAction)
+    add(SettingsAction("Show Borders", renderSettingsProvider, RenderSettings::drawBorders))
+    add(SettingsAction("Show Layout Bounds", renderSettingsProvider, RenderSettings::drawUntransformedBounds))
+    add(SettingsAction("Show View Label", renderSettingsProvider, RenderSettings::drawLabel))
+    add(SettingsAction("Show Fold Hinge and Angle", renderSettingsProvider, RenderSettings::drawFold))
+    add(HighlightColorAction(renderSettingsProvider))
   }
 
   override fun update(e: AnActionEvent) {
@@ -67,7 +61,24 @@ object ViewMenuAction : DropDownAction(null, "View Options", StudioIcons.Common.
   override fun canBePerformed(context: DataContext) = context.getData(DEVICE_VIEW_MODEL_KEY)?.isActive == true
 }
 
-object HighlightColorAction : DefaultActionGroup("Recomposition Highlight Color", true) {
+private class SettingsAction(
+  actionName: String,
+  private val renderSettingsProvider: () -> RenderSettings,
+  private val property: KMutableProperty1<RenderSettings, Boolean>
+) : ToggleAction(actionName) {
+  override fun isSelected(event: AnActionEvent): Boolean {
+    return property.get(renderSettingsProvider())
+  }
+
+  override fun setSelected(event: AnActionEvent, state: Boolean) {
+    return property.set(renderSettingsProvider(), state)
+  }
+}
+
+@VisibleForTesting
+class HighlightColorAction(
+  renderSettingsProvider: () -> RenderSettings
+) : DefaultActionGroup("Recomposition Highlight Color", true) {
 
   override fun update(event: AnActionEvent) {
     super.update(event)
@@ -80,22 +91,26 @@ object HighlightColorAction : DefaultActionGroup("Recomposition Highlight Color"
     event.presentation.isEnabled = isConnected
   }
 
-  class ColorSettingAction(private val color: Int, name: String): CheckboxAction(name, null, null) {
-    override fun isSelected(event: AnActionEvent): Boolean =
-      event.getData(DEVICE_VIEW_SETTINGS_KEY)?.highlightColor == color
-
-    override fun setSelected(event: AnActionEvent, state: Boolean) {
-      event.getData(DEVICE_VIEW_SETTINGS_KEY)?.highlightColor = color
-      LayoutInspector.get(event)?.currentClient?.stats?.recompositionHighlightColor = color
-    }
-  }
-
   init {
-    add(ColorSettingAction(HIGHLIGHT_COLOR_RED, "Red"))
-    add(ColorSettingAction(HIGHLIGHT_COLOR_BLUE, "Blue"))
-    add(ColorSettingAction(HIGHLIGHT_COLOR_GREEN, "Green"))
-    add(ColorSettingAction(HIGHLIGHT_COLOR_YELLOW, "Yellow"))
-    add(ColorSettingAction(HIGHLIGHT_COLOR_PURPLE, "Purple"))
-    add(ColorSettingAction(HIGHLIGHT_COLOR_ORANGE, "Orange"))
+    add(ColorSettingAction("Red", HIGHLIGHT_COLOR_RED, renderSettingsProvider))
+    add(ColorSettingAction("Blue", HIGHLIGHT_COLOR_BLUE, renderSettingsProvider))
+    add(ColorSettingAction("Green", HIGHLIGHT_COLOR_GREEN, renderSettingsProvider))
+    add(ColorSettingAction("Yellow", HIGHLIGHT_COLOR_YELLOW, renderSettingsProvider))
+    add(ColorSettingAction("Purple", HIGHLIGHT_COLOR_PURPLE, renderSettingsProvider))
+    add(ColorSettingAction("Orange", HIGHLIGHT_COLOR_ORANGE, renderSettingsProvider))
+  }
+}
+
+private class ColorSettingAction(
+  actionName: String,
+  private val color: Int,
+  private val renderSettingsProvider: () -> RenderSettings
+): CheckboxAction(actionName, null, null) {
+  override fun isSelected(event: AnActionEvent): Boolean =
+    renderSettingsProvider().highlightColor == color
+
+  override fun setSelected(event: AnActionEvent, state: Boolean) {
+    renderSettingsProvider().highlightColor = color
+    LayoutInspector.get(event)?.currentClient?.stats?.recompositionHighlightColor = color
   }
 }
