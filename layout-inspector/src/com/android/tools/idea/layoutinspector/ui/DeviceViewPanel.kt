@@ -42,7 +42,6 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.ui.components.JBLoadingPanel
-import com.intellij.ui.components.JBLoadingPanelListener
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import org.jetbrains.annotations.TestOnly
@@ -58,7 +57,6 @@ import java.awt.event.KeyEvent.VK_SPACE
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.util.concurrent.Executor
-import java.util.concurrent.Executors.newSingleThreadExecutor
 import javax.swing.BorderFactory
 import javax.swing.JComponent
 import javax.swing.JLayeredPane
@@ -102,6 +100,8 @@ class DeviceViewPanel(
 
   private val targetSelectedAction = TargetSelectionActionFactory.getAction(layoutInspector)
 
+  private val layoutInspectorLoadingObserver = LayoutInspectorLoadingObserver(layoutInspector)
+
   private val contentPanel = DeviceViewContentPanel(
     inspectorModel = layoutInspector.inspectorModel,
     deviceModel = layoutInspector.deviceModel,
@@ -110,7 +110,7 @@ class DeviceViewPanel(
     pannable = this,
     selectTargetAction = targetSelectedAction,
     disposableParent = disposableParent,
-    isLoading = { isLoading },
+    isLoading = { layoutInspectorLoadingObserver.isLoading },
     isCurrentForegroundProcessDebuggable = { isCurrentForegroundProcessDebuggable },
     hasForegroundProcess = { hasForegroundProcess },
     renderLogic = layoutInspector.renderLogic,
@@ -185,7 +185,6 @@ class DeviceViewPanel(
 
   private val actionToolbar = createLayoutInspectorMainToolbar(this, layoutInspector, targetSelectedAction?.dropDownAction)
 
-  private var isLoading = false
   private var isCurrentForegroundProcessDebuggable = false
   private var hasForegroundProcess = false
 
@@ -205,9 +204,15 @@ class DeviceViewPanel(
   }
 
   init {
-    layoutInspector.stopInspectorListeners.add {
-      loadingPane.stopLoading()
-    }
+    layoutInspectorLoadingObserver.listeners.add(object : LayoutInspectorLoadingObserver.Listener {
+      override fun onStartLoading() {
+        loadingPane.startLoading()
+      }
+
+      override fun onStopLoading() {
+        loadingPane.stopLoading()
+      }
+    })
 
     layoutInspector.deviceModel?.newSelectedDeviceListeners?.add { _ ->
       // as soon as a new device is connected default to the process not being debuggable.
@@ -215,16 +220,6 @@ class DeviceViewPanel(
       // and protects us against cases when the device has no foreground process (eg. is locked)
       hasForegroundProcess = false
     }
-
-    loadingPane.addListener(object : JBLoadingPanelListener {
-      override fun onLoadingStart() {
-        isLoading = true
-      }
-
-      override fun onLoadingFinish() {
-        isLoading = false
-      }
-    })
 
     scrollPane.viewport.layout = viewportLayoutManager
     contentPanel.isFocusable = true
@@ -297,19 +292,6 @@ class DeviceViewPanel(
       }
     }
 
-    layoutInspector.processModel?.addSelectedProcessListeners(newSingleThreadExecutor()) {
-      if (layoutInspector.processModel.selectedProcess?.isRunning == true) {
-          loadingPane.startLoading()
-      }
-      if (layoutInspector.processModel.selectedProcess == null) {
-          loadingPane.stopLoading()
-      }
-    }
-    model.modificationListeners.add { old, new, _ ->
-      if (old == null && new != null) {
-        loadingPane.stopLoading()
-      }
-    }
     contentPanel.renderModel.modificationListeners.add {
       ApplicationManager.getApplication().invokeLater {
         actionToolbar.updateActionsImmediately()
