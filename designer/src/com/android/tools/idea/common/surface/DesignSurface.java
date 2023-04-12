@@ -469,15 +469,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return myViewport;
   }
 
-  /**
-   * When true, the surface will autoscroll when the mouse gets near the edges. See {@link JScrollPane#setAutoscrolls(boolean)}
-   */
-  protected void setSurfaceAutoscrolls(boolean enabled) {
-    if (myScrollPane != null) {
-      myScrollPane.setAutoscrolls(enabled);
-    }
-  }
-
   @SurfaceScreenScalingFactor
   @Override
   public double getScreenScalingFactor() {

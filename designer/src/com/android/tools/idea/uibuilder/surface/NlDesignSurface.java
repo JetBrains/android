@@ -100,6 +100,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.swing.JScrollPane;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -551,6 +552,15 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     myIsCanvasResizing = isResizing;
     // When in resize mode, allow the scrollable surface autoscroll so it follow the mouse.
     setSurfaceAutoscrolls(isResizing);
+  }
+
+  /**
+   * When true, the surface will autoscroll when the mouse gets near the edges. See {@link JScrollPane#setAutoscrolls(boolean)}
+   */
+  private void setSurfaceAutoscrolls(boolean enabled) {
+    if (myScrollPane != null) {
+      myScrollPane.setAutoscrolls(enabled);
+    }
   }
 
   /**
