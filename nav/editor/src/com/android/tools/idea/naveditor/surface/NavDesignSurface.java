@@ -467,11 +467,6 @@ public class NavDesignSurface extends DesignSurface<NavSceneManager> {
   }
 
   @Override
-  public boolean isLayoutDisabled() {
-    return false;
-  }
-
-  @Override
   public boolean setScale(double scale, int x, int y) {
     SceneView view = getFocusedSceneView();
     if (view == null) {

@@ -560,11 +560,6 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
     return myIsCanvasResizing;
   }
 
-  @Override
-  public boolean isLayoutDisabled() {
-    return myIsCanvasResizing;
-  }
-
   @NotNull
   public ScreenViewProvider getScreenViewProvider() {
     return myScreenViewProvider;

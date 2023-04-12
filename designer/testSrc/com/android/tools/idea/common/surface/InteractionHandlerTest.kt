@@ -122,8 +122,6 @@ private class Surface(project: Project, disposable: Disposable,
 
   override fun getScrollToVisibleOffset() = Dimension()
 
-  override fun isLayoutDisabled() = true
-
   override fun forceUserRequestedRefresh(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
 
   override fun forceRefresh(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)

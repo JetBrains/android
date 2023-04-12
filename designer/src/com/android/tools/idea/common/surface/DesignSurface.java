@@ -1871,11 +1871,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
     return null;
   }
 
-  /**
-   * Returns true we shouldn't currently try to relayout our content (e.g. if some other operations is in progress).
-   */
-  public abstract boolean isLayoutDisabled();
-
   @NotNull
   @Override
   public ImmutableCollection<Configuration> getConfigurations() {

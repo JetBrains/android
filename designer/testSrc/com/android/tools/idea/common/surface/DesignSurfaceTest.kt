@@ -367,9 +367,6 @@ class TestDesignSurface(project: Project, disposible: Disposable) :
   override fun getMaxScale() = 10.0
 
   override fun getScrollToVisibleOffset() = Dimension()
-
-  override fun isLayoutDisabled() = true
-
   override fun forceUserRequestedRefresh(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
 
   override fun forceRefresh(): CompletableFuture<Void> = CompletableFuture.completedFuture(null)
