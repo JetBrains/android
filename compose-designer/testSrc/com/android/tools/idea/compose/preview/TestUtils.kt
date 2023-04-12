@@ -15,12 +15,8 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.tools.idea.concurrency.AndroidDispatchers
-import com.android.tools.idea.projectsystem.BuildListener
-import com.android.tools.idea.projectsystem.setupBuildListener
 import com.android.tools.idea.rendering.RenderLogger
 import com.android.tools.idea.rendering.RenderResult
-import com.android.tools.idea.testing.AndroidGradleProjectRule
 import com.android.tools.idea.uibuilder.editor.multirepresentation.MultiRepresentationPreview
 import com.android.tools.idea.uibuilder.editor.multirepresentation.PreviewRepresentation
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
@@ -34,7 +30,6 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiFile
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.uast.UFile
@@ -81,47 +76,6 @@ internal fun UFile.method(name: String): UMethod? =
 internal fun HighlightInfo.descriptionWithLineNumber() =
   ReadAction.compute<String, Throwable> {
     "${StringUtil.offsetToLineNumber(highlighter!!.document.text, startOffset)}: ${description}"
-  }
-
-/**
- * Runs the [action] and waits for a build to happen. It returns the number of builds triggered by
- * [action].
- */
-internal fun runAndWaitForBuildToComplete(
-  projectRule: AndroidGradleProjectRule,
-  action: () -> Unit
-) =
-  runBlocking(AndroidDispatchers.workerThread) {
-    val buildComplete = CompletableDeferred<Unit>()
-    val disposable =
-      Disposer.newDisposable(projectRule.fixture.testRootDisposable, "Build Listener disposable")
-    var readyToListen = false
-    try {
-      setupBuildListener(
-        projectRule.project,
-        object : BuildListener {
-          override fun startedListening() {
-            readyToListen = true
-          }
-
-          override fun buildFailed() {
-            if (!readyToListen) return
-            buildComplete.complete(Unit)
-          }
-
-          override fun buildSucceeded() {
-            if (!readyToListen) return
-            buildComplete.complete(Unit)
-          }
-        },
-        disposable
-      )
-
-      action()
-      buildComplete.await()
-    } finally {
-      Disposer.dispose(disposable)
-    }
   }
 
 /**
