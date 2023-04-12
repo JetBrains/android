@@ -31,17 +31,18 @@ import org.jetbrains.annotations.NotNull;
  * Displays the "Project Structure" dialog.
  */
 public class AndroidShowStructureSettingsAction extends ShowStructureSettingsAction {
+  public AndroidShowStructureSettingsAction() {
+    super();
+    Presentation templatePresentation = getTemplatePresentation();
+    templatePresentation.setIcon(AllIcons.General.ProjectStructure);
+    templatePresentation.setText(ActionsBundle.actionText("ShowProjectStructureSettings"));
+    templatePresentation.setDescription(ActionsBundle.actionDescription("ShowProjectStructureSettings"));
+  }
 
    @Override
   public void update(@NotNull AnActionEvent e) {
-    Project project = e.getProject();
-    if (project != null) {
-      Presentation presentation = e.getPresentation();
-      presentation.setEnabledAndVisible(true);
-      presentation.setIcon(AllIcons.General.ProjectStructure);
-      presentation.setText(ActionsBundle.actionText("ShowProjectStructureSettings"));
-      presentation.setDescription(ActionsBundle.actionDescription("ShowProjectStructureSettings"));
-    }
+    Presentation presentation = e.getPresentation();
+    presentation.setEnabledAndVisible(e.getProject() != null);
     super.update(e);
   }
 

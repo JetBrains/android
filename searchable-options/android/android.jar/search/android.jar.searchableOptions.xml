@@ -163,6 +163,9 @@
     <option name="data" path="ActionManager" hit="Collect logs and diagnostic data" />
     <option name="diagnostic" path="ActionManager" hit="Collect logs and diagnostic data" />
     <option name="logs" path="ActionManager" hit="Collect logs and diagnostic data" />
+    <option name="configure" path="ActionManager" hit="Configure project structure" />
+    <option name="project" path="ActionManager" hit="Configure project structure" />
+    <option name="structure" path="ActionManager" hit="Configure project structure" />
     <option name="convert" path="ActionManager" hit="Convert to PNG..." />
     <option name="png" path="ActionManager" hit="Convert to PNG..." />
     <option name="to" path="ActionManager" hit="Convert to PNG..." />
@@ -633,6 +636,8 @@
     <option name="profile" path="ActionManager" hit="Profile selected configuration" />
     <option name="selected" path="ActionManager" hit="Profile selected configuration" />
     <option name="profile" path="ActionManager" hit="Profile..." />
+    <option name="project" path="ActionManager" hit="Project Structure..." />
+    <option name="structure" path="ActionManager" hit="Project Structure..." />
     <option name="a" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
     <option name="and" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
     <option name="as" path="ActionManager" hit="Pulls out style-related attributes from layout and extract them as a new style" />
