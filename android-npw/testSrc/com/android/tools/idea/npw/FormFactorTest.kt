@@ -18,10 +18,12 @@ package com.android.tools.idea.npw
 import com.android.sdklib.AndroidVersion.VersionCodes.KITKAT_WATCH
 import com.android.sdklib.AndroidVersion.VersionCodes.LOLLIPOP
 import com.android.sdklib.repository.targets.SystemImage
+import com.android.tools.adtui.device.FormFactor
 import org.junit.Test
 
 import com.android.tools.adtui.device.FormFactor.AUTOMOTIVE
 import com.android.tools.adtui.device.FormFactor.MOBILE
+import com.google.common.truth.Truth.assertThat
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import java.awt.geom.Arc2D.PIE
@@ -53,5 +55,12 @@ class FormFactorTest {
   fun automotiveNotSupportedOnAllowList() {
     assertFalse(AUTOMOTIVE.isSupported(SystemImage.WEAR_TAG, PIE))
     assertFalse(AUTOMOTIVE.isSupported(null, LOLLIPOP))
+  }
+
+  @Test
+  fun defaultApiShouldBeWithinMinMaxRange() {
+    for (formFactor in FormFactor.values()) {
+      assertThat(formFactor.defaultApi).isIn(formFactor.minOfflineApiLevel .. formFactor.maxOfflineApiLevel)
+    }
   }
 }
