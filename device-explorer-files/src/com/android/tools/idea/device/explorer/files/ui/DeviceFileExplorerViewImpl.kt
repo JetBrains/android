@@ -270,7 +270,7 @@ class DeviceFileExplorerViewImpl(
       val point = support.dropLocation.dropPoint
       val treePath = tree.getPathForLocation(point.getX().toInt(), point.getY().toInt()) ?: return false
       val node = DeviceFileEntryNode.fromNode(treePath.lastPathComponent)
-      return if (node != null && node.entry.isDirectory) {
+      return if (node != null && (node.entry.isDirectory || node.isSymbolicLinkToDirectory)) {
         listeners.forEach(Consumer { it.uploadFilesInvoked(node, files) })
         true
       }
