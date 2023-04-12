@@ -522,11 +522,6 @@ public abstract class DesignSurface<T extends SceneManager> extends EditorDesign
   }
 
   @NotNull
-  public SecondarySelectionModel getSecondarySelectionModel() {
-    return mySelectionModel;
-  }
-
-  @NotNull
   public abstract ItemTransferable getSelectionAsTransferable();
 
   /**
