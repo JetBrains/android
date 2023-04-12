@@ -55,6 +55,7 @@ public class SystemImagePreview {
   private JBLabel myApiLevel;
   private JBLabel myAndroidVersion;
   private JBLabel myAbi;
+  private JBLabel myTagDisplay;
   private HyperlinkLabel myDocumentationLink;
   private JBLabel myVendor;
   private JPanel myRootPanel;
@@ -86,6 +87,7 @@ public class SystemImagePreview {
     myReleaseName.setFont(AvdWizardUtils.TITLE_FONT);
     myApiLevel.setFont(AvdWizardUtils.TITLE_FONT);
     myAndroidVersion.setFont(AvdWizardUtils.TITLE_FONT);
+    myTagDisplay.setFont(AvdWizardUtils.TITLE_FONT);
     myVendor.setFont(AvdWizardUtils.TITLE_FONT);
     myDocumentationLink.setOpaque(false);
     myAbi.setFont(AvdWizardUtils.TITLE_FONT);
@@ -167,6 +169,9 @@ public class SystemImagePreview {
         vendorName = myImageDescription.getVendor();
       }
       myVendor.setText("<html>" + vendorName + "</html>");
+
+      myTagDisplay.setText("<html>" + tag.getDisplay() + "</html>");
+
       myAbi.setText(myImageDescription.getAbiType());
     }
   }

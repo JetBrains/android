@@ -169,7 +169,8 @@ public class SystemImagePreviewTest extends AndroidTestCase {
 
     imagePreview.setImage(mAndroidTvImageDescr);
 
-    assertNotNull(findLabel(fakeUi, "Google LLC"));
+    assertNotNull(findLabel(fakeUi, "Google LLC")); // Vendor
+    assertNotNull(findLabel(fakeUi, "Android TV")); // Tag Display
   }
 
   public void testGoogleTvVendorName() {
@@ -181,7 +182,8 @@ public class SystemImagePreviewTest extends AndroidTestCase {
 
     imagePreview.setImage(mGoogleTvImageDescr);
 
-    assertNotNull(findLabel(fakeUi, "Google LLC"));
+    assertNotNull(findLabel(fakeUi, "Google LLC")); // Vendor
+    assertNotNull(findLabel(fakeUi, "Google TV")); // Tag Display
   }
 
   public void testLocalizedChinaImages() {

@@ -134,7 +134,7 @@ public class AvdWizardUtils {
 
   // The AVD wizard needs a bit of extra width as its options panel is pretty dense
   private static final Dimension AVD_WIZARD_MIN_SIZE = JBUI.size(600, 400);
-  private static final Dimension AVD_WIZARD_SIZE = JBUI.size(1000, 650);
+  private static final Dimension AVD_WIZARD_SIZE = JBUI.size(1100, 750);
 
   private static final String AVD_WIZARD_HELP_URL = "https://developer.android.com/r/studio-ui/avd-manager.html";
 
