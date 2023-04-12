@@ -218,12 +218,6 @@
     <option name="navigation" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
     <option name="other" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
     <option name="resources" hit="Other Resources (e.g. Layout, Menu, Navigation):" />
-    <option name="design" hit="Show lint icons on design surface" />
-    <option name="icons" hit="Show lint icons on design surface" />
-    <option name="lint" hit="Show lint icons on design surface" />
-    <option name="on" hit="Show lint icons on design surface" />
-    <option name="show" hit="Show lint icons on design surface" />
-    <option name="surface" hit="Show lint icons on design surface" />
     <option name="split" hit="Split" />
   </configurable>
 </options>

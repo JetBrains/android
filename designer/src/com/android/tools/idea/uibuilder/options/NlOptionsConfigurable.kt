@@ -80,10 +80,6 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
     val showMagnify = MAGNIFY_SUPPORTED && !GraphicsEnvironment.isHeadless()
 
     return panel {
-      row {
-        checkBox("Show lint icons on design surface")
-          .bindSelected(state::isShowLint, state::setShowLint)
-      }
       group("Default Editor Mode") {
         row("Drawables:") { preferredDrawablesEditorMode = editorModeComboBox().component }
         row("Other Resources (e.g. Layout, Menu, Navigation):") {
