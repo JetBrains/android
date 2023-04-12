@@ -18,8 +18,11 @@ package com.android.tools.idea.actions;
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
 import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
 import static com.intellij.openapi.util.text.StringUtil.pluralize;
+import static org.jetbrains.kotlin.idea.util.application.ApplicationUtilsKt.isUnitTestMode;
 
+import com.android.tools.idea.gradle.dependencies.DependenciesHelper;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.DependenciesModel;
 import com.android.tools.idea.gradle.project.GradleProjectInfo;
@@ -42,13 +45,17 @@ import com.intellij.codeInspection.inferNullity.InferNullityAnnotationsAction;
 import com.intellij.codeInspection.inferNullity.NullityInferrer;
 import com.intellij.history.LocalHistory;
 import com.intellij.history.LocalHistoryAction;
+import com.intellij.openapi.application.AppUIExecutor;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootModificationUtil;
 import com.intellij.openapi.ui.Messages;
@@ -56,6 +63,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Factory;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -72,7 +80,6 @@ import com.intellij.usages.UsageViewManager;
 import com.intellij.usages.UsageViewPresentation;
 import com.intellij.util.Processor;
 import com.intellij.util.SequentialModalProgressTask;
-import com.intellij.util.containers.ContainerUtil;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -81,6 +88,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import javax.swing.JComponent;
+import one.util.streamex.StreamEx;
 import org.jetbrains.android.refactoring.MigrateToAndroidxUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -116,7 +124,13 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     }
 
     if (usageInfos.length < 5) {
-      ApplicationManager.getApplication().invokeLater(applyRunnable(project, () -> usageInfos));
+      if (isUnitTestMode()) {
+        // don't use invokeLater for test mode
+        applyRunnable(project, () -> usageInfos).run();
+      }
+      else {
+        DumbService.getInstance(project).smartInvokeLater(applyRunnable(project, () -> usageInfos));
+      }
     }
     else {
       showUsageView(project, usageInfos, scope, this);
@@ -161,7 +175,8 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
       if (info != null && info.getBuildSdkVersion() != null && info.getBuildSdkVersion().getFeatureLevel() < MIN_SDK_WITH_NULLABLE) {
         modulesWithLowVersion.add(module);
       }
-      GradleBuildModel buildModel = GradleBuildModel.get(module);
+      ProjectBuildModel projectModel = ProjectBuildModel.get(module.getProject());
+      GradleBuildModel buildModel = projectModel.getModuleBuildModel(module);
       if (buildModel == null) {
         LOG.warn("Unable to find Gradle build model for module " + module.getName());
         continue;
@@ -228,7 +243,7 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
     return false;
   }
 
-  private void syncAndRestartAnalysis(@NotNull Project project, @NotNull AnalysisScope scope) {
+  protected void syncAndRestartAnalysis(@NotNull Project project, @NotNull AnalysisScope scope) {
     assert ApplicationManager.getApplication().isDispatchThread();
 
     ListenableFuture<ProjectSystemSyncManager.SyncResult> syncResult = ProjectSystemUtil.getProjectSystem(project)
@@ -250,27 +265,27 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
   }
 
   // Intellij code from InferNullityAnnotationsAction.
-  private static Runnable applyRunnable(Project project, Computable<UsageInfo[]> computable) {
+  protected static Runnable applyRunnable(Project project, Computable<UsageInfo[]> computable) {
     return () -> {
-      LocalHistoryAction action = LocalHistory.getInstance().startAction(INFER_NULLITY_ANNOTATIONS);
+      final LocalHistoryAction action = LocalHistory.getInstance().startAction(INFER_NULLITY_ANNOTATIONS);
       try {
-        WriteCommandAction.writeCommandAction(project).withName(INFER_NULLITY_ANNOTATIONS).run(() -> {
-          UsageInfo[] infos = computable.compute();
+        ReadAction.run(() -> {
+          final UsageInfo[] infos = computable.compute();
           if (infos.length > 0) {
+            Runnable command = () -> {
+              final Set<VirtualFile> files =
+                StreamEx.of(infos).map(UsageInfo::getElement).nonNull()
+                  .map(PsiElement::getContainingFile).nonNull()
+                  .map(PsiFile::getVirtualFile).nonNull()
+                  .toCollection(LinkedHashSet::new);
+              if (!FileModificationService.getInstance().prepareVirtualFilesForWrite(project, files)) return;
 
-            Set<PsiElement> elements = new LinkedHashSet<>();
-            for (UsageInfo info : infos) {
-              PsiElement element = info.getElement();
-              if (element != null) {
-                ContainerUtil.addIfNotNull(elements, element.getContainingFile());
-              }
-            }
-            if (!FileModificationService.getInstance().preparePsiElementsForWrite(elements)) return;
-
-            SequentialModalProgressTask progressTask = new SequentialModalProgressTask(project, INFER_NULLITY_ANNOTATIONS, false);
-            progressTask.setMinIterationTime(200);
-            progressTask.setTask(new AnnotateTask(project, progressTask, infos));
-            ProgressManager.getInstance().run(progressTask);
+              final SequentialModalProgressTask progressTask = new SequentialModalProgressTask(project, INFER_NULLITY_ANNOTATIONS);
+              progressTask.setMinIterationTime(200);
+              progressTask.setTask(new AnnotateTask(project, progressTask, infos));
+              ProgressManager.getInstance().run(progressTask);
+            };
+            CommandProcessor.getInstance().executeCommand(project, command, INFER_NULLITY_ANNOTATIONS, null);
           }
           else {
             NullityInferrer.nothingFoundMessage(project);
@@ -281,12 +296,6 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
         action.finish();
       }
     };
-  }
-
-  // Intellij code from InferNullityAnnotationsAction.
-  @Override
-  protected void restartAnalysis(Project project, AnalysisScope scope) {
-    ApplicationManager.getApplication().invokeLater(() -> analyze(project, scope));
   }
 
   // Intellij code from InferNullityAnnotationsAction.
@@ -344,9 +353,12 @@ public class AndroidInferNullityAnnotationAction extends InferNullityAnnotations
   private static void addDependency(@NotNull Module module, @Nullable String libraryCoordinate) {
     if (isNotEmpty(libraryCoordinate)) {
       ModuleRootModificationUtil.updateModel(module, model -> {
-        GradleBuildModel buildModel = GradleBuildModel.get(module);
+        ProjectBuildModel projectModel = ProjectBuildModel.get(module.getProject());
+        GradleBuildModel buildModel = projectModel.getModuleBuildModel(module);
         if (buildModel != null) {
-          buildModel.dependencies().addArtifact(IMPLEMENTATION, libraryCoordinate);
+          DependenciesHelper helper = new DependenciesHelper(projectModel);
+          helper.addDependency(IMPLEMENTATION, libraryCoordinate, buildModel);
+          projectModel.applyChanges();
           buildModel.applyChanges();
         }
       });

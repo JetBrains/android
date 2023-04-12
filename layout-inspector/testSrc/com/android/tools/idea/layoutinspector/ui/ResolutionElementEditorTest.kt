@@ -33,7 +33,6 @@ import com.android.tools.idea.layoutinspector.properties.InspectorPropertiesMode
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
 import com.android.tools.idea.layoutinspector.util.CheckUtil
-import com.android.tools.idea.layoutinspector.util.ComponentUtil.flatten
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.testing.AndroidProjectRule
@@ -62,6 +61,7 @@ import javax.swing.UIManager
 import javax.swing.plaf.metal.MetalLookAndFeel
 import javax.swing.plaf.metal.MetalTheme
 import com.android.tools.idea.layoutinspector.properties.PropertyType
+import com.android.tools.idea.testing.ui.flatten
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/ui"
 private const val DIFF_THRESHOLD = 0.01
@@ -223,7 +223,7 @@ class ResolutionElementEditorTest {
   }
 
   private fun findFirstLinkComponent(editor: ResolutionElementEditor): JComponent? =
-    flatten(editor).filter { (it as? JComponent)?.actionMap?.get("open") != null }[0] as JComponent?
+    editor.flatten(false).filter { (it as? JComponent)?.actionMap?.get("open") != null }[0] as JComponent?
 }
 
 class IntelliJLafRule : ExternalResource() {

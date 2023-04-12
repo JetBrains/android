@@ -32,7 +32,12 @@ data class ProcessInfo(
   val pid: Int,
 
   /**
-   * The name of this entry in its parent directory.
+   * The application ID
+   */
+  val packageName: String? = null,
+
+  /**
+   * The name of this process.
    */
   val processName: String? = null,
 

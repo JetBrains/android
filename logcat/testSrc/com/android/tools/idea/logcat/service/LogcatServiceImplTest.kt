@@ -23,7 +23,7 @@ import com.android.ddmlib.testing.FakeAdbRule
 import com.android.fakeadbserver.DeviceState
 import com.android.fakeadbserver.FakeAdbServer
 import com.android.fakeadbserver.ShellProtocolType
-import com.android.fakeadbserver.services.ServiceOutput
+import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.fakeadbserver.shellcommandhandlers.LogcatCommandHandler
 import com.android.fakeadbserver.shellcommandhandlers.StatusWriter
 import com.android.processmonitor.monitor.ProcessNameMonitor
@@ -33,10 +33,10 @@ import com.android.tools.idea.adblib.AdbLibService
 import com.android.tools.idea.adblib.testing.TestAdbLibService
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.devices.Device
-import com.android.tools.idea.logcat.logcatMessage
 import com.android.tools.idea.logcat.message.LogLevel.DEBUG
 import com.android.tools.idea.logcat.message.LogLevel.INFO
 import com.android.tools.idea.logcat.message.LogcatMessage
+import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.ProjectRule
@@ -311,13 +311,13 @@ class LogcatServiceImplTest {
     var lastArgs: String? = null
     override fun execute(fakeAdbServer: FakeAdbServer,
                          statusWriter: StatusWriter,
-                         serviceOutput: ServiceOutput,
+                         shellCommandOutput: ShellCommandOutput,
                          device: DeviceState,
                          shellCommand: String,
                          shellCommandArgs: String?) {
       lastDeviceId = device.deviceId
       lastArgs = shellCommandArgs
-      super.execute(fakeAdbServer, statusWriter, serviceOutput, device, shellCommand, shellCommandArgs)
+      super.execute(fakeAdbServer, statusWriter, shellCommandOutput, device, shellCommand, shellCommandArgs)
     }
   }
 }

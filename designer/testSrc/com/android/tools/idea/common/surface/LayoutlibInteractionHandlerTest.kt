@@ -18,7 +18,7 @@ package com.android.tools.idea.common.surface
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.fixtures.KeyEventBuilder
 import com.android.tools.idea.common.scene.Scene
-import com.android.tools.idea.uibuilder.surface.PanInteraction
+import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
 import com.android.tools.idea.uibuilder.surface.TestSceneView
 import com.intellij.testFramework.assertInstanceOf
 import org.junit.Test

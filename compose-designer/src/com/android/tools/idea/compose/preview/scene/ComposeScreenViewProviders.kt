@@ -24,14 +24,14 @@ import com.android.tools.idea.compose.preview.COMPOSE_PREVIEW_ELEMENT_INSTANCE
 import com.android.tools.idea.compose.preview.util.isRootComponentSelected
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.surface.BorderColor
-import com.android.tools.idea.uibuilder.surface.BorderLayer
-import com.android.tools.idea.uibuilder.surface.ClassLoadingDebugLayer
 import com.android.tools.idea.uibuilder.surface.DiagnosticsLayer
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer
 import com.android.tools.idea.uibuilder.surface.ScreenViewProvider
+import com.android.tools.idea.uibuilder.surface.layer.BorderColor
+import com.android.tools.idea.uibuilder.surface.layer.BorderLayer
+import com.android.tools.idea.uibuilder.surface.layer.ClassLoadingDebugLayer
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.common.collect.ImmutableList
 import com.google.wireless.android.sdk.stats.LayoutEditorState
@@ -51,7 +51,7 @@ internal val COMPOSE_SCREEN_VIEW_PROVIDER =
             .apply {
               if (it.hasBorderLayer()) {
                 add(
-                  BorderLayer(it, true) { sceneView ->
+                  BorderLayer(it, true, { surface.rotateSurfaceDegree }) { sceneView ->
                     when {
                       StudioFlags.COMPOSE_PREVIEW_SELECTION.get() &&
                         sceneView.isRootComponentSelected() -> BorderColor.SELECTED

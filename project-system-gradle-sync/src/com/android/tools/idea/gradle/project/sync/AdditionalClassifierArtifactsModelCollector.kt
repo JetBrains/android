@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.gradle.project.sync
 
+import com.android.ide.common.repository.AgpVersion
 import com.android.ide.gradle.model.AdditionalClassifierArtifactsModelParameter
 import com.android.ide.gradle.model.ArtifactIdentifier
 import com.android.ide.gradle.model.artifacts.AdditionalClassifierArtifactsModel
@@ -27,12 +28,17 @@ internal fun getAdditionalClassifierArtifactsModel(
   inputModules: List<AndroidModule>,
   libraryResolver: (LibraryReference) -> IdeUnresolvedLibrary,
   cachedLibraries: Collection<String>,
-  downloadAndroidxUISamplesSources: Boolean
+  downloadAndroidxUISamplesSources: Boolean,
+  useMultiVariantAdditionalArtifactSupport: Boolean,
 ) {
   actionRunner.runActions(
     inputModules.map { module ->
       ActionToRun(fun(controller: BuildController) {
         if (module.agpVersion?.isAtLeast(3, 5, 0) != true) return
+        // In later versions of AGP the information contained within the AdditionalClassifierArtifactsModel has been moved
+        // to the individual libraries.
+        val agp810a08 = AgpVersion.parse("8.1.0-alpha08")
+        if (module.agpVersion >= agp810a08 && useMultiVariantAdditionalArtifactSupport) return
 
         // Collect the library identifiers to download sources and javadoc for, and filter out the cached ones and local jar/aars.
         val identifiers = module.getLibraryDependencies(libraryResolver).filter {
@@ -40,18 +46,16 @@ internal fun getAdditionalClassifierArtifactsModel(
         }
 
         // Query for AdditionalClassifierArtifactsModel model.
-        if (identifiers.isNotEmpty()) {
-          // Since we operate on one module at a time it is safe to run on multiple threads.
-          module.additionalClassifierArtifacts =
-            controller.findModel(
-              module.findModelRoot,
-              AdditionalClassifierArtifactsModel::class.java,
-              AdditionalClassifierArtifactsModelParameter::class.java
-            ) { parameter ->
-              parameter.artifactIdentifiers = identifiers
-              parameter.downloadAndroidxUISamplesSources = downloadAndroidxUISamplesSources
-            }
-        }
+        // Since we operate on one module at a time it is safe to run on multiple threads.
+        module.additionalClassifierArtifacts =
+          controller.findModel(
+            module.findModelRoot,
+            AdditionalClassifierArtifactsModel::class.java,
+            AdditionalClassifierArtifactsModelParameter::class.java
+          ) { parameter ->
+            parameter.artifactIdentifiers = identifiers
+            parameter.downloadAndroidxUISamplesSources = downloadAndroidxUISamplesSources
+          }
       })  // No known incompatibilities if Gradle is compatible.
     }
   )

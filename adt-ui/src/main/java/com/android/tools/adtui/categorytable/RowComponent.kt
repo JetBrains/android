@@ -15,6 +15,8 @@
  */
 package com.android.tools.adtui.categorytable
 
+import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBUI
@@ -109,15 +111,17 @@ internal class CategoryRowComponent<T>(val path: CategoryList<T>) : RowComponent
 
 /**
  * The UI component of a row in the table representing a value (rather than a category). Contains
- * child components for each column. The value may be mutable; changes to the value will be
- * reflected upon calling [updateValues].
+ * child components for each column. The value may be mutable; however, changes to the value will
+ * only be reflected when the [value] field is updated. Thus, immutable values will generally be
+ * less error-prone.
  */
 internal class ValueRowComponent<T>(
+  val dataProvider: ValueRowDataProvider<T>,
   header: JTableHeader,
   columns: ColumnList<T>,
   initialValue: T,
   primaryKey: Any
-) : RowComponent<T>() {
+) : RowComponent<T>(), DataProvider {
   /** The components of this row, in model order. */
   val componentList: List<ColumnComponent<T, *, *>> =
     columns.map { ColumnComponent(it, initialValue) }
@@ -132,9 +136,11 @@ internal class ValueRowComponent<T>(
 
   override var indent: Int by valueRowLayout::indent
 
-  fun updateValues(value: T) {
-    componentList.forEach { it.updateValue(value) }
-  }
+  var value = initialValue
+    set(value) {
+      field = value
+      componentList.forEach { it.updateValue(value) }
+    }
 
   override val rowKey = RowKey.ValueRowKey<T>(primaryKey)
 
@@ -151,6 +157,18 @@ internal class ValueRowComponent<T>(
       column.updateValue(rowValue, component, column.attribute.value(rowValue))
     }
   }
+
+  override fun getData(dataId: String): Any? = dataProvider(dataId, value)
+}
+
+typealias ValueRowDataProvider<T> = (String, T) -> Any?
+
+object NullValueRowDataProvider : ValueRowDataProvider<Any?> {
+  override fun invoke(p1: String, p2: Any?): Any? = null
+}
+
+class DefaultValueRowDataProvider<T>(private val dataKey: DataKey<T>) : ValueRowDataProvider<T> {
+  override fun invoke(dataId: String, value: T) = value.takeIf { dataKey.`is`(dataId) }
 }
 
 private class ValueRowLayout(val header: JTableHeader) : LayoutManager {

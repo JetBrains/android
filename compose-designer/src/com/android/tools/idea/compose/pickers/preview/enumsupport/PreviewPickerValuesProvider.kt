@@ -32,6 +32,7 @@ import com.android.tools.idea.compose.preview.PARAMETER_LOCALE
 import com.android.tools.idea.compose.preview.PARAMETER_UI_MODE
 import com.android.tools.idea.compose.preview.PARAMETER_WALLPAPER
 import com.android.tools.idea.compose.preview.message
+import com.android.tools.idea.configurations.CanonicalDeviceType
 import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.configurations.DeviceGroup
 import com.android.tools.idea.configurations.groupDevices
@@ -77,10 +78,22 @@ object PreviewPickerValuesProvider {
 
 private fun createDeviceEnumProvider(module: Module): EnumValuesProvider = {
   val devicesEnumValueBuilder = DeviceEnumValueBuilder()
-  getGroupedDevices(module).forEach { (group, devices) ->
+  val groupedDevices = getGroupedDevices(module)
+  groupedDevices.forEach { (group, devices) ->
     when (group) {
       DeviceGroup.NEXUS,
       DeviceGroup.NEXUS_XL -> devices.forEach(devicesEnumValueBuilder::addPhone)
+      DeviceGroup.CANONICAL_DEVICE -> {
+        devices
+          .firstOrNull { it.id == CanonicalDeviceType.SMALL_PHONE.id }
+          ?.let { devicesEnumValueBuilder::addPhone }
+        devices
+          .firstOrNull { it.id == CanonicalDeviceType.MEDIUM_PHONE.id }
+          ?.let { devicesEnumValueBuilder::addPhone }
+        devices
+          .firstOrNull { it.id == CanonicalDeviceType.MEDIUM_TABLET.id }
+          ?.let { devicesEnumValueBuilder::addTablet }
+      }
       DeviceGroup.NEXUS_TABLET -> devices.forEach(devicesEnumValueBuilder::addTablet)
       DeviceGroup.OTHER, // Group other with generic to guarantee all devices are available
       DeviceGroup.GENERIC -> devices.forEach(devicesEnumValueBuilder::addGeneric)

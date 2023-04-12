@@ -361,7 +361,22 @@ public class RenderErrorContributor {
 
   @VisibleForTesting
   public void performClick(@NotNull String url) {
-    myLinkManager.handleUrl(url, myModule, mySourceFile, myDataContext, true, myDesignSurface);
+    myLinkManager.handleUrl(url, myModule, mySourceFile, true, new HtmlLinkManager.RefreshableSurface() {
+      @Override
+      public void handleRefreshRenderUrl() {
+        if (myDesignSurface != null) {
+          RenderUtils.clearCache(myDesignSurface.getConfigurations());
+          myDesignSurface.forceUserRequestedRefresh();
+        }
+      }
+
+      @Override
+      public void requestRender() {
+        if (myDesignSurface != null) {
+          myDesignSurface.forceUserRequestedRefresh();
+        }
+      }
+    });
   }
 
   private void reportRelevantCompilationErrors(@NotNull RenderLogger logger) {
@@ -580,7 +595,7 @@ public class RenderErrorContributor {
       String text = Throwables.getStackTraceAsString(throwable);
       try {
         CopyPasteManager.getInstance().setContents(new StringSelection(text));
-        HtmlLinkManager.showNotification("Stack trace copied to clipboard");
+        StudioHtmlLinkManager.showNotification("Stack trace copied to clipboard");
       }
       catch (Exception ignore) {
       }
@@ -984,13 +999,13 @@ public class RenderErrorContributor {
                                          GoogleMavenArtifactId.ANDROIDX_CONSTRAINT_LAYOUT :
                                          GoogleMavenArtifactId.CONSTRAINT_LAYOUT;
         builder.addLink("Add constraint-layout library dependency to the project",
-                        myLinkManager.createAddDependencyUrl(artifact));
+                        myLinkManager.createAddDependencyUrl(artifact.toString()));
         builder.add(", ");
       }
       if (CLASS_FLEXBOX_LAYOUT.equals(className)) {
         builder.newline().addNbsps(3);
         builder.addLink("Add flexbox layout library dependency to the project",
-                        myLinkManager.createAddDependencyUrl(GoogleMavenArtifactId.FLEXBOX_LAYOUT));
+                        myLinkManager.createAddDependencyUrl(GoogleMavenArtifactId.FLEXBOX_LAYOUT.toString()));
         builder.add(", ");
       }
 

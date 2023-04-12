@@ -60,29 +60,22 @@ import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
-import com.android.tools.idea.rendering.AndroidXmlFiles;
 import com.android.tools.idea.rendering.IRenderLogger;
 import com.android.tools.idea.rendering.RenderTask;
-import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.ResourceFilesUtil;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.rendering.parsers.RenderXmlFile;
+import com.android.tools.rendering.parsers.RenderXmlTag;
+import com.android.tools.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.codeInsight.template.emmet.generators.LoremGenerator;
-import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.ui.ColorUtil;
 import com.intellij.util.ui.UIUtil;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -115,15 +108,11 @@ public class LayoutPullParsers {
   private LayoutPullParsers() {}
 
   /**
-   * Returns whether the passed file is an {@link XmlFile} and starts with any of the given rootTags
+   * Returns whether the passed {@link RenderXmlFile} starts with any of the given rootTags.
    */
-  private static boolean isXmlWithRootTag(@NotNull PsiFile file, @NotNull String[] rootTags) {
-    if (!(file instanceof XmlFile)) {
-      return false;
-    }
-
+  private static boolean isXmlWithRootTag(@NotNull RenderXmlFile file, @NotNull String[] rootTags) {
     ApplicationManager.getApplication().assertReadAccessAllowed();
-    XmlTag rootTag = ((XmlFile)file).getRootTag();
+    RenderXmlTag rootTag = file.getRootTag();
     if (rootTag == null) {
       return false;
     }
@@ -138,8 +127,8 @@ public class LayoutPullParsers {
     return false;
   }
 
-  public static boolean isSupported(@NotNull PsiFile file) {
-    ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
+  public static boolean isSupported(@NotNull RenderXmlFile file) {
+    ResourceFolderType folderType = file.getFolderType();
     if (folderType == null) {
       return false;
     }
@@ -171,7 +160,7 @@ public class LayoutPullParsers {
       return ApplicationManager.getApplication().runReadAction((Computable<ILayoutPullParser>)() -> create(renderTask));
     }
 
-    XmlFile file = renderTask.getXmlFile();
+    RenderXmlFile file = renderTask.getXmlFile();
     if (file == null) {
       throw new IllegalArgumentException("RenderTask always should always have PsiFile when it has ResourceFolderType");
     }
@@ -184,7 +173,7 @@ public class LayoutPullParsers {
         HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
         ResourceResolver resourceResolver = renderTask.getContext().getConfiguration().getResourceResolver();
         boolean useToolsNamespace = renderTask.getShowWithToolsVisibilityAndPosition();
-        return LayoutPsiPullParser
+        return LayoutRenderPullParser
           .create(file, logger, Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver, manager, useToolsNamespace);
       }
       case DRAWABLE:
@@ -196,7 +185,7 @@ public class LayoutPullParsers {
         return createMenuParser(file, renderTask);
       case XML: {
         // Switch on root type
-        XmlTag rootTag = file.getRootTag();
+        RenderXmlTag rootTag = file.getRootTag();
         if (rootTag != null) {
           String tag = rootTag.getName();
           if (tag.equals(TAG_APPWIDGET_PROVIDER)) {
@@ -209,7 +198,7 @@ public class LayoutPullParsers {
             IRenderLogger logger = renderTask.getLogger();
             HardwareConfig hardwareConfig = renderTask.getHardwareConfigHelper().getConfig();
             ResourceResolver resourceResolver = renderTask.getContext().getConfiguration().getResourceResolver();
-            return LayoutPsiPullParser.create(file, logger,  Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver, manager, true);
+            return LayoutRenderPullParser.create(file, logger, Collections.emptySet(), hardwareConfig.getDensity(), resourceResolver, manager, true);
           }
         }
         return null;
@@ -226,20 +215,20 @@ public class LayoutPullParsers {
     }
   }
 
-  private static ILayoutPullParser createDrawableParser(XmlFile file) {
+  private static ILayoutPullParser createDrawableParser(RenderXmlFile file) {
     // Build up a menu layout based on what we find in the menu file
     // This is *simulating* what happens in an Android app. We should get first class
     // menu rendering support in layoutlib to properly handle this.
     Document document = DomPullParser.createEmptyPlainDocument();
     assert document != null;
-    Element imageView = addRootElement(document, IMAGE_VIEW, IdeResourcesUtil.getResourceNamespace(file));
+    Element imageView = addRootElement(document, IMAGE_VIEW, file.getResourceNamespace());
     setAndroidAttr(imageView, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT);
     setAndroidAttr(imageView, ATTR_LAYOUT_HEIGHT, VALUE_FILL_PARENT);
 
-    ResourceFolderType type = IdeResourcesUtil.getFolderType(file);
+    ResourceFolderType type = file.getFolderType();
     assert type != null;
 
-    setAndroidAttr(imageView, ATTR_SRC, file.getVirtualFile().getPath());
+    setAndroidAttr(imageView, ATTR_SRC, file.getRelativePath());
 
     if (DEBUG) {
       //noinspection UseOfSystemOutOrSystemErr
@@ -249,14 +238,14 @@ public class LayoutPullParsers {
     // Allow tools:background in drawable XML files to manually set the render background.
     // Useful for example when dealing with vectors or shapes where the color happens to
     // be close to the IDE default background.
-    String background = AndroidXmlFiles.getRootTagAttributeSafely(file, ATTR_BACKGROUND, TOOLS_URI);
+    String background = file.getRootTagAttribute(ATTR_BACKGROUND, TOOLS_URI);
     if (background != null && !background.isEmpty()) {
       setAndroidAttr(imageView, ATTR_BACKGROUND, background);
     }
 
     // Allow tools:scaleType in drawable XML files to manually set the scale type. This is useful
     // when the drawable looks poor in the default scale type. (http://b.android.com/76267)
-    String scaleType = AndroidXmlFiles.getRootTagAttributeSafely(file, ATTR_SCALE_TYPE, TOOLS_URI);
+    String scaleType = file.getRootTagAttribute(ATTR_SCALE_TYPE, TOOLS_URI);
     if (scaleType != null && !scaleType.isEmpty()) {
       setAndroidAttr(imageView, ATTR_SCALE_TYPE, scaleType);
     }
@@ -265,21 +254,21 @@ public class LayoutPullParsers {
   }
 
   @NotNull
-  private static ILayoutPullParser createMenuParser(@NotNull XmlFile file, @NotNull RenderTask task) {
-    XmlTag tag = file.getRootTag();
+  private static ILayoutPullParser createMenuParser(@NotNull RenderXmlFile file, @NotNull RenderTask task) {
+    RenderXmlTag tag = file.getRootTag();
 
     // LayoutLib renders a menu in an app bar by default. If the menu resource has a tools:showIn="navigation_view" attribute, tell
     // LayoutLib to render it in a navigation view instead.
     if (tag != null && Objects.equals(tag.getAttributeValue(ATTR_SHOW_IN, TOOLS_URI), "navigation_view")) {
       task.setDecorations(false);
-      return MenuLayoutParserFactory.createInNavigationView(file);
+      return MenuLayoutParserFactory.createInNavigationView(file, task.getContext().getModule().getDependencies());
     }
 
     return MenuLayoutParserFactory.create(file, task.getLayoutlibCallback());
   }
 
   @Nullable
-  private static ILayoutPullParser createWidgetParser(XmlTag rootTag) {
+  private static ILayoutPullParser createWidgetParser(RenderXmlTag rootTag) {
     // See http://developer.android.com/guide/topics/appwidgets/index.html:
 
     // Build up a menu layout based on what we find in the menu file
@@ -293,7 +282,7 @@ public class LayoutPullParsers {
 
     Document document = DomPullParser.createEmptyPlainDocument();
     assert document != null;
-    Element root = addRootElement(document, layout != null ? VIEW_INCLUDE : IMAGE_VIEW, IdeResourcesUtil.getResourceNamespace(rootTag));
+    Element root = addRootElement(document, layout != null ? VIEW_INCLUDE : IMAGE_VIEW, rootTag.getResourceNamespace());
     if (layout != null) {
       root.setAttribute(ATTR_LAYOUT, layout);
       setAndroidAttr(root, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT);
@@ -315,8 +304,8 @@ public class LayoutPullParsers {
 
   @VisibleForTesting
   @Nullable
-  static ILayoutPullParser createFontFamilyParser(XmlFile file, @NotNull Function<String, FontFamily> getDownloadableFont) {
-    XmlTag rootTag = file.getRootTag();
+  static ILayoutPullParser createFontFamilyParser(@NotNull RenderXmlFile file, @NotNull Function<String, FontFamily> getDownloadableFont) {
+    RenderXmlTag rootTag = file.getRootTag();
 
     if (rootTag == null || !TAG_FONT_FAMILY.equals(rootTag.getName())) {
       return null;
@@ -324,22 +313,22 @@ public class LayoutPullParsers {
 
     Document document = DomPullParser.createEmptyPlainDocument();
     assert document != null;
-    Element rootLayout = addRootElement(document, LINEAR_LAYOUT, IdeResourcesUtil.getResourceNamespace(file));
+    Element rootLayout = addRootElement(document, LINEAR_LAYOUT, file.getResourceNamespace());
     setAndroidAttr(rootLayout, ATTR_LAYOUT_WIDTH, VALUE_FILL_PARENT);
     setAndroidAttr(rootLayout, ATTR_LAYOUT_HEIGHT, VALUE_WRAP_CONTENT);
     setAndroidAttr(rootLayout, ATTR_ORIENTATION, VALUE_VERTICAL);
 
     String loremText = new LoremGenerator().generate(8, true);
 
-    ResourceFolderType type = IdeResourcesUtil.getFolderType(file);
+    ResourceFolderType type = file.getFolderType();
     assert type != null;
 
     String fontRefName = PREFIX_RESOURCE_REF + type.getName() + "/" + SdkUtils.fileNameToResourceName(file.getName());
 
-    XmlTag[] fontSubTags = rootTag.getSubTags();
+    List<RenderXmlTag> fontSubTags = rootTag.getSubTags();
     Stream<String[]> fontStream;
 
-    if (fontSubTags.length == 0) {
+    if (fontSubTags.isEmpty()) {
       // This might be a downloadable font. Check if we have it.
       FontFamily downloadedFont = getDownloadableFont.apply(fontRefName);
 
@@ -352,7 +341,7 @@ public class LayoutPullParsers {
         .map(font -> new String[]{fontRefName, font.getFontStyle()}) : Stream.empty();
     }
     else {
-      fontStream = Arrays.stream(fontSubTags)
+      fontStream = fontSubTags.stream()
         .map(font -> new String[]{font.getAttributeValue("font", ANDROID_URI), "normal"})
         .filter(font -> StringUtil.isNotEmpty(font[0]));
     }
@@ -379,38 +368,6 @@ public class LayoutPullParsers {
     }
 
     return DomPullParser.createFromDocument(document);
-  }
-
-  public static boolean needSave(@Nullable ResourceFolderType type) {
-    // Only layouts are delegates to the LayoutlibCallback#getParser where we can supply a
-    // parser directly from the live document; others read contents from disk via layoutlib.
-    // TODO: Work on adding layoutlib support for this.
-    return type != ResourceFolderType.LAYOUT;
-  }
-
-  public static void saveFileIfNecessary(PsiFile psiFile) {
-    if (!needSave(ResourceFilesUtil.getFolderType(psiFile.getVirtualFile()))) { // Avoid need for read lock in get parent
-      return;
-    }
-
-    VirtualFile file = psiFile.getVirtualFile();
-    if (file == null) {
-      return;
-    }
-
-    final FileDocumentManager fileManager = FileDocumentManager.getInstance();
-    if (!fileManager.isFileModified(file)) {
-      return;
-    }
-
-    final com.intellij.openapi.editor.Document document;
-    document = fileManager.getCachedDocument(file);
-    if (document == null || !fileManager.isDocumentUnsaved(document)) {
-      return;
-    }
-
-    Application application = ApplicationManager.getApplication();
-    application.invokeAndWait(() -> application.runWriteAction(() -> fileManager.saveDocument(document)));
   }
 
   public static Element addRootElement(@NotNull Document document, @NotNull String tag, @Nullable ResourceNamespace namespace) {

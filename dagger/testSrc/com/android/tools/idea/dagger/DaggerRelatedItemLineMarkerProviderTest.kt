@@ -17,6 +17,7 @@
 
 package com.android.tools.idea.dagger
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.caret
 import com.android.tools.idea.testing.findParentElement
 import com.android.tools.idea.testing.loadNewFile
@@ -26,6 +27,7 @@ import com.intellij.codeInsight.daemon.GutterIconNavigationHandler
 import com.intellij.codeInsight.daemon.GutterMark
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
+import com.intellij.ide.IdeEventQueue
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.navigation.GotoRelatedItem
 import com.intellij.openapi.vfs.VirtualFile
@@ -42,17 +44,30 @@ import javax.swing.JLabel
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.toLightElements
 import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
+import org.junit.Ignore
 
-class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
+abstract class DaggerRelatedItemLineMarkerProviderTestBase(
+  private val daggerUsingIndexEnabled: Boolean
+) : DaggerTestCase() {
   private lateinit var trackerService: TestDaggerAnalyticsTracker
 
   override fun setUp() {
     super.setUp()
+    StudioFlags.DAGGER_USING_INDEX_ENABLED.override(daggerUsingIndexEnabled)
     trackerService = TestDaggerAnalyticsTracker()
     project.registerServiceInstance(DaggerAnalyticsTracker::class.java, trackerService)
+  }
+
+  override fun tearDown() {
+    StudioFlags.DAGGER_USING_INDEX_ENABLED.clearOverride()
+
+    // Close the popups created by clickOnIcon(), otherwise they leak the test project.
+    IdeEventQueue.getInstance().popupManager.closeAllPopups()
+    super.tearDown()
   }
 
   private fun getGotoElements(icon: GutterMark): Collection<GotoRelatedItem> {
@@ -80,6 +95,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
         // language=JAVA
         JavaFileType.INSTANCE,
         """
+        package com.example.java;
         import dagger.Provides;
         import dagger.Module;
 
@@ -87,7 +103,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
         class MyModule {
           @Provides String provider() {}
         }
-      """
+        """
           .trimIndent()
       )
 
@@ -98,11 +114,12 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       // language=JAVA
       JavaFileType.INSTANCE,
       """
-        import javax.inject.Inject;
+      package com.example.java;
+      import javax.inject.Inject;
 
-        class MyClass {
-          @Inject String ${caret}injectedString;
-        }
+      class MyClass {
+        @Inject String ${caret}injectedString;
+      }
       """
         .trimIndent()
     )
@@ -126,12 +143,13 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       KotlinFileType.INSTANCE,
       // language=kotlin
       """
-          import javax.inject.Inject
+      package com.example.kotlin
+      import javax.inject.Inject
 
-          class MyClass {
-            @Inject val <caret>injectedStringKt:String
-          }
-        """
+      class MyClass {
+        @Inject val <caret>injectedStringKt:String
+      }
+      """
         .trimIndent()
     )
 
@@ -154,26 +172,30 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       KotlinFileType.INSTANCE,
       // language=kotlin
       """
-          import dagger.Module
-          import dagger.Provides
+      package com.example.kotlin
+      import dagger.Module
+      import dagger.Provides
 
-          @Module
-          class MyModule {
-            @Provides fun providerToDisplayAsConsumer(consumer:String)
-          }
-        """
+      @Module
+      class MyModule {
+        @Provides fun providerToDisplayAsConsumer(consumer:String)
+      }
+      """
         .trimIndent()
     )
+
+    val consumerParameter: KtParameter = myFixture.findParentElement("cons|umer:String")
 
     // Kotlin consumer as parameter
     myFixture.configureByText(
       KotlinFileType.INSTANCE,
       // language=kotlin
       """
-          import javax.inject.Inject
+      package com.example.kotlin
+      import javax.inject.Inject
 
-          class MyClass2 @Inject constructor(injectedString:String)
-        """
+      class MyClass2 @Inject constructor(injectedString:String)
+      """
         .trimIndent()
     )
 
@@ -192,12 +214,25 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(gotoRelatedItems).hasSize(4)
     val consumerElements = gotoRelatedItems.map { it.element }
 
-    assertThat(consumerElements)
-      .containsAllOf(
-        consumerField,
-        LightClassUtil.getLightClassBackingField(consumerKtField as KtDeclaration),
-        parameter.toLightElements()[0]
-      )
+    if (daggerUsingIndexEnabled) {
+      // Tooling V2 support returns the underlying KtElements instead of their corresponding light
+      // equivalents.
+      assertThat(consumerElements)
+        .containsExactly(
+          consumerField,
+          consumerKtField,
+          parameter,
+          consumerParameter,
+        )
+    } else {
+      assertThat(consumerElements)
+        .containsExactly(
+          consumerField,
+          LightClassUtil.getLightClassBackingField(consumerKtField as KtDeclaration),
+          parameter.toLightElements().single(),
+          consumerParameter.toLightElements().single()
+        )
+    }
 
     val displayedNames = gotoRelatedItems.map { it.customName }
     assertThat(displayedNames)
@@ -453,7 +488,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
       icons.find { it.tooltipText == "Dependency Related Files for MyModule" }!!
         as LineMarkerInfo.LineMarkerGutterIconRenderer<*>
     val gotoRelatedItems = getGotoElements(icon)
-    val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
+    val result = gotoRelatedItems.map { "${it.group}: ${it.element?.className()}" }
     assertThat(result)
       .containsExactly(
         "Included in components: MyComponent",
@@ -517,7 +552,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(gotoRelatedItems).hasSize(1)
     val method = gotoRelatedItems.first()
     assertThat(method.group).isEqualTo("Parent components")
-    assertThat((method.element as PsiClass).name).isEqualTo("MyDependantComponent")
+    assertThat(method.element?.className()).isEqualTo("MyDependantComponent")
 
     clickOnIcon(icon)
     assertThat(trackerService.calledMethods).hasSize(3)
@@ -602,7 +637,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
         icons.find { it.tooltipText == "Dependency Related Files for MySubcomponent" }!!
       )
     assertThat(gotoRelatedItems).hasSize(2)
-    val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
+    val result = gotoRelatedItems.map { "${it.group}: ${it.element?.className()}" }
     assertThat(result)
       .containsAllOf("Parent components: MyComponent", "Parent components: MyComponentKt")
   }
@@ -673,7 +708,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val gotoRelatedItems =
       getGotoElements(icons.find { it.tooltipText == "Dependency Related Files for MyComponent" }!!)
     assertThat(gotoRelatedItems).hasSize(3)
-    val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
+    val result = gotoRelatedItems.map { "${it.group}: ${it.element?.className()}" }
     assertThat(result)
       .containsAllOf(
         "Subcomponents: MySubcomponent2",
@@ -1022,7 +1057,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
         icons.find { it.tooltipText == "MyModule is included in component MyComponent" }!!
       )
     assertThat(gotoRelatedItems).hasSize(1)
-    val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
+    val result = gotoRelatedItems.map { "${it.group}: ${it.element?.className()}" }
     assertThat(result).containsExactly("Included in components: MyComponent")
 
     myFixture.configureFromExistingVirtualFile(notModuleFile)
@@ -1060,10 +1095,34 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
         .trimIndent()
     )
 
-    myFixture.loadNewFile(
-      "test/MyModule.kt",
-      // language=kotlin
-      """
+    if (daggerUsingIndexEnabled) {
+      myFixture.loadNewFile(
+        "test/MyComponent.kt",
+        // language=kotlin
+        """
+        package test
+        import dagger.Component
+        import dagger.BindsInstance
+        import test.MyQualifier
+
+        @Component
+        interface MyComponent {
+          @Component.Factory
+          interface MyComponentFactory
+          {
+            fun bindString(@BindsInstance @MyQualifier str:String):String
+          }
+        }
+        """
+          .trimIndent()
+      )
+    } else {
+      // This is not a valid @BindsInstance method, but it's what v1 of the Dagger support currently
+      // recognizes.
+      myFixture.loadNewFile(
+        "test/MyModule.kt",
+        // language=kotlin
+        """
         package test
         import dagger.Module
         import dagger.BindsInstance
@@ -1073,9 +1132,10 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
         class MyModule {
            fun bindString(@BindsInstance @MyQualifier str:String):String
         }
-      """
-        .trimIndent()
-    )
+        """
+          .trimIndent()
+      )
+    }
 
     myFixture.moveCaret("st|r")
 
@@ -1143,7 +1203,7 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     val gotoRelatedItems =
       getGotoElements(icons.find { it.tooltipText == "MySubcomponent includes module MyModule" }!!)
     assertThat(gotoRelatedItems).hasSize(1)
-    val result = gotoRelatedItems.map { "${it.group}: ${(it.element as PsiClass).name}" }
+    val result = gotoRelatedItems.map { "${it.group}: ${it.element?.className()}" }
     assertThat(result).containsExactly("Modules included: MyModule")
   }
 
@@ -1294,4 +1354,18 @@ class DaggerRelatedItemLineMarkerProviderTest : DaggerTestCase() {
     assertThat(trackerService.calledMethods.last())
       .isEqualTo("trackNavigation CONTEXT_GUTTER PROVIDER ENTRY_POINT_METHOD")
   }
+
+  private fun PsiElement.className(): String? =
+    when (this) {
+      is PsiClass -> name
+      is KtClass -> name
+      else -> throw IllegalArgumentException()
+    }
 }
+
+class DaggerRelatedItemLineMarkerProviderTestV1 :
+  DaggerRelatedItemLineMarkerProviderTestBase(daggerUsingIndexEnabled = false)
+
+@Ignore // TODO(b/265846405): Start running test when index is enabled
+class DaggerRelatedItemLineMarkerProviderTestV2 :
+  DaggerRelatedItemLineMarkerProviderTestBase(daggerUsingIndexEnabled = true)

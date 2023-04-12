@@ -318,7 +318,7 @@ abstract class VmInstallerInfo(internal val fullName: String) {
    *  * If there is not enough memory available
    *  * BIOS is not setup correctly
    *
-   * For some of these error conditions the user may rectify the problem and install Gvm later.
+   * For some of these error conditions the user may rectify the problem and install Aehd later.
    */
   fun checkInstallation(): AccelerationErrorCode =
     incompatibleSystemError ?: AvdManagerConnection.getDefaultAvdManagerConnection().checkAcceleration()

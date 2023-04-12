@@ -33,9 +33,9 @@ import com.android.tools.idea.layoutinspector.tree.InspectorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.DeviceViewContentPanel
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorRenderSettings
-import com.android.tools.idea.layoutinspector.util.ComponentUtil
 import com.android.tools.idea.layoutinspector.util.ReportingCountDownLatch
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.ui.flatten
 import com.android.tools.idea.transport.TransportService
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
@@ -216,12 +216,12 @@ class LayoutInspectorToolWindowFactoryTest {
     }
     val component = toolWindow.contentManager.selectedContent?.component!!
     waitForCondition(5L, TimeUnit.SECONDS) {
-      ComponentUtil.flatten(component).firstIsInstanceOrNull<DeviceViewPanel>() != null
+      component.flatten(false).firstIsInstanceOrNull<DeviceViewPanel>() != null
     }
-    val inspector = DataManager.getDataProvider(ComponentUtil.flatten(component).firstIsInstance<WorkBench<*>>())?.getData(
+    val inspector = DataManager.getDataProvider(component.flatten(false).firstIsInstance<WorkBench<*>>())?.getData(
       LAYOUT_INSPECTOR_DATA_KEY.name) as LayoutInspector
     assertThat(inspector.treeSettings).isInstanceOf(InspectorTreeSettings::class.java)
-    val contentPanel = ComponentUtil.flatten(component).firstIsInstance<DeviceViewContentPanel>()
+    val contentPanel = component.flatten(false).firstIsInstance<DeviceViewContentPanel>()
     assertThat(inspector.renderLogic.renderSettings).isInstanceOf(InspectorRenderSettings::class.java)
   }
 }
@@ -263,10 +263,10 @@ class LayoutInspectorToolWindowFactoryDisposeTest {
       LayoutInspectorToolWindowFactory().createToolWindowContent(project, toolWindow)
       val component = toolWindow.contentManager.selectedContent?.component!!
       waitForCondition(25L, TimeUnit.SECONDS) {
-        ComponentUtil.flatten(component).firstIsInstanceOrNull<DeviceViewPanel>() != null
+        component.flatten(false).firstIsInstanceOrNull<DeviceViewPanel>() != null
       }
-      val deviceViewPanel = ComponentUtil.flatten(component).firstIsInstance<DeviceViewPanel>()
-      val deviceViewContentPanel = ComponentUtil.flatten(deviceViewPanel).firstIsInstance<DeviceViewContentPanel>()
+      val deviceViewPanel = component.flatten(false).firstIsInstance<DeviceViewPanel>()
+      val deviceViewContentPanel = deviceViewPanel.flatten(false).firstIsInstance<DeviceViewContentPanel>()
       val processes = deviceViewPanel.layoutInspector.processModel!!
       RecentProcess.set(project, RecentProcess(adbRule.bridge.devices.first(), MODERN_PROCESS.name))
 

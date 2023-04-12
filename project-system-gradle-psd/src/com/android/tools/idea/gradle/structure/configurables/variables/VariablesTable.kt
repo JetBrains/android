@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.configurables.variables
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.structure.configurables.PsContext
 import com.android.tools.idea.gradle.structure.configurables.ui.properties.ModelPropertyEditor
@@ -884,9 +883,7 @@ internal data class ProjectShadowNode(val project: PsProject) : ShadowNode {
     project.modules.filter { it.isDeclared }.sortedBy { it.gradlePath }.map { ModuleShadowNode(it) }
 
   fun getVersionCatalogNodes(): List<VersionCatalogShadowNode> =
-    if (StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.get())
-      project.versionCatalogs.sortedBy { it.name }.map { VersionCatalogShadowNode(it) }
-    else listOf()
+    project.versionCatalogs.sortedBy { it.name }.map { VersionCatalogShadowNode(it) }
 
   override fun createNode(): VariablesBaseNode = VariablesBaseNode(this, null)
   override fun onChange(disposable: Disposable, listener: () -> Unit) {

@@ -26,5 +26,3 @@ const val RUNNING_DEVICES_TOOL_WINDOW_ID = "Running Devices"
 const val RUNNING_DEVICES_TOOL_WINDOW_TITLE = "Running Devices"
 
 @JvmField val SERIAL_NUMBER_KEY = DataKey.create<String>("SerialNumber")
-
-@JvmField val DEVICE_HANDLE_KEY = DataKey.create<DeviceHandle>("DeviceHandle")

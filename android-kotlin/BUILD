@@ -36,6 +36,7 @@ iml_module(
         "//tools/adt/idea/intellij.android.compose-common[module]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl[module]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//prebuilts/r8",
     ],
 )

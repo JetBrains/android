@@ -20,17 +20,18 @@ import com.android.build.attribution.analyzers.DownloadsAnalyzer.KnownRepository
 import com.android.build.attribution.analyzers.url1
 import com.android.build.attribution.analyzers.url2
 import com.android.build.attribution.analyzers.url3
+import com.android.testutils.MockitoKt
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.adtui.TreeWalker
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.analytics.TestUsageTracker
 import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.stats.FeatureSurveys
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.BuildOutputDownloadsInfoEvent
-import com.intellij.codeInsight.codeVision.ui.popup.layouter.getCenter
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
@@ -48,9 +49,9 @@ import org.gradle.util.GradleVersion
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.After
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
 import java.awt.Dimension
 
 private val gradleVersion_7_2 = GradleVersion.version("7.2")
@@ -64,18 +65,19 @@ class DownloadsInfoPresentableEventTest {
   private val buildStartTimestampMs = System.currentTimeMillis()
   private lateinit var buildDisposable: CheckedDisposable
   private lateinit var buildId: ExternalSystemTaskId
+  private lateinit var dataModel: DownloadInfoDataModel
 
   @Before
   fun setUp() {
     buildId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.RESOLVE_PROJECT, projectRule.project)
     buildDisposable = Disposer.newCheckedDisposable("DownloadsInfoPresentableEventTest_buildDisposable")
     Disposer.register(projectRule.testRootDisposable, buildDisposable)
+    dataModel = DownloadInfoDataModel(buildDisposable)
   }
-
 
   @Test
   fun testEventFields() {
-    val event = DownloadsInfoPresentableEvent(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0)
+    val event = DownloadsInfoPresentableBuildEvent(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0, dataModel)
 
     assertThat(event.buildId).isSameAs(buildId)
     //Time is not used for this type of event. 0 is a default value for such case.
@@ -86,12 +88,14 @@ class DownloadsInfoPresentableEventTest {
     assertThat(event.description).isNull()
     //Hint is an additional text shown in grey after node name. Is not updatable currently, so do not use.
     assertThat(event.hint).isNull()
-    assertThat(event.presentationData.executionConsole).isInstanceOf(DownloadsInfoExecutionConsole::class.java)
+    val executionConsole = event.presentationData.executionConsole
+      ?.also { Disposer.register(projectRule.testRootDisposable, it) }
+    assertThat(executionConsole).isInstanceOf(DownloadsInfoExecutionConsole::class.java)
   }
 
   @Test
   fun testNodeIcon() {
-    val event = DownloadsInfoPresentableEvent(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0)
+    val event = DownloadsInfoPresentableBuildEvent(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0, dataModel)
 
     val icon = event.presentationData.nodeIcon as LayeredIcon
     assertThat(icon.allLayers).isEqualTo(arrayOf(
@@ -113,18 +117,18 @@ class DownloadsInfoPresentableEventTest {
     val downloadProcessKey1 = DownloadRequestKey(1000, url1)
     val downloadProcessKey2 = DownloadRequestKey(1500, url2)
 
-    updateDownloadRequestViaListener(DownloadRequestItem(downloadProcessKey1, GOOGLE))
+    updateDownloadRequest(DownloadRequestItem(downloadProcessKey1, GOOGLE))
     assertIconLoading()
-    updateDownloadRequestViaListener(DownloadRequestItem(downloadProcessKey1, GOOGLE, completed = true, receivedBytes = 1000, duration = 300))
+    updateDownloadRequest(DownloadRequestItem(downloadProcessKey1, GOOGLE, completed = true, receivedBytes = 1000, duration = 300))
     assertIconStill()
-    updateDownloadRequestViaListener(DownloadRequestItem(downloadProcessKey2, GOOGLE))
+    updateDownloadRequest(DownloadRequestItem(downloadProcessKey2, GOOGLE))
     assertIconLoading()
-    updateDownloadRequestViaListener(DownloadRequestItem(downloadProcessKey2, GOOGLE, completed = true, receivedBytes = 3000, duration = 700))
+    updateDownloadRequest(DownloadRequestItem(downloadProcessKey2, GOOGLE, completed = true, receivedBytes = 3000, duration = 700))
     assertIconStill()
   }
 
-  private fun updateDownloadRequestViaListener(requestItem: DownloadRequestItem) {
-    projectRule.project.messageBus.syncPublisher(DownloadsInfoUIModelNotifier.DOWNLOADS_OUTPUT_TOPIC).updateDownloadRequest(buildId, requestItem)
+  private fun updateDownloadRequest(requestItem: DownloadRequestItem) {
+    dataModel.onNewItemUpdate(requestItem)
     runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
   }
 }
@@ -143,6 +147,7 @@ class DownloadsInfoExecutionConsoleTest {
   private lateinit var buildId: ExternalSystemTaskId
   private lateinit var executionConsole: DownloadsInfoExecutionConsole
   private lateinit var buildDisposable: CheckedDisposable
+  private val featureSurveysMock: FeatureSurveys = MockitoKt.mock()
 
   private val reposTable: TableView<*>
     get() = TreeWalker(executionConsole.component).descendants().filter { it.name == "repositories table" }.filterIsInstance<TableView<*>>().single()
@@ -155,7 +160,7 @@ class DownloadsInfoExecutionConsoleTest {
     buildId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.RESOLVE_PROJECT, projectRule.project)
     buildDisposable = Disposer.newCheckedDisposable("build finished disposable")
     Disposer.register(projectRule.testRootDisposable, buildDisposable)
-    executionConsole = DownloadsInfoExecutionConsole(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0)
+    executionConsole = DownloadsInfoExecutionConsole(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0, featureSurveysMock)
     Disposer.register(projectRule.testRootDisposable, executionConsole)
   }
 
@@ -228,7 +233,7 @@ class DownloadsInfoExecutionConsoleTest {
     page.isVisible = false
     page.size = Dimension(600, 400)
 
-    val ui = FakeUi(page, createFakeWindow = true)
+    val ui = FakeUi(page)
     page.isVisible = true
     ui.layoutAndDispatchEvents()
 
@@ -236,6 +241,28 @@ class DownloadsInfoExecutionConsoleTest {
       .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_DOWNLOADS_INFO_USER_INTERACTION }
       .map { use -> use.studioEvent.buildOutputDownloadsInfoEvent.interaction }
     assertThat(interactions).isEqualTo(listOf(BuildOutputDownloadsInfoEvent.Interaction.OPEN_DOWNLOADS_INFO_UI))
+    Mockito.verify(featureSurveysMock, Mockito.times(1)).triggerSurveyByName("DOWNLOAD_INFO_VIEW_SURVEY")
+  }
+
+  @Test
+  fun testSurveyNotTriggeredForBuild() {
+    buildId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.EXECUTE_TASK, projectRule.project)
+    executionConsole = DownloadsInfoExecutionConsole(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0, featureSurveysMock)
+    Disposer.register(projectRule.testRootDisposable, executionConsole)
+    val page = executionConsole.component
+    // page is not initially visible
+    page.isVisible = false
+    page.size = Dimension(600, 400)
+
+    val ui = FakeUi(page)
+    page.isVisible = true
+    ui.layoutAndDispatchEvents()
+
+    val interactions = tracker.usages
+      .filter { use -> use.studioEvent.kind == AndroidStudioEvent.EventKind.BUILD_OUTPUT_DOWNLOADS_INFO_USER_INTERACTION }
+      .map { use -> use.studioEvent.buildOutputDownloadsInfoEvent.interaction }
+    assertThat(interactions).isEqualTo(listOf(BuildOutputDownloadsInfoEvent.Interaction.OPEN_DOWNLOADS_INFO_UI))
+    Mockito.verifyNoInteractions(featureSurveysMock)
   }
 
   @Test
@@ -276,7 +303,6 @@ class DownloadsInfoExecutionConsoleTest {
   }
 
   @Test
-  @Ignore("b/271258614")
   fun testBuildFinishedBeforeUiCreated() {
     Disposer.dispose(buildDisposable)
     val lateExecutionConsole = DownloadsInfoExecutionConsole(buildId, buildDisposable, buildStartTimestampMs, gradleVersion_8_0)

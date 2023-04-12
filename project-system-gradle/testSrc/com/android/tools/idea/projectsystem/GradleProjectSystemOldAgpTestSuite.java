@@ -17,8 +17,6 @@ package com.android.tools.idea.projectsystem;
 
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.testutils.junit4.OldAgpSuite;
-import com.android.tools.tests.GradleDaemonsRule;
-import com.android.tools.tests.LeakCheckerRule;
 import com.android.tools.tests.MavenRepoRule;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;

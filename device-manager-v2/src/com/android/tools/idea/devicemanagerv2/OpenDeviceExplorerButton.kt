@@ -64,7 +64,7 @@ internal class OpenDeviceExplorerButton(
   }
 
   fun updateState(state: DeviceRowData) {
-    isEnabled = state.handle.state is DeviceState.Connected
+    isEnabled = state.handle?.state is DeviceState.Connected
     isVirtual = state.isVirtual
   }
 }

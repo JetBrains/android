@@ -20,7 +20,7 @@ import com.android.SdkConstants.FN_VERSION_CATALOG
 import com.android.sdklib.AndroidVersion
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
-import com.android.tools.idea.wizard.template.BuildConfigurationLanguage
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule
 import com.android.tools.idea.wizard.template.Language
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
@@ -47,7 +47,7 @@ class NewModuleWithVersionCatalogTest {
       .enterModuleName("mobile")
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Language.Kotlin)
-      .setBuildConfigurationLanguage(BuildConfigurationLanguage.KTS)
+      .setBuildConfigurationLanguage(BuildConfigurationLanguageForNewModule.KTS)
       .wizard()
       .clickNext()
       // Intentionally choose non-Compose Activity to avoid the version compatibility issue between Compose compiler and Kotlin
@@ -78,7 +78,7 @@ class NewModuleWithVersionCatalogTest {
       .enterModuleName("mobile")
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Language.Kotlin)
-      .setBuildConfigurationLanguage(BuildConfigurationLanguage.KTS)
+      .setBuildConfigurationLanguage(BuildConfigurationLanguageForNewModule.KTS)
       .wizard()
       .clickNext()
       // Intentionally choose non-Compose Activity to avoid the version compatibility issue between Compose compiler and Kotlin

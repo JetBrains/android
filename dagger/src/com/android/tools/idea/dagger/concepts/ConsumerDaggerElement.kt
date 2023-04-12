@@ -15,50 +15,61 @@
  */
 package com.android.tools.idea.dagger.concepts
 
+import com.android.tools.idea.dagger.getQualifierInfo
 import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.android.tools.idea.dagger.unboxed
+import com.android.tools.idea.kotlin.psiType
+import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiField
+import com.intellij.psi.PsiParameter
 import com.intellij.psi.PsiType
-import com.intellij.psi.impl.source.PsiClassReferenceType
+import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.psi.KtProperty
 
-internal abstract class ConsumerDaggerElementBase : DaggerElement() {
-
-  override val daggerType = Type.CONSUMER
+internal sealed class ConsumerDaggerElementBase : DaggerElement() {
 
   /** Returns a string indicating the group shown in related items for this element. */
   abstract val relatedElementGrouping: String
 
+  /**
+   * Returns a string indicated which resource to use when describing related items for this
+   * element.
+   */
+  abstract val relationDescriptionKey: String
+
+  /** Type being consumer, as specified in code. */
+  protected abstract val rawType: PsiType
+
+  /** Gets info for any @Qualifier annotations on this element. */
+  internal val qualifierInfo by
+    lazy(LazyThreadSafetyMode.SYNCHRONIZED) { psiElement.getQualifierInfo() }
+
   /** Type being consumed, without any wrapper like `dagger.Lazy<>`. */
-  private val unwrappedType: PsiType
-    get() = elementPsiType.removeWrappingDaggerType().unboxed
+  val consumedType: PsiType
+    get() = rawType.withoutDaggerWrapper().unboxed
 
   override fun getRelatedDaggerElements(): List<DaggerRelatedElement> =
-    getRelatedDaggerElementsFromIndex(setOf(Type.PROVIDER), unwrappedType.getIndexKeys()).map {
-      DaggerRelatedElement(it, DaggerBundle.message("providers"))
+    getRelatedDaggerElementsFromIndex<ProviderDaggerElementBase>(consumedType.getIndexKeys()).map {
+      DaggerRelatedElement(it, DaggerBundle.message("providers"), relationDescriptionKey)
     }
 
   override fun filterResolveCandidate(resolveCandidate: DaggerElement) =
-    unwrappedType == resolveCandidate.psiElement.getPsiType().unboxed
-
-  companion object {
-    internal val wrappingDaggerTypes = setOf(DaggerAnnotations.LAZY, DaggerAnnotations.PROVIDER)
-
-    /**
-     * Dagger allows consumers to wrap a requested type with Lazy<>, Provider<>, or
-     * Provider<Lazy<>>. This method removes any of those wrappers, returning the inner type.
-     */
-    internal fun PsiType.removeWrappingDaggerType(): PsiType {
-      if (this is PsiClassReferenceType && rawType().canonicalText in wrappingDaggerTypes) {
-        return parameters[0].removeWrappingDaggerType()
-      }
-
-      return this
-    }
-  }
+    resolveCandidate is ProviderDaggerElementBase && resolveCandidate.canProvideFor(this)
 }
 
-internal data class ConsumerDaggerElement(override val psiElement: PsiElement) :
-  ConsumerDaggerElementBase() {
+internal data class ConsumerDaggerElement(
+  override val psiElement: PsiElement,
+  override val rawType: PsiType
+) : ConsumerDaggerElementBase() {
+
+  internal constructor(psiElement: KtParameter) : this(psiElement, psiElement.psiType!!.unboxed)
+  internal constructor(psiElement: KtProperty) : this(psiElement, psiElement.psiType!!.unboxed)
+  internal constructor(psiElement: PsiField) : this(psiElement, psiElement.type.unboxed)
+  internal constructor(psiElement: PsiParameter) : this(psiElement, psiElement.type.unboxed)
+
+  override val metricsElementType = DaggerEditorEvent.ElementType.CONSUMER
 
   override val relatedElementGrouping: String = DaggerBundle.message("consumers")
+  override val relationDescriptionKey: String = "navigate.to.provider"
 }

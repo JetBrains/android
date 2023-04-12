@@ -15,12 +15,20 @@
  */
 package com.android.tools.idea.lint.inspections;
 
+import com.android.annotations.NonNull;
 import com.android.tools.idea.lint.common.AndroidLintInspectionBase;
 import com.android.tools.idea.lint.AndroidLintBundle;
+import com.android.tools.idea.lint.common.LintIdeQuickFix;
 import com.android.tools.lint.checks.GradleDetector;
 
 public class AndroidLintExpiredTargetSdkVersionInspection extends AndroidLintInspectionBase {
   public AndroidLintExpiredTargetSdkVersionInspection() {
     super(AndroidLintBundle.message("android.lint.inspections.expired.target.sdk.version"), GradleDetector.EXPIRED_TARGET_SDK_VERSION);
+  }
+
+  @NonNull
+  @Override
+  public LintIdeQuickFix[] getQuickFixes(@NonNull String message) {
+    return new LintIdeQuickFix[] { new LaunchTargetSdkVersionAssistantFix() };
   }
 }

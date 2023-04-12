@@ -44,8 +44,10 @@ public class DeviceMenuActionTest extends AndroidTestCase {
 
   public void testActions() {
     Configuration configuration = mock(Configuration.class);
+    ConfigurationModelModule configurationModelModule = new StudioConfigurationModelModule(myModule);
     when(configuration.getModule()).thenReturn(myModule);
     when(configuration.getConfigurationManager()).thenReturn(ConfigurationManager.getOrCreateInstance(myModule));
+    when(configuration.getConfigModule()).thenReturn(configurationModelModule);
 
     ConfigurationHolder holder = () -> configuration;
 

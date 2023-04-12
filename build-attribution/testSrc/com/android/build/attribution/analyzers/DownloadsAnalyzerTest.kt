@@ -20,7 +20,7 @@ import com.android.build.attribution.BuildAnalyzerStorageManager
 import com.android.build.attribution.getSuccessfulResult
 import com.android.build.output.DownloadRequestItem
 import com.android.build.output.DownloadsInfoExecutionConsole
-import com.android.build.output.DownloadsInfoPresentableEvent
+import com.android.build.output.DownloadsInfoPresentableBuildEvent
 import com.android.testutils.TestUtils
 import com.android.testutils.VirtualTimeScheduler
 import com.android.tools.analytics.TestUsageTracker
@@ -97,8 +97,9 @@ class DownloadsAnalyzerTest {
     addBuildSrcFileContent(preparedProject)
 
     preparedProject.runTest(updateOptions = { it.copy(syncViewEventHandler = { event ->
-      if (event is DownloadsInfoPresentableEvent) {
+      if (event is DownloadsInfoPresentableBuildEvent) {
         val downloadsInfoExecutionConsole = event.presentationData.executionConsole as DownloadsInfoExecutionConsole
+        Disposer.register(projectRule.testRootDisposable, downloadsInfoExecutionConsole)
         syncDownloadInfoExecutionConsoles.add(downloadsInfoExecutionConsole)
       }
     })}) {
@@ -213,8 +214,9 @@ class DownloadsAnalyzerTest {
   private fun TestContext.invokeBuild() {
     val invocationResult = project.buildAndWait(
       eventHandler = { event ->
-        if (event is DownloadsInfoPresentableEvent) {
+        if (event is DownloadsInfoPresentableBuildEvent) {
           val downloadsInfoExecutionConsole = event.presentationData.executionConsole as DownloadsInfoExecutionConsole
+          Disposer.register(projectRule.testRootDisposable, downloadsInfoExecutionConsole)
           buildDownloadInfoExecutionConsoles.add(downloadsInfoExecutionConsole)
         }
       }

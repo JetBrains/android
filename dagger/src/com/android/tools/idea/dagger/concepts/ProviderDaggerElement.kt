@@ -15,36 +15,111 @@
  */
 package com.android.tools.idea.dagger.concepts
 
-import com.android.tools.idea.dagger.concepts.ConsumerDaggerElementBase.Companion.removeWrappingDaggerType
-import com.android.tools.idea.dagger.index.getAliasSimpleNames
+import com.android.tools.idea.dagger.getQualifierInfo
 import com.android.tools.idea.dagger.unboxed
+import com.android.tools.idea.kotlin.psiType
+import com.google.wireless.android.sdk.stats.DaggerEditorEvent
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiField
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.PsiParameter
+import com.intellij.psi.PsiType
+import com.intellij.psi.util.parentOfType
 import org.jetbrains.kotlin.idea.base.util.projectScope
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtFunction
+import org.jetbrains.kotlin.psi.KtParameter
+import org.jetbrains.kotlin.psi.KtProperty
 
-internal data class ProviderDaggerElement(override val psiElement: PsiElement) : DaggerElement() {
+internal sealed class ProviderDaggerElementBase : DaggerElement() {
 
-  override val daggerType = Type.PROVIDER
+  protected abstract fun getIndexKeys(): List<String>
 
-  override fun getRelatedDaggerElements(): List<DaggerRelatedElement> {
-    // Since Dagger allows types to be wrapped with Lazy<> and Provider<> and since our index stores
-    // generics by the outermost type's simple name only, we have to search for "Lazy" and
-    // "Provider" for all types.
-    val project = psiElement.project
-    val scope = project.projectScope()
-    val indexKeys =
-      elementPsiType.getIndexKeys() +
-        ConsumerDaggerElementBase.wrappingDaggerTypes.flatMap {
-          val simpleName = it.substringAfterLast(".")
-          listOf(simpleName) + getAliasSimpleNames(simpleName, project, scope)
-        }
+  /** Gets info for any @Qualifier annotations on this element. */
+  protected val qualifierInfo by
+    lazy(LazyThreadSafetyMode.SYNCHRONIZED) { psiElement.getQualifierInfo() }
 
-    return getRelatedDaggerElementsFromIndex(setOf(Type.CONSUMER), indexKeys).map {
-      DaggerRelatedElement(it, (it as ConsumerDaggerElementBase).relatedElementGrouping)
+  abstract fun canProvideFor(consumer: ConsumerDaggerElementBase): Boolean
+
+  override fun getRelatedDaggerElements(): List<DaggerRelatedElement> =
+    getRelatedDaggerElementsFromIndex<ConsumerDaggerElementBase>(getIndexKeys()).map {
+      DaggerRelatedElement(
+        it,
+        it.relatedElementGrouping,
+        it.getRelationDescriptionKey(),
+        it.psiElement.getCustomRelatedElementDisplayName()
+      )
     }
-  }
+
+  /**
+   * Gets a custom name for use when displaying a related consumer in navigation text. This
+   * generally returns the name of a higher-level element than the consumer itself.
+   */
+  private fun PsiElement.getCustomRelatedElementDisplayName() =
+    when (this) {
+      is PsiField,
+      is PsiMethod -> parentOfType<PsiClass>()?.name
+      is PsiParameter -> parentOfType<PsiMethod>()?.name
+      is KtProperty,
+      is KtFunction -> parentOfType<KtClass>()?.name
+      is KtParameter -> parentOfType<KtFunction>()?.name
+      else -> null
+    }
+
+  /**
+   * When displaying the relationship between this provider and a consumer, the description of the
+   * relationship has to change when the consumer is a top-level component or entry point.
+   */
+  private fun ConsumerDaggerElementBase.getRelationDescriptionKey(): String =
+    when (this) {
+      is ComponentProvisionMethodDaggerElement,
+      is EntryPointMethodDaggerElement -> "navigate.to.component.exposes"
+      else -> "navigate.to.consumer"
+    }
 
   override fun filterResolveCandidate(resolveCandidate: DaggerElement): Boolean =
-    // A consumer may request a wrapped type like `Lazy<Foo>`, but this provider would just be
-    // returning the `Foo`.
-    elementPsiType == resolveCandidate.psiElement.getPsiType().removeWrappingDaggerType().unboxed
+    resolveCandidate is ConsumerDaggerElementBase && canProvideFor(resolveCandidate)
+
+  companion object {
+    /**
+     * Returns whether the given type from a consumer can be provided by the second type.
+     *
+     * In the simple case, a Consumer consumes the exact type that a Provider provides. But a
+     * Consumer can also ask for variations of the type, such as wrapping a type `Foo` as
+     * `dagger.Lazy<Foo>`. This method indicates whether the current type is able to be returned by
+     * a Provider defined with the specified type.
+     */
+    @JvmStatic
+    protected fun PsiType.matchesProvidedType(providedType: PsiType) =
+      (this.unboxed == providedType || this.typeInsideDaggerWrapper() == providedType)
+  }
+}
+
+internal data class ProviderDaggerElement(
+  override val psiElement: PsiElement,
+  private val providedPsiType: PsiType
+) : ProviderDaggerElementBase() {
+
+  internal constructor(psiElement: KtClassOrObject) : this(psiElement, psiElement.classToPsiType())
+  internal constructor(psiElement: KtFunction) : this(psiElement, psiElement.getReturnedPsiType())
+  internal constructor(
+    psiElement: KtParameter
+  ) : this(psiElement, requireNotNull(psiElement.psiType))
+  internal constructor(psiElement: PsiClass) : this(psiElement, psiElement.classToPsiType())
+  internal constructor(psiElement: PsiMethod) : this(psiElement, psiElement.getReturnedPsiType())
+  internal constructor(psiElement: PsiParameter) : this(psiElement, psiElement.type)
+
+  override val metricsElementType = DaggerEditorEvent.ElementType.PROVIDER
+
+  override fun getIndexKeys(): List<String> {
+    val project = psiElement.project
+    val scope = project.projectScope()
+    return providedPsiType.getIndexKeys() + extraIndexKeysForProvider(project, scope)
+  }
+
+  override fun canProvideFor(consumer: ConsumerDaggerElementBase) =
+    consumer.consumedType.matchesProvidedType(providedPsiType) &&
+      qualifierInfo == consumer.qualifierInfo
 }

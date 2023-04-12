@@ -47,9 +47,8 @@ import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.sdklib.devices.State;
 import com.android.tools.idea.res.IdeResourcesUtil;
-import com.android.tools.idea.res.LocalResourceRepository;
 import com.android.tools.idea.res.ResourceFilesUtil;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;
 import com.android.utils.SparseIntArray;
 import com.google.common.collect.ImmutableList;
@@ -60,7 +59,6 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.impl.FileEditorManagerImpl;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.vfs.VirtualFile;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -312,7 +310,7 @@ public class ConfigurationMatcher {
     boolean currentConfigIsCompatible = false;
     State selectedState = myConfiguration.getDeviceState();
     FolderConfiguration editedConfig = myConfiguration.getEditedConfig();
-    Module module = myConfiguration.getModule();
+    ConfigurationModelModule module = myConfiguration.getConfigModule();
     if (selectedState != null) {
       FolderConfiguration currentConfig = Configuration.getFolderConfig(module, selectedState, myConfiguration.getLocale(),
                                                                         myConfiguration.getTarget());
@@ -439,7 +437,7 @@ public class ConfigurationMatcher {
 
     Locale currentLocale = myConfiguration.getLocale();
     IAndroidTarget currentTarget = myConfiguration.getTarget();
-    Module module = myConfiguration.getModule();
+    ConfigurationModelModule module = myConfiguration.getConfigModule();
 
     for (Device device : deviceList) {
       for (State state : device.getAllStates()) {
@@ -615,7 +613,7 @@ public class ConfigurationMatcher {
     }
 
     Comparator<ConfigMatch> comparator = null;
-    if (DeviceUtils.isUseWearDeviceAsDefault(myConfiguration.getModule())) {
+    if (DeviceUtils.isUseWearDeviceAsDefault(myConfiguration)) {
       comparator = new WearConfigComparator(myConfiguration.getConfigurationManager(), idRank);
     }
     else {
@@ -681,8 +679,8 @@ public class ConfigurationMatcher {
   public static VirtualFile getBetterMatch(@NotNull Configuration configuration, @Nullable Device device, @Nullable String stateName,
                                            @Nullable Locale locale, @Nullable IAndroidTarget target) {
     VirtualFile file = configuration.getFile();
-    Module module = configuration.getModule();
-    if (file != null && module != null) {
+    ConfigurationModelModule module = configuration.getConfigModule();
+    if (file != null) {
       if (device == null) {
         device = configuration.getCachedDevice();
       }

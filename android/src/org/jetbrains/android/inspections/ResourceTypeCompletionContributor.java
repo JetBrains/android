@@ -257,6 +257,7 @@ public class ResourceTypeCompletionContributor extends CompletionContributor {
       if (constraint == null) {
         PsiJavaCodeReferenceElement ref = annotation.getNameReferenceElement();
         PsiElement resolved = ref == null ? null : ref.resolve();
+        if (resolved != null) resolved = resolved.getNavigationElement();
         if (resolved instanceof KtClass ktClass) resolved = toLightClass(ktClass);
         if (resolved instanceof PsiClass aClass && aClass.isAnnotationType()) {
           if (visited == null) visited = new HashSet<>();

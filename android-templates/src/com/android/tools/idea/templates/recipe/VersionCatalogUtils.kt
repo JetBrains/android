@@ -18,6 +18,7 @@ package com.android.tools.idea.templates.recipe
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel
 import com.android.tools.idea.gradle.dsl.api.ext.ExtModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
+import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.REFERENCE_TO_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.STRING_TYPE
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.ValueType
 import com.android.tools.idea.gradle.dsl.api.ext.ReferenceTo
@@ -66,12 +67,10 @@ fun getOrAddDependencyToVersionCatalog(
     libProperty.getMapValue("name")?.setValue(libraryName)
 
     if (resolvedVersion != null) {
-      val versionProperty = versions?.findProperty(pickedNameForVersion)
-      versionProperty?.setValue(resolvedVersion)
+      val versionProperty = versions.findProperty(pickedNameForVersion)
+      versionProperty.setValue(resolvedVersion)
 
-      if (versionProperty != null) {
-        libProperty.getMapValue("version")?.setValue(ReferenceTo(versionProperty))
-      }
+      libProperty.getMapValue("version")?.setValue(ReferenceTo(versionProperty))
     }
     return ReferenceTo(libProperty)
   }
@@ -96,7 +95,7 @@ fun getOrAddPluginToVersionCatalog(
     libraries()
     plugins()
   } ?: return null
-  val pluginInToml = findPluginInCatalog(catalogModel, pluginName)
+  val pluginInToml = findPluginInCatalog(catalogModel.plugins(), pluginName)
   return if (pluginInToml != null) {
     ReferenceTo(pluginInToml)
   } else {
@@ -106,17 +105,15 @@ fun getOrAddPluginToVersionCatalog(
       sectionInCatalog = plugins,
       libraryName = pluginName,
       resolvedVersion = resolvedVersion)
-    val pickedNameForVersion = pickNameInToml(
-      sectionInCatalog = versions,
-      libraryName = pluginName,
-      resolvedVersion = resolvedVersion)
     val pluginProperty = plugins.findProperty(pickedNameForPlugin)
     pluginProperty.getMapValue("id")?.setValue(pluginName)
-    val versionProperty = versions?.findProperty(pickedNameForVersion)
-    versionProperty?.setValue(resolvedVersion)
-    if (versionProperty != null) {
-      pluginProperty.getMapValue("version")?.setValue(ReferenceTo(versionProperty))
-    }
+
+    val versionProperty = PluginUtils.getVersionProperty(
+      versions = versions,
+      plugins = plugins,
+      pluginName = pluginName,
+      resolvedVersion = resolvedVersion)
+    pluginProperty.getMapValue("version")?.setValue(ReferenceTo(versionProperty))
     return ReferenceTo(pluginProperty)
   }
 }
@@ -135,7 +132,7 @@ private fun findLibraryInCatalog(
     append(libraryName)
   }
   val libraries = versionCatalogModel.libraries()
-  return libraries?.properties?.firstOrNull {
+  return libraries.properties.firstOrNull {
     when (it.valueType) {
       ValueType.MAP -> {
         (it.getMapValue("module")?.getValue(STRING_TYPE) == mavenModuleName ||
@@ -151,10 +148,10 @@ private fun findLibraryInCatalog(
  * Checks if the matching plugin is present in the version catalog model
  */
 private fun findPluginInCatalog(
-  versionCatalogModel: GradleVersionCatalogModel?,
+  plugins: ExtModel,
   pluginName: String,
 ): GradlePropertyModel? {
-  return versionCatalogModel?.plugins()?.properties?.firstOrNull {
+  return plugins.properties.firstOrNull {
     when (it.valueType) {
       ValueType.MAP -> {
         it.getMapValue("id")?.getValue(STRING_TYPE) == pluginName
@@ -211,4 +208,73 @@ private fun pickNameInToml(
       return name
     }
   }
+}
+
+object PluginUtils {
+
+  private val agpPluginIds = AgpPlugin.values().map { it.id }.toSet()
+
+  fun getVersionProperty(versions: ExtModel, plugins: ExtModel, pluginName: String, resolvedVersion: String): GradlePropertyModel {
+    return if (agpPluginIds.contains(pluginName)) {
+      getAgpVersionProperty(versions, plugins, resolvedVersion)
+    } else {
+      // When the plugin doesn't depend on AGP, follow the regular rule to pick the name for the version
+      val pickedNameForVersion = pickNameInToml(
+        sectionInCatalog = versions,
+        libraryName = pluginName,
+        resolvedVersion = resolvedVersion)
+      val versionProperty = versions.findProperty(pickedNameForVersion)
+      versionProperty.setValue(resolvedVersion)
+      versionProperty
+    }
+  }
+
+  private fun getAgpVersionProperty(versions: ExtModel,
+                                    plugins: ExtModel,
+                                    resolvedVersion: String): GradlePropertyModel {
+
+    fun getExistingAgpPluginVersionReferencePropertyOrNull(): GradlePropertyModel? {
+      // Look for the first plugin property where the plugin depends on AGP and
+      // the plugin's version is a reference.
+      AgpPlugin.values().forEach { agpPlugin ->
+        val agpPluginProperty = findPluginInCatalog(plugins, agpPlugin.id)
+        if (agpPluginProperty != null && agpPluginProperty.getMapValue("version")?.valueType == ValueType.REFERENCE) {
+          return versions.properties.firstOrNull {
+            it.name == agpPluginProperty.getMapValue("version")?.getValue(REFERENCE_TO_TYPE)?.referredElement?.name
+          }
+        }
+      }
+      return null
+    }
+
+    val agpPluginVersionReferenceProperty = getExistingAgpPluginVersionReferencePropertyOrNull()
+    return if (agpPluginVersionReferenceProperty != null) {
+      agpPluginVersionReferenceProperty
+    } else {
+      val pickedNameForVersion = pickNameInToml(versions, AgpPlugin.APPLICATION.defaultVersionName)
+      val versionProperty = versions.findProperty(pickedNameForVersion)
+      versionProperty.setValue(resolvedVersion)
+      versionProperty
+    }
+  }
+}
+
+/**
+ * Enum class whose values represent each plugin that should have the common Android Gradle Plugin
+ * version in the app.
+ */
+enum class AgpPlugin(val id: String) {
+  APPLICATION("com.android.application"),
+  LIBRARY("com.android.library"),
+  TEST("com.android.test"),
+  ASSET_PACK("com.android.asset-pack"),
+  ASSET_PACK_BUNDLE("com.android.asset-pack-bundle"),
+  DYNAMIC_FEATURE("com.android.dynamic-feature"),
+  FUSED_LIBRARY("com.android.fused-library"),
+  INTERNAL_SETTINGS("com.android.internal.settings"),
+  SETTINGS("com.android.settings"),
+  LINT("com.android.lint")
+  ;
+
+  val defaultVersionName = "agp"
 }

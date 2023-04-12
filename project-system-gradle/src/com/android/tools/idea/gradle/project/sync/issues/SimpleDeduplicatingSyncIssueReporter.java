@@ -16,7 +16,9 @@
 package com.android.tools.idea.gradle.project.sync.issues;
 
 import static com.android.tools.idea.gradle.model.IdeSyncIssue.SEVERITY_ERROR;
+import static com.android.tools.idea.gradle.model.IdeSyncIssue.TYPE_EXCEPTION;
 import static com.android.tools.idea.gradle.util.AndroidGradleUtil.getDisplayNameForModule;
+import static com.android.tools.idea.project.messages.MessageType.ERROR;
 import static com.android.tools.idea.project.messages.MessageType.INFO;
 import static com.android.tools.idea.project.messages.MessageType.WARNING;
 import static com.android.tools.idea.project.messages.SyncMessage.DEFAULT_GROUP;
@@ -97,20 +99,22 @@ public abstract class SimpleDeduplicatingSyncIssueReporter extends BaseSyncIssue
       List<Module> affectedModules =
         entry.stream().map(moduleMap::get).filter(Objects::nonNull).distinct().sorted(Comparator.comparing(Module::getName))
              .collect(Collectors.toList());
-      boolean isError = entry.stream().anyMatch(i -> i.getSeverity() == SEVERITY_ERROR);
-      result.add(createSyncMessage(module.getProject(), entry, affectedModules, buildFileMap, isError));
+      result.add(createSyncMessage(module.getProject(), entry, affectedModules, buildFileMap, getMessageType(entry)));
     }
     return result;
+  }
+
+  protected MessageType getMessageType(List<IdeSyncIssue> syncIssues) {
+    boolean isError = syncIssues.stream().anyMatch(i -> i.getSeverity() == SEVERITY_ERROR);
+    // All errors are displayed as warnings and all warnings displayed as info.
+    return isError ? WARNING : INFO;
   }
 
   private SyncMessage createSyncMessage(@NotNull Project project,
                                         @NotNull List<IdeSyncIssue> syncIssues,
                                         @NotNull List<Module> affectedModules,
                                         @NotNull Map<Module, VirtualFile> buildFileMap,
-                                        boolean isError) {
-    // All errors are displayed as warnings and all warnings displayed as info.
-    MessageType type = isError ? WARNING : INFO;
-
+                                        MessageType type) {
     assert !syncIssues.isEmpty();
     SyncMessage syncMessage = setupSyncMessage(project, syncIssues, affectedModules, buildFileMap, type);
 

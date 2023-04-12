@@ -19,6 +19,7 @@ import com.android.tools.idea.rendering.classloading.RenderActionAllocationLimit
 import com.android.tools.idea.rendering.classloading.RepackageTransform;
 import com.android.tools.idea.rendering.classloading.RequestExecutorTransform;
 import com.android.tools.idea.rendering.classloading.ResourcesCompatTransform;
+import com.android.tools.idea.rendering.classloading.SdkIntReplacer;
 import com.android.tools.idea.rendering.classloading.ThreadControllingTransform;
 import com.android.tools.idea.rendering.classloading.ThreadLocalTrackingTransform;
 import com.android.tools.idea.rendering.classloading.VersionClassTransform;
@@ -74,6 +75,32 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
   );
 
   /**
+   * List of prefixes that can be loaded from the plugin class loader.
+   */
+  private static final ImmutableList<String> ALLOWED_PACKAGES_FROM_PLUGIN = ImmutableList.of(
+      // Android & Java standard libraries (https://developer.android.com/reference/packages)
+      "java.",
+      "javax.",
+      "jdk.",
+      "sun.",
+      "com.sun.",
+      "org.w3c.",
+      "org.xmlss.",
+      "android.",
+      "dalvik.",
+      "org.apache.",
+      "org.xmlpull.",
+      "org.json.",
+      "junit.",
+      // Classes from the plugin that can be referenced by the tooling APIs
+      "com.android.",
+      // Classes for testing
+      "org.jetbrains.android.uipreview.",
+      // Classes to support animation
+      "androidx.compose.animation.tooling."
+  );
+
+  /**
    * Classes are rewritten by applying the following transformations:
    * <ul>
    *   <li>Updates the class file version with a version runnable in the current JDK
@@ -103,6 +130,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
       StudioFlags.COMPOSE_ALLOCATION_LIMITER.get() ?
         new RenderActionAllocationLimiterTransform(visitor) :
         visitor, // Do not apply if the allocation limiter is disabled
+    SdkIntReplacer::new,
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
   );
@@ -116,6 +144,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
     ResourcesCompatTransform::new,
     RequestExecutorTransform::new,
     ViewTreeLifecycleTransform::new,
+    SdkIntReplacer::new,
     // Leave this transformation as last so the rest of the transformations operate on the regular names.
     visitor -> new RepackageTransform(visitor, PACKAGES_TO_RENAME, INTERNAL_PACKAGE)
   );
@@ -166,9 +195,10 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
     super(
       new LibraryResourceClassLoader(
         new FirewalledResourcesClassLoader(
-          // Do not allow to load kotlin standard library from the plugin class loader since it can lead to
-          // a version mismatch.
-          FilteringClassLoader.disallowedPrefixes(parent, PACKAGES_TO_RENAME)),
+          // Do not allow to load kotlin any unexpected libraries from the plugin classpath. This could cause version
+          // mismatches.
+          FilteringClassLoader.allowedPrefixes(parent, ALLOWED_PACKAGES_FROM_PLUGIN)
+        ),
         renderContext.getModule(),
         loader
       ), loader);

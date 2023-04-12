@@ -66,6 +66,7 @@ class FromProtoConversionTest {
       orientation = ORIENTATION_PORTRAIT
       screenWidthDp = 480
       screenHeightDp = 800
+      grammaticalGender = GRAMMATICAL_GENDER_FEMININE
     }.build()
 
     val folderConfiguration = proto.convert(29)
@@ -73,6 +74,7 @@ class FromProtoConversionTest {
     assertThat(folderConfiguration.qualifierString).isEqualTo(join("-",
         "mcc310",
         "mnc410",
+        "feminine",
         "ldrtl",
         "sw200dp",
         "w480dp",
@@ -91,9 +93,6 @@ class FromProtoConversionTest {
         "wheel",
         "v29"))
   }
-
-  private fun reference(type: ResourceType, namespace: String, name: String): Resource =
-    Resource(id(type.getName()), id(namespace), id(name))
 
   private fun id(str: String): Int = table[str] ?: addId(++stringIndex, str)
 

@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.dsl.model
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.TestFileName
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel
 import com.android.tools.idea.gradle.dsl.api.ext.GradlePropertyModel.BOOLEAN_TYPE
@@ -869,33 +868,27 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testUpdateFromMultipleVCModels() {
-    StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.override(true)
-    try {
-      writeToBuildFile("")
-      writeToVersionCatalogFile("""
+    writeToBuildFile("")
+    writeToVersionCatalogFile("""
         [libraries]
         foo = { version = "1.2.3", group = "com.example", name = "foo" }
       """.trimIndent())
 
-      val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogsModel
-      val lib1 = vcModel.libraries("libs")!!
-      val lib2 = vcModel.libraries("libs")!!
-      val foo1 = lib1.findProperty("foo")
-      val foo2 = lib2.findProperty("foo")
-      foo1.getMapValue("group")!!.delete()
-      // models are not in sync
-      Assert.assertNotNull(foo2.getMapValue ("group"))
-      foo2.getMapValue("version")!!.delete()
-      applyChanges(pbm)
-      verifyVersionCatalogFileContents(myVersionCatalogFile, """
+    val pbm = projectBuildModel
+    val vcModel = pbm.versionCatalogsModel
+    val lib1 = vcModel.libraries("libs")!!
+    val lib2 = vcModel.libraries("libs")!!
+    val foo1 = lib1.findProperty("foo")
+    val foo2 = lib2.findProperty("foo")
+    foo1.getMapValue("group")!!.delete()
+    // models are not in sync
+    Assert.assertNotNull(foo2.getMapValue("group"))
+    foo2.getMapValue("version")!!.delete()
+    applyChanges(pbm)
+    verifyVersionCatalogFileContents(myVersionCatalogFile, """
          [libraries]
         foo = { name = "foo" }
       """.trimIndent())
-    }
-    finally {
-      StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.clearOverride()
-    }
   }
 
   @Test
@@ -1036,16 +1029,14 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
 
   @Test
   fun testTwoTomlFilesVisibility() {
-    StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.override(true)
-    try {
-      val gradlePath = myProjectBasePath.findChild("gradle")!!
-      var myVersionCatalogFile: VirtualFile? = null
-        runWriteAction<Unit, IOException> { myVersionCatalogFile = gradlePath.createChildData(this, "testLibs.versions.toml") }
-      saveFileUnderWrite(myVersionCatalogFile!!, """
+    val gradlePath = myProjectBasePath.findChild("gradle")!!
+    var myVersionCatalogFile: VirtualFile? = null
+    runWriteAction<Unit, IOException> { myVersionCatalogFile = gradlePath.createChildData(this, "testLibs.versions.toml") }
+    saveFileUnderWrite(myVersionCatalogFile!!, """
       [libraries]
         fooTest = { version = "2.3.4", group = "com.example", name = "fooTest" }
       """.trimIndent())
-      writeToSettingsFile("""
+    writeToSettingsFile("""
         dependencyResolutionManagement {
           versionCatalogs {
              testLibs {
@@ -1054,33 +1045,29 @@ class ProjectBuildModelTest : GradleFileModelTestCase() {
           }
         }
       """.trimIndent())
-      writeToBuildFile("")
-      writeToVersionCatalogFile("""
+    writeToBuildFile("")
+    writeToVersionCatalogFile("""
         [libraries]
         foo = { version = "1.2.3", group = "com.example", name = "foo" }
       """.trimIndent())
 
-      val pbm = projectBuildModel
-      val vcModel = pbm.versionCatalogsModel
-      assertContainsElements(vcModel.catalogNames(), "libs", "testLibs")
-      val libraries = vcModel.libraries("libs")!!
-      val foo = libraries.findProperty("foo")
-      assertEquals("1.2.3", foo.getMapValue("version")!!.toString())
+    val pbm = projectBuildModel
+    val vcModel = pbm.versionCatalogsModel
+    assertContainsElements(vcModel.catalogNames(), "libs", "testLibs")
+    val libraries = vcModel.libraries("libs")!!
+    val foo = libraries.findProperty("foo")
+    assertEquals("1.2.3", foo.getMapValue("version")!!.toString())
 
-      val testLibs = vcModel.libraries("testLibs")!!
-      val fooTest = testLibs.findProperty("fooTest")
-      assertEquals("2.3.4", fooTest.getMapValue("version")!!.toString())
+    val testLibs = vcModel.libraries("testLibs")!!
+    val fooTest = testLibs.findProperty("fooTest")
+    assertEquals("2.3.4", fooTest.getMapValue("version")!!.toString())
 
-      fooTest.getMapValue("version")!!.setValue("3.3.3")
-      applyChanges(pbm)
-      verifyFileContents(myVersionCatalogFile!!, """
+    fooTest.getMapValue("version")!!.setValue("3.3.3")
+    applyChanges(pbm)
+    verifyFileContents(myVersionCatalogFile!!, """
         [libraries]
         fooTest = { version = "3.3.3", group = "com.example", name = "fooTest" }
       """.trimIndent())
-    }
-    finally {
-      StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.clearOverride()
-    }
   }
 
   @Test

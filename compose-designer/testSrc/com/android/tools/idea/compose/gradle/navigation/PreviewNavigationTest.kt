@@ -116,20 +116,21 @@ class PreviewNavigationTest {
       )
       .thenAccept { renderResult ->
         val rootView = renderResult!!.rootViews.single()!!
+        val viewInfos = parseViewInfo(rootView, logger = LOG)
         ReadAction.run<Throwable> {
           // Find the boundaries for the root element. This will cover the whole layout
-          val bounds = parseViewInfo(rootView, logger = LOG).map { it.bounds }.first()
+          val bounds = viewInfos.map { it.bounds }.first()
 
           // Check clicking outside of the boundaries
-          assertTrue(findComponentHits(module, rootView, -30, -30).isEmpty())
-          assertNull(findNavigatableComponentHit(module, rootView, -30, -30))
-          assertTrue(findComponentHits(module, rootView, -1, 0).isEmpty())
-          assertTrue(findComponentHits(module, rootView, bounds.right * 2, 10).isEmpty())
-          assertTrue(findComponentHits(module, rootView, 10, bounds.bottom * 2).isEmpty())
+          assertTrue(findComponentHits(viewInfos, -30, -30).isEmpty())
+          assertNull(findNavigatableComponentHit(module, viewInfos, -30, -30))
+          assertTrue(findComponentHits(viewInfos, -1, 0).isEmpty())
+          assertTrue(findComponentHits(viewInfos, bounds.right * 2, 10).isEmpty())
+          assertTrue(findComponentHits(viewInfos, 10, bounds.bottom * 2).isEmpty())
 
           // Check filtering
-          assertNotNull(findNavigatableComponentHit(module, rootView, 0, 0))
-          assertNull(findNavigatableComponentHit(module, rootView, 0, 0) { false })
+          assertNotNull(findNavigatableComponentHit(module, viewInfos, 0, 0))
+          assertNull(findNavigatableComponentHit(module, viewInfos, 0, 0) { false })
 
           // Click the Text("Hello 2") by clicking (0, 0)
           // The hits will be, in that other: Text > Column > MaterialTheme
@@ -140,7 +141,7 @@ class PreviewNavigationTest {
             MainActivity.kt:48
           """
               .trimIndent(),
-            findComponentHits(module, rootView, 0, 0)
+            findComponentHits(viewInfos, 0, 0)
               .filter { it.fileName == "MainActivity.kt" }
               .joinToString("\n") { "${it.fileName}:${it.lineNumber}" }
           )
@@ -156,7 +157,7 @@ class PreviewNavigationTest {
             MainActivity.kt:48
           """
               .trimIndent(),
-            findComponentHits(module, rootView, 0, bounds.bottom - bounds.bottom / 4)
+            findComponentHits(viewInfos, 0, bounds.bottom - bounds.bottom / 4)
               .filter { it.fileName == "MainActivity.kt" }
               .joinToString("\n") { "${it.fileName}:${it.lineNumber}" }
           )
@@ -179,16 +180,19 @@ class PreviewNavigationTest {
       )
       .thenAccept { renderResult ->
         val rootView = renderResult!!.rootViews.single()!!
+        val viewInfos = parseViewInfo(rootView, logger = LOG)
         ReadAction.run<Throwable> {
           val descriptor =
-            findNavigatableComponentHit(module, rootView, 0, 0) { it.fileName == "MainActivity.kt" }
+            findNavigatableComponentHit(module, viewInfos, 0, 0) {
+              it.fileName == "MainActivity.kt"
+            }
               as OpenFileDescriptor
           assertEquals("MainActivity.kt", descriptor.file.name)
           // TODO(b/156744111)
           // assertEquals(46, descriptor.line)
 
           val descriptorInOtherFile =
-            findNavigatableComponentHit(module, rootView, 0, 0) as OpenFileDescriptor
+            findNavigatableComponentHit(module, viewInfos, 0, 0) as OpenFileDescriptor
           assertEquals("OtherPreviews.kt", descriptorInOtherFile.file.name)
           // TODO(b/156744111)
           // assertEquals(31, descriptor.line)
@@ -214,14 +218,15 @@ class PreviewNavigationTest {
       )
       .thenAccept { renderResult ->
         val rootView = renderResult!!.rootViews.single()!!
+        val viewInfos = parseViewInfo(rootView, logger = LOG)
         ReadAction.run<Throwable> {
           // We click a Text() but we should not navigate to the local Text.kt file since it's not
           // related to the androidx.compose.ui.foundation.Text
-          // Assert disabled for dev16 because of b/162066489
-          // assertTrue(findComponentHits(module, rootView, 2, 2).any { it.fileName == "Text.kt" })
+          assertTrue(findComponentHits(viewInfos, 2, 2).any { it.fileName == "Text.kt" })
           assertTrue(
-            (findNavigatableComponentHit(module, rootView, 2, 2) as OpenFileDescriptor).file.name ==
-              "MainActivity.kt"
+            (findNavigatableComponentHit(module, viewInfos, 2, 2) as OpenFileDescriptor)
+              .file
+              .name == "MainActivity.kt"
           )
         }
       }

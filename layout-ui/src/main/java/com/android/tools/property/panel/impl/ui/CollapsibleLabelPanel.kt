@@ -53,8 +53,8 @@ import kotlin.math.roundToInt
  */
 class CollapsibleLabelPanel(
   val model: CollapsibleLabelModel,
-  fontSize: UIUtil.FontSize,
-  fontStyle: Int,
+  private val fontSize: UIUtil.FontSize,
+  private val fontStyle: Int,
   actions: List<AnAction> = emptyList(),
   private val nameColumnFraction: ColumnFraction = ColumnFraction()
 ) : JPanel(BorderLayout()) {
@@ -74,6 +74,7 @@ class CollapsibleLabelPanel(
   private val expandButton = IconWithFocusBorder { if (model.expandable) expandAction else null }
   private val actionButtons = mutableListOf<FocusableActionButton>()
   private val resizeHandler = ColumnFractionChangeHandler(nameColumnFraction, { label.x }, { width }, ::onResizeModeChange)
+  private var initialized = false
 
   val text: String?
     get() = label.text
@@ -124,6 +125,17 @@ class CollapsibleLabelPanel(
     label.addMouseListener(resizeHandler)
     label.addMouseMotionListener(resizeHandler)
     valueChanged()
+    initialized = true
+  }
+
+  override fun updateUI() {
+    super.updateUI()
+    if (initialized) { // All locals are uninitialized (label will be null) when updateUI is called from the super class constructor
+      label.font = UIUtil.getLabelFont(fontSize)
+      if (fontStyle != Font.PLAIN) {
+        label.font = label.font.deriveFont(fontStyle)
+      }
+    }
   }
 
   override fun paintComponent(g: Graphics) {

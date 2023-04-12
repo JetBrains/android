@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class AndroidDebuggerState implements JDOMExternalizable {
   public boolean ATTACH_ON_WAIT_FOR_DEBUGGER = false;
+  public boolean DEBUG_SANDBOX_SDK = false;
 
   public boolean attachOnWaitForDebugger() {
     return ATTACH_ON_WAIT_FOR_DEBUGGER;
@@ -37,6 +38,14 @@ public class AndroidDebuggerState implements JDOMExternalizable {
 
   public void setAttachOnWaitForDebugger(boolean attachOnWaitForDebugger) {
     ATTACH_ON_WAIT_FOR_DEBUGGER = attachOnWaitForDebugger;
+  }
+
+  public boolean debugSandboxSdk() {
+    return DEBUG_SANDBOX_SDK;
+  }
+
+  public void setDebugSandboxSdk(boolean value) {
+    DEBUG_SANDBOX_SDK = value;
   }
 
   @NotNull

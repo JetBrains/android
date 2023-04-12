@@ -25,7 +25,7 @@ class PerfettoTraceConfigBuildersTest {
   fun cpuTraceConfigConstructedCorrectly() {
     val config = PerfettoTraceConfigBuilders.getCpuTraceConfig(1234)
 
-    Truth.assertThat(config.buffersCount).isEqualTo(2)
+    Truth.assertThat(config.buffersCount).isEqualTo(3)
     Truth.assertThat(config.getBuffers(0).sizeKb).isEqualTo(1234 * 1024)
     // 256 Kb is the hardcoded value used for the secondary buffer
     Truth.assertThat(config.getBuffers(1).sizeKb).isEqualTo(256)
@@ -80,7 +80,7 @@ class PerfettoTraceConfigBuildersTest {
 
     // Verify second data source (Power Data) is built correctly.
     Truth.assertThat(actualDataSources[7].config.name).isEqualTo("android.power")
-    Truth.assertThat(actualDataSources[7].config.targetBuffer).isEqualTo(0)
+    Truth.assertThat(actualDataSources[7].config.targetBuffer).isEqualTo(2)
     Truth.assertThat(actualDataSources[7].config.androidPowerConfig.collectPowerRails).isTrue()
     Truth.assertThat(actualDataSources[7].config.androidPowerConfig.batteryCountersList).containsExactly(
       PerfettoConfig.AndroidPowerConfig.BatteryCounters.BATTERY_COUNTER_CAPACITY_PERCENT,

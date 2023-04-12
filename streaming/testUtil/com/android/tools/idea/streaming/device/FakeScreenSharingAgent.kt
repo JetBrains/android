@@ -31,8 +31,10 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.UIUtil
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -150,7 +152,7 @@ class FakeScreenSharingAgent(
   private var shellProtocol: ShellV2Protocol? = null
 
   /**
-   * Runs the agent. Returns when the agen terminates.
+   * Runs the agent. Returns when the agent terminates.
    */
   suspend fun run(protocol: ShellV2Protocol, command: String, hostPort: Int) {
     withContext(singleThreadedDispatcher) {
@@ -162,6 +164,7 @@ class FakeScreenSharingAgent(
       parseArgs(command)
       val videoChannel = SuspendingSocketChannel.open()
       val controlChannel = SuspendingSocketChannel.open()
+      ChannelClosingSynchronizer(listOf(videoChannel, controlChannel)).start()
       val socketAddress = InetSocketAddress("localhost", hostPort)
       videoChannel.connect(socketAddress)
       controlChannel.connect(socketAddress)
@@ -185,8 +188,12 @@ class FakeScreenSharingAgent(
       }
       else {
         isRunning = true
-        controller.run()
-        isRunning = false
+        try {
+          controller.run()
+        }
+        finally {
+          isRunning = false
+        }
       }
     }
   }
@@ -705,6 +712,34 @@ class FakeScreenSharingAgent(
 
     fun or(vararg moreMethodNamesToIgnore: Int): ControlMessageFilter {
       return ControlMessageFilter(*messageTypesToIgnore + intArrayOf(*moreMethodNamesToIgnore))
+    }
+  }
+
+  /**
+   * Makes sure that when one of the given channels is closed, other channels are closed too.
+   */
+  private class ChannelClosingSynchronizer(private val channels: List<SuspendingSocketChannel>) {
+
+    fun start() {
+      CoroutineScope(Dispatchers.IO).launch {
+        while (true) {
+          for (channel1 in channels) {
+            if (!channel1.isOpen) {
+              for (channel2 in channels) {
+                if (channel2 != channel1 && channel2.isOpen) {
+                  try {
+                    channel2.close()
+                  }
+                  catch (_: IOException) {
+                  }
+                }
+              }
+              return@launch
+            }
+          }
+          delay(100)
+        }
+      }
     }
   }
 

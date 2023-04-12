@@ -17,6 +17,8 @@ package com.android.tools.idea.deviceprovisioner
 
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.tools.idea.adblib.AdbLibService
+import com.android.tools.idea.concurrency.createChildScope
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
 
@@ -25,12 +27,17 @@ import com.intellij.openapi.project.Project
  * plugins.
  */
 @Service
-class DeviceProvisionerService(project: Project) {
+class DeviceProvisionerService(project: Project) : Disposable {
+  private val session = AdbLibService.getSession(project)
+  private val coroutineScope =
+    session.scope.createChildScope(isSupervisor = true, parentDisposable = this)
+
   val deviceProvisioner =
-    AdbLibService.getSession(project).let { session ->
-      DeviceProvisioner.create(
-        session,
-        DeviceProvisionerFactory.createProvisioners(session.scope, project)
-      )
-    }
+    DeviceProvisioner.create(
+      coroutineScope,
+      session,
+      DeviceProvisionerFactory.createProvisioners(coroutineScope, project)
+    )
+
+  override fun dispose() {}
 }

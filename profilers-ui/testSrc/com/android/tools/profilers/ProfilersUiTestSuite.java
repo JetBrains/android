@@ -17,8 +17,6 @@ package com.android.tools.profilers;
 
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import com.android.tools.tests.LeakCheckerRule;
-import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
@@ -26,5 +24,4 @@ import org.junit.runner.RunWith;
   com.android.tools.profilers.ProfilersUiTestSuite.class,  // a suite mustn't contain itself
 })
 public class ProfilersUiTestSuite extends IdeaTestSuiteBase {
-  @ClassRule public static LeakCheckerRule leakCheck = new LeakCheckerRule();
 }

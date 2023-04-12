@@ -17,6 +17,7 @@
 #include "display_listener_dispatcher.h"
 
 #include "accessors/display_manager.h"
+#include "agent.h"
 #include "jvm.h"
 #include "log.h"
 #include "service_manager.h"
@@ -57,15 +58,14 @@ void DisplayListenerDispatcher::Run() {
   looper.MakeGlobal();
   looper_promise_.set_value(std::move(looper));
 
-  auto api_level = android_get_device_api_level();
-  const char* signature = api_level >= 31 ?
+  const char* signature = Agent::api_level() >= 31 ?
       "(Landroid/hardware/display/DisplayManager$DisplayListener;Landroid/os/Handler;J)V" :
       "(Landroid/hardware/display/DisplayManager$DisplayListener;Landroid/os/Handler;)V";
   jmethodID register_display_listener_method =
       DisplayManager::display_manager_global_class_.GetMethod(jni_, "registerDisplayListener", signature);
   JClass display_listener_class = jni_.GetClass("com/android/tools/screensharing/DisplayListener");
   JObject listener = display_listener_class.NewObject(display_listener_class.GetConstructor("()V"));
-  if (api_level >= 31) {
+  if (Agent::api_level() >= 31) {
     DisplayManager::display_manager_global_.CallVoidMethod(
         jni_, register_display_listener_method, listener.ref(), nullptr,
         EVENT_FLAG_DISPLAY_ADDED | EVENT_FLAG_DISPLAY_REMOVED | EVENT_FLAG_DISPLAY_CHANGED);

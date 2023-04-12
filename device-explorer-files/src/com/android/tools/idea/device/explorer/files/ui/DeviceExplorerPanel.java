@@ -170,6 +170,7 @@ public class DeviceExplorerPanel {
 
     ColumnTreeBuilder builder = new ColumnTreeBuilder(myTree)
       .setBackground(UIUtil.getTreeBackground())
+      .setShouldPaintExpandControl(true)
       .addColumn(new ColumnTreeBuilder.ColumnBuilder()
                    .setName("Name")
                    .setPreferredWidth(JBUI.scale(600))

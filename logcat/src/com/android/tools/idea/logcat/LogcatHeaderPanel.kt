@@ -48,7 +48,7 @@ internal class LogcatHeaderPanel(
   filter: String,
   initialDevice: Device?,
 ) : JPanel() {
-  private val deviceComboBox = DeviceComboBox(project, logcatPresenter, initialDevice)
+  private val deviceComboBox = DeviceComboBox(project, initialDevice)
   private val filterTextField = FilterTextField(project, logcatPresenter, filterParser, filter)
   private val helpIcon: JLabel = JLabel(AllIcons.General.ContextHelp)
 

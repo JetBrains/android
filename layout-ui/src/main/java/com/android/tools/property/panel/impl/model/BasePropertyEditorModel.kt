@@ -19,6 +19,7 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.model.stdui.ValueChangedListener
 import com.android.tools.property.panel.api.*
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.ui.ExperimentalUI.isNewUI
 import com.intellij.util.ui.ColorIcon
 import com.intellij.util.ui.UIUtil
 import java.awt.Color
@@ -78,7 +79,8 @@ abstract class BasePropertyEditorModel(initialProperty: PropertyItem) : Property
   override var isUsedInRendererWithSelection: Boolean by Delegates.observable(false) { _, _, _ -> fireValueChanged() }
 
   fun displayedIcon(icon: Icon?): Icon? =
-    if (icon != null && icon !is ColorIcon && isUsedInRendererWithSelection) ColoredIconGenerator.generateWhiteIcon(icon) else icon
+    if (icon != null && icon !is ColorIcon && isUsedInRendererWithSelection && !isNewUI()) ColoredIconGenerator.generateWhiteIcon(icon)
+    else icon
 
   fun displayedForeground(foreground: Color): Color =
     if (isUsedInRendererWithSelection) UIUtil.getTableForeground(true, true) else foreground

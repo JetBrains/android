@@ -8,6 +8,7 @@ import com.android.tools.idea.gradle.project.build.GradleBuildState
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.android.tools.idea.gradle.project.build.invoker.TestCompileType
 import com.android.tools.idea.gradle.util.BuildMode
+import com.android.tools.idea.projectsystem.PROJECT_SYSTEM_BUILD_TOPIC
 import com.android.tools.idea.projectsystem.ProjectSystemBuildManager
 import com.android.tools.idea.projectsystem.isAndroidTestFile
 import com.android.tools.idea.projectsystem.isUnitTestFile
@@ -39,8 +40,6 @@ private fun BuildMode.toProjectSystemBuildMode(): ProjectSystemBuildManager.Buil
 
 @Service
 private class GradleProjectSystemBuildPublisher(val project: Project): GradleBuildListener.Adapter(), Disposable {
-  private val PROJECT_SYSTEM_BUILD_TOPIC = Topic("Project build", ProjectSystemBuildManager.BuildListener::class.java)
-
   /**
    * The counter is only supposed to be called on UI thread therefore it does not require any lock/synchronization.
    */

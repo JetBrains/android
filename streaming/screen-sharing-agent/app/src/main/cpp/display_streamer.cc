@@ -112,9 +112,9 @@ struct CodecOutputBuffer {
   size_t size;
 };
 
-bool IsUnderpoweredCodec(Size codec_resolution, Size display_resolution, int api_level) {
+bool IsUnderpoweredCodec(Size codec_resolution, Size display_resolution) {
   int32_t resolution = min(codec_resolution.width, codec_resolution.height);
-  return resolution < 1024 || (api_level < 32 && resolution < max(display_resolution.width, display_resolution.height));
+  return resolution < 1024 || (Agent::api_level() < 32 && resolution < max(display_resolution.width, display_resolution.height));
 }
 
 AMediaFormat* CreateMediaFormat(const string& mime_type) {
@@ -291,7 +291,6 @@ void DisplayStreamer::Run() {
     if (codec == nullptr) {
       Log::Fatal("Unable to create a %s video encoder", codec_info_->name.c_str());
     }
-    int api_level = android_get_device_api_level();
     DisplayInfo display_info = DisplayManager::GetDisplayInfo(jni, display_id_);
     Log::D("display_info: %s", display_info.ToDebugString().c_str());
     VirtualDisplay virtual_display;
@@ -300,14 +299,14 @@ void DisplayStreamer::Run() {
       virtual_display = DisplayManager::CreateVirtualDisplay(
           jni, "screen-sharing-agent", display_info.logical_size.width, display_info.logical_size.height, display_id_, nullptr);
     } else {
-      bool secure = android_get_device_api_level() < 31;  // Creation of secure displays is not allowed on API 31+.
+      bool secure = Agent::api_level() < 31;  // Creation of secure displays is not allowed on API 31+.
       display_token = SurfaceControl::CreateDisplay(jni, "screen-sharing-agent", secure);
       if (display_token.IsNull()) {
         Log::Fatal("Unable to create a virtual display");
       }
     }
     // Use heuristics for determining a bit rate value that doesn't cause SIGABRT in the encoder (b/251659422).
-    int32_t bit_rate = IsUnderpoweredCodec(codec_info_->max_resolution, display_info.logical_size, api_level) ?
+    int32_t bit_rate = IsUnderpoweredCodec(codec_info_->max_resolution, display_info.logical_size) ?
         BIT_RATE_REDUCED : BIT_RATE;
     if (max_bit_rate_ > 0 && bit_rate > max_bit_rate_) {
       bit_rate = max_bit_rate_;

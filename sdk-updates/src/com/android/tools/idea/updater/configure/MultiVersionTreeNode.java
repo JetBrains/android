@@ -15,14 +15,13 @@
  */
 package com.android.tools.idea.updater.configure;
 
-import com.android.ide.common.repository.GradleVersion;
+import com.android.ide.common.gradle.Version;
 import com.android.repository.api.RepoPackage;
 import com.android.repository.api.UpdatablePackage;
 import com.android.sdklib.repository.AndroidSdkHandler;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.util.containers.ContainerUtil;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.function.Function;
 import javax.swing.JTree;
 import org.jetbrains.annotations.NotNull;
@@ -44,8 +43,7 @@ class MultiVersionTreeNode extends UpdaterTreeNode {
         ContainerUtil.map(myVersionNodes, DetailsTreeNode::getPackage),
         null,
         true,
-        GradleVersion::tryParse,
-        Comparator.nullsFirst(Comparator.naturalOrder()));
+        Version.Companion::parse);
       max = myVersionNodes.stream().filter(node -> node.getPackage() == greatestPackage).findFirst().orElse(null);
     }
     myMaxVersionNode = max;

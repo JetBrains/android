@@ -17,7 +17,7 @@ package com.android.tools.idea.rendering.errors
 
 import com.android.ide.common.rendering.api.ILayoutLog
 import com.android.tools.idea.diagnostics.ExceptionTestUtils.createExceptionFromDesc
-import com.android.tools.idea.rendering.HtmlLinkManager
+import com.android.tools.idea.rendering.StudioHtmlLinkManager
 import com.android.tools.idea.rendering.RenderErrorContributorTest.stripImages
 import com.android.tools.idea.rendering.RenderLogger
 import com.android.tools.idea.rendering.errors.ComposeRenderErrorContributor.isHandledByComposeContributor
@@ -34,7 +34,7 @@ class ComposeRenderErrorContributorTest {
   @get:Rule
   val androidProjectRule = AndroidProjectRule.inMemory()
 
-  private val linkManager = HtmlLinkManager()
+  private val linkManager = StudioHtmlLinkManager()
   private val nopLinkHandler = HyperlinkListener { }
 
   @Test

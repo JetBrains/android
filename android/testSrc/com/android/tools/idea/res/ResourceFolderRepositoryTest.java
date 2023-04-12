@@ -490,6 +490,36 @@ public class ResourceFolderRepositoryTest extends AndroidTestCase {
     assertThat(repository.getModificationCount()).isGreaterThan(generation);
   }
 
+  public void testDeleteMultipleResourceDirectories() throws Exception {
+    VirtualFile strings = myFixture.copyFileToProject(STRINGS, "res/values/strings.xml");
+    VirtualFile stringsDe = myFixture.copyFileToProject(STRINGS, "res/values-de/strings.xml");
+    VirtualFile stringsEs = myFixture.copyFileToProject(STRINGS, "res/values-es/strings.xml");
+    PsiFile psiFileDe = PsiManager.getInstance(getProject()).findFile(stringsDe);
+    PsiFile psiFileEs = PsiManager.getInstance(getProject()).findFile(stringsEs);
+
+    ResourceFolderRepository repository = createRegisteredRepository();
+    assertNotNull(repository);
+
+    // Try deleting a two resource directories and ensure we remove the resources within.
+    long generation = repository.getModificationCount();
+    Collection<ResourceItem> stringItems = repository.getResources(RES_AUTO, ResourceType.STRING).values();
+
+    assertEquals(9, stringItems.size());
+    PsiDirectory directoryDe = psiFileDe.getContainingDirectory();
+    PsiDirectory directoryEs = psiFileEs.getContainingDirectory();
+    assertNotNull(directoryDe);
+    assertNotNull(directoryEs);
+    WriteCommandAction.runWriteCommandAction(null, () -> {
+      directoryDe.delete();
+      directoryEs.delete();
+    });
+    waitForUpdates(repository);
+
+    stringItems = repository.getResources(RES_AUTO, ResourceType.STRING).values();
+    assertEquals(3, stringItems.size());
+    assertThat(repository.getModificationCount()).isGreaterThan(generation);
+  }
+
   public void testDeleteRemainderResourceIDs() throws Exception {
     VirtualFile file = myFixture.copyFileToProject(LAYOUT_ID_SCAN, "res/layout-xlarge-land/layout.xml");
     PsiFile psiFile1 = PsiManager.getInstance(getProject()).findFile(file);

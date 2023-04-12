@@ -37,6 +37,7 @@ import com.intellij.testFramework.TestActionEvent
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.content.Content
+import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import java.awt.Component
@@ -64,12 +65,17 @@ class SplittingPanelTest {
 
   private val fakeUi = FakeUi(contentRootPanel, createFakeWindow = true)
 
+  @After
+  fun tearDown() {
+    contentRootPanel.removeAll()
+  }
+
   @Test
   fun init_addsComponent() {
     val component = JLabel("Component")
 
     val splittingPanel = SplittingPanel(
-      contentManager.factory.createContent(null, "Tab", false),
+      createContent(null, "Tab", false),
       clientState = null,
       object : ChildComponentFactory {
         override fun createChildComponent(state: String?, popupActionGroup: ActionGroup): JComponent = component
@@ -80,7 +86,7 @@ class SplittingPanelTest {
 
   @Test
   fun split_selectsContent() {
-    val content1 = contentManager.factory.createContent(null, "Tab1", false)
+    val content1 = createContent(null, "Tab1", false)
     val content2 = createSplittingPanelContent(contentRootPanel) { _, _ -> JPanel() }
     contentManager.setSelectedContent(content1)
 
@@ -180,7 +186,7 @@ class SplittingPanelTest {
 
     Disposer.dispose(content)
 
-    assertThat(disposableLabels.count { !Disposer.isDisposed(it) }).isEqualTo(0)
+    assertThat(disposableLabels.count { !it.disposed }).isEqualTo(0)
   }
 
   @Test
@@ -216,7 +222,7 @@ class SplittingPanelTest {
 
   @Test
   fun findFirstSplitter_noSplitters() {
-    val content = contentManager.factory.createContent(JPanel(), "Tab", /* isLockable= */ false)
+    val content = createContent(JPanel(), "Tab", /* isLockable= */ false)
 
     assertThat(content.findFirstSplitter()).isNull()
   }
@@ -257,7 +263,7 @@ class SplittingPanelTest {
 
   @Test
   fun splitAction_noSplitter_doesNotCrash() {
-    val content = contentManager.factory.createContent(JPanel(), "Tab", /* isLockable= */ false)
+    val content = createContent(JPanel(), "Tab", /* isLockable= */ false)
 
     SplitAction.Horizontal().actionPerformed(content)
   }
@@ -288,7 +294,7 @@ class SplittingPanelTest {
       0.3f,
       PanelState(HORIZONTAL, 0.7f, PanelState("1"), PanelState("3")),
       PanelState(HORIZONTAL, 0.6f, PanelState("2"), PanelState("4")))
-    val content = contentManager.factory.createContent(null, "Tab", false)
+    val content = createContent(null, "Tab", false)
 
     val component = SplittingPanel.buildComponentFromState(content, state, object : ChildComponentFactory {
       override fun createChildComponent(state: String?, popupActionGroup: ActionGroup): JComponent = JLabelWithState(state!!)
@@ -364,7 +370,7 @@ class SplittingPanelTest {
   }
 
   private fun createSplittingPanelContent(contentRootPanel: JPanel, createChildComponent: (String?, ActionGroup) -> JComponent): Content {
-    val content = contentManager.factory.createContent(/* component= */ null, "Tab", /* isLockable= */ false)
+    val content = createContent(/* component= */ null, "Tab", /* isLockable= */ false)
     val splittingPanel = SplittingPanel(content, null, object : ChildComponentFactory {
       override fun createChildComponent(state: String?, popupActionGroup: ActionGroup): JComponent =
         createChildComponent(state, popupActionGroup)
@@ -374,6 +380,12 @@ class SplittingPanelTest {
     contentRootPanel.add(splittingPanel) // The mock ContentManager doesn't assign a parent.
     splittingPanel.size = splittingPanel.parent.size
 
+    return content
+  }
+
+  fun createContent(component: JComponent?, displayName: String?, isLockable: Boolean): Content {
+    val content = contentManager.factory.createContent(component, displayName, isLockable)
+    Disposer.register(contentManager, content)
     return content
   }
 
@@ -424,7 +436,11 @@ class SplittingPanelTest {
   private data class SplitCommand(val name: String, val orientation: SplitOrientation, val proportion: Float? = null)
 
   private open class DisposableLabel(text: String) : JLabel(text), Disposable {
-    override fun dispose() {}
+
+    var disposed = false
+    override fun dispose() {
+      disposed = true
+    }
   }
 
   private class JLabelWithState(val componentState: String) : JLabel(componentState), SplittingTabsStateProvider {

@@ -21,7 +21,9 @@ import com.intellij.debugger.engine.evaluation.EvaluationContext
 import com.intellij.debugger.engine.requests.RequestManagerImpl
 import com.intellij.debugger.jdi.VirtualMachineProxyImpl
 import com.intellij.debugger.requests.ClassPrepareRequestor
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.psi.search.GlobalSearchScope
 import com.sun.jdi.ClassType
 import com.sun.jdi.InterfaceType
@@ -56,8 +58,15 @@ interface MockValueScope {
   fun value(value: Value)
 }
 
-fun mockDebugProcess(project: Project, block: MockDebugProcessScope.() -> Unit): MockDebugProcessImpl {
+fun mockDebugProcess(project: Project, disposable: Disposable, block: MockDebugProcessScope.() -> Unit): MockDebugProcessImpl {
   val debugProcess = MockDebugProcessImpl(project)
+  Disposer.register(disposable) {
+    // Stop and dispose the debugger process in order to avoid leaking the project via
+    // com.intellij.debugger.impl.InvokeThread#ourWorkerRequest.
+    debugProcess.stop(true)
+    debugProcess.waitFor()
+    debugProcess.dispose()
+  }
   object : MockDebugProcessScope {
     override val virtualMachineProxy: VirtualMachineProxyImpl
       get() = debugProcess.virtualMachineProxy

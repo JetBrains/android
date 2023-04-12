@@ -21,6 +21,8 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.HeadlessDialogRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.adtui.swing.findModelessDialog
+import com.android.tools.adtui.swing.optionsAsString
+import com.android.tools.adtui.swing.selectFirstMatch
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.ui.laf.darcula.DarculaLaf
@@ -193,7 +195,7 @@ class ScreenshotViewerTest {
     val ui = FakeUi(viewer.rootPane)
 
     val clipComboBox = ui.getComponent<JComboBox<*>>()
-    assertThat(clipComboBox.options()).doesNotContain("Play Store Compatible")
+    assertThat(clipComboBox.optionsAsString()).doesNotContain("Play Store Compatible")
   }
 
   @Test
@@ -203,12 +205,12 @@ class ScreenshotViewerTest {
     val ui = FakeUi(viewer.rootPane)
 
     val clipComboBox = ui.getComponent<JComboBox<*>>()
-    assertThat(clipComboBox.options()).contains("Play Store Compatible")
+    assertThat(clipComboBox.optionsAsString()).contains("Play Store Compatible")
   }
 
   @Test
   fun testPlayCompatibleScreenshot() {
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
+    val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 
@@ -228,7 +230,7 @@ class ScreenshotViewerTest {
     runInEdt {
       UIManager.setLookAndFeel(DarculaLaf())
     }
-    val screenshotImage = ScreenshotImage(createImage(200, 180), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
+    val screenshotImage = ScreenshotImage(createImage(384, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
     val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
     val ui = FakeUi(viewer.rootPane)
 
@@ -241,6 +243,66 @@ class ScreenshotViewerTest {
     assertThat(processedImage.getRGB(screenshotImage.width / 2, screenshotImage.height / 2)).isEqualTo(Color.RED.rgb)
     assertThat(processedImage.getRGB(5, 5)).isEqualTo(Color.BLACK.rgb)
     assertThat(processedImage.getRGB(screenshotImage.width - 5, screenshotImage.height - 5)).isEqualTo(Color.BLACK.rgb)
+  }
+
+  @Test
+  fun testPlayCompatibleScreenshotAddsVerticalPaddingToFit1to1Ratio() {
+    val screenshotImage = ScreenshotImage(createImage(500, 384), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val ui = FakeUi(viewer.rootPane)
+
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+
+    clipComboBox.selectFirstMatch("Play Store Compatible")
+    EDT.dispatchAllInvocationEvents()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
+    assertThat(processedImage.width).isEqualTo(500)
+    assertThat(processedImage.height).isEqualTo(500)
+    // the image should have a padding and not be stretched
+    val expectedPadding = (screenshotImage.width - screenshotImage.height) / 2
+    assertThat(processedImage.getRGB(processedImage.width / 2, expectedPadding - 1)).isEqualTo(Color.BLACK.rgb)
+    assertThat(processedImage.getRGB(processedImage.width / 2, expectedPadding + screenshotImage.height + 1)).isEqualTo(Color.BLACK.rgb)
+    assertThat(processedImage.getRGB(processedImage.width / 2, processedImage.height / 2)).isEqualTo(Color.RED.rgb)
+  }
+
+  @Test
+  fun testPlayCompatibleScreenshotAddsHorizontalPaddingToFit1to1Ratio() {
+    val screenshotImage = ScreenshotImage(createImage(384, 500), 0, DeviceType.WEAR, DISPLAY_INFO_WATCH)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val ui = FakeUi(viewer.rootPane)
+
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+
+    clipComboBox.selectFirstMatch("Play Store Compatible")
+    EDT.dispatchAllInvocationEvents()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
+    assertThat(processedImage.width).isEqualTo(500)
+    assertThat(processedImage.height).isEqualTo(500)
+    // the image should have a padding and not be stretched
+    val expectedPadding = (screenshotImage.height - screenshotImage.width) / 2
+    assertThat(processedImage.getRGB(expectedPadding - 1, processedImage.height / 2)).isEqualTo(Color.BLACK.rgb)
+    assertThat(processedImage.getRGB(expectedPadding + screenshotImage.width + 1, processedImage.height / 2)).isEqualTo(Color.BLACK.rgb)
+    assertThat(processedImage.getRGB(processedImage.width / 2, processedImage.height / 2)).isEqualTo(Color.RED.rgb)
+  }
+
+  @Test
+  fun testPlayCompatibleScreenshotAddsPaddingToMeetMinimumSizeRequirement() {
+    val screenshotImage = ScreenshotImage(createImage(ScreenshotViewer.MINIMUM_WEAR_PLAY_COMPATIBLE_SCREENSHOT_SIZE_PIXELS - 10,
+                                                      ScreenshotViewer.MINIMUM_WEAR_PLAY_COMPATIBLE_SCREENSHOT_SIZE_PIXELS - 10), 0,
+                                          DeviceType.WEAR, DISPLAY_INFO_WATCH)
+    val viewer = createScreenshotViewer(screenshotImage, DeviceArtScreenshotPostprocessor())
+    val ui = FakeUi(viewer.rootPane)
+
+    val clipComboBox = ui.getComponent<JComboBox<*>>()
+
+    clipComboBox.selectFirstMatch("Play Store Compatible")
+    EDT.dispatchAllInvocationEvents()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    val processedImage: BufferedImage = ui.getComponent<ImageComponent>().document.value
+    assertThat(processedImage.width).isEqualTo(ScreenshotViewer.MINIMUM_WEAR_PLAY_COMPATIBLE_SCREENSHOT_SIZE_PIXELS)
+    assertThat(processedImage.height).isEqualTo(ScreenshotViewer.MINIMUM_WEAR_PLAY_COMPATIBLE_SCREENSHOT_SIZE_PIXELS)
   }
 
   @Test
@@ -291,18 +353,4 @@ class ScreenshotViewerTest {
     viewer.show()
     return viewer
   }
-
-  private fun <E> JComboBox<E>.selectFirstMatch(text: String) {
-    for (i in 0 until model.size) {
-      if (model.getElementAt(i).toString() == text) {
-        this.selectedIndex = i
-        return
-      }
-    }
-  }
-
-  private fun <E> JComboBox<E>.options(): List<String> =
-    (0 until model.size).map {
-      model.getElementAt(it).toString()
-    }
 }

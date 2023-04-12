@@ -42,6 +42,7 @@ import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.rendering.HtmlLinkManager;
+import com.android.tools.idea.rendering.StudioHtmlLinkManager;
 import com.android.utils.FileUtils;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.PositionXmlParser;
@@ -168,7 +169,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
   private boolean myManifestEditable;
   private final List<ManifestFileWithMetadata> myFiles = new ArrayList<>();
   private final List<ManifestFileWithMetadata> myOtherFiles = new ArrayList<>();
-  private final HtmlLinkManager myHtmlLinkManager = new HtmlLinkManager();
+  private final StudioHtmlLinkManager myHtmlLinkManager = new StudioHtmlLinkManager();
   private VirtualFile myFile;
   private final Color myBackgroundColor;
   private Map<PathString, ExternalAndroidLibrary> myLibrariesByManifestDir;
@@ -224,7 +225,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
     HyperlinkListener hyperLinkListener = e -> {
       if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
         String url = e.getDescription();
-        myHtmlLinkManager.handleUrl(url, facet.getModule(), null, null, false, null);
+        myHtmlLinkManager.handleUrl(url, facet.getModule(), null, false, HtmlLinkManager.NOOP_SURFACE);
       }
     };
     details.addHyperlinkListener(hyperLinkListener);

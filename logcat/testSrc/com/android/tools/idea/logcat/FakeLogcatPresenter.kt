@@ -46,15 +46,12 @@ internal class FakeLogcatPresenter : LogcatPresenter {
   val messageBatches = mutableListOf<List<LogcatMessage>>()
   val lineBatches = mutableListOf<List<String>>()
   val tagSet = mutableSetOf<String>()
+  var showing = true
 
   override var formattingOptions: FormattingOptions = FormattingOptions()
 
   override fun reloadMessages() {
     reloadedMessages++
-  }
-
-  override fun applyFilter(logcatFilter: LogcatFilter?) {
-    TODO("Not yet implemented")
   }
 
   override fun clearMessageView() {
@@ -78,7 +75,19 @@ internal class FakeLogcatPresenter : LogcatPresenter {
 
   override fun getConnectedDevice() = attachedDevice
 
-  override fun getSelectedDevice() : Device? {
+  override fun isShowing() = showing
+
+  override fun getBacklogMessages(): List<LogcatMessage> = messageBatches.flatten()
+
+  override suspend fun enterInvisibleMode() {
+    messageBatches.clear()
+  }
+
+  override fun applyFilter(logcatFilter: LogcatFilter?) {
+    TODO("Not yet implemented")
+  }
+
+  override fun getSelectedDevice(): Device? {
     TODO("Not yet implemented")
   }
 

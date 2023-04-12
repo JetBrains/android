@@ -22,6 +22,9 @@ import com.android.tools.idea.common.surface.SceneLayer
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.BlueprintColorSet
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.uibuilder.surface.ScreenView.DEVICE_CONTENT_SIZE_POLICY
+import com.android.tools.idea.uibuilder.surface.layer.BorderLayer
+import com.android.tools.idea.uibuilder.surface.layer.CanvasResizeLayer
+import com.android.tools.idea.uibuilder.surface.layer.WarningLayer
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.ImmutableList
@@ -170,10 +173,10 @@ internal fun blueprintProvider(surface: NlDesignSurface,
     .withLayersProvider {
       ImmutableList.builder<Layer>().apply {
         if (it.hasBorderLayer()) {
-          add(BorderLayer(it))
+          add(BorderLayer(it, rotation = { surface.rotateSurfaceDegree }))
         }
         if (!isSecondary) {
-          add(CanvasResizeLayer(it.surface, it))
+          add(CanvasResizeLayer(it) { surface.repaint() })
         }
         add(SceneLayer(it.surface, it, true))
       }.build()
@@ -191,7 +194,7 @@ internal fun visualizationProvider(surface: NlDesignSurface,
     .withLayersProvider {
       ImmutableList.builder<Layer>().apply {
         // Always has border in visualization tool.
-        add(BorderLayer(it))
+        add(BorderLayer(it, rotation = { surface.rotateSurfaceDegree }))
         add(ScreenViewLayer(it, colorBlindMode))
         add(SceneLayer(it.surface, it, false).apply { isShowOnHover = true })
         add(WarningLayer(it))
@@ -233,7 +236,7 @@ internal fun colorBlindProvider(surface: NlDesignSurface,
     .withLayersProvider {
       ImmutableList.builder<Layer>().apply {
         // Always has border in visualization tool.
-        add(BorderLayer(it))
+        add(BorderLayer(it, rotation = { surface.rotateSurfaceDegree }))
         // Try to get the specific blind mode for this manager/model
         val colorBlindMode: ColorBlindMode? = findColorBlindMode(manager)
         if (colorBlindMode != null) {

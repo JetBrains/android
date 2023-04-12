@@ -489,14 +489,11 @@ public final class AdbService implements Disposable, AdbOptionsService.AdbOption
         return;
       }
 
-      LOG.info("Options changed. Re-initing/restarting adb server if needed.");
-      AndroidDebugBridge.optionsChanged(
-        getAdbInitOptions(),
-        myAdbExecutableFile.getPath(),
-        false,
-        ADB_TERMINATE_TIMEOUT_MILLIS,
-        DEFAULT_START_ADB_TIMEOUT_MILLIS,
-        TimeUnit.MILLISECONDS);
+      LOG.info("Terminating adb server");
+      terminate();
+
+      LOG.info("Restart adb server");
+      getAndroidDebugBridge(myAdbExecutableFile);
     }
   }
 }

@@ -62,7 +62,7 @@ enum class FormFactor(
          FormFactors.MOBILE_LARGE, listOf(DEFAULT_TAG, GOOGLE_APIS_TAG, GOOGLE_APIS_X86_TAG)),
   WEAR("Wear", "Wear OS", LOLLIPOP, LOWEST_ACTIVE_API_WEAR, HIGHEST_KNOWN_API_WEAR, FormFactors.WEAR,
        FormFactors.WEAR_LARGE, listOf(WEAR_TAG)),
-  TV("TV", "Android TV", LOLLIPOP, LOWEST_ACTIVE_API_TV, HIGHEST_KNOWN_API_TV, FormFactors.TV,
+  TV("TV", "Television", LOLLIPOP, LOWEST_ACTIVE_API_TV, HIGHEST_KNOWN_API_TV, FormFactors.TV,
      FormFactors.TV_LARGE, listOf(ANDROID_TV_TAG, GOOGLE_TV_TAG)),
   AUTOMOTIVE("Automotive", "Automotive", VersionCodes.P, VersionCodes.P, HIGHEST_KNOWN_API_AUTO, FormFactors.CAR,
              FormFactors.CAR_LARGE, listOf(AUTOMOTIVE_TAG, AUTOMOTIVE_PLAY_STORE_TAG));

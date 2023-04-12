@@ -54,7 +54,6 @@ data class ActionToRun<T>(
   private val action: (BuildController) -> T,
   val fetchesV1Models: Boolean = false,
   val fetchesV2Models: Boolean = false,
-  val fetchesPlatformModels: Boolean = false,
   val fetchesKotlinModels: Boolean = false
 ) {
 
@@ -66,7 +65,6 @@ data class ActionToRun<T>(
       action = { controller -> transform(this.action(controller)) },
       fetchesV1Models = fetchesV1Models,
       fetchesV2Models = fetchesV2Models,
-      fetchesPlatformModels = fetchesPlatformModels,
       fetchesKotlinModels = fetchesKotlinModels
     )
   }
@@ -214,7 +212,6 @@ class SyncActionRunner private constructor(
     get() =
       parallelActionsSupported &&
       (!fetchesV2Models || canFetchV2ModelsInParallel) &&
-      (!fetchesPlatformModels || canFetchPlatformModelsInParallel) &&
       (!fetchesKotlinModels || canFetchKotlinModelsInParallel)
 
   override fun <T> runActions(actionsToRun: List<ActionToRun<T>>): List<T> {

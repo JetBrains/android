@@ -17,14 +17,9 @@ package com.android.tools.idea.devicemanager;
 
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import com.android.tools.tests.LeakCheckerRule;
-import org.junit.ClassRule;
-import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses(DeviceManagerTestSuite.class)
 public class DeviceManagerTestSuite extends IdeaTestSuiteBase {
-  @ClassRule
-  public static final TestRule ourRule = new LeakCheckerRule();
 }

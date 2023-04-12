@@ -85,7 +85,7 @@ public class CreateNewProjectWithCpp3Test {
    *   On (4) verify that android.defaultConfig.cmake.cppFlags has "-frtti"
    *   </pre>
    */
-  @RunIn(TestGroup.SANITY_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void createNewProjectWithCpp3() throws Exception {
     createNewProjectWithCpp(CppStandardType.CXX14, guiTest);

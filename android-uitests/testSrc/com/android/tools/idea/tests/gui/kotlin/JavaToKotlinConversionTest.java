@@ -41,7 +41,7 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRemoteRunner.class)
 public class JavaToKotlinConversionTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(9, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(15, TimeUnit.MINUTES);
   private IdeFrameFixture ideFrame;
 
   protected static final String EMPTY_ACTIVITY_TEMPLATE = "Empty Views Activity";

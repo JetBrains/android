@@ -18,6 +18,7 @@ package com.android.tools.idea.gradle.actions
 import com.android.tools.idea.gradle.project.GradleProjectInfo
 import com.android.tools.idea.gradle.project.build.invoker.GradleBuildInvoker
 import com.intellij.openapi.actionSystem.ActionPlaces.PROJECT_VIEW_POPUP
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.Project
 
@@ -38,5 +39,9 @@ class GenerateSourcesModuleAction : AndroidStudioGradleAction(ACTION_TEXT) {
   override fun doPerform(e: AnActionEvent, project: Project) {
     val modules = GradleProjectInfo.getInstance(project).getModulesToBuildFromSelection(e.dataContext)
     GradleBuildInvoker.getInstance(project).generateSources(modules)
+  }
+
+  override fun getActionUpdateThread(): ActionUpdateThread {
+    return ActionUpdateThread.BGT
   }
 }

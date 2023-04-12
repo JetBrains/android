@@ -21,11 +21,16 @@ studio_plugin(
         "//prebuilts/tools/common/m2:flatbuffers-java",
         "//prebuilts/tools/common/m2:tensorflow-lite-metadata",
         "//prebuilts/tools/common/m2:trace-perfetto-library",
+        "//prebuilts/tools/common/m2:compose-desktop-animation",
+        "//prebuilts/tools/common/m2:compose-desktop-foundation",
+        "//prebuilts/tools/common/m2:compose-desktop-material",
+        "//prebuilts/tools/common/m2:compose-desktop-runtime",
+        "//prebuilts/tools/common/m2:compose-desktop-ui",
+        "//prebuilts/tools/common/m2:skiko",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/adt/idea/.idea/libraries:aia-proto",
         "//tools/adt/idea/.idea/libraries:android-test-plugin-host-device-info-proto",
         "//tools/adt/idea/.idea/libraries:asm-tools",
-        "//tools/adt/idea/.idea/libraries:baksmali",
         "//tools/adt/idea/.idea/libraries:dexlib2",
         "//tools/adt/idea/.idea/libraries:emulator-proto",
         "//tools/adt/idea/.idea/libraries:ffmpeg",
@@ -60,6 +65,7 @@ studio_plugin(
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/model:workmanager-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:background-inspector-proto",
         "//tools/adt/idea/app-inspection/inspectors/backgroundtask/view:workmanager-inspector-proto",
+        "//tools/adt/idea/app-quality-insights/play-vitals/model:play_vitals_java_proto",
         "//tools/adt/idea/compose-designer:ui-animation-tooling-internal",
         "//tools/adt/idea/profilers-android:traceprocessor-proto",
         "//tools/adt/idea/profilers:traceprocessor-proto",
@@ -83,6 +89,7 @@ studio_plugin(
     ],
     modules = {
         "adt-ui.jar": [
+            "//tools/adt/idea/adt-ui-compose:intellij.android.adt.ui.compose",
             "//tools/adt/idea/adt-ui-model:intellij.android.adt.ui.model",
             "//tools/adt/idea/adt-ui:intellij.android.adt.ui",
         ],
@@ -106,6 +113,14 @@ studio_plugin(
         ],
         "android-rt.jar": [
             "//tools/adt/idea/rt:intellij.android.rt",
+        ],
+        "android-project-system-gradle-models.jar": [
+            "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
+        ],
+        "android-gradle.jar": [
+            "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api",
+            "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-impl:intellij.android.gradle-tooling.impl",
+            "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync",
         ],
         "android.jar": [
             "//tools/adt/idea/analytics:analytics",
@@ -149,8 +164,6 @@ studio_plugin(
             "//tools/adt/idea/device-manager:intellij.android.device-manager",
             "//tools/adt/idea/device-manager-v2:intellij.android.device-manager-v2",
             "//tools/adt/idea/streaming:intellij.android.streaming",
-            "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-api:intellij.android.gradle-tooling.api",
-            "//tools/adt/idea/gradle-tooling/studio-gradle-tooling-impl:intellij.android.gradle-tooling.impl",
             "//tools/adt/idea/gradle-dsl:intellij.android.gradle.dsl",
             "//tools/adt/idea/gradle-dsl-kotlin:intellij.android.gradle.dsl.kotlin",
             "//tools/adt/idea/gradle-dsl-toml:intellij.android.gradle.dsl.toml",
@@ -167,14 +180,13 @@ studio_plugin(
             "//tools/adt/idea/observable:intellij.android.observable",
             "//tools/adt/idea/android-plugin:intellij.android.plugin",
             "//tools/adt/idea/profilers-android:intellij.android.profilersAndroid",
-            "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models",
             "//tools/adt/idea/project-system-gradle-psd:intellij.android.projectSystem.gradle.psd",
             "//tools/adt/idea/project-system-gradle-repository-search:intellij.android.projectSystem.gradle.repositorySearch",
-            "//tools/adt/idea/project-system-gradle-sync:intellij.android.projectSystem.gradle.sync",
             "//tools/adt/idea/project-system-gradle-upgrade:intellij.android.projectSystem.gradle.upgrade",
             "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle",
             "//tools/adt/idea/project-system:intellij.android.projectSystem",
             "//tools/adt/idea/render-resources:intellij.android.render-resources",
+            "//tools/adt/idea/rendering:intellij.android.rendering",
             "//tools/adt/idea/room:intellij.android.room",
             "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates",
             "//tools/adt/idea/android-test-retention:intellij.android.testRetention",
@@ -666,11 +678,11 @@ android_studio(
     searchable_options = "//tools/adt/idea/searchable-options",
     update_message_template = ":update_message.html",
     version_code_name = "Giraffe",
-    version_micro_patch = "1.11",
+    version_micro_patch = "1.12",
     # This will get added to the end of the full-version string.
     # TODO(b/240707039): automate this.
-    version_release_number = 11,
-    version_type = "Canary",
+    version_release_number = 1,
+    version_type = "Beta",
     visibility = ["//visibility:public"],
 )
 

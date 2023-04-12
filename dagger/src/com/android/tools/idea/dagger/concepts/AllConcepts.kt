@@ -26,8 +26,13 @@ import com.android.tools.idea.dagger.index.IndexValue
 object AllConcepts : DaggerConcept {
   private val CONCEPTS =
     listOf(
+      AssistedFactoryDaggerConcept,
+      AssistedInjectConstructorDaggerConcept,
+      BindsInstanceDaggerConcept,
+      BindsOptionalOfDaggerConcept,
       ComponentAndModuleDaggerConcept,
       ComponentProvisionMethodConcept,
+      EntryPointMethodDaggerConcept,
       InjectedConstructorDaggerConcept,
       InjectedFieldDaggerConcept,
       ProvidesMethodDaggerConcept,

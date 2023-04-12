@@ -38,6 +38,9 @@ data class IdeAndroidLibraryImpl(
   private val _renderscriptFolder: String,
   private val _proguardRules: String,
   private val _lintJar: String?,
+  private val _srcJar: String?, // AGP 8.1.0-alpha08 or later only
+  private val _docJar: String?, // AGP 8.1.0-alpha08 or later only
+  private val _samplesJar: String?, // AGP 8.1.0-alpha08 or later only
   private val _externalAnnotations: String,
   private val _publicResources: String,
   private val _artifact: String?,
@@ -61,6 +64,9 @@ data class IdeAndroidLibraryImpl(
     _renderscriptFolder = "",
     _proguardRules = "",
     _lintJar = "",
+    _srcJar = "",
+    _docJar = "",
+    _samplesJar = "",
     _externalAnnotations = "",
     _publicResources = "",
     _artifact = "",
@@ -80,6 +86,9 @@ data class IdeAndroidLibraryImpl(
   override val renderscriptFolder: File get() = _renderscriptFolder.translate()
   override val proguardRules: File get() = _proguardRules.translate()
   override val lintJar: File? get() = _lintJar?.translate()
+  override val srcJar: File? get() = _srcJar?.translate()
+  override val docJar: File? get() = _docJar?.translate()
+  override val samplesJar: File? get() = _samplesJar?.translate()
   override val externalAnnotations: File get() = _externalAnnotations.translate()
   override val publicResources: File get() = _publicResources.translate()
   override val artifact: File? get() = _artifact?.translate()
@@ -101,6 +110,9 @@ data class IdeAndroidLibraryImpl(
       renderscriptFolder: String,
       proguardRules: String,
       lintJar: String?,
+      srcJar: String?,
+      docJar: String?,
+      samplesJar: String?,
       externalAnnotations: String,
       publicResources: String,
       artifact: File?,
@@ -125,6 +137,9 @@ data class IdeAndroidLibraryImpl(
         _renderscriptFolder = renderscriptFolder.makeRelative(),
         _proguardRules = proguardRules.makeRelative(),
         _lintJar = lintJar?.makeRelative(),
+        _srcJar = srcJar?.makeRelative(),
+        _docJar = docJar?.makeRelative(),
+        _samplesJar = samplesJar?.makeRelative(),
         _externalAnnotations = externalAnnotations.makeRelative(),
         _publicResources = publicResources.makeRelative(),
         _artifact = artifact?.makeRelative(),

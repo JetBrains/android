@@ -25,6 +25,7 @@ import com.android.tools.idea.appinspection.internal.process.toDeviceDescriptor
 import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.SelectDeviceAction
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.transport.faketransport.FakeTransportService
 import com.android.tools.profiler.proto.Common

@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.configuration.AndroidTileConfiguration
 import com.android.tools.idea.run.configuration.AndroidTileConfigurationType
 import com.android.tools.idea.run.configuration.AndroidTileRunConfigurationProducer
+import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
@@ -77,13 +80,37 @@ class AndroidTileRunConfigurationProducerTest : AndroidTestCase() {
     assertEquals(myModule, configurationFromClass.module)
   }
 
+  @Test
+  fun testSetupConfigurationFromContextHandlesMissingModuleGracefully() {
+    val tileFile = myFixture.addFileToProject(
+      "src/com/example/myapplication/MyTileService.kt",
+      """
+      package com.example.myapplication
+
+      import androidx.wear.tiles.TileService
+
+      class MyTestTile : TileService() {
+      }
+      """.trimIndent())
+
+    val classElement = tileFile.findElementByText("class")
+    val context = mock<ConfigurationContext>()
+    whenever(context.psiLocation).thenReturn(classElement)
+    whenever(context.module).thenReturn(null)
+
+    val producer = AndroidTileRunConfigurationProducer()
+    assertThat(producer.setupConfigurationFromContext(createRunConfiguration(), context, Ref(context.psiLocation))).isFalse()
+  }
+
   private fun createConfigurationFromElement(element: PsiElement): AndroidTileConfiguration {
     val context = ConfigurationContext(element)
-    val runConfiguration =
-      AndroidTileConfigurationType().configurationFactories[0].createTemplateConfiguration(project) as AndroidTileConfiguration
+    val runConfiguration = createRunConfiguration()
     val producer = AndroidTileRunConfigurationProducer()
     producer.setupConfigurationFromContext(runConfiguration, context, Ref(context.psiLocation))
 
     return runConfiguration
   }
+
+  private fun createRunConfiguration() =
+    AndroidTileConfigurationType().configurationFactories[0].createTemplateConfiguration(project) as AndroidTileConfiguration
 }

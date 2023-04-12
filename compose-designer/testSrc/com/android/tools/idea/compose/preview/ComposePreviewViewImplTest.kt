@@ -21,6 +21,7 @@ import com.android.tools.adtui.instructions.InstructionsPanel
 import com.android.tools.adtui.instructions.NewRowInstruction
 import com.android.tools.adtui.instructions.TextInstruction
 import com.android.tools.adtui.swing.FakeUi
+import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.surface.NopInteractionHandler
 import com.android.tools.idea.common.surface.SceneViewPeerPanel
 import com.android.tools.idea.compose.preview.navigation.ComposePreviewNavigationHandler
@@ -53,6 +54,7 @@ import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JLabel
 import javax.swing.JPanel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -114,7 +116,8 @@ class ComposePreviewViewImplTest {
   private val statusManager =
     object : ProjectBuildStatusManager {
       override val isBuilding: Boolean = false
-      override var status: ProjectStatus = ProjectStatus.Ready
+      override val statusFlow: MutableStateFlow<ProjectStatus> =
+        MutableStateFlow(ProjectStatus.Ready)
     }
   private lateinit var mainFileSmartPointer: SmartPsiElementPointer<PsiFile>
   private lateinit var previewView: ComposePreviewView
@@ -239,6 +242,7 @@ class ComposePreviewViewImplTest {
           previewView.hasContent = true
         },
         testPreviewElementModelAdapter,
+        DefaultModelUpdater(),
         ::configureLayoutlibSceneManagerForPreviewElement
       )
     }
@@ -273,7 +277,7 @@ class ComposePreviewViewImplTest {
     invokeAndWaitIfNeeded {
       previewView.hasRendered = true
       previewView.hasContent = false
-      statusManager.status = ProjectStatus.NeedsBuild
+      statusManager.statusFlow.value = ProjectStatus.NeedsBuild
       previewView.updateVisibilityAndNotifications()
       fakeUi.root.validate()
     }

@@ -16,6 +16,7 @@
 package com.android.tools.idea.uibuilder.scene;
 
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityNodeInfo;
 import com.android.ide.common.rendering.api.ViewInfo;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.common.model.AndroidCoordinate;
@@ -81,6 +82,7 @@ public class NlModelHierarchyUpdater {
    */
   public static boolean updateHierarchy(@NotNull XmlTag rootTag, @NotNull List<ViewInfo> views, @NotNull NlModel model) {
     model.syncWithPsi(rootTag, ContainerUtil.map(views, ViewInfoTagSnapshotNode::new));
+    model.updateAccessibility(views);
     updateBounds(views, model);
     ImmutableList<NlComponent> components = model.getComponents();
     if (!components.isEmpty()) {
@@ -115,11 +117,13 @@ public class NlModelHierarchyUpdater {
     Map<TagSnapshot, NlComponent> snapshotToComponent =
       model.flattenComponents().collect(Collectors.toMap(NlComponent::getSnapshot, Function.identity(), (n1, n2) -> n1));
     Map<XmlTag, NlComponent> tagToComponent =
-      model.flattenComponents().collect(Collectors.toMap(NlComponent::getTagDeprecated, Function.identity()));
+      model.flattenComponents().collect(Collectors.toMap(NlComponent::getTagDeprecated, Function.identity(), (n1, n2) -> n1));
+    Map<Long, NlComponent> sourceIdToComponent =
+      model.flattenComponents().collect(Collectors.toMap(NlComponent::getAccessibilityId, Function.identity(), (n1, n2) -> n1));
 
     // Update the bounds. This is based on the ViewInfo instances.
     for (ViewInfo view : rootViews) {
-      updateBounds(view, 0, 0, snapshotToComponent, tagToComponent);
+      updateBounds(view, 0, 0, snapshotToComponent, tagToComponent, sourceIdToComponent);
     }
 
     ImmutableList<NlComponent> components = model.getComponents();
@@ -161,36 +165,43 @@ public class NlModelHierarchyUpdater {
                                    @AndroidCoordinate int parentX,
                                    @AndroidCoordinate int parentY,
                                    Map<TagSnapshot, NlComponent> snapshotToComponent,
-                                   Map<XmlTag, NlComponent> tagToComponent) {
+                                   Map<XmlTag, NlComponent> tagToComponent,
+                                   Map<Long, NlComponent> sourceIdToComponent) {
     ViewInfo bounds = RenderService.getSafeBounds(view);
     Object cookie = view.getCookie();
-    NlComponent component;
-    if (cookie != null) {
-      if (cookie instanceof TagSnapshot) {
-        TagSnapshot snapshot = (TagSnapshot)cookie;
-        component = snapshotToComponent.get(snapshot);
-        if (component == null) {
-          PsiXmlTag psiXmlTag = (PsiXmlTag)snapshot.tag;
-          component = tagToComponent.get(psiXmlTag != null ? psiXmlTag.getPsiXmlTag() : null);
-        }
-        if (component != null && NlComponentHelperKt.getViewInfo(component) == null) {
-          NlComponentHelperKt.setViewInfo(component, view);
-
-          int left = parentX + bounds.getLeft();
-          int top = parentY + bounds.getTop();
-          int width = bounds.getRight() - bounds.getLeft();
-          int height = bounds.getBottom() - bounds.getTop();
-
-          NlComponentHelperKt.setBounds(component, left, top, Math.max(width, VISUAL_EMPTY_COMPONENT_SIZE),
-                                        Math.max(height, VISUAL_EMPTY_COMPONENT_SIZE));
-        }
+    NlComponent component = null;
+    if (cookie instanceof TagSnapshot) {
+      TagSnapshot snapshot = (TagSnapshot)cookie;
+      component = snapshotToComponent.get(snapshot);
+      if (component == null) {
+        PsiXmlTag psiXmlTag = (PsiXmlTag)snapshot.tag;
+        component = tagToComponent.get(psiXmlTag != null ? psiXmlTag.getPsiXmlTag() : null);
       }
+    }
+    else {
+      Object accessibilityObject = view.getAccessibilityObject();
+      if (accessibilityObject != null) {
+        AccessibilityNodeInfo nodeInfo = (AccessibilityNodeInfo)accessibilityObject;
+        component = sourceIdToComponent.get(nodeInfo.getSourceNodeId());
+      }
+    }
+
+    if (component != null && NlComponentHelperKt.getViewInfo(component) == null) {
+      NlComponentHelperKt.setViewInfo(component, view);
+
+      int left = parentX + bounds.getLeft();
+      int top = parentY + bounds.getTop();
+      int width = bounds.getRight() - bounds.getLeft();
+      int height = bounds.getBottom() - bounds.getTop();
+
+      NlComponentHelperKt.setBounds(component, left, top, Math.max(width, VISUAL_EMPTY_COMPONENT_SIZE),
+                                    Math.max(height, VISUAL_EMPTY_COMPONENT_SIZE));
     }
     parentX += bounds.getLeft();
     parentY += bounds.getTop();
 
     for (ViewInfo child : view.getChildren()) {
-      updateBounds(child, parentX, parentY, snapshotToComponent, tagToComponent);
+      updateBounds(child, parentX, parentY, snapshotToComponent, tagToComponent, sourceIdToComponent);
     }
   }
 

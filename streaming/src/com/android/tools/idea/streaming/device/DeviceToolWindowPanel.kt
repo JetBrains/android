@@ -17,8 +17,8 @@ package com.android.tools.idea.streaming.device
 
 import com.android.annotations.concurrency.AnyThread
 import com.android.tools.adtui.ZOOMABLE_KEY
+import com.android.tools.idea.deviceprovisioner.DEVICE_HANDLE_KEY
 import com.android.tools.idea.streaming.AbstractDisplayPanel
-import com.android.tools.idea.streaming.DEVICE_HANDLE_KEY
 import com.android.tools.idea.streaming.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.DeviceId
 import com.android.tools.idea.streaming.RunningDevicePanel

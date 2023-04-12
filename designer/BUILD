@@ -1,5 +1,4 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
-load("//tools/base/bazel:bazel.bzl", "iml_module")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 
 # managed by go/iml_to_build
@@ -48,6 +47,7 @@ iml_module(
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin",
         "//tools/base/lint:studio.android.sdktools.lint-api[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module]",
     ],
 )
 
@@ -86,15 +86,15 @@ iml_module(
         "//tools/adt/idea/android/lib:sampleData",
         "//tools/adt/idea/android/testData",
         "//tools/adt/idea/designer/testData",
-        "//tools/base/build-system:gradle-distrib",
         "//tools/base/build-system:android_gradle_plugin.zip",
         "//tools/base/build-system:android_gradle_plugin_runtime_dependencies",
+        "//tools/base/build-system:gradle-distrib",
         "//tools/base/third_party/kotlin:kotlin-m2repository",
     ],
     test_srcs = ["testSrc"],
     test_tags = [
-        "cpu:3",
         "block-network",
+        "cpu:3",
         "no_test_mac",  # b/72973198
     ],
     test_timeout = "long",
@@ -137,6 +137,7 @@ iml_module(
         "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",
         "//tools/base/lint:studio.android.sdktools.lint-api[module, test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
     ],
 )
 
@@ -199,7 +200,6 @@ layout_editor_data = select({
     "//tools/adt/idea/designer/testData:simpleApplication",
     "//tools/adt/idea/designer/testData:visualLintApplication",
     "//tools/base/build-system:gradle-distrib-7.3.3",
-    "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
 ]
 
 maven_repository(

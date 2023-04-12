@@ -15,18 +15,12 @@
  */
 package com.android.tools.idea.logcat.devices
 
-import com.android.adblib.AdbSession
 import com.android.adblib.DeviceState.OFFLINE
 import com.android.adblib.DeviceState.ONLINE
-import com.android.adblib.SOCKET_CONNECT_TIMEOUT_MS
-import com.android.adblib.testingutils.CloseablesRule
 import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
 import com.android.adblib.testingutils.CoroutineTestUtils.yieldUntil
-import com.android.adblib.testingutils.FakeAdbServerProvider
-import com.android.adblib.testingutils.TestingAdbSessionHost
 import com.android.sdklib.deviceprovisioner.DeviceHandle
-import com.android.sdklib.deviceprovisioner.DeviceProvisioner
-import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin
+import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.tools.idea.logcat.devices.DeviceEvent.Added
 import com.android.tools.idea.logcat.devices.DeviceEvent.StateChanged
 import com.android.tools.idea.logcat.testing.TestDevice
@@ -39,30 +33,21 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import org.junit.Rule
 import org.junit.Test
-import java.time.Duration
 
 
 /**
  * Tests for [DeviceComboBoxDeviceTracker]
  */
 class DeviceComboBoxDeviceTrackerTest {
-  private val closeables = CloseablesRule()
+  private val deviceProvisionerRule = DeviceProvisionerRule()
   private val disposableRule = DisposableRule()
 
 
   @get:Rule
-  val rule = RuleChain(closeables, disposableRule)
+  val rule = RuleChain(deviceProvisionerRule, disposableRule)
 
-  private val fakeAdb = closeables.register(FakeAdbServerProvider().buildDefault().start())
-  private val host = closeables.register(TestingAdbSessionHost())
-  private val adbSession =
-    closeables.register(AdbSession.create(
-      host,
-      fakeAdb.createChannelProvider(host),
-      Duration.ofMillis(SOCKET_CONNECT_TIMEOUT_MS)
-    ))
-  private val plugin = FakeAdbDeviceProvisionerPlugin(adbSession.scope, fakeAdb)
-  private val deviceProvisioner = DeviceProvisioner.create(adbSession, listOf(plugin))
+  private val plugin get() = deviceProvisionerRule.deviceProvisionerPlugin
+  private val deviceProvisioner get() = deviceProvisionerRule.deviceProvisioner
 
   private val device1 = TestDevice("device-1", ONLINE, "11", 30, "manufacturer1", "model1")
   private val device2 = TestDevice("device-2", ONLINE, "12", 31, "manufacturer2", "model2")

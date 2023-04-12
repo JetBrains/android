@@ -15,11 +15,22 @@
  */
 package com.android.tools.idea.dagger.concepts
 
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.dagger.index.DaggerConceptIndexers
+import com.android.tools.idea.dagger.index.DaggerDataIndexer
 import com.android.tools.idea.dagger.index.IndexValue
+import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.openapi.fileTypes.FileType
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiJavaFile
+import com.intellij.util.indexing.FileContent
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.DataInputStream
 import java.io.DataOutputStream
+import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.psi.KtFile
 
 fun serializeAndDeserializeIndexValue(indexValue: IndexValue): IndexValue =
   serializeAndDeserializeIndexValues(setOf(indexValue)).single()
@@ -34,4 +45,21 @@ fun serializeAndDeserializeIndexValues(indexValues: Set<IndexValue>): Set<IndexV
   return ByteArrayInputStream(bytes).use { bais ->
     DataInputStream(bais).use { dis -> IndexValue.Externalizer.read(dis) }
   }
+}
+
+fun DaggerConceptIndexers.runIndexerOn(ktFile: KtFile): Map<String, Set<IndexValue>> =
+  runIndexerOn(ktFile, KotlinFileType.INSTANCE)
+
+fun DaggerConceptIndexers.runIndexerOn(javaFile: PsiJavaFile): Map<String, Set<IndexValue>> =
+  runIndexerOn(javaFile, JavaFileType.INSTANCE)
+
+private fun DaggerConceptIndexers.runIndexerOn(
+  psiFile: PsiFile,
+  fileType: FileType
+): Map<String, Set<IndexValue>> {
+  val fileContent: FileContent = mock()
+  whenever(fileContent.psiFile).thenReturn(psiFile)
+  whenever(fileContent.fileType).thenReturn(fileType)
+
+  return DaggerDataIndexer(this).map(fileContent)
 }

@@ -20,6 +20,7 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.ColoredIconGenerator.deEmphasize
 import com.android.tools.componenttree.api.ViewNodeType
 import com.google.common.annotations.VisibleForTesting
+import com.intellij.ui.ExperimentalUI.isNewUI
 import com.intellij.ui.SimpleColoredRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.SimpleTextAttributes.STYLE_SMALLER
@@ -176,12 +177,12 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
     @VisibleForTesting
     fun adjustForPainting() {
       val maxWidth = currentTable?.computeMaxRenderWidth(currentDepth) ?: 0
-      if (preferredSize.width > maxWidth) {
+      if (preferredSize.width > maxWidth && currentTable?.expandedRow != currentRow) {
         generate(maxWidth)
       }
       foreground = UIUtil.getTreeForeground(selectedValue, focusedValue)
       background = UIUtil.getTreeBackground(selectedValue, focusedValue)
-      icon = treeIcon?.let { if (focusedValue) ColoredIconGenerator.generateWhiteIcon(it) else it }
+      icon = treeIcon?.let { if (focusedValue && !isNewUI()) ColoredIconGenerator.generateWhiteIcon(it) else it }
       if (!selectedValue && (deEmphasized || !enabledValue)) {
         foreground = foreground.deEmphasize()
         icon = ColoredIconGenerator.generateDeEmphasizedIcon(icon)
@@ -204,6 +205,10 @@ class ViewTreeCellRenderer<T>(private val type: ViewNodeType<T>) : TreeCellRende
         val availableSpace = maxWidth - preferredSize.width
         if (metrics.stringWidth(actual) > availableSpace) {
           actual = AdtUiUtils.shrinkToFit(text, metrics, availableSpace.toFloat())
+          if (actual.isEmpty() && text.isNotEmpty() && getFragmentTag(0) == null) {
+            // For the 1st fragment: Always keep at least 1 character:
+            actual = text.first() + "..."
+          }
           unchanged = actual != text
         }
       }

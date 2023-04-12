@@ -22,6 +22,7 @@ import com.android.tools.idea.wizard.model.ModelWizardDialog.CancellationPolicy
 import com.android.tools.idea.wizard.model.ModelWizardStep
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper.IdeModalityType
+import com.intellij.openapi.util.SystemInfo
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.GraphicsEnvironment
@@ -130,6 +131,11 @@ class StudioWizardDialogBuilder(internal var wizard: ModelWizard, internal var t
   fun build(customLayout: ModelWizardDialog.CustomLayout): ModelWizardDialog {
     minimumSize = minimumSize ?: customLayout.defaultMinSize
     preferredSize = preferredSize ?: customLayout.defaultPreferredSize
+
+    // TODO(b/260240804): remove this hack when b/260240804 is properly fixed
+    if (SystemInfo.isMac) {
+      minimumSize = preferredSize
+    }
     val dialog: ModelWizardDialog = if (parent != null)
       ModelWizardDialog(wizard, title, parent!!, customLayout, helpUrl, cancellationPolicy)
     else

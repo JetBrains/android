@@ -164,20 +164,19 @@ class PreprocessNodeComparatorTest {
 
     // Basic cases
     assertEquals(0, PreprocessNodeComparator.compare(null, null))
-    assertEquals(0, PreprocessNodeComparator.compare(null, nodeA))
-    assertEquals(0, PreprocessNodeComparator.compare(nodeA, null))
+    assertEquals(-1, PreprocessNodeComparator.compare(null, nodeA))
+    assertEquals(1, PreprocessNodeComparator.compare(nodeA, null))
     assertEquals(0, PreprocessNodeComparator.compare(nodeA, nodeA))
 
-    assertEquals(0, PreprocessNodeComparator.compare(nodeA, nodeB))
-    assertEquals(0, PreprocessNodeComparator.compare(nodeB, nodeA))
+    assertEquals(-1, PreprocessNodeComparator.compare(nodeA, nodeB))
+    assertEquals(1, PreprocessNodeComparator.compare(nodeB, nodeA))
 
-    assertEquals(0, PreprocessNodeComparator.compare(nodeB, nodeAUpperCase))
-    assertEquals(0, PreprocessNodeComparator.compare(nodeAUpperCase, nodeB))
-
-    assertEquals(0, PreprocessNodeComparator.compare(nodeA, nodeAUpperCase))
-    assertEquals(0, PreprocessNodeComparator.compare(nodeAUpperCase, nodeA))
-
-    assertEquals(listOf(nodeA, nodeAUpperCase, nodeB), listOf(nodeA, nodeAUpperCase, nodeB).sortedWith(PreprocessNodeComparator))
+    val unsortedList = listOf(
+      nodeA,
+      nodeB,
+      nodeAUpperCase
+    ).shuffled()
+    assertEquals(listOf(nodeAUpperCase, nodeA, nodeB), unsortedList.sortedWith(PreprocessNodeComparator))
   }
 
   @Test
@@ -188,17 +187,18 @@ class PreprocessNodeComparatorTest {
     val otherNode = TestNode("other")
 
     // Basic cases
-    assertEquals(0, PreprocessNodeComparator.compare(null, atfNodeA))
-    assertEquals(0, PreprocessNodeComparator.compare(atfNodeA, null))
+    assertEquals(-1, PreprocessNodeComparator.compare(null, atfNodeA))
+    assertEquals(1, PreprocessNodeComparator.compare(atfNodeA, null))
     assertEquals(0, PreprocessNodeComparator.compare(atfNodeA, atfNodeA))
 
-    assertEquals(0, PreprocessNodeComparator.compare(atfNodeA, otherNode))
-    assertEquals(0, PreprocessNodeComparator.compare(otherNode, atfNodeA))
+    val unsortedList = listOf(
+      atfNodeA,
+      atfNodeB,
+      otherNode
+    )
+      .shuffled()
 
-    assertTrue(PreprocessNodeComparator.compare(atfNodeA, atfNodeB) < 0)
-    assertTrue(PreprocessNodeComparator.compare(atfNodeB, atfNodeA) > 0)
-
-    assertEquals(listOf(atfNodeA, atfNodeB), listOf(atfNodeB, atfNodeA).sortedWith(PreprocessNodeComparator))
+    assertEquals(listOf(atfNodeA, atfNodeB, otherNode), unsortedList.sortedWith(PreprocessNodeComparator))
   }
 }
 

@@ -24,6 +24,7 @@ import com.android.tools.idea.dagger.index.IndexValue
 import com.android.tools.idea.dagger.index.psiwrappers.DaggerIndexClassWrapper
 import com.android.tools.idea.dagger.localization.DaggerBundle
 import com.android.tools.idea.kotlin.hasAnnotation
+import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiArrayInitializerMemberValue
@@ -31,6 +32,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiClassObjectAccessExpression
 import com.intellij.psi.PsiClassType
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiType
 import com.intellij.psi.search.GlobalSearchScope
 import java.io.DataInput
 import java.io.DataOutput
@@ -40,6 +42,8 @@ import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.core.util.readString
 import org.jetbrains.kotlin.idea.core.util.writeString
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtEnumEntry
 
 /**
  * Represents a Component, Subcomponent, or Module in Dagger.
@@ -160,30 +164,31 @@ internal data class ClassIndexValue(
   }
 
   companion object {
-    private val identifyClassKotlin =
-      DaggerElementIdentifier<KtClass> {
-        when {
-          it.hasAnnotation(DaggerAnnotations.COMPONENT) -> ComponentDaggerElement(it)
-          it.hasAnnotation(DaggerAnnotations.SUBCOMPONENT) -> SubcomponentDaggerElement(it)
-          it.hasAnnotation(DaggerAnnotations.MODULE) -> ModuleDaggerElement(it)
-          else -> null
-        }
+    private fun identify(psiElement: KtClassOrObject): DaggerElement? =
+      when {
+        psiElement is KtEnumEntry -> null
+        (psiElement as? KtClass)?.isEnum() == true -> null
+        psiElement.hasAnnotation(DaggerAnnotations.COMPONENT) -> ComponentDaggerElement(psiElement)
+        psiElement.hasAnnotation(DaggerAnnotations.SUBCOMPONENT) ->
+          SubcomponentDaggerElement(psiElement)
+        psiElement.hasAnnotation(DaggerAnnotations.MODULE) -> ModuleDaggerElement(psiElement)
+        else -> null
       }
 
-    private val identifyClassJava =
-      DaggerElementIdentifier<PsiClass> {
-        when {
-          it.hasAnnotation(DaggerAnnotations.COMPONENT) -> ComponentDaggerElement(it)
-          it.hasAnnotation(DaggerAnnotations.SUBCOMPONENT) -> SubcomponentDaggerElement(it)
-          it.hasAnnotation(DaggerAnnotations.MODULE) -> ModuleDaggerElement(it)
-          else -> null
-        }
+    private fun identify(psiElement: PsiClass): DaggerElement? =
+      when {
+        psiElement.isEnum -> null
+        psiElement.hasAnnotation(DaggerAnnotations.COMPONENT) -> ComponentDaggerElement(psiElement)
+        psiElement.hasAnnotation(DaggerAnnotations.SUBCOMPONENT) ->
+          SubcomponentDaggerElement(psiElement)
+        psiElement.hasAnnotation(DaggerAnnotations.MODULE) -> ModuleDaggerElement(psiElement)
+        else -> null
       }
 
     internal val identifiers =
       DaggerElementIdentifiers(
-        ktClassIdentifiers = listOf(identifyClassKotlin),
-        psiClassIdentifiers = listOf(identifyClassJava),
+        ktClassIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
+        psiClassIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
       )
   }
 
@@ -197,17 +202,20 @@ internal data class ClassIndexValue(
 
 internal sealed class ClassDaggerElement : DaggerElement() {
 
+  val classPsiType: PsiType
+    get() = psiElement.classToPsiType()
+
   /**
-   * Given a related element type, returns the annotation and annotation argument name that would be
-   * used to identify that relation. This applies only to relations that are stored in the index.
+   * Given a related element, returns the annotation and annotation argument name that would be used
+   * to identify that relation. This applies only to relations that are stored in the index.
    *
    * For example, a component includes modules as follows: `@dagger.Component(modules =
-   * DripCoffeeModule.class)` If this [DaggerElement] represents the DripCoffeeModule element and
-   * [DaggerElement.Type.COMPONENT] is given as the related type, then this method should return
-   * ("dagger.Component", "modules").
+   * DripCoffeeModule.class)` If this [ClassDaggerElement] represents the DripCoffeeModule element
+   * and the given element is a [ComponentDaggerElement] related type, then this method should
+   * return ("dagger.Component", "modules").
    */
   protected abstract fun getRelatedAnnotationForRelatedIndexElement(
-    relatedType: Type
+    relatedType: DaggerElement
   ): Pair<String, String>?
 
   override fun filterResolveCandidate(resolveCandidate: DaggerElement): Boolean {
@@ -220,11 +228,11 @@ internal sealed class ClassDaggerElement : DaggerElement() {
     //   @Component(modules = DripCoffeeModule.class)
     //   interface CoffeeShop {}
     val (annotationFqName, argumentName) =
-      getRelatedAnnotationForRelatedIndexElement(resolveCandidate.daggerType) ?: return false
+      getRelatedAnnotationForRelatedIndexElement(resolveCandidate) ?: return false
     val resolveCandidateClassElement =
       when (val element = resolveCandidate.psiElement) {
         is PsiClass -> element
-        is KtClass -> element.toLightClass()
+        is KtClassOrObject -> element.toLightClass()
         else -> null
       }
         ?: return false
@@ -245,39 +253,56 @@ internal sealed class ClassDaggerElement : DaggerElement() {
         else -> return false
       }
 
-    return elementPsiType in referencedTypes
+    return classPsiType in referencedTypes
   }
 }
 
 internal data class ModuleDaggerElement(override val psiElement: PsiElement) :
   ClassDaggerElement() {
 
-  override val daggerType = Type.MODULE
+  override val metricsElementType = DaggerEditorEvent.ElementType.MODULE
 
   override fun getRelatedAnnotationForRelatedIndexElement(
-    relatedType: Type
+    relatedType: DaggerElement
   ): Pair<String, String>? =
     when (relatedType) {
-      Type.COMPONENT -> DaggerAnnotations.COMPONENT to "modules"
-      Type.MODULE -> DaggerAnnotations.MODULE to "includes"
-      Type.SUBCOMPONENT -> DaggerAnnotations.SUBCOMPONENT to "modules"
+      is ComponentDaggerElement -> DaggerAnnotations.COMPONENT to "modules"
+      is ModuleDaggerElement -> DaggerAnnotations.MODULE to "includes"
+      is SubcomponentDaggerElement -> DaggerAnnotations.SUBCOMPONENT to "modules"
       else -> null
     }
 
   override fun getRelatedDaggerElements(): List<DaggerRelatedElement> {
     val fromIndex =
-      getRelatedDaggerElementsFromIndex(setOf(Type.COMPONENT, Type.MODULE, Type.SUBCOMPONENT))
-        .groupBy { it.daggerType }
-        .withDefault { emptyList() }
+      getRelatedDaggerElementsFromIndex(
+        setOf(
+          ComponentDaggerElement::class,
+          ModuleDaggerElement::class,
+          SubcomponentDaggerElement::class
+        ),
+        classPsiType.getIndexKeys()
+      )
 
-    return fromIndex.getValue(Type.COMPONENT).map {
-      DaggerRelatedElement(it, DaggerBundle.message("included.in.components"))
+    return fromIndex.filterIsInstance<ComponentDaggerElement>().map {
+      DaggerRelatedElement(
+        it,
+        DaggerBundle.message("included.in.components"),
+        "navigate.to.component.that.include"
+      )
     } +
-      fromIndex.getValue(Type.SUBCOMPONENT).map {
-        DaggerRelatedElement(it, DaggerBundle.message("included.in.subcomponents"))
+      fromIndex.filterIsInstance<SubcomponentDaggerElement>().map {
+        DaggerRelatedElement(
+          it,
+          DaggerBundle.message("included.in.subcomponents"),
+          "navigate.to.subcomponent.that.include"
+        )
       } +
-      fromIndex.getValue(Type.MODULE).map {
-        DaggerRelatedElement(it, DaggerBundle.message("included.in.modules"))
+      fromIndex.filterIsInstance<ModuleDaggerElement>().map {
+        DaggerRelatedElement(
+          it,
+          DaggerBundle.message("included.in.modules"),
+          "navigate.to.module.that.include"
+        )
       }
   }
 }
@@ -309,14 +334,16 @@ internal sealed class ComponentDaggerElementBase : ClassDaggerElement() {
       moduleClasses.map {
         DaggerRelatedElement(
           ModuleDaggerElement(it.navigationElement),
-          DaggerBundle.message("modules.included")
+          DaggerBundle.message("modules.included"),
+          "navigate.to.included.module"
         )
       }
     val subcomponentElements =
       subcomponentClasses.map {
         DaggerRelatedElement(
           SubcomponentDaggerElement(it.navigationElement),
-          DaggerBundle.message("subcomponents")
+          DaggerBundle.message("subcomponents"),
+          "navigate.to.subcomponent"
         )
       }
 
@@ -343,7 +370,7 @@ internal sealed class ComponentDaggerElementBase : ClassDaggerElement() {
       val psiClass =
         when (psiElement) {
           is PsiClass -> psiElement
-          is KtClass -> psiElement.toLightClass()
+          is KtClassOrObject -> psiElement.toLightClass()
           else -> null
         }
 
@@ -369,21 +396,26 @@ internal sealed class ComponentDaggerElementBase : ClassDaggerElement() {
 internal data class ComponentDaggerElement(override val psiElement: PsiElement) :
   ComponentDaggerElementBase() {
 
-  override val daggerType = Type.COMPONENT
+  override val metricsElementType = DaggerEditorEvent.ElementType.COMPONENT
+
   override val definingAnnotationName = DaggerAnnotations.COMPONENT
 
   override fun getRelatedAnnotationForRelatedIndexElement(
-    relatedType: Type
+    relatedType: DaggerElement
   ): Pair<String, String>? =
     when (relatedType) {
-      Type.COMPONENT -> DaggerAnnotations.COMPONENT to "dependencies"
+      is ComponentDaggerElement -> DaggerAnnotations.COMPONENT to "dependencies"
       else -> null
     }
 
   override fun getRelatedDaggerElements(): List<DaggerRelatedElement> {
     val elementsFromIndex =
-      getRelatedDaggerElementsFromIndex(setOf(Type.COMPONENT)).map {
-        DaggerRelatedElement(it, DaggerBundle.message("parent.components"))
+      getRelatedDaggerElementsFromIndex<ComponentDaggerElement>(classPsiType.getIndexKeys()).map {
+        DaggerRelatedElement(
+          it,
+          DaggerBundle.message("parent.components"),
+          "navigate.to.parent.component"
+        )
       }
     return elementsFromIndex + getIncludedModulesAndSubcomponents()
   }
@@ -392,14 +424,15 @@ internal data class ComponentDaggerElement(override val psiElement: PsiElement) 
 internal data class SubcomponentDaggerElement(override val psiElement: PsiElement) :
   ComponentDaggerElementBase() {
 
-  override val daggerType = Type.SUBCOMPONENT
+  override val metricsElementType = DaggerEditorEvent.ElementType.SUBCOMPONENT
+
   override val definingAnnotationName = DaggerAnnotations.SUBCOMPONENT
 
   override fun getRelatedAnnotationForRelatedIndexElement(
-    relatedType: Type
+    relatedType: DaggerElement
   ): Pair<String, String>? =
     when (relatedType) {
-      Type.MODULE -> DaggerAnnotations.MODULE to "subcomponents"
+      is ModuleDaggerElement -> DaggerAnnotations.MODULE to "subcomponents"
       else -> null
     }
 
@@ -408,9 +441,19 @@ internal data class SubcomponentDaggerElement(override val psiElement: PsiElemen
     // the index, and then the containing [sub]components from there. Only the parent components
     // and subcomponents are returned; the intermediate modules are not.
     val containingComponents =
-      getRelatedDaggerElementsFromIndex(setOf(Type.MODULE))
-        .flatMap { it.getRelatedDaggerElementsFromIndex(setOf(Type.COMPONENT, Type.SUBCOMPONENT)) }
-        .map { DaggerRelatedElement(it, DaggerBundle.message("parent.components")) }
+      getRelatedDaggerElementsFromIndex<ModuleDaggerElement>(classPsiType.getIndexKeys())
+        .flatMap {
+          it.getRelatedDaggerElementsFromIndex<ComponentDaggerElementBase>(
+            it.classPsiType.getIndexKeys()
+          )
+        }
+        .map {
+          DaggerRelatedElement(
+            it,
+            DaggerBundle.message("parent.components"),
+            "navigate.to.parent.component"
+          )
+        }
 
     return containingComponents + getIncludedModulesAndSubcomponents()
   }

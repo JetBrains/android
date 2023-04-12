@@ -53,6 +53,31 @@ class GmdDevicePropertyValuePatternMatcherTest : GmdCodeCompletionTestBase() {
     """.trimIndent(), testManagedVirtualDeviceCatalogState)
   }
 
+  fun testDevicePropertyPatternMatching_singleFieldWithSimplifiedDsl() {
+    val calendar = Calendar.getInstance()
+    calendar.add(Calendar.DATE, 1)
+    val testManagedVirtualDeviceCatalogState = ManagedVirtualDeviceCatalogState(expireDate = calendar.time).apply {
+      this.myDeviceCatalog.devices.putAll(mapOf(
+        "testDevice1" to AndroidDeviceInfo(supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)),
+        "testDevice2" to AndroidDeviceInfo(supportedApis = listOf(testMinAndTargetApiLevel.targetSdk)),
+      ))
+      this.myDeviceCatalog.checkEmptyFields()
+    }
+    managedVirtualDevicePropertyNameCompletionTestHelper(listOf("testDevice1", "testDevice2"), """
+      android {
+        testOptions {
+          managedDevices {
+            localDevices {
+              testDevice {
+                device = $caret
+              }
+            }
+          }
+        }
+      }
+    """.trimIndent(), testManagedVirtualDeviceCatalogState)
+  }
+
   fun testDevicePropertyPatternMatching_withOtherFields() {
     val calendar = Calendar.getInstance()
     calendar.add(Calendar.DATE, 1)

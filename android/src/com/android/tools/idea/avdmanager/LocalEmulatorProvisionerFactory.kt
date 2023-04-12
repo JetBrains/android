@@ -63,6 +63,10 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
         }
       }
 
-    return LocalEmulatorProvisionerPlugin(AdbLibService.getSession(project), avdManager)
+    return LocalEmulatorProvisionerPlugin(
+      coroutineScope,
+      AdbLibService.getSession(project),
+      avdManager
+    )
   }
 }

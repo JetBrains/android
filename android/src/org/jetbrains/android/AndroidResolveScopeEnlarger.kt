@@ -16,7 +16,6 @@
 package org.jetbrains.android
 
 import com.android.tools.idea.findDependenciesWithResources
-import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.ProjectSyncModificationTracker
 import com.android.tools.idea.projectsystem.TestArtifactSearchScopes
 import com.android.tools.idea.projectsystem.getMainModule
@@ -32,6 +31,7 @@ import com.android.tools.idea.res.ResourceRepositoryRClass.Transitivity.TRANSITI
 import com.android.tools.idea.res.SmallAarRClass
 import com.android.tools.idea.res.TransitiveAarRClass
 import com.android.tools.idea.util.androidFacet
+import com.android.tools.res.ResourceNamespacing
 import com.android.utils.reflection.qualifiedName
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
@@ -145,8 +145,8 @@ class AndroidResolveScopeEnlarger : ResolveScopeEnlarger() {
         return when (file.getUserData(LIGHT_CLASS_KEY)) {
           ModuleRClass::class.java -> isModuleRVirtualFileAccessible(file)
           ManifestClass::class.java -> isLightVirtualFileFromAccessibleModule(file)
-          SmallAarRClass::class.java -> isLightVirtualFileFromAccessibleAar(file) && namespacing == Namespacing.REQUIRED
-          TransitiveAarRClass::class.java -> isLightVirtualFileFromAccessibleAar(file) && namespacing == Namespacing.DISABLED
+          SmallAarRClass::class.java -> isLightVirtualFileFromAccessibleAar(file) && namespacing == ResourceNamespacing.REQUIRED
+          TransitiveAarRClass::class.java -> isLightVirtualFileFromAccessibleAar(file) && namespacing == ResourceNamespacing.DISABLED
           ResourceRepositoryRClass::class.java -> {
             // For BlazeRClass which does not take into account test scope or transitivity
             isLightVirtualFileFromAccessibleModule(file)

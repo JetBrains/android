@@ -28,7 +28,6 @@ import com.android.tools.idea.insights.NoteId
 import com.android.tools.idea.insights.SignalType
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
-import com.intellij.serviceContainer.NonInjectable
 import java.util.SortedSet
 import java.util.TreeSet
 
@@ -80,10 +79,7 @@ private data class CacheValue(val issueDetails: IssueDetailsValue?, val notes: L
 
 // TODO(b/249510375): persist cache
 /** Cache for storing issues used in offline and online mode. */
-class AppInsightsCacheImpl @NonInjectable constructor(private val maxIssuesCount: Int) :
-  AppInsightsCache {
-
-  constructor() : this(50)
+class AppInsightsCacheImpl(private val maxIssuesCount: Int = 50) : AppInsightsCache {
 
   private val compositeIssuesCache: Cache<Connection, Cache<IssueId, CacheValue>> =
     createNew(MAXIMUM_FIREBASE_CONNECTIONS_CACHE_SIZE)

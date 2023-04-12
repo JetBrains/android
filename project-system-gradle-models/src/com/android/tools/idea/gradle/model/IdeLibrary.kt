@@ -43,6 +43,24 @@ sealed interface IdeArtifactLibrary : IdeLibrary {
    * The name to be used to represent the library in the IDE.
    */
   val name: String
+
+  /**
+   * Returns the location of the sources jar.
+   * This is only available from AGP version 8.1.0-alpha08.
+   */
+  val srcJar: File?
+
+  /**
+   * Returns the location of the java doc jar.
+   * This is only available from AGP version 8.1.0-alpha08.
+   */
+  val docJar: File?
+
+  /**
+   * Returns the location of the samples jar.
+   * This is only available from AGP version 8.1.0-alpha08.
+   */
+  val samplesJar: File?
 }
 
 interface IdeAndroidLibrary : IdeArtifactLibrary {

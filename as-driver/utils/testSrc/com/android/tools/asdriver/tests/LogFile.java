@@ -15,6 +15,7 @@
  */
 package com.android.tools.asdriver.tests;
 
+import com.google.common.collect.ImmutableList;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class LogFile {
   // Minimum amount of time to wait before (re)examining log files.
@@ -60,6 +62,32 @@ public class LogFile {
 
   public Matcher waitForMatchingLine(String regex, long timeout, TimeUnit unit) throws IOException, InterruptedException {
     return waitForMatchingLine(regex, null, false, timeout, unit);
+  }
+
+  /**
+   * Find all the lines in studio logs that match the regex and return all the matching regex groups.
+   *
+   * @param regex Regular expression to match
+   * @return All matching regex groups for every single matching line.
+   */
+  public List<List<String>> findMatchingLines(String regex) throws IOException {
+    Pattern pattern = Pattern.compile(regex);
+    // Initialize the matcher that we will be reusing.
+    Matcher matcher = pattern.matcher("");
+    return Files.readAllLines(path)
+      .stream()
+      .map(matcher::reset) // reuse matcher
+      .filter(Matcher::matches)
+      .map(LogFile::getGroups)
+      .collect(Collectors.toList());
+  }
+
+  private static List<String> getGroups(Matcher matcher) {
+    var immutableListBuilder = new ImmutableList.Builder<String>();
+    for (int i = 0; i <= matcher.groupCount(); i++) {
+      immutableListBuilder.add(matcher.group(i));
+    }
+    return immutableListBuilder.build();
   }
 
   /**

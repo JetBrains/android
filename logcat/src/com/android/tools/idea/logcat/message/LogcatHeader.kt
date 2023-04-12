@@ -15,13 +15,15 @@
  */
 package com.android.tools.idea.logcat.message
 
+import java.io.ObjectInput
+import java.io.ObjectOutput
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
 import java.time.temporal.ChronoField
 import java.util.Locale
 
-private val EPOCH_TIME_FORMATTER: DateTimeFormatter = DateTimeFormatterBuilder()
+private val epockTimeFormatter: DateTimeFormatter = DateTimeFormatterBuilder()
   .appendValue(ChronoField.INSTANT_SECONDS)
   .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)
   .toFormatter(Locale.ROOT)
@@ -39,11 +41,31 @@ data class LogcatHeader(
   val timestamp: Instant,
 ) {
   override fun toString(): String {
-    val epoch = EPOCH_TIME_FORMATTER.format(timestamp)
+    val epoch = epockTimeFormatter.format(timestamp)
     val priority = logLevel.priorityLetter
     return "$epoch: $priority/$tag($pid:$tid) $applicationId/$processName"
+  }
+
+  fun writeExternal(out: ObjectOutput) {
+    out.writeInt(logLevel.ordinal)
+    out.writeInt(pid)
+    out.writeInt(tid)
+    out.writeUTF(applicationId)
+    out.writeUTF(processName)
+    out.writeUTF(tag)
+    out.writeLong(timestamp.toEpochMilli())
   }
 
   fun getAppName() = applicationId.ifEmpty { processName }
 }
 
+internal fun ObjectInput.readLogcatHeader(): LogcatHeader {
+  val logLevel = LogLevel.values()[readInt()]
+  val pid = readInt()
+  val tid = readInt()
+  val applicationId = readUTF()
+  val processName = readUTF()
+  val tag = readUTF()
+  val timestamp = Instant.ofEpochMilli(readLong())
+  return LogcatHeader(logLevel, pid, tid, applicationId, processName, tag, timestamp)
+}

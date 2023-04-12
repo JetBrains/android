@@ -20,6 +20,8 @@ import com.android.tools.idea.layoutinspector.model.InspectorModel
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.tree.TreeSettings
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_ALPHA_PERCENT
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.INITIAL_LAYER_SPACING
 import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.actionSystem.DataKey
 import org.jetbrains.annotations.TestOnly

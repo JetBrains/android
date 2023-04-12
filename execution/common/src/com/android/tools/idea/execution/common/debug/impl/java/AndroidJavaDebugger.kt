@@ -51,24 +51,7 @@ class AndroidJavaDebugger : AndroidDebuggerImplBase<AndroidDebuggerState>() {
   }
 
   override fun createConfigurable(runConfiguration: RunConfiguration): AndroidDebuggerConfigurable<AndroidDebuggerState> {
-    return if (StudioFlags.ATTACH_ON_WAIT_FOR_DEBUGGER.get()) object: AndroidDebuggerConfigurable<AndroidDebuggerState>() {
-      val attachOnWaitForDebugger = JCheckBox("Automatically attach on Debug.waitForDebugger()")
-      val mainPanel = JPanel(BorderLayout()).apply {
-        add(attachOnWaitForDebugger, BorderLayout.NORTH)
-      }
-
-      override fun getComponent(): JComponent {
-        return mainPanel
-      }
-
-      override fun resetFrom(state: AndroidDebuggerState) {
-        attachOnWaitForDebugger.isSelected = state.attachOnWaitForDebugger()
-      }
-
-      override fun applyTo(state: AndroidDebuggerState) {
-        state.setAttachOnWaitForDebugger(attachOnWaitForDebugger.isSelected)
-      }
-    } else AndroidDebuggerConfigurable()
+    return AndroidDebuggerConfigurable()
   }
 
   override fun supportsProject(project: Project): Boolean {

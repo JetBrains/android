@@ -17,10 +17,7 @@ package com.android.tools.idea.logcat.messages
 
 import com.android.tools.idea.logcat.SYSTEM_HEADER
 import com.android.tools.idea.logcat.message.LogcatMessage
-import com.android.tools.idea.logcat.messages.TextAccumulator.FilterHint.AppName
-import com.android.tools.idea.logcat.messages.TextAccumulator.FilterHint.Tag
 import java.time.ZoneId
-import kotlin.math.min
 
 
 /**
@@ -55,11 +52,9 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
       textAccumulator.accumulate(formattingOptions.processThreadFormat.format(header.pid, header.tid))
       textAccumulator.accumulate(
         text = formattingOptions.tagFormat.format(tag, previousTag),
-        textAttributes = logcatColors.getTagColor(tag),
-        filterHint = getTagFilterHint(tag, formattingOptions))
+        textAttributes = logcatColors.getTagColor(tag))
       textAccumulator.accumulate(
-        text = formattingOptions.appNameFormat.format(appName, header.pid, previousPid),
-        filterHint = getAppNameFilterHint(appName, formattingOptions))
+        text = formattingOptions.appNameFormat.format(appName, header.pid, previousPid))
 
       formattingOptions.levelFormat.format(header.logLevel, textAccumulator, logcatColors)
 
@@ -77,20 +72,5 @@ internal class MessageFormatter(private val logcatColors: LogcatColors, private 
       previousTag = tag
       previousPid = header.pid
     }
-  }
-}
-
-private fun getTagFilterHint(tag: String, formattingOptions: FormattingOptions): Tag? {
-  return when {
-    formattingOptions.tagFormat.enabled -> Tag(tag, min(tag.length, formattingOptions.tagFormat.maxLength))
-    else -> null
-  }
-}
-
-private fun getAppNameFilterHint(appName: String, formattingOptions: FormattingOptions): AppName? {
-  return when {
-    appName == "?" -> null
-    formattingOptions.appNameFormat.enabled -> AppName(appName, min(appName.length, formattingOptions.appNameFormat.maxLength))
-    else -> null
   }
 }

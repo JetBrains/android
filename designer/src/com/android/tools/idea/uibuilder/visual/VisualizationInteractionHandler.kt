@@ -27,7 +27,7 @@ import com.android.tools.idea.common.surface.InteractionHandler
 import com.android.tools.idea.common.surface.navigateToComponent
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.uibuilder.editor.LayoutNavigationManager
-import com.android.tools.idea.uibuilder.surface.PanInteraction
+import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnAction

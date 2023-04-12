@@ -33,6 +33,7 @@
       <module fileurl="file://$PROJECT_DIR$/../../base/common/android.sdktools.common.tests.iml" filepath="$PROJECT_DIR$/../../base/common/android.sdktools.common.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/ddmlib/android.sdktools.ddmlib.iml" filepath="$PROJECT_DIR$/../../base/ddmlib/android.sdktools.ddmlib.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/ddmlib/android.sdktools.ddmlib.integration.tests.iml" filepath="$PROJECT_DIR$/../../base/ddmlib/android.sdktools.ddmlib.integration.tests.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../base/debugger-tests/debugger-tests.iml" filepath="$PROJECT_DIR$/../../base/debugger-tests/debugger-tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/deploy/deployer/android.sdktools.deployer.iml" filepath="$PROJECT_DIR$/../../base/deploy/deployer/android.sdktools.deployer.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/device-provisioner/android.sdktools.device-provisioner.iml" filepath="$PROJECT_DIR$/../../base/device-provisioner/android.sdktools.device-provisioner.iml" />
       <module fileurl="file://$PROJECT_DIR$/../../base/draw9patch/android.sdktools.draw9patch.iml" filepath="$PROJECT_DIR$/../../base/draw9patch/android.sdktools.draw9patch.iml" />
@@ -281,6 +282,7 @@
       <module fileurl="file://$PROJECT_DIR$/project-system-integration-tests/intellij.android.projectSystem.integration.tests.iml" filepath="$PROJECT_DIR$/project-system-integration-tests/intellij.android.projectSystem.integration.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/project-system/intellij.android.projectSystem.tests.iml" filepath="$PROJECT_DIR$/project-system/intellij.android.projectSystem.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/render-resources/intellij.android.render-resources.iml" filepath="$PROJECT_DIR$/render-resources/intellij.android.render-resources.iml" />
+      <module fileurl="file://$PROJECT_DIR$/rendering/intellij.android.rendering.iml" filepath="$PROJECT_DIR$/rendering/intellij.android.rendering.iml" />
       <module fileurl="file://$PROJECT_DIR$/room/intellij.android.room.iml" filepath="$PROJECT_DIR$/room/intellij.android.room.iml" />
       <module fileurl="file://$PROJECT_DIR$/room/intellij.android.room.tests.iml" filepath="$PROJECT_DIR$/room/intellij.android.room.tests.iml" />
       <module fileurl="file://$PROJECT_DIR$/rt/intellij.android.rt.iml" filepath="$PROJECT_DIR$/rt/intellij.android.rt.iml" />

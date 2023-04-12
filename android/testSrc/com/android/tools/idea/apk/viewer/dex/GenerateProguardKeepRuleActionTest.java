@@ -21,7 +21,7 @@ import com.android.tools.apk.analyzer.dex.tree.DexPackageNode;
 import org.jetbrains.android.AndroidTestBase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile;
 import org.junit.Before;
 import org.junit.Test;
 

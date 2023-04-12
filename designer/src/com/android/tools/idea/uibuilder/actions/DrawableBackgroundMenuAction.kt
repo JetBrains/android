@@ -20,7 +20,7 @@ import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.common.surface.DesignSurfaceSettings
 import com.android.tools.idea.common.surface.Layer
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.surface.BorderLayer
+import com.android.tools.idea.uibuilder.surface.layer.BorderLayer
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenView
 import com.android.tools.idea.uibuilder.surface.ScreenViewLayer
@@ -108,7 +108,7 @@ class DrawableScreenViewProvider(private val defaultType: DrawableBackgroundType
   private fun createScreenLayer(screenView: ScreenView): ImmutableList<Layer> {
     val backgroundLayer = DrawableBackgroundLayer(screenView, defaultType)
     myDrawableBackgroundLayer = backgroundLayer
-    val borderLayer = BorderLayer(screenView)
+    val borderLayer = BorderLayer(screenView,  rotation = { screenView.surface.rotateSurfaceDegree } )
     val screenViewLayer = ScreenViewLayer(screenView, colorBlindFilter)
     return ImmutableList.of(backgroundLayer, borderLayer, screenViewLayer)
   }

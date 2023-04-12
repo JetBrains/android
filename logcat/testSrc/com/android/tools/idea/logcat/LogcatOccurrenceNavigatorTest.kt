@@ -17,13 +17,12 @@ package com.android.tools.idea.logcat
 
 import com.android.tools.idea.logcat.LogcatOccurrenceNavigator.Companion.FOLLOWED_HYPERLINK_ATTRIBUTES
 import com.android.tools.idea.logcat.hyperlinks.EditorHyperlinkDetector
+import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.android.tools.idea.logcat.util.FakePsiShortNamesCache
-import com.android.tools.idea.logcat.util.createLogcatEditor
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.impl.EditorHyperlinkSupport
 import com.intellij.ide.OccurenceNavigator
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.testFramework.DisposableRule
@@ -32,7 +31,6 @@ import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -51,11 +49,12 @@ private val PROJECT_FILES = listOf(
 class LogcatOccurrenceNavigatorTest {
   private val projectRule = ProjectRule()
   private val disposableRule = DisposableRule()
+  private val logcatEditorRule = LogcatEditorRule(projectRule)
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule(), disposableRule)
+  val rule = RuleChain(projectRule, logcatEditorRule, EdtRule(), disposableRule)
 
-  private val editor by lazy { createLogcatEditor(projectRule.project) }
+  private val editor get() = logcatEditorRule.editor
   private val editorHyperlinkDetector by lazy { EditorHyperlinkDetector(projectRule.project, editor) }
   private val editorHyperlinkSupport by lazy { EditorHyperlinkSupport.get(editor) }
 
@@ -63,11 +62,6 @@ class LogcatOccurrenceNavigatorTest {
   fun setUp() {
     projectRule.project.replaceService(
       PsiShortNamesCache::class.java, FakePsiShortNamesCache(projectRule.project, PROJECT_FILES), disposableRule.disposable)
-  }
-
-  @After
-  fun tearDown() {
-    EditorFactory.getInstance().releaseEditor(editor)
   }
 
   @Test

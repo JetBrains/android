@@ -156,7 +156,7 @@ public class DeviceArtPainterTest {
         // No crop data for generic nine patches since they are stretchable
         continue;
       }
-      if (spec.getName().startsWith("Android TV") || spec.getName().startsWith("Automotive")) {
+      if (spec.getName().startsWith("Television") || spec.getName().startsWith("Automotive")) {
         // These images are already cropped
         continue;
       }
@@ -323,7 +323,7 @@ public class DeviceArtPainterTest {
 
         DeviceArtDescriptor descriptor = deviceData.getDescriptor();
 
-        if (spec.getName().startsWith("Generic ") || cropRect == null || spec.getName().startsWith("Android TV")) {
+        if (spec.getName().startsWith("Generic ") || cropRect == null || spec.getName().startsWith("Television")) {
           System.out.println("Nothing to do for " + spec.getId() + " orientation " + orientation);
           cropRect = new Rectangle(0, 0, descriptor.getFrameSize(orientation).width, descriptor.getFrameSize(orientation).height);
         }

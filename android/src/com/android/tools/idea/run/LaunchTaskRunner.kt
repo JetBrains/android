@@ -159,7 +159,9 @@ class LaunchTaskRunner(
 
     settings.getProcessHandlersForDevices(project, devices).forEach { it.destroyProcess() }
 
-    waitPreviousProcessTermination(devices, applicationId, indicator)
+    RunStats.from(env).runCustomTask("waitForProcessTermination") {
+      waitPreviousProcessTermination(devices, applicationId, indicator)
+    }
 
     val processHandler = NopProcessHandler()
     val console = createConsole()
@@ -175,8 +177,10 @@ class LaunchTaskRunner(
     doRun(devices, processHandler, indicator, console, true)
 
     indicator.text = "Connecting debugger"
-    val debuggerTask = getBaseDebuggerTask(configuration.androidDebuggerContext, facet, env)
-    val session = debuggerTask.perform(device, applicationId, env, indicator, console)
+    val session = RunStats.from(env).runCustomTask("startDebuggerSession") {
+      val debuggerTask = getBaseDebuggerTask(configuration.androidDebuggerContext, facet, env)
+      debuggerTask.perform(device, applicationId, env, indicator, console)
+    }
     session.runContentDescriptor
   }
 
@@ -285,5 +289,18 @@ class LaunchTaskRunner(
       else -> "Launching"
     }
     consoleView.println("$dateFormat: $launchVerb ${configuration.name} on '${env.executionTarget.displayName}.")
+  }
+
+  private inline fun <T> RunStats.runCustomTask(taskId: String, task: () -> T): T {
+    val customTask = beginCustomTask(taskId)
+    return try {
+      task()
+    }
+    catch (t: Throwable) {
+      endCustomTask(customTask, t)
+      throw t
+    }.also {
+      endCustomTask(customTask, null)
+    }
   }
 }

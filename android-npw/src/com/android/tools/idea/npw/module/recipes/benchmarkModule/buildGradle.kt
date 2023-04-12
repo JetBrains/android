@@ -31,7 +31,8 @@ fun buildGradle(
   targetApiString: String,
   language: Language,
   gradlePluginVersion: GradlePluginVersion,
-  useGradleKts: Boolean
+  useGradleKts: Boolean,
+  useVersionCatalog: Boolean
 ): String {
   val kotlinOptionsBlock = renderIf(language == Language.Kotlin) {
     """
@@ -55,7 +56,7 @@ fun buildGradle(
   }
 
   return """
-${emptyPluginsBlock()}
+${emptyPluginsBlock(isKts = useGradleKts, useVersionCatalog = useVersionCatalog)}
 
 android {
     namespace '$packageName'

@@ -43,9 +43,10 @@ class ProcessListTableBuilder {
       emptyText.text = "No debuggable process on device"
       autoCreateColumnsFromModel = false
       autoCreateRowSorter = true
-      setSelectionMode(DefaultListSelectionModel.MULTIPLE_INTERVAL_SELECTION)
+      setSelectionMode(DefaultListSelectionModel.SINGLE_SELECTION)
       rowSelectionAllowed = true
       background = UIUtil.getTableBackground()
+      tableHeader.reorderingAllowed = false
     }
     val tableSpeedSearch = TableSpeedSearch(table)
 

@@ -71,8 +71,8 @@ iml_module(
     test_class = "com.android.tools.idea.gradle.structure.GradleProjectSystemStructureTestSuite",
     test_data = [
         ":test_deps",
-        "//prebuilts/studio/sdk:cmake",
         "//prebuilts/studio/sdk:build-tools/latest",
+        "//prebuilts/studio/sdk:cmake",
         "//prebuilts/studio/sdk:ndk",
         "//prebuilts/studio/sdk:platform-tools",
         "//prebuilts/studio/sdk:platforms/latest",
@@ -87,8 +87,8 @@ iml_module(
     ],
     test_srcs = ["testSrc"],
     test_tags = [
-        "cpu:3",
         "block-network",
+        "cpu:3",
         "no_test_mac",
     ],
     test_timeout = "long",
@@ -116,8 +116,6 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Groovy[test]",
-        "//tools/adt/idea/android-common:intellij.android.common[module, test]",
-        "//tools/base/flags:studio.android.sdktools.flags[module]",
     ],
 )
 

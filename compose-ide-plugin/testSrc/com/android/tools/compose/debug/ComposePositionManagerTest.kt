@@ -48,7 +48,7 @@ class ComposePositionManagerTest {
     """.trimIndent()
     val file = projectRule.fixture.addFileToProject("src/a/test.kt", source)
 
-    val debugProcess = mockDebugProcess(project) {
+    val debugProcess = mockDebugProcess(project, projectRule.testRootDisposable) {
       classType("a.A") {
         method("f", lines = listOf(4, 5, 6, 7, 8))
         method("g", lines = listOf(10))
@@ -90,7 +90,7 @@ class ComposePositionManagerTest {
     """.trimIndent()
     val file = projectRule.fixture.addFileToProject("src/a/test2.kt", source)
 
-    val debugProcess = mockDebugProcess(project) {
+    val debugProcess = mockDebugProcess(project, projectRule.testRootDisposable) {
       classType("a.FileClass") {
         method("f", lines = listOf(4, 5, 6, 7, 8))
         method("g", lines = listOf(10))

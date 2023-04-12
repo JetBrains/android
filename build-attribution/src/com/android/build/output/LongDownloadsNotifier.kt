@@ -16,32 +16,38 @@
 package com.android.build.output
 
 import com.android.build.attribution.BUILD_ANALYZER_NOTIFICATION_GROUP_ID
+import com.android.tools.analytics.UsageTracker
+import com.android.tools.idea.stats.withProjectId
 import com.google.common.base.Stopwatch
 import com.google.common.base.Ticker
+import com.google.wireless.android.sdk.stats.AndroidStudioEvent
+import com.google.wireless.android.sdk.stats.BuildOutputDownloadsInfoEvent
 import com.intellij.build.BuildContentManager
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.CheckedDisposable
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.concurrency.EdtExecutorService
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
 /**
- * Listens for download events during Sync and tracks time when there  are active downloads ghappening.
+ * Listens for download events during Sync and tracks time when there are active downloads happening.
  * Once this time is above threshold notification is shown.
  */
 class LongDownloadsNotifier(
   private val taskId: ExternalSystemTaskId,
   private val project: Project,
-  buildFinishedDisposable: Disposable,
+  private val buildFinishedDisposable: CheckedDisposable,
+  private val buildStartTimestampMs: Long,
   scheduler: ScheduledExecutorService = EdtExecutorService.getScheduledExecutorInstance(),
   ticker: Ticker = Ticker.systemTicker()
-): DownloadsInfoUIModelNotifier.Listener {
+) {
   private val runningRequestsSet = mutableSetOf<DownloadRequestKey>()
   private val watch = Stopwatch.createUnstarted(ticker)
   @Volatile private var notified = false
@@ -49,7 +55,6 @@ class LongDownloadsNotifier(
   private val notificationRecheckDelayInSeconds = 5L
 
   init {
-    project.messageBus.connect(buildFinishedDisposable).subscribe(DownloadsInfoUIModelNotifier.DOWNLOADS_OUTPUT_TOPIC, this)
     val runnable = object : Runnable {
       override fun run() {
         if (notified) return
@@ -60,8 +65,7 @@ class LongDownloadsNotifier(
     Disposer.register(buildFinishedDisposable) { taskFuture.cancel(false) }
   }
 
-  override fun updateDownloadRequest(taskId: ExternalSystemTaskId, downloadRequest: DownloadRequestItem) {
-    if (this.taskId != taskId) return
+  fun updateDownloadRequest(downloadRequest: DownloadRequestItem) {
     if (notified) return
     if (!downloadRequest.completed) {
       runningRequestsSet.add(downloadRequest.requestKey)
@@ -87,10 +91,24 @@ class LongDownloadsNotifier(
             override fun actionPerformed(e: AnActionEvent) {
               // There is no need to select content as it should be automatically selected because Sync is currently running.
               BuildContentManager.getInstance(project).getOrCreateToolWindow().show {}
+              logUserEvent(BuildOutputDownloadsInfoEvent.Interaction.NOTIFICATION_LINK_CLICK)
             }
           }).notify(project)
         notified = true
+        logUserEvent(BuildOutputDownloadsInfoEvent.Interaction.NOTIFICATION_TRIGGERED)
       }
     }
+  }
+
+  private fun logUserEvent(reportedInteraction: BuildOutputDownloadsInfoEvent.Interaction) {
+    val event = AndroidStudioEvent.newBuilder()
+      .setKind(AndroidStudioEvent.EventKind.BUILD_OUTPUT_DOWNLOADS_INFO_USER_INTERACTION)
+      .setBuildOutputDownloadsInfoEvent(BuildOutputDownloadsInfoEvent.newBuilder().apply {
+        view = if (taskId.type == ExternalSystemTaskType.RESOLVE_PROJECT) BuildOutputDownloadsInfoEvent.View.SYNC_VIEW else BuildOutputDownloadsInfoEvent.View.BUILD_VIEW
+        msSinceBuildStart = (System.currentTimeMillis() - buildStartTimestampMs).toInt()
+        buildFinished = buildFinishedDisposable.isDisposed
+        interaction = reportedInteraction
+      })
+    UsageTracker.log(event.withProjectId(project))
   }
 }

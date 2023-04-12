@@ -29,8 +29,9 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
-import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.idea.rendering.parsers.LayoutRenderPullParser;
+import com.android.tools.idea.rendering.parsers.PsiXmlFile;
+import com.android.tools.res.ResourceRepositoryManager;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
@@ -82,8 +83,8 @@ public class DrawableRenderer implements Disposable {
    */
   public DrawableRenderer(@NotNull AndroidFacet facet, @NotNull Configuration configuration) {
     Module module = facet.getModule();
-    RenderLogger logger = new RenderLogger(module.getProject(), null, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory.INSTANCE);
-    myParserFactory = new MyLayoutPullParserFactory(module.getProject(), logger);
+    RenderLogger logger = new RenderLogger(module.getProject(), null, StudioFlags.NELE_LOG_ANDROID_FRAMEWORK.get(), ShowFixFactory.INSTANCE, StudioHtmlLinkManager::new);
+    myParserFactory = new MyLayoutPullParserFactory();
     // The ThemeEditorUtils.getConfigurationForModule and RenderService.createTask calls are pretty expensive.
     // Executing them off the UI thread.
     RenderService service = StudioRenderService.getInstance(module.getProject());
@@ -142,25 +143,22 @@ public class DrawableRenderer implements Disposable {
 
   private static class MyLayoutPullParserFactory implements ILayoutPullParserFactory {
     @NotNull private final ConcurrentMap<PathString, String> myFileContent = new ConcurrentHashMap<>();
-    @NotNull private final Project myProject;
-    @NotNull private final RenderLogger myLogger;
-
-    MyLayoutPullParserFactory(@NotNull Project project, @NotNull RenderLogger logger) {
-      myProject = project;
-      myLogger = logger;
-    }
 
     @Override
     @Nullable
-    public ILayoutPullParser create(@NotNull PathString file, @NotNull LayoutlibCallback layoutlibCallback,
-                                    @Nullable ResourceRepositoryManager resourceRepositoryManager) {
+    public ILayoutPullParser create(
+      @NotNull Project project,
+      @NotNull IRenderLogger logger,
+      @NotNull PathString file,
+      @NotNull LayoutlibCallback layoutlibCallback,
+      @Nullable ResourceRepositoryManager resourceRepositoryManager) {
       String content = myFileContent.remove(file); // File contents is removed upon use to avoid leaking memory.
       if (content == null) {
         return null;
       }
 
-      XmlFile xmlFile = (XmlFile)createEphemeralPsiFile(myProject, file.getFileName(), XmlFileType.INSTANCE, content);
-      return LayoutPsiPullParser.create(xmlFile, myLogger, resourceRepositoryManager);
+      XmlFile xmlFile = (XmlFile)createEphemeralPsiFile(project, file.getFileName(), XmlFileType.INSTANCE, content);
+      return LayoutRenderPullParser.create(new PsiXmlFile(xmlFile), logger, resourceRepositoryManager);
     }
 
     void addFileContent(@NotNull PathString file, @NotNull String content) {

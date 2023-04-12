@@ -41,11 +41,12 @@ internal class LiveEditDesugar : AutoCloseable{
     val now = System.nanoTime()
     val response = LiveEditDesugarResponse(request.compilerOutput)
 
-    if (StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_R8_DESUGAR.get()) {
+    if (!StudioFlags.COMPOSE_DEPLOY_LIVE_EDIT_R8_DESUGAR.get()) {
       // If desugaring is disabled we pass-through the compiler output as desugaring output
       request.apiVersions.forEach{ apiVersion ->
         response.addOutputSet(apiVersion, request.compilerOutput.classes.map{ it.name to it.data }.toMap())
       }
+      return response
     }
 
     try {

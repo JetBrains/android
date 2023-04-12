@@ -29,7 +29,7 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceValue;
 import com.android.ide.common.resources.ResourceItem;
 import com.android.resources.ResourceType;
-import com.android.tools.idea.res.ResourceRepositoryManager;
+import com.android.tools.res.ResourceRepositoryManager;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.intellij.openapi.util.text.StringUtil;

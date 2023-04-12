@@ -70,7 +70,6 @@ import com.android.tools.idea.apk.viewer.ApkFileSystem
 import com.android.tools.idea.databinding.util.DataBindingUtil
 import com.android.tools.idea.kotlin.getPreviousInQualifiedChain
 import com.android.tools.idea.model.AndroidModel
-import com.android.tools.idea.model.Namespacing
 import com.android.tools.idea.projectsystem.SourceProviders
 import com.android.tools.idea.projectsystem.getProjectSystem
 import com.android.tools.idea.rendering.GutterIconCache
@@ -79,7 +78,9 @@ import com.android.tools.idea.ui.MaterialColorUtils
 import com.android.tools.idea.util.toVirtualFile
 import com.android.tools.lint.detector.api.computeResourceName
 import com.android.tools.lint.detector.api.stripIdPrefix
+import com.android.tools.res.ResourceNamespacing
 import com.android.utils.SdkUtils
+import com.android.utils.isBindingExpression
 import com.google.common.base.CharMatcher
 import com.google.common.base.Joiner
 import com.google.common.base.Preconditions
@@ -811,7 +812,7 @@ fun RenderResources.resolveLayout(layout: ResourceValue?): VirtualFile? {
 
   var depth = 0
   while (value != null && depth < MAX_RESOURCE_INDIRECTION) {
-    if (DataBindingUtil.isBindingExpression(value)) {
+    if (isBindingExpression(value)) {
       value = DataBindingUtil.getBindingExprDefault(value) ?: return null
     }
     if (value.startsWith(PREFIX_RESOURCE_REF)) {
@@ -894,7 +895,7 @@ fun getNamespaceResolver(element: XmlElement): ResourceNamespace.Resolver {
 
   val repositoryManager = StudioResourceRepositoryManager.getInstance(element) ?: return ResourceNamespace.Resolver.EMPTY_RESOLVER
 
-  return if (repositoryManager.namespacing == Namespacing.DISABLED) {
+  return if (repositoryManager.namespacing == ResourceNamespacing.DISABLED) {
     // In non-namespaced projects, framework is the only namespace, but the resource merger messes with namespaces at build time, so you
     // have to use "android" as the prefix, which is equivalent not to defining a prefix at all (since "android" is the package name of the
     // framework). We also need to keep in mind we recognize "tools" even without the xmlns definition in non-namespaced projects.
@@ -1937,7 +1938,7 @@ fun getReferredResourceOrManifestField(
 }
 
 fun getRClassNamespace(facet: AndroidFacet, qName: String?): ResourceNamespace {
-  return if (StudioResourceRepositoryManager.getInstance(facet).namespacing == Namespacing.DISABLED) {
+  return if (StudioResourceRepositoryManager.getInstance(facet).namespacing == ResourceNamespacing.DISABLED) {
     ResourceNamespace.RES_AUTO
   }
   else {

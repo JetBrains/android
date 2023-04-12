@@ -55,6 +55,7 @@ import com.intellij.util.xmlb.XmlSerializerUtil;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.color.ICC_ColorSpace;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -103,6 +104,9 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   @NonNls private static final String SCREENSHOT_SAVE_PATH_KEY = "ScreenshotViewer.SavePath";
 
   private static final String HELP_PREFIX = "org.jetbrains.android.";
+
+  // The minimum size is for both the width and the height as the screenshot ratio needs to be 1:1
+  public static final int MINIMUM_WEAR_PLAY_COMPATIBLE_SCREENSHOT_SIZE_PIXELS = 384;
 
   private final @NotNull SimpleDateFormat myTimestampFormat = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ROOT);
 
@@ -371,21 +375,8 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
   }
 
   private void processScreenshot(int rotationQuadrants) {
-    FramingOption framingOption = null;
-    Color backgroundColor = null;
-    if (myScreenshotPostprocessor != null) {
-      framingOption = ((DecorationOption)Objects.requireNonNull(myDecorationComboBox.getSelectedItem())).getFramingOption();
-      if (myDecorationComboBox.getSelectedItem().equals(DecorationOption.RECTANGULAR) ||
-          myDecorationComboBox.getSelectedItem().equals(DecorationOption.PLAY_COMPATIBLE)) {
-        //noinspection UseJBColor - we want the actual color Black, JBColor will be grey in dark modes.
-        backgroundColor = Color.BLACK;
-      }
-    }
-
     ScreenshotImage rotatedImage = mySourceImageRef.get().rotated(rotationQuadrants);
-
-    BufferedImage processedImage = myScreenshotPostprocessor == null ?
-        rotatedImage.getImage() : myScreenshotPostprocessor.addFrame(rotatedImage, framingOption, backgroundColor);
+    BufferedImage processedImage = processImage(rotatedImage);
 
     // Update the backing file, this is necessary for operations that read the backing file from the editor,
     // such as: Right click image -> Open in external editor
@@ -402,6 +393,34 @@ public class ScreenshotViewer extends DialogWrapper implements DataProvider {
     mySourceImageRef.set(rotatedImage);
     myDisplayedImageRef.set(processedImage);
     updateEditorImage();
+  }
+
+  private BufferedImage processImage(ScreenshotImage sourceImage) {
+    if (myScreenshotPostprocessor == null) {
+      return sourceImage.getImage();
+    }
+
+    DecorationOption selectedDecoration = (DecorationOption)Objects.requireNonNull(myDecorationComboBox.getSelectedItem());
+    FramingOption framingOption = selectedDecoration.getFramingOption();
+    Color backgroundColor = null;
+    if (selectedDecoration.equals(DecorationOption.RECTANGULAR) ||
+        selectedDecoration.equals(DecorationOption.PLAY_COMPATIBLE)) {
+      //noinspection UseJBColor - we want the actual color Black, JBColor will be grey in dark modes.
+      backgroundColor = Color.BLACK;
+    }
+
+    int width = sourceImage.getImage().getWidth();
+    int height = sourceImage.getImage().getHeight();
+    boolean isOneToOneRatio = width == height;
+    boolean isPlayCompatible = isOneToOneRatio && width >= MINIMUM_WEAR_PLAY_COMPATIBLE_SCREENSHOT_SIZE_PIXELS;
+    if (selectedDecoration.equals(DecorationOption.PLAY_COMPATIBLE) && !isPlayCompatible) {
+      // fix the dimensions to be compatible with the play store requirements
+      int outputSize = Math.max(Math.max(width, height), MINIMUM_WEAR_PLAY_COMPATIBLE_SCREENSHOT_SIZE_PIXELS);
+      return myScreenshotPostprocessor.addFrame(sourceImage, framingOption, backgroundColor, new Dimension(outputSize, outputSize));
+    }
+    else {
+      return myScreenshotPostprocessor.addFrame(sourceImage, framingOption, backgroundColor);
+    }
   }
 
   @VisibleForTesting

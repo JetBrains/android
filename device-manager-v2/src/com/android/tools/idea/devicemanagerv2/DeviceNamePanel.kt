@@ -26,11 +26,11 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
-import org.jetbrains.annotations.VisibleForTesting
 import java.awt.Color
 import javax.swing.GroupLayout
 import javax.swing.LayoutStyle.ComponentPlacement
 import kotlin.math.min
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * A panel that renders the name of the device, along with its wear pairing status and a second line

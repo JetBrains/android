@@ -43,5 +43,6 @@
     <orderEntry type="library" name="studio-plugin-Kotlin" level="project" />
     <orderEntry type="module" module-name="android.sdktools.lint-api" />
     <orderEntry type="module" module-name="intellij.android.render-resources" />
+    <orderEntry type="module" module-name="intellij.android.rendering" />
   </component>
 </module>

@@ -27,11 +27,11 @@ import com.android.tools.idea.common.api.InsertType;
 import com.android.tools.idea.rendering.parsers.AttributeSnapshot;
 import com.android.tools.idea.rendering.parsers.PsiXmlTag;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
-import com.android.tools.idea.rendering.parsers.RenderXmlTag;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.uibuilder.api.ViewHandler;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.util.ListenerCollection;
+import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
@@ -40,10 +40,13 @@ import com.intellij.lang.java.JavaLanguage;
 import com.intellij.lang.refactoring.NamesValidator;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.pom.Navigatable;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
@@ -91,9 +94,23 @@ public class NlComponent implements NlAttributesHolder {
    */
   @Nullable AttributesTransaction myCurrentTransaction;
 
+  /**
+   * ID from {@link android.view.accessibility.AccessibilityNodeInfo} associated with this NlComponent,
+   * equals to -1 if there are no such AccessibilityNodeInfo.
+   */
+  long myAccessibilityId = -1;
+
+  private Navigatable myNavigatable;
+
   public NlComponent(@NotNull NlModel model, @NotNull XmlTag tag) {
     myModel = model;
     myBackend = new NlComponentBackendXml(model.getProject(), tag);
+  }
+
+  public NlComponent(@NotNull NlModel model, long accessibilityId) {
+    myModel = model;
+    myBackend = new NlComponentBackendEmpty();
+    myAccessibilityId = accessibilityId;
   }
 
   @TestOnly
@@ -117,6 +134,26 @@ public class NlComponent implements NlAttributesHolder {
   @Nullable
   public XmlModelComponentMixin getMixin() {
     return myMixin;
+  }
+
+  public void setAccessibilityId(long id) {
+    myAccessibilityId = id;
+  }
+
+  public long getAccessibilityId() {
+    return myAccessibilityId;
+  }
+
+  public void setNavigatable(@NotNull Navigatable navigatable) {
+    myNavigatable = navigatable;
+  }
+
+  @Nullable
+  public Navigatable getNavigatable() {
+    if (myNavigatable != null) {
+      return myNavigatable;
+    }
+    return myBackend.getDefaultNavigatable();
   }
 
   /**

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.avdmanager;
 
+import static com.intellij.ui.ExperimentalUI.isNewUI;
+
 import com.android.annotations.NonNull;
 import com.android.ide.common.rendering.HardwareConfigHelper;
 import com.android.sdklib.devices.Device;
@@ -82,7 +84,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
   private static final String DEFAULT_PHONE = "Pixel 2";
   private static final String DEFAULT_TABLET = "Pixel C";
   private static final String DEFAULT_WEAR = "Wear OS Square";
-  private static final String DEFAULT_TV = "Android TV (1080p)";
+  private static final String DEFAULT_TV = "Television (1080p)";
   private static final String DEFAULT_AUTOMOTIVE = "Automotive (1024p landscape)";
   private static final String DEFAULT_DESKTOP = "Medium Desktop";
   private static final String TV = "TV";
@@ -615,7 +617,7 @@ public class DeviceDefinitionList extends JPanel implements ListSelectionListene
           label.setForeground(table.getSelectionForeground());
           label.setOpaque(true);
           if (theIcon != null) {
-            label.setIcon(highlightedPlayStoreIcon);
+            label.setIcon(isNewUI() ? StudioIcons.Avd.DEVICE_PLAY_STORE : highlightedPlayStoreIcon);
           }
         }
         return label;

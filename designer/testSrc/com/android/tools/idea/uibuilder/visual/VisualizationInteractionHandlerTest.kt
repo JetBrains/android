@@ -22,7 +22,7 @@ import com.android.tools.idea.common.fixtures.ModelBuilder
 import com.android.tools.idea.common.fixtures.MouseEventBuilder
 import com.android.tools.idea.common.surface.DesignSurfaceShortcut
 import com.android.tools.idea.uibuilder.scene.SceneTest
-import com.android.tools.idea.uibuilder.surface.PanInteraction
+import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.openapi.actionSystem.ex.ActionPopupMenuListener

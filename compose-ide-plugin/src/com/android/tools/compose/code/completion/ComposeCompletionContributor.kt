@@ -17,6 +17,8 @@ package com.android.tools.compose.code.completion
 
 import com.android.ide.common.vectordrawable.VdPreview
 import com.android.tools.compose.ComposeSettings
+import com.android.tools.compose.aa.code.getComposableFunctionRenderParts
+import com.android.tools.compose.aa.code.isComposableFunctionParameter
 import com.android.tools.compose.code.getComposableFunctionRenderParts
 import com.android.tools.compose.code.isComposableFunctionParameter
 import com.android.tools.compose.isComposableFunction
@@ -43,10 +45,17 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.util.asSafely
 import icons.StudioIcons
 import org.jetbrains.annotations.VisibleForTesting
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
+import org.jetbrains.kotlin.analysis.api.symbols.KtValueParameterSymbol
+import org.jetbrains.kotlin.analysis.api.types.KtFunctionalType
 import org.jetbrains.kotlin.builtins.isFunctionType
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.idea.completion.LookupElementFactory
 import org.jetbrains.kotlin.idea.completion.handlers.KotlinCallableInsertHandler
@@ -81,12 +90,23 @@ private fun ValueParameterDescriptor.isLambdaWithNoParameters() =
   // The only type in the list is the return type (can be Unit).
   type.isFunctionType && argumentValueType.arguments.size == 1
 
+private fun KtAnalysisSession.isLambdaWithNoParameters(valueParameterSymbol: KtValueParameterSymbol): Boolean {
+  // The only type in the list is the return type (can be Unit).
+  val functionalReturnType = valueParameterSymbol.returnType as? KtFunctionalType ?: return false
+  return functionalReturnType.parameterTypes.size == 1
+}
+
 /**
  * true iff the last parameter is required, and a lambda type with no parameters.
  */
 private fun ValueParameterDescriptor.isRequiredLambdaWithNoParameters() =
   !hasDefaultValue() && isLambdaWithNoParameters() && varargElementType == null
 
+/**
+ * true iff the last parameter is required, and a lambda type with no parameters.
+ */
+private fun KtAnalysisSession.isRequiredLambdaWithNoParameters(valueParameterSymbol: KtValueParameterSymbol) =
+  !valueParameterSymbol.hasDefaultValue && isLambdaWithNoParameters(valueParameterSymbol) && !valueParameterSymbol.isVararg
 
 private fun InsertionContext.getParent(): PsiElement? = file.findElementAt(startOffset)?.parent
 
@@ -175,10 +195,22 @@ private class ComposableFunctionLookupElement(original: LookupElement) : LookupE
   override fun renderElement(presentation: LookupElementPresentation) {
     super.renderElement(presentation)
 
-    val descriptor = getFunctionDescriptor() ?: return
-    presentation.icon = COMPOSABLE_FUNCTION_ICON
-    presentation.setTypeText(if (descriptor.returnType?.isUnit() == true) null else presentation.typeText, null)
-    rewriteSignature(descriptor, presentation)
+    if (isK2Plugin()) {
+      val element = psiElement
+      analyze(element) {
+        val functionSymbol = element.getFunctionLikeSymbol()
+        presentation.icon = COMPOSABLE_FUNCTION_ICON
+        presentation.setTypeText(if (functionSymbol.returnType.isUnit) null else presentation.typeText, null)
+        val (parameters, tail) = getComposableFunctionRenderParts(functionSymbol)
+        rewriteSignature(presentation, parameters, tail)
+      }
+    } else {
+      val descriptor = getFunctionDescriptor() ?: return
+      presentation.icon = COMPOSABLE_FUNCTION_ICON
+      presentation.setTypeText(if (descriptor.returnType?.isUnit() == true) null else presentation.typeText, null)
+      val (parameters, tail) = descriptor.getComposableFunctionRenderParts()
+      rewriteSignature(presentation, parameters, tail)
+    }
   }
 
   override fun handleInsert(context: InsertionContext) {
@@ -192,17 +224,18 @@ private class ComposableFunctionLookupElement(original: LookupElement) : LookupE
     val parent = context.getParent()
     if (parent.isKdoc() || parent !is KtNameReferenceExpression) return null
 
-    val descriptor = getFunctionDescriptor() ?: return null
-
     val callType = parent.inferCallType()
     if (!validCallTypes.contains(callType)) return null
 
-    return ComposeInsertHandler(descriptor, callType)
+    return if (isK2Plugin()) {
+      ComposeInsertHandlerForK2(psiElement, callType)
+    } else {
+      val descriptor = getFunctionDescriptor() ?: return null
+      ComposeInsertHandlerForK1(descriptor, callType)
+    }
   }
 
-  private fun rewriteSignature(descriptor: FunctionDescriptor, presentation: LookupElementPresentation) {
-    val (parameters, tail) = descriptor.getComposableFunctionRenderParts()
-
+  private fun rewriteSignature(presentation: LookupElementPresentation, parameters: String?, tail: String?) {
     presentation.clearTail()
     parameters?.let { presentation.appendTailTextItalic(it, /* grayed = */ false) }
     tail?.let { presentation.appendTailText(" $it", /* grayed = */ true) }
@@ -321,9 +354,7 @@ private fun InsertionContext.isNextElementOpenCurlyBrace() = getNextElementIgnor
 
 private fun InsertionContext.isNextElementOpenParenthesis() = getNextElementIgnoringWhitespace()?.text?.startsWith("(") == true
 
-private class ComposeInsertHandler(
-  private val descriptor: FunctionDescriptor,
-  callType: CallType<*>) : KotlinCallableInsertHandler(callType) {
+private abstract class ComposeInsertHandler(callType: CallType<*>) : KotlinCallableInsertHandler(callType) {
   override fun handleInsert(context: InsertionContext, item: LookupElement) = with(context) {
     super.handleInsert(context, item)
 
@@ -335,43 +366,7 @@ private class ComposeInsertHandler(
     psiDocumentManager.doPostponedOperationsAndUnblockDocument(document)
 
     val templateManager = TemplateManager.getInstance(project)
-    val allParameters = descriptor.valueParameters
-    val requiredParameters = allParameters.filter { !it.declaresDefaultValue() && it.varargElementType == null }
-    val insertLambda = allParameters.lastOrNull()?.isComposableFunctionParameter() == true
-                       || allParameters.lastOrNull()?.isRequiredLambdaWithNoParameters() == true
-    val inParens = if (insertLambda) requiredParameters.dropLast(1) else requiredParameters
-
-    val template = templateManager.createTemplate("", "").apply {
-      isToReformat = true
-      setToIndent(true)
-
-      when {
-        inParens.isNotEmpty() -> {
-          addTextSegment("(")
-          inParens.forEachIndexed { index, parameter ->
-            if (index > 0) {
-              addTextSegment(", ")
-            }
-            addTextSegment(parameter.name.asString() + " = ")
-            if (parameter.isLambdaWithNoParameters()) {
-              addVariable(ConstantNode("{ /*TODO*/ }"), true)
-            }
-            else {
-              addVariable(EmptyExpression(), true)
-            }
-          }
-          addTextSegment(")")
-        }
-
-        !insertLambda -> addTextSegment("()")
-      }
-
-      if (insertLambda && !isNextElementOpenCurlyBrace()) {
-        addTextSegment(" {\n")
-        addEndVariable()
-        addTextSegment("\n}")
-      }
-    }
+    val template = templateManager.createTemplate("", "").apply { configureFunctionTemplate(context, template = this) }
 
     templateManager.startTemplate(editor, template, object : TemplateEditingAdapter() {
       override fun templateFinished(template: Template, brokenOff: Boolean) {
@@ -384,5 +379,79 @@ private class ComposeInsertHandler(
         }
       }
     })
+  }
+
+  abstract fun configureFunctionTemplate(context: InsertionContext, template: Template)
+
+  class ParameterInfo(val name: String, val isLambdaWithNoParameters: Boolean)
+
+  fun configureFunctionTemplate(template: Template,
+                                parameterInfoList: List<ParameterInfo>,
+                                insertLambda: Boolean,
+                                isNextElementOpenCurlyBrace: Boolean) = template.apply {
+    isToReformat = true
+    setToIndent(true)
+
+    when {
+      parameterInfoList.isNotEmpty() -> {
+        addTextSegment("(")
+        parameterInfoList.forEachIndexed { index, paramInfo ->
+          if (index > 0) {
+            addTextSegment(", ")
+          }
+          addTextSegment(paramInfo.name + " = ")
+          if (paramInfo.isLambdaWithNoParameters) {
+            addVariable(ConstantNode("{ /*TODO*/ }"), true)
+          }
+          else {
+            addVariable(EmptyExpression(), true)
+          }
+        }
+        addTextSegment(")")
+      }
+
+      !insertLambda -> addTextSegment("()")
+    }
+
+    if (insertLambda && !isNextElementOpenCurlyBrace) {
+      addTextSegment(" {\n")
+      addEndVariable()
+      addTextSegment("\n}")
+    }
+  }
+}
+
+private class ComposeInsertHandlerForK1(val functionDescriptor: FunctionDescriptor, callType: CallType<*>) : ComposeInsertHandler(
+  callType) {
+  override fun configureFunctionTemplate(context: InsertionContext, template: Template) {
+    val allParameters = functionDescriptor.valueParameters
+    val requiredParameters = allParameters.filter { !it.declaresDefaultValue() && it.varargElementType == null }
+    val insertLambda = allParameters.lastOrNull()?.let { valueParamDescriptor ->
+      valueParamDescriptor.isComposableFunctionParameter() || valueParamDescriptor.isRequiredLambdaWithNoParameters()
+    } == true
+    val inParens = if (insertLambda) requiredParameters.dropLast(1) else requiredParameters
+    configureFunctionTemplate(template, inParens.map { ParameterInfo(it.name.asString(), it.isLambdaWithNoParameters()) }, insertLambda,
+                              context.isNextElementOpenCurlyBrace())
+  }
+}
+
+
+private class ComposeInsertHandlerForK2(val functionElement: KtNamedFunction, callType: CallType<*>) : ComposeInsertHandler(
+  callType) {
+  @OptIn(KtAllowAnalysisOnEdt::class)
+  override fun configureFunctionTemplate(context: InsertionContext, template: Template) {
+    allowAnalysisOnEdt {
+      analyze(functionElement) {
+        val functionSymbol = functionElement.getFunctionLikeSymbol()
+        val allParameters = functionSymbol.valueParameters
+        val requiredParameters = allParameters.filter { !it.hasDefaultValue && !it.isVararg }
+        val insertLambda = allParameters.lastOrNull()?.let { valueParamSymbol ->
+          isComposableFunctionParameter(valueParamSymbol) || isRequiredLambdaWithNoParameters(valueParamSymbol)
+        } == true
+        val inParens = if (insertLambda) requiredParameters.dropLast(1) else requiredParameters
+        configureFunctionTemplate(template, inParens.map { ParameterInfo(it.name.asString(), isLambdaWithNoParameters(it)) }, insertLambda,
+                                  context.isNextElementOpenCurlyBrace())
+      }
+    }
   }
 }

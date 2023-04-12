@@ -43,8 +43,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 
@@ -68,6 +66,7 @@ class CategoryTable<T : Any>(
   private val primaryKey: (T) -> Any = { it },
   private val coroutineDispatcher: CoroutineDispatcher = defaultCoroutineDispatcher,
   colors: Colors = defaultColors,
+  private val rowDataProvider: ValueRowDataProvider<T> = NullValueRowDataProvider,
 ) : JBPanel<CategoryTable<T>>(), Scrollable {
 
   internal val header =
@@ -95,6 +94,8 @@ class CategoryTable<T : Any>(
   /** ValueRowComponents indexed by their primary key. These are reused when the value changes. */
   private val valueRows = mutableMapOf<Any, ValueRowComponent<T>>()
 
+  private val hiddenRows = mutableSetOf<Any>()
+
   /** The attributes we are grouping by, in order. */
   var groupByAttributes: AttributeList<T> = emptyList()
     private set
@@ -103,7 +104,7 @@ class CategoryTable<T : Any>(
   var columnSorters: List<ColumnSortOrder<T>> = emptyList()
     private set
 
-  private val collapsedNodes = MutableStateFlow(emptySet<CategoryList<T>>())
+  private val collapsedNodes = mutableSetOf<CategoryList<T>>()
 
   val selection = CategoryTableSingleSelection(this)
 
@@ -180,12 +181,6 @@ class CategoryTable<T : Any>(
       // TODO: Make this efficient
       selection.asFlow().collect { selectedKeys -> updateTablePresentation(selectedKeys) }
     }
-    scope.launch {
-      collapsedNodes.collect { collapsedNodes ->
-        categoryRows.values.forEach { it.isExpanded = !collapsedNodes.contains(it.path) }
-        updateComponents()
-      }
-    }
   }
 
   override fun removeNotify() {
@@ -231,7 +226,7 @@ class CategoryTable<T : Any>(
   private fun mouseClickedOnRow(e: MouseEvent) {
     if (SwingUtilities.isLeftMouseButton(e)) {
       rowComponents
-        .firstOrNull { e.y < it.y + it.height }
+        .firstOrNull { it.isVisible && e.y < it.y + it.height }
         ?.let { clickedRow ->
           requestFocusInWindow()
           selection.selectRow(clickedRow.rowKey)
@@ -281,7 +276,9 @@ class CategoryTable<T : Any>(
     val key = primaryKey(rowValue)
     if (!valueRows.contains(key)) {
       valueRows[key] =
-        ValueRowComponent(header, columns, rowValue, key).also { addRowComponent(it) }
+        ValueRowComponent(rowDataProvider, header, columns, rowValue, key).also {
+          addRowComponent(it)
+        }
       updateValues { it + rowValue }
       updateComponents()
     }
@@ -294,7 +291,11 @@ class CategoryTable<T : Any>(
 
   /** Removes the row (i.e. the row with the same primary key as the given value) from the table. */
   fun removeRow(rowValue: T) {
-    val key = primaryKey(rowValue)
+    removeRowByKey(primaryKey(rowValue))
+  }
+
+  /** Removes the row with the given primary key from the table. */
+  fun removeRowByKey(key: Any) {
     updateValues { it.filterNot { primaryKey(it) == key } }
     valueRows.remove(key)?.let { remove(it) }
     updateComponents()
@@ -350,8 +351,8 @@ class CategoryTable<T : Any>(
     var collapsedParentCount = 0
     for (value in values) {
       // Remove categories that no longer apply.
-      while (categoryList.isNotEmpty() && !categoryList.all { it.matches(value) }) {
-        if (collapsedNodes.value.contains(categoryList)) {
+      while (categoryList.isNotEmpty() && !categoryList.matches(value)) {
+        if (collapsedNodes.contains(categoryList)) {
           collapsedParentCount--
         }
         categoryList = categoryList.subList(0, categoryList.size - 1)
@@ -368,7 +369,7 @@ class CategoryTable<T : Any>(
         newRowComponents.add(categoryRow)
         categoryRow.isVisible = collapsedParentCount == 0
 
-        val isCollapsed = collapsedNodes.value.contains(categoryList)
+        val isCollapsed = collapsedNodes.contains(categoryList)
         categoryRow.isExpanded = !isCollapsed
         if (isCollapsed) {
           collapsedParentCount++
@@ -377,8 +378,8 @@ class CategoryTable<T : Any>(
 
       // Update the ValueRow with the new values.
       valueRows[primaryKey(value)]?.apply {
-        updateValues(value)
-        isVisible = collapsedParentCount == 0
+        this.value = value
+        isVisible = !hiddenRows.contains(primaryKey(value)) && collapsedParentCount == 0
         newRowComponents.add(this)
       }
     }
@@ -413,22 +414,39 @@ class CategoryTable<T : Any>(
     }
 
   fun setCollapsed(path: CategoryList<T>, collapsed: Boolean) {
-    collapsedNodes.update { if (collapsed) it.plusElement(path) else it.minusElement(path) }
+    updateCollapsedNodes { if (collapsed) add(path) else remove(path) }
   }
 
   fun toggleCollapsed(path: CategoryList<T>) {
-    collapsedNodes.update { nodes ->
+    updateCollapsedNodes {
       when {
-        // Overload resolution picks the wrong option for "nodes - path"
-        nodes.contains(path) -> nodes.minusElement(path)
-        else -> nodes.plusElement(path)
+        contains(path) -> remove(path)
+        else -> add(path)
       }
     }
   }
 
+  private fun updateCollapsedNodes(update: MutableSet<CategoryList<T>>.() -> Unit) {
+    collapsedNodes.update()
+    categoryRows.values.forEach { it.isExpanded = !collapsedNodes.contains(it.path) }
+    updateComponents()
+  }
+
+  private fun CategoryList<T>.matches(value: T) =
+    all { it.matches(value) }
+
   private fun invalidateRows() {
     rowComponents.forEach { it.invalidate() }
     revalidate()
+  }
+
+  fun setRowVisibleByKey(key: Any, visible: Boolean) {
+    when {
+      visible -> hiddenRows.remove(key)
+      else -> hiddenRows.add(key)
+    }
+    val row = valueRows[key] ?: return
+    row.isVisible = visible && collapsedNodes.none { it.matches(row.value) }
   }
 
   private fun Column.SizeConstraint.toSizeRequirements() = SizeRequirements(min, preferred, max, 0f)

@@ -20,5 +20,6 @@ package com.android.tools.idea.gradle.project.sync
  */
 enum class SyncTestMode {
   PRODUCTION,
-  TEST_EXCEPTION_HANDLING
+  TEST_EXCEPTION_HANDLING,
+  TEST_EXCEPTION_WITH_UNRESOLVED_MODULE
 }

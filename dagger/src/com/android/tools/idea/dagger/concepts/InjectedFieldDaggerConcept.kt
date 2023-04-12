@@ -59,9 +59,9 @@ internal object InjectedFieldDaggerConcept : DaggerConcept {
 private object InjectedFieldIndexer : DaggerConceptIndexer<DaggerIndexFieldWrapper> {
   override fun addIndexEntries(wrapper: DaggerIndexFieldWrapper, indexEntries: IndexEntries) {
     if (!wrapper.getIsAnnotatedWith(INJECT)) return
+    val classFqName = wrapper.getContainingClass()?.getFqName() ?: return
 
     val fieldTypeSimpleName = wrapper.getType()?.getSimpleName() ?: ""
-    val classFqName = wrapper.getContainingClass().getFqName()
     val fieldName = wrapper.getSimpleName()
     indexEntries.addIndexValue(fieldTypeSimpleName, InjectedFieldIndexValue(classFqName, fieldName))
   }
@@ -84,22 +84,20 @@ internal data class InjectedFieldIndexValue(val classFqName: String, val fieldNa
   }
 
   companion object {
-    private val identifyInjectedFieldKotlin =
-      DaggerElementIdentifier<KtProperty> {
-        if (it.containingClassOrObject != null && it.hasAnnotation(INJECT))
-          ConsumerDaggerElement(it)
-        else null
+    private fun identify(psiElement: KtProperty): DaggerElement? =
+      if (psiElement.containingClassOrObject != null && psiElement.hasAnnotation(INJECT)) {
+        ConsumerDaggerElement(psiElement)
+      } else {
+        null
       }
 
-    private val identifyInjectedFieldJava =
-      DaggerElementIdentifier<PsiField> {
-        if (it.hasAnnotation(INJECT)) ConsumerDaggerElement(it) else null
-      }
+    private fun identify(psiElement: PsiField): DaggerElement? =
+      if (psiElement.hasAnnotation(INJECT)) ConsumerDaggerElement(psiElement) else null
 
     internal val identifiers =
       DaggerElementIdentifiers(
-        ktPropertyIdentifiers = listOf(identifyInjectedFieldKotlin),
-        psiFieldIdentifiers = listOf(identifyInjectedFieldJava)
+        ktPropertyIdentifiers = listOf(DaggerElementIdentifier(this::identify)),
+        psiFieldIdentifiers = listOf(DaggerElementIdentifier(this::identify))
       )
   }
 

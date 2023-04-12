@@ -59,7 +59,7 @@ internal class PsiMethodWrapper(
     psiMethod.returnTypeElement?.let { PsiTypeElementWrapper(it) }
 
   override fun getParameters(): List<DaggerIndexParameterWrapper> =
-    psiMethod.parameterList.parameters.map { PsiParameterWrapper(it) }
+    psiMethod.parameterList.parameters.map { PsiParameterWrapper(it, importHelper) }
 
   override fun getIsConstructor() = psiMethod.isConstructor
 

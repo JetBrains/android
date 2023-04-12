@@ -24,15 +24,22 @@ import org.junit.rules.ExternalResource
 class ProjectServiceRule<T : Any>(
   private val projectRule: ProjectRule,
   private val serviceInterface: Class<T>,
-  private val instance: T,
+  private val instanceProvider: () -> T,
 ) : ExternalResource() {
+
   private val disposable = Disposer.newDisposable("ProjectServiceRule")
 
   override fun before() {
-    projectRule.project.registerOrReplaceServiceInstance(serviceInterface, instance, disposable)
+    projectRule.project.registerOrReplaceServiceInstance(serviceInterface, instanceProvider(), disposable)
   }
 
   override fun after() {
     Disposer.dispose(disposable)
+  }
+
+  companion object {
+    operator fun <T : Any> invoke(projectRule: ProjectRule, serviceInterface: Class<T>, instance: T): ProjectServiceRule<T> {
+      return ProjectServiceRule(projectRule, serviceInterface) { instance }
+    }
   }
 }

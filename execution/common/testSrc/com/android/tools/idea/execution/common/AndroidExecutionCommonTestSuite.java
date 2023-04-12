@@ -23,4 +23,5 @@ import org.junit.runner.RunWith;
 @JarTestSuiteRunner.ExcludeClasses(AndroidExecutionCommonTestSuite.class)
 // a suite mustn't contain itself
 public class AndroidExecutionCommonTestSuite extends IdeaTestSuiteBase {
+
 }

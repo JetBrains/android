@@ -239,7 +239,7 @@ class NlLayoutScannerTest {
     }
     scanner.addListener(listener)
 
-    scanner.updateLint(renderResult, renderResult.validatorResult as ValidatorResult, model, mockSurface)
+    scanner.updateLint(renderResult, renderResult.validatorResult as ValidatorResult, model)
 
     assertNotNull(validatorResult)
     assertEquals(componentSize, validatorResult!!.issues.size)
@@ -282,7 +282,7 @@ class NlLayoutScannerTest {
       }
     }
     scanner.addListener(listener)
-    scanner.updateLint(renderResult, validatorResult, model, mockSurface)
+    scanner.updateLint(renderResult, validatorResult, model)
 
     // Expect the results to be filtered.
     assertNotNull(validatorResult)

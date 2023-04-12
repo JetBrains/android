@@ -228,6 +228,7 @@ fun <ModelT, ValueT : Any, ModelPropertyT : ModelProperty<ModelT, ValueT, ValueT
     cellEditor = cellEditor,
     logValueEdited = logValueEdited,
     viewOnly = true,
+    hideMiniButton = !boundProperty.getCanExtractVariable(),
     note = noteText to "https://developer.android.com/$noteRedirectPath")
 }
 

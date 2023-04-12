@@ -15,15 +15,16 @@
  */
 package com.android.tools.adtui.toolwindow.splittingtabs.actions
 
-import com.android.testutils.MockitoKt
 import com.android.tools.adtui.toolwindow.splittingtabs.ChildComponentFactory
 import com.android.tools.adtui.toolwindow.splittingtabs.SplittingPanel
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
-import com.intellij.openapi.project.Project
-import com.intellij.testFramework.ApplicationRule
+import com.intellij.openapi.util.Disposer
+import com.intellij.testFramework.EdtRule
+import com.intellij.testFramework.ProjectRule
+import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.toolWindow.ToolWindowHeadlessManagerImpl
 import org.junit.Rule
@@ -35,13 +36,14 @@ import javax.swing.JPanel
  * Tests for [RenameTabAction]
  */
 class RenameTabActionTest {
-  @get:Rule
-  val appRule = ApplicationRule()
+  private val projectRule = ProjectRule()
 
-  private val project = MockitoKt.mock<Project>()
-  private val toolWindow = ToolWindowHeadlessManagerImpl.MockToolWindow(project)
+  @get:Rule
+  val rule = RuleChain(projectRule, EdtRule())
+
+  private val toolWindow by lazy { ToolWindowHeadlessManagerImpl.MockToolWindow(projectRule.project)}
   private val contentFactory by lazy { toolWindow.contentManager.factory }
-  private val event by lazy { TestActionEvent(SimpleDataContext.builder().add(CommonDataKeys.PROJECT, project).build(), action) }
+  private val event by lazy { TestActionEvent(SimpleDataContext.builder().add(CommonDataKeys.PROJECT, projectRule.project).build(), action) }
 
   private val action = RenameTabAction()
 
@@ -74,6 +76,7 @@ class RenameTabActionTest {
         override fun createChildComponent(state: String?, popupActionGroup: ActionGroup): JComponent = JPanel()
       })
     }
+    Disposer.register(toolWindow.contentManager, content)
 
     action.update(event, toolWindow, content)
 

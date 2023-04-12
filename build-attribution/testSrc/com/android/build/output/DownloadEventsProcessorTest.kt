@@ -27,10 +27,9 @@ import com.android.build.attribution.analyzers.failureStub
 import com.android.build.attribution.analyzers.url1
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskId
-import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
+import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.runInEdtAndWait
 import org.gradle.tooling.events.ProgressEvent
-import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Rule
 import org.junit.Test
 
@@ -99,21 +98,25 @@ class DownloadEventsProcessorTest {
     gradleProgressEvents: List<ProgressEvent>,
     expectedModelUpdates: List<DownloadRequestItem>
   ) {
-    val buildId = ExternalSystemTaskId.create(GradleConstants.SYSTEM_ID, ExternalSystemTaskType.RESOLVE_PROJECT, projectRule.project)
-    val modelUpdates = mutableListOf<Pair<ExternalSystemTaskId, DownloadRequestItem>>()
-    projectRule.project.messageBus.connect(projectRule.testRootDisposable)
-      .subscribe(DownloadsInfoUIModelNotifier.DOWNLOADS_OUTPUT_TOPIC, object : DownloadsInfoUIModelNotifier.Listener {
-        override fun updateDownloadRequest(taskId: ExternalSystemTaskId, downloadRequest: DownloadRequestItem) {
-          modelUpdates.add(taskId to downloadRequest)
-        }
-      })
+    val dataModel = DownloadInfoDataModel(projectRule.testRootDisposable)
     val eventsProcessor = DownloadsAnalyzer.DownloadEventsProcessor(
       statsAccumulator = null,
-      downloadsUiModelNotifier = DownloadsInfoUIModelNotifier(projectRule.project, buildId)
+      downloadsInfoDataModel = dataModel
     )
     gradleProgressEvents.forEach {
       eventsProcessor.receiveEvent(it)
     }
-    Truth.assertThat(modelUpdates).isEqualTo(expectedModelUpdates.map { buildId to it })
+
+    runInEdtAndWait {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      val modelUpdates = mutableListOf<DownloadRequestItem>()
+      val fakeUiModel = object : DownloadInfoDataModel.Listener {
+        override fun updateDownloadRequest(downloadRequest: DownloadRequestItem) {
+          modelUpdates.add(downloadRequest)
+        }
+      }
+      dataModel.subscribeUiModel(fakeUiModel)
+      Truth.assertThat(modelUpdates).isEqualTo(expectedModelUpdates)
+    }
   }
 }

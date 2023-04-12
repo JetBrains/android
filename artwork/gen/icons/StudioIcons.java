@@ -867,6 +867,7 @@ public final class StudioIcons {
       /** 16x16 */ public static final @NotNull Icon ANDROID_THINGS = load("studio/icons/wizards/modules/android-things.svg", 647496706, 2);
       /** 16x16 */ public static final @NotNull Icon ANDROID_TV = load("studio/icons/wizards/modules/android-tv.svg", 1602103522, 2);
       /** 16x16 */ public static final @NotNull Icon AUTOMOTIVE = load("studio/icons/wizards/modules/automotive.svg", 2114519743, 2);
+      /** 16x16 */ public static final @NotNull Icon BASELINE_PROFILE = load("studio/icons/wizards/modules/baseline-profile.svg", -1416648723, 2);
       /** 16x16 */ public static final @NotNull Icon BENCHMARK = load("studio/icons/wizards/modules/benchmark.svg", 1325926364, 2);
       /** 16x16 */ public static final @NotNull Icon DYNAMIC_FEATURE = load("studio/icons/wizards/modules/dynamic-feature.svg", -1186582036, 2);
       /** 16x16 */ public static final @NotNull Icon INSTANT_DYNAMIC_FEATURE = load("studio/icons/wizards/modules/instant-dynamic-feature.svg", 1465805911, 2);

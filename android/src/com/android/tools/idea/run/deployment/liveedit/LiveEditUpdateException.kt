@@ -37,7 +37,7 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
     UNSUPPORTED_SRC_CHANGE_RECOVERABLE("Unsupported change", "%", true),
     UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE("Unsupported change", "%", false),
     UNSUPPORTED_TEST_SRC_CHANGE("Test sources not supported", "%", false),
-    UNABLE_TO_DESUGAR("Error during desugar", "%", false),
+    UNABLE_TO_DESUGAR("Post-processing error", "%", false),
 
     INTERNAL_ERROR("Internal Error", "%", false),
     KNOWN_ISSUE("Known Issue", "%", true),

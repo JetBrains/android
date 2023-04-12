@@ -59,7 +59,6 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     ConfigurationManager manager = ConfigurationManager.getOrCreateInstance(myModule);
     assertNotNull(manager);
     assertSame(manager, ConfigurationManager.getOrCreateInstance(myModule));
-    assertSame(myModule, manager.getModule());
 
     Configuration configuration1 = manager.getConfiguration(file1);
     Configuration configuration2 = manager.getConfiguration(file2);
@@ -137,6 +136,43 @@ public class ConfigurationManagerTest extends AndroidTestCase {
     PsiFile file = myFixture.addFileToProject("res/layout/layout.xml", LAYOUT_FILE_TEXT);
     Configuration config = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.getVirtualFile());
     assertTrue(HardwareConfigHelper.isWear(config.getDevice()));
+  }
+
+  public void testDefaultThemeCompute() {
+    Manifest manifest = Manifest.getMainManifest(myFacet);
+    assertNotNull(manifest);
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      manifest.getApplication().getTheme().setStringValue("@style/break");
+    });
+
+    PsiFile file = myFixture.addFileToProject("res/layout/layout.xml", LAYOUT_FILE_TEXT);
+    Configuration config = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.getVirtualFile());
+    assertEquals("@style/break", config.getTheme());
+  }
+
+  public void testPostSplashScreenThemeResolution() {
+    myFixture.addFileToProject("res/values/styles.xml", """
+        <resources>
+          <!-- Base application theme. -->
+          <style name="Theme.TheTheme">
+          </style>
+          <!-- Base application theme. -->
+          <style name="Theme.SplashTheme" parent="Theme">
+              <item name="postSplashScreenTheme">@style/Theme.TheTheme</item>
+          </style>
+        </resources>
+      """);
+
+
+    Manifest manifest = Manifest.getMainManifest(myFacet);
+    assertNotNull(manifest);
+    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+      manifest.getApplication().getTheme().setStringValue("@style/Theme.SplashTheme");
+    });
+
+    PsiFile file = myFixture.addFileToProject("res/layout/layout.xml", LAYOUT_FILE_TEXT);
+    Configuration config = ConfigurationManager.getOrCreateInstance(myModule).getConfiguration(file.getVirtualFile());
+    assertEquals("@style/Theme.TheTheme", config.getTheme());
   }
 
   @Language("xml")

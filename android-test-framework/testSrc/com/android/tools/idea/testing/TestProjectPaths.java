@@ -37,6 +37,7 @@ public final class TestProjectPaths {
   public static final String INSTANT_APP_WITH_DYNAMIC_FEATURES = "projects/instantAppWithDynamicFeatures";
   public static final String INSTRUMENTATION_RUNNER = "projects/instrumentationRunner";
   public static final String INSTRUMENTATION_RUNNER_ANDROID_TEST_ORCHESTRATOR = "projects/instrumentationRunnerAndroidTestOrchestrator";
+  public static final String KOTLIN_WITH_VERSION_CATALOG = "projects/kotlinWithVersionCatalog";
   public static final String KOTLIN_GRADLE_DSL = "projects/kotlinGradleDsl";
   public static final String KOTLIN_KAPT = "projects/kotlinKapt";
   public static final String LOCAL_AARS_AS_MODULES = "projects/localAarsAsModules";

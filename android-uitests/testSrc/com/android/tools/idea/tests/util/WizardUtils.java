@@ -21,7 +21,7 @@ import static com.google.common.truth.Truth.assertThat;
 import com.android.tools.adtui.device.FormFactor;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
-import com.android.tools.idea.wizard.template.BuildConfigurationLanguage;
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewProject;
 import com.android.tools.idea.wizard.template.Language;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import org.fest.swing.timing.Wait;
@@ -43,19 +43,19 @@ public final class WizardUtils {
 
   public static void createNewProject(@NotNull GuiTestRule guiTest,
                                       @NotNull String activity) {
-    createNewProject(guiTest, activity, Java, BuildConfigurationLanguage.KTS);
+    createNewProject(guiTest, activity, Java, BuildConfigurationLanguageForNewProject.KTS);
   }
 
   public static void createNewProject(@NotNull GuiTestRule guiTest,
                                       @NotNull String activity,
-                                      @Nullable BuildConfigurationLanguage buildConfigurationLanguage) {
+                                      @Nullable BuildConfigurationLanguageForNewProject buildConfigurationLanguage) {
     createNewProject(guiTest, activity, Java, buildConfigurationLanguage);
   }
 
   public static void createNewProject(@NotNull GuiTestRule guiTest,
                                       @NotNull String activity,
                                       @Nullable Language language,
-                                      @Nullable BuildConfigurationLanguage buildConfigurationLanguage) {
+                                      @Nullable BuildConfigurationLanguageForNewProject buildConfigurationLanguage) {
     guiTest
       .welcomeFrame()
       .createNewProject()

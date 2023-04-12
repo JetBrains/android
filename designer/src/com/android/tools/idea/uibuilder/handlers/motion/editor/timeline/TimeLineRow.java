@@ -20,12 +20,12 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEUI;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MeModel;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
-
-import javax.swing.JPanel;
+import java.awt.Component;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import javax.swing.JPanel;
 
 /**
  * This represents a single row of a timeline
@@ -79,13 +79,15 @@ public class TimeLineRow extends JPanel {
     int w = getWidth();
     int h = getHeight();
     int titley = MEUI.scale(20);
+    Component parent = getParent();
+    mCellHasFocus = parent != null && parent.hasFocus();
 
     //  Paint the title (if a title level)
     if (mShowTitle) {
       g.setColor(MEUI.ourPrimaryPanelBackground);
       g.fillRect(0, 0, w, titley);
       if (mSelected) {
-        g.setColor(MEUI.ourMySelectedLineColor);
+        g.setColor(mCellHasFocus ? MEUI.ourMySelectedAndFocusedLineColor : MEUI.ourMySelectedLineColor);
         g.fillRect(0, titley, MEUI.ourLeftColumnWidth, myRowHeight);
         g.setColor(MEUI.ourSecondaryPanelBackground);
         g.fillRect(MEUI.ourLeftColumnWidth, titley, w - MEUI.ourLeftColumnWidth, myRowHeight);
@@ -98,7 +100,7 @@ public class TimeLineRow extends JPanel {
 
     } else {
       if (mSelected) {
-        g.setColor(MEUI.ourMySelectedLineColor);
+        g.setColor(mCellHasFocus ? MEUI.ourMySelectedAndFocusedLineColor : MEUI.ourMySelectedLineColor);
         g.fillRect(0, 0, MEUI.ourLeftColumnWidth, myRowHeight);
         g.setColor(MEUI.ourSecondaryPanelBackground);
         g.fillRect(MEUI.ourLeftColumnWidth, 0, w - MEUI.ourLeftColumnWidth, myRowHeight);
@@ -121,7 +123,7 @@ public class TimeLineRow extends JPanel {
     int fontAscent = metrics.getAscent();
     int sy = 0;
     if (mShowTitle) {
-      g.setColor(MEUI.ourTextColor);
+      g.setColor(mSelected && mCellHasFocus ? MEUI.ourSelectedAndFocusedTextColor : MEUI.ourTextColor);
       g.setClip(0,0, MEUI.ourLeftColumnWidth, getHeight());
       g.drawString(mRow.mRef + ":" + mRow.mName, sx, fontAscent);
       g.setClip(null);
@@ -133,7 +135,7 @@ public class TimeLineRow extends JPanel {
       drawArrow(g, sy);
     }
     sy += fontAscent;
-    g.setColor((mSelected) ? MEUI.ourMySelectedTextColor : MEUI.ourTextColor);
+    g.setColor(mSelected && mCellHasFocus ? MEUI.ourSelectedAndFocusedTextColor : MEUI.ourTextColor);
     sx = MEUI.scale(22);
     int rowTypeEnd  = 0;
     if (mRow.mType != null) {
@@ -181,7 +183,7 @@ public class TimeLineRow extends JPanel {
       int x = mTimelineStructure.floatToPosition(pos) + MEUI.ourLeftColumnWidth;
       drawDiamond(g, x, ypos);
       if (keyFrame == mSelectedKeyFrame && mSelected) {
-        g.setColor(MEUI.ourTextColor);
+        g.setColor(mCellHasFocus ? MEUI.ourSelectedAndFocusedTextColor : MEUI.ourMySelectedTextColor);
       }
     }
     if (mHasGraph && mGraphOpen) {

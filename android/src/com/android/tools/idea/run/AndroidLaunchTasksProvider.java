@@ -16,11 +16,14 @@
 package com.android.tools.idea.run;
 
 import static com.android.AndroidProjectTypes.PROJECT_TYPE_INSTANTAPP;
+import static com.android.sdklib.AndroidVersion.VersionCodes.TIRAMISU;
+import static com.android.tools.idea.flags.StudioFlags.LAUNCH_SANDBOX_SDK_PROCESS_WITH_DEBUGGER_ATTACHED_ON_DEBUG;
 import static com.android.tools.idea.run.AndroidRunConfiguration.LAUNCH_DEEP_LINK;
 
 import com.android.ddmlib.IDevice;
 import com.android.tools.idea.deploy.DeploymentConfiguration;
 import com.android.tools.idea.editors.literals.LiveEditService;
+import com.android.tools.idea.execution.common.debug.AndroidDebuggerState;
 import com.android.tools.idea.gradle.util.DynamicAppUtils;
 import com.android.tools.idea.run.activity.launch.DeepLinkLaunch;
 import com.android.tools.idea.run.deployment.liveedit.LiveEditApp;
@@ -32,6 +35,7 @@ import com.android.tools.idea.run.tasks.DeployTask;
 import com.android.tools.idea.run.tasks.KillAndRestartAppLaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.RunInstantAppTask;
+import com.android.tools.idea.run.tasks.SandboxSdkLaunchTask;
 import com.android.tools.idea.run.tasks.ShowLogcatTask;
 import com.android.tools.idea.run.tasks.StartLiveUpdateMonitoringTask;
 import com.android.tools.idea.run.util.SwapInfo;
@@ -44,6 +48,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -116,6 +121,9 @@ public class AndroidLaunchTasksProvider {
         if (appLaunchTask != null) {
           // Apply (Code) Changes needs additional control over killing/restarting the app.
           launchTasks.add(new KillAndRestartAppLaunchTask(packageName));
+          if (shouldDebugSandboxSdk(device)) {
+            launchTasks.add(new SandboxSdkLaunchTask(packageName));
+          }
           launchTasks.add(appLaunchTask);
         }
       }
@@ -257,6 +265,37 @@ public class AndroidLaunchTasksProvider {
   private boolean shouldApplyCodeChanges() {
     SwapInfo swapInfo = myEnv.getUserData(SwapInfo.SWAP_INFO_KEY);
     return swapInfo != null && swapInfo.getType() == SwapInfo.SwapType.APPLY_CODE_CHANGES;
+  }
+
+  private boolean shouldDebugSandboxSdk(IDevice device) {
+    return hasDebugSandboxSdkEnabled() &&
+           device.getVersion().isGreaterOrEqualThan(TIRAMISU) &&
+           myDebug &&
+           hasPrivacySandboxSdk(device);
+  }
+
+  private boolean hasDebugSandboxSdkEnabled() {
+    AndroidDebuggerState state = myRunConfig.getAndroidDebuggerContext().getAndroidDebuggerState();
+    if (state != null) {
+      return LAUNCH_SANDBOX_SDK_PROCESS_WITH_DEBUGGER_ATTACHED_ON_DEBUG.get() && state.DEBUG_SANDBOX_SDK;
+    }
+
+    return false;
+  }
+
+  private boolean hasPrivacySandboxSdk(IDevice device) {
+    try {
+      Collection<ApkInfo> apkList = myApkProvider.getApks(device);
+      for (ApkInfo apk : apkList) {
+        if (apk.isSandboxApk()) {
+          return true;
+        }
+      }
+
+      return false;
+    } catch(ApkProvisionException e) {
+      return false;
+    }
   }
 
   private enum DeployType {

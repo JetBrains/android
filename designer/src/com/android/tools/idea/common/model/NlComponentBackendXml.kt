@@ -23,6 +23,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.pom.Navigatable
 import com.intellij.psi.SmartPointerManager
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
@@ -173,6 +174,10 @@ open class NlComponentBackendXml private constructor(
 
   override fun isValid(): Boolean {
     return ApplicationManager.getApplication().isReadAccessAllowed && myTagPointer.element?.isValid == true
+  }
+
+  override fun getDefaultNavigatable(): Navigatable? {
+    return tag?.navigationElement as? Navigatable
   }
 
   private fun getStackTrace(): String {

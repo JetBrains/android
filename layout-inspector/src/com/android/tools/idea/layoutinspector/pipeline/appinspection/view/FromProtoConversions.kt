@@ -18,6 +18,7 @@ package com.android.tools.idea.layoutinspector.pipeline.appinspection.view
 import com.android.ide.common.resources.configuration.CountryCodeQualifier
 import com.android.ide.common.resources.configuration.DensityQualifier
 import com.android.ide.common.resources.configuration.FolderConfiguration
+import com.android.ide.common.resources.configuration.GrammaticalGenderQualifier
 import com.android.ide.common.resources.configuration.HighDynamicRangeQualifier
 import com.android.ide.common.resources.configuration.KeyboardStateQualifier
 import com.android.ide.common.resources.configuration.LayoutDirectionQualifier
@@ -38,6 +39,7 @@ import com.android.ide.common.resources.configuration.UiModeQualifier
 import com.android.ide.common.resources.configuration.VersionQualifier
 import com.android.ide.common.resources.configuration.WideGamutColorQualifier
 import com.android.resources.Density
+import com.android.resources.GrammaticalGender
 import com.android.resources.HighDynamicRange
 import com.android.resources.Keyboard
 import com.android.resources.KeyboardState
@@ -110,6 +112,11 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.Att
 import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.AttachErrorState
 import java.awt.Polygon
 import java.awt.Shape
+
+// TODO(b/275714274) Remove these constants when android U / 34 is merged into prebuilts, and use the constants from the android jar.
+const val GRAMMATICAL_GENDER_NEUTRAL = 1
+const val GRAMMATICAL_GENDER_FEMININE = 2
+const val GRAMMATICAL_GENDER_MASCULINE = 3
 
 fun LayoutInspectorViewProtocol.Screenshot.Type.toImageType(): AndroidWindow.ImageType {
   return when (this) {
@@ -210,6 +217,7 @@ fun LayoutInspectorViewProtocol.Configuration.convert(apiLevel: Int): FolderConf
   config.navigationMethodQualifier = navigationMethodFromRawValue(navigation)
   config.navigationStateQualifier = navigationStateFromRawValue(navigationHidden)
   config.versionQualifier = VersionQualifier(apiLevel)
+  config.grammaticalGenderQualifier = grammaticalGenderQualifierFromRawValue(grammaticalGender)
   return config
 }
 
@@ -328,6 +336,14 @@ private fun navigationMethodFromRawValue(value: Int): NavigationMethodQualifier?
     NAVIGATION_WHEEL -> Navigation.WHEEL
     else -> null
   }?.let { NavigationMethodQualifier(it) }
+
+private fun grammaticalGenderQualifierFromRawValue(value: Int): GrammaticalGenderQualifier? =
+  when (value) {
+      GRAMMATICAL_GENDER_NEUTRAL -> GrammaticalGender.NEUTER
+      GRAMMATICAL_GENDER_FEMININE -> GrammaticalGender.FEMININE
+      GRAMMATICAL_GENDER_MASCULINE -> GrammaticalGender.MASCULINE
+      else -> null
+  }?.let { GrammaticalGenderQualifier(it) }
 
 private fun LayoutInspectorViewProtocol.FoldEvent.FoldState.convert() = when (this) {
   LayoutInspectorViewProtocol.FoldEvent.FoldState.FLAT -> InspectorModel.Posture.FLAT

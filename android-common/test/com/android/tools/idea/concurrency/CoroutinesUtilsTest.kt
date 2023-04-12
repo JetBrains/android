@@ -152,22 +152,26 @@ class CoroutinesUtilsTest {
 
   @Test
   fun childScopeIsNotDisposedOnCancel() {
-    runBlockingTest {
-      // Prepare
-      val disposable = Disposer.newCheckedDisposable()
-      val scope = this.createChildScope(parentDisposable = disposable)
-      scope.launch {
-        while (isActive) {
-          delay(1_000)
-          yield()
+    val disposable = Disposer.newCheckedDisposable()
+    try {
+      runBlockingTest {
+        // Prepare
+        val scope = this.createChildScope(parentDisposable = disposable)
+        scope.launch {
+          while (isActive) {
+            delay(1_000)
+            yield()
+          }
         }
+
+        // Act
+        scope.cancel()
+
+        // Assert
+        Assert.assertFalse(disposable.isDisposed)
       }
-
-      // Act
-      scope.cancel()
-
-      // Assert
-      Assert.assertFalse(disposable.isDisposed)
+    } finally {
+      Disposer.dispose(disposable)
     }
   }
 }

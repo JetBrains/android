@@ -53,12 +53,21 @@ internal sealed class BasicIncompleteGradleModule(
   ): ActionToRun<GradleModule>
 }
 
+/** The information about the model consumer version required by AGP */
+internal data class ModelConsumerVersion(val major: Int, val minor: Int, val description: String) : Comparable<ModelConsumerVersion> {
+  override fun compareTo(other: ModelConsumerVersion): Int {
+    return if (this.major != other.major) this.major.compareTo(other.major) else this.minor.compareTo(other.minor)
+  }
+}
+
 /**
  * The container class of Android modules.
  */
 internal sealed class BasicIncompleteAndroidModule(gradleProject: BasicGradleProject, buildName: String)
   :  BasicIncompleteGradleModule(gradleProject, buildName) {
-  abstract val agpVersion: String
+  abstract val agpVersion: AgpVersion
+  abstract val minimumModelConsumerVersion: ModelConsumerVersion?
+
 }
 
 /**
@@ -71,8 +80,8 @@ internal class BasicV1AndroidModuleGradleProject(
   buildName: String,
   private val legacyV1AgpVersion: LegacyV1AgpVersionModel
 ) :  BasicIncompleteAndroidModule(gradleProject, buildName) {
-  override val agpVersion: String
-    get() = legacyV1AgpVersion.agp
+  override val agpVersion: AgpVersion = AgpVersion.parse(legacyV1AgpVersion.agp)
+  override val minimumModelConsumerVersion: ModelConsumerVersion? = null // Fall back to the computeAndroidGradlePluginCompatibility checks
 
   override fun getGradleModuleAction(
     internedModels: InternedModels,
@@ -141,6 +150,7 @@ internal class BasicV1AndroidModuleGradleProject(
     )
   }
 }
+val MINIMUM_AGP_FOR_VERSIONS_MAP = AgpVersion.parse("7.3.0")
 
 /**
  * The container class of Android modules that can be fetched using V2 builder models.
@@ -149,12 +159,15 @@ internal class BasicV2AndroidModuleGradleProject(
   gradleProject: BasicGradleProject,
   buildName: String,
   val versions: Versions,
-  val syncTestMode: SyncTestMode
-) :
-  BasicIncompleteAndroidModule(gradleProject, buildName)
-{
-  override val agpVersion: String
-    get() = versions.agp
+  val syncActionOptions: SyncActionOptions,
+) : BasicIncompleteAndroidModule(gradleProject, buildName) {
+  override val agpVersion: AgpVersion = AgpVersion.tryParse(versions.agp) ?: error("AGP returned incorrect version: ${versions.agp}")
+  override val minimumModelConsumerVersion: ModelConsumerVersion? =
+    if (agpVersion < MINIMUM_AGP_FOR_VERSIONS_MAP) null
+    else versions.versions[Versions.MINIMUM_MODEL_CONSUMER]?.let { version ->
+      // Human-readable field was added before MINIMUM_MODEL_CONSUMER was reported, and is required for MINIMUM_MODEL_CONSUMER.
+      ModelConsumerVersion(version.major, version.minor, version.humanReadable ?: error("AGP that reports a MINIMUM_MODEL_CONSUMER version must have a human readable version"))
+    }
 
   override fun getGradleModuleAction(
     internedModels: InternedModels,
@@ -169,8 +182,7 @@ internal class BasicV2AndroidModuleGradleProject(
           ?: error("Cannot get V2AndroidProject model for $gradleProject")
         val androidDsl = controller.findNonParameterizedV2Model(gradleProject, AndroidDsl::class.java)
           ?: error("Cannot get AndroidDsl model for $gradleProject")
-        val agpVersion = AgpVersion.tryParse(versions.agp)
-          ?: error("AGP returned incorrect version: ${versions.agp}")
+        val agpVersion = agpVersion
         val modelIncludesApplicationId = agpVersion.agpModelIncludesApplicationId
         val legacyApplicationIdModel = if (!modelIncludesApplicationId) {
           controller.findModel(gradleProject, LegacyApplicationIdModel::class.java)
@@ -180,7 +192,8 @@ internal class BasicV2AndroidModuleGradleProject(
         val gradlePropertiesModel = controller.findModel(gradleProject, GradlePropertiesModel::class.java)
           ?: error("Cannot get GradlePropertiesModel (V2) for project '$gradleProject'")
 
-        val modelCache = modelCacheV2Impl(internedModels, modelCacheLock, agpVersion, syncTestMode)
+        val modelCache = modelCacheV2Impl(internedModels, modelCacheLock, agpVersion, syncActionOptions.syncTestMode,
+                                          syncActionOptions.flags.studioFlagMultiVariantAdditionalArtifactSupport)
         val rootBuildId = buildInfo.buildNameMap[":"] ?: error("Root build (':') not found")
         val buildId = buildInfo.buildNameMap[basicAndroidProject.buildName]
           ?: error("(Included) build named '${basicAndroidProject.buildName}' not found")
@@ -194,7 +207,8 @@ internal class BasicV2AndroidModuleGradleProject(
             modelVersions = versions,
             androidDsl = androidDsl,
             legacyApplicationIdModel = legacyApplicationIdModel,
-            gradlePropertiesModel = gradlePropertiesModel
+            gradlePropertiesModel = gradlePropertiesModel,
+            skipRuntimeClasspathForLibraries = syncActionOptions.flags.studioFlagSkipRuntimeClasspathForLibraries,
           )
 
         return androidProjectResult.mapCatching { androidProjectResult ->

@@ -18,10 +18,12 @@ package com.android.tools.compose
 
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.analysis.api.KtAllowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.KtAnalysisSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.calls.singleFunctionCallOrNull
 import org.jetbrains.kotlin.analysis.api.calls.symbol
+import org.jetbrains.kotlin.analysis.api.lifetime.allowAnalysisOnEdt
 import org.jetbrains.kotlin.analysis.api.types.KtType
 import org.jetbrains.kotlin.idea.base.plugin.isK2Plugin
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
@@ -45,7 +47,7 @@ fun isComposeEnabled(element: PsiElement): Boolean = element.getModuleSystem()?.
 
 fun isModifierChainLongerThanTwo(element: KtElement): Boolean {
   if (element.getChildrenOfType<KtDotQualifiedExpression>().isNotEmpty()) {
-    val fqName = element.resolveToCall(BodyResolveMode.PARTIAL)?.getReturnType()?.fqName?.asString()
+    val fqName = element.callReturnTypeFqName()?.asString()
     if (fqName == COMPOSE_MODIFIER_FQN) {
       return true
     }
@@ -77,10 +79,13 @@ else {
   this.type()?.fqName
 }
 
-internal fun KtExpression.callReturnTypeFqName() = if (isK2Plugin()) {
-  analyze(this) {
-    val callReturnType = this@callReturnTypeFqName.resolveCall()?.singleFunctionCallOrNull()?.symbol?.returnType
-    callReturnType?.let { asFqName(it) }
+@OptIn(KtAllowAnalysisOnEdt::class)
+internal fun KtElement.callReturnTypeFqName() = if (isK2Plugin()) {
+  allowAnalysisOnEdt {
+    analyze(this) {
+      val callReturnType = this@callReturnTypeFqName.resolveCall()?.singleFunctionCallOrNull()?.symbol?.returnType
+      callReturnType?.let { asFqName(it) }
+    }
   }
 }
 else {

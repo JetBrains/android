@@ -22,7 +22,10 @@ import java.awt.Component
 import java.awt.Graphics
 import java.awt.Graphics2D
 import java.awt.Rectangle
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import java.awt.geom.AffineTransform
+import java.awt.geom.Point2D
 
 /**
  * Class responsible for rendering the [RenderModel] into a [Graphics] object.
@@ -34,8 +37,19 @@ import java.awt.geom.AffineTransform
 class LayoutInspectorRenderer(
   private val renderLogic: RenderLogic,
   private val renderModel: RenderModel,
-  private val component: Component
+  private val component: Component,
+  private val displayRectangleProvider: () -> Rectangle?,
+  private val screenScaleProvider: () -> Double
 ) {
+
+  init {
+    // TODO(b/265150325) when running devices the zoom does not affect the scale. Move this somewhere else.
+    renderLogic.renderSettings.scalePercent = 30
+
+    val layoutInspectorMouseListener = LayoutInspectorMouseListener(renderModel)
+    component.addMouseListener(layoutInspectorMouseListener)
+    component.addMouseMotionListener(layoutInspectorMouseListener)
+  }
 
   /**
    * Transform to the center of the panel and scale Layout Inspector UI to display size.
@@ -64,4 +78,35 @@ class LayoutInspectorRenderer(
     renderLogic.renderBorders(g2d, component, component.foreground)
     renderLogic.renderOverlay(g2d)
   }
+
+  /**
+   * Transform panel coordinates to model coordinates.
+   */
+  private fun toModelCoordinates(originalCoordinates: Point2D): Point2D? {
+    val scaledCoordinates = originalCoordinates.scale(screenScaleProvider())
+    val transformedPoint2D = Point2D.Double()
+
+    val displayRectangle = displayRectangleProvider() ?: return null
+    val transform = getTransform(displayRectangle)
+    transform.inverseTransform(scaledCoordinates, transformedPoint2D)
+
+    return transformedPoint2D
+  }
+
+  private inner class LayoutInspectorMouseListener(private val renderModel: RenderModel) : MouseAdapter() {
+    override fun mouseMoved(e: MouseEvent) {
+      if (e.isConsumed) return
+
+      val modelCoordinates = toModelCoordinates(e.coordinates()) ?: return
+
+      val hoveredNodeDrawInfo = renderModel.findDrawInfoAt(modelCoordinates.x, modelCoordinates.y).firstOrNull()
+      renderModel.model.hoveredNode = hoveredNodeDrawInfo?.node?.findFilteredOwner(renderModel.treeSettings)
+
+      component.invalidate()
+      component.repaint()
+    }
+  }
 }
+
+private fun Point2D.scale(scale: Double) = Point2D.Double(x * scale, y * scale)
+private fun MouseEvent.coordinates() = Point2D.Double(x.toDouble(), y.toDouble())

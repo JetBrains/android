@@ -109,6 +109,8 @@ class PreviewLifecycleManager private constructor(
    * The user should call this to indicate that the parent was activated.
    */
   fun activate() = activationLock.withLock {
+    if(isActive.get()) return
+
     activationScope?.cancel()
     val scope = parentScope.createChildScope(true)
     activationScope = scope
@@ -132,6 +134,8 @@ class PreviewLifecycleManager private constructor(
    * The user should call this to indicate that the parent was deactivated.
    */
   fun deactivate() = activationLock.withLock {
+    if(!isActive.get()) return
+
     activationScope?.cancel()
     activationScope = null
     isActive.set(false)

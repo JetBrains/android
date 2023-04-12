@@ -34,14 +34,15 @@ fun RecipeExecutor.androidProjectRecipe(
   language: Language,
   addAndroidXSupport: Boolean,
   useGradleKts: Boolean,
+  useVersionCatalog: Boolean,
   makeIgnore: Boolean = true,
 ) {
   val topOut = data.rootDir
 
   if (useGradleKts) {
-    save(androidProjectBuildGradle(), topOut.resolve(FN_BUILD_GRADLE_KTS))
+    save(androidProjectBuildGradle(isKts = true, useVersionCatalog = useVersionCatalog), topOut.resolve(FN_BUILD_GRADLE_KTS))
   } else {
-    save(androidProjectBuildGradle(), topOut.resolve(FN_BUILD_GRADLE))
+    save(androidProjectBuildGradle(isKts = false, useVersionCatalog = useVersionCatalog), topOut.resolve(FN_BUILD_GRADLE))
   }
 
   if (makeIgnore) {

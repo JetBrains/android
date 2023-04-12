@@ -22,7 +22,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.benchmark.BenchmarkModuleType
 import com.android.tools.idea.tests.gui.framework.GuiTestRule
 import com.android.tools.idea.tests.gui.framework.fixture.npw.NewModuleWizardFixture
-import com.android.tools.idea.wizard.template.BuildConfigurationLanguage
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule
 import com.android.tools.idea.wizard.template.Language
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner
@@ -44,11 +44,11 @@ class NewKtsModuleTest {
    *
    * Test Steps
    * 1. Import "Simple Application" (a basic java project)
-   * 2. Add a new Java "Phone/Tablet" Module and selected "Kotlin script (Recommended)".
-   * 3. Add a new Kotlin "Android Library" Module and select "Kotlin script (Recommended)".
-   * 4. Add a new Java "Automotive" Module and selected "Kotlin script (Recommended)".
-   * 5. Add a new Java "Wear OS" Module and selected "Kotlin script (Recommended)".
-   * 6. Add a new Java "Android Tv" Module and selected "Kotlin script (Recommended)".
+   * 2. Add a new Java "Phone/Tablet" Module and selected "Kotlin DSL".
+   * 3. Add a new Kotlin "Android Library" Module and select "Kotlin DSL".
+   * 4. Add a new Java "Automotive" Module and selected "Kotlin DSL".
+   * 5. Add a new Java "Wear OS" Module and selected "Kotlin DSL".
+   * 6. Add a new Java "Android Tv" Module and selected "Kotlin DSL".
    * - Make sure the projects can build ("Build" > "Make Project")
    * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
    */
@@ -72,7 +72,7 @@ class NewKtsModuleTest {
       .enterModuleName("mobile")
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Language.Java)
-      .setBuildConfigurationLanguage(BuildConfigurationLanguage.KTS)
+      .setBuildConfigurationLanguage(BuildConfigurationLanguageForNewModule.KTS)
       .wizard()
       .clickNext()
       .chooseActivity("No Activity")
@@ -95,7 +95,7 @@ class NewKtsModuleTest {
       .enterModuleName("android_lib")
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Language.Kotlin)
-      .setBuildConfigurationLanguage(BuildConfigurationLanguage.KTS)
+      .setBuildConfigurationLanguage(BuildConfigurationLanguageForNewModule.KTS)
       .wizard()
       .clickFinishAndWaitForSyncToFinish()
 
@@ -114,7 +114,7 @@ class NewKtsModuleTest {
       .enterModuleName("automotive")
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Language.Java)
-      .setBuildConfigurationLanguage(BuildConfigurationLanguage.KTS)
+      .setBuildConfigurationLanguage(BuildConfigurationLanguageForNewModule.KTS)
       .wizard()
       .clickNext()
       .chooseActivity("Media Service")
@@ -134,7 +134,7 @@ class NewKtsModuleTest {
       .enterModuleName("wear")
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Language.Java)
-      .setBuildConfigurationLanguage(BuildConfigurationLanguage.KTS)
+      .setBuildConfigurationLanguage(BuildConfigurationLanguageForNewModule.KTS)
       .wizard()
       .clickNext()
       .chooseActivity("Blank Activity")
@@ -154,7 +154,7 @@ class NewKtsModuleTest {
       .enterModuleName("tv")
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Language.Java)
-      .setBuildConfigurationLanguage(BuildConfigurationLanguage.KTS)
+      .setBuildConfigurationLanguage(BuildConfigurationLanguageForNewModule.KTS)
       .wizard()
       .clickNext()
       .chooseActivity("Blank Activity")
@@ -204,7 +204,7 @@ class NewKtsModuleTest {
    *
    * Test Steps
    * 1. Import "Simple Application" (a basic non kts java project)
-   * 2. Add a new "Dynamic Feature" module, with Java Language and "Kotlin script (Recommended)" selected.
+   * 2. Add a new "Dynamic Feature" module, with Java Language and "Kotlin DSL" selected.
    * - Make sure the projects can build ("Build" > "Make Project")
    * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
    */
@@ -217,7 +217,7 @@ class NewKtsModuleTest {
       .enterFeatureModuleName("DynamicFeature")
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Language.Java)
-      .setBuildConfigurationLanguage(BuildConfigurationLanguage.KTS)
+      .setBuildConfigurationLanguage(BuildConfigurationLanguageForNewModule.KTS)
       .clickNextToConfigureConditionalDelivery()
       .wizard()
       .clickFinishAndWaitForSyncToFinish()
@@ -234,7 +234,7 @@ class NewKtsModuleTest {
    *
    * Test Steps
    * 1. Import "Simple Application" (a basic non kts java project)
-   * 2. Add a new "Instant Dynamic Feature" module, with Java Language and "Kotlin script (Recommended)" selected.
+   * 2. Add a new "Instant Dynamic Feature" module, with Java Language and "Kotlin DSL" selected.
    * - Make sure the projects can build ("Build" > "Make Project")
    * - The new Module build.gradle.kts should be in "Kotlin Script", ie "applicationId = xxx", instead of "applicationId xxx"
    */
@@ -247,7 +247,7 @@ class NewKtsModuleTest {
       .enterFeatureModuleName("InstantFeature")
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Language.Java)
-      .setBuildConfigurationLanguage(BuildConfigurationLanguage.KTS)
+      .setBuildConfigurationLanguage(BuildConfigurationLanguageForNewModule.KTS)
       .wizard()
       .clickFinishAndWaitForSyncToFinish()
 
@@ -276,7 +276,7 @@ class NewKtsModuleTest {
       .selectBenchmarkType(BenchmarkModuleType.MICROBENCHMARK)
       .selectMinimumSdkApi(AndroidVersion.VersionCodes.P)
       .setSourceLanguage(Language.Java)
-      .setBuildConfigurationLanguage(BuildConfigurationLanguage.KTS)
+      .setBuildConfigurationLanguage(BuildConfigurationLanguageForNewModule.KTS)
       .wizard()
       .clickFinishAndWaitForSyncToFinish()
 

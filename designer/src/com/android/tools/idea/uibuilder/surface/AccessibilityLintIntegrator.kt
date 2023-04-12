@@ -93,10 +93,10 @@ class AccessibilityLintIntegrator(issueModel: IssueModel) {
   }
 
   /** Handles case where we have ATF issues and include tags. */
-  fun handleInclude(layoutParser: NlScannerLayoutParser, surface: NlDesignSurface) {
+  fun handleInclude(layoutParser: NlScannerLayoutParser) {
     layoutParser.includeComponents.forEach {
       if (it.getAttribute(TOOLS_URI, ATTR_IGNORE_A11Y_LINTS) == null) {
-        issues.add(NlATFIncludeIssue(it, surface))
+        issues.add(NlATFIncludeIssue(it))
       }
     }
   }
@@ -104,8 +104,7 @@ class AccessibilityLintIntegrator(issueModel: IssueModel) {
 
 /**  Issue created for <include> */
 class NlATFIncludeIssue(
-  private val include: NlComponent,
-  private val surface: NlDesignSurface) : Issue() {
+  private val include: NlComponent) : Issue() {
   override val summary: String
     get() = "Included layout may contain accessibility issues."
   override val description: String

@@ -47,5 +47,21 @@
             icon="StudioIcons.Avd.PAIR_OVER_WIFI"
             text="Pair Devices Using Wi-Fi"
             description="Open the Device Pairing dialog which allows connecting devices over Wi-Fi"/>
+
+    <group id="android.device.reservation.extend"
+           class="com.android.tools.idea.deviceprovisioner.ExtendReservationAction"
+           icon="AllIcons.Actions.Resume"
+           text="Extend Reservation"
+           description="Extend device reservation"
+           popup="true">
+      <action id="android.device.reservation.extend.half.hour"
+              class="com.android.tools.idea.deviceprovisioner.ExtendReservationAction$HalfHour"
+              text="Extend Reservation by 30 Minutes"
+              description="Extend device reservation by 30 minutes"/>
+      <action id="android.device.reservation.extend.one.hour"
+              class="com.android.tools.idea.deviceprovisioner.ExtendReservationAction$OneHour"
+              text="Extend Reservation by 1 Hour"
+              description="Extend device reservation by 1 hour"/>
+    </group>
   </actions>
 </idea-plugin>

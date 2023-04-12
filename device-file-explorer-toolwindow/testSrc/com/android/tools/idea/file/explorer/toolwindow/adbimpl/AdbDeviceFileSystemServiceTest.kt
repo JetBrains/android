@@ -15,17 +15,11 @@
  */
 package com.android.tools.idea.file.explorer.toolwindow.adbimpl
 
-import com.android.adblib.AdbSession
-import com.android.adblib.SOCKET_CONNECT_TIMEOUT_MS
-import com.android.adblib.testingutils.CloseablesRule
 import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
-import com.android.adblib.testingutils.FakeAdbServerProvider
-import com.android.adblib.testingutils.TestingAdbSessionHost
-import com.android.sdklib.deviceprovisioner.DeviceProvisioner
 import com.android.sdklib.deviceprovisioner.DeviceState.Connected
 import com.android.sdklib.deviceprovisioner.OfflineDeviceProperties
 import com.android.sdklib.deviceprovisioner.receiveUntilPassing
-import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin
+import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceFileSystem
 import com.android.tools.idea.file.explorer.toolwindow.fs.DeviceState
 import com.google.common.truth.Truth.assertThat
@@ -34,24 +28,14 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.junit.Rule
 import org.junit.Test
-import java.time.Duration
 
 class AdbDeviceFileSystemServiceTest {
 
-  @JvmField @Rule val closeables = CloseablesRule()
+  @JvmField
+  @Rule
+  val deviceProvisionerRule = DeviceProvisionerRule()
 
-  val fakeAdb = closeables.register(FakeAdbServerProvider().buildDefault().start())
-  val host = closeables.register(TestingAdbSessionHost())
-  val session =
-    closeables.register(AdbSession.create(
-      host,
-      fakeAdb.createChannelProvider(host),
-      Duration.ofMillis(SOCKET_CONNECT_TIMEOUT_MS)
-    ))
-
-  val provisioner = DeviceProvisioner.create(session, emptyList())
-  val plugin = FakeAdbDeviceProvisionerPlugin(session.scope, fakeAdb)
-  val service = AdbDeviceFileSystemService(DeviceProvisioner.create(session, listOf(plugin)))
+  val service by lazy { AdbDeviceFileSystemService(deviceProvisionerRule.deviceProvisioner) }
 
   /**
    * Verify that we do not pass DeviceHandles for devices that are not connected to ADB.
@@ -59,7 +43,7 @@ class AdbDeviceFileSystemServiceTest {
   @Test
   fun onlyConnectedDevicesProvided() = runBlockingWithTimeout {
 
-    val deviceHandle = plugin.addNewDevice()
+    val deviceHandle = deviceProvisionerRule.deviceProvisionerPlugin.addNewDevice()
 
     val channel = Channel<List<DeviceFileSystem>>()
     val job = launch(Dispatchers.IO) { service.devices.collect { channel.send(it) } }
@@ -108,7 +92,7 @@ class AdbDeviceFileSystemServiceTest {
       assertThat(channel.receive()).isEmpty()
 
       val deviceState =
-        fakeAdb.connectDevice(
+        deviceProvisionerRule.fakeAdb.connectDevice(
           deviceId = "test_device_01",
           manufacturer = "Google",
           deviceModel = "Pixel 10",
@@ -133,7 +117,7 @@ class AdbDeviceFileSystemServiceTest {
       assertThat((deviceFileSystems[0] as AdbDeviceFileSystem).deviceHandle.state.isOnline()).isTrue()
 
       // Disconnect the device; it goes away
-      fakeAdb.disconnectDevice(deviceState.deviceId)
+      deviceProvisionerRule.fakeAdb.disconnectDevice(deviceState.deviceId)
 
       assertThat(channel.receive()).isEmpty()
 

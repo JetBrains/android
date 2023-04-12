@@ -31,11 +31,9 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.handlers.constraint.ConstraintComponentUtilities
 import com.android.tools.idea.uibuilder.model.NlDropEvent
 import com.android.tools.idea.uibuilder.surface.DragDropInteraction
-import com.android.tools.idea.uibuilder.surface.PanInteraction
-import com.intellij.ide.util.PsiNavigationSupport
+import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.pom.Navigatable
 import org.intellij.lang.annotations.JdkConstants
 import java.awt.Cursor
 import java.awt.Toolkit
@@ -334,11 +332,7 @@ abstract class InteractionHandlerBase(private val surface: DesignSurface<*>) : I
 }
 
 fun navigateToComponent(component: NlComponent, needsFocusEditor: Boolean) {
-  val componentBackend = component.backend
-  val element = (if (componentBackend.tag == null) null else componentBackend.tag!!.navigationElement) ?: return
-  if (PsiNavigationSupport.getInstance().canNavigate(element) && element is Navigatable) {
-    (element as Navigatable).navigate(needsFocusEditor)
-  }
+  component.navigatable?.navigate(needsFocusEditor)
 }
 
 /**

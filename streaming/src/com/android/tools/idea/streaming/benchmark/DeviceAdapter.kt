@@ -91,6 +91,7 @@ fun Color.isBluish() = red < 0x1F && green < 0x1F && blue > 0xE0
 
 private fun AbstractDisplayView.press(keyCode: Int) {
   keyInput(keyCode, KeyEvent.CHAR_UNDEFINED, KeyEvent.KEY_PRESSED)
+  keyInput(keyCode, KeyEvent.CHAR_UNDEFINED, KeyEvent.KEY_RELEASED)
 }
 
 private fun AbstractDisplayView.type(keyChar: Char) {

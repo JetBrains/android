@@ -33,6 +33,7 @@ import com.android.tools.idea.appinspection.inspectors.backgroundtask.view.toFor
 import com.google.common.annotations.VisibleForTesting
 import com.google.wireless.android.sdk.stats.AppInspectionEvent
 import com.intellij.ui.ColoredTreeCellRenderer
+import com.intellij.ui.ExperimentalUI.isNewUI
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeModelAdapter
@@ -266,7 +267,7 @@ class BackgroundTaskTreeTableView(
                   append(data.status.capitalizedName())
                   val stateIcon = data.icon()
                   icon =
-                    if (selected && stateIcon != null)
+                    if (selected && !isNewUI() && stateIcon != null)
                       ColoredIconGenerator.generateWhiteIcon(stateIcon)
                     else stateIcon
                 }

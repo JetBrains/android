@@ -34,6 +34,9 @@ import com.android.tools.idea.rendering.RenderResult;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
+import com.android.tools.idea.uibuilder.surface.layer.BorderLayer;
+import com.android.tools.idea.uibuilder.surface.layer.CanvasResizeLayer;
+import com.android.tools.idea.uibuilder.surface.layer.OverlayLayer;
 import com.android.tools.idea.uibuilder.type.LayoutEditorFileType;
 import com.google.common.collect.ImmutableList;
 import java.awt.Dimension;
@@ -149,7 +152,7 @@ public class ScreenView extends ScreenViewBase {
     ImmutableList.Builder<Layer> builder = ImmutableList.builder();
 
     if (screenView.hasBorderLayer()) {
-      builder.add(new BorderLayer(screenView));
+      builder.add(new BorderLayer(screenView, () -> screenView.getSurface().getRotateSurfaceDegree()));
     }
     builder.add(new ScreenViewLayer(screenView));
 
@@ -163,7 +166,7 @@ public class ScreenView extends ScreenViewBase {
     }
 
     if (screenView.myIsResizeable && screenView.getSceneManager().getModel().getType().isEditable()) {
-      builder.add(new CanvasResizeLayer(surface, screenView));
+      builder.add(new CanvasResizeLayer(screenView, () -> { surface.repaint(); return null; }));
     }
 
     if (NELE_RENDER_DIAGNOSTICS.get()) {

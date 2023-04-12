@@ -682,6 +682,32 @@ public final class StudioFlags {
     "Set the max number of messages that are appended to the UI component",
     1000
   );
+
+  public static final Flag<Boolean> LOGCAT_PANEL_MEMORY_SAVER = Flag.create(
+    LOGCAT,
+    "logcat.panel.memory.saver",
+    "Enable Logcat Panel memory saving feature",
+    "Reduces memory usage of Logcat tool by writing data to a file when the panel is not visible",
+    true
+  );
+
+  public static final Flag<Boolean> LOGCAT_TERMINATE_APP_ACTIONS_ENABLED = Flag.create(
+    LOGCAT,
+    "logcat.terminate.app.actions.enable",
+    "Enable right-click actions for terminating the application",
+    "Enable right-click actions for terminating the application. " +
+    "Note that this feature is only enabled if the flag ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER is also true. " +
+    "Changing the value of this flag requires restarting Android Studio.",
+    true
+  );
+
+  public static final Flag<Boolean> LOGCAT_IGNORE_STUDIO_SPAM_TAGS = Flag.create(
+    LOGCAT,
+    "logcat.ignore.studio.spam.tags",
+    "Ignore tags that Studio itself is responsible for",
+    "Ignore tags that Studio itself is responsible for",
+    true
+  );
   //endregion
 
   //region Gradle Project System
@@ -732,6 +758,13 @@ public final class StudioFlags {
     GRADLE_IDE, "forced.agp.update", "Disable forced Android Gradle plugin upgrades",
     "This option is only respected when running Android Studio internally.", false);
 
+  public static final Flag<Boolean> SUPPORT_FUTURE_AGP_VERSIONS = Flag.create(
+    GRADLE_IDE, "support.future.agp.versions", "Support opening projects that use future AGPs",
+    "Respect the Android Gradle plugin's minimum model consumer version (i.e. minimum required Studio version), " +
+    "if present in AGP, superseding the hardcoded maximum supported version of AGP. " +
+    "This opens the possibility for Studio to open versions of AGP released after it was, if that version of AGP declares " +
+    "that it is compatible.", false);
+
   public static final Flag<Boolean> GRADLE_SYNC_PARALLEL_SYNC_ENABLED = Flag.create(
     GRADLE_IDE, "gradle.sync.parallel.sync.enabled", "Enables parallel sync",
     "This allows the IDE to fetch models in parallel (if supported by Gradle and enabled via org.gradle.parallel=true).", true);
@@ -779,6 +812,13 @@ public final class StudioFlags {
     ""
   );
 
+  public static final Flag<Boolean> GRADLE_SKIP_RUNTIME_CLASSPATH_FOR_LIBRARIES = Flag.create(
+    GRADLE_IDE,
+    "gradle.skip.runtime.classpath.for.libraries",
+    "Skip runtime classpath resolution for libraries",
+    "Skip the runtime classpath resolution for libraries, instead obtain the information from the applications dependency graph.",
+    false
+  );
   public static final Flag<String> GRADLE_LOCAL_DISTRIBUTION_URL = Flag.create(
     GRADLE_IDE, "local.distribution.url", "Local override for distributionUrl",
     "When creating a project, Gradle updates the distributionUrl to point to a server accessible via the internet. When internet egress " +
@@ -809,6 +849,16 @@ public final class StudioFlags {
     "Gradle heap analysis lightweight mode",
     "If set, the analysis will only run after sync once and will only collect the strongly connected object info. This makes the " +
     "analysis faster at the cost of losing some information.",
+    false
+  );
+
+  public static final Flag<Boolean> GRADLE_MULTI_VARIANT_ADDITIONAL_ARTIFACT_SUPPORT = Flag.create(
+    GRADLE_IDE,
+    "gradle.multi.variant.additional.artifact.support",
+    "Gradle multi variant additional artifact support",
+    "Switch to building additional artifacts (javadocs/srcs/samples) inside Gradle rather than an injected model builder. This allows " +
+    "us to support variant specific artifacts and prevents the IDE from having to match by Gradle coordinate. This flag will have no effect " +
+    "if used with a version of AGP before 8.1.0-alpha8.",
     false
   );
 
@@ -1053,7 +1103,7 @@ public final class StudioFlags {
     EDITOR, "suggested.imports.with.version.catalogs.enabled",
     "Enable Suggested Imports with Version Catalogs",
     "If enabled, allows suggested imports to be shown in projects that are using version catalogs",
-    false
+    true
   );
 
   public static final Flag<Boolean> ESSENTIAL_HIGHLIGHTING_ACTION_VISIBLE = Flag.create(
@@ -1095,6 +1145,12 @@ public final class StudioFlags {
     TESTING, "utp.instrumentation.testing", "Run instrumentation tests via UTP",
     "If enabled, a checkbox to opt-in to running instrumentation tests via UTP feature is displayed in the settings.",
     true
+  );
+
+  public static final Flag<Boolean> ENABLE_SCREENSHOT_TESTING = Flag.create(
+    TESTING, "screenshot.testing", "Run screenshot tests",
+    "If enabled, a screenshotTest source set will be added for running screenshot tests",
+    false
   );
 
   public static final Flag<Integer> ANDROID_PLATFORM_TO_AUTOCREATE = Flag.create(
@@ -1673,6 +1729,7 @@ public final class StudioFlags {
   public static final Flag<Boolean> TSDKVUA_ENABLE = Flag.create(TSDKVUA, "enable", "Enable the Android SDK Upgrade Assistant", "Enable the Android SDK Upgrade Assistant", true);
   public static final Flag<Boolean> TSDKVUA_FILTERS = Flag.create(TSDKVUA, "filters", "Enable relevance filtering", "Enable relevance filtering", true);
   public static final Flag<Boolean> TSDKVUA_FILTERS_WIP = Flag.create(TSDKVUA, "filters.wip", "Enable WIP relevance filters", "Enable WIP relevance filters", false);
+  public static final Flag<Boolean> TSDKVUA_FILTERS_REDOABLE = Flag.create(TSDKVUA, "filters.redoable", "Enable button to rerun a filter and display results", "Enable button to rerun a filter an display results", false);
   // endregion TargetSDKVersion Upgrade Assistant
 
   // region PROCESS_NAME_MONITOR
@@ -1712,6 +1769,24 @@ public final class StudioFlags {
     false
   );
   // endregion
+
+  // region AVD Command Line Options
+  private static final FlagGroup
+    AVD_COMMAND_LINE_OPTIONS = new FlagGroup(FLAGS, "avd.command.line.options", "AVD Command-Line Options");
+  public static final Flag<Boolean> AVD_COMMAND_LINE_OPTIONS_ENABLED = Flag.create(
+    AVD_COMMAND_LINE_OPTIONS, "enable", "Enable the AVD Command-Line Options setting",
+    "Enable the AVD Command-Line Options setting in the AVD advanced settings panel.",
+    false
+  );
+  // endregion
+
+  // region PRIVACY_SANDBOX_SDK
+  private static final FlagGroup PRIVACY_SANDBOX_SDK = new FlagGroup(FLAGS, "privacysandboxsdk", "Privacy Sandbox SDK");
+  public static final Flag<Boolean> LAUNCH_SANDBOX_SDK_PROCESS_WITH_DEBUGGER_ATTACHED_ON_DEBUG = Flag.create(
+    PRIVACY_SANDBOX_SDK, "launch.process.with.debugger.attached.on.debug", "Launch sandbox SDK process with debugger attached on debug",
+    "Whether or not sandbox SDK should launch a process with the debugger attached on debug action.",
+    false);
+  // endregion PRIVACY_SANDBOX_SDK
 
   private StudioFlags() { }
 }

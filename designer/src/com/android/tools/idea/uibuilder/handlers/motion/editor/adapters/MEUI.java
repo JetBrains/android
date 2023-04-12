@@ -28,6 +28,7 @@ import com.intellij.ui.awt.RelativePoint;
 import com.intellij.util.IconUtil;
 import com.intellij.util.ui.ImageUtil;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -103,10 +104,12 @@ public class MEUI {
   public static final Color ourAvgBackground = makeColor("UIDesigner.motion.ourAvg.background", 0xf8f8f8, 0x2f3133);
   public static final Color ourBorder = makeColor("UIDesigner.motion.borderColor", 0xc9c9c9, 0x242627);
   public static final Color ourTextColor = makeColor("UIDesigner.motion.Component.foreground", 0x2C2C2C, 0x9E9E9E);
+  public static final Color ourSelectedAndFocusedTextColor = UIUtil.getTableSelectionForeground(true);
   public static final Color ourSecondaryPanelHeaderTitleColor = makeColor("UIDesigner.motion.SecondaryPanel.header.foreground", 0x000000, 0xbababa);
   public static final Color ourSecondaryHeaderBackgroundColor = makeColor("UIDesigner.motion.SecondaryPanel.header.background", 0xf2f2f2, 0x3c3f40);
 
-  public static final Color ourMySelectedLineColor = new Color(0x3879d9);
+  public static final Color ourMySelectedLineColor = UIUtil.getTableSelectionBackground(false);
+  public static final Color ourMySelectedAndFocusedLineColor = UIUtil.getTableSelectionBackground(true);
 
   public static BufferedImage createImage(int w, int h, int type) {
     return ImageUtil.createImage(w, h, type);
@@ -154,9 +157,9 @@ public class MEUI {
   //0c283e
   public static class CSPanel {
     public static final Color our_SelectedFocusBackground =
-      makeColor("UIDesigner.motion.CSPanel.SelectedFocusBackground", 0x3973d6, 0x2E65CA);
+      UIUtil.getTableSelectionBackground(true);
     public static final Color our_SelectedBackground =
-      makeColor("UIDesigner.motion.CSPanel.SelectedBackground", 0xD3D3D3, 0x0C283E);
+      UIUtil.getTableSelectionBackground(false);
   }
 
   public static class Overview {

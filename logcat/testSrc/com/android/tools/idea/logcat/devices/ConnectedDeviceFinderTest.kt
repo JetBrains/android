@@ -15,44 +15,29 @@
  */
 package com.android.tools.idea.logcat.devices
 
-import com.android.adblib.AdbSession
 import com.android.adblib.DeviceState.OFFLINE
 import com.android.adblib.DeviceState.ONLINE
-import com.android.adblib.SOCKET_CONNECT_TIMEOUT_MS
-import com.android.adblib.testingutils.CloseablesRule
 import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
-import com.android.adblib.testingutils.FakeAdbServerProvider
-import com.android.adblib.testingutils.TestingAdbSessionHost
-import com.android.sdklib.deviceprovisioner.DeviceProvisioner
-import com.android.sdklib.deviceprovisioner.testing.FakeAdbDeviceProvisionerPlugin
+import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.tools.idea.logcat.testing.TestDevice
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.DisposableRule
 import com.intellij.testFramework.RuleChain
 import org.junit.Rule
 import org.junit.Test
-import java.time.Duration
 
 /**
  * Tests for [ConnectedDeviceFinder]
  */
 class ConnectedDeviceFinderTest {
-  private val closeables = CloseablesRule()
+  private val deviceProvisionerRule = DeviceProvisionerRule()
   private val disposableRule = DisposableRule()
 
   @get:Rule
-  val rule = RuleChain(closeables, disposableRule)
+  val rule = RuleChain(deviceProvisionerRule, disposableRule)
 
-  private val fakeAdb = closeables.register(FakeAdbServerProvider().buildDefault().start())
-  private val host = closeables.register(TestingAdbSessionHost())
-  private val adbSession =
-    closeables.register(AdbSession.create(
-      host,
-      fakeAdb.createChannelProvider(host),
-      Duration.ofMillis(SOCKET_CONNECT_TIMEOUT_MS)
-    ))
-  private val plugin = FakeAdbDeviceProvisionerPlugin(adbSession.scope, fakeAdb)
-  private val deviceProvisioner = DeviceProvisioner.create(adbSession, listOf(plugin))
+  private val deviceProvisioner get() = deviceProvisionerRule.deviceProvisioner
+  private val plugin get() = deviceProvisionerRule.deviceProvisionerPlugin
 
   @Test
   fun findDevice_deviceIsOnline(): Unit = runBlockingWithTimeout {

@@ -185,6 +185,8 @@ class DaggerRelatedItemLineMarkerProvider : RelatedItemLineMarkerProvider() {
               message("navigate.to.subcomponent", fromElementString, toElementString)
             message("included.in.components") ->
               message("navigate.to.component.that.include", fromElementString, toElementString)
+            message("included.in.subcomponents") ->
+              message("navigate.to.subcomponent.that.include", fromElementString, toElementString)
             message("included.in.modules") ->
               message("navigate.to.module.that.include", fromElementString, toElementString)
             message("assisted.inject") ->

@@ -27,12 +27,12 @@ import com.android.tools.idea.logcat.filters.LogcatFilterField.TAG
 import com.android.tools.idea.logcat.filters.LogcatFilterParser.CombineWith
 import com.android.tools.idea.logcat.filters.LogcatFilterParser.CombineWith.AND
 import com.android.tools.idea.logcat.filters.LogcatFilterParser.CombineWith.OR
-import com.android.tools.idea.logcat.logcatMessage
 import com.android.tools.idea.logcat.message.LogLevel
 import com.android.tools.idea.logcat.message.LogLevel.INFO
 import com.android.tools.idea.logcat.message.LogLevel.WARN
 import com.android.tools.idea.logcat.util.AndroidProjectDetector
 import com.android.tools.idea.logcat.util.LogcatFilterLanguageRule
+import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent
 import com.google.wireless.android.sdk.stats.LogcatUsageEvent.LogcatFilterEvent.TermVariants

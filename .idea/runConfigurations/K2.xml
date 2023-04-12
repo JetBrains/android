@@ -7,6 +7,7 @@
     <log_file alias="idea.log" path="$USER_HOME$/AppData/Local/Google/AndroidStudioDev/log/idea.log" />
     <option name="MAIN_CLASS_NAME" value="com.intellij.idea.Main" />
     <module name="studio" />
+    <shortenClasspath name="ARGS_FILE" />
     <option name="VM_PARAMETERS" value="@$PROJECT_DIR$/../../../bazel-bin/tools/adt/idea/studio/default_user_jvm_args.txt @$PROJECT_DIR$/../../../bazel-bin/tools/adt/idea/studio/required_jvm_args.txt -ea -Dapple.laf.useScreenMenuBar=true -Dsun.awt.disablegrab=true -Didea.jre.check=true -Didea.is.internal=true -Didea.debug.mode=true -Didea.paths.selector=AndroidStudioDev -Didea.force.use.core.classloader=true -Didea.kotlin.plugin.use.k2=true -Dplugin.path=$PROJECT_DIR$/../../../prebuilts/tools/common/ide-perf-plugin/ide-perf -javaagent:$PROJECT_DIR$/../../../bazel-bin/tools/base/threading-agent/threading_agent.jar" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../../.." />
     <method v="2">

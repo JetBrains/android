@@ -17,6 +17,7 @@ package com.android.tools.adtui.categorytable
 
 import com.android.tools.adtui.categorytable.Attribute.Companion.stringAttribute
 import com.android.tools.adtui.categorytable.Column.SizeConstraint
+import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.ui.components.JBScrollPane
 import java.awt.Dimension
 import javax.swing.JButton
@@ -39,6 +40,8 @@ object CategoryTableDemo {
     )
   val columns = listOf(Name, Api, Status, Type, Actions)
 }
+
+val DEVICE_DATA_KEY = DataKey.create<CategoryTableDemo.Device>("DEVICE")
 
 val Name =
   LabelColumn<CategoryTableDemo.Device>(

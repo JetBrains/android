@@ -23,6 +23,7 @@ import static com.android.tools.idea.gradle.project.upgrade.GradlePluginUpgradeS
 import static org.junit.Assert.assertEquals;
 
 import com.android.ide.common.repository.AgpVersion;
+import com.android.tools.idea.flags.StudioFlags;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,7 +37,10 @@ import org.junit.runners.Parameterized;
 
 @RunWith(Parameterized.class)
 public class ComputeGradlePluginUpgradeStateTest {
-  @Parameterized.Parameters
+
+  public static Object FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED = new Object();
+
+  @Parameterized.Parameters(name="current={0} latestKnown={1} published={2}")
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
       // Stable or RC to later stable should recommend an upgrade to the stable version.
@@ -122,19 +126,19 @@ public class ComputeGradlePluginUpgradeStateTest {
       {"7.0.0", "7.0.0-rc01", Collections.emptyList(), NO_UPGRADE, "7.0.0"},
       {"7.0.0-rc02", "7.0.0-rc01", Collections.emptyList(), NO_UPGRADE, "7.0.0-rc02"},
 
-      // If the latest known version is earlier than the current version, but they are not in the same rc/stable series, there should be
-      // a downgrade.
-      {"7.0.0-alpha02", "7.0.0-alpha01", Collections.emptyList(), FORCE, "7.0.0-alpha01"},
-      {"7.0.0-beta02", "7.0.0-beta01", Collections.emptyList(), FORCE, "7.0.0-beta01"},
-      {"7.0.0-beta01", "7.0.0-alpha02", Collections.emptyList(), FORCE, "7.0.0-alpha02"},
-      {"7.0.0-rc01", "7.0.0-beta02", Collections.emptyList(), FORCE, "7.0.0-beta02"},
-      {"7.0.0-rc01", "7.0.0-alpha02", Collections.emptyList(), FORCE, "7.0.0-alpha02"},
-      {"7.0.0", "7.0.0-beta01", Collections.emptyList(), FORCE, "7.0.0-beta01"},
-      {"7.0.0", "7.0.0-alpha01", Collections.emptyList(), FORCE, "7.0.0-alpha01"},
-      {"7.1.0-alpha01", "7.0.4", Collections.emptyList(), FORCE, "7.0.4"},
-      {"7.1.0-beta02", "7.0.4", Collections.emptyList(), FORCE, "7.0.4"},
-      {"7.1.0-rc03", "7.0.4", Collections.emptyList(), FORCE, "7.0.4"},
-      {"7.1.0", "7.0.4", Collections.emptyList(), FORCE, "7.0.4"},
+      // If the latest known version is earlier than the current version, but they are not in the same rc/stable series
+      // and the flag to support newer AGP versions is not enabled, there should be a downgrade.
+      {"7.0.0-alpha02", "7.0.0-alpha01", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.0-alpha01"},
+      {"7.0.0-beta02", "7.0.0-beta01", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.0-beta01"},
+      {"7.0.0-beta01", "7.0.0-alpha02", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.0-alpha02"},
+      {"7.0.0-rc01", "7.0.0-beta02", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.0-beta02"},
+      {"7.0.0-rc01", "7.0.0-alpha02", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.0-alpha02"},
+      {"7.0.0", "7.0.0-beta01", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.0-beta01"},
+      {"7.0.0", "7.0.0-alpha01", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.0-alpha01"},
+      {"7.1.0-alpha01", "7.0.4", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.4"},
+      {"7.1.0-beta02", "7.0.4", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.4"},
+      {"7.1.0-rc03", "7.0.4", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.4"},
+      {"7.1.0", "7.0.4", Collections.emptyList(), FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED, "7.0.4"},
 
       // Versions earlier than our minimum supported version should force an upgrade.
       {"3.1.0", "7.0.0", Collections.emptyList(), FORCE, "7.0.0"},
@@ -214,25 +218,40 @@ public class ComputeGradlePluginUpgradeStateTest {
   private final AgpVersion current;
   private final AgpVersion latestKnown;
   private final Set<AgpVersion> published;
-  private final GradlePluginUpgradeState.Importance importance;
+  private final GradlePluginUpgradeState.Importance importanceNoFutureCompatibility;
+  private final GradlePluginUpgradeState.Importance importanceWithFutureCompatibility;
   private final AgpVersion expectedTarget;
 
   public ComputeGradlePluginUpgradeStateTest(@NotNull String current,
                                              @NotNull String latestKnown,
                                              @NotNull List<String> published,
-                                             @NotNull GradlePluginUpgradeState.Importance importance,
+                                             @NotNull Object importance,
                                              @NotNull String expectedTarget) {
     this.current = AgpVersion.parse(current);
     this.latestKnown = AgpVersion.parse(latestKnown);
     this.published = published.stream().map(AgpVersion::parse).collect(Collectors.toSet());
-    this.importance = importance;
+    if (importance == FORCE_WHEN_NEWER_AGP_NOT_SUPPORTED) {
+      importanceNoFutureCompatibility = FORCE;
+      importanceWithFutureCompatibility = NO_UPGRADE;
+    } else {
+      importanceNoFutureCompatibility = (GradlePluginUpgradeState.Importance) importance;
+      importanceWithFutureCompatibility = (GradlePluginUpgradeState.Importance) importance;
+    }
     this.expectedTarget = AgpVersion.parse(expectedTarget);
   }
 
   @Test
   public void testComputeGradlePluginUpgradeState() {
-    GradlePluginUpgradeState state = computeGradlePluginUpgradeState(current, latestKnown, published);
+    GradlePluginUpgradeState state = computeGradlePluginUpgradeState(current, latestKnown, published, false);
     assertEquals("computing upgrade state from " + current + " to " + latestKnown + " with published versions " + published,
-                 new GradlePluginUpgradeState(importance, expectedTarget), state);
+                 new GradlePluginUpgradeState(importanceNoFutureCompatibility, expectedTarget), state);
+  }
+
+  @Test
+  public void testComputeGradlePluginUpgradeStateWithNewerSupport() {
+    GradlePluginUpgradeState state = computeGradlePluginUpgradeState(current, latestKnown, published, true);
+    AgpVersion overriddenExpectedTarget = importanceWithFutureCompatibility == NO_UPGRADE ? current : expectedTarget;
+    assertEquals("computing upgrade state from " + current + " to " + latestKnown + " with published versions " + published,
+                 new GradlePluginUpgradeState(importanceWithFutureCompatibility, overriddenExpectedTarget), state);
   }
 }

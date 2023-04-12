@@ -28,6 +28,7 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderTask
 import com.android.tools.idea.rendering.StudioRenderService
+import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
 import com.android.tools.idea.uibuilder.api.PaletteComponentHandler
 import com.google.common.annotations.VisibleForTesting
@@ -205,7 +206,7 @@ class PreviewProvider(
         .createFileFromText(PREVIEW_PLACEHOLDER_FILE, XmlFileType.INSTANCE, xml)
     }
     assert(file is XmlFile)
-    renderTask.setXmlFile((file as XmlFile))
+    renderTask.setXmlFile(PsiXmlFile(file as XmlFile))
     renderTask.setTransparentBackground()
     renderTask.setDecorations(false)
     renderTask.setRenderingMode(SessionParams.RenderingMode.V_SCROLL)

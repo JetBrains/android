@@ -142,10 +142,10 @@ class DesignerCommonIssueRootTest {
     val fileNode1Children = listOf(file1IssueA, file1IssueB, file1IssueC).map { IssueNode(file1, it, fileNode1) }.toList()
 
     val fileNode2 = IssuedFileNode(file2, root)
-    val fileNode2Children = listOf(file2IssueC, file2IssueA, file2IssueB).map { IssueNode(file2, it, fileNode2) }.toList()
+    val fileNode2Children = listOf(file2IssueA, file2IssueB, file2IssueC).map { IssueNode(file2, it, fileNode2) }.toList()
 
     val noFileNode = NoFileNode(root)
-    val noFileNodeChildren = listOf(noFileIssueA, noFileIssueC, noFileIssueB).map { IssueNode(null, it, noFileNode) }.toList()
+    val noFileNodeChildren = listOf(noFileIssueA, noFileIssueB, noFileIssueC).map { IssueNode(null, it, noFileNode) }.toList()
 
     assertEquals(listOf(fileNode1, fileNode2, noFileNode), root.getChildren())
     assertEquals(fileNode1Children, fileNode1.getChildren())

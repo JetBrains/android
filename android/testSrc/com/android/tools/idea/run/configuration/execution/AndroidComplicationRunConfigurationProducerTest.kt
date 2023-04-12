@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.run.configuration.execution
 
+import com.android.testutils.MockitoKt.mock
+import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
 import com.android.tools.idea.run.configuration.AndroidComplicationRunConfigurationProducer
+import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.actions.ConfigurationContext
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiElement
@@ -73,13 +76,37 @@ class AndroidComplicationRunConfigurationProducerTest : AndroidTestCase() {
     assertEquals(myModule, configurationFromClass.module)
   }
 
+  @Test
+  fun testSetupConfigurationFromContextHandlesMissingModuleGracefully() {
+    val complicationFile = myFixture.addFileToProject(
+      "src/com/example/myapplication/MyComplicationService.kt",
+      """
+      package com.example.myapplication
+
+      import androidx.wear.watchface.complications.datasource.ComplicationDataSourceService
+
+      class MyTestComplication : ComplicationDataSourceService() {
+      }
+      """.trimIndent())
+
+    val classElement = complicationFile.findElementByText("class")
+    val context = mock<ConfigurationContext>()
+    whenever(context.psiLocation).thenReturn(classElement)
+    whenever(context.module).thenReturn(null)
+
+    val producer = AndroidComplicationRunConfigurationProducer()
+    assertThat(producer.setupConfigurationFromContext(createRunConfiguration(), context, Ref(context.psiLocation))).isFalse()
+  }
+
   private fun createConfigurationFromElement(element: PsiElement): AndroidComplicationConfiguration {
     val context = ConfigurationContext(element)
-    val runConfiguration = AndroidComplicationConfigurationType().configurationFactories[0]
-      .createTemplateConfiguration(project) as AndroidComplicationConfiguration
+    val runConfiguration = createRunConfiguration()
     val producer = AndroidComplicationRunConfigurationProducer()
     producer.setupConfigurationFromContext(runConfiguration, context, Ref(context.psiLocation))
 
     return runConfiguration
   }
+
+  private fun createRunConfiguration() = AndroidComplicationConfigurationType().configurationFactories[0]
+    .createTemplateConfiguration(project) as AndroidComplicationConfiguration
 }

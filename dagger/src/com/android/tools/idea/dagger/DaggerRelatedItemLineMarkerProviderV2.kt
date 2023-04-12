@@ -16,24 +16,20 @@
 package com.android.tools.idea.dagger
 
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.dagger.concepts.AssistedFactoryMethodDaggerElement
+import com.android.tools.idea.dagger.concepts.ConsumerDaggerElementBase
 import com.android.tools.idea.dagger.concepts.DaggerElement
-import com.android.tools.idea.dagger.concepts.DaggerElement.Type.COMPONENT
-import com.android.tools.idea.dagger.concepts.DaggerElement.Type.CONSUMER
-import com.android.tools.idea.dagger.concepts.DaggerElement.Type.MODULE
-import com.android.tools.idea.dagger.concepts.DaggerElement.Type.PROVIDER
-import com.android.tools.idea.dagger.concepts.DaggerElement.Type.SUBCOMPONENT
 import com.android.tools.idea.dagger.concepts.getDaggerElement
 import com.android.tools.idea.dagger.localization.DaggerBundle
-import com.google.common.base.Supplier
-import com.google.common.base.Suppliers
+import com.google.wireless.android.sdk.stats.DaggerEditorEvent
 import com.intellij.codeInsight.daemon.GutterIconNavigationHandler
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.navigation.GotoRelatedItem
+import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiIdentifier
 import com.intellij.psi.impl.source.tree.LeafPsiElement
@@ -42,6 +38,8 @@ import com.intellij.ui.awt.RelativePoint
 import icons.StudioIcons
 import java.awt.event.MouseEvent
 import javax.swing.Icon
+import kotlin.system.measureTimeMillis
+import org.jetbrains.annotations.PropertyKey
 import org.jetbrains.annotations.VisibleForTesting
 import org.jetbrains.kotlin.lexer.KtTokens
 
@@ -57,46 +55,82 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
     element: PsiElement,
     result: MutableCollection<in RelatedItemLineMarkerInfo<*>>
   ) {
-    if (!element.isDaggerWithIndexEnabled()) return
+    if (!isDaggerWithIndexEnabled()) return
 
-    ProgressManager.checkCanceled()
+    val metricsType: DaggerEditorEvent.ElementType
+    val lineMarkerInfo: RelatedItemLineMarkerInfo<PsiElement>
 
-    // Only leaf elements should be given markers; see `LineMarkerProvider.getLineMarkerInfo` for
-    // details.
-    if (!element.canReceiveLineMarker()) return
+    val elapsedTimeMillis = measureTimeMillis {
+      ProgressManager.checkCanceled()
+      if (!element.project.service<DaggerDependencyChecker>().isDaggerPresent()) return
 
-    // Since element is either an identifier or the `constructor` keyword, its parent is the
-    // potential Dagger element.
-    val daggerElement = element.parent.getDaggerElement() ?: return
+      // Only leaf elements should be given markers; see `LineMarkerProvider.getLineMarkerInfo` for
+      // details.
+      if (!element.canReceiveLineMarker()) return
 
-    val gotoTargetsSupplier = Suppliers.memoize { daggerElement.getGotoItems() }
-    val lineMarkerInfo =
-      RelatedItemLineMarkerInfo(
-        element,
-        element.textRange,
-        daggerElement.daggerType.getIcon(),
-        ::tooltipProvider,
-        NavigationHandler(gotoTargetsSupplier),
-        GutterIconRenderer.Alignment.RIGHT,
-        gotoTargetsSupplier::get,
-      )
+      // Since element is either an identifier or the `constructor` keyword, its parent is the
+      // potential Dagger element.
+      val daggerElement = element.parent.getDaggerElement() ?: return
+      metricsType = daggerElement.metricsElementType
 
+      val gotoItems = daggerElement.getGotoItems()
+      if (gotoItems.isEmpty()) return
+
+      lineMarkerInfo =
+        RelatedItemLineMarkerInfo(
+          element,
+          element.textRange,
+          daggerElement.getIcon(),
+          { getTooltip(daggerElement.psiElement, gotoItems) },
+          NavigationHandler(gotoItems, metricsType),
+          GutterIconRenderer.Alignment.RIGHT,
+          { gotoItems },
+        )
+    }
+
+    element.project
+      .service<DaggerAnalyticsTracker>()
+      .trackGutterWasDisplayed(metricsType, elapsedTimeMillis)
     result.add(lineMarkerInfo)
   }
 
   companion object {
-    /** Tooltip provider for related link marker. */
-    @VisibleForTesting
-    internal fun tooltipProvider(element: PsiElement) =
-      DaggerBundle.message(
-        "dependency.related.files.for",
-        SymbolPresentationUtil.getSymbolPresentableText(element)
-      )
+    private fun getTooltip(
+      fromElement: PsiElement,
+      gotoItems: List<GotoItemWithAnalytics>
+    ): String {
+      val fromElementString = SymbolPresentationUtil.getSymbolPresentableText(fromElement)
 
-    /** Given a [DaggerElement], find its related items. */
-    private fun DaggerElement.getGotoItems(): List<GotoRelatedItem> =
-      getRelatedDaggerElements().map { (relatedItem, relationName) ->
-        GotoRelatedItem(relatedItem.psiElement, relationName)
+      if (gotoItems.size == 1) {
+        val gotoItem = gotoItems[0]
+        val toElementString =
+          gotoItem.customName
+            ?: gotoItem.element?.let { SymbolPresentationUtil.getSymbolPresentableText(it) }
+        if (toElementString != null) {
+          return DaggerBundle.message(
+            gotoItem.relationDescriptionKey,
+            fromElementString,
+            toElementString
+          )
+        }
+      }
+
+      return DaggerBundle.message("dependency.related.files.for", fromElementString)
+    }
+
+    /**
+     * Returns [GotoRelatedItem]s representing related [DaggerElement]s for a given source element.
+     */
+    private fun DaggerElement.getGotoItems(): List<GotoItemWithAnalytics> =
+      getRelatedDaggerElements().map {
+        (relatedItem, relationName, relationDescriptionKey, customDisplayName) ->
+        GotoItemWithAnalytics(
+          this,
+          relatedItem,
+          relationName,
+          relationDescriptionKey,
+          customDisplayName
+        )
       }
 
     /**
@@ -117,13 +151,11 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
       }
 
     /** Returns the gutter icon to use for a given Dagger element type. */
-    private fun DaggerElement.Type.getIcon(): Icon =
+    private fun DaggerElement.getIcon(): Icon =
       when (this) {
-        CONSUMER -> StudioIcons.Misc.DEPENDENCY_PROVIDER
-        PROVIDER,
-        COMPONENT,
-        SUBCOMPONENT,
-        MODULE -> StudioIcons.Misc.DEPENDENCY_CONSUMER
+        is AssistedFactoryMethodDaggerElement,
+        is ConsumerDaggerElementBase -> StudioIcons.Misc.DEPENDENCY_PROVIDER
+        else -> StudioIcons.Misc.DEPENDENCY_CONSUMER
       }
   }
 
@@ -132,22 +164,47 @@ class DaggerRelatedItemLineMarkerProviderV2 : RelatedItemLineMarkerProvider() {
    * for our case, in that when [navigate] is called we actually pop open a menu rather than
    * navigating immediately.
    */
-  private class NavigationHandler(private val targetsSupplier: Supplier<List<GotoRelatedItem>>) :
-    GutterIconNavigationHandler<PsiElement> {
+  private class NavigationHandler(
+    private val gotoItems: List<GotoRelatedItem>,
+    private val metricsType: DaggerEditorEvent.ElementType
+  ) : GutterIconNavigationHandler<PsiElement> {
     override fun navigate(mouseEvent: MouseEvent, psiElement: PsiElement) {
-      val gotoTargets = targetsSupplier.get()
-      val displayLocation = RelativePoint(mouseEvent)
-      if (gotoTargets.isNotEmpty()) {
+      psiElement.project.service<DaggerAnalyticsTracker>().trackClickOnGutter(metricsType)
+
+      if (gotoItems.size == 1) {
+        gotoItems.first().navigate()
+      } else {
         NavigationUtil.getRelatedItemsPopup(
-            gotoTargets,
+            gotoItems,
             DaggerBundle.message("dagger.related.items.popup.title")
           )
-          .show(displayLocation)
-      } else {
-        JBPopupFactory.getInstance()
-          .createMessage(DaggerBundle.message("dagger.related.items.none.found"))
-          .show(displayLocation)
+          .show(RelativePoint(mouseEvent))
       }
     }
+  }
+
+  internal class GotoItemWithAnalytics(
+    fromElement: DaggerElement,
+    toElement: DaggerElement,
+    group: String,
+    @PropertyKey(resourceBundle = DaggerBundle.BUNDLE_NAME) val relationDescriptionKey: String,
+    private val customDisplayName: String?
+  ) : GotoRelatedItem(toElement.psiElement, group) {
+    private val fromElementType = fromElement.metricsElementType
+    private val toElementType = toElement.metricsElementType
+
+    override fun navigate() {
+      element
+        ?.project
+        ?.service<DaggerAnalyticsTracker>()
+        ?.trackNavigation(
+          DaggerEditorEvent.NavigationMetadata.NavigationContext.CONTEXT_GUTTER,
+          fromElementType,
+          toElementType
+        )
+      super.navigate()
+    }
+
+    override fun getCustomName() = customDisplayName
   }
 }

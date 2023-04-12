@@ -19,7 +19,7 @@ import com.android.ddmlib.AndroidDebugBridge;
 import com.android.fakeadbserver.DeviceState;
 import com.android.fakeadbserver.FakeAdbServer;
 import com.android.fakeadbserver.ShellProtocolType;
-import com.android.fakeadbserver.services.ServiceOutput;
+import com.android.fakeadbserver.services.ShellCommandOutput;
 import com.android.fakeadbserver.shellcommandhandlers.SimpleShellHandler;
 import com.android.fakeadbserver.shellcommandhandlers.StatusWriter;
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
@@ -71,10 +71,10 @@ public class FlavorsExecutionTest {
       "28",
       DeviceState.HostConnectionType.LOCAL
     ).get();
-    fakeDevice.setActivityManager((args, serviceOutput) -> {
+    fakeDevice.setActivityManager((args, shellCommandOutput) -> {
       if ("start".equals(args.get(0))) {
         fakeDevice.startClient(1234, 1235, PROCESS_NAME, false);
-        serviceOutput.writeStdout("Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER]");
+        shellCommandOutput.writeStdout("Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER]");
       }
     });
     fakeDevice.setDeviceStatus(DeviceState.DeviceStatus.ONLINE);
@@ -148,7 +148,7 @@ public class FlavorsExecutionTest {
     @Override
     public void execute(@NotNull FakeAdbServer fakeAdbServer,
                         @NotNull StatusWriter statusWriter,
-                        @NotNull ServiceOutput serviceOutput,
+                        @NotNull ShellCommandOutput shellCommandOutput,
                         @NotNull DeviceState device,
                         @NotNull String shellCommand,
                         @Nullable String shellCommandArgs) {
@@ -166,7 +166,7 @@ public class FlavorsExecutionTest {
         response = "";
       }
 
-      serviceOutput.writeStdout(response);
+      shellCommandOutput.writeStdout(response);
     }
   }
 }

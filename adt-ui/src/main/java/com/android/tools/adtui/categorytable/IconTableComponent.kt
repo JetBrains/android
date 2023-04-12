@@ -16,6 +16,7 @@
 package com.android.tools.adtui.categorytable
 
 import com.android.tools.adtui.common.ColoredIconGenerator
+import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.components.JBLabel
 import java.awt.Color
 import javax.swing.Icon
@@ -30,7 +31,7 @@ import kotlin.reflect.KProperty
  * despite their need to inherit from different base classes.
  */
 interface IconTableComponent : TableComponent {
-  var baseIcon: Icon
+  var baseIcon: Icon?
   var iconColor: Color?
   fun setIcon(icon: Icon?)
 
@@ -59,19 +60,18 @@ class IconTableComponentProperty<T>(initialValue: T) {
 }
 
 internal fun IconTableComponent.updateIcon() {
-  setIcon(baseIcon.applyColor(iconColor))
+  setIcon(baseIcon?.applyColor(iconColor))
 }
 
 internal fun Icon.applyColor(color: Color?): Icon =
-  when (color) {
-    null -> this
-    else -> ColoredIconGenerator.generateColoredIcon(this, color)
+  when {
+    this is ColorableIcon -> applyColor(color)
+    color != null -> ColoredIconGenerator.generateColoredIcon(this, color)
+    else -> this
   }
 
-/**
- * A JBLabel that displays an Icon which changes color when it's in a selected row.
- */
-class IconLabel(initialBaseIcon: Icon) : JBLabel(initialBaseIcon), IconTableComponent {
+/** A JBLabel that displays an Icon which changes color when it's in a selected row. */
+class IconLabel(initialBaseIcon: Icon?) : JBLabel(initialBaseIcon), IconTableComponent {
   override var baseIcon by IconTableComponentProperty(initialBaseIcon)
   override var iconColor: Color? by IconTableComponentProperty(null)
 
@@ -81,10 +81,8 @@ class IconLabel(initialBaseIcon: Icon) : JBLabel(initialBaseIcon), IconTableComp
   }
 }
 
-/**
- * A JButton that displays an Icon which changes color when it's in a selected row.
- */
-open class IconButton(initialBaseIcon: Icon) : JButton(), IconTableComponent {
+/** A JButton that displays an Icon which changes color when it's in a selected row. */
+open class IconButton(initialBaseIcon: Icon?) : JButton(), IconTableComponent {
   override var baseIcon by IconTableComponentProperty(initialBaseIcon)
   override var iconColor: Color? by IconTableComponentProperty(null)
 
@@ -102,8 +100,34 @@ open class IconButton(initialBaseIcon: Icon) : JButton(), IconTableComponent {
     isContentAreaFilled = false
     // This method gets called from the superclass constructor before the class is fully initialized
     // and the following will crash; only update on subsequent calls to updateUI.
-    if (icon != null) {
+    if (parent != null) {
       updateIcon()
+    }
+  }
+}
+
+/** An Icon that can change color. */
+interface ColorableIcon : Icon {
+  fun applyColor(color: Color?): Icon
+}
+
+/**
+ * The default IntelliJ progress spinner animated icon, made colorable.
+ *
+ * Inheriting from it is necessary to access its underlying Frames.
+ */
+class ColorableAnimatedSpinnerIcon : AnimatedIcon.Default(), ColorableIcon {
+  override fun applyColor(color: Color?): Icon =
+    when (color) {
+      null -> this
+      else -> AnimatedIcon(*frames.map { it.applyColor(color) }.toTypedArray())
+    }
+
+  private fun Frame.applyColor(color: Color): Frame {
+    val frame = this
+    return object : Frame {
+      override fun getIcon() = ColoredIconGenerator.generateColoredIcon(frame.icon, color)
+      override fun getDelay() = frame.delay
     }
   }
 }

@@ -36,6 +36,11 @@ class ResourceIdManagerTest : LightJavaCodeInsightFixtureTestCase() {
     idManager = ResourceIdManager.get(module)
   }
 
+  override fun tearDown() {
+    idManager.resetCompiledIds { }
+    super.tearDown()
+  }
+
   fun testDynamicIds() {
     val initialGeneration = idManager.generation
     val stringId = idManager.getOrGenerateId(ResourceReference(RES_AUTO, ResourceType.STRING, "string"))

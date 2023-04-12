@@ -17,22 +17,20 @@ package com.android.tools.idea.vitals.ui
 
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
+import com.android.tools.idea.insights.AppInsightsProjectLevelController
 import com.android.tools.idea.insights.ConnectionMode
-import com.android.tools.idea.insights.Device
-import com.android.tools.idea.insights.MultiSelection
-import com.android.tools.idea.insights.OperatingSystemInfo
+import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.Selection
-import com.android.tools.idea.insights.TimeIntervalFilter
-import com.android.tools.idea.insights.Version
-import com.android.tools.idea.insights.WithCount
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.ui.ActionToolbarListenerForOfflineBalloon
+import com.android.tools.idea.insights.ui.AppInsightsModuleSelector
 import com.android.tools.idea.insights.ui.Timestamp
-import com.android.tools.idea.insights.ui.TimestampState
 import com.android.tools.idea.insights.ui.actions.AppInsightsDisplayRefreshTimestampAction
 import com.android.tools.idea.insights.ui.actions.AppInsightsDropDownAction
 import com.android.tools.idea.insights.ui.actions.AppInsightsToggleAction
 import com.android.tools.idea.insights.ui.actions.TreeDropDownAction
 import com.android.tools.idea.insights.ui.offlineModeIcon
-import com.android.tools.idea.vitals.client.VitalsConnection
+import com.android.tools.idea.insights.ui.toTimestamp
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
@@ -40,6 +38,8 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.components.service
+import com.intellij.openapi.project.Project
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.JBUI
 import icons.StudioIcons
@@ -48,9 +48,10 @@ import java.time.Clock
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.SwingConstants
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 private val offlineAction =
@@ -64,97 +65,123 @@ private val offlineAction =
     }
   }
 
-class VitalsTab(private val clock: Clock) : JPanel(BorderLayout()), Disposable {
-  val scope = AndroidCoroutineScope(this)
+class VitalsTab(
+  private val projectController: AppInsightsProjectLevelController,
+  private val project: Project,
+  private val clock: Clock
+) : JPanel(BorderLayout()), Disposable {
+  private val scope = AndroidCoroutineScope(this)
 
-  // TODO(b/271919516): remove once the vitals client is ready.
-  private val fakeIntervalsFlow =
-    flowOf(Selection(TimeIntervalFilter.TWENTY_EIGHT_DAYS, VitalsTimeIntervals))
+  private val connections =
+    projectController.state
+      .map { it.connections }
+      .stateIn(scope, SharingStarted.Eagerly, Selection.emptySelection())
+  private val versions =
+    projectController.state.map { state -> state.filters.versions }.distinctUntilChanged()
+  private val devices =
+    projectController.state.map { state -> state.filters.devices }.distinctUntilChanged()
+  private val operatingSystems =
+    projectController.state.map { state -> state.filters.operatingSystems }.distinctUntilChanged()
+  private val intervals =
+    projectController.state
+      .map { state -> state.filters.timeInterval }
       .stateIn(scope, SharingStarted.Eagerly, Selection.emptySelection())
 
-  private val fakeVersionsFlow =
-    flowOf(MultiSelection(emptySet(), listOf(WithCount(10, Version("1", "1.0")))))
-  private val fakeOfflineStateFlow = flowOf(ConnectionMode.ONLINE)
-  private val fakeDevicesFlow =
-    flowOf(
-      MultiSelection(
-        emptySet(),
-        listOf(WithCount(10, Device("Google", "Pixel 2")), WithCount(22, Device("Samsung", "S22")))
-      )
-    )
+  private val timestamp: Flow<Timestamp> =
+    projectController.state.toTimestamp(clock).distinctUntilChanged()
 
-  private val fakeOsFlow =
-    flowOf(
-      MultiSelection(
-        emptySet(),
-        listOf(
-          WithCount(10, OperatingSystemInfo("11", "Android (11)")),
-          WithCount(11, OperatingSystemInfo("12", "Android (12)"))
-        )
-      )
-    )
+  private val offlineStateFlow = projectController.state.map { it.mode }.distinctUntilChanged()
 
-  private val fakeTimestampFlow = flowOf(Timestamp(clock.instant(), TimestampState.ONLINE))
-
-  private val fakeConnection = VitalsConnection("com.android.fake.app")
-  private val fakeConnections = flowOf(Selection(fakeConnection, listOf(fakeConnection)))
+  private val failureTypeToggles =
+    projectController.state
+      .map { state -> state.filters.failureTypeToggles.selected }
+      .distinctUntilChanged()
+  private val userPerceivedToggle =
+    failureTypeToggles.map { it.contains(FailureType.USER_PERCEIVED_ONLY) }
+  private val foregroundToggle = failureTypeToggles.map { it.contains(FailureType.FOREGROUND) }
+  private val backgroundToggle = failureTypeToggles.map { it.contains(FailureType.BACKGROUND) }
 
   init {
     add(createToolbar().component, BorderLayout.NORTH)
-    add(JPanel(BorderLayout()), BorderLayout.CENTER)
+    add(
+      VitalsContentContainerPanel(
+        projectController,
+        project,
+        project.service<AppInsightsTracker>(),
+        this
+      )
+    )
   }
 
   private fun createToolbar(): ActionToolbar {
     val actionGroups =
       DefaultActionGroup().apply {
         add(
-          AppInsightsDropDownAction(
-            "Connection Selector",
+          AppInsightsModuleSelector(
+            "Module Selector",
             null,
             null,
-            fakeConnections.stateIn(scope, SharingStarted.Eagerly, Selection.emptySelection()),
-            null
-          ) {}
+            connections,
+            projectController::selectConnection
+          )
         )
         addSeparator()
         add(
           AppInsightsToggleAction(
             "User-perceived",
             null,
+            // TODO(b/271918057): update icon
             StudioIcons.AppQualityInsights.FATAL,
-            emptyFlow(),
+            userPerceivedToggle,
             scope
-          ) {}
+          ) {
+            projectController.toggleFailureType(FailureType.USER_PERCEIVED_ONLY)
+          }
         )
         add(
           AppInsightsToggleAction(
             "Foreground",
             null,
+            // TODO(b/271918057): update icon
             StudioIcons.AppQualityInsights.NON_FATAL,
-            emptyFlow(),
+            foregroundToggle,
             scope
-          ) {}
+          ) {
+            projectController.toggleFailureType(FailureType.FOREGROUND)
+          }
         )
         add(
           AppInsightsToggleAction(
             "Background",
             null,
+            // TODO(b/271918057): update icon
             StudioIcons.AppQualityInsights.ANR,
-            emptyFlow(),
+            backgroundToggle,
             scope
-          ) {}
+          ) {
+            projectController.toggleFailureType(FailureType.BACKGROUND)
+          }
         )
         addSeparator()
-        add(AppInsightsDropDownAction("Interval", null, null, fakeIntervalsFlow, null) {})
+        add(
+          AppInsightsDropDownAction(
+            "Interval",
+            null,
+            null,
+            intervals,
+            null,
+            projectController::selectTimeInterval
+          )
+        )
         add(
           TreeDropDownAction(
             name = "versions",
-            flow = fakeVersionsFlow,
+            flow = versions,
             scope = scope,
             groupNameSupplier = { it.displayVersion },
             nameSupplier = { it.buildVersion },
             secondaryGroupSupplier = { it.tracks },
-            onSelected = {},
+            onSelected = projectController::selectVersions,
             secondaryTitleSupplier = {
               JLabel(StudioIcons.Avd.DEVICE_PLAY_STORE).apply {
                 text = "Play Tracks"
@@ -166,21 +193,21 @@ class VitalsTab(private val clock: Clock) : JPanel(BorderLayout()), Disposable {
         add(
           TreeDropDownAction(
             name = "devices",
-            flow = fakeDevicesFlow,
+            flow = devices,
             scope = scope,
             groupNameSupplier = { it.manufacturer },
             nameSupplier = { it.model },
-            onSelected = {}
+            onSelected = projectController::selectDevices
           )
         )
         add(
           TreeDropDownAction(
             name = "operating systems",
-            flow = fakeOsFlow,
+            flow = operatingSystems,
             scope = scope,
             groupNameSupplier = { it.displayName },
             nameSupplier = { it.displayName },
-            onSelected = {}
+            onSelected = projectController::selectOperatingSystems
           )
         )
         addSeparator()
@@ -188,7 +215,7 @@ class VitalsTab(private val clock: Clock) : JPanel(BorderLayout()), Disposable {
         add(
           object : AnAction("Refresh", null, StudioIcons.LayoutEditor.Toolbar.REFRESH) {
             private val offlineState =
-              fakeOfflineStateFlow.stateIn(scope, SharingStarted.Eagerly, ConnectionMode.ONLINE)
+              offlineStateFlow.stateIn(scope, SharingStarted.Eagerly, ConnectionMode.ONLINE)
             override fun actionPerformed(e: AnActionEvent) {
               // TODO
             }
@@ -200,7 +227,7 @@ class VitalsTab(private val clock: Clock) : JPanel(BorderLayout()), Disposable {
             }
           }
         )
-        add(AppInsightsDisplayRefreshTimestampAction(fakeTimestampFlow, clock, scope))
+        add(AppInsightsDisplayRefreshTimestampAction(timestamp, clock, scope))
       }
     val actionToolbar =
       ActionManager.getInstance().createActionToolbar("AppInsights", actionGroups, true).apply {
@@ -209,7 +236,15 @@ class VitalsTab(private val clock: Clock) : JPanel(BorderLayout()), Disposable {
     ActionToolbarUtil.findActionButton(actionToolbar, offlineAction)?.isVisible = false
     actionToolbar.component.border = JBUI.Borders.customLine(JBColor.border(), 0, 0, 1, 0)
     ActionToolbarUtil.makeToolbarNavigable(actionToolbar)
-    // TODO: add offline balloon
+    actionToolbar.component.addContainerListener(
+      ActionToolbarListenerForOfflineBalloon(
+        "Play Vitals",
+        project,
+        offlineAction,
+        scope,
+        offlineStateFlow
+      )
+    )
     return actionToolbar
   }
 

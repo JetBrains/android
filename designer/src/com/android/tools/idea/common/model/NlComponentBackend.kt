@@ -16,6 +16,7 @@
 package com.android.tools.idea.common.model
 
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.pom.Navigatable
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.psi.xml.XmlTag
 import com.intellij.util.IncorrectOperationException
@@ -69,4 +70,6 @@ interface NlComponentBackend {
   fun reformatAndRearrange()
 
   fun isValid(): Boolean
+
+  fun getDefaultNavigatable(): Navigatable?
 }

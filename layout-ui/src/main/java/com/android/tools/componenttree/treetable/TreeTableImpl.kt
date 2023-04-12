@@ -96,8 +96,15 @@ class TreeTableImpl(
   private var enableDrags = false
   private var dndClient: Disposable? = null
 
+  // The currently expanded row by the expandable items handler (needed by ViewTreeCellRenderer).
+  val expandedRow: Int?
+    get() = expandableItemsHandler.expandedItems.singleOrNull()?.row
+
   init {
-    tree.border = JBUI.Borders.empty(0, 4)
+    // Do not add empty space on the right of the tree. That will cause trouble for the expansionHandler.
+    // If a truncated renderer fit in this space, it will not be expanded when hovering over that row.
+    tree.border = JBUI.Borders.emptyLeft(4)
+
     isFocusTraversalPolicyProvider = true
     focusTraversalPolicy = DisabledTraversalPolicy()
     resetDefaultFocusTraversalKeys()
@@ -215,6 +222,9 @@ class TreeTableImpl(
   override fun updateUI() {
     super.updateUI()
     if (initialized) {
+      // The tree row height is not updated correctly after a UI update. See b/275514572
+      tree.rowHeight = getRowHeight()
+
       tableModel.clearRendererCache()
       installKeyboardActions(this)
       registerActionKey(::toggleTree, KeyStrokes.ENTER, "enter")

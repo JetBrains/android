@@ -95,7 +95,6 @@ class JavaModule(
 /**
  * The container class for Android module, containing its Android model, Variant models, and dependency modules.
  */
-@VisibleForTesting
 sealed class AndroidModule constructor(
   val agpVersion: AgpVersion?,
   val buildName: String,

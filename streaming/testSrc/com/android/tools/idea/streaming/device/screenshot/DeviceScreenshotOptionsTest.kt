@@ -129,7 +129,7 @@ class DeviceScreenshotOptionsTest {
     val displayInfo = "DisplayDeviceInfo{..., 1920 x 1080, ..., density 480, ...}"
     val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.TV)
     val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
-    assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Android TV (1080p)")
+    assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Television (1080p)")
     assertThat(screenshotOptions.getDefaultFramingOption(framingOptions, screenshotImage)).isEqualTo(0)
     assertThat(screenshotImage.isTv).isTrue()
   }
@@ -143,6 +143,19 @@ class DeviceScreenshotOptionsTest {
     val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.WEAR)
     val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
     assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Wear OS Small Round")
+    assertThat(screenshotOptions.getDefaultFramingOption(framingOptions, screenshotImage)).isEqualTo(0)
+    assertThat(screenshotImage.isWear).isTrue()
+  }
+
+  @Test
+  fun testGetFramingOptionsWatchSquare() {
+    val deviceConfiguration = createDeviceConfiguration(mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
+    val screenshotOptions = DeviceScreenshotOptions(serialNumber, deviceConfiguration, deviceView)
+    val image = createImage(384, 384, Color.DARK_GRAY)
+    val displayInfo = "DisplayDeviceInfo{..., 384 x 384, ..., density 200, ...}"
+    val screenshotImage = screenshotOptions.createScreenshotImage(image, displayInfo, DeviceType.WEAR)
+    val framingOptions = screenshotOptions.getFramingOptions(screenshotImage)
+    assertThat(framingOptions.map(FramingOption::displayName)).containsExactly("Wear OS Square")
     assertThat(screenshotOptions.getDefaultFramingOption(framingOptions, screenshotImage)).isEqualTo(0)
     assertThat(screenshotImage.isWear).isTrue()
   }

@@ -18,7 +18,7 @@ package com.android.tools.idea.execution.common.processhandler
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.android.ddmlib.internal.FakeAdbTestRule
-import com.android.fakeadbserver.services.ServiceOutput
+import com.android.fakeadbserver.services.ShellCommandOutput
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.whenever
 import com.intellij.testFramework.ProjectRule
@@ -72,7 +72,7 @@ class AndroidProcessHandlerIntegrationTest {
     FakeAdbTestRule.launchAndWaitForProcess(deviceState, false)
     val callbackCalled = CountDownLatch(1)
 
-    deviceState.setActivityManager { args: List<String>, serviceOutput: ServiceOutput ->
+    deviceState.setActivityManager { args: List<String>, shellCommandOutput: ShellCommandOutput ->
       val wholeCommand = args.joinToString(" ")
       if (("force-stop " + FakeAdbTestRule.CLIENT_PACKAGE_NAME).equals(wholeCommand)) {
         callbackCalled.countDown()

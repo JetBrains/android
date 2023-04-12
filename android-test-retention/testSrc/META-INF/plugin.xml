@@ -16,6 +16,7 @@
 <idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude">
   <name>Android Retention Tests</name>
   <id>intellij.android.testRetention</id>
+  <xi:include href="/META-INF/android-adb.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/android-plugin.xml" xpointer="xpointer(/idea-plugin/*)"/>
   <xi:include href="/META-INF/streaming.xml" xpointer="xpointer(/idea-plugin/*)"/>
 </idea-plugin>

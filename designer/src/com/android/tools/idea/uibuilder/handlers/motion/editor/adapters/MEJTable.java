@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.adapters;
 
+import static com.intellij.ui.ExperimentalUI.isNewUI;
+
 import com.android.tools.adtui.common.AdtSecondaryPanel;
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.intellij.ui.components.JBLabel;
@@ -61,7 +63,7 @@ public class MEJTable extends JBTable {
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
       Icon icon = (Icon)value;
       boolean showFocus = table.isFocusOwner() && isSelected;
-      if (showFocus && icon != null) {
+      if (showFocus && icon != null && !isNewUI()) {
         myLabel.setIcon(ColoredIconGenerator.INSTANCE.generateWhiteIcon(icon));
       }
       else {

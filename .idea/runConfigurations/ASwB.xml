@@ -7,6 +7,7 @@
     <log_file alias="idea.log" path="$USER_HOME$/AppData/Local/Google/AndroidStudioWithBlazeDev/log/idea.log" />
     <option name="MAIN_CLASS_NAME" value="com.intellij.idea.Main" />
     <module name="aswb.jcgdi.blaze.plugin.aswb" />
+    <shortenClasspath name="ARGS_FILE" />
     <option name="VM_PARAMETERS" value="@$PROJECT_DIR$/../../../bazel-bin/tools/adt/idea/studio/default_user_jvm_args.txt @$PROJECT_DIR$/../../../bazel-bin/tools/adt/idea/studio/required_jvm_args.txt -ea -Xms5G -Xmx8G -XX:+FlightRecorder -Didea.is.internal=true -Didea.force.use.core.classloader=true -Dapple.laf.useScreenMenuBar=true -Dsun.awt.disablegrab=true -Didea.jre.check=true -Didea.debug.mode=true -Didea.paths.selector=AndroidStudioWithBlazeDev -Dplugin.path=$PROJECT_DIR$/../../../prebuilts/tools/common/ide-perf-plugin/ide-perf -Ddisable.android.first.run=true -Dcaches.indexerThreadsCount=16 -Dstudio.projectview=true -Didea.classpath.index.enabled=false -Dandroid.sdk.custom.url=file:///google/src/head/depot/google3/third_party/android/sdk_repo/repository.xml -Dide.index.image.max.size=0 -Dide.old.project.model=true -Ddesign.tools.project.system.class.loader.cache.max.size=1000000000" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../../.." />
     <method v="2">

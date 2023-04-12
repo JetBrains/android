@@ -351,11 +351,11 @@ class ComposePreviewTest {
     guiTest.robot().focusAndWaitForFocusGain(otherComposePreview.target())
     assertNotNull(otherComposePreview.findAnimationInspector())
 
-    // Clicking on the "Stop Animation Inspection" button should close the animation preview panel
+    // Clicking on the "Stop Animation Preview" button should close the animation preview panel
     otherComposePreview
       .waitForRenderToFinish()
       .waitForSceneViewsCount(1)
-      .findActionButtonByText("Stop Animation Inspection")
+      .findActionButtonByText("Stop Animation Preview")
       .waitUntilEnabledAndShowing()
       .click()
     assertNull(otherComposePreview.findAnimationInspector())
@@ -405,12 +405,13 @@ class ComposePreviewTest {
       val deployArgs = "am start -n \"$composablePackageName/$previewActivityName\"" +
                        " -a android.intent.action.MAIN -c android.intent.category.LAUNCHER --es composable $composableFqn"
       val stopArgs = "am force-stop $composablePackageName"
-      when (args) {
+      return when (args) {
         deployArgs, stopArgs -> {
           CommandHandler.writeOkay(socket.getOutputStream())
-          return true
+          true
         }
-        else -> return false
+
+        else -> false
       }
     }
   }

@@ -30,6 +30,7 @@ import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.model.AndroidWindow.ImageType.BITMAP_AS_REQUESTED
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.Toggle3dAction
 import com.android.tools.idea.layoutinspector.window
 import com.android.tools.idea.testing.registerServiceInstance
 import com.google.common.truth.Truth.assertThat

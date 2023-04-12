@@ -15,22 +15,25 @@
  */
 package com.android.tools.idea.rendering;
 
-import junit.framework.TestCase;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.junit.Test;
 
 import static com.android.tools.idea.rendering.ProblemSeverity.ERROR;
 import static com.android.tools.idea.rendering.RenderProblem.PRIORITY_RENDERING_FIDELITY;
 import static com.android.tools.idea.rendering.RenderProblem.PRIORITY_UNEXPECTED;
 
-public class RenderProblemTest extends TestCase {
+public class RenderProblemTest {
+  @Test
   public void testCreateFull() {
     RenderProblem message = RenderProblem.createPlain(ERROR, "This is a <test> !");
     assertEquals("This is a &lt;test> !", message.getHtml());
   }
 
+  @Test
   public void testCreateHtml() {
     RenderProblem.Html message = RenderProblem.create(ERROR);
     message.getHtmlBuilder().add("Plain").newline().addLink("mylink", "runnable:0").newline();
@@ -44,6 +47,7 @@ public class RenderProblemTest extends TestCase {
                  "</DL>", message.getHtml());
   }
 
+  @Test
   public void testSorting() {
     List<RenderProblem> list = new ArrayList<>();
     list.add(RenderProblem.createPlain(ERROR, "first").priority(PRIORITY_RENDERING_FIDELITY));

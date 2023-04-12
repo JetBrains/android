@@ -109,6 +109,8 @@ public class AvdWizardUtils {
 
   public static final String CPU_CORES_KEY = AvdManager.AVD_INI_CPU_CORES;
 
+  public static final String COMMAND_LINE_OPTIONS_KEY = "commandLineOptions";
+
   // Device definition keys
 
   public static final String HAS_HARDWARE_KEYBOARD_KEY = HardwareProperties.HW_KEYBOARD;

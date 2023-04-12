@@ -16,19 +16,12 @@
 package com.android.tools.idea.dagger.concepts
 
 import com.android.tools.idea.dagger.addDaggerAndHiltClasses
-import com.android.tools.idea.dagger.concepts.ConsumerDaggerElementBase.Companion.removeWrappingDaggerType
-import com.android.tools.idea.kotlin.psiType
-import com.android.tools.idea.kotlin.toPsiType
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.findParentElement
-import com.android.tools.idea.testing.moveCaret
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
-import com.intellij.psi.PsiPrimitiveType
-import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtConstructor
 import org.jetbrains.kotlin.psi.KtFunction
 import org.jetbrains.kotlin.psi.KtParameter
@@ -85,7 +78,7 @@ class ConsumerDaggerElementTest {
 
     assertThat(consumerDaggerElement.getRelatedDaggerElements())
       .containsExactly(
-        DaggerRelatedElement(providerDaggerElement, "Providers"),
+        DaggerRelatedElement(providerDaggerElement, "Providers", "navigate.to.provider"),
       )
   }
 
@@ -135,13 +128,19 @@ class ConsumerDaggerElementTest {
     val providerDaggerElement = ProviderDaggerElement(providerPsiElement)
 
     assertThat(consumerOfLazyFooDaggerElement.getRelatedDaggerElements())
-      .containsExactly(DaggerRelatedElement(providerDaggerElement, "Providers"))
+      .containsExactly(
+        DaggerRelatedElement(providerDaggerElement, "Providers", "navigate.to.provider")
+      )
 
     assertThat(consumerOfProviderFooDaggerElement.getRelatedDaggerElements())
-      .containsExactly(DaggerRelatedElement(providerDaggerElement, "Providers"))
+      .containsExactly(
+        DaggerRelatedElement(providerDaggerElement, "Providers", "navigate.to.provider")
+      )
 
     assertThat(consumerOfProviderLazyFooDaggerElement.getRelatedDaggerElements())
-      .containsExactly(DaggerRelatedElement(providerDaggerElement, "Providers"))
+      .containsExactly(
+        DaggerRelatedElement(providerDaggerElement, "Providers", "navigate.to.provider")
+      )
   }
 
   @Test
@@ -194,13 +193,19 @@ class ConsumerDaggerElementTest {
     val providerDaggerElement = ProviderDaggerElement(providerPsiElement)
 
     assertThat(consumerOfLazyFooDaggerElement.getRelatedDaggerElements())
-      .containsExactly(DaggerRelatedElement(providerDaggerElement, "Providers"))
+      .containsExactly(
+        DaggerRelatedElement(providerDaggerElement, "Providers", "navigate.to.provider")
+      )
 
     assertThat(consumerOfProviderFooDaggerElement.getRelatedDaggerElements())
-      .containsExactly(DaggerRelatedElement(providerDaggerElement, "Providers"))
+      .containsExactly(
+        DaggerRelatedElement(providerDaggerElement, "Providers", "navigate.to.provider")
+      )
 
     assertThat(consumerOfProviderLazyFooDaggerElement.getRelatedDaggerElements())
-      .containsExactly(DaggerRelatedElement(providerDaggerElement, "Providers"))
+      .containsExactly(
+        DaggerRelatedElement(providerDaggerElement, "Providers", "navigate.to.provider")
+      )
   }
 
   @Test
@@ -276,9 +281,13 @@ class ConsumerDaggerElementTest {
     val consumerOfFooRelatedElements = consumerOfFooDaggerElement.getRelatedDaggerElements()
     assertThat(consumerOfFooRelatedElements)
       .containsExactly(
-        DaggerRelatedElement(provideFooDaggerElement, "Providers"),
-        DaggerRelatedElement(provideNullableFooDaggerElement, "Providers"),
-        DaggerRelatedElement(provideMyNullableFooDaggerElement, "Providers"),
+        DaggerRelatedElement(provideFooDaggerElement, "Providers", "navigate.to.provider"),
+        DaggerRelatedElement(provideNullableFooDaggerElement, "Providers", "navigate.to.provider"),
+        DaggerRelatedElement(
+          provideMyNullableFooDaggerElement,
+          "Providers",
+          "navigate.to.provider"
+        ),
       )
 
     assertThat(consumerOfNullableFooDaggerElement.getRelatedDaggerElements())
@@ -289,54 +298,156 @@ class ConsumerDaggerElementTest {
   }
 
   @Test
-  fun removeWrappingDaggerType_hasWrappingType() {
+  fun getRelatedDaggerElement_optionalTypes() {
     addDaggerAndHiltClasses(myFixture)
 
-    val psiFile =
-      myFixture.addFileToProject(
-        "src/com/example/Foo.kt",
-        // language=kotlin
-        """
-        package com.example
+    myFixture.addFileToProject(
+      "java/util/Optional.java",
+      // language=java
+      """
+      package java.util;
+      public class Optional<T> {
+        public static <T> Optional<T> empty() { return null; }
+      }
+      """
+        .trimIndent()
+    )
 
-        import dagger.Lazy
-        import javax.inject.Provider
+    myFixture.addFileToProject(
+      "com/google/common/base/Optional.java",
+      // language=java
+      """
+      package com.google.common.base;
+      public class Optional<T> {
+        public static <T> Optional<T> absent() { return null; }
+      }
+      """
+        .trimIndent()
+    )
 
-        class Foo
+    // This is not a realistic Dagger file and would not compile, since there are multiple
+    // conflicting provides/binds methods. But that doesn't matter for navigation purposes, and this
+    // allows us to quickly validate both positive and negative cases.
+    myFixture.openFileInEditor(
+      myFixture
+        .addFileToProject(
+          "src/com/example/Foo.kt",
+          // language=kotlin
+          """
+          package com.example
 
-        fun func(
-          lazyFoo: Lazy<Foo>,
-          providerFoo: Provider<Foo>,
-          providerLazyFoo: Provider<Lazy<Foo>>,
-          lazyInt: Lazy<Int>,
+          import dagger.BindsOptionalOf
+          import dagger.Lazy
+          import dagger.Module
+          import dagger.Provides
+          import javax.inject.Inject
+
+          typealias JavaOptional<T> = java.util.Optional<T>
+          typealias GuavaOptional<T> = com.google.common.base.Optional <T>
+
+          class Foo {}
+
+          class Optional<T> {}
+
+          @Module
+          interface MyModule {
+            @BindsOptionalOf
+            fun bindOptionalFoo(): Foo
+
+            @Provides
+            fun provideJavaOptionalFoo(): JavaOptional<Foo> = JavaOptional.empty()
+
+            @Provides
+            fun provideGuavaOptionalFoo(): GuavaOptional<Foo> = GuavaOptional.absent()
+
+            @Provides
+            fun provideMyOptionalFoo(): com.example.Optional<Foo> = com.example.Optional()
+
+            @Provides
+            fun provideFoo(): Foo = Foo()
+          }
+
+          class Bar @Inject constructor(
+            consumerOfJavaOptionalFoo: JavaOptional<Foo>,
+            consumerOfGuavaOptionalFoo: GuavaOptional<Foo>,
+            consumerOfMyOptionalFoo: com.example.Optional<Foo>,
+            consumerOfFoo: Foo,
+            consumerOfJavaOptionalLazyFoo: JavaOptional<Lazy<Foo>>,
+          ) {}
+          """
+            .trimIndent()
         )
-        """
-          .trimIndent()
+        .virtualFile
+    )
+
+    val bindOptionalFooDaggerElement =
+      BindsOptionalOfProviderDaggerElement(
+        myFixture.findParentElement<KtFunction>("bindOptional|Foo")
       )
-    myFixture.openFileInEditor(psiFile.virtualFile)
+    val provideJavaOptionalFooDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provideJavaOptional|Foo"))
+    val provideGuavaOptionalFooDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provideGuavaOptional|Foo"))
+    val provideMyOptionalFooDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provideMyOptional|Foo"))
+    val provideFooDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|Foo"))
 
-    val lazyFooType =
-      myFixture.moveCaret("lazy|Foo").parentOfType<KtParameter>(withSelf = true)!!.psiType!!
-    val providerFooType =
-      myFixture.moveCaret("provider|Foo").parentOfType<KtParameter>(withSelf = true)!!.psiType!!
-    val providerLazyFooType =
-      myFixture.moveCaret("providerLazy|Foo").parentOfType<KtParameter>(withSelf = true)!!.psiType!!
-    val lazyIntType =
-      myFixture.moveCaret("lazy|Int").parentOfType<KtParameter>(withSelf = true)!!.psiType!!
+    val consumerOfJavaOptionalFooDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("consumerOf|JavaOptionalFoo"))
+    val consumerOfGuavaOptionalFooDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("consumerOf|GuavaOptionalFoo"))
+    val consumerOfMyOptionalFooDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("consumerOf|MyOptionalFoo"))
+    val consumerOfFooDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("consumerOf|Foo"))
+    val consumerOfJavaOptionalLazyFooDaggerElement =
+      ConsumerDaggerElement(
+        myFixture.findParentElement<KtParameter>("consumerOfJavaOptionalLazy|Foo")
+      )
 
-    val fooType =
-      myFixture.moveCaret("class F|oo").parentOfType<KtClass>(withSelf = true)!!.toPsiType()
-    val integerType = PsiPrimitiveType.INT.getBoxedType(/* context= */ psiFile)
+    assertThat(consumerOfJavaOptionalFooDaggerElement.getRelatedDaggerElements())
+      .containsExactly(
+        DaggerRelatedElement(bindOptionalFooDaggerElement, "Providers", "navigate.to.provider"),
+        DaggerRelatedElement(
+          provideJavaOptionalFooDaggerElement,
+          "Providers",
+          "navigate.to.provider"
+        ),
+      )
 
-    assertThat(lazyFooType.removeWrappingDaggerType()).isEqualTo(fooType)
-    assertThat(providerFooType.removeWrappingDaggerType()).isEqualTo(fooType)
-    assertThat(providerLazyFooType.removeWrappingDaggerType()).isEqualTo(fooType)
+    assertThat(consumerOfGuavaOptionalFooDaggerElement.getRelatedDaggerElements())
+      .containsExactly(
+        DaggerRelatedElement(bindOptionalFooDaggerElement, "Providers", "navigate.to.provider"),
+        DaggerRelatedElement(
+          provideGuavaOptionalFooDaggerElement,
+          "Providers",
+          "navigate.to.provider"
+        ),
+      )
 
-    assertThat(lazyIntType.removeWrappingDaggerType()).isEqualTo(integerType)
+    assertThat(consumerOfMyOptionalFooDaggerElement.getRelatedDaggerElements())
+      .containsExactly(
+        DaggerRelatedElement(
+          provideMyOptionalFooDaggerElement,
+          "Providers",
+          "navigate.to.provider"
+        ),
+      )
+
+    assertThat(consumerOfFooDaggerElement.getRelatedDaggerElements())
+      .containsExactly(
+        DaggerRelatedElement(provideFooDaggerElement, "Providers", "navigate.to.provider"),
+      )
+
+    assertThat(consumerOfJavaOptionalLazyFooDaggerElement.getRelatedDaggerElements())
+      .containsExactly(
+        DaggerRelatedElement(bindOptionalFooDaggerElement, "Providers", "navigate.to.provider")
+      )
   }
 
   @Test
-  fun removeWrappingDaggerType_doesNotHaveWrappingType() {
+  fun getRelatedDaggerElement_qualifiers() {
     addDaggerAndHiltClasses(myFixture)
 
     myFixture.openFileInEditor(
@@ -345,26 +456,122 @@ class ConsumerDaggerElementTest {
           "src/com/example/Foo.kt",
           // language=kotlin
           """
-        package com.example
+          package com.example
 
-        class Foo
+          import dagger.Module
+          import dagger.Provides
+          import javax.inject.Inject
+          import javax.inject.Qualifier
 
-        fun func(
-          foo: Foo,
-          integer: Int,
-        )
-        """
+          @Qualifier
+          @Retention(value = AnnotationRetention.RUNTIME)
+          annotation class Named(val value: String)
+
+          class Foo @Inject constructor(
+            unqualifiedIntConsumer: Int,
+            @Named("Bert") bertIntConsumer: Int,
+            @Named("Ernie") ernieIntConsumer: Int,
+            unqualifiedBarConsumer: Bar,
+            @Named("Bert") bertBarConsumer: Bar,
+            @Named("Ernie") ernieBarConsumer: Bar,
+          )
+
+          class Bar
+
+          @Module
+          class MyModule {
+            companion object {
+              @Provides
+              fun provideUnqualifiedInt(): Int = 0
+
+              @Provides
+              @Named("Bert")
+              fun provideBertInt(): Int = 0
+
+              @Provides
+              @Named("Ernie")
+              fun provideErnieInt(): Int = 0
+
+              @Provides
+              fun provideUnqualifiedBar(): Bar = Bar()
+
+              @Provides
+              @Named("Bert")
+              fun provideBertBar(): Bar = Bar()
+
+              @Provides
+              @Named("Ernie")
+              fun provideErnieBar(): Bar = Bar()
+            }
+          }
+          """
             .trimIndent()
         )
         .virtualFile
     )
 
-    val fooType =
-      myFixture.moveCaret("fo|o: Foo").parentOfType<KtParameter>(withSelf = true)!!.psiType!!
-    val integerType =
-      myFixture.moveCaret("inte|ger: Int").parentOfType<KtParameter>(withSelf = true)!!.psiType!!
+    val unqualifiedIntConsumerDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("unqualifiedInt|Consumer"))
+    val bertIntConsumerDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("bertInt|Consumer"))
+    val ernieIntConsumerDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("ernieInt|Consumer"))
+    val unqualifiedBarConsumerDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("unqualifiedBar|Consumer"))
+    val bertBarConsumerDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("bertBar|Consumer"))
+    val ernieBarConsumerDaggerElement =
+      ConsumerDaggerElement(myFixture.findParentElement<KtParameter>("ernieBar|Consumer"))
 
-    assertThat(fooType.removeWrappingDaggerType()).isEqualTo(fooType)
-    assertThat(integerType.removeWrappingDaggerType()).isEqualTo(integerType)
+    val provideUnqualifiedIntDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|UnqualifiedInt"))
+    val providerBertIntDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|BertInt"))
+    val provideErnieIntDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|ErnieInt"))
+    val provideUnqualifiedBarDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|UnqualifiedBar"))
+    val provideBertBarDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|BertBar"))
+    val provideErnieBarDaggerElement =
+      ProviderDaggerElement(myFixture.findParentElement<KtFunction>("provide|ErnieBar"))
+
+    assertThat(unqualifiedIntConsumerDaggerElement.getRelatedDaggerElements())
+      .containsExactly(
+        DaggerRelatedElement(
+          provideUnqualifiedIntDaggerElement,
+          "Providers",
+          "navigate.to.provider"
+        )
+      )
+
+    assertThat(bertIntConsumerDaggerElement.getRelatedDaggerElements())
+      .containsExactly(
+        DaggerRelatedElement(providerBertIntDaggerElement, "Providers", "navigate.to.provider")
+      )
+
+    assertThat(ernieIntConsumerDaggerElement.getRelatedDaggerElements())
+      .containsExactly(
+        DaggerRelatedElement(provideErnieIntDaggerElement, "Providers", "navigate.to.provider")
+      )
+
+    assertThat(unqualifiedBarConsumerDaggerElement.getRelatedDaggerElements())
+      .containsExactly(
+        DaggerRelatedElement(
+          provideUnqualifiedBarDaggerElement,
+          "Providers",
+          "navigate.to.provider"
+        )
+      )
+
+    assertThat(bertBarConsumerDaggerElement.getRelatedDaggerElements())
+      .containsExactly(
+        DaggerRelatedElement(provideBertBarDaggerElement, "Providers", "navigate.to.provider")
+      )
+
+    assertThat(ernieBarConsumerDaggerElement.getRelatedDaggerElements())
+      .containsExactly(
+        DaggerRelatedElement(provideErnieBarDaggerElement, "Providers", "navigate.to.provider")
+      )
   }
 }

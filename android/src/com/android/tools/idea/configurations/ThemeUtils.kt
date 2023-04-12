@@ -242,6 +242,8 @@ class StudioThemeInfoProvider(private val module: Module) : ThemeInfoProvider {
   override val appThemeName: String?
     @Slow
     get() = module.getAppThemeName()
+  override val allActivityThemeNames: Set<String>
+    get() = module.getAllActivityThemeNames()
 
   @Slow
   override fun getThemeNameForActivity(activityFqcn: String): String? = module.getThemeNameForActivity(activityFqcn)

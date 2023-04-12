@@ -203,6 +203,7 @@
       <reference ref="android.device.overview.button"/>
       <reference ref="android.device.screenshot"/>
       <reference ref="android.device.screen.record"/>
+      <reference ref="android.device.reservation.extend"/>
     </group>
 
     <!-- This action group and the corresponding toolbar are intended for external contributions -->

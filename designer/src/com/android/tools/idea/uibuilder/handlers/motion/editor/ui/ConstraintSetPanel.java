@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.uibuilder.handlers.motion.editor.ui;
 
+import com.android.tools.idea.uibuilder.handlers.motion.editor.actions.ModifyMenuAction;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.NotNull;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Annotations.Nullable;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MEIcons;
@@ -26,7 +27,6 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MTag.Att
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.MotionSceneAttrs;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.StringMTag;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.adapters.Track;
-import com.android.tools.idea.uibuilder.handlers.motion.editor.actions.ModifyMenuAction;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
 import com.google.common.collect.ImmutableList;
 import com.intellij.openapi.actionSystem.AnAction;
@@ -42,7 +42,6 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
-import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,14 +53,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.Vector;
 import java.util.stream.Collectors;
-import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
-import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
@@ -203,11 +198,13 @@ class ConstraintSetPanel extends JPanel {
         myLabel.setHorizontalAlignment(SwingConstants.CENTER);
         myLabel.setSize(new Dimension(MEUI.scale(18), MEUI.scale(12)));
         if (isSelected) {
-          if (value == MEIcons.LIST_STATE_DERIVED) {
-            myLabel.setIcon(MEIcons.LIST_STATE_DERIVED_SELECTED);
-          }
-          else if (value == MEIcons.LIST_STATE) {
-            myLabel.setIcon(MEIcons.LIST_STATE_SELECTED);
+          if (hasFocus) {
+            if (value == MEIcons.LIST_STATE_DERIVED) {
+              myLabel.setIcon(MEIcons.LIST_STATE_DERIVED_SELECTED);
+            }
+            else if (value == MEIcons.LIST_STATE) {
+              myLabel.setIcon(MEIcons.LIST_STATE_SELECTED);
+            }
           }
           myLabel.setBackground(table.hasFocus() ? MEUI.CSPanel.our_SelectedFocusBackground : MEUI.CSPanel.our_SelectedBackground);
           myLabel.setOpaque(true);

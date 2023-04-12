@@ -19,7 +19,7 @@ import com.intellij.psi.PsiParameter
 import org.jetbrains.kotlin.psi.KtParameter
 
 /** A [DaggerIndexPsiWrapper] representing a parameter. */
-interface DaggerIndexParameterWrapper : DaggerIndexPsiWrapper {
+interface DaggerIndexParameterWrapper : DaggerIndexAnnotatedWrapper {
   /** Simple name of the parameter. Eg: "someParameterName" */
   fun getSimpleName(): String
   fun getType(): DaggerIndexTypeWrapper
@@ -28,15 +28,17 @@ interface DaggerIndexParameterWrapper : DaggerIndexPsiWrapper {
 internal class KtParameterWrapper(
   private val ktParameter: KtParameter,
   private val importHelper: KotlinImportHelper
-) : DaggerIndexParameterWrapper {
+) : DaggerIndexAnnotatedKotlinWrapper(ktParameter, importHelper), DaggerIndexParameterWrapper {
   override fun getSimpleName(): String = ktParameter.name!!
 
   override fun getType(): DaggerIndexTypeWrapper =
     KtTypeReferenceWrapper(ktParameter.typeReference!!, importHelper)
 }
 
-internal class PsiParameterWrapper(private val psiParameter: PsiParameter) :
-  DaggerIndexParameterWrapper {
+internal class PsiParameterWrapper(
+  private val psiParameter: PsiParameter,
+  importHelper: JavaImportHelper
+) : DaggerIndexAnnotatedJavaWrapper(psiParameter, importHelper), DaggerIndexParameterWrapper {
   override fun getSimpleName(): String = psiParameter.name
 
   override fun getType(): DaggerIndexTypeWrapper = PsiTypeElementWrapper(psiParameter.typeElement!!)

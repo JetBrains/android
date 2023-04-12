@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.structure.model
 
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.gradle.dsl.parser.elements.GradleDslLiteral
 import com.android.tools.idea.gradle.model.IdeArtifactName
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject
@@ -1060,25 +1059,20 @@ class DependencyManagementTest {
 
   @Test
   fun testCatalogDependencyCanExtractVariableIsFalse() {
-    StudioFlags.GRADLE_VERSION_CATALOG_EXTENDED_SUPPORT.override(true)
-    try {
-      val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
-      projectRule.psTestWithProject(preparedProject) {
-        val module = project.findModuleByName("app") as PsAndroidModule
-        run {
-          val resolvedDependencies = module.findVariant("release")?.findArtifact(IdeArtifactName.MAIN)?.dependencies
-          val catalogDep = resolvedDependencies?.findLibraryDependencies("com.google.guava", "guava")?.singleOrNull()?.declaredDependencies
-          assertThat(catalogDep!!.size,equalTo(1))
-          assertFalse(catalogDep[0].canExtractVariable())
+    val preparedProject = projectRule.prepareTestProject(AndroidCoreTestProject.PSD_VERSION_CATALOG_SAMPLE_GROOVY)
+    projectRule.psTestWithProject(preparedProject) {
+      val module = project.findModuleByName("app") as PsAndroidModule
+      run {
+        val resolvedDependencies = module.findVariant("release")?.findArtifact(IdeArtifactName.MAIN)?.dependencies
+        val catalogDep = resolvedDependencies?.findLibraryDependencies("com.google.guava", "guava")?.singleOrNull()?.declaredDependencies
+        assertThat(catalogDep!!.size, equalTo(1))
+        assertFalse(catalogDep[0].canExtractVariable())
 
-          val plainDep = resolvedDependencies.findLibraryDependencies("com.android.support", "appcompat-v7").singleOrNull()?.declaredDependencies
-          assertThat(plainDep!!.size,equalTo(1))
-          assertTrue(plainDep[0].canExtractVariable())
-        }
+        val plainDep = resolvedDependencies.findLibraryDependencies("com.android.support",
+                                                                    "appcompat-v7").singleOrNull()?.declaredDependencies
+        assertThat(plainDep!!.size, equalTo(1))
+        assertTrue(plainDep[0].canExtractVariable())
       }
-    }
-    finally {
-      StudioFlags.COMPOSE_PREVIEW_ELEMENT_PICKER.clearOverride()
     }
   }
 

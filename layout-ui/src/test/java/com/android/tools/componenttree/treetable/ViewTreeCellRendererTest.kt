@@ -21,11 +21,14 @@ import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.adtui.common.ColoredIconGenerator.deEmphasize
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.componenttree.treetable.ViewTreeCellRenderer.ColoredViewRenderer
+import com.android.tools.componenttree.util.Fragment
 import com.android.tools.componenttree.util.Item
 import com.android.tools.componenttree.util.ItemNodeType
+import com.android.tools.componenttree.util.fragments
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.util.IconLoader
 import com.intellij.testFramework.ApplicationRule
+import com.intellij.ui.ExperimentalUI.isNewUI
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.UIUtil
 import icons.StudioIcons.LayoutEditor.Palette
@@ -135,8 +138,8 @@ class ViewTreeCellRendererTest {
     size.width -= 3
     tree!!.size = size
     component.adjustForPainting()
-    val fragments = getFragments(component)
-    checkFragment(fragments[0], Fragment("text", normal))
+    val fragments = component.fragments
+    fragments[0].check(Fragment("text", normal))
     assertThat(fragments[1].text).endsWith("...")
   }
 
@@ -200,23 +203,24 @@ class ViewTreeCellRendererTest {
     val faint = ColoredIconGenerator.generateDeEmphasizedIcon(Palette.TEXT_VIEW)
     assertThat(hasNonWhiteColors(white)).isFalse()
     IconLoader.activate()
+    val selectedWithFocus = if (isNewUI()) normal else white
     val item = Item(FQCN_TEXT_VIEW, "@+id/text", "Hello", Palette.TEXT_VIEW)
     assertThat(getIcon(item, selected = false, hasFocus = false, enabled = true, deEmphasized = false)).isSameAs(normal)
     assertThat(getIcon(item, selected = false, hasFocus = true, enabled = true, deEmphasized = false)).isSameAs(normal)
     assertThat(getIcon(item, selected = true, hasFocus = false, enabled = true, deEmphasized = false)).isSameAs(normal)
-    assertIconsEqual(getIcon(item, selected = true, hasFocus = true, enabled = true, deEmphasized = false)!!, white)
+    assertIconsEqual(getIcon(item, selected = true, hasFocus = true, enabled = true, deEmphasized = false)!!, selectedWithFocus)
     assertIconsEqual(getIcon(item, selected = false, hasFocus = false, enabled = false, deEmphasized = false)!!, faint)
     assertIconsEqual(getIcon(item, selected = false, hasFocus = true, enabled = false, deEmphasized = false)!!, faint)
     assertThat(getIcon(item, selected = true, hasFocus = false, enabled = false, deEmphasized = false)).isSameAs(normal)
-    assertIconsEqual(getIcon(item, selected = true, hasFocus = true, enabled = false, deEmphasized = false)!!, white)
+    assertIconsEqual(getIcon(item, selected = true, hasFocus = true, enabled = false, deEmphasized = false)!!, selectedWithFocus)
     assertIconsEqual(getIcon(item, selected = false, hasFocus = false, enabled = true, deEmphasized = true)!!, faint)
     assertIconsEqual(getIcon(item, selected = false, hasFocus = true, enabled = true, deEmphasized = true)!!, faint)
     assertThat(getIcon(item, selected = true, hasFocus = false, enabled = true, deEmphasized = true)).isSameAs(normal)
-    assertIconsEqual(getIcon(item, selected = true, hasFocus = true, enabled = true, deEmphasized = true)!!, white)
+    assertIconsEqual(getIcon(item, selected = true, hasFocus = true, enabled = true, deEmphasized = true)!!, selectedWithFocus)
     assertIconsEqual(getIcon(item, selected = false, hasFocus = false, enabled = false, deEmphasized = true)!!, faint)
     assertIconsEqual(getIcon(item, selected = false, hasFocus = true, enabled = false, deEmphasized = true)!!, faint)
     assertThat(getIcon(item, selected = true, hasFocus = false, enabled = false, deEmphasized = true)).isSameAs(normal)
-    assertIconsEqual(getIcon(item, selected = true, hasFocus = true, enabled = false, deEmphasized = true)!!, white)
+    assertIconsEqual(getIcon(item, selected = true, hasFocus = true, enabled = false, deEmphasized = true)!!, selectedWithFocus)
   }
 
   @Suppress("UndesirableClassUsage")
@@ -281,34 +285,13 @@ class ViewTreeCellRendererTest {
   }
 
   private fun checkFragments(component: ColoredViewRenderer, vararg expectedFragments: Fragment) {
-    val fragments = getFragments(component)
+    val fragments = component.fragments
     for (index in expectedFragments.indices) {
       if (index >= fragments.size) {
         break
       }
-      checkFragment(fragments[index], expectedFragments[index], "Difference at fragment index: $index")
+      fragments[index].check(expectedFragments[index], "Difference at fragment index: $index")
     }
     assertThat(fragments.size).named("Fragment count error").isEqualTo(expectedFragments.size)
   }
-
-  private fun checkFragment(fragment: Fragment, expected: Fragment, name: String = "Fragment") {
-    assertThat(fragment.text).named(name).isEqualTo(expected.text)
-    assertThat(fragment.attr.fgColor).named("$name with: Font Color").isEqualTo(expected.attr.fgColor)
-    assertThat(fragment.attr.fontStyle).named("$name with: Font Style").isEqualTo(expected.attr.fontStyle)
-    assertThat(fragment.attr.style).named("$name with: Style").isEqualTo(expected.attr.style)
-  }
-
-  private fun getFragments(component: ColoredViewRenderer): List<Fragment> {
-    val fragments = mutableListOf<Fragment>()
-    val iterator = component.iterator()
-    for (part in iterator) {
-      fragments.add(Fragment(part, iterator.textAttributes))
-    }
-    return fragments
-  }
-
-  private class Fragment(
-    val text: String,
-    val attr: SimpleTextAttributes
-  )
 }

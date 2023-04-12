@@ -17,6 +17,7 @@ package com.android.tools.idea.insights.ui
 
 import com.android.tools.adtui.common.ColoredIconGenerator
 import com.android.tools.idea.insights.AppInsightsIssue
+import com.android.tools.idea.insights.FailureType
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.ui.AppInsightsIssuesTableView.Companion.LOGGER
 import com.intellij.icons.AllIcons
@@ -24,10 +25,13 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.NamedColorUtil
 import com.intellij.util.ui.StatusText
 import com.intellij.util.ui.UIUtil
+import icons.StudioIcons
+import java.awt.Color
 import java.awt.LayoutManager
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import org.jetbrains.annotations.VisibleForTesting
@@ -81,5 +85,32 @@ internal fun convertToSearchText(issue: AppInsightsIssue): String {
     className
   } else {
     "$className.$methodName"
+  }
+}
+
+fun getFatalityIcon(
+  fatality: FailureType,
+  selected: Boolean,
+  foreground: Color,
+  withNote: Boolean = false
+): Icon? {
+  val icon =
+    if (withNote) {
+      when (fatality) {
+        FailureType.FATAL -> StudioIcons.AppQualityInsights.FATAL_WITH_NOTE
+        FailureType.NON_FATAL -> StudioIcons.AppQualityInsights.NON_FATAL_WITH_NOTE
+        FailureType.ANR -> StudioIcons.AppQualityInsights.ANR_WITH_NOTE
+        // This scenario shouldn't ever be reached.
+        else -> null
+      }
+    } else {
+      fatality.getIcon()
+    }
+  return if (icon == null) {
+    null
+  } else if (selected) {
+    ColoredIconGenerator.generateColoredIcon(icon, foreground)
+  } else {
+    icon
   }
 }

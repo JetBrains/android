@@ -25,7 +25,6 @@ import com.android.tools.idea.common.model.NlDependencyManager;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.model.SelectionModel;
 import com.android.tools.idea.projectsystem.GoogleMavenArtifactId;
-import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
@@ -41,6 +40,7 @@ import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditor;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.MotionEditorSelector;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.ui.Utils;
 import com.android.tools.idea.uibuilder.handlers.motion.editor.utils.Debug;
+import com.android.tools.idea.uibuilder.io.PsiFileUtil;
 import com.android.tools.idea.uibuilder.model.NlComponentHelperKt;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.AccessoryPanel;
@@ -361,7 +361,7 @@ public class MotionAccessoryPanel implements AccessoryPanelInterface, MotionLayo
         }
         fireSelectionChanged(Collections.singletonList(mySelection));
         if (motionScene != null) {
-          LayoutPullParsers.saveFileIfNecessary(motionScene.mXmlFile);
+          PsiFileUtil.saveFileIfNecessary(motionScene.mXmlFile);
         }
       }
     };

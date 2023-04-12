@@ -1,6 +1,6 @@
 load("//tools/base/bazel:bazel.bzl", "iml_module", "iml_test")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
-load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION")
+load("//tools/adt/idea/android/integration:build_defs.bzl", "INTEGRATION_TEST_GRADLE_VERSION", "INTEGRATION_TEST_SYSTEM_IMAGE")
 
 config_setting(
     name = "windows",
@@ -67,12 +67,14 @@ iml_module(
 # managed by go/iml_to_build
 iml_module(
     name = "intellij.android.layout-inspector.tests",
-    generate_k2_tests = True,
     iml_files = ["intellij.android.layout-inspector.tests.iml"],
     test_class = "com.android.tools.idea.layoutinspector.LayoutInspectorTestSuite",
     test_data = [
         "//prebuilts/studio/sdk:platforms/latest",
+        "//tools/adt/idea/android/testData",
+        "//tools/adt/idea/artwork:device-art-resources",
         "//tools/adt/idea/layout-inspector/testData",
+        "//tools/base/build-system:gradle-distrib",
     ] + select({
         "windows": [":skiaparser-test.dll"],
         "mac": [":libskiaparser-test.dylib"],
@@ -128,6 +130,7 @@ iml_module(
         "//tools/adt/idea/execution/common:intellij.android.execution.common[module, test]",
         "//tools/adt/idea/project-system-gradle-models:intellij.android.projectSystem.gradle.models[module, test]",
         "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
+        "//tools/adt/idea/streaming:intellij.android.streaming.testUtil[module, test]",
     ],
 )
 
@@ -217,7 +220,7 @@ layout_inspector_view_data = select({
     "//prebuilts/studio/sdk:platform-tools",
     "//tools/adt/idea/layout-inspector/integration/testData:emptyApplication",
     INTEGRATION_TEST_GRADLE_VERSION,
-    "@system_image_android-29_default_x86_64//:x86_64-android-29-images",
+    INTEGRATION_TEST_SYSTEM_IMAGE,
 ]
 
 maven_repository(

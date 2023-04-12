@@ -17,6 +17,7 @@ package com.android.tools.idea.rendering.errors
 
 import com.android.ide.common.rendering.api.ILayoutLog
 import com.android.tools.idea.rendering.HtmlLinkManager
+import com.android.tools.idea.rendering.StudioHtmlLinkManager
 import com.android.tools.idea.rendering.RenderLogger
 import com.android.tools.idea.rendering.errors.ui.RenderErrorModel
 import com.android.utils.HtmlBuilder

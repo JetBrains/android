@@ -61,7 +61,7 @@ public class CMakeListsTest {
    * </p>
    */
   @Test
-  @RunIn(TestGroup.SANITY_BAZEL)
+  @RunIn(TestGroup.FAST_BAZEL)
   public void checkEditingFeaturesInCMakeListsFile() throws Exception {
     IdeFrameFixture ideFrame =
       guiTest.importProjectAndWaitForProjectSyncToFinish("debugger/CMakeListsHelloJni");

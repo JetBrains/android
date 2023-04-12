@@ -28,9 +28,6 @@
     <applicationService
         serviceInterface="com.android.tools.idea.insights.AppInsightsService"
         serviceImplementation="com.android.tools.idea.insights.AppInsightsServiceImpl" />
-    <applicationService
-        serviceInterface="com.android.tools.idea.insights.client.AppInsightsCache"
-        serviceImplementation="com.android.tools.idea.insights.client.AppInsightsCacheImpl"  />
   </extensions>
   <extensionPoints>
     <extensionPoint qualifiedName="com.android.tools.idea.insights.ui.appInsightsTabProvider"

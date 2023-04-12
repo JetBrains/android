@@ -15,16 +15,14 @@
  */
 package com.android.tools.idea.logcat.actions
 
-import com.android.tools.idea.logcat.util.createLogcatEditor
+import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.editor.EditorFactory
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.ProjectRule
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
-import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 
@@ -34,16 +32,12 @@ import org.junit.Test
 @RunsInEdt
 class LogcatFoldLinesLikeThisActionTest {
   private val projectRule = ProjectRule()
+  private val logcatEditorRule = LogcatEditorRule(projectRule)
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule())
+  val rule = RuleChain(projectRule, logcatEditorRule, EdtRule())
 
-  private val editor by lazy { createLogcatEditor(projectRule.project) }
-
-  @After
-  fun tearDown() {
-    EditorFactory.getInstance().releaseEditor(editor)
-  }
+  private val editor get() = logcatEditorRule.editor
 
   @Test
   fun update_noSelection_visibleAndEnabled() {

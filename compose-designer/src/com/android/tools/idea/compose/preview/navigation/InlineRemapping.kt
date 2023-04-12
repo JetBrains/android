@@ -126,14 +126,17 @@ internal fun SourceLocation.asSourceLocationWithVirtualFile(
       .toList()
 
   val originalPsiFile =
-    when {
-      packageHash != -1 ->
-        filesWithName.find {
-          // File names are not unique. If the class name is available, disambiguate by class name.
-          matchesPackage(it, packageHash)
-        }
-      filesWithName.size == 1 -> filesWithName.single()
-      else -> null
+    runReadAction {
+      when {
+        packageHash != -1 ->
+          filesWithName.find {
+            // File names are not unique. If the class name is available, disambiguate by class
+            // name.
+            matchesPackage(it, packageHash)
+          }
+        filesWithName.size == 1 -> filesWithName.single()
+        else -> null
+      }
     }
       ?: return null
 

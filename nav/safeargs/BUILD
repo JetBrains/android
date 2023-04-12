@@ -20,6 +20,7 @@ iml_module(
         "//tools/analytics-library/tracker:analytics-tracker[module]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
     ],
 )
 
@@ -76,6 +77,7 @@ iml_module(
         "//tools/adt/idea/sdk-updates:intellij.android.sdkUpdates[module, test]",
         "//tools/adt/idea/project-system:intellij.android.projectSystem[module, test]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
         "//tools/adt/idea/.idea/libraries:mockito",
     ],
 )
@@ -91,7 +93,7 @@ maven_repository(
         "@maven//:androidx.lifecycle.lifecycle-runtime_2.1.0",
         "@maven//:androidx.lifecycle.lifecycle-viewmodel_2.1.0",
         "@maven//:androidx.navigation.navigation-safe-args-gradle-plugin_2.3.1",
-        "@maven//:androidx.navigation.navigation-safe-args-gradle-plugin_2.5.2",
+        "@maven//:androidx.navigation.navigation-safe-args-gradle-plugin_2.5.3",
         "@maven//:androidx.savedstate.savedstate_1.0.0",
         "@maven//:com.google.auto.value.auto-value_1.6.2",
         "@maven//:commons-lang.commons-lang_2.4",

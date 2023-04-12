@@ -16,7 +16,8 @@
 package com.android.tools.idea.configurations
 
 import com.android.tools.idea.model.AndroidModuleInfo
-import com.android.tools.idea.res.ResourceRepositoryManager
+import com.android.tools.idea.rendering.EnvironmentContext
+import com.android.tools.res.ResourceRepositoryManager
 import com.android.tools.sdk.AndroidPlatform
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
@@ -33,7 +34,11 @@ interface ConfigurationModelModule : Disposable {
 
   val themeInfoProvider: ThemeInfoProvider
 
+  val environmentContext: EnvironmentContext
+
   val androidModuleInfo: AndroidModuleInfo?
 
   val project: Project
+
+  val name: String
 }

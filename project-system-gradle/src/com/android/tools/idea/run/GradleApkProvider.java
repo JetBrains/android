@@ -406,7 +406,7 @@ public final class GradleApkProvider implements ApkProvider {
 
     List<ApkInfo> list = new ArrayList<>();
     for (GenericBuiltArtifacts builtArtifact : builtArtifacts) {
-      ApkInfo unit = new ApkInfo(findBestOutput(variantName, abiFilters, deviceAbis, builtArtifact), builtArtifact.getApplicationId());
+      ApkInfo unit = new ApkInfo(findBestOutput(variantName, abiFilters, deviceAbis, builtArtifact), builtArtifact.getApplicationId(), ImmutableSet.of(), true);
       list.add(unit);
     }
     return list;

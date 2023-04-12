@@ -24,26 +24,34 @@ import com.intellij.openapi.wm.IdeFrame
 import com.intellij.openapi.wm.StatusBar
 import com.intellij.testFramework.ProjectRule
 import com.intellij.ui.BalloonLayout
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.RuleChain
 import java.awt.Rectangle
 import java.time.Duration
 import javax.swing.JComponent
 
 class AndroidAdbSessionHostTest {
-  private val projectRule = ProjectRule()
-
   @get:Rule
-  val ruleChain = RuleChain.outerRule(projectRule)!!
+  val projectRule = ProjectRule()
+
+  private lateinit var host: AndroidAdbSessionHost
+
+  @Before
+  fun before() {
+    host = AndroidAdbSessionHost()
+  }
+
+  @After
+  fun after() {
+    host.close()
+  }
 
   @Test
   fun overridingPropertyValueThrowsForNonVolatileProperty() {
-    // Prepare
-    val host = AndroidAdbSessionHost()
-
     // Act/Assert
     assertThrows(IllegalArgumentException::class.java) {
       host.overridePropertyValue(PROCESS_PROPERTIES_COLLECTOR_DELAY_SHORT, Duration.ofMillis(10))
@@ -52,9 +60,6 @@ class AndroidAdbSessionHostTest {
 
   @Test
   fun propertiesCollectorUseShortDelayIsTrueByDefault() {
-    // Prepare
-    val host = AndroidAdbSessionHost()
-
     // Act
     val useShortDelay = host.getPropertyValue(PROCESS_PROPERTIES_COLLECTOR_DELAY_USE_SHORT)
 
@@ -65,7 +70,6 @@ class AndroidAdbSessionHostTest {
   @Test
   fun propertiesCollectorUseShortDelayIsFalseWhenInactive() {
     // Prepare
-    val host = AndroidAdbSessionHost()
     val publisher = ApplicationManager.getApplication().messageBus.syncPublisher(ApplicationActivationListener.TOPIC)
     val ideFrame = TestingIdeFrame()
 
@@ -80,7 +84,6 @@ class AndroidAdbSessionHostTest {
   @Test
   fun propertiesCollectorUseShortDelayIsTrueWhenReActivated() {
     // Prepare
-    val host = AndroidAdbSessionHost()
     val publisher = ApplicationManager.getApplication().messageBus.syncPublisher(ApplicationActivationListener.TOPIC)
     val ideFrame = TestingIdeFrame()
 

@@ -440,7 +440,9 @@ public class LiveEditProjectMonitor implements Disposable {
     } catch (LiveEditUpdateException e) {
       boolean recoverable = e.getError().getRecoverable();
       if (recoverable) {
-        filesWithCompilationErrors.add(e.getSource().getName());
+        for (EditEvent change : changes) {
+          filesWithCompilationErrors.add(change.getFile().getName());
+        }
       }
       updateEditableStatus(recoverable ?
                            LiveEditStatus.createPausedStatus(errorMessage(e)) :

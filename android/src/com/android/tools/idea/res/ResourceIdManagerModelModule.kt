@@ -15,11 +15,11 @@
  */
 package com.android.tools.idea.res
 
-import com.android.tools.idea.model.Namespacing
+import com.android.tools.res.ResourceNamespacing
 
 /** Representation of an Android module required for a [ResourceIdManager]. */
 interface ResourceIdManagerModelModule {
   val isAppOrFeature: Boolean
 
-  val namespacing: Namespacing
+  val namespacing: ResourceNamespacing
 }

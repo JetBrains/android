@@ -34,7 +34,7 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRemoteRunner.class)
 public class CreateBasicKotlinProjectTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
 
   private static final String KOTLIN_FILE = "MainActivity.kt";
 

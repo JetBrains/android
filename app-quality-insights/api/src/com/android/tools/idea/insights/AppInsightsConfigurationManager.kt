@@ -16,12 +16,12 @@
 package com.android.tools.idea.insights
 
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.project.Project
 import kotlinx.coroutines.flow.Flow
 
 /** Project-level [Service] that provides App Insights data for Android app modules. */
 interface AppInsightsConfigurationManager {
-  val configuration: Flow<AppInsightsModel>
+  val project: Project
 
-  /** Returns an [AppInsightsProjectLevelController] for the project. */
-  fun getController(): AppInsightsProjectLevelController
+  val configuration: Flow<AppInsightsModel>
 }

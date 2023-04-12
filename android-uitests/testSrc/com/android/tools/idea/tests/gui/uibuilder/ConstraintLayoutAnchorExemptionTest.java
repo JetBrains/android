@@ -21,7 +21,9 @@ import com.android.tools.idea.tests.gui.framework.TestGroup;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.IdeFrameFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.designer.NlEditorFixture;
+import com.android.tools.idea.tests.util.WizardUtils;
 import com.intellij.testGuiFramework.framework.GuiTestRemoteRunner;
+import java.awt.event.KeyEvent;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +35,7 @@ import static com.google.common.truth.Truth.assertThat;
 @RunWith(GuiTestRemoteRunner.class)
 public class ConstraintLayoutAnchorExemptionTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
@@ -56,22 +58,28 @@ public class ConstraintLayoutAnchorExemptionTest {
   @RunIn(TestGroup.FAST_BAZEL)
   @Test
   public void constraintLayoutAnchorExemption() throws Exception {
-    IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
+    WizardUtils.createNewProject(guiTest, "Empty Views Activity");
+    guiTest.robot().waitForIdle();
+    IdeFrameFixture ideFrameFixture = guiTest.ideFrame();
+    ideFrameFixture.clearNotificationsPresentOnIdeFrame();
+    //IdeFrameFixture ideFrameFixture = guiTest.importProjectAndWaitForProjectSyncToFinish("LayoutTest");
 
     EditorFixture editor = ideFrameFixture.getEditor()
-      .open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN);
+      .open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.DESIGN);
 
     NlEditorFixture design = editor.getLayoutEditor()
       .dragComponentToSurface("Buttons", "Button")
       .waitForRenderToFinish();
     String layoutContents = editor.selectEditorTab(EditorFixture.Tab.EDITOR).getCurrentFileContents();
 
-    editor.open("app/src/main/res/layout/constraint.xml", EditorFixture.Tab.DESIGN)
+    editor.open("app/src/main/res/layout/activity_main.xml", EditorFixture.Tab.DESIGN)
       .getLayoutEditor()
       .waitForRenderToFinish();
     design.findView("Button", 0)
       .createConstraintFromBottomToLeftOf(design.findView("TextView", 0));
+    guiTest.robot().pressAndReleaseKey(KeyEvent.VK_ESCAPE); // Removing any popup for constraints suggestions
     String layoutContentsAfter = editor.selectEditorTab(EditorFixture.Tab.EDITOR).getCurrentFileContents();
+
     assertThat(layoutContents).isEqualTo(layoutContentsAfter);
   }
 }

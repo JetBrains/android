@@ -62,6 +62,16 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       .trimIndent()
   )
   fixture.addFileToProject(
+    "dagger/BindsOptionalOf.java",
+    // language=JAVA
+    """
+      package dagger;
+
+      public @interface BindsOptionalOf {}
+      """
+      .trimIndent()
+  )
+  fixture.addFileToProject(
     "javax/inject/Inject.java",
     // language=JAVA
     """
@@ -91,6 +101,9 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       public @interface Component {
          Class<?>[] modules() default {};
          Class<?>[] dependencies() default {};
+
+         public @interface Builder {}
+         public @interface Factory {}
       }
       """
       .trimIndent()
@@ -160,6 +173,16 @@ fun addDaggerAndHiltClasses(fixture: CodeInsightTestFixture) {
       public interface Provider<T> {
         T get();
       }
+      """
+      .trimIndent()
+  )
+  fixture.addFileToProject(
+    "dagger/assisted/Assisted.java",
+    // language=JAVA
+    """
+      package dagger.assisted;
+
+      public @interface Assisted {}
       """
       .trimIndent()
   )

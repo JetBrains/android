@@ -76,6 +76,7 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
         val userId = if (client.clientData.userId == -1) null else client.clientData.userId
         ProcessInfo(device,
                     pid = client.clientData.pid,
+                    packageName = client.clientData.packageName,
                     processName = processName,
                     userId = userId,
                     vmIdentifier = client.clientData.vmIdentifier,
@@ -99,7 +100,11 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
     if (process.device.serialNumber == device.serialNumber) {
       // Run this in a worker thread in case the device/adb is not responsive
       withContext(workerThreadDispatcher) {
-        device.kill(process.processName)
+        if (process.packageName != null) {
+          device.kill(process.packageName)
+        } else {
+          thisLogger().debug("Kill process invoked on a null package name")
+        }
         process.killAction?.invoke()
       }
     }
@@ -115,7 +120,11 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
     if (process.device.serialNumber == device.serialNumber) {
       // Run this in a worker thread in case the device/adb is not responsive
       withContext(workerThreadDispatcher) {
-        device.forceStop(process.processName)
+        if (process.packageName != null) {
+          device.forceStop(process.packageName)
+        } else {
+          thisLogger().debug("Kill process invoked on a null package name")
+        }
       }
     }
   }
@@ -131,6 +140,8 @@ class DeviceProcessService @NonInjectable constructor(private val connectDebugge
 
         if (client != null && config != null && debugger != null) {
           connectDebuggerAction.invoke(debugger, client, config)
+        } else {
+          thisLogger().debug("Attach Debugger invoke on a null client, config, or debugger")
         }
       }
     }

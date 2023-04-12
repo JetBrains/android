@@ -15,9 +15,12 @@
  */
 package com.android.tools.idea.npw.module
 
+import com.android.sdklib.SdkVersionInfo
 import com.android.testutils.MockitoKt
 import com.android.testutils.MockitoKt.eq
 import com.android.testutils.MockitoKt.whenever
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
+import com.android.tools.idea.npw.baselineprofiles.getBaselineProfilesMinSdk
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BENCHMARKS_CLASS_NAME
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.BaselineProfilesMacrobenchmarkCommon
 import com.android.tools.idea.npw.module.recipes.baselineProfilesModule.GENERATOR_CLASS_NAME
@@ -37,6 +40,7 @@ import com.android.tools.idea.wizard.template.RecipeExecutor
 import com.google.common.truth.Truth.assertThat
 import com.intellij.execution.RunManager
 import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.module.Module
 import org.junit.Rule
 import org.junit.Test
@@ -168,9 +172,36 @@ class BaselineProfilesModuleTest {
     }
   }
 
+
   /**
    * We're checking +1 size, because of implicit app run configuration
    */
   private fun assertConfigurationsSize(configurationsList: List<RunConfiguration>, expectedSize: Int) =
     assertThat(configurationsList).hasSize(expectedSize + 1)
+
+  @Test
+  fun checkMinSdkUsesLowestPGOOrTargetModule() {
+    projectRule.load(TestProjectPaths.ANDROIDX_WITH_LIB_MODULE)
+
+    val project = projectRule.project
+
+    val appModule = project.findAppModule()
+
+    val projectBuildModel = ProjectBuildModel.getOrLog(appModule.project)
+    val targetModuleAndroidModel = projectBuildModel?.getModuleBuildModel(appModule)?.android()
+
+    // Verify anything lower than LOWEST_PROFILE_GUIDED_OPTIMIZATIONS_SDK_VERSION is not used
+    val lowerThanPGO = SdkVersionInfo.LOWEST_PROFILE_GUIDED_OPTIMIZATIONS_SDK_VERSION - 1
+    targetModuleAndroidModel?.defaultConfig()?.minSdkVersion()?.setValue(lowerThanPGO)
+    WriteCommandAction.runWriteCommandAction(project) { projectBuildModel?.applyChanges() }
+
+    assertThat(getBaselineProfilesMinSdk(appModule)).isEqualTo(SdkVersionInfo.LOWEST_PROFILE_GUIDED_OPTIMIZATIONS_SDK_VERSION)
+
+    // Verify anything higher than LOWEST_PROFILE_GUIDED_OPTIMIZATIONS_SDK_VERSION is preserved
+    val higherThanPGO = SdkVersionInfo.LOWEST_PROFILE_GUIDED_OPTIMIZATIONS_SDK_VERSION + 1
+    targetModuleAndroidModel?.defaultConfig()?.minSdkVersion()?.setValue(higherThanPGO)
+    WriteCommandAction.runWriteCommandAction(project) { projectBuildModel?.applyChanges() }
+
+    assertThat(getBaselineProfilesMinSdk(appModule)).isEqualTo(higherThanPGO)
+  }
 }

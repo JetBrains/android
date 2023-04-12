@@ -39,7 +39,8 @@ fun RecipeExecutor.generateDynamicFeatureModule(
   fusing: Boolean,
   downloadInstallKind: DownloadInstallKind,
   deviceFeatures: Collection<DeviceFeatureModel>,
-  useGradleKts: Boolean
+  useGradleKts: Boolean,
+  useVersionCatalog: Boolean
 ) {
   val (projectData, srcOut, _, manifestOut, instrumentedTestOut, localTestOut, _, moduleOut) = moduleData
   val apis = moduleData.apis
@@ -71,7 +72,8 @@ fun RecipeExecutor.generateDynamicFeatureModule(
       targetApi.apiString,
       useAndroidX,
       baseFeatureName = baseFeature.name,
-      formFactorNames = projectData.includedFormFactorNames
+      formFactorNames = projectData.includedFormFactorNames,
+      useVersionCatalog = useVersionCatalog
     ), moduleOut.resolve(buildFile)
   )
 

@@ -17,10 +17,12 @@ package com.android.tools.idea.npw.model
 
 import com.android.annotations.concurrency.UiThread
 import com.android.annotations.concurrency.WorkerThread
+import com.android.tools.idea.gradle.project.GradleVersionCatalogDetector
 import com.android.tools.idea.hasAnyKotlinModules
 import com.android.tools.idea.npw.platform.AndroidVersionsInfo
 import com.android.tools.idea.npw.template.ModuleTemplateDataBuilder
 import com.android.tools.idea.npw.template.ProjectTemplateDataBuilder
+import com.android.tools.idea.observable.core.BoolProperty
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObjectProperty
 import com.android.tools.idea.observable.core.ObjectValueProperty
@@ -32,6 +34,7 @@ import com.android.tools.idea.projectsystem.getMainModule
 import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.templates.KeystoreUtils.getSha1DebugKeystoreSilently
 import com.android.tools.idea.templates.TemplateUtils
+import com.android.tools.idea.templates.determineVersionCatalogUseForNewModule
 import com.android.tools.idea.templates.recipe.DefaultRecipeExecutor
 import com.android.tools.idea.templates.recipe.FindReferencesRecipeExecutor
 import com.android.tools.idea.templates.recipe.RenderingContext
@@ -76,6 +79,7 @@ private class ExistingNewModuleModelData(
   override val isLibrary: Boolean = false
   override val androidSdkInfo: OptionalValueProperty<AndroidVersionsInfo.VersionItem> = OptionalValueProperty.absent()
   override val sendModuleMetrics: BoolValueProperty = BoolValueProperty(true)
+  override val useVersionCatalog: BoolProperty = BoolValueProperty(determineVersionCatalogUseForNewModule(project, isNewProject = false))
 }
 
 /**
@@ -224,7 +228,8 @@ class RenderTemplateModel private constructor(
         useAppCompat = false
       )
 
-      val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
+      val executor = if (dryRun) FindReferencesRecipeExecutor(context) else
+        DefaultRecipeExecutor(context, useVersionCatalog = useVersionCatalog.get())
 
       return newTemplate.render(context, executor, metrics).also {
         if (!dryRun) {
@@ -277,6 +282,6 @@ class RenderTemplateModel private constructor(
         Language.Java
     }
 
-    fun getComposeKotlinVersion(isMaterial3: Boolean): String = "1.7.20"
+    fun getComposeKotlinVersion(isMaterial3: Boolean): String = "1.8.10"
   }
 }

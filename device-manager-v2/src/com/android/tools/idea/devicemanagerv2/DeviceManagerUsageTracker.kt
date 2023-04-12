@@ -27,4 +27,8 @@ internal object DeviceManagerUsageTracker {
         .setDeviceManagerEvent(event)
     )
   }
+
+  fun logDeviceManagerEvent(kind: DeviceManagerEvent.EventKind) {
+    logEvent(DeviceManagerEvent.newBuilder().setKind(kind).build())
+  }
 }

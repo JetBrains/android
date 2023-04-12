@@ -21,7 +21,7 @@ import com.android.tools.idea.common.surface.SceneLayer
 import com.android.tools.idea.common.surface.SceneView
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
-import com.android.tools.idea.uibuilder.surface.ClassLoadingDebugLayer
+import com.android.tools.idea.uibuilder.surface.layer.ClassLoadingDebugLayer
 import com.android.tools.idea.uibuilder.surface.DiagnosticsLayer
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface
 import com.android.tools.idea.uibuilder.surface.ScreenView

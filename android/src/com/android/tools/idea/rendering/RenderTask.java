@@ -46,7 +46,6 @@ import com.android.resources.ScreenOrientation;
 import com.android.sdklib.IAndroidTarget;
 import com.android.sdklib.devices.Device;
 import com.android.tools.analytics.crash.CrashReporter;
-import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.diagnostics.crash.StudioExceptionReport;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.layoutlib.RenderParamsFlags;
@@ -55,10 +54,10 @@ import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
-import com.android.tools.idea.rendering.parsers.LayoutPsiPullParser;
+import com.android.tools.idea.rendering.parsers.LayoutRenderPullParser;
 import com.android.tools.idea.rendering.parsers.LayoutPullParsers;
-import com.android.tools.idea.rendering.parsers.RenderXmlTag;
-import com.android.tools.idea.res.IdeResourcesUtil;
+import com.android.tools.rendering.parsers.RenderXmlFile;
+import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -67,9 +66,6 @@ import com.google.common.util.concurrent.Futures;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import com.intellij.serviceContainer.AlreadyDisposedException;
 import com.intellij.util.concurrency.AppExecutorUtil;
 import java.awt.event.KeyEvent;
@@ -95,7 +91,6 @@ import org.jetbrains.android.uipreview.ClassLoaderPreloaderKt;
 import org.jetbrains.android.uipreview.ModuleClassLoader;
 import org.jetbrains.android.uipreview.ModuleClassLoaderManager;
 import org.jetbrains.android.uipreview.ModuleRenderContext;
-import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -154,7 +149,6 @@ public class RenderTask {
   @NotNull private RenderingMode myRenderingMode = RenderingMode.NORMAL;
   private boolean mySetTransparentBackground = false;
   private boolean myShowDecorations = true;
-  private boolean myShadowEnabled = true;
   private boolean myEnableLayoutScanner = false;
   private boolean myShowWithToolsVisibilityAndPosition = true;
   private Function<Object, List<ViewInfo>> myCustomContentHierarchyParser = null;
@@ -169,7 +163,7 @@ public class RenderTask {
   @NotNull private CrashReporter myCrashReporter;
   private final List<CompletableFuture<?>> myRunningFutures = new LinkedList<>();
   @NotNull private final AtomicBoolean isDisposed = new AtomicBoolean(false);
-  @Nullable private XmlFile myXmlFile;
+  @Nullable private RenderXmlFile myXmlFile;
   @NotNull private final ModuleClassLoader myModuleClassLoader;
 
   /**
@@ -233,7 +227,8 @@ public class RenderTask {
     WeakReference<RenderTask> xmlFileProvider = new WeakReference<>(this);
     ModuleRenderContext moduleRenderContext = ModuleRenderContext.forFile(renderContext.getModule(), () -> {
       RenderTask task = xmlFileProvider.get();
-      return task != null ? task.getXmlFile() : null;
+      RenderXmlFile xmlFile = task != null ? task.getXmlFile() : null;
+      return xmlFile != null ? xmlFile.getPsiFile() : null;
     });
     if (privateClassLoader) {
       myModuleClassLoader = classLoaderManager.getPrivate(
@@ -317,13 +312,13 @@ public class RenderTask {
     setQuality(myDefaultQuality);
   }
 
-  public void setXmlFile(@NotNull XmlFile file) {
+  public void setXmlFile(@NotNull RenderXmlFile file) {
     myXmlFile = file;
-    ReadAction.run(() -> getContext().setFolderType(IdeResourcesUtil.getFolderType(file)));
+    ReadAction.run(() -> getContext().setFolderType(file.getFolderType()));
   }
 
   @Nullable
-  public XmlFile getXmlFile() {
+  public RenderXmlFile getXmlFile() {
     return myXmlFile;
   }
 
@@ -531,18 +526,19 @@ public class RenderTask {
     return myProvideCookiesForIncludedViews;
   }
 
+
   /**
-   * Returns the root tag for the given {@link XmlFile}, if any, acquiring the read
+   * Returns the root tag for the given {@link RenderXmlFile}, if any, acquiring the read
    * lock to do so if necessary
    *
    * @param file the file to look up the root tag for
    * @return the corresponding root tag, if any
    */
   @Nullable
-  private static String getRootTagName(@NotNull XmlFile file) {
-    ResourceFolderType folderType = IdeResourcesUtil.getFolderType(file);
+  private static String getRootTagName(@NotNull RenderXmlFile file) {
+    ResourceFolderType folderType = file.getFolderType();
     if (folderType == ResourceFolderType.XML || folderType == ResourceFolderType.MENU || folderType == ResourceFolderType.DRAWABLE) {
-      XmlTag rootTag = AndroidPsiUtils.getRootTagSafely(file);
+      RenderXmlTag rootTag = file.getRootTag();
       return rootTag == null ? null : rootTag.getName();
     }
     return null;
@@ -562,7 +558,7 @@ public class RenderTask {
       return null;
     }
 
-    XmlFile xmlFile = getXmlFile();
+    RenderXmlFile xmlFile = getXmlFile();
     if (xmlFile == null) {
       throw new IllegalStateException("createRenderSession shouldn't be called on RenderTask without PsiFile");
     }
@@ -584,12 +580,12 @@ public class RenderTask {
 
     myLayoutlibCallback.reset();
 
-    if (modelParser instanceof LayoutPsiPullParser) {
+    if (modelParser instanceof LayoutRenderPullParser) {
       // For regular layouts, if we use appcompat, we have to emulat the app:srcCompat attribute behaviour.
       boolean useSrcCompat = context.getModule().getDependencies().getDependsOnAppCompat() ||
                              context.getModule().getDependencies().getDependsOnAndroidXAppCompat();
-      ((LayoutPsiPullParser)modelParser).setUseSrcCompat(useSrcCompat);
-      myLayoutlibCallback.setAaptDeclaredResources(((LayoutPsiPullParser)modelParser).getAaptDeclaredAttrs());
+      ((LayoutRenderPullParser)modelParser).setUseSrcCompat(useSrcCompat);
+      myLayoutlibCallback.setAaptDeclaredResources(((LayoutRenderPullParser)modelParser).getAaptDeclaredAttrs());
     }
 
     ILayoutPullParser includingParser = getIncludingLayoutParser(resolver, modelParser);
@@ -710,7 +706,7 @@ public class RenderTask {
           // Advance the frame time to display the material progress bars
           session.setElapsedFrameTimeNanos(TimeUnit.MILLISECONDS.toNanos(500));
         }
-        RenderResult result = RenderResult.create(context, session, xmlFile, myLogger, myImagePool.copyOf(session.getImage()), myLayoutlibCallback.isUsed());
+        RenderResult result = RenderResult.create(context, session, xmlFile.getPsiFile(), myLogger, myImagePool.copyOf(session.getImage()), myLayoutlibCallback.isUsed());
         RenderSession oldRenderSession = myRenderSession;
         myRenderSession = session;
         if (oldRenderSession != null) {
@@ -734,7 +730,7 @@ public class RenderTask {
 
   @Nullable
   private ILayoutPullParser getIncludingLayoutParser(RenderResources resolver, ILayoutPullParser modelParser) {
-    XmlFile xmlFile = getXmlFile();
+    RenderXmlFile xmlFile = getXmlFile();
     if (xmlFile == null) {
       throw new IllegalStateException("getIncludingLayoutParser shouldn't be called on RenderTask without PsiFile");
     }
@@ -757,10 +753,10 @@ public class RenderTask {
       myLayoutlibCallback.setLayoutParser(queryLayoutName, modelParser);
 
       // Attempt to read from PSI.
-      XmlFile fromXmlFile = myIncludedWithin.getFromXmlFile(myContext.getModule().getProject());
+      RenderXmlFile fromXmlFile = myIncludedWithin.getFromXmlFile(myContext.getModule().getProject());
       if (fromXmlFile != null) {
-        LayoutPsiPullParser parser = LayoutPsiPullParser.create(fromXmlFile, myLogger,
-                                                                myContext.getModule().getResourceRepositoryManager());
+        LayoutRenderPullParser parser = LayoutRenderPullParser.create(fromXmlFile, myLogger,
+                                                                      myContext.getModule().getResourceRepositoryManager());
         // For included layouts, we don't normally see view cookies; we want the leaf to point back to the include tag
         parser.setProvideViewCookies(myProvideCookiesForIncludedViews);
         topParser = parser;
@@ -838,7 +834,7 @@ public class RenderTask {
     // During development only:
     //assert !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during inflate!";
 
-    XmlFile xmlFile = getXmlFile();
+    RenderXmlFile xmlFile = getXmlFile();
     if (xmlFile == null) {
       return immediateFailedFuture(new IllegalStateException("inflate shouldn't be called on RenderTask without PsiFile"));
     }
@@ -878,7 +874,7 @@ public class RenderTask {
         }
         else {
           if (xmlFile.isValid()) {
-            return RenderResult.createRenderTaskErrorResult(myContext.getModule(), xmlFile, ex);
+            return RenderResult.createRenderTaskErrorResult(myContext.getModule(), xmlFile.getPsiFile(), ex);
           }
           else {
             LOG.warn("Invalid file " + xmlFile);
@@ -901,10 +897,10 @@ public class RenderTask {
     try {
       // runAsyncRenderAction might not run immediately so we need to capture the current myRenderSession and myPsiFile values
       RenderSession renderSession = myRenderSession;
-      PsiFile psiFile = getXmlFile();
+      RenderXmlFile xmlFile = getXmlFile();
       return runAsyncRenderAction(() -> {
         myRenderSession.measure();
-        return RenderResult.create(myContext, renderSession, psiFile, myLogger, ImagePool.NULL_POOLED_IMAGE, myLayoutlibCallback.isUsed());
+        return RenderResult.create(myContext, renderSession, xmlFile.getPsiFile(), myLogger, ImagePool.NULL_POOLED_IMAGE, myLayoutlibCallback.isUsed());
       });
     }
     catch (Exception e) {
@@ -999,8 +995,8 @@ public class RenderTask {
     // During development only:
     //assert !ApplicationManager.getApplication().isReadAccessAllowed() : "Do not hold read lock during render!";
 
-    PsiFile psiFile = getXmlFile();
-    assert psiFile != null;
+    RenderXmlFile xmlFile = getXmlFile();
+    assert xmlFile != null;
 
     CompletableFuture<RenderResult> inflateCompletableResult;
     if (myRenderSession == null) {
@@ -1028,7 +1024,7 @@ public class RenderTask {
         return runAsyncRenderAction(() -> {
           myRenderSession.render();
           RenderResult result =
-            RenderResult.create(myContext, myRenderSession, psiFile, myLogger, myImagePool.copyOf(myRenderSession.getImage()), myLayoutlibCallback.isUsed());
+            RenderResult.create(myContext, myRenderSession, xmlFile.getPsiFile(), myLogger, myImagePool.copyOf(myRenderSession.getImage()), myLayoutlibCallback.isUsed());
           Result renderResult = result.getRenderResult();
           if (renderResult.getException() != null) {
             reportException(renderResult.getException());
@@ -1061,7 +1057,7 @@ public class RenderTask {
         }
         RenderProblem.RunnableFixFactory fixFactory = myContext.getModule().getEnvironment().getRunnableFixFactory();
         myLogger.addMessage(RenderProblem.createPlain(ERROR, message, myLogger.getProject(), myLogger.getLinkManager(), e, fixFactory));
-        return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(myContext.getModule(), psiFile, e));
+        return CompletableFuture.completedFuture(RenderResult.createRenderTaskErrorResult(myContext.getModule(), xmlFile.getPsiFile(), e));
       }
     });
   }
@@ -1172,52 +1168,6 @@ public class RenderTask {
       });
   }
 
-  /**
-   * Renders the given resource value (which should refer to a drawable) and returns it
-   * as an image
-   *
-   * @param drawableResourceValue the drawable resource value to be rendered, or null
-   * @return the image, or null if something went wrong
-   */
-  @NotNull
-  @SuppressWarnings("unchecked")
-  public List<BufferedImage> renderDrawableAllStates(@Nullable ResourceValue drawableResourceValue) {
-    if (drawableResourceValue == null) {
-      return Collections.emptyList();
-    }
-
-    HardwareConfig hardwareConfig = myHardwareConfigHelper.getConfig();
-
-    RenderContext context = getContext();
-    RenderConfiguration configuration = context.getConfiguration();
-    DrawableParams params =
-      new DrawableParams(drawableResourceValue, context.getModule().getModuleKey(), hardwareConfig, configuration.getResourceResolver(),
-                         myLayoutlibCallback, context.getMinSdkVersion().getApiLevel(), context.getTargetSdkVersion().getApiLevel(),
-                         myLogger);
-    params.setForceNoDecor();
-    params.setAssetRepository(context.getModule().getAssetRepository());
-    params.setFlag(RenderParamsFlags.FLAG_KEY_RENDER_ALL_DRAWABLE_STATES, Boolean.TRUE);
-    params.setFlag(RenderParamsFlags.FLAG_KEY_ADAPTIVE_ICON_MASK_PATH, configuration.getAdaptiveShape().getPathDescription());
-    params.setFlag(RenderParamsFlags.FLAG_KEY_USE_THEMED_ICON, configuration.getUseThemedIcon());
-    params.setFlag(RenderParamsFlags.FLAG_KEY_WALLPAPER_PATH, configuration.getWallpaperPath());
-
-    try {
-      Result result = RenderService.runRenderAction(() -> myLayoutLib.renderDrawable(params));
-
-      if (result != null && result.isSuccess()) {
-        Object data = result.getData();
-        if (data instanceof List) {
-          return (List<BufferedImage>)data;
-        }
-      }
-    }
-    catch (Exception e) {
-      // ignore
-    }
-
-    return Collections.emptyList();
-  }
-
   @NotNull
   private LayoutLibrary getLayoutLib() {
     return myLayoutLib;
@@ -1257,10 +1207,10 @@ public class RenderTask {
    */
   @NotNull
   public CompletableFuture<Map<RenderXmlTag, ViewInfo>> measureChildren(@NotNull RenderXmlTag parent, @Nullable AttributeFilter filter) {
-    ILayoutPullParser modelParser = LayoutPsiPullParser.create(filter,
-                                                               parent,
-                                                               myLogger,
-                                                               myContext.getModule().getResourceRepositoryManager());
+    ILayoutPullParser modelParser = LayoutRenderPullParser.create(filter,
+                                                                  parent,
+                                                                  myLogger,
+                                                                  myContext.getModule().getResourceRepositoryManager());
     Map<RenderXmlTag, ViewInfo> map = new HashMap<>();
     return RenderService.getRenderAsyncActionExecutor().runAsyncAction(myPriority, () -> measure(modelParser))
       .thenComposeAsync(session -> {

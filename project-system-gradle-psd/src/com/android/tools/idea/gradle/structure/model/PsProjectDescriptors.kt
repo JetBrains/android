@@ -104,7 +104,8 @@ object PsProjectDescriptors : ModelDescriptor<PsProject, Nothing, ProjectBuildMo
       knownValuesGetter = ::androidGradlePluginVersionValues,
       variableMatchingStrategy = VariableMatchingStrategy.WELL_KNOWN_VALUE,
       preferredVariableName = { "agp_version" },
-      variableScope = { buildScriptVariables }
+      variableScope = { buildScriptVariables },
+      canExtractVariable = { parsedModel.versionCatalogsModel.catalogNames().isEmpty() }
     )
   }
 

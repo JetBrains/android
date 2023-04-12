@@ -66,7 +66,7 @@ class DaggerIndexFieldWrapperTest {
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("bar")
-    assertThat(wrapper.getContainingClass().getFqName()).isEqualTo("com.example.Foo")
+    assertThat(wrapper.getContainingClass()?.getFqName()).isEqualTo("com.example.Foo")
     assertThat(wrapper.getType()?.getSimpleName()).isEqualTo("Baz")
     assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isFalse()
   }
@@ -117,7 +117,7 @@ class DaggerIndexFieldWrapperTest {
     val wrapper = DaggerIndexPsiWrapper.KotlinFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("bar")
-    assertThat(wrapper.getContainingClass().getFqName()).isEqualTo("com.example.Foo")
+    assertThat(wrapper.getContainingClass()?.getFqName()).isEqualTo("com.example.Foo")
     assertThat(wrapper.getType()?.getSimpleName()).isEqualTo("Baz")
     assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation1")).isTrue()
     assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation2")).isTrue()
@@ -144,7 +144,7 @@ class DaggerIndexFieldWrapperTest {
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("bar")
-    assertThat(wrapper.getContainingClass().getFqName()).isEqualTo("com.example.Foo")
+    assertThat(wrapper.getContainingClass()?.getFqName()).isEqualTo("com.example.Foo")
     assertThat(wrapper.getType()?.getSimpleName()).isEqualTo("Baz")
     assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation")).isFalse()
   }
@@ -172,7 +172,7 @@ class DaggerIndexFieldWrapperTest {
     val wrapper = DaggerIndexPsiWrapper.JavaFactory(psiFile).of(element)
 
     assertThat(wrapper.getSimpleName()).isEqualTo("bar")
-    assertThat(wrapper.getContainingClass().getFqName()).isEqualTo("com.example.Foo")
+    assertThat(wrapper.getContainingClass()?.getFqName()).isEqualTo("com.example.Foo")
     assertThat(wrapper.getType()?.getSimpleName()).isEqualTo("Baz")
     assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation1")).isTrue()
     assertThat(wrapper.getIsAnnotatedWith("com.example.Annotation2")).isTrue()

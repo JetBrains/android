@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.logcat.messages
 
-import com.android.tools.idea.logcat.logcatMessage
 import com.android.tools.idea.logcat.message.LogcatMessage
+import com.android.tools.idea.logcat.util.logcatMessage
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.UsefulTestCase.assertThrows
 import org.junit.Test

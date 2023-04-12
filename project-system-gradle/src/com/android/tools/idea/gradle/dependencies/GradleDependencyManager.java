@@ -67,11 +67,20 @@ public class GradleDependencyManager {
   }
 
 
-  protected CatalogDependenciesInfo computeCatalogDependenciesInfo(@NotNull Project project,
+  /**
+   * Looks through catalog and adds aliases for declarations that already there
+   * @param module - need to understand module context and resolve new dependency version correctly in case it's a dynamic '+' one
+   * @param dependencies
+   * @param catalogModel
+   * @return
+   */
+  protected CatalogDependenciesInfo computeCatalogDependenciesInfo(@NotNull Module module,
                                                                    @NotNull Iterable<GradleCoordinate> dependencies,
                                                                    GradleVersionCatalogModel catalogModel) {
-    GradleBuildModel buildModel = ProjectBuildModel.get(project).getProjectBuildModel();
-    List<ArtifactDependencyModel> compileDependencies = buildModel != null ? buildModel.dependencies().artifacts() : null;
+    Project project = module.getProject();
+    GradleBuildModel moduleModel = ProjectBuildModel.get(project).getModuleBuildModel(module);
+
+    List<ArtifactDependencyModel> compileDependencies = moduleModel != null ? moduleModel.dependencies().artifacts() : null;
 
     String appCompatVersion = getAppCompatVersion(compileDependencies);
     CatalogDependenciesInfo searchResult = new CatalogDependenciesInfo();
@@ -88,7 +97,8 @@ public class GradleDependencyManager {
           .filter(entry -> {
             LibraryDeclarationSpec spec = entry.getValue().getSpec();
             return (Objects.equal(spec.getGroup(), coordinate.getGroupId()) &&
-                    Objects.equal(spec.getName(), coordinate.getArtifactId()));
+                    Objects.equal(spec.getName(), coordinate.getArtifactId()) &&
+                    Objects.equal(spec.getVersion(), coordinate.getRevision()));
           }).map(dep -> new Pair<>(dep.getKey(), coordinate)).findFirst();
         if (maybeCoordinate.isEmpty()) {
           searchResult.missingLibraries.add(finalCoordinate);
@@ -311,7 +321,7 @@ public class GradleDependencyManager {
           List<GradleCoordinate> missingFromModule = findMissingDependencies(module, coordinates);
           if(missingFromModule.isEmpty()) return; // we have all dependencies already
 
-          CatalogDependenciesInfo catalogSearchResult = computeCatalogDependenciesInfo(module.getProject(), missingFromModule, catalogModel);
+          CatalogDependenciesInfo catalogSearchResult = computeCatalogDependenciesInfo(module, missingFromModule, catalogModel);
 
           addDependenciesToCatalogAndModuleBuildFile(module, nameMapper, buildModel, catalogModel, catalogSearchResult);
         });

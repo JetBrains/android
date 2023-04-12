@@ -52,6 +52,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
@@ -277,7 +278,8 @@ val KtProperty.psiType: PsiType?
   }
 val KtParameter.psiType get() = toLightElements().filterIsInstance(PsiParameter::class.java).firstOrNull()?.type
 val KtFunction.psiType get() = LightClassUtil.getLightClassMethod(this)?.returnType
-fun KtClass.toPsiType() = toLightElements().filterIsInstance(PsiClass::class.java).firstOrNull()?.let { AndroidPsiUtils.toPsiType(it) }
+fun KtClassOrObject.toPsiType() =
+  toLightElements().filterIsInstance(PsiClass::class.java).firstOrNull()?.let { AndroidPsiUtils.toPsiType(it) }
 fun KtAnnotated.hasAnnotation(fqn: String) = findAnnotation(FqName(fqn)) != null
 
 // TODO(jsjeon): Once available, use upstream util in `AnnotationModificationUtils`

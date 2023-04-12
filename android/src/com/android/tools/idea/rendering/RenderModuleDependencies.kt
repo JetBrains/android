@@ -23,6 +23,8 @@ interface RenderModuleDependencies {
 
   val dependsOnAndroidXAppCompat: Boolean
 
+  val dependsOnAndroidX: Boolean
+
   fun reportMissingSdkDependency(logger: IRenderLogger)
 
   /** Returns a list R-classes fqcns from the module and all of its dependencies. */

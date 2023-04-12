@@ -62,7 +62,7 @@ abstract class ModuleModel(
   name: String,
   private val commandName: String = "New Module",
   override val isLibrary: Boolean,
-  projectModelData: ProjectModelData,
+  val projectModelData: ProjectModelData,
   _template: NamedModuleTemplate = with(projectModelData) {
     if (isNewProject) createSampleTemplate() else createDefaultModuleTemplate(project, name)
   },
@@ -82,6 +82,7 @@ abstract class ModuleModel(
   abstract val renderer: MultiTemplateRenderer.TemplateRenderer
   override val viewBindingSupport = projectModelData.viewBindingSupport
   override val sendModuleMetrics: BoolValueProperty = BoolValueProperty(true)
+  override val useVersionCatalog: BoolValueProperty = BoolValueProperty()
 
   public override fun handleFinished() {
     multiTemplateRenderer.requestRender(renderer)
@@ -113,6 +114,7 @@ abstract class ModuleModel(
         setModuleRoots(template.get().paths, project.basePath!!, moduleName.get(), this@ModuleModel.packageName.get())
         isLibrary = this@ModuleModel.isLibrary
       }
+      useVersionCatalog.set(projectModelData.useVersionCatalog.get())
     }
 
     @WorkerThread
@@ -166,9 +168,10 @@ abstract class ModuleModel(
         )
       } else null
 
-      val executor = if (dryRun) FindReferencesRecipeExecutor(context) else DefaultRecipeExecutor(context)
+      val executor = if (dryRun) FindReferencesRecipeExecutor(context) else
+        DefaultRecipeExecutor(context, useVersionCatalog = useVersionCatalog.get())
 
-      if (StudioFlags.NPW_ENABLE_GRADLE_VERSION_CATALOG.get() && isNewProject) {
+      if (StudioFlags.NPW_ENABLE_GRADLE_VERSION_CATALOG.get() && isNewProject && useVersionCatalog.get()) {
         // Create a conventional default toml file for the new project because GradleVersionCatalogModel expects
         // the toml file already exists. This needs to be before start rendering the template.
         WriteCommandAction.writeCommandAction(project).run<IOException> {

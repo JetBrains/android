@@ -72,3 +72,17 @@ private fun parseChildren(
  * or null if there is no [AccessibilityNodeInfo].
  */
 fun ViewInfo.getAccessibilityText() = (accessibilityObject as? AccessibilityNodeInfo)?.text?.toString()
+
+/**
+ * Returns the source id from the [AccessibilityNodeInfo] associated with this [ViewInfo].
+ * If the [AccessibilityNodeInfo] does not exist, but viewObject is a [View], this creates
+ * an [AccessibilityNodeInfo] for that [View] first.
+ */
+fun ViewInfo.getAccessibilitySourceId(): Long {
+  if (accessibilityObject != null) {
+    return (accessibilityObject as AccessibilityNodeInfo).sourceNodeId
+  } else {
+    val node = (viewObject as? View)?.createAccessibilityNodeInfo() ?: return -1
+    return node.sourceNodeId
+  }
+}

@@ -41,7 +41,8 @@ fun buildGradle(
   hasTests: Boolean = true,
   addLintOptions: Boolean = false,
   enableCpp: Boolean = false,
-  cppStandard: CppStandardType = CppStandardType.`Toolchain Default`
+  cppStandard: CppStandardType = CppStandardType.`Toolchain Default`,
+  useVersionCatalog: Boolean
 ): String {
   val androidConfigBlock = androidConfig(
     gradlePluginVersion = gradlePluginVersion,
@@ -87,7 +88,7 @@ dependencies {
 
   val allBlocks =
     """
-    ${emptyPluginsBlock()}
+    ${emptyPluginsBlock(isKts = isKts, useVersionCatalog = useVersionCatalog)}
     $androidConfigBlock
     $dependenciesBlock
     """

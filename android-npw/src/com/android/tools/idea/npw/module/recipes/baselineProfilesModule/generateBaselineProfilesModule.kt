@@ -53,7 +53,8 @@ fun RecipeExecutor.generateBaselineProfilesModule(
   newModule: ModuleTemplateData,
   useGradleKts: Boolean,
   targetModule: Module,
-  useGmd: Boolean
+  useGmd: Boolean,
+  useVersionCatalog: Boolean
 ) {
   val projectBuildModel = ProjectBuildModel.getOrLog(targetModule.project) ?: return
   val targetModuleAndroidModel = projectBuildModel.getModuleBuildModel(targetModule)?.android() ?: return
@@ -84,6 +85,7 @@ fun RecipeExecutor.generateBaselineProfilesModule(
       useGradleKts = useGradleKts,
       targetModule = targetModule,
       useGmd = gmdSpec,
+      useVersionCatalog = useVersionCatalog
     ),
     customizeModule = {
       applyPlugin("androidx.baselineprofile", BASELINE_PROFILES_PLUGIN_MIN_REV)

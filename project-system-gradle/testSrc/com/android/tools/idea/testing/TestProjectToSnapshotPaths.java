@@ -18,6 +18,7 @@ public final class TestProjectToSnapshotPaths {
   public static final String KOTLIN_MULTIPLATFORM = "projects/kotlinMultiplatform";
   public static final String LIGHT_SYNC_REFERENCE = "projects/lightSyncReference";
   public static final String NON_TRANSITIVE_R_CLASS_SYMBOL = "projects/nonTransitiveRClassSymbol";
+  public static final String MIGRATE_TO_NON_TRANSITIVE_R_CLASSES = "projects/migrateToNonTransitiveRClasses";
   public static final String LINKED = "projects/linked";
   public static final String LINT_CUSTOM_CHECKS = "projects/lintCustomChecks";
   public static final String LOCAL_AARS_AS_MODULES = "projects/localAarsAsModules";
@@ -45,4 +46,5 @@ public final class TestProjectToSnapshotPaths {
   public static final String TWO_JARS = "projects/two_jars";
   public static final String WITH_GRADLE_METADATA = "projects/withGradleMetadata";
   public static final String PRIVACY_SANDBOX_SDK = "projects/privacySandboxSdk/libraryAndConsumer";
+  public static final String DEPENDENT_MODULES = "projects/dependentModules";
 }

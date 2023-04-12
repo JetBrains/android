@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.logcat
 
-import com.android.tools.idea.logcat.util.createLogcatEditor
+import com.android.tools.idea.logcat.testing.LogcatEditorRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.codeInsight.editorActions.TextBlockTransferable
 import com.intellij.execution.ui.ConsoleViewContentType.USER_INPUT
@@ -26,7 +26,6 @@ import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_BACKSPACE
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_DELETE
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_PASTE
 import com.intellij.openapi.actionSystem.IdeActions.ACTION_EDITOR_TAB
-import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.impl.DocumentMarkupModel
 import com.intellij.openapi.ide.CopyPasteManager
@@ -37,7 +36,6 @@ import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.TestActionEvent
 import com.intellij.ui.ClientProperty
-import org.junit.After
 import org.junit.Rule
 import org.junit.Test
 import java.awt.event.KeyEvent
@@ -48,16 +46,12 @@ import java.awt.event.KeyEvent
 @RunsInEdt
 class UserInputHandlersTest {
   private val projectRule = ProjectRule()
+  private val logcatEditorRule = LogcatEditorRule(projectRule)
 
   @get:Rule
-  val rule = RuleChain(projectRule, EdtRule())
+  val rule = RuleChain(projectRule, logcatEditorRule, EdtRule())
 
-  private val editor by lazy { createLogcatEditor(projectRule.project) }
-
-  @After
-  fun tearDown() {
-    EditorFactory.getInstance().releaseEditor(editor)
-  }
+  private val editor get() = logcatEditorRule.editor
 
   @Test
   fun typeText_appendsToEnd() {

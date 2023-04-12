@@ -21,7 +21,6 @@ import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.findAnnotation
 import com.android.tools.idea.kotlin.psiType
 import com.android.tools.idea.kotlin.toPsiType
-import com.intellij.openapi.components.service
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
@@ -905,8 +904,5 @@ private fun Module.moduleWithDependentsAndDependenciesScope(): GlobalSearchScope
     .uniteWith(GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(this))
 }
 
-internal fun PsiElement.isDaggerWithIndexEnabled(): Boolean {
-  return StudioFlags.DAGGER_SUPPORT_ENABLED.get() &&
-    StudioFlags.DAGGER_USING_INDEX_ENABLED.get() &&
-    project.service<DaggerDependencyChecker>().isDaggerPresent()
-}
+internal fun isDaggerWithIndexEnabled() =
+  StudioFlags.DAGGER_SUPPORT_ENABLED.get() && StudioFlags.DAGGER_USING_INDEX_ENABLED.get()

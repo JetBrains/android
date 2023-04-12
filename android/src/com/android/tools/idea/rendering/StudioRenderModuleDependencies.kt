@@ -25,6 +25,7 @@ import com.android.tools.idea.projectsystem.getModuleSystem
 import com.android.tools.idea.projectsystem.requiresAndroidModel
 import com.android.tools.idea.res.AndroidDependenciesCache
 import com.android.tools.idea.util.dependsOn
+import com.android.tools.idea.util.dependsOnAndroidx
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ui.configuration.ProjectSettingsService
@@ -40,6 +41,9 @@ class StudioRenderModuleDependencies(private val module: Module) : RenderModuleD
 
   override val dependsOnAndroidXAppCompat: Boolean
     get() = module.dependsOn(GoogleMavenArtifactId.ANDROIDX_APP_COMPAT_V7)
+
+  override val dependsOnAndroidX: Boolean
+    get() = module.dependsOnAndroidx()
 
   override fun reportMissingSdkDependency(logger: IRenderLogger) {
     val message = RenderProblem.create(ProblemSeverity.ERROR)

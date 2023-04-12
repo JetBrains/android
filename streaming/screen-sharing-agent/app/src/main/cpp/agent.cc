@@ -122,6 +122,8 @@ Agent::Agent(const vector<string>& args) {
       InvalidCommandLineArgument(arg);
     }
   }
+
+  api_level_ = android_get_device_api_level();
 }
 
 Agent::~Agent() = default;
@@ -192,6 +194,7 @@ void Agent::RecordTouchEvent() {
   last_touch_time_millis_.store(duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count());
 }
 
+int32_t Agent::api_level_(0);
 string Agent::socket_name_("screen-sharing-agent");
 int32_t Agent::display_id_(0);
 Size Agent::max_video_resolution_(numeric_limits<int32_t>::max(), numeric_limits<int32_t>::max());

@@ -16,7 +16,10 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.ide.common.rendering.api.Bridge
+import com.android.tools.idea.modes.EssentialModeMessenger
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
+import com.android.tools.idea.common.model.AccessibilityModelUpdater
+import com.android.tools.idea.common.model.DefaultModelUpdater
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.surface.DelegateInteractionHandler
 import com.android.tools.idea.common.surface.LayoutlibInteractionHandler
@@ -82,6 +85,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.runReadAction
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.event.CaretEvent
 import com.intellij.openapi.fileEditor.FileEditor
@@ -99,7 +103,6 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.ui.JBColor
 import com.intellij.util.ui.UIUtil
-import java.awt.Color
 import java.io.File
 import java.time.Duration
 import java.util.UUID
@@ -140,8 +143,26 @@ import org.jetbrains.kotlin.psi.KtFile
 /** Background color for the surface while "Interactive" is enabled. */
 private val INTERACTIVE_BACKGROUND_COLOR = JBColor(0xF7F8FA, 0x2B2D30)
 
+/**
+ * Default background used by the surface. This is used to restore the state after disabling the
+ * interactive preview.
+ */
+private val DEFAULT_BACKGROUND_COLOR = JBColor(0xFFFFFF, 0x1E1F22)
+
 /** [Notification] group ID. Must match the `groupNotification` entry of `compose-designer.xml`. */
 const val PREVIEW_NOTIFICATION_GROUP_ID = "Compose Preview Notification"
+
+/**
+ * [NlModel.NlModelUpdaterInterface] to be used for updating the Compose model from the Compose
+ * render result, using the [View] hierarchy.
+ */
+private val defaultModelUpdater: NlModel.NlModelUpdaterInterface = DefaultModelUpdater()
+
+/**
+ * [NlModel.NlModelUpdaterInterface] to be used for updating the Compose model from the Compose
+ * render result, using the [AccessibilityNodeInfo] hierarchy.
+ */
+private val accessibilityModelUpdater: NlModel.NlModelUpdaterInterface = AccessibilityModelUpdater()
 
 /**
  * [NlModel] associated preview data
@@ -212,8 +233,10 @@ fun configureLayoutlibSceneManager(
     doNotReportOutOfDateUserClasses()
     if (runAtfChecks) {
       setCustomContentHierarchyParser(accessibilityBasedHierarchyParser)
+      layoutScannerConfig.isLayoutScannerEnabled = true
     } else {
       setCustomContentHierarchyParser(null)
+      layoutScannerConfig.isLayoutScannerEnabled = false
     }
     if (reinflate) {
       forceReinflate()
@@ -314,23 +337,40 @@ class ComposePreviewRepresentation(
 
   init {
     val project = psiFile.project
+    /* b/277124475 */
     project.messageBus
       .connect(this)
       .subscribe(
         PowerSaveMode.TOPIC,
         PowerSaveMode.Listener {
-          fpsLimit =
-            if (PreviewPowerSaveManager.isInPowerSaveMode) {
-              StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get() / 3
-            } else {
-              StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get()
-            }
-          fpsCounter.resetAndStart()
+          updateFpsForCurrentMode()
 
           // When getting out of power save mode, request a refresh
           if (!PreviewPowerSaveManager.isInPowerSaveMode) requestRefresh()
         }
       )
+    val essentialsModeMessengingService = service<EssentialModeMessenger>()
+    project.messageBus
+      .connect(this)
+      .subscribe(
+        essentialsModeMessengingService.TOPIC,
+        EssentialModeMessenger.Listener {
+          updateFpsForCurrentMode()
+          // When getting out of Essential Highlighting mode, request a refresh
+          if (!PreviewPowerSaveManager.isInPowerSaveMode) requestRefresh()
+        }
+      )
+  }
+
+  private fun updateFpsForCurrentMode() {
+    fpsLimit =
+      if (PreviewPowerSaveManager.isInPowerSaveMode) {
+        StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get() / 3
+      }
+      else {
+        StudioFlags.COMPOSE_INTERACTIVE_FPS_LIMIT.get()
+      }
+    fpsCounter.resetAndStart()
   }
 
   /** Whether the preview needs a full refresh or not. */
@@ -429,7 +469,7 @@ class ComposePreviewRepresentation(
 
   private fun onStaticPreviewStart() {
     sceneComponentProvider.enabled = true
-    surface.background = defaultSurfaceBackground
+    surface.background = DEFAULT_BACKGROUND_COLOR
   }
 
   private fun onInteractivePreviewStop() {
@@ -548,24 +588,25 @@ class ComposePreviewRepresentation(
 
   private val composeWorkBench: ComposePreviewView =
     UIUtil.invokeAndWaitIfNeeded(
-      Computable {
-        composePreviewViewProvider.invoke(
-          project,
-          psiFilePointer,
-          projectBuildStatusManager,
-          dataProvider,
-          createMainDesignSurfaceBuilder(
+        Computable {
+          composePreviewViewProvider.invoke(
             project,
-            navigationHandler,
-            delegateInteractionHandler,
-            dataProvider, // Will be overridden by the preview provider
-            this,
-            sceneComponentProvider
-          ),
-          this
-        )
-      }
-    )
+            psiFilePointer,
+            projectBuildStatusManager,
+            dataProvider,
+            createMainDesignSurfaceBuilder(
+              project,
+              navigationHandler,
+              delegateInteractionHandler,
+              dataProvider, // Will be overridden by the preview provider
+              this,
+              sceneComponentProvider
+            ),
+            this
+          )
+        }
+      )
+      .apply { mainSurface.background = DEFAULT_BACKGROUND_COLOR }
 
   @VisibleForTesting
   val staticPreviewInteractionHandler =
@@ -583,12 +624,6 @@ class ComposePreviewRepresentation(
   @get:VisibleForTesting
   val surface: NlDesignSurface
     get() = composeWorkBench.mainSurface
-
-  /**
-   * Default background used by the surface. This is used to restore the state after disabling the
-   * interactive preview.
-   */
-  private val defaultSurfaceBackground: Color = surface.background
 
   /** List of [ComposePreviewElement] being rendered by this editor */
   private var renderedElements: List<ComposePreviewElement> = emptyList()
@@ -807,7 +842,7 @@ class ComposePreviewRepresentation(
 
       // Flow for Preview changes
       launch(workerThread) {
-        previewElementFlowForFile(this@ComposePreviewRepresentation, psiFilePointer).collect {
+        previewElementFlowForFile(psiFilePointer).collect {
           log.debug("PreviewElements updated $it")
           previewElementsFlow.value = it
 
@@ -895,7 +930,7 @@ class ComposePreviewRepresentation(
       // Flow handling file changes and syntax error changes.
       launch(workerThread) {
         merge(
-            psiFileChangeFlow(psiFilePointer.project, this@ComposePreviewRepresentation)
+            psiFileChangeFlow(psiFilePointer.project, this@launch)
               // filter only for the file we care about
               .filter { it.language == KotlinLanguage.INSTANCE }
               .onEach {
@@ -1166,6 +1201,7 @@ class ComposePreviewRepresentation(
         progressIndicator,
         this::onAfterRender,
         previewElementModelAdapter,
+        if (runAtfChecks()) accessibilityModelUpdater else defaultModelUpdater,
         this::configureLayoutlibSceneManagerForPreviewElement
       )
     if (progressIndicator.isCanceled) return // Return early if user has cancelled the refresh

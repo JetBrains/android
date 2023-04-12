@@ -1,0 +1,103 @@
+syntax = "proto3";
+
+package google.play.developer.reporting.v1beta1;
+import "metrics.proto";
+option java_package = "com.google.play.developer.reporting";
+option java_outer_classname = "AnomaliesServiceProto";
+option java_multiple_files = true;
+
+// Reference: https://source.corp.google.com/piper///depot/google3/google/play/developer/reporting/v1main/anomalies_service.proto
+//
+// Service to describe and query anomalies.
+service AnomaliesService {
+  // Lists anomalies in any of the datasets.
+  rpc ListAnomalies(ListAnomaliesRequest) returns (ListAnomaliesResponse) {
+  }
+}
+
+// Represents an anomaly detected in a dataset.
+//
+// Our anomaly detection systems flag datapoints in a time series that fall
+// outside of and expected range derived from historical data. Although those
+// expected ranges have an upper and a lower bound, we only flag anomalies when
+// the data has become unexpectedly _worse_, which usually corresponds to the
+// case where the metric crosses the upper bound.
+//
+// Multiple contiguous datapoints in a timeline outside of the expected range
+// will be grouped into a single anomaly. Therefore, an anomaly represents
+// effectively a segment of a metric's timeline. The information stored in the
+// `timeline_spec`, `dimensions` and `metric` can be used to fetch a full
+// timeline with extended ragne for context.
+//
+// **Required permissions**: to access this resource, the calling user needs the
+// _View app information (read-only)_ permission for the app.
+//
+// (== resource_for v1beta1.anomalies ==)
+message Anomaly {
+  // Name of the anomaly.
+  //
+  // Format: apps/{app}/anomalies/{anomaly}
+  string name = 1;
+
+  // Metric set resource where the anomaly was detected.
+  string metric_set = 2;
+
+  // Timeline specification that covers the anomaly period.
+  TimelineSpec timeline_spec = 3;
+
+  // Combination of dimensions in which the anomaly was detected.
+  repeated DimensionValue dimensions = 4;
+
+  // Metric where the anomaly was detected, together with the anomalous value.
+  MetricValue metric = 5;
+}
+
+// Request to list anomalies in datasets.
+// (-- api-linter: core::0132::request-parent-reference=disabled
+//     aip.dev/not-precedent: There is no app resource on any API yet. --)
+message ListAnomaliesRequest {
+
+  // Parent app for which anomalies were detected.
+  //
+  // Format: apps/{app}
+  string parent = 1;
+
+  // Filtering criteria for anomalies.
+  // For basic filter guidance, please check: https://google.aip.dev/160.
+  //
+  // **Supported functions:**
+  //
+  // * `activeBetween(startTime, endTime)`: If specified, only list anomalies
+  //    that were active in between `startTime` (inclusive) and `endTime`
+  //    (exclusive). Both parameters are expected to conform to an RFC-3339
+  //    formatted string (e.g. `2012-04-21T11:30:00-04:00`). UTC offsets are
+  //    supported. Both `startTime` and `endTime` accept the special value
+  //    `UNBOUNDED`, to signify intervals with no lower or upper bound,
+  //    respectively. Examples:
+  //     * `activeBetween("2021-04-21T11:30:00Z", "2021-07-21T00:00:00Z")`
+  //     * `activeBetween(UNBOUNDED, "2021-11-21T00:00:00-04:00")`
+  //     * `activeBetween("2021-07-21T00:00:00-04:00", UNBOUNDED)`
+  string filter = 2;
+
+  // Maximum size of the returned data.
+  // If unspecified, at most 10 anomalies will be returned.
+  // The maximum value is 100; values above 100 will be coerced to 100.
+  int32 page_size = 3;
+
+  // A page token, received from a previous `ListErrorReports` call.
+  // Provide this to retrieve the subsequent page.
+  //
+  // When paginating, all other parameters provided to `ListErrorReports` must
+  // match the call that provided the page token.
+  string page_token = 4;
+}
+
+// Response with a list of anomalies in datasets.
+message ListAnomaliesResponse {
+
+  // Anomalies that were found.
+  repeated Anomaly anomalies = 1;
+
+  // Continuation token to fetch the next page of data.
+  string next_page_token = 2;
+}

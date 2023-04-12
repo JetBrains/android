@@ -61,7 +61,7 @@ object LayoutInspectorOpenProjectsTracker {
  * Methods of this class are meant to be called on the UI thread, so we don't need to worry about concurrency.
  */
 @UiThread
-class LayoutInspectorProjectService(private val project: Project) {
+class LayoutInspectorProjectService(private val project: Project): Disposable {
 
   companion object {
     @JvmStatic
@@ -73,11 +73,11 @@ class LayoutInspectorProjectService(private val project: Project) {
   private var layoutInspector: LayoutInspector? = null
 
   @UiThread
-  fun getLayoutInspector(disposable: Disposable): LayoutInspector {
+  fun getLayoutInspector(): LayoutInspector {
     ApplicationManager.getApplication().assertIsDispatchThread()
 
     if (layoutInspector == null) {
-      layoutInspector = createLayoutInspector(project, disposable)
+      layoutInspector = createLayoutInspector(project, this)
     }
     return layoutInspector!!
   }
@@ -170,6 +170,8 @@ class LayoutInspectorProjectService(private val project: Project) {
       null
     }
   }
+
+  override fun dispose() { }
 }
 
 @VisibleForTesting

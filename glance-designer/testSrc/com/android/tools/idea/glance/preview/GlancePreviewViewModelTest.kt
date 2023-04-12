@@ -28,6 +28,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.SmartPointerManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert
@@ -73,7 +74,8 @@ class GlancePreviewViewModelTest {
   private val statusManager =
     object : ProjectBuildStatusManager {
       override var isBuilding: Boolean = false
-      override var status: ProjectStatus = ProjectStatus.NotReady
+      override var statusFlow: MutableStateFlow<ProjectStatus> =
+        MutableStateFlow(ProjectStatus.NotReady)
     }
 
   private val testView = TestPreviewView()
@@ -105,7 +107,7 @@ class GlancePreviewViewModelTest {
   @Test
   fun testRefreshWhenNeedsBuild() =
     runBlocking(uiThread) {
-      statusManager.status = ProjectStatus.NeedsBuild
+      statusManager.statusFlow.value = ProjectStatus.NeedsBuild
 
       viewModel.activate()
 
@@ -155,7 +157,7 @@ class GlancePreviewViewModelTest {
       Assert.assertEquals(0, testView.showContentCalls)
       Assert.assertEquals(2, testView.updateToolbarCalls)
 
-      statusManager.status = ProjectStatus.NeedsBuild
+      statusManager.statusFlow.value = ProjectStatus.NeedsBuild
 
       Assert.assertTrue(testView.errorMessages.isEmpty())
       Assert.assertEquals("Initializing...", testView.loadingMessages.last())
@@ -171,7 +173,7 @@ class GlancePreviewViewModelTest {
       Assert.assertEquals(3, testView.updateToolbarCalls)
 
       statusManager.isBuilding = false
-      statusManager.status = ProjectStatus.Ready
+      statusManager.statusFlow.value = ProjectStatus.Ready
       viewModel.buildSucceeded()
 
       Assert.assertTrue(testView.errorMessages.isEmpty())
@@ -293,7 +295,7 @@ class GlancePreviewViewModelTest {
   fun testIsOutOfDate() {
     Assert.assertFalse(viewModel.isOutOfDate)
 
-    statusManager.status = ProjectStatus.OutOfDate.Code
+    statusManager.statusFlow.value = ProjectStatus.OutOfDate.Code
 
     Assert.assertTrue(viewModel.isOutOfDate)
   }

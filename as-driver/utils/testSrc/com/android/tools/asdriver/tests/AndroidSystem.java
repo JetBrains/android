@@ -41,6 +41,10 @@ import org.junit.runners.model.Statement;
  * It has a display, environment variables, a file system etc.
  */
 public class AndroidSystem implements AutoCloseable, TestRule {
+  /**
+   * By default, we set the emulator to a system image that most integration tests should be
+   * using. This version corresponds to {@code INTEGRATION_TEST_SYSTEM_IMAGE} in Bazel.
+   */
   private static final Emulator.SystemImage DEFAULT_EMULATOR_SYSTEM_IMAGE = Emulator.SystemImage.API_29;
 
   private final TestFileSystem fileSystem;

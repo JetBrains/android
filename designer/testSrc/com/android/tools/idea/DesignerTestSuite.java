@@ -20,7 +20,6 @@ import com.android.tools.adtui.swing.IconLoaderRule;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurfaceTest;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import com.android.tools.tests.LeakCheckerRule;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 
@@ -30,8 +29,6 @@ import org.junit.runner.RunWith;
   NlDesignSurfaceTest.class, // Flaky
 })
 public class DesignerTestSuite extends IdeaTestSuiteBase {
-
-  @ClassRule public static LeakCheckerRule checker = new LeakCheckerRule();
 
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 

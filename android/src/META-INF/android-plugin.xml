@@ -350,6 +350,7 @@
 
     <applicationService serviceInterface="com.android.tools.idea.run.NonGradleAndroidArtifactResolver"
                         serviceImplementation="com.android.tools.idea.run.JpsAndroidArtifactResolver"/>
+    <applicationService serviceImplementation="com.android.tools.idea.modes.EssentialModeMessenger"/>
 
     <fileType name="Android 9-Patch"
               implementationClass="com.android.tools.idea.fileTypes.AndroidNinePatchFileType"

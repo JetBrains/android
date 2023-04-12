@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.logcat.filters
 
+import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.logcat.BUNDLE_NAME
 import com.android.tools.idea.logcat.LogcatBundle.message
 import com.android.tools.idea.logcat.PackageNamesProvider
@@ -36,24 +37,28 @@ import java.time.ZoneId
 import java.util.concurrent.TimeUnit
 import java.util.regex.PatternSyntaxException
 
+private const val STUDIO_SPAM_PREFIX = "studio."
+
 /**
  * The top level filter that prepares and executes a [LogcatFilter]
  */
 internal class LogcatMasterFilter(private val logcatFilter: LogcatFilter?) {
   private val settings = AndroidLogcatSettings.getInstance()
+  private val ignoreSpam = StudioFlags.LOGCAT_IGNORE_STUDIO_SPAM_TAGS.get()
 
   fun filter(messages: List<LogcatMessage>, zoneId: ZoneId = ZoneId.systemDefault()): List<LogcatMessage> {
-    val ignoredTags = settings.ignoredTags
     if (logcatFilter == null) {
-      return messages.filter { !ignoredTags.contains(it.header.tag) }
+      return messages.filter { !it.isSpam() }
     }
     logcatFilter.prepare()
     return messages.filter {
-      it.header === SYSTEM_HEADER || (logcatFilter.matches(LogcatMessageWrapper(it, zoneId)) && !ignoredTags.contains(it.header.tag))
+      it.header === SYSTEM_HEADER || (logcatFilter.matches(LogcatMessageWrapper(it, zoneId)) && !it.isSpam())
     }
   }
-}
 
+  private fun LogcatMessage.isSpam() =
+    settings.ignoredTags.contains(header.tag) || (ignoreSpam && header.tag.startsWith(STUDIO_SPAM_PREFIX))
+}
 /**
  * Matches a [LogcatMessage]
  */

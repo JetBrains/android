@@ -3,7 +3,8 @@ load("//tools/base/bazel:kotlin.bzl", "kotlin_library")
 load("//tools/base/bazel:maven.bzl", "maven_repository")
 load("//tools/adt/idea/android-test-framework:check_tests.bzl", "check_tests")
 load("//tools/adt/idea/studio:studio.bzl", "studio_data")
-load("//tools/base/bazel:proto.bzl", "android_java_proto_library", "java_proto_library")
+load("//tools/base/bazel:proto.bzl", "java_proto_library")
+load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 java_proto_library(
     name = "android-core-proto",
@@ -62,8 +63,8 @@ iml_module(
         "//tools/data-binding:studio.compilerCommon[module]",
         "//tools/data-binding:studio.compiler[module]",
         "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[module]",
-        "//tools/adt/idea/.idea/libraries:baksmali",
-        "//tools/adt/idea/.idea/libraries:dexlib2",
+        "//tools/adt/idea/.idea/libraries:google-baksmali",
+        "//tools/adt/idea/.idea/libraries:google-dexlib2",
         "//tools/base/apkparser:studio.android.sdktools.binary-resources[module]",
         "//tools/base/apkparser/analyzer:studio.android.sdktools.analyzer[module]",
         "//tools/base/pixelprobe:studio.android.sdktools.pixelprobe[module]",
@@ -129,6 +130,7 @@ iml_module(
         "//tools/base/process-monitor:studio.android.sdktools.process-monitor[module]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module]",
         "//prebuilts/r8",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module]",
     ],
 )
 
@@ -249,8 +251,8 @@ iml_module(
     test_resources = ["testResources"],
     test_srcs = ["testSrc"],
     test_tags = [
-        "cpu:3",
         "block-network",
+        "cpu:3",
         "no_test_mac",
     ],
     test_timeout = "long",
@@ -277,7 +279,7 @@ iml_module(
         "//tools/base/build-system:studio.android.sdktools.manifest-merger[module, test]",
         "//tools/base/resource-repository:studio.android.sdktools.resource-repository[module, test]",
         "//tools/adt/idea/layoutlib-loader:intellij.android.layoutlib-loader[module, test]",
-        "//tools/adt/idea/.idea/libraries:dexlib2[test]",
+        "//tools/adt/idea/.idea/libraries:google-dexlib2[test]",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
         "//tools/analytics-library/shared:analytics-shared[module, test]",
         "//tools/analytics-library/testing:android.sdktools.analytics-testing[module, test]",
@@ -358,6 +360,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:jetbrains.kotlinx.coroutines.test[test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
         "//tools/adt/idea/streaming:intellij.android.streaming[module, test]",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
     ],
 )
 
@@ -382,8 +385,8 @@ filegroup(
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
         "//conditions:default": [
-            "//tools/base/deploy/installer:test-installer",
             "//tools/base/deploy/installer:android-installer",
+            "//tools/base/deploy/installer:test-installer",
             "//tools/base/deploy/installer/tests:artifacts",
             "//tools/base/deploy/proto:deploy_java_proto",
         ],
@@ -450,6 +453,8 @@ filegroup(
         ":layout-inspector-artifacts",
         ":profiler-artifacts",
         ":transport-artifacts",
+        "//tools/adt/idea/as-driver:as_driver_deploy.jar",
+        "//tools/adt/idea/build-attribution/proto:build-analysis-results-proto",
         "//tools/adt/idea/server-flags:server-flag-test-proto",
         "//tools/adt/idea/streaming/screen-sharing-agent:bundle",
         "//tools/adt/idea/studio:default_user_jvm_args",
@@ -458,7 +463,9 @@ filegroup(
         "//tools/analytics-library/protos/src/main/proto:studio.proto",
         "//tools/base/bazel:studio-grpc",
         "//tools/base/bazel:studio-proto",
+        "//tools/base/bazel:utp-core-proto-jarjar",
         "//tools/base/build-system:gradle-api_neverlink",  # Provided when run in Gradle.
+        "//tools/base/common:version",
         "//tools/base/ddmlib:am-instrumentation-data-proto",
         "//tools/base/ddmlib:app-processes-proto",
         "//tools/base/emulator/proto:emulator_java_proto",
@@ -469,18 +476,14 @@ filegroup(
         "//tools/base/third_party/kotlin:kotlin-m2repository",
         "//tools/base/threading-agent:threading_agent.jar",
         "//tools/base/tracer:trace_agent",
-        "//tools/adt/idea/as-driver:as_driver_deploy.jar",
-        "//tools/base/bazel:utp-core-proto-jarjar",
         "//tools/base/utp/android-test-plugin-host-device-info-proto:libstudio.android-test-plugin-host-device-info-proto",
         "//tools/base/utp/android-test-plugin-host-retention-proto:libstudio.android-test-plugin-host-retention-proto",
         "//tools/base/utp/android-test-plugin-result-listener-gradle-proto:libstudio.android-test-plugin-result-listener-gradle-proto",
-        "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
         "//tools/data-binding:compilerCommon.antlr.shaded",
+        "//tools/data-binding:compilerCommon.antlr_runtime.shaded",
         "//tools/vendor/google/firebase/src/proto:firebase_java_proto",
         "//tools/vendor/google/ml/sml-core/aida:aida_artifacts",
         "//tools/vendor/google/url-assistant/src/proto:urlassistant_proto",
-        "//tools/adt/idea/build-attribution/proto:build-analysis-results-proto",
-        "//tools/base/common:version",
     ] + select({
         "//tools/base/bazel:windows": [],
         "//conditions:default": [
@@ -496,28 +499,32 @@ maven_repository(
     artifacts = [
         "@maven//:android.arch.navigation.navigation-fragment_1.0.0",
         "@maven//:android.arch.persistence.room.runtime_1.0.0",
-        "@maven//:androidx.annotation.annotation_1.2.0-rc01",
+        "@maven//:androidx.annotation.annotation_1.6.0",
         "@maven//:androidx.appcompat.appcompat_1.0.2",
         "@maven//:androidx.appcompat.appcompat_1.3.0",
         "@maven//:androidx.benchmark.benchmark-gradle-plugin_1.1.1",
-        "@maven//:androidx.compose.ui.ui-tooling_1.3.0",
+        "@maven//:androidx.compose.foundation.foundation_1.4.0",
+        "@maven//:androidx.compose.ui.ui-tooling_1.4.0",
         "@maven//:androidx.constraintlayout.constraintlayout_1.1.3",
         "@maven//:androidx.constraintlayout.constraintlayout_2.1.3",
         "@maven//:androidx.core.core-ktx_1.0.1",
         "@maven//:androidx.core.core-ktx_1.2.0",
         "@maven//:androidx.core.core-ktx_1.6.0",
+        "@maven//:androidx.core.core-ktx_1.9.0",
         "@maven//:androidx.core.core_1.5.0-beta01",
         "@maven//:androidx.core.core_1.5.0-rc02",
         "@maven//:androidx.legacy.legacy-support-v4_1.0.0",
-        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.4.0",
         "@maven//:androidx.lifecycle.lifecycle-common-java8_2.5.1",
+        "@maven//:androidx.lifecycle.lifecycle-common-java8_2.6.1",
         "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.3.1",
-        "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.4.0",
-        "@maven//:androidx.lifecycle.lifecycle-runtime_2.4.0",
+        "@maven//:androidx.lifecycle.lifecycle-livedata-ktx_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-process_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-runtime_2.6.1",
+        "@maven//:androidx.lifecycle.lifecycle-viewmodel-ktx_2.3.1",
         "@maven//:androidx.navigation.navigation-fragment-ktx_2.3.5",
         "@maven//:androidx.navigation.navigation-ui-ktx_2.3.5",
         "@maven//:androidx.palette.palette-ktx_1.0.0",
-        "@maven//:androidx.recyclerview.recyclerview_1.2.1",
+        "@maven//:androidx.recyclerview.recyclerview_1.3.0",
         "@maven//:androidx.savedstate.savedstate_1.1.0-rc01",
         "@maven//:androidx.test.espresso.espresso-core_3.1.0",
         "@maven//:androidx.test.espresso.espresso-core_3.2.0",
@@ -534,7 +541,7 @@ maven_repository(
         "@maven//:com.android.support.test.espresso.espresso-core_3.0.2",
         "@maven//:com.android.tools.desugar_jdk_libs_1.1.5",
         "@maven//:com.google.android.gms.play-services-maps_17.0.1",
-        "@maven//:com.google.android.gms.play-services-maps_18.0.2",
+        "@maven//:com.google.android.gms.play-services-maps_18.1.0",
         "@maven//:com.google.android.material.material_1.4.0",
         "@maven//:com.google.auto.value.auto-value_1.6.2",
         "@maven//:com.google.code.gson.gson_2.2.4",
@@ -602,8 +609,6 @@ java_binary(
         ":update_offline_gmaven_index",
     ],
 )
-
-load("//tools/base/bazel:jvm_import.bzl", "jvm_import")
 
 # managed by go/iml_to_build
 jvm_import(
@@ -703,5 +708,6 @@ iml_module(
         "//tools/adt/idea/android-kotlin:intellij.android.kotlin.idea[module, test]",
         "//prebuilts/studio/intellij-sdk:studio-sdk-plugin-Kotlin[test]",
         "//tools/adt/idea/android-lint:intellij.android.lint[module, test]",
+        "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
     ],
 )

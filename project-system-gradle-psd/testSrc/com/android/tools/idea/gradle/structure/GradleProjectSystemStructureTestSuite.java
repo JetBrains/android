@@ -18,7 +18,6 @@ package com.android.tools.idea.gradle.structure;
 import com.android.testutils.JarTestSuiteRunner;
 import com.android.tools.tests.GradleDaemonsRule;
 import com.android.tools.tests.IdeaTestSuiteBase;
-import com.android.tools.tests.LeakCheckerRule;
 import com.intellij.ui.CoreIconManager;
 import com.intellij.ui.IconManager;
 import org.junit.ClassRule;
@@ -29,8 +28,6 @@ import org.junit.runner.RunWith;
   GradleProjectSystemStructureTestSuite.class
 })
 public class GradleProjectSystemStructureTestSuite extends IdeaTestSuiteBase {
-  @ClassRule public static LeakCheckerRule checker = new LeakCheckerRule();
-
   @ClassRule public static GradleDaemonsRule gradle = new GradleDaemonsRule();
 
   static {

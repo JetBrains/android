@@ -30,8 +30,9 @@ import com.android.tools.idea.rendering.classloading.ClassTransform;
 import com.android.tools.idea.rendering.imagepool.ImagePool;
 import com.android.tools.idea.rendering.imagepool.ImagePoolFactory;
 import com.android.tools.idea.rendering.parsers.ILayoutPullParserFactory;
+import com.android.tools.idea.rendering.parsers.PsiXmlFile;
 import com.android.tools.idea.rendering.parsers.TagSnapshot;
-import com.android.tools.idea.rendering.parsers.RenderXmlTag;
+import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
@@ -43,13 +44,12 @@ import com.intellij.util.concurrency.AppExecutorUtil;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import com.android.tools.sdk.AndroidPlatform;
 import com.android.tools.sdk.AndroidTargetData;
+import java.util.function.Supplier;
 import org.jetbrains.android.uipreview.StudioModuleClassLoaderManager;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
@@ -101,13 +101,6 @@ final public class RenderService implements Disposable {
     return ourExecutor;
   }
 
-  /**
-   * Returns true if the current thread is the render thread managed by this executor.
-   */
-  public static boolean isCurrentThreadARenderThread() {
-    return ourExecutor.isCurrentThreadARenderThread();
-  }
-
   @Nullable
   public static LayoutLibrary getLayoutLibrary(
     @Nullable IAndroidTarget target,
@@ -129,8 +122,12 @@ final public class RenderService implements Disposable {
   }
 
   @NotNull
-  public RenderLogger createLogger(@Nullable Project project, boolean logFramework, @NotNull RenderProblem.RunnableFixFactory fixFactory) {
-    return new RenderLogger(project, myCredential, logFramework, fixFactory);
+  public RenderLogger createLogger(
+    @Nullable Project project,
+    boolean logFramework,
+    @NotNull RenderProblem.RunnableFixFactory fixFactory,
+    @NotNull Supplier<HtmlLinkManager> linkManagerFactory) {
+    return new RenderLogger(project, myCredential, logFramework, fixFactory, linkManagerFactory);
   }
 
   @NotNull
@@ -153,30 +150,6 @@ final public class RenderService implements Disposable {
   @Override
   public void dispose() {
     myImagePool.dispose();
-  }
-
-  /**
-   * Runs a action that requires the rendering lock. Layoutlib is not thread safe so any rendering actions should be called using this
-   * method.
-   *
-   * @deprecated This method is not safe to call, it might block unexpectedly waiting for the render thread.
-   *  Use {@link RenderService#getRenderAsyncActionExecutor()} instead.
-   */
-  @Deprecated
-  public static void runRenderAction(@NotNull final Runnable runnable) throws Exception {
-    runRenderAction(Executors.callable(runnable));
-  }
-
-  /**
-   * Runs a action that requires the rendering lock. Layoutlib is not thread safe so any rendering actions should be called using this
-   * method.
-   *
-   * @deprecated This method is not safe to call, it might block unexpectedly waiting for the render thread.
-   *  Use {@link RenderService#getRenderAsyncActionExecutor()} instead.
-   */
-  @Deprecated
-  public static <T> T runRenderAction(@NotNull Callable<T> callable) throws Exception {
-    return ourExecutor.runAction(callable);
   }
 
   /**
@@ -574,7 +547,9 @@ final public class RenderService implements Disposable {
                            privateClassLoader, myAdditionalProjectTransform, myAdditionalNonProjectTransform, myOnNewModuleClassLoader,
                            classesToPreload, reportOutOfDateUserClasses, myPriority, myMinDownscalingFactor);
 
-          task.setXmlFile(myXmlFile);
+          if (myXmlFile != null) {
+            task.setXmlFile(new PsiXmlFile(myXmlFile));
+          }
 
           task
             .setDecorations(showDecorations)

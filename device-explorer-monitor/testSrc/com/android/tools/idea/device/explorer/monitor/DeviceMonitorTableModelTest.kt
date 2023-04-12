@@ -271,10 +271,10 @@ class DeviceMonitorTableModelTest {
   )
 
   private fun createProcessInfo(pid: Int) =
-    ProcessInfo(device, pid, "Test Process $pid")
+    ProcessInfo(device, pid = pid, processName = "Test Process $pid")
 
   private fun createChangedProcessInfo(oldPid: Int, newPid: Int) =
-    ProcessInfo(device, newPid, "Test Process $oldPid")
+    ProcessInfo(device, pid = newPid, processName= "Test Process $oldPid")
 
   class TestListener : TableModelListener {
     var insertRowCount = 0

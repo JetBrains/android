@@ -45,7 +45,7 @@ public class DeviceManagerToolWindowFixture extends ToolWindowFixture {
 
   public AvdEditWizardFixture clickCreateDeviceButton() {
     JButton button = GuiTests.waitUntilShowing(robot(),
-                                               Matchers.byText(JButton.class, "Create device").andIsEnabled());
+                                               Matchers.byText(JButton.class, "Create Device").andIsEnabled());
     myRobot.click(button);
     return AvdEditWizardFixture.find(robot());
   }

@@ -24,6 +24,9 @@ package com.android.tools.idea.insights
  * and [Authenticated] states.
  */
 sealed class AppInsightsModel {
+  /** The system hasn't initialized yet. Represents the state before authentication is known. */
+  object Uninitialized : AppInsightsModel()
+
   /** The user is not signed in, App Insights will not work until they do. */
   object Unauthenticated : AppInsightsModel()
 

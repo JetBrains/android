@@ -36,7 +36,7 @@ private fun createErrorResult(file: PsiFile, errorResult: Result, logger: Render
     file,
     module.project,
     { module },
-    logger ?: RenderLogger(module.project, null, false, RenderProblem.NOOP_RUNNABLE_FIX_FACTORY),
+    logger ?: RenderLogger(module.project),
     null,
     false,
     errorResult,

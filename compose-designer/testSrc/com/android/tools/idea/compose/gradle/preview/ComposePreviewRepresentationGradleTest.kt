@@ -322,16 +322,12 @@ class ComposePreviewRepresentationGradleTest {
     withContext(uiThread) { fakeUi.root.validate() }
 
     assertEquals(
-      """
-        DefaultPreview
-        TwoElementsPreview
-        OnlyATextNavigation
-      """
-        .trimIndent(),
+      listOf("DefaultPreview", "OnlyATextNavigation", "TwoElementsPreview"),
       fakeUi
         .findAllComponents<SceneViewPeerPanel>()
         .filter { it.isShowing }
-        .joinToString("\n") { it.displayName }
+        .map { it.displayName }
+        .sorted()
     )
   }
 

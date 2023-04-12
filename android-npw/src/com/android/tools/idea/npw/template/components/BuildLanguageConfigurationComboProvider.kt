@@ -17,7 +17,7 @@ package com.android.tools.idea.npw.template.components
 
 import com.android.tools.idea.observable.AbstractProperty
 import com.android.tools.idea.observable.ui.SelectedItemProperty
-import com.android.tools.idea.wizard.template.BuildConfigurationLanguage
+import com.android.tools.idea.wizard.template.BuildConfigurationLanguageForNewModule
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.SimpleListCellRenderer
 import org.jetbrains.android.util.AndroidBundle.message
@@ -28,11 +28,11 @@ import javax.swing.JList
  * Provides a combobox which presents the user with a list of build configuration languages.
  */
 class BuildConfigurationLanguageComboProvider : ComponentProvider<ComboBox<*>>() {
-  override fun createComponent(): ComboBox<BuildConfigurationLanguage> = ComboBox(
-    DefaultComboBoxModel(BuildConfigurationLanguage.values())).apply {
-    renderer = object : SimpleListCellRenderer<BuildConfigurationLanguage>() {
-      override fun customize(list: JList<out BuildConfigurationLanguage>,
-                             value: BuildConfigurationLanguage?,
+  override fun createComponent(): ComboBox<BuildConfigurationLanguageForNewModule> = ComboBox(
+    DefaultComboBoxModel(BuildConfigurationLanguageForNewModule.values())).apply {
+    renderer = object : SimpleListCellRenderer<BuildConfigurationLanguageForNewModule>() {
+      override fun customize(list: JList<out BuildConfigurationLanguageForNewModule>,
+                             value: BuildConfigurationLanguageForNewModule?,
                              index: Int,
                              selected: Boolean,
                              hasFocus: Boolean) {

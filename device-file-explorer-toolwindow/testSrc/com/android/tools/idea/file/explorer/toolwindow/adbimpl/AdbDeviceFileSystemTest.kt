@@ -15,21 +15,17 @@
  */
 package com.android.tools.idea.file.explorer.toolwindow.adbimpl
 
-import com.android.adblib.AdbSession
 import com.android.adblib.ConnectedDevice
-import com.android.adblib.SOCKET_CONNECT_TIMEOUT_MS
 import com.android.adblib.deviceInfo
-import com.android.adblib.testingutils.CloseablesRule
 import com.android.adblib.testingutils.CoroutineTestUtils.runBlockingWithTimeout
 import com.android.adblib.testingutils.CoroutineTestUtils.waitNonNull
-import com.android.adblib.testingutils.FakeAdbServerProvider
-import com.android.adblib.testingutils.TestingAdbSessionHost
 import com.android.fakeadbserver.DeviceFileState
 import com.android.fakeadbserver.DeviceState
-import com.android.fakeadbserver.ShellProtocolType
+import com.android.fakeadbserver.ShellProtocolType.SHELL
 import com.android.fakeadbserver.devicecommandhandlers.SyncCommandHandler
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProvisioner
+import com.android.sdklib.deviceprovisioner.testing.DeviceProvisionerRule
 import com.android.tools.idea.adb.AdbShellCommandException
 import com.android.tools.idea.concurrency.FutureCallbackExecutor
 import com.android.tools.idea.file.explorer.toolwindow.fs.FileTransferProgress
@@ -74,27 +70,17 @@ class AdbDeviceFileSystemTest {
 
   val shellCommands = TestShellCommands()
 
-  @JvmField @Rule val thrown = ExpectedException.none()
+  @JvmField
+  @Rule
+  val thrown = ExpectedException.none()
 
-  @JvmField @Rule val closeables = CloseablesRule()
-
-  val fakeAdb =
-    closeables.register(
-      FakeAdbServerProvider()
-        .installDefaultCommandHandlers()
-        .installDeviceHandler(TestShellCommandHandler(ShellProtocolType.SHELL, shellCommands))
-        .installDeviceHandler(SyncCommandHandler())
-        .build()
-    )
-  val host = closeables.register(TestingAdbSessionHost())
-  val session =
-    AdbSession.create(
-      host,
-      fakeAdb.createChannelProvider(host),
-      Duration.ofMillis(SOCKET_CONNECT_TIMEOUT_MS)
-    )
-
-  val provisioner = DeviceProvisioner.create(session, emptyList())
+  @JvmField
+  @Rule
+  val deviceProvisionerRule = DeviceProvisionerRule {
+    installDefaultCommandHandlers()
+    installDeviceHandler(SyncCommandHandler())
+    installDeviceHandler(TestShellCommandHandler(SHELL, shellCommands))
+  }
 
   val dispatcher = PooledThreadExecutor.INSTANCE.asCoroutineDispatcher()
 
@@ -105,9 +91,8 @@ class AdbDeviceFileSystemTest {
     // AdbLib makes use of ApplicationManager, so we need to set one up.
     TestApplicationManager.getInstance()
 
-    fakeAdb.start()
     deviceState =
-      fakeAdb.connectDevice(
+      deviceProvisionerRule.fakeAdb.connectDevice(
         deviceId = "test_device_01",
         manufacturer = "Google",
         deviceModel = "Pixel 10",
@@ -120,7 +105,7 @@ class AdbDeviceFileSystemTest {
     setUserIsRoot(false)
 
     deviceHandle = runBlockingWithTimeout(Duration.ofSeconds(5)) {
-      provisioner.waitForOnlineDevice()
+      deviceProvisionerRule.deviceProvisioner.waitForOnlineDevice()
     }
 
     connectedDevice = checkNotNull(deviceHandle.state.connectedDevice)
@@ -138,7 +123,6 @@ class AdbDeviceFileSystemTest {
 
   @After
   fun cleanUp() {
-    fakeAdb.close()
     Disposer.dispose(myParentDisposable)
     UniqueFileNameGenerator.setInstanceOverride(null)
   }

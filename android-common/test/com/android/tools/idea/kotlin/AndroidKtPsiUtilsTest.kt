@@ -21,9 +21,9 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase
 import org.intellij.lang.annotations.Language
-import org.jetbrains.kotlin.analysis.api.KtAnalysisApiInternals
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
@@ -216,6 +216,30 @@ class AndroidKtPsiUtilsTest : LightJavaCodeInsightFixtureTestCase() {
     assertThat(classReference.text).isEqualTo("R")
     assertThat(classReference.getNextInQualifiedChain()!!.text).isEqualTo("layout")
     assertThat(classReference.getNextInQualifiedChain()!!.getNextInQualifiedChain()!!.text).isEqualTo("activity")
+  }
+
+  @Test
+  fun testToPsiType_class() {
+    val file = setFileContents("class Fo<caret>o".trimIndent())
+
+    val classElement = file.getElementAtCaret<KtClassOrObject>()
+    assertThat(classElement.toPsiType()?.canonicalText).isEqualTo("com.android.example.Foo")
+  }
+
+  @Test
+  fun testToPsiType_interface() {
+    val file = setFileContents("class Fo<caret>o".trimIndent())
+
+    val classElement = file.getElementAtCaret<KtClassOrObject>()
+    assertThat(classElement.toPsiType()?.canonicalText).isEqualTo("com.android.example.Foo")
+  }
+
+  @Test
+  fun testToPsiType_object() {
+    val file = setFileContents("class Fo<caret>o".trimIndent())
+
+    val classElement = file.getElementAtCaret<KtClassOrObject>()
+    assertThat(classElement.toPsiType()?.canonicalText).isEqualTo("com.android.example.Foo")
   }
 
   private inline fun <reified T : PsiElement> PsiFile.getElementAtCaret(): T =
