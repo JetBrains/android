@@ -1085,7 +1085,7 @@ public final class StudioFlags {
     EDITOR, "dagger.index.enabled",
     "Enable the dagger index",
     "If enabled, the dagger index is used for gutter icon and find usages support.",
-    false
+    true
   );
 
   public static final Flag<Boolean> TRANSLATIONS_EDITOR_SYNCHRONIZATION = Flag.create(
