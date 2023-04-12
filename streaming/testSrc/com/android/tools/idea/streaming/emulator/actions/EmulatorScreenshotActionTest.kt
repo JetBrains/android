@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.streaming.emulator.actions
 
+import com.android.emulator.control.FoldedDisplay
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.ImageUtils
@@ -28,6 +29,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.android.tools.idea.streaming.emulator.FakeEmulator
 import com.android.tools.idea.ui.screenshot.ScreenshotViewer
+import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RuleChain
@@ -68,12 +70,13 @@ class EmulatorScreenshotActionTest {
 
   @Before
   fun setUp() {
-    emulatorView = emulatorViewRule.newEmulatorView()
-    emulator = emulatorViewRule.getFakeEmulator(emulatorView)
   }
 
   @Test
   fun testAction() {
+    emulatorView = emulatorViewRule.newEmulatorView()
+    emulator = emulatorViewRule.getFakeEmulator(emulatorView)
+
     emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
 
     waitForCondition(500, TimeUnit.SECONDS) { findScreenshotViewer() != null }
@@ -92,6 +95,52 @@ class EmulatorScreenshotActionTest {
     PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
     image = ui.getComponent<ImageComponent>().document.value
     assertAppearance(image, "WithFrame")
+  }
+
+  @Test
+  fun testFoldableUnfoldAction() {
+    emulatorView = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createFoldableAvd(path) }
+    emulator = emulatorViewRule.getFakeEmulator(emulatorView)
+
+    emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
+
+    waitForCondition(500, TimeUnit.SECONDS) { findScreenshotViewer() != null }
+    val screenshotViewer = findScreenshotViewer()!!
+    val rootPane = screenshotViewer.rootPane
+    val ui = FakeUi(rootPane)
+
+    // 7.6" Fold-in with outer display does not have a device frame, so this drop down box should
+    // not show.
+    assertThat(ui.findComponent<JComboBox<*>>()).isNull()
+
+    EDT.dispatchAllInvocationEvents()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    var image = ui.getComponent<ImageComponent>().document.value
+    assertAppearance(image, "Unfolded_WithoutFrame")
+  }
+
+  @Test
+  fun testFoldableFoldAction() {
+    emulatorView = emulatorViewRule.newEmulatorView { path -> FakeEmulator.createFoldableAvd(path) }
+    emulator = emulatorViewRule.getFakeEmulator(emulatorView)
+    val config = emulatorView.emulator.emulatorConfig
+    emulator.setFoldedDisplay(FoldedDisplay.newBuilder().setWidth(config.displayWidth / 2).setHeight(config.displayHeight).build())
+
+    emulatorViewRule.executeAction("android.device.screenshot", emulatorView)
+
+    waitForCondition(500, TimeUnit.SECONDS) { findScreenshotViewer() != null }
+    val screenshotViewer = findScreenshotViewer()!!
+    val rootPane = screenshotViewer.rootPane
+    val ui = FakeUi(rootPane)
+
+    // 7.6" Fold-in with outer display does not have a device frame, so this drop down box should
+    // not show.
+    assertThat(ui.findComponent<JComboBox<*>>()).isNull()
+
+    EDT.dispatchAllInvocationEvents()
+    PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+    var image = ui.getComponent<ImageComponent>().document.value
+    assertAppearance(image, "Folded_WithoutFrame")
   }
 
   private fun findScreenshotViewer(): ScreenshotViewer? {

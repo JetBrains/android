@@ -96,8 +96,9 @@ class EmulatorScreenshotAction : AbstractEmulatorAction() {
 
     private fun showScreenshotViewer(project: Project, screenshotImage: ScreenshotImage, backingFile: Path,
                                      screenshotSupplier: ScreenshotSupplier, screenshotPostprocessor: ScreenshotPostprocessor?) {
+      var framingOptions = screenshotPostprocessor?.let { listOf(avdFrame) } ?: listOf()
       val viewer = object : ScreenshotViewer(project, screenshotImage, backingFile, screenshotSupplier, screenshotPostprocessor,
-                                             listOf(avdFrame), 0, EnumSet.noneOf(Option::class.java)) {
+                                             framingOptions, 0, EnumSet.noneOf(Option::class.java)) {
         override fun doOKAction() {
           super.doOKAction()
           screenshot?.let {
