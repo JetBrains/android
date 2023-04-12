@@ -16,6 +16,10 @@
 package com.android.tools.idea.dagger.index
 
 import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.openapi.project.ProjectManager
+import com.intellij.openapi.roots.ProjectFileIndex
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.impl.source.JavaFileElementType
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.util.indexing.DataIndexer
 import com.intellij.util.indexing.DefaultFileTypeSpecificInputFilter
@@ -41,10 +45,27 @@ class DaggerIndex : FileBasedIndexExtension<String, Set<IndexValue>>() {
   override fun getName(): ID<String, Set<IndexValue>> = NAME
   override fun dependsOnFileContent() = true
   override fun getVersion() = 0
-  override fun getInputFilter() =
-    DefaultFileTypeSpecificInputFilter(KotlinFileType.INSTANCE, JavaFileType.INSTANCE)
+  override fun getInputFilter(): FileBasedIndex.InputFilter = DaggerIndexInputFilter
   override fun getKeyDescriptor(): KeyDescriptor<String> = EnumeratorStringDescriptor.INSTANCE
   override fun getValueExternalizer(): DataExternalizer<Set<IndexValue>> = IndexValue.Externalizer
   override fun getIndexer(): DataIndexer<String, Set<IndexValue>, FileContent> =
     DaggerDataIndexer.INSTANCE
+
+  private object DaggerIndexInputFilter :
+    DefaultFileTypeSpecificInputFilter(KotlinFileType.INSTANCE, JavaFileType.INSTANCE) {
+    override fun acceptInput(file: VirtualFile): Boolean {
+      return when (file.fileType) {
+        JavaFileType.INSTANCE ->
+          super.acceptInput(file) && JavaFileElementType.isInSourceContent(file)
+        KotlinFileType.INSTANCE -> super.acceptInput(file) && file.isInSourceContentOfOpenProject()
+        else -> throw IllegalArgumentException("Unexpected file type ${file.fileType}")
+      }
+    }
+
+    private fun VirtualFile.isInSourceContentOfOpenProject(): Boolean {
+      return ProjectManager.getInstance().openProjects.any {
+        ProjectFileIndex.getInstance(it).isInSourceContent(this)
+      }
+    }
+  }
 }
