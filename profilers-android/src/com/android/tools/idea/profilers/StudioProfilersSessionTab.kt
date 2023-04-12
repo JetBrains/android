@@ -54,16 +54,16 @@ class StudioProfilersSessionTab(private val profilers: StudioProfilers,
     val metaData = profilers.sessionsManager.selectedSessionMetaData
     // setTitle appends to the ToolWindow's existing name (i.e. "Profiler"), hence we only need to create and set the string for the
     // session's name.
-    window.title = metaData.sessionName
+    window.setTitle(metaData.sessionName)
   }
 
   private fun profilingSessionChanged() {
     val profilingSession = profilers.sessionsManager.profilingSession
-    if (SessionsManager.isSessionAlive(profilingSession)) {
-      window.icon = ExecutionUtil.getLiveIndicator(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER)
-    }
-    else {
-      window.icon = StudioIcons.Shell.ToolWindows.ANDROID_PROFILER
-    }
+
+    window.setIcon(if (SessionsManager.isSessionAlive(profilingSession)) {
+      ExecutionUtil.getLiveIndicator(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER)
+    } else {
+      StudioIcons.Shell.ToolWindows.ANDROID_PROFILER
+    })
   }
 }

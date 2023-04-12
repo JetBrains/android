@@ -22,30 +22,23 @@ import javax.swing.Icon
 
 /** Wrapper of [ToolWindow] that abstracts away Intellij's tool window infrastructure from profiler code. */
 interface ToolWindowWrapper {
-  var maxmized: Boolean
-  var title: String?
-  var icon: Icon?
+  fun setTitle(title: String?)
+
+  fun setIcon(icon: Icon)
+
   fun removeContent()
 }
 
 class ToolWindowWrapperImpl(project: Project, private val toolWindow: ToolWindow) : ToolWindowWrapper {
-
   private val manager = ToolWindowManager.getInstance(project)
-  override var maxmized: Boolean
-    get() = manager.isMaximized(toolWindow)
-    set(value) {
-      if (!maxmized) manager.setMaximized(toolWindow, value)
-    }
-  override var title: String?
-    get() = toolWindow.title
-    set(value) {
-      toolWindow.title = value
-    }
-  override var icon: Icon?
-    get() = toolWindow.icon
-    set(value) {
-      value?.let { icon -> toolWindow.setIcon(icon) }
-    }
+
+  override fun setTitle(title: String?) {
+    toolWindow.title = title
+  }
+
+  override fun setIcon(icon: Icon) {
+      toolWindow.setIcon(icon)
+  }
 
   override fun removeContent() {
     AndroidProfilerToolWindowFactory.removeContent(toolWindow)
