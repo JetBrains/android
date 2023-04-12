@@ -1,6 +1,8 @@
 package com.android.tools.idea.uibuilder.options
 
 import com.android.tools.idea.IdeInfo
+import com.android.tools.idea.editors.fast.FastPreviewConfiguration
+import com.android.tools.idea.flags.StudioFlags
 import com.intellij.ide.ui.search.SearchableOptionContributor
 import com.intellij.ide.ui.search.SearchableOptionProcessor
 import com.intellij.openapi.options.BoundConfigurable
@@ -59,6 +61,7 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
   private var magnifySensitivity: JSlider? = null
 
   private val state = AndroidEditorSettings.getInstance().globalState
+  private val fastPreviewState = FastPreviewConfiguration.getInstance()
 
   override fun getId() = CONFIGURABLE_ID
 
@@ -127,6 +130,16 @@ class NlOptionsConfigurable : BoundConfigurable(DISPLAY_NAME), SearchableConfigu
                 )
                 .applyToComponent { value = percentageValue }
                 .component
+          }
+        }
+      }
+      group("Compose Preview") {
+        if (StudioFlags.COMPOSE_FAST_PREVIEW.get()) {
+          row {
+            checkBox("Enable live update")
+              .bindSelected(fastPreviewState::isEnabled) {
+                fastPreviewState.isEnabled = it
+              }
           }
         }
       }

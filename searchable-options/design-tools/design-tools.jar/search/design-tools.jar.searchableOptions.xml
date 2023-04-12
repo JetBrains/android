@@ -194,6 +194,8 @@
   </configurable>
   <configurable id="nele.options" configurable_name="Design Tools">
     <option name="code" hit="Code" />
+    <option name="compose" hit="Compose Preview" />
+    <option name="preview" hit="Compose Preview" />
     <option name="compose" hit="Compose files:" />
     <option name="files" hit="Compose files:" />
     <option name="default" hit="Default Editor Mode" />
@@ -203,6 +205,9 @@
     <option name="design" hit="Design Tools" />
     <option name="tools" hit="Design Tools" />
     <option name="drawables" hit="Drawables:" />
+    <option name="enable" hit="Enable live update" />
+    <option name="live" hit="Enable live update" />
+    <option name="update" hit="Enable live update" />
     <option name="files" hit="Other Kotlin files:" />
     <option name="kotlin" hit="Other Kotlin files:" />
     <option name="other" hit="Other Kotlin files:" />
