@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.run.deployment.liveedit
 
+import com.google.wireless.android.sdk.stats.LiveEditEvent.Status
 import com.intellij.psi.PsiFile
 
 class LiveEditUpdateException(val error: Error, val details: String = "", val source: PsiFile?, cause : Throwable?) : RuntimeException(details, cause) {
@@ -25,22 +26,23 @@ class LiveEditUpdateException(val error: Error, val details: String = "", val so
    * @param recoverable If this flag is flags, the current deployment of the application can no longer be live edited and
    *                    a build and re-run would be required for future live edits.
    */
-  enum class Error (val message: String, val details: String = "", val recoverable: Boolean = true) {
+  enum class Error (val message: String, val details: String = "", val recoverable: Boolean = true,
+                    val metric : Status = Status.UNKNOWN) {
     // Sorted lexicographically for readability and consistency
-    ANALYSIS_ERROR("Resolution Analysis Error", "%", true),
-    COMPILATION_ERROR("Compilation Error", "%", true),
-    NON_KOTLIN("Modified non-Kotlin source not supported", "%", false),
-    NON_PRIVATE_INLINE_FUNCTION("Modified function is a non-private inline function", "%", true),
-    UNABLE_TO_INLINE("Unable to inline function", "%", true),
-    UNABLE_TO_LOCATE_COMPOSE_GROUP("Unable to locate Compose Invalid Group", "%", false),
-    UNSUPPORTED_BUILD_SRC_CHANGE("buildSrc/ sources not supported", "%", false),
-    UNSUPPORTED_SRC_CHANGE_RECOVERABLE("Unsupported change", "%", true),
-    UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE("Unsupported change", "%", false),
-    UNSUPPORTED_TEST_SRC_CHANGE("Test sources not supported", "%", false),
-    UNABLE_TO_DESUGAR("Live Edit post-processing failure", "%", false),
+    ANALYSIS_ERROR("Resolution Analysis Error", "%", true, Status.ANALYSIS_ERROR),
+    COMPILATION_ERROR("Compilation Error", "%", true, Status.COMPILATION_ERROR),
+    NON_KOTLIN("Modified non-Kotlin source not supported", "%", false, Status.NON_KOTLIN),
+    NON_PRIVATE_INLINE_FUNCTION("Modified function is a non-private inline function", "%", true, Status.NON_PRIVATE_INLINE_FUNCTION),
+    UNABLE_TO_INLINE("Unable to inline function", "%", true, Status.UNABLE_TO_INLINE),
+    UNABLE_TO_LOCATE_COMPOSE_GROUP("Unable to locate Compose Invalid Group", "%", false, Status.UNABLE_TO_LOCATE_COMPOSE_GROUP),
+    UNSUPPORTED_BUILD_SRC_CHANGE("buildSrc/ sources not supported", "%", false, Status.UNSUPPORTED_BUILD_SRC_CHANGE),
+    UNSUPPORTED_SRC_CHANGE_RECOVERABLE("Unsupported change", "%", true, Status.UNSUPPORTED_SRC_CHANGE_RECOVERABLE),
+    UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE("Unsupported change", "%", false, Status.UNSUPPORTED_SRC_CHANGE_UNRECOVERABLE),
+    UNSUPPORTED_TEST_SRC_CHANGE("Test sources not supported", "%", false, Status.UNSUPPORTED_TEST_SRC_CHANGE),
+    UNABLE_TO_DESUGAR("Live Edit post-processing failure", "%", false, Status.UNABLE_TO_DESUGAR),
 
-    INTERNAL_ERROR("Internal Error", "%", false),
-    KNOWN_ISSUE("Known Issue", "%", true),
+    INTERNAL_ERROR("Internal Error", "%", false, Status.INTERNAL_ERROR),
+    KNOWN_ISSUE("Known Issue", "%", true, Status.KNOWN_ISSUE),
   }
 
   companion object {
