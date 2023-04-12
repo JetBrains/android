@@ -50,7 +50,7 @@ object FeatureSurveys {
 
     val notification = notificationGroup.createNotification(
       survey.title,
-      "Would you like to take a survey based on your recent activity to help us improve Android Studio?",
+      "Would you like to take a 1-question survey based on your recent activity to help us improve Android Studio?",
       NotificationType.INFORMATION
     )
 
