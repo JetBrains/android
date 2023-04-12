@@ -67,6 +67,9 @@ class ImagePoolImpl implements ImagePool {
   private final BiFunction<Integer, Integer, Function<Integer, Integer>> myBucketSizingPolicy;
   @SuppressWarnings("IOResourceOpenedButNotSafelyClosed")
   private final FinalizableReferenceQueue myFinalizableReferenceQueue = new FinalizableReferenceQueue();
+
+  // The name of this field is used in the reflection access in HeapTraverseChildProcessor.processChildObjects, In case of refactoring,
+  // please make the appropriate changes in HeapTraverseChildProcessor.
   private final Set<Reference<?>> myReferences = Sets.newConcurrentHashSet();
 
   private final LongAdder myTotalAllocatedBytes = new LongAdder();
