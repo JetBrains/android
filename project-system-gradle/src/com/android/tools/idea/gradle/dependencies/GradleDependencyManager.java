@@ -41,6 +41,7 @@ import com.android.tools.idea.gradle.util.GradleUtil;
 import com.google.common.base.Objects;
 import com.google.wireless.android.sdk.stats.GradleSyncStats;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import java.util.ArrayList;
@@ -55,6 +56,8 @@ import org.jetbrains.annotations.TestOnly;
 
 public class GradleDependencyManager {
   private static final String ADD_DEPENDENCY = "Add Dependency";
+
+  private static final Logger LOG = Logger.getInstance("Gradle Dependency Manager");
 
   @NotNull
   public static GradleDependencyManager getInstance(@NotNull Project project) {
@@ -74,9 +77,10 @@ public class GradleDependencyManager {
    * @param catalogModel
    * @return
    */
+  @NotNull
   protected CatalogDependenciesInfo computeCatalogDependenciesInfo(@NotNull Module module,
                                                                    @NotNull Iterable<GradleCoordinate> dependencies,
-                                                                   GradleVersionCatalogModel catalogModel) {
+                                                                   @NotNull GradleVersionCatalogModel catalogModel) {
     Project project = module.getProject();
     GradleBuildModel moduleModel = ProjectBuildModel.get(project).getModuleBuildModel(module);
 
@@ -89,23 +93,18 @@ public class GradleDependencyManager {
       if (coordinate.getGroupId() == null || coordinate.getArtifactId() == null) continue;
       Optional<GradleCoordinate> resolvedCoordinate = resolveCoordinate(project, coordinate, appCompatVersion);
       GradleCoordinate finalCoordinate = resolvedCoordinate.orElse(coordinate);
-      if (libraries == null) {
+      Optional<Pair<String, GradleCoordinate>> maybeCoordinate = libraries.getAll().entrySet().stream()
+        .filter(entry -> {
+          LibraryDeclarationSpec spec = entry.getValue().getSpec();
+          return (Objects.equal(spec.getGroup(), coordinate.getGroupId()) &&
+                  Objects.equal(spec.getName(), coordinate.getArtifactId()) &&
+                  Objects.equal(spec.getVersion(), coordinate.getRevision()));
+        }).map(dep -> new Pair<>(dep.getKey(), coordinate)).findFirst();
+      if (maybeCoordinate.isEmpty()) {
         searchResult.missingLibraries.add(finalCoordinate);
       }
       else {
-        Optional<Pair<String, GradleCoordinate>> maybeCoordinate = libraries.getAll().entrySet().stream()
-          .filter(entry -> {
-            LibraryDeclarationSpec spec = entry.getValue().getSpec();
-            return (Objects.equal(spec.getGroup(), coordinate.getGroupId()) &&
-                    Objects.equal(spec.getName(), coordinate.getArtifactId()) &&
-                    Objects.equal(spec.getVersion(), coordinate.getRevision()));
-          }).map(dep -> new Pair<>(dep.getKey(), coordinate)).findFirst();
-        if (maybeCoordinate.isEmpty()) {
-          searchResult.missingLibraries.add(finalCoordinate);
-        }
-        else {
-          searchResult.matchedCoordinates.add(maybeCoordinate.get());
-        }
+        searchResult.matchedCoordinates.add(maybeCoordinate.get());
       }
     }
     return searchResult;
@@ -316,6 +315,10 @@ public class GradleDependencyManager {
       case VERSION_CATALOG -> {
         GradleVersionCatalogsModel catalog = ProjectBuildModel.get(project).getVersionCatalogsModel();
         GradleVersionCatalogModel catalogModel = catalog.getVersionCatalogModel(DEFAULT_CATALOG_NAME);
+        if (catalogModel == null) {
+          LOG.warn("Version Catalog model is null but VERSION_CATALOG policy in effect");
+          return addDependenciesInTransaction(module, coordinates, AddDependencyPolicy.BUILD_FILE, nameMapper);
+        }
         WriteCommandAction.writeCommandAction(project).withName(ADD_DEPENDENCY).run(() -> {
 
           List<GradleCoordinate> missingFromModule = findMissingDependencies(module, coordinates);
@@ -332,9 +335,9 @@ public class GradleDependencyManager {
 
   private static void addDependenciesToCatalogAndModuleBuildFile(@NotNull Module module,
                                                                  @Nullable ConfigurationNameMapper nameMapper,
-                                                                 GradleBuildModel buildModel,
-                                                                 GradleVersionCatalogModel catalogModel,
-                                                                 CatalogDependenciesInfo catalogSearchResult) {
+                                                                 @NotNull GradleBuildModel buildModel,
+                                                                 @NotNull GradleVersionCatalogModel catalogModel,
+                                                                 @NotNull CatalogDependenciesInfo catalogSearchResult) {
     updateModel(module, model -> {
       List<Pair<String, GradleCoordinate>> addedCoordinates = addCatalogLibraries(catalogModel,
                                                                                   catalogSearchResult.missingLibraries);
