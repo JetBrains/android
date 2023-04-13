@@ -20,17 +20,16 @@ import com.android.tools.configurations.Configuration
 import com.android.tools.idea.rendering.StudioRenderService
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.idea.rendering.taskBuilder
-import com.android.tools.res.LocalResourceRepository
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.rendering.RenderService
 import com.android.tools.rendering.RenderTask
+import com.android.tools.res.LocalResourceRepository
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.HashBasedTable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
-import com.intellij.reference.SoftReference
 import com.intellij.ui.scale.ScaleContext
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.ImageUtil
@@ -39,6 +38,7 @@ import org.jetbrains.android.facet.AndroidFacetScopedService
 import java.awt.Dimension
 import java.awt.Image
 import java.awt.image.BufferedImage
+import java.lang.ref.SoftReference
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 

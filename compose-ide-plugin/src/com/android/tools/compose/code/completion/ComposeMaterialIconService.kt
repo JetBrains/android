@@ -24,7 +24,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.Application
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
-import com.intellij.reference.SoftReference
+import java.lang.ref.SoftReference
 import org.jetbrains.annotations.VisibleForTesting
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.swing.Icon

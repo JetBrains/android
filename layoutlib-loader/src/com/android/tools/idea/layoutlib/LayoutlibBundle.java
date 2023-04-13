@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.layoutlib;
 
+import static com.intellij.reference.SoftReference.dereference;
+
 import java.text.MessageFormat;
 import java.util.Locale;
 import org.jetbrains.annotations.NonNls;
@@ -34,7 +36,7 @@ public final class LayoutlibBundle {
   private static Reference<ResourceBundle> ourBundle;
 
   private static ResourceBundle getBundle() {
-    ResourceBundle bundle = com.intellij.reference.SoftReference.dereference(ourBundle);
+    ResourceBundle bundle = dereference(ourBundle);
     if (bundle == null) {
       bundle = ResourceBundle.getBundle(BUNDLE_NAME);
       ourBundle = new SoftReference<>(bundle);

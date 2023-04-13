@@ -39,7 +39,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.reference.SoftReference;
+import java.lang.ref.SoftReference;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;

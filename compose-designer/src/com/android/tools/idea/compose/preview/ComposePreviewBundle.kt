@@ -18,7 +18,7 @@
 package com.android.tools.idea.compose.preview
 
 import com.intellij.AbstractBundle
-import com.intellij.reference.SoftReference
+import java.lang.ref.SoftReference
 import java.lang.ref.Reference
 import java.util.ResourceBundle
 import org.jetbrains.annotations.PropertyKey
@@ -31,7 +31,7 @@ fun message(@PropertyKey(resourceBundle = BUNDLE) key: String, vararg params: An
 private var ourBundle: Reference<ResourceBundle>? = null
 
 private fun getBundle(): ResourceBundle {
-  var bundle = SoftReference.dereference(ourBundle)
+  var bundle = ourBundle?.get()
 
   if (bundle == null) {
     bundle = ResourceBundle.getBundle(BUNDLE)!!

@@ -28,7 +28,7 @@ class AndroidLintBundle private constructor() {
     private var ourBundle: Reference<ResourceBundle?>? = null
 
     private fun getBundle(): ResourceBundle {
-      var bundle: ResourceBundle? = com.intellij.reference.SoftReference.dereference(ourBundle)
+      var bundle: ResourceBundle? = ourBundle?.get()
       if (bundle == null) {
         bundle = ResourceBundle.getBundle(BUNDLE_NAME)
         ourBundle = SoftReference(bundle)

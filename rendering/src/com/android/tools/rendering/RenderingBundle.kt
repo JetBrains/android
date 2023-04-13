@@ -15,7 +15,7 @@
  */
 package com.android.tools.rendering
 
-import com.intellij.reference.SoftReference
+import java.lang.ref.SoftReference
 import java.lang.ref.Reference
 import java.text.MessageFormat
 import java.util.ResourceBundle
@@ -28,10 +28,10 @@ object RenderingBundle {
   private var ourBundle: Reference<ResourceBundle?>? = null
   private val bundle: ResourceBundle?
     private get() {
-      var bundle = SoftReference.dereference(ourBundle)
+      var bundle = ourBundle?.get()
       if (bundle == null) {
         bundle = ResourceBundle.getBundle(BUNDLE_NAME)
-        ourBundle = java.lang.ref.SoftReference(bundle)
+        ourBundle = SoftReference(bundle)
       }
       return bundle
     }

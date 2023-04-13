@@ -15,15 +15,16 @@
  */
 package org.jetbrains.android.util;
 
+import static com.intellij.reference.SoftReference.dereference;
+
 import com.intellij.CommonBundle;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
+import java.util.ResourceBundle;
 import java.util.function.Supplier;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
-
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
-import java.util.ResourceBundle;
 
 /**
  * Messages bundle.
@@ -34,7 +35,7 @@ public final class AndroidBundle {
   private static Reference<ResourceBundle> ourBundle;
 
   private static ResourceBundle getBundle() {
-    ResourceBundle bundle = com.intellij.reference.SoftReference.dereference(ourBundle);
+    ResourceBundle bundle = dereference(ourBundle);
     if (bundle == null) {
       bundle = ResourceBundle.getBundle(BUNDLE_NAME);
       ourBundle = new SoftReference<ResourceBundle>(bundle);
