@@ -22,6 +22,7 @@ import static com.android.tools.idea.npw.FormFactorUtilKt.toWizardFormFactor;
 import static com.android.tools.idea.npw.model.NewProjectModel.nameToJavaPackage;
 import static com.android.tools.idea.npw.module.AndroidApiLevelComboBoxKt.ensureDefaultApiLevelAtLeastRecommended;
 import static com.android.tools.idea.npw.platform.AndroidVersionsInfoKt.getSdkManagerLocalPath;
+import static com.android.tools.idea.wizard.template.TemplateDataKt.KOTLIN_DSL_LINK;
 import static com.android.tools.idea.wizard.ui.WizardUtils.wrapWithVScroll;
 import static com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFolderDescriptor;
 import static java.lang.String.format;
@@ -63,7 +64,9 @@ import com.android.tools.idea.wizard.template.Template;
 import com.android.tools.idea.wizard.template.TemplateConstraint;
 import com.android.tools.idea.wizard.ui.WizardUtils;
 import com.google.common.collect.Lists;
+import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.ui.components.JBLabel;
@@ -80,9 +83,10 @@ import java.util.List;
 import java.util.Locale;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.android.util.AndroidUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -115,7 +119,7 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
   private JPanel myFormFactorSdkControlsPanel;
   private JComboBox myMinSdkCombo;
   private JComboBox<BuildConfigurationLanguageForNewProject> myBuildConfigurationLanguageCombo;
-  private JLabel myBuildConfigurationLanguageLabel;
+  private ContextHelpLabel myBuildConfigurationLanguageLabel;
   private FormFactorSdkControls myFormFactorSdkControls;
 
   public ConfigureAndroidProjectStep(@NotNull NewProjectModuleModel newProjectModuleModel, @NotNull NewProjectModel projectModel) {
@@ -312,5 +316,11 @@ public class ConfigureAndroidProjectStep extends ModelWizardStep<NewProjectModul
     myFormFactorSdkControls = new FormFactorSdkControls();
     myFormFactorSdkControlsPanel = myFormFactorSdkControls.getRoot();
     myMinSdkCombo = myFormFactorSdkControls.getMinSdkComboBox();
+    myBuildConfigurationLanguageLabel = ContextHelpLabel.createWithLink(
+      null,
+      AndroidBundle.message("android.wizard.project.help.buildconfigurationlanguage.description"),
+      "Learn more",
+      () -> BrowserUtil.browse(KOTLIN_DSL_LINK));
+    myBuildConfigurationLanguageLabel.setHorizontalTextPosition(SwingConstants.LEFT);
   }
 }

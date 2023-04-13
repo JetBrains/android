@@ -21,6 +21,7 @@ import com.android.tools.adtui.device.FormFactor
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.npw.contextLabel
 import com.android.tools.idea.npw.module.ConfigureModuleStep
+import com.android.tools.idea.npw.module.generateBuildConfigurationLanguageRow
 import com.android.tools.idea.npw.template.components.ModuleComboProvider
 import com.android.tools.idea.npw.validator.ModuleSelectedValidator
 import com.android.tools.idea.observable.core.OptionalProperty
@@ -84,9 +85,7 @@ class ConfigureDynamicModuleStep(
     }
 
     if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
-      row("Build configuration language") {
-        cell(buildConfigurationLanguageCombo).horizontalAlign(HorizontalAlign.FILL)
-      }
+      generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
     }
 
     row {
