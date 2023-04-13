@@ -23,9 +23,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
-import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
 import org.kxml2.io.KXmlParser;
@@ -127,17 +125,6 @@ public class DomPullParserTest extends AndroidTestCase {
           assertEquals(referenceAttributes, attributes);
         }
         assertEquals(referenceParser.isEmptyElementTag(), parser.isEmptyElementTag());
-
-        if (element instanceof XmlTag) {
-          XmlTag tag = (XmlTag)element;
-          for (XmlAttribute attribute : tag.getAttributes()) {
-            String namespace = attribute.getNamespace();
-            String name = attribute.getLocalName();
-            assertEquals(namespace + ':' + name + " in element " + parser.getName(),
-                         normalizeValue(referenceParser.getAttributeValue(namespace, name)),
-                         normalizeValue(parser.getAttributeValue(namespace, name)));
-          }
-        }
       } else if (expected == XmlPullParser.TEXT || expected == XmlPullParser.COMMENT) {
         assertEquals(StringUtil.notNullize(referenceParser.getText()).trim(), StringUtil.notNullize(parser.getText()).trim());
       }

@@ -71,7 +71,7 @@ class MenuLayoutParserFactory {
         actionBarHandler.setMenuIds(Collections.singletonList(menuResource));
       }
     }
-    return DomPullParser.createFromDocument(frameLayoutDocument, Collections.emptyMap());
+    return DomPullParser.createFromDocument(frameLayoutDocument, false);
   }
 
   @NotNull

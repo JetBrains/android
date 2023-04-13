@@ -34,7 +34,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static com.android.SdkConstants.ANDROID_URI;
 import static com.android.SdkConstants.AUTO_URI;
@@ -51,18 +50,18 @@ public class DomPullParser extends LayoutPullParser {
   @Nullable
   private final Element myRoot;
 
-  @Nullable
-  private Map<Element, ?> myViewCookies;
+  /** If true, returns current element as cookie, otherwise returns null. */
+  private final boolean myElementAsCookie;
 
   /**
    * Constructs a new {@link DomPullParser}, a parser which wraps an XML DOM and provides a pull parser interface
    *
    * @param root the root element
    */
-  private DomPullParser(@Nullable Element root, @Nullable Map<Element, ?> viewCookies) {
+  private DomPullParser(@Nullable Element root, boolean elementAsCookie) {
     myRoot = root;
     myNodeStack = new ArrayList<>();
-    myViewCookies = viewCookies;
+    myElementAsCookie = elementAsCookie;
   }
 
   @Nullable
@@ -116,11 +115,10 @@ public class DomPullParser extends LayoutPullParser {
   @Nullable
   @Override
   public Object getViewCookie() {
-    Element element = getCurrentElement();
-    if (myViewCookies != null) {
-      return myViewCookies.get(element);
+    if (myElementAsCookie) {
+      return getCurrentElement();
     }
-    return element;
+    return null;
   }
 
   @NonNull
@@ -409,20 +407,20 @@ public class DomPullParser extends LayoutPullParser {
   /**
    * Constructs a new {@link DomPullParser}, a parser which wraps an XML DOM and provides a pull parser interface
    *
-   * @param root the root element
+   * @param document the root element
    */
   @NotNull
   public static ILayoutPullParser createFromDocument(@NotNull Document document) {
-    return new DomPullParser(document.getDocumentElement(), null);
+    return new DomPullParser(document.getDocumentElement(), true);
   }
 
   /**
    * Constructs a new {@link DomPullParser}, a parser which wraps an XML DOM and provides a pull parser interface
    *
-   * @param root the root element
+   * @param document the root element
    */
   @NotNull
-  public static ILayoutPullParser createFromDocument(@NotNull Document document, @NotNull Map<Element, ?> viewCookies) {
-    return new DomPullParser(document.getDocumentElement(), viewCookies);
+  public static ILayoutPullParser createFromDocument(@NotNull Document document, boolean elementAsCookie) {
+    return new DomPullParser(document.getDocumentElement(), elementAsCookie);
   }
 }
