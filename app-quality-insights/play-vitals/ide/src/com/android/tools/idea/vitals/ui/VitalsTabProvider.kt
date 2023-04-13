@@ -102,14 +102,14 @@ class VitalsTabProvider : AppInsightsTabProvider {
             null
           )
           appendLine(
-            "See real-world app quality insights here",
+            "See insights from Play Console with Android Vitals",
             SimpleTextAttributes.REGULAR_BOLD_ATTRIBUTES,
             null
           )
           appendLine("Log in", SimpleTextAttributes.LINK_ATTRIBUTES) {
             GoogleLogin.instance.logIn()
           }
-          appendText(" to Android Studio to connect to your Play Store account.")
+          appendText(" to Android Studio to connect to your Play Console account.")
           appendLine("")
           appendLine(
             AllIcons.General.ContextHelp,
