@@ -16,16 +16,11 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.ILayoutPullParser;
-import com.android.resources.ResourceFolderType;
 import com.android.tools.idea.rendering.parsers.DomPullParser;
 import com.android.utils.XmlUtils;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.xml.XmlFile;
-import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Test;
 import org.kxml2.io.KXmlParser;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -38,28 +33,42 @@ import java.util.TreeSet;
 
 import static com.android.SdkConstants.VALUE_FILL_PARENT;
 import static com.android.SdkConstants.VALUE_MATCH_PARENT;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the parser by constructing a DOM from an XML file, and then it runs an XmlPullParser
  * in parallel with this parser and checks event for event that the two parsers are returning the same results
  */
-public class DomPullParserTest extends AndroidTestCase {
-  @SuppressWarnings("SpellCheckingInspection")
-  public DomPullParserTest() {
-  }
+public class DomPullParserTest {
 
+  @Test
   public void test1() throws Exception {
     //noinspection SpellCheckingInspection
-    checkFile("xmlpull/layout2.xml", ResourceFolderType.LAYOUT);
+    String fileText = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                      "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                      "              android:layout_width=\"fill_parent\"\n" +
+                      "              android:layout_height=\"fill_parent\"\n" +
+                      "              android:orientation=\"vertical\">\n" +
+                      "\n" +
+                      "    <TextView\n" +
+                      "            android:layout_width=\"fill_parent\"\n" +
+                      "            android:layout_height=\"wrap_content\"\n" +
+                      "            android:text=\"@string/app_name\"/>\n" +
+                      "\n" +
+                      "  <include layout=\"@layout/colorstrip\" android:layout_height=\"@dimen/colorstrip_height\" android:layout_width=\"match_parent\"/>\n" +
+                      "\n" +
+                      "</LinearLayout>";
+    compareParsers(fileText, NextEventType.NEXT_TAG);
   }
 
   enum NextEventType { NEXT, NEXT_TOKEN, NEXT_TAG }
 
-  private static void compareParsers(PsiFile file, NextEventType nextEventType) throws Exception {
-    assertTrue(file instanceof XmlFile);
-    Document document = XmlUtils.parseDocumentSilently(file.getText(), true);
+  private static void compareParsers(String fileText, NextEventType nextEventType) throws Exception {
+    Document document = XmlUtils.parseDocumentSilently(fileText, true);
     assertNotNull(document);
-    KXmlParser referenceParser = createReferenceParser(file);
+    KXmlParser referenceParser = createReferenceParser(fileText);
     ILayoutPullParser parser = DomPullParser.createFromDocument(document);
 
     assertEquals("Expected " + name(referenceParser.getEventType()) + " but was "
@@ -153,21 +162,10 @@ public class DomPullParserTest extends AndroidTestCase {
     return XmlPullParser.TYPES[event];
   }
 
-  private void checkFile(String filename, ResourceFolderType folder) throws Exception {
-    VirtualFile file = myFixture.copyFileToProject(filename, "res/" + folder.getName() + "/" + filename.substring(filename.lastIndexOf('/') + 1));
-    assertNotNull(file);
-    PsiFile psiFile = PsiManager.getInstance(getProject()).findFile(file);
-    assertNotNull(psiFile);
-    compareParsers(psiFile, NextEventType.NEXT_TAG);
-    // The LayoutPsiPullParser only supports tags, not text (no text is used in layouts)
-    //compareParsers(psiFile, NextEventType.NEXT);
-    //compareParsers(psiFile, NextEventType.NEXT_TOKEN);
-  }
-
-  private static KXmlParser createReferenceParser(PsiFile file) throws XmlPullParserException {
+  private static KXmlParser createReferenceParser(String fileText) throws XmlPullParserException {
     KXmlParser referenceParser = new KXmlParser();
     referenceParser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, true);
-    referenceParser.setInput(new StringReader(file.getText()));
+    referenceParser.setInput(new StringReader(fileText));
     return referenceParser;
   }
 
