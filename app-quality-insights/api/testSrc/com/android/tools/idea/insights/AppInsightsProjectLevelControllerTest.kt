@@ -46,7 +46,7 @@ class AppInsightsProjectLevelControllerTest {
 
   @get:Rule val flagRule = FlagRule(StudioFlags.OFFLINE_MODE_SUPPORT_ENABLED, true)
 
-  private val client: TestCrashlyticsClient
+  private val client: TestAppInsightsClient
     get() = controllerRule.client
 
   private val clock: FakeClock

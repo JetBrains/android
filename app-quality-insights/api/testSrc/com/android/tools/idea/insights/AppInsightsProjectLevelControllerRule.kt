@@ -65,7 +65,7 @@ class AppInsightsProjectLevelControllerRule(
     get() = disposableRule.disposable
   private lateinit var scope: CoroutineScope
   lateinit var clock: FakeClock
-  lateinit var client: TestCrashlyticsClient
+  lateinit var client: TestAppInsightsClient
   lateinit var controller: AppInsightsProjectLevelController
   private lateinit var connections: MutableStateFlow<List<VariantConnection>>
   private lateinit var internalState: Channel<AppInsightsState>
@@ -78,7 +78,7 @@ class AppInsightsProjectLevelControllerRule(
     scope = AndroidCoroutineScope(disposable, AndroidDispatchers.uiThread)
     clock = FakeClock(NOW)
     cache = AppInsightsCacheImpl()
-    client = Mockito.spy(TestCrashlyticsClient(cache))
+    client = Mockito.spy(TestAppInsightsClient(cache))
     connections = MutableStateFlow(listOf(VARIANT1, VARIANT2, PLACEHOLDER_CONNECTION))
     tracker = mock(AppInsightsTracker::class.java)
     connectionInferrer = mock(ActiveConnectionInferrer::class.java)
@@ -219,7 +219,7 @@ class CallInProgress<T> {
 }
 
 /** Test client that gives precise control and synchronization useful in tests. */
-class TestCrashlyticsClient(private val cache: AppInsightsCache) : AppInsightsClient {
+class TestAppInsightsClient(private val cache: AppInsightsCache) : AppInsightsClient {
   private val listConnections = CallInProgress<LoadingState.Done<List<Connection>>>()
   private val topIssuesCall = CallInProgress<LoadingState.Done<IssueResponse>>()
   private val detailsCall = CallInProgress<LoadingState.Done<DetailedIssueStats?>>()
