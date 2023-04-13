@@ -73,7 +73,7 @@ object ModuleUtil {
       }
     }
     if (mainModule == null) {
-      logger<ModuleUtil>().error("Unexpected - Android module is missing a main source set")
+      logger<ModuleUtil>().error("Unexpected - Android module (${holderModule.name}) is missing a main source set")
       return
     }
     val androidModuleGroup = LinkedAndroidModuleGroup(holderModule, mainModule!!, unitTestModule, androidTestModule, testFixturesModule)
