@@ -27,7 +27,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.xml.XmlFile
-import com.intellij.reference.SoftReference
 import com.intellij.ui.scale.ScaleContext
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.ImageUtil
@@ -36,6 +35,7 @@ import org.jetbrains.android.facet.AndroidFacetScopedService
 import java.awt.Dimension
 import java.awt.Image
 import java.awt.image.BufferedImage
+import java.lang.ref.SoftReference
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 

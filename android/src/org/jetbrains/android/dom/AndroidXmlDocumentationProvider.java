@@ -1,4 +1,4 @@
-// Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
+// Copyright 2000-2023 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
 package org.jetbrains.android.dom;
 
 import static com.android.SdkConstants.ANDROID_NS_NAME_PREFIX;
@@ -15,6 +15,7 @@ import static com.intellij.psi.xml.XmlTokenType.XML_ATTRIBUTE_VALUE_END_DELIMITE
 import static com.intellij.psi.xml.XmlTokenType.XML_ATTRIBUTE_VALUE_START_DELIMITER;
 import static com.intellij.psi.xml.XmlTokenType.XML_ATTRIBUTE_VALUE_TOKEN;
 import static com.intellij.psi.xml.XmlTokenType.XML_DATA_CHARACTERS;
+import static com.intellij.reference.SoftReference.dereference;
 
 import com.android.ide.common.rendering.api.AttributeFormat;
 import com.android.ide.common.rendering.api.ResourceReference;
@@ -48,13 +49,13 @@ import com.intellij.psi.xml.XmlAttribute;
 import com.intellij.psi.xml.XmlAttributeValue;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.psi.xml.XmlToken;
-import com.intellij.reference.SoftReference;
 import com.intellij.util.xml.Converter;
 import com.intellij.util.xml.DomElement;
 import com.intellij.util.xml.DomManager;
 import com.intellij.util.xml.GenericAttributeValue;
 import com.intellij.util.xml.XmlName;
 import com.intellij.util.xml.reflect.DomAttributeChildDescription;
+import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -255,7 +256,7 @@ public class AndroidXmlDocumentationProvider implements DocumentationProvider {
     XmlName xmlName = description.getXmlName();
 
     Map<XmlName, CachedValue<String>> cachedDocsMap =
-        SoftReference.dereference(originalElement.getUserData(ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE_KEY));
+        dereference(originalElement.getUserData(ANDROID_ATTRIBUTE_DOCUMENTATION_CACHE_KEY));
 
     if (cachedDocsMap != null) {
       CachedValue<String> cachedDoc = cachedDocsMap.get(xmlName);

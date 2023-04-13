@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.res;
 
+import static com.intellij.reference.SoftReference.dereference;
+
 import com.intellij.facet.ProjectFacetManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
@@ -28,9 +30,9 @@ import com.intellij.psi.PsiElementFinder;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.reference.SoftReference;
 import com.intellij.util.CommonProcessors;
 import com.intellij.util.Processor;
+import java.lang.ref.SoftReference;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -86,7 +88,7 @@ public class AndroidInternalRClassFinder extends PsiElementFinder {
 
   private PsiClass getOrCreateInternalRClass(Project project, Sdk sdk, AndroidPlatform platform) {
     synchronized (myLock) {
-      PsiClass internalRClass = SoftReference.dereference(myInternalRClasses.get(sdk));
+      PsiClass internalRClass = dereference(myInternalRClasses.get(sdk));
 
       if (internalRClass == null) {
         internalRClass = new AndroidInternalRClass(PsiManager.getInstance(project), platform, sdk);
