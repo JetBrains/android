@@ -50,7 +50,7 @@ public class AndroidSdkDataTest extends AndroidTestCase {
   }
 
   public void testSdkDataExposesSdkComponents() throws Exception {
-    assertNotNull(sdkData.getLatestBuildTool(false));
+    assertNotNull(sdkData.getLatestBuildTool(true));
     assertThat(sdkData.getTargets().length).isAtLeast(1);
     assertEquals(sdkData.getLocation(), TestUtils.getSdk());
   }

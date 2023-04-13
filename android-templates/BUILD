@@ -49,7 +49,6 @@ iml_module(
         "TemplateDiffTest": {
             "shard_count": 1,
             "data": [
-                "//prebuilts/studio/sdk:build-tools/latest",
                 "//tools/adt/idea/android/testData",
             ],
             "test_filter": "com.android.tools.idea.templates.diff.TemplateDiffTest",
@@ -58,7 +57,6 @@ iml_module(
         },
         "other": {
             "data": [
-                "//prebuilts/studio/sdk:build-tools/latest",
                 "//tools/adt/idea/android/testData",
             ],
             # TODO(b/234749894) restore after fixing flakes
@@ -69,7 +67,7 @@ iml_module(
     test_data = [
         ":test_deps",
         "//prebuilts/studio/jdk/jdk11",
-        "//prebuilts/studio/sdk:build-tools/33.0.1",
+        "//prebuilts/studio/sdk:build-tools/latest",
         "//prebuilts/studio/sdk:platforms/latest",
         "//tools/adt/idea/android/testData:projects",
         "//tools/base/build-system:android_gradle_plugin.zip",
