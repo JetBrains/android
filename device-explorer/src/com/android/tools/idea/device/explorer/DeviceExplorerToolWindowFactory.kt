@@ -60,7 +60,7 @@ class DeviceExplorerToolWindowFactory : DumbAware, ToolWindowFactory {
     val adbService = project.getService(AdbDeviceService::class.java)
     val processService = project.getService(DeviceProcessService::class.java)
     val model = DeviceMonitorModel(processService)
-    val view = DeviceMonitorViewImpl(model)
+    val view = DeviceMonitorViewImpl(model.tableModel)
     return DeviceMonitorControllerImpl(project, model, view, adbService)
   }
 

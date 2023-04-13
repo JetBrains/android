@@ -15,8 +15,11 @@
  */
 package com.android.tools.idea.device.explorer.monitor.ui
 
+import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
+
 interface DeviceMonitorActionsListener {
   val numOfSelectedNodes: Int
+  val selectedProcessInfo: List<ProcessInfo>
   fun refreshNodes()
   fun killNodes()
   fun forceStopNodes()

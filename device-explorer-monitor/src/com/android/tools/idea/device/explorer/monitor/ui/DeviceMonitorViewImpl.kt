@@ -15,8 +15,8 @@
  */
 package com.android.tools.idea.device.explorer.monitor.ui
 
-import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModel
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorViewListener
+import com.android.tools.idea.device.explorer.monitor.processes.ProcessInfo
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.DebugMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.ForceStopMenuItem
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.KillMenuItem
@@ -30,8 +30,8 @@ import java.util.function.Consumer
 import javax.swing.JComponent
 
 class DeviceMonitorViewImpl(
-  model: DeviceMonitorModel,
-  private val table: JBTable = ProcessListTableBuilder().build(model.tableModel)
+  private val tableModel: DeviceMonitorTableModel,
+  private val table: JBTable = ProcessListTableBuilder().build(tableModel)
 ): DeviceMonitorView, DeviceMonitorActionsListener {
 
   private val panel = DeviceMonitorPanel()
@@ -56,6 +56,17 @@ class DeviceMonitorViewImpl(
   override val numOfSelectedNodes: Int
     get() {
       return table.selectedRowCount
+    }
+
+  override val selectedProcessInfo: List<ProcessInfo>
+    get() {
+      val selectedNodes = getModelRows(table.selectedRows)
+      val processInfoList = mutableListOf<ProcessInfo>()
+      for (selectedNode in selectedNodes) {
+        processInfoList.add(tableModel.getValueForRow(selectedNode))
+      }
+
+      return processInfoList
     }
 
   override fun refreshNodes() {

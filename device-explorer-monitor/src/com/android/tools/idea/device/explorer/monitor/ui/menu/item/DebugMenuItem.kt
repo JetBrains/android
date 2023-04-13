@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.device.explorer.monitor.ui.menu.item
 
+import com.android.ddmlib.ClientData
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorActionsListener
 import com.intellij.icons.AllIcons
 import javax.swing.Icon
@@ -42,7 +43,18 @@ class DebugMenuItem(listener: DeviceMonitorActionsListener, private val context:
 
   override val isEnabled: Boolean
     get() {
-      return listener.numOfSelectedNodes > 0
+      val selectedInfoList = listener.selectedProcessInfo
+      if (selectedInfoList.isEmpty()) {
+        return false
+      }
+
+      for (info in selectedInfoList) {
+        if (info.debuggerStatus == ClientData.DebuggerStatus.DEFAULT) {
+          return true
+        }
+      }
+
+      return false
     }
 
   override fun run() {

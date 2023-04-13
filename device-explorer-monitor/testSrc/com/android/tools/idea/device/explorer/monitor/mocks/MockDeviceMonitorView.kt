@@ -15,9 +15,9 @@
  */
 package com.android.tools.idea.device.explorer.monitor.mocks
 
-import com.android.tools.idea.device.explorer.monitor.DeviceMonitorModel
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorView
 import com.android.tools.idea.device.explorer.monitor.DeviceMonitorViewListener
+import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorTableModel
 import com.android.tools.idea.device.explorer.monitor.ui.DeviceMonitorViewImpl
 import com.android.tools.idea.device.explorer.monitor.ui.ProcessListTableBuilder
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.DebugMenuItem
@@ -25,9 +25,9 @@ import com.android.tools.idea.device.explorer.monitor.ui.menu.item.ForceStopMenu
 import com.android.tools.idea.device.explorer.monitor.ui.menu.item.MenuContext
 import javax.swing.JComponent
 
-class MockDeviceMonitorView(model: DeviceMonitorModel): DeviceMonitorView {
-  private val table = ProcessListTableBuilder().build(model.tableModel)
-  private val viewImpl = DeviceMonitorViewImpl(model, table)
+class MockDeviceMonitorView(tableModel: DeviceMonitorTableModel): DeviceMonitorView {
+  private val table = ProcessListTableBuilder().build(tableModel)
+  private val viewImpl = DeviceMonitorViewImpl(tableModel, table)
 
   override fun addListener(listener: DeviceMonitorViewListener) {
     viewImpl.addListener(listener)
