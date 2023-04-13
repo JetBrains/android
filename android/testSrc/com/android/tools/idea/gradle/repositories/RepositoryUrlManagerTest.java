@@ -16,6 +16,7 @@
 package com.android.tools.idea.gradle.repositories;
 
 import com.android.ide.common.gradle.Component;
+import com.android.ide.common.gradle.Dependency;
 import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.StubGoogleMavenRepository;
@@ -154,8 +155,8 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
     assertEquals("11.2.0-beta1", getLibraryRevision(GoogleMavenArtifactId.PLAY_SERVICES_ADS, true));
   }
 
-  private void checkGetArchiveForCoordinate(String coordinateString, String path) {
-    Component supportComponent = Component.Companion.tryParse(coordinateString);
+  private void checkGetArchiveForComponent(String componentString, String path) {
+    Component supportComponent = Component.Companion.tryParse(componentString);
     assertNotNull(supportComponent);
     File expectedFile = null;
     if (path != null) {
@@ -166,42 +167,43 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
 
   public void testGetArchiveForCoordinate_missingSdk() throws Exception {
     PathUtils.deleteRecursivelyIfExists(myRoot.resolve(SDK_DIR));
-    checkGetArchiveForCoordinate("com.android.support:support-v4:20.0.0", null);
+    checkGetArchiveForComponent("com.android.support:support-v4:20.0.0", null);
   }
 
   public void testResolvedCoordinate() {
-    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.+");
-    assertNotNull(coordinate);
-    assertEquals("4.4.52", resolveDynamicCoordinateVersion(coordinate));
-    assertEquals(GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.4.52"),
-                 resolveDynamicCoordinate(coordinate));
+    Dependency dependency = Dependency.Companion.parse("com.google.android.gms:play-services:4.+");
+    assertNotNull(dependency);
+    assertEquals("4.4.52", resolveDependencyRichVersion(dependency));
+    assertEquals(Component.Companion.parse("com.google.android.gms:play-services:4.4.52"),
+                 resolveDependency(dependency));
 
-    coordinate = GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.+@aar");
-    assertNotNull(coordinate);
-    assertEquals("4.4.52", resolveDynamicCoordinateVersion(coordinate));
-    assertEquals(GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.4.52@aar"),
-                 resolveDynamicCoordinate(coordinate));
+    dependency = Dependency.Companion.parse("com.google.android.gms:play-services:4.+@aar");
+    assertNotNull(dependency);
+    assertEquals("4.4.52", resolveDependencyRichVersion(dependency));
+    assertEquals(Component.Companion.parse("com.google.android.gms:play-services:4.4.52"),
+                 resolveDependency(dependency));
 
-    coordinate = GradleCoordinate.parseCoordinateString("com.android.support:support-v4:+");
-    assertNotNull(coordinate);
-    assertEquals("26.0.2", resolveDynamicCoordinateVersion(coordinate));
+    dependency = Dependency.Companion.parse("com.android.support:support-v4:+");
+    assertNotNull(dependency);
+    assertEquals("26.0.2", resolveDependencyRichVersion(dependency));
 
     // Make sure already resolved coordinates are handled correctly
-    coordinate = GradleCoordinate.parseCoordinateString("com.android.support:support-v4:1.2.3");
-    assertNotNull(coordinate);
-    assertEquals("1.2.3", resolveDynamicCoordinateVersion(coordinate));
+    dependency = Dependency.Companion.parse("com.android.support:support-v4:1.2.3");
+    assertNotNull(dependency);
+    assertEquals("1.2.3", resolveDependencyRichVersion(dependency));
 
-    coordinate = GradleCoordinate.parseCoordinateString("my.group.id:my.bogus.artifact:+");
-    assertNotNull(coordinate);
-    assertNull(resolveDynamicCoordinateVersion(coordinate));
+    dependency = Dependency.Companion.parse("my.group.id:my.bogus.artifact:+");
+    assertNotNull(dependency);
+    assertNull(resolveDependencyRichVersion(dependency));
   }
 
-  private String resolveDynamicCoordinateVersion(GradleCoordinate coordinate) {
-    return myRepositoryUrlManager.resolveDynamicCoordinateVersion(coordinate, null, mySdkHandler);
+
+  private String resolveDependencyRichVersion(Dependency dependency) {
+    return myRepositoryUrlManager.resolveDependencyRichVersion(dependency, null, mySdkHandler);
   }
 
-  private GradleCoordinate resolveDynamicCoordinate(GradleCoordinate coordinate) {
-    return myRepositoryUrlManager.resolveDynamicCoordinate(coordinate, null, mySdkHandler);
+  private Component resolveDependency(Dependency dependency) {
+    return myRepositoryUrlManager.resolveDependency(dependency, null, mySdkHandler);
   }
 
   public void testResolvedCoordinateLocalFirst() {
@@ -209,9 +211,9 @@ public class RepositoryUrlManagerTest extends AndroidGradleTestCase {
     RepositoryPackages pkgs = new RepositoryPackages(ImmutableList.of(), ImmutableList.of(pkg));
     RepoManager mgr = new FakeRepoManager(pkgs);
     mySdkHandler = new AndroidSdkHandler(myRoot.resolve(SDK_DIR), myRoot.resolve(ANDROID_PREFS_ROOT), mgr);
-    GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString("com.google.android.gms:play-services:4.+");
-    assertNotNull(coordinate);
-    assertEquals("4.4.52", resolveDynamicCoordinateVersion(coordinate));
+    Dependency dependency = Dependency.Companion.parse("com.google.android.gms:play-services:4.+");
+    assertNotNull(dependency);
+    assertEquals("4.4.52", resolveDependencyRichVersion(dependency));
   }
 
   public void testResolveDynamicSdkDepsFuture() {

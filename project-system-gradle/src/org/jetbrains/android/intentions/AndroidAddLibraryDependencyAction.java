@@ -19,6 +19,8 @@ package org.jetbrains.android.intentions;
 import static com.android.SdkConstants.EXT_GRADLE;
 import static com.android.SdkConstants.EXT_GRADLE_KTS;
 
+import com.android.ide.common.gradle.Component;
+import com.android.ide.common.gradle.Dependency;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencyModel;
@@ -87,20 +89,23 @@ public class AndroidAddLibraryDependencyAction extends AbstractIntentionAction i
   private static ImmutableCollection<String> findAllDependencies(@NotNull GradleBuildModel buildModel) {
     HashSet<String> existingDependencies = Sets.newHashSet();
     for (ArtifactDependencyModel dependency : buildModel.dependencies().artifacts()) {
-      existingDependencies.add(dependency.group().toString() + ":" + dependency.name().toString());
+      existingDependencies.add(dependency.group() + ":" + dependency.name());
     }
 
     ImmutableList.Builder<String> dependenciesBuilder = ImmutableList.builder();
     RepositoryUrlManager repositoryUrlManager = RepositoryUrlManager.get();
     for (GoogleMavenArtifactId id : GoogleMavenArtifactId.values()) {
-      // Coordinate for any version available
-      GradleCoordinate coordinate = id.getCoordinate("+");
+      // Dependency for any version available
+      Dependency dependency = id.getDependency("+");
 
       // Get from the library coordinate only the group and artifactId to check if we have already added it
-      if (!existingDependencies.contains(coordinate.getId())) {
-        GradleCoordinate resolvedCoordinate = repositoryUrlManager.resolveDynamicCoordinate(coordinate, buildModel.getProject(), null);
-        if (resolvedCoordinate != null) {
-          dependenciesBuilder.add(resolvedCoordinate.toString());
+      if (!existingDependencies.contains(id.toString())) {
+        Component resolvedComponent = repositoryUrlManager.resolveDependency(dependency, buildModel.getProject(), null);
+        if (resolvedComponent != null) {
+          String identifier = resolvedComponent.toIdentifier();
+          if (identifier != null) {
+            dependenciesBuilder.add(identifier);
+          }
         }
       }
     }

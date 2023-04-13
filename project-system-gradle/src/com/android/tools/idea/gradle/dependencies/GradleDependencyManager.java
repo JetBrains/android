@@ -23,6 +23,9 @@ import static com.android.tools.idea.gradle.dsl.api.settings.VersionCatalogModel
 import static com.google.wireless.android.sdk.stats.GradleSyncStats.Trigger.TRIGGER_GRADLEDEPENDENCY_ADDED;
 import static com.intellij.openapi.roots.ModuleRootModificationUtil.updateModel;
 
+import com.android.ide.common.gradle.Component;
+import com.android.ide.common.gradle.Dependency;
+import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
 import com.android.tools.idea.gradle.dsl.api.GradleVersionCatalogModel;
@@ -179,8 +182,8 @@ public class GradleDependencyManager {
     RepositoryUrlManager manager = RepositoryUrlManager.get();
     String groupId = coordinate.getGroupId();
     String artifactId = coordinate.getArtifactId();
-
-    GradleCoordinate resolvedCoordinate = manager.resolveDynamicCoordinate(coordinate, project, null);
+    Dependency dependency = Dependency.Companion.parse(coordinate.toString());
+    Component resolvedComponent = manager.resolveDependency(dependency, project, null);
 
     // If we're adding a support library with a dynamic version (+), and we already have a resolved
     // support library version, use that specific version for the new support library too to keep them
@@ -189,10 +192,15 @@ public class GradleDependencyManager {
         && coordinate.acceptsGreaterRevisions() && SUPPORT_LIB_GROUP_ID.equals(groupId)
         // The only library in groupId=SUPPORT_LIB_GROUP_ID which doesn't follow the normal version numbering scheme
         && !artifactId.equals("multidex")) {
-      resolvedCoordinate = GradleCoordinate.parseCoordinateString(groupId + ":" + artifactId + ":" + appCompatVersion);
+      resolvedComponent = new Component(groupId, artifactId, Version.Companion.parse(appCompatVersion));
     }
 
-    return Optional.of((resolvedCoordinate != null) ? resolvedCoordinate : coordinate);
+    if (resolvedComponent == null) {
+      return Optional.of(coordinate);
+    }
+    else {
+      return Optional.of(new GradleCoordinate(groupId, artifactId, resolvedComponent.getVersion().toString()));
+    }
   }
 
   /**

@@ -15,26 +15,26 @@
  */
 package com.android.tools.idea.gradle.util;
 
-import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.GradleVersion;
+import static com.intellij.openapi.util.io.FileUtil.join;
+import static com.intellij.openapi.util.io.FileUtil.notNullize;
+import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
+
+import com.android.ide.common.gradle.Dependency;
+import com.android.ide.common.gradle.RichVersion;
+import com.android.ide.common.gradle.Version;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-
-import static com.intellij.openapi.util.io.FileUtil.join;
-import static com.intellij.openapi.util.io.FileUtil.notNullize;
-import static com.intellij.openapi.util.text.StringUtil.isNotEmpty;
-import static java.util.Collections.sort;
 
 public class GradleLocalCache {
   @NotNull
@@ -43,41 +43,31 @@ public class GradleLocalCache {
   }
 
   @Nullable
-  public GradleVersion findLatestArtifactVersion(@NotNull GradleCoordinate artifactCoordinate,
-                                                 @Nullable Project project,
-                                                 @Nullable String versionPrefix) {
-    String groupId = artifactCoordinate.getGroupId();
-    String artifactId = artifactCoordinate.getArtifactId();
-    if (isNotEmpty(groupId) && isNotEmpty(artifactId)) {
-      return findLatestArtifactVersion(groupId, artifactId, project, versionPrefix);
-    }
-    return null;
-  }
-
-  @Nullable
-  public GradleVersion findLatestArtifactVersion(@NotNull String groupId,
-                                                 @NotNull String artifactId,
-                                                 @Nullable Project project,
-                                                 @Nullable String versionPrefix) {
-    for (File gradleServicePath : getGradleServicePaths(project)) {
-      GradleVersion version = findLatestVersionInGradleCache(gradleServicePath, groupId, artifactId, versionPrefix);
-      if (version != null) {
-        return version;
+  public Version findLatestArtifactVersion(@NotNull Dependency dependency, @Nullable Project project) {
+    String group = dependency.getGroup();
+    String name = dependency.getName();
+    Version latest = null;
+    if (isNotEmpty(group) && isNotEmpty(name)) {
+      for (File gradleServicePath : getGradleServicePaths(project)) {
+        Version version = findLatestVersionInGradleCache(gradleServicePath, group, name, dependency.getVersion());
+        if (version != null && (latest == null || latest.compareTo(version) < 0)) {
+          latest = version;
+        }
       }
     }
-    return null;
+    return latest;
   }
 
   @Nullable
-  private static GradleVersion findLatestVersionInGradleCache(@NotNull File gradleServicePath,
-                                                              @NotNull String groupId,
-                                                              @NotNull String artifactId,
-                                                              @Nullable String versionPrefix) {
+  private static Version findLatestVersionInGradleCache(@NotNull File gradleServicePath,
+                                                        @NotNull String group,
+                                                        @NotNull String name,
+                                                        @Nullable RichVersion richVersion) {
     File gradleCacheFolder = new File(gradleServicePath, "caches");
     if (!gradleCacheFolder.isDirectory()) {
       return null;
     }
-    List<GradleVersion> versions = new ArrayList<>();
+    List<Version> versions = new ArrayList<>();
     for (File moduleFolder : notNullize(gradleCacheFolder.listFiles())) {
       if (!isDirectoryWithNamePrefix(moduleFolder, "modules-")) {
         continue;
@@ -86,30 +76,19 @@ public class GradleLocalCache {
         if (!isDirectoryWithNamePrefix(metadataFolder, "metadata-")) {
           continue;
         }
-        File versionFolder = new File(metadataFolder, join("descriptors", groupId, artifactId));
+        File versionFolder = new File(metadataFolder, join("descriptors", group, name));
         if (!versionFolder.isDirectory()) {
           continue;
         }
         for (File versionFile : notNullize(versionFolder.listFiles())) {
-          String version = versionFile.getName();
-          if ((versionPrefix == null || version.startsWith(versionPrefix)) && !version.isEmpty() && Character.isDigit(version.charAt(0))) {
-            GradleVersion parsedVersion = GradleVersion.tryParse(version);
-            if (parsedVersion != null) {
-              versions.add(parsedVersion);
-            }
+          Version version = Version.Companion.parse(versionFile.getName());
+          if (richVersion == null || richVersion.accepts(version)) {
+            versions.add(version);
           }
         }
       }
     }
-    int versionCount = versions.size();
-    if (versionCount == 1) {
-      return versions.get(0);
-    }
-    else if (versionCount > 1) {
-      sort(versions);
-      return versions.get(versionCount - 1);
-    }
-    return null;
+    return versions.stream().max(Comparator.naturalOrder()).orElse(null);
   }
 
   private static boolean isDirectoryWithNamePrefix(@NotNull File file, @NotNull String prefix) {

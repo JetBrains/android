@@ -16,6 +16,7 @@
 package com.android.tools.idea.lint
 
 import com.android.SdkConstants.ANDROID_MANIFEST_XML
+import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.repository.AgpVersion
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.SdkMavenRepository
@@ -222,11 +223,14 @@ class AndroidLintIdeSupport : LintIdeSupport() {
     StudioSdkUtil.reloadRemoteSdkWithModalProgress()
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
     val progress = StudioLoggerProgressIndicator(AndroidLintIdeSupport::class.java)
-    val p = SdkMavenRepository.findLatestVersion(gc, sdkHandler, null, progress)
+    val dependency = Dependency.Companion.parse(gc.toString())
+    val p = SdkMavenRepository.findLatestVersion(dependency, sdkHandler, null, progress)
     if (p != null) {
-      val latest = SdkMavenRepository.getCoordinateFromSdkPath(p.path)
+      val latest = SdkMavenRepository.getComponentFromSdkPath(p.path)
       if (latest != null) { // should always be the case unless the version suffix is somehow wrong
-        module.getModuleSystem().updateLibrariesToVersion(listOf(latest))
+        val latestCoordinate =
+          latest.toIdentifier()?.let { GradleCoordinate.parseCoordinateString(it) } ?: return
+        module.getModuleSystem().updateLibrariesToVersion(listOf(latestCoordinate))
         module.project
           .getProjectSystem()
           .getSyncManager()
@@ -267,7 +271,8 @@ class AndroidLintIdeSupport : LintIdeSupport() {
 
   override fun resolveDynamic(project: Project, gc: GradleCoordinate): String? {
     val sdkHandler = AndroidSdks.getInstance().tryToChooseSdkHandler()
-    return RepositoryUrlManager.get().resolveDynamicCoordinateVersion(gc, project, sdkHandler)
+    val dependency = Dependency.parse(gc.toString())
+    return RepositoryUrlManager.get().resolveDependencyRichVersion(dependency, project, sdkHandler)
   }
 
   override fun getPlatforms(): EnumSet<Platform> = Platform.ANDROID_SET

@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.templates
 
+import com.android.ide.common.gradle.Component
+import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.testutils.MockitoKt.whenever
@@ -58,8 +60,8 @@ class ResolveDependencyTest {
 
   private fun doTest(dependency: String, minRevision: String?, resolved: String, expectResultString: String) {
     val mockRepo = Mockito.mock(RepositoryUrlManager::class.java)
-    whenever(mockRepo.resolveDynamicCoordinate(any(GradleCoordinate::class.java), nullable(Project::class.java), nullable(AndroidSdkHandler::class.java)))
-      .thenReturn(GradleCoordinate.parseCoordinateString(resolved))
+    whenever(mockRepo.resolveDependency(any(Dependency::class.java), nullable(Project::class.java), nullable(AndroidSdkHandler::class.java)))
+      .thenReturn(Component.tryParse(resolved))
 
     val expectResult = GradleCoordinate.parseCoordinateString(expectResultString)
     assertThat(resolveDependency(mockRepo, dependency, minRevision)).isEqualTo(expectResult)

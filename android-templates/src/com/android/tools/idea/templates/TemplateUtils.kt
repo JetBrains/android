@@ -16,6 +16,7 @@
 package com.android.tools.idea.templates
 
 import com.android.annotations.concurrency.UiThread
+import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleCoordinate.parseCoordinateString
 import com.android.tools.idea.gradle.repositories.RepositoryUrlManager
@@ -208,7 +209,7 @@ object TemplateUtils {
  * Attempts to resolve dynamic versions (e.g. "2.+") to specific versions from the repository.
  *
  * @param minRev the minimum revision to accept
- * @see RepositoryUrlManager.resolveDynamicCoordinate
+ * @see RepositoryUrlManager.resolveDependency
  */
 fun resolveDependency(repo: RepositoryUrlManager, dependency: String, minRev: String? = null): GradleCoordinate {
   val coordinate = parseCoordinateString(dependency) ?: throw InvalidParameterException("Invalid dependency: $dependency")
@@ -216,7 +217,8 @@ fun resolveDependency(repo: RepositoryUrlManager, dependency: String, minRev: St
   val minCoordinate = if (minRev == null) coordinate else GradleCoordinate(coordinate.groupId, coordinate.artifactId, minRev)
 
   // If we cannot resolve the dependency on the repo, return the at least the min requested
-  val resolved = repo.resolveDynamicCoordinate(coordinate, null, null) ?: return minCoordinate
+  val resolved = repo.resolveDependency(Dependency.parse(dependency), null, null)?.toIdentifier()?.let { parseCoordinateString(it) }
+                 ?: return minCoordinate
 
   return maxOf(resolved, minCoordinate, GradleCoordinate.COMPARE_PLUS_LOWER)
 }

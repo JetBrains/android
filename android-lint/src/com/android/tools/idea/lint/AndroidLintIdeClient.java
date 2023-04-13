@@ -20,6 +20,8 @@ import static com.android.ide.common.repository.GoogleMavenRepository.MAVEN_GOOG
 import static com.android.tools.lint.checks.GooglePlaySdkIndex.GOOGLE_PLAY_SDK_INDEX_KEY;
 
 import com.android.annotations.NonNull;
+import com.android.ide.common.gradle.Component;
+import com.android.ide.common.gradle.Dependency;
 import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.GradleCoordinate;
 import com.android.ide.common.repository.SdkMavenRepository;
@@ -113,11 +115,12 @@ public class AndroidLintIdeClient extends LintIdeClient {
       return null;
     }
     StudioLoggerProgressIndicator logger = new StudioLoggerProgressIndicator(getClass());
-    RemotePackage sdkPackage = SdkMavenRepository.findLatestRemoteVersion(coordinate, sdkHandler, filter, logger);
+    Dependency dependency = Dependency.Companion.parse(coordinate.toString());
+    RemotePackage sdkPackage = SdkMavenRepository.findLatestRemoteVersion(dependency, sdkHandler, filter, logger);
     if (sdkPackage != null) {
-      GradleCoordinate found = SdkMavenRepository.getCoordinateFromSdkPath(sdkPackage.getPath());
+      Component found = SdkMavenRepository.getComponentFromSdkPath(sdkPackage.getPath());
       if (found != null) {
-        return found.getLowerBoundVersion();
+        return found.getVersion();
       }
     }
 

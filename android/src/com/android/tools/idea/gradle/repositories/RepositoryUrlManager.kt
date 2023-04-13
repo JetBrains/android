@@ -19,10 +19,11 @@ import com.android.ide.common.gradle.Component
 import com.android.ide.common.gradle.Dependency
 import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GoogleMavenRepository
-import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.GradleCoordinate.ArtifactType
 import com.android.ide.common.repository.MavenRepositories
 import com.android.ide.common.repository.SdkMavenRepository
+import com.android.ide.common.repository.explicitSingletonVersion
+import com.android.ide.common.repository.explicitlyIncludesPreview
 import com.android.io.CancellableFileIo
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths
@@ -158,61 +159,53 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
   }
 
   /**
-   * Checks the given Gradle coordinate, and if it contains a dynamic dependency, returns
-   * a new Gradle coordinate with the dynamic dependency replaced with a specific version.
+   * Checks the given [Dependency], and if it is not an explicit singleton, returns
+   * a [Component] with the rich dependency replaced with a specific version.
    * This tries looking at local caches, to pick the best version that Gradle would use without hitting the network,
    * but (if a [Project] is provided) it can also fall back to querying the network for the latest version.
-   * Works not just for a completely generic version (e.g. "+"), but for more specific version filters like 23.+ and 23.1.+ as well.
+   * Works not just for a completely generic dynamic version (e.g. `+`), but for more specific Rich Versions like `23.+` and `23.1.+`,
+   * `[23,24]`, and rich versions including strict and preferred versions.
    *
    * Note that in some cases the method may return null -- such as the case for unknown artifacts not found on disk or on the network,
    * or for valid artifacts but where there is no local cache and the network query is not successful.
    *
-   * @param coordinate the coordinate whose version we want to resolve
+   * @param dependency the [Dependency]
    * @param project    the current project, if known. This is required if you want to perform a network lookup of
    * the current best version if we can't find a locally cached version of the library
-   * @return the resolved coordinate, or null if not successful
+   * @return the corresponding [Component], or null if not successful
    */
-  fun resolveDynamicCoordinate(
-    coordinate: GradleCoordinate, project: Project?, sdkHandler: AndroidSdkHandler?
-  ): GradleCoordinate? {
-    val version = resolveDynamicCoordinateVersion( // sdkHandler is nullable for Mockito support, should have default value instead
-      coordinate, project, sdkHandler ?: AndroidSdks.getInstance().tryToChooseSdkHandler()) ?: return null
-    val revisions = GradleCoordinate.parseRevisionNumber(version)
-    if (revisions.isNotEmpty()) {
-      return GradleCoordinate(coordinate.groupId, coordinate.artifactId, revisions, coordinate.artifactType)
-    }
-    return null
+  fun resolveDependency(
+    dependency: Dependency, project: Project?, sdkHandler: AndroidSdkHandler?
+  ): Component? {
+    val version = resolveDependencyRichVersion( // sdkHandler is nullable for Mockito support, should have default value instead
+      dependency, project, sdkHandler ?: AndroidSdks.getInstance().tryToChooseSdkHandler()) ?: return null
+    return Component(dependency.group ?: return null, dependency.name, Version.parse(version))
   }
 
-  fun resolveDynamicCoordinateVersion(coordinate: GradleCoordinate, project: Project?, sdkHandler: AndroidSdkHandler?): String? {
+  fun resolveDependencyRichVersion(dependency: Dependency, project: Project?, sdkHandler: AndroidSdkHandler?): String? {
     @Suppress("NAME_SHADOWING")
     val sdkHandler = sdkHandler ?: AndroidSdks.getInstance().tryToChooseSdkHandler()
 
-    val revision = coordinate.revision
-    if (!revision.endsWith(REVISION_ANY)) {
-      // Already resolved.
-      return revision
-    }
-    val versionPrefix = revision.substring(0, revision.length - 1)
-    val filter = Predicate { version: Version -> version.toString().startsWith(versionPrefix) } // TODO: replace with proper prefix version handling
-    val groupId = coordinate.groupId
-    val artifactId = coordinate.artifactId
+    dependency.explicitSingletonVersion?.let { return it.toString() }
+    val filter = Predicate { version: Version -> dependency.version?.contains(version) ?: true } // TODO(xof): accepts?
+    val group = dependency.group ?: return null
+    val name = dependency.name
     val bestAvailableGoogleMavenRepo: GoogleMavenRepository
 
     // First check the Google maven repository, which has most versions.
     if (ApplicationManager.getApplication().isDispatchThread) {
       bestAvailableGoogleMavenRepo = cachedGoogleMavenRepository
-      refreshCacheInBackground(groupId, artifactId)
+      refreshCacheInBackground(group, name)
     }
     else {
       bestAvailableGoogleMavenRepo = googleMavenRepository
     }
 
-    val stable = bestAvailableGoogleMavenRepo.findVersion(groupId, artifactId, filter, false)
+    val stable = bestAvailableGoogleMavenRepo.findVersion(group, name, filter, false)
     if (stable != null) {
       return stable.toString()
     }
-    val version = bestAvailableGoogleMavenRepo.findVersion(groupId, artifactId, filter, true)
+    val version = bestAvailableGoogleMavenRepo.findVersion(group, name, filter, true)
     if (version != null) {
       // Only had preview version; use that (for example, artifacts that haven't been released as stable yet).
       return version.toString()
@@ -221,7 +214,7 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
     if (sdkLocation != null) {
       // If this coordinate points to an artifact in one of our repositories, mark it with a comment if they don't
       // have that repository available.
-      var libraryCoordinate = getLibraryRevision(groupId, artifactId, filter, false,
+      var libraryCoordinate = getLibraryRevision(group, name, filter, false,
                                                  sdkHandler.location?.fileSystem ?: FileSystems.getDefault())
       if (libraryCoordinate != null) {
         return libraryCoordinate
@@ -229,36 +222,32 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
 
       // If that didn't yield any matches, try again, this time allowing preview platforms.
       // This is necessary if the artifact prefix includes enough of a version where there are only preview matches.
-      libraryCoordinate = getLibraryRevision(groupId, artifactId, filter, true, sdkHandler.location?.fileSystem ?: FileSystems.getDefault())
+      libraryCoordinate = getLibraryRevision(group, name, filter, true, sdkHandler.location?.fileSystem ?: FileSystems.getDefault())
       if (libraryCoordinate != null) {
         return libraryCoordinate
       }
     }
 
     // Regular Gradle dependency? Look in Gradle cache.
-    val versionFound = GradleLocalCache.getInstance().findLatestArtifactVersion(coordinate, project, revision)
+    val versionFound = GradleLocalCache.getInstance().findLatestArtifactVersion(dependency, project)
     if (versionFound != null) {
       return versionFound.toString()
     }
 
     // Maybe it's available for download as an SDK component.
     val progress = StudioLoggerProgressIndicator(javaClass)
-    val sdkPackage = SdkMavenRepository.findLatestRemoteVersion(coordinate, sdkHandler, filter, progress)
+    val sdkPackage = SdkMavenRepository.findLatestRemoteVersion(dependency, sdkHandler, filter, progress)
     if (sdkPackage != null) {
-      val found = SdkMavenRepository.getCoordinateFromSdkPath(sdkPackage.path)
+      val found = SdkMavenRepository.getComponentFromSdkPath(sdkPackage.path)
       if (found != null) {
-        return found.revision
+        return found.version.toString()
       }
     }
 
     // Perform network lookup to resolve current best version, if possible.
     project ?: return null
     val client: LintClient = LintIdeSupport.get().createClient(project)
-    val latest = getLatestVersionFromRemoteRepo(client, coordinate, filter, coordinate.isPreview)?.toString() ?: return null
-    if (latest.startsWith(versionPrefix)) {
-      return latest
-    }
-    return null
+    return getLatestVersionFromRemoteRepo(client, dependency, filter, dependency.explicitlyIncludesPreview)?.toString()
   }
 
   private fun refreshCacheInBackground(groupId: String, artifactId: String) {
@@ -282,8 +271,3 @@ class RepositoryUrlManager @NonInjectable @VisibleForTesting constructor(
     fun get(): RepositoryUrlManager = ApplicationManager.getApplication().getService(RepositoryUrlManager::class.java)
   }
 }
-
-/**
- * Constant full revision for "anything available"
- */
-const val REVISION_ANY = "+"
