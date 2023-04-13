@@ -18,14 +18,18 @@ package com.android.tools.idea.layoutinspector.runningdevices
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.workbench.WorkBench
+import com.android.tools.idea.appinspection.api.process.ProcessesModel
+import com.android.tools.idea.appinspection.test.TestProcessDiscovery
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
 import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.model
-import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
+import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
+import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.SingleDeviceSelectProcessAction
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
@@ -73,10 +77,25 @@ class LayoutInspectorManagerTest {
 
     val mockLayoutInspectorProjectService = mock<LayoutInspectorProjectService>()
 
+    val processModel = ProcessesModel(TestProcessDiscovery())
+    val deviceModel = DeviceModel(displayViewRule.testRootDisposable, processModel)
+
+    val coroutineScope = AndroidCoroutineScope(displayViewRule.testRootDisposable)
+    val launcher = InspectorClientLauncher(
+      processModel,
+      emptyList(),
+      displayViewRule.project,
+      coroutineScope,
+      displayViewRule.testRootDisposable,
+    )
+
     layoutInspector = LayoutInspector(
-      coroutineScope = AndroidCoroutineScope(displayViewRule.testRootDisposable),
-      layoutInspectorClientSettings = InspectorClientSettings(displayViewRule.project),
-      client = DisconnectedClient,
+      coroutineScope = coroutineScope,
+      processModel = processModel,
+      deviceModel = deviceModel,
+      foregroundProcessDetection = null,
+      inspectorClientSettings = InspectorClientSettings(displayViewRule.project),
+      launcher = launcher,
       layoutInspectorModel = model { },
       treeSettings = FakeTreeSettings()
     )
@@ -244,6 +263,8 @@ class LayoutInspectorManagerTest {
       .filter { it.component.name == "LayoutInspector.MainToolbar" }
 
     assertThat(toolbars).hasSize(1)
+
+    assertThat(toolbars.first().actions.filterIsInstance<SingleDeviceSelectProcessAction>()).hasSize(1)
 
     val inspectorBanner = tabInfo.container
       .allChildren()

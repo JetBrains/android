@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.toolbar.createLayoutInspectorMainToolbar
 import com.android.tools.idea.streaming.AbstractDisplayView
@@ -245,8 +246,8 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         val mainPanel = BorderLayoutPanel()
         val subPanel = BorderLayoutPanel()
 
-        // TODO(b/26515032) add optional process picker for when auto-connect fails
-        val toolbar = createLayoutInspectorMainToolbar(mainPanel, layoutInspector, null)
+        val processPicker = TargetSelectionActionFactory.getSingleDeviceProcessPicker(layoutInspector, tabId.deviceSerialNumber)
+        val toolbar = createLayoutInspectorMainToolbar(mainPanel, layoutInspector, processPicker)
         mainPanel.add(toolbar.component, BorderLayout.NORTH)
         mainPanel.add(subPanel, BorderLayout.CENTER)
 
