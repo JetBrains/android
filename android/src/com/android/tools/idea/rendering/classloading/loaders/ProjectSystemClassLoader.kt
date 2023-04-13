@@ -49,7 +49,7 @@ class ProjectSystemClassLoader(
     : this(CacheBuilder.newBuilder()
              .softValues()
              .weigher { _: String, value: EntryCache -> value.weight() }
-             .maximumWeight(StudioFlags.PROJECT_SYSTEM_CLASS_LOADER_CACHE_LIMIT.get().toLong())
+             .maximumWeight(StudioFlags.PROJECT_SYSTEM_CLASS_LOADER_CACHE_LIMIT.get())
              .build<String, EntryCache>(), findClassVirtualFileImpl)
 
   @VisibleForTesting val jarManager = JarManager(prefetchAllFiles = true, jarFileCache = jarLoaderCache)
