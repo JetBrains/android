@@ -50,6 +50,7 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
 import junit.framework.Assert.assertFalse
 import junit.framework.Assert.assertTrue
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -170,18 +171,20 @@ class RenderErrorTest {
     val issueModel = sceneViewPanel.sceneView.surface.issueModel
     runBlocking {
       waitForCondition(5, TimeUnit.SECONDS) {
-        issueModel.issues.any { it.category == "Accessibility" }
+        issueModel.issues.filter { it.category == "Accessibility" }.size == 2
       }
     }
     val accessibilityIssues = issueModel.issues.filter { it.category == "Accessibility" }
-    assertEquals(1, accessibilityIssues.size)
-    val issue = accessibilityIssues[0]
-    assertEquals("Insufficient text color contrast ratio", issue.summary)
-    assertTrue(issue.source is NlComponentIssueSource)
-    val navigatable = (issue.source as NlComponentIssueSource).component?.navigatable
-    assertTrue(navigatable is OpenFileDescriptor)
-    assertEquals(1521, (navigatable as OpenFileDescriptor).offset)
-    assertEquals("RenderError.kt", navigatable.file.name)
+    val offsets = mutableListOf<Int>()
+    accessibilityIssues.forEach {
+      assertEquals("Insufficient text color contrast ratio", it.summary)
+      assertTrue(it.source is NlComponentIssueSource)
+      val navigatable = (it.source as NlComponentIssueSource).component?.navigatable
+      assertTrue(navigatable is OpenFileDescriptor)
+      offsets.add((navigatable as OpenFileDescriptor).offset)
+      assertEquals("RenderError.kt", navigatable.file.name)
+    }
+    assertContentEquals(listOf(1521, 1671), offsets.sorted())
   }
 
   private fun countVisibleActions(actions: List<AnAction>, visibleBefore: Boolean): Int {

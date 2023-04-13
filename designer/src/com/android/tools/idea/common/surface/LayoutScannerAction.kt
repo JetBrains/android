@@ -16,8 +16,8 @@
 package com.android.tools.idea.common.surface
 
 import com.android.tools.idea.common.error.Issue
-import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.rendering.RenderResult
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 
 /**
  * Controller for layout scanner that checks the layout and produces lint checks.
@@ -36,7 +36,7 @@ interface LayoutScannerControl {
   fun resume()
 
   /** Validate the layout and update the lint accordingly. */
-  fun validateAndUpdateLint(renderResult: RenderResult, model: NlModel)
+  fun validateAndUpdateLint(results: Map<LayoutlibSceneManager, RenderResult>)
 }
 
 /** Configuration for layout scanner */

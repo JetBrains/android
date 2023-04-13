@@ -54,3 +54,9 @@ fun PreviewWithoutRenderErrors() {
 fun PreviewWithContrastError() {
   Text(text = "Contrast error", modifier = Modifier.background(color = Color.DarkGray))
 }
+
+@Preview
+@Composable
+fun PreviewWithContrastErrorAgain() {
+  Text(text = "Another contrast error", modifier = Modifier.background(color = Color.DarkGray))
+}

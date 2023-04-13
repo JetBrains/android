@@ -23,6 +23,7 @@ import com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_SCANNER_ADD_INCLUDE
 import com.android.tools.idea.flags.StudioFlags.NELE_LAYOUT_SCANNER_COMMON_ERROR_PANEL
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.uibuilder.lint.CommonLintUserDataHandler
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorHierarchy
@@ -109,19 +110,26 @@ class NlLayoutScanner(surface: NlDesignSurface, parent: Disposable): Disposable,
    * Validate the layout and update the lint accordingly.
    */
   override
-  fun validateAndUpdateLint(renderResult: RenderResult, model: NlModel) {
-    when (val validatorResult = renderResult.validatorResult) {
-      is ValidatorHierarchy -> {
-        if (!validatorResult.isHierarchyBuilt) {
-          // Result not available
-          listeners.forEach { it.lintUpdated(null) }
-          return
-        }
-        updateLint(renderResult, LayoutValidator.validate(validatorResult), model)
+  fun validateAndUpdateLint(results: Map<LayoutlibSceneManager, RenderResult>) {
+    lintIntegrator.clear()
+    results.forEach { (manager, renderResult) ->
+      if (!manager.layoutScannerConfig.isIntegrateWithDefaultIssuePanel) {
+        return@forEach
       }
-      else -> {
-        // Result not available.
-        listeners.forEach { it.lintUpdated(null) }
+      when (val validatorResult = renderResult.validatorResult) {
+        is ValidatorHierarchy -> {
+          if (!validatorResult.isHierarchyBuilt) {
+            // Result not available
+            listeners.forEach { it.lintUpdated(null) }
+            return@forEach
+          }
+          updateLint(renderResult, LayoutValidator.validate(validatorResult), manager.model)
+        }
+
+        else -> {
+          // Result not available.
+          listeners.forEach { it.lintUpdated(null) }
+        }
       }
     }
   }
@@ -131,7 +139,6 @@ class NlLayoutScanner(surface: NlDesignSurface, parent: Disposable): Disposable,
     renderResult: RenderResult,
     validatorResult: ValidatorResult,
     model: NlModel) {
-    lintIntegrator.clear()
     layoutParser.clear()
 
     var result: ValidatorResult? = null

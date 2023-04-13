@@ -22,9 +22,11 @@ import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.error.IssuePanel
 import com.android.tools.idea.common.error.IssueSource
 import com.android.tools.idea.common.model.NlModel
+import com.android.tools.idea.common.surface.LayoutScannerEnabled
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.LayoutTestCase
+import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager
 import com.android.tools.idea.validator.LayoutValidator
 import com.android.tools.idea.validator.ValidatorData
 import com.android.tools.idea.validator.ValidatorResult
@@ -164,6 +166,11 @@ class NlLayoutScannerTest {
   fun removeListenerInCallback() {
     val scanner = createScanner()
     val model = ScannerTestHelper().buildModel(0)
+    val scannerConfig = LayoutScannerEnabled()
+    val manager = Mockito.mock(LayoutlibSceneManager::class.java).also {
+      Mockito.`when`(it.layoutScannerConfig).thenReturn(scannerConfig)
+      Mockito.`when`(it.model).thenReturn(model)
+    }
     val renderResult = Mockito.mock(RenderResult::class.java)
     val listener = object : NlLayoutScanner.Listener {
       override fun lintUpdated(result: ValidatorResult?) {
@@ -172,7 +179,7 @@ class NlLayoutScannerTest {
     }
     scanner.addListener(listener)
 
-    scanner.validateAndUpdateLint(renderResult, model)
+    scanner.validateAndUpdateLint(mapOf(manager to renderResult))
 
     assertFalse(scanner.listeners.contains(listener))
   }
@@ -183,6 +190,11 @@ class NlLayoutScannerTest {
     val helper = ScannerTestHelper()
     val componentSize = 0
     val model = helper.buildModel(componentSize)
+    val scannerConfig = LayoutScannerEnabled()
+    val manager = Mockito.mock(LayoutlibSceneManager::class.java).also {
+      Mockito.`when`(it.layoutScannerConfig).thenReturn(scannerConfig)
+      Mockito.`when`(it.model).thenReturn(model)
+    }
     val renderResult = Mockito.mock(RenderResult::class.java)
 
     var listenerTriggered = false
@@ -193,7 +205,7 @@ class NlLayoutScannerTest {
     }
     scanner.addListener(listener)
 
-    scanner.validateAndUpdateLint(renderResult, model)
+    scanner.validateAndUpdateLint(mapOf(manager to renderResult))
 
     assertTrue(listenerTriggered)
     assertEquals(0, scanner.issues.size)
@@ -206,6 +218,11 @@ class NlLayoutScannerTest {
     val helper = ScannerTestHelper()
     val componentSize = 0
     val model = helper.buildModel(componentSize)
+    val scannerConfig = LayoutScannerEnabled()
+    val manager = Mockito.mock(LayoutlibSceneManager::class.java).also {
+      Mockito.`when`(it.layoutScannerConfig).thenReturn(scannerConfig)
+      Mockito.`when`(it.model).thenReturn(model)
+    }
     val renderResult = helper.mockRenderResult(model)
 
     var listenerTriggered = false
@@ -216,7 +233,7 @@ class NlLayoutScannerTest {
     }
     scanner.addListener(listener)
 
-    scanner.validateAndUpdateLint(renderResult, model)
+    scanner.validateAndUpdateLint(mapOf(manager to renderResult))
 
     assertTrue(listenerTriggered)
     assertEquals(0, scanner.issues.size)

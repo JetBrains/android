@@ -71,7 +71,6 @@ import com.android.tools.idea.uibuilder.surface.layout.GridSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.GroupedListSurfaceLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SingleDirectionLayoutManager;
 import com.android.tools.idea.uibuilder.surface.layout.SurfaceLayoutManager;
-import com.android.tools.idea.uibuilder.surface.layout.VerticalOnlyLayoutManager;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
 import com.android.tools.idea.uibuilder.visual.colorblindmode.ColorBlindMode;
 import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider;
@@ -741,12 +740,7 @@ public class NlDesignSurface extends DesignSurface<LayoutlibSceneManager>
           return;
         }
         if (myScannerControl != null) {
-          for (Map.Entry<LayoutlibSceneManager, RenderResult> entry : results.entrySet()) {
-            LayoutlibSceneManager manager = entry.getKey();
-            if (manager.getLayoutScannerConfig().isIntegrateWithDefaultIssuePanel()) {
-              myScannerControl.validateAndUpdateLint(entry.getValue(), manager.getModel());
-            }
-          }
+          myScannerControl.validateAndUpdateLint(results);
         }
 
         Project project = getProject();
