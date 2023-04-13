@@ -1347,7 +1347,6 @@ android-studio/plugins/android/lib/compilerCommon.antlr_runtime.shaded_jar.jar
 android-studio/plugins/android/lib/core-3.5.0.jar
 android-studio/plugins/android/lib/data-binding.jar
 android-studio/plugins/android/lib/deploy_java_proto.jar
-android-studio/plugins/android/lib/dexlib2-2.5.2.jar
 android-studio/plugins/android/lib/emulator_java_proto.jar
 android-studio/plugins/android/lib/explainer.jar
 android-studio/plugins/android/lib/ffmpeg-5.1.2-1.5.8-windows-x86_64.jar

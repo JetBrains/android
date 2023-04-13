@@ -53,14 +53,6 @@ jvm_import(
 
 # managed by go/iml_to_build
 jvm_import(
-    name = "dexlib2",
-    # do not sort: must match IML order
-    jars = ["//prebuilts/tools/common/m2:dexlib2_files"],
-    visibility = ["//visibility:public"],
-)
-
-# managed by go/iml_to_build
-jvm_import(
     name = "truth-java8-extension",
     jars = ["//prebuilts/tools/common/m2:truth-java8-extension_files"],
     visibility = ["//visibility:public"],
