@@ -38,6 +38,9 @@ data class Frame(
   // Filename of the code
   val file: String = "",
 
+  // The raw symbol no matter it's unhydrateable or not
+  val rawSymbol: String = "",
+
   // The hydrated symbol, or the raw symbol if it's unhydrateable
   val symbol: String = "",
 
@@ -85,6 +88,9 @@ data class ExceptionStack(
 
   // The error message included in the exception
   val exceptionMessage: String = "",
+
+  // The raw exception message
+  val rawExceptionMessage: String = ""
 )
 
 /**

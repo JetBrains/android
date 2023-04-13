@@ -120,6 +120,8 @@ val ISSUE1 =
                         Frame(
                           line = 23,
                           file = "ResponseWrapper.kt",
+                          rawSymbol =
+                            "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.build(ResponseWrapper.kt:23)",
                           symbol =
                             "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.build",
                           offset = 23,
@@ -130,6 +132,8 @@ val ISSUE1 =
                         Frame(
                           line = 31,
                           file = "ResponseWrapper.kt",
+                          rawSymbol =
+                            "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.fetchOrError(ResponseWrapper.kt:31)",
                           symbol =
                             "dev.firebase.appdistribution.api_service.ResponseWrapper\$Companion.fetchOrError",
                           offset = 31,
@@ -140,7 +144,8 @@ val ISSUE1 =
                       )
                   ),
                 type = "retrofit2.HttpException",
-                exceptionMessage = "HTTP 401 "
+                exceptionMessage = "HTTP 401 ",
+                rawExceptionMessage = "retrofit2.HttpException: HTTP 401 "
               )
             )
         )
@@ -219,6 +224,8 @@ val ISSUE2 =
                         Frame(
                           line = 362,
                           file = "SSLUtils.java",
+                          rawSymbol =
+                            "com.android.org.conscrypt.SSLUtils.toSSLHandshakeException(SSLUtils.java:362)",
                           symbol = "com.android.org.conscrypt.SSLUtils.toSSLHandshakeException",
                           offset = 23,
                           address = 0,
@@ -228,6 +235,8 @@ val ISSUE2 =
                         Frame(
                           line = 1134,
                           file = "ConscryptEngine.java",
+                          rawSymbol =
+                            "com.android.org.conscrypt.ConscryptEngine.convertException(ConscryptEngine.java:1134)",
                           symbol = "com.android.org.conscrypt.ConscryptEngine.convertException",
                           offset = 31,
                           address = 0,
@@ -237,7 +246,9 @@ val ISSUE2 =
                       )
                   ),
                 type = "javax.net.ssl.SSLHandshakeException",
-                exceptionMessage = "Trust anchor for certification path not found "
+                exceptionMessage = "Trust anchor for certification path not found ",
+                rawExceptionMessage =
+                  "javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found "
               ),
               ExceptionStack(
                 stacktrace =
@@ -253,6 +264,8 @@ val ISSUE2 =
                         Frame(
                           line = 677,
                           file = "TrustManagerImpl.java",
+                          rawSymbol =
+                            "com.android.org.conscrypt.TrustManagerImpl.verifyChain(TrustManagerImpl.java:677)",
                           symbol = "com.android.org.conscrypt.TrustManagerImpl.verifyChain",
                           offset = 23,
                           address = 0,
@@ -262,6 +275,8 @@ val ISSUE2 =
                         Frame(
                           line = 320,
                           file = "RealConnection.java",
+                          rawSymbol =
+                            "okhttp3.internal.connection.RealConnection.connectTls(RealConnection.java:320)",
                           symbol = "okhttp3.internal.connection.RealConnection.connectTls",
                           offset = 31,
                           address = 0,
@@ -271,7 +286,9 @@ val ISSUE2 =
                       )
                   ),
                 type = "javax.net.ssl.SSLHandshakeException",
-                exceptionMessage = "Trust anchor for certification path not found "
+                exceptionMessage = "Trust anchor for certification path not found ",
+                rawExceptionMessage =
+                  "Caused by: javax.net.ssl.SSLHandshakeException: Trust anchor for certification path not found "
               ),
             )
         )

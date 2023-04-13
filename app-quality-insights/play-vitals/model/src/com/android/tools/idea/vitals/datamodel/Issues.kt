@@ -22,7 +22,6 @@ import com.android.tools.idea.insights.IssueAnnotation
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.OperatingSystemInfo
-import com.android.tools.idea.insights.StacktraceGroup
 import com.android.tools.idea.insights.client.toJavaInstant
 import com.google.play.developer.reporting.ErrorIssue
 import com.google.play.developer.reporting.ErrorReport
@@ -53,9 +52,7 @@ internal fun ErrorReport.toSampleEvent(): Event {
         operatingSystemInfo = OperatingSystemInfo.fromProto(osVersion),
         eventTime = eventTime.toJavaInstant()
       ),
-    stacktraceGroup =
-      StacktraceGroup() // TODO: need to parse reportText or we introduce a new string blob field to
-    // at least print traces in our stacktrace panel.
+    stacktraceGroup = reportText.extract()
   )
 }
 

@@ -348,16 +348,14 @@ class StackTracePanel(
         if (this == Blames.BLAMED) ConsoleViewContentType.ERROR_OUTPUT
         else ConsoleViewContentType.NORMAL_OUTPUT
 
-      var printedFirst = false
       for (stack in issue.sampleEvent.stacktraceGroup.exceptions) {
         consoleView.print(
-          (if (printedFirst) "Caused by: " else "") + "${stack.type}: ${stack.exceptionMessage}\n",
+          "${stack.rawExceptionMessage}\n",
           stack.stacktrace.blames.getConsoleViewContentType()
         )
-        printedFirst = true
         val startOffset = consoleView.contentSize
         for (frame in stack.stacktrace.frames) {
-          val frameLine = "    ${frame.symbol}(${frame.file}:${frame.line})\n"
+          val frameLine = "    ${frame.rawSymbol}\n"
           consoleView.print(frameLine, frame.blame.getConsoleViewContentType())
         }
         val endOffset = consoleView.contentSize - 1 // TODO: -2 on windows?
@@ -375,7 +373,7 @@ class StackTracePanel(
                   endOffset,
                   "    <${stack.stacktrace.frames.size} frames>"
                 )
-              if (stack.stacktrace.blames != Blames.BLAMED) {
+              if (stack.stacktrace.blames == Blames.NOT_BLAMED) {
                 region?.isExpanded = false
               }
             }
