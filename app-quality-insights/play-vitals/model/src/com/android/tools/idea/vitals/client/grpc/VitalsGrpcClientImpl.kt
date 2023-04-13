@@ -194,8 +194,7 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
               .apply {
                 addVersions(filters.versions)
                 addFailureTypes(filters.eventTypes)
-                // addDevices(filters.devices) // TODO: INVALID_ARGUMENT: Field not defined:
-                // deviceModel
+                addDevices(filters.devices)
                 addOperatingSystems(filters.operatingSystems)
               }
               .build()
