@@ -46,6 +46,16 @@ iml_module(
             ],
             "test_filter": "com.android.tools.idea.templates.TemplateTest",
         },
+        "TemplateDiffTest": {
+            "shard_count": 1,
+            "data": [
+                "//prebuilts/studio/sdk:build-tools/latest",
+                "//tools/adt/idea/android/testData",
+            ],
+            "test_filter": "com.android.tools.idea.templates.diff.TemplateDiffTest",
+            # TODO(b/278606589) unable to delete temporary files
+            "tags": ["no_test_windows"],
+        },
         "other": {
             "data": [
                 "//prebuilts/studio/sdk:build-tools/latest",
