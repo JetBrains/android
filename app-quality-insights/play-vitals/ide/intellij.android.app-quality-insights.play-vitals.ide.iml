@@ -18,5 +18,7 @@
     <orderEntry type="module" module-name="intellij.android.app-quality-insights.play-vitals.model" />
     <orderEntry type="module" module-name="intellij.android.projectSystem" />
     <orderEntry type="module" module-name="google-login-as" />
+    <orderEntry type="module" module-name="android.sdktools.testutils" scope="TEST" />
+    <orderEntry type="library" name="javax-inject" level="project" />
   </component>
 </module>

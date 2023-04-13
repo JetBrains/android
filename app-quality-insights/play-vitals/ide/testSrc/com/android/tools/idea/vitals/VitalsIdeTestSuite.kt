@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.insights
+package com.android.tools.idea.vitals
 
-import com.intellij.openapi.components.Service
-import com.intellij.openapi.project.Project
-import kotlinx.coroutines.flow.Flow
+import com.android.testutils.JarTestSuiteRunner
+import com.android.tools.tests.IdeaTestSuiteBase
+import org.junit.runner.RunWith
 
-/** Project-level [Service] that provides App Insights data for Android app modules. */
-interface AppInsightsConfigurationManager {
-  val project: Project
-
-  val configuration: Flow<AppInsightsModel>
-
-  fun refreshConfiguration() = Unit
-}
+@RunWith(JarTestSuiteRunner::class)
+@JarTestSuiteRunner.ExcludeClasses(VitalsIdeTestSuite::class)
+class VitalsIdeTestSuite : IdeaTestSuiteBase()

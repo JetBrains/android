@@ -22,14 +22,19 @@ import com.android.tools.idea.insights.AppInsightsModel
 import com.android.tools.idea.insights.AppInsightsProjectLevelControllerImpl
 import com.android.tools.idea.insights.AppInsightsService
 import com.android.tools.idea.insights.Connection
+import com.android.tools.idea.insights.LoadingState
 import com.android.tools.idea.insights.VariantConnection
+import com.android.tools.idea.insights.analytics.AppInsightsTracker
+import com.android.tools.idea.insights.analytics.AppInsightsTrackerImpl
 import com.android.tools.idea.insights.client.AppInsightsCacheImpl
+import com.android.tools.idea.insights.client.AppInsightsClient
 import com.android.tools.idea.insights.events.actions.AppInsightsActionQueueImpl
 import com.android.tools.idea.insights.ui.AppInsightsToolWindowFactory
 import com.android.tools.idea.projectsystem.isHolderModule
 import com.android.tools.idea.vitals.VitalsConnectionInferrer
 import com.android.tools.idea.vitals.client.VitalsClient
 import com.android.tools.idea.vitals.createVitalsFilters
+import com.google.gct.login.LoginState
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
@@ -37,32 +42,59 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
 import com.intellij.openapi.ui.MessageType
+import com.intellij.serviceContainer.NonInjectable
 import java.time.Clock
 import java.util.concurrent.ConcurrentLinkedQueue
+import javax.inject.Inject
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import org.jetbrains.annotations.TestOnly
 
 @Service
-class VitalsConfigurationManager(override val project: Project) :
-  AppInsightsConfigurationManager, Disposable {
-  private val client = VitalsClient(this)
+class VitalsConfigurationManager
+@NonInjectable
+@TestOnly
+constructor(
+  override val project: Project,
+  createVitalsClient: (Disposable) -> AppInsightsClient,
+  loginState: Flow<Boolean> = LoginState.loggedIn
+) : AppInsightsConfigurationManager, Disposable {
+  @Inject constructor(project: Project) : this(project, { disposable -> VitalsClient(disposable) })
 
-  // TODO(b/265153845): implement getting of connections when API is ready
-  private val module = project.modules.first { it.isHolderModule() }
-  private val CONNECTION1 = Connection("app1", "app-id1", project.name, "123")
-  private val VARIANT1 = VariantConnection(module, "N/A", CONNECTION1)
+  private val client = createVitalsClient(this)
+  private val scope = AndroidCoroutineScope(this)
+  private val refreshConfigurationFlow =
+    MutableSharedFlow<Unit>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+
   private val insightsService = service<AppInsightsService>()
+
+  private val queryConnectionsFlow =
+    flow {
+        emit(client.listConnections())
+        refreshConfigurationFlow.collect { emit(client.listConnections()) }
+      }
+      .distinctUntilChanged()
+      .shareIn(scope, SharingStarted.Eagerly, 1)
 
   private val controller =
     AppInsightsProjectLevelControllerImpl(
       AndroidCoroutineScope(this, AndroidDispatchers.uiThread),
       AndroidDispatchers.workerThread,
       client,
-      flowOf(listOf(VARIANT1)),
+      queryConnectionsFlow.mapConnectionsToVariantConnectionsIfReady(),
       insightsService.offlineStatus,
       setOfflineMode = { status -> insightsService.enterMode(status) },
       onIssuesChanged = { DaemonCodeAnalyzer.getInstance(project).restart() },
-      tracker = project.service(),
+      tracker = AppInsightsTrackerImpl(project, AppInsightsTracker.ProductType.PLAY_VITALS),
       clock = Clock.systemDefaultZone(),
       project = project,
       queue = AppInsightsActionQueueImpl(ConcurrentLinkedQueue()),
@@ -73,10 +105,40 @@ class VitalsConfigurationManager(override val project: Project) :
       defaultFilters = createVitalsFilters(),
       cache = AppInsightsCacheImpl()
     )
+
+  init {
+    scope.launch { loginState.collect { refreshConfiguration() } }
+  }
+
   override val configuration =
-    MutableSharedFlow<AppInsightsModel>(1).apply {
-      tryEmit(AppInsightsModel.Authenticated(controller))
-    }
+    queryConnectionsFlow
+      .mapAvailableAppsToModel()
+      .stateIn(scope, SharingStarted.Eagerly, AppInsightsModel.Uninitialized)
+
+  override fun refreshConfiguration() {
+    refreshConfigurationFlow.tryEmit(Unit)
+  }
 
   override fun dispose() = Unit
+
+  private fun Flow<LoadingState.Done<List<Connection>>>
+    .mapConnectionsToVariantConnectionsIfReady() = mapNotNull { result ->
+    (result as? LoadingState.Ready)?.let { ready ->
+      // TODO(b/265153845): pair connection to its app module if possible.
+      val module = project.modules.first { it.isHolderModule() }
+      ready.value.map { connection -> VariantConnection(module, "N/A", connection) }
+    }
+  }
+
+  private fun Flow<LoadingState.Done<List<Connection>>>.mapAvailableAppsToModel() = map {
+    when (it) {
+      is LoadingState.Ready -> {
+        AppInsightsModel.Authenticated(controller)
+      }
+      // TODO(b/274775776): disambiguate between different failures. Ex: authentication, grpc, etc.
+      is LoadingState.Failure -> {
+        AppInsightsModel.Unauthenticated
+      }
+    }
+  }
 }
