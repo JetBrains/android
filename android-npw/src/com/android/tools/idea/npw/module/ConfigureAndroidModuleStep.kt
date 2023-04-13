@@ -82,7 +82,7 @@ class ConfigureAndroidModuleStep(
       cell(apiLevelCombo).align(AlignX.FILL)
     }
 
-    if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get() || model.useGradleKts.get()) {
+    if (StudioFlags.NPW_SHOW_KTS_GRADLE_COMBO_BOX.get()) {
       generateBuildConfigurationLanguageRow(buildConfigurationLanguageCombo)
     }
   }.withBorder(empty(6))
