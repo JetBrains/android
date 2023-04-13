@@ -18,20 +18,72 @@ package com.android.tools.idea.rendering.parsers;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.util.PathString;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.android.AndroidTestCase;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.nio.charset.StandardCharsets;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static com.android.SdkConstants.*;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
 import static org.xmlpull.v1.XmlPullParser.END_TAG;
 import static org.xmlpull.v1.XmlPullParser.START_TAG;
 
-public class LayoutFilePullParserTest extends AndroidTestCase {
+public class LayoutFilePullParserTest {
+
+  @Rule
+  public final TemporaryFolder tmpFolder = new TemporaryFolder();
+
+  @Test
   public void testParser() throws Exception {
-    @SuppressWarnings("SpellCheckingInspection")
-    VirtualFile virtualFile = myFixture.copyFileToProject("xmlpull/designtime.xml", "res/layout/designtime.xml");
-    assertNotNull(virtualFile);
-    PathString file = new PathString(VfsUtilCore.virtualToIoFile(virtualFile));
+    File resourceFile = tmpFolder.newFile();
+    String resourceContent = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                             "<LinearLayout xmlns:android=\"http://schemas.android.com/apk/res/android\"\n" +
+                             "              xmlns:tools=\"http://schemas.android.com/tools\"\n" +
+                             "              android:orientation=\"vertical\"\n" +
+                             "              android:layout_width=\"match_parent\"\n" +
+                             "              android:layout_height=\"match_parent\">\n" +
+                             "\n" +
+                             "    <TextView\n" +
+                             "        android:id=\"@+id/first\"\n" +
+                             "        android:layout_width=\"wrap_content\"\n" +
+                             "        android:layout_height=\"wrap_content\"\n" +
+                             "        android:text=\"Normal text\"/>\n" +
+                             "\n" +
+                             "    <TextView\n" +
+                             "        android:id=\"@+id/second\"\n" +
+                             "        android:layout_width=\"match_parent\"\n" +
+                             "        android:layout_height=\"wrap_content\"\n" +
+                             "        android:text=\"Runtime Text\"\n" +
+                             "        android:layout_gravity=\"left|center_vertical\"\n" +
+                             "        tools:text=\"Designtime Text\"\n" +
+                             "        tools:textColor=\"@android:color/darker_gray\"/>\n" +
+                             "\n" +
+                             "    <TextView\n" +
+                             "        android:id=\"@+id/blank\"\n" +
+                             "        android:layout_width=\"wrap_content\"\n" +
+                             "        android:layout_height=\"wrap_content\"\n" +
+                             "        tools:text=\"\"/>\n" +
+                             "\n" +
+                             "    <!--\n" +
+                             "    Reset fastScrollAlwaysVisible attribute at designtime (fastScrollAlwaysVisible breaks\n" +
+                             "    rendering, see http://b.android.com/58448\n" +
+                             "    -->\n" +
+                             "    <ListView\n" +
+                             "        android:id=\"@+id/listView\"\n" +
+                             "        android:layout_width=\"wrap_content\"\n" +
+                             "        android:layout_height=\"wrap_content\"\n" +
+                             "        android:fastScrollAlwaysVisible=\"true\"\n" +
+                             "        tools:fastScrollAlwaysVisible=\"\"/>\n" +
+                             "</LinearLayout>";
+
+    try (FileOutputStream fo = new FileOutputStream(resourceFile)) {
+      fo.write(resourceContent.getBytes(StandardCharsets.UTF_8));
+    }
+
+    PathString file = new PathString(resourceFile);
 
     ILayoutPullParser parser = LayoutFilePullParser.create(file, ResourceNamespace.RES_AUTO);
 
