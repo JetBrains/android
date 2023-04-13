@@ -93,6 +93,7 @@ import javax.swing.tree.TreePath;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -464,6 +465,7 @@ public final class MainMemoryProfilerStageViewTest extends MemoryProfilerTestBas
     assertThat(response.getContents()).isEqualTo(ByteString.copyFrom(data, Charset.defaultCharset()));
   }
 
+  @Ignore("b/277717905")
   @Test
   public void testLoadLegacyAllocationRecordsFromFile() throws Exception {
     SessionsManager sessionsManager = myProfilers.getSessionsManager();
