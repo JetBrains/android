@@ -71,8 +71,7 @@ class TraceProcessorServiceImpl(
      */
     private fun cpuDataRequest(processes: List<ProcessModel>,
                                selectedProcess: ProcessModel,
-                               modelBuilder: TraceProcessorModel.Builder,
-                               systemTracePowerProfilerDisplayMode: PowerProfilerDisplayMode): List<RequestBuilder> {
+                               modelBuilder: TraceProcessorModel.Builder): List<RequestBuilder> {
       fun androidFrameTimelineRequest(id: Long, handle: (TraceProcessor.AndroidFrameTimelineResult) -> Unit ) =
         RequestBuilder({ setAndroidFrameTimelineRequest(
           QueryParameters.AndroidFrameTimelineParameters.newBuilder().setProcessId(id))},
@@ -94,9 +93,7 @@ class TraceProcessorServiceImpl(
                        { modelBuilder.addAndroidFrameEvents(it.androidFrameEventsResult) }),
         // Query for power rail and battery drain data.
         RequestBuilder({
-                         powerCounterTracksRequest = QueryParameters.PowerCounterTracksParameters.newBuilder()
-                           .setDisplayMode(systemTracePowerProfilerDisplayMode.value).build()
-                       },
+                         powerCounterTracksRequest = QueryParameters.PowerCounterTracksParameters.getDefaultInstance() },
                        { modelBuilder.addPowerCounters(it.powerCounterTracksResult) }),
         // Query Android FrameTimeline events.
         androidFrameTimelineRequest(selectedProcess.id.toLong(), modelBuilder::addAndroidFrameTimelineEvents)
@@ -125,7 +122,7 @@ class TraceProcessorServiceImpl(
 
     @VisibleForTesting
     fun buildCpuDataRequestProto(traceId: Long, processes: List<ProcessModel>, selectedProcess: ProcessModel): QueryBatchRequest =
-      buildBatchQuery(traceId, cpuDataRequest(processes, selectedProcess, TraceProcessorModel.Builder(), PowerProfilerDisplayMode.HIDE))
+      buildBatchQuery(traceId, cpuDataRequest(processes, selectedProcess, TraceProcessorModel.Builder()))
 
     private fun buildBatchQuery(traceId: Long, requestBuilders: List<RequestBuilder>): QueryBatchRequest =
       with(QueryBatchRequest.newBuilder()) {
@@ -195,8 +192,7 @@ class TraceProcessorServiceImpl(
                            selectedProcess: ProcessModel,
                            ideProfilerServices: IdeProfilerServices): SystemTraceModelAdapter =
     TraceProcessorModel.Builder().also { modelBuilder ->
-      val requests = cpuDataRequest(processes, selectedProcess, modelBuilder,
-                                    ideProfilerServices.featureConfig.systemTracePowerProfilerDisplayMode)
+      val requests = cpuDataRequest(processes, selectedProcess, modelBuilder)
       handleRequest(traceId, ideProfilerServices, FeatureTracker::trackTraceProcessorCpuData, *requests.toTypedArray())
     }.build()
 
