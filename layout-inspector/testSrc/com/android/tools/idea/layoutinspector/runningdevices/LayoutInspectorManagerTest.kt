@@ -25,6 +25,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.model
 import com.android.tools.idea.layoutinspector.pipeline.DisconnectedClient
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
+import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
@@ -238,11 +239,17 @@ class LayoutInspectorManagerTest {
     assertThat(tabInfo.container.components.filterIsInstance<WorkBench<LayoutInspector>>()).hasSize(1)
 
     val toolbars = tabInfo.container
-      .children()
+      .allChildren()
       .filterIsInstance<ActionToolbar>()
       .filter { it.component.name == "LayoutInspector.MainToolbar" }
 
     assertThat(toolbars).hasSize(1)
+
+    val inspectorBanner = tabInfo.container
+      .allChildren()
+      .filterIsInstance<InspectorBanner>()
+
+    assertThat(inspectorBanner).hasSize(1)
   }
 
   private fun assertDoesNotHaveWorkbench(tabInfo: TabInfo) {
@@ -251,11 +258,17 @@ class LayoutInspectorManagerTest {
     assertThat(tabInfo.content.parent).isEqualTo(tabInfo.container)
 
     val toolbars = tabInfo.container
-      .children()
+      .allChildren()
       .filterIsInstance<ActionToolbar>()
       .filter { it.component.name == "LayoutInspector.MainToolbar" }
 
     assertThat(toolbars).hasSize(0)
+
+    val inspectorBanner = tabInfo.container
+      .allChildren()
+      .filterIsInstance<InspectorBanner>()
+
+    assertThat(inspectorBanner).hasSize(0)
   }
 
   private fun Component.parents(): List<Container> {
@@ -268,12 +281,12 @@ class LayoutInspectorManagerTest {
     return parents
   }
 
-  private fun Container.children(): List<Component> {
+  private fun Container.allChildren(): List<Component> {
     val children = mutableListOf<Component>()
     for (component in components) {
       children.add(component)
       if (component is Container) {
-        children.addAll(component.children())
+        children.addAll(component.allChildren())
       }
     }
     return children

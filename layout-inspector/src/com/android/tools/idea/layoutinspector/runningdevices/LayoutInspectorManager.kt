@@ -22,6 +22,7 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
+import com.android.tools.idea.layoutinspector.ui.InspectorBanner
 import com.android.tools.idea.layoutinspector.ui.toolbar.createLayoutInspectorMainToolbar
 import com.android.tools.idea.streaming.AbstractDisplayView
 import com.android.tools.idea.streaming.DISPLAY_VIEW_KEY
@@ -242,11 +243,16 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
     fun enableLayoutInspector() {
       wrapLogic.wrapComponent { centerPanel ->
         val mainPanel = BorderLayoutPanel()
+        val subPanel = BorderLayoutPanel()
 
         // TODO(b/26515032) add optional process picker for when auto-connect fails
         val toolbar = createLayoutInspectorMainToolbar(mainPanel, layoutInspector, null)
         mainPanel.add(toolbar.component, BorderLayout.NORTH)
-        mainPanel.add(centerPanel, BorderLayout.CENTER)
+        mainPanel.add(subPanel, BorderLayout.CENTER)
+
+        subPanel.add(InspectorBanner(project), BorderLayout.NORTH)
+        subPanel.add(centerPanel, BorderLayout.CENTER)
+
         createLayoutInspectorWorkbench(project, layoutInspector, mainPanel)
       }
       displayViewManager.startRendering()
