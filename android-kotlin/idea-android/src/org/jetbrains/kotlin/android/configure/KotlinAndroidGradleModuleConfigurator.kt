@@ -5,8 +5,8 @@
 
 package org.jetbrains.kotlin.android.configure
 
+import com.android.ide.common.gradle.Version
 import com.android.ide.common.repository.GradleCoordinate
-import com.android.ide.common.repository.GradleVersion
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel
 import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.gradle.dsl.api.dependencies.ArtifactDependencySpec
@@ -200,7 +200,7 @@ class KotlinAndroidGradleModuleConfigurator : KotlinWithGradleConfigurator() {
             Also, if we failed to find repositories in the top-level project, we should add repositories to this build file.
              */
             moduleBuildModel.applyPlugin("org.jetbrains.kotlin.android")
-            if (GradleVersion.tryParse(version)?.compareTo("1.4")?.let { it < 0 } != false) {
+            if (Version.parse(version) < Version.parse("1.4")) {
                 val stdLibArtifactName = getStdlibArtifactName(sdk, originalVersion)
                 val buildModel = projectBuildModel.projectBuildModel
                 val versionString = when (buildModel?.buildscript()?.ext()?.findProperty("kotlin_version")?.valueType) {

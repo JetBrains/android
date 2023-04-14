@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline.appinspection.compose
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.analytics.currentIdeBrand
 import com.android.tools.idea.appinspection.api.AppInspectionApiServices
 import com.android.tools.idea.appinspection.api.checkVersion
@@ -297,10 +297,10 @@ class ComposeLayoutInspectorClient(
      * @return false if the compose inspector should not be started for this version.
      */
     private fun checkComposeVersion(project: Project, versionString: String) {
-      val version = GradleVersion.tryParse(versionString) ?: return
+      val version = Version.parse(versionString)
       // b/237987764 App crash while fetching parameters with empty lambda was fixed in 1.3.0-alpha03 and in 1.2.1
       // b/235526153 App crash while fetching component tree with certain Borders was fixed in 1.3.0-alpha03 and in 1.2.1
-      if (version.isAtLeast(1, 3, 0, "alpha", 3, false) || (version.minor == 2 && version.isAtLeast(1, 2, 1))) return
+      if (version >= Version.parse("1.3.0-alpha03") || version.minor == 2 && version >= Version.parse("1.2.1")) return
       val versionUpgrade = if (version.minor == 3) "1.3.0" else "1.2.1"
       val banner = InspectorBannerService.getInstance(project) ?: return
       banner.addNotification(LayoutInspectorBundle.message(COMPOSE_MAY_CAUSE_APP_CRASH_KEY, versionString, versionUpgrade))

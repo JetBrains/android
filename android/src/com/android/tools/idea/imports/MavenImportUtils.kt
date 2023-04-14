@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.imports
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.tools.analytics.UsageTracker
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.SuggestedImportEvent
@@ -39,8 +39,6 @@ internal fun trackSuggestedImport(artifactId: String) {
  * Displays the preview type (alpha, beta...) if applicable, or just the original [artifact].
  */
 fun flagPreview(artifact: String, version: String?): String {
-  version ?: return artifact
-
-  val previewType = GradleVersion.tryParse(version)?.previewType ?: return artifact
-  return "$artifact ($previewType)"
+  val previewString = version?.let { Version.parse(it).previewString } ?: return artifact
+  return "$artifact ($previewString)"
 }

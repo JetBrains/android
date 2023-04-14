@@ -17,8 +17,8 @@ package com.android.tools.idea.lint.inspections;
 
 import static com.android.tools.idea.gradle.dsl.api.dependencies.CommonConfigurationNames.IMPLEMENTATION;
 
+import com.android.ide.common.gradle.Version;
 import com.android.ide.common.repository.GradleCoordinate;
-import com.android.ide.common.repository.GradleVersion;
 import com.android.support.AndroidxName;
 import com.android.tools.idea.AndroidPsiUtils;
 import com.android.tools.idea.gradle.dsl.api.GradleBuildModel;
@@ -156,8 +156,8 @@ public class AndroidLintExifInterfaceInspection extends AndroidLintInspectionBas
       }
       GradleCoordinate coordinate = GradleCoordinate.parseCoordinateString(libraryCoordinate);
       if (coordinate != null) {
-        GradleVersion version = GradleVersion.tryParse(coordinate.getRevision());
-        if (version != null && !version.isAtLeast(25, 1, 0)) {
+        Version version = Version.Companion.parse(coordinate.getRevision());
+        if (version.compareTo(Version.Companion.parse("25.1.0")) < 0) {
           libraryCoordinate = coordinate.getGroupId() + ':' + coordinate.getArtifactId() + ":25.1.0";
         }
       }
