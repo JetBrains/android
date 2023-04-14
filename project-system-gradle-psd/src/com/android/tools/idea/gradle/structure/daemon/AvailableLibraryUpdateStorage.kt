@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.gradle.structure.daemon
 
-import com.android.ide.common.repository.GradleVersion
+import com.android.ide.common.gradle.Version
 import com.android.tools.idea.gradle.structure.model.PsArtifactDependencySpec
 import com.android.tools.idea.gradle.structure.model.PsLibraryKey
 import com.android.tools.idea.gradle.repositories.search.FoundArtifact
@@ -76,15 +76,14 @@ class AvailableLibraryUpdateStorage : PersistentStateComponent<AvailableLibraryU
     }
   }
 
-  fun findUpdatedVersionFor(spec: PsArtifactDependencySpec): GradleVersion? {
+  fun findUpdatedVersionFor(spec: PsArtifactDependencySpec): Version? {
     lock.withLock {
       val version = spec.version.takeUnless { it.isNullOrEmpty() } ?: return null
-      val parsedVersion = GradleVersion.tryParse(version) ?: return null
+      val parsedVersion = Version.parse(version)
       val key = spec.toLibraryKey()
       val update = updatesByKey[key] ?: return null
-      val foundVersion =
-        GradleVersion.tryParse(
-          (if (parsedVersion.isPreview) update.stableOrPreviewVersion else update.stableVersion) ?: return null) ?: return null
+      val updateString = (if (parsedVersion.isPreview) update.stableOrPreviewVersion else update.stableVersion) ?: return null
+      val foundVersion = Version.parse(updateString)
       return if (foundVersion > parsedVersion) foundVersion else null
     }
   }
