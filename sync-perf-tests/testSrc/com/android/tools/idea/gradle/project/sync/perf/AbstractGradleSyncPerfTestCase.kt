@@ -84,7 +84,7 @@ abstract class AbstractGradleSyncPerfTestCase {
   @Before
   @Throws(Exception::class)
   open fun setUp() {
-    FSRecords.invalidateCaches()
+    FSRecords.invalidateCaches("Cleanup before performance test")
     myScheduler = VirtualTimeScheduler()
     myUsageTracker = TestUsageTracker(myScheduler!!)
     val projectSettings = GradleProjectSettings()

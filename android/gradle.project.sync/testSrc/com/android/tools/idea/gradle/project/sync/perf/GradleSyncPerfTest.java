@@ -61,7 +61,7 @@ public class GradleSyncPerfTest extends AndroidGradleTestCase {
 
   @Override
   public void setUp() throws Exception {
-    FSRecords.invalidateCaches();
+    FSRecords.invalidateCaches("Cleanup before performance test");
     super.setUp();
     // Setup up an instance of the JournalingUsageTracker using defined spool directory and
     // virtual time scheduler.
