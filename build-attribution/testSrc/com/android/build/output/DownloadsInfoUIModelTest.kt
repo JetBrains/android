@@ -32,6 +32,7 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.table.TableView
+import icons.StudioIcons
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import org.junit.Before
 import org.junit.Rule
@@ -333,9 +334,8 @@ class DownloadsInfoUITableModelsTest {
         if (component is ColoredTableCellRenderer) {
           val icon = when (component.icon) {
             AnimatedIcon.Default.INSTANCE -> "[Load]"
-            AllIcons.General.Error -> "[Err]"
-            AllIcons.General.Warning -> "[Warn]"
-            AllIcons.RunConfigurations.TestPassed -> "[Ok]"
+            StudioIcons.Common.WARNING_INLINE -> "[Warn]"
+            StudioIcons.Common.SUCCESS_INLINE -> "[Ok]"
             null -> ""
             else -> "[unexpected icon]"
           }
