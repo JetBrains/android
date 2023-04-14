@@ -61,6 +61,7 @@ import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.rendering.NavGraphResolver;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.rendering.IRenderLogger;
+import com.android.tools.rendering.parsers.DomPullParser;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.rendering.parsers.RenderXmlTag;
 import com.android.tools.res.ResourceRepositoryManager;

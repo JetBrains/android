@@ -19,6 +19,7 @@ import com.android.ide.common.rendering.api.ILayoutPullParser;
 import com.android.ide.common.xml.XmlPrettyPrinter;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.rendering.RenderTestUtil;
+import com.android.tools.rendering.parsers.DomPullParser;
 import com.android.utils.StringHelper;
 import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.android.AndroidTestCase;

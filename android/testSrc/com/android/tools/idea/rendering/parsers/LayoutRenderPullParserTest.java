@@ -48,6 +48,7 @@ import com.android.tools.idea.rendering.RenderLogger;
 import com.android.tools.idea.rendering.StudioEnvironmentContext;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.rendering.parsers.AaptAttrAttributeSnapshot;
+import com.android.tools.rendering.parsers.LayoutPullParser;
 import com.android.tools.rendering.parsers.RenderXmlAttribute;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.rendering.parsers.RenderXmlTag;

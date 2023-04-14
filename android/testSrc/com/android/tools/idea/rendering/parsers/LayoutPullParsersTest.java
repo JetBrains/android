@@ -30,6 +30,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.RenderTask;
 import com.android.tools.idea.rendering.RenderTestUtil;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
+import com.android.tools.rendering.parsers.DomPullParser;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;

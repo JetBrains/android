@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.rendering.parsers;
 
 import com.android.ide.common.rendering.api.ILayoutPullParser;
-import com.android.tools.idea.rendering.parsers.DomPullParser;
 import com.android.utils.XmlUtils;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.Nullable;

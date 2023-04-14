@@ -21,6 +21,7 @@ import com.android.resources.ResourceType;
 import com.android.tools.idea.rendering.ActionBarHandler;
 import com.android.tools.idea.rendering.LayoutlibCallbackImpl;
 import com.android.tools.idea.rendering.ModuleDependencies;
+import com.android.tools.rendering.parsers.DomPullParser;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.res.ResourceRepositoryManager;
 import com.android.utils.SdkUtils;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.parsers;
+package com.android.tools.rendering.parsers;
 
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.ILayoutPullParser;
@@ -23,7 +23,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.InputStream;
 import java.io.Reader;
 
-abstract class LayoutPullParser implements ILayoutPullParser {
+public abstract class LayoutPullParser implements ILayoutPullParser {
   protected int myParsingState = START_DOCUMENT;
 
   @Override
