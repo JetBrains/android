@@ -16,8 +16,8 @@
 package com.android.tools.idea.execution.common
 
 import com.android.tools.deployer.model.component.ComponentType
-import com.intellij.execution.configurations.ModuleRunConfiguration
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.util.Key
 
 /**
  * Describes any start of Android Process that contains 2 steps: deploy and launch.
@@ -38,6 +38,11 @@ interface WearSurfaceLaunchOptions : ComponentLaunchOptions {
   val componentBaseClassesFqNames: Array<String>
 }
 
-interface AppRunConfiguration : ModuleRunConfiguration {
+interface AppRunConfiguration {
+  companion object {
+    @JvmStatic
+    val KEY: Key<AppRunConfiguration> = Key.create("android.execution.appRunConfiguration")
+  }
+
   val appId: String?
 }

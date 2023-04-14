@@ -17,6 +17,7 @@ package com.android.tools.idea.run.blaze
 
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
+import com.android.tools.idea.execution.common.AppRunConfiguration
 import com.android.tools.idea.execution.common.ApplicationTerminator
 import com.android.tools.idea.execution.common.getProcessHandlersForDevices
 import com.android.tools.idea.execution.common.processhandler.AndroidProcessHandler
@@ -107,6 +108,10 @@ class BlazeAndroidConfigurationExecutor(
                             console: ConsoleView) = coroutineScope {
     val applicationId = applicationIdProvider.packageName
     val stat = RunStats.from(env).apply { setPackage(applicationId) }
+    env.putCopyableUserData(DeviceFutures.KEY, deviceFutures)
+    env.putCopyableUserData(AppRunConfiguration.KEY, object : AppRunConfiguration {
+      override val appId = applicationId
+    })
     stat.beginLaunchTasks()
     try {
       printLaunchTaskStartedMessage(console)
@@ -115,7 +120,7 @@ class BlazeAndroidConfigurationExecutor(
 
       // A list of devices that we have launched application successfully.
       indicator.text = "Launching on devices"
-      devices.map {device ->
+      devices.map { device ->
         async {
           if (launchOptions.isClearAppStorage) {
             project.messageBus.syncPublisher(ClearLogcatListener.TOPIC).clearLogcat(device.serialNumber)

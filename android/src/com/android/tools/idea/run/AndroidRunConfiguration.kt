@@ -130,6 +130,7 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
   override fun getExecutor(env: ExecutionEnvironment, facet: AndroidFacet, deployFutures: DeviceFutures): AndroidConfigurationExecutor {
     val applicationIdProvider = applicationIdProvider ?: throw RuntimeException("Cannot get ApplicationIdProvider")
     val apkProvider = apkProvider ?: throw RuntimeException("Cannot get ApkProvider")
+    env.putCopyableUserData(AppRunConfiguration.KEY, this)
     return LaunchTaskRunner(applicationIdProvider, env, deployFutures, apkProvider)
   }
 
