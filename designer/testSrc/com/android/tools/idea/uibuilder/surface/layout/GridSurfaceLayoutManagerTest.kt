@@ -19,8 +19,8 @@ import com.android.tools.idea.common.surface.layout.TestPositionableContent
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.uibuilder.graphics.NlConstants
 import com.intellij.util.ui.JBInsets
+import org.junit.Assert.assertEquals
 import org.junit.Test
-import kotlin.test.assertEquals
 
 class GridSurfaceLayoutManagerTest {
 

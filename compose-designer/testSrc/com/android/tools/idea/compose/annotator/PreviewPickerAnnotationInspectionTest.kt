@@ -30,11 +30,10 @@ import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -200,8 +199,7 @@ Parameter: height should have Float(dp/px) value.""",
     replaceWithMessage: String
   ) {
     val info = annotateAndGetLintInfo()
-    assertNotNull(info)
-    assertEquals(affectedText, info.text)
+    assertEquals(affectedText, info!!.text)
     assertEquals(errorDescription, info.description)
 
     val fixAction = info.findRegisteredQuickFix { desc, _ -> desc.action }

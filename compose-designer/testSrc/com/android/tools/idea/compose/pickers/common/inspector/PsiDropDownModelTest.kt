@@ -18,8 +18,8 @@ package com.android.tools.idea.compose.pickers.common.inspector
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.property.panel.impl.model.util.FakeEnumSupport
 import java.util.concurrent.TimeUnit
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 internal class PsiDropDownModelTest {

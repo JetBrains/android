@@ -20,8 +20,8 @@ import java.awt.Point
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.JPanel
-import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class DispatchToTargetAdapterTest {

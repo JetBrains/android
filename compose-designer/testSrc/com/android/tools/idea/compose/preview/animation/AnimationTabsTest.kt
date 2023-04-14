@@ -28,9 +28,9 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.tabs.TabInfo
 import javax.swing.JPanel
-import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

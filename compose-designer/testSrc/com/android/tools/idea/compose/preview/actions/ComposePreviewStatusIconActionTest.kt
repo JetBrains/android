@@ -31,8 +31,8 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.testFramework.MapDataContext
 import com.intellij.testFramework.TestActionEvent
 import icons.StudioIcons
-import kotlin.test.assertEquals
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain

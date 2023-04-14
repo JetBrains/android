@@ -27,8 +27,8 @@ import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.testFramework.ApplicationRule
-import junit.framework.Assert.assertEquals
 import org.intellij.lang.annotations.Language
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 

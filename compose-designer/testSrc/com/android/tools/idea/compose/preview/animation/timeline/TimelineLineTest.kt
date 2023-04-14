@@ -19,10 +19,10 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.TestUtils
 import com.android.tools.idea.compose.preview.animation.TestUtils.scanForTooltips
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class TimelineLineTest {

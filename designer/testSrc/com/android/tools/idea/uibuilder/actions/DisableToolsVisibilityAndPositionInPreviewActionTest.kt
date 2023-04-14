@@ -20,13 +20,13 @@ import com.android.tools.idea.actions.LayoutPreviewHandler
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx
 import com.intellij.testFramework.MapDataContext
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.JUnit4
 import org.mockito.Mockito.mock
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 @RunWith(JUnit4::class)
 class DisableToolsVisibilityAndPositionInPreviewActionTest {
@@ -34,12 +34,20 @@ class DisableToolsVisibilityAndPositionInPreviewActionTest {
   private val actionManager: ActionManagerEx = mock(ActionManagerEx::class.java)
   private lateinit var context: MapDataContext
 
-  private val previewHandler: LayoutPreviewHandler = object: LayoutPreviewHandler {
-    override var previewWithToolsVisibilityAndPosition: Boolean = false
-  }
+  private val previewHandler: LayoutPreviewHandler =
+    object : LayoutPreviewHandler {
+      override var previewWithToolsVisibilityAndPosition: Boolean = false
+    }
 
   private fun createActionEvent(): AnActionEvent {
-    return AnActionEvent(null, context, "DesignSurface", disableToolsAction.templatePresentation.clone(), actionManager, 0)
+    return AnActionEvent(
+      null,
+      context,
+      "DesignSurface",
+      disableToolsAction.templatePresentation.clone(),
+      actionManager,
+      0
+    )
   }
 
   @Before
@@ -50,10 +58,10 @@ class DisableToolsVisibilityAndPositionInPreviewActionTest {
   @Test
   fun isSelected() {
     previewHandler.previewWithToolsVisibilityAndPosition = true
-    assertFalse { disableToolsAction.isSelected(createActionEvent()) }
+    assertFalse(disableToolsAction.isSelected(createActionEvent()))
 
     previewHandler.previewWithToolsVisibilityAndPosition = false
-    assertTrue { disableToolsAction.isSelected(createActionEvent()) }
+    assertTrue(disableToolsAction.isSelected(createActionEvent()))
   }
 
   @Test
@@ -61,9 +69,9 @@ class DisableToolsVisibilityAndPositionInPreviewActionTest {
     previewHandler.previewWithToolsVisibilityAndPosition = true
 
     disableToolsAction.actionPerformed(createActionEvent())
-    assertFalse { previewHandler.previewWithToolsVisibilityAndPosition }
+    assertFalse(previewHandler.previewWithToolsVisibilityAndPosition)
 
     disableToolsAction.actionPerformed(createActionEvent())
-    assertTrue { previewHandler.previewWithToolsVisibilityAndPosition }
+    assertTrue(previewHandler.previewWithToolsVisibilityAndPosition)
   }
 }

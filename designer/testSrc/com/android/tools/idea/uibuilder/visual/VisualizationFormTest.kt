@@ -20,8 +20,8 @@ import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.UsefulTestCase.assertEmpty
-import junit.framework.Assert.assertFalse
-import junit.framework.Assert.assertTrue
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 

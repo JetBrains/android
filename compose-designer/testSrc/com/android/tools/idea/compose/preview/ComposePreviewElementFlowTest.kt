@@ -25,7 +25,6 @@ import com.android.tools.idea.ui.ApplicationUtils
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.runReadAction
 import com.intellij.psi.SmartPointerManager
-import kotlin.test.assertEquals
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
@@ -36,6 +35,7 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 

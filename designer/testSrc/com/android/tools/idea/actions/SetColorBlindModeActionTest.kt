@@ -30,10 +30,10 @@ import com.google.wireless.android.sdk.stats.LayoutEditorState
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.TestActionEvent
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
 
 private class TestScreenViewProvider : ScreenViewProvider {
   override val displayName: String = "Test screen view"

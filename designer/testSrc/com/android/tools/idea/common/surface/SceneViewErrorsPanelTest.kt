@@ -18,13 +18,11 @@ package com.android.tools.idea.common.surface
 import com.android.tools.adtui.swing.FakeUi
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.ApplicationRule
-import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
-import icons.StudioIcons
-import junit.framework.Assert.assertEquals
-import junit.framework.Assert.assertFalse
-import junit.framework.Assert.assertNotNull
-import junit.framework.Assert.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.ClassRule
 import org.junit.Test

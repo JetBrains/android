@@ -19,7 +19,7 @@ import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.testing.AndroidProjectRule
 import java.awt.Graphics2D
 import javax.swing.JSlider
-import kotlin.test.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.mock

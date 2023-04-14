@@ -28,8 +28,6 @@ import com.android.tools.idea.testing.moveCaret
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.psi.util.parentOfType
 import com.intellij.testFramework.runInEdtAndGet
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.compose.stubComposableAnnotation
@@ -38,6 +36,8 @@ import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

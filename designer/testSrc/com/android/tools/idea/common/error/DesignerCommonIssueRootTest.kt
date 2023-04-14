@@ -17,7 +17,7 @@ package com.android.tools.idea.common.error
 
 import com.android.tools.idea.common.BackedTestFile
 import com.android.tools.idea.testing.AndroidProjectRule
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 

@@ -1,7 +1,7 @@
 package com.android.tools.idea.compose.preview.animation.timeline
 
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Test
 
 class ElementStateTest {
@@ -18,7 +18,7 @@ class ElementStateTest {
   @Test
   fun `freeze callback is invoked`() {
     val state = ElementState()
-    assertFalse { state.frozen }
+    assertFalse(state.frozen)
     var callbackCalls = 0
     state.addFreezeListener { callbackCalls++ }
     state.frozen = true
@@ -28,7 +28,7 @@ class ElementStateTest {
   @Test
   fun `expanded callback is invoked`() {
     val state = ElementState()
-    assertFalse { state.expanded }
+    assertFalse(state.expanded)
     var callbackCalls = 0
     state.addExpandedListener { callbackCalls++ }
     state.expanded = true

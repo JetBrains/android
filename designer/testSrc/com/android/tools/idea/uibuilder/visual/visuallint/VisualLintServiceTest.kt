@@ -37,12 +37,12 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.intellij.openapi.application.ApplicationManager
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
-import kotlin.test.assertEquals
 
 class VisualLintServiceTest {
 

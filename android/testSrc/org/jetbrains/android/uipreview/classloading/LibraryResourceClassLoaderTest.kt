@@ -24,10 +24,10 @@ import com.android.tools.idea.res.TestResourceIdManager
 import com.android.tools.idea.res.addAarDependency
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.testFramework.runInEdtAndWait
-import junit.framework.Assert.assertNotNull
-import junit.framework.Assert.fail
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

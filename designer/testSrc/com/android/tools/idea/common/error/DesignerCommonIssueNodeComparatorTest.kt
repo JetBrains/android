@@ -19,8 +19,8 @@ import com.android.testutils.MockitoKt.mock
 import com.android.tools.idea.uibuilder.surface.NlAtfIssue
 import com.android.tools.idea.validator.ValidatorData
 import com.intellij.lang.annotation.HighlightSeverity
-import junit.framework.Assert.assertEquals
-import junit.framework.Assert.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DesignerCommonIssueNodeComparatorTest {

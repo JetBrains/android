@@ -23,7 +23,7 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.tree.LeafState
 import com.intellij.util.concurrency.Invoker
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 

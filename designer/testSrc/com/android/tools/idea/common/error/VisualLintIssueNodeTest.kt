@@ -30,9 +30,9 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintErrorType
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.assertInstanceOf
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 class VisualLintIssueNodeTest {

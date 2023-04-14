@@ -22,7 +22,7 @@ import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.NlModelBuilderUtil
 import com.intellij.testFramework.runInEdtAndGet
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`

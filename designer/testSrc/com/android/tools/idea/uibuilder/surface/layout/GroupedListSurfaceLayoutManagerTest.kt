@@ -18,10 +18,10 @@ package com.android.tools.idea.uibuilder.surface.layout
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.intellij.util.ui.JBInsets
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import java.awt.Dimension
-import kotlin.test.assertNotEquals
 
 class GroupedListSurfaceLayoutManagerTest {
 
@@ -360,27 +360,27 @@ class GroupedListSurfaceLayoutManagerTest {
 
     run {
       val scale = manager.getFitIntoScale(contents, 100, 500)
-      assertEquals(1.0, scale)
+      assertEquals(1.0, scale, 0.0)
     }
 
     run {
       val scale = manager.getFitIntoScale(contents, 400, 1000)
-      assertEquals(2.0, scale)
+      assertEquals(2.0, scale, 0.0)
     }
 
     run {
       val scale = manager.getFitIntoScale(contents, 200, 4000)
-      assertEquals(2.0, scale)
+      assertEquals(2.0, scale, 0.0)
     }
 
     run {
       val scale = manager.getFitIntoScale(contents, 50, 1000)
-      assertEquals(0.5, scale)
+      assertEquals(0.5, scale, 0.0)
     }
 
     run {
       val scale = manager.getFitIntoScale(contents, 100, 50)
-      assertEquals(0.1, scale)
+      assertEquals(0.1, scale, 0.0)
     }
   }
 

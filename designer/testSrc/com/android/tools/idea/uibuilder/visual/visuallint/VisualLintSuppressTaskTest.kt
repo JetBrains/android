@@ -30,8 +30,8 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.undo.UndoManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.testFramework.RunsInEdt
-import junit.framework.Assert.assertEquals
 import org.jetbrains.kotlin.idea.util.application.executeCommand
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 

@@ -25,12 +25,12 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import javax.swing.JLabel
 import javax.swing.JSlider
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -308,7 +308,7 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
     // ui.render()
     // First element can't move outside of the slider.
     assertEquals(-138, slider.sliderUI.elements[0].offsetPx)
-    assertTrue { slider.sliderUI.elements[0].state.valueOffset < 0 }
+    assertTrue(slider.sliderUI.elements[0].state.valueOffset < 0)
   }
 
   @Test
@@ -325,7 +325,7 @@ class TimelinePanelTest(private val enableCoordinationDrag: Boolean) {
     // ui.render()
     // First element can't move outside of the slider.
     assertEquals(237, slider.sliderUI.elements[0].offsetPx)
-    assertTrue { slider.sliderUI.elements[0].state.valueOffset > 0 }
+    assertTrue(slider.sliderUI.elements[0].state.valueOffset > 0)
   }
 
   @Test

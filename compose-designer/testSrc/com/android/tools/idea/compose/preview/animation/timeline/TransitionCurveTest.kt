@@ -24,7 +24,7 @@ import com.android.tools.idea.compose.preview.animation.TestUtils.scanForTooltip
 import com.android.tools.idea.compose.preview.animation.TooltipInfo
 import com.android.tools.idea.compose.preview.animation.Transition
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import kotlin.test.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class TransitionCurveTest {

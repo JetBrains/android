@@ -33,13 +33,13 @@ import com.android.tools.property.panel.api.HeaderEnumValue
 import com.intellij.openapi.module.Module
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubConfigurationAsLibrary
 import org.jetbrains.android.compose.stubDevicesAsLibrary
 import org.jetbrains.android.compose.stubPreviewAnnotation
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

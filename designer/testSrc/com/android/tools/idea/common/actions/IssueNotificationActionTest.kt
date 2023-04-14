@@ -38,9 +38,9 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.openapi.vfs.VirtualFile
 import icons.StudioIcons
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
 
 class IssueNotificationActionTest {
 

@@ -26,8 +26,8 @@ import com.intellij.codeInsight.daemon.LineMarkerProviders
 import com.intellij.codeInsight.daemon.impl.LineMarkersPass
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
-import kotlin.test.assertEquals
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

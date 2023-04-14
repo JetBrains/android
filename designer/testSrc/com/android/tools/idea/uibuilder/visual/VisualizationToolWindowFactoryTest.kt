@@ -18,16 +18,15 @@ package com.android.tools.idea.uibuilder.visual
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.FileEditorManagerListener
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.testFramework.EdtRule
 import org.intellij.lang.annotations.Language
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 class VisualizationToolWindowFactoryTest {
 

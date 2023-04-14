@@ -18,14 +18,14 @@ package com.android.tools.idea.common.surface
 import com.android.tools.adtui.actions.ZoomType
 import com.android.tools.idea.common.fixtures.KeyEventBuilder
 import com.android.tools.idea.common.scene.Scene
-import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
 import com.android.tools.idea.uibuilder.surface.TestSceneView
+import com.android.tools.idea.uibuilder.surface.interaction.PanInteraction
 import com.intellij.testFramework.assertInstanceOf
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 import java.awt.Point
 import java.awt.event.KeyEvent
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
 private class TestInteractableSurface(private val sceneView: SceneView? = null) : InteractableScenesSurface {
   var zoomCounter = 0

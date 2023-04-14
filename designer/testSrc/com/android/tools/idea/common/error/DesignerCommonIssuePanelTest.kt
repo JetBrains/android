@@ -31,12 +31,12 @@ import com.intellij.testFramework.assertInstanceOf
 import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.treeStructure.Tree
 import com.intellij.util.ui.UIUtil
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import javax.swing.tree.TreePath
-import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 @Suppress("UnstableApiUsage")
 class DesignerCommonIssuePanelTest {

@@ -25,11 +25,11 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintService
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.testFramework.runInEdtAndWait
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito.`when`
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class DesignToolsIssueProviderTest {
   @JvmField

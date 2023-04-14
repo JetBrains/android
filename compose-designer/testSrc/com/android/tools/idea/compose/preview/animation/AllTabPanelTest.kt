@@ -32,9 +32,9 @@ import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.components.JBScrollPane
 import javax.swing.JPanel
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

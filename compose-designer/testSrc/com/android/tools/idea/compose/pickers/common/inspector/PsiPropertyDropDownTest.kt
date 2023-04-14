@@ -31,9 +31,9 @@ import com.intellij.testFramework.EdtRule
 import java.awt.event.KeyEvent
 import javax.swing.JComponent
 import javax.swing.JPanel
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.Test

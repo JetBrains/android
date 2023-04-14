@@ -41,13 +41,13 @@ import com.intellij.profile.codeInspection.InspectionProfileManager
 import com.intellij.psi.xml.XmlFile
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
-import kotlin.test.fail
 
 class VisualLintAnalysisTest {
 

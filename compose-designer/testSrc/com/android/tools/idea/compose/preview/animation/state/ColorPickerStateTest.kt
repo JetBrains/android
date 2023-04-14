@@ -27,8 +27,8 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import java.awt.Color
 import java.awt.Dimension
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito

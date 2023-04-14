@@ -34,7 +34,7 @@ import java.awt.Point
 import java.util.stream.Collectors
 import javax.swing.JLabel
 import javax.swing.JPanel
-import kotlin.test.assertTrue
+import org.junit.Assert.assertTrue
 
 object TestUtils {
   private const val TEST_ELEMENT_WIDTH = 100

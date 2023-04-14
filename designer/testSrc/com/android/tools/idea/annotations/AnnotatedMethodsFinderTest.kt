@@ -24,12 +24,11 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.uast.UAnnotation
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElementOfType
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 
 private fun identity(methods: List<UMethod>) = methods.asSequence()
 

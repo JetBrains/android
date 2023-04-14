@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.preview.animation
 
 import androidx.compose.animation.tooling.ComposeAnimationType
 import com.android.tools.idea.compose.preview.animation.TestUtils.createComposeAnimation
-import kotlin.test.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class TabNamesGeneratorTests {

@@ -27,9 +27,9 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.PsiManager
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

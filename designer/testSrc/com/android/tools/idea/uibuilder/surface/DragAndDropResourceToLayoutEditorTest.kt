@@ -28,7 +28,6 @@ import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.android.tools.idea.util.androidFacet
 import org.junit.Test
 import java.awt.dnd.DnDConstants
-import kotlin.test.assertContains
 
 /**
  * This test mimics the resource drag and drop scenario. b/255741287
@@ -67,8 +66,8 @@ class DragAndDropResourceToLayoutEditorTest : LayoutTestCase() {
     LayoutTestUtilities.dragDrop(manager, 0, 0, 5, 5, transferable, DnDConstants.ACTION_COPY)
 
     model.file.document!!.text.let { layoutXmlContent ->
-      assertContains(layoutXmlContent, "<${SdkConstants.VIEW_INCLUDE}")
-      assertContains(layoutXmlContent, "layout/layout_to_include")
+      assertTrue(layoutXmlContent.contains("<${SdkConstants.VIEW_INCLUDE}"))
+      assertTrue(layoutXmlContent.contains("layout/layout_to_include"))
     }
   }
 
@@ -110,8 +109,8 @@ class DragAndDropResourceToLayoutEditorTest : LayoutTestCase() {
     LayoutTestUtilities.dragDrop(manager, 0, 0, 5, 5, transferable, DnDConstants.ACTION_COPY)
 
     model.file.document!!.text.let { layoutXmlContent ->
-      assertContains(layoutXmlContent, "<${SdkConstants.IMAGE_VIEW}")
-      assertContains(layoutXmlContent, "drawable/color_drawable")
+      assertTrue(layoutXmlContent.contains("<${SdkConstants.IMAGE_VIEW}"))
+      assertTrue(layoutXmlContent.contains("drawable/color_drawable"))
     }
   }
 }

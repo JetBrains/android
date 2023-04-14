@@ -24,8 +24,8 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.intellij.openapi.util.io.FileUtil.join;
 import static com.intellij.openapi.util.io.FileUtil.writeToFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.virtualToIoFile;
-import static junit.framework.Assert.assertNotNull;
 import static org.jetbrains.android.facet.AndroidRootUtil.getPrimaryManifestFile;
+import static org.junit.Assert.assertNotNull;
 
 import com.android.tools.idea.gradle.project.sync.issues.SdkInManifestIssuesReporter.SdkProperty;
 import com.android.tools.idea.gradle.project.sync.snapshots.AndroidCoreTestProject;

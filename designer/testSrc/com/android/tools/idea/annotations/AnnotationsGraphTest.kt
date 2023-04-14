@@ -24,11 +24,11 @@ import org.jetbrains.uast.UElement
 import org.jetbrains.uast.UMethod
 import org.jetbrains.uast.toUElementOfType
 import org.jetbrains.uast.tryResolve
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
-import kotlin.test.assertFalse
 
 private class DfsSubtreeEdges {
   var treeEdgesCount = 0

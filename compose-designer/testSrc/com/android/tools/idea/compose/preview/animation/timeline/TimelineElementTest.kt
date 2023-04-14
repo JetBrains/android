@@ -18,9 +18,9 @@ package com.android.tools.idea.compose.preview.animation.timeline
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.idea.compose.preview.animation.TestUtils
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotEquals
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Test
 
 class TimelineElementTest {
@@ -36,7 +36,7 @@ class TimelineElementTest {
     slider.sliderUI.apply {
       val line = TestUtils.TestTimelineElement(50, 50, positionProxy)
       assertEquals(0, line.offsetPx)
-      assertFalse { line.frozen }
+      assertFalse(line.frozen)
       assertEquals(TimelineElementStatus.Inactive, line.status)
       assertEquals(0, line.state.valueOffset)
     }
@@ -54,7 +54,7 @@ class TimelineElementTest {
       val line = TestUtils.TestTimelineElement(50, 50, positionProxy)
       val copy = TestUtils.TestTimelineElement(50, 50, positionProxy, line.state)
       assertEquals(0, copy.offsetPx)
-      assertFalse { copy.frozen }
+      assertFalse(copy.frozen)
       assertEquals(TimelineElementStatus.Inactive, copy.status)
       assertEquals(0, copy.state.valueOffset)
     }

@@ -27,9 +27,9 @@ import com.intellij.testFramework.LightVirtualFile
 import com.intellij.ui.SimpleTextAttributes
 import icons.StudioIcons
 import junit.framework.Assert
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertNull
 
 /**
  * TODO: Needs to test the cases which use [NlComponentIssueSource] as [IssueSource].

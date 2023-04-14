@@ -19,23 +19,21 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.popup.FakeComponentPopup
 import com.android.tools.adtui.swing.popup.JBPopupRule
 import com.android.tools.idea.common.model.NlComponent
-import com.android.tools.idea.common.model.NlComponentBackend
 import com.android.tools.idea.common.model.NlComponentBackendXml
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.common.util.XmlTagUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.application.invokeAndWaitIfNeeded
-import com.intellij.openapi.application.readAction
 import com.intellij.openapi.application.runReadAction
 import com.intellij.testFramework.RuleChain
 import com.intellij.testFramework.TestActionEvent
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import javax.swing.JButton
 import javax.swing.JList
-import kotlin.test.assertEquals
 
 class MorphComponentActionTest {
   private val androidProjectRule = AndroidProjectRule.inMemory()

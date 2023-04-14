@@ -18,10 +18,10 @@ package com.android.tools.idea.uibuilder.surface.layout
 import com.android.tools.idea.common.surface.layout.TestPositionableContent
 import com.android.tools.idea.uibuilder.LayoutTestCase
 import com.intellij.util.ui.JBInsets
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import java.awt.Dimension
-import kotlin.test.assertNotEquals
 
 class GroupedGridSurfaceLayoutManagerTest {
 

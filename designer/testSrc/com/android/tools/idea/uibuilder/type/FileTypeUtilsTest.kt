@@ -31,10 +31,10 @@ import com.android.tools.idea.configurations.ConfigurationManager
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.psi.PsiFile
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * This tests the helper function defined in FileTypeUtils.kt file.

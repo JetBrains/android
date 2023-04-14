@@ -30,8 +30,8 @@ import java.util.stream.Collectors
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JSlider
-import kotlin.test.assertEquals
 import org.junit.Assert
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized

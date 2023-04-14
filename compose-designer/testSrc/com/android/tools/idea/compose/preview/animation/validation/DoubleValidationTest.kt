@@ -17,7 +17,7 @@ package com.android.tools.idea.compose.preview.animation.validation
 
 import com.android.tools.adtui.model.stdui.EDITOR_NO_ERROR
 import com.android.tools.adtui.model.stdui.EditingErrorCategory
-import kotlin.test.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class DoubleValidationTest {

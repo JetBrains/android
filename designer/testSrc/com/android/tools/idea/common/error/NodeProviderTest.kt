@@ -20,7 +20,7 @@ import com.intellij.ide.projectView.PresentationData
 import com.intellij.testFramework.assertInstanceOf
 import com.intellij.testFramework.runInEdtAndGet
 import com.intellij.ui.tree.LeafState
-import junit.framework.Assert.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 

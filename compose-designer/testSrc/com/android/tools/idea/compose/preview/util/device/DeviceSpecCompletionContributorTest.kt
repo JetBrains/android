@@ -27,8 +27,8 @@ import com.intellij.lang.LanguageParserDefinitions
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.runInEdtAndWait
-import kotlin.test.assertEquals
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

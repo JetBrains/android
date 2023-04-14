@@ -20,7 +20,7 @@ import com.android.tools.adtui.model.stdui.EditingValidation
 import com.android.tools.idea.compose.pickers.common.editingsupport.ERROR_GREATER_THAN_ZERO
 import com.android.tools.idea.compose.pickers.common.editingsupport.ERROR_NOT_FLOAT
 import com.android.tools.idea.compose.pickers.common.editingsupport.WARN_DECIMALS
-import kotlin.test.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class DeviceSpecDimValidationTest {

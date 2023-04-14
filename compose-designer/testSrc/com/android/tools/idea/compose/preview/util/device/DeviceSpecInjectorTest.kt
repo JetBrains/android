@@ -24,14 +24,14 @@ import com.intellij.lang.LanguageParserDefinitions
 import com.intellij.lang.injection.general.LanguageInjectionContributor
 import com.intellij.lang.injection.general.LanguageInjectionPerformer
 import com.intellij.testFramework.fixtures.InjectionTestFixture
-import kotlin.test.assertEquals
-import kotlin.test.assertFails
 import org.jetbrains.android.compose.stubComposableAnnotation
 import org.jetbrains.android.compose.stubPreviewAnnotation
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -173,7 +173,9 @@ internal class DeviceSpecInjectorTest {
         .trimIndent()
     )
     runReadAction {
-      assertFails { injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id) }
+      assertThrows(Throwable::class.java) {
+        injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id)
+      }
     }
   }
 
@@ -194,7 +196,9 @@ internal class DeviceSpecInjectorTest {
         .trimIndent()
     )
     runReadAction {
-      assertFails { injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id) }
+      assertThrows(Throwable::class.java) {
+        injectionFixture.assertInjectedLangAtCaret(DeviceSpecLanguage.id)
+      }
     }
   }
 }

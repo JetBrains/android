@@ -22,11 +22,11 @@ import com.android.tools.idea.uibuilder.type.AnimatedStateListFileType
 import com.android.tools.idea.uibuilder.type.AnimatedStateListTempFileType
 import com.android.tools.idea.uibuilder.type.AnimatedVectorFileType
 import com.android.tools.idea.uibuilder.type.AnimationListFileType
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 val ANIMATION_TYPES = listOf(AnimatedStateListFileType, AnimatedStateListTempFileType, AnimatedVectorFileType, AnimationListFileType)
 

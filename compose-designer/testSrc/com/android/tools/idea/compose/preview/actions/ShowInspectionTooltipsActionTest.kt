@@ -22,9 +22,9 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
 import com.intellij.testFramework.TestActionEvent
-import junit.framework.Assert.assertTrue
-import kotlin.test.assertFalse
 import org.junit.After
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

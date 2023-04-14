@@ -27,11 +27,11 @@ import com.android.tools.idea.util.androidFacet
 import com.google.wireless.android.sdk.stats.AndroidStudioEvent
 import com.google.wireless.android.sdk.stats.ComposeMultiPreviewEvent
 import com.intellij.openapi.vfs.VirtualFile
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-import kotlin.test.assertTrue
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.idea.util.application.runReadAction
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 

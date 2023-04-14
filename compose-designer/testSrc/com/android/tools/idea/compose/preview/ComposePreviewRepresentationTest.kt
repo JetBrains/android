@@ -40,11 +40,12 @@ import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import javax.swing.JComponent
 import javax.swing.JPanel
-import kotlin.test.assertContains
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.junit.Assert.*
+import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -161,7 +162,7 @@ class ComposePreviewRepresentationTest {
           .delay(250)
       }
 
-      mainSurface.models.forEach { assertContains(navigationHandler.defaultNavigationMap, it) }
+      mainSurface.models.forEach { assertTrue(navigationHandler.defaultNavigationMap.contains(it)) }
 
       assertArrayEquals(
         arrayOf("groupA"),

@@ -19,7 +19,7 @@ import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent
 import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent.HelpPanelAction
 import com.google.wireless.android.sdk.stats.DesignEditorHelpPanelEvent.HelpPanelType
 import org.jetbrains.android.AndroidTestCase
-import kotlin.test.assertNotEquals
+import org.junit.Assert.assertNotEquals
 
 class AssistantPanelMetricsTrackerTest : AndroidTestCase() {
 

@@ -22,9 +22,9 @@ import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSy
 import static com.android.tools.idea.projectsystem.gradle.GradleModuleSystemKt.CHECK_DIRECT_GRADLE_DEPENDENCIES;
 import static com.android.tools.idea.testing.AndroidGradleTestUtilsKt.gradleModule;
 import static com.google.common.truth.Truth.assertThat;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import com.android.SdkConstants;
 import com.android.ide.common.repository.GradleCoordinate;

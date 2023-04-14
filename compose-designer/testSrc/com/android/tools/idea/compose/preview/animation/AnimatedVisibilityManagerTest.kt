@@ -29,9 +29,9 @@ import java.awt.Dimension
 import java.util.stream.Collectors
 import javax.swing.JComponent
 import javax.swing.JSlider
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import org.junit.Assert
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 @org.junit.Ignore("b/278929658")
@@ -51,12 +51,12 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
       }
     setupAndCheckToolbar(clock) { toolbar, ui ->
       // Freeze, swap, state.
-      assertTrue { lastState is TestClock.AnimatedVisibilityState }
-      Assert.assertEquals(3, toolbar.componentCount)
-      Assert.assertEquals("Enter", toolbar.components[2].findComboBox().text)
+      assertTrue(lastState is TestClock.AnimatedVisibilityState)
+      assertEquals(3, toolbar.componentCount)
+      assertEquals("Enter", toolbar.components[2].findComboBox().text)
       ui.clickOn(toolbar.components[1])
-      assertTrue { lastState is TestClock.AnimatedVisibilityState }
-      Assert.assertEquals("Exit", toolbar.components[2].findComboBox().text)
+      assertTrue(lastState is TestClock.AnimatedVisibilityState)
+      assertEquals("Exit", toolbar.components[2].findComboBox().text)
     }
   }
 
@@ -75,12 +75,12 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
       }
     setupAndCheckToolbar(clock) { toolbar, ui ->
       // Freeze, swap, state.
-      assertTrue { lastState is TestClock.AnimatedVisibilityState }
-      Assert.assertEquals(3, toolbar.componentCount)
-      Assert.assertEquals("Enter", toolbar.components[2].findComboBox().text)
+      assertTrue(lastState is TestClock.AnimatedVisibilityState)
+      assertEquals(3, toolbar.componentCount)
+      assertEquals("Enter", toolbar.components[2].findComboBox().text)
       ui.clickOn(toolbar.components[1])
-      assertTrue { lastState is TestClock.AnimatedVisibilityState }
-      Assert.assertEquals("Exit", toolbar.components[2].findComboBox().text)
+      assertTrue(lastState is TestClock.AnimatedVisibilityState)
+      assertEquals("Exit", toolbar.components[2].findComboBox().text)
     }
   }
 
@@ -98,12 +98,12 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
       }
     setupAndCheckToolbar(clock) { toolbar, ui ->
       // Freeze, swap, state.
-      assertTrue { lastState is TestClock.AnimatedVisibilityState }
-      Assert.assertEquals(3, toolbar.componentCount)
-      Assert.assertEquals("Exit", toolbar.components[2].findComboBox().text)
+      assertTrue(lastState is TestClock.AnimatedVisibilityState)
+      assertEquals(3, toolbar.componentCount)
+      assertEquals("Exit", toolbar.components[2].findComboBox().text)
       ui.clickOn(toolbar.components[1])
-      assertTrue { lastState is TestClock.AnimatedVisibilityState }
-      Assert.assertEquals("Enter", toolbar.components[2].findComboBox().text)
+      assertTrue(lastState is TestClock.AnimatedVisibilityState)
+      assertEquals("Enter", toolbar.components[2].findComboBox().text)
     }
   }
 
@@ -122,12 +122,12 @@ class AnimatedVisibilityManagerTest : InspectorTests() {
       }
     setupAndCheckToolbar(clock) { toolbar, ui ->
       // Freeze, swap, state.
-      assertTrue { lastState is TestClock.AnimatedVisibilityState }
-      Assert.assertEquals(3, toolbar.componentCount)
-      Assert.assertEquals("Exit", toolbar.components[2].findComboBox().text)
+      assertTrue(lastState is TestClock.AnimatedVisibilityState)
+      assertEquals(3, toolbar.componentCount)
+      assertEquals("Exit", toolbar.components[2].findComboBox().text)
       ui.clickOn(toolbar.components[1])
-      assertTrue { lastState is TestClock.AnimatedVisibilityState }
-      Assert.assertEquals("Enter", toolbar.components[2].findComboBox().text)
+      assertTrue(lastState is TestClock.AnimatedVisibilityState)
+      assertEquals("Enter", toolbar.components[2].findComboBox().text)
     }
   }
 

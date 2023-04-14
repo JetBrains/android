@@ -64,9 +64,9 @@ import com.intellij.openapi.wm.ex.WindowManagerEx
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.RunsInEdt
-import junit.framework.Assert.assertFalse
 import org.intellij.lang.annotations.Language
 import org.junit.After
+import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

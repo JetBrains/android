@@ -26,9 +26,9 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.ui.tree.TreePathUtil
 import com.intellij.ui.tree.TreeVisitor
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
 
 class DesignerIssueNodeVisitorTest {
 

@@ -29,7 +29,7 @@ import com.intellij.openapi.application.invokeAndWaitIfNeeded
 import com.intellij.testFramework.runInEdtAndGet
 import java.awt.Dimension
 import javax.swing.JSlider
-import kotlin.test.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

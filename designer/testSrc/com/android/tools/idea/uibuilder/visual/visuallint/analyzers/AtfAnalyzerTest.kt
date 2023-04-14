@@ -21,17 +21,15 @@ import com.android.tools.idea.rendering.RenderTestUtil
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.uibuilder.model.NlComponentRegistrar
 import com.android.tools.idea.uibuilder.scene.NlModelHierarchyUpdater
-import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintIssueProvider
-import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.psi.xml.XmlFile
 import org.intellij.lang.annotations.Language
 import org.jetbrains.android.facet.AndroidFacet
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import kotlin.test.assertEquals
 
 class AtfAnalyzerTest {
   @get:Rule

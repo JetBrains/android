@@ -48,11 +48,12 @@ import java.awt.BorderLayout
 import java.awt.Dimension
 import java.util.concurrent.TimeUnit
 import javax.swing.JPanel
-import junit.framework.Assert.assertFalse
-import junit.framework.Assert.assertTrue
-import kotlin.test.assertContentEquals
-import kotlin.test.assertEquals
 import kotlinx.coroutines.runBlocking
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.`is`
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -184,7 +185,7 @@ class RenderErrorTest {
       offsets.add((navigatable as OpenFileDescriptor).offset)
       assertEquals("RenderError.kt", navigatable.file.name)
     }
-    assertContentEquals(listOf(1521, 1671), offsets.sorted())
+    assertThat(offsets.sorted(), `is`(listOf(1521, 1671)))
   }
 
   private fun countVisibleActions(actions: List<AnAction>, visibleBefore: Boolean): Int {

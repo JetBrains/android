@@ -34,10 +34,10 @@ import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.util.Ref
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.psi.util.PsiTreeUtil
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.psi.KtNamedFunction
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

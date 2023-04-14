@@ -18,7 +18,7 @@ package com.android.tools.idea.compose.pickers.common.enumsupport
 import com.android.tools.idea.compose.pickers.base.enumsupport.EnumSupportValuesProvider
 import com.android.tools.idea.compose.pickers.base.property.PsiPropertyItem
 import com.android.tools.property.panel.api.EnumValue
-import kotlin.test.assertEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class PsiEnumProviderTest {

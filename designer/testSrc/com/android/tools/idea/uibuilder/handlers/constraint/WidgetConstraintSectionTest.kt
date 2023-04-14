@@ -17,9 +17,9 @@ package com.android.tools.idea.uibuilder.handlers.constraint
 
 import com.android.SdkConstants
 import com.android.tools.idea.refactoring.rtl.RtlSupportProcessor
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class WidgetConstraintSectionTest {
 

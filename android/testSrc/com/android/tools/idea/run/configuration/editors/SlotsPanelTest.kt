@@ -17,12 +17,12 @@ package com.android.tools.idea.run.configuration.editors
 
 import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
+import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.deployer.model.component.Complication.ComplicationType
 import com.android.tools.idea.run.configuration.ComplicationSlot
-import com.android.tools.adtui.swing.FakeUi;
 import com.intellij.openapi.ui.ComboBox
-import junit.framework.Assert.assertFalse
-import junit.framework.Assert.assertTrue
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith

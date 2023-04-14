@@ -38,11 +38,11 @@ import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JPanel
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

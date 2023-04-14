@@ -18,14 +18,15 @@ package com.android.tools.idea.editors.literals
 import com.android.flags.junit.FlagRule
 import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.AndroidProjectRule
-import junit.framework.Assert.assertFalse
-import junit.framework.Assert.assertTrue
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.android.uipreview.ModuleClassLoaderOverlays
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import java.nio.file.Files
 import java.nio.file.Paths
+
 internal class CompilerLiveLiteralsManagerTest {
   @get:Rule
   val projectRule = AndroidProjectRule.inMemory()

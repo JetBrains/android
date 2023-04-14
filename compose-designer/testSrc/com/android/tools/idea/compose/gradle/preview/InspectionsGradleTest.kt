@@ -28,8 +28,8 @@ import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VfsUtil
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
