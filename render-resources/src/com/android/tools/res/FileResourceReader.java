@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.res;
+package com.android.tools.res;
 
 import static com.intellij.util.io.URLUtil.FILE_PROTOCOL;
 import static com.intellij.util.io.URLUtil.JAR_PROTOCOL;
@@ -21,7 +21,6 @@ import static com.intellij.util.io.URLUtil.JAR_SEPARATOR;
 
 import com.android.ide.common.resources.ProtoXmlPullParser;
 import com.android.ide.common.util.PathString;
-import com.android.tools.idea.apk.viewer.ApkFileSystem;
 import com.android.utils.XmlUtils;
 import com.android.zipflinger.ZipMap;
 import com.android.zipflinger.ZipRepo;
@@ -49,6 +48,7 @@ import org.xmlpull.v1.XmlPullParserException;
  * Methods for working with Android file resources.
  */
 public class FileResourceReader {
+  private static final String APK_PROTOCOL = "apk";
   /**
    * Cache to store {@link ZipMap} objects created from zip files.
    * Keys are the full path to the zip file from which the ZipMap is created.
@@ -81,7 +81,7 @@ public class FileResourceReader {
       case FILE_PROTOCOL:
         return readFileBytes(resourcePath.getRawPath());
 
-      case ApkFileSystem.PROTOCOL:
+      case APK_PROTOCOL:
       case JAR_PROTOCOL: {
         String path = resourcePath.getRawPath();
         int separatorPos = path.indexOf(JAR_SEPARATOR);

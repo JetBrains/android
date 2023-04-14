@@ -18,5 +18,6 @@
     <orderEntry type="library" name="Guava" level="project" />
     <orderEntry type="module" module-name="android.sdktools.base.layoutlib-api-base" />
     <orderEntry type="library" name="kxml2" level="project" />
+    <orderEntry type="module" module-name="android.sdktools.zipflinger" />
   </component>
 </module>

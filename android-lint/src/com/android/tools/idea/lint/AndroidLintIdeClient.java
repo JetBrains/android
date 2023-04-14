@@ -43,7 +43,7 @@ import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemUtil;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.projectsystem.gradle.IdeGooglePlaySdkIndexKt;
-import com.android.tools.idea.res.FileResourceReader;
+import com.android.tools.res.FileResourceReader;
 import com.android.tools.idea.res.IdeResourcesUtil;
 import com.android.tools.idea.res.StudioResourceRepositoryManager;
 import com.android.tools.idea.sdk.IdeSdks;

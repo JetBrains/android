@@ -30,6 +30,7 @@ import com.android.tools.idea.projectsystem.DependencyScopeType;
 import com.android.tools.idea.projectsystem.IdeaSourceProvider;
 import com.android.tools.idea.projectsystem.SourceProviderManager;
 import com.android.tools.idea.sampledata.datasource.ResourceContent;
+import com.android.tools.res.FileResourceReader;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.google.common.collect.Streams;
 import com.intellij.openapi.vfs.VfsUtilCore;
