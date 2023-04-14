@@ -35,7 +35,6 @@ class PowerRailTooltipViewTest {
     timeline.dataRange.set(0.0, TimeUnit.MILLISECONDS.toMicros(3).toDouble())
     timeline.tooltipRange.set(0.0, 0.0)
     assertThat(tooltipView.headingText).isEqualTo("00:00.000")
-    assertThat(tooltipView.descriptionLabel.text).contains("[PLACEHOLDER POWER DESCRIPTION]")
     assertThat(tooltipView.valueLabel.text).endsWith("power.rail.foo: 0 µWs")
 
     timeline.tooltipRange.set(TimeUnit.MILLISECONDS.toMicros(1).toDouble() + 1.0, TimeUnit.MILLISECONDS.toMicros(1).toDouble() + 1.0)
