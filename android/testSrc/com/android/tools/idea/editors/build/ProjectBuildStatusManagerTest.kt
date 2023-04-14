@@ -30,17 +30,19 @@ import com.android.tools.idea.testing.insertText
 import com.android.tools.idea.ui.ApplicationUtils.invokeWriteActionAndWait
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.diagnostic.LogLevel
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.util.SimpleModificationTracker
-import com.intellij.psi.PsiElement
-import junit.framework.Assert.assertEquals
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert
+import org.junit.Assert.assertEquals
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.RuleChain
@@ -56,6 +58,11 @@ class ProjectBuildStatusManagerTest {
   val chainRule: RuleChain = RuleChain
     .outerRule(projectRule)
     .around(FastPreviewRule())
+
+  @Before
+  fun setUp() {
+    Logger.getInstance(ProjectStatus::class.java).setLevel(LogLevel.ALL)
+  }
 
   @Test
   fun testFastPreviewTriggersCompileState() {
@@ -181,7 +188,7 @@ class ProjectBuildStatusManagerTest {
 
       // Disabling Live Edit will bring the out of date state
       FastPreviewManager.getInstance(project).disable(ManualDisabledReason)
-      Assert.assertThat(statusManager.status, CoreMatchers.instanceOf(ProjectStatus.OutOfDate::class.java))
+      assertThat(statusManager.status, CoreMatchers.instanceOf(ProjectStatus.OutOfDate::class.java))
     }
     finally {
       FastPreviewConfiguration.getInstance().resetDefault()
