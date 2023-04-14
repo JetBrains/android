@@ -98,7 +98,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
   override val packageName = StringValueProperty()
   override val projectLocation = StringValueProperty()
   override val useGradleKts = BoolValueProperty()
-  override val useVersionCatalog = BoolValueProperty()
+  override val useVersionCatalog = BoolValueProperty(true)
   // We can assume this is true for a new project because View binding is supported from AGP 3.6+
   override val viewBindingSupport = OptionalValueProperty<ViewBindingSupport>(ViewBindingSupport.SUPPORTED_4_0_MORE)
   override lateinit var project: Project
@@ -236,7 +236,7 @@ class NewProjectModel : WizardModel(), ProjectModelData {
         DefaultRecipeExecutor(context, useVersionCatalog = useVersionCatalog.get())
       val recipe: Recipe = { data: TemplateData ->
         androidProjectRecipe(data = data as ProjectTemplateData, appTitle = applicationName.get(), language = language.value,
-                             addAndroidXSupport = true, useGradleKts = useGradleKts.get(), useVersionCatalog = useVersionCatalog.get())
+                             addAndroidXSupport = true, useGradleKts = useGradleKts.get())
       }
 
       recipe.render(context, executor, AndroidStudioEvent.TemplateRenderer.ANDROID_PROJECT)

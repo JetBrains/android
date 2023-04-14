@@ -25,7 +25,7 @@ fun RecipeExecutor.generateAutomotiveModule(
   data: ModuleTemplateData,
   appTitle: String,
   useKts: Boolean,
-  useVersionCatalog: Boolean = false
+  useVersionCatalog: Boolean
 ) {
   val usesFeatureBlock = """
 <uses-feature
