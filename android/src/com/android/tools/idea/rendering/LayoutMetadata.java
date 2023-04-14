@@ -16,14 +16,11 @@
 package com.android.tools.idea.rendering;
 
 import static com.android.SdkConstants.ANDROID_LAYOUT_RESOURCE_PREFIX;
-import static com.android.SdkConstants.ANDROID_URI;
-import static com.android.SdkConstants.ATTR_ID;
 import static com.android.SdkConstants.EXPANDABLE_LIST_VIEW;
 import static com.android.SdkConstants.GRID_VIEW;
 import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_AUTO_FIT;
-import static com.android.tools.lint.detector.api.Lint.stripIdPrefix;
 
 import com.android.annotations.Nullable;
 import com.android.ide.common.rendering.api.AdapterBinding;
@@ -32,21 +29,6 @@ import com.android.ide.common.rendering.api.ResourceNamespace;
 import com.android.ide.common.rendering.api.ResourceReference;
 import com.android.resources.ResourceType;
 import com.android.tools.rendering.parsers.TagSnapshot;
-import com.android.tools.idea.res.IdeResourcesUtil;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiManager;
-import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlAttribute;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
@@ -267,130 +249,5 @@ public class LayoutMetadata {
     }
 
     return null;
-  }
-
-  /**
-   * Sets the given property of the given DOM node to a given value, or if null clears
-   * the property.
-   */
-  public static void setProperty(@NotNull final Project project,
-                                 @Nullable String title,
-                                 @NotNull final XmlFile file,
-                                 @NotNull final XmlTag element,
-                                 @NotNull final String name,
-                                 @Nullable final String namespace,
-                                 @Nullable final String value) {
-
-    String capitalizedName = StringUtil.capitalize(name);
-    if (title == null) {
-      title = String.format(value != null ? "Set %1$s" : "Clear %1$s", capitalizedName);
-    }
-    WriteCommandAction.writeCommandAction(project, file).withName(title).run(() -> {
-      if (value == null) {
-        // Clear attribute
-        XmlAttribute attribute;
-        if (namespace != null) {
-          attribute = element.getAttribute(name, namespace);
-        }
-        else {
-          attribute = element.getAttribute(name);
-        }
-        if (attribute != null) {
-          attribute.delete();
-        }
-      }
-      else {
-        if (namespace != null) {
-          IdeResourcesUtil.ensureNamespaceImported(file, namespace, null);
-          element.setAttribute(name, namespace, value);
-        }
-        else {
-          element.setAttribute(name, value);
-        }
-      }
-    });
-
-    // Also set the values on the same elements in any resource variations
-    // of the same layout
-    // TODO: This should be done after a brief delay, say 50ms
-    final List<XmlTag> list = ApplicationManager.getApplication().runReadAction(new Computable<List<XmlTag>>() {
-      @Override
-      @Nullable
-      public List<XmlTag> compute() {
-        // Look up the id of the element, if any
-        String id = stripIdPrefix(element.getAttributeValue(ATTR_ID, ANDROID_URI));
-        if (id.isEmpty()) {
-          return null;
-        }
-
-        VirtualFile layoutFile = file.getVirtualFile();
-        if (layoutFile != null) {
-          final List<VirtualFile> variations = IdeResourcesUtil.getResourceVariations(layoutFile, false);
-          if (variations.isEmpty()) {
-            return null;
-          }
-
-          PsiManager manager = PsiManager.getInstance(project);
-          List<XmlTag> list = new ArrayList<>();
-
-          for (VirtualFile file : variations) {
-            PsiFile psiFile = manager.findFile(file);
-            if (psiFile == null) {
-              continue;
-            }
-            for (XmlTag tag : PsiTreeUtil.findChildrenOfType(psiFile, XmlTag.class)) {
-              XmlAttribute attribute = tag.getAttribute(ATTR_ID, ANDROID_URI);
-              if (attribute == null || attribute.getValue() == null) {
-                continue;
-              }
-              if (attribute.getValue().endsWith(id) && id.equals(stripIdPrefix(attribute.getValue()))) {
-                list.add(tag);
-                break;
-              }
-            }
-          }
-
-          return list;
-        }
-
-        return null;
-      }
-    });
-
-    if (list != null && !list.isEmpty()) {
-      List<PsiFile> affectedFiles = new ArrayList<>();
-      for (XmlTag tag : list) {
-        PsiFile psiFile = tag.getContainingFile();
-        if (psiFile != null) {
-          affectedFiles.add(psiFile);
-        }
-      }
-      WriteCommandAction.writeCommandAction(project, affectedFiles.toArray(PsiFile.EMPTY_ARRAY)).withName(title).run(() -> {
-        for (XmlTag tag : list) {
-          if (value == null) {
-            // Clear attribute
-            XmlAttribute attribute;
-            if (namespace != null) {
-              attribute = tag.getAttribute(name, namespace);
-            }
-            else {
-              attribute = tag.getAttribute(name);
-            }
-            if (attribute != null) {
-              attribute.delete();
-            }
-          }
-          else {
-            if (namespace != null) {
-              IdeResourcesUtil.ensureNamespaceImported(file, namespace, null);
-              tag.setAttribute(name, namespace, value);
-            }
-            else {
-              tag.setAttribute(name, value);
-            }
-          }
-        }
-      });
-    }
   }
 }
