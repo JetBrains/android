@@ -54,5 +54,6 @@
   </extensions>
   <projectListeners>
     <listener class="com.android.tools.idea.profilers.AndroidProfilerRunWindowRestorerExecutionListener" topic="com.intellij.execution.ExecutionListener" />
+    <listener class="com.android.tools.idea.profilers.ProfilerExecutionListener" topic="com.intellij.execution.ExecutionListener"/>
   </projectListeners>
 </idea-plugin>
