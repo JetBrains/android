@@ -27,14 +27,13 @@ import com.android.tools.idea.vitals.datamodel.Freshness
 import com.android.tools.idea.vitals.datamodel.MetricType
 
 /** TODO: maybe move the below to a common place. */
-private const val DEFAULT_MAX_NUM_RESULTS_PER_CALL = 100
+private const val DEFAULT_MAX_APPS_PER_CALL = 1000
+private const val DEFAULT_MAX_DATA_POINTS_PER_CALL = 1000
 private const val DEFAULT_MAX_OPEN_ISSUES_PER_CALL = 50
 
 interface VitalsGrpcClient {
   /** Returns a list of [Connection]s (App IDs) that are accessible. */
-  suspend fun listAccessibleApps(
-    maxNumResults: Int = DEFAULT_MAX_NUM_RESULTS_PER_CALL
-  ): List<Connection>
+  suspend fun listAccessibleApps(maxNumResults: Int = DEFAULT_MAX_APPS_PER_CALL): List<Connection>
 
   /**
    * Returns freshness info (query period granularity & valid end-time) which is required for the
@@ -58,7 +57,7 @@ interface VitalsGrpcClient {
     dimensions: List<DimensionType>,
     metrics: List<MetricType>,
     freshness: Freshness,
-    maxNumResults: Int = DEFAULT_MAX_NUM_RESULTS_PER_CALL
+    maxNumResults: Int = DEFAULT_MAX_DATA_POINTS_PER_CALL
   ): List<DimensionsAndMetrics>
 
   /** Returns versions that are part of the releases. */

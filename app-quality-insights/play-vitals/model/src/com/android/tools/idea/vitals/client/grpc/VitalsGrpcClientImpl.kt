@@ -239,7 +239,6 @@ class VitalsGrpcClientImpl(channel: ManagedChannel, authTokenInterceptor: Client
             .apply {
               if (StudioFlags.PLAY_VITALS_GRPC_USE_TRANSPORT_SECURITY.get()) useTransportSecurity()
               else usePlaintext()
-              maxInboundMessageSize(1024 * 1024) // 1MB
             }
             .build()
             .also {
