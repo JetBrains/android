@@ -84,6 +84,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:mockito[test]",
         "//tools/adt/idea/.idea/libraries:studio-analytics-proto",
         "//tools/adt/idea/android-test-framework:intellij.android.testFramework[module, test]",
+        "//tools/adt/idea/artwork:intellij.android.artwork[module]",
         "//tools/adt/idea/android-common:intellij.android.common[module, test]",
         "//tools/base/common:studio.android.sdktools.common[module, test]",
         "//tools/base/build-analyzer/common:studio.android.build-analyzer.common[module, test]",
