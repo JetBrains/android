@@ -21,6 +21,7 @@ import com.android.SdkConstants.ATTR_TEXT_COLOR
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.rendering.api.ResourceReference
 import com.android.resources.ResourceType
+import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.stdui.KeyStrokes
 import com.android.tools.adtui.swing.FakeUi
@@ -32,10 +33,11 @@ import com.android.tools.idea.layoutinspector.properties.InspectorGroupPropertyI
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertiesModel
 import com.android.tools.idea.layoutinspector.properties.InspectorPropertyItem
 import com.android.tools.idea.layoutinspector.properties.PropertySection
-import com.android.tools.idea.layoutinspector.util.CheckUtil
+import com.android.tools.idea.layoutinspector.properties.PropertyType
 import com.android.tools.idea.layoutinspector.util.DemoExample
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.ui.flatten
 import com.android.tools.property.panel.api.PropertyItem
 import com.android.tools.property.panel.api.TableSupport
 import com.android.tools.property.panel.impl.model.TextFieldPropertyEditorModel
@@ -60,8 +62,6 @@ import javax.swing.LookAndFeel
 import javax.swing.UIManager
 import javax.swing.plaf.metal.MetalLookAndFeel
 import javax.swing.plaf.metal.MetalTheme
-import com.android.tools.idea.layoutinspector.properties.PropertyType
-import com.android.tools.idea.testing.ui.flatten
 
 private const val TEST_DATA_PATH = "tools/adt/idea/layout-inspector/testData/ui"
 private const val DIFF_THRESHOLD = 0.01
@@ -178,8 +178,8 @@ class ResolutionElementEditorTest {
     editors.setBounds(0, 0, 200, 300)
     val ui = FakeUi(editors)
     val generatedImage = ui.render()
-    CheckUtil.assertImageSimilarPerPlatform(TestUtils.resolveWorkspacePathUnchecked(TEST_DATA_PATH), "testResolutionEditorPaint$expected",
-                                            generatedImage, DIFF_THRESHOLD)
+    ImageDiffUtil.assertImageSimilarPerPlatform(
+      TestUtils.resolveWorkspacePathUnchecked(TEST_DATA_PATH), "testResolutionEditorPaint$expected", generatedImage, DIFF_THRESHOLD)
   }
 
   private fun expandFirstLabel(editor: ResolutionElementEditor, open: Boolean) {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.snapshots
 
+import com.android.testutils.ImageDiffUtil
 import com.android.testutils.MockitoKt.mock
 import com.android.testutils.MockitoKt.whenever
 import com.android.testutils.TestUtils
@@ -26,7 +27,6 @@ import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClient.Capability
 import com.android.tools.idea.layoutinspector.tree.EditorTreeSettings
 import com.android.tools.idea.layoutinspector.ui.EditorRenderSettings
-import com.android.tools.idea.layoutinspector.util.CheckUtil
 import com.android.tools.idea.testing.ui.flatten
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
@@ -72,8 +72,8 @@ class LayoutInspectorFileEditorTest {
       doLayout()
       paint(graphics)
     }
-    CheckUtil.assertImageSimilarPerPlatform(TestUtils.resolveWorkspacePathUnchecked(TEST_DATA_PATH), "snapshotVersionError", generatedImage,
-                                            0.01)
+    ImageDiffUtil.assertImageSimilarPerPlatform(
+      TestUtils.resolveWorkspacePathUnchecked(TEST_DATA_PATH), "snapshotVersionError", generatedImage, 0.01)
   }
 
   @Test
