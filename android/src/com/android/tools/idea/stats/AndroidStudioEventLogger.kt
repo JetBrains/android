@@ -110,26 +110,31 @@ object AndroidStudioEventLogger : StatisticsEventLogger {
     UsageTracker.log(AndroidStudioEvent.newBuilder().apply {
       kind = AndroidStudioEvent.EventKind.KOTLIN_GRADLE_PERFORMANCE_EVENT
       kotlinGradlePerformanceEvent = KotlinGradlePerformance.newBuilder().apply {
-        (data[StringMetrics.USE_FIR.key()] as? String?)?.let { useFir = firUsage(it) }
-        (data[StringMetrics.KOTLIN_API_VERSION.key()] as? String?)?.let { kotlinApiVersion = it }
-        (data[StringMetrics.KOTLIN_COMPILER_VERSION.key()] as? String?)?.let { kotlinCompilerVersion = it }
-        (data[StringMetrics.KOTLIN_LANGUAGE_VERSION.key()] as? String?)?.let { kotlinLanguageVersion = it }
-        (data[StringMetrics.KOTLIN_STDLIB_VERSION.key()] as? String?)?.let { kotlinStdlibVersion = it }
-        (data["plugin_version"] as? String?)?.let { pluginVersion = it }
-        (data[BooleanMetrics.ENABLED_COMPILER_PLUGIN_ALL_OPEN.key()] as? String?)?.toBoolean()?.let { enabledCompilerPluginAllOpen = it }
-        (data[BooleanMetrics.ENABLED_COMPILER_PLUGIN_ATOMICFU.key()] as? String?)?.toBoolean()?.let { enabledCompilerPluginAtomicfu = it }
-        (data["enabled_compiler_plugin_jpasupport"] as? String?)?.toBoolean()?.let { enabledCompilerPluginJpaSupport = it }
-        (data[BooleanMetrics.ENABLED_COMPILER_PLUGIN_LOMBOK.key()] as? String?)?.toBoolean()?.let { enabledCompilerPluginLombok = it }
-        (data[BooleanMetrics.ENABLED_COMPILER_PLUGIN_NO_ARG.key()] as? String?)?.toBoolean()?.let { enabledCompilerPluginNoArg = it }
-        (data[BooleanMetrics.ENABLED_COMPILER_PLUGIN_PARSELIZE.key()] as? String?)?.toBoolean()?.let { enabledCompilerPluginParcelize = it }
-        (data[BooleanMetrics.ENABLED_COMPILER_PLUGIN_SAM_WITH_RECEIVER.key()] as? String?)?.toBoolean()?.let { enabledCompilerPluginSamWithReceiver = it }
-        (data[BooleanMetrics.KOTLIN_KTS_USED.key()] as? String?)?.toBoolean()?.let { ktsUsed = it }
+        data.getString(StringMetrics.USE_FIR)?.let { useFir = firUsage(it) }
+        data.getString(StringMetrics.KOTLIN_API_VERSION)?.let { kotlinApiVersion = it }
+        data.getString(StringMetrics.KOTLIN_COMPILER_VERSION)?.let { kotlinCompilerVersion = it }
+        data.getString(StringMetrics.KOTLIN_LANGUAGE_VERSION)?.let { kotlinLanguageVersion = it }
+        data.getString(StringMetrics.KOTLIN_STDLIB_VERSION)?.let { kotlinStdlibVersion = it }
+        (data["plugin_version"] as? String)?.let { pluginVersion = it }
+        data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_ALL_OPEN)?.let { enabledCompilerPluginAllOpen = it }
+        data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_ATOMICFU)?.let { enabledCompilerPluginAtomicfu = it }
+        (data["enabled_compiler_plugin_jpasupport"] as? Boolean)?.let { enabledCompilerPluginJpaSupport = it }
+        data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_LOMBOK)?.let { enabledCompilerPluginLombok = it }
+        data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_NO_ARG)?.let { enabledCompilerPluginNoArg = it }
+        data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_PARSELIZE)?.let { enabledCompilerPluginParcelize = it }
+        data.getBoolean(BooleanMetrics.ENABLED_COMPILER_PLUGIN_SAM_WITH_RECEIVER)?.let { enabledCompilerPluginSamWithReceiver = it }
+        data.getBoolean(BooleanMetrics.KOTLIN_KTS_USED)?.let { ktsUsed = it }
       }.build()
     }.withProjectId(data))
   }
 
-  private fun BooleanMetrics.key() = this.toString().lowercase(Locale.getDefault())
-  private fun StringMetrics.key() = this.toString().lowercase(Locale.getDefault())
+  private fun Map<String, Any>.getBoolean(metric: BooleanMetrics): Boolean? {
+    return this[metric.toString().lowercase(Locale.getDefault())] as? Boolean
+  }
+
+  private fun Map<String, Any>.getString(metric: StringMetrics): String? {
+    return this[metric.toString().lowercase(Locale.getDefault())] as? String
+  }
 
   private fun firUsage(s: String): FirUsage {
     val tokens = s.split(';')
