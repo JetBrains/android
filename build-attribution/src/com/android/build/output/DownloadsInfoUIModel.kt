@@ -26,9 +26,9 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.AnimatedIcon
 import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.SimpleTextAttributes
-import com.intellij.util.messages.Topic
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.ListTableModel
+import icons.StudioIcons
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.swing.Icon
 import javax.swing.JTable
@@ -242,8 +242,8 @@ class RequestsTableModel : ListTableModel<DownloadRequestItem>() {
     }
     override fun valueOf(item: DownloadRequestItem): Status = when {
       !item.completed -> Status("Running", AnimatedIcon.Default.INSTANCE, "")
-      item.failed -> Status("Failed", AllIcons.General.Warning, item.failureMessage?.replace("\n", "<br/>") ?: "")
-      else -> Status("Finished", AllIcons.RunConfigurations.TestPassed, "")
+      item.failed -> Status("Failed", StudioIcons.Common.WARNING_INLINE, item.failureMessage?.replace("\n", "<br/>") ?: "")
+      else -> Status("Finished", StudioIcons.Common.SUCCESS_INLINE, "")
     }
     override fun getRenderer(item: DownloadRequestItem): TableCellRenderer = columnCellRenderer
     override fun getPreferredStringValue() = "Download Failed"
