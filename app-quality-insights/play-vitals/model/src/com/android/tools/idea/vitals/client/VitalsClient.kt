@@ -166,7 +166,7 @@ class VitalsClient(
     // info to build up the [Version] list.
     return getMetrics(
         connection = connection,
-        filters = filters,
+        filters = filters.copy(versions = setOf(Version.ALL)),
         dimensions = listOf(DimensionType.REPORT_TYPE, DimensionType.VERSION_CODE),
         metrics = listOf(MetricType.ERROR_REPORT_COUNT)
       )
@@ -195,7 +195,7 @@ class VitalsClient(
   ): List<WithCount<Device>> {
     return getMetrics(
         connection = connection,
-        filters = filters,
+        filters = filters.copy(devices = setOf(Device.ALL)),
         dimensions =
           listOf(DimensionType.REPORT_TYPE, DimensionType.DEVICE_TYPE, DimensionType.DEVICE_MODEL),
         metrics = listOf(MetricType.ERROR_REPORT_COUNT)
@@ -216,7 +216,7 @@ class VitalsClient(
   ): List<WithCount<OperatingSystemInfo>> {
     return getMetrics(
         connection = connection,
-        filters = filters,
+        filters = filters.copy(operatingSystems = setOf(OperatingSystemInfo.ALL)),
         dimensions = listOf(DimensionType.REPORT_TYPE, DimensionType.API_LEVEL),
         metrics = listOf(MetricType.ERROR_REPORT_COUNT)
       )
