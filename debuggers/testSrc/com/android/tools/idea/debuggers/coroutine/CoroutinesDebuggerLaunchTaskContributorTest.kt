@@ -37,13 +37,6 @@ class CoroutinesDebuggerLaunchTaskContributorTest : LightPlatformTestCase() {
     whenever(configuration.project).thenReturn(project)
   }
 
-  fun testContributorHasNoTask() {
-    val contributor = CoroutineDebuggerLaunchTaskContributor()
-    val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)
-    val task = contributor.getTask( "com.test.application", configuration, device, DefaultRunExecutor.getRunExecutorInstance())
-    assertNull(task)
-  }
-
   fun testNoAmOptionsIfFlagIsDisabled() {
     val contributor = CoroutineDebuggerLaunchTaskContributor()
     val device = DeviceImpl(null, "serial_number", IDevice.DeviceState.ONLINE)

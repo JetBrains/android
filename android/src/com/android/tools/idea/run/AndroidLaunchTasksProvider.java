@@ -102,11 +102,6 @@ public class AndroidLaunchTasksProvider {
       for (AndroidLaunchTaskContributor taskContributor : AndroidLaunchTaskContributor.EP_NAME.getExtensions()) {
         String amOptions = taskContributor.getAmStartOptions(packageName, myRunConfig, device, myEnv.getExecutor());
         amStartOptions.append(amStartOptions.length() == 0 ? "" : " ").append(amOptions);
-
-        LaunchTask task = taskContributor.getTask(packageName, myRunConfig, device, myEnv.getExecutor());
-        if (task != null) {
-          launchTasks.add(task);
-        }
       }
 
       if (!shouldDeployAsInstant()) {

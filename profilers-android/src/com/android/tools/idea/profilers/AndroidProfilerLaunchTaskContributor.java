@@ -34,7 +34,6 @@ import com.android.tools.idea.run.editor.ProfilerState;
 import com.android.tools.idea.run.profiler.AbstractProfilerExecutorGroup;
 import com.android.tools.idea.run.profiler.CpuProfilerConfig;
 import com.android.tools.idea.run.profiler.CpuProfilerConfigsState;
-import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.transport.TransportFileManager;
 import com.android.tools.idea.transport.TransportService;
 import com.android.tools.idea.util.StudioPathManager;
@@ -75,12 +74,6 @@ public final class AndroidProfilerLaunchTaskContributor implements AndroidLaunch
 
   private static Logger getLogger() {
     return Logger.getInstance(AndroidProfilerLaunchTaskContributor.class);
-  }
-
-  @Override
-  public LaunchTask getTask(@NotNull String applicationId, @NotNull AndroidRunConfigurationBase configuration,
-                            @NotNull IDevice device, @NotNull Executor executor) {
-    return null;
   }
 
   @Override

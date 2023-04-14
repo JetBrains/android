@@ -20,7 +20,6 @@ import com.android.sdklib.AndroidVersion
 import com.android.tools.deployer.Sites
 import com.android.tools.idea.run.AndroidLaunchTaskContributor
 import com.android.tools.idea.run.AndroidRunConfigurationBase
-import com.android.tools.idea.run.tasks.LaunchTask
 import com.intellij.execution.Executor
 import com.intellij.execution.executors.DefaultDebugExecutor
 
@@ -28,12 +27,6 @@ import com.intellij.execution.executors.DefaultDebugExecutor
  * Responsible for setting the am start options to start the coroutine debugger agent.
  */
 class CoroutineDebuggerLaunchTaskContributor : AndroidLaunchTaskContributor {
-  override fun getTask(applicationId: String,
-                       configuration: AndroidRunConfigurationBase,
-                       device: IDevice,
-                       executor: Executor): LaunchTask? {
-    return null
-  }
 
   override fun getAmStartOptions(applicationId: String,
                                  configuration: AndroidRunConfigurationBase,
