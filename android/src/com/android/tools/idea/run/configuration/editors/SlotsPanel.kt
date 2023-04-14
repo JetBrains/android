@@ -155,7 +155,9 @@ class SlotsPanel() : JPanel(FlowLayout(FlowLayout.LEFT)) {
       val selectedBox = JCheckBox().apply {
         addActionListener {
           chooseSlot(chosenSlot, this.isSelected)
-          typeBox.isEnabled = this.isSelected}
+          typeBox.isEnabled = this.isSelected
+          image.repaint()
+        }
       }
       typeBox.isEnabled = isSelected
       selectedBox.isEnabled = typesSupportedBySlot(chosenSlot.id).intersect(currentModel.supportedTypes).isNotEmpty()

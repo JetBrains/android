@@ -19,15 +19,12 @@ import com.android.annotations.concurrency.WorkerThread
 import com.android.tools.deployer.model.component.Complication
 import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.ComplicationSlot
-import com.android.tools.idea.run.configuration.DefaultComplicationWatchFaceInfo
 import com.android.tools.idea.run.configuration.getComplicationTypesFromManifest
 import com.android.tools.idea.run.configuration.parseRawComplicationTypes
-import com.android.tools.idea.welcome.wizard.invokeLater
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.progress.Task
+import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.application.runInEdt
+import com.intellij.openapi.progress.runBackgroundableTask
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogPanel
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.layout.panel
 import javax.swing.BoxLayout
@@ -37,7 +34,9 @@ class AndroidComplicationConfigurationEditor(private val project: Project, confi
   AndroidWearConfigurationEditor<AndroidComplicationConfiguration>(project, configuration) {
 
   private val slotsPanel = SlotsPanel()
-  private var allAvailableSlots : List<ComplicationSlot> = emptyList()
+  private var allAvailableSlots: List<ComplicationSlot> = emptyList()
+  private var chosenSlots: MutableList<AndroidComplicationConfiguration.ChosenSlot> = arrayListOf()
+
   override fun createEditor() = panel {
     row {
       getModuleChooser()
@@ -59,23 +58,8 @@ class AndroidComplicationConfigurationEditor(private val project: Project, confi
     super.resetEditorFrom(runConfiguration)
 
     allAvailableSlots = runConfiguration.componentLaunchOptions.watchFaceInfo.complicationSlots
-
-    // getSupportedTypes will invoke the manifest merger and needs to be called in the background thread.
-    ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Updating slots") {
-      private var complicationModel: SlotsPanel.ComplicationsModel? = null
-
-      override fun run(indicator: ProgressIndicator) {
-        complicationModel = SlotsPanel.ComplicationsModel(
-          runConfiguration.componentLaunchOptions.chosenSlots.map { it.copy() }.toMutableList(),
-          allAvailableSlots,
-          getSupportedTypes(runConfiguration.componentLaunchOptions.componentName)
-        )
-      }
-
-      override fun onFinished() {
-        complicationModel?.let { slotsPanel.setModel(it) }
-      }
-    })
+    chosenSlots = runConfiguration.componentLaunchOptions.chosenSlots.map { it.copy() }.toMutableList()
+    updateComplicationModel(runConfiguration.componentLaunchOptions.componentName)
   }
 
   override fun applyEditorTo(runConfiguration: AndroidComplicationConfiguration) {
@@ -91,23 +75,30 @@ class AndroidComplicationConfigurationEditor(private val project: Project, confi
       slotsPanel.setModel(SlotsPanel.ComplicationsModel())
     }
     else {
-      // getSupportedTypes will invoke the manifest merger and needs to be called in the background thread.
-      ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Updating slots") {
-        private var complicationModel: SlotsPanel.ComplicationsModel? = null
+      updateComplicationModel(newComponent)
+    }
+  }
 
-        override fun run(indicator: ProgressIndicator) {
-          complicationModel = SlotsPanel.ComplicationsModel(arrayListOf(), allAvailableSlots, getSupportedTypes(newComponent))
-        }
-
-        override fun onFinished() {
-          complicationModel?.let { slotsPanel.setModel(it) }
-        }
-      })
+  private fun updateComplicationModel(componentName: String?) {
+    // The following backgroundable task can be run before the configuration editor dialog is shown, for example when run from
+    // the gutter. When this happens, the ModalityState used by the backgroundable task will be registered with ModalityState.NON_MODAL.
+    // Once a dialog is showing, any EDT events run with ModalityState.NON_MODAL will be enqueued and only executed once the dialog is
+    // closed. This is because we enter a secondary loop (cf https://docs.oracle.com/javase/7/docs/api/java/awt/SecondaryLoop.html) when
+    // showing a dialog. In our case, we want to update the UI on the EDT thread when the dialog is open.
+    // When using ModalityState.any(), we ensure the event is pushed to the secondary queue and executed while the dialog is open.
+    val modalityState = ModalityState.any()
+    runBackgroundableTask("Updating slots", project) {
+      val supportedTypes = getSupportedTypes(componentName)
+      runInEdt(modalityState) {
+        slotsPanel.setModel(SlotsPanel.ComplicationsModel(
+          chosenSlots, allAvailableSlots, supportedTypes
+        ))
+      }
     }
   }
 
   @WorkerThread
-  private fun getSupportedTypes(componentName: String?) : List<Complication.ComplicationType>{
+  private fun getSupportedTypes(componentName: String?): List<Complication.ComplicationType> {
     if (componentName == null) {
       return emptyList()
     }
