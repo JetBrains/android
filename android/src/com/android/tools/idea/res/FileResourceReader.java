@@ -30,7 +30,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.io.ByteStreams;
 import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.intellij.openapi.vfs.VirtualFile;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -183,25 +182,6 @@ public class FileResourceReader {
   public static XmlPullParser createXmlPullParser(@NotNull PathString resourcePath) throws IOException {
     try {
       byte[] contents = readBytes(resourcePath);
-      return createXmlPullParser(contents);
-    }
-    catch (FileNotFoundException e) {
-      return null;
-    }
-  }
-
-  /**
-   * Creates a {@link XmlPullParser} for the given XML file resource. The file may contain
-   * either regular or proto XML.
-   *
-   * @param resourceFile the resource file
-   * @return the parser for the resource, or null if the resource does not exist
-   * @throws IOException in case of an I/O error
-   */
-  @Nullable
-  public static XmlPullParser createXmlPullParser(@NotNull VirtualFile resourceFile) throws IOException {
-    try {
-      byte[] contents = resourceFile.contentsToByteArray();
       return createXmlPullParser(contents);
     }
     catch (FileNotFoundException e) {

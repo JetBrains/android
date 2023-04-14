@@ -15,11 +15,18 @@
  */
 package org.jetbrains.android
 
+import com.android.SdkConstants
+import com.android.ide.common.resources.ProtoXmlPullParser
+import com.android.ide.common.util.PathString
 import com.android.resources.ResourceType
+import com.android.resources.TEST_DATA_DIR
+import com.android.testutils.TestUtils
+import com.android.tools.idea.util.toVirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementFactory
 import com.intellij.psi.XmlElementFactory
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.junit.Assert
 
 class AndroidAnnotatorUtilTest : AndroidTestCase() {
 
@@ -102,6 +109,15 @@ class AndroidAnnotatorUtilTest : AndroidTestCase() {
     assertEquals("drawable3", task.element.text)
   }
 
+  fun testCreateXmlPullParser() {
+    val resApkPath = TestUtils.resolveWorkspacePath(TEST_DATA_DIR + "/design_aar/" + SdkConstants.FN_RESOURCE_STATIC_LIBRARY)
+    val resourcePath = "$resApkPath!/res/layout/design_bottom_navigation_item.xml"
+    val pathString = PathString("apk", resourcePath)
+
+    val virtualFile = pathString.toVirtualFile()!!
+    val parser = AndroidAnnotatorUtil.createXmlPullParser(virtualFile)
+    Assert.assertTrue(parser is ProtoXmlPullParser)
+  }
 
   private fun createJavaElement(text: String) = PsiElementFactory.getInstance(project).createExpressionFromText(text, null)
 

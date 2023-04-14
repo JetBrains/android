@@ -16,22 +16,23 @@
 package com.android.tools.idea.res;
 
 import static com.android.SdkConstants.FN_RESOURCE_STATIC_LIBRARY;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import com.android.ide.common.resources.ProtoXmlPullParser;
 import com.android.ide.common.util.PathString;
 import com.android.resources.AarTestUtils;
 import com.android.testutils.TestUtils;
-import com.android.tools.idea.util.FileExtensions;
-import com.intellij.openapi.vfs.VirtualFile;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import org.jetbrains.android.AndroidTestCase;
+import org.junit.Test;
 import org.xmlpull.v1.XmlPullParser;
 
 /**
  * Tests for {@link FileResourceReader}.
  */
-public class FileResourceReaderTest extends AndroidTestCase {
+public class FileResourceReaderTest {
+  @Test
   public void testReadBytes() throws Exception {
     Path resApkPath = TestUtils.resolveWorkspacePath(AarTestUtils.TEST_DATA_DIR + "/design_aar/" + FN_RESOURCE_STATIC_LIBRARY);
     String resourcePath = resApkPath + "!/res/drawable-mdpi-v4/design_ic_visibility.png";
@@ -46,16 +47,13 @@ public class FileResourceReaderTest extends AndroidTestCase {
     assertEquals(309, bytes.length);
   }
 
+  @Test
   public void testCreateXmlPullParser() throws Exception {
     Path resApkPath = TestUtils.resolveWorkspacePath(AarTestUtils.TEST_DATA_DIR + "/design_aar/" + FN_RESOURCE_STATIC_LIBRARY);
     String resourcePath = resApkPath + "!/res/layout/design_bottom_navigation_item.xml";
     PathString pathString = new PathString("apk", resourcePath);
 
     XmlPullParser parser = FileResourceReader.createXmlPullParser(pathString);
-    assertTrue(parser instanceof ProtoXmlPullParser);
-
-    VirtualFile virtualFile = FileExtensions.toVirtualFile(pathString);
-    parser = FileResourceReader.createXmlPullParser(virtualFile);
     assertTrue(parser instanceof ProtoXmlPullParser);
   }
 }

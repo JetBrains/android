@@ -69,6 +69,8 @@ import com.intellij.util.ui.ColorIcon;
 import com.intellij.util.ui.EmptyIcon;
 import java.awt.Color;
 import java.awt.MouseInfo;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -111,6 +113,26 @@ public class AndroidAnnotatorUtil {
     return pickSmallestDpiFile(file);
   }
 
+  /**
+   * Creates a {@link XmlPullParser} for the given XML file resource. The file may contain
+   * either regular or proto XML.
+   *
+   * @param resourceFile the resource file
+   * @return the parser for the resource, or null if the resource does not exist
+   * @throws IOException in case of an I/O error
+   */
+  @VisibleForTesting
+  @Nullable
+  public static XmlPullParser createXmlPullParser(@NotNull VirtualFile resourceFile) throws IOException {
+    try {
+      byte[] contents = resourceFile.contentsToByteArray();
+      return FileResourceReader.createXmlPullParser(contents);
+    }
+    catch (FileNotFoundException e) {
+      return null;
+    }
+  }
+
   @Nullable
   private static VirtualFile pickRenderableFileFromXML(@NotNull VirtualFile file,
                                                        @NotNull ResourceResolver resourceResolver,
@@ -118,7 +140,7 @@ public class AndroidAnnotatorUtil {
                                                        @NotNull AndroidFacet facet,
                                                        @NotNull ResourceValue resourceValue) {
     try {
-      XmlPullParser parser = FileResourceReader.createXmlPullParser(file);
+      XmlPullParser parser = createXmlPullParser(file);
       if (parser == null) {
         return null;
       }
