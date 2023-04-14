@@ -81,7 +81,7 @@ class DatabaseInspectorViewImpl(
 
     tabs.name = "right-panel-tabs-panel"
     tabs.apply {
-      isTabDraggingEnabled = true
+      setTabDraggingEnabled(true)
       setUiDecorator(object : UiDecorator {
         override fun getDecoration(): UiDecorator.UiDecoration {
           return UiDecorator.UiDecoration(labelInsets = JBUI.insets(5, 6))
