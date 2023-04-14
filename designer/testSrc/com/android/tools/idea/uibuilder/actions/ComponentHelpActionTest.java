@@ -108,6 +108,6 @@ public class ComponentHelpActionTest extends AndroidTestCase {
   public void testGoogleLibraryTag() {
     myTagName = SdkConstants.AD_VIEW;
     myAction.actionPerformed(myEvent);
-    verify(myBrowserLauncher).browse(eq("https://developer.android.com/reference/com/google/android/gms/ads/AdView.html"), isNull(), isNull());
+    verify(myBrowserLauncher).browse(eq("https://developers.google.com/android/reference/com/google/android/gms/ads/AdView"), isNull(), isNull());
   }
 }
