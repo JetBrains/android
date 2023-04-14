@@ -204,6 +204,7 @@ import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.util.ThrowableConsumer
 import com.intellij.util.containers.MultiMap
 import com.intellij.util.messages.MessageBusConnection
+import com.intellij.workspaceModel.core.fileIndex.impl.WorkspaceFileIndexImpl
 import org.jetbrains.android.AndroidTestBase
 import org.jetbrains.android.facet.AndroidFacet
 import org.jetbrains.annotations.SystemDependent
@@ -211,7 +212,7 @@ import org.jetbrains.annotations.SystemIndependent
 import org.jetbrains.kotlin.idea.base.externalSystem.findAll
 import org.jetbrains.kotlin.idea.core.script.configuration.ScriptingSupport
 import org.jetbrains.kotlin.idea.core.script.configuration.listener.ScriptChangeListener
-import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptDependenciesLibraryRootProvider
+import org.jetbrains.kotlin.idea.core.script.dependencies.KotlinScriptWorkspaceFileIndexContributor
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtension
 import org.jetbrains.plugins.gradle.model.DefaultGradleExtensions
 import org.jetbrains.plugins.gradle.model.ExternalProject
@@ -2176,10 +2177,10 @@ private fun <T> openPreparedProject(
           // NOTE: We do not re-register the extensions since (1) we do not know whether we removed it and (2) there is no simple way to
           //       re-register it by its class name. It means that this test might affect tests running after this one.
 
-          // [KotlinScriptDependenciesLibraryRootProvider] contributes a lot of classes/sources to index in order to provide Ctrl+Space
+          // [KotlinScriptWorkspaceFileIndexContributor] contributes a lot of classes/sources to index in order to provide Ctrl+Space
           // experience in the code editor. It takes approximately 4 minutes to complete. We unregister the contributor to make our tests
           // run faster.
-          AdditionalLibraryRootsProvider.EP_NAME.point.unregisterExtension(KotlinScriptDependenciesLibraryRootProvider::class.java)
+          WorkspaceFileIndexImpl.EP_NAME.point.unregisterExtension(KotlinScriptWorkspaceFileIndexContributor::class.java)
         }
 
         var afterCreateCalled = false
