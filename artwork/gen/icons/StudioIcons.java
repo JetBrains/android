@@ -205,6 +205,7 @@ public final class StudioIcons {
     /** 16x16 */ public static final @NotNull Icon DATABASE_FOLDER = load("studio/icons/device-explorer/database-folder.svg", 1458296899, 2);
     /** 16x16 */ public static final @NotNull Icon DEVICE_PAIRED_AND_CONNECTED = load("studio/icons/device-explorer/device-paired-and-connected.svg", -1691927500, 2);
     /** 16x16 */ public static final @NotNull Icon DEVICE_PAIRED = load("studio/icons/device-explorer/device-paired.svg", 1852567387, 2);
+    /** 16x16 */ public static final @NotNull Icon FIREBASE_DEVICE_PHONE = load("studio/icons/device-explorer/firebase-device-phone.svg", 465796196, 2);
     /** 16x16 */ public static final @NotNull Icon MULTIPLE_DEVICES = load("studio/icons/device-explorer/multiple-devices.svg", 352031943, 2);
     /** 16x16 */ public static final @NotNull Icon PHYSICAL_DEVICE_CAR = load("studio/icons/device-explorer/physical-device-car.svg", -414172962, 2);
     /** 16x16 */ public static final @NotNull Icon PHYSICAL_DEVICE_PHONE = load("studio/icons/device-explorer/physical-device-phone.svg", 1547958526, 2);
