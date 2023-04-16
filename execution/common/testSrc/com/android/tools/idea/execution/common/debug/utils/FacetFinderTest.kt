@@ -23,6 +23,7 @@ import com.android.tools.idea.testing.AndroidProjectBuilder
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.JavaModuleModelBuilder
 import com.android.tools.idea.testing.createMainSourceProviderForDefaultTestProjectStructure
+import com.android.tools.idea.util.androidFacet
 import com.intellij.openapi.application.runWriteActionAndWait
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
@@ -48,7 +49,8 @@ class FacetFinderTest {
           mutableListOf(AndroidModuleDependency (":lib", "debug"))
         }),
       AndroidModuleModelBuilder(":lib", "debug", AndroidProjectBuilder(
-        mainSourceProvider = { createMainSourceProviderForDefaultTestProjectStructure() }
+        mainSourceProvider = { createMainSourceProviderForDefaultTestProjectStructure() },
+        testApplicationId = { "libTestApplicationId" }
       )),
     )
 
@@ -133,30 +135,36 @@ class FacetFinderTest {
   @Test
   fun testPackageName() {
     val result = FacetFinder.findFacetForProcess(project, "applicationId")
-    assertEquals(appFacet, result)
+    assertEquals(appFacet.mainModule.androidFacet, result)
   }
 
   @Test
   fun testLocalProcessFromAppModule() {
     val result = FacetFinder.findFacetForProcess(project, "applicationId:localfromapp")
-    assertEquals(appFacet, result)
+    assertEquals(appFacet.mainModule.androidFacet, result)
   }
 
   @Test
   fun testLocalProcessFromLibModule() {
     val result = FacetFinder.findFacetForProcess(project, "applicationId:localfromlib")
-    assertEquals(appFacet, result)
+    assertEquals(appFacet.mainModule.androidFacet, result)
   }
 
   @Test
   fun testGlobalProcessFromAppModule() {
     val result = FacetFinder.findFacetForProcess(project, "globalfromapp")
-    assertEquals(appFacet, result)
+    assertEquals(appFacet.mainModule.androidFacet, result)
   }
 
   @Test
   fun testGlobalProcessFromLibModule() {
     val result = FacetFinder.findFacetForProcess(project, "globalfromlib")
-    assertEquals(appFacet, result)
+    assertEquals(appFacet.mainModule.androidFacet, result)
+  }
+
+  @Test
+  fun testTestPackageName() {
+    val result = FacetFinder.findFacetForProcess(project, "libTestApplicationId")
+    assertEquals(libFacet.androidTestModule!!.androidFacet, result)
   }
 }
