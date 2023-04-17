@@ -21,7 +21,8 @@ import com.intellij.openapi.options.Configurable
 import com.intellij.openapi.options.ConfigurableProvider
 import com.intellij.openapi.options.SearchableConfigurable
 import com.intellij.ui.components.JBCheckBox
-import java.awt.BorderLayout
+import javax.swing.BoxLayout
+import javax.swing.JCheckBox
 import javax.swing.JPanel
 
 /**
@@ -40,26 +41,40 @@ class LayoutInspectorConfigurableProvider : ConfigurableProvider() {
 }
 
 private class LayoutInspectorConfigurable : SearchableConfigurable {
-  private val component: JPanel = JPanel(BorderLayout())
+  private val component: JPanel = JPanel()
   private val enableAutoConnect = JBCheckBox(LayoutInspectorBundle.message("enable.auto.connect"))
+  private val enableEmbeddedLayoutInspector = JBCheckBox(LayoutInspectorBundle.message("enable.embedded.layout.inspector"))
 
   private val settings = LayoutInspectorSettings.getInstance()
+  private val autoConnectSettingControl = ToggleSettingController(
+    enableAutoConnect,
+    Setting(getValue = { settings.autoConnectEnabled }, setValue = { settings.autoConnectEnabled = it })
+  )
+  private val embeddedLayoutInspectorSettingControl = ToggleSettingController(
+    enableEmbeddedLayoutInspector,
+    Setting(getValue = { settings.embeddedLayoutInspectorEnabled }, setValue = { settings.embeddedLayoutInspectorEnabled = it })
+  )
 
   init {
-    component.add(enableAutoConnect, BorderLayout.PAGE_START)
+    component.layout = BoxLayout(component, BoxLayout.PAGE_AXIS)
+    component.add(enableAutoConnect)
+    if (StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()) {
+      component.add(enableEmbeddedLayoutInspector)
+    }
   }
 
   override fun createComponent() = component
 
-  override fun isModified() = enableAutoConnect.isSelected != settings.autoConnectEnabled
+  override fun isModified() = autoConnectSettingControl.isModified || embeddedLayoutInspectorSettingControl.isModified
 
   override fun apply() {
-    val isAutoConnectEnabled = enableAutoConnect.isSelected
-    settings.setAutoConnectEnabledInSettings(isAutoConnectEnabled)
+    autoConnectSettingControl.apply()
+    embeddedLayoutInspectorSettingControl.apply()
   }
 
   override fun reset() {
-    enableAutoConnect.isSelected = settings.autoConnectEnabled
+    autoConnectSettingControl.reset()
+    embeddedLayoutInspectorSettingControl.reset()
   }
 
   override fun getDisplayName(): String {
@@ -67,4 +82,17 @@ private class LayoutInspectorConfigurable : SearchableConfigurable {
   }
 
   override fun getId() = "layout.inspector.configurable"
+}
+
+private class Setting<T>(val getValue: () -> T, val setValue: (T) -> Unit)
+private class ToggleSettingController(val checkBox: JCheckBox, val setting: Setting<Boolean>) {
+  val isModified: Boolean get() = checkBox.isSelected != setting.getValue()
+
+  fun apply() {
+    setting.setValue(checkBox.isSelected)
+  }
+
+  fun reset() {
+    checkBox.isSelected = setting.getValue()
+  }
 }

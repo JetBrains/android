@@ -16,11 +16,11 @@
 package com.android.tools.idea.layoutinspector
 
 import com.android.tools.adtui.workbench.WorkBench
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.layoutinspector.metrics.LayoutInspectorMetrics
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.ForegroundProcessListener
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.DeviceViewPanel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
@@ -46,7 +46,7 @@ const val LAYOUT_INSPECTOR_TOOL_WINDOW_ID = "Layout Inspector"
 class LayoutInspectorToolWindowFactory : ToolWindowFactory {
 
   override fun isApplicable(project: Project): Boolean {
-    return !StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
+    return !LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
   }
 
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {

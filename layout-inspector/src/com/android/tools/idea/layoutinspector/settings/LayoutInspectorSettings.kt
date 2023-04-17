@@ -32,17 +32,17 @@ class LayoutInspectorSettings : PersistentStateComponent<LayoutInspectorSettings
     }
   }
 
-  // TODO unify these two variables and set method once the StudioFlag is deleted.
-  //  currently they have to be separate because we want clients to always use `autoConnectEnabled`
-  //  but need `LayoutInspectorConfigurableProvider` and tests to set the value of `isAutoConnectEnabledInSettings`
+  // TODO remove these variables once flags are deleted
   private var isAutoConnectEnabledInSettings = true
+  private var isEmbeddedLayoutInspectorEnabledInSettings = true
 
-  val autoConnectEnabled: Boolean get() = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get() &&
-                                          isAutoConnectEnabledInSettings
+  var autoConnectEnabled: Boolean
+    get() = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED.get() && isAutoConnectEnabledInSettings
+    set(value) { isAutoConnectEnabledInSettings = value }
 
-  fun setAutoConnectEnabledInSettings(isEnabled: Boolean) {
-    isAutoConnectEnabledInSettings = isEnabled
-  }
+  var embeddedLayoutInspectorEnabled: Boolean
+    get() = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get() && isEmbeddedLayoutInspectorEnabledInSettings
+    set(value) { isEmbeddedLayoutInspectorEnabledInSettings = value }
 
   override fun getState() = this
 

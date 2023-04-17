@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.runningdevices
 
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ToggleAction
@@ -39,7 +39,7 @@ class ToggleLayoutInspectorAction : ToggleAction() {
   }
 
   override fun update(e: AnActionEvent) {
-    val isEnabled = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
+    val isEnabled = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
     e.presentation.isVisible = isEnabled
 
     val project = e.project ?: return

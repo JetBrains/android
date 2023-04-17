@@ -15,11 +15,15 @@
  */
 package com.android.tools.idea.layoutinspector.settings
 
+import com.android.flags.Flag
 import com.android.tools.idea.flags.StudioFlags
 import com.google.common.truth.Truth.assertThat
 import com.intellij.testFramework.ApplicationRule
 import org.junit.Rule
 import org.junit.Test
+
+private val AUTO_CONNECT_FLAG = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED
+private val EMBEDDED_LAYOUT_INSPECTOR_FLAG = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED
 
 class LayoutInspectorSettingsTest {
 
@@ -31,23 +35,42 @@ class LayoutInspectorSettingsTest {
     val layoutInspectorSettings = LayoutInspectorSettings.getInstance()
     assertThat(layoutInspectorSettings.autoConnectEnabled).isTrue()
 
-    layoutInspectorSettings.setAutoConnectEnabledInSettings(false)
+    layoutInspectorSettings.autoConnectEnabled = false
     assertThat(layoutInspectorSettings.autoConnectEnabled).isFalse()
 
-    runWithFlagState(false) {
+    runWithFlagState(AUTO_CONNECT_FLAG, false) {
       assertThat(layoutInspectorSettings.autoConnectEnabled).isFalse()
-      layoutInspectorSettings.setAutoConnectEnabledInSettings(true)
+      layoutInspectorSettings.autoConnectEnabled = true
       assertThat(layoutInspectorSettings.autoConnectEnabled).isFalse()
     }
 
-    runWithFlagState(true) {
-      layoutInspectorSettings.setAutoConnectEnabledInSettings(true)
+    runWithFlagState(AUTO_CONNECT_FLAG, true) {
+      layoutInspectorSettings.autoConnectEnabled = true
       assertThat(layoutInspectorSettings.autoConnectEnabled).isTrue()
     }
   }
 
-  private fun runWithFlagState(desiredFlagState: Boolean, task: () -> Unit): Unit {
-    val flag = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_AUTO_CONNECT_TO_FOREGROUND_PROCESS_ENABLED
+  @Test
+  fun testEmbeddedLayoutInspectorEnabledFlag() {
+    val layoutInspectorSettings = LayoutInspectorSettings.getInstance()
+    assertThat(layoutInspectorSettings.embeddedLayoutInspectorEnabled).isFalse()
+
+    layoutInspectorSettings.embeddedLayoutInspectorEnabled = false
+    assertThat(layoutInspectorSettings.embeddedLayoutInspectorEnabled).isFalse()
+
+    runWithFlagState(EMBEDDED_LAYOUT_INSPECTOR_FLAG, false) {
+      assertThat(layoutInspectorSettings.embeddedLayoutInspectorEnabled).isFalse()
+      layoutInspectorSettings.embeddedLayoutInspectorEnabled = true
+      assertThat(layoutInspectorSettings.embeddedLayoutInspectorEnabled).isFalse()
+    }
+
+    runWithFlagState(EMBEDDED_LAYOUT_INSPECTOR_FLAG, true) {
+      layoutInspectorSettings.embeddedLayoutInspectorEnabled = true
+      assertThat(layoutInspectorSettings.embeddedLayoutInspectorEnabled).isTrue()
+    }
+  }
+
+  private fun runWithFlagState(flag: Flag<Boolean>, desiredFlagState: Boolean, task: () -> Unit) {
     val flagPreviousState = flag.get()
     flag.override(desiredFlagState)
 

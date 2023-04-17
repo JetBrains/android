@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.layoutinspector.pipeline
 
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorSettings
 import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.project.Project
 
@@ -37,5 +37,5 @@ class InspectorClientSettings(private val project: Project) {
   /**
    * Disable capturing of bitmap screenshots. The agent will only capture view boundaries and SKP screenshots.
    */
-  val disableBitmapScreenshot: Boolean get() = StudioFlags.DYNAMIC_LAYOUT_INSPECTOR_IN_RUNNING_DEVICES_ENABLED.get()
+  val disableBitmapScreenshot: Boolean get() = LayoutInspectorSettings.getInstance().embeddedLayoutInspectorEnabled
 }
