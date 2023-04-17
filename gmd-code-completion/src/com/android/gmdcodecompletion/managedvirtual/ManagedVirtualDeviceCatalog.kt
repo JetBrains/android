@@ -25,8 +25,7 @@ import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.sdk.AndroidSdks
 import com.android.tools.idea.sdk.StudioSdkUtil
 import com.intellij.openapi.diagnostic.Logger
-import kotlin.math.max
-import kotlin.math.min
+import java.util.EnumSet
 
 private val LOGGER = Logger.getInstance(ManagedVirtualDeviceCatalogState::class.java)
 
@@ -69,7 +68,7 @@ class ManagedVirtualDeviceCatalog : GmdDeviceCatalog() {
       val progress: LoggerProgressIndicatorWrapper = object : LoggerProgressIndicatorWrapper(iLogger) {
         override fun logVerbose(s: String) = iLogger.verbose(s)
       }
-      val repoManager = AndroidSdks.getInstance()?.tryToChooseSdkHandler()?.getSdkManager(progress) ?: null
+      val repoManager = AndroidSdks.getInstance()?.tryToChooseSdkHandler()?.getSdkManager(progress)
       val systemImages = repoManager?.packages?.consolidatedPkgs ?: emptyMap()
       systemImages.filter {
         it.key.contains("system-images") &&
@@ -82,38 +81,27 @@ class ManagedVirtualDeviceCatalog : GmdDeviceCatalog() {
         val apiLevel = ((updatablePackage.local ?: updatablePackage.remote)?.typeDetails as? SysImgDetailsType)?.apiLevel ?: -1
         val imageSource = propertyList[2].let { if (it == "default") "google" else it }
 
-        this.apiLevels.add(ApiVersionInfo(
-          apiLevel = apiLevel,
-          apiPreview = if (apiInfo.toIntOrNull() == null) apiInfo else "",
-          imageSource = imageSource,
-          require64Bit = (!abiInfo.contains("arm") && abiInfo.contains("64")),
-        ))
+        if (apiLevel > 0) {
+          this.apiLevels.add(ApiVersionInfo(
+            apiLevel = apiLevel,
+            apiPreview = if (apiInfo.toIntOrNull() == null) apiInfo else "",
+            imageSource = imageSource,
+            require64Bit = (!abiInfo.contains("arm") && abiInfo.contains("64")),
+          ))
+        }
       }
 
-      // There must be a max API level after we sync with repo manager server, else throw exception
-      val maxApiLevel = this.apiLevels.maxOf { it.apiLevel }
+      val availableApis = this.apiLevels.map { it.apiLevel }
 
-      // Obtain all devices from Device Manager
+      // Obtain all devices from Device Manager except custom managed devices
       val allDevices =
         DeviceManager.createInstance(AndroidLocationsSingleton, AndroidLocationsSingleton.prefsLocation, iLogger)
-          ?.getDevices(DeviceManager.ALL_DEVICES) ?: null
+          ?.getDevices(EnumSet.of(DeviceManager.DeviceFilter.DEFAULT, DeviceManager.DeviceFilter.VENDOR))
       allDevices?.forEach { device ->
         if (!device.isDeprecated) {
-          val deviceSoftware = device.allSoftware
-          val maxDeviceApiLevel = deviceSoftware.maxOfOrNull { software ->
-            software.maxSdkLevel
-          } ?: Int.MAX_VALUE
-
-          val minDeviceApiLevel = deviceSoftware.minOfOrNull { software ->
-            software.minSdkLevel
-          } ?: Int.MIN_VALUE
-
-          if (maxDeviceApiLevel >= minDeviceApiLevel) {
-            this.devices[device.id] = AndroidDeviceInfo(deviceName = device.displayName,
-                                                        supportedApis = (max(minDeviceApiLevel, 0)..
-                                                          min(maxDeviceApiLevel, maxApiLevel)).toList(),
-                                                        brand = device.manufacturer)
-          }
+          this.devices[device.displayName] = AndroidDeviceInfo(deviceName = "",
+                                                               supportedApis = availableApis,
+                                                               brand = device.manufacturer)
         }
       }
       checkEmptyFields()

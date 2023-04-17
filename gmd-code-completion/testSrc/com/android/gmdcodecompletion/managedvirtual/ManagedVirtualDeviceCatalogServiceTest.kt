@@ -37,6 +37,7 @@ import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.MockitoAnnotations.openMocks
 import java.util.Calendar
+import java.util.EnumSet
 
 class ManagedVirtualDeviceCatalogServiceTest : LightPlatformTestCase() {
   @Mock
@@ -90,7 +91,7 @@ class ManagedVirtualDeviceCatalogServiceTest : LightPlatformTestCase() {
       assertFalse(managedVirtualDeviceCatalogService.state.isCacheFresh())
       managedVirtualDeviceCatalogService.updateDeviceCatalogTaskAction(mockProject, mockProgressIndicator)
       assertTrue(managedVirtualDeviceCatalogService.state.isCacheFresh())
-      verify(mockDeviceManager).getDevices(DeviceManager.ALL_DEVICES)
+      verify(mockDeviceManager).getDevices(EnumSet.of(DeviceManager.DeviceFilter.DEFAULT, DeviceManager.DeviceFilter.VENDOR))
       verify(mockRepoManager).packages
     }
   }
@@ -105,7 +106,7 @@ class ManagedVirtualDeviceCatalogServiceTest : LightPlatformTestCase() {
       assertTrue(managedVirtualDeviceCatalogService.state.isCacheFresh())
       managedVirtualDeviceCatalogService.updateDeviceCatalogTaskAction(mockProject, mockProgressIndicator)
       // The only time we invoked mockDeviceManager and mockRepoManager is when freshManagedVirtualDeviceCatalogState is syncing
-      verify(mockDeviceManager, times(1)).getDevices(DeviceManager.ALL_DEVICES)
+      verify(mockDeviceManager).getDevices(EnumSet.of(DeviceManager.DeviceFilter.DEFAULT, DeviceManager.DeviceFilter.VENDOR))
       verify(mockRepoManager, times(1)).packages
     }
   }

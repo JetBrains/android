@@ -21,6 +21,7 @@ import com.android.gmdcodecompletion.ConfigurationParameterName
 import com.android.gmdcodecompletion.ConfigurationParameterName.DIRECTORIES_TO_PULL
 import com.android.gmdcodecompletion.ConfigurationParameterName.EXTRA_DEVICE_FILES
 import com.android.gmdcodecompletion.GmdDeviceCatalog
+import com.android.gmdcodecompletion.MIN_SUPPORTED_GMD_API_LEVEL
 import com.android.gmdcodecompletion.PsiElementLevel
 import com.android.gmdcodecompletion.completions.GmdDeviceDefinitionPatternMatchingProvider.getMinAndTargetSdk
 import com.android.gmdcodecompletion.completions.GmdDeviceDefinitionPatternMatchingProvider.getSiblingPropertyMap
@@ -36,6 +37,7 @@ import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalog
 import com.android.gmdcodecompletion.managedvirtual.ManagedVirtualDeviceCatalogService
 import com.android.gmdcodecompletion.superParent
 import com.android.gmdcodecompletion.superParentAsGrMethodCall
+import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel
 import com.android.tools.idea.util.androidFacet
 import com.intellij.codeInsight.completion.CompletionConfidence
 import com.intellij.codeInsight.completion.CompletionContributor
@@ -203,7 +205,14 @@ class GmdCodeCompletionContributor : CompletionContributor() {
 
     val deviceProperties = getSiblingPropertyMap(position, PsiElementLevel.COMPLETION_PROPERTY_VALUE)
     val minAndTargetApiLevel = getMinAndTargetSdk(position.androidFacet)
-
+    // check if project has the support old API flag for local GMD. This affects minimum supported API level
+    val supportOldApiFlag = ProjectBuildModel.get(
+      position.project).projectBuildModel?.propertiesModel?.declaredProperties?.filter {
+      it.name == "android.experimental.testOptions.managedDevices.allowOldApiLevelDevices"
+    }?.let { if (it.isNotEmpty()) it[0] else null }
+    if (deviceCatalog is ManagedVirtualDeviceCatalog && (supportOldApiFlag == null || !supportOldApiFlag.valueAsString().toBoolean())) {
+      minAndTargetApiLevel.minSdk = maxOf(MIN_SUPPORTED_GMD_API_LEVEL, minAndTargetApiLevel.minSdk)
+    }
     if (deviceProperties[configurationParameterName] != null) return
     val suggestions = lookupElementProvider.generateDevicePropertyValueSuggestionList(configurationParameterName,
                                                                                       deviceProperties,

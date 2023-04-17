@@ -45,6 +45,9 @@ const val FTL_DEVICE_CATALOG_UPDATE_FREQUENCY: Int = 7
 // Managed virtual device catalog should be updated every 7 days
 const val MANAGED_VIRTUAL_DEVICE_CATALOG_UPDATE_FREQUENCY: Int = 7
 
+// set android.experimental.testOptions.managedDevices.allowOldApiLevelDevices to true to allow API levels 26 and below
+const val MIN_SUPPORTED_GMD_API_LEVEL = 27
+
 // Stores device related information to better sort code completion suggestion list
 data class AndroidDeviceInfo(
   val deviceName: String = "",
@@ -63,7 +66,7 @@ enum class PsiElementLevel(val psiElementLevel: Int) {
   COMPLETION_PROPERTY_VALUE(2),
 }
 
-data class MinAndTargetApiLevel(val minSdk: Int, val targetSdk: Int)
+data class MinAndTargetApiLevel(var minSdk: Int, val targetSdk: Int)
 
 /**
  * Describes variables in ManagedVirtualDevice and ManagedDevice interface

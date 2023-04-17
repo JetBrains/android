@@ -159,7 +159,7 @@ object GmdDeviceDefinitionPatternMatchingProvider {
 
   // Returns current device property name value map
   fun getSiblingPropertyMap(
-    position: PsiElement, psiElementLevel: PsiElementLevel): CurrentDeviceProperties {
+    position: PsiElement, psiElementLevel: PsiElementLevel, finishCheck: Boolean = false): CurrentDeviceProperties {
     val currentProperty = position.superParent(psiElementLevel.psiElementLevel)
     val propertyValueMap = HashMap<ConfigurationParameterName, String>()
     // Use parent.children to get all siblings works better than siblings() method
@@ -187,6 +187,11 @@ object GmdDeviceDefinitionPatternMatchingProvider {
         }
       }
     }
-    return propertyValueMap
+    return if (propertyValueMap.isNotEmpty() || finishCheck) {
+      propertyValueMap
+    } else {
+      // Check one layer up in case current caret is after a single " mark
+      getSiblingPropertyMap(position.parent, psiElementLevel, true)
+    }
   }
 }
