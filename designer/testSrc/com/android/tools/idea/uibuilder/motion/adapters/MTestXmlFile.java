@@ -427,21 +427,6 @@ public class MTestXmlFile implements XmlFile {
   }
 
   @Override
-  public void navigate(boolean requestFocus) {
-
-  }
-
-  @Override
-  public boolean canNavigate() {
-    return false;
-  }
-
-  @Override
-  public boolean canNavigateToSource() {
-    return false;
-  }
-
-  @Override
   public void checkSetName(String name) throws IncorrectOperationException {
 
   }
