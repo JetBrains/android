@@ -66,7 +66,7 @@ object LongTextAnalyzer : VisualLintAnalyzer() {
 
   private fun createIssueContent(view: ViewInfo): VisualLintIssueContent {
     val summary = "${nameWithId(view)} has lines containing more than 120 characters"
-    val url = "https://material.io/design/layout/responsive-layout-grid.html#breakpoints"
+    val url = "https://d.android.com/r/studio-ui/designer/material/responsive-layout-grid-breakpoints"
     val provider = { count: Int ->
       HtmlBuilder()
         .add("${simpleName(view)} has lines containing more than 120 characters in ${previewConfigurations(count)}.")
