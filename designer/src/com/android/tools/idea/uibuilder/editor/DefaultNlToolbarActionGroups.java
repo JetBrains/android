@@ -26,7 +26,6 @@ import com.android.tools.idea.common.editor.ToolbarActionGroups;
 import com.android.tools.idea.common.model.NlModel;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.configurations.DeviceMenuAction;
-import com.android.tools.idea.configurations.DeviceMenuAction2;
 import com.android.tools.idea.configurations.LocaleMenuAction;
 import com.android.tools.idea.configurations.NightModeMenuAction;
 import com.android.tools.idea.configurations.SystemUiModeAction;
@@ -122,17 +121,10 @@ public final class DefaultNlToolbarActionGroups extends ToolbarActionGroups {
     }
 
     group.addSeparator();
-    if (StudioFlags.NELE_NEW_DEVICE_MENU.get()) {
-      DeviceMenuAction2 menuAction2 = new DeviceMenuAction2(() -> mySurface.getConfigurations().stream().findFirst().orElse(null),
-                                                            (oldDevice, newDevice) -> mySurface.zoomToFit());
-      appendShortcutText(menuAction2, NextDeviceAction.getInstance());
-      group.add(menuAction2);
-    }
-    else {
-      DeviceMenuAction menuAction = new DeviceMenuAction(mySurface::getConfiguration, (oldDevice, newDevice) -> mySurface.zoomToFit());
-      appendShortcutText(menuAction, NextDeviceAction.getInstance());
-      group.add(menuAction);
-    }
+    DeviceMenuAction menuAction = new DeviceMenuAction(() -> mySurface.getConfigurations().stream().findFirst().orElse(null),
+                                                       (oldDevice, newDevice) -> mySurface.zoomToFit());
+    appendShortcutText(menuAction, NextDeviceAction.getInstance());
+    group.add(menuAction);
 
     group.add(new TargetMenuAction(mySurface::getConfiguration));
     group.add(new ThemeMenuAction(mySurface::getConfiguration));

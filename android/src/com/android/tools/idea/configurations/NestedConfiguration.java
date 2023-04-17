@@ -532,7 +532,7 @@ public class NestedConfiguration extends Configuration implements ConfigurationL
     }
 
     if ((flags & CFG_DEVICE) != 0) {
-      return DeviceMenuAction.getDeviceLabel(configuration.getDevice(), true);
+      return DeviceMenuActionKt.getDeviceLabel(configuration.getDevice(), true);
     }
 
     if ((flags & CFG_DEVICE_STATE) != 0) {

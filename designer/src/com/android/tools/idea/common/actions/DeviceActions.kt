@@ -15,15 +15,12 @@
  */
 package com.android.tools.idea.common.actions
 
-import com.android.sdklib.devices.Device
 import com.android.tools.idea.actions.DESIGN_SURFACE
 import com.android.tools.idea.actions.DesignerActions
 import com.android.tools.idea.common.surface.DesignSurface
 import com.android.tools.idea.uibuilder.surface.NlSupportedActions
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.DeviceMenuAction
-import com.android.tools.idea.configurations.DeviceMenuAction2
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.uibuilder.editor.NlActionManager
 import com.android.tools.idea.uibuilder.surface.isActionSupported
 import com.intellij.openapi.actionSystem.ActionManager
@@ -120,11 +117,4 @@ class PreviousDeviceAction private constructor(): SwitchDeviceAction() {
   }
 }
 
-private fun getSortedDevices(config: Configuration): List<Device> {
-  return if (StudioFlags.NELE_NEW_DEVICE_MENU.get()) {
-    DeviceMenuAction2.getSortedMajorDevices(config)
-  }
-  else {
-    DeviceMenuAction.getSortedDevicesInMenu(config)
-  }
-}
+private fun getSortedDevices(config: Configuration) = DeviceMenuAction.getSortedMajorDevices(config)

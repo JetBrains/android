@@ -15,12 +15,13 @@
  */
 package com.android.tools.idea.common.actions
 
+import com.android.sdklib.devices.Device
 import com.android.tools.idea.common.surface.TestDesignSurface
 import com.android.tools.idea.configurations.Configuration
 import com.android.tools.idea.configurations.ConfigurationManager
+import com.android.tools.idea.configurations.DeviceChangeListener
 import com.android.tools.idea.configurations.DeviceMenuAction
-import com.android.tools.idea.configurations.DeviceMenuAction2
-import com.android.tools.idea.flags.StudioFlags
+import com.android.tools.idea.configurations.SetDeviceAction
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.onEdt
 import com.intellij.openapi.actionSystem.ActionGroup
@@ -105,18 +106,15 @@ class PreviousDeviceActionTest {
   }
 }
 
-private fun getSetDeviceActions(config: Configuration): List<DeviceMenuAction.SetDeviceAction> {
-  val menuAction = if (StudioFlags.NELE_NEW_DEVICE_MENU.get()) {
-    DeviceMenuAction2({ config }, { _, _ -> }).apply { updateActions(DataContext.EMPTY_CONTEXT) }
-  }
-  else {
-    DeviceMenuAction({ config }, { _, _ -> }).apply { updateActions(DataContext.EMPTY_CONTEXT) }
-  }
+private fun getSetDeviceActions(config: Configuration): List<SetDeviceAction> {
+  val menuAction = DeviceMenuAction({ config }, object: DeviceChangeListener {
+    override fun onDeviceChanged(oldDevice: Device?, newDevice: Device?) {}
+  }).apply { updateActions(DataContext.EMPTY_CONTEXT) }
 
   return menuAction.getChildren(null)
     .map { if (it is ActionGroup) it.getChildren(null) else arrayOf(it) }
     .flatMap { it.toList() }
-    .filterIsInstance<DeviceMenuAction.SetDeviceAction>()
+    .filterIsInstance<SetDeviceAction>()
 }
 
 @Language("XML")

@@ -35,7 +35,7 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-abstract class ConfigurationAction extends AnAction implements ConfigurationListener, Toggleable {
+public abstract class ConfigurationAction extends AnAction implements ConfigurationListener, Toggleable {
   private static final String FILE_ARROW = " \u2192 ";
   protected final ConfigurationHolder myRenderContext;
   private int myFlags;

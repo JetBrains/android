@@ -242,11 +242,6 @@ public final class StudioFlags {
     "Support Actionbar in property panel",
     false);
 
-  public static final Flag<Boolean> NELE_NEW_DEVICE_MENU = Flag.create(
-    NELE, "new.device.menu", "New Device Menu in Layout Editor",
-    "Use the new designed device menu to support device classes",
-    true);
-
   public static final Flag<Boolean> NELE_SOURCE_CODE_EDITOR = Flag.create(
     NELE, "show.source.code.editor", "New Source Code Editor",
     "Enable new source code editor with preview(s) coming as a substitute to Compose and Custom View editors.",

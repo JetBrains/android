@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.configurations
 
+import com.android.sdklib.devices.Device
 import com.android.sdklib.devices.DeviceManager
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.actions.prettyPrintActions
@@ -31,13 +32,12 @@ import com.intellij.openapi.actionSystem.impl.Utils
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.runInEdtAndGet
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mockito
 
-class DeviceMenuAction2Test {
+class DeviceMenuActionTest {
 
   @JvmField
   @Rule
@@ -49,17 +49,11 @@ class DeviceMenuAction2Test {
 
   @Before
   fun setUp() {
-    StudioFlags.NELE_NEW_DEVICE_MENU.override(true)
     ApplicationManager.getApplication().registerServiceInstance(AdditionalDeviceService::class.java,
                                                                 AdditionalDeviceService(),
                                                                 projectRule.testRootDisposable)
     // Initial the window size devices, which is lazy.
     AdditionalDeviceService.getInstance()!!.getWindowSizeDevices()
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.NELE_NEW_DEVICE_MENU.clearOverride()
   }
 
   private fun getReferenceDevicesExpected(): String {
@@ -262,7 +256,9 @@ class DeviceMenuAction2Test {
     whenever(configuration.configurationManager).thenReturn(ConfigurationManager.getOrCreateInstance(projectRule.projectRule.module))
     whenever(configuration.configModule).thenReturn(configurationModelModule)
     val holder = ConfigurationHolder { configuration }
-    val menuAction = DeviceMenuAction2(holder) { _, _ -> }
+    val menuAction = DeviceMenuAction(holder, object: DeviceChangeListener {
+      override fun onDeviceChanged(oldDevice: Device?, newDevice: Device?) {}
+    })
     menuAction.updateActions(DataContext.EMPTY_CONTEXT)
     val presentationFactory = PresentationFactory()
     val actual = runInEdtAndGet {

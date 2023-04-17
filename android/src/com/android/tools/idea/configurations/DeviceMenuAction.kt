@@ -16,7 +16,9 @@
 package com.android.tools.idea.configurations
 
 import com.android.ide.common.rendering.HardwareConfigHelper
+import com.android.resources.ScreenOrientation
 import com.android.sdklib.devices.Device
+import com.android.sdklib.devices.State
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.idea.avdmanager.AvdOptionsModel
 import com.android.tools.idea.avdmanager.AvdScreenData
@@ -24,16 +26,20 @@ import com.android.tools.idea.avdmanager.AvdWizardUtils
 import com.intellij.ide.HelpTooltip
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.actionSystem.Toggleable
 import com.intellij.openapi.actionSystem.ex.CustomComponentAction
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.actionSystem.impl.ActionMenuItem
 import com.intellij.openapi.ui.JBPopupMenu
+import com.intellij.openapi.util.text.StringUtil
 import icons.StudioIcons
-import org.jetbrains.annotations.VisibleForTesting
+import java.util.function.Consumer
+import java.util.logging.Logger
 import javax.swing.Icon
 import javax.swing.event.PopupMenuEvent
 import javax.swing.event.PopupMenuListener
@@ -52,8 +58,8 @@ internal val DEVICE_ID_TO_TOOLTIPS = mapOf(
  * New device menu for layout editor.
  * Because we are going to deprecate [DeviceMenuAction], some of the duplicated codes are not shared between them.
  */
-class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
-                        private val deviceChangeListener: DeviceMenuAction.DeviceChangeListener)
+class DeviceMenuAction(private val renderContext: ConfigurationHolder,
+                       private val deviceChangeListener: DeviceChangeListener)
   : DropDownAction("Device for Preview", "Device for Preview", StudioIcons.LayoutEditor.Toolbar.VIRTUAL_DEVICES) {
 
   override fun actionPerformed(e: AnActionEvent) {
@@ -66,7 +72,7 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
     // The items in toolbar.component are filled after JBPopupMenu.showBelow() is called.
     // So we install the tooltips after showing.
     getChildren(null).forEachIndexed { index, action ->
-      val deviceId = (action as? DeviceMenuAction.SetDeviceAction)?.device?.id ?: return@forEachIndexed
+      val deviceId = (action as? SetDeviceAction)?.device?.id ?: return@forEachIndexed
       DEVICE_ID_TO_TOOLTIPS[deviceId]?.let {
         (popupMenu.components[index] as? ActionMenuItem)?.let { menuItem -> HelpTooltip().setDescription(it).installOn(menuItem) }
       }
@@ -94,7 +100,7 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
     val visible = configuration != null
     if (visible) {
       val device = configuration!!.cachedDevice
-      val label = DeviceMenuAction.getDeviceLabel(device, true)
+      val label = getDeviceLabel(device, true)
       presentation.setText(label, false)
     }
     if (visible != presentation.isVisible) {
@@ -102,7 +108,8 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
     }
   }
 
-  @VisibleForTesting
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   public override fun updateActions(context: DataContext): Boolean {
     removeAll()
     createDeviceMenuList()
@@ -126,12 +133,12 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
     for (type in ReferenceDeviceType.values()) {
       val device = getReferenceDevice(groupedDevices, type) ?: continue
       val selected = device == renderContext.configuration?.device
-      add(DeviceMenuAction.SetDeviceAction(renderContext,
-                                           getDeviceLabel(device),
-                                           { updatePresentation(it) },
-                                           deviceChangeListener,
-                                           device,
-                                           null, selected))
+      add(SetDeviceAction(renderContext,
+                          getDeviceLabel(device),
+                          { updatePresentation(it) },
+                          deviceChangeListener,
+                          device,
+                          null, selected))
     }
 
     // Add canonical small and medium phone devices at the top of menu.
@@ -155,13 +162,13 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
     for (device in wearDevices) {
       val label = getDeviceLabel(device)
       val selected = device == renderContext.configuration?.device
-      add(DeviceMenuAction.SetWearDeviceAction(renderContext,
-                                               label,
-                                               { updatePresentation(it) },
-                                               deviceChangeListener,
-                                               device,
-                                               null,
-                                               selected))
+      add(SetWearDeviceAction(renderContext,
+                              label,
+                              { updatePresentation(it) },
+                              deviceChangeListener,
+                              device,
+                              null,
+                              selected))
     }
     addSeparator()
   }
@@ -171,12 +178,12 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
     add(DeviceCategory("TV", "Television devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_TV))
     for (device in tvDevices) {
       val selected = device == renderContext.configuration?.device
-      add(DeviceMenuAction.SetDeviceAction(renderContext,
-                                           getDeviceLabel(device),
-                                           { updatePresentation(it) },
-                                           deviceChangeListener,
-                                           device,
-                                           null, selected))
+      add(SetDeviceAction(renderContext,
+                          getDeviceLabel(device),
+                          { updatePresentation(it) },
+                          deviceChangeListener,
+                          device,
+                          null, selected))
     }
     addSeparator()
   }
@@ -186,19 +193,19 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
     add(DeviceCategory("Auto", "Android Auto devices", StudioIcons.LayoutEditor.Toolbar.DEVICE_AUTOMOTIVE))
     for (device in automotiveDevices) {
       val selected = device == renderContext.configuration?.device
-      add(DeviceMenuAction.SetDeviceAction(renderContext,
-                                           getDeviceLabel(device),
-                                           { updatePresentation(it) },
-                                           deviceChangeListener,
-                                           device,
-                                           null,
-                                           selected))
+      add(SetDeviceAction(renderContext,
+                          getDeviceLabel(device),
+                          { updatePresentation(it) },
+                          deviceChangeListener,
+                          device,
+                          null,
+                          selected))
     }
     addSeparator()
   }
 
   private fun addCustomDeviceSection() {
-    add(DeviceMenuAction.SetCustomDeviceAction(renderContext, { updatePresentation(it) }, renderContext.configuration?.device))
+    add(SetCustomDeviceAction(renderContext, { updatePresentation(it) }, renderContext.configuration?.device))
     addSeparator()
   }
 
@@ -210,12 +217,12 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
       for (device in devices) {
         val selected = current != null && current.id == device.id
         val avdDisplayName = "AVD: " + device.displayName
-        add(DeviceMenuAction.SetAvdAction(renderContext,
-                                          { updatePresentation(it) },
-                                          deviceChangeListener,
-                                          device,
-                                          avdDisplayName,
-                                          selected))
+        add(SetAvdAction(renderContext,
+                         { updatePresentation(it) },
+                         deviceChangeListener,
+                         device,
+                         avdDisplayName,
+                         selected))
       }
       addSeparator()
     }
@@ -234,12 +241,12 @@ class DeviceMenuAction2(private val renderContext: ConfigurationHolder,
     for (device in devices) {
       val label = getDeviceLabel(device)
       val selected = device == renderContext.configuration?.device
-      group.addAction(DeviceMenuAction.SetDeviceAction(renderContext,
-                                                       label,
-                                                       { updatePresentation(it) },
-                                                       deviceChangeListener,
-                                                       device,
-                                                       null, selected))
+      group.addAction(SetDeviceAction(renderContext,
+                                      label,
+                                      { updatePresentation(it) },
+                                      deviceChangeListener,
+                                      device,
+                                      null, selected))
     }
   }
 
@@ -296,10 +303,12 @@ private class DeviceCategory(text: String?, description: String?, private val my
     p.disabledIcon = myIcon
   }
 
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+
   override fun actionPerformed(e: AnActionEvent) = Unit
 }
 
-class AddDeviceDefinitionAction(private val configurationHolder: ConfigurationHolder): AnAction() {
+class AddDeviceDefinitionAction(private val configurationHolder: ConfigurationHolder) : AnAction() {
   init {
     templatePresentation.text = "Add Device Definition"
     templatePresentation.icon = null
@@ -331,7 +340,7 @@ private val GENERATION_REGEX = "\\d+".toRegex()
  *
  * If the compared devices are in the same generation, then use [varianceComparator] to sort their variances.
  */
-private class PixelDeviceComparator(val varianceComparator: Comparator<String>): Comparator<Device> {
+private class PixelDeviceComparator(val varianceComparator: Comparator<String>) : Comparator<Device> {
 
   private enum class Series {
     PIXEL, NEXUS, OTHER;
@@ -392,7 +401,7 @@ private val VARIANCE_ORDER = arrayOf("", "XL", "a", "a XL")
 /**
  * Sort the strings by the variant suffixes. The order follows [VARIANCE_ORDER].
  */
-private object VarianceComparator: Comparator<String> {
+private object VarianceComparator : Comparator<String> {
   override fun compare(o1: String?, o2: String?): Int {
     when {
       o1.isNullOrBlank() && o2.isNullOrBlank() -> return 0
@@ -409,4 +418,228 @@ private object VarianceComparator: Comparator<String> {
       else -> order1 - order2
     }
   }
+}
+
+abstract class DeviceAction(renderContext: ConfigurationHolder,
+                                    title: String?,
+                                    private val updatePresentationCallback: Consumer<Presentation>,
+                                    icon: Icon?) : ConfigurationAction(renderContext, title, icon) {
+  protected abstract val device: Device?
+
+  override fun updatePresentation(presentation: Presentation) {
+    updatePresentationCallback.accept(presentation)
+  }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+}
+
+open class SetDeviceAction(renderContext: ConfigurationHolder,
+                                   private val title: String,
+                                   updatePresentationCallback: Consumer<Presentation>,
+                                   protected val deviceChangeListener: DeviceChangeListener,
+                                   public override val device: Device,
+                                   defaultIcon: Icon?,
+                                   private val selected: Boolean) : DeviceAction(renderContext, null, updatePresentationCallback,
+                                                                                 getBestIcon(title, defaultIcon)) {
+
+  override fun update(event: AnActionEvent) {
+    super.update(event)
+    val presentation = event.presentation
+    Toggleable.setSelected(presentation, selected)
+
+    // The name of AVD device may contain underline character, but they should not be recognized as the mnemonic.
+    presentation.setText(title, false)
+  }
+
+  override fun updateConfiguration(configuration: Configuration, commit: Boolean) {
+    // Attempt to jump to the default orientation of the new device; for example, if you're viewing a layout in
+    // portrait orientation on a Nexus 4 (its default), and you switch to a Nexus 10, we jump to landscape orientation
+    // (its default) unless of course there is a different layout that is the best fit for that device.
+    val prevDevice = configuration.cachedDevice
+    val projectState = configuration.configurationManager.stateManager.projectState
+    val lastSelectedNonWearStateName = projectState.nonWearDeviceLastSelectedStateName
+    val newDefaultStateName: String = device.defaultState.name
+    val wantedState: State? = lastSelectedNonWearStateName?.let { getMatchingState(device, it) }
+    var wantedStateName = wantedState?.name ?: newDefaultStateName
+    if (wantedStateName != newDefaultStateName &&
+        projectState.isNonWearDeviceDefaultStateName &&
+        !hasBetterMatchingLayoutFile(configuration, device, newDefaultStateName)) {
+      wantedStateName = newDefaultStateName
+    }
+    if (commit) {
+      configuration.configurationManager.selectDevice(device)
+    }
+    configuration.setDevice(device, true)
+    configuration.deviceState = getMatchingState(device, wantedStateName)
+    deviceChangeListener.onDeviceChanged(prevDevice, device)
+  }
+
+  private fun hasBetterMatchingLayoutFile(configuration: Configuration, device: Device, stateName: String): Boolean {
+    if (configuration.file == null) {
+      return false
+    }
+    return ConfigurationMatcher.getBetterMatch(configuration, device, stateName, null, null) != null
+  }
+
+  private fun getMatchingState(device: Device, stateName: String): State? {
+    return device.allStates.firstOrNull { state ->
+      state.name.equals(stateName, ignoreCase = true)
+    }
+  }
+
+  companion object {
+    private fun getBestIcon(title: String, defaultIcon: Icon?): Icon? {
+      return if (isBetterMatchLabel(title)) {
+        getBetterMatchIcon()
+      }
+      else defaultIcon
+    }
+  }
+}
+
+private class SetWearDeviceAction(renderContext: ConfigurationHolder,
+                                  title: String,
+                                  updatePresentationCallback: Consumer<Presentation>,
+                                  deviceChangeListener: DeviceChangeListener,
+                                  device: Device,
+                                  defaultIcon: Icon?,
+                                  selected: Boolean) : SetDeviceAction(renderContext, title, updatePresentationCallback,
+                                                                       deviceChangeListener, device, defaultIcon, selected) {
+  override fun updateConfiguration(configuration: Configuration, commit: Boolean) {
+    val prevDevice = configuration.cachedDevice
+    var newState: String? = null
+
+    // For wear device, we force setup the device state because the orientation must be specific.
+    // - The square and round are always portrait.
+    // - The chin devices is always landscape.
+    if (device.chinSize != 0) {
+      // Chin device must be landscape
+      val state = device.getState(ScreenOrientation.LANDSCAPE.shortDisplayValue)
+      if (state != null) {
+        newState = state.name
+        configuration.deviceState = state
+      }
+      else {
+        Logger.getLogger(DeviceMenuAction::class.java.name).warning("A wear chin device must have landscape state")
+      }
+    }
+    else {
+      // Round and Square device must be PORTRAIT
+      val state = device.getState(ScreenOrientation.PORTRAIT.shortDisplayValue)
+      if (state != null) {
+        newState = state.name
+        configuration.deviceState = state
+      }
+      else {
+        Logger.getLogger(DeviceMenuAction::class.java.name).warning("A wear round or square device must have portrait state")
+      }
+    }
+    if (newState != null) {
+      configuration.setDeviceStateName(newState)
+    }
+    if (commit) {
+      configuration.configurationManager.selectDevice(device)
+    }
+    configuration.setDevice(device, true)
+    deviceChangeListener.onDeviceChanged(prevDevice, device)
+  }
+}
+
+private const val CUSTOM_DEVICE_NAME = "Custom"
+
+private class SetCustomDeviceAction(renderContext: ConfigurationHolder,
+                                    updatePresentationCallback: Consumer<Presentation>,
+                                    private val baseDevice: Device?) : DeviceAction(renderContext, CUSTOM_DEVICE_NAME,
+                                                                                    updatePresentationCallback, null) {
+  var customDevice: Device? = null
+  override val device: Device?
+    get() = customDevice
+
+  override fun update(event: AnActionEvent) {
+    super.update(event)
+    Toggleable.setSelected(event.presentation, Configuration.CUSTOM_DEVICE_ID == baseDevice?.id)
+  }
+
+  override fun updateConfiguration(configuration: Configuration, commit: Boolean) {
+    baseDevice?.let {
+      val customBuilder = Device.Builder(it)
+      customBuilder.setTagId(it.tagId)
+      customBuilder.setName(CUSTOM_DEVICE_NAME)
+      customBuilder.setId(Configuration.CUSTOM_DEVICE_ID)
+      customDevice = customBuilder.build()
+      configuration.setDevice(customDevice, false)
+    }
+  }
+}
+
+private class SetAvdAction(renderContext: ConfigurationHolder,
+                           private val updatePresentationCallback: Consumer<Presentation>?,
+                           private val deviceChangeListener: DeviceChangeListener,
+                           private val avdDevice: Device,
+                           displayName: String,
+                           private val selected: Boolean) : ConfigurationAction(renderContext, displayName) {
+  override fun update(event: AnActionEvent) {
+    super.update(event)
+    Toggleable.setSelected(event.presentation, selected)
+  }
+
+  override fun updatePresentation(presentation: Presentation) {
+    updatePresentationCallback?.accept(presentation)
+  }
+
+  override fun updateConfiguration(configuration: Configuration, commit: Boolean) {
+    if (commit) {
+      configuration.configurationManager.selectDevice(avdDevice)
+    }
+    // TODO: force set orientation for virtual wear os device
+    configuration.setDevice(avdDevice, false)
+    deviceChangeListener.onDeviceChanged(configuration.cachedDevice, avdDevice)
+  }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
+}
+
+/**
+ * The callback when device is changed by the [DeviceAction].
+ */
+interface DeviceChangeListener {
+  fun onDeviceChanged(oldDevice: Device?, newDevice: Device?)
+}
+
+/**
+ * Returns a suitable label to use to display the given device
+ *
+ * @param device the device to produce a label for
+ * @param brief  if true, generate a brief label (suitable for a toolbar
+ * button), otherwise a fuller name (suitable for a menu item)
+ * @return the label
+ */
+fun getDeviceLabel(device: Device?, brief: Boolean): String {
+  if (device == null) {
+    return ""
+  }
+  var name = device.displayName
+  if (brief) {
+    // Produce a really brief summary of the device name, suitable for
+    // use in the narrow space available in the toolbar for example
+    val nexus = name.indexOf("Nexus") //$NON-NLS-1$
+    if (nexus != -1) {
+      var begin = name.indexOf('(')
+      if (begin != -1) {
+        begin++
+        val end = name.indexOf(')', begin)
+        if (end != -1) {
+          return if (name == "Nexus 7 (2012)") {
+            "Nexus 7"
+          }
+          else {
+            name.substring(begin, end).trim { it <= ' ' }
+          }
+        }
+      }
+    }
+    val skipPrefix = "Android "
+    name = StringUtil.trimStart(name, skipPrefix)
+  }
+  return name
 }
