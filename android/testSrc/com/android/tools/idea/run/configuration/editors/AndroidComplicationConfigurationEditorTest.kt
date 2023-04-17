@@ -27,10 +27,7 @@ import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
 import com.android.tools.idea.run.configuration.ComplicationSlot
 import com.android.tools.idea.run.configuration.ComplicationWatchFaceInfo
-import com.android.tools.idea.run.configuration.DefaultComplicationWatchFaceInfo
-import com.android.tools.idea.run.configuration.execution.ComplicationLaunchOptions
 import com.android.tools.idea.testing.AndroidProjectRule
-import com.android.tools.idea.testing.KeepTasksAsynchronousRule
 import com.android.tools.idea.testing.onEdt
 import com.android.utils.PositionXmlParser
 import com.android.utils.concurrency.AsyncSupplier
@@ -43,7 +40,6 @@ import com.intellij.execution.impl.ConfigurationSettingsEditorWrapper
 import com.intellij.execution.impl.RunManagerImpl
 import com.intellij.execution.impl.RunnerAndConfigurationSettingsImpl
 import com.intellij.execution.impl.SingleConfigurationConfigurable
-import com.intellij.ide.IdeEventQueue
 import com.intellij.openapi.options.ex.SingleConfigurableEditor
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
@@ -99,6 +95,8 @@ class AndroidComplicationConfigurationEditorTest {
   private fun slots(slotsPanel: Box) = ((slotsPanel.getComponent(0) as JComponent).getComponent(0) as JComponent).components
 
   private fun countCheckedSlots(slotsPanel: Box) = slots(slotsPanel).count { (it as JPanel).getCheckBox().isSelected }
+
+  private fun countEnabledSlots(slotsPanel: Box) = slots(slotsPanel).count { (it as JPanel).getCheckBox().isEnabled }
   //endregion editor-utils
 
   @Before
@@ -111,6 +109,7 @@ class AndroidComplicationConfigurationEditorTest {
       "com.example.MyIconComplication" to "ICON",
       "com.example.MyLongShortTextComplication" to "LONG_TEXT, SHORT_TEXT",
       "com.example.MyNoTypeComplication" to "",
+      "com.example.MyAllTypesComplication" to "ICON, LONG_TEXT, SHORT_TEXT, LARGE_IMAGE",
     )
 
     complicationsInProject.forEach(addComplicationToProjectAndManifest())
@@ -518,6 +517,45 @@ class AndroidComplicationConfigurationEditorTest {
   }
 
   @Test
+  fun slotsAreDisabledWhenNoComponentIsSelected() {
+    // the module and component are null, all the slots should be disabled
+    assertThat(modulesComboBox.item).isNull()
+    assertThat(componentComboBox.item).isNull()
+    assertThat(slots(slotsPanel)).hasLength(5)
+    assertThat(countEnabledSlots(slotsPanel)).isEqualTo(0)
+
+    // set the module component, all slots should be enabled
+    modulesComboBox.item = module
+    componentComboBox.item = "com.example.MyAllTypesComplication"
+    editor.apply()
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+    assertThat(slots(slotsPanel)).hasLength(5)
+    assertThat(countEnabledSlots(slotsPanel)).isEqualTo(5)
+
+    // unset the component, the slots panel should be disabled
+    componentComboBox.item = null
+    editor.apply()
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+    assertThat(slots(slotsPanel)).hasLength(5)
+    assertThat(countEnabledSlots(slotsPanel)).isEqualTo(0)
+  }
+
+  @Test
+  fun selectedSlotsAreResetWhenNoComponentIsSelected() {
+    modulesComboBox.item = module
+    componentComboBox.item = "com.example.MyAllTypesComplication"
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+    getPanelForSlot(0).getCheckBox().isSelected = true
+    assertThat(countCheckedSlots(slotsPanel)).isEqualTo(1)
+
+    // unset the component, the selected slot should be deselected
+    componentComboBox.item = null
+    editor.apply()
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+    assertThat(countCheckedSlots(slotsPanel)).isEqualTo(0)
+  }
+
+  @Test
   @RunsInEdt
   fun testSlotsAreDisplayedInASingleConfigurableEditor() {
     enableHeadlessDialogs(projectRule.fixture.testRootDisposable)
@@ -545,7 +583,6 @@ class AndroidComplicationConfigurationEditorTest {
       assertThat(slots(slotsPanel)).hasLength(2)
     }
   }
-
 }
 
 private fun CodeInsightTestFixture.addComplicationServiceClass() {

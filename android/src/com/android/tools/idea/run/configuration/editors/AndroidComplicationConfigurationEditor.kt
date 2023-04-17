@@ -77,7 +77,7 @@ class AndroidComplicationConfigurationEditor(private val project: Project, confi
     super.onComponentNameChanged(newComponent)
 
     if (newComponent == null) {
-      slotsPanel.setModel(SlotsPanel.ComplicationsModel())
+      slotsPanel.setModel(SlotsPanel.ComplicationsModel(allAvailableSlots = allAvailableSlots))
     }
     else {
       updateComplicationModel(arrayListOf(), newComponent)
