@@ -17,9 +17,9 @@
 package com.android.tools.idea.fileTypes;
 
 import com.android.SdkConstants;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.fileTypes.FileType;
 import javax.swing.Icon;
-import org.intellij.images.ImagesIcons;
 import org.jetbrains.android.util.AndroidBundle;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,7 +50,7 @@ public final class PhotoshopFileType implements FileType {
 
   @Override
   public Icon getIcon() {
-    return ImagesIcons.ImagesFileType;
+    return AllIcons.FileTypes.Image;
   }
 
   @Override
