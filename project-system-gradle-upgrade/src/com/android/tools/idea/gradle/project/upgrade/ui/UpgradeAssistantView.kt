@@ -380,7 +380,9 @@ class UpgradeAssistantView(val model: UpgradeAssistantWindowModel, contentManage
         }
         selectedStep.additionalInfo?.let { text.append(it) }
         if (selectedStep.isBlocked) {
-          text.append("<br><br><div><b>This step is blocked</b></div>")
+          text.append("<br><br><div><b>This step is blocked</b>")
+          text.append("<br>The upgrade assistant is unable to upgrade this project. You can upgrade AGP")
+          text.append("<br>by manually completing the list of required upgrade steps.</div>")
           text.append("<ul>")
           selectedStep.blockReasons.forEach { reason ->
             reason.shortDescription.let { text.append("<li>$it") }

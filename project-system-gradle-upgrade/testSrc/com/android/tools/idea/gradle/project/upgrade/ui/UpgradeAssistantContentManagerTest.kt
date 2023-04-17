@@ -59,9 +59,7 @@ import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Expect
 import com.google.common.truth.Truth.assertThat
 import com.google.wireless.android.sdk.stats.GradleSyncStats
-import com.intellij.openapi.application.WriteAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.projectRoots.ProjectJdkTable
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil
 import com.intellij.openapi.roots.ui.configuration.SdkListItem
 import com.intellij.openapi.ui.ComboBox
@@ -453,6 +451,9 @@ class ContentManagerImplTest {
     val detailsPanelContent = TreeWalker(view.detailsPanel).descendants().first { it.name == "content" } as HtmlLabel
     assertThat(detailsPanelContent.text).contains("<b>Upgrade AGP dependency from $currentAgpVersion to $latestAgpVersion</b>")
     assertThat(detailsPanelContent.text).contains("This step is blocked")
+    val textNoNewLines = detailsPanelContent.text.replace("<br>", "\n").replace("\\s+".toRegex(), " ")
+    assertThat(textNoNewLines).contains("The upgrade assistant is unable to upgrade this project." +
+                                        " You can upgrade AGP by manually completing the list of required upgrade steps.")
     assertThat(detailsPanelContent.text).contains("https://developer.android.com/r/tools/upgrade-assistant/agp-version-not-found")
   }
 
