@@ -22,8 +22,8 @@ import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
-import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
 import com.android.tools.idea.layoutinspector.ui.toolbar.createLayoutInspectorMainToolbar
 import com.android.tools.idea.streaming.AbstractDisplayView
 import com.android.tools.idea.streaming.DISPLAY_VIEW_KEY
@@ -103,10 +103,11 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
 
       field = value
 
-      // TODO(b/265150325): if the device just showed up or LayoutInspector was just started, deviceModel might not have the device yet
-      //  In this case LayoutInspector will connect to the first device that shows up. This can produce race conditions if two devices
-      //  are started at the same time.
+      // lock device model to only allow connections to this device
+      value?.layoutInspector?.deviceModel?.forcedDeviceSerialNumber = value?.tabId?.deviceSerialNumber
+
       val selectedDevice = value?.layoutInspector?.deviceModel?.devices?.find { it.serial == value.tabId.deviceSerialNumber }
+      // the device might not be available yet in app inspection
       if (selectedDevice != null) {
         // start polling
         value.layoutInspector.foregroundProcessDetection?.startPollingDevice(selectedDevice)

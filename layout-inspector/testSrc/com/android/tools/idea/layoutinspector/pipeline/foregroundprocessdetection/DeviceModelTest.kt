@@ -94,4 +94,23 @@ class DeviceModelTest {
     Disposer.dispose(deviceModel1)
     assertThat(ForegroundProcessDetection.deviceModels).isEmpty()
   }
+
+  @Test
+  fun testForcedDeviceIsEnforced() {
+    val deviceModel = DeviceModel(disposableRule.disposable, processModel)
+    val deviceDescriptor = FakeTransportService.FAKE_DEVICE.toDeviceDescriptor()
+
+    deviceModel.forcedDeviceSerialNumber = "wrong serial number"
+    deviceModel.setSelectedDevice(deviceDescriptor)
+    assertThat(deviceModel.selectedDevice).isNull()
+
+    deviceModel.forcedDeviceSerialNumber = deviceDescriptor.serial
+    deviceModel.setSelectedDevice(deviceDescriptor)
+    assertThat(deviceModel.selectedDevice).isEqualTo(deviceDescriptor)
+
+    deviceModel.setSelectedDevice(null)
+    deviceModel.forcedDeviceSerialNumber = null
+    deviceModel.setSelectedDevice(deviceDescriptor)
+    assertThat(deviceModel.selectedDevice).isEqualTo(deviceDescriptor)
+  }
 }

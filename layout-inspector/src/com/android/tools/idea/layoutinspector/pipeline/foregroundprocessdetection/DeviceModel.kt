@@ -50,6 +50,13 @@ class DeviceModel(parentDisposable: Disposable, private val processesModel: Proc
   }
 
   /**
+   * Allow connecting only to this device.
+   * This is useful for the embedded Layout Inspector, in this mode we should connect only to the currently visible device.
+   * Once embedded mode is the only mode, Layout Inspector code that auto-select the device can be removed, this property with it.
+   */
+  var forcedDeviceSerialNumber: String? = null
+
+  /**
    * The device on which the on-device library is polling for foreground process.
    * When null, it means that we are not polling on any device.
    *
@@ -58,6 +65,10 @@ class DeviceModel(parentDisposable: Disposable, private val processesModel: Proc
    */
   var selectedDevice: DeviceDescriptor? = null
     internal set(value) {
+      if (forcedDeviceSerialNumber != null && value?.serial != null && value.serial != forcedDeviceSerialNumber) {
+        return
+      }
+
       // each time the selected device changes, the selected process should be reset
       // If selectedDevice is null, no device was selected. So we should not reset the process,
       // because selectedProcess might be set by the user from the process picker.
