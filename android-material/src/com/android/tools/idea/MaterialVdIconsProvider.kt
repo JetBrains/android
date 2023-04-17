@@ -139,14 +139,11 @@ private fun loadMaterialVdIcons(metadata: MaterialIconsMetadata,
         refreshUiCallback(icons, status)
 
         if (status == Status.FINISHED) {
-          if (StudioFlags.ASSET_COPY_MATERIAL_ICONS.get()) {
-            // When finished loading, copy icons to the Android/Sdk directory.
-            copyBundledIcons(metadata, icons, backgroundExecutor, progressIndicator)
-          }
-          if (StudioFlags.ASSET_DOWNLOAD_MATERIAL_ICONS.get()) {
-            // Then, download the most recent metadata file and any new icons.
-            updateMetadataAndIcons(metadata, backgroundExecutor, progressIndicator)
-          }
+          // When finished loading, copy icons to the Android/Sdk directory.
+          copyBundledIcons(metadata, icons, backgroundExecutor, progressIndicator)
+
+          // Then, download the most recent metadata file and any new icons.
+          updateMetadataAndIcons(metadata, backgroundExecutor, progressIndicator)
         }
       }
     }, EdtExecutorService.getScheduledExecutorInstance())
