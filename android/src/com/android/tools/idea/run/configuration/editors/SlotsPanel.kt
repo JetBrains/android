@@ -22,17 +22,18 @@ import com.google.common.annotations.VisibleForTesting
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.TitledSeparator
+import com.intellij.ui.layout.CCFlags
 import com.intellij.ui.layout.panel
 import com.intellij.util.ui.JBUI
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.FlowLayout
+import java.awt.Graphics
+import java.awt.Image
 import java.awt.event.FocusEvent
 import java.awt.event.FocusListener
 import java.awt.event.HierarchyEvent
-import java.awt.Graphics
-import java.awt.Image
 import javax.imageio.ImageIO
 import javax.swing.BorderFactory
 import javax.swing.Box
@@ -40,6 +41,8 @@ import javax.swing.JCheckBox
 import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
+
+private const val NO_SUPPORTED_TYPE = "No type is supported by this slot"
 
 /** A panel that manages complication slots selected by the user and stores them as a ComplicationsModel object. */
 class SlotsPanel() : JPanel(FlowLayout(FlowLayout.LEFT)) {
@@ -56,23 +59,30 @@ class SlotsPanel() : JPanel(FlowLayout(FlowLayout.LEFT)) {
     add(
       panel {
         row {
+          component(TitledSeparator("Complication Slots")).constraints(CCFlags.growX)
+        }
+        row {
+          label("The selected complications will run in a debug watch face installed on the device.")
+        }
+        row {
           slotsUiPanel = component(Box.createVerticalBox()).component
         }
       }
     )
     boxWithSlotList = Box.createVerticalBox()
+    boxWithSlotList.alignmentY = TOP_ALIGNMENT
     populateSlotList()
     val mainBox = Box.createHorizontalBox().apply {
-      preferredSize = Dimension(1000, 300)
+      preferredSize = Dimension(550, 300)
     }
     mainBox.add(boxWithSlotList)
     mainBox.add(Box.createGlue())
     imageBox = Box.createVerticalBox()
+    imageBox.alignmentY = TOP_ALIGNMENT
     image.updateCurrentModel(currentModel)
     imageBox.add(image, BorderLayout.CENTER)
     mainBox.add(imageBox)
 
-    slotsUiPanel.add(TitledSeparator("Slot launch options"))
     slotsUiPanel.add(mainBox)
   }
 
@@ -122,13 +132,13 @@ class SlotsPanel() : JPanel(FlowLayout(FlowLayout.LEFT)) {
                                index: Int,
                                selected: Boolean,
                                hasFocus: Boolean) {
-          text = value?.name ?: "No type is supported by this slot"
+          text = value?.name ?: NO_SUPPORTED_TYPE
         }
       }
       if (chosenSlot.type == null) {
         border = BorderFactory.createLineBorder(Color.ORANGE)
       }
-      preferredSize = Dimension(350, preferredSize.height)
+      preferredSize = Dimension(160, preferredSize.height)
       item = chosenSlot.type
       isEnabled = options.isNotEmpty()
       addActionListener {
@@ -140,8 +150,17 @@ class SlotsPanel() : JPanel(FlowLayout(FlowLayout.LEFT)) {
 
   private fun createSlot(chosenSlot: AndroidComplicationConfiguration.ChosenSlot): JPanel {
     val isSelected = chosenSlot.id in currentModel.currentChosenSlots.map{it.id}
+    val hasSupportedType = typesSupportedBySlot(chosenSlot.id).intersect(currentModel.supportedTypes.toSet()).isNotEmpty()
+    val isBackgroundImageSlot = typesSupportedBySlot(chosenSlot.id).contentEquals(arrayOf(ComplicationType.LARGE_IMAGE))
+    if (isBackgroundImageSlot) {
+      chosenSlot.type = ComplicationType.LARGE_IMAGE
+    }
+
     return JPanel().apply {
-      val typeBox = getSlotTypeCompoBox(chosenSlot).also {
+      layout = FlowLayout(FlowLayout.LEFT)
+      // the background slot only has a single possible type, so
+      // we simplify the UI by removing the ComboBox
+      val typeBox = if (!isBackgroundImageSlot) getSlotTypeCompoBox(chosenSlot).also {
         it.addFocusListener(object: FocusListener {
           override fun focusGained(e: FocusEvent?) {
             chosenSlot.slotFocused = true
@@ -151,16 +170,16 @@ class SlotsPanel() : JPanel(FlowLayout(FlowLayout.LEFT)) {
             chosenSlot.slotFocused = false
           }
         })
-      }
+      } else null
       val selectedBox = JCheckBox().apply {
         addActionListener {
           chooseSlot(chosenSlot, this.isSelected)
-          typeBox.isEnabled = this.isSelected
+          typeBox?.isEnabled = this.isSelected
           image.repaint()
         }
       }
-      typeBox.isEnabled = isSelected
-      selectedBox.isEnabled = typesSupportedBySlot(chosenSlot.id).intersect(currentModel.supportedTypes).isNotEmpty()
+      typeBox?.isEnabled = isSelected
+      selectedBox.isEnabled = hasSupportedType
       selectedBox.isSelected = isSelected
       add(selectedBox)
 
@@ -169,17 +188,30 @@ class SlotsPanel() : JPanel(FlowLayout(FlowLayout.LEFT)) {
           if (it.changeFlags and HierarchyEvent.PARENT_CHANGED.toLong() == 0L) return@addHierarchyListener
 
           if (chosenSlot.slotFocused) {
-            typeBox.requestFocus()
+            typeBox?.requestFocus()
           }
         }
       }
+
       add(JLabel(currentModel.allAvailableSlots.first { it.slotId == chosenSlot.id }.name).apply {
-        border = JBUI.Borders.empty(0, 0, 0, 5)
-        preferredSize = Dimension(100, preferredSize.height) }
+        isEnabled = hasSupportedType
+        border = JBUI.Borders.emptyRight(5)
+        if (!isBackgroundImageSlot) {
+          preferredSize = Dimension(50, preferredSize.height)
+        }
+       }
       )
 
-      // Slot type ComboBox.
-      add(typeBox)
+      if (typeBox != null) {
+        // Slot type ComboBox.
+        add(typeBox)
+      }
+
+      if (!hasSupportedType) {
+        toolTipText = NO_SUPPORTED_TYPE
+      }
+      // prevent stretching
+      maximumSize = Dimension(maximumSize.width, preferredSize.height)
     }
   }
 

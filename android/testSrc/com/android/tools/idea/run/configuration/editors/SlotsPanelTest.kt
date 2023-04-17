@@ -19,7 +19,9 @@ import com.android.testutils.ImageDiffUtil
 import com.android.testutils.TestUtils
 import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.deployer.model.component.Complication.ComplicationType
+import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.ComplicationSlot
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.ui.ComboBox
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -37,10 +39,18 @@ import javax.swing.JPanel
 class SlotsPanelTest{
   private lateinit var slotsPanel : SlotsPanel
   private lateinit var topSlot: JPanel
+  private val allAvailableTypes = arrayOf(ComplicationType.SHORT_TEXT,
+                                          ComplicationType.LONG_TEXT,
+                                          ComplicationType.ICON,
+                                          ComplicationType.RANGED_VALUE,
+                                          ComplicationType.LARGE_IMAGE,
+                                          ComplicationType.SMALL_IMAGE,
+                                          ComplicationType.LARGE_IMAGE)
 
   private fun getPanelForSlot(slotNum: Int) =
-    ((slotsPanel.slotsUiPanel.getComponent(1) as JComponent).getComponent(0) as JComponent).getComponent(slotNum) as JPanel
+    ((slotsPanel.slotsUiPanel.getComponent(0) as JComponent).getComponent(0) as JComponent).getComponent(slotNum) as JPanel
   private fun JPanel.getComboBox() = getComponent(2) as ComboBox<*>
+  private fun JPanel.hasComboBox() = componentCount == 3
   private fun JPanel.getCheckBox() = getComponent(0) as JCheckBox
 
   @Before
@@ -90,33 +100,66 @@ class SlotsPanelTest{
   }
 
   @Test
+  fun backgroundImageHasNoComboBox() {
+    val complicationSlots = listOf(
+      ComplicationSlot(
+        "Background",
+        1,
+        arrayOf(ComplicationType.LARGE_IMAGE)
+      )
+    )
+    val model = SlotsPanel.ComplicationsModel(arrayListOf(), complicationSlots, allAvailableTypes.toList())
+    slotsPanel.setModel(model)
+
+    val backgroundSlot = getPanelForSlot(0)
+    assertFalse(backgroundSlot.hasComboBox())
+  }
+
+  @Test
+  fun selectingBackgroundSlotUpdatesModel() {
+    val backgroundSlotId = 1
+    val complicationSlots = listOf(
+      ComplicationSlot(
+        "Background",
+        backgroundSlotId,
+        arrayOf(ComplicationType.LARGE_IMAGE)
+      )
+    )
+    val model = SlotsPanel.ComplicationsModel(arrayListOf(), complicationSlots, allAvailableTypes.toList())
+    slotsPanel.setModel(model)
+    val backgroundSlot = getPanelForSlot(0)
+    backgroundSlot.getCheckBox().isSelected = true
+    backgroundSlot.getCheckBox().actionListeners[0].actionPerformed(ActionEvent(this, 0, ""))
+
+    assertThat(slotsPanel.getModel().currentChosenSlots).containsExactly(AndroidComplicationConfiguration.ChosenSlot(
+      id = 1,
+      type = ComplicationType.LARGE_IMAGE,
+    ))
+  }
+
+  @Test
   fun switchAllTypes() {
-    val allTypes = arrayOf(ComplicationType.SHORT_TEXT,
-                           ComplicationType.LONG_TEXT,
-                           ComplicationType.ICON,
-                           ComplicationType.RANGED_VALUE,
-                           ComplicationType.LARGE_IMAGE,
-                           ComplicationType.SMALL_IMAGE,
-                           ComplicationType.LARGE_IMAGE)
     val typesToSet = arrayOf(ComplicationType.SHORT_TEXT,
                            ComplicationType.ICON,
                            ComplicationType.LONG_TEXT,
                            ComplicationType.RANGED_VALUE,
                            ComplicationType.LARGE_IMAGE)
     val complicationSlots = listOf(
-      ComplicationSlot("Top", 0, allTypes),
-      ComplicationSlot("Right", 1, allTypes),
-      ComplicationSlot("Bottom", 2, allTypes),
-      ComplicationSlot("Left", 3, allTypes),
-      ComplicationSlot("Background", 4, allTypes)
+      ComplicationSlot("Top", 0, allAvailableTypes),
+      ComplicationSlot("Right", 1, allAvailableTypes),
+      ComplicationSlot("Bottom", 2, allAvailableTypes),
+      ComplicationSlot("Left", 3, allAvailableTypes),
+      ComplicationSlot("Background", 4, arrayOf(ComplicationType.LARGE_IMAGE))
     )
-    val model = SlotsPanel.ComplicationsModel(arrayListOf(), complicationSlots, allTypes.toList())
+    val model = SlotsPanel.ComplicationsModel(arrayListOf(), complicationSlots, allAvailableTypes.toList())
     slotsPanel.setModel(model)
 
     for (i in complicationSlots.indices) {
       getPanelForSlot(i).getCheckBox().isSelected = true
       getPanelForSlot(i).getCheckBox().actionListeners[0].actionPerformed(ActionEvent(this, 0, ""))
-      getPanelForSlot(i).getComboBox().selectedItem = typesToSet[i]
+      if (complicationSlots[i].name != "Background") {
+        getPanelForSlot(i).getComboBox().selectedItem = typesToSet[i]
+      }
     }
     slotsPanel.size = Dimension(1000, 1000)
     val myUi = FakeUi(slotsPanel, 1.0)

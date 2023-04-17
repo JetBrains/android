@@ -26,6 +26,8 @@ import com.intellij.openapi.application.runInEdt
 import com.intellij.openapi.progress.runBackgroundableTask
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.TitledSeparator
+import com.intellij.ui.layout.CCFlags
 import com.intellij.ui.layout.panel
 import javax.swing.BoxLayout
 
@@ -38,13 +40,18 @@ class AndroidComplicationConfigurationEditor(private val project: Project, confi
   override fun createEditor() = panel {
     row {
       getModuleChooser()
+    }
+    row {
+      component(TitledSeparator("Complication Launch Options")).constraints(CCFlags.growX)
+    }
+    row {
       getComponentCompoBox()
       getInstallFlagsTextField()
     }
     row {
       component(slotsPanel.apply {
         layout = BoxLayout(this, BoxLayout.Y_AXIS)
-      })
+      }).constraints(CCFlags.growX)
     }
   }
 

@@ -54,7 +54,6 @@ import com.intellij.testFramework.replaceService
 import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBTextField
-import com.intellij.util.ui.UIUtil
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.After
 import org.junit.Before
@@ -93,9 +92,13 @@ class AndroidComplicationConfigurationEditorTest {
   private val slotsPanel get() = editor.components.firstIsInstance<SlotsPanel>().slotsUiPanel
 
   private val <T> ComboBox<T>.items get() = (0 until itemCount).map { getItemAt(it) }
-  private fun getPanelForSlot(slotNum: Int) = ((slotsPanel.getComponent(1) as JComponent).getComponent(0) as JComponent).getComponent(slotNum) as JPanel
+  private fun getPanelForSlot(slotNum: Int) = slots(slotsPanel)[slotNum] as JPanel
   private fun JPanel.getComboBox() = getComponent(2) as ComboBox<*>
   private fun JPanel.getCheckBox() = getComponent(0) as JCheckBox
+
+  private fun slots(slotsPanel: Box) = ((slotsPanel.getComponent(0) as JComponent).getComponent(0) as JComponent).components
+
+  private fun countCheckedSlots(slotsPanel: Box) = slots(slotsPanel).count { (it as JPanel).getCheckBox().isSelected }
   //endregion editor-utils
 
   @Before
@@ -168,16 +171,6 @@ class AndroidComplicationConfigurationEditorTest {
     val mockMergedManifestManager = Mockito.mock(MergedManifestManager::class.java)
     whenever(mockMergedManifestManager.mergedManifest).thenReturn(supplier)
     module.replaceService(MergedManifestManager::class.java, mockMergedManifestManager, projectRule.project)
-  }
-
-  private fun countCheckedSlots(slotsPanel: Box) : Int{
-    var count = 0
-    for (component in ((slotsPanel.getComponent(1) as JComponent).getComponent(0) as JComponent).components) {
-      if ((component as JPanel).getCheckBox().isSelected) {
-        count++
-      }
-    }
-    return count
   }
 
   @Test
@@ -410,7 +403,7 @@ class AndroidComplicationConfigurationEditorTest {
 
     componentComboBox.item = "com.example.MyIconComplication"
     runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
-    assertThat(countSlotPanels()).isEqualTo(5)
+    assertThat(slots(slotsPanel)).hasLength(5)
     assertThat(countCheckedSlots(slotsPanel)).isEqualTo(0)
 
     // Add slot.
@@ -549,12 +542,9 @@ class AndroidComplicationConfigurationEditorTest {
     val dialog = object : SingleConfigurableEditor(projectRule.project, configurationConfigurable, null, IdeModalityType.IDE) {}
     createModalDialogAndInteractWithIt({ dialog.show() }) {
       PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
-      assertThat(countSlotPanels()).isEqualTo(2)
+      assertThat(slots(slotsPanel)).hasLength(2)
     }
   }
-
-  private fun countSlotPanels() =
-    ((slotsPanel.getComponent(1) as JComponent).getComponent(0) as JComponent).components.count()
 
 }
 

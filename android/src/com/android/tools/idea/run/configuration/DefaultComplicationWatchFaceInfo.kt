@@ -89,7 +89,7 @@ object DefaultComplicationWatchFaceInfo : ComplicationWatchFaceInfo {
       )
     ),
     ComplicationSlot(
-      "Background",
+      "Background Image",
       4,
       arrayOf(ComplicationType.LARGE_IMAGE)
     )
