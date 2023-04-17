@@ -25,8 +25,8 @@ import com.android.tools.idea.uibuilder.visual.visuallint.VisualLintInspection
 import com.android.utils.HtmlBuilder
 
 private const val BOTTOM_NAVIGATION_CLASS_NAME = "com.google.android.material.bottomnavigation.BottomNavigationView"
-private const val NAVIGATION_RAIL_URL = "https://material.io/components/navigation-rail/android"
-private const val NAVIGATION_DRAWER_URL = "https://material.io/components/navigation-drawer/android"
+private const val NAVIGATION_RAIL_URL = "https://d.android.com/r/studio-ui/designer/material/navigation-rail"
+private const val NAVIGATION_DRAWER_URL = "https://d.android.com/r/studio-ui/designer/material/navigation-drawer"
 
 /**
  * [VisualLintAnalyzer] for issues where a BottomNavigationView is wider than 600dp.

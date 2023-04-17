@@ -114,8 +114,9 @@ class VisualLintAnalysisTest {
           assertEquals(
             "Bottom navigation bar is not recommended for breakpoints >= 600dp, which affects 3 preview configurations." +
             "<BR/>Material Design recommends replacing bottom navigation bar with " +
-            "<A HREF=\"https://material.io/components/navigation-rail/android\">navigation rail</A> or " +
-            "<A HREF=\"https://material.io/components/navigation-drawer/android\">navigation drawer</A> for breakpoints >= 600dp.",
+            "<A HREF=\"https://d.android.com/r/studio-ui/designer/material/navigation-rail\">navigation rail</A> or " +
+            "<A HREF=\"https://d.android.com/r/studio-ui/designer/material/navigation-drawer\">navigation drawer</A> " +
+            "for breakpoints >= 600dp.",
             it.description)
           assertNotNull(it.hyperlinkListener)
           assertEquals(HighlightSeverity.WARNING, it.severity)
@@ -126,8 +127,8 @@ class VisualLintAnalysisTest {
           assertEquals(
             "TextView has lines containing more than 120 characters in 2 preview configurations.<BR/>Material Design recommends " +
             "reducing the width of TextView or switching to a " +
-            "<A HREF=\"https://material.io/design/layout/responsive-layout-grid.html#breakpoints\">multi-column layout</A> for " +
-            "breakpoints >= 600dp.",
+            "<A HREF=\"https://d.android.com/r/studio-ui/designer/material/responsive-layout-grid-breakpoints\">multi-column layout</A> " +
+            "for breakpoints >= 600dp.",
             it.description)
           assertNotNull(it.hyperlinkListener)
           assertEquals(HighlightSeverity.WARNING, it.severity)
