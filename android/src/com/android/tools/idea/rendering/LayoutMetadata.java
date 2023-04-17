@@ -16,9 +16,13 @@
 package com.android.tools.idea.rendering;
 
 import static com.android.SdkConstants.ANDROID_LAYOUT_RESOURCE_PREFIX;
+import static com.android.SdkConstants.ANDROID_PKG_PREFIX;
 import static com.android.SdkConstants.EXPANDABLE_LIST_VIEW;
+import static com.android.SdkConstants.FQCN_GRID_VIEW;
+import static com.android.SdkConstants.FQCN_SPINNER;
 import static com.android.SdkConstants.GRID_VIEW;
 import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
+import static com.android.SdkConstants.LIST_VIEW;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VALUE_AUTO_FIT;
 
@@ -153,6 +157,36 @@ public class LayoutMetadata {
     return layout;
   }
 
+
+  /**
+   * For the given class, finds and returns the nearest super class which is a ListView
+   * or an ExpandableListView or a GridView (which uses a list adapter), or returns null.
+   *
+   * @param clz the class of the view object
+   * @return the fully qualified class name of the list ancestor, or null if there
+   *         is no list view ancestor
+   */
+  @Nullable
+  public static String getListAdapterViewFqcn(@NotNull Class<?> clz) {
+    String fqcn = clz.getName();
+    if (fqcn.endsWith(LIST_VIEW)  // including EXPANDABLE_LIST_VIEW
+        || fqcn.equals(FQCN_GRID_VIEW) || fqcn.equals(FQCN_SPINNER)) {
+      return fqcn;
+    }
+    else if (fqcn.startsWith(ANDROID_PKG_PREFIX)) {
+      return null;
+    }
+    Class<?> superClass = clz.getSuperclass();
+    if (superClass != null) {
+      return getListAdapterViewFqcn(superClass);
+    }
+    else {
+      // Should not happen; we would have encountered android.view.View first,
+      // and it should have been covered by the ANDROID_PKG_PREFIX case above.
+      return null;
+    }
+  }
+
   /**
    * Creates an {@link AdapterBinding} for the given view object, or null if the user
    * has not yet chosen a target layout to use for the given AdapterView.
@@ -175,7 +209,7 @@ public class LayoutMetadata {
     // If we're dealing with a grid view, multiply the list item count
     // by the number of columns to ensure we have enough items
     if (viewObject != null) {
-      String listFqcn = LayoutlibCallbackImpl.getListAdapterViewFqcn(viewObject.getClass());
+      String listFqcn = getListAdapterViewFqcn(viewObject.getClass());
       if (listFqcn != null && listFqcn.endsWith(GRID_VIEW)){
         int multiplier = 2;
         String columns = attributes.get(KEY_LV_COLUMN);
@@ -232,7 +266,7 @@ public class LayoutMetadata {
         binding.addItem(new DataBindingItem(layout, isFramework, 1));
       }
       else if (viewObject != null) {
-        String listFqcn = LayoutlibCallbackImpl.getListAdapterViewFqcn(viewObject.getClass());
+        String listFqcn = getListAdapterViewFqcn(viewObject.getClass());
         if (listFqcn != null) {
           if (listFqcn.endsWith(EXPANDABLE_LIST_VIEW)) {
             binding.addItem(new DataBindingItem(DEFAULT_EXPANDABLE_LIST_ITEM, true /* isFramework */, 1));

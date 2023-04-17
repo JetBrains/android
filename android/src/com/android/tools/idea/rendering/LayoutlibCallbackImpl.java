@@ -27,12 +27,10 @@ import static com.android.SdkConstants.EXPANDABLE_LIST_VIEW;
 import static com.android.SdkConstants.FD_RES_DRAWABLE;
 import static com.android.SdkConstants.FD_RES_LAYOUT;
 import static com.android.SdkConstants.FD_RES_MENU;
-import static com.android.SdkConstants.FQCN_GRID_VIEW;
 import static com.android.SdkConstants.FQCN_SPINNER;
 import static com.android.SdkConstants.FRAGMENT_CONTAINER_VIEW;
 import static com.android.SdkConstants.GRID_VIEW;
 import static com.android.SdkConstants.LAYOUT_RESOURCE_PREFIX;
-import static com.android.SdkConstants.LIST_VIEW;
 import static com.android.SdkConstants.TOOLS_URI;
 import static com.android.SdkConstants.VIEW_FRAGMENT;
 import static com.android.SdkConstants.VIEW_INCLUDE;
@@ -699,35 +697,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   }
 
   /**
-   * For the given class, finds and returns the nearest super class which is a ListView
-   * or an ExpandableListView or a GridView (which uses a list adapter), or returns null.
-   *
-   * @param clz the class of the view object
-   * @return the fully qualified class name of the list ancestor, or null if there
-   *         is no list view ancestor
-   */
-  @Nullable
-  public static String getListAdapterViewFqcn(@NotNull Class<?> clz) {
-    String fqcn = clz.getName();
-    if (fqcn.endsWith(LIST_VIEW)  // including EXPANDABLE_LIST_VIEW
-        || fqcn.equals(FQCN_GRID_VIEW) || fqcn.equals(FQCN_SPINNER)) {
-      return fqcn;
-    }
-    else if (fqcn.startsWith(ANDROID_PKG_PREFIX)) {
-      return null;
-    }
-    Class<?> superClass = clz.getSuperclass();
-    if (superClass != null) {
-      return getListAdapterViewFqcn(superClass);
-    }
-    else {
-      // Should not happen; we would have encountered android.view.View first,
-      // and it should have been covered by the ANDROID_PKG_PREFIX case above.
-      return null;
-    }
-  }
-
-  /**
    * Looks at the parent-chain of the view and if it finds a custom view, or a
    * CalendarView, within the given distance then it returns true. A ListView within a
    * CalendarView should not be assigned a custom list view type because it sets its own
@@ -771,7 +740,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
     // class name, otherwise return null. This is used to filter out other types
     // of AdapterViews (such as Spinners) where we don't want to use the list item
     // binding.
-    String listFqcn = getListAdapterViewFqcn(viewObject.getClass());
+    String listFqcn = LayoutMetadata.getListAdapterViewFqcn(viewObject.getClass());
     if (listFqcn == null) {
       return null;
     }
