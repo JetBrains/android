@@ -29,7 +29,6 @@ import com.android.tools.idea.run.ApkProvisionException;
 import com.android.tools.idea.run.ApplicationIdProvider;
 import com.android.tools.idea.run.DefaultStudioProgramRunner;
 import com.android.tools.idea.run.DeviceFutures;
-import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.testartifacts.instrumented.configuration.AndroidTestConfiguration;
 import com.android.tools.idea.testing.AndroidGradleTestCase;
 import com.android.tools.idea.testing.TestProjectPaths;
@@ -40,7 +39,6 @@ import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.util.SystemInfo;
 import java.util.Arrays;
-import java.util.Collections;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -120,18 +118,17 @@ public class AndroidTestRunnerTest extends AndroidGradleTestCase {
       RunManager.getInstance(getProject()).createConfiguration(config, AndroidTestRunConfigurationType.getInstance().getFactory());
     ExecutionEnvironment env =
       new ExecutionEnvironment(DefaultRunExecutor.getRunExecutorInstance(), new DefaultStudioProgramRunner(), configuration, getProject());
-    LaunchTask task = null;
+    AndroidTestApplicationLaunchTask androidTestTask = null;
     try {
-      task = ((AndroidTestRunConfigurationExecutor)config.getExecutor(env, myAndroidFacet,
-                                                                      DeviceFutures.forDevices(Arrays.asList(mockDevice)))).getApplicationLaunchTask(
-        mockDevice, applicationIdProvider.getTestPackageName());
+      androidTestTask = ((AndroidTestRunConfigurationExecutor)config.getExecutor(env, myAndroidFacet,
+                                                                                 DeviceFutures.forDevices(
+                                                                                   Arrays.asList(mockDevice)))).getApplicationLaunchTask(
+        applicationIdProvider.getTestPackageName());
     }
     catch (ExecutionException e) {
       fail(e.getMessage());
     }
-    assertThat(task).isInstanceOf(AndroidTestApplicationLaunchTask.class);
-
-    AndroidTestApplicationLaunchTask androidTestTask = (AndroidTestApplicationLaunchTask)task;
+    assertThat(androidTestTask).isInstanceOf(AndroidTestApplicationLaunchTask.class);
     return androidTestTask.createRemoteAndroidTestRunner(mockDevice);
   }
 

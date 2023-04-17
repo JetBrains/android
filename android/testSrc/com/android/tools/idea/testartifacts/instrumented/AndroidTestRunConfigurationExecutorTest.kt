@@ -198,20 +198,20 @@ class AndroidTestRunConfigurationExecutorTest {
     projectRule.project.replaceService(TestHistoryConfiguration::class.java, testHistoryConfiguration, projectRule.testRootDisposable)
     run {
       executionOptions = TestExecutionOption.HOST
-      val runContentDescriptor = executor.run(EmptyProgressIndicator())
+      val runContentDescriptor = executor.run(EmptyProgressIndicator()).apply { processHandler!!.startNotify() }
       Truth.assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo("testApplicationId")
     }
 
     run {
       executionOptions = TestExecutionOption.ANDROID_TEST_ORCHESTRATOR
-      val runContentDescriptor = executor.run(EmptyProgressIndicator())
+      val runContentDescriptor = executor.run(EmptyProgressIndicator()).apply { processHandler!!.startNotify() }
       Truth.assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(
         ORCHESTRATOR_APP_ID)
     }
 
     run {
       executionOptions = TestExecutionOption.ANDROIDX_TEST_ORCHESTRATOR
-      val runContentDescriptor = executor.run(EmptyProgressIndicator())
+      val runContentDescriptor = executor.run(EmptyProgressIndicator()).apply { processHandler!!.startNotify() }
       Truth.assertThat((runContentDescriptor.processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo(
         ANDROIDX_ORCHESTRATOR_APP_ID)
     }

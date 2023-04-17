@@ -218,12 +218,6 @@ class DdmlibTestRunListenerAdapter(private val myIDevice: IDevice,
   @AnyThread
   override fun processTerminated(event: ProcessEvent) {
     event.processHandler.removeProcessListener(this)
-
-    // If the process is terminated even before "am instrument" command is issued,
-    // call testRunEnded callback manually here to notify TestMatrix view that
-    // this scheduled test execution has been cancelled.
-    if (!this::myTestSuite.isInitialized) {
-      testRunEnded(0, mutableMapOf())
-    }
+    testRunEnded(0, mutableMapOf())
   }
 }
