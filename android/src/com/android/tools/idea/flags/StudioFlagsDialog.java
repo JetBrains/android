@@ -30,6 +30,7 @@ import com.android.tools.idea.observable.core.ObjectProperty;
 import com.android.tools.idea.observable.core.ObservableBool;
 import com.android.tools.idea.observable.ui.SelectedItemProperty;
 import com.android.tools.idea.observable.ui.SelectedProperty;
+import com.android.tools.idea.observable.ui.SpinnerLongValueProperty;
 import com.android.tools.idea.observable.ui.SpinnerValueProperty;
 import com.android.tools.idea.observable.ui.TextProperty;
 import com.android.tools.idea.observable.ui.VisibleProperty;
@@ -78,8 +79,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JSeparator;
+import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
@@ -371,6 +374,27 @@ public final class StudioFlagsDialog extends DialogWrapper {
         public JComponent editorComponent() {
           JBIntSpinner spinner = new JBIntSpinner(intFlag.get(), Integer.MIN_VALUE, Integer.MAX_VALUE);
           myBindings.bindTwoWay(new SpinnerValueProperty(spinner), myFlagProperty);
+          return spinner;
+        }
+      };
+    }
+    else if (flag.get().getClass() == Long.class) {
+      Flag<Long> longFlag = ((Flag<Long>)flag);
+      return new FlagEditor<Long>() {
+        FlagProperty<Long> myFlagProperty = new FlagProperty<>(longFlag);
+
+        @NotNull
+        @Override
+        public FlagProperty<Long> flagProperty() {
+          return myFlagProperty;
+        }
+
+        @NotNull
+        @Override
+        public JComponent editorComponent() {
+          SpinnerNumberModel model = new SpinnerNumberModel(longFlag.get(), (Long)Long.MIN_VALUE, (Long)Long.MAX_VALUE, (Long)1L);
+          JSpinner spinner = new JSpinner(model);
+          myBindings.bindTwoWay(new SpinnerLongValueProperty(spinner), myFlagProperty);
           return spinner;
         }
       };
