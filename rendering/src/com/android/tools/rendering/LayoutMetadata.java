@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.rendering;
 
 import static com.android.SdkConstants.ANDROID_LAYOUT_RESOURCE_PREFIX;
 import static com.android.SdkConstants.ANDROID_PKG_PREFIX;

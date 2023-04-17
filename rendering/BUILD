@@ -49,6 +49,7 @@ kotlin_library(
         "//tools/base/layoutlib-api:tools.layoutlib-api",
         "//tools/base/sdk-common:tools.sdk-common",
         "//tools/base/sdklib:tools.sdklib",
+        "@maven//:net.sf.kxml.kxml2",
     ],
 )
 

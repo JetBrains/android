@@ -21,7 +21,7 @@ import com.android.ide.common.rendering.api.ILayoutPullParser
 import com.android.ide.common.rendering.api.ResourceNamespace
 import com.android.ide.common.resources.ValueXmlHelper
 import com.android.ide.common.util.PathString
-import com.android.tools.idea.rendering.LayoutMetadata
+import com.android.tools.rendering.LayoutMetadata
 import com.android.tools.idea.res.FileResourceReader
 import org.xmlpull.v1.XmlPullParser
 
