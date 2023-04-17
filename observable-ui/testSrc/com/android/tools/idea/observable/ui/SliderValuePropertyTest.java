@@ -24,7 +24,7 @@ import static com.google.common.truth.Truth.assertThat;
 
 public class SliderValuePropertyTest {
   @Test
-  public void testSliderValueProperty() throws Exception {
+  public void testSliderValueProperty() {
     JSlider slider = new JSlider(0, 100, 50);
     SliderValueProperty sliderValue = new SliderValueProperty(slider);
     CountListener listener = new CountListener();
