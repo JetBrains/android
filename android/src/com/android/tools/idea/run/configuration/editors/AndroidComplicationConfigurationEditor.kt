@@ -45,7 +45,7 @@ class AndroidComplicationConfigurationEditor(private val project: Project, confi
       component(TitledSeparator("Complication Launch Options")).constraints(CCFlags.growX)
     }
     row {
-      getComponentCompoBox()
+      getComponentComboBox()
       getInstallFlagsTextField()
     }
     row {

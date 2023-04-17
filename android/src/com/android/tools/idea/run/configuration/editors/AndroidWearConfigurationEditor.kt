@@ -37,7 +37,6 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapi.util.Disposer
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiModifier
-import com.intellij.psi.scope.util.PsiScopesUtil
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.search.PsiSearchScopeUtil
 import com.intellij.psi.search.searches.ClassInheritorsSearch
@@ -146,7 +145,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
   override fun createEditor() =
     panel {
       getModuleChooser()
-      getComponentCompoBox()
+      getComponentComboBox()
       getInstallFlagsTextField()
     }
 
@@ -157,7 +156,7 @@ open class AndroidWearConfigurationEditor<T : AndroidWearConfiguration>(private 
     }
   }
 
-  protected fun LayoutBuilder.getComponentCompoBox() {
+  protected fun LayoutBuilder.getComponentComboBox() {
     row {
       label(configuration.componentLaunchOptions.userVisibleComponentTypeName + ":")
       wearComponentFqNameComboBox = comboBox(
