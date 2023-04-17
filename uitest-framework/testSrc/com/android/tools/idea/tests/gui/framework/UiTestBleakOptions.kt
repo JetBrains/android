@@ -27,7 +27,6 @@ import gnu.trove.TObjectHash
 import java.util.function.Supplier
 
 private val globalIgnoreList = IgnoreList<LeakInfo>(listOf(
-  IgnoreListEntry { it.leaktrace.size == 1 },
   IgnoreListEntry { it.leaktrace.referenceMatches(-2, "com.intellij.openapi.util.ObjectNode", "myChildren") },
   IgnoreListEntry { it.leaktrace.referenceMatches(-2, "com.intellij.openapi.util.ObjectTree", "myObject2ParentNode") },
   IgnoreListEntry { info -> info.leaktrace.elements.any { it.type.contains("com.intellij.testGuiFramework") } },

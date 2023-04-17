@@ -21,6 +21,7 @@ abstract class BleakHelper {
   private val loaderToClasses = mutableMapOf<ClassLoader?, MutableList<Class<*>>>()
 
   fun allClassLoaders(): Collection<ClassLoader?> {
+    loaderToClasses.clear()
     computeLoadedClasses().forEach {
       val klass = it as Class<*>
       val loader = klass.classLoader
