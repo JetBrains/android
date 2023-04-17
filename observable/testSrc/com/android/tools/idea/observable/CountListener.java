@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.observable;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
  * {@link InvalidationListener} that counts how many times it was triggered - useful for testing.
  */
