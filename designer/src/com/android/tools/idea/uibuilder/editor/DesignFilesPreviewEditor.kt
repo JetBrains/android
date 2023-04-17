@@ -104,7 +104,7 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
     }
 
     val modelProvider =
-      if (StudioFlags.NELE_ANIMATED_SELECTOR_PREVIEW.get() && (myFile.toPsiFile(myProject)?.typeOf() is AnimatedStateListFileType))
+      if ((myFile.toPsiFile(myProject)?.typeOf() is AnimatedStateListFileType))
         MyAnimatedSelectorModelProvider()
       else DesignerEditorPanel.ModelProvider.defaultModelProvider
 
@@ -129,14 +129,14 @@ class DesignFilesPreviewEditor(file: VirtualFile, project: Project) : DesignerEd
 
   private fun addAnimationToolbar(panel: DesignerEditorPanel, model: NlModel?): JPanel? {
     val surface = panel.surface
-    val toolbar = if (StudioFlags.NELE_ANIMATED_SELECTOR_PREVIEW.get() && model?.type is AnimatedStateListTempFileType) {
+    val toolbar = if (model?.type is AnimatedStateListTempFileType) {
       AnimatedSelectorToolbar.createToolbar(this, animatedSelectorModel!!, AnimatedSelectorListener(surface), 16, 0L)
     }
-    else if (StudioFlags.NELE_ANIMATIONS_PREVIEW.get() && model?.type is AnimatedVectorFileType) {
+    else if (model?.type is AnimatedVectorFileType) {
       // If opening an animated vector, add an unlimited animation bar
       AnimationToolbar.createUnlimitedAnimationToolbar(this, AnimatedVectorListener(surface), 16, 0L)
     }
-    else if (StudioFlags.NELE_ANIMATIONS_LIST_PREVIEW.get() && model?.type is AnimationListFileType) {
+    else if (model?.type is AnimationListFileType) {
       // If opening an animation list, add an animation bar with progress
       val animationDrawable = (surface.getSceneManager(model) as? LayoutlibSceneManager)?.let { findAnimationDrawable(it) }
       val maxTimeMs = animationDrawable?.let { drawable ->

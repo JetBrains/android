@@ -209,18 +209,6 @@ public final class StudioFlags {
 
   //region Layout Editor
   private static final FlagGroup NELE = new FlagGroup(FLAGS, "nele", "Layout Editor");
-  public static final Flag<Boolean> NELE_ANIMATIONS_PREVIEW = Flag.create(
-    NELE, "animated.preview", "Show preview animations toolbar",
-    "Show an animations bar that allows playback of vector drawable animations.",
-    true);
-  public static final Flag<Boolean> NELE_ANIMATED_SELECTOR_PREVIEW = Flag.create(
-    NELE, "animated.selector.preview", "Show preview animations toolbar for animated selector",
-    "Show an animations bar that allows playback of transitions in animated selector.",
-    true);
-  public static final Flag<Boolean> NELE_ANIMATIONS_LIST_PREVIEW = Flag.create(
-    NELE, "animated.list.preview", "Show preview animations toolbar for animation list",
-    "Show an animations bar that allows playback of animation list files.",
-    true);
   public static final Flag<Boolean> NELE_MOTION_AREA_GRAPH = Flag.create(
     NELE, "motion.area.graph", "Show area graph in Timeline panel",
     "Show area graph in Timeline panel for Motion Editor.",
