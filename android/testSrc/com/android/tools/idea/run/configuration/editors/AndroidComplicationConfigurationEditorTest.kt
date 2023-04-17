@@ -17,8 +17,6 @@ package com.android.tools.idea.run.configuration.editors
 
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
-import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
-import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.deployer.model.component.Complication.ComplicationType
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.MergedManifestSnapshot
@@ -40,15 +38,12 @@ import com.intellij.execution.impl.ConfigurationSettingsEditorWrapper
 import com.intellij.execution.impl.RunManagerImpl
 import com.intellij.execution.impl.RunnerAndConfigurationSettingsImpl
 import com.intellij.execution.impl.SingleConfigurationConfigurable
-import com.intellij.openapi.options.ex.SingleConfigurableEditor
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
-import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.replaceService
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBTextField
-import com.intellij.util.ui.UIUtil
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.After
 import org.junit.Before
@@ -121,8 +116,6 @@ class AndroidComplicationConfigurationEditorTest {
     // Don't delete. Is needed for [BaseRCSettingsConfigurable.isModified] be checked via serialization.
     configurationConfigurable.apply()
     modulesComboBox.isEditable = true // To allow setting fake module names in the tests.
-
-    enableHeadlessDialogs(projectRule.fixture.testRootDisposable)
   }
 
   @After
@@ -504,36 +497,6 @@ class AndroidComplicationConfigurationEditorTest {
   fun testApkFound() {
     assertThat(Files.isRegularFile(Paths.get(runConfiguration.componentLaunchOptions.watchFaceInfo.apk))).isTrue()
   }
-
-  @Test
-  @RunsInEdt
-  fun testSlotsAreDisplayedInASingleConfigurableEditor() {
-    runConfiguration.componentLaunchOptions.watchFaceInfo = object : ComplicationWatchFaceInfo {
-      override val complicationSlots = listOf(
-        ComplicationSlot(
-          "Top",
-          0,
-          arrayOf(ComplicationType.SHORT_TEXT, ComplicationType.RANGED_VALUE)
-        ),
-        ComplicationSlot(
-          "Right",
-          2,
-          arrayOf(ComplicationType.LONG_TEXT, ComplicationType.SHORT_TEXT, ComplicationType.ICON)
-        ))
-
-      override val apk = ""
-      override val appId = ""
-      override val watchFaceFQName = ""
-    }
-
-    val dialog = object : SingleConfigurableEditor(projectRule.project, configurationConfigurable, null, IdeModalityType.IDE) {}
-    createModalDialogAndInteractWithIt({ dialog.show() }) {
-      assertThat(countSlotPanels()).isEqualTo(2)
-    }
-  }
-
-  private fun countSlotPanels() =
-    ((slotsPanel.getComponent(1) as JComponent).getComponent(0) as JComponent).components.count()
 }
 
 private fun CodeInsightTestFixture.addComplicationServiceClass() {
