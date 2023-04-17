@@ -20,6 +20,8 @@ import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
@@ -258,11 +260,18 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         createLayoutInspectorWorkbench(project, layoutInspector, mainPanel)
       }
       displayViewManager.startRendering()
+
+      layoutInspector.inspectorModel.selectionListeners.add(selectionChangedListener)
     }
 
     fun disableLayoutInspector() {
       wrapLogic.unwrapComponent()
       displayViewManager.stopRendering()
+      layoutInspector.inspectorModel.selectionListeners.remove(selectionChangedListener)
+    }
+
+    private val selectionChangedListener: (old: ViewNode?, new: ViewNode?, origin: SelectionOrigin) -> Unit = { _, _, _, ->
+      displayViewManager.refreshRendering()
     }
   }
 }

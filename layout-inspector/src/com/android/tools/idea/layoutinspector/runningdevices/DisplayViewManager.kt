@@ -62,4 +62,9 @@ class DisplayViewManager(
     renderModel.modificationListeners.remove(repaintDisplayView)
     displayView.removeDecorationRenderer(decorationPainter)
   }
+
+  fun refreshRendering() {
+    displayView.invalidate()
+    displayView.repaint()
+  }
 }

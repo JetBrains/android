@@ -34,6 +34,9 @@ import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito
+import org.mockito.Mockito.spy
+import org.mockito.Mockito.verify
 import java.awt.Dimension
 import java.awt.Rectangle
 import java.util.concurrent.TimeUnit
@@ -63,7 +66,7 @@ class DisplayViewManagerTest {
 
     renderModel = RenderModel(inspectorModel, treeSettings)
     val renderLogic = RenderLogic(renderModel, FakeRenderSettings())
-    displayView = displayViewRule.newEmulatorView()
+    displayView = spy(displayViewRule.newEmulatorView())
     displayViewManager = DisplayViewManager(renderModel, renderLogic, displayView)
   }
 
@@ -91,6 +94,12 @@ class DisplayViewManagerTest {
     displayViewManager.stopRendering()
 
     assertThat(renderModel.modificationListeners).isEmpty()
+  }
+
+  @Test
+  fun testRepaint() {
+    displayViewManager.refreshRendering()
+    verify(displayView, Mockito.times(1)).repaint()
   }
 
   private fun getStreamScreenshotCallAndWaitForFrame(fakeUi: FakeUi, view: EmulatorView, frameNumber: Int): FakeEmulator.GrpcCallRecord {

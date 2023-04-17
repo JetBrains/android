@@ -25,6 +25,8 @@ import com.android.tools.idea.layoutinspector.LAYOUT_INSPECTOR_DATA_KEY
 import com.android.tools.idea.layoutinspector.LayoutInspector
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.model
+import com.android.tools.idea.layoutinspector.model.SelectionOrigin
+import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
@@ -43,6 +45,9 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.mockito.Mockito.spy
+import org.mockito.Mockito.times
+import org.mockito.Mockito.verify
 import java.awt.Component
 import java.awt.Container
 import javax.swing.JPanel
@@ -64,8 +69,8 @@ class LayoutInspectorManagerTest {
 
   @Before
   fun setUp() {
-    tab1 = TabInfo(TabId("tab1"), JPanel(), JPanel(), displayViewRule.newEmulatorView())
-    tab2 = TabInfo(TabId("tab2"), JPanel(), JPanel(), displayViewRule.newEmulatorView())
+    tab1 = TabInfo(TabId("tab1"), JPanel(), JPanel(), spy(displayViewRule.newEmulatorView()))
+    tab2 = TabInfo(TabId("tab2"), JPanel(), JPanel(), spy(displayViewRule.newEmulatorView()))
     fakeToolWindowManager = FakeToolWindowManager(displayViewRule.project, listOf(tab1, tab2))
 
     // replace ToolWindowManager with fake one
@@ -251,6 +256,22 @@ class LayoutInspectorManagerTest {
 
     assertDoesNotHaveWorkbench(tab1)
     assertHasWorkbench(tab2)
+  }
+
+  @Test
+  @RunsInEdt
+  fun testViewIsRefreshedOnSelectionChange() {
+    val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
+
+    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+
+    layoutInspector.inspectorModel.setSelection(ViewNode("node1"), SelectionOrigin.COMPONENT_TREE)
+    verify(tab1.displayView, times(1)).repaint()
+
+    layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
+
+    layoutInspector.inspectorModel.setSelection(ViewNode("node2"), SelectionOrigin.COMPONENT_TREE)
+    verify(tab1.displayView, times(1)).repaint()
   }
 
   private fun assertHasWorkbench(tabInfo: TabInfo) {
