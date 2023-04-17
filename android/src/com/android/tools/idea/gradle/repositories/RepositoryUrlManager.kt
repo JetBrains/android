@@ -22,8 +22,6 @@ import com.android.ide.common.repository.GoogleMavenRepository
 import com.android.ide.common.repository.GradleCoordinate.ArtifactType
 import com.android.ide.common.repository.MavenRepositories
 import com.android.ide.common.repository.SdkMavenRepository
-import com.android.ide.common.repository.explicitSingletonVersion
-import com.android.ide.common.repository.explicitlyIncludesPreview
 import com.android.io.CancellableFileIo
 import com.android.sdklib.repository.AndroidSdkHandler
 import com.android.tools.idea.gradle.util.EmbeddedDistributionPaths

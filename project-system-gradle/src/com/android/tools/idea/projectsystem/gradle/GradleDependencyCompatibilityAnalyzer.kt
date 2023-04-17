@@ -26,8 +26,6 @@ import com.android.ide.common.gradle.Version
 import com.android.ide.common.gradle.VersionRange
 import com.android.ide.common.repository.GradleCoordinate
 import com.android.ide.common.repository.MavenRepositories
-import com.android.ide.common.repository.explicitSingletonVersion
-import com.android.ide.common.repository.hasExplicitUpperBound
 import com.android.ide.common.repository.stability
 import com.android.tools.idea.concurrency.transform
 import com.android.tools.idea.gradle.dsl.api.repositories.MavenRepositoryModel
@@ -516,7 +514,7 @@ private fun GradleCoordinate.dependency() =
 private fun Dependency.externalModule() = group?.let { ExternalModule(it, name) }
 private fun Dependency.versionRange() = version?.let {
   when {
-    hasExplicitUpperBound -> it.require ?: it.strictly
+    hasExplicitDistinctUpperBound -> it.require ?: it.strictly
     else -> explicitSingletonVersion?.let { v ->
       val stability = group?.let { g -> Component(g, name, v).stability } ?: return null
       VersionRange(Range.closedOpen(v, stability.expiration(v)))
