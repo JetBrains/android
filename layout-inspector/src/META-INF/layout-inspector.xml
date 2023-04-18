@@ -25,7 +25,7 @@
         class="com.android.tools.idea.layoutinspector.runningdevices.ToggleLayoutInspectorAction"
         text="Toggle Layout Inspector"
         description="Toggles Layout Inspection on and off for this device."
-        icon="AllIcons.Actions.Find" >
+        icon="StudioIcons.Shell.ToolWindows.CAPTURES" >
       <add-to-group group-id="StreamingToolbarSecondary" anchor="last"/>
     </action>
 
