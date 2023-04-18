@@ -80,11 +80,14 @@ class PowerRailTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Range) 
     )
 
     // List of filters used to detect power rails that should be hidden.
+    // These filters take a higher priority than the 'powerRailGroupMap',
+    // as rails can be mapped to a group, but also hidden.
     private val powerRailNameFilters = listOf<(String) -> Boolean>(
-      { i -> i.startsWith("power.rails.") },
-      { i -> !i.endsWith("aoc.logic") },
-      { i -> !i.endsWith("aoc.memory") },
-      { i -> !i.endsWith("system.fabric") },
+      { i -> i != "power.rails.memory.interface" },
+      { i -> i != "power.rails.system.fabric" },
+      { i -> i != "power.L15M_VDD_SLC_M_uws" },
+      { i -> i != "power.S6M_LLDO1_uws" },
+      { i -> i != "power.S8M_LLDO2_uws" },
     )
 
     // This method runs a power rail name through filters to see if it should be hidden.

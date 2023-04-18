@@ -50,17 +50,18 @@ class PowerRailTrackModelTest {
   @Test
   fun hiddenPowerRailsDetected() {
     val powerRails = listOf(
-      "power.foo",
-      "power.rails.aoc.logic",
-      "power.rails.aoc.memory",
+      "foo",
+      "power.rails.memory.interface",
       "power.rails.system.fabric",
-      "power.rails.foo"
+      "power.L15M_VDD_SLC_M_uws",
+      "power.S6M_LLDO1_uws",
+      "power.S8M_LLDO2_uws",
     )
 
     val hiddenPowerRails = powerRails.filter { isPowerRailShown(it) }
 
     assertThat(hiddenPowerRails.size).isEqualTo(1)
-    assertThat(hiddenPowerRails).containsAllIn(listOf("power.rails.foo"))
+    assertThat(hiddenPowerRails).containsAllIn(listOf("foo"))
   }
 
   companion object {
