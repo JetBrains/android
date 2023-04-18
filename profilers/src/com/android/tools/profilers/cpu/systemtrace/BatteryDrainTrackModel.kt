@@ -46,6 +46,7 @@ class BatteryDrainTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Rang
 
     val absLargestValue = abs(minValue.toDouble()).coerceAtLeast(abs(maxValue.toDouble()))
     val yRange = when (unit) {
+      "%" -> Range(0.0, 100.0)
       // We use the range of [-max, max] if there is a negative value present to coerce the 0 axis label (clarifies negative values).
       "µa" -> if (negValuePresent) Range(-absLargestValue, absLargestValue) else Range(0.0, maxValue.toDouble())
       else -> Range(0.0, maxValue.toDouble())
