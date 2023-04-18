@@ -39,6 +39,9 @@ internal val VitalsTimeIntervals =
 internal val VitalsFailureTypes =
   listOf(FailureType.USER_PERCEIVED_ONLY, FailureType.BACKGROUND, FailureType.FOREGROUND)
 
+// Failure types set/unset by the system - not surfaced to users.
+internal val VitalsImplicitFailureTypes = listOf(FailureType.ANR, FailureType.FATAL)
+
 fun createVitalsFilters(
   /** Selection of [Version]s. */
   versions: MultiSelection<WithCount<Version>> = MultiSelection.emptySelection(),
@@ -46,7 +49,10 @@ fun createVitalsFilters(
   timeInterval: Selection<TimeIntervalFilter> =
     Selection(TimeIntervalFilter.TWENTY_EIGHT_DAYS, VitalsTimeIntervals),
   failureTypeToggles: MultiSelection<FailureType> =
-    MultiSelection(VitalsFailureTypes.toSet(), VitalsFailureTypes),
+    MultiSelection(
+      VitalsFailureTypes.toSet() + listOf(FailureType.FATAL),
+      VitalsFailureTypes + VitalsImplicitFailureTypes
+    ),
   devices: MultiSelection<WithCount<Device>> = MultiSelection.emptySelection(),
   operatingSystems: MultiSelection<WithCount<OperatingSystemInfo>> =
     MultiSelection.emptySelection(),
