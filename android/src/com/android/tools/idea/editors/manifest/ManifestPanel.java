@@ -20,6 +20,7 @@ import static com.android.tools.idea.gradle.util.GradleUtil.getDependencyDisplay
 import static com.android.tools.idea.projectsystem.ProjectSystemUtil.getModuleSystem;
 import static com.intellij.openapi.command.WriteCommandAction.writeCommandAction;
 
+import com.android.SdkConstants;
 import com.android.annotations.concurrency.UiThread;
 import com.android.ide.common.blame.SourceFile;
 import com.android.ide.common.blame.SourceFilePosition;
@@ -35,7 +36,6 @@ import com.android.tools.idea.gradle.dsl.api.ProjectBuildModel;
 import com.android.tools.idea.gradle.util.GradleUtil;
 import com.android.tools.idea.model.MergedManifestSnapshot;
 import com.android.tools.idea.projectsystem.DependencyScopeType;
-import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.ModuleSystemUtil;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.ProjectSystemSyncManager;
@@ -1015,7 +1015,7 @@ public class ManifestPanel extends JPanel implements TreeSelectionListener {
           }
 
           // AAR library in the project build directory?
-          if (path.contains(FilenameConstants.EXPLODED_AAR)) {
+          if (path.contains(SdkConstants.EXPLODED_AAR)) {
             source = findSourceForFileInExplodedAar(file);
           }
         }

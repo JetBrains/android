@@ -54,7 +54,6 @@ import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.configurations.ConfigurationManager;
 import com.android.tools.idea.editors.theme.ResolutionUtils;
 import com.android.tools.idea.flags.StudioFlags;
-import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.idea.projectsystem.NamedIdeaSourceProvider;
 import com.android.tools.idea.projectsystem.SourceProviders;
 import com.android.tools.idea.rendering.RenderLogger;
@@ -786,9 +785,9 @@ public class AndroidJavaDocRenderer {
                   builder.add(" => ");
 
                   // AAR Library? Strip off prefix
-                  int index = value.indexOf(FilenameConstants.EXPLODED_AAR);
+                  int index = value.indexOf(SdkConstants.EXPLODED_AAR);
                   if (index != -1) {
-                    value = value.substring(index + FilenameConstants.EXPLODED_AAR.length() + 1);
+                    value = value.substring(index + SdkConstants.EXPLODED_AAR.length() + 1);
                   }
 
                   builder.add(value);

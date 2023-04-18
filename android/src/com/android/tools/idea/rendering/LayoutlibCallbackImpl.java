@@ -24,6 +24,7 @@ import static com.android.AndroidXConstants.CLASS_RECYCLER_VIEW_ADAPTER;
 import static com.android.AndroidXConstants.CLASS_RECYCLER_VIEW_LAYOUT_MANAGER;
 import static com.android.SdkConstants.DOT_XML;
 import static com.android.SdkConstants.EXPANDABLE_LIST_VIEW;
+import static com.android.SdkConstants.EXPLODED_AAR;
 import static com.android.SdkConstants.FD_RES_DRAWABLE;
 import static com.android.SdkConstants.FD_RES_LAYOUT;
 import static com.android.SdkConstants.FD_RES_MENU;
@@ -61,7 +62,6 @@ import com.android.tools.idea.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.fonts.ProjectFonts;
 import com.android.tools.idea.layoutlib.LayoutLibrary;
 import com.android.tools.idea.model.AndroidModuleInfo;
-import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.android.tools.rendering.LayoutMetadata;
 import com.android.tools.rendering.parsers.AaptAttrParser;
 import com.android.tools.rendering.parsers.ILayoutPullParserFactory;
@@ -326,7 +326,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   public XmlPullParser createXmlParserForPsiFile(@NotNull String fileName) {
     // No need to generate a PSI-based parser (which can read edited/unsaved contents) for files
     // in build outputs or layoutlib built-in directories.
-    if (fileName.contains(FilenameConstants.EXPLODED_AAR) || fileName.contains(FD_LAYOUTLIB) || fileName.contains(BUILD_CACHE)) {
+    if (fileName.contains(EXPLODED_AAR) || fileName.contains(FD_LAYOUTLIB) || fileName.contains(BUILD_CACHE)) {
       return null;
     }
 
@@ -500,7 +500,7 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
       // No need to generate a PSI-based parser (which can read edited/unsaved contents) for files in build outputs or
       // layoutlib built-in directories.
       if (parentName != null
-          && !path.contains(FilenameConstants.EXPLODED_AAR) && !path.contains(FD_LAYOUTLIB) && !path.contains(BUILD_CACHE)
+          && !path.contains(EXPLODED_AAR) && !path.contains(FD_LAYOUTLIB) && !path.contains(BUILD_CACHE)
           && (parentName.startsWith(FD_RES_LAYOUT) || parentName.startsWith(FD_RES_DRAWABLE) || parentName.startsWith(FD_RES_MENU))) {
         RenderXmlFile xmlFile = myRenderModule.getEnvironment().getXmlFile(xml);
         if (xmlFile != null) {

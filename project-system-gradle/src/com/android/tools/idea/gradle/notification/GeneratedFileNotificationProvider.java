@@ -20,9 +20,9 @@ import static com.android.tools.idea.FileEditorUtil.DISABLE_GENERATED_FILE_NOTIF
 import static com.intellij.openapi.vfs.VfsUtil.findFileByIoFile;
 import static com.intellij.openapi.vfs.VfsUtilCore.isAncestor;
 
+import com.android.SdkConstants;
 import com.android.tools.idea.gradle.project.model.GradleAndroidModel;
 import com.android.tools.idea.gradle.util.GradleProjectSystemUtil;
-import com.android.tools.idea.projectsystem.FilenameConstants;
 import com.google.common.annotations.VisibleForTesting;
 import com.intellij.ide.GeneratedSourceFileChangeTracker;
 import com.intellij.openapi.fileEditor.FileEditor;
@@ -82,7 +82,7 @@ public class GeneratedFileNotificationProvider extends EditorNotifications.Provi
         return null;
       }
 
-      VirtualFile explodedBundled = buildFolder.findChild(FilenameConstants.EXPLODED_AAR);
+      VirtualFile explodedBundled = buildFolder.findChild(SdkConstants.EXPLODED_AAR);
       boolean inAar = explodedBundled != null && isAncestor(explodedBundled, file, true /* strict */);
       String text;
       if (inAar) {
