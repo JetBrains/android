@@ -94,5 +94,18 @@ data class IssueDetails(
   // Provides a link to the containing issue on the console.
   // please note the link will be configured with the same time interval and filters as the request.
   val uri: String,
-  val notesCount: Long
+  val notesCount: Long,
+  // List of annotations for an issue. Annotations provide additional
+  // information that may help in diagnosing and fixing the issue.
+  val annotations: List<IssueAnnotation>
 )
+
+data class IssueAnnotation(
+  // e.g. "Potential fix", "Insight"
+  val category: String,
+  // e.g. "Slow Binder call"
+  val title: String,
+  val body: String
+) {
+  companion object
+}

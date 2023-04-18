@@ -91,7 +91,8 @@ val ISSUE1 =
       50L,
       setOf(SignalType.SIGNAL_FRESH),
       "https://url.for-crash.com",
-      0
+      0,
+      emptyList()
     ),
     Event(
       eventData =
@@ -189,7 +190,8 @@ val ISSUE2 =
       100L,
       setOf(SignalType.SIGNAL_REGRESSED),
       "https://url.for-crash.com/2",
-      0
+      0,
+      emptyList()
     ),
     Event(
       eventData =

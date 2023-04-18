@@ -18,6 +18,7 @@ package com.android.tools.idea.vitals.datamodel
 import com.android.tools.idea.insights.Device
 import com.android.tools.idea.insights.Event
 import com.android.tools.idea.insights.EventData
+import com.android.tools.idea.insights.IssueAnnotation
 import com.android.tools.idea.insights.IssueDetails
 import com.android.tools.idea.insights.IssueId
 import com.android.tools.idea.insights.OperatingSystemInfo
@@ -39,7 +40,8 @@ internal fun ErrorIssue.toIssueDetails(): IssueDetails {
     eventsCount = errorReportCount,
     signals = emptySet(),
     uri = issueUri,
-    notesCount = 0L
+    notesCount = 0L,
+    annotations = annotationsList.map { IssueAnnotation.fromProto(it) }
   )
 }
 
@@ -59,4 +61,10 @@ internal fun ErrorReport.toSampleEvent(): Event {
       StacktraceGroup() // TODO: need to parse reportText or we introduce a new string blob field to
     // at least print traces in our stacktrace panel.
   )
+}
+
+internal fun IssueAnnotation.Companion.fromProto(
+  proto: com.google.play.developer.reporting.IssueAnnotation
+): IssueAnnotation {
+  return IssueAnnotation(category = proto.category, title = proto.title, body = proto.body)
 }

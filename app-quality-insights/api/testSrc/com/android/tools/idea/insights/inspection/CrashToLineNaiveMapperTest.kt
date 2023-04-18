@@ -80,7 +80,8 @@ class CrashToLineNaiveMapperTest {
           9999L,
           emptySet(),
           "https://console.firebas.com/0/fake/uri",
-          0
+          0,
+          emptyList()
         ),
         Event()
       )

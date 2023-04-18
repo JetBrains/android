@@ -131,6 +131,8 @@ enum class PlayTrack(val displayName: String) : GroupAware<PlayTrack> {
 
   override val groupName: String
     get() = displayName
+
+  companion object
 }
 
 /** Represents the Version of an App. */

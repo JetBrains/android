@@ -120,7 +120,8 @@ class AppInsightsCacheTest {
             10L,
             setOf(SignalType.SIGNAL_UNSPECIFIED),
             "https://url.for-crash.com",
-            0
+            0,
+            emptyList()
           ),
           testEvent
         )
@@ -305,7 +306,8 @@ class AppInsightsCacheTest {
           10L,
           emptySet(),
           "https://url.for-crash.com",
-          0
+          0,
+          emptyList()
         ),
         testEvent
       )
@@ -365,7 +367,8 @@ class AppInsightsCacheTest {
           10L,
           emptySet(),
           "https://url.for-crash.com",
-          0
+          0,
+          emptyList()
         ),
         testEvent
       )

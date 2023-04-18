@@ -49,7 +49,8 @@ class AppInsightsIssuesTableCellRendererTest {
         10L,
         emptySet(),
         "https://url.for-crash.com",
-        0
+        0,
+        emptyList()
       )
 
     table.columnModel.addColumn(TableColumn(0).apply { width = 200 })

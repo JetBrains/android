@@ -22,7 +22,7 @@ import com.intellij.openapi.diagnostic.Logger
 
 private val LOG = Logger.getInstance("vitals.datamodel.Verion")
 
-internal fun fromProto(proto: Track): PlayTrack? {
+internal fun PlayTrack.Companion.fromProto(proto: Track): PlayTrack? {
   return when (proto.type) {
     "Production" -> PlayTrack.PRODUCTION
     "Internal" -> PlayTrack.INTERNAL
@@ -37,7 +37,7 @@ internal fun fromProto(proto: Track): PlayTrack? {
 
 internal fun List<Track>.extract(): List<Version> {
   val flattened = flatMap { track ->
-    val trackType = fromProto(track) ?: return@flatMap emptyList()
+    val trackType = PlayTrack.fromProto(track) ?: return@flatMap emptyList()
 
     track.servingReleasesList.flatMap { release ->
       release.versionCodesList.map { versionCode -> versionCode to trackType }
