@@ -18,23 +18,31 @@ package com.android.tools.idea.layoutinspector.runningdevices
 import com.android.annotations.concurrency.UiThread
 import com.android.tools.adtui.workbench.WorkBench
 import com.android.tools.idea.layoutinspector.LayoutInspector
+import com.android.tools.idea.layoutinspector.LayoutInspectorBundle
 import com.android.tools.idea.layoutinspector.LayoutInspectorProjectService
 import com.android.tools.idea.layoutinspector.dataProviderForLayoutInspector
 import com.android.tools.idea.layoutinspector.model.SelectionOrigin
 import com.android.tools.idea.layoutinspector.model.ViewNode
 import com.android.tools.idea.layoutinspector.properties.LayoutInspectorPropertiesPanelDefinition
+import com.android.tools.idea.layoutinspector.settings.LayoutInspectorConfigurable
 import com.android.tools.idea.layoutinspector.tree.LayoutInspectorTreePanelDefinition
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.TargetSelectionActionFactory
 import com.android.tools.idea.layoutinspector.ui.toolbar.createLayoutInspectorMainToolbar
 import com.android.tools.idea.streaming.AbstractDisplayView
 import com.android.tools.idea.streaming.DISPLAY_VIEW_KEY
 import com.android.tools.idea.streaming.SERIAL_NUMBER_KEY
 import com.android.tools.idea.streaming.STREAMING_CONTENT_PANEL_KEY
+import com.intellij.ide.BrowserUtil
 import com.intellij.ide.DataManager
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.options.ShowSettingsUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.content.Content
@@ -44,6 +52,8 @@ import java.awt.Container
 import javax.swing.JComponent
 
 private const val WORKBENCH_NAME = "Layout Inspector"
+
+const val SHOW_EXPERIMENTAL_WARNING_KEY = "com.android.tools.idea.layoutinspector.runningdevices.experimental.notification.show"
 
 /** Responsible for managing Layout Inspector in Running Devices Tool Window. */
 interface LayoutInspectorManager {
@@ -117,6 +127,9 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
 
       // inject Layout Inspector UI
       value?.enableLayoutInspector()
+
+      // TODO(b/265150325) remove before the end of canaries
+      showExperimentalWarning()
     }
 
   private val stateListeners = mutableListOf<LayoutInspectorManager.StateListener>()
@@ -270,8 +283,38 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       layoutInspector.inspectorModel.selectionListeners.remove(selectionChangedListener)
     }
 
-    private val selectionChangedListener: (old: ViewNode?, new: ViewNode?, origin: SelectionOrigin) -> Unit = { _, _, _, ->
+    private val selectionChangedListener: (old: ViewNode?, new: ViewNode?, origin: SelectionOrigin) -> Unit = { _, _, _ ->
       displayViewManager.refreshRendering()
+    }
+  }
+
+  private fun showExperimentalWarning() {
+    val defaultValue = true
+    val shouldShowWarning = { PropertiesComponent.getInstance().getBoolean(SHOW_EXPERIMENTAL_WARNING_KEY, defaultValue) }
+    val setValue: (Boolean) -> Unit = { PropertiesComponent.getInstance().setValue(SHOW_EXPERIMENTAL_WARNING_KEY, it, defaultValue) }
+    val notificationText = LayoutInspectorBundle.message("embedded.inspector.experimental.notification.message")
+
+    if (shouldShowWarning()) {
+      InspectorBannerService.getInstance(project)?.addNotification(
+        text = notificationText,
+        sticky = true,
+        actions = listOf(
+          object : AnAction(LayoutInspectorBundle.message("learn.more")) {
+            override fun actionPerformed(e: AnActionEvent) {
+              BrowserUtil.browse("https://developer.android.com/studio/preview/features")
+            }
+          },
+          object : AnAction(LayoutInspectorBundle.message("opt.out")) {
+            override fun actionPerformed(event: AnActionEvent) {
+              ShowSettingsUtil.getInstance().showSettingsDialog(project, LayoutInspectorConfigurable::class.java)
+            }
+          }
+        )
+      )
+      setValue(false)
+    }
+    else {
+      InspectorBannerService.getInstance(project)?.removeNotification(notificationText)
     }
   }
 }

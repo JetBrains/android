@@ -22,7 +22,12 @@ import com.intellij.openapi.actionSystem.AnAction
  */
 interface StatusNotification {
   val message: String
+  val sticky: Boolean
   val actions: List<AnAction>
 }
 
-class StatusNotificationImpl(override val message: String, override val actions: List<AnAction> = listOf()): StatusNotification
+class StatusNotificationImpl(
+  override val message: String,
+  override val sticky: Boolean = false,
+  override val actions: List<AnAction> = listOf()
+): StatusNotification

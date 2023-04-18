@@ -31,13 +31,16 @@ import com.android.tools.idea.layoutinspector.pipeline.InspectorClientLauncher
 import com.android.tools.idea.layoutinspector.pipeline.InspectorClientSettings
 import com.android.tools.idea.layoutinspector.pipeline.foregroundprocessdetection.DeviceModel
 import com.android.tools.idea.layoutinspector.ui.InspectorBanner
+import com.android.tools.idea.layoutinspector.ui.InspectorBannerService
 import com.android.tools.idea.layoutinspector.ui.toolbar.actions.SingleDeviceSelectProcessAction
 import com.android.tools.idea.layoutinspector.util.FakeTreeSettings
 import com.android.tools.idea.streaming.emulator.EmulatorViewRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
+import com.intellij.ide.util.PropertiesComponent
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.testFramework.ApplicationRule
 import com.intellij.testFramework.EdtRule
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.replaceService
@@ -53,6 +56,9 @@ import java.awt.Container
 import javax.swing.JPanel
 
 class LayoutInspectorManagerTest {
+
+  @get:Rule
+  val applicationRule = ApplicationRule()
 
   @get:Rule
   val edtRule = EdtRule()
@@ -272,6 +278,37 @@ class LayoutInspectorManagerTest {
 
     layoutInspector.inspectorModel.setSelection(ViewNode("node2"), SelectionOrigin.COMPONENT_TREE)
     verify(tab1.displayView, times(1)).repaint()
+  }
+
+  @Test
+  @RunsInEdt
+  fun testToggleLayoutInspectorShowsWarningFirstTime() {
+    PropertiesComponent.getInstance().unsetValue(SHOW_EXPERIMENTAL_WARNING_KEY)
+
+    val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
+
+    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+
+    assertHasWorkbench(tab1)
+    val notifications1 = InspectorBannerService.getInstance(displayViewRule.project)!!.notifications
+    assertThat(notifications1).hasSize(1)
+    assertThat(notifications1.first().message).isEqualTo(
+      "(Experimental) Layout Inspector is now embedded within Running Devices window"
+    )
+    assertThat(notifications1.first().actions[0].templatePresentation.text).isEqualTo("Learn More")
+    assertThat(notifications1.first().actions[1].templatePresentation.text).isEqualTo("Opt-out")
+
+    layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
+
+    layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
+
+    assertHasWorkbench(tab1)
+    val notifications2 = InspectorBannerService.getInstance(displayViewRule.project)!!.notifications
+    assertThat(notifications2).hasSize(0)
+
+    layoutInspectorManager.enableLayoutInspector(tab1.tabId, false)
+
+    assertDoesNotHaveWorkbench(tab1)
   }
 
   private fun assertHasWorkbench(tabInfo: TabInfo) {

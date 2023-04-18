@@ -40,7 +40,7 @@ class LayoutInspectorConfigurableProvider : ConfigurableProvider() {
   }
 }
 
-private class LayoutInspectorConfigurable : SearchableConfigurable {
+class LayoutInspectorConfigurable : SearchableConfigurable {
   private val component: JPanel = JPanel()
   private val enableAutoConnect = JBCheckBox(LayoutInspectorBundle.message("enable.auto.connect"))
   private val enableEmbeddedLayoutInspector = JBCheckBox(LayoutInspectorBundle.message("enable.embedded.layout.inspector"))

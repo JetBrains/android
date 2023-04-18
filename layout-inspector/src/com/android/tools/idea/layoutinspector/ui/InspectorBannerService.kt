@@ -66,11 +66,17 @@ class InspectorBannerService {
       notificationList.getAndSet(value.toList())
     }
 
-  fun addNotification(text: String, actions: List<AnAction> = listOf(DISMISS_ACTION)) {
+  /**
+   * Adds a new notification.
+   * @param text the text of the notification.
+   * @param sticky if true the notification will stay until explicitly dismissed with [removeNotification].
+   * @param actions the list of actions to show with this notification.
+   */
+  fun addNotification(text: String, actions: List<AnAction> = listOf(DISMISS_ACTION), sticky: Boolean = false) {
     if (notificationData.any { it.message == text }) {
       return
     }
-    notificationData.add(StatusNotificationImpl(text, actions))
+    notificationData.add(StatusNotificationImpl(text, sticky, actions))
     notifyChanges()
   }
 
@@ -81,7 +87,7 @@ class InspectorBannerService {
   }
 
   fun clear() {
-    notificationData.clear()
+    notificationData.removeIf { !it.sticky }
     notifyChanges()
   }
 
