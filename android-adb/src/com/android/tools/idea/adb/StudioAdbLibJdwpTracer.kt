@@ -66,7 +66,7 @@ class StudioAdbLibJdwpTracer : SharedJdwpSessionMonitor {
     sendMutex.withLock {
       sendBuffer.clear()
       sendBuffer.appendJdwpPacket(packet)
-      tracer.addPacket(sendBuffer.afterChannelRead(0))
+      tracer.addPacket(sendBuffer.afterChannelRead(useMarkedPosition = false))
     }
   }
 
@@ -74,7 +74,7 @@ class StudioAdbLibJdwpTracer : SharedJdwpSessionMonitor {
     receiveMutex.withLock {
       receiveBuffer.clear()
       receiveBuffer.appendJdwpPacket(packet)
-      tracer.addPacket(receiveBuffer.afterChannelRead(0))
+      tracer.addPacket(receiveBuffer.afterChannelRead(useMarkedPosition = false))
     }
   }
 
