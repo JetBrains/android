@@ -101,7 +101,8 @@ import kotlin.math.roundToInt
 class FakeScreenSharingAgent(
   val displaySize: Dimension,
   private val deviceState: DeviceState,
-  val roundDisplay: Boolean = false,
+  private val roundDisplay: Boolean = false,
+  private val foldedSize: Dimension? = null,
 ) : Disposable {
 
   private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor(
@@ -128,6 +129,8 @@ class FakeScreenSharingAgent(
         }
       }
     }
+  @Volatile
+  private var foldingState: FoldingState? = foldedSize?.let { FoldingState.OPEN }
 
   @Volatile
   var maxVideoEncoderResolution = 2048 // Many phones, for example Galaxy Z Fold3, have VP8 encoder limited to 2048x2048 resolution.
@@ -181,7 +184,6 @@ class FakeScreenSharingAgent(
       displayStreamer.start()
       deviceState.deleteFile("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_SO_NAME")
       deviceState.deleteFile("$DEVICE_PATH_BASE/$SCREEN_SHARING_AGENT_JAR_NAME")
-      deviceState.deleteFile(DEVICE_PATH_BASE)
       if (startTime == 0L) {
         // Shutdown has been triggered - abort run.
         shutdownChannels()
@@ -410,6 +412,19 @@ class FakeScreenSharingAgent(
     clipboardSynchronizationActive.set(false)
   }
 
+  private fun requestDeviceState(message: RequestDeviceStateMessage) {
+    checkNotNull(foldedSize) { "The device is not foldable" }
+    if (foldingState?.ordinal != message.state) {
+      foldingState = FoldingState.values()[message.state]
+      sendDeviceStateNotification()
+      coroutineScope.launch { displayStreamer?.renderDisplay() }
+    }
+  }
+
+  private fun sendDeviceStateNotification() {
+    sendNotification(DeviceStateNotification(foldingState!!.ordinal))
+  }
+
   private fun sendNotification(message: ControlMessage) {
     controller?.sendNotification(message)
   }
@@ -560,6 +575,7 @@ class FakeScreenSharingAgent(
           packetHeader.presentationTimestampUs = ptsUs - presentationTimestampOffset
         }
         packetHeader.originationTimestampUs = System.currentTimeMillis() * 1000
+        packetHeader.displaySize.size = getFoldedDisplaySize()
         packetHeader.displayOrientation = displayOrientation
         packetHeader.frameNumber = (++frameNumber).toLong()
         val packetSize = packet.size()
@@ -594,7 +610,7 @@ class FakeScreenSharingAgent(
     }
 
     private fun getScaledAndRotatedDisplaySize(): Dimension {
-      val rotatedDisplaySize = displaySize.rotatedByQuadrants(displayOrientation)
+      val rotatedDisplaySize = getFoldedDisplaySize().rotatedByQuadrants(displayOrientation)
       val width = rotatedDisplaySize.width
       val height = rotatedDisplaySize.height
       val maxResolutionWidth = maxVideoResolution.width.coerceAtMost(maxVideoEncoderResolution)
@@ -602,6 +618,13 @@ class FakeScreenSharingAgent(
       val scale = max(min(1.0, min(maxResolutionWidth.toDouble() / width, maxResolutionHeight.toDouble() / height)),
                       max(MIN_VIDEO_RESOLUTION / width, MIN_VIDEO_RESOLUTION / height))
       return Dimension((width * scale).roundToInt().roundUpToMultipleOf8(), (height * scale).roundToInt().roundUpToMultipleOf8())
+    }
+
+    private fun getFoldedDisplaySize(): Dimension {
+      return when (foldingState) {
+        FoldingState.CLOSED, FoldingState.TENT -> foldedSize ?: displaySize
+        else -> displaySize
+      }
     }
 
     private fun Int.roundUpToMultipleOf8(): Int =
@@ -648,8 +671,20 @@ class FakeScreenSharingAgent(
     suspend fun run() {
       var exitCode = 0
       try {
+        if (foldedSize != null) {
+          val supportedStates = """
+              Supported states: [
+                DeviceState{identifier=0, name='CLOSE', app_accessible=true},
+                DeviceState{identifier=1, name='TENT', app_accessible=true},
+                DeviceState{identifier=2, name='HALF_FOLDED', app_accessible=true},
+                DeviceState{identifier=3, name='OPEN', app_accessible=true},
+              ]
+              """.trimIndent()
+          sendNotification(SupportedDeviceStatesNotification(supportedStates))
+          sendDeviceStateNotification()
+        }
+
         while (true) {
-          @Suppress("BlockingMethodInNonBlockingContext") // The InputStream.available method is non-blocking.
           if (codedInput.available() == 0) {
             input.waitForData(1)
           }
@@ -699,6 +734,7 @@ class FakeScreenSharingAgent(
         is StopVideoStreamMessage -> stopVideoStream()
         is StartClipboardSyncMessage -> startClipboardSync(message)
         is StopClipboardSyncMessage -> stopClipboardSync()
+        is RequestDeviceStateMessage -> requestDeviceState(message)
         else -> {}
       }
       commandLog.add(message)
@@ -742,6 +778,8 @@ class FakeScreenSharingAgent(
       }
     }
   }
+
+  private enum class FoldingState { CLOSED, TENT, HALF_FOLDED, OPEN }
 
   companion object {
     @JvmStatic

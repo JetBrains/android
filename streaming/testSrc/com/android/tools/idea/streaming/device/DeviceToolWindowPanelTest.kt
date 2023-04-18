@@ -24,16 +24,19 @@ import com.android.tools.adtui.swing.FakeUi
 import com.android.tools.adtui.swing.IconLoaderRule
 import com.android.tools.adtui.swing.PortableUiFontRule
 import com.android.tools.idea.concurrency.waitForCondition
+import com.android.tools.idea.streaming.createTestEvent
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_DOWN_AND_UP
 import com.android.tools.idea.streaming.device.AndroidKeyEventActionType.ACTION_UP
 import com.android.tools.idea.streaming.device.FakeScreenSharingAgentRule.FakeDevice
+import com.android.tools.idea.streaming.device.actions.FoldingAction
 import com.android.tools.idea.streaming.updateAndGetActionPresentation
 import com.android.tools.idea.testing.registerServiceInstance
 import com.android.tools.idea.ui.screenrecording.ScreenRecordingSupportedCache
 import com.google.common.truth.Truth.assertThat
 import com.intellij.ide.DataManager
 import com.intellij.ide.impl.HeadlessDataManager
+import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -100,7 +103,7 @@ class DeviceToolWindowPanelTest {
     if (!isFFmpegAvailableToTest()) {
       return
     }
-    device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
+    device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
     assertThat(panel.deviceView).isNull()
 
     panel.createContent(false)
@@ -164,7 +167,7 @@ class DeviceToolWindowPanelTest {
     if (!isFFmpegAvailableToTest()) {
       return
     }
-    device = agentRule.connectDevice("Pixel Watch", 30, Dimension(454, 454), "arm64-v8a",
+    device = agentRule.connectDevice("Pixel Watch", 30, Dimension(454, 454),
                                      additionalDeviceProperties = mapOf(RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
     panel.createContent(false)
     assertThat(panel.deviceView).isNotNull()
@@ -228,11 +231,54 @@ class DeviceToolWindowPanelTest {
   }
 
   @Test
+  fun testFolding() {
+    if (!isFFmpegAvailableToTest()) {
+      return
+    }
+    device = agentRule.connectDevice("8 Fold-out", 33, Dimension(2200, 2480), foldedSize = Dimension(1148, 2480))
+
+    panel.createContent(false)
+    val deviceView = panel.deviceView!!
+
+    fakeUi.layoutAndDispatchEvents()
+    waitForCondition(5, TimeUnit.SECONDS) { agent.isRunning && panel.isConnected }
+
+    // Check appearance.
+    fakeUi.updateToolbars()
+    waitForFrame()
+
+    val foldingGroup = ActionManager.getInstance().getAction("android.device.folding.states") as ActionGroup
+    val event = createTestEvent(deviceView, project, ActionPlaces.TOOLBAR)
+    waitForCondition(2, TimeUnit.SECONDS) { foldingGroup.update(event); event.presentation.isVisible}
+    assertThat(event.presentation.isEnabled).isTrue()
+    assertThat(event.presentation.text).isEqualTo("Fold/Unfold (currently Open)")
+    val foldingActions = foldingGroup.getChildren(event)
+    assertThat(foldingActions).asList().containsExactly(
+        FoldingAction(FoldingState(0, "Closed", true)),
+        FoldingAction(FoldingState(1, "Tent", true)),
+        FoldingAction(FoldingState(2, "Half-Folded", true)),
+        FoldingAction(FoldingState(3, "Open", true)))
+    for (action in foldingActions) {
+      action.update(event)
+      assertThat(event.presentation.isEnabled).isTrue()
+      assertThat(event.presentation.isVisible).isTrue()
+    }
+    assertThat(deviceView.deviceDisplaySize).isEqualTo(Dimension(2200, 2480))
+
+    val nextFrameNumber = panel.frameNumber + 1
+    val closingAction = foldingActions[0]
+    closingAction.actionPerformed(event)
+    waitForCondition(2, TimeUnit.SECONDS) { foldingGroup.update(event); event.presentation.text == "Fold/Unfold (currently Closed)"}
+    waitForFrame(nextFrameNumber)
+    assertThat(deviceView.deviceDisplaySize).isEqualTo(Dimension(1148, 2480))
+  }
+
+  @Test
   fun testZoom() {
     if (!isFFmpegAvailableToTest()) {
       return
     }
-    device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
+    device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
     assertThat(panel.deviceView).isNull()
 
     panel.createContent(false)
@@ -318,9 +364,11 @@ class DeviceToolWindowPanelTest {
     return message
   }
 
-  /** Waits for all video frames to be received. */
-  private fun waitForFrame() {
-    waitForCondition(2, TimeUnit.SECONDS) { panel.isConnected && agent.frameNumber > 0 && renderAndGetFrameNumber() == agent.frameNumber }
+  /** Waits for all video frames to be received after the given one. */
+  private fun waitForFrame(minFrameNumber: Int = 1) {
+    waitForCondition(2, TimeUnit.SECONDS) {
+      panel.isConnected && agent.frameNumber >= minFrameNumber && renderAndGetFrameNumber() == agent.frameNumber
+    }
   }
 
   private fun renderAndGetFrameNumber(): Int {

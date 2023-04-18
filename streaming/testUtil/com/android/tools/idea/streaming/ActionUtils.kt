@@ -26,6 +26,7 @@ import com.android.tools.idea.streaming.emulator.EmulatorView
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
@@ -51,12 +52,17 @@ fun executeDeviceAction(actionId: String, displayView: AbstractDisplayView, proj
 fun updateAndGetActionPresentation(actionId: String, displayView: AbstractDisplayView, project: Project,
                                    place: String = ActionPlaces.KEYBOARD_SHORTCUT): Presentation {
   val action = ActionManager.getInstance().getAction(actionId)
+  return updateAndGetActionPresentation(action, displayView, project, place)
+}
+
+fun updateAndGetActionPresentation(action: AnAction, displayView: AbstractDisplayView, project: Project,
+                                   place: String = ActionPlaces.KEYBOARD_SHORTCUT): Presentation {
   val event = createTestEvent(displayView, project, place)
   action.update(event)
   return event.presentation
 }
 
-private fun createTestEvent(displayView: AbstractDisplayView, project: Project, place: String): AnActionEvent {
+fun createTestEvent(displayView: AbstractDisplayView, project: Project, place: String): AnActionEvent {
   val inputEvent = KeyEvent(displayView, KEY_RELEASED, System.currentTimeMillis(), CTRL_DOWN_MASK, VK_E, CHAR_UNDEFINED)
   return AnActionEvent(inputEvent, TestDataContext(displayView, project), place, Presentation(), ActionManager.getInstance(), 0)
 }

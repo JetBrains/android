@@ -321,7 +321,7 @@ class StreamingToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
-    val device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
+    val device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
     toolWindow.show()
 
     waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
@@ -349,7 +349,7 @@ class StreamingToolWindowManagerTest {
     assertThat(toolWindow.isVisible).isFalse()
 
     deviceMirroringSettings.activateOnConnection = true
-    val device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
+    val device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
 
     waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
@@ -368,8 +368,8 @@ class StreamingToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
-    val device1 = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
-    val device2 = agentRule.connectDevice("Pixel 6", 32, Dimension(1080, 2400), "arm64-v8a")
+    val device1 = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
+    val device2 = agentRule.connectDevice("Pixel 6", 32, Dimension(1080, 2400))
     project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).launchingApp(device2.serialNumber, project)
 
     waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 2 }
@@ -401,7 +401,7 @@ class StreamingToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
-    val device1 = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
+    val device1 = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
     project.messageBus.syncPublisher(DeviceHeadsUpListener.TOPIC).userInvolvementRequired(device1.serialNumber, project)
 
     dispatchAllEventsInIdeEventQueue()
@@ -420,7 +420,7 @@ class StreamingToolWindowManagerTest {
     assertThat(toolWindow.isVisible).isFalse()
     toolWindow.show()
 
-    val device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
+    val device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
 
     waitForCondition(15, TimeUnit.SECONDS) { contentManager.contents.size == 1 && contentManager.contents[0].displayName != null }
     assertThat(contentManager.contents[0].displayName).isEqualTo("Pixel 4 API 30")
@@ -455,7 +455,7 @@ class StreamingToolWindowManagerTest {
 
     deviceMirroringSettings.confirmationDialogShown = false
 
-    val device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
+    val device = agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
 
     createModalDialogAndInteractWithIt(toolWindow::show) { dlg ->
       val ui = FakeUi(dlg.rootPane)
@@ -483,7 +483,7 @@ class StreamingToolWindowManagerTest {
 
     deviceMirroringSettings.confirmationDialogShown = false
 
-    agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280), "arm64-v8a")
+    agentRule.connectDevice("Pixel 4", 30, Dimension(1080, 2280))
 
     createModalDialogAndInteractWithIt(toolWindow::show) { dlg ->
       val ui = FakeUi(dlg.rootPane)
@@ -503,7 +503,7 @@ class StreamingToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
-    agentRule.connectDevice("Pixel", 25, Dimension(1080, 1920), "armeabi-v7a")
+    agentRule.connectDevice("Pixel", 25, Dimension(1080, 1920), abi = "armeabi-v7a")
     toolWindow.show()
 
     dispatchAllEventsInIdeEventQueue()
@@ -522,7 +522,7 @@ class StreamingToolWindowManagerTest {
     assertThat(contentManager.contents).isEmpty()
     assertThat(toolWindow.isVisible).isFalse()
 
-    agentRule.connectDevice("LG Watch Sport", 29, Dimension(480, 480), "armeabi-v7a",
+    agentRule.connectDevice("LG Watch Sport", 29, Dimension(480, 480), abi = "armeabi-v7a",
                             additionalDeviceProperties = mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
     toolWindow.show()
 

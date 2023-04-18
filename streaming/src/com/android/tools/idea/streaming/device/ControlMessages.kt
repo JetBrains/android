@@ -18,6 +18,8 @@ package com.android.tools.idea.streaming.device
 import com.android.utils.Base128InputStream
 import com.android.utils.Base128InputStream.StreamFormatException
 import com.android.utils.Base128OutputStream
+import com.android.utils.FlightRecorder
+import com.android.utils.TraceUtils
 import it.unimi.dsi.fastutil.ints.Int2FloatOpenHashMap
 import kotlin.text.Charsets.UTF_8
 
@@ -50,7 +52,7 @@ sealed class ControlMessage(val type: Int) {
 
   companion object : Deserializer {
     override fun deserialize(stream: Base128InputStream): ControlMessage {
-      return when (val type = stream.readInt()) {
+      val message = when (val type = stream.readInt()) {
         MotionEventMessage.TYPE -> MotionEventMessage.deserialize(stream)
         KeyEventMessage.TYPE -> KeyEventMessage.deserialize(stream)
         TextInputMessage.TYPE -> TextInputMessage.deserialize(stream)
@@ -66,6 +68,8 @@ sealed class ControlMessage(val type: Int) {
         DeviceStateNotification.TYPE -> DeviceStateNotification.deserialize(stream)
         else -> throw StreamFormatException("Unrecognized control message type $type")
       }
+      FlightRecorder.log { "${TraceUtils.currentTime()} deserialize: message = $message" }
+      return message
     }
   }
 }
@@ -399,7 +403,7 @@ internal data class SupportedDeviceStatesNotification(val text: String) : Contro
   }
 
   override fun toString(): String {
-    return "SupportedDeviceStateNotification(text=\"$text\")"
+    return "SupportedDeviceStatesNotification(text=\"$text\")"
   }
 
   companion object : Deserializer {

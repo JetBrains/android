@@ -139,8 +139,9 @@ class FakeScreenSharingAgentRule : TestRule {
   fun connectDevice(model: String,
                     apiLevel: Int,
                     displaySize: Dimension,
-                    abi: String,
+                    foldedSize: Dimension? = null,
                     roundDisplay: Boolean = false,
+                    abi: String = "arm64-v8a",
                     additionalDeviceProperties: Map<String, String> = emptyMap(),
                     manufacturer: String = "Google",
                     hostConnectionType: DeviceState.HostConnectionType = DeviceState.HostConnectionType.USB): FakeDevice {
@@ -148,7 +149,7 @@ class FakeScreenSharingAgentRule : TestRule {
     val release = "Sweet dessert"
     val deviceState = fakeAdbRule.attachDevice(serialNumber, manufacturer, model, release, apiLevel.toString(), abi,
                                                additionalDeviceProperties, hostConnectionType)
-    val device = FakeDevice(serialNumber, displaySize, deviceState, roundDisplay = roundDisplay)
+    val device = FakeDevice(serialNumber, displaySize, deviceState, roundDisplay = roundDisplay, foldedSize = foldedSize)
     devices.add(device)
     return device
   }
@@ -168,8 +169,12 @@ class FakeScreenSharingAgentRule : TestRule {
     }
   }
 
-  class FakeDevice(val serialNumber: String, val displaySize: Dimension, val deviceState: DeviceState, val roundDisplay: Boolean = false) {
-    val agent: FakeScreenSharingAgent = FakeScreenSharingAgent(displaySize, deviceState, roundDisplay = roundDisplay)
+  class FakeDevice(val serialNumber: String, val displaySize: Dimension,
+                   val deviceState: DeviceState,
+                   val roundDisplay: Boolean = false,
+                   foldedSize: Dimension? = null) {
+    val agent: FakeScreenSharingAgent =
+        FakeScreenSharingAgent(displaySize, deviceState, roundDisplay = roundDisplay, foldedSize = foldedSize)
     var hostPort: Int? = null
     val configuration: DeviceConfiguration = createDeviceConfiguration(deviceState.properties)
     val handle: DeviceHandle = FakeDeviceHandle(this)

@@ -150,7 +150,7 @@ internal class DeviceViewTest {
 
   @Before
   fun setUp() {
-    device = agentRule.connectDevice("Pixel 5", 30, Dimension(1080, 2340), "arm64-v8a")
+    device = agentRule.connectDevice("Pixel 5", 30, Dimension(1080, 2340))
   }
 
   @Test
@@ -279,7 +279,7 @@ internal class DeviceViewTest {
     if (!isFFmpegAvailableToTest()) {
       return
     }
-    device = agentRule.connectDevice("Pixel Watch", 30, Dimension(384, 384), "armeabi-v7a", roundDisplay = true,
+    device = agentRule.connectDevice("Pixel Watch", 30, Dimension(384, 384), roundDisplay = true, abi = "armeabi-v7a",
                                      additionalDeviceProperties = mapOf(DevicePropertyNames.RO_BUILD_CHARACTERISTICS to "nosdcard,watch"))
 
     createDeviceView(100, 150, 2.0)

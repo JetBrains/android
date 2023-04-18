@@ -84,6 +84,8 @@
         <keyboard-shortcut first-keystroke="meta shift BACK_SLASH" keymap="Mac OS X"/>
         <keyboard-shortcut first-keystroke="meta shift BACK_SLASH" keymap="Mac OS X 10.5+"/>
       </action>
+      <group id="android.device.folding.states" class="com.android.tools.idea.streaming.device.actions.FoldingActionGroup"
+              icon="StudioIcons.Emulator.Toolbar.FOLD" text="Fold/Unfold" description="Control folding pose of the device" popup="true"/>
       <action id="android.device.wear1.button" class="com.android.tools.idea.streaming.actions.StreamingWear1ButtonAction"
               icon="StudioIcons.Emulator.Wear.BUTTON_1" text="Button 1" description="Press the first button of the device">
         <keyboard-shortcut first-keystroke="control shift 1" keymap="$default"/>
@@ -195,6 +197,7 @@
       <reference ref="android.device.volume.down.button"/>
       <reference ref="android.device.rotate.left"/>
       <reference ref="android.device.rotate.right"/>
+      <reference ref="android.device.folding.states"/>
       <reference ref="android.device.wear1.button"/>
       <reference ref="android.device.wear2.button"/>
       <reference ref="android.device.sleep"/>

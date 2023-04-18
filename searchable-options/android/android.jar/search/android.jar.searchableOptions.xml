@@ -166,6 +166,12 @@
     <option name="configure" path="ActionManager" hit="Configure project structure" />
     <option name="project" path="ActionManager" hit="Configure project structure" />
     <option name="structure" path="ActionManager" hit="Configure project structure" />
+    <option name="control" path="ActionManager" hit="Control folding pose of the device" />
+    <option name="device" path="ActionManager" hit="Control folding pose of the device" />
+    <option name="folding" path="ActionManager" hit="Control folding pose of the device" />
+    <option name="of" path="ActionManager" hit="Control folding pose of the device" />
+    <option name="pose" path="ActionManager" hit="Control folding pose of the device" />
+    <option name="the" path="ActionManager" hit="Control folding pose of the device" />
     <option name="convert" path="ActionManager" hit="Convert to PNG..." />
     <option name="png" path="ActionManager" hit="Convert to PNG..." />
     <option name="to" path="ActionManager" hit="Convert to PNG..." />
