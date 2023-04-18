@@ -139,7 +139,7 @@
 
     <registryKey key="androidx.compose.debugger.recomposition.node"
                  description="Add a node to the debugger view of a composable function that describes why the function is being recomposed"
-                 defaultValue="false"
+                 defaultValue="true"
                  restartRequired="false"/>
 
     <overrideImplementsAnnotationsFilter id="ComposeOverrideImplementsAnnotationsFilter"
