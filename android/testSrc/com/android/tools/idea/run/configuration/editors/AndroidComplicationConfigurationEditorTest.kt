@@ -17,6 +17,8 @@ package com.android.tools.idea.run.configuration.editors
 
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.adtui.TreeWalker
+import com.android.tools.adtui.swing.createModalDialogAndInteractWithIt
+import com.android.tools.adtui.swing.enableHeadlessDialogs
 import com.android.tools.deployer.model.component.Complication.ComplicationType
 import com.android.tools.idea.model.MergedManifestManager
 import com.android.tools.idea.model.MergedManifestSnapshot
@@ -25,7 +27,10 @@ import com.android.tools.idea.run.configuration.AndroidComplicationConfiguration
 import com.android.tools.idea.run.configuration.AndroidComplicationConfigurationType
 import com.android.tools.idea.run.configuration.ComplicationSlot
 import com.android.tools.idea.run.configuration.ComplicationWatchFaceInfo
+import com.android.tools.idea.run.configuration.DefaultComplicationWatchFaceInfo
+import com.android.tools.idea.run.configuration.execution.ComplicationLaunchOptions
 import com.android.tools.idea.testing.AndroidProjectRule
+import com.android.tools.idea.testing.KeepTasksAsynchronousRule
 import com.android.tools.idea.testing.onEdt
 import com.android.utils.PositionXmlParser
 import com.android.utils.concurrency.AsyncSupplier
@@ -38,12 +43,18 @@ import com.intellij.execution.impl.ConfigurationSettingsEditorWrapper
 import com.intellij.execution.impl.RunManagerImpl
 import com.intellij.execution.impl.RunnerAndConfigurationSettingsImpl
 import com.intellij.execution.impl.SingleConfigurationConfigurable
+import com.intellij.ide.IdeEventQueue
+import com.intellij.openapi.options.ex.SingleConfigurableEditor
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogPanel
+import com.intellij.testFramework.PlatformTestUtil
+import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import com.intellij.testFramework.replaceService
+import com.intellij.testFramework.runInEdtAndWait
 import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBTextField
+import com.intellij.util.ui.UIUtil
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstance
 import org.junit.After
 import org.junit.Before
@@ -61,7 +72,6 @@ import javax.swing.JComponent
 import javax.swing.JList
 import javax.swing.JPanel
 import javax.swing.ListCellRenderer
-
 
 class AndroidComplicationConfigurationEditorTest {
   @get:Rule
@@ -116,6 +126,8 @@ class AndroidComplicationConfigurationEditorTest {
     // Don't delete. Is needed for [BaseRCSettingsConfigurable.isModified] be checked via serialization.
     configurationConfigurable.apply()
     modulesComboBox.isEditable = true // To allow setting fake module names in the tests.
+
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
   }
 
   @After
@@ -172,6 +184,7 @@ class AndroidComplicationConfigurationEditorTest {
   fun testResetFromEmptyConfiguration() {
     assertThat(runConfiguration.module).isNull()
     configurationConfigurable.reset()
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
   }
 
   @Test
@@ -204,6 +217,7 @@ class AndroidComplicationConfigurationEditorTest {
     runConfiguration.setModule(module)
 
     configurationConfigurable.reset()
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
 
     val topSlot = getPanelForSlot(0)
     assertThat(countCheckedSlots(slotsPanel)).isEqualTo(1)
@@ -216,6 +230,7 @@ class AndroidComplicationConfigurationEditorTest {
     runConfiguration.componentLaunchOptions.componentName = "com.example.MyIconComplication"
     runConfiguration.setModule(module)
     configurationConfigurable.reset()
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
 
     assertThat(componentComboBox.item).isEqualTo("com.example.MyIconComplication")
 
@@ -250,11 +265,13 @@ class AndroidComplicationConfigurationEditorTest {
       override val watchFaceFQName = ""
     }
     configurationConfigurable.reset()
+
     modulesComboBox.item = module
     editor.apply()
     //region MyIconComplication
     componentComboBox.item = "com.example.MyIconComplication"
     editor.apply()
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     assertThat(countCheckedSlots(slotsPanel)).isEqualTo(0)
 
     // intersect between (SHORT_TEXT, RANGED_VALUE) and (ICON)
@@ -269,6 +286,7 @@ class AndroidComplicationConfigurationEditorTest {
     //region MyLongShortTextComplication
     componentComboBox.item = "com.example.MyLongShortTextComplication"
     editor.apply()
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     assertThat(countCheckedSlots(slotsPanel)).isEqualTo(0)
 
     // intersect between (SHORT_TEXT, RANGED_VALUE) and (SHORT_TEXT, LONG_TEXT)
@@ -281,6 +299,7 @@ class AndroidComplicationConfigurationEditorTest {
     //region MyNoTypeComplication
     componentComboBox.item = "com.example.MyNoTypeComplication"
     editor.apply()
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     assertThat(countCheckedSlots(slotsPanel)).isEqualTo(0)
 
     // intersect between (SHORT_TEXT, RANGED_VALUE) and ()
@@ -318,6 +337,7 @@ class AndroidComplicationConfigurationEditorTest {
     // Choose complication provider
     componentComboBox.item = "com.example.MyIconComplication"
     editor.apply()
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     assertThat(countCheckedSlots(slotsPanel)).isEqualTo(0)
 
     // intersect between (SHORT_TEXT, RANGED_VALUE) and (ICON)
@@ -359,6 +379,7 @@ class AndroidComplicationConfigurationEditorTest {
     //region MyIconComplication
     componentComboBox.item = "com.example.MyIconComplication"
     editor.apply()
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     assertThat(countCheckedSlots(slotsPanel)).isEqualTo(0)
 
     // intersect between (SHORT_TEXT, RANGED_VALUE) and (ICON)
@@ -388,6 +409,8 @@ class AndroidComplicationConfigurationEditorTest {
     assertThat(modulesComboBox.item).isEqualTo(module)
 
     componentComboBox.item = "com.example.MyIconComplication"
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
+    assertThat(countSlotPanels()).isEqualTo(5)
     assertThat(countCheckedSlots(slotsPanel)).isEqualTo(0)
 
     // Add slot.
@@ -397,6 +420,7 @@ class AndroidComplicationConfigurationEditorTest {
     //Change name
     componentComboBox.item = "com.example.MyLongShortTextComplication"
     editor.apply()
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     //Assert that previously added slots are removed.
     assertThat(countCheckedSlots(slotsPanel)).isEqualTo(0)
   }
@@ -423,6 +447,7 @@ class AndroidComplicationConfigurationEditorTest {
     }
 
     configurationConfigurable.reset()
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     assertThat(modulesComboBox.item).isEqualTo(module)
 
     // runConfiguration doesn't have chosen components.
@@ -490,6 +515,7 @@ class AndroidComplicationConfigurationEditorTest {
     runConfiguration.setModule(module)
 
     configurationConfigurable.reset()
+    runInEdtAndWait { PlatformTestUtil.dispatchAllEventsInIdeEventQueue() }
     assertThat(componentComboBox.selectedItem).isEqualTo("com.example.MyIconComplication")
   }
 
@@ -497,6 +523,39 @@ class AndroidComplicationConfigurationEditorTest {
   fun testApkFound() {
     assertThat(Files.isRegularFile(Paths.get(runConfiguration.componentLaunchOptions.watchFaceInfo.apk))).isTrue()
   }
+
+  @Test
+  @RunsInEdt
+  fun testSlotsAreDisplayedInASingleConfigurableEditor() {
+    enableHeadlessDialogs(projectRule.fixture.testRootDisposable)
+    runConfiguration.componentLaunchOptions.watchFaceInfo = object : ComplicationWatchFaceInfo {
+      override val complicationSlots = listOf(
+        ComplicationSlot(
+          "Top",
+          0,
+          arrayOf(ComplicationType.SHORT_TEXT, ComplicationType.RANGED_VALUE)
+        ),
+        ComplicationSlot(
+          "Right",
+          2,
+          arrayOf(ComplicationType.LONG_TEXT, ComplicationType.SHORT_TEXT, ComplicationType.ICON)
+        ))
+
+      override val apk = ""
+      override val appId = ""
+      override val watchFaceFQName = ""
+    }
+
+    val dialog = object : SingleConfigurableEditor(projectRule.project, configurationConfigurable, null, IdeModalityType.IDE) {}
+    createModalDialogAndInteractWithIt({ dialog.show() }) {
+      PlatformTestUtil.dispatchAllEventsInIdeEventQueue()
+      assertThat(countSlotPanels()).isEqualTo(2)
+    }
+  }
+
+  private fun countSlotPanels() =
+    ((slotsPanel.getComponent(1) as JComponent).getComponent(0) as JComponent).components.count()
+
 }
 
 private fun CodeInsightTestFixture.addComplicationServiceClass() {
