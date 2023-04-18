@@ -21,6 +21,7 @@ import com.android.tools.profilers.cpu.ThreadState
 import com.android.tools.profilers.cpu.config.ProfilingConfiguration.TraceType
 import perfetto.protos.PerfettoTrace
 import java.io.Serializable
+import java.lang.Long.max
 import java.util.SortedMap
 import java.util.TreeMap
 
@@ -167,12 +168,18 @@ object CounterDataUtils {
    * It will return a new map with grouped counters' data aggregated.
    */
   @JvmStatic
-  fun aggregateCounters(counters: List<CounterModel>, groupingMap: Map<String, String>): SortedMap<String, List<SeriesData<Long>>> {
+  fun aggregateCounters(counters: List<CounterModel>,
+                        groupingMap: Map<String, String>,
+                        normalizeStartTime: Boolean): SortedMap<String, List<SeriesData<Long>>> {
     val aggregatableCounters = convertCountersToAggregatableFormat(counters)
 
-    // groupToAggregatedData is a map from the group name (String) to a map of the aggregated counter data (TreeMap). This TreeMap
-    // maps a timestamp (Long) to a corresponding value (Double), and is sorted by timestamp (the key) in increasing order.
+    // groupToAggregatedData is a map from the group name (String) to a map of the aggregated counter
+    // data (TreeMap). This TreeMap maps a timestamp (Long) to a corresponding value (Double), and is
+    // sorted by timestamp (the key) in increasing order.
     val groupToAggregatedData = mutableMapOf<String, TreeMap<Long, Double>>()
+    // Mapping of each group to the normalized start time. The normalized start time is the maximum
+    // start time of counters included in a group.
+    val groupNameToNormalizedStartTime = mutableMapOf<String, Long>()
     // If the counter does not belong to a group, then it is not included in the output.
     aggregatableCounters.filter { groupingMap.contains(it.key) }.forEach {
       val groupName = groupingMap[it.key]!!
@@ -181,6 +188,10 @@ object CounterDataUtils {
         // Update the mapping for an already existent group entry.
         val existingMap = groupToAggregatedData[groupName]!!
         val existingSortedMap = existingMap.toSortedMap()
+
+        // Update the maximum minimum timestamp for a group.
+        val minTs = newCounterData.firstKey()
+        groupNameToNormalizedStartTime[groupName] = max(groupNameToNormalizedStartTime.getOrDefault(groupName, Long.MIN_VALUE), minTs)
 
         // Aggregate the current aggregated counter data with the new counter data, sorted by ts.
         existingSortedMap.putAll(it.value)
@@ -220,9 +231,16 @@ object CounterDataUtils {
         groupToAggregatedData[groupName] = newSortedMap
       }
       else {
+        // Update the maximum minimum timestamp for a group.
+        val minTs = it.value.firstKey()
+        groupNameToNormalizedStartTime[groupName] = max(groupNameToNormalizedStartTime.getOrDefault(groupName, Long.MIN_VALUE), minTs)
         // Start new map entry with new group name & data using a singular counter.
         groupToAggregatedData[groupName] = it.value
       }
+    }
+
+    if (normalizeStartTime) {
+      removeDataBeforeNormalizedStartTime(groupToAggregatedData, groupNameToNormalizedStartTime)
     }
 
     return groupToAggregatedData.mapValues {
@@ -243,6 +261,26 @@ object CounterDataUtils {
   private fun convertCountersToAggregatableFormat(counters: List<CounterModel>): Map<String, TreeMap<Long, Double>> {
     return counters.associate {
       it.name to TreeMap<Long, Double>(it.valuesByTimestampUs)
+    }
+  }
+
+  /**
+   * This function clips a grouped counter's series data to start at the maximum start time of the
+   * grouped counters. This is useful when combining groups that have much different magnitudes,
+   * as it removes the first points of the combined series that have extreme differences b/w them.
+   */
+  private fun removeDataBeforeNormalizedStartTime(groupToAggregatedData: MutableMap<String, TreeMap<Long, Double>>,
+                                 groupNameToMaxMinTs: Map<String, Long>) {
+    val groupNames = groupToAggregatedData.keys
+    for (groupName in groupNames) {
+      if (groupToAggregatedData.contains(groupName)) {
+        val maxMinTs = groupNameToMaxMinTs[groupName]!!
+        // To clip off the values with timestamps below the max-min, we set the group's data to a sub map of the original
+        // data mapping. This sub map is from [max-min-ts, last-ts + 1). The last timestamp requires a '+ 1' as the 'subMap'
+        // method 'toKey' parameter is exclusive, while 'fromKey' is inclusive.
+        groupToAggregatedData[groupName] =
+          TreeMap(groupToAggregatedData[groupName]!!.subMap(maxMinTs, groupToAggregatedData[groupName]!!.lastKey() + 1))
+      }
     }
   }
 

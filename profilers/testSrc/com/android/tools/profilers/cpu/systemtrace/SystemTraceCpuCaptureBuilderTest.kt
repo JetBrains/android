@@ -290,8 +290,6 @@ class SystemTraceCpuCaptureBuilderTest {
     assertThat(systemTraceData.batteryDrainCounters).hasSize(2)
 
     assertThat(systemTraceData.powerRailCounters["Memory"]).containsExactly(
-      SeriesData(1, 100L),
-      SeriesData(2, 200L),
       SeriesData(3, 500L),
       SeriesData(4, 600L))
       .inOrder()
@@ -340,8 +338,6 @@ class SystemTraceCpuCaptureBuilderTest {
     assertThat(systemTraceData.batteryDrainCounters).hasSize(2)
 
     assertThat(systemTraceData.powerRailCounters["Memory"]).containsExactly(
-      SeriesData(2, 100L),
-      SeriesData(3, 300L),
       SeriesData(4, 100L))
       .inOrder()
 

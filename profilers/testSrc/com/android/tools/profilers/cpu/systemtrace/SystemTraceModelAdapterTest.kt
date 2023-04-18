@@ -44,7 +44,7 @@ class SystemTraceModelAdapterTest {
       CounterModel("2", sortedMapOf(Pair(2L, 25.0), Pair(4L, 50.0), Pair(6L, 75.0)))
     )
     val groupMapping = mapOf("1" to "foo")
-    val aggregatedCounters = aggregateCounters(powerRails, groupMapping)
+    val aggregatedCounters = aggregateCounters(powerRails, groupMapping, normalizeStartTime = false)
 
     assertThat(aggregatedCounters.keys.size).isEqualTo(1)
     assertThat(aggregatedCounters.containsKey("foo")).isTrue()
@@ -57,13 +57,13 @@ class SystemTraceModelAdapterTest {
   }
 
   @Test
-  fun `test aggregating counter data with non-overlapping staggered timestamps`() {
+  fun `test aggregating counter data with non-overlapping staggered timestamps, non-normalized start time`() {
     val powerRails = listOf(
       CounterModel("1", sortedMapOf(Pair(1L, 100.0), Pair(3L, 200.0), Pair(5L, 300.0))),
       CounterModel("2", sortedMapOf(Pair(2L, 25.0), Pair(4L, 50.0), Pair(6L, 75.0)))
     )
     val groupMapping = mapOf("1" to "foo", "2" to "foo")
-    val aggregatedCounters = aggregateCounters(powerRails, groupMapping)
+    val aggregatedCounters = aggregateCounters(powerRails, groupMapping, normalizeStartTime = false)
 
     assertThat(aggregatedCounters.keys.size).isEqualTo(1)
     assertThat(aggregatedCounters.containsKey("foo")).isTrue()
@@ -76,13 +76,13 @@ class SystemTraceModelAdapterTest {
   }
 
   @Test
-  fun `test aggregating counter data with non-overlapping non-staggered timestamps`() {
+  fun `test aggregating counter data with non-overlapping non-staggered timestamps, non-normalized start time`() {
     val powerRails = listOf(
       CounterModel("1", sortedMapOf(Pair(1L, 100.0), Pair(2L, 200.0), Pair(3L, 300.0))),
       CounterModel("2", sortedMapOf(Pair(4L, 25.0), Pair(5L, 50.0), Pair(6L, 75.0)))
     )
     val groupMapping = mapOf("1" to "foo", "2" to "foo")
-    val aggregatedCounters = aggregateCounters(powerRails, groupMapping)
+    val aggregatedCounters = aggregateCounters(powerRails, groupMapping, normalizeStartTime = false)
 
     assertThat(aggregatedCounters.keys.size).isEqualTo(1)
     assertThat(aggregatedCounters.containsKey("foo")).isTrue()
@@ -95,13 +95,13 @@ class SystemTraceModelAdapterTest {
   }
 
   @Test
-  fun `test aggregating counter data with non-overlapping non-staggered timestamps (later timestamps first)`() {
+  fun `test aggregating counter data with non-overlapping non-staggered timestamps (later timestamps first), non-normalized start time`() {
     val powerRails = listOf(
       CounterModel("1", sortedMapOf(Pair(4L, 25.0), Pair(5L, 50.0), Pair(6L, 75.0))),
       CounterModel("2", sortedMapOf(Pair(1L, 100.0), Pair(2L, 200.0), Pair(3L, 300.0)))
     )
     val groupMapping = mapOf("1" to "foo", "2" to "foo")
-    val aggregatedCounters = aggregateCounters(powerRails, groupMapping)
+    val aggregatedCounters = aggregateCounters(powerRails, groupMapping, normalizeStartTime = false)
 
     assertThat(aggregatedCounters.keys.size).isEqualTo(1)
     assertThat(aggregatedCounters.containsKey("foo")).isTrue()
@@ -114,13 +114,13 @@ class SystemTraceModelAdapterTest {
   }
 
   @Test
-  fun `test aggregating counter data with overlapping timestamps`() {
+  fun `test aggregating counter data with overlapping timestamps, non-normalized start time`() {
     val powerRails = listOf(
       CounterModel("1", sortedMapOf(Pair(1L, 100.0), Pair(3L, 200.0), Pair(5L, 300.0))),
       CounterModel("2", sortedMapOf(Pair(2L, 25.0), Pair(3L, 50.0), Pair(6L, 75.0)))
     )
     val groupMapping = mapOf("1" to "foo", "2" to "foo")
-    val aggregatedCounters = aggregateCounters(powerRails, groupMapping)
+    val aggregatedCounters = aggregateCounters(powerRails, groupMapping, normalizeStartTime = false)
 
     assertThat(aggregatedCounters.keys.size).isEqualTo(1)
     assertThat(aggregatedCounters.containsKey("foo")).isTrue()
@@ -133,14 +133,14 @@ class SystemTraceModelAdapterTest {
   }
 
   @Test
-  fun `test aggregating counter data with non-grouped counter`() {
+  fun `test aggregating counter data with non-grouped counter, non-normalized start time`() {
     val powerRails = listOf(
       CounterModel("1", sortedMapOf(Pair(1L, 100.0), Pair(3L, 200.0), Pair(5L, 300.0))),
       CounterModel("2", sortedMapOf(Pair(2L, 25.0), Pair(4L, 50.0), Pair(6L, 75.0))),
       CounterModel("3", sortedMapOf(Pair(2L, 25.0), Pair(4L, 50.0), Pair(6L, 75.0)))
     )
     val groupMapping = mapOf("1" to "foo", "2" to "foo")
-    val aggregatedCounters = aggregateCounters(powerRails, groupMapping)
+    val aggregatedCounters = aggregateCounters(powerRails, groupMapping, normalizeStartTime = false)
 
     assertThat(aggregatedCounters.keys.size).isEqualTo(1)
     assertThat(aggregatedCounters.containsKey("foo")).isTrue()
@@ -150,6 +150,100 @@ class SystemTraceModelAdapterTest {
                                                    SeriesData(5L, 350), SeriesData(6L, 375))
 
     assertThat(aggregatedCounter).isEqualTo(expectedCounter)
+  }
+
+
+  @Test
+  fun `test combining counter data with non-overlapping staggered timestamps, normalized start time`() {
+    val powerRails = listOf(
+      CounterModel("1", sortedMapOf(Pair(1L, 100.0), Pair(3L, 200.0), Pair(5L, 300.0))),
+      CounterModel("2", sortedMapOf(Pair(2L, 25.0), Pair(4L, 50.0), Pair(6L, 75.0)))
+    )
+    val groupMapping = mapOf("1" to "foo", "2" to "foo")
+    val groupedCounters = aggregateCounters(powerRails, groupMapping, normalizeStartTime = true)
+
+    assertThat(groupedCounters.keys.size).isEqualTo(1)
+    assertThat(groupedCounters.containsKey("foo")).isTrue()
+
+    val combinedCounters = groupedCounters["foo"]!!
+    val expectedCounters = listOf<SeriesData<Long>>(SeriesData(2L, 125), SeriesData(3L, 225), SeriesData(4L, 250),
+                                                    SeriesData(5L, 350), SeriesData(6L, 375))
+
+    assertThat(combinedCounters).isEqualTo(expectedCounters)
+  }
+
+  @Test
+  fun `test combining counter data with non-overlapping non-staggered timestamps, normalized start time`() {
+    val powerRails = listOf(
+      CounterModel("1", sortedMapOf(Pair(1L, 100.0), Pair(2L, 200.0), Pair(3L, 300.0))),
+      CounterModel("2", sortedMapOf(Pair(4L, 25.0), Pair(5L, 50.0), Pair(6L, 75.0)))
+    )
+    val groupMapping = mapOf("1" to "foo", "2" to "foo")
+    val groupedCounters = aggregateCounters(powerRails, groupMapping, normalizeStartTime = true)
+
+    assertThat(groupedCounters.keys.size).isEqualTo(1)
+    assertThat(groupedCounters.containsKey("foo")).isTrue()
+
+    val combinedCounters = groupedCounters["foo"]!!
+    val expectedCounters = listOf<SeriesData<Long>>(SeriesData(4L, 325), SeriesData(5L, 350), SeriesData(6L, 375))
+
+    assertThat(combinedCounters).isEqualTo(expectedCounters)
+  }
+
+  @Test
+  fun `test combining counter data with non-overlapping non-staggered timestamps (later timestamps first), normalized start time`() {
+    val powerRails = listOf(
+      CounterModel("1", sortedMapOf(Pair(4L, 25.0), Pair(5L, 50.0), Pair(6L, 75.0))),
+      CounterModel("2", sortedMapOf(Pair(1L, 100.0), Pair(2L, 200.0), Pair(3L, 300.0)))
+    )
+    val groupMapping = mapOf("1" to "foo", "2" to "foo")
+    val groupedCounters = aggregateCounters(powerRails, groupMapping, normalizeStartTime = true)
+
+    assertThat(groupedCounters.keys.size).isEqualTo(1)
+    assertThat(groupedCounters.containsKey("foo")).isTrue()
+
+    val combinedCounters = groupedCounters["foo"]!!
+    val expectedCounters = listOf<SeriesData<Long>>(SeriesData(4L, 325), SeriesData(5L, 350), SeriesData(6L, 375))
+
+    assertThat(combinedCounters).isEqualTo(expectedCounters)
+  }
+
+  @Test
+  fun `test combining counter data with overlapping timestamps, normalized start time`() {
+    val powerRails = listOf(
+      CounterModel("1", sortedMapOf(Pair(1L, 100.0), Pair(3L, 200.0), Pair(5L, 300.0))),
+      CounterModel("2", sortedMapOf(Pair(2L, 25.0), Pair(3L, 50.0), Pair(6L, 75.0)))
+    )
+    val groupMapping = mapOf("1" to "foo", "2" to "foo")
+    val groupedCounters = aggregateCounters(powerRails, groupMapping, normalizeStartTime = true)
+
+    assertThat(groupedCounters.keys.size).isEqualTo(1)
+    assertThat(groupedCounters.containsKey("foo")).isTrue()
+
+    val combinedCounters = groupedCounters["foo"]!!
+    val expectedCounters = listOf<SeriesData<Long>>(SeriesData(2L, 125), SeriesData(3L, 250), SeriesData(5L, 350), SeriesData(6L, 375))
+
+    assertThat(combinedCounters).isEqualTo(expectedCounters)
+  }
+
+  @Test
+  fun `test combining counter data with non-grouped counter, normalized start time`() {
+    val powerRails = listOf(
+      CounterModel("1", sortedMapOf(Pair(1L, 100.0), Pair(3L, 200.0), Pair(5L, 300.0))),
+      CounterModel("2", sortedMapOf(Pair(2L, 25.0), Pair(4L, 50.0), Pair(6L, 75.0))),
+      CounterModel("3", sortedMapOf(Pair(2L, 25.0), Pair(4L, 50.0), Pair(6L, 75.0)))
+    )
+    val groupMapping = mapOf("1" to "foo", "2" to "foo")
+    val groupedCounters = aggregateCounters(powerRails, groupMapping, normalizeStartTime = true)
+
+    assertThat(groupedCounters.keys.size).isEqualTo(1)
+    assertThat(groupedCounters.containsKey("foo")).isTrue()
+
+    val combinedCounters = groupedCounters["foo"]!!
+    val expectedCounters = listOf<SeriesData<Long>>(SeriesData(2L, 125), SeriesData(3L, 225), SeriesData(4L, 250),
+                                                    SeriesData(5L, 350), SeriesData(6L, 375))
+
+    assertThat(combinedCounters).isEqualTo(expectedCounters)
   }
 
   @Test

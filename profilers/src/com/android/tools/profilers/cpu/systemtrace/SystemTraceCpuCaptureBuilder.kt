@@ -234,7 +234,7 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
 
   private fun buildPowerRailCountersData(systemTracePowerProfilerDisplayMode: PowerProfilerDisplayMode): Map<String, List<SeriesData<Long>>> {
     val filteredPoweredRails = model.getPowerRails().filter { isPowerRailShown(it.name) }
-    val aggregatedPowerRails = aggregateCounters(filteredPoweredRails, powerRailGroupMap)
+    val aggregatedPowerRails = aggregateCounters(filteredPoweredRails, powerRailGroupMap, normalizeStartTime = true)
 
     val resultingCounters = when (systemTracePowerProfilerDisplayMode) {
       PowerProfilerDisplayMode.DELTA -> convertSeriesDataToDeltaSeries(aggregatedPowerRails)
