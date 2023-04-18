@@ -19,18 +19,22 @@ import com.android.ide.common.fonts.MutableFontDetail;
 import com.android.ide.common.fonts.QueryParser;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Multimap;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.testFramework.UsefulTestCase;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.util.Iterator;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import static com.google.common.truth.Truth.assertThat;
 
-public class FontFamilyParserTest extends UsefulTestCase {
+public class FontFamilyParserTest {
+  @Rule
+  public final TemporaryFolder temporaryFolder = new TemporaryFolder();
 
+  @Test
   public void testParseFontFamilyWithReferences() throws Exception {
     @Language("XML")
     String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -59,6 +63,7 @@ public class FontFamilyParserTest extends UsefulTestCase {
     assertThat(italics.getItalics()).isTrue();
   }
 
+  @Test
   public void testParseFontFamilyWithDownloadableFontQuery() throws Exception {
     @Language("XML")
     String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -81,6 +86,7 @@ public class FontFamilyParserTest extends UsefulTestCase {
     assertThat(fontDetail.getItalics()).isFalse();
   }
 
+  @Test
   public void testParseFontFamilyWithDownloadableFontQueryUsingAppCompat() throws Exception {
     @Language("XML")
     String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -103,6 +109,7 @@ public class FontFamilyParserTest extends UsefulTestCase {
     assertThat(fontDetail.getItalics()).isFalse();
   }
 
+  @Test
   public void testParseFontFamilyWithDownloadableFontQueryWithParameters() throws Exception {
     @Language("XML")
     String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -125,6 +132,7 @@ public class FontFamilyParserTest extends UsefulTestCase {
     assertThat(fontDetail.getItalics()).isTrue();
   }
 
+  @Test
   public void testParseFontFamilyWithMultipleDownloadableFonts() throws Exception {
     @Language("XML")
     String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
@@ -158,12 +166,12 @@ public class FontFamilyParserTest extends UsefulTestCase {
     assertThat(roboto2.getItalics()).isTrue();
   }
 
-  private static File createXmlFile(@NotNull @Language("XML") String content) throws IOException {
-    File folder = FileUtil.createTempDirectory("temp", "folder");
+  private File createXmlFile(@NotNull @Language("XML") String content) throws IOException {
+    File folder = temporaryFolder.newFolder("folder");
+    folder.mkdirs();
     File file = new File(folder, "example.xml");
-    InputStream inputStream = new ByteArrayInputStream(content.getBytes(Charsets.UTF_8.toString()));
     try (OutputStream outputStream = new FileOutputStream(file)) {
-      FileUtil.copy(inputStream, outputStream);
+      outputStream.write(content.getBytes(Charsets.UTF_8));
     }
     return file;
   }
