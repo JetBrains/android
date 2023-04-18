@@ -788,11 +788,6 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   }
 
   @Nullable
-  public ActionBarHandler getActionBarHandler() {
-    return myActionBarHandler;
-  }
-
-  @Nullable
   public String getResourcePackage() {
     return myRenderModule.getResourcePackage();
   }
@@ -978,5 +973,16 @@ public class LayoutlibCallbackImpl extends LayoutlibCallback {
   @TestOnly
   public void setProjectFonts(@Nullable ProjectFonts projectFonts) {
     myProjectFonts = projectFonts;
+  }
+
+  public void setMenuResource(String resourceName) {
+    if (myActionBarHandler != null) {
+      ResourceReference menuResource =
+        new ResourceReference(
+          myRenderModule.getResourceRepositoryManager().getNamespace(),
+          ResourceType.MENU,
+          SdkUtils.fileNameToResourceName(resourceName));
+      myActionBarHandler.setMenuIds(Collections.singletonList(menuResource));
+    }
   }
 }

@@ -58,10 +58,6 @@ public class ActionBarHandler extends ActionBarCallback {
   @Nullable private final Object myCredential;
   @NotNull private final RenderTask myRenderTask;
 
-  public ResourceRepositoryManager getResourceRepositoryManager() {
-    return myResourceRepositoryManager;
-  }
-
   @NotNull private final ResourceRepositoryManager myResourceRepositoryManager;
   @Nullable private ImmutableList<ResourceReference> myMenus;
 
