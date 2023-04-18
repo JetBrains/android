@@ -17,7 +17,6 @@
 package com.android.tools.idea.ui.screenshot
 
 import com.android.annotations.concurrency.Slow
-import com.intellij.util.ui.ImageUtil
 import java.awt.AlphaComposite
 import java.awt.Color
 import java.awt.Dimension
@@ -57,7 +56,8 @@ interface ScreenshotPostprocessor {
     val framedImage = addFrame(screenshotImage, framingOption, backgroundColor)
     require(outputDimension.width >= framedImage.width)
     require(outputDimension.height >= framedImage.height)
-    val result = ImageUtil.createImage(outputDimension.width, outputDimension.height, BufferedImage.TYPE_INT_ARGB)
+    @Suppress("UndesirableClassUsage")
+    val result = BufferedImage(outputDimension.width, outputDimension.height, BufferedImage.TYPE_INT_ARGB)
     result.createGraphics().apply {
       val paddingX = (outputDimension.width - framedImage.width) / 2
       val paddingY = (outputDimension.height - framedImage.height) / 2

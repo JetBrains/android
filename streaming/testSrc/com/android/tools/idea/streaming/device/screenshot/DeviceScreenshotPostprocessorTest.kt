@@ -22,9 +22,11 @@ import com.android.tools.adtui.device.DeviceArtDescriptor
 import com.android.tools.adtui.webp.WebpMetadata
 import com.android.tools.idea.ui.screenshot.DeviceType
 import com.android.tools.idea.ui.screenshot.ScreenshotImage
+import com.google.common.truth.Truth.assertThat
 import org.junit.Before
 import org.junit.Test
 import java.awt.Color
+import java.awt.Dimension
 import java.awt.image.BufferedImage
 import java.awt.image.BufferedImage.TYPE_INT_ARGB
 import java.nio.file.Path
@@ -62,6 +64,17 @@ class DeviceScreenshotPostprocessorTest {
     val screenshotImage = ScreenshotImage(createImage(400, 400, Color.CYAN), 0, DeviceType.WEAR, "DisplayDeviceInfo{..., FLAG_ROUND}")
     val framedImage = postprocessor.addFrame(screenshotImage, null, null)
     assertImageSimilar("CircularClip", framedImage)
+  }
+
+  @Test
+  fun testAddFrameWithOutputDimension() {
+    val outputDimension = Dimension(390, 400)
+    val screenshotImage = ScreenshotImage(createImage(360, 360, Color.CYAN), 0, DeviceType.WEAR, "")
+
+    val framedImage = postprocessor.addFrame(screenshotImage, null, null, outputDimension)
+
+    assertThat(framedImage.width).isEqualTo(outputDimension.width)
+    assertThat(framedImage.height).isEqualTo(outputDimension.height)
   }
 
   private fun createImage(width: Int, height: Int, color: Color): BufferedImage {
