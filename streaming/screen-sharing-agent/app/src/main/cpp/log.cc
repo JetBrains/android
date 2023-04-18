@@ -26,7 +26,7 @@ namespace screensharing {
 
 using namespace std;
 
-static constexpr char TAG[] = "ScreenSharing";
+static constexpr char TAG[] = "studio.screen.sharing";
 
 Log::Level Log::level_ = Log::Level::INFO;
 
