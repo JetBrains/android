@@ -108,7 +108,7 @@ class FakeScreenSharingAgent(
   private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor(
      "FakeScreenSharingAgent", AndroidExecutors.getInstance().workerThreadExecutor, 1)
   private val singleThreadedDispatcher = executor.asCoroutineDispatcher()
-  private val coroutineScope = CoroutineScope(singleThreadedDispatcher + Job())
+  private val agentsScope = CoroutineScope(singleThreadedDispatcher + Job())
   private var startTime = 0L
 
   private val displayId = PRIMARY_DISPLAY_ID
@@ -122,7 +122,7 @@ class FakeScreenSharingAgent(
     set(value) {
       val oldValue = clipboardInternal.getAndSet(value)
       if (value != oldValue) {
-        coroutineScope.launch {
+        agentsScope.launch {
           if (clipboardSynchronizationActive.get()) {
             sendNotification(ClipboardChangedNotification(value))
           }
@@ -417,7 +417,7 @@ class FakeScreenSharingAgent(
     if (foldingState?.ordinal != message.state) {
       foldingState = FoldingState.values()[message.state]
       sendDeviceStateNotification()
-      coroutineScope.launch { displayStreamer?.renderDisplay() }
+      agentsScope.launch { displayStreamer?.renderDisplay() }
     }
   }
 
@@ -460,7 +460,8 @@ class FakeScreenSharingAgent(
       channel.writeFully(header)
 
       // Send the initial set of frames.
-      renderDisplay(0)
+      lastImageFlavor = 0
+      renderDisplay()
     }
 
     /**
