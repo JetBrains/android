@@ -590,24 +590,6 @@ public final class StudioFlags {
   //region Logcat
   private static final FlagGroup LOGCAT = new FlagGroup(FLAGS, "logcat", "Logcat");
 
-  // Deprecated: Old logcat tool window
-  public static final Flag<Boolean> LOGCAT_EXPRESSION_FILTER_ENABLE = Flag.create(
-    LOGCAT,
-    "expression.filter.enable",
-    "Enable expression filter in Logcat (deprecated)",
-    "Enables the expression filter in Logcat",
-    false
-  );
-
-  // Deprecated: Old logcat tool window
-  public static final Flag<Boolean> LOGCAT_SUPPRESSED_TAGS_ENABLE = Flag.create(
-    LOGCAT,
-    "suppressed.tags.enable",
-    "Enable Suppressed Tags Dialog in Logcat (deprecated)",
-    "Enables a dialog that allows the user to maintain a global set of tags to be suppressed in Logcat",
-    false
-  );
-
   public static final Flag<Boolean> LOGCAT_CUSTOM_FORMAT_ACTION = Flag.create(
     LOGCAT,
     "custom.format.action",
