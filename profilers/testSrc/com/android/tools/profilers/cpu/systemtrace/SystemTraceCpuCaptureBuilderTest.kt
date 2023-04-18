@@ -269,9 +269,12 @@ class SystemTraceCpuCaptureBuilderTest {
         mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
         mapOf()))
 
+    // The rails 'power.rails.ddr.a' & 'power.rails.ddr.c' are used as they are known to be grouped under "Memory".
+    // The 'power.rails.cpu.big' is in a group "CPU Big' by itself.
     val powerRails = listOf(
-      CounterModel("power.rails.foo", sortedMapOf(1L to 100.0, 2L to 200.0)),
-      CounterModel("power.rails.bar", sortedMapOf(3L to 300.0, 4L to 400.0)))
+      CounterModel("power.rails.ddr.a", sortedMapOf(1L to 100.0, 2L to 200.0)),
+      CounterModel("power.rails.ddr.c", sortedMapOf(3L to 300.0, 4L to 400.0)),
+      CounterModel("power.rails.cpu.big", sortedMapOf(5L to 500.0, 6L to 600.0)))
 
     val batteryDrain = listOf(
       CounterModel("foo", sortedMapOf(1L to 100.0, 2L to 200.0)),
@@ -286,13 +289,16 @@ class SystemTraceCpuCaptureBuilderTest {
     assertThat(systemTraceData.powerRailCounters).hasSize(2)
     assertThat(systemTraceData.batteryDrainCounters).hasSize(2)
 
-    assertThat(systemTraceData.powerRailCounters).containsExactly(
-      "power.rails.bar", listOf(
-      SeriesData(3, 300L),
-      SeriesData(4, 400L)),
-      "power.rails.foo", listOf(
+    assertThat(systemTraceData.powerRailCounters["Memory"]).containsExactly(
       SeriesData(1, 100L),
-      SeriesData(2, 200L)))
+      SeriesData(2, 200L),
+      SeriesData(3, 500L),
+      SeriesData(4, 600L))
+      .inOrder()
+
+    assertThat(systemTraceData.powerRailCounters["CPU Big"]).containsExactly(
+      SeriesData(5, 500L),
+      SeriesData(6, 600L))
       .inOrder()
 
     assertThat(systemTraceData.batteryDrainCounters).containsExactly(
@@ -313,9 +319,12 @@ class SystemTraceCpuCaptureBuilderTest {
         mapOf(1 to ThreadModel(1, 1, "Thread", listOf(), listOf())),
         mapOf()))
 
+    // The rails 'power.rails.ddr.a' & 'power.rails.ddr.c' are used as they are known to be grouped under "Memory".
+    // The 'power.rails.cpu.big' is in a group "CPU Big' by itself.
     val powerRails = listOf(
-      CounterModel("power.rails.foo", sortedMapOf(1L to 100.0, 2L to 200.0)),
-      CounterModel("power.rails.bar", sortedMapOf(3L to 300.0, 4L to 400.0)))
+      CounterModel("power.rails.ddr.a", sortedMapOf(1L to 100.0, 2L to 200.0)),
+      CounterModel("power.rails.ddr.c", sortedMapOf(3L to 300.0, 4L to 400.0)),
+      CounterModel("power.rails.cpu.big", sortedMapOf(5L to 500.0, 6L to 600.0)))
 
     val batteryDrain = listOf(
       CounterModel("foo", sortedMapOf(1L to 100.0, 2L to 200.0)),
@@ -330,11 +339,14 @@ class SystemTraceCpuCaptureBuilderTest {
     assertThat(systemTraceData.powerRailCounters).hasSize(2)
     assertThat(systemTraceData.batteryDrainCounters).hasSize(2)
 
-    assertThat(systemTraceData.powerRailCounters).containsExactly(
-      "power.rails.bar", listOf(
-      SeriesData(4, 100L)),
-      "power.rails.foo", listOf(
-      SeriesData(2, 100L)))
+    assertThat(systemTraceData.powerRailCounters["Memory"]).containsExactly(
+      SeriesData(2, 100L),
+      SeriesData(3, 300L),
+      SeriesData(4, 100L))
+      .inOrder()
+
+    assertThat(systemTraceData.powerRailCounters["CPU Big"]).containsExactly(
+      SeriesData(6, 100L))
       .inOrder()
 
     // In the DELTA view, only the power rail counters have the delta computed,

@@ -163,6 +163,90 @@ data class CounterModel(
 object CounterDataUtils {
 
   /**
+   * This utility function takes in a list of counters and a map indicating the desired grouping.
+   * It will return a new map with grouped counters' data aggregated.
+   */
+  @JvmStatic
+  fun aggregateCounters(counters: List<CounterModel>, groupingMap: Map<String, String>): SortedMap<String, List<SeriesData<Long>>> {
+    val aggregatableCounters = convertCountersToAggregatableFormat(counters)
+
+    // groupToAggregatedData is a map from the group name (String) to a map of the aggregated counter data (TreeMap). This TreeMap
+    // maps a timestamp (Long) to a corresponding value (Double), and is sorted by timestamp (the key) in increasing order.
+    val groupToAggregatedData = mutableMapOf<String, TreeMap<Long, Double>>()
+    // If the counter does not belong to a group, then it is not included in the output.
+    aggregatableCounters.filter { groupingMap.contains(it.key) }.forEach {
+      val groupName = groupingMap[it.key]!!
+      val newCounterData = it.value
+      if (groupToAggregatedData.contains(groupName)) {
+        // Update the mapping for an already existent group entry.
+        val existingMap = groupToAggregatedData[groupName]!!
+        val existingSortedMap = existingMap.toSortedMap()
+
+        // Aggregate the current aggregated counter data with the new counter data, sorted by ts.
+        existingSortedMap.putAll(it.value)
+
+        val newSortedMap = TreeMap<Long, Double>()
+
+        for (ts in existingSortedMap.keys) {
+          val inCurrentGroup = existingMap.contains(ts)
+          val inNewCounter = newCounterData.contains(ts)
+
+          // If the current timestamp is in both the current group and the new (to be merged) counter,
+          // then we sum the two values at the timestamp and set it as the timestamp's value in the
+          // aggregated data map.
+          if (inCurrentGroup && inNewCounter) {
+            newSortedMap[ts] = existingMap[ts]!! + newCounterData[ts]!!
+          }
+          // If the current timestamp is in the current group but not in the new (to be merged) counter,
+          // then we set the current timestamp's value as the current group's value in the aggregated map.
+          // And, if it exists, we also add on the value of the new counter at the maximum timestamp before
+          // the current timestamp. This allows us to account for the new counter's contribution to the
+          // accumulated value.
+          else if (inCurrentGroup) {
+            val pastCurrentRailVal = newCounterData.floorEntry(ts)
+            newSortedMap[ts] = (if (pastCurrentRailVal != null) pastCurrentRailVal.value else 0.0) + existingMap[ts]!!
+          }
+          // If the current timestamp is in the new (to be merged) counter and not in the current group,
+          // then we will set the current timestamp's value as the new counter's value in the aggregated
+          // map. And, if it exists, we add on the value of the current group at the maximum timestamp
+          // before the current timestamp. This allows us to account for the current group's contribution
+          // to the accumulated value.
+          else if (inNewCounter) {
+            val pastCurrentGroupVal = existingMap.floorEntry(ts)
+            newSortedMap[ts] = (if (pastCurrentGroupVal != null) pastCurrentGroupVal.value else 0.0) + newCounterData[ts]!!
+          }
+        }
+
+        groupToAggregatedData[groupName] = newSortedMap
+      }
+      else {
+        // Start new map entry with new group name & data using a singular counter.
+        groupToAggregatedData[groupName] = it.value
+      }
+    }
+
+    return groupToAggregatedData.mapValues {
+      val counterModel = CounterModel(it.key, it.value)
+      convertCounterToSeriesData(counterModel)
+    }.toSortedMap()
+  }
+
+  /**
+   * In order to perform the aggregation in 'aggregateCounters', the 'valuesByTimestampUs' field
+   * of the CounterModel must be of type TreeMap<Long, Double>, rather than SortedMap<Long, Double>.
+   * This helper function does this type conversion to guarantee we have data in aggregatable format.
+   *
+   * @param counters - list of CounterModel's to be transformed
+   * @return a mapping from the counter name (String) to a map of the counter data (TreeMap). This TreeMap maps a
+   * timestamp (Long) to a corresponding value (Double), and is sorted by timestamp (the key) in increasing order.
+   */
+  private fun convertCountersToAggregatableFormat(counters: List<CounterModel>): Map<String, TreeMap<Long, Double>> {
+    return counters.associate {
+      it.name to TreeMap<Long, Double>(it.valuesByTimestampUs)
+    }
+  }
+
+  /**
    * This utility function takes in counters data map (counter name to a list of series data).
    * It will return a new map where the counter data value at each timestamp is the difference between
    * itself and the last timestamp's value.

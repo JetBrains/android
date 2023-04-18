@@ -16,6 +16,7 @@
 package com.android.tools.profilers.cpu.systemtrace
 
 import com.android.tools.adtui.model.SeriesData
+import com.android.tools.profilers.cpu.systemtrace.CounterDataUtils.aggregateCounters
 import com.android.tools.profilers.cpu.systemtrace.CounterDataUtils.convertSeriesDataToDeltaSeries
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
@@ -34,6 +35,121 @@ class SystemTraceModelAdapterTest {
                                               SeriesData(6, 6L to 8L),
                                               SeriesData(8, 8),
                                               SeriesData(9, 9L to Long.MAX_VALUE)))
+  }
+
+  @Test
+  fun `non-grouped counter name is filtered out during aggregation`() {
+    val powerRails = listOf(
+      CounterModel("1", sortedMapOf(Pair(1L, 100.0), Pair(3L, 200.0), Pair(5L, 300.0))),
+      CounterModel("2", sortedMapOf(Pair(2L, 25.0), Pair(4L, 50.0), Pair(6L, 75.0)))
+    )
+    val groupMapping = mapOf("1" to "foo")
+    val aggregatedCounters = aggregateCounters(powerRails, groupMapping)
+
+    assertThat(aggregatedCounters.keys.size).isEqualTo(1)
+    assertThat(aggregatedCounters.containsKey("foo")).isTrue()
+
+    val aggregatedCounter = aggregatedCounters["foo"]!!
+    // Expected results should only have counter "1" data as it is the only one with a grouping (defined in 'groupMapping').
+    val expectedCounter = listOf<SeriesData<Long>>(SeriesData(1L, 100), SeriesData(3L, 200), SeriesData(5L, 300))
+
+    assertThat(aggregatedCounter).isEqualTo(expectedCounter)
+  }
+
+  @Test
+  fun `test aggregating counter data with non-overlapping staggered timestamps`() {
+    val powerRails = listOf(
+      CounterModel("1", sortedMapOf(Pair(1L, 100.0), Pair(3L, 200.0), Pair(5L, 300.0))),
+      CounterModel("2", sortedMapOf(Pair(2L, 25.0), Pair(4L, 50.0), Pair(6L, 75.0)))
+    )
+    val groupMapping = mapOf("1" to "foo", "2" to "foo")
+    val aggregatedCounters = aggregateCounters(powerRails, groupMapping)
+
+    assertThat(aggregatedCounters.keys.size).isEqualTo(1)
+    assertThat(aggregatedCounters.containsKey("foo")).isTrue()
+
+    val aggregatedCounter = aggregatedCounters["foo"]!!
+    val expectedCounter = listOf<SeriesData<Long>>(SeriesData(1L, 100), SeriesData(2L, 125), SeriesData(3L, 225), SeriesData(4L, 250),
+                                                   SeriesData(5L, 350), SeriesData(6L, 375))
+
+    assertThat(aggregatedCounter).isEqualTo(expectedCounter)
+  }
+
+  @Test
+  fun `test aggregating counter data with non-overlapping non-staggered timestamps`() {
+    val powerRails = listOf(
+      CounterModel("1", sortedMapOf(Pair(1L, 100.0), Pair(2L, 200.0), Pair(3L, 300.0))),
+      CounterModel("2", sortedMapOf(Pair(4L, 25.0), Pair(5L, 50.0), Pair(6L, 75.0)))
+    )
+    val groupMapping = mapOf("1" to "foo", "2" to "foo")
+    val aggregatedCounters = aggregateCounters(powerRails, groupMapping)
+
+    assertThat(aggregatedCounters.keys.size).isEqualTo(1)
+    assertThat(aggregatedCounters.containsKey("foo")).isTrue()
+
+    val aggregatedCounter = aggregatedCounters["foo"]!!
+    val expectedCounter = listOf<SeriesData<Long>>(SeriesData(1L, 100), SeriesData(2L, 200), SeriesData(3L, 300), SeriesData(4L, 325),
+                                                   SeriesData(5L, 350), SeriesData(6L, 375))
+
+    assertThat(aggregatedCounter).isEqualTo(expectedCounter)
+  }
+
+  @Test
+  fun `test aggregating counter data with non-overlapping non-staggered timestamps (later timestamps first)`() {
+    val powerRails = listOf(
+      CounterModel("1", sortedMapOf(Pair(4L, 25.0), Pair(5L, 50.0), Pair(6L, 75.0))),
+      CounterModel("2", sortedMapOf(Pair(1L, 100.0), Pair(2L, 200.0), Pair(3L, 300.0)))
+    )
+    val groupMapping = mapOf("1" to "foo", "2" to "foo")
+    val aggregatedCounters = aggregateCounters(powerRails, groupMapping)
+
+    assertThat(aggregatedCounters.keys.size).isEqualTo(1)
+    assertThat(aggregatedCounters.containsKey("foo")).isTrue()
+
+    val aggregatedCounter = aggregatedCounters["foo"]!!
+    val expectedCounter = listOf<SeriesData<Long>>(SeriesData(1L, 100), SeriesData(2L, 200), SeriesData(3L, 300), SeriesData(4L, 325),
+                                                   SeriesData(5L, 350), SeriesData(6L, 375))
+
+    assertThat(aggregatedCounter).isEqualTo(expectedCounter)
+  }
+
+  @Test
+  fun `test aggregating counter data with overlapping timestamps`() {
+    val powerRails = listOf(
+      CounterModel("1", sortedMapOf(Pair(1L, 100.0), Pair(3L, 200.0), Pair(5L, 300.0))),
+      CounterModel("2", sortedMapOf(Pair(2L, 25.0), Pair(3L, 50.0), Pair(6L, 75.0)))
+    )
+    val groupMapping = mapOf("1" to "foo", "2" to "foo")
+    val aggregatedCounters = aggregateCounters(powerRails, groupMapping)
+
+    assertThat(aggregatedCounters.keys.size).isEqualTo(1)
+    assertThat(aggregatedCounters.containsKey("foo")).isTrue()
+
+    val aggregatedCounter = aggregatedCounters["foo"]!!
+    val expectedCounter = listOf<SeriesData<Long>>(SeriesData(1L, 100), SeriesData(2L, 125), SeriesData(3L, 250),
+                                                   SeriesData(5L, 350), SeriesData(6L, 375))
+
+    assertThat(aggregatedCounter).isEqualTo(expectedCounter)
+  }
+
+  @Test
+  fun `test aggregating counter data with non-grouped counter`() {
+    val powerRails = listOf(
+      CounterModel("1", sortedMapOf(Pair(1L, 100.0), Pair(3L, 200.0), Pair(5L, 300.0))),
+      CounterModel("2", sortedMapOf(Pair(2L, 25.0), Pair(4L, 50.0), Pair(6L, 75.0))),
+      CounterModel("3", sortedMapOf(Pair(2L, 25.0), Pair(4L, 50.0), Pair(6L, 75.0)))
+    )
+    val groupMapping = mapOf("1" to "foo", "2" to "foo")
+    val aggregatedCounters = aggregateCounters(powerRails, groupMapping)
+
+    assertThat(aggregatedCounters.keys.size).isEqualTo(1)
+    assertThat(aggregatedCounters.containsKey("foo")).isTrue()
+
+    val aggregatedCounter = aggregatedCounters["foo"]!!
+    val expectedCounter = listOf<SeriesData<Long>>(SeriesData(1L, 100), SeriesData(2L, 125), SeriesData(3L, 225), SeriesData(4L, 250),
+                                                   SeriesData(5L, 350), SeriesData(6L, 375))
+
+    assertThat(aggregatedCounter).isEqualTo(expectedCounter)
   }
 
   @Test

@@ -23,9 +23,11 @@ import com.android.tools.profilers.cpu.CaptureNode
 import com.android.tools.profilers.cpu.CpuThreadInfo
 import com.android.tools.profilers.cpu.ThreadState
 import com.android.tools.profilers.cpu.nodemodel.SystemTraceNodeFactory
+import com.android.tools.profilers.cpu.systemtrace.CounterDataUtils.aggregateCounters
 import com.android.tools.profilers.cpu.systemtrace.CounterDataUtils.convertCounterToSeriesData
 import com.android.tools.profilers.cpu.systemtrace.CounterDataUtils.convertSeriesDataToDeltaSeries
 import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel.Companion.isPowerRailShown
+import com.android.tools.profilers.cpu.systemtrace.PowerRailTrackModel.Companion.powerRailGroupMap
 import java.util.concurrent.TimeUnit
 import java.util.function.UnaryOperator
 import kotlin.math.max
@@ -231,13 +233,12 @@ class SystemTraceCpuCaptureBuilder(private val model: SystemTraceModelAdapter) {
   }
 
   private fun buildPowerRailCountersData(systemTracePowerProfilerDisplayMode: PowerProfilerDisplayMode): Map<String, List<SeriesData<Long>>> {
-    val filteredPoweredRails = model.getPowerRails().filter { isPowerRailShown(it.name) }.associate {
-      it.name to convertCounterToSeriesData(it)
-    }.toSortedMap()
+    val filteredPoweredRails = model.getPowerRails().filter { isPowerRailShown(it.name) }
+    val aggregatedPowerRails = aggregateCounters(filteredPoweredRails, powerRailGroupMap)
 
     val resultingCounters = when (systemTracePowerProfilerDisplayMode) {
-      PowerProfilerDisplayMode.DELTA -> convertSeriesDataToDeltaSeries(filteredPoweredRails)
-      else -> filteredPoweredRails
+      PowerProfilerDisplayMode.DELTA -> convertSeriesDataToDeltaSeries(aggregatedPowerRails)
+      else -> aggregatedPowerRails
     }
 
     return resultingCounters

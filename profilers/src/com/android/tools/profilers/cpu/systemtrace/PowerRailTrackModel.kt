@@ -50,6 +50,35 @@ class PowerRailTrackModel(dataSeries: List<SeriesData<Long>>, viewRange: Range) 
       "power.VSYS_PWR_DISPLAY_uws" to "power.rails.display"
     )
 
+    // This map defines the power rail groupings. Rails that map to the
+    // same group will have their series data aggregated into one counter.
+    val powerRailGroupMap = mapOf(
+      "power.rails.modem" to "Cellular",
+      "power.rails.radio.frontend" to "Cellular",
+      "power.VSYS_PWR_MMWAVE_uws" to "Cellular",
+      "power.rails.wifi.bt" to "WLAN",
+      "power.rails.display" to "Display",
+      "power.rails.cpu.big" to "CPU Big",
+      "power.rails.cpu.mid" to "CPU Mid",
+      "power.rails.cpu.little" to "CPU Little",
+      "power.rails.gpu" to "GPU",
+      "power.S8S_VDD_G3D_L2_uws" to "GPU",
+      "power.rails.system.fabric" to "Infrastructure",
+      "power.rails.memory.interface" to "Infrastructure",
+      "power.rails.ddr.a" to "Memory",
+      "power.rails.ddr.b" to "Memory",
+      "power.rails.ddr.c" to "Memory",
+      "power.L15M_VDD_SLC_M_uws" to "System Cache",
+      "power.rails.aoc.memory" to "Sensor Core",
+      "power.rails.aoc.logic" to "Sensor Core",
+      "power.L7S_SENSORS_uws" to "Sensor Core",
+      "power.rails.gps" to "GPS",
+      "power.S1S_VDD_CAM_uws" to "Camera",
+      "power.S6M_LLDO1_uws" to "Misc",
+      "power.S8M_LLDO2_uws" to "Misc",
+      "power.L2S_PLL_MIPI_UFS_uws" to "UFS (Disk)",
+    )
+
     // List of filters used to detect power rails that should be hidden.
     private val powerRailNameFilters = listOf<(String) -> Boolean>(
       { i -> i.startsWith("power.rails.") },
