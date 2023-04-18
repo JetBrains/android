@@ -21,6 +21,7 @@ import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
 import com.intellij.util.xmlb.XmlSerializerUtil
+import kotlin.reflect.KProperty
 
 /**
  * Settings for mirroring of physical Android devices.
@@ -29,63 +30,16 @@ import com.intellij.util.xmlb.XmlSerializerUtil
 class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings> {
 
   private var initialized = false
-
-  var deviceMirroringEnabled: Boolean = StudioFlags.DEVICE_MIRRORING_ENABLED_BY_DEFAULT.get()
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
-
-  var activateOnConnection: Boolean = false
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
-
-  var activateOnAppLaunch: Boolean = true
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
-
-  var activateOnTestLaunch: Boolean = false
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
-
-  var synchronizeClipboard: Boolean = true
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
+  var deviceMirroringEnabled: Boolean by ChangeNotifyingProperty(StudioFlags.DEVICE_MIRRORING_ENABLED_BY_DEFAULT.get())
+  var activateOnConnection: Boolean by ChangeNotifyingProperty(false)
+  var activateOnAppLaunch: Boolean by ChangeNotifyingProperty(true)
+  var activateOnTestLaunch: Boolean by ChangeNotifyingProperty(false)
+  var synchronizeClipboard: Boolean by ChangeNotifyingProperty(true)
 
   /** Max length of clipboard text to participate in clipboard synchronization. */
-  var maxSyncedClipboardLength: Int = MAX_SYNCED_CLIPBOARD_LENGTH_DEFAULT
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
+  var maxSyncedClipboardLength: Int by ChangeNotifyingProperty(MAX_SYNCED_CLIPBOARD_LENGTH_DEFAULT)
 
-  var turnOffDisplayWhileMirroring: Boolean = false
-    set(value) {
-      if (field != value) {
-        field = value
-        notifyListeners()
-      }
-    }
+  var turnOffDisplayWhileMirroring: Boolean by ChangeNotifyingProperty(false)
 
   /**
    * This property indicates whether the MirroringConfirmationDialog was shown at least once.
@@ -117,5 +71,15 @@ class DeviceMirroringSettings : PersistentStateComponent<DeviceMirroringSettings
     }
 
     const val MAX_SYNCED_CLIPBOARD_LENGTH_DEFAULT = 5000
+  }
+
+  private inner class ChangeNotifyingProperty<T>(var value: T) {
+    operator fun getValue(thisRef: DeviceMirroringSettings, property: KProperty<*>) = value
+    operator fun setValue(thisRef: DeviceMirroringSettings, property: KProperty<*>, newValue: T) {
+      if (value != newValue) {
+        value = newValue
+        notifyListeners()
+      }
+    }
   }
 }
