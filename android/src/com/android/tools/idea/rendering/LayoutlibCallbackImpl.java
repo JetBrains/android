@@ -65,7 +65,7 @@ import com.android.tools.idea.model.AndroidModuleInfo;
 import com.android.tools.rendering.LayoutMetadata;
 import com.android.tools.rendering.parsers.AaptAttrParser;
 import com.android.tools.rendering.parsers.ILayoutPullParserFactory;
-import com.android.tools.idea.rendering.parsers.LayoutFilePullParser;
+import com.android.tools.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutRenderPullParser;
 import com.android.tools.rendering.parsers.TagSnapshot;
 import com.android.tools.res.FileResourceReader;

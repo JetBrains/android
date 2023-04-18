@@ -32,6 +32,7 @@ iml_module(
         "//tools/adt/idea/.idea/libraries:kxml2[test]",
         "//tools/base/layoutlib-api:studio.android.sdktools.layoutlib-api[module, test]",
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
+        "//tools/base/sdk-common:studio.android.sdktools.sdk-common[module, test]",
     ],
 )
 

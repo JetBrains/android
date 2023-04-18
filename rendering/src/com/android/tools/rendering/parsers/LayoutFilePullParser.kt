@@ -15,7 +15,7 @@
  */
 @file:JvmName("LayoutFilePullParser")
 
-package com.android.tools.idea.rendering.parsers
+package com.android.tools.rendering.parsers
 
 import com.android.ide.common.rendering.api.ILayoutPullParser
 import com.android.ide.common.rendering.api.ResourceNamespace
