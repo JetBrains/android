@@ -79,7 +79,8 @@ message App {
   // Example: `com.example.app123`.
   string package_name = 2;
 
-  // Title of the app as displayed in the Play Store.
+  // Title of the app. This is the latest title as set in the Play Console and
+  // may not yet have been reviewed, so might not match the Play Store.
   //
   // Example: `Google Maps`.
   string display_name = 3;

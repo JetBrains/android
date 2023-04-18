@@ -125,7 +125,9 @@ message GetCrashRateMetricSetRequest {
 //     An app is considered to be in active use
 //     if it is displaying any activity or executing any foreground service.
 //     Care must be taken not to aggregate this count further, as it may
-//     result in users being counted multiple times.
+//     result in users being counted multiple times. The value is rounded to the
+//     nearest multiple of 10, 100, 1,000 or 1,000,000, depending on the
+//     magnitude of the value.
 //
 // **Supported dimensions:**
 //
@@ -315,7 +317,9 @@ message QueryCrashRateMetricSetRequest {
   //     period. An app is considered to be in active use if it is displaying
   //     any activity or executing any foreground service. Care must be taken
   //     not to aggregate this count further, as it may result in users being
-  //     counted multiple times.
+  //     counted multiple times. The value is rounded to the nearest
+  //     multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of
+  //     the value.
   repeated string metrics = 4;
 
   // Filters to apply to data. The filtering expression follows
@@ -698,7 +702,9 @@ message GetExcessiveWakeupRateMetricSetRequest {
 //     they app was doing any work on the device, i.e., not just active
 //     foreground usage but also background work. Care must be taken
 //     not to aggregate this count further, as it may result in users being
-//     counted multiple times.
+//     counted multiple times. The value is rounded to the nearest
+//     multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of
+//     the value.
 //
 // **Supported dimensions:**
 //
@@ -869,7 +875,8 @@ message QueryExcessiveWakeupRateMetricSetRequest {
   //     they app was doing any work on the device, i.e., not just active
   //     foreground usage but also background work. Care must be taken
   //     not to aggregate this count further, as it may result in users being
-  //     counted multiple times.
+  //     counted multiple times. The value is rounded to the nearest multiple of
+  //     10, 100, 1,000 or 1,000,000, depending on the magnitude of the value.
   repeated string metrics = 4;
 
   // Filters to apply to data. The filtering expression follows
@@ -963,7 +970,9 @@ message GetStuckBackgroundWakelockRateMetricSetRequest {
 //     their app was doing any work on the device, i.e., not just active
 //     foreground usage but also background work. Care must be taken
 //     not to aggregate this count further, as it may result in users being
-//     counted multiple times.
+//     counted multiple times. The value is rounded to the nearest
+//     multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of
+//     the value.
 //
 // **Supported dimensions:**
 //
@@ -1135,7 +1144,9 @@ message QueryStuckBackgroundWakelockRateMetricSetRequest {
   //     they app was doing any work on the device, i.e., not just active
   //     foreground usage but also background work. Care must be taken
   //     not to aggregate this count further, as it may result in users being
-  //     counted multiple times.
+  //     counted multiple times. The value is rounded to the nearest
+  //     multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of
+  //     the value.
   repeated string metrics = 4;
 
   // Filters to apply to data. The filtering expression follows
@@ -1225,7 +1236,9 @@ message GetSlowStartRateMetricSetRequest {
 //     `slowStartRate` metric. A user is counted in this metric if
 //     their app was launched in the device. Care must be taken
 //     not to aggregate this count further, as it may result in users being
-//     counted multiple times.
+//     counted multiple times. The value is rounded to the nearest
+//     multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of
+//     the value.
 //
 // **Required dimension:**
 //
@@ -1405,7 +1418,9 @@ message QuerySlowStartRateMetricSetRequest {
   //     `slowStartRate` metric. A user is counted in this metric if
   //     their app was launched in the device. Care must be taken
   //     not to aggregate this count further, as it may result in users being
-  //     counted multiple times.
+  //     counted multiple times. The value is rounded to the nearest
+  //     multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of
+  //     the value.
   repeated string metrics = 4;
 
   // Filters to apply to data. The filtering expression follows

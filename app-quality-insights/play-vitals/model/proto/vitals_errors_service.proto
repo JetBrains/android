@@ -98,6 +98,10 @@ message ErrorReport {
   // A device model on which an event in this error report occurred on.
   // TODO(b/269246512): Remove GOOGLE_INTERNAL when ready to launch
   DeviceModelSummary device_model = 6;
+
+  // The OS version on which an event in this error report occurred on.
+  // TODO(b/269246512): Remove GOOGLE_INTERNAL when ready to launch
+  OsVersion os_version = 7;
 }
 
 // A group of related ErrorReports received for an app.
@@ -186,6 +190,12 @@ message ErrorIssue {
   // requested time period (only considering occurrences matching the filters).
   // TODO(b/269246512): Remove GOOGLE_INTERNAL when ready to launch
   AppVersion last_app_version = 12;
+
+
+  // List of annotations for an issue. Annotations provide additional
+  // information that may help in diagnosing and fixing the issue.
+  // (-- TODO(b/269246512): Remove visibility restrictions for launch. --)
+  repeated IssueAnnotation annotations = 13;
 }
 
 // Request to search error reports.
@@ -420,7 +430,7 @@ message GetErrorCountMetricSetRequest {
 //  * `distinctUsers` (`google.type.Decimal`): Count of distinct users
 //     for which reports have been received. Care must be taken not to aggregate
 //     this count further, as it may result in users being counted multiple
-//     times.
+//     times. This value is not rounded, however it may be an approximation.
 //
 // **Required dimension:**
 //
@@ -605,7 +615,8 @@ message QueryErrorCountMetricSetRequest {
   //  * `distinctUsers` (`google.type.Decimal`): Count of distinct users
   //     for which reports have been received. Care must be taken not to
   //     aggregate this count further, as it may result in users being counted
-  //     multiple times.
+  //     multiple times. This value is not rounded, however it may be an
+  //     approximation.
   repeated string metrics = 4;
 
   // Maximum size of the returned data.
@@ -635,4 +646,17 @@ message QueryErrorCountMetricSetResponse {
 
   // Continuation token to fetch the next page of data.
   string next_page_token = 2;
+}
+
+// Representation of an annotation message for an issue.
+message IssueAnnotation {
+  // Category that the annotation belongs to. An annotation will belong to a
+  // single category. Example categories: "Potential fix", "Insight".
+  string category = 1;
+
+  // Title for the annotation.
+  string title = 2;
+
+  // Contains the contents of the annotation message.
+  string body = 3;
 }
