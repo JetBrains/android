@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.fonts;
 
+import com.android.tools.fonts.DownloadableFontCacheService;
 import com.intellij.openapi.util.io.FileUtil;
 import org.jetbrains.android.AndroidTestCase;
 import org.jetbrains.annotations.NotNull;

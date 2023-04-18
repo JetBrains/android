@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.fonts;
+package com.android.tools.fonts;
 
 import com.android.ide.common.fonts.MutableFontDetail;
 import com.android.ide.common.fonts.QueryParser;
@@ -41,10 +41,10 @@ import static com.android.ide.common.fonts.FontDetailKt.DEFAULT_WIDTH;
  * Each file is either a specification of a downloadable font with a font query,
  * or a specification of a family with references to individual fonts.
  */
-class FontFamilyParser {
+public class FontFamilyParser {
 
   @NotNull
-  static QueryParser.ParseResult parseFontFamily(@NotNull File xmlFile) {
+  public static QueryParser.ParseResult parseFontFamily(@NotNull File xmlFile) {
     try {
       return parseFontReference(xmlFile);
     }
@@ -184,7 +184,7 @@ class FontFamilyParser {
     }
   }
 
-  static class CompoundFontResult extends QueryParser.ParseResult {
+  public static class CompoundFontResult extends QueryParser.ParseResult {
     private Map<String, MutableFontDetail> myFonts;
 
     CompoundFontResult() {
@@ -192,7 +192,7 @@ class FontFamilyParser {
     }
 
     @NotNull
-    Map<String, MutableFontDetail> getFonts() {
+    public Map<String, MutableFontDetail> getFonts() {
       return myFonts;
     }
 

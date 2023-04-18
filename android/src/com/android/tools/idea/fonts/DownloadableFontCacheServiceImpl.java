@@ -25,6 +25,7 @@ import com.android.ide.common.fonts.FontFamily;
 import com.android.ide.common.fonts.FontLoader;
 import com.android.ide.common.fonts.FontProvider;
 import com.android.sdklib.repository.AndroidSdkHandler;
+import com.android.tools.fonts.DownloadableFontCacheService;
 import com.android.tools.idea.sdk.AndroidSdks;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;

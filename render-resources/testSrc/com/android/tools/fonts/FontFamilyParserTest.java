@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.fonts;
+package com.android.tools.fonts;
 
 import com.android.ide.common.fonts.MutableFontDetail;
 import com.android.ide.common.fonts.QueryParser;
+import com.android.tools.fonts.FontFamilyParser;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Multimap;
 import org.intellij.lang.annotations.Language;

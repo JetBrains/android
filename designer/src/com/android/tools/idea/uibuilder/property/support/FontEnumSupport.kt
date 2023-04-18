@@ -17,10 +17,10 @@ package com.android.tools.idea.uibuilder.property.support
 
 import com.android.SdkConstants.FONT_PREFIX
 import com.android.ide.common.resources.ResourceResolver
+import com.android.tools.fonts.ProjectFonts
 import com.android.tools.property.panel.api.EnumSupport
 import com.android.tools.property.panel.api.EnumValue
 import com.android.tools.idea.fonts.MoreFontsDialog
-import com.android.tools.idea.fonts.ProjectFonts
 import com.android.tools.idea.res.StudioResourceRepositoryManager
 import com.android.tools.idea.uibuilder.property.NlPropertyItem
 import com.intellij.openapi.actionSystem.AnAction

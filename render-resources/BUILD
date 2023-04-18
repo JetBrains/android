@@ -54,6 +54,7 @@ iml_module(
         "//tools/base/testutils:studio.android.sdktools.testutils[module, test]",
         "//tools/base/resource-repository:studio.android.sdktools.resource-repository[module, test]",
         "//tools/adt/idea/render-resources:intellij.android.render-resources[module, test]",
+        "//tools/adt/idea/.idea/libraries:truth[test]",
     ],
 )
 
@@ -72,6 +73,7 @@ kotlin_test(
     test_class = "com.android.testutils.JarTestSuite",
     deps = [
         ":tools.render-resources",
+        "//prebuilts/tools/common/lint-psi/intellij-core",
         "//tools/adt/idea/.idea/libraries:aapt-proto",
         "//tools/analytics-library/shared:tools.analytics-shared",
         "//tools/base/common:tools.common",
@@ -80,6 +82,7 @@ kotlin_test(
         "//tools/base/resource-repository:tools.resource-repository.test.util",
         "//tools/base/sdk-common:tools.sdk-common",
         "//tools/base/testutils:tools.testutils",
+        "@maven//:com.google.truth.truth",
         "@maven//:junit.junit",
         "@maven//:net.sf.kxml.kxml2",
     ],
