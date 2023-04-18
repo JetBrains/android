@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.imagepool
+package com.android.tools.rendering.imagepool
 
 import com.google.common.collect.ConcurrentHashMultiset
 import com.google.common.collect.Multiset

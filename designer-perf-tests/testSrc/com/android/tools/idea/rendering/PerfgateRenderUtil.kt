@@ -15,7 +15,7 @@
  */
 package com.android.tools.idea.rendering
 
-import com.android.tools.idea.rendering.imagepool.ImagePool
+import com.android.tools.rendering.imagepool.ImagePool
 import com.android.tools.idea.validator.ValidatorHierarchy
 import com.android.tools.perflogger.Analyzer
 import com.android.tools.perflogger.Benchmark

@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.imagepool;
+package com.android.tools.rendering.imagepool;
 
 /**
  * Interface for images that allow manual disposing. This does not need to be implemented by all
- * {@link com.android.tools.idea.rendering.imagepool.ImagePool.Image} implementations.
+ * {@link ImagePool.Image} implementations.
  */
 interface DisposableImage {
   /**

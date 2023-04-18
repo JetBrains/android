@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.imagepool
+package com.android.tools.rendering.imagepool
 
-import com.android.tools.idea.rendering.imagepool.ImagePoolImageDisposer.runWithDisposeLock
+import com.android.tools.rendering.imagepool.ImagePoolImageDisposer.runWithDisposeLock
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test

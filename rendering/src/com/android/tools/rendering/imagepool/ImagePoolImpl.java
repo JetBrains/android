@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.imagepool;
+package com.android.tools.rendering.imagepool;
 
-import static com.android.tools.idea.rendering.imagepool.ImagePoolUtil.stackTraceToAssertionString;
+import static com.android.tools.rendering.imagepool.ImagePoolUtil.stackTraceToAssertionString;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.FinalizablePhantomReference;
@@ -430,7 +430,7 @@ class ImagePoolImpl implements ImagePool {
   @NotNull
   public ImagePool.Image copyOf(@Nullable BufferedImage origin) {
     if (origin == null) {
-      return ImagePool.NULL_POOLED_IMAGE;
+      return NULL_POOLED_IMAGE;
     }
 
     int w = origin.getWidth();

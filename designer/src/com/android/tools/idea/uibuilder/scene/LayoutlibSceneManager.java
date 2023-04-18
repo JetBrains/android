@@ -70,7 +70,7 @@ import com.android.tools.idea.rendering.ShowFixFactory;
 import com.android.tools.idea.rendering.StudioRenderConfiguration;
 import com.android.tools.idea.rendering.StudioRenderService;
 import com.android.tools.idea.rendering.StudioRenderServiceKt;
-import com.android.tools.idea.rendering.imagepool.ImagePool;
+import com.android.tools.rendering.imagepool.ImagePool;
 import com.android.tools.idea.res.ResourceNotificationManager;
 import com.android.tools.idea.uibuilder.analytics.NlAnalyticsManager;
 import com.android.tools.idea.uibuilder.api.ViewEditor;

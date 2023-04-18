@@ -31,7 +31,7 @@ import com.android.tools.idea.uibuilder.surface.layer.DiagnosticsLayer;
 import com.android.tools.idea.configurations.Configuration;
 import com.android.tools.idea.flags.StudioFlags;
 import com.android.tools.idea.rendering.RenderResult;
-import com.android.tools.idea.rendering.imagepool.ImagePool;
+import com.android.tools.rendering.imagepool.ImagePool;
 import com.android.tools.idea.uibuilder.handlers.constraint.drawing.AndroidColorSet;
 import com.android.tools.idea.uibuilder.scene.LayoutlibSceneManager;
 import com.android.tools.idea.uibuilder.surface.layer.BorderLayer;

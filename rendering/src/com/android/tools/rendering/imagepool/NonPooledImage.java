@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.imagepool;
+package com.android.tools.rendering.imagepool;
 
-import static com.android.tools.idea.rendering.imagepool.ImagePoolUtil.stackTraceToAssertionString;
+import static com.android.tools.rendering.imagepool.ImagePoolUtil.stackTraceToAssertionString;
 
 import com.intellij.openapi.diagnostic.Logger;
 import org.jetbrains.annotations.NotNull;

@@ -77,6 +77,7 @@ iml_module(
         "//tools/adt/idea/android:intellij.android.core[module, test]",
         "//tools/adt/idea/android:intellij.android.core.tests[module]",
         "//tools/adt/idea/project-system-gradle:intellij.android.projectSystem.gradle[module, test]",
+        "//tools/adt/idea/rendering:intellij.android.rendering[module, test]",
     ],
 )
 

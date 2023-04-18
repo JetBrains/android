@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.imagepool;
+package com.android.tools.rendering.imagepool;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +35,7 @@ public class ImagePoolFactory {
     @NotNull
     @Override
     public Image copyOf(@Nullable BufferedImage origin) {
-      return origin != null ? NonPooledImage.copyOf(origin) : ImagePool.NULL_POOLED_IMAGE;
+      return origin != null ? NonPooledImage.copyOf(origin) : NULL_POOLED_IMAGE;
     }
 
     @Nullable

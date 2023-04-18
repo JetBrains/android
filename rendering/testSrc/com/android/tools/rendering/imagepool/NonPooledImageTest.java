@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering.imagepool;
+package com.android.tools.rendering.imagepool;
 
 import com.android.testutils.ImageDiffUtil;
 import org.jetbrains.annotations.NotNull;

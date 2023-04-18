@@ -17,9 +17,8 @@ package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.*;
 import com.android.tools.idea.AndroidPsiUtils;
-import com.android.tools.idea.rendering.imagepool.ImagePool;
-import com.android.tools.idea.rendering.imagepool.ImagePoolImageDisposer;
-import com.google.common.annotations.VisibleForTesting;
+import com.android.tools.rendering.imagepool.ImagePool;
+import com.android.tools.rendering.imagepool.ImagePoolImageDisposer;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
