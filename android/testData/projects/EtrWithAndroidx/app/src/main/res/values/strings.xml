@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">EtrWithAndroidx</string>
+    <item name="resourceId1" type="id" />
+    <item name="parentResourceId1" type="id" />
+    <item name="parentResourceId2" type="id" />
+    <item name="elementResourceId" type="id" />
+    <item name="gridResourceId" type="id" />
+    <item name="gridParentResourceId" type="id" />
+    <item name="resourceId2" type="id" />
+    <item name="parentResourceId5" type="id" />
+    <item name="resourceId3" type="id" />
+    <item name="parentResourceId3" type="id" />
+    <item name="parentResourceId4" type="id" />
+    <item name="resourceId4" type="id" />
+    <item name="parentResourceId6" type="id" />
+    <item name="resourceId5" type="id" />
+    <item name="parentResourceId7" type="id" />
+    <item name="list" type="id" />
+</resources>
