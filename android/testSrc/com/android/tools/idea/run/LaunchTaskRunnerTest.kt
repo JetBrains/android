@@ -133,10 +133,12 @@ class LaunchTaskRunnerTest {
     StudioFlags.DEBUG_ATTEMPT_SUSPENDED_START.override(false, projectRule.testRootDisposable)
 
     val deviceState = fakeAdb.connectAndWaitForDevice()
+    var startInvocation = 0
     deviceState.setActivityManager { args, output ->
       val command = args.joinToString(" ")
       if (command == "start -n \"applicationId/MainActivity\" -a android.intent.action.MAIN -c android.intent.category.LAUNCHER -D") {
         deviceState.startClient(1234, 1235, "applicationId", true)
+        startInvocation++
       }
     }
     val device = AndroidDebugBridge.getBridge()!!.devices.single()
@@ -155,6 +157,7 @@ class LaunchTaskRunnerTest {
     if (!processHandler.waitFor(5000)) {
       fail("Process handler didn't stop when debug process terminated")
     }
+    assertThat(startInvocation).isEqualTo(1)
   }
 
   @Test

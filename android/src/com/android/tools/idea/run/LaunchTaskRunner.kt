@@ -165,8 +165,6 @@ class LaunchTaskRunner(
 
     val processHandler = NopProcessHandler()
     val console = createConsole()
-    doRun(devices, processHandler, indicator, console, true)
-
     val device = devices.single()
 
     if (configuration.CLEAR_LOGCAT) {
