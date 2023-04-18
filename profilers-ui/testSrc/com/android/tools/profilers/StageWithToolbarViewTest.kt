@@ -374,17 +374,17 @@ class StageWithToolbarViewTest(private val isTestingProfileable: Boolean) {
     timer.tick(FakeTimer.ONE_SECOND_IN_NS)
   }
 
-  private class FakeStudioProfilersView(profilers: StudioProfilers,
-                                        profilerComponents: IdeProfilerComponents) : StudioProfilersView(profilers, profilerComponents) {
-    override fun getComponent() = JPanel()
+  private class FakeStudioProfilersView(override val studioProfilers: StudioProfilers,
+                                        override val ideProfilerComponents: IdeProfilerComponents) : StudioProfilersView {
+    override val component: JComponent
+      get() = JPanel()
+    override val stageWithToolbarView: StageWithToolbarView
+      get() = TODO("Not yet implemented")
+    override val stageComponent: JPanel
+      get() = TODO("Not yet implemented")
+    override val stageView: StageView<*>?
+      get() = null
     override fun installCommonMenuItems(component: JComponent) {}
-    override fun getStageWithToolbarView(): StageWithToolbarView {
-      TODO("Not yet implemented")
-    }
-    override fun getStageComponent(): JPanel {
-      TODO("Not yet implemented")
-    }
-    override fun getStageView() = null
     override fun dispose() {}
   }
 

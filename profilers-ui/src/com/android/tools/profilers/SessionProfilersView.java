@@ -59,8 +59,12 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A view containing a sessions panel, toolbar, and stage view.
  */
-public class SessionProfilersView extends StudioProfilersView {
+public class SessionProfilersView implements StudioProfilersView {
 
+  @NotNull
+  private final StudioProfilers myProfiler;
+  @NotNull
+  private final IdeProfilerComponents myIdeProfilerComponents;
   private final ViewBinder<SessionProfilersView, Stage, StageView> myBinder;
   @NotNull
   private final TooltipLayeredPane myLayeredPane;
@@ -77,7 +81,9 @@ public class SessionProfilersView extends StudioProfilersView {
   public SessionProfilersView(@NotNull StudioProfilers profiler,
                               @NotNull IdeProfilerComponents ideProfilerComponents,
                               @NotNull Disposable parentDisposable) {
-    super(profiler, ideProfilerComponents);
+    myProfiler = profiler;
+    myIdeProfilerComponents = ideProfilerComponents;
+
     myStageComponent = new JPanel(new BorderLayout());
 
     mySplitter = new ThreeComponentsSplitter(this);
@@ -192,22 +198,22 @@ public class SessionProfilersView extends StudioProfilersView {
     mySplitter.repaint();
   }
 
+  @NotNull
+  @Override
+  public StudioProfilers getStudioProfilers() {
+    return myProfiler;
+  }
+
+  @NotNull
+  @Override
+  public IdeProfilerComponents getIdeProfilerComponents() {
+    return myIdeProfilerComponents;
+  }
+
   @Override
   @NotNull
   public JComponent getComponent() {
     return myLayeredPane;
-  }
-
-  /**
-   * Installs the {@link ContextMenuItem} common to all profilers.
-   *
-   * @param component
-   */
-  @Override
-  public void installCommonMenuItems(@NotNull JComponent component) {
-    ContextMenuInstaller contextMenuInstaller = getIdeProfilerComponents().createContextMenuInstaller();
-    ProfilerContextMenu.createIfAbsent(myStageComponent).getContextMenuItems()
-      .forEach(item -> contextMenuInstaller.installGenericContextMenu(component, item));
   }
 
   @Override
@@ -226,5 +232,15 @@ public class SessionProfilersView extends StudioProfilersView {
   @Nullable
   public StageView getStageView() {
     return myStageWithToolbarView.getStageView();
+  }
+
+  /**
+   * Installs the {@link ContextMenuItem} common to all profilers.
+   */
+  @Override
+  public void installCommonMenuItems(@NotNull JComponent component) {
+    ContextMenuInstaller contextMenuInstaller = getIdeProfilerComponents().createContextMenuInstaller();
+    ProfilerContextMenu.createIfAbsent(myStageComponent).getContextMenuItems()
+      .forEach(item -> contextMenuInstaller.installGenericContextMenu(component, item));
   }
 }
