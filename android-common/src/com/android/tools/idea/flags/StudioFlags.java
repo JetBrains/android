@@ -293,11 +293,6 @@ public final class StudioFlags {
     "Enable the overlay provider extension point",
     true);
 
-  public static final Flag<Boolean> NELE_CLASS_BINARY_CACHE = Flag.create(
-    NELE, "toggle.layout.editor.class.binary.cache", "Enable binary cache",
-    "Enable binary cache of classes used in preview",
-    true);
-
   public static final Flag<Boolean> NELE_ASSET_REPOSITORY_INCLUDE_AARS_THROUGH_PROJECT_SYSTEM = Flag.create(
     NELE, "asset.repository.include.aars.through.project.system", "Include AARs through project system",
     "Include resource directories from AARs found through project system.",

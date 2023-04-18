@@ -1,6 +1,5 @@
 package org.jetbrains.android.uipreview;
 
-import static com.android.tools.idea.flags.StudioFlags.NELE_CLASS_BINARY_CACHE;
 import static com.android.tools.idea.rendering.classloading.ClassConverter.getCurrentClassVersion;
 import static com.android.tools.idea.rendering.classloading.ReflectionUtilKt.findMethodLike;
 import static com.android.tools.idea.rendering.classloading.UtilKt.toClassTransform;
@@ -182,9 +181,7 @@ public final class StudioModuleClassLoader extends ModuleClassLoader implements 
                           @NotNull ClassTransform nonProjectTransformations,
                           @NotNull ModuleClassLoaderDiagnosticsWrite diagnostics) {
     this(parent, renderContext, projectTransformations, nonProjectTransformations,
-         NELE_CLASS_BINARY_CACHE.get()
-         ? ClassBinaryCacheManager.getInstance().getCache(renderContext.getModule())
-         : ClassBinaryCache.NO_CACHE,
+         ClassBinaryCacheManager.getInstance().getCache(renderContext.getModule()),
          diagnostics);
   }
 
