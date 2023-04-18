@@ -22,6 +22,7 @@ import com.android.tools.idea.testing.AndroidProjectRule
 import com.android.tools.idea.testing.loadNewFile
 import com.android.tools.idea.testing.onEdt
 import com.google.common.truth.Truth.assertThat
+import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.testFramework.RunsInEdt
 import com.intellij.testFramework.fixtures.CodeInsightTestFixture
 import org.jetbrains.android.compose.stubComposableAnnotation
@@ -86,6 +87,8 @@ class ComposeImplementationsCompletionContributorTest {
         val Top = object : Vertical {}
         val Bottom = object : Vertical {}
         val Center = object : HorizontalOrVertical {}
+        val SpaceEvenly = object : HorizontalOrVertical {}
+        val SpaceBetween = object : HorizontalOrVertical {}
         val SpaceAround = object : HorizontalOrVertical {}
       }
       """.trimIndent()
@@ -106,14 +109,14 @@ class ComposeImplementationsCompletionContributorTest {
           horizontalAlignment: Alignment.Horizontal = Alignment.Start,
           verticalAlignment: Alignment.Vertical = Alignment.Top,
           content: @Composable () -> Unit
-      )
+      ) {}
 
       @Composable
       fun RowWithArrangement(
           horizontalArrangement: Arrangement.Horizontal = Alignment.Start,
           verticalArrangement: Arrangement.Vertical = Alignment.Top,
           content: @Composable () -> Unit
-      )
+      ) {}
     """.trimIndent())
   }
 
@@ -140,7 +143,13 @@ class ComposeImplementationsCompletionContributorTest {
     val lookupStrings = myFixture.lookupElementStrings!!
     assertThat(lookupStrings).containsAllOf("Alignment.Start", "Alignment.CenterHorizontally", "Alignment.End")
 
-    myFixture.lookup.currentItem = myFixture.lookupElements.find { it.lookupString == "Alignment.Start" }
+    val alignmentStartLookupItem = myFixture.lookupElements.find { it.lookupString == "Alignment.Start" }!!
+
+    val presentation = LookupElementPresentation()
+    alignmentStartLookupItem.renderElement(presentation)
+    assertThat(presentation.typeText).isEqualTo("Alignment.Horizontal")
+
+    myFixture.lookup.currentItem = alignmentStartLookupItem
     myFixture.finishLookup('\n')
 
     myFixture.checkResult(
@@ -179,7 +188,13 @@ class ComposeImplementationsCompletionContributorTest {
     val lookupStrings = myFixture.lookupElementStrings!!
     assertThat(lookupStrings).containsAllOf("Alignment.Top", "Alignment.CenterVertically", "Alignment.Bottom")
 
-    myFixture.lookup.currentItem = myFixture.lookupElements.find { it.lookupString == "Alignment.CenterVertically" }
+    val centerVerticallyLookupElement = myFixture.lookupElements.find { it.lookupString == "Alignment.CenterVertically" }!!
+
+    val presentation = LookupElementPresentation()
+    centerVerticallyLookupElement.renderElement(presentation)
+    assertThat(presentation.typeText).isEqualTo("Alignment.Vertical")
+
+    myFixture.lookup.currentItem = centerVerticallyLookupElement
     myFixture.finishLookup('\n')
 
     myFixture.checkResult(
@@ -219,7 +234,13 @@ class ComposeImplementationsCompletionContributorTest {
     val lookupStrings = myFixture.lookupElementStrings!!
     assertThat(lookupStrings).containsAllOf("Arrangement.Start", "Arrangement.Center", "Arrangement.End")
 
-    myFixture.lookup.currentItem = myFixture.lookupElements.find { it.lookupString == "Arrangement.Start" }
+    val startLookupElement = myFixture.lookupElements.find { it.lookupString == "Arrangement.Start" }!!
+
+    val presentation = LookupElementPresentation()
+    startLookupElement.renderElement(presentation)
+    assertThat(presentation.typeText).isEqualTo("Arrangement.Horizontal")
+
+    myFixture.lookup.currentItem = startLookupElement
     myFixture.finishLookup('\n')
 
     myFixture.checkResult(
@@ -258,7 +279,13 @@ class ComposeImplementationsCompletionContributorTest {
     val lookupStrings = myFixture.lookupElementStrings!!
     assertThat(lookupStrings).containsAllOf("Arrangement.Top", "Arrangement.Bottom", "Arrangement.Center")
 
-    myFixture.lookup.currentItem = myFixture.lookupElements.find { it.lookupString == "Arrangement.Top" }
+    val topLookupElement = myFixture.lookupElements.find { it.lookupString == "Arrangement.Top" }!!
+
+    val presentation = LookupElementPresentation()
+    topLookupElement.renderElement(presentation)
+    assertThat(presentation.typeText).isEqualTo("Arrangement.Vertical")
+
+    myFixture.lookup.currentItem = topLookupElement
     myFixture.finishLookup('\n')
 
     myFixture.checkResult(

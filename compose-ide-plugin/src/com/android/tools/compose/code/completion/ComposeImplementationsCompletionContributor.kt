@@ -79,7 +79,9 @@ class ComposeImplementationsCompletionContributor : CompletionContributor() {
     }
 
     val isNewElement = elementToComplete.parentOfType<KtDotQualifiedExpression>() == null
-    val lookupElements = elementsToSuggest.map { getStaticPropertyLookupElement(it, classForImport, isNewElement) }
+    val lookupElements = elementsToSuggest.map {
+      getStaticPropertyLookupElement(it, classForImport, elementToCompleteTypeFqName, isNewElement)
+    }
     result.addAllElements(lookupElements)
 
     if (!isNewElement) {
@@ -122,14 +124,21 @@ class ComposeImplementationsCompletionContributor : CompletionContributor() {
     }
   }
 
-  private fun getStaticPropertyLookupElement(psiElement: KtDeclaration, ktClassName: String, isNewElement: Boolean): LookupElement {
+  private fun getStaticPropertyLookupElement(psiElement: KtDeclaration, ktClassName: String, elementToCompleteTypeFqName: String, isNewElement: Boolean): LookupElement {
     val fqName = FqName(ktClassName)
     val mainLookupString = if (isNewElement) "${fqName.shortName()}.${psiElement.name}" else psiElement.name!!
+
+    // For all the cases handled by this contributor, the classes involved are in the form
+    // "longpackage.(Arrangement|Alignment).(Vertical|Horizontal)". We want to show those last two tokens to help the user understand what
+    // they're choosing.
+    val typeText = elementToCompleteTypeFqName.split('.').takeLast(2).joinToString(".")
+
     val builder = LookupElementBuilder
       .create(psiElement, mainLookupString)
       .withLookupString(psiElement.name!!)
       .bold()
       .withTailText(" (${ktClassName.substringBeforeLast('.')})", true)
+      .withTypeText(typeText)
       .withInsertHandler lambda@{ context, item ->
         //Add import.
         val psiDocumentManager = PsiDocumentManager.getInstance(context.project)
