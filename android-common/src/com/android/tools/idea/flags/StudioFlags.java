@@ -373,7 +373,7 @@ public final class StudioFlags {
   //region Run/Debug
   private static final FlagGroup RUNDEBUG = new FlagGroup(FLAGS, "rundebug", "Run/Debug");
   public static final Flag<Boolean> RUNDEBUG_LOGCAT_CONSOLE_OUTPUT_ENABLED = Flag.create(
-    RUNDEBUG, "logcat.console.output.enabled", "Show logcat process output in Run/Debug console window",
+    RUNDEBUG, "console.output.enabled", "Show logcat process output in Run/Debug console window",
     "When running or debugging an Android process, output the logcat output of the process in the console window.",
     false);
 
@@ -593,7 +593,7 @@ public final class StudioFlags {
   // Deprecated: Old logcat tool window
   public static final Flag<Boolean> LOGCAT_EXPRESSION_FILTER_ENABLE = Flag.create(
     LOGCAT,
-    "logcat.expression.filter.enable",
+    "expression.filter.enable",
     "Enable expression filter in Logcat (deprecated)",
     "Enables the expression filter in Logcat",
     false
@@ -602,7 +602,7 @@ public final class StudioFlags {
   // Deprecated: Old logcat tool window
   public static final Flag<Boolean> LOGCAT_SUPPRESSED_TAGS_ENABLE = Flag.create(
     LOGCAT,
-    "logcat.suppressed.tags.enable",
+    "suppressed.tags.enable",
     "Enable Suppressed Tags Dialog in Logcat (deprecated)",
     "Enables a dialog that allows the user to maintain a global set of tags to be suppressed in Logcat",
     false
@@ -610,7 +610,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> LOGCAT_CUSTOM_FORMAT_ACTION = Flag.create(
     LOGCAT,
-    "logcat.custom.format.action",
+    "custom.format.action",
     "Enable Logcat custom format action",
     "Enables the custom format action in the Logcat tool window action bar",
     false
@@ -618,7 +618,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> LOGCAT_CLICK_TO_ADD_FILTER = Flag.create(
     LOGCAT,
-    "logcat.click.to.add.filter",
+    "click.to.add.filter",
     "Enable Logcat click to add/remove filter feature",
     "Enable Logcat click to add/remove filter feature",
     true
@@ -626,7 +626,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> LOGCAT_IS_FILTER = Flag.create(
     LOGCAT,
-    "logcat.is.filter",
+    "is.filter",
     "Enable Logcat 'is:...' filter",
     "Enables a Logcat filter using the 'is' keyword for example 'is:stacktrace'is:crash' etc",
     true
@@ -634,7 +634,7 @@ public final class StudioFlags {
 
   public static final Flag<Integer> LOGCAT_MAX_MESSAGES_PER_BATCH = Flag.create(
     LOGCAT,
-    "logcat.max.messages.per.batch",
+    "max.messages.per.batch",
     "Set the max number of messages that are appended to the UI component",
     "Set the max number of messages that are appended to the UI component",
     1000
@@ -642,7 +642,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> LOGCAT_PANEL_MEMORY_SAVER = Flag.create(
     LOGCAT,
-    "logcat.panel.memory.saver",
+    "panel.memory.saver",
     "Enable Logcat Panel memory saving feature",
     "Reduces memory usage of Logcat tool by writing data to a file when the panel is not visible",
     true
@@ -650,7 +650,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> LOGCAT_TERMINATE_APP_ACTIONS_ENABLED = Flag.create(
     LOGCAT,
-    "logcat.terminate.app.actions.enable",
+    "terminate.app.actions.enable",
     "Enable right-click actions for terminating the application",
     "Enable right-click actions for terminating the application. " +
     "Note that this feature is only enabled if the flag ADBLIB_MIGRATION_DDMLIB_CLIENT_MANAGER is also true. " +
@@ -660,7 +660,7 @@ public final class StudioFlags {
 
   public static final Flag<Boolean> LOGCAT_IGNORE_STUDIO_TAGS = Flag.create(
     LOGCAT,
-    "logcat.ignore.studio.tags",
+    "ignore.studio.tags",
     "Ignore tags that Studio itself is responsible for",
     "Ignore tags that Studio itself is responsible for",
     true
