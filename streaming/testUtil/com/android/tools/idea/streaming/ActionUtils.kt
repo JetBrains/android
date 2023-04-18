@@ -40,8 +40,7 @@ import java.awt.event.KeyEvent.VK_E
 /**
  * Executes an action related to device streaming.
  */
-fun executeDeviceAction(
-  actionId: String, displayView: AbstractDisplayView, project: Project, place: String = ActionPlaces.TOOLBAR) {
+fun executeDeviceAction(actionId: String, displayView: AbstractDisplayView, project: Project, place: String = ActionPlaces.TOOLBAR) {
   val action = ActionManager.getInstance().getAction(actionId)
   val event = createTestEvent(displayView, project, place)
   action.update(event)
@@ -49,8 +48,8 @@ fun executeDeviceAction(
   action.actionPerformed(event)
 }
 
-fun updateAndGetActionPresentation(
-  actionId: String, displayView: AbstractDisplayView, project: Project, place: String = ActionPlaces.KEYBOARD_SHORTCUT): Presentation {
+fun updateAndGetActionPresentation(actionId: String, displayView: AbstractDisplayView, project: Project,
+                                   place: String = ActionPlaces.KEYBOARD_SHORTCUT): Presentation {
   val action = ActionManager.getInstance().getAction(actionId)
   val event = createTestEvent(displayView, project, place)
   action.update(event)
