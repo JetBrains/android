@@ -48,13 +48,12 @@ class ComposableItemPresentationProviderTest {
       val function = runReadAction { projectRule.fixture.elementAtCaret }
       assertThat(function).isInstanceOf(KtFunctionLiteral::class.java)
 
-      val presentation = provider.getPresentation(function as KtFunctionLiteral)
-      assertThat(presentation).isNull()
+      assertThat(provider.getPresentation(function as KtFunctionLiteral)).isNull()
     }
   }
 
   @Test
-  fun getPresentation_functionIsNotComposable_defaultKotlinPresentationReturned() {
+  fun getPresentation_functionIsNotComposable_nullReturned() {
     projectRule.fixture.configureByText(
       KotlinFileType.INSTANCE,
       """
@@ -68,8 +67,7 @@ class ComposableItemPresentationProviderTest {
       val function = projectRule.fixture.elementAtCaret
       assertThat(function).isInstanceOf(KtFunction::class.java)
 
-      val presentation = provider.getPresentation(function as KtFunction)!!
-      assertThat(presentation.presentableText).isEqualTo("testFunction(Int, Int)")
+      assertThat(provider.getPresentation(function as KtFunction)).isNull()
     }
   }
 
