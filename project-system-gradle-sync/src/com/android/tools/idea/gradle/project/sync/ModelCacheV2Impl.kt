@@ -75,7 +75,6 @@ import com.android.tools.idea.gradle.model.IdeSyncIssue
 import com.android.tools.idea.gradle.model.IdeTestOptions
 import com.android.tools.idea.gradle.model.IdeUnresolvedLibrary
 import com.android.tools.idea.gradle.model.LibraryReference
-import com.android.tools.idea.gradle.model.impl.DependencyReference
 import com.android.tools.idea.gradle.model.impl.IdeAaptOptionsImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidArtifactCoreImpl
 import com.android.tools.idea.gradle.model.impl.IdeAndroidGradlePluginProjectFlagsImpl
@@ -767,7 +766,7 @@ internal fun modelCacheV2Impl(
 
       artifactAddressesAndDependencies.forEach { (key, deps) ->
         val libraryReference = librariesById[key]!!
-        dependencyList.add(IdeDependencyCoreImpl(libraryReference, deps.mapNotNull { indexed[it] }.map(::DependencyReference)))
+        dependencyList.add(IdeDependencyCoreImpl(libraryReference, deps.mapNotNull { indexed[it] }))
       }
 
       return IdeDependenciesCoreDirect(dependencyList)

@@ -31,21 +31,19 @@ import java.io.Serializable
  */
 sealed interface IdeDependenciesCoreImpl: IdeDependenciesCore, Serializable
 
-data class DependencyReference(internal val index: Int) : Serializable
-
 data class IdeDependenciesCoreDirect(
   override val dependencies: List<IdeDependencyCore>,
 ) : IdeDependenciesCoreImpl, Serializable {
-  override fun lookup(ref: DependencyReference): IdeDependencyCore = dependencies[ref.index]
+  override fun lookup(ref: Int): IdeDependencyCore = dependencies[ref]
 }
 
 
 data class IdeDependenciesCoreRef(
   val referee: IdeDependenciesCoreDirect,
-  val index: DependencyReference,
+  val index: Int,
   override val dependencies: List<IdeDependencyCore> = referee.lookup(index).dependencies?.map { referee.lookup(it) } ?: emptyList(),
 ) : IdeDependenciesCoreImpl, Serializable {
-  override fun lookup(ref: DependencyReference): IdeDependencyCore = referee.lookup(ref)
+  override fun lookup(ref: Int): IdeDependencyCore = referee.lookup(ref)
 }
 
 
@@ -71,7 +69,7 @@ data class IdeDependenciesImpl(
   }
   override val libraries by lazy { classpath.dependencies.flatMap { resolver.resolve(it) } }
   override val unresolvedDependencies = classpath.dependencies
-  override val lookup: (DependencyReference) -> IdeDependencyCore = { classpath.lookup(it) }
+  override val lookup: (Int) -> IdeDependencyCore = { classpath.lookup(it) }
 }
 
 fun throwingIdeDependencies(): IdeDependenciesCoreImpl {

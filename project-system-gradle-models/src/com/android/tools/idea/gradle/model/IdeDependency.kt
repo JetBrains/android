@@ -15,7 +15,6 @@
  */
 package com.android.tools.idea.gradle.model
 
-import com.android.tools.idea.gradle.model.impl.DependencyReference
 import java.io.Serializable
 
 @Deprecated("all subclasses and usages will be removed, work with IdeLibrary and subclasses instead")
@@ -34,7 +33,7 @@ interface IdeDependencyCore {
    * For some dependencies (modules) this list of dependencies will be used as the classpath and as such we retain the order which
    * was provided by AGP.
    */
-  val dependencies: List<DependencyReference>?
+  val dependencies: List<Int>?
 }
 
 @Deprecated("all subclasses and usages will be removed, work with IdeLibrary and subclasses instead")

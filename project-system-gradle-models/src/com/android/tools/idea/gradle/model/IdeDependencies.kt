@@ -15,8 +15,6 @@
  */
 package com.android.tools.idea.gradle.model
 
-import com.android.tools.idea.gradle.model.impl.DependencyReference
-
 interface IdeDependencies {
   /**
    * Returns the Android library dependencies, both direct and transitive.
@@ -73,5 +71,5 @@ interface IdeDependencies {
   /**
    * Method to resolve transitive dependencies from [IdeDependencyCore.dependencies] back to their [IdeDependencyCore],
    */
-  val lookup: (DependencyReference) -> IdeDependencyCore
+  val lookup: (Int) -> IdeDependencyCore
 }

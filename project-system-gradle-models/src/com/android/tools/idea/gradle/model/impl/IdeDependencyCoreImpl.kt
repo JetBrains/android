@@ -21,5 +21,5 @@ import java.io.Serializable
 
 data class IdeDependencyCoreImpl(
   override val target: LibraryReference,
-  override val dependencies: List<DependencyReference>?
+  override val dependencies: List<Int>?
 ) : IdeDependencyCore, Serializable
