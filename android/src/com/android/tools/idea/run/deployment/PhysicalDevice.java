@@ -15,14 +15,9 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
-import com.android.tools.idea.run.DeploymentApplicationService;
 import com.android.tools.idea.run.LaunchCompatibility;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.intellij.execution.runners.ExecutionUtil;
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.LayeredIcon;
@@ -40,16 +35,20 @@ final class PhysicalDevice extends Device {
   private static final Icon ourWearIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR);
   private static final Icon ourTvIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV);
 
+  private PhysicalDevice(@NotNull Builder builder) {
+    super(builder);
+  }
+
   static @NotNull PhysicalDevice newDevice(@NotNull Device device, @NotNull KeyToConnectionTimeMap map) {
     Key key = device.getKey();
 
     return new Builder()
-      .setName(device.getName())
-      .setLaunchCompatibility(device.getLaunchCompatibility())
       .setKey(key)
-      .setConnectionTime(map.get(key))
-      .setAndroidDevice(device.getAndroidDevice())
       .setType(device.getType())
+      .setLaunchCompatibility(device.getLaunchCompatibility())
+      .setConnectionTime(map.get(key))
+      .setName(device.getName())
+      .setAndroidDevice(device.getAndroidDevice())
       .build();
   }
 
@@ -57,8 +56,15 @@ final class PhysicalDevice extends Device {
   static final class Builder extends Device.Builder {
     @NotNull
     @VisibleForTesting
-    Builder setName(@NotNull String name) {
-      myName = name;
+    Builder setKey(@NotNull Key key) {
+      myKey = key;
+      return this;
+    }
+
+    @NotNull
+    @VisibleForTesting
+    Builder setType(@NotNull Type type) {
+      myType = type;
       return this;
     }
 
@@ -71,15 +77,15 @@ final class PhysicalDevice extends Device {
 
     @NotNull
     @VisibleForTesting
-    Builder setKey(@NotNull Key key) {
-      myKey = key;
+    Builder setConnectionTime(@NotNull Instant connectionTime) {
+      myConnectionTime = connectionTime;
       return this;
     }
 
     @NotNull
     @VisibleForTesting
-    Builder setConnectionTime(@NotNull Instant connectionTime) {
-      myConnectionTime = connectionTime;
+    Builder setName(@NotNull String name) {
+      myName = name;
       return this;
     }
 
@@ -91,21 +97,10 @@ final class PhysicalDevice extends Device {
     }
 
     @NotNull
-    @VisibleForTesting
-    Builder setType(@NotNull Type type) {
-      myType = type;
-      return this;
-    }
-
-    @NotNull
     @Override
     PhysicalDevice build() {
       return new PhysicalDevice(this);
     }
-  }
-
-  private PhysicalDevice(@NotNull Builder builder) {
-    super(builder);
   }
 
   @NotNull
@@ -152,28 +147,21 @@ final class PhysicalDevice extends Device {
   }
 
   @Override
-  public boolean equals(@Nullable Object object) {
-    if (!(object instanceof PhysicalDevice)) {
-      return false;
-    }
-
-    Device device = (Device)object;
-
-    return getName().equals(device.getName()) &&
-           getType().equals(device.getType()) &&
-           getLaunchCompatibility().equals(device.getLaunchCompatibility()) &&
-           getKey().equals(device.getKey()) &&
-           Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
-           getAndroidDevice().equals(device.getAndroidDevice());
+  public int hashCode() {
+    return Objects.hash(getKey(), getType(), getLaunchCompatibility(), getConnectionTime(), getName(), getAndroidDevice());
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(getName(),
-                        getType(),
-                        getLaunchCompatibility(),
-                        getKey(),
-                        getConnectionTime(),
-                        getAndroidDevice());
+  public boolean equals(@Nullable Object object) {
+    if (!(object instanceof PhysicalDevice device)) {
+      return false;
+    }
+
+    return getKey().equals(device.getKey()) &&
+           getType().equals(device.getType()) &&
+           getLaunchCompatibility().equals(device.getLaunchCompatibility()) &&
+           Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
+           getName().equals(device.getName()) &&
+           getAndroidDevice().equals(device.getAndroidDevice());
   }
 }

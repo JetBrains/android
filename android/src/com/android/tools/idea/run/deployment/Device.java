@@ -16,12 +16,9 @@
 package com.android.tools.idea.run.deployment;
 
 import com.android.ddmlib.IDevice;
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import java.time.Instant;
 import java.util.Collection;
 import javax.swing.Icon;
@@ -30,74 +27,59 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class Device {
   @NotNull
-  private final String myName;
+  private final Key myKey;
 
   private final @NotNull Type myType;
 
   @NotNull
   private final LaunchCompatibility myLaunchCompatibility;
 
-  @NotNull
-  private final Key myKey;
-
   @Nullable
   private final Instant myConnectionTime;
 
   @NotNull
+  private final String myName;
+
+  @NotNull
   private final AndroidDevice myAndroidDevice;
 
-  static abstract class Builder {
-    @Nullable
-    String myName;
-
-    @NotNull LaunchCompatibility myLaunchCompatibility = LaunchCompatibility.YES;
-
-    @Nullable
-    Key myKey;
-
-    @Nullable
-    Instant myConnectionTime;
-
-    @Nullable
-    AndroidDevice myAndroidDevice;
-
-    @NotNull Type myType = Type.PHONE;
-
-    @NotNull
-    abstract Device build();
-  }
-
   Device(@NotNull Builder builder) {
-    assert builder.myName != null;
-    myName = builder.myName;
-    myType = builder.myType;
-
-    myLaunchCompatibility = builder.myLaunchCompatibility;
-
     assert builder.myKey != null;
     myKey = builder.myKey;
 
+    myType = builder.myType;
+    myLaunchCompatibility = builder.myLaunchCompatibility;
     myConnectionTime = builder.myConnectionTime;
+
+    assert builder.myName != null;
+    myName = builder.myName;
 
     assert builder.myAndroidDevice != null;
     myAndroidDevice = builder.myAndroidDevice;
   }
 
-  final @NotNull LaunchCompatibility getLaunchCompatibility() {
-    return myLaunchCompatibility;
+  static abstract class Builder {
+    @Nullable
+    Key myKey;
+
+    @NotNull
+    Type myType = Type.PHONE;
+
+    @NotNull
+    LaunchCompatibility myLaunchCompatibility = LaunchCompatibility.YES;
+
+    @Nullable
+    Instant myConnectionTime;
+
+    @Nullable
+    String myName;
+
+    @Nullable
+    AndroidDevice myAndroidDevice;
+
+    @NotNull
+    abstract Device build();
   }
-
-  @NotNull
-  abstract Icon getIcon();
-
-  abstract boolean isConnected();
-
-  @NotNull
-  public final String getName() {
-    return myName;
-  }
-
-  abstract @NotNull Collection<Snapshot> getSnapshots();
 
   /**
    * A physical device will always return a serial number. A virtual device will usually return a virtual device path. But if Studio doesn't
@@ -111,10 +93,41 @@ public abstract class Device {
     return myKey;
   }
 
+  @NotNull
+  abstract Icon getIcon();
+
+  @NotNull
+  final Type getType() {
+    return myType;
+  }
+
+  enum Type {PHONE, WEAR, TV}
+
+  @NotNull
+  final LaunchCompatibility getLaunchCompatibility() {
+    return myLaunchCompatibility;
+  }
+
+  abstract boolean isConnected();
+
   @Nullable
   final Instant getConnectionTime() {
     return myConnectionTime;
   }
+
+  @NotNull
+  final String getName() {
+    return myName;
+  }
+
+  @NotNull
+  @Override
+  public final String toString() {
+    return myName;
+  }
+
+  @NotNull
+  abstract Collection<Snapshot> getSnapshots();
 
   abstract @NotNull Target getDefaultTarget();
 
@@ -133,22 +146,5 @@ public abstract class Device {
     }
 
     return device.getLaunchedDevice();
-  }
-
-  @NotNull
-  @Override
-  public final String toString() {
-    return myName;
-  }
-
-  @NotNull
-  final Type getType() {
-    return myType;
-  }
-
-  enum Type {
-    PHONE,
-    WEAR,
-    TV
   }
 }

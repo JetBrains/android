@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.run.deployment;
 
-import com.android.sdklib.AndroidVersion;
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
-import com.google.common.util.concurrent.ListenableFuture;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -27,10 +25,20 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 final class ConnectedDevice extends Device {
+  private ConnectedDevice(@NotNull Builder builder) {
+    super(builder);
+  }
+
   static final class Builder extends Device.Builder {
     @NotNull
-    Builder setName(@NotNull String name) {
-      myName = name;
+    Builder setKey(@NotNull Key key) {
+      myKey = key;
+      return this;
+    }
+
+    @NotNull
+    Builder setType(@NotNull Type type) {
+      myType = type;
       return this;
     }
 
@@ -42,8 +50,8 @@ final class ConnectedDevice extends Device {
     }
 
     @NotNull
-    Builder setKey(@NotNull Key key) {
-      myKey = key;
+    Builder setName(@NotNull String name) {
+      myName = name;
       return this;
     }
 
@@ -54,20 +62,10 @@ final class ConnectedDevice extends Device {
     }
 
     @NotNull
-    Builder setType(@NotNull Type type) {
-      myType = type;
-      return this;
-    }
-
-    @NotNull
     @Override
     ConnectedDevice build() {
       return new ConnectedDevice(this);
     }
-  }
-
-  private ConnectedDevice(@NotNull Builder builder) {
-    super(builder);
   }
 
   boolean isVirtualDevice() {
@@ -108,28 +106,21 @@ final class ConnectedDevice extends Device {
   }
 
   @Override
-  public boolean equals(@Nullable Object object) {
-    if (!(object instanceof ConnectedDevice)) {
-      return false;
-    }
-
-    Device device = (Device)object;
-
-    return getName().equals(device.getName()) &&
-           getType().equals(device.getType()) &&
-           getLaunchCompatibility().equals(device.getLaunchCompatibility()) &&
-           getKey().equals(device.getKey()) &&
-           Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
-           getAndroidDevice().equals(device.getAndroidDevice());
+  public int hashCode() {
+    return Objects.hash(getKey(), getType(), getLaunchCompatibility(), getConnectionTime(), getName(), getAndroidDevice());
   }
 
   @Override
-  public int hashCode() {
-    return Objects.hash(getName(),
-                        getType(),
-                        getLaunchCompatibility(),
-                        getKey(),
-                        getConnectionTime(),
-                        getAndroidDevice());
+  public boolean equals(@Nullable Object object) {
+    if (!(object instanceof ConnectedDevice device)) {
+      return false;
+    }
+
+    return getKey().equals(device.getKey()) &&
+           getType().equals(device.getType()) &&
+           getLaunchCompatibility().equals(device.getLaunchCompatibility()) &&
+           Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
+           getName().equals(device.getName()) &&
+           getAndroidDevice().equals(device.getAndroidDevice());
   }
 }
