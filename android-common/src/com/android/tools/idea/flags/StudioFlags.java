@@ -658,9 +658,9 @@ public final class StudioFlags {
     true
   );
 
-  public static final Flag<Boolean> LOGCAT_IGNORE_STUDIO_SPAM_TAGS = Flag.create(
+  public static final Flag<Boolean> LOGCAT_IGNORE_STUDIO_TAGS = Flag.create(
     LOGCAT,
-    "logcat.ignore.studio.spam.tags",
+    "logcat.ignore.studio.tags",
     "Ignore tags that Studio itself is responsible for",
     "Ignore tags that Studio itself is responsible for",
     true

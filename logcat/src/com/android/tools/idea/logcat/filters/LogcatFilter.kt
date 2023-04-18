@@ -44,7 +44,7 @@ private const val STUDIO_SPAM_PREFIX = "studio."
  */
 internal class LogcatMasterFilter(private val logcatFilter: LogcatFilter?) {
   private val settings = AndroidLogcatSettings.getInstance()
-  private val ignoreSpam = StudioFlags.LOGCAT_IGNORE_STUDIO_SPAM_TAGS.get()
+  private val ignoreSpam = StudioFlags.LOGCAT_IGNORE_STUDIO_TAGS.get()
 
   fun filter(messages: List<LogcatMessage>, zoneId: ZoneId = ZoneId.systemDefault()): List<LogcatMessage> {
     if (logcatFilter == null) {

@@ -63,7 +63,7 @@ class LogcatFilterTest {
   private val disposableRule = DisposableRule()
 
   @get:Rule
-  val rule = RuleChain(ApplicationRule(), disposableRule, FlagRule(StudioFlags.LOGCAT_IGNORE_STUDIO_SPAM_TAGS))
+  val rule = RuleChain(ApplicationRule(), disposableRule, FlagRule(StudioFlags.LOGCAT_IGNORE_STUDIO_TAGS))
 
   private val logcatSettings = AndroidLogcatSettings()
 
@@ -115,7 +115,7 @@ class LogcatFilterTest {
 
   @Test
   fun logcatMasterFilter_studioSpam() {
-    StudioFlags.LOGCAT_IGNORE_STUDIO_SPAM_TAGS.override(false)
+    StudioFlags.LOGCAT_IGNORE_STUDIO_TAGS.override(false)
     val spam = logcatMessage(tag = "studio.ignore")
     val messages = listOf(MESSAGE1, spam)
     val filter = object : LogcatFilter(EMPTY_RANGE) {
