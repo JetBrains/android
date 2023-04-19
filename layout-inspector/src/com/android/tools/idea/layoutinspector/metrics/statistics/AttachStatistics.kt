@@ -26,7 +26,8 @@ import com.google.wireless.android.sdk.stats.DynamicLayoutInspectorErrorInfo.Att
 class AttachStatistics(
   private val clientType: ClientType,
   private val multipleProjectsOpen: () -> Boolean,
-  private val isAutoConnectEnabled: () -> Boolean
+  private val isAutoConnectEnabled: () -> Boolean,
+  private val isEmbeddedLayoutInspector: () -> Boolean,
 ) {
   private var success = false
   private var error = false
@@ -56,6 +57,7 @@ class AttachStatistics(
       it.debuggerAttached = debugging
       it.debuggerPausedDuringAttach = pausedDuringAttach
       it.autoConnectEnabled = isAutoConnectEnabled()
+      it.isEmbeddedLayoutInspector = isEmbeddedLayoutInspector()
     }
   }
 

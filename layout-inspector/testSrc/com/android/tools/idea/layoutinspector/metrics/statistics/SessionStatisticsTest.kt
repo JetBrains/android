@@ -37,7 +37,12 @@ class SessionStatisticsTest {
 
   @Test
   fun doNotSaveEmptyData() {
-    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT, areMultipleProjectsOpen = { false }, isAutoConnectEnabled = { true })
+    val stats = SessionStatisticsImpl(
+      APP_INSPECTION_CLIENT,
+      areMultipleProjectsOpen = { false },
+      isAutoConnectEnabled = { true },
+      isEmbeddedLayoutInspector = { true },
+    )
     val data = DynamicLayoutInspectorSession.newBuilder()
     stats.frameReceived()
     stats.save(data)
@@ -52,6 +57,7 @@ class SessionStatisticsTest {
     assertThat(result.attach.clientType).isEqualTo(APP_INSPECTION_CLIENT)
     assertThat(result.attach.multipleProjectsOpen).isFalse()
     assertThat(result.attach.autoConnectEnabled).isTrue()
+    assertThat(result.attach.isEmbeddedLayoutInspector).isTrue()
     assertThat(result.attach.debuggerAttached).isFalse()
     assertThat(result.attach.debuggerPausedDuringAttach).isFalse()
   }
@@ -65,7 +71,12 @@ class SessionStatisticsTest {
         }
       }
     }
-    val stats = SessionStatisticsImpl(APP_INSPECTION_CLIENT, areMultipleProjectsOpen = { true }, isAutoConnectEnabled = { true })
+    val stats = SessionStatisticsImpl(
+      APP_INSPECTION_CLIENT,
+      areMultipleProjectsOpen = { true },
+      isAutoConnectEnabled = { true },
+      isEmbeddedLayoutInspector = { true }
+    )
     val compose1 = model[COMPOSE1]
     stats.start()
     model.notifyModified(structuralChange = true)
@@ -100,6 +111,7 @@ class SessionStatisticsTest {
     assertThat(result.attach.success).isTrue()
     assertThat(result.attach.multipleProjectsOpen).isTrue()
     assertThat(result.attach.autoConnectEnabled).isTrue()
+    assertThat(result.attach.isEmbeddedLayoutInspector).isTrue()
     assertThat(result.attach.debuggerAttached).isTrue()
     assertThat(result.attach.debuggerPausedDuringAttach).isFalse()
   }
