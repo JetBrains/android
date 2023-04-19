@@ -157,7 +157,7 @@ public final class StudioFlags {
     "When set to HIDE, hides power and battery data track groups in the system trace. " +
     "When set to MINMAX, shows the power rail tracks in a min-max view and keep the battery counter rails in a zero-based view. " +
     "When set to DELTA, shows the power rail tracks in a delta view and keeps the battery counter rails in a zero-based view.",
-    PowerProfilerDisplayMode.HIDE);
+    PowerProfilerDisplayMode.DELTA);
 
   // TODO(b/211154220): Pending user's feedback, either completely remove the keyboard event functionality in
   // Event Timeline or find a proper way to support it for Android S and newer.

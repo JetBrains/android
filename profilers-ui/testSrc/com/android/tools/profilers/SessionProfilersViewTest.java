@@ -27,6 +27,7 @@ import com.android.tools.adtui.TreeWalker;
 import com.android.tools.adtui.chart.linechart.LineChart;
 import com.android.tools.adtui.model.FakeTimer;
 import com.android.tools.adtui.swing.FakeUi;
+import com.android.tools.idea.flags.enums.PowerProfilerDisplayMode;
 import com.android.tools.idea.transport.faketransport.FakeGrpcServer;
 import com.android.tools.idea.transport.faketransport.FakeTransportService;
 import com.android.tools.profiler.proto.Common;
@@ -139,7 +140,12 @@ public class SessionProfilersViewTest {
       .map(c -> myUi.getPosition(c))
       .collect(Collectors.toList());
     // Test that we have the expected number of monitors
-    assertThat(points.size()).isEqualTo(3);
+
+    // If the Power Profiler (new) is disabled, then the Energy Profiler (old) is enabled.
+    boolean isPowerProfilerDisabled =
+      myProfilerServices.getFeatureConfig().getSystemTracePowerProfilerDisplayMode() == PowerProfilerDisplayMode.HIDE;
+
+    assertThat(points.size()).isEqualTo(isPowerProfilerDisabled ? 3 : 2);
 
     // Test the first monitor goes to cpu profiler
     myUi.mouse.click(points.get(0).x + 1, points.get(0).y + 1);
@@ -152,11 +158,13 @@ public class SessionProfilersViewTest {
     assertThat(myProfilers.getStage()).isInstanceOf(MainMemoryProfilerStage.class);
     myProfilers.setMonitoringStage();
 
-    myUi.layout();
-    // Test the fourth monitor goes to energy profiler
-    myUi.mouse.click(points.get(2).x + 1, points.get(2).y + 1);
-    assertThat(myProfilers.getStage()).isInstanceOf(EnergyProfilerStage.class);
-    myProfilers.setMonitoringStage();
+    if (isPowerProfilerDisabled) {
+      myUi.layout();
+      // Test the fourth monitor goes to energy profiler
+      myUi.mouse.click(points.get(2).x + 1, points.get(2).y + 1);
+      assertThat(myProfilers.getStage()).isInstanceOf(EnergyProfilerStage.class);
+      myProfilers.setMonitoringStage();
+    }
   }
 
   @Test
@@ -176,7 +184,12 @@ public class SessionProfilersViewTest {
       .map(c -> myUi.getPosition(c))
       .collect(Collectors.toList());
     // Test that we have the expected number of monitors
-    assertThat(points.size()).isEqualTo(3);
+
+    // If the Power Profiler (new) is disabled, then the Energy Profiler (old) is enabled.
+    boolean isPowerProfilerDisabled =
+      myProfilerServices.getFeatureConfig().getSystemTracePowerProfilerDisplayMode() == PowerProfilerDisplayMode.HIDE;
+
+    assertThat(points.size()).isEqualTo(isPowerProfilerDisabled ? 3 : 2);
 
     // cpu monitor tooltip
     myUi.mouse.moveTo(points.get(0).x + 1, points.get(0).y + 1);
@@ -194,13 +207,15 @@ public class SessionProfilersViewTest {
       monitor -> Truth.assertWithMessage("Only the Memory Monitor should be focused.")
         .that(monitor.isFocused()).isEqualTo(monitor == memoryMonitor));
 
-    // energy monitor tooltip
-    myUi.mouse.moveTo(points.get(2).x + 1, points.get(2).y + 1);
-    assertThat(stage.getTooltip()).isInstanceOf(EnergyMonitorTooltip.class);
-    ProfilerMonitor energyMonitor = ((EnergyMonitorTooltip)stage.getTooltip()).getMonitor();
-    stage.getMonitors().forEach(
-      monitor -> Truth.assertWithMessage("Only the Energy Monitor should be focused.")
-        .that(monitor.isFocused()).isEqualTo(monitor == energyMonitor));
+    if (isPowerProfilerDisabled) {
+      // energy monitor tooltip
+      myUi.mouse.moveTo(points.get(2).x + 1, points.get(2).y + 1);
+      assertThat(stage.getTooltip()).isInstanceOf(EnergyMonitorTooltip.class);
+      ProfilerMonitor energyMonitor = ((EnergyMonitorTooltip)stage.getTooltip()).getMonitor();
+      stage.getMonitors().forEach(
+        monitor -> Truth.assertWithMessage("Only the Energy Monitor should be focused.")
+          .that(monitor.isFocused()).isEqualTo(monitor == energyMonitor));
+    }
 
     // no tooltip
     myUi.mouse.moveTo(0, 0);

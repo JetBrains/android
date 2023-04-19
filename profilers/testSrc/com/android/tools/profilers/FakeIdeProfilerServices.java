@@ -126,7 +126,7 @@ public class FakeIdeProfilerServices implements IdeProfilerServices {
    * Value of MINMAX -> Show power rails is min-max view and battery counters in zero-based view.
    * Value of DELTA -> Show power rails in delta view and battery counters in zero-based view.
    */
-  private PowerProfilerDisplayMode mySystemTracePowerProfilerDisplayMode = PowerProfilerDisplayMode.HIDE;
+  private PowerProfilerDisplayMode mySystemTracePowerProfilerDisplayMode = PowerProfilerDisplayMode.DELTA;
 
   /**
    * Whether we support navigate-to-source action for Compose Tracing
