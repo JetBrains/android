@@ -15,6 +15,8 @@
  */
 package com.android.tools.idea.tests.gui.framework.fixture.designer.layout;
 
+import static com.android.tools.idea.tests.gui.framework.GuiTests.waitUntilShowingAndEnabled;
+
 import com.android.tools.idea.tests.gui.framework.GuiTests;
 import com.android.tools.idea.tests.gui.framework.fixture.ActionButtonFixture;
 import com.android.tools.idea.tests.gui.framework.fixture.ToolWindowFixture;
@@ -22,12 +24,15 @@ import com.android.tools.idea.tests.gui.framework.matcher.Matchers;
 import com.android.tools.idea.uibuilder.surface.NlDesignSurface;
 import com.android.tools.idea.uibuilder.visual.VisualizationForm;
 import com.android.tools.idea.uibuilder.visual.VisualizationToolWindowFactory;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.SystemInfo;
 import icons.StudioIcons;
 import java.awt.event.KeyEvent;
 import java.util.stream.Collectors;
+import org.fest.swing.core.GenericTypeMatcher;
 import org.fest.swing.core.Robot;
+import org.fest.swing.timing.Wait;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -67,6 +72,30 @@ public class VisualizationFixture extends ToolWindowFixture {
 
   public void zoomToFit() {
     myDesignSurfaceFixture.target().zoomToFit();
+  }
+
+  public void clickZoomButton(String buttonName) {
+    ActionButton zoomInButton = waitUntilShowingAndEnabled(robot(), myDesignSurfaceFixture.target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override protected boolean isMatching(@NotNull ActionButton actionButton) {
+        return buttonName.equals(actionButton.getAccessibleContext().getAccessibleName());
+      }
+    });
+    robot().focus(zoomInButton);
+    robot().click(zoomInButton);
+    Wait.seconds(10);
+  }
+
+  public double getScale() {
+    return myDesignSurfaceFixture.getScale();
+  }
+
+  public boolean panButtonPresent() {
+    ActionButton panButton = waitUntilShowingAndEnabled(robot(), myDesignSurfaceFixture.target(), new GenericTypeMatcher<ActionButton>(ActionButton.class) {
+      @Override protected boolean isMatching(@NotNull ActionButton actionButton) {
+        return "Pan screen (hold SPACE bar and drag)".equals(actionButton.getAccessibleContext().getAccessibleName());
+      }
+    });
+    return (panButton.isEnabled() && panButton.isShowing());
   }
 
   public int getRowNumber() {

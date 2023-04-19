@@ -16,6 +16,7 @@
 package com.android.tools.idea.tests.gui.uibuilder;
 
 import static com.google.common.truth.Truth.assertThat;
+import static junit.framework.Assert.assertTrue;
 
 import com.android.tools.idea.tests.gui.framework.GuiTestRule;
 import com.android.tools.idea.tests.gui.framework.fixture.EditorFixture;
@@ -28,7 +29,7 @@ import org.junit.runner.RunWith;
 @RunWith(GuiTestRemoteRunner.class)
 public class OpenCloseVisualizationToolTest {
 
-  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(5, TimeUnit.MINUTES);
+  @Rule public final GuiTestRule guiTest = new GuiTestRule().withTimeout(10, TimeUnit.MINUTES);
   @Rule public final RenderTaskLeakCheckRule renderTaskLeakCheckRule = new RenderTaskLeakCheckRule();
 
   /**
@@ -38,13 +39,16 @@ public class OpenCloseVisualizationToolTest {
    * </p>
    *
    * TT ID: 1aa49fe7-0b4c-4eb7-84ca-a1e4c1ba18ff
+   * TT ID: 511a9c5b-f62b-4076-9b45-68bf218bcbf3
    * <p>
    *   <pre>
    *   This feature is for Android Studio 3.2 and above.
    *   Test Steps:
    *   1. Import SimpleApplication project.
-   *   2. Open xml files and verify the files are opened in Visualization Tool window.
+   *   2. Open xml files and verify the files are opened in Visualization Tool window (View -> Tool Window -> Layout Validation).
    *   3. Resize the validation window and check that the display has rearranged.
+   *   3 a. Verify zoom buttons (Zoom In, out, 100% and Fit to screen) are working by clicking on it.
+   *   3 b. Verify Pan button is present
    *   4. Open Java file, and verify the Visualization Tool window is closed.
    *   5. Close all opened xml files and java file.
    *   </pre>
@@ -67,6 +71,31 @@ public class OpenCloseVisualizationToolTest {
 
     editor.getVisualizationTool().expandWindow();
     assertThat(editor.getVisualizationTool().getRowNumber()).isEqualTo(2);
+
+    double originalScale = editor.getVisualizationTool().getScale();
+    editor.getVisualizationTool().clickZoomButton("Zoom In");
+    double zoomInScale = editor.getVisualizationTool().getScale();
+    editor.getVisualizationTool().clickZoomButton("Zoom Out");
+    editor.getVisualizationTool().clickZoomButton("Zoom Out");
+    double zoomOutScale = editor.getVisualizationTool().getScale();
+    editor.getVisualizationTool().clickZoomButton("100%");
+    double zoom100Scale = editor.getVisualizationTool().getScale();
+    editor.getVisualizationTool().clickZoomButton("Zoom to Fit Screen");
+    double zoomtoFitScale = editor.getVisualizationTool().getScale();
+
+
+    System.out.println("***** Original scale: " + originalScale);
+    System.out.println("***** Scale after Zoom In click: " + zoomInScale);
+    System.out.println("***** Scale after Zoom Out click: " + zoomOutScale);
+    System.out.println("***** Scale after 100% click: " + zoom100Scale);
+    System.out.println("***** Scale after Zoom to Fit Scale click: " + zoomtoFitScale);
+
+    assertThat(zoomInScale).isGreaterThan(originalScale);
+    assertThat(zoomOutScale).isLessThan(zoomInScale);
+    assertThat(zoom100Scale).isEqualTo(1.0);
+    assertThat(zoomtoFitScale).isNotEqualTo(1.0);
+
+    assertTrue(editor.getVisualizationTool().panButtonPresent());
 
     editor.open(file3).waitForVisualizationToolToHide();
 
