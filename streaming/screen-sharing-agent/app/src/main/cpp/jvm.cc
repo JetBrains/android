@@ -45,7 +45,6 @@ JClass JObject::GetClass() const {
 }
 
 JClass JObject::GetClass(JNIEnv* jni_env) const {
-  Log::V("%s:%d", __FILE__, __LINE__);
   return JClass(jni_env, jni_env->GetObjectClass(ref_));
 }
 

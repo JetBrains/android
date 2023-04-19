@@ -80,7 +80,6 @@ void DisplayListenerDispatcher::Stop() {
   if (thread_.joinable()) {
     Jni jni = Jvm::GetJni();
     JObject looper = looper_promise_.get_future().get();
-    Log::V("%s:%d", __FILE__, __LINE__);
     looper.CallVoidMethod(jni, looper.GetClass(jni).GetMethod("quit", "()V"));
     thread_.join();
   }
