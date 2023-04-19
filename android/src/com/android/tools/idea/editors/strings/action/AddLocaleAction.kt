@@ -55,7 +55,6 @@ internal constructor(private val stringResourceWriter: StringResourceWriter) :
         }
         .setRenderer(
             SimpleListCellRenderer.create { label, value, _ ->
-              label.icon = FlagManager.getFlagImage(value)
               label.text = Locale.getLocaleLabel(value, /* brief= */ false)
             })
         .createPopup()
