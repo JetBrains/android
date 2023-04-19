@@ -30,14 +30,13 @@ import com.android.sdklib.repository.targets.SystemImageManager;
 import com.android.testutils.file.InMemoryFileSystems;
 import com.android.tools.adtui.swing.FakeUi;
 import com.google.common.collect.ImmutableList;
-
 import com.intellij.openapi.util.text.StringUtil;
 import java.awt.Dimension;
 import java.nio.file.Path;
-import java.util.function.Predicate;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import org.jetbrains.android.AndroidTestCase;
-
-import javax.swing.*;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Tests for {@link SystemImagePreview}
@@ -134,18 +133,19 @@ public class SystemImagePreviewTest extends AndroidTestCase {
     JPanel rootPanel = new JPanel();
     rootPanel.setSize(new Dimension(500, 500));
     rootPanel.add(imagePreview.getRootPanel());
-    FakeUi fakeUi = new FakeUi(rootPanel, 1f, true);
+    FakeUi fakeUi = new FakeUi(rootPanel, 1, true);
 
     imagePreview.setImage(mWearOsImageDescr);
 
-    final Predicate<JLabel> chinaLocalizedLabelPredicate =
-      label -> label.isShowing() &&
-               "The selected image is a localized version of Wear OS for China".equals(StringUtil.stripHtml(label.getText(), false));
-
-    assertNotNull(fakeUi.findComponent(JLabel.class, chinaLocalizedLabelPredicate));
+    var labelText = "The selected image is a localized version of Wear OS for China";
+    assertNotNull(findLabel(fakeUi, labelText));
 
     // Change the image to
     imagePreview.setImage(mPreviewImageDescr);
-    assertNull(fakeUi.findComponent(JLabel.class, chinaLocalizedLabelPredicate));
+    assertNull(findLabel(fakeUi, labelText));
+  }
+
+  private JLabel findLabel(@NotNull FakeUi fakeUi, @NotNull String text) {
+    return fakeUi.findComponent(JLabel.class, label -> label.isShowing() && StringUtil.stripHtml(label.getText(), false).equals(text));
   }
 }
