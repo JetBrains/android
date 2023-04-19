@@ -155,8 +155,8 @@ public final class StudioFlags {
     "Allows users to customize whether the power rail and battery counter tracks are shown in the system trace UI, " +
     "and if shown, which type of graph displays the tracks. " +
     "When set to HIDE, hides power and battery data track groups in the system trace. " +
-    "When set to MINMAX, shows the power rail tracks in a min-max view and keep the battery counter rails in a zero-based view. " +
-    "When set to DELTA, shows the power rail tracks in a delta view and keeps the battery counter rails in a zero-based view.",
+    "When set to CUMULATIVE, shows power rails and battery counters in their raw view (cumulative counters). " +
+    "When set to DELTA, shows the power rails in a delta view and battery counters in their raw view (cumulative counters).",
     PowerProfilerDisplayMode.DELTA);
 
   // TODO(b/211154220): Pending user's feedback, either completely remove the keyboard event functionality in
