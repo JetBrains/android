@@ -76,27 +76,6 @@ private const val SCENE_VIEW_PEER_PANEL_MIN_WIDTH = 100
 @SwingCoordinate
 private const val MODEL_NAME_LABEL_MIN_WIDTH = 20
 
-/**
- * A [PositionableContentLayoutManager] for a [DesignSurface] with only one [PositionableContent].
- */
-class SinglePositionableContentLayoutManager : PositionableContentLayoutManager() {
-  override fun layoutContainer(content: Collection<PositionableContent>, availableSize: Dimension) {
-    content.singleOrNull()?.setLocation(0, 0)
-  }
-
-  override fun preferredLayoutSize(content: Collection<PositionableContent>, availableSize: Dimension): Dimension =
-    content
-      .singleOrNull()
-      ?.getScaledContentSize(null)
-    ?: availableSize
-
-  override fun getMeasuredPositionableContentPosition(content: Collection<PositionableContent>,
-                                                      availableWidth: Int,
-                                                      availableHeight: Int): Map<PositionableContent, Point> {
-    return content.singleOrNull()?.let { mapOf(it to Point(0, 0)) } ?: emptyMap()
-  }
-}
-
 private data class LayoutData private constructor(
   val scale: Double,
   val modelName: String?,

@@ -50,7 +50,6 @@ import com.android.tools.idea.common.scene.SceneManager;
 import com.android.tools.idea.common.surface.DesignSurface;
 import com.android.tools.idea.common.surface.DesignSurfaceHelper;
 import com.android.tools.idea.common.surface.SceneView;
-import com.android.tools.idea.common.surface.SinglePositionableContentLayoutManager;
 import com.android.tools.configurations.Configuration;
 import com.android.tools.idea.naveditor.analytics.NavUsageTracker;
 import com.android.tools.idea.naveditor.editor.NavActionManager;
