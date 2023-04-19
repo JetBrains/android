@@ -877,6 +877,49 @@ class ForegroundProcessDetectionTest {
     assertThat(disconnectedDevice3).isEqualTo(device2.toDeviceDescriptor())
   }
 
+  @Test
+  fun testStopPollingIsNotSentWhenPollingNewDevice(): Unit = runBlocking {
+    val (deviceModel, processModel) = createDeviceModel(device1, device2)
+    val foregroundProcessDetection = ForegroundProcessDetection(
+      projectRule.project,
+      deviceModel,
+      processModel,
+      transportClient,
+      mock(),
+      mock(),
+      coroutineScope,
+      workDispatcher,
+      onDeviceDisconnected = {},
+      pollingIntervalMs = 500L
+    )
+
+    connectDevice(device1)
+    handshakeSyncChannel.receive()
+    startTrackingSyncChannel.receive()
+
+    connectDevice(device2)
+    handshakeSyncChannel.receive()
+    // we should not start polling this device
+    withTimeoutOrNull<Nothing>(500) {
+      startTrackingSyncChannel.receive()
+      fail()
+    }
+
+    // should not send stop polling event
+    foregroundProcessDetection.startPollingDevice(device2.toDeviceDescriptor(), false)
+    val device = startTrackingSyncChannel.receive()
+    assertThat(device).isEqualTo(device2)
+
+    // we should not stop polling this device
+    withTimeoutOrNull<Nothing>(500) {
+      val unexpectedDevice = stopTrackingSyncChannel.receive()
+      fail("Unexpectedly stopped polling device ${unexpectedDevice.deviceId}")
+    }
+
+    foregroundProcessDetection.stopPollingSelectedDevice()
+    stopTrackingSyncChannel.receive()
+  }
+
   /**
    * Assert that [newForegroundProcess] contains the expected [device] and [foregroundProcess].
    */

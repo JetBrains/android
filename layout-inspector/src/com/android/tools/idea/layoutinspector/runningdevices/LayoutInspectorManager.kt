@@ -110,8 +110,12 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
         return
       }
 
-      field?.disableLayoutInspector()
-      field?.layoutInspector?.stopInspector()
+      val previousTab = field
+      // only disable Layout Inspector if the previous tab is still open.
+      if (previousTab != null && previousTab.tabId in existingRunningDevicesTabs) {
+        previousTab.disableLayoutInspector()
+        previousTab.layoutInspector.stopInspector()
+      }
 
       field = value
 
@@ -122,7 +126,11 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       // the device might not be available yet in app inspection
       if (selectedDevice != null) {
         // start polling
-        value.layoutInspector.foregroundProcessDetection?.startPollingDevice(selectedDevice)
+        value.layoutInspector.foregroundProcessDetection?.startPollingDevice(
+          selectedDevice,
+          // only stop polling if the previous tab is still open.
+          previousTab?.tabId in existingRunningDevicesTabs
+        )
       }
 
       // inject Layout Inspector UI
@@ -133,6 +141,9 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
     }
 
   private val stateListeners = mutableListOf<LayoutInspectorManager.StateListener>()
+
+  /** The list of tabs currently open in Running Devices, with or without Layout Inspector enabled. */
+  private var existingRunningDevicesTabs: List<TabId> = emptyList()
 
   init {
     RunningDevicesStateObserver.getInstance(project).addListener(object : RunningDevicesStateObserver.Listener {
@@ -148,6 +159,7 @@ private class LayoutInspectorManagerImpl(private val project: Project) : LayoutI
       }
 
       override fun onExistingTabsChanged(existingTabs: List<TabId>) {
+        existingRunningDevicesTabs = existingTabs
         // If the Running Devices Tool Window is collapsed, all tabs are removed.
         // We don't want to update our state when this happens, because it means we would lose track of which tabs had Layout Inspector.
         // So instead we keep the tab state forever.

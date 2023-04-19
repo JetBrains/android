@@ -243,6 +243,8 @@ class LayoutInspectorManagerTest {
   @RunsInEdt
   fun testSelectedTabIsRemoved() {
     val layoutInspectorManager = LayoutInspectorManager.getInstance(displayViewRule.project)
+    var stopInspectorCounts = 0
+    layoutInspector.stopInspectorListeners.add { stopInspectorCounts += 1 }
 
     fakeToolWindowManager.setSelectedContent(tab1)
     layoutInspectorManager.enableLayoutInspector(tab1.tabId, true)
@@ -260,7 +262,12 @@ class LayoutInspectorManagerTest {
 
     fakeToolWindowManager.removeContent(tab1)
 
-    assertDoesNotHaveWorkbench(tab1)
+    // assert that the workbench was not removed from tab1.
+    // it should not be removed because in the real world tab1 doesn't exist anymore after being removed
+    // so trying to remove the workbench would cause problems.
+    assertHasWorkbench(tab1)
+    // the same for stopping the inspector, it should not be called because the device is not connected anymore.
+    assertThat(stopInspectorCounts).isEqualTo(2)
     assertHasWorkbench(tab2)
   }
 

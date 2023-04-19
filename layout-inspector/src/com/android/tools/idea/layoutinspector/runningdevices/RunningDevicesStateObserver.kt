@@ -139,7 +139,7 @@ class RunningDevicesStateObserver(private val project: Project) {
       invokeLater { updateExistingTabs() }
     }
 
-    override fun contentRemoved(event: ContentManagerEvent) {
+    override fun contentRemoveQuery(event: ContentManagerEvent) {
       // listeners are executed in order, if listeners before this one launched calls using invokeLater, they should be executed first.
       invokeLater { updateExistingTabs() }
     }
