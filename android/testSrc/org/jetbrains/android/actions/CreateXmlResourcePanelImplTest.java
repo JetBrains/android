@@ -16,16 +16,28 @@
 package org.jetbrains.android.actions;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import com.android.resources.ResourceFolderType;
 import com.android.resources.ResourceType;
+import com.android.tools.adtui.swing.FakeUi;
 import com.android.tools.idea.res.IdeResourceNameValidator;
 import com.android.tools.idea.testing.AndroidProjectRule;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.command.undo.UndoManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.openapi.ui.ValidationInfo;
+import com.intellij.openapi.util.Pair;
 import com.intellij.testFramework.EdtRule;
 import com.intellij.testFramework.RunsInEdt;
+import com.intellij.testFramework.TestActionEvent;
+import com.intellij.ui.AnActionButton;
+import com.intellij.ui.CheckBoxList;
+import java.util.function.Predicate;
 import javax.swing.JComponent;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -123,6 +135,58 @@ public final class CreateXmlResourcePanelImplTest {
   @Test
   public void testFocusedNameFieldWhenResourceValueIsGivenForColor() {
     testFocusedNameFieldWhenResourceValueIsGiven(myProjectRule.getModule(), "#AFA", ResourceType.COLOR);
+  }
+
+  @Test
+  public void testFolderDeletionCanBeUndone() throws InterruptedException {
+    myProjectRule.getFixture().addFileToProject("res/values/colors.xml",
+                                                //language=XML
+                                                """
+                                                  <?xml version="1.0" encoding="utf-8"?>
+                                                  <resources>
+                                                      <color name="purple_200">#FFBB86FC</color>
+                                                      <color name="black">#FF000000</color>
+                                                      <color name="white">#FFFFFFFF</color>
+                                                  </resources>""");
+
+    CreateXmlResourcePanelImpl xmlResourcePanel = new CreateXmlResourcePanelImpl(myProjectRule.getModule(),
+                                                                                 ResourceType.COLOR,
+                                                                                 ResourceFolderType.VALUES,
+                                                                                 null,
+                                                                                 null,
+                                                                                 true,
+                                                                                 true,
+                                                                                 true,
+                                                                                 null,
+                                                                                 null,
+                                                                                 validatorModule -> IdeResourceNameValidator
+                                                                                   .forResourceName(ResourceType.COLOR));
+    xmlResourcePanel.getPanel().setSize(640, 480);
+    FakeUi fakeUi = new FakeUi(xmlResourcePanel.getPanel(), 1.0, true, myProjectRule.getTestRootDisposable());
+    fakeUi.layoutAndDispatchEvents();
+
+    // Select first element
+    @SuppressWarnings("rawtypes")
+    CheckBoxList checkBoxList = fakeUi.findComponent(CheckBoxList.class, checklist -> true);
+    assertNotNull(checkBoxList);
+    checkBoxList.getSelectionModel().setSelectionInterval(0, 0);
+    fakeUi.layoutAndDispatchEvents();
+
+    ActionToolbar toolbar = fakeUi.findComponent(ActionToolbar.class, toolbar1 -> true);
+    assertNotNull(toolbar);
+    AnActionButton removeAction =
+      (AnActionButton)toolbar.getActions().stream().filter(action -> "Remove".equals(action.getTemplateText())).findFirst().orElseThrow();
+    assertTrue(removeAction.isEnabled());
+
+    // The delete action will ask for confirmation, respond yes.
+    TestDialogManager.setTestDialog(TestDialog.YES);
+    removeAction.actionPerformed(TestActionEvent.createTestEvent(removeAction));
+
+    UndoManager undoManager = UndoManager.getInstance(myProjectRule.getProject());
+    Pair<String, String> undoText = undoManager.getUndoActionNameAndDescription(null);
+    assertEquals("_Undo Deleting Files", undoText.first);
+
+    undoManager.undo(null);
   }
 
   private static void testFocusedNameFieldWhenResourceValueIsGiven(Module module, String resourceValue, ResourceType type) {
