@@ -41,6 +41,7 @@ import com.google.wireless.android.sdk.stats.GradleNativeAndroidModule.NativeBui
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.ModuleManager
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManagerEx
@@ -217,6 +218,8 @@ class ProjectStructureUsageTracker(private val myProject: Project) : GradleSyncL
         (usedFeatures.contains(UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, null))
           || usedFeatures.contains(UsedFeatureRawText(UsesFeature.HARDWARE_TYPE_WATCH, "true")))
       }
+    } catch (e : ProcessCanceledException) {
+      throw e
     } catch (e: Throwable) {
       LOG.warn("Manifest Index could not be queried", e)
     }
