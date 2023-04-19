@@ -30,13 +30,42 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class PhysicalDevice extends Device {
+final class PhysicalDevice implements Device {
   private static final Icon ourPhoneIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_PHONE);
   private static final Icon ourWearIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_WEAR);
   private static final Icon ourTvIcon = ExecutionUtil.getLiveIndicator(StudioIcons.DeviceExplorer.PHYSICAL_DEVICE_TV);
 
+  @NotNull
+  private final Key myKey;
+
+  @NotNull
+  private final Type myType;
+
+  @NotNull
+  private final LaunchCompatibility myLaunchCompatibility;
+
+  @Nullable
+  private final Instant myConnectionTime;
+
+  @NotNull
+  private final String myName;
+
+  @NotNull
+  private final AndroidDevice myAndroidDevice;
+
   private PhysicalDevice(@NotNull Builder builder) {
-    super(builder);
+    assert builder.myKey != null;
+    myKey = builder.myKey;
+
+    myType = builder.myType;
+    myLaunchCompatibility = builder.myLaunchCompatibility;
+    myConnectionTime = builder.myConnectionTime;
+
+    assert builder.myName != null;
+    myName = builder.myName;
+
+    assert builder.myAndroidDevice != null;
+    myAndroidDevice = builder.myAndroidDevice;
   }
 
   static @NotNull PhysicalDevice newDevice(@NotNull Device device, @NotNull KeyToConnectionTimeMap map) {
@@ -105,7 +134,13 @@ final class PhysicalDevice extends Device {
 
   @NotNull
   @Override
-  Icon getIcon() {
+  public Key getKey() {
+    return myKey;
+  }
+
+  @NotNull
+  @Override
+  public Icon getIcon() {
     Icon icon = switch (getType()) {
       case TV -> ourTvIcon;
       case WEAR -> ourWearIcon;
@@ -119,36 +154,66 @@ final class PhysicalDevice extends Device {
     };
   }
 
+  @NotNull
+  @Override
+  public Type getType() {
+    return myType;
+  }
+
+  @NotNull
+  @Override
+  public LaunchCompatibility getLaunchCompatibility() {
+    return myLaunchCompatibility;
+  }
+
   /**
    * @return true. Physical devices come and go as they are connected and disconnected; there are no instances of this class for
    * disconnected physical devices.
    */
   @Override
-  boolean isConnected() {
+  public boolean isConnected() {
     return true;
+  }
+
+  @Nullable
+  @Override
+  public Instant getConnectionTime() {
+    return myConnectionTime;
   }
 
   @NotNull
   @Override
-  Collection<Snapshot> getSnapshots() {
+  public String getName() {
+    return myName;
+  }
+
+  @NotNull
+  @Override
+  public Collection<Snapshot> getSnapshots() {
     return Collections.emptyList();
   }
 
   @NotNull
   @Override
-  Target getDefaultTarget() {
+  public Target getDefaultTarget() {
     return new RunningDeviceTarget(getKey());
   }
 
   @NotNull
   @Override
-  Collection<Target> getTargets() {
+  public Collection<Target> getTargets() {
     return Collections.singletonList(new RunningDeviceTarget(getKey()));
+  }
+
+  @NotNull
+  @Override
+  public AndroidDevice getAndroidDevice() {
+    return myAndroidDevice;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getKey(), getType(), getLaunchCompatibility(), getConnectionTime(), getName(), getAndroidDevice());
+    return Objects.hash(myKey, myType, myLaunchCompatibility, myConnectionTime, myName, myAndroidDevice);
   }
 
   @Override
@@ -157,11 +222,17 @@ final class PhysicalDevice extends Device {
       return false;
     }
 
-    return getKey().equals(device.getKey()) &&
-           getType().equals(device.getType()) &&
-           getLaunchCompatibility().equals(device.getLaunchCompatibility()) &&
-           Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
-           getName().equals(device.getName()) &&
-           getAndroidDevice().equals(device.getAndroidDevice());
+    return myKey.equals(device.myKey) &&
+           myType.equals(device.myType) &&
+           myLaunchCompatibility.equals(device.myLaunchCompatibility) &&
+           Objects.equals(myConnectionTime, device.myConnectionTime) &&
+           myName.equals(device.myName) &&
+           myAndroidDevice.equals(device.myAndroidDevice);
+  }
+
+  @NotNull
+  @Override
+  public String toString() {
+    return myName;
   }
 }

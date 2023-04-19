@@ -40,10 +40,13 @@ import org.jetbrains.annotations.Nullable;
  * A virtual device. If it's in the Android Virtual Device Manager Device.myKey is a VirtualDevicePath and myNameKey is not null. If not,
  * Device.myKey may be a VirtualDevicePath, VirtualDeviceName, or SerialNumber depending on what the IDevice returns and myNameKey is null.
  */
-final class VirtualDevice extends Device {
+final class VirtualDevice implements Device {
   private static final Icon ourPhoneIcon = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_PHONE;
   private static final Icon ourWearIcon = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_WEAR;
   private static final Icon ourTvIcon = StudioIcons.DeviceExplorer.VIRTUAL_DEVICE_TV;
+
+  @NotNull
+  private final Key myKey;
 
   /**
    * The virtual device names match with ConnectedDevices that don't support the avd path emulator console subcommand added to the emulator
@@ -51,14 +54,42 @@ final class VirtualDevice extends Device {
    */
   private final @Nullable VirtualDeviceName myNameKey;
 
+  @NotNull
+  private final Type myType;
+
+  @NotNull
+  private final LaunchCompatibility myLaunchCompatibility;
+
+  @Nullable
+  private final Instant myConnectionTime;
+
+  @NotNull
+  private final String myName;
+
   private final @NotNull Collection<Snapshot> mySnapshots;
+
+  @NotNull
+  private final AndroidDevice myAndroidDevice;
+
   private final boolean mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
 
   private VirtualDevice(@NotNull Builder builder) {
-    super(builder);
+    assert builder.myKey != null;
+    myKey = builder.myKey;
 
     myNameKey = builder.myNameKey;
+    myType = builder.myType;
+    myLaunchCompatibility = builder.myLaunchCompatibility;
+    myConnectionTime = builder.myConnectionTime;
+
+    assert builder.myName != null;
+    myName = builder.myName;
+
     mySnapshots = new ArrayList<>(builder.mySnapshots);
+
+    assert builder.myAndroidDevice != null;
+    myAndroidDevice = builder.myAndroidDevice;
+
     mySelectDeviceSnapshotComboBoxSnapshotsEnabled = builder.mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
   }
 
@@ -180,13 +211,19 @@ final class VirtualDevice extends Device {
   }
 
   @NotNull
+  @Override
+  public Key getKey() {
+    return myKey;
+  }
+
+  @NotNull
   Optional<Object> getNameKey() {
     return Optional.ofNullable(myNameKey);
   }
 
   @NotNull
   @Override
-  Icon getIcon() {
+  public Icon getIcon() {
     var icon = switch (getType()) {
       case PHONE -> ourPhoneIcon;
       case WEAR -> ourWearIcon;
@@ -204,20 +241,44 @@ final class VirtualDevice extends Device {
     };
   }
 
+  @NotNull
   @Override
-  boolean isConnected() {
-    return getConnectionTime() != null;
+  public Type getType() {
+    return myType;
   }
 
   @NotNull
   @Override
-  Collection<Snapshot> getSnapshots() {
+  public LaunchCompatibility getLaunchCompatibility() {
+    return myLaunchCompatibility;
+  }
+
+  @Override
+  public boolean isConnected() {
+    return getConnectionTime() != null;
+  }
+
+  @Nullable
+  @Override
+  public Instant getConnectionTime() {
+    return myConnectionTime;
+  }
+
+  @NotNull
+  @Override
+  public String getName() {
+    return myName;
+  }
+
+  @NotNull
+  @Override
+  public Collection<Snapshot> getSnapshots() {
     return mySnapshots;
   }
 
   @NotNull
   @Override
-  Target getDefaultTarget() {
+  public Target getDefaultTarget() {
     if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled) {
       return new QuickBootTarget(getKey());
     }
@@ -231,7 +292,7 @@ final class VirtualDevice extends Device {
 
   @NotNull
   @Override
-  Collection<Target> getTargets() {
+  public Collection<Target> getTargets() {
     if (!mySelectDeviceSnapshotComboBoxSnapshotsEnabled) {
       return Collections.singletonList(new QuickBootTarget(getKey()));
     }
@@ -258,16 +319,22 @@ final class VirtualDevice extends Device {
     return targets;
   }
 
+  @NotNull
+  @Override
+  public AndroidDevice getAndroidDevice() {
+    return myAndroidDevice;
+  }
+
   @Override
   public int hashCode() {
-    return Objects.hash(getKey(),
+    return Objects.hash(myKey,
                         myNameKey,
-                        getType(),
-                        getLaunchCompatibility(),
-                        getConnectionTime(),
-                        getName(),
+                        myType,
+                        myLaunchCompatibility,
+                        myConnectionTime,
+                        myName,
                         mySnapshots,
-                        getAndroidDevice(),
+                        myAndroidDevice,
                         mySelectDeviceSnapshotComboBoxSnapshotsEnabled);
   }
 
@@ -277,14 +344,20 @@ final class VirtualDevice extends Device {
       return false;
     }
 
-    return getKey().equals(device.getKey()) &&
+    return myKey.equals(device.myKey) &&
            Objects.equals(myNameKey, device.myNameKey) &&
-           getType().equals(device.getType()) &&
-           getLaunchCompatibility().equals(device.getLaunchCompatibility()) &&
-           Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
-           getName().equals(device.getName()) &&
+           myType.equals(device.myType) &&
+           myLaunchCompatibility.equals(device.myLaunchCompatibility) &&
+           Objects.equals(myConnectionTime, device.myConnectionTime) &&
+           myName.equals(device.myName) &&
            mySnapshots.equals(device.mySnapshots) &&
-           getAndroidDevice().equals(device.getAndroidDevice()) &&
+           myAndroidDevice.equals(device.myAndroidDevice) &&
            mySelectDeviceSnapshotComboBoxSnapshotsEnabled == device.mySelectDeviceSnapshotComboBoxSnapshotsEnabled;
+  }
+
+  @NotNull
+  @Override
+  public String toString() {
+    return myName;
   }
 }

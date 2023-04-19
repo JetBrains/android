@@ -17,6 +17,7 @@ package com.android.tools.idea.run.deployment;
 
 import com.android.tools.idea.run.AndroidDevice;
 import com.android.tools.idea.run.LaunchCompatibility;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -24,9 +25,38 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-final class ConnectedDevice extends Device {
+final class ConnectedDevice implements Device {
+  @NotNull
+  private final Key myKey;
+
+  @NotNull
+  private final Type myType;
+
+  @NotNull
+  private final LaunchCompatibility myLaunchCompatibility;
+
+  @Nullable
+  private final Instant myConnectionTime;
+
+  @NotNull
+  private final String myName;
+
+  @NotNull
+  private final AndroidDevice myAndroidDevice;
+
   private ConnectedDevice(@NotNull Builder builder) {
-    super(builder);
+    assert builder.myKey != null;
+    myKey = builder.myKey;
+
+    myType = builder.myType;
+    myLaunchCompatibility = builder.myLaunchCompatibility;
+    myConnectionTime = builder.myConnectionTime;
+
+    assert builder.myName != null;
+    myName = builder.myName;
+
+    assert builder.myAndroidDevice != null;
+    myAndroidDevice = builder.myAndroidDevice;
   }
 
   static final class Builder extends Device.Builder {
@@ -78,36 +108,72 @@ final class ConnectedDevice extends Device {
 
   @NotNull
   @Override
-  Icon getIcon() {
-    throw new UnsupportedOperationException();
+  public Key getKey() {
+    return myKey;
   }
 
+  @NotNull
   @Override
-  boolean isConnected() {
+  public Icon getIcon() {
     throw new UnsupportedOperationException();
   }
 
   @NotNull
   @Override
-  Collection<Snapshot> getSnapshots() {
+  public Type getType() {
+    return myType;
+  }
+
+  @NotNull
+  @Override
+  public LaunchCompatibility getLaunchCompatibility() {
+    return myLaunchCompatibility;
+  }
+
+  @Override
+  public boolean isConnected() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Nullable
+  @Override
+  public Instant getConnectionTime() {
+    return myConnectionTime;
+  }
+
+  @NotNull
+  @Override
+  public String getName() {
+    return myName;
+  }
+
+  @NotNull
+  @Override
+  public Collection<Snapshot> getSnapshots() {
     return Collections.emptyList();
   }
 
   @NotNull
   @Override
-  Target getDefaultTarget() {
+  public Target getDefaultTarget() {
     throw new UnsupportedOperationException();
   }
 
   @NotNull
   @Override
-  Collection<Target> getTargets() {
+  public Collection<Target> getTargets() {
     throw new UnsupportedOperationException();
+  }
+
+  @NotNull
+  @Override
+  public AndroidDevice getAndroidDevice() {
+    return myAndroidDevice;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getKey(), getType(), getLaunchCompatibility(), getConnectionTime(), getName(), getAndroidDevice());
+    return Objects.hash(myKey, myType, myLaunchCompatibility, myConnectionTime, myName, myAndroidDevice);
   }
 
   @Override
@@ -116,11 +182,17 @@ final class ConnectedDevice extends Device {
       return false;
     }
 
-    return getKey().equals(device.getKey()) &&
-           getType().equals(device.getType()) &&
-           getLaunchCompatibility().equals(device.getLaunchCompatibility()) &&
-           Objects.equals(getConnectionTime(), device.getConnectionTime()) &&
-           getName().equals(device.getName()) &&
-           getAndroidDevice().equals(device.getAndroidDevice());
+    return myKey.equals(device.myKey) &&
+           myType.equals(device.myType) &&
+           myLaunchCompatibility.equals(device.myLaunchCompatibility) &&
+           Objects.equals(myConnectionTime, device.myConnectionTime) &&
+           myName.equals(device.myName) &&
+           myAndroidDevice.equals(device.myAndroidDevice);
+  }
+
+  @NotNull
+  @Override
+  public String toString() {
+    return myName;
   }
 }

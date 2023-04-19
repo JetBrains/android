@@ -25,40 +25,8 @@ import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class Device {
-  @NotNull
-  private final Key myKey;
-
-  private final @NotNull Type myType;
-
-  @NotNull
-  private final LaunchCompatibility myLaunchCompatibility;
-
-  @Nullable
-  private final Instant myConnectionTime;
-
-  @NotNull
-  private final String myName;
-
-  @NotNull
-  private final AndroidDevice myAndroidDevice;
-
-  Device(@NotNull Builder builder) {
-    assert builder.myKey != null;
-    myKey = builder.myKey;
-
-    myType = builder.myType;
-    myLaunchCompatibility = builder.myLaunchCompatibility;
-    myConnectionTime = builder.myConnectionTime;
-
-    assert builder.myName != null;
-    myName = builder.myName;
-
-    assert builder.myAndroidDevice != null;
-    myAndroidDevice = builder.myAndroidDevice;
-  }
-
-  static abstract class Builder {
+interface Device {
+  abstract class Builder {
     @Nullable
     Key myKey;
 
@@ -89,56 +57,41 @@ public abstract class Device {
    */
   @NotNull
   @SuppressWarnings("GrazieInspection")
-  public final Key getKey() {
-    return myKey;
-  }
+  Key getKey();
 
   @NotNull
-  abstract Icon getIcon();
+  Icon getIcon();
 
   @NotNull
-  final Type getType() {
-    return myType;
-  }
+  Type getType();
 
   enum Type {PHONE, WEAR, TV}
 
   @NotNull
-  final LaunchCompatibility getLaunchCompatibility() {
-    return myLaunchCompatibility;
-  }
+  LaunchCompatibility getLaunchCompatibility();
 
-  abstract boolean isConnected();
+  boolean isConnected();
 
   @Nullable
-  final Instant getConnectionTime() {
-    return myConnectionTime;
-  }
+  Instant getConnectionTime();
 
   @NotNull
-  final String getName() {
-    return myName;
-  }
+  String getName();
 
   @NotNull
-  @Override
-  public final String toString() {
-    return myName;
-  }
+  Collection<Snapshot> getSnapshots();
 
   @NotNull
-  abstract Collection<Snapshot> getSnapshots();
-
-  abstract @NotNull Target getDefaultTarget();
-
-  abstract @NotNull Collection<Target> getTargets();
+  Target getDefaultTarget();
 
   @NotNull
-  final AndroidDevice getAndroidDevice() {
-    return myAndroidDevice;
-  }
+  Collection<Target> getTargets();
 
-  final @NotNull ListenableFuture<IDevice> getDdmlibDeviceAsync() {
+  @NotNull
+  AndroidDevice getAndroidDevice();
+
+  @NotNull
+  default ListenableFuture<IDevice> getDdmlibDeviceAsync() {
     AndroidDevice device = getAndroidDevice();
 
     if (!device.isRunning()) {
