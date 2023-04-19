@@ -27,6 +27,6 @@ internal class ActivateTemplateButton(scope: CoroutineScope, private val templat
   init {
     addActionListener { scope.launch { template.activationAction.activate() } }
 
-    scope.launch(AndroidDispatchers.uiThread) { trackActionEnabled(template.activationAction) }
+    scope.launch(AndroidDispatchers.uiThread) { trackActionPresentation(template.activationAction) }
   }
 }

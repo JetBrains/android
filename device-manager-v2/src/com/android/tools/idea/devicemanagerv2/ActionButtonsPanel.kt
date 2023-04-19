@@ -43,12 +43,20 @@ internal open class ActionButtonsPanel : JBPanel<ActionButtonsPanel>() {
 internal class DeviceHandleButtonsPanel(val project: Project, handle: DeviceHandle) :
   ActionButtonsPanel() {
 
-  val startStopButton = StartStopButton(handle)
   val openDeviceExplorer = OpenDeviceExplorerButton(project, handle)
   val overflowButton = OverflowButton()
 
   init {
-    setUp(startStopButton, openDeviceExplorer, overflowButton)
+    handle.activationAction?.let { activationAction ->
+      handle.deactivationAction?.let { deactivationAction ->
+        setUp(
+          StartStopButton(handle, activationAction, deactivationAction),
+          openDeviceExplorer,
+          overflowButton
+        )
+      }
+    }
+      ?: setUp(openDeviceExplorer, overflowButton)
   }
 
   override fun updateState(state: DeviceRowData) {

@@ -15,6 +15,7 @@
  */
 package com.android.tools.idea.deviceprovisioner
 
+import com.android.sdklib.deviceprovisioner.DeviceAction
 import com.android.sdklib.deviceprovisioner.DeviceHandle
 import com.android.sdklib.deviceprovisioner.DeviceProperties
 import com.android.sdklib.deviceprovisioner.DeviceState
@@ -27,6 +28,7 @@ import com.intellij.ide.ui.customization.CustomActionsSchema
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.testFramework.ProjectRule
+import com.intellij.util.ui.EmptyIcon
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,6 +41,7 @@ import java.time.Instant
 private const val EXTEND_RESERVATION_ID = "android.device.reservation.extend"
 private const val EXTEND_RESERVATION_HALF_HOUR_ID = "android.device.reservation.extend.half.hour"
 private const val EXTEND_RESERVATION_ONE_HOUR_ID = "android.device.reservation.extend.one.hour"
+private val defaultPresentation = DeviceAction.Presentation("", EmptyIcon.ICON_0, true)
 
 class ExtendReservationActionTest {
 
@@ -67,8 +70,7 @@ class ExtendReservationActionTest {
           return Instant.ofEpochSecond(duration.toMillis())
         }
 
-        override val label: String = ""
-        override val isEnabled: StateFlow<Boolean> = MutableStateFlow(true)
+        override val presentation = MutableStateFlow(defaultPresentation)
       })
     val dataContext = DataContext {
       if (it == DEVICE_HANDLE_KEY.name) handle
@@ -117,8 +119,7 @@ class ExtendReservationActionTest {
           return Instant.ofEpochSecond(duration.toMillis())
         }
 
-        override val label: String = ""
-        override val isEnabled: StateFlow<Boolean> = MutableStateFlow(true)
+        override val presentation = MutableStateFlow(defaultPresentation)
       })
     val dataContext = DataContext {
       if (it == DEVICE_HANDLE_KEY.name) handle
@@ -197,9 +198,7 @@ class ExtendReservationActionTest {
         totalDuration = totalDuration.plus(duration)
         return Instant.ofEpochSecond(duration.toMillis())
       }
-
-      override val label: String = ""
-      override val isEnabled: StateFlow<Boolean> = MutableStateFlow(true)
+      override val presentation = MutableStateFlow(defaultPresentation)
     })
     val dataContext = DataContext {
       if (it == DEVICE_HANDLE_KEY.name) handle

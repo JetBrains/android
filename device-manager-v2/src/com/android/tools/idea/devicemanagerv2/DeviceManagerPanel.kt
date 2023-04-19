@@ -25,6 +25,7 @@ import com.android.sdklib.deviceprovisioner.SetChange
 import com.android.sdklib.deviceprovisioner.trackSetChanges
 import com.android.tools.adtui.actions.DropDownAction
 import com.android.tools.adtui.categorytable.CategoryTable
+import com.android.tools.adtui.categorytable.IconButton
 import com.android.tools.adtui.util.ActionToolbarUtil
 import com.android.tools.idea.adb.wireless.PairDevicesUsingWiFiAction
 import com.android.tools.idea.concurrency.AndroidCoroutineScope
@@ -171,15 +172,18 @@ internal class DeviceManagerPanel(val project: Project) : JPanel() {
 
   private fun <A : DeviceAction> A.toAnAction(action: suspend A.() -> Unit): AnAction {
     panelScope.launch {
-      // Any time the enabled state changes, update the ActivityTracker so that we can update action
-      // states
-      isEnabled.collect { ActivityTracker.getInstance().inc() }
+      // Any time the DeviceAction presentation changes, update the ActivityTracker so that we can
+      // update the AnAction presentation
+      presentation.collect { ActivityTracker.getInstance().inc() }
     }
-    return object : AnAction(label, label, StudioIcons.Common.ADD) {
+    return object :
+      AnAction(presentation.value.label, presentation.value.label, presentation.value.icon) {
       override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
       override fun update(e: AnActionEvent) {
-        e.presentation.isEnabled = isEnabled.value
+        e.presentation.isEnabled = presentation.value.enabled
+        e.presentation.icon = presentation.value.icon
+        e.presentation.text = presentation.value.label
       }
 
       override fun actionPerformed(e: AnActionEvent) {
@@ -203,10 +207,13 @@ internal class DeviceManagerPanel(val project: Project) : JPanel() {
 }
 
 @UiThread
-internal suspend fun JButton.trackActionEnabled(action: DeviceAction?) =
+internal suspend fun IconButton.trackActionPresentation(action: DeviceAction?) =
   when (action) {
     null -> isEnabled = false
-    else -> action.isEnabled.collect { isEnabled = it }
+    else -> action.presentation.collect {
+      isEnabled = it.enabled
+      baseIcon = it.icon
+    }
   }
 
 private const val TOOLBAR_ID = "DeviceManager2"

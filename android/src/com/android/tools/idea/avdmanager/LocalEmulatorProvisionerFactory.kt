@@ -24,6 +24,7 @@ import com.android.tools.idea.concurrency.AndroidDispatchers
 import com.android.tools.idea.concurrency.AndroidDispatchers.uiThread
 import com.android.tools.idea.concurrency.AndroidDispatchers.workerThread
 import com.android.tools.idea.deviceprovisioner.DeviceProvisionerFactory
+import com.android.tools.idea.deviceprovisioner.StudioDefaultDeviceActionPresentation
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withContext
@@ -66,7 +67,8 @@ class LocalEmulatorProvisionerFactory : DeviceProvisionerFactory {
     return LocalEmulatorProvisionerPlugin(
       coroutineScope,
       AdbLibService.getSession(project),
-      avdManager
+      avdManager,
+      defaultPresentation = StudioDefaultDeviceActionPresentation,
     )
   }
 }
