@@ -22,7 +22,6 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
-import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentFactory
 import icons.StudioIcons
 
@@ -57,7 +56,8 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
   companion object {
     const val ID = "Android Profiler"
     private const val PROFILER_TOOL_WINDOW_TITLE = "Profiler"
-    private val PROJECT_PROFILER_MAP: MutableMap<Content, AndroidProfilerToolWindow> = HashMap()
+    private val PROJECT_PROFILER_MAP: MutableMap<Project, AndroidProfilerToolWindow> = HashMap()
+
     private fun createContent(project: Project, toolWindow: ToolWindow) {
       val wrapper: ToolWindowWrapper = ToolWindowWrapperImpl(project, toolWindow)
       val view = AndroidProfilerToolWindow(wrapper, project)
@@ -67,8 +67,8 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
       toolWindow.contentManager.addContent(content)
       toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER)
 
-      PROJECT_PROFILER_MAP[content] = view
-      Disposer.register(content) { PROJECT_PROFILER_MAP.remove(content) }
+      PROJECT_PROFILER_MAP[project] = view
+      Disposer.register(content) { PROJECT_PROFILER_MAP.remove(project) }
 
       // Forcibly synchronize the Tool Window to a visible state. Otherwise, the Tool Window may not auto-hide correctly.
       toolWindow.show(null)
@@ -82,16 +82,11 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
     fun getProfilerToolWindow(project: Project): AndroidProfilerToolWindow? {
       val window = ToolWindowManager.getInstance(project).getToolWindow(ID) ?: return null
       val contentManager = window.contentManager
-      return if (contentManager.contentCount == 0) {
-        null
-      }
-      else PROJECT_PROFILER_MAP[contentManager.getContent(0)]
+      return if (contentManager.contentCount == 0) null else PROJECT_PROFILER_MAP[project]
     }
 
     fun removeContent(toolWindow: ToolWindow) {
       if (toolWindow.contentManager.contentCount > 0) {
-        val content = toolWindow.contentManager.getContent(0)
-        PROJECT_PROFILER_MAP.remove(content)
         toolWindow.contentManager.removeAllContents(true)
       }
     }
