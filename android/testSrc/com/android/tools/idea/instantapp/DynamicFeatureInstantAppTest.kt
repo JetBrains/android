@@ -111,7 +111,7 @@ class DynamicFeatureInstantAppTest  {
       configuration,
       env,
       androidFacet,
-      project.applicationIdProvider,
+      project.applicationIdProvider.packageName,
       project.apkProvider,
       launchOptionsBuilder.build(),
       false
@@ -145,7 +145,7 @@ class DynamicFeatureInstantAppTest  {
       configuration,
       env,
       androidFacet,
-      project.applicationIdProvider,
+      project.applicationIdProvider.packageName,
       project.apkProvider,
       launchOptionsBuilder.build(),
       false
@@ -174,7 +174,7 @@ class DynamicFeatureInstantAppTest  {
       configuration,
       env,
       androidFacet,
-      project.applicationIdProvider,
+      project.applicationIdProvider.packageName,
       project.apkProvider,
       launchOptionsBuilder.build(),
       false

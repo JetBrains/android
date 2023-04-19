@@ -212,7 +212,7 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
 
   @Throws(ExecutionException::class)
   open fun getApplicationLaunchTask(
-    applicationIdProvider: ApplicationIdProvider,
+    packageName: String,
     facet: AndroidFacet,
     contributorsAmStartOptions: String,
     waitForDebugger: Boolean,
@@ -239,15 +239,7 @@ open class AndroidRunConfiguration(project: Project?, factory: ConfigurationFact
         extraFlags
       )
     }
-    return try {
-      state.getLaunchTask(
-        applicationIdProvider.packageName, facet, startActivityFlagsProvider, profilerState,
-        apkProvider
-      )
-    }
-    catch (e: ApkProvisionException) {
-      throw ExecutionException("Unable to identify application id :$e")
-    }
+    return state.getLaunchTask(packageName, facet, startActivityFlagsProvider, profilerState, apkProvider)
   }
 
   /**

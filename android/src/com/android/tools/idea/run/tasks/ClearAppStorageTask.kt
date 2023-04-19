@@ -19,6 +19,7 @@ import com.android.ddmlib.CollectingOutputReceiver
 import com.android.ddmlib.IDevice
 import com.android.tools.idea.execution.common.RunConfigurationNotifier
 import com.android.tools.idea.run.tasks.LaunchTaskDurations.CLEAR_APP_DATA
+import com.intellij.openapi.project.Project
 import org.jetbrains.android.util.AndroidBundle
 
 /**
@@ -34,21 +35,24 @@ class ClearAppStorageTask(private val packageName: String) : LaunchTask {
   override fun getId(): String = "CLEAR_APP_STORAGE_TASK"
 
   override fun run(launchContext: LaunchContext) {
-    val device = launchContext.device
-
-    val packageList = device.shellToString("pm list packages $packageName")
-    if (packageList.contains("^package:${packageName.replace(".", "\\.")}$".toRegex())) {
-      val result = device.shellToString("pm clear $packageName").trim()
-      if (result != "Success") {
-        val message = AndroidBundle.message("android.launch.task.clear.app.data.error", packageName, device)
-        RunConfigurationNotifier.notifyWarning(launchContext.env.project, "", message)
-      }
-    }
+    clearAppStorage(launchContext.env.project, launchContext.device, packageName)
   }
+
 }
 
 private fun IDevice.shellToString(command: String): String {
   val receiver = CollectingOutputReceiver()
   executeShellCommand(command, receiver)
   return receiver.output
+}
+
+fun clearAppStorage(project: Project, device: IDevice, packageName: String) {
+  val packageList = device.shellToString("pm list packages $packageName")
+  if (packageList.contains("^package:${packageName.replace(".", "\\.")}$".toRegex())) {
+    val result = device.shellToString("pm clear $packageName").trim()
+    if (result != "Success") {
+      val message = AndroidBundle.message("android.launch.task.clear.app.data.error", packageName, device)
+      RunConfigurationNotifier.notifyWarning(project, "", message)
+    }
+  }
 }

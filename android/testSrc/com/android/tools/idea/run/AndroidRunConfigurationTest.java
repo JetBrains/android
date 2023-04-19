@@ -30,8 +30,6 @@ import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.util.ReflectionUtil;
 import com.intellij.util.containers.ContainerUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -70,7 +68,7 @@ public class AndroidRunConfigurationTest {
     ConsoleView consolePrinter = Mockito.mock(ConsoleView.class);
     IDevice device = Mockito.mock(IDevice.class);
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.S_V2));
-    ActivityLaunchTask task = (ActivityLaunchTask)myRunConfiguration.getApplicationLaunchTask(new FakeApplicationIdProvider(),
+    ActivityLaunchTask task = (ActivityLaunchTask)myRunConfiguration.getApplicationLaunchTask("com.example.mypackage",
                                                                                               getAndroidFacet(myProjectRule.getModule()),
                                                                                               "--start-profiling",
                                                                                               false,
@@ -89,7 +87,7 @@ public class AndroidRunConfigurationTest {
     ConsoleView consolePrinter = Mockito.mock(ConsoleView.class);
     IDevice device = Mockito.mock(IDevice.class);
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.S_V2));
-    ActivityLaunchTask task = (ActivityLaunchTask)myRunConfiguration.getApplicationLaunchTask(new FakeApplicationIdProvider(),
+    ActivityLaunchTask task = (ActivityLaunchTask)myRunConfiguration.getApplicationLaunchTask("com.example.mypackage",
                                                                                               getAndroidFacet(myProjectRule.getModule()),
                                                                                               "",
                                                                                               false,
@@ -100,7 +98,7 @@ public class AndroidRunConfigurationTest {
                  task.getStartActivityCommand(myDevice, Mockito.mock(ConsoleView.class)));
 
     when(device.getVersion()).thenReturn(new AndroidVersion(AndroidVersion.VersionCodes.TIRAMISU));
-    task = (ActivityLaunchTask)myRunConfiguration.getApplicationLaunchTask(new FakeApplicationIdProvider(),
+    task = (ActivityLaunchTask)myRunConfiguration.getApplicationLaunchTask("com.example.mypackage",
                                                                            getAndroidFacet(myProjectRule.getModule()),
                                                                            "",
                                                                            false,
@@ -109,19 +107,5 @@ public class AndroidRunConfigurationTest {
     assertEquals("am start -n \"com.example.mypackage/MyActivity\" " +
                  "-a android.intent.action.MAIN -c android.intent.category.LAUNCHER --splashscreen-show-icon",
                  task.getStartActivityCommand(myDevice, Mockito.mock(ConsoleView.class)));
-  }
-
-  private static class FakeApplicationIdProvider implements ApplicationIdProvider {
-    @NotNull
-    @Override
-    public String getPackageName() {
-      return "com.example.mypackage";
-    }
-
-    @Nullable
-    @Override
-    public String getTestPackageName() {
-      return "com.example.test.mypackage";
-    }
   }
 }

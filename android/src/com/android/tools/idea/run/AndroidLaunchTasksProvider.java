@@ -30,13 +30,11 @@ import com.android.tools.idea.run.deployment.liveedit.LiveEditApp;
 import com.android.tools.idea.run.tasks.AppLaunchTask;
 import com.android.tools.idea.run.tasks.ApplyChangesTask;
 import com.android.tools.idea.run.tasks.ApplyCodeChangesTask;
-import com.android.tools.idea.run.tasks.ClearAppStorageTask;
 import com.android.tools.idea.run.tasks.DeployTask;
 import com.android.tools.idea.run.tasks.KillAndRestartAppLaunchTask;
 import com.android.tools.idea.run.tasks.LaunchTask;
 import com.android.tools.idea.run.tasks.RunInstantAppTask;
 import com.android.tools.idea.run.tasks.SandboxSdkLaunchTask;
-import com.android.tools.idea.run.tasks.ShowLogcatTask;
 import com.android.tools.idea.run.tasks.StartLiveUpdateMonitoringTask;
 import com.android.tools.idea.run.util.SwapInfo;
 import com.android.tools.idea.stats.RunStats;
@@ -62,7 +60,7 @@ public class AndroidLaunchTasksProvider {
   private final AndroidRunConfiguration myRunConfig;
   private final ExecutionEnvironment myEnv;
   private final AndroidFacet myFacet;
-  private final ApplicationIdProvider myApplicationIdProvider;
+  private final String myPackageName;
   private final ApkProvider myApkProvider;
   private final LaunchOptions myLaunchOptions;
   private final Boolean myDebug;
@@ -71,7 +69,7 @@ public class AndroidLaunchTasksProvider {
   public AndroidLaunchTasksProvider(@NotNull AndroidRunConfiguration runConfig,
                                     @NotNull ExecutionEnvironment env,
                                     @NotNull AndroidFacet facet,
-                                    @NotNull ApplicationIdProvider applicationIdProvider,
+                                    @NotNull String packageName,
                                     @NotNull ApkProvider apkProvider,
                                     @NotNull LaunchOptions launchOptions,
                                     Boolean isDebug
@@ -80,7 +78,7 @@ public class AndroidLaunchTasksProvider {
     myEnv = env;
     myProject = facet.getModule().getProject();
     myFacet = facet;
-    myApplicationIdProvider = applicationIdProvider;
+    myPackageName = packageName;
     myApkProvider = apkProvider;
     myLaunchOptions = launchOptions;
     myDebug = isDebug;
@@ -89,55 +87,39 @@ public class AndroidLaunchTasksProvider {
   @NotNull
   public List<LaunchTask> getTasks(@NotNull IDevice device) throws ExecutionException {
     final List<LaunchTask> launchTasks = new ArrayList<>();
-
-    final boolean useApplyChanges = shouldApplyChanges() || shouldApplyCodeChanges();
-    String packageName;
     try {
-      packageName = myApplicationIdProvider.getPackageName();
-      launchTasks.addAll(getDeployTasks(device, packageName));
+      launchTasks.addAll(getDeployTasks(device, myPackageName));
+    }
+    catch (ApkProvisionException e) {
+      throw new ExecutionException(e);
+    }
+
+    if (!shouldDeployAsInstant()) {
+      // A separate deep link launch task is not necessary if launch will be handled by
+      // RunInstantAppTask
 
       StringBuilder amStartOptions = new StringBuilder();
       // launch the contributors before launching the application in case
       // the contributors need to start listening on logcat for the application launch itself
       for (AndroidLaunchTaskContributor taskContributor : AndroidLaunchTaskContributor.EP_NAME.getExtensions()) {
-        String amOptions = taskContributor.getAmStartOptions(packageName, myRunConfig, device, myEnv.getExecutor());
+        String amOptions = taskContributor.getAmStartOptions(myPackageName, myRunConfig, device, myEnv.getExecutor());
         amStartOptions.append(amStartOptions.length() == 0 ? "" : " ").append(amOptions);
       }
 
-      if (!shouldDeployAsInstant()) {
-        // A separate deep link launch task is not necessary if launch will be handled by
-        // RunInstantAppTask
-        AppLaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myApplicationIdProvider, myFacet,
-                                                                           amStartOptions.toString(),
-                                                                           myDebug,
-                                                                           myApkProvider,
-                                                                           device);
+      AppLaunchTask appLaunchTask = myRunConfig.getApplicationLaunchTask(myPackageName, myFacet,
+                                                                         amStartOptions.toString(),
+                                                                         myDebug,
+                                                                         myApkProvider,
+                                                                         device);
 
-        if (appLaunchTask != null) {
-          // Apply (Code) Changes needs additional control over killing/restarting the app.
-          launchTasks.add(new KillAndRestartAppLaunchTask(packageName));
-          if (shouldDebugSandboxSdk(device)) {
-            launchTasks.add(new SandboxSdkLaunchTask(packageName));
-          }
-          launchTasks.add(appLaunchTask);
+      if (appLaunchTask != null) {
+        // Apply (Code) Changes needs additional control over killing/restarting the app.
+        launchTasks.add(new KillAndRestartAppLaunchTask(myPackageName));
+        if (shouldDebugSandboxSdk(device)) {
+          launchTasks.add(new SandboxSdkLaunchTask(myPackageName));
         }
+        launchTasks.add(appLaunchTask);
       }
-    }
-    catch (ApkProvisionException e) {
-      if (useApplyChanges) {
-        // ApkProvisionException should not happen for apply-changes launch. Log it at higher level.
-        myLogger.error(e);
-      } else {
-        myLogger.warn(e);
-      }
-      throw new ExecutionException("Unable to determine application id: " + e);
-    }
-    catch (IllegalStateException e) {
-      throw new ExecutionException("Unable to determine application id: " + e);
-    }
-
-    if (myLaunchOptions.isOpenLogcatAutomatically()) {
-      launchTasks.add(new ShowLogcatTask(myProject, packageName));
     }
 
     return launchTasks;
@@ -162,9 +144,6 @@ public class AndroidLaunchTasksProvider {
       .collect(Collectors.toList());
     switch (deployType) {
       case RUN_INSTANT_APP:
-        if (myLaunchOptions.isClearAppStorage()) {
-          tasks.add(new ClearAppStorageTask(packageName));
-        }
         DeepLinkLaunch.State state = (DeepLinkLaunch.State)myRunConfig.getLaunchOptionState(LAUNCH_DEEP_LINK);
         assert state != null;
         tasks.add(new RunInstantAppTask(myApkProvider.getApks(device), state.DEEP_LINK, disabledFeatures));
@@ -189,9 +168,6 @@ public class AndroidLaunchTasksProvider {
         tasks.add(new StartLiveUpdateMonitoringTask(() -> LiveEditService.getInstance(myProject).notifyAppRefresh(device)));
         break;
       case DEPLOY:
-        if (myLaunchOptions.isClearAppStorage()) {
-          tasks.add(new ClearAppStorageTask(packageName));
-        }
         tasks.add(new DeployTask(
           myProject,
           packages,

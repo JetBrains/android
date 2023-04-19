@@ -105,7 +105,7 @@ public class AndroidLaunchTaskProviderTest {
         (AndroidRunConfiguration)configSettings.getConfiguration(),
         env,
         androidFacet,
-        appIdProvider,
+        appIdProvider.getPackageName(),
         apkProvider,
         launchOptions,
         debug

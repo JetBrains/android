@@ -91,8 +91,8 @@ class LaunchTaskRunnerTest {
     val deviceState = fakeAdb.connectAndWaitForDevice()
     val latch = CountDownLatch(1)
     deviceState.setActivityManager { args, _ ->
-      if (args.joinToString(
-          " ") == "start -n \"applicationId/MainActivity\" -a android.intent.action.MAIN -c android.intent.category.LAUNCHER") {
+      val command = args.joinToString(" ")
+      if (command == "start -n \"applicationId/MainActivity\" -a android.intent.action.MAIN -c android.intent.category.LAUNCHER") {
         deviceState.startClient(1234, 1235, "applicationId", false)
         latch.countDown()
       }
@@ -102,6 +102,17 @@ class LaunchTaskRunnerTest {
 
     val env = getExecutionEnvironment(listOf(device))
     (env.runProfile as AndroidRunConfiguration).setLaunchActivity("MainActivity")
+    (env.runProfile as AndroidRunConfiguration).CLEAR_APP_STORAGE = true
+    (env.runProfile as AndroidRunConfiguration).CLEAR_LOGCAT = true
+
+    var logcatCleared = false
+    projectRule.project.messageBus.connect(projectRule.testRootDisposable).subscribe(ClearLogcatListener.TOPIC,
+                                                                                     object : ClearLogcatListener {
+                                                                                       override fun clearLogcat(serialNumber: String) {
+                                                                                         logcatCleared = true
+                                                                                       }
+                                                                                     })
+
     val runner = LaunchTaskRunner(
       FakeApplicationIdProvider(),
       env,
@@ -111,6 +122,10 @@ class LaunchTaskRunnerTest {
     val runContentDescriptor = runner.run(EmptyProgressIndicator())
     val processHandler = runContentDescriptor.processHandler!!
     processHandler.startNotify()
+
+    assertThat(logcatCleared).isTrue()
+    // comes from [com.android.tools.idea.run.tasks.ClearAppStorageTaskKt.clearAppStorage]
+    assertThat(deviceState.pmLogs).contains("list packages applicationId")
     assertThat(processHandler).isInstanceOf(AndroidProcessHandler::class.java)
     assertThat((processHandler as AndroidProcessHandler).targetApplicationId).isEqualTo("applicationId")
     assertThat(processHandler.autoTerminate).isEqualTo(true)

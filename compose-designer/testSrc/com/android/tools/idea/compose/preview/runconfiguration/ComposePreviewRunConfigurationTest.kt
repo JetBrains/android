@@ -19,7 +19,6 @@ import com.android.ddmlib.IDevice
 import com.android.sdklib.AndroidVersion
 import com.android.testutils.MockitoKt.whenever
 import com.android.tools.idea.run.ApkProvider
-import com.android.tools.idea.run.ApplicationIdProvider
 import com.android.tools.idea.run.editor.NoApksProvider
 import com.android.tools.idea.run.tasks.ActivityLaunchTask
 import com.android.tools.idea.run.tasks.AppLaunchTask
@@ -53,7 +52,7 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
     val noApksProvider = NoApksProvider()
     val task =
       runConfiguration.getApplicationLaunchTask(
-        FakeApplicationIdProvider(),
+        "com.example.myapp",
         myFacet,
         "",
         false,
@@ -118,14 +117,6 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
     )
   }
 
-  private class FakeApplicationIdProvider : ApplicationIdProvider {
-    override fun getPackageName() = "com.example.myapp"
-
-    override fun getTestPackageName(): Nothing? {
-      return null
-    }
-  }
-
   private class TestComposePreviewRunConfiguration(
     project: Project,
     factory: ConfigurationFactory
@@ -133,7 +124,7 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
 
     // Relax visibility to call the super method (which has protected visibility) in this test
     public override fun getApplicationLaunchTask(
-      applicationIdProvider: ApplicationIdProvider,
+      packageName: String,
       facet: AndroidFacet,
       contributorsAmStartOptions: String,
       waitForDebugger: Boolean,
@@ -141,7 +132,7 @@ class ComposePreviewRunConfigurationTest : AndroidTestCase() {
       device: IDevice
     ): AppLaunchTask? {
       return super.getApplicationLaunchTask(
-        applicationIdProvider,
+        packageName,
         facet,
         contributorsAmStartOptions,
         waitForDebugger,
