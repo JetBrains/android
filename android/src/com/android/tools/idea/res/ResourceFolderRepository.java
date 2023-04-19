@@ -216,7 +216,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
   @NotNull private final ConcurrentMap<VirtualFile, ResourceItemSource<?>> mySources = new ConcurrentHashMap<>();
   @NotNull private final PsiManager myPsiManager;
   @NotNull private final PsiNameHelper myPsiNameHelper;
-  @NotNull private final WolfTheProblemSolver myWolfTheProblemSolver;
   @NotNull private final PsiDocumentManager myPsiDocumentManager;
 
   // Repository updates have to be applied in FIFO order to produce correct results.
@@ -274,7 +273,6 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     myPsiManager = PsiManager.getInstance(getProject());
     myPsiDocumentManager = PsiDocumentManager.getInstance(getProject());
     myPsiNameHelper = PsiNameHelper.getInstance(getProject());
-    myWolfTheProblemSolver = WolfTheProblemSolver.getInstance(getProject());
 
     PsiTreeChangeListener psiListener = new IncrementalUpdatePsiListener();
 
@@ -613,7 +611,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     if (FileResourceNameValidator.getErrorTextForFileResource(file.getFileName(), folderType) != null) {
       VirtualFile virtualFile = FileExtensions.toVirtualFile(file);
       if (virtualFile != null) {
-        myWolfTheProblemSolver.reportProblemsFromExternalSource(virtualFile, this);
+        WolfTheProblemSolver.getInstance(getProject()).reportProblemsFromExternalSource(virtualFile, this);
       }
     }
     return myPsiNameHelper.isIdentifier(SdkUtils.fileNameToResourceName(file.getFileName()));
@@ -623,7 +621,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
     if (FileResourceNameValidator.getErrorTextForFileResource(file.getName(), folderType) != null) {
       VirtualFile virtualFile = file.getVirtualFile();
       if (virtualFile != null) {
-        myWolfTheProblemSolver.reportProblemsFromExternalSource(virtualFile, this);
+        WolfTheProblemSolver.getInstance(getProject()).reportProblemsFromExternalSource(virtualFile, this);
       }
     }
     return myPsiNameHelper.isIdentifier(SdkUtils.fileNameToResourceName(file.getName()));
@@ -1975,7 +1973,7 @@ public final class ResourceFolderRepository extends LocalResourceRepository impl
       if (source != null) {
         removeSource(file, source);
       }
-      myWolfTheProblemSolver.clearProblemsFromExternalSource(file, this);
+      WolfTheProblemSolver.getInstance(getProject()).clearProblemsFromExternalSource(file, this);
     }
   }
 
