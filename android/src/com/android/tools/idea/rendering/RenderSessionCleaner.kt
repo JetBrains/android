@@ -19,6 +19,7 @@ import com.android.AndroidXConstants
 import com.android.ide.common.rendering.api.RenderSession
 import com.android.ide.common.rendering.api.ViewInfo
 import com.android.tools.compose.COMPOSE_VIEW_ADAPTER_FQN
+import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.intellij.openapi.diagnostic.Logger
 import java.lang.ref.WeakReference
 import java.lang.reflect.Field

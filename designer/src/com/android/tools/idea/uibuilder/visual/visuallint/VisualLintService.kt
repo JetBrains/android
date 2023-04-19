@@ -20,7 +20,7 @@ import com.android.tools.idea.common.error.IssueModel
 import com.android.tools.idea.common.model.ModelListener
 import com.android.tools.idea.common.model.NlModel
 import com.android.tools.idea.flags.StudioFlags
-import com.android.tools.idea.rendering.RenderAsyncActionExecutor
+import com.android.tools.rendering.RenderAsyncActionExecutor
 import com.android.tools.idea.rendering.RenderResult
 import com.android.tools.idea.rendering.RenderService
 import com.android.tools.idea.rendering.StudioRenderService

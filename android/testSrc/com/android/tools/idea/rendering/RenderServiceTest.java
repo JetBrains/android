@@ -16,6 +16,7 @@
 package com.android.tools.idea.rendering;
 
 import com.android.ide.common.rendering.api.ViewInfo;
+import com.android.tools.rendering.RenderAsyncActionExecutor;
 import java.util.concurrent.CompletableFuture;
 import junit.framework.TestCase;
 

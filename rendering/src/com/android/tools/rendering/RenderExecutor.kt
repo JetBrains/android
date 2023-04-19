@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering
+package com.android.tools.rendering
 
 import com.android.annotations.concurrency.GuardedBy
-import com.android.tools.idea.rendering.RenderAsyncActionExecutor.RenderingPriority
+import com.android.tools.rendering.RenderAsyncActionExecutor.RenderingPriority
 import com.intellij.openapi.diagnostic.Logger
 import org.jetbrains.annotations.TestOnly
 import java.util.PriorityQueue

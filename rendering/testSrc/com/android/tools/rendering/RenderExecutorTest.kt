@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering
+package com.android.tools.rendering
 
 import com.android.testutils.VirtualTimeScheduler
 import com.android.testutils.concurrency.OnDemandExecutorService
-import com.android.tools.idea.concurrency.androidCoroutineExceptionHandler
-import com.android.tools.idea.rendering.RenderAsyncActionExecutor.*
+import com.android.tools.rendering.RenderAsyncActionExecutor.*
 import com.google.common.truth.Truth
 import com.google.common.util.concurrent.MoreExecutors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -326,7 +326,7 @@ class RenderExecutorTest {
       queueingTimeout = 10, queueingTimeoutUnit = TimeUnit.SECONDS,
       actionTimeout = 10, actionTimeoutUnit = TimeUnit.SECONDS, priority = RenderingPriority.HIGH) {
       runBlocking {
-        CoroutineScope(kotlinx.coroutines.SupervisorJob() + Dispatchers.Default + androidCoroutineExceptionHandler).launch {
+        CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
           throw IllegalArgumentException()
         }
       }
