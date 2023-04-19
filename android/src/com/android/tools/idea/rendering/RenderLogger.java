@@ -27,6 +27,7 @@ import com.android.ide.common.rendering.api.ILayoutLog;
 import com.android.tools.rendering.HtmlLinkManager;
 import com.android.tools.rendering.IRenderLogger;
 import com.android.tools.rendering.RenderProblem;
+import com.android.tools.rendering.security.RenderSecurityManager;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.XmlUtils;
 import com.google.common.annotations.VisibleForTesting;

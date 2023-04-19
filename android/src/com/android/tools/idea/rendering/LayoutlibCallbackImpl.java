@@ -68,6 +68,7 @@ import com.android.tools.rendering.parsers.ILayoutPullParserFactory;
 import com.android.tools.rendering.parsers.LayoutFilePullParser;
 import com.android.tools.idea.rendering.parsers.LayoutRenderPullParser;
 import com.android.tools.rendering.parsers.TagSnapshot;
+import com.android.tools.rendering.security.RenderSecurityManager;
 import com.android.tools.res.FileResourceReader;
 import com.android.tools.rendering.IRenderLogger;
 import com.android.tools.rendering.RenderProblem;

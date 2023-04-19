@@ -21,6 +21,9 @@ iml_module(
 iml_module(
     name = "intellij.android.rendering.tests",
     iml_files = ["intellij.android.rendering.tests.iml"],
+    test_data = [
+        "//tools/adt/idea/rendering/testData",
+    ],
     test_srcs = ["testSrc"],
     visibility = ["//visibility:public"],
     # do not sort: must match IML order
@@ -62,6 +65,9 @@ kotlin_test(
         "testSrc/**/*.kt",
         "testSrc/**/*.java",
     ]),
+    data = [
+        "//tools/adt/idea/rendering/testData",
+    ],
     jvm_flags = ["-Dtest.suite.jar=tools.rendering.tests.jar"],
     test_class = "com.android.testutils.JarTestSuite",
     deps = [
@@ -71,6 +77,7 @@ kotlin_test(
         "//tools/base/common:tools.common",
         "//tools/base/layoutlib-api:tools.layoutlib-api",
         "//tools/base/sdk-common:tools.sdk-common",
+        "//tools/base/sdk-common:tools.sdk-common.test.util",
         "//tools/base/sdklib:tools.sdklib",
         "//tools/base/testutils:tools.testutils",
         "@maven//:com.google.truth.truth",

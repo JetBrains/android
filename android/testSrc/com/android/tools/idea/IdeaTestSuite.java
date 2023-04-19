@@ -25,7 +25,6 @@ import org.junit.runner.RunWith;
 @RunWith(JarTestSuiteRunner.class)
 @JarTestSuiteRunner.ExcludeClasses({
   com.android.tools.idea.IdeaTestSuite.class,  // a suite mustn't contain itself
-  com.android.tools.idea.rendering.RenderSecurityManagerTest.class,  // calls System.setSecurityManager
   com.android.tools.idea.testing.TestProjectPathsGeneratorTest.class, // This is for a standalone, test-only application
 
   // The following classes had failures when run in Bazel.

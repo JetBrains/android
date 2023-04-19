@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.rendering.security;
 
 import com.android.annotations.Nullable;
-import com.android.tools.adtui.webp.WebpNativeLibHelper;
 import com.android.utils.ILogger;
 
 import com.intellij.openapi.application.PathManager;
@@ -247,7 +246,7 @@ public class RenderSecurityManager extends SecurityManager {
     }
   }
 
-  private boolean isRelevant() {
+  protected boolean isRelevant() {
     return sEnabled && !mDisabled && sIsRenderThread.get();
   }
 
@@ -350,23 +349,6 @@ public class RenderSecurityManager extends SecurityManager {
       if (!isWithinLogger) {
         throw RenderSecurityException.create("Property", null);
       }
-    }
-  }
-
-  @Override
-  public void checkLink(String lib) {
-    // Allow linking with relative paths
-    // Needed to for example load the "fontmanager" library from layout lib (from the
-    // BiDiRenderer's layoutGlyphVector call
-    if (isRelevant() && (lib.indexOf('/') != -1 || lib.indexOf('\\') != -1)) {
-      if (lib.startsWith(System.getProperty("java.home"))) {
-        return; // Allow loading JRE libraries
-      }
-      // Allow loading webp library
-      if (lib.equals(new File(WebpNativeLibHelper.getLibLocation(), WebpNativeLibHelper.getLibName()).getAbsolutePath())) {
-        return;
-      }
-      throw RenderSecurityException.create("Link", lib);
     }
   }
 

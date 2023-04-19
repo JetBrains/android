@@ -51,6 +51,7 @@ import com.android.tools.idea.sdk.AndroidSdks;
 import com.android.tools.idea.ui.designer.EditorDesignSurface;
 import com.android.tools.rendering.HtmlLinkManager;
 import com.android.tools.rendering.RenderProblem;
+import com.android.tools.rendering.security.RenderSecurityManager;
 import com.android.utils.HtmlBuilder;
 import com.android.xml.AndroidManifest;
 import com.google.common.annotations.VisibleForTesting;

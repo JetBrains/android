@@ -61,6 +61,7 @@ import com.android.tools.rendering.IRenderLogger;
 import com.android.tools.rendering.RenderProblem;
 import com.android.tools.rendering.parsers.RenderXmlFile;
 import com.android.tools.rendering.parsers.RenderXmlTag;
+import com.android.tools.rendering.security.RenderSecurityManager;
 import com.android.tools.sdk.CompatibilityRenderTarget;
 import com.android.utils.HtmlBuilder;
 import com.android.utils.SdkUtils;
@@ -695,7 +696,11 @@ public class RenderTask {
       myLayoutlibCallback.setLogger(myLogger);
 
       RenderSecurityManager securityManager =
-        isSecurityManagerEnabled ? RenderSecurityManagerFactory.create(module.getProject().getBasePath(), context.getModule().getAndroidPlatform()) : null;
+        isSecurityManagerEnabled ?
+        myContext.getModule().getEnvironment().createRenderSecurityManager(
+          module.getProject().getBasePath(),
+          context.getModule().getAndroidPlatform()
+        ) : null;
       if (securityManager != null) {
         securityManager.setActive(true, myCredential);
       }

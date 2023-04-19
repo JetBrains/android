@@ -19,12 +19,16 @@ import com.android.ide.common.rendering.api.RenderResources
 import com.android.ide.common.resources.ResourceResolver
 import com.android.ide.common.util.PathString
 import com.android.tools.idea.AndroidPsiUtils
-import com.android.tools.idea.util.toVirtualFile
+import com.android.tools.idea.log.LogWrapper
 import com.android.tools.idea.rendering.parsers.PsiXmlFile
 import com.android.tools.layoutlib.LayoutlibContext
 import com.android.tools.rendering.RenderProblem
 import com.android.tools.rendering.parsers.RenderXmlFile
+import com.android.tools.idea.util.toVirtualFile
+import com.android.tools.rendering.security.RenderSecurityManager
+import com.android.tools.sdk.AndroidPlatform
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -60,5 +64,15 @@ class StudioEnvironmentContext(private val project: Project) : EnvironmentContex
 
   override fun getNavGraphResolver(resourceResolver: ResourceResolver): NavGraphResolver {
     return NavGraphResolver { navGraph -> getStartDestLayoutId(navGraph, project, resourceResolver) }
+  }
+
+  override fun createRenderSecurityManager(projectPath: String?, platform: AndroidPlatform?): RenderSecurityManager {
+    val sdkPath = platform?.sdkData?.location?.toString()
+
+    val securityManager = StudioRenderSecurityManager(sdkPath, projectPath, false)
+    securityManager.setLogger(LogWrapper(RenderLogger.LOG).alwaysLogAsDebug(true).allowVerbose(false))
+    securityManager.setAppTempDir(PathManager.getTempPath())
+
+    return securityManager
   }
 }

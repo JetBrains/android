@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 @file:JvmName("RenderPropertiesAccessUtil")
-package com.android.tools.idea.rendering
+package com.android.tools.rendering.security
 
 import com.intellij.openapi.extensions.ExtensionPointName
+import org.jetbrains.annotations.VisibleForTesting
 
 /**
  * Extension point for providing build-system-specific overrides for select
@@ -26,7 +27,9 @@ interface RenderSecurityManagerOverrides {
   fun allowsPropertiesAccess(): Boolean
 }
 
-private val EP_NAME: ExtensionPointName<RenderSecurityManagerOverrides> =
+@VisibleForTesting
+@JvmField
+val EP_NAME: ExtensionPointName<RenderSecurityManagerOverrides> =
   ExtensionPointName("com.android.rendering.renderSecurityManagerOverrides")
 
 /**

@@ -13,20 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.android.tools.idea.rendering;
+package com.android.tools.rendering.security;
 
 import com.android.ide.common.resources.RecordingLogger;
-import com.android.tools.idea.testing.AndroidProjectRule;
+import com.android.testutils.TestUtils;
 import com.android.utils.SdkUtils;
 import com.google.common.io.Files;
+import com.intellij.mock.MockApplication;
+import com.intellij.openapi.Disposable;
+import com.intellij.openapi.extensions.ExtensionPoint;
+import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.util.Disposer;
 import java.io.IOException;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.diagnostic.Logger;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.UUID;
-import org.jetbrains.android.AndroidTestBase;
-import org.junit.Rule;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.imageio.ImageIO;
@@ -50,10 +56,26 @@ import static com.google.common.truth.Truth.assertThat;
 import static java.io.File.separator;
 import static org.junit.Assert.*;
 
+@Ignore("Calls System.setSecurityManager which is not supported by GoogleTestSecurityManager that runs in bazel")
 public class RenderSecurityManagerTest {
-  @Rule
-  public AndroidProjectRule myProjectRule = AndroidProjectRule.inMemory();
   private final Object myCredential = new Object();
+
+  Disposable disposable = Disposer.newDisposable();
+
+  @Before
+  public void setUp() {
+    new MockApplication(disposable);
+    Extensions.getRootArea()
+      .registerExtensionPoint(
+        RenderPropertiesAccessUtil.EP_NAME.getName(),
+        RenderSecurityManagerOverrides.class.getName(),
+        ExtensionPoint.Kind.INTERFACE);
+  }
+
+  @After
+  public void tearDown() {
+    Disposer.dispose(disposable);
+  }
 
   @Test
   public void testExec() throws IOException {
@@ -813,7 +835,7 @@ public class RenderSecurityManagerTest {
       // Wrong credential
       Object wrongCredential = new Object();
       try {
-         RenderSecurityManager.runInSafeRegion(wrongCredential, () -> manager.checkPermission(new FilePermission("/foo", "execute")));
+        RenderSecurityManager.runInSafeRegion(wrongCredential, () -> manager.checkPermission(new FilePermission("/foo", "execute")));
         fail("Should have thrown exception");
       }
       catch (SecurityException e) {
@@ -839,12 +861,14 @@ public class RenderSecurityManagerTest {
   @SuppressWarnings("UnstableApiUsage")
   @Test
   public void testImageIo() throws IOException, InterruptedException {
+    // Warm up ImageIO static state that calls write actions forbidden by RenderSecurityManager
+    ImageIO.getCacheDirectory();
     RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     try {
       manager.setActive(true, myCredential);
 
-      File testDataPath = new File(AndroidTestBase.getTestDataPath());
-      File root = new File(testDataPath, "renderSecurityManager");
+      Path testDataPath = TestUtils.resolveWorkspacePath("tools/adt/idea/rendering/testData");
+      File root = new File(testDataPath.toFile(), "renderSecurityManager");
       assertNotNull(root);
       assertTrue(root.exists());
       final File icon = new File(root, "overlay" + separator + "drawable" + separator + "icon2.png");
@@ -917,6 +941,8 @@ public class RenderSecurityManagerTest {
 
   @Test
   public void testSetTimeZone() {
+    // Warm up TimeZone.defaultTimeZone initialization that accesses properties forbidden by RenderSecurityManager
+    TimeZone.getDefault();
     RenderSecurityManager manager = new RenderSecurityManager(null, null, false);
     try {
       manager.setActive(true, myCredential);
