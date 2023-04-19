@@ -45,7 +45,6 @@ import com.intellij.openapi.ui.MessageType
 import com.intellij.serviceContainer.NonInjectable
 import java.time.Clock
 import java.util.concurrent.ConcurrentLinkedQueue
-import javax.inject.Inject
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -59,7 +58,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.TestOnly
 
-@Service
+@Service(Service.Level.PROJECT)
 class VitalsConfigurationManager
 @NonInjectable
 @TestOnly
@@ -68,7 +67,8 @@ constructor(
   createVitalsClient: (Disposable) -> AppInsightsClient,
   loginState: Flow<Boolean> = LoginState.loggedIn
 ) : AppInsightsConfigurationManager, Disposable {
-  @Inject constructor(project: Project) : this(project, { disposable -> VitalsClient(disposable) })
+  @Suppress("unused")
+  constructor(project: Project) : this(project, { disposable -> VitalsClient(disposable) })
 
   private val client = createVitalsClient(this)
   private val scope = AndroidCoroutineScope(this)

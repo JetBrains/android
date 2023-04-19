@@ -24,7 +24,6 @@ import com.android.tools.idea.insights.analysis.StackTraceAnalyzer
 import com.android.tools.idea.testing.AndroidProjectRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.application.runReadAction
-import com.intellij.openapi.components.service
 import com.intellij.psi.PsiMethodCallExpression
 import com.intellij.psi.PsiThrowStatement
 import com.intellij.testFramework.EdtRule
@@ -56,7 +55,7 @@ class StackTraceAnalyzerTest {
         .copyFileToProject("src/com/google/firebase/assistant/test/RuntimeInit.java")
         .toPsiFile(androidProjectRule.project)!!
 
-    val analyzer = service<StackTraceAnalyzer>()
+    val analyzer = StackTraceAnalyzer()
     runReadAction {
       val npeFrame =
         Frame(
@@ -122,7 +121,7 @@ class StackTraceAnalyzerTest {
           "src/com/google/firebase/assistant/test/RuntimeInit.java"
         )[0]
 
-    val analyzer = service<StackTraceAnalyzer>()
+    val analyzer = StackTraceAnalyzer()
     runReadAction {
       val npeFrame =
         Frame(

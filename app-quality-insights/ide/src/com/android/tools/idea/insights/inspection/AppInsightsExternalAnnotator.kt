@@ -29,7 +29,6 @@ import com.intellij.codeInsight.daemon.LineMarkerSettings
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.ExternalAnnotator
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.util.TextRange
@@ -44,6 +43,7 @@ import org.jetbrains.kotlin.idea.base.psi.getLineCount
 class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationResult>() {
   private val logger = Logger.getInstance(javaClass)
   private val lineMarkerProvider = LineMarkerProvider()
+  private val analyzer = StackTraceAnalyzer()
 
   private data class AnnotationData(val name: String, val lineNumber: Int, val insight: AppInsight)
 
@@ -76,7 +76,6 @@ class AppInsightsExternalAnnotator : ExternalAnnotator<InitialInfo, AnnotationRe
             when (val model = configurationManager.configuration.value) {
               is AppInsightsModel.Authenticated -> {
                 val controller = model.controller
-                val analyzer = service<StackTraceAnalyzer>()
 
                 // Here we do the work just for collecting "matching accuracy" metrics.
                 controller.insightsInFile(file, analyzer)

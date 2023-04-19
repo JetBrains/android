@@ -23,7 +23,7 @@ import com.intellij.openapi.components.Storage
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 
-@Service
+@Service(Service.Level.PROJECT)
 @State(name = "AppInsightsPersistentStateComponent", storages = [Storage("appInsightsConfigs.xml")])
 class AppInsightsPersistentStateComponent :
   SimplePersistentStateComponent<AppInsightsPersistentStateComponent.State>(State()) {
