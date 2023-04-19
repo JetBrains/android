@@ -137,7 +137,7 @@ class Benchmark2000MemoryTest : MemoryBenchmarkTestSuite() {
   val memoryUsageBenchmarkRule = MemoryUsageBenchmarkRule(
     projectRule,
     projectName = "2000Modules",
-    memoryLimitMb = 16000,
+    memoryLimitMb = 20000,
     lightweightMode = true
   )
 
@@ -147,7 +147,7 @@ class Benchmark2000MemoryTest : MemoryBenchmarkTestSuite() {
 
   @Test
   fun testSyncMemory() {
-    memoryUsageBenchmarkRule.openProjectAndMeasure()
+    memoryUsageBenchmarkRule.openProjectAndRecordMaxHeapOnly()
   }
 }
 
@@ -166,6 +166,6 @@ class BenchmarkXLMemoryTest : MemoryBenchmarkTestSuite() {
 
   @Test
   fun testSyncMemory() {
-    memoryUsageBenchmarkRule.openProjectAndMeasure()
+    memoryUsageBenchmarkRule.openProjectAndRecordMaxHeapOnly()
   }
 }

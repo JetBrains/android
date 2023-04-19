@@ -90,6 +90,18 @@ class MemoryUsageBenchmarkRule (
     }
   }
 
+  /* This case is used for restricting and tracking the max heap only, for projects where the full measurement is not feasible. */
+  fun openProjectAndRecordMaxHeapOnly() = runBlocking {
+    startMemoryPolling()
+    setJvmArgs(enableAgent = false)
+    analysisFlag.clearOverride() // Turn off measurements
+    testEnvironmentRule.openTestProject(testProjectTemplateFromPath(
+      path = MemoryBenchmarkTestSuite.DIRECTORY,
+      testDataPath = MemoryBenchmarkTestSuite.TEST_DATA.toString())) {
+      recordMaxHeap()
+    }
+  }
+
   fun repeatSyncAndMeasure(repeatCount: Int) = runBlocking {
     setJvmArgs()
     analysisFlag.clearOverride() // Turn off measurements in repeated syncs before the measured one
@@ -146,13 +158,20 @@ class MemoryUsageBenchmarkRule (
         else -> null
       }?.let { recordMeasurement(it, measurementSuffix, metricFilePath.readText().toLong()) }
     }
+    recordMaxHeap()
   }
 
-  private fun setJvmArgs() {
+  private fun recordMaxHeap() {
+    recordMeasurement("Max_Heap", suffix="", memoryLimitMb.toLong() shl 20)
+  }
+
+  private fun setJvmArgs(enableAgent: Boolean = true) {
     GradleProperties(MemoryBenchmarkTestSuite.TEST_DATA.resolve(MemoryBenchmarkTestSuite.DIRECTORY).resolve(
       SdkConstants.FN_GRADLE_PROPERTIES).toFile()).apply {
       setJvmArgs(jvmArgs.orEmpty().replace("-Xmx60g", "-Xmx${memoryLimitMb}m"))
-      setJvmArgs("$jvmArgs -agentpath:${File(memoryAgentPath).absolutePath}")
+      if (enableAgent) {
+        setJvmArgs("$jvmArgs -agentpath:${File(memoryAgentPath).absolutePath}")
+      }
       save()
     }
   }
