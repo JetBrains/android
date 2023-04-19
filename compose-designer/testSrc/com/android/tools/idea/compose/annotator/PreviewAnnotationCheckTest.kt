@@ -57,7 +57,6 @@ internal class PreviewAnnotationCheckTest {
 
   @After
   fun tearDown() {
-    StudioFlags.COMPOSE_MULTIPREVIEW.clearOverride()
     StudioFlags.COMPOSE_PREVIEW_DEVICESPEC_INJECTOR.clearOverride()
   }
 
@@ -221,7 +220,6 @@ internal class PreviewAnnotationCheckTest {
 
   @Test
   fun testBadTarget() {
-    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
     val result =
       addKotlinFileAndCheckPreviewAnnotation(
         """
@@ -242,8 +240,7 @@ internal class PreviewAnnotationCheckTest {
   }
 
   @Test
-  fun testMultipreviewAnnotation_flagEnabled() {
-    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
+  fun testMultipreviewAnnotation() {
     val result =
       addKotlinFileAndCheckPreviewAnnotation(
         """
@@ -256,28 +253,6 @@ internal class PreviewAnnotationCheckTest {
           .trimIndent()
       )
     assert(result.issues.isEmpty())
-  }
-
-  @Test
-  fun testMultipreviewAnnotation_flagDisabled() {
-    StudioFlags.COMPOSE_MULTIPREVIEW.override(false)
-    val result =
-      addKotlinFileAndCheckPreviewAnnotation(
-        """
-        package example
-        import androidx.compose.ui.tooling.preview.Preview
-
-        @Preview(device = "spec:shape=Normal,width=1080,height=1920,unit=px,dpi=320")
-        annotation class myAnnotation() {}
-      """
-          .trimIndent()
-      )
-    assertEquals(1, result.issues.size)
-    assertEquals(Failure::class, result.issues[0]::class)
-    assertEquals(
-      "Preview target must be a composable function",
-      (result.issues[0] as Failure).failureMessage
-    )
   }
 
   @Test

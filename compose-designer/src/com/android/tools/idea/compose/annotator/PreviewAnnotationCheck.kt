@@ -82,9 +82,7 @@ internal object PreviewAnnotationCheck {
       annotationEntry.toUElement() as? UAnnotation
         ?: return failedCheck("Can't get annotation UElement")
     if (!hasValidTarget(annotation))
-      return failedCheck(
-        "Preview target must be a composable function${if (StudioFlags.COMPOSE_MULTIPREVIEW.get()) " or an annotation class" else ""}"
-      )
+      return failedCheck("Preview target must be a composable function or an annotation class")
     val deviceValueExpression =
       annotation.findDeclaredAttributeValue(PARAMETER_DEVICE) ?: return Passed
     val deviceValue =
@@ -321,8 +319,7 @@ internal object PreviewAnnotationCheck {
 
 private fun hasValidTarget(annotation: UAnnotation) =
   annotation.getContainingComposableUMethod() != null ||
-    (StudioFlags.COMPOSE_MULTIPREVIEW.get() &&
-      annotation.getContainingUClass()?.isAnnotationType == true)
+    (annotation.getContainingUClass()?.isAnnotationType == true)
 
 /**
  * Regex to match a string with the [DeviceSpec.OPERATOR] between two other non-empty strings. E.g:

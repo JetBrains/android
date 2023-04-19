@@ -20,7 +20,6 @@ import com.android.tools.compose.COMPOSABLE_FQ_NAMES
 import com.android.tools.compose.COMPOSE_PREVIEW_ANNOTATION_FQN
 import com.android.tools.compose.COMPOSE_PREVIEW_PARAMETER_ANNOTATION_FQN
 import com.android.tools.idea.configurations.ConfigurationManager
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.findValueArgument
 import com.android.tools.idea.kotlin.fqNameMatches
 import com.android.tools.idea.util.androidFacet
@@ -145,7 +144,7 @@ abstract class BasePreviewAnnotationInspection : AbstractKotlinInspection() {
         override fun visitClass(klass: KtClass) {
           super.visitClass(klass)
 
-          if (!klass.isAnnotation() || !StudioFlags.COMPOSE_MULTIPREVIEW.get()) return
+          if (!klass.isAnnotation()) return
 
           klass.annotationEntries.forEach {
             when {

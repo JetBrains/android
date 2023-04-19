@@ -16,11 +16,9 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposeProjectRule
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInspection.InspectionProfileEntry
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.idea.inspections.UnusedSymbolInspection
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
@@ -52,11 +50,6 @@ class PreviewEntryPointTest(
   @Before
   fun setUp() {
     fixture.enableInspections(UnusedSymbolInspection() as InspectionProfileEntry)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.COMPOSE_MULTIPREVIEW.clearOverride()
   }
 
   @Test
@@ -98,7 +91,6 @@ class PreviewEntryPointTest(
 
   @Test
   fun testFindPreviewAnnotationsMultiPreview() {
-    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
     @Language("kotlin")
     val fileContent =
       """

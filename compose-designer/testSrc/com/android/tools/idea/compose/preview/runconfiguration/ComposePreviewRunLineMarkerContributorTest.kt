@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.AndroidProjectTypes
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -44,14 +43,8 @@ class ComposePreviewRunLineMarkerContributorTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
     myFixture.stubComposableAnnotation()
     myFixture.stubPreviewAnnotation()
-  }
-
-  override fun tearDown() {
-    super.tearDown()
-    StudioFlags.COMPOSE_MULTIPREVIEW.clearOverride()
   }
 
   override fun configureAdditionalModules(

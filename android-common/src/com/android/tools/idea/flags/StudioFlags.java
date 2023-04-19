@@ -1305,11 +1305,6 @@ public final class StudioFlags {
     "If enabled, the compiler daemon will wait for a debugger to be attached.",
     false);
 
-  public static final Flag<Boolean> COMPOSE_MULTIPREVIEW = Flag.create(
-    COMPOSE, "preview.multipreview.enabled", "Enable Compose Multipreview",
-    "If enabled, annotation classes annotated with Preview, and its usages, will be considered when finding Previews in a file",
-    true);
-
   public static final Flag<Boolean> COMPOSE_NEW_PREVIEW_LAYOUT = Flag.create(
     COMPOSE, "new.preview.layout", "Enable the new layout options of Compose Preview",
     "If enabled, the options of new layout designs of compose preview will be shown in Compose Preview",

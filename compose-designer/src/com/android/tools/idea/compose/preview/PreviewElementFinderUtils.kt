@@ -25,7 +25,6 @@ import com.android.tools.idea.compose.preview.analytics.MultiPreviewNode
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeImpl
 import com.android.tools.idea.compose.preview.analytics.MultiPreviewNodeInfo
 import com.android.tools.idea.compose.preview.util.toSmartPsiPointer
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.kotlin.getQualifiedName
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.PreviewNode
@@ -73,11 +72,10 @@ private val NON_MULTIPREVIEW_PREFIXES =
  *    [NON_MULTIPREVIEW_PREFIXES].
  */
 private fun UAnnotation.couldBeMultiPreviewAnnotation(): Boolean {
-  return StudioFlags.COMPOSE_MULTIPREVIEW.get() &&
-    (this.tryResolve() as? PsiClass)?.qualifiedName?.let { fqcn ->
-      if (fqcn.startsWith("androidx.")) fqcn.contains(".preview.")
-      else NON_MULTIPREVIEW_PREFIXES.none { fqcn.startsWith(it) }
-    } == true
+  return (this.tryResolve() as? PsiClass)?.qualifiedName?.let { fqcn ->
+    if (fqcn.startsWith("androidx.")) fqcn.contains(".preview.")
+    else NON_MULTIPREVIEW_PREFIXES.none { fqcn.startsWith(it) }
+  } == true
 }
 
 /** Returns true if the [KtAnnotationEntry] is a `@Preview` annotation. */

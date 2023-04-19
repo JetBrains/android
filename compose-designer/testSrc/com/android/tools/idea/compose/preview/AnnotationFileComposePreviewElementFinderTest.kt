@@ -15,10 +15,8 @@
  */
 package com.android.tools.idea.compose.preview
 
-import com.android.flags.junit.FlagRule
 import com.android.tools.idea.annotations.TestDumbService
 import com.android.tools.idea.compose.ComposeProjectRule
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.preview.DisplayPositioning
 import com.android.tools.idea.preview.PreviewDisplaySettings
 import com.android.tools.idea.preview.sortByDisplayAndSourcePosition
@@ -77,8 +75,6 @@ class AnnotationFileComposePreviewElementFinderTest(
 
   private val COMPOSABLE_ANNOTATION_FQN = "$composableAnnotationPackage.Composable"
   private val PREVIEW_TOOLING_PACKAGE = previewAnnotationPackage
-
-  @get:Rule val multiPreviewRule = FlagRule(StudioFlags.COMPOSE_MULTIPREVIEW, true)
 
   @get:Rule
   val projectRule =

@@ -16,7 +16,6 @@
 package com.android.tools.idea.compose.preview.runconfiguration
 
 import com.android.AndroidProjectTypes
-import com.android.tools.idea.flags.StudioFlags
 import com.android.tools.idea.testing.addFileToProjectAndInvalidate
 import com.intellij.compiler.options.CompileStepBeforeRun
 import com.intellij.execution.RunManager
@@ -39,7 +38,6 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
 
   override fun setUp() {
     super.setUp()
-    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
     myFixture.stubComposableAnnotation()
     myFixture.stubPreviewAnnotation()
 
@@ -59,11 +57,6 @@ class ComposePreviewRunConfigurationProducerTest : AndroidTestCase() {
           .trimIndent()
       )
     composableFunction = PsiTreeUtil.findChildrenOfType(file, KtNamedFunction::class.java).first()
-  }
-
-  override fun tearDown() {
-    super.tearDown()
-    StudioFlags.COMPOSE_MULTIPREVIEW.clearOverride()
   }
 
   override fun configureAdditionalModules(

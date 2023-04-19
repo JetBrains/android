@@ -16,14 +16,11 @@
 package com.android.tools.idea.compose.preview
 
 import com.android.tools.idea.compose.ComposeProjectRule
-import com.android.tools.idea.flags.StudioFlags
 import com.intellij.codeInspection.InspectionProfileEntry
 import com.intellij.lang.annotation.HighlightSeverity
 import org.intellij.lang.annotations.Language
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -49,16 +46,6 @@ class InspectionsTest(previewAnnotationPackage: String, composableAnnotationPack
     )
   private val fixture
     get() = projectRule.fixture
-
-  @Before
-  fun setUp() {
-    StudioFlags.COMPOSE_MULTIPREVIEW.override(true)
-  }
-
-  @After
-  fun tearDown() {
-    StudioFlags.COMPOSE_MULTIPREVIEW.clearOverride()
-  }
 
   @Test
   fun testNeedsComposableInspection() {
