@@ -55,6 +55,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.util.SystemInfo;
+import com.intellij.ui.ClientProperty;
 import com.intellij.ui.ColorUtil;
 import com.intellij.ui.ExpandableItemsHandler;
 import com.intellij.ui.TreeSpeedSearch;
@@ -66,6 +67,7 @@ import com.intellij.util.ui.tree.TreeUtil;
 import com.intellij.util.ui.update.MergingUpdateQueue;
 import com.intellij.util.ui.update.Update;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -711,7 +713,7 @@ public class NlComponentTree extends Tree implements DesignSurfaceListener, Mode
   }
 
   boolean shouldDisplayFittedText(int index) {
-    return !UIUtil.isClientPropertyTrue(this, ExpandableItemsHandler.EXPANDED_RENDERER) &&
+    return !ClientProperty.isTrue(this, ExpandableItemsHandler.EXPANDED_RENDERER) &&
            !getExpandableItemsHandler().getExpandedItems().contains(index);
   }
 

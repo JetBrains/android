@@ -18,6 +18,7 @@ package com.android.tools.idea.uibuilder.palette;
 import com.android.tools.adtui.common.AdtUiUtils;
 import com.android.tools.adtui.common.ColoredIconGenerator;
 import com.intellij.openapi.util.Pair;
+import com.intellij.ui.ClientProperty;
 import com.intellij.ui.ColoredListCellRenderer;
 import com.intellij.ui.ExpandableItemsHandler;
 import com.intellij.ui.NewUI;
@@ -75,7 +76,7 @@ public class ItemList extends ListWithMargin<Palette.Item> {
   }
 
   private boolean displayFittedTextIfNecessary(int index) {
-    return !UIUtil.isClientPropertyTrue(this, ExpandableItemsHandler.EXPANDED_RENDERER) &&
+    return !ClientProperty.isTrue(this, ExpandableItemsHandler.EXPANDED_RENDERER) &&
            !getExpandableItemsHandler().getExpandedItems().contains(index);
   }
 
