@@ -32,6 +32,7 @@ import icons.StudioIcons
  */
 class StudioProfilersSessionTab(private val profilers: StudioProfilers,
                                 private val window: ToolWindowWrapper,
+                                ideProfilerComponents: IdeProfilerComponents,
                                 project: Project) : AspectObserver(), StudioProfilersTab {
 
   override val view: StudioProfilersView
@@ -41,8 +42,7 @@ class StudioProfilersSessionTab(private val profilers: StudioProfilers,
       .onChange(SessionAspect.SELECTED_SESSION) { selectedSessionChanged() }
       .onChange(SessionAspect.PROFILING_SESSION) { profilingSessionChanged() }
 
-    val profilerComponents: IdeProfilerComponents = IntellijProfilerComponents(project, profilers.ideServices.featureTracker)
-    view = SessionProfilersView(profilers, profilerComponents, this)
+    view = SessionProfilersView(profilers, ideProfilerComponents, this)
 
     project.messageBus.connect(this).subscribe(ToolWindowManagerListener.TOPIC,
                                                AndroidProfilerWindowManagerListener(project, profilers, view))

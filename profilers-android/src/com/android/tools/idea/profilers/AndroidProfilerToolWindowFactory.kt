@@ -62,7 +62,7 @@ class AndroidProfilerToolWindowFactory : DumbAware, ToolWindowFactory {
       val wrapper: ToolWindowWrapper = ToolWindowWrapperImpl(project, toolWindow)
       val view = AndroidProfilerToolWindow(wrapper, project)
       val contentFactory = ContentFactory.getInstance()
-      val content = contentFactory.createContent(view.component, "", false)
+      val content = contentFactory.createContent(view.profilersPanel, "", false)
       Disposer.register(project, view)
       toolWindow.contentManager.addContent(content)
       toolWindow.setIcon(StudioIcons.Shell.ToolWindows.ANDROID_PROFILER)

@@ -25,6 +25,7 @@ import com.android.tools.nativeSymbolizer.ProjectSymbolSource
 import com.android.tools.nativeSymbolizer.SymbolFilesLocator
 import com.android.tools.nativeSymbolizer.SymbolSource
 import com.android.tools.profiler.proto.Common
+import com.android.tools.profilers.IdeProfilerComponents
 import com.android.tools.profilers.Notification
 import com.android.tools.profilers.ProfilerAspect
 import com.android.tools.profilers.ProfilerClient
@@ -41,14 +42,14 @@ import com.intellij.openapi.vfs.VirtualFile
 import java.awt.BorderLayout
 import java.io.File
 import java.util.function.Supplier
-import javax.swing.JComponent
 import javax.swing.JPanel
 
 class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private val project: Project) : AspectObserver(), Disposable {
   private val ideProfilerServices: IntellijProfilerServices
+  private val ideProfilerComponents: IdeProfilerComponents
   val profilers: StudioProfilers
   private val profilersTab: StudioProfilersTab
-  private val panel: JPanel
+  val profilersPanel: JPanel
 
   init {
     val symbolSource: SymbolSource = ProjectSymbolSource(project)
@@ -79,14 +80,16 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
       StartupManager.getInstance(project).runWhenProjectIsInitialized { profilers.preferredProcessName = getPreferredProcessName(project) }
     }
 
-    profilersTab = StudioProfilersSessionTab(profilers, window, project)
+    ideProfilerComponents = IntellijProfilerComponents(project, ideProfilerServices.featureTracker)
+
+    profilersTab = StudioProfilersSessionTab(profilers, window, ideProfilerComponents, project)
     Disposer.register(this, profilersTab)
 
-    panel = JPanel(BorderLayout())
-    panel.removeAll()
-    panel.add(profilersTab.view.component)
-    panel.revalidate()
-    panel.repaint()
+    profilersPanel = JPanel(BorderLayout())
+    profilersPanel.removeAll()
+    profilersPanel.add(profilersTab.view.component)
+    profilersPanel.revalidate()
+    profilersPanel.repaint()
   }
 
   /** Sets the profiler's auto-profiling process in case it has been unset.  */
@@ -122,9 +125,6 @@ class AndroidProfilerToolWindow(private val window: ToolWindowWrapper, private v
       window.removeContent()
     }
   }
-
-  val component: JComponent
-    get() = panel
 
   companion object {
     /**
