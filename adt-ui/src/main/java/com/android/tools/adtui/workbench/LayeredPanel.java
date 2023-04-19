@@ -45,7 +45,6 @@ import static com.android.tools.adtui.workbench.AttachedToolWindow.TOOL_WINDOW_P
 class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Disposable {
   private final String myBenchName;
   private final PropertiesComponent myPropertiesComponent;
-  private final JComponent myDefaultLayer;
   private final ThreeComponentsSplitter mySplitter;
   private final JPanel myContainer;
   private String myToolName;
@@ -61,7 +60,6 @@ class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Di
                @NotNull PropertiesComponent propertiesComponent) {
     myBenchName = benchName;
     myPropertiesComponent = propertiesComponent;
-    myDefaultLayer = defaultLayer;
     myContainer = new JPanel();
     myContainer.setOpaque(false);
     myContainer.addComponentListener(createWidthUpdater());
@@ -77,6 +75,8 @@ class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Di
     add(defaultLayer, DEFAULT_LAYER);
     add(mySplitter, PALETTE_LAYER);
     model.addListener(this);
+
+    setFullOverlayLayout(true);
   }
 
   @VisibleForTesting
@@ -125,12 +125,6 @@ class LayeredPanel<T> extends JBLayeredPane implements SideModel.Listener<T>, Di
     JComponent component = tool.getComponent();
     component.setVisible(false);
     myContainer.add(component, PALETTE_LAYER);
-  }
-
-  @Override
-  public void doLayout() {
-    myDefaultLayer.setBounds(0, 0, getWidth(), getHeight());
-    mySplitter.setBounds(0, 0, getWidth(), getHeight());
   }
 
   @Override
