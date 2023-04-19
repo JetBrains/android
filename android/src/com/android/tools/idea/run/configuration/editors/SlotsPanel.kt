@@ -73,7 +73,7 @@ class SlotsPanel() : JPanel(FlowLayout(FlowLayout.LEFT)) {
     boxWithSlotList.alignmentY = TOP_ALIGNMENT
     populateSlotList()
     val mainBox = Box.createHorizontalBox().apply {
-      preferredSize = Dimension(550, 300)
+      preferredSize = Dimension(650, 300)
     }
     mainBox.add(boxWithSlotList)
     mainBox.add(Box.createGlue())
@@ -138,7 +138,7 @@ class SlotsPanel() : JPanel(FlowLayout(FlowLayout.LEFT)) {
       if (chosenSlot.type == null) {
         border = BorderFactory.createLineBorder(Color.ORANGE)
       }
-      preferredSize = Dimension(160, preferredSize.height)
+      preferredSize = Dimension(240, preferredSize.height)
       item = chosenSlot.type
       isEnabled = options.isNotEmpty()
       addActionListener {
@@ -197,7 +197,7 @@ class SlotsPanel() : JPanel(FlowLayout(FlowLayout.LEFT)) {
         isEnabled = hasSupportedType
         border = JBUI.Borders.emptyRight(5)
         if (!isBackgroundImageSlot) {
-          preferredSize = Dimension(50, preferredSize.height)
+          preferredSize = Dimension(60, preferredSize.height)
         }
        }
       )
